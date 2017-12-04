@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<MailBatch xmlns="http://schemas.corelogic.com/ade/authomail/v1.17.0" Id ="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" BusinessFriendlyId ="" DueDate="" Priority="High|Medium|Low">
+<MailBatch xmlns="http://schemas.corelogic.com/ade/authomail/v1.17.0" Id ="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" BusinessFriendlyIdName ="" BusinessFriendlyIdValue="" DueDate="" Priority="High|Medium|Low">
 
   <ShippingInfo Carrier="" ServiceType ="USPS|FedEx|UPS" Account="ADE"/>
     
@@ -9,7 +9,7 @@
     <RecipientInfo>
       <Recipient Prefix="" FirstName="" MiddleName="" LastName="" Suffix="" Phone="" Organization=""/>
       <Corecipient Prefix="" GivenName="" Surname="" Suffix="" Phone=""/>
-      <Address Line1a="" Line2a="" Line3a="" Street="" AptOrSuiteOrOther ="" Line1b="" Line2b="" Line3b="" City="" State="" ZIP=""/>
+      <Address OptionalLine1AboveStreet="" OptionalLine2AboveStreet="" Street="" AptOrSuiteOrOther ="" OptionalLine1BelowStreet="" OptionalLine2BelowStreet="" City="" State="" ZIP=""/>
     </RecipientInfo>
 
     <ReturnInfo>
