@@ -14,7 +14,7 @@
 
     <ReturnInfo>
       <Recipient Prefix="" FirstName="" MiddleName="" LastName="" Suffix="" Phone="" Organization=""/>
-      <Address Line1a="" Line2a="" Line3a="" Street="" AptOrSuiteOrOther ="" Line1b="" Line2b="" Line3b="" City="" State="" ZIP=""/>
+      <Address OptionalLine1AboveStreet="" OptionalLine2AboveStreet="" Street="" AptOrSuiteOrOther ="" OptionalLine1BelowStreet="" OptionalLine2BelowStreet="" City="" State="" ZIP=""/>
     </ReturnInfo>
     
   <ShippingInfo Carrier="" ServiceType ="USPS|FedEx|UPS" Account="ADE"/>
@@ -31,8 +31,8 @@
   <MailPiece></MailPiece>
   
   <ReturnInfo>
-    <Recipient Prefix="" GivenName="" Surname="" Suffix="" Phone=""/>
-    <Address Street="" AptOrSuiteOrOther ="" City="" State="" ZIP=""/>
+    <Recipient Prefix="" FirstName="" MiddleName="" LastName="" Suffix="" Phone="" Organization=""/>
+    <Address OptionalLine1AboveStreet="" OptionalLine2AboveStreet="" Street="" AptOrSuiteOrOther ="" OptionalLine1BelowStreet="" OptionalLine2BelowStreet="" City="" State="" ZIP=""/>
   </ReturnInfo>
   
   <CustomInfo>
