@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MailBatch xmlns="http://schemas.corelogic.com/ade/authomail/v1.17.0" Id ="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" BusinessFriendlyId ="" PrintSize="Letter|Legal|MixMedia" PrintMode="Simplex|Duplex" DueDate="" Priority="High|Medium|Low">
+
+  <ShippingInfo Carrier="" ServiceType ="USPS|FedEx|UPS" Account="ADE"/>
+    
+  <MailPiece Id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" BusinessFriendlyIdName ="{LoanNumber}" BusinessFriendlyIdValue="LoanNumber">
+    <File Name="" Pattern=""/>
+    
+    <RecipientInfo>
+      <Recipient Prefix="" FirstName="" MiddleName="" LastName="" Suffix="" Phone="" Organization=""/>
+      <Corecipient Prefix="" GivenName="" Surname="" Suffix="" Phone=""/>
+      <Address Line1a="" Line2a="" Line3a="" Street="" AptOrSuiteOrOther ="" Line1b="" Line2b="" Line3b="" City="" State="" ZIP=""/>
+    </RecipientInfo>
+
+    <ReturnInfo>
+      <Recipient Prefix="" GivenName="" Surname="" Suffix="" Phone=""/>
+      <Address Street="" AptOrSuiteOrOther ="" City="" State="" ZIP=""/>
+    </ReturnInfo>
+    
+  <ShippingCarrier ShippingMethod ="USPS|FedEx|UPS" ShippingServiceAccount="ADE"/>
+    
+    <CustomInfo>
+      <Metadata Key="" Value=""/>
+      <Metadata Key="" Value=""/>
+      <Metadata Key="" Value=""/>
+    </CustomInfo>
+  
+  </MailPiece>
+
+  <MailPiece></MailPiece>
+  <MailPiece></MailPiece>
+  
+  <ReturnInfo>
+    <Recipient Prefix="" GivenName="" Surname="" Suffix="" Phone=""/>
+    <Address Street="" AptOrSuiteOrOther ="" City="" State="" ZIP=""/>
+  </ReturnInfo>
+  
+  <CustomInfo>
+    <Metadata Key="" Value=""/>
+    <Metadata Key="" Value=""/>
+    <Metadata Key="" Value=""/>
+  </CustomInfo>
+
+  </MailBatch>
