@@ -1,0 +1,168 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://schemas.corelogic.com/ade/authomail/v1.18.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="MailBatch">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="ShippingInfo">
+          <xs:complexType>
+            <xs:attribute name="Carrier" type="xs:string" use="required" />
+            <xs:attribute name="ServiceType" type="xs:string" use="required" />
+            <xs:attribute name="AccountCode" type="xs:string" use="required" />
+          </xs:complexType>
+        </xs:element>
+        <xs:element maxOccurs="unbounded" name="MailPiece">
+          <xs:complexType>
+            <xs:sequence minOccurs="0">
+              <xs:element name="File">
+                <xs:complexType>
+                  <xs:attribute name="Name" type="xs:string" use="required" />
+                  <xs:attribute name="Pattern" type="xs:string" use="required" />
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="RecipientInfo">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="Recipient">
+                      <xs:complexType>
+                        <xs:attribute name="Prefix" type="xs:string" use="required" />
+                        <xs:attribute name="FirstName" type="xs:string" use="required" />
+                        <xs:attribute name="MiddleName" type="xs:string" use="required" />
+                        <xs:attribute name="LastName" type="xs:string" use="required" />
+                        <xs:attribute name="Suffix" type="xs:string" use="required" />
+                        <xs:attribute name="Phone" type="xs:string" use="required" />
+                        <xs:attribute name="Organization" type="xs:string" use="required" />
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="Corecipient">
+                      <xs:complexType>
+                        <xs:attribute name="Prefix" type="xs:string" use="required" />
+                        <xs:attribute name="GivenName" type="xs:string" use="required" />
+                        <xs:attribute name="Surname" type="xs:string" use="required" />
+                        <xs:attribute name="Suffix" type="xs:string" use="required" />
+                        <xs:attribute name="Phone" type="xs:string" use="required" />
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="Address">
+                      <xs:complexType>
+                        <xs:attribute name="OptionalLine1AboveStreet" type="xs:string" use="required" />
+                        <xs:attribute name="OptionalLine2AboveStreet" type="xs:string" use="required" />
+                        <xs:attribute name="Street" type="xs:string" use="required" />
+                        <xs:attribute name="AptOrSuiteOrOther" type="xs:string" use="required" />
+                        <xs:attribute name="OptionalLine1BelowStreet" type="xs:string" use="required" />
+                        <xs:attribute name="OptionalLine2BelowStreet" type="xs:string" use="required" />
+                        <xs:attribute name="City" type="xs:string" use="required" />
+                        <xs:attribute name="State" type="xs:string" use="required" />
+                        <xs:attribute name="Zip" type="xs:string" use="required" />
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="ReturnInfo">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="Recipient">
+                      <xs:complexType>
+                        <xs:attribute name="Prefix" type="xs:string" use="required" />
+                        <xs:attribute name="FirstName" type="xs:string" use="required" />
+                        <xs:attribute name="MiddleName" type="xs:string" use="required" />
+                        <xs:attribute name="LastName" type="xs:string" use="required" />
+                        <xs:attribute name="Suffix" type="xs:string" use="required" />
+                        <xs:attribute name="Phone" type="xs:string" use="required" />
+                        <xs:attribute name="Organization" type="xs:string" use="required" />
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="Address">
+                      <xs:complexType>
+                        <xs:attribute name="OptionalLine1AboveStreet" type="xs:string" use="required" />
+                        <xs:attribute name="OptionalLine2AboveStreet" type="xs:string" use="required" />
+                        <xs:attribute name="Street" type="xs:string" use="required" />
+                        <xs:attribute name="AptOrSuiteOrOther" type="xs:string" use="required" />
+                        <xs:attribute name="OptionalLine1BelowStreet" type="xs:string" use="required" />
+                        <xs:attribute name="OptionalLine2BelowStreet" type="xs:string" use="required" />
+                        <xs:attribute name="City" type="xs:string" use="required" />
+                        <xs:attribute name="State" type="xs:string" use="required" />
+                        <xs:attribute name="Zip" type="xs:string" use="required" />
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="ShippingInfo">
+                <xs:complexType>
+                  <xs:attribute name="Carrier" type="xs:string" use="required" />
+                  <xs:attribute name="ServiceType" type="xs:string" use="required" />
+                  <xs:attribute name="AccountCode" type="xs:string" use="required" />
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="CustomInfo">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element maxOccurs="unbounded" name="Metadata">
+                      <xs:complexType>
+                        <xs:attribute name="Key" type="xs:string" use="required" />
+                        <xs:attribute name="Value" type="xs:string" use="required" />
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+            <xs:attribute name="Id" type="xs:string" use="optional" />
+            <xs:attribute name="BusinessFriendlyIdName" type="xs:string" use="optional" />
+            <xs:attribute name="BusinessFriendlyIdValue" type="xs:string" use="optional" />
+            <xs:attribute name="DocumentOrPackageType" type="xs:string" use="optional" />
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="ReturnInfo">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Recipient">
+                <xs:complexType>
+                  <xs:attribute name="Prefix" type="xs:string" use="required" />
+                  <xs:attribute name="FirstName" type="xs:string" use="required" />
+                  <xs:attribute name="MiddleName" type="xs:string" use="required" />
+                  <xs:attribute name="LastName" type="xs:string" use="required" />
+                  <xs:attribute name="Suffix" type="xs:string" use="required" />
+                  <xs:attribute name="Phone" type="xs:string" use="required" />
+                  <xs:attribute name="Organization" type="xs:string" use="required" />
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="Address">
+                <xs:complexType>
+                  <xs:attribute name="OptionalLine1AboveStreet" type="xs:string" use="required" />
+                  <xs:attribute name="OptionalLine2AboveStreet" type="xs:string" use="required" />
+                  <xs:attribute name="Street" type="xs:string" use="required" />
+                  <xs:attribute name="AptOrSuiteOrOther" type="xs:string" use="required" />
+                  <xs:attribute name="OptionalLine1BelowStreet" type="xs:string" use="required" />
+                  <xs:attribute name="OptionalLine2BelowStreet" type="xs:string" use="required" />
+                  <xs:attribute name="City" type="xs:string" use="required" />
+                  <xs:attribute name="State" type="xs:string" use="required" />
+                  <xs:attribute name="Zip" type="xs:string" use="required" />
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="CustomInfo">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element maxOccurs="unbounded" name="Metadata">
+                <xs:complexType>
+                  <xs:attribute name="Key" type="xs:string" use="required" />
+                  <xs:attribute name="Value" type="xs:string" use="required" />
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute name="Id" type="xs:string" use="required" />
+      <xs:attribute name="BusinessFriendlyIdName" type="xs:string" use="required" />
+      <xs:attribute name="BusinessFriendlyIdValue" type="xs:string" use="required" />
+      <xs:attribute name="DueDate" type="xs:string" use="required" />
+      <xs:attribute name="Priority" type="xs:string" use="required" />
+      <xs:attribute name="DocumentOrPackageType" type="xs:string" use="required" />
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
