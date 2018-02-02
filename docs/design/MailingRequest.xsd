@@ -4,7 +4,6 @@
   <xs:element name="MailBatch" type="tns:MailBatch" />
   <xs:complexType name="MailBatch">
     <xs:all>
-      <xs:element minOccurs="0" maxOccurs="1" name="ShippingInfo" type="tns:ShippingInfo" />
       <xs:element minOccurs="0" maxOccurs="1" name="ReturnInfo" type="tns:ReturnInfo" />
       <xs:element minOccurs="1" maxOccurs="1" name="MailPieces" type="tns:MailPieces" />
       <xs:element minOccurs="0" maxOccurs="1" name="CustomInfo" type="tns:CustomInfo" />
@@ -16,32 +15,6 @@
     <xs:attribute name="Priority" type="tns:Priority" use="required" />
     <xs:attribute name="DocumentOrPackageType" type="tns:nonEmptyString" use="optional" />
   </xs:complexType>
-  <xs:complexType name="ShippingInfo">
-    <xs:attribute name="Carrier" type="tns:Carrier" use="required" />
-    <xs:attribute name="ServiceType" type="tns:ServiceType" use="required" />
-    <xs:attribute name="AccountCode" type="tns:nonEmptyString" use="optional" />
-  </xs:complexType>
-  <xs:simpleType name="Carrier">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="USPS" />
-      <xs:enumeration value="FedEx" />
-      <!--<xs:enumeration value="UPS" />-->
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="ServiceType">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="USPS_NORMAL" />
-      <xs:enumeration value="USPS_IMB" />
-      <xs:enumeration value="FEDEX_2_DAY" />
-      <xs:enumeration value="FEDEX_EXPRESS_SAVER" />
-      <xs:enumeration value="FEDEX_GROUND" />
-      <xs:enumeration value="FIRST_OVERNIGHT" />
-      <xs:enumeration value="GROUND_HOME_DELIVERY" />
-      <xs:enumeration value="PRIORITY_OVERNIGHT" />
-      <xs:enumeration value="STANDARD_OVERNIGHT" />
-      <xs:enumeration value="SMART_POST" />
-    </xs:restriction>
-  </xs:simpleType>
   <xs:complexType name="ReturnInfo">
     <xs:all>
       <xs:element minOccurs="1" maxOccurs="1" name="Recipient" type="tns:Recipient" />
@@ -78,7 +51,6 @@
       <xs:element minOccurs="1" maxOccurs="1" name="DocumentOrPackage" type="tns:DocumentOrPackage" />
       <xs:element minOccurs="0" maxOccurs="1" name="RecipientInfo" type="tns:RecipientInfo" />
       <xs:element minOccurs="0" maxOccurs="1" name="ReturnInfo" type="tns:ReturnInfo" />
-      <xs:element minOccurs="0" maxOccurs="1" name="ShippingInfo" type="tns:ShippingInfo" />
       <xs:element minOccurs="0" maxOccurs="1" name="CustomInfo" type="tns:CustomInfo" />
     </xs:all>
     <xs:attribute name="Id" type="tns:guid" use="required" />
