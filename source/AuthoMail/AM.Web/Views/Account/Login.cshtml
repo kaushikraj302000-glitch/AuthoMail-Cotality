@@ -21,12 +21,12 @@
                         <div class="cl-form-login">
 
                             <div class="form-group">
-                                <label for="login-email">Email / Username</label>
-                                @Html.TextBoxFor(m => m.Email, new { @class = "form-control" })
-                                @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+                                @Html.LabelFor(m => m.UserName)
+                                @Html.TextBoxFor(m => m.UserName, new { @class = "form-control" })
+                                @Html.ValidationMessageFor(m => m.UserName, "", new { @class = "text-danger" })
                             </div>
                             <div class="form-group">
-                                <label>Password</label>
+                                @Html.LabelFor(m => m.Password)
                                 @Html.PasswordFor(m => m.Password, new { @class = "form-control" })
                                 @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
                             </div>
@@ -35,9 +35,9 @@
                                 <label for="checkbox-demo">Remember Me</label><span class="pull-right"><a href="#" class="forgot">Forgot Password?</a></span>
                             </div>
                             @*<div class="form-group">
-                                <input type="submit" value="Sign In" class="btn btn-primary btn-lg btn-block">
-                            </div>*@
-                            <div class="form-group" >
+                                    <input type="submit" value="Sign In" class="btn btn-primary btn-lg btn-block">
+                                </div>*@
+                            <div class="form-group">
 
                                 <input type="submit" value="Sign In" style="width:50%;float:left;" class="btn btn-primary btn-lg">
                                 @Html.ActionLink("Register", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink", @class = "btn btn-default btn-lg", @style = "width:50%;float:right;margin-top:0px;" })
@@ -67,9 +67,9 @@
             </div>
         </div>
         @*<div class="cl-learnmore">
-            <span> <b>Not a Customer?</b></span>
-            @Html.ActionLink("Register", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink", @class = "btn btn-default" })
-        </div>*@
+                <span> <b>Not a Customer?</b></span>
+                @Html.ActionLink("Register", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink", @class = "btn btn-default" })
+            </div>*@
     </div>
 </section>
 

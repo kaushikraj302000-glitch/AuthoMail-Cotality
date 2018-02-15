@@ -7,7 +7,7 @@
     <ProjectGuid>{A60D6E77-74FC-419C-BF13-A7684012D0A5}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>AM.Entities</RootNamespace>
+    <RootNamespace>AM.Services</RootNamespace>
     <AssemblyName>AM.Services</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -54,10 +54,16 @@
     <Compile Include="IdentityManage\AppUserLogins.cs" />
     <Compile Include="IdentityManage\AppUserRole.cs" />
     <Compile Include="IdentityStores\Disposable.cs" />
+    <Compile Include="Core\DbFactory.cs" />
+    <Compile Include="Demo.cs" />
+    <Compile Include="Extensions.cs" />
+    <Compile Include="IDemo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Core\ServiceBase.cs" />
     <Compile Include="IdentityStores\DbContext.cs" />
     <Compile Include="IdentityStores\RoleStore.cs" />
     <Compile Include="IdentityStores\UserStore.cs" />
+    <Compile Include="Utilities\Extensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
