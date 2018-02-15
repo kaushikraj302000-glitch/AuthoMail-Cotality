@@ -33,16 +33,16 @@ namespace AM.Web
     }
 
     // Configure the application user manager used in this application. UserManager is defined in ASP.NET Identity and is used by the application.
-    public class ApplicationUserManager : UserManager<ProfileUser>
+    public class AMUserManager : UserManager<ProfileUser>
     {
-        public ApplicationUserManager(IUserStore<ProfileUser> store)
+        public AMUserManager(IUserStore<ProfileUser> store)
             : base(store)
         {
         }
 
-        public static ApplicationUserManager Create(IdentityFactoryOptions<ApplicationUserManager> options, IOwinContext context) 
+        public static AMUserManager Create(IdentityFactoryOptions<AMUserManager> options, IOwinContext context)
         {
-            var manager = new ApplicationUserManager(new UserStore<ProfileUser>());
+            var manager = new AMUserManager(new UserStore<ProfileUser>());
             // Configure validation logic for usernames
             manager.UserValidator = new UserValidator<ProfileUser>(manager)
             {
@@ -81,7 +81,7 @@ namespace AM.Web
             var dataProtectionProvider = options.DataProtectionProvider;
             if (dataProtectionProvider != null)
             {
-                manager.UserTokenProvider = 
+                manager.UserTokenProvider =
                     new DataProtectorTokenProvider<ProfileUser>(dataProtectionProvider.Create("ASP.NET Identity"));
             }
             return manager;
@@ -89,34 +89,34 @@ namespace AM.Web
     }
 
     // Configure the application sign-in manager which is used in this application.
-    public class ApplicationSignInManager : SignInManager<ProfileUser, string>
+    public class AMSignInManager : SignInManager<ProfileUser, string>
     {
-        public ApplicationSignInManager(ApplicationUserManager userManager, IAuthenticationManager authenticationManager)
+        public AMSignInManager(AMUserManager userManager, IAuthenticationManager authenticationManager)
             : base(userManager, authenticationManager)
         {
         }
 
         public override Task<ClaimsIdentity> CreateUserIdentityAsync(ProfileUser user)
         {
-            return user.GenerateUserIdentityAsync((ApplicationUserManager)UserManager);
+            return user.GenerateUserIdentityAsync((AMUserManager)UserManager);
         }
 
-        public static ApplicationSignInManager Create(IdentityFactoryOptions<ApplicationSignInManager> options, IOwinContext context)
+        public static AMSignInManager Create(IdentityFactoryOptions<AMSignInManager> options, IOwinContext context)
         {
-            return new ApplicationSignInManager(context.GetUserManager<ApplicationUserManager>(), context.Authentication);
+            return new AMSignInManager(context.GetUserManager<AMUserManager>(), context.Authentication);
         }
     }
 
-    public class ApplicationRoleManager : RoleManager<IdentityRole>
+    public class AMRoleManager : RoleManager<IdentityRole>
     {
-        public ApplicationRoleManager(IRoleStore<IdentityRole, string> roleStore)
+        public AMRoleManager(IRoleStore<IdentityRole, string> roleStore)
             : base(roleStore)
         {
         }
 
-        public static ApplicationRoleManager Create(IdentityFactoryOptions<ApplicationRoleManager> options, IOwinContext context)
+        public static AMRoleManager Create(IdentityFactoryOptions<AMRoleManager> options, IOwinContext context)
         {
-            var manager = new ApplicationRoleManager(new RoleStore<IdentityRole>());
+            var manager = new AMRoleManager(new RoleStore<IdentityRole>());
             return manager;
         }
     }
