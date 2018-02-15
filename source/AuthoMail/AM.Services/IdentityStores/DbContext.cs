@@ -23,8 +23,6 @@ namespace AM.Services.IdentityStores
                 return conn;
             }
         }
-
-
     }
     public class Disposable : IDisposable
     {
