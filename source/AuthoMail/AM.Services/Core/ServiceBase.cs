@@ -14,20 +14,26 @@ namespace AM.Services
 
         protected ServiceBase()
         {
-            //db = DbFactory.Create;
+            db = DbFactory.Create();
         }
 
         protected override void DisposeCore()
         {
             if (db != null)
             {
-                ((IDisposable)db).Dispose();
+                db.Close();
+                db.Dispose();
                 db = null;
             }
         }
+
+        ~ServiceBase()
+        {
+            this.Dispose();
+        }
     }
 
-    public class Disposable : IDisposable
+    public abstract class Disposable : IDisposable
     {
         private bool disposed = false;
 
@@ -53,10 +59,7 @@ namespace AM.Services
             }
         }
 
-        protected virtual void DisposeCore()
-        {
-
-        }
+        protected abstract void DisposeCore();
 
         ~Disposable()
         {

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AM.Services
 {
-    public interface IDemo
+    public interface IDemo : IDisposable
     {
         List<string> GetData();
     }

@@ -11,7 +11,21 @@ namespace AM.Services
 {
     static class DbFactory
     {
-        internal static IDbConnection Create(string connectionStringName)
+        /// <summary>
+        /// Uses connection string with name 'DefaultConnection' to create connection.
+        /// </summary>
+        /// <returns></returns>
+        internal static DbConnection Create()
+        {
+            return Create("DefaultConnection");
+        }
+
+        /// <summary>
+        /// Uses connection string with specified name to create connection.
+        /// </summary>
+        /// <param name="connectionStringName">Connection string name</param>
+        /// <returns></returns>
+        internal static DbConnection Create(string connectionStringName)
         {
             var cs = ConfigurationManager.ConnectionStrings[connectionStringName];
 
@@ -24,16 +38,6 @@ namespace AM.Services
             var connection = factory.CreateConnection();
             connection.ConnectionString = cs.ConnectionString;
             return connection;
-        }
-
-        /// <summary>
-        /// Uses connection string with name 'DefaultConnection' to create connection. If 'DefaultConnection' is not found and
-        /// if there is ONLY one connection string defined in config file, it creates connection with that
-        /// </summary>
-        /// <returns></returns>
-        static IDbConnection Create()
-        {
-            return Create("DefaultConnection");
         }
     }
 }
