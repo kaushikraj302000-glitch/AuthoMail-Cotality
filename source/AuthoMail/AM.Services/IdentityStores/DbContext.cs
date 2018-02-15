@@ -11,7 +11,7 @@ namespace AM.Services.IdentityStores
     public class DbContext : Disposable//IConnectionFactory
     {
         //Connection String
-        string connectionString = ConfigurationManager.ConnectionStrings["CustomDb"].ConnectionString;
+        string connectionString = ConfigurationManager.ConnectionStrings["AuthoMail"].ConnectionString;
         public IDbConnection GetConnection
         {
             get
