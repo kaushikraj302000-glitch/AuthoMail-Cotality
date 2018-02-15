@@ -75,8 +75,7 @@ namespace AM.Web
                       "~/clui/dist/css/components/navbar.css",
                       "~/clui/dist/css/components/page-title.css",
                       "~/clui/dist/css/components/panel.css",
-                      "~/clui/dist/css/components/table.css",
-                      "~/Content/bootstrap.css"));
+                      "~/clui/dist/css/components/table.css"));
         }
     }
 }

@@ -63,6 +63,7 @@
     <Compile Include="IdentityStores\DbContext.cs" />
     <Compile Include="IdentityStores\RoleStore.cs" />
     <Compile Include="IdentityStores\UserStore.cs" />
+    <Compile Include="Utilities\Extensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
