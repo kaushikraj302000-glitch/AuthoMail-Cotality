@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace AM.Services.IdentityStores
 {
-    public class UserStore<TUser> :
+    public class UserStore<TUser> : ServiceBase,
         IUserLoginStore<TUser>,
         IUserClaimStore<TUser>,
       IUserRoleStore<TUser>,
@@ -31,7 +31,6 @@ namespace AM.Services.IdentityStores
         private AppUserClaims appUserClaim;
         private AppUserLogins appUserLogin;
 
-        private IDbConnection db;
         public IQueryable<TUser> Users
         {
             get
@@ -41,7 +40,6 @@ namespace AM.Services.IdentityStores
         }
         public UserStore()
         {
-            db = new DbContext().GetConnection;
             appUser = new AppUser<TUser>(db);
             appRole = new AppRole(db);
             appUserRole = new AppUserRole(db);

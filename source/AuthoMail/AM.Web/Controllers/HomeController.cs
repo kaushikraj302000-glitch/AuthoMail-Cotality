@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AM.Services.Services;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -8,8 +9,14 @@ namespace AM.Web.Controllers
 {
     public class HomeController : Controller
     {
+        IHomeService homeSvc;
+        public HomeController()
+        {
+            homeSvc = new HomeService();
+        }
         public ActionResult Index()
         {
+            var data = homeSvc.GetDeliveryReportByBatchId("");
             return View();
         }
 
