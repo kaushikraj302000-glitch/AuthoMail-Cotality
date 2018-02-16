@@ -10,13 +10,14 @@ namespace AM.Web.Controllers
     public class HomeController : Controller
     {
         IHomeService homeSvc;
-        public HomeController()
+        public HomeController(IHomeService homeSvc)
         {
-            homeSvc = new HomeService();
+            this.homeSvc = homeSvc;
         }
+        [Authorize]
         public ActionResult Index()
         {
-            var data = homeSvc.GetDeliveryReportByBatchId("");
+            var data = homeSvc.GetDeliveryReportByBatchClustId("");
             return View();
         }
 

@@ -8,19 +8,28 @@ using Dapper;
 
 namespace AM.Services.Services
 {
-    public interface IHomeService
+    public interface IHomeService//Home Service interface that has number of methods
     {
-        List<DeliveryReportVM> GetDeliveryReportByBatchId(string batchId);
+        List<DeliveryReportVM> GetDeliveryReportByBatchClustId(string batchClustId);
     }
-    public class HomeService : ServiceBase, IHomeService
+    public class HomeService : ServiceBase, IHomeService //It implements Interfaces 
     {
-        public List<DeliveryReportVM> GetDeliveryReportByBatchId(string batchId)
+        public List<DeliveryReportVM> GetDeliveryReportByBatchClustId(string batchClustId)
         {
-            string query = "select * from [AM].[Batch]";
-            //Dictionary<string, object> parameters = new Dictionary<string, object>();
-            //parameters.Add("@batchId", batchId);
+            //Sql Query
+            string query = "select * from [AM].[Batch] WHERE BatchClustId=@batchClustId";
 
-            var data = db.Query<DeliveryReportVM>(query).ToList();
+            //List of parameters declaration
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
+
+            //Assign value to parameters It may one or more. Note:
+            parameters.Add("@batchClustId", batchClustId);
+
+            /*
+             * Execution of query with parateters.
+             * Without Dapper you can't create following code. So just Add "using Dapper" namespace at begin.
+            */
+            var data = db.Query<DeliveryReportVM>(query, parameters).ToList();
             return data;
         }
     }
