@@ -1,87 +1,312 @@
 ﻿@{
     ViewBag.Title = "Home Page";
 }
-<div class="title">
-    <div class="container-fluid">
-        <h1 class="primary-title">Batch ID: CLG2253393</h1>
-        <h2 class="secondary-title">Loan #: 123456789 | Vendor Order ID: 897645321</h2>
-    </div>
-</div>
+<style>
+    .prev, .next {
+        font-size: 15px !important;
+    }
+
+    .dt-buttons {
+        float: right !important;
+        margin-top: -7%;
+       
+    }
+    .dt-button{
+        margin-right: 5px;
+    }
+   
+    .dataTables_wrapper .dt-buttons {
+        float: none;
+        text-align: center;
+    }
+    /*
+    .dataTables_filter
+    {
+        float:right !important;
+    }
+    .dataTables_filter label{
+        float:left;
+    }*/
+</style>
 <div class="panel panel-default">
     <div class="panel-heading">
-        <div class="panel-title">Batch wise info</div>
+        <div class="panel-title">Today Batch Details</div>
     </div>
-    <div class="panel-body panel-gray">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="">
-                    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <div class="panel-body">
+        <table class="table table-responsive" id="sample_2">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Mobile</th>
+                    <th>Email</th>
+                    <th>Education</th>
+                    <th>Sem/Year</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 1; i <= 35; i++)
+                {
+                    <tr class="row-small">
+                        <td>
+                            <span>@i</span>
+                        </td>
+                        <td>
+                            <span>Test @i</span>
+                        </td>
+                        <td>
+                            <span>Type @i</span>
+                        </td>
+                        <td><span>Mobile @i</span></td>
+                        <td><span>Email @i</span></td>
+                        <td><span>Education @i</span></td>
+                        <td><span>Sem/Year @i</span></td>
+                        <td><span>Status @i</span></td>
+                    </tr>
 
-                    <script type="text/javascript">
-                        google.charts.load("current", { packages: ["timeline"] });
-                        google.charts.setOnLoadCallback(drawChart);
-                        function drawChart() {
+                }
+            </tbody>
 
-                            var container = document.getElementById('example3.1');
-                            var chart = new google.visualization.Timeline(container);
-                            var dataTable = new google.visualization.DataTable();
-                            dataTable.addColumn({ type: 'string', id: 'Position' });
-                            dataTable.addColumn({ type: 'string', id: 'Name' });
-                            dataTable.addColumn({ type: 'date', id: 'Start' });
-                            dataTable.addColumn({ type: 'date', id: 'End' });
-                            dataTable.addRows([
-                              ['President', 'George Washington', new Date(1789, 3, 30), new Date(1797, 2, 4)],
-                              ['President', 'John Adams', new Date(1797, 2, 4), new Date(1801, 2, 4)],
-                              ['President', 'Thomas Jefferson', new Date(1801, 2, 4), new Date(1809, 2, 4)],
-                              ['Vice President', 'John Adams', new Date(1789, 3, 21), new Date(1797, 2, 4)],
-                              ['Vice President', 'Thomas Jefferson', new Date(1797, 2, 4), new Date(1801, 2, 4)],
-                              ['Vice President', 'Aaron Burr', new Date(1801, 2, 4), new Date(1805, 2, 4)],
-                              ['Vice President', 'George Clinton', new Date(1805, 2, 4), new Date(1812, 3, 20)],
-                              ['Secretary of State', 'John Jay', new Date(1789, 8, 25), new Date(1790, 2, 22)],
-                              ['Secretary of State', 'Thomas Jefferson', new Date(1790, 2, 22), new Date(1793, 11, 31)],
-                              ['Secretary of State', 'Edmund Randolph', new Date(1794, 0, 2), new Date(1795, 7, 20)],
-                              ['Secretary of State', 'Timothy Pickering', new Date(1795, 7, 20), new Date(1800, 4, 12)],
-                              ['Secretary of State', 'Charles Lee', new Date(1800, 4, 13), new Date(1800, 5, 5)],
-                              ['Secretary of State', 'John Marshall', new Date(1800, 5, 13), new Date(1801, 2, 4)],
-                              ['Secretary of State', 'Levi Lincoln', new Date(1801, 2, 5), new Date(1801, 4, 1)],
-                              ['Secretary of State', 'James Madison', new Date(1801, 4, 2), new Date(1809, 2, 3)]
-                            ]);
+        </table>
+    </div>
+</div>
 
-                            chart.draw(dataTable);
-                        }
-                    </script>
+@section Scripts{
+    @Styles.Render("~/bundles/datatablescss")
+    @Scripts.Render("~/bundles/datatables")
+    @*<script src="~/clui/dist/js/corelogic-ui-no-bootstrap.js"></script>*@
+    <script type="text/javascript">
+        $(document).ready(function () {
 
-                    <div id="example3.1" style="height: 200px;"></div>
+            var table = $('#sample_2');
+            var filename = "BatchReport";
+            var title = "Batch Report";
+            var oTable = table.dataTable({
+
+                // Internationalisation. For more info refer to http://datatables.net/manual/i18n
+                "language": {
+                    "aria": {
+                        "sortAscending": ": activate to sort column ascending",
+                        "sortDescending": ": activate to sort column descending"
+                    },
+                    "emptyTable": "No data available in table",
+                    "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+                    "infoEmpty": "No entries found",
+                    "infoFiltered": "(filtered1 from _MAX_ total entries)",
+                    "lengthMenu": "_MENU_ entries",
+                    "search": "<b>Search:</b>",
+                    "zeroRecords": "No matching records found"
+                },
+                // Or you can use remote translation file
+                //"language": {
+                //   url: '//cdn.datatables.net/plug-ins/3cfcc339e89/i18n/Portuguese.json'
+                //},
+
+                buttons: [
+                    //{
+                    //    extend: 'colvis',
+                    //    text: 'Select Fields',
+                    //    className: 'btn purple pull-left',
+                    //    columns: ':not(.noVis)'
+                    //},
+                {
+                    extend: 'excel',
+                    text: '<i class="fa fa-file-excel-o"></i> Excel',
+                    className: 'btn btn-primary',
+                    filename: filename,
+                    title: title,
+                    exportOptions: {
+                        columns: ':visible'
+                    }
+                    //exportOptions: {
+                    //    columns: [0, 2, 3, 4, 5, 6, 7]
+                    //}
+                },
+                    //{
+                    //    extend: 'print',
+                    //    text: '<i class="fa fa-print"></i> Print ',
+                    //    className: 'btn blue',
+                    //    filename: filename,
+                    //    title: title,
+                    //    //exportOptions: {
+                    //    //    columns: ':visible'
+                    //    //    //format: {
+                    //    //    //    body: function (data, column, row) {
+                    //    //    //        if (column == 2 && column == 3) {
+                    //    //    //            data = data.replace(/<br\s*\/?>/ig, "\n");
+                    //    //    //        }
+                    //    //    //        return column == 0 && column == 1 ? data.replace(/<.*?>/ig, "") : data;
+                    //    //    //    }
+                    //    //    //}
+                    //    //},
+                    //    ////--------------------------
+                    //    //customize: function (doc) {
+                    //    //    doc.styles['td:nth-child(2)'] = {
+                    //    //        width: '100px',
+                    //    //        'max-width': '90px'
+                    //    //    }
+                    //    //},
+                    //    orientation: 'portrait',
+                    //    pagesize: 'A4'
+
+                    //},
+                    {
+                        extend: 'pdfHtml5',
+                        text: '<i class="fa fa-file-pdf-o"></i> Pdf',
+                        className: 'btn btn-info',
+                        filename: filename,
+                        title: title,
+                        exportOptions: {
+                            columns: ':visible'
+                        },
+                        //exportOptions: {
+                        //    columns: [0, 2, 3, 4, 5, 6, 7]
+                        //},
+                        //customize: function (doc) {
+                        //    doc.content[1].table.widths = ['8%', '8%', '10%', '13%', '35%', '13%', '13%'];
+                        //    doc.content[1].layout = "Borders";
+                        //    //doc.content[1].table.alignment = "center";//['center', 'center', 'center', 'left', 'left', 'left']; //"center";
+                        //    //doc.content[1].table.border = 1;
+                        //    //var objLayout = {};
+                        //    //objLayout['hLineWidth'] = function (i) { return .5; };
+                        //    //objLayout['vLineWidth'] = function (i) { return .5; };
+                        //    //objLayout['hLineColor'] = function (i) { return '#aaa'; };
+                        //    //objLayout['vLineColor'] = function (i) { return '#aaa'; };
+                        //    //objLayout['paddingLeft'] = function (i) { return 4; };
+                        //    //objLayout['paddingRight'] = function (i) { return 4; };
+                        //    //doc.content[0].layout = objLayout;
+                        //}
+
+                        //exportOptions: {
+                        //    format: {
+                        //        body: function (data, column, row) {
+                        //            if (column == 2 && column == 3) {
+                        //                data = data.replace(/<br\s*\/?>/ig, "\n");
+                        //            }
+                        //            return column == 0 && column == 1  ? data.replace(/<.*?>/ig, "") : data;
+                        //        }
+                        //    }
+                    }
+
+                    //    ////--------------------------
+                    //    //customize: function (doc) {
+                    //    //    doc.styles['td:nth-child(2)'] = {
+                    //    //        width: '100px',
+                    //    //        'max-width': '90px'
+                    //    //    }
+                    //    //},
+                    //    orientation: 'letter',
+                    //    pagesize: 'A4',
+
+                    //}
+
+
+                ],
+
+                "order": [
+                    [0, 'asc']
+                ],
+                "lengthMenu": [
+                    [5, 10, 25, 50, 100, -1],
+                    [5, 10, 25, 50, 100, "All"] // change per page values here
+                ],
+                // set the initial value
+                "pageLength": 5,
+
+                "dom": "<'row' <'col-md-12'B>><'row'<'col-md-6 col-sm-12'l><'col-md-6 col-sm-12'f>r><'table-scrollable't><'row'<'col-md-5 col-sm-12'i><'col-md-7 col-sm-12'p>>", // horizobtal scrollable datatable
+
+                // Uncomment below line("dom" parameter) to fix the dropdown overflow issue in the datatable cells. The default datatable layout
+                // setup uses scrollable div(table-scrollable) with overflow:auto to enable vertical scroll(see: assets/global/plugins/datatables/plugins/bootstrap/dataTables.bootstrap.js).
+                // So when dropdowns used the scrollable div should be removed.
+                //"dom": "<'row' <'col-md-12'T>><'row'<'col-md-6 col-sm-12'l><'col-md-6 col-sm-12'f>r>t<'row'<'col-md-5 col-sm-12'i><'col-md-7 col-sm-12'p>>",
+            });
+            // $("#sample_2_filter").find("input").css("background-color", "moccasin");
+            //table.on('order.dt search.dt', function () {
+            //    table.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+            //        cell.innerHTML = i + 1;
+            //    });
+            //}).();
+            //$('#sample_2').wrap("<div id='scrooll_div'></div>");
+            //$('#scrooll_div').doubleScroll();
+            //$("#scroll_div").css("position", "fixed");
+            //$("#studentCount").text($("#sample_2_info").text().substring($("#sample_2_info").text().indexOf("to") + 2, $("#sample_2_info").text().indexOf("of")).trim());
+            //$('.ColVis_Button').css("background-color", "red");
+            /*left: 898.14px;
+        display: -webkit-box;*/
+            //$(".dt-button-collection").css("left", "898.14px !important");
+            //$(".dt-button-collection").css("display", "-webkit-box !important");
+            //$("#sample_2_filter input").keyup(function () {
+            //    var count = $("#sample_2_info").text().substring($("#sample_2_info").text().indexOf("to") + 2, $("#sample_2_info").text().indexOf("of")).trim();
+            //    console.log(parseInt(count));
+            //    if (isNaN(count)) {
+            //        $("#studentCount").text(0);
+            //    }
+            //    else {
+            //        $("#studentCount").text(count);
+            //    }
+            //    //$("#studentCount").text($("#sample_2_info").text().substring($("#sample_2_info").text().indexOf("to") + 2, $("#sample_2_info").text().indexOf("of")).trim());
+            //});
+
+        });
+
+    </script>
+}
+@*<div class="title">
+        <div class="container-fluid">
+            <h1 class="primary-title">Batch ID: CLG2253393</h1>
+            <h2 class="secondary-title">Loan #: 123456789 | Vendor Order ID: 897645321</h2>
+        </div>
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <div class="panel-title">Batch wise info</div>
+        </div>
+        <div class="panel-body panel-gray">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="">
+                        <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+                        <script type="text/javascript">
+                            google.charts.load("current", { packages: ["timeline"] });
+                            google.charts.setOnLoadCallback(drawChart);
+                            function drawChart() {
+
+                                var container = document.getElementById('example3.1');
+                                var chart = new google.visualization.Timeline(container);
+                                var dataTable = new google.visualization.DataTable();
+                                dataTable.addColumn({ type: 'string', id: 'Position' });
+                                dataTable.addColumn({ type: 'string', id: 'Name' });
+                                dataTable.addColumn({ type: 'date', id: 'Start' });
+                                dataTable.addColumn({ type: 'date', id: 'End' });
+                                dataTable.addRows([
+                                  ['President', 'George Washington', new Date(1789, 3, 30), new Date(1797, 2, 4)],
+                                  ['President', 'John Adams', new Date(1797, 2, 4), new Date(1801, 2, 4)],
+                                  ['President', 'Thomas Jefferson', new Date(1801, 2, 4), new Date(1809, 2, 4)],
+                                  ['Vice President', 'John Adams', new Date(1789, 3, 21), new Date(1797, 2, 4)],
+                                  ['Vice President', 'Thomas Jefferson', new Date(1797, 2, 4), new Date(1801, 2, 4)],
+                                  ['Vice President', 'Aaron Burr', new Date(1801, 2, 4), new Date(1805, 2, 4)],
+                                  ['Vice President', 'George Clinton', new Date(1805, 2, 4), new Date(1812, 3, 20)],
+                                  ['Secretary of State', 'John Jay', new Date(1789, 8, 25), new Date(1790, 2, 22)],
+                                  ['Secretary of State', 'Thomas Jefferson', new Date(1790, 2, 22), new Date(1793, 11, 31)],
+                                  ['Secretary of State', 'Edmund Randolph', new Date(1794, 0, 2), new Date(1795, 7, 20)],
+                                  ['Secretary of State', 'Timothy Pickering', new Date(1795, 7, 20), new Date(1800, 4, 12)],
+                                  ['Secretary of State', 'Charles Lee', new Date(1800, 4, 13), new Date(1800, 5, 5)],
+                                  ['Secretary of State', 'John Marshall', new Date(1800, 5, 13), new Date(1801, 2, 4)],
+                                  ['Secretary of State', 'Levi Lincoln', new Date(1801, 2, 5), new Date(1801, 4, 1)],
+                                  ['Secretary of State', 'James Madison', new Date(1801, 4, 2), new Date(1809, 2, 3)]
+                                ]);
+
+                                chart.draw(dataTable);
+                            }
+                        </script>
+
+                        <div id="example3.1" style="height: 200px;"></div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
+    </div>*@
 
-@*<div class="jumbotron">
-    <h1>ASP.NET</h1>
-    <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
-    <p><a href="http://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
-</div>
-
-<div class="row">
-    <div class="col-md-4">
-        <h2>Getting started</h2>
-        <p>
-            ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-            enables a clean separation of concerns and gives you full control over markup
-            for enjoyable, agile development.
-        </p>
-        <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Get more libraries</h2>
-        <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-        <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Web Hosting</h2>
-        <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-        <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
-    </div>
-</div>*@
