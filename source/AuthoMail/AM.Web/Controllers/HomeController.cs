@@ -19,7 +19,11 @@ namespace AM.Web.Controllers
             var data = homeSvc.GetDeliveryReportByBatchId("");
             return View();
         }
-
+        public ActionResult MailPiece()
+        {
+            //var data = homeSvc.GetDeliveryReportByBatchId("");
+            return View();
+        }
         public ActionResult About()
         {
             ViewBag.Message = "Your application description page.";

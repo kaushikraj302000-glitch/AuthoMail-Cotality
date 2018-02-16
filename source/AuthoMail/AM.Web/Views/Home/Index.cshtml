@@ -9,24 +9,17 @@
     .dt-buttons {
         float: right !important;
         margin-top: -7%;
-       
     }
-    .dt-button{
+
+    .dt-button {
         margin-right: 5px;
     }
-   
+
     .dataTables_wrapper .dt-buttons {
         float: none;
         text-align: center;
     }
-    /*
-    .dataTables_filter
-    {
-        float:right !important;
-    }
-    .dataTables_filter label{
-        float:left;
-    }*/
+    
 </style>
 <div class="panel panel-default">
     <div class="panel-heading">
@@ -44,6 +37,7 @@
                     <th>Education</th>
                     <th>Sem/Year</th>
                     <th>Status</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -64,6 +58,12 @@
                         <td><span>Education @i</span></td>
                         <td><span>Sem/Year @i</span></td>
                         <td><span>Status @i</span></td>
+                        <td>
+                            <a href="/Home/MailPiece" class="btn btn-default">
+                                <span class="sr-only">View</span>
+                                <i class="fa fa-eye"></i>
+                            </a>
+                        </td>
                     </tr>
 
                 }
@@ -76,7 +76,6 @@
 @section Scripts{
     @Styles.Render("~/bundles/datatablescss")
     @Scripts.Render("~/bundles/datatables")
-    @*<script src="~/clui/dist/js/corelogic-ui-no-bootstrap.js"></script>*@
     <script type="text/javascript">
         $(document).ready(function () {
 
@@ -85,7 +84,6 @@
             var title = "Batch Report";
             var oTable = table.dataTable({
 
-                // Internationalisation. For more info refer to http://datatables.net/manual/i18n
                 "language": {
                     "aria": {
                         "sortAscending": ": activate to sort column ascending",
@@ -99,10 +97,7 @@
                     "search": "<b>Search:</b>",
                     "zeroRecords": "No matching records found"
                 },
-                // Or you can use remote translation file
-                //"language": {
-                //   url: '//cdn.datatables.net/plug-ins/3cfcc339e89/i18n/Portuguese.json'
-                //},
+               
 
                 buttons: [
                     //{
@@ -118,40 +113,10 @@
                     filename: filename,
                     title: title,
                     exportOptions: {
-                        columns: ':visible'
+                        columns: [0,1, 2, 3, 4, 5, 6, 7]
                     }
-                    //exportOptions: {
-                    //    columns: [0, 2, 3, 4, 5, 6, 7]
-                    //}
+                    
                 },
-                    //{
-                    //    extend: 'print',
-                    //    text: '<i class="fa fa-print"></i> Print ',
-                    //    className: 'btn blue',
-                    //    filename: filename,
-                    //    title: title,
-                    //    //exportOptions: {
-                    //    //    columns: ':visible'
-                    //    //    //format: {
-                    //    //    //    body: function (data, column, row) {
-                    //    //    //        if (column == 2 && column == 3) {
-                    //    //    //            data = data.replace(/<br\s*\/?>/ig, "\n");
-                    //    //    //        }
-                    //    //    //        return column == 0 && column == 1 ? data.replace(/<.*?>/ig, "") : data;
-                    //    //    //    }
-                    //    //    //}
-                    //    //},
-                    //    ////--------------------------
-                    //    //customize: function (doc) {
-                    //    //    doc.styles['td:nth-child(2)'] = {
-                    //    //        width: '100px',
-                    //    //        'max-width': '90px'
-                    //    //    }
-                    //    //},
-                    //    orientation: 'portrait',
-                    //    pagesize: 'A4'
-
-                    //},
                     {
                         extend: 'pdfHtml5',
                         text: '<i class="fa fa-file-pdf-o"></i> Pdf',
@@ -159,49 +124,12 @@
                         filename: filename,
                         title: title,
                         exportOptions: {
-                            columns: ':visible'
+                            columns: [0, 1, 2, 3, 4, 5, 6, 7]
                         },
-                        //exportOptions: {
-                        //    columns: [0, 2, 3, 4, 5, 6, 7]
-                        //},
-                        //customize: function (doc) {
-                        //    doc.content[1].table.widths = ['8%', '8%', '10%', '13%', '35%', '13%', '13%'];
-                        //    doc.content[1].layout = "Borders";
-                        //    //doc.content[1].table.alignment = "center";//['center', 'center', 'center', 'left', 'left', 'left']; //"center";
-                        //    //doc.content[1].table.border = 1;
-                        //    //var objLayout = {};
-                        //    //objLayout['hLineWidth'] = function (i) { return .5; };
-                        //    //objLayout['vLineWidth'] = function (i) { return .5; };
-                        //    //objLayout['hLineColor'] = function (i) { return '#aaa'; };
-                        //    //objLayout['vLineColor'] = function (i) { return '#aaa'; };
-                        //    //objLayout['paddingLeft'] = function (i) { return 4; };
-                        //    //objLayout['paddingRight'] = function (i) { return 4; };
-                        //    //doc.content[0].layout = objLayout;
-                        //}
-
-                        //exportOptions: {
-                        //    format: {
-                        //        body: function (data, column, row) {
-                        //            if (column == 2 && column == 3) {
-                        //                data = data.replace(/<br\s*\/?>/ig, "\n");
-                        //            }
-                        //            return column == 0 && column == 1  ? data.replace(/<.*?>/ig, "") : data;
-                        //        }
-                        //    }
+                        
                     }
 
-                    //    ////--------------------------
-                    //    //customize: function (doc) {
-                    //    //    doc.styles['td:nth-child(2)'] = {
-                    //    //        width: '100px',
-                    //    //        'max-width': '90px'
-                    //    //    }
-                    //    //},
-                    //    orientation: 'letter',
-                    //    pagesize: 'A4',
-
-                    //}
-
+                  
 
                 ],
 
@@ -217,37 +145,9 @@
 
                 "dom": "<'row' <'col-md-12'B>><'row'<'col-md-6 col-sm-12'l><'col-md-6 col-sm-12'f>r><'table-scrollable't><'row'<'col-md-5 col-sm-12'i><'col-md-7 col-sm-12'p>>", // horizobtal scrollable datatable
 
-                // Uncomment below line("dom" parameter) to fix the dropdown overflow issue in the datatable cells. The default datatable layout
-                // setup uses scrollable div(table-scrollable) with overflow:auto to enable vertical scroll(see: assets/global/plugins/datatables/plugins/bootstrap/dataTables.bootstrap.js).
-                // So when dropdowns used the scrollable div should be removed.
-                //"dom": "<'row' <'col-md-12'T>><'row'<'col-md-6 col-sm-12'l><'col-md-6 col-sm-12'f>r>t<'row'<'col-md-5 col-sm-12'i><'col-md-7 col-sm-12'p>>",
+                
             });
-            // $("#sample_2_filter").find("input").css("background-color", "moccasin");
-            //table.on('order.dt search.dt', function () {
-            //    table.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
-            //        cell.innerHTML = i + 1;
-            //    });
-            //}).();
-            //$('#sample_2').wrap("<div id='scrooll_div'></div>");
-            //$('#scrooll_div').doubleScroll();
-            //$("#scroll_div").css("position", "fixed");
-            //$("#studentCount").text($("#sample_2_info").text().substring($("#sample_2_info").text().indexOf("to") + 2, $("#sample_2_info").text().indexOf("of")).trim());
-            //$('.ColVis_Button').css("background-color", "red");
-            /*left: 898.14px;
-        display: -webkit-box;*/
-            //$(".dt-button-collection").css("left", "898.14px !important");
-            //$(".dt-button-collection").css("display", "-webkit-box !important");
-            //$("#sample_2_filter input").keyup(function () {
-            //    var count = $("#sample_2_info").text().substring($("#sample_2_info").text().indexOf("to") + 2, $("#sample_2_info").text().indexOf("of")).trim();
-            //    console.log(parseInt(count));
-            //    if (isNaN(count)) {
-            //        $("#studentCount").text(0);
-            //    }
-            //    else {
-            //        $("#studentCount").text(count);
-            //    }
-            //    //$("#studentCount").text($("#sample_2_info").text().substring($("#sample_2_info").text().indexOf("to") + 2, $("#sample_2_info").text().indexOf("of")).trim());
-            //});
+           
 
         });
 
