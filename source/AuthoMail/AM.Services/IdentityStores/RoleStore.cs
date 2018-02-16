@@ -10,13 +10,11 @@ using Microsoft.AspNet.Identity;
 
 namespace AM.Services.IdentityStores
 {
-    public class RoleStore<TRole> : IQueryableRoleStore<TRole> where TRole : IdentityRole
+    public class RoleStore<TRole> : ServiceBase, IQueryableRoleStore<TRole> where TRole : IdentityRole
     {
         private AppRole appRole;
-        private IDbConnection db;
         public RoleStore()
         {
-            db = new DbContext().GetConnection;
             appRole = new AppRole(db);
         }
 
