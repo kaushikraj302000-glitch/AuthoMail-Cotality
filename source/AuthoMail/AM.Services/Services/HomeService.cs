@@ -10,20 +10,20 @@ namespace AM.Services.Services
 {
     public interface IHomeService//Home Service interface that has number of methods
     {
-        List<DeliveryReportVM> GetDeliveryReportByBatchId(string batchId);
+        List<DeliveryReportVM> GetDeliveryReportByBatchClustId(string batchClustId);
     }
     public class HomeService : ServiceBase, IHomeService //It implements Interfaces 
     {
-        public List<DeliveryReportVM> GetDeliveryReportByBatchId(string batchId)
+        public List<DeliveryReportVM> GetDeliveryReportByBatchClustId(string batchClustId)
         {
             //Sql Query
-            string query = "select * from [AM].[Batch] WHERE Id=@id";
+            string query = "select * from [AM].[Batch] WHERE BatchClustId=@batchClustId";
 
             //List of parameters declaration
             Dictionary<string, object> parameters = new Dictionary<string, object>();
 
             //Assign value to parameters It may one or more. Note:
-            parameters.Add("@id", batchId);
+            parameters.Add("@batchClustId", batchClustId);
 
             /*
              * Execution of query with parateters.
