@@ -16,11 +16,11 @@ namespace AM.Services.Services
     {
         public List<DeliveryReportVM> GetDeliveryReportByBatchId(string batchId)
         {
-            string query = "";
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@batchId", batchId);
+            string query = "select * from [AM].[Batch]";
+            //Dictionary<string, object> parameters = new Dictionary<string, object>();
+            //parameters.Add("@batchId", batchId);
 
-            var data = db.Query<DeliveryReportVM>(query, parameters).ToList();
+            var data = db.Query<DeliveryReportVM>(query).ToList();
             return data;
         }
     }
