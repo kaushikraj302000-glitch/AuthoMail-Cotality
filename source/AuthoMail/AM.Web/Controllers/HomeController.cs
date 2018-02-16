@@ -14,9 +14,10 @@ namespace AM.Web.Controllers
         {
             homeSvc = new HomeService();
         }
+        [Authorize]
         public ActionResult Index()
         {
-            var data = homeSvc.GetDeliveryReportByBatchId("");
+            //var data = homeSvc.GetDeliveryReportByBatchId("");
             return View();
         }
 
