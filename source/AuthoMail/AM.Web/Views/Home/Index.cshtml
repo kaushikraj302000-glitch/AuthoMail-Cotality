@@ -83,12 +83,12 @@
         </div>
     </div>
 </div>
-<div class="modal fade" id="chartModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+<div class="modal fade" id="batchModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal-header">
-                <h1 id="myModalLabel">MailPiece Details</h1>
+                <h1 id="myModalLabel">Batch Details</h1>
             </div>
             <div class="modal-body">
 
@@ -146,13 +146,6 @@
     </script>
     <script type="text/javascript">
         function GetChartDataByStatusAndBatchIds(status, ids) {
-            //var data={
-            //    status: status,
-            //    ids: ids,
-            //}
-            //var params = jQuery.param(data)
-            //console.log(baseUrl + 'Home/ChartDetails?' + params);
-            //window.location = baseUrl + 'Home/ChartDetails?' + params;
             var el = $("#batchMailPieceModal").find('.modal-body');
             $.ajax({
                 type: "POST",
@@ -160,21 +153,32 @@
                 data: JSON.stringify({ status: status, batchId: ids }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
-                    // $("#charDatatable").html(response);
                     el.html(response);
-                    //$("#chartModal").on('shown.bs.modal', function (e) {
-                    //    console.log("call");
-                    //    $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
-                    //    //drawDatatable();
-                    //});
-                    //el.html($("#charDatatable").html());
                     $("#batchMailPieceModal").modal("show");
-                    //drawDatatable();
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     var msg = 'Error on reloading the content. Please check your connection and try again.';
                     el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
                     $("#batchMailPieceModal").modal("show");
+                }
+
+            });
+        }
+        function GetChartDataByStatusAndDate(status, date) {
+            var el = $("#batchModal").find('.modal-body');
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "Home/WeeklyChartDetails",
+                data: JSON.stringify({ status: status, date: new Date(date) }),
+                contentType: "application/json; charset=utf-8",
+                success: function (response) {
+                    el.html(response);
+                    $("#batchModal").modal("show");
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    var msg = 'Error on reloading the content. Please check your connection and try again.';
+                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    $("#batchModal").modal("show");
                 }
 
             });
@@ -187,13 +191,12 @@
                 data: JSON.stringify({ startDate: new Date(moment().subtract('days', 7).format('MM/DD/YYYY')), endDate: new Date(moment().format('MM/DD/YYYY')) }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
-                    // console.log(response);
                     var chartData = [];
-                    chartData.push(['Date', 'InProgress', 'Failed', 'ShippedPartial', 'ShippedAll']);
+                    chartData.push(['Date', 'InProgress', 'Failed', 'ShippedPartial', 'ShippedAll', 'Dates']);
                     var cnt = 0;
                     for (var i = 1; i <= response.length; i++) {
                         var day = moment(new Date(response[cnt].ShortDate)).format("MM/DD/YYYY") == moment(new Date()).format("MM/DD/YYYY") ? "Today" : moment(new Date(response[cnt].ShortDate)).format("ddd");
-                        chartData.push([day, response[cnt].InProgress, response[cnt].Failed, response[cnt].ShippedPartial, response[cnt].ShippedAll]);
+                        chartData.push([day, response[cnt].InProgress, response[cnt].Failed, response[cnt].ShippedPartial, response[cnt].ShippedAll, moment(new Date(response[cnt].ShortDate)).format("MM/DD/YYYY")]);
                         cnt++;
                     }
                     drawChart(chartData, "weeklyChart", 'Batch Details: ' + moment().subtract('days', 7).format('MM/DD/YYYY') + " - " + moment().format('MM/DD/YYYY'));
@@ -201,8 +204,7 @@
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     var msg = 'Error on reloading the content. Please check your connection and try again.';
-                    //el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
-                    //$("#chartModal").modal("show");
+                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
                 }
 
             });
@@ -215,7 +217,6 @@
                 data: JSON.stringify({ date: new Date(moment().format('MM/DD/YYYY')) }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
-                    //console.log(response);
                     if (response.length == 0) {
                         el.html("<div class='alert alert-red'><span>Currently no MailPieces received today</span></div>");
                         $("#todayBody").css("min-height", "342px");
@@ -239,13 +240,12 @@
                 }
 
             });
-
-
-
         }
         google.charts.load('current', { packages: ['corechart'] });
         function drawChart(chartData, div, title) {
             var data = google.visualization.arrayToDataTable(chartData);
+            var view = new google.visualization.DataView(data);
+            view.setColumns([0, 1, 2, 3, 4]);
             var options = {
                 title: title,
                 isStacked: true,
@@ -257,27 +257,30 @@
                     2: { color: '#f90' },
                     3: { color: '#109618' }
                 }
+
             };
 
             // Instantiate and draw the chart.
             var chart = new google.visualization.BarChart(document.getElementById(div));
 
             google.visualization.events.addListener(chart, 'select', selectHandler);
-            chart.draw(data, options);
+            chart.draw(view, options);
 
             function selectHandler() {
-               // alert("test");
                 var selectedItem = chart.getSelection()[0];
-                console.log(chart.getSelection()[0]);
-
                 if (selectedItem) {
-                    var topping = data.getValue(selectedItem.row, 0);
-
-                    var columnName = data.getColumnLabel(selectedItem.column);
-                    var batchId = parseInt(topping.split(":")[1].trim());
-                    if (batchId != 0) {
-
-                        GetChartDataByStatusAndBatchIds(columnName, batchId);
+                    var status = data.getColumnLabel(selectedItem.column);
+                    if (div == "todayChart") {
+                        var id = data.getValue(selectedItem.row, 0);
+                        var batchId = parseInt(id.split(":")[1].trim());
+                        if (batchId != 0) {
+                            GetChartDataByStatusAndBatchIds(status, batchId);
+                        }
+                    }
+                    if (div == "weeklyChart") {
+                        var dates = data.getValue(selectedItem.row, 5);
+                       
+                        GetChartDataByStatusAndDate(status, dates);
                     }
                 }
             }
@@ -288,7 +291,6 @@
         function SendPullBackRequest(mailpieceIds) {
             console.log(mailpieceIds);
             var el = $('.modal-body');
-            //el.html(mailpieceIds);
             $.ajax({
                 type: "POST",
                 url: baseUrl + "api/pullback/RequestPullBack",

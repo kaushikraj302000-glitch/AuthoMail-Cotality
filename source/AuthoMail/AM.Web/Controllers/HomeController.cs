@@ -36,7 +36,7 @@ namespace AM.Web.Controllers
 
             if (model.Count > 1)
             {
-                
+
                 return Json("PullBack", JsonRequestBehavior.AllowGet);
             }
             else if (model.Count == 1)
@@ -60,6 +60,18 @@ namespace AM.Web.Controllers
         public ActionResult TodayChartDetails(string status, int batchId)
         {
             var model = chartDataSvc.GetMailPieceByParam(batchId, status, User.Identity.GetClientId().Value);
+            return PartialView("_GetChartMailPieceData",model);
+        }
+
+        public ActionResult GetMailPieceByBatchId(int batchId)
+        {
+            var model = chartDataSvc.GetMailPieceByBatchId(batchId, User.Identity.GetClientId().Value);
+            return PartialView("_GetChartMailPieceData", model);
+        }
+        [HttpPost]
+        public ActionResult WeeklyChartDetails(string status, DateTime date)
+        {
+            var model = chartDataSvc.GetBatchByParam(date, status, User.Identity.GetClientId().Value);
             return PartialView(model);
         }
         [HttpPost]
