@@ -11,9 +11,11 @@ namespace AM.Web.Controllers
     public class HomeController : Controller
     {
         IHomeService homeSvc;
-        public HomeController(IHomeService homeSvc)
+        IReportService repoSvc;
+        public HomeController(IHomeService homeSvc, IReportService repoSvc)
         {
             this.homeSvc = homeSvc;
+            this.repoSvc = repoSvc;
         }
         public ActionResult Index()
         {
