@@ -39,10 +39,29 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Autofac, Version=4.6.2.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Autofac.4.6.2\lib\net45\Autofac.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Autofac.Integration.Mvc, Version=4.0.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Autofac.Mvc5.4.0.2\lib\net45\Autofac.Integration.Mvc.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Autofac.Integration.Mvc.Owin, Version=4.0.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Autofac.Mvc5.Owin.4.0.1\lib\net45\Autofac.Integration.Mvc.Owin.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Autofac.Integration.Owin, Version=4.1.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Autofac.Owin.4.1.0\lib\net45\Autofac.Integration.Owin.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
@@ -224,6 +243,25 @@
     <Content Include="clui\images\sso-image.jpg" />
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
+    <Content Include="Content\datatables\datatable.js" />
+    <Content Include="Content\datatables\datatables.all.min.js" />
+    <Content Include="Content\datatables\datatables.min.css" />
+    <Content Include="Content\datatables\datatables.min.js" />
+    <Content Include="Content\datatables\images\back_disabled.png" />
+    <Content Include="Content\datatables\images\back_enabled.png" />
+    <Content Include="Content\datatables\images\back_enabled_hover.png" />
+    <Content Include="Content\datatables\images\forward_disabled.png" />
+    <Content Include="Content\datatables\images\forward_enabled.png" />
+    <Content Include="Content\datatables\images\forward_enabled_hover.png" />
+    <Content Include="Content\datatables\images\sort_asc.png" />
+    <Content Include="Content\datatables\images\sort_asc_disabled.png" />
+    <Content Include="Content\datatables\images\sort_both.png" />
+    <Content Include="Content\datatables\images\sort_desc.png" />
+    <Content Include="Content\datatables\images\sort_desc_disabled.png" />
+    <Content Include="Content\datatables\plugins\bootstrap\datatables.bootstrap.css" />
+    <Content Include="Content\datatables\plugins\bootstrap\datatables.bootstrap.js" />
+    <Content Include="Content\datatables\datatables.css" />
+    <Content Include="Content\datatables\table-datatables-managed.js" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
@@ -251,6 +289,7 @@
     <Content Include="clui\dist\fonts\Lato\Lato-Semibold.ttf" />
     <Content Include="clui\dist\fonts\Lato\Lato-Semibold.woff" />
     <Content Include="clui\dist\js\vendor\jquery.min.map" />
+    <Content Include="Content\datatables\images\Sorting icons.psd" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
     <Content Include="Scripts\jquery-1.10.2.min.js" />
@@ -299,6 +338,7 @@
     <Content Include="Views\Shared\Lockout.cshtml" />
     <Content Include="Views\Shared\_LoginPartial.cshtml" />
     <Content Include="Views\Shared\_LayoutLogin.cshtml" />
+    <Content Include="Views\Home\MailPiece.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -21,7 +21,7 @@ namespace AM.Web
                         ));
             //cl componet
             bundles.Add(new ScriptBundle("~/bundles/clcomponetjs").Include(
-                        "~/clui/dist/js/components/init.js",
+                       // "~/clui/dist/js/components/init.js",
                         "~/clui/dist/js/components/jquery-ui.js",
                         "~/clui/dist/js/components/toggle.js",
                         "~/clui/dist/js/components/tooltip.js",
@@ -64,6 +64,12 @@ namespace AM.Web
             bundles.Add(new StyleBundle("~/Content/css").Include(
                       "~/Content/bootstrap.css",
                       "~/Content/site.css"));
+            bundles.Add(new ScriptBundle("~/bundles/datatables").Include(
+              "~/Content/datatables/datatable.js",
+              "~/Content/datatables/datatables.min.js",
+              "~/Content/datatables/plugins/bootstrap/datatables.bootstrap.js",
+              "~/Content/datatables/table-datatables-managed.js"));
+
             bundles.Add(new StyleBundle("~/Content/clcss").Include(
                       "~/clui/dist/css/corelogic-ui.css",
                       "~/clui/dist/css/components/alert.css",
@@ -76,6 +82,12 @@ namespace AM.Web
                       "~/clui/dist/css/components/page-title.css",
                       "~/clui/dist/css/components/panel.css",
                       "~/clui/dist/css/components/table.css"));
+
+            bundles.Add(new StyleBundle("~/bundles/datatablescss").Include(
+               //"~/Content/datatables/datatables.min.css",
+                "~/Content/datatables/datatables.css",
+               "~/Content/datatables/plugins/bootstrap/datatables.bootstrap.css"
+               ));
         }
     }
 }

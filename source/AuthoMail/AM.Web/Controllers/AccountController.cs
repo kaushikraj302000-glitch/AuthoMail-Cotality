@@ -18,17 +18,15 @@ namespace AM.Web.Controllers
     {
         private AMSignInManager _signInManager;
         private AMUserManager _userManager;
-        private AMRoleManager roleManager;
 
         public AccountController()
         {
         }
 
-        public AccountController(AMUserManager userManager, AMSignInManager signInManager, AMRoleManager roleManager)
+        public AccountController(AMUserManager userManager, AMSignInManager signInManager)
         {
             UserManager = userManager;
             SignInManager = signInManager;
-            RoleManager = roleManager;
         }
 
 
@@ -55,14 +53,7 @@ namespace AM.Web.Controllers
                 _userManager = value;
             }
         }
-        public AMRoleManager RoleManager
-        {
-            get
-            {
-                return this.roleManager ?? HttpContext.GetOwinContext().Get<AMRoleManager>();
-            }
-            private set { this.roleManager = value; }
-        }
+
 
         //
         // GET: /Account/Login
@@ -404,7 +395,7 @@ namespace AM.Web.Controllers
         public ActionResult LogOff()
         {
             AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Login", "Account");
         }
 
         //
