@@ -32,6 +32,11 @@ namespace AM.Web.Controllers
             return PartialView(data);
         }
 
+        public ActionResult MailPiece()
+        {
+            //var data = homeSvc.GetDeliveryReportByBatchId("");
+            return View();
+        }
         public ActionResult About()
         {
             ViewBag.Message = "Your application description page.";

@@ -32,16 +32,16 @@
                             </div>
                             <div class="form-group">
                                 @Html.CheckBoxFor(m => m.RememberMe, new { Aclass = "cl-check" })
-                                <label for="checkbox-demo">Remember Me</label><span class="pull-right"><a href="#" class="forgot">Forgot Password?</a></span>
+                                <label for="checkbox-demo">Remember Me</label>@*<span class="pull-right"><a href="#" class="forgot">Forgot Password?</a></span>*@
                             </div>
-                            @*<div class="form-group">
-                                    <input type="submit" value="Sign In" class="btn btn-primary btn-lg btn-block">
-                                </div>*@
                             <div class="form-group">
+                                    <input type="submit" value="Sign In" class="btn btn-primary btn-lg btn-block">
+                                </div>
+                            @*<div class="form-group">
 
                                 <input type="submit" value="Sign In" style="width:50%;float:left;" class="btn btn-primary btn-lg">
                                 @Html.ActionLink("Register", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink", @class = "btn btn-default btn-lg", @style = "width:50%;float:right;margin-top:0px;" })
-                            </div>
+                            </div>*@
                         </div>
                     }
 
@@ -51,7 +51,7 @@
                 <div class="left-block cl-columns">
                     <p>
                         Need help? Call our toll-free number at <br /><strong><span>(866)781-8321</span></strong> or send
-                        us an <a href="">email</a>
+                        us an <a href="#">email</a>
                     </p>
                 </div>
                 <div class="right-block offset-1 cl-columns hide-small">

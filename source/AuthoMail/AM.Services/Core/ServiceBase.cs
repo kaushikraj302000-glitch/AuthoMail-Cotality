@@ -21,6 +21,8 @@ namespace AM.Services
         {
             if (db != null)
             {
+                // Closing a closed connection doesn't make a different so calling this method as a backup
+                // in case the connection was kept open.
                 db.Close();
                 db.Dispose();
                 db = null;
