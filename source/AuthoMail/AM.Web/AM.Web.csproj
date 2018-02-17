@@ -380,7 +380,8 @@
     <Content Include="Views\Report\ErrorsReport.cshtml" />
     <Content Include="Views\Report\_GetErrorsReport.cshtml" />
     <Content Include="Views\Home\Search.cshtml" />
-    <Content Include="Views\Home\ChartDetails.cshtml" />
+    <Content Include="Views\Home\TodayChartDetails.cshtml" />
+    <Content Include="Views\Home\_PullBackRequestData.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
