@@ -48,6 +48,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BatchProcessor\BatchServices.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="BatchProcessor\ClientServices.cs" />
     <Compile Include="IdentityManage\AppRole.cs" />
     <Compile Include="IdentityManage\AppUser.cs" />
     <Compile Include="IdentityManage\AppUserClaims.cs" />
