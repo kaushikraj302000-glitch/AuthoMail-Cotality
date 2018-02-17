@@ -235,7 +235,7 @@ __webpack_require__(153);
 __webpack_require__(154);
 
 if (global._babelPolyfill) {
-  throw new Error("only one instance of babel-polyfill is allowed");
+  //throw new Error("only one instance of babel-polyfill is allowed");
 }
 global._babelPolyfill = true;
 

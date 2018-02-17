@@ -1,4 +1,4 @@
-export function init() {
+ function init() {
   'use strict';
 
   window.clui.selectInit();

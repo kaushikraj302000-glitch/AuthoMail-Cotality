@@ -12,24 +12,26 @@ namespace AM.Web
                         "~/Scripts/jquery-{version}.js"));
             //cl jquery
             bundles.Add(new ScriptBundle("~/bundles/cljs").Include(
-                        //"~/clui/dist/js/vendor/jquery.min.js",
-                        "~/clui/dist/js/corelogic-ui.js",
-                        "~/clui/dist/js/corelogic-ui-vendor.js",
-                        "~/clui/dist/js/corelogic-ui-module.js",
-                        "~/clui/dist/js/corelogic-ui-no-bootstrap.js",
-                        "~/clui/dist/js/vendor/moment.js"
+                //"~/clui/dist/js/vendor/jquery.min.js",
+                        "~/clui/dist/js/corelogic-ui.js"//,
+                        //"~/clui/dist/js/corelogic-ui-module.js",
+                        //"~/clui/dist/js/components/jquery-ui.js",
+                        //"~/clui/dist/js/corelogic-ui-vendor.js"//,
+                //"~/clui/dist/js/corelogic-ui-no-bootstrap.js",
+                        //"~/clui/dist/js/vendor/moment.js"
                         ));
             //cl componet
             bundles.Add(new ScriptBundle("~/bundles/clcomponetjs").Include(
-                       // "~/clui/dist/js/components/init.js",
-                        "~/clui/dist/js/components/jquery-ui.js",
-                        "~/clui/dist/js/components/toggle.js",
-                        "~/clui/dist/js/components/tooltip.js",
-                        "~/clui/dist/js/components/alert.js",
-                        "~/clui/dist/js/components/panel.js",
-                        "~/clui/dist/js/components/popover.js",
-                        "~/clui/dist/js/components/slider.js",
-                        "~/clui/dist/js/components/table.js"
+                "~/clui/dist/js/components/dateTimePicker.js",
+                
+                "~/clui/dist/js/components/toggle.js",
+                "~/clui/dist/js/components/tooltip.js",
+                "~/clui/dist/js/components/alert.js",
+                "~/clui/dist/js/components/panel.js",
+                "~/clui/dist/js/components/popover.js",
+                "~/clui/dist/js/components/slider.js",
+                "~/clui/dist/js/components/table.js",
+                "~/clui/dist/js/components/init.js"//,
                         ));
             //cl vendor
             bundles.Add(new ScriptBundle("~/bundles/clvendorjs").Include(
@@ -46,8 +48,9 @@ namespace AM.Web
 
             //cl datepicker
             bundles.Add(new ScriptBundle("~/bundles/cldatepicker").Include(
-                      "~/clui/dist/js/components/dateTimePicker.js",
-                      "~/clui/dist/js/vendor/daterangepicker.js"));
+                      "~/clui/dist/js/components/dateTimePicker.js"
+                //,                      "~/clui/dist/js/vendor/daterangepicker.js"
+                      ));
 
             bundles.Add(new ScriptBundle("~/bundles/jqueryval").Include(
                         "~/Scripts/jquery.validate*"));
@@ -67,8 +70,9 @@ namespace AM.Web
             bundles.Add(new ScriptBundle("~/bundles/datatables").Include(
               "~/Content/datatables/datatable.js",
               "~/Content/datatables/datatables.min.js",
-              "~/Content/datatables/plugins/bootstrap/datatables.bootstrap.js",
-              "~/Content/datatables/table-datatables-managed.js"));
+              "~/Content/datatables/plugins/bootstrap/datatables.bootstrap.js"//,
+                //"~/Content/datatables/table-datatables-managed.js"
+              ));
 
             bundles.Add(new StyleBundle("~/Content/clcss").Include(
                       "~/clui/dist/css/corelogic-ui.css",
@@ -84,7 +88,7 @@ namespace AM.Web
                       "~/clui/dist/css/components/table.css"));
 
             bundles.Add(new StyleBundle("~/bundles/datatablescss").Include(
-               //"~/Content/datatables/datatables.min.css",
+                //"~/Content/datatables/datatables.min.css",
                 "~/Content/datatables/datatables.css",
                "~/Content/datatables/plugins/bootstrap/datatables.bootstrap.css"
                ));
