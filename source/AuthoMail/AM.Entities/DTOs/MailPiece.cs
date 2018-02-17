@@ -8,13 +8,17 @@ namespace AM.Entities
 {
     public class MailPieceDTO
     {
-        public Guid Id { get; set; }
-        public int BatchClustId { get; set; }
-        public int? PrintBatchClustId { get; set; }
+        public int Id { get; set; }
+        public int BatchId { get; set; }
+        public int? PrintBatchId { get; set; }
+        public Guid UniqueId { get; set; }
         public string BusinessFriendlyIdName { get; set; }
         public string BusinessFriendlyIdValue { get; set; }
         public string FileName { get; set; }
         public string FilePattern { get; set; }
+        public string DocumentOrPackageType { get; set; }
+        public DateTime? DueDate { get; set; }
+        public string ShippingStatus { get; set; }
         public bool IsRcptInfoSpecified { get; set; }
         public string RcptPrefix { get; set; }
         public string RcptFirstName { get; set; }
@@ -58,26 +62,28 @@ namespace AM.Entities
         public string RetRcptAddressZIP { get; set; }
         public string PreppedFilePath { get; set; }
         public int TotalPages { get; set; }
+        public int TotalSheets { get; set; }
         public string ErrorCode { get; set; }
         public string ErrorDesc { get; set; }
         public string TrackingNo { get; set; }
         public bool IsPullBackRequested { get; set; }
         public DateTime? PullBackRequestedOn { get; set; }
+        public string PullBackRequestedBy { get; set; }
         public bool IsPulledBack { get; set; }
         public DateTime? PulledBackOn { get; set; }
+        public bool IsPrinted { get; set; }
+        public DateTime? PrintedOn { get; set; }
         public bool IsShipped { get; set; }
         public DateTime? ShippedOn { get; set; }
         public decimal ShippingCost { get; set; }
-        public string ShippingStatus { get; set; }
+        public decimal Weight { get; set; }
         public bool IsQCRequested { get; set; }
         public bool IsQCPerformed { get; set; }
-        public string DocumentOrPackageType { get; set; }
-        public string DownloadedFilePath { get; set; }
     }
 
     public class MailPieceCustomInfo
     {
-        public Guid MailPieceId { get; set; }
+        public int MailPieceId { get; set; }
         public string Key { get; set; }
         public string Value { get; set; }
     }

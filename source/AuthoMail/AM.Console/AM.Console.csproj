@@ -62,6 +62,7 @@
     <Compile Include="AMCXmlParse.cs" />
     <Compile Include="CoreJob.cs" />
     <Compile Include="DownloadJob.cs" />
+    <Compile Include="MailBatchInfo.cs" />
     <Compile Include="Schema.cs" />
     <Compile Include="Utilities\Common.cs" />
     <Compile Include="Utilities\Extensions.cs" />

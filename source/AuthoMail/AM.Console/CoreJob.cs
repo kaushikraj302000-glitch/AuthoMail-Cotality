@@ -28,7 +28,7 @@ namespace AM.Console
 
         public void ProcessBatches()
         {
-            List<Batch> downloadBatches = batchSvc.GetBatchesByStatus(BatchPipelineStatus.Downloaded);
+            List<MailBatchDTO> downloadBatches = batchSvc.GetBatchesByStatus(BatchPipelineStatus.Downloaded);
 
             if (downloadBatches == null)
             {
@@ -36,12 +36,12 @@ namespace AM.Console
                 return;
             }
 
-            foreach (Batch batch in downloadBatches)
+            foreach (MailBatchDTO batch in downloadBatches)
             {
                 Client client = clientSvc.GetClientDetails(batch.ClientId).Single();
                 List<DocType> docTypes = docTypeSvc.GetDocTypesByClientIdOrByDocTypeName(client.Id, string.Empty);
 
-                List<MailPieceDTO> mailPieces = mailPieceSvc.GetMailPiecesByBatchClustId(batch.BatchClustId);
+                List<MailPieceDTO> mailPieces = mailPieceSvc.GetMailPiecesByBatchClustId(batch.Id);
 
                 if (docTypes == null || docTypes.Count == 0)
                 {

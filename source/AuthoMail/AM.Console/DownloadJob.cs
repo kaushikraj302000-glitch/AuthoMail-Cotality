@@ -1,5 +1,6 @@
 ﻿using AM.Entities;
 using AM.Services;
+using Ionic.Zip;
 using log4net;
 using Renci.SshNet;
 using System;
@@ -7,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
@@ -36,7 +38,7 @@ namespace AM.Console
             Client client = clientSvc.GetClientDetails(null).Single(x => x.ClientName == "USAA");
 
             ClientSFTChannel channelMap = clientSvc.GetClientSFTChannelMapDetails(client.Id).SingleOrDefault();
-
+            string triggerFilePath = string.Empty;
             if (channelMap != null)
             {
                 SFTChannel channelDetails = clientSvc.GetSFTChannelDetails(channelMap.SFTChannelId);
@@ -53,61 +55,193 @@ namespace AM.Console
                         log.Error(ex);
                     }
 
+                    MailBatchDTO mailBatch = null;
                     if (sftSite.IsDownloadDirectoryAvailable(channelDetails.ADERequestDir))
                     {
-
+                        triggerFilePath = GetTriggerFilePath(sftSite, channelDetails);
+                        if (!string.IsNullOrEmpty(triggerFilePath))
+                        {
+                            // Download and Insert the batch in database first always.
+                            string zipFileFTPPath = Regex.Replace(Path.ChangeExtension(triggerFilePath, ".zip"), @"(w*)_Complete", string.Empty);
+                            mailBatch = GetNewBatchFromFTP(sftSite, zipFileFTPPath, triggerFilePath, client, channelDetails);
+                        }
+                        if (sftSite.IsConnected)
+                            sftSite.Disconnect();
                     }
                 }
             }
-
-            //if (sftSite.IsDownloadDirectoryAvailable(client.SFTADERequestDir))
-            //{
-            //    var listFiles = sftSite.ListDirectory(client.SFTADERequestDir).Where(x => Path.GetExtension(x).Equals(".xml", StringComparison.CurrentCultureIgnoreCase)).ToList();
-            //    if (listFiles != null && listFiles.Count > 0)
-            //    {
-            //        log.Debug(listFiles.Count.ToString() + " files found for client : " + client.AppCode);
-
-            //        foreach (var file in listFiles)
-            //        {
-            //            string localDownloadPath = Path.Combine(Common.AuthoMailRootFolder, client.AppCode, Path.GetFileNameWithoutExtension(file));
-            //            string serverFiledownloadPath = Path.Combine(client.SFTADERequestDir, file);
-            //            string serverArchiveFilePath = Path.Combine(client.SFTADERequestArchiveDir, file);
-
-            //            //Check if directory exist or not, if exist then delete and recreate
-            //            if (Directory.Exists(localDownloadPath))
-            //            {
-            //                Directory.Delete(localDownloadPath, true);
-            //                Directory.CreateDirectory(localDownloadPath);
-            //            }
-            //            else
-            //                Directory.CreateDirectory(localDownloadPath);
-
-            //            Batch mailBatch = new Batch();
-            //            mailBatch.ClientId = client.Id;
-
-            //            sftSite.DownloadFile(Path.Combine(localDownloadPath, file), serverFiledownloadPath);
-
-            //            mailBatch.ReceivedOn = sftSite.LastModifiedTimeOfFile(serverFiledownloadPath);
-            //            mailBatch.BatchFilePath = Path.Combine(localDownloadPath, file);
-
-            //            sftSite.MoveFile(serverFiledownloadPath, serverArchiveFilePath);
-
-            //            ProcessXML(sftSite, Path.Combine(localDownloadPath, file), mailBatch, client, localDownloadPath);
-
-            //        }
-            //    }
-            //    else
-            //    {
-            //        MailUtility.SendNoBatchReceivedNotificationEmail(Common.UtcToClientTimeZone(Common.GetCurrentTime(), client.TimeZone));
-            //    }
-            //}
-            //else
-            //{
-            //    //TODO: Mail for Path is not available to client or internal team
-            //}
         }
 
-        private void ProcessXML(SFTUtil sftSite, string xmlFilePath, Batch mailBatch, Client client, string localDownloadPath, SFTChannel sftChannel)
+        private MailBatchDTO GetNewBatchFromFTP(SFTUtil sftSite, string zipFileFTPPath, string triggerFilePath, Client client, SFTChannel channelDetails)
+        {
+            MailBatchDTO newBatch = null;
+            string downloadedZipFilePath = string.Empty;
+
+            if (sftSite.IsConnected == false)
+                sftSite.Connect();
+
+            // If batch zip file exists on FTP then download and process it.
+            if (sftSite.IsFileAvailable(zipFileFTPPath))
+            {
+                downloadedZipFilePath = DownloadBatchZipFile(sftSite, zipFileFTPPath, client);
+
+                if (!string.IsNullOrEmpty(downloadedZipFilePath))
+                {
+                    // Process downloaded zip file.
+                    try
+                    {
+                        #region Try to extract zip file, insert batch in DB and delete trigger+zip files from FTP.
+
+                        using (ZipFile zipFile = ZipFile.Read(downloadedZipFilePath))//Read file From the Zip.
+                        {
+                            foreach (ZipEntry e in zipFile)
+                            {
+                                e.Extract(Path.GetDirectoryName(downloadedZipFilePath), ExtractExistingFileAction.OverwriteSilently);
+                            }
+                        }
+
+                        // Insert a new batch and get batchID, set batchDate
+                        newBatch = new MailBatchDTO()
+                        {
+                            BatchName = Path.GetFileNameWithoutExtension(downloadedZipFilePath),
+                            ReceivedOn = DateTime.UtcNow,
+                            UniqueId = Guid.NewGuid(),
+                            Priority = Priority.High.ToString(),
+                            ClientId = client.Id
+                        };
+
+                        #endregion
+
+                        MoveTriggerFileToBackupDir(sftSite, triggerFilePath, channelDetails);
+
+                        log.Error(string.Format("Trigger file '{0}' and corresponding zip file deleted after downloading its ZIP file.", Path.GetFileName(triggerFilePath)));
+
+                        int availableXMLFiles = Directory.GetFiles(Path.GetDirectoryName(downloadedZipFilePath), "*.xml").Count();
+                        if (availableXMLFiles != 1)
+                        {
+                            newBatch.DownloadedOn = Common.GetCurrentTime();
+                            newBatch.ValidationStatus = OutComeCodes.Invalid_Zip_File.ToString();
+                            newBatch.ValidationErrors = string.Format("{0}|No XML file is available.", OutComeCodes.Invalid_Zip_File.ToString());
+                        }
+
+                        newBatch.Id = batchSvc.InsertBatchDetails(newBatch);
+                        commonSvc.UpdateBatchPipeLineStatus(newBatch.Id, BatchPipelineStatus.Downloaded, Common.GetCurrentTime());
+                        return newBatch;
+                    }
+                    catch (ZipException err)
+                    {
+                        // The zip file of batch is corrupt so log the error in batch table.
+                        log.Error(err);
+                        newBatch = new MailBatchDTO()
+                        {
+                            UniqueId = Guid.NewGuid(),
+                            BatchName = Path.GetFileNameWithoutExtension(triggerFilePath).TrimEnd("_Complete".ToCharArray()).ToString(),
+                            ReceivedOn = Common.GetCurrentTime(),
+                            DownloadedOn = Common.GetCurrentTime(),
+                            ValidationStatus = OutComeCodes.Invalid_Zip_File.ToString(),
+                            ValidationErrors = string.Format("{0}|{1}", OutComeCodes.Invalid_Zip_File.ToString(), err.Message),
+                        };
+
+                        newBatch.Id = batchSvc.InsertBatchDetails(newBatch);
+
+                        MoveTriggerFileToBackupDir(sftSite, triggerFilePath, channelDetails);
+                    }
+                }
+            }
+            // If the zip file is not available in the FTP folder then log that error.
+            else
+            {
+                newBatch = new MailBatchDTO()
+                {
+                    BatchName = Path.GetFileNameWithoutExtension(triggerFilePath).TrimEnd("_Complete".ToCharArray()).ToString(),
+                    ReceivedOn = DateTime.UtcNow,
+                    ValidationStatus = OutComeCodes.Invalid_Zip_File.ToString(),
+                    ValidationErrors = string.Format("{0}|Trigger file found but zip file is missing on FTP.", OutComeCodes.Invalid_Zip_File.ToString()),
+                    DownloadedOn = Common.GetCurrentTime()
+                };
+
+                newBatch.Id = batchSvc.InsertBatchDetails(newBatch);
+                log.Error(string.Format("Trigger file {0} found but zip file missing on FTP.", Path.GetFileName(triggerFilePath)));
+
+                MoveTriggerFileToBackupDir(sftSite, triggerFilePath, channelDetails);
+            }
+
+            return null;
+        }
+
+        private static string GetTriggerFilePath(SFTUtil sftp, SFTChannel channelDetails)
+        {
+            if (sftp.IsConnected == false)
+                sftp.Connect();
+
+            string ftpTriggerFilePath = string.Empty;
+            DateTime pingTime = Common.GetCurrentTime();
+            List<string> avialableTriggerFiles = sftp.ListDirectory(channelDetails.ADERequestDir).Where(f => Path.GetExtension(f).Equals(".go", StringComparison.CurrentCultureIgnoreCase) && Path.GetFileNameWithoutExtension(f).EndsWith("_Complete")).ToList();
+
+            if (avialableTriggerFiles != null && avialableTriggerFiles.Count > 0)
+            {
+                ftpTriggerFilePath = avialableTriggerFiles.First();
+                log.Debug(string.Format("Trigger file {0} found.", Path.GetFileName(ftpTriggerFilePath)));
+            }
+            else
+            {
+                log.Error("Trigger file not found.");
+            }
+
+            return ftpTriggerFilePath;
+        }
+
+        private void MoveTriggerFileToBackupDir(SFTUtil sftSite, string triggerFilePath, SFTChannel channelDetails)
+        {
+            if (!sftSite.IsConnected)
+                sftSite.Connect();
+
+            string ftpBackupDir = channelDetails.ADERequestArchiveDir;
+
+            //if (!sftp.Exists(ftpBackupDir))
+            //    sftp.CreateDirectory(ftpBackupDir);
+
+            string ftpBackupTriggerFilePath = Path.Combine(ftpBackupDir, Path.GetFileName(triggerFilePath));
+            if (sftSite.IsFileAvailable(ftpBackupTriggerFilePath))
+                sftSite.DeleteFile(ftpBackupTriggerFilePath);
+
+            if (channelDetails.PostDownloadAction == PostDownloadAction.Archive)
+            {
+                sftSite.MoveFile(triggerFilePath, ftpBackupTriggerFilePath);
+            }
+            else
+                sftSite.DeleteFile(triggerFilePath);
+        }
+
+        private string DownloadBatchZipFile(SFTUtil sftSite, string batchFileFTPPath, Client client)
+        {
+            if (sftSite.IsConnected == false)
+                sftSite.Connect();
+
+            string downloadedZipFilePath = string.Empty;
+            if(sftSite.IsFileAvailable(batchFileFTPPath))
+            {
+                string batchName = Path.GetFileNameWithoutExtension(batchFileFTPPath);
+                string batchLocalDir = Path.Combine(Common.AuthoMailRootFolder, client.AppCode, batchName);
+                if (!Directory.Exists(batchLocalDir))
+                    Directory.CreateDirectory(batchLocalDir);
+
+                downloadedZipFilePath = Path.Combine(batchLocalDir, batchFileFTPPath);
+                if (File.Exists(downloadedZipFilePath))
+                    File.Delete(downloadedZipFilePath);
+                File.WriteAllText(downloadedZipFilePath, "");
+                Stream downloadedXMLStrm = File.OpenWrite(downloadedZipFilePath);
+                sftSite.DownloadFile(batchFileFTPPath, downloadedZipFilePath);
+                downloadedXMLStrm.Close();
+
+                // After downloading the zip file delete it from FTP.
+                //sftp.DeleteFile(batchFileFTPPath);
+            }            
+
+            return downloadedZipFilePath;
+        }
+
+        private void ProcessXML(SFTUtil sftSite, string xmlFilePath, MailBatchDTO mailBatch, Client client, string localDownloadPath, SFTChannel channelDetails)
         {
             string batchName = Path.GetFileNameWithoutExtension(xmlFilePath);
             //ValidationResult validationResult = XmlUtil.ValidateXml(Common.schemas, xmlFilePath);
@@ -117,7 +251,7 @@ namespace AM.Console
             MailBatch processXML = XmlUtil.Deserialize<MailBatch>(File.ReadAllText(xmlFilePath));
             if (processXML != null)
             {
-                mailBatch.Id = processXML.Id;
+                mailBatch.UniqueId = processXML.Id;
                 mailBatch.Priority = processXML.Priority.GetStringValue();
                 mailBatch.DocumentOrPackageType = processXML.DocumentOrPackageType;
                 //mailBatch.BusinessFriendlyIdName = processXML.BusinessFriendlyIdName != null ? processXML.BusinessFriendlyIdName : "";
@@ -152,7 +286,7 @@ namespace AM.Console
                     }
                 }
 
-                mailBatch.BatchClustId = batchSvc.InsertBatchDetails(mailBatch);
+                mailBatch.Id = batchSvc.InsertBatchDetails(mailBatch);
 
                 if (processXML.MailPieces != null && processXML.MailPieces.Count > 0)
                 {
@@ -161,8 +295,8 @@ namespace AM.Console
                     foreach (MailPiece mailPiece in processXML.MailPieces)
                     {
                         MailPieceDTO amMailPiece = new MailPieceDTO();
-                        amMailPiece.Id = mailPiece.Id;
-                        amMailPiece.BatchClustId = mailBatch.BatchClustId;
+                        amMailPiece.UniqueId = mailPiece.Id;
+                        amMailPiece.BatchId = mailBatch.Id;
                         amMailPiece.BusinessFriendlyIdName = mailPiece.BusinessFriendlyIdName;
                         amMailPiece.BusinessFriendlyIdValue = mailPiece.BusinessFriendlyIdValue;
                         amMailPiece.DocumentOrPackageType = mailPiece.DocumentOrPackageType;
@@ -233,7 +367,7 @@ namespace AM.Console
                                 amMailPiece.RcptAddrOptionalLine2BelowStreet = mailPiece.RecipientInfo.Address.OptionalLine2BelowStreet;
                             }
 
-                            List<string> availablePDF = sftSite.ListDirectory(sftChannel.ADERequestDir).Where(x => Path.GetExtension(x).Equals(".pdf", StringComparison.CurrentCultureIgnoreCase)).ToList();
+                            List<string> availablePDF = sftSite.ListDirectory(channelDetails.ADERequestDir).Where(x => Path.GetExtension(x).Equals(".pdf", StringComparison.CurrentCultureIgnoreCase)).ToList();
                             string pdfLocalFilePath = string.Empty;
                             string pdfServerFilePath = string.Empty;
                             string pdfServerArchiveFilePath = string.Empty;
@@ -246,14 +380,12 @@ namespace AM.Console
                                     if (availablePDF.Contains(mailPiece.DocumentOrPackage.Name))
                                     {
                                         pdfLocalFilePath = Path.Combine(localDownloadPath, mailPiece.DocumentOrPackage.Name);
-                                        pdfServerFilePath = Path.Combine(sftChannel.ADERequestDir, mailPiece.DocumentOrPackage.Name);
-                                        pdfServerArchiveFilePath = Path.Combine(sftChannel.ADERequestArchiveDir, mailPiece.DocumentOrPackage.Name);
+                                        pdfServerFilePath = Path.Combine(channelDetails.ADERequestDir, mailPiece.DocumentOrPackage.Name);
+                                        pdfServerArchiveFilePath = Path.Combine(channelDetails.ADERequestArchiveDir, mailPiece.DocumentOrPackage.Name);
                                         if (!archiveFileList.ContainsKey(pdfServerFilePath))
                                             archiveFileList.Add(pdfServerFilePath, pdfServerArchiveFilePath);
 
                                         sftSite.DownloadFile(pdfLocalFilePath, pdfServerFilePath);
-
-                                        amMailPiece.DownloadedFilePath = pdfLocalFilePath;
                                         amMailPiece.ErrorCode = OutComeCodes.No_Error.ToString();
                                     }
                                     else
@@ -271,15 +403,14 @@ namespace AM.Console
                                         string pdfFileName = availablePDF.Single(x => x.Contains(mailPiece.DocumentOrPackage.Pattern));
 
                                         pdfLocalFilePath = Path.Combine(localDownloadPath, pdfFileName);
-                                        pdfServerFilePath = Path.Combine(sftChannel.ADERequestDir, pdfFileName);
-                                        pdfServerArchiveFilePath = Path.Combine(sftChannel.ADERequestArchiveDir, pdfFileName);
+                                        pdfServerFilePath = Path.Combine(channelDetails.ADERequestDir, pdfFileName);
+                                        pdfServerArchiveFilePath = Path.Combine(channelDetails.ADERequestArchiveDir, pdfFileName);
 
                                         sftSite.DownloadFile(pdfLocalFilePath, pdfServerFilePath);
 
                                         if (!archiveFileList.ContainsKey(pdfServerFilePath))
                                             archiveFileList.Add(pdfServerFilePath, pdfServerArchiveFilePath);
 
-                                        amMailPiece.DownloadedFilePath = pdfLocalFilePath;
                                         amMailPiece.ErrorCode = OutComeCodes.No_Error.ToString();
                                     }
                                     else
@@ -305,7 +436,7 @@ namespace AM.Console
                         sftSite.MoveFile(archiveFile.Key, archiveFile.Value);
                     }
                     #endregion
-                    commonSvc.UpdateBatchPipeLineStatus(mailBatch.BatchClustId, BatchPipelineStatus.Downloaded, Common.GetCurrentTime());
+                    commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Downloaded, Common.GetCurrentTime());
 
                 }
             }

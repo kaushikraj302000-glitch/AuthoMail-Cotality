@@ -6,25 +6,28 @@ using System.Threading.Tasks;
 
 namespace AM.Entities
 {
-    public class Batch
+    public class MailBatchDTO
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         public int ClientId { get; set; }
-        public int BatchClustId { get; set; }
+        public Guid UniqueId { get; set; }
+        public int SFTChannelId { get; set; }
+        public string ClientBatchId { get; set; }
         public string DocumentOrPackageType { get; set; }
         public string BatchName { get; set; }
         public string PipelineStatus { get; set; }
         public string ValidationStatus { get; set; }
         public string ValidationErrors { get; set; }
         public string BatchStatus { get; set; }
+        public string Priority { get; set; }
         public bool IsReceived { get; set; }
         public DateTime? ReceivedOn { get; set; }
         public bool IsDownloaded { get; set; }
         public DateTime? DownloadedOn { get; set; }
-        public bool IsAcknowledged { get; set; }
-        public DateTime? AcknowledgedOn { get; set; }
         public bool IsValidated { get; set; }
         public DateTime? ValidatedOn { get; set; }
+        public bool IsAcknowledged { get; set; }
+        public DateTime? AcknowledgedOn { get; set; }
         public bool IsPrepped { get; set; }
         public DateTime? PreppedOn { get; set; }
         public bool IsSubmittedToShipping { get; set; }
@@ -35,10 +38,6 @@ namespace AM.Entities
         public DateTime? ReportPreppedOn { get; set; }
         public bool IsReportedBack { get; set; }
         public DateTime? ReportedBackOn { get; set; }
-        public int ChannelCode { get; set; }
-        public int SLADays { get; set; }
-        public string BusinessFriendlyIdName { get; set; }
-        public string BusinessFriendlyIdValue { get; set; }
         public bool IsReturnInfoSpecified { get; set; }
         public string RetRcptPrefix { get; set; }
         public string RetRcptFirstName { get; set; }
@@ -56,8 +55,7 @@ namespace AM.Entities
         public string RetRcptAddressCity { get; set; }
         public string RetRcptAddressState { get; set; }
         public string RetRcptAddressZIP { get; set; }
-        public string BatchFilePath { get; set; }
-        public string Priority { get; set; }
+        public string PrintLocation { get; set; }
     }
 
     public class BatchCustomInfo

@@ -53,4 +53,10 @@ namespace AM.Entities
         Shipped,
         Unknown
     }
+
+    public static class PostDownloadAction
+    {
+        public const string Delete = "Delete";
+        public const string Archive = "Archive";
+    }
 }

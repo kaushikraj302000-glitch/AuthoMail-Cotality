@@ -11,13 +11,13 @@ namespace AM.Services
 {
     public interface IBatchService
     {
-        int InsertBatchDetails(Batch mailBatch);
-        int UpdateBatchDetails(Batch mailBatch);
-        List<Batch> GetBatchesByStatus(string batchPipelineStatus);
+        int InsertBatchDetails(MailBatchDTO mailBatch);
+        int UpdateBatchDetails(MailBatchDTO mailBatch);
+        List<MailBatchDTO> GetBatchesByStatus(string batchPipelineStatus);
     }
     public class BatchService : ServiceBase, IBatchService //It implements Interfaces 
     {
-        public int InsertBatchDetails(Batch mailBatch)
+        public int InsertBatchDetails(MailBatchDTO mailBatch)
         {
             //Sql Query
             string query = "INSERT INTO [AM].[Batch](Id, ClientId, DocumentOrPackageType, BatchName, PipelineStatus, ValidationStatus, ValidationErrors, BatchStatus, ReceivedOn, DownloadedOn, AcknowledgedOn, ValidatedOn, PreppedOn, SubmittedToShippingOn, ShippingResponseReceivedOn, ReportPreppedOn, ReportedBackOn, BusinessFriendlyIdName, BusinessFriendlyIdValue, IsReturnInfoSpecified, RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RetRcptSuffix, RetRcptPhone, RetRcptOrganization, RetRcptAddrOptionalLine1AboveStreet, RetRcptAddrOptionalLine2AboveStreet, RetRcptAddressStreet, RetRcptAddressAptOrSuiteOrOther, RetRcptAddrOptionalLine1BelowStreet, RetRcptAddrOptionalLine2BelowStreet, RetRcptAddressCity,RetRcptAddressState, RetRcptAddressZIP, BatchFilePath, Priority,ChannelCode) Output Inserted.BatchClustId VALUES (@Id, @ClientId, @DocumentOrPackageType, @BatchName, @PipelineStatus, @ValidationStatus, @ValidationErrors, @BatchStatus, @ReceivedOn, @DownloadedOn, @AcknowledgedOn, @ValidatedOn, @PreppedOn, @SubmittedToShippingOn, @ShippingResponseReceivedOn, @ReportPreppedOn, @ReportedBackOn, @BusinessFriendlyIdName, @BusinessFriendlyIdValue, @IsReturnInfoSpecified, @RetRcptPrefix, @RetRcptFirstName, @RetRcptMiddleName, @RetRcptLastName, @RetRcptSuffix, @RetRcptPhone, @RetRcptOrganization, @RetRcptAddrOptionalLine1AboveStreet, @RetRcptAddrOptionalLine2AboveStreet, @RetRcptAddressStreet, @RetRcptAddressAptOrSuiteOrOther, @RetRcptAddrOptionalLine1BelowStreet, @RetRcptAddrOptionalLine2BelowStreet, @RetRcptAddressCity, @RetRcptAddressState, @RetRcptAddressZIP, @BatchFilePath, @Priority,@ChannelCode)";
@@ -43,8 +43,6 @@ namespace AM.Services
             parameters.Add("@ShippingResponseReceivedOn", mailBatch.ShippingResponseReceivedOn);
             parameters.Add("@ReportPreppedOn", mailBatch.ReportPreppedOn);
             parameters.Add("@ReportedBackOn", mailBatch.ReportedBackOn);
-            parameters.Add("@BusinessFriendlyIdName", mailBatch.BusinessFriendlyIdName);
-            parameters.Add("@BusinessFriendlyIdValue", mailBatch.BusinessFriendlyIdValue);
             parameters.Add("@IsReturnInfoSpecified", mailBatch.IsReturnInfoSpecified);
             parameters.Add("@RetRcptPrefix", mailBatch.RetRcptPrefix);
             parameters.Add("@RetRcptFirstName", mailBatch.RetRcptFirstName);
@@ -62,9 +60,7 @@ namespace AM.Services
             parameters.Add("@RetRcptAddressCity", mailBatch.RetRcptAddressCity);
             parameters.Add("@RetRcptAddressState", mailBatch.RetRcptAddressState);
             parameters.Add("@RetRcptAddressZIP", mailBatch.RetRcptAddressZIP);
-            parameters.Add("@BatchFilePath", mailBatch.BatchFilePath);
             parameters.Add("@Priority", mailBatch.Priority);
-            parameters.Add("@ChannelCode", mailBatch.ChannelCode);
 
             /*
              * Execution of query with parateters.
@@ -74,7 +70,7 @@ namespace AM.Services
             return Convert.ToInt32(data);
         }
 
-        public int UpdateBatchDetails(Batch mailBatch)
+        public int UpdateBatchDetails(MailBatchDTO mailBatch)
         {
             string query = "UPDATE [AuthoMail].[AM].[Batch] SET [Id] = @Id,[ClientId] = @ClientId,[DocumentOrPackageType] = @DocumentOrPackageType,[BatchName] = @BatchName,[PipelineStatus] = @PipelineStatus ,[ValidationStatus] = @ValidationStatus ,[ValidationErrors] = @ValidationErrors,[BatchStatus] = @BatchStatus ,[ReceivedOn] = @ReceivedOn,[DownloadedOn] = @DownloadedOn,[AcknowledgedOn] = @AcknowledgedOn,[ValidatedOn] = @ValidatedOn,[PreppedOn] = @PreppedOn,[SubmittedToShippingOn] = @SubmittedToShippingOn,[ShippingResponseReceivedOn] =<ShippingResponseReceivedOn,[ReportPreppedOn] = @ReportPreppedOn,[ReportedBackOn] = @ReportedBackOn,[BusinessFriendlyIdName] = @BusinessFriendlyIdName ,[BusinessFriendlyIdValue] = @BusinessFriendlyIdValue ,[IsReturnInfoSpecified] = IsReturnInfoSpecified,[RetRcptPrefix] = @RetRcptPrefix ,[RetRcptFirstName] =<RetRcptFirstName ,[RetRcptMiddleName] = @RetRcptMiddleName ,[RetRcptLastName] = @RetRcptLastName ,[RetRcptSuffix] = @RetRcptSuffix ,[RetRcptPhone] = @RetRcptPhone ,[RetRcptOrganization] = @RetRcptOrganization ,[RetRcptAddrOptionalLine1AboveStreet] = @RetRcptAddrOptionalLine1AboveStreet ,[RetRcptAddrOptionalLine2AboveStreet] = @RetRcptAddrOptionalLine2AboveStreet ,[RetRcptAddressStreet] = @RetRcptAddressStreet ,[RetRcptAddressAptOrSuiteOrOther] = @RetRcptAddressAptOrSuiteOrOther ,[RetRcptAddrOptionalLine1BelowStreet] = RetRcptAddrOptionalLine1BelowStreet ,[RetRcptAddrOptionalLine2BelowStreet] = RetRcptAddrOptionalLine2BelowStreet ,[RetRcptAddressCity] = @RetRcptAddressCity ,[RetRcptAddressState] = @RetRcptAddressState ,[RetRcptAddressZIP] = @RetRcptAddressZIP ,[BatchFilePath] = @BatchFilePath ,[Priority] = @Priority ,[ChannelCode] = @ChannelCode WHERE BatchClustId=@BatchClustId";
 
@@ -82,7 +78,7 @@ namespace AM.Services
             return Convert.ToInt32(data);
         }
 
-        public List<Batch> GetBatchesByStatus(string batchPipelineStatus)
+        public List<MailBatchDTO> GetBatchesByStatus(string batchPipelineStatus)
         {
             //Sql Query
             string query = "SELECT * FROM [AM].[Batch] WHERE PipelineStatus= @batchPipelineStatus";
@@ -115,7 +111,7 @@ namespace AM.Services
             /* Execution of query with parateters.
               Without Dapper you can't create following code. So just Add "using Dapper" namespace at begin.
             */
-            var data = db.Query<Batch>(query, parameters).ToList();
+            var data = db.Query<MailBatchDTO>(query, parameters).ToList();
             return data;
         }
     }
