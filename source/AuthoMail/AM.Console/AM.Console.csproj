@@ -59,7 +59,6 @@
     <Compile Include="DownloadJob.cs" />
     <Compile Include="Utilities\Common.cs" />
     <Compile Include="Utilities\Extensions.cs" />
-    <Compile Include="Models\MailBatch.cs" />
     <Compile Include="Utilities\MailUtility.cs" />
     <Compile Include="Utilities\PdfUtil.cs" />
     <Compile Include="Utilities\SFTUtil.cs" />
@@ -88,6 +87,7 @@
     <Folder Include="CoverLetterTemplates\" />
     <Folder Include="Download\" />
     <Folder Include="HTMLTemplates\" />
+    <Folder Include="Models\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
