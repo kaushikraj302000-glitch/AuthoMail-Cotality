@@ -8,8 +8,8 @@ namespace AM.Entities
 {
     public class Batch
     {
-        public int Id { get; set; }
-        public int ClientId { get; set; }//FK
+        public Guid Id { get; set; }
+        public int ClientId { get; set; }
         public int BatchClustId { get; set; }
         public string DocumentOrPackageType { get; set; }
         public string BatchName { get; set; }
@@ -33,12 +33,12 @@ namespace AM.Entities
         public DateTime ShippingResponseReceivedOn { get; set; }
         public bool IsReportPrepped { get; set; }
         public DateTime ReportPreppedOn { get; set; }
-        public int IsReportedBack { get; set; }
+        public bool IsReportedBack { get; set; }
         public DateTime ReportedBackOn { get; set; }
         public DateTime DueDate { get; set; }
         public int SLADays { get; set; }
         public string BusinessFriendlyIdName { get; set; }
-        public int BusinessFriendlyIdValue { get; set; }
+        public string BusinessFriendlyIdValue { get; set; }
         public bool IsReturnInfoSpecified { get; set; }
         public string RetRcptPrefix { get; set; }
         public string RetRcptFirstName { get; set; }
@@ -55,6 +55,13 @@ namespace AM.Entities
         public string RetRcptAddrOptionalLine2BelowStreet { get; set; }
         public string RetRcptAddressCity { get; set; }
         public string RetRcptAddressState { get; set; }
-        public string RetRcptAddressZip { get; set; }
+        public string RetRcptAddressZIP { get; set; }
+    }
+
+    public class BatchCustomInfo
+    {
+        public Guid BatchId { get; set; }
+        public string Key { get; set; }
+        public string Value { get; set; }
     }
 }

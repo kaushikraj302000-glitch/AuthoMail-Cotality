@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace AM.Entities
 {
-    public class MailPiece
+    public class AMMailPiece
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public int BatchClustId { get; set; }
-        public int PrintBatchClustId { get; set; }
+        public int? PrintBatchClustId { get; set; }
         public string BusinessFriendlyIdName { get; set; }
         public string BusinessFriendlyIdValue { get; set; }
         public string FileName { get; set; }
@@ -58,18 +58,25 @@ namespace AM.Entities
         public string RetRcptAddressZIP { get; set; }
         public string PreppedFilePath { get; set; }
         public int TotalPages { get; set; }
-        public int ErrorCode { get; set; }
+        public string ErrorCode { get; set; }
         public string ErrorDesc { get; set; }
         public string TrackingNo { get; set; }
-        public int IsPullBackRequested { get; set; }
+        public bool IsPullBackRequested { get; set; }
         public DateTime PullBackRequestedOn { get; set; }
-        public int IsPulledBack { get; set; }
+        public bool IsPulledBack { get; set; }
         public DateTime PulledBackOn { get; set; }
-        public int IsShipped { get; set; }
+        public bool IsShipped { get; set; }
         public DateTime ShippedOn { get; set; }
         public decimal ShippingCost { get; set; }
         public string ShippingStatus { get; set; }
         public bool IsQCRequested { get; set; }
         public bool IsQCPerformed { get; set; }
+    }
+
+    public class MailPieceCustomInfo
+    {
+        public Guid MailPieceId { get; set; }
+        public string Key { get; set; }
+        public string Value { get; set; }
     }
 }
