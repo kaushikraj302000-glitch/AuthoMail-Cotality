@@ -11,16 +11,20 @@ namespace AM.Web.Controllers
     public class HomeController : Controller
     {
         IHomeService homeSvc;
-        public HomeController(IHomeService homeSvc)
+        IReportService repoSvc;
+        public HomeController(IHomeService homeSvc, IReportService repoSvc)
         {
             this.homeSvc = homeSvc;
+            this.repoSvc = repoSvc;
         }
         public ActionResult Index()
         {
             return View();
         }
-        public ActionResult _GetDeliveryReport(DateTime startDate, DateTime endDate, string documentType)
+        public ActionResult _GetBatchByDateRange()
         {
+            DateTime startDate = DateTime.Now;
+            DateTime endDate = DateTime.Now;
             if (startDate < endDate)
             {
                 ViewBag.Message = "Invalid date selection.";
@@ -28,15 +32,18 @@ namespace AM.Web.Controllers
             }
             startDate = startDate.ToUniversalTime();
             endDate = endDate.ToUniversalTime();
-            var data = homeSvc.GetDeliveryReportByDateAndDocumentType(startDate, endDate, documentType);
+            var data = homeSvc.GetBatchReportInfoByDateRange(startDate, endDate);
+            var d2 = homeSvc.GetMailPieceInfoByBatchId(0);
             return PartialView(data);
         }
 
         public ActionResult MailPiece()
         {
-            //var data = homeSvc.GetDeliveryReportByBatchId("");
+            //homeSvc.GetMailPieceByBatchId(batchId);
             return View();
         }
+
+
         public ActionResult About()
         {
             ViewBag.Message = "Your application description page.";

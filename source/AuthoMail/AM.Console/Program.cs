@@ -11,8 +11,12 @@ namespace AM.Console
     {
         static void Main(string[] args)
         {
-            DownloadJob downloadJob = new DownloadJob();
-            downloadJob.DownloadNewBatch();
+            using(IDemo d = new Demo())
+            {
+                var list = d.GetData();
+
+                list.ForEach(item => System.Console.WriteLine(item));
+            }
         }
     }
 }

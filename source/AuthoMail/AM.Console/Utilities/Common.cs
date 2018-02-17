@@ -59,21 +59,5 @@ namespace AM.Console
             return TimeZoneInfo.ConvertTime(dtVal, TimeZoneInfo.FindSystemTimeZoneById("UTC"), TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"));
         }
 
-        public static SFT_ProtocolType GetProtocolType(string protocolType)
-        {
-            SFT_ProtocolType PnS_SFT_Protocol;
-            switch (protocolType.ToLower())
-            {
-                case "ftp": PnS_SFT_Protocol = SFT_ProtocolType.ftp;
-                    break;
-                case "sftp": PnS_SFT_Protocol = SFT_ProtocolType.sftp;
-                    break;
-                case "unc": PnS_SFT_Protocol = SFT_ProtocolType.unc;
-                    break;
-                default: throw new Exception("Please provide valid protocol for 'PnS_SFT_Protocol_Value'.");
-            }
-            return PnS_SFT_Protocol;
-        }
-
     }
 }

@@ -339,7 +339,7 @@
     <Content Include="Views\Shared\Lockout.cshtml" />
     <Content Include="Views\Shared\_LoginPartial.cshtml" />
     <Content Include="Views\Shared\_LayoutLogin.cshtml" />
-    <Content Include="Views\Home\_GetDeliveryReport.cshtml" />
+    <Content Include="Views\Home\_GetBatchByDateRange.cshtml" />
     <Content Include="Views\Home\MailPiece.cshtml" />
     <Content Include="Views\PullBackRequest\PullBack.cshtml" />
   </ItemGroup>
