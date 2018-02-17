@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
-namespace AM.Console
+namespace AM.Entities
 {
     [Serializable]
     [XmlRoot(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0")]
