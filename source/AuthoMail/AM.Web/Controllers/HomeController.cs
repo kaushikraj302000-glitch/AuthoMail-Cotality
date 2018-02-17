@@ -7,6 +7,7 @@ using System.Web.Mvc;
 
 namespace AM.Web.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
         IHomeService homeSvc;
@@ -14,11 +15,21 @@ namespace AM.Web.Controllers
         {
             this.homeSvc = homeSvc;
         }
-        [Authorize]
         public ActionResult Index()
         {
-            var data = homeSvc.GetDeliveryReportByBatchClustId("");
             return View();
+        }
+        public ActionResult _GetDeliveryReport(DateTime startDate, DateTime endDate, string documentType)
+        {
+            if (startDate < endDate)
+            {
+                ViewBag.Message = "Invalid date selection.";
+                return PartialView(null);
+            }
+            startDate = startDate.ToUniversalTime();
+            endDate = endDate.ToUniversalTime();
+            var data = homeSvc.GetDeliveryReportByDateAndDocumentType(startDate, endDate, documentType);
+            return PartialView(data);
         }
 
         public ActionResult About()

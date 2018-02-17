@@ -1,4 +1,5 @@
 ﻿using AM.Entities.IdentityModels;
+using AM.Services;
 using AM.Services.Services;
 using Autofac;
 using Autofac.Integration.Mvc;
@@ -7,6 +8,7 @@ using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.DataProtection;
 using Owin;
+using System.Data.Common;
 using System.Web;
 using System.Web.Mvc;
 
@@ -18,6 +20,8 @@ namespace AM.Web
         public void Configuration(IAppBuilder app)
         {
             var builder = new ContainerBuilder();
+
+            builder.Register<DbConnection>(d => DbFactory.Create()).InstancePerRequest();
 
             builder.RegisterControllers(typeof(MvcApplication).Assembly);
             builder.RegisterAssemblyTypes(typeof(HomeService).Assembly)

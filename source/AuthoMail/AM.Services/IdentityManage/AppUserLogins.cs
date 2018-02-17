@@ -65,7 +65,12 @@ namespace AM.Entities.IdentityManage
             List<UserLoginInfo> logins = new List<UserLoginInfo>();
             string commandText = "Select * from [Profile].[UserLogins] where UserId = @userId";
             Dictionary<string, object> parameters = new Dictionary<string, object>() { { "@userId", userId } };
-            return db.Query<UserLoginInfo>(commandText, parameters).ToList();
+            var result = db.Query(commandText, parameters);
+            foreach (var item in result)
+            {
+                logins.Add(new UserLoginInfo(item.ProviderKey, item.LoginProvider));
+            }
+            return logins;
         }
     }
 }

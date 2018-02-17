@@ -66,6 +66,7 @@
     <Compile Include="IdentityStores\UserStore.cs" />
     <Compile Include="Services\HomeService.cs" />
     <Compile Include="Utilities\Extensions.cs" />
+    <Compile Include="Utilities\JsonResponseFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
