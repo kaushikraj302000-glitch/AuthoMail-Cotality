@@ -10,11 +10,43 @@ namespace AM.Services.Services
 {
     public interface IReportService
     {
+        List<SummaryControlReport> GetBatchByParam(string loanNo, string docType, DateTime startDate, DateTime endDate);
+        List<MonthlyReconReport> GetMailPieceByBatchId(int batchId);
+
         List<MonthlyReconReport> GetMailPieceByLoanNo(string loanNo);
         List<SummaryControlReport> GetSummaryControlByLoanNo(string loanNo);
+        Dictionary<int, string> GetDocTypeList();
     }
     public class ReportService : ServiceBase, IReportService
     {
+        public List<SummaryControlReport> GetBatchByParam(string loanNo, string docType, DateTime startDate, DateTime endDate)
+        {
+            string query = "select b.BatchClustId,b.Id,[DocumentOrPackageType],m.BusinessFriendlyIdValue as [LoanNo],[FileName],b.ReceivedOn,m.ShippedOn as [PrintedOn],m.ShippedOn as [MailedOn],c.AppCode as ClientCode,m.TrackingNo,d.ShippingCarrier as [ShippingMethod],c.Id as [CustomerIdentifier],m.RetRcptFirstName,m.RetRcptMiddleName,m.RetRcptLastName,m.RcptAddressStreet,m.RcptAddressCity,m.RcptAddressState,m.RcptAddressZIP,m.ErrorCode,m.ErrorDesc,m.TotalPages as [PageShipped]from [AM].[Batch] b,[AM].[MailPiece] m,[Common].[Clients] cinner join [AM].[DocTypes] d on d.ClientId=c.Idwhere (m.BatchClustId=b.BatchClustId and c.Id=b.ClientId) and (cast(b.ReceivedOn as date)>=@startDate and cast(b.ReceivedOn as date)<=@endDate)";
+
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
+            parameters.Add("@startDate", startDate);
+            parameters.Add("@endDate", endDate);
+            if (!loanNo.IsNullOrWhiteSpace())
+            {
+                query = string.Format("{0} AND (m.BusinessFriendlyIdValue=@loanNo)", query);
+                parameters.Add("@loanNo", loanNo);
+            }
+            if (!docType.IsNullOrWhiteSpace())
+            {
+                query = string.Format("{0} AND (DocumentOrPackageType=@docType)", query);
+                parameters.Add("@docType", docType);
+            }
+            var data = db.Query<SummaryControlReport>(query, parameters).ToList();
+            return data;
+        }
+        public List<MonthlyReconReport> GetMailPieceByBatchId(int batchId)
+        {
+            string query = "select b.BatchClustId, m.BusinessFriendlyIdValue as [LoanNo],[FileName],b.DocumentOrPackageType,m.RetRcptFirstName,m.RetRcptMiddleName,m.RetRcptLastName,m.RcptAddressStreet,m.RcptAddressCity,m.RcptAddressState,m.RcptAddressZIP,b.ReceivedOn,m.TotalPages,m.TrackingNo,b.PipelineStatus as [Status],m.ShippedOn as [PrintedOn],m.ShippedOn as [MailedOn],d.ShippingCarrier as [ShippingMethod]from [AM].[MailPiece] m,[AM].[Batch] binner join [AM].[DocTypes] d on d.ClientId=b.ClientIdwhere (m.BatchClustId=b.BatchClustId) and b.BatchClustId=@batchId";
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
+            parameters.Add("@batchId", batchId);
+            var data = db.Query<MonthlyReconReport>(query, parameters).ToList();
+            return data;
+        }
         public List<MonthlyReconReport> GetMailPieceByLoanNo(string loanNo)
         {
             string query = "select m.BusinessFriendlyIdValue as [LoanNo],[FileName],b.DocumentOrPackageType,m.RetRcptFirstName,m.RetRcptMiddleName,m.RetRcptLastName,m.RcptAddressStreet,m.RcptAddressCity,m.RcptAddressState,m.RcptAddressZIP,b.ReceivedOn,m.TotalPages,m.TrackingNo,b.PipelineStatus as [Status],m.ShippedOn as [PrintedOn],m.ShippedOn as [MailedOn],d.ShippingCarrier as [ShippingMethod]from [AM].[MailPiece] m,[AM].[Batch] binner join [AM].[DocTypes] d on d.ClientId=b.ClientIdwhere (m.BatchClustId=b.BatchClustId) and m.BusinessFriendlyIdValue=@loanNo";
@@ -32,5 +64,19 @@ namespace AM.Services.Services
             var data = db.Query<SummaryControlReport>(query, parameters).ToList();
             return data;
         }
+
+
+        public Dictionary<int, string> GetDocTypeList()
+        {
+            string query = "select Id,DocTypeCode FROM [AM].[DocTypes]";
+            var data = db.Query(query).ToList();
+            var list = new Dictionary<int, string>();
+            foreach (var item in data)
+            {
+                list.Add(item[0], item[1]);
+            }
+            return list;
+        }
+
     }
 }
