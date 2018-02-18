@@ -11,11 +11,12 @@ namespace AM.Services.Services
     public interface IReportService
     {
         List<SummaryControlReport> GetBatchByParam(string loanNo, string docType, DateTime startDate, DateTime endDate);
+        List<MonthlyReconReport> GetMailPieceByParam(string loanNo, string docType, DateTime startDate, DateTime endDate);
         List<MonthlyReconReport> GetMailPieceByBatchId(int batchId);
 
         List<MonthlyReconReport> GetMailPieceByLoanNo(string loanNo);
         List<SummaryControlReport> GetSummaryControlByLoanNo(string loanNo);
-        Dictionary<int, string> GetDocTypeList();
+        List<DocTypeIdDocTypeCode> GetDocTypeList();
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -66,17 +67,38 @@ namespace AM.Services.Services
         }
 
 
-        public Dictionary<int, string> GetDocTypeList()
+        public List<DocTypeIdDocTypeCode> GetDocTypeList()
         {
             string query = "select Id,DocTypeCode FROM [AM].[DocTypes]";
             var data = db.Query(query).ToList();
-            var list = new Dictionary<int, string>();
+            var list = new List<DocTypeIdDocTypeCode>();
             foreach (var item in data)
             {
-                list.Add(item[0], item[1]);
+                list.Add(new DocTypeIdDocTypeCode { Id = item[0], DocTypeCode = item[1] });
             }
             return list;
         }
 
+
+
+        public List<MonthlyReconReport> GetMailPieceByParam(string loanNo, string docType, DateTime startDate, DateTime endDate)
+        {
+            string query = "select b.BatchClustId, m.BusinessFriendlyIdValue as [LoanNo],[FileName],b.DocumentOrPackageType,m.RetRcptFirstName,m.RetRcptMiddleName,m.RetRcptLastName,m.RcptAddressStreet,m.RcptAddressCity,m.RcptAddressState,m.RcptAddressZIP,b.ReceivedOn,m.TotalPages,m.TrackingNo,b.PipelineStatus as [Status],m.ShippedOn as [PrintedOn],m.ShippedOn as [MailedOn],d.ShippingCarrier as [ShippingMethod]from [AM].[MailPiece] m,[AM].[Batch] binner join [AM].[DocTypes] d on d.ClientId=b.ClientIdwhere (m.BatchClustId=b.BatchClustId) and (cast(b.ReceivedOn as date)>=@startDate and cast(b.ReceivedOn as date)<=@endDate)";
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
+            parameters.Add("@startDate", startDate);
+            parameters.Add("@endDate", endDate);
+            if (!loanNo.IsNullOrWhiteSpace())
+            {
+                query = string.Format("{0} AND (m.BusinessFriendlyIdValue=@loanNo)", query);
+                parameters.Add("@loanNo", loanNo);
+            }
+            if (!docType.IsNullOrWhiteSpace())
+            {
+                query = string.Format("{0} AND (b.DocumentOrPackageType=@docType)", query);
+                parameters.Add("@docType", docType);
+            }
+            var data = db.Query<MonthlyReconReport>(query, parameters).ToList();
+            return data;
+        }
     }
 }
