@@ -59,6 +59,7 @@
     <Compile Include="DownloadJob.cs" />
     <Compile Include="Utilities\Common.cs" />
     <Compile Include="Utilities\Extensions.cs" />
+    <Compile Include="Models\MailBatch.cs" />
     <Compile Include="Utilities\MailUtility.cs" />
     <Compile Include="Utilities\PdfUtil.cs" />
     <Compile Include="Utilities\SFTUtil.cs" />
