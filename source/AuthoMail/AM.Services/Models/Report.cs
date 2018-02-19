@@ -56,6 +56,7 @@ namespace AM.Services.Models
         public string RcptAddressCity { get; set; }
         public string RcptAddressState { get; set; }
         public string RcptAddressZIP { get; set; }
+        public string ClientCode { get; set; }
 
         public DateTime? ReceivedOn { get; set; }
         public DateTime? PrintedOn { get; set; }
