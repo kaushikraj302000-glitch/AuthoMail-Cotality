@@ -28,15 +28,17 @@ namespace AM.Web.Controllers
         }
         public ActionResult _GetBatchByDateRange()
         {
-            DateTime startDate = DateTime.Now;
+            DateTime startDate = DateTime.Now.AddDays(-5);
             DateTime endDate = DateTime.Now;
-            if (startDate < endDate)
+            if (startDate > endDate)
             {
                 ViewBag.Message = "Invalid date selection.";
                 return PartialView(null);
             }
             startDate = startDate.ToUniversalTime();
             endDate = endDate.ToUniversalTime();
+            var q1 = repoSvc.GetBatchByParam(null, null, startDate, endDate);
+            var q2 = repoSvc.GetMailPieceByBatchId(1000);
             var data = homeSvc.GetBatchReportInfoByDateRange(startDate, endDate);
             var d2 = homeSvc.GetMailPieceInfoByBatchId(0);
             return PartialView(data);
