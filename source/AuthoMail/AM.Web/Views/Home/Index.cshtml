@@ -1,169 +1,105 @@
 ﻿@{
     ViewBag.Title = "Home Page";
 }
-<style>
-    .prev, .next {
-        font-size: 15px !important;
-    }
 
-    .dt-buttons {
-        float: right !important;
-        margin-top: -7%;
-    }
-
-    .dt-button {
-        margin-right: 5px;
-    }
-
-    .dataTables_wrapper .dt-buttons {
-        float: none;
-        text-align: center;
-    }
-
-</style>
-<div class="panel-group">
-    <div class="panel panel-default">
-        <div class="panel-heading" id="headingOne" data-toggle="collapse" data-parent="#metatable" href="#metaItem1">
-            <h2 class="panel-title">
-                <i class="fa fa-filter"></i> Filter
-            </h2>
-        </div>
-        <div id="metaItem1" class="panel-collapse collapse in">
-            <div class="panel-body">
-                <div class="col-md-5">
-                    <div class="form-group col-md-6">
-                        <label for="input1">Loan Number</label>
-                        <input class="form-control" name="LoanNumber" placeholder="Loan Number" id="loanNumber">
-                    </div>
-                    <div class="form-group col-md-6">
-                        <label for="input1">Document Type</label>
-                        @Html.DropDownList("DocType", ViewBag.DocType as SelectList, "Select DocType", htmlAttributes: new { @class = "selectpicker" })
-                        
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="dp4">Select Date</label>
-                        <div class="input-group daterange" id="datepicker4">
-                            <input type="text" class="form-control" id="dp4">
-                            <span class="input-group-addon">
-                                <i class="fa fa-calendar"></i>
-                            </span>
-                        </div>
-                    </div>
-
-                </div>
-                <div class="col-md-1">
-                    <div class="form-group ">
-                        <label for="input1"></label>
-                        <button type="button" id="filterData" class="btn btn-primary">
-                            <span class="sr-only">Filter</span>
-                            <i class="fa fa-filter fa-2x"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-</div>
-<div class="panel panel-default" id="batchList"></div>
-
-@*@Html.Partial("_BatchList")*@
-
-@section Scripts{
-    @Styles.Render("~/bundles/datatablescss")
-    @Scripts.Render("~/bundles/datatables")
-    <script>
-        $(document).ready(function () {
-            window.clui.dateTimePickerInit();
-            FilterData();
-        });
-        function FilterData() {
-           
-            var loanNumber = $("#loanNumber").val();
-            var docType = $("#DocType").val();
-
-            var selectedData = $("#dp4").val().split('-');
-
-            var startDate = selectedData[0].trim();
-            var endDate = selectedData[1].trim();
-            var el = $('#batchList');
-            el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
-            $.ajax({
-                type: "POST",
-                url: "/Home/_GetBatchList",
-                data: JSON.stringify({ loanNumber: loanNumber,docType:docType,startDate:startDate,endDate:endDate }),
-                contentType: "application/json; charset=utf-8",
-                success: function (res) {
-                    el.html(res);
-                },
-                error: function (xhr, ajaxOptions, thrownError) {
-                    var msg = 'Error on reloading the content. Please check your connection and try again.';
-                    el.html("<div class='alert alert-info'><span>" + msg + "</span></div>");
-                }
-
-            });
-        }
-        $("#filterData").click(function () {
-            FilterData();
-        });
-    </script>
-}
-@*<div class="title">
-        <div class="container-fluid">
-            <h1 class="primary-title">Batch ID: CLG2253393</h1>
-            <h2 class="secondary-title">Loan #: 123456789 | Vendor Order ID: 897645321</h2>
-        </div>
-    </div>
-    <div class="panel panel-default">
+<div class="col-md-6">
+    <div class="panel panel-default ">
         <div class="panel-heading">
-            <div class="panel-title">Batch wise info</div>
+            <div class="panel-title">Weekly Batch Details</div>
         </div>
         <div class="panel-body panel-gray">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="">
-                        <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+            <div id="barchart_values"></div>
 
-                        <script type="text/javascript">
-                            google.charts.load("current", { packages: ["timeline"] });
-                            google.charts.setOnLoadCallback(drawChart);
-                            function drawChart() {
+        </div>
+    </div>
+</div>
 
-                                var container = document.getElementById('example3.1');
-                                var chart = new google.visualization.Timeline(container);
-                                var dataTable = new google.visualization.DataTable();
-                                dataTable.addColumn({ type: 'string', id: 'Position' });
-                                dataTable.addColumn({ type: 'string', id: 'Name' });
-                                dataTable.addColumn({ type: 'date', id: 'Start' });
-                                dataTable.addColumn({ type: 'date', id: 'End' });
-                                dataTable.addRows([
-                                  ['President', 'George Washington', new Date(1789, 3, 30), new Date(1797, 2, 4)],
-                                  ['President', 'John Adams', new Date(1797, 2, 4), new Date(1801, 2, 4)],
-                                  ['President', 'Thomas Jefferson', new Date(1801, 2, 4), new Date(1809, 2, 4)],
-                                  ['Vice President', 'John Adams', new Date(1789, 3, 21), new Date(1797, 2, 4)],
-                                  ['Vice President', 'Thomas Jefferson', new Date(1797, 2, 4), new Date(1801, 2, 4)],
-                                  ['Vice President', 'Aaron Burr', new Date(1801, 2, 4), new Date(1805, 2, 4)],
-                                  ['Vice President', 'George Clinton', new Date(1805, 2, 4), new Date(1812, 3, 20)],
-                                  ['Secretary of State', 'John Jay', new Date(1789, 8, 25), new Date(1790, 2, 22)],
-                                  ['Secretary of State', 'Thomas Jefferson', new Date(1790, 2, 22), new Date(1793, 11, 31)],
-                                  ['Secretary of State', 'Edmund Randolph', new Date(1794, 0, 2), new Date(1795, 7, 20)],
-                                  ['Secretary of State', 'Timothy Pickering', new Date(1795, 7, 20), new Date(1800, 4, 12)],
-                                  ['Secretary of State', 'Charles Lee', new Date(1800, 4, 13), new Date(1800, 5, 5)],
-                                  ['Secretary of State', 'John Marshall', new Date(1800, 5, 13), new Date(1801, 2, 4)],
-                                  ['Secretary of State', 'Levi Lincoln', new Date(1801, 2, 5), new Date(1801, 4, 1)],
-                                  ['Secretary of State', 'James Madison', new Date(1801, 4, 2), new Date(1809, 2, 3)]
-                                ]);
-
-                                chart.draw(dataTable);
-                            }
-                        </script>
-
-                        <div id="example3.1" style="height: 200px;"></div>
-                    </div>
+<div class="col-md-6 ">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <div class="panel-title">Monthly Batch Details</div>
+        </div>
+        <div class="panel-body panel-gray ">
+            <div id="container"></div>
+        </div>
+    </div>
+</div>
+<div class="clearfix"></div>
+<div class="col-md-6">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <div class="panel-title"><i class="fa fa-reply"></i> Quick Pullback</div>
+        </div>
+        <div class="panel-body panel-gray">
+            <div class="form-group col-md-8">
+                <label for="input2">Loan Number</label>
+                <div class="input-group">
+                    <i class="fa fa-search left-icon"></i>
+                    <input class="form-control" placeholder="Loan Number" id="loanNumber">
                 </div>
             </div>
+            <div class="form-group text-center col-md-4">
+                <label for="pullback"> </label>
+                <button type="button" id="pullback" class="btn btn-primary ">
+                    <span class="sr-only"></span>
+                    <i class="fa fa-reply"></i>
+                    <span class="btnLabel">Pullback</span>
+                </button>
+            </div>
         </div>
-    </div>*@
+    </div>
+</div>
+<div class="clearfix"></div>
 
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js">
+</script>
+<script type="text/javascript">
+    google.charts.load('current', { packages: ['corechart'] });
+    function drawChart() {
+        // Define the chart to be drawn.
+        var data = google.visualization.arrayToDataTable([
+           ['Year', 'Asia', 'Europe'],
+           ['2012', 900, 390],
+           ['2013', 1000, 400],
+           ['2014', 1170, 440],
+           ['2015', 1250, 480],
+           ['2016', 1530, 540]
+        ]);
+
+        var options = { title: 'Population (in millions)', isStacked: true, 'height': 300 };
+
+        // Instantiate and draw the chart.
+        var chart = new google.visualization.BarChart(document.getElementById('barchart_values'));
+        chart.draw(data, options);
+    }
+    google.charts.setOnLoadCallback(drawChart);
+
+    function drawChart1() {
+        // Define the chart to be drawn.
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Browser');
+        data.addColumn('number', 'Percentage');
+        data.addRows([
+           ['Firefox', 45.0],
+           ['IE', 26.8],
+           ['Chrome', 12.8],
+           ['Safari', 8.5],
+           ['Opera', 6.2],
+           ['Others', 0.7]
+        ]);
+
+        // Set chart options
+        var options = {
+            'title': 'Browser market shares at a specific website, 2014',
+            //'width': 550,
+            'height': 300,
+            is3D: true
+        };
+
+        // Instantiate and draw the chart.
+        var chart = new google.visualization.PieChart(document.getElementById('container'));
+        chart.draw(data, options);
+    }
+    google.charts.setOnLoadCallback(drawChart1);
+</script>
+<div id="barchart_values" style="width: 900px; height: 300px;"></div>

@@ -170,6 +170,7 @@
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ManageController.cs" />
     <Compile Include="Controllers\PullBackRequestController.cs" />
+    <Compile Include="Controllers\ReportController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -344,6 +345,9 @@
     <Content Include="Views\PullBackRequest\PullBack.cshtml" />
     <Content Include="Views\Home\_GetBatchList.cshtml" />
     <Content Include="Views\PullBackRequest\_GetMailPieceList.cshtml" />
+    <Content Include="Views\Report\_GetBatchList.cshtml" />
+    <Content Include="Views\Report\BatchReport.cshtml" />
+    <Content Include="Views\Report\MailPieceReport.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

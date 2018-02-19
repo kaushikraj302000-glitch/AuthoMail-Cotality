@@ -19,13 +19,13 @@ namespace AM.Web.Controllers
         }
         public ActionResult Index()
         {
-            ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(), "Id", "DocTypeCode");
+            //ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(), "Id", "DocTypeCode");
             return View();
         }
-        public ActionResult _GetBatchList(string loanNumber,string docType,DateTime startDate,DateTime endDate)
-        {
-            return PartialView();
-        }
+        //public ActionResult _GetBatchList(string loanNumber,string docType,DateTime startDate,DateTime endDate)
+        //{
+        //    return PartialView();
+        //}
         public ActionResult _GetBatchByDateRange()
         {
             DateTime startDate = DateTime.Now;
@@ -42,11 +42,11 @@ namespace AM.Web.Controllers
             return PartialView(data);
         }
 
-        public ActionResult MailPiece()
-        {
-            //homeSvc.GetMailPieceByBatchId(batchId);
-            return View();
-        }
+        //public ActionResult MailPiece()
+        //{
+        //    //homeSvc.GetMailPieceByBatchId(batchId);
+        //    return View();
+        //}
 
 
         public ActionResult About()
