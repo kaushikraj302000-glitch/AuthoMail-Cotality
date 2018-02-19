@@ -92,13 +92,5 @@ namespace AM.Services.IdentityStores
             return Task.FromResult<Object>(null);
         }
 
-        public void Dispose()
-        {
-            if (db != null)
-            {
-                db.Dispose();
-                db = null;
-            }
-        }
     }
 }
