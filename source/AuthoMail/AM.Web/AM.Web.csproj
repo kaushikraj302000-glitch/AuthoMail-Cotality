@@ -342,6 +342,8 @@
     <Content Include="Views\Home\_GetBatchByDateRange.cshtml" />
     <Content Include="Views\Home\MailPiece.cshtml" />
     <Content Include="Views\PullBackRequest\PullBack.cshtml" />
+    <Content Include="Views\Home\_GetBatchList.cshtml" />
+    <Content Include="Views\PullBackRequest\_GetMailPieceList.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

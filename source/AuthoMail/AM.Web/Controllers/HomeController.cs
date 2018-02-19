@@ -19,7 +19,12 @@ namespace AM.Web.Controllers
         }
         public ActionResult Index()
         {
+            ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(), "Id", "DocTypeCode");
             return View();
+        }
+        public ActionResult _GetBatchList(string loanNumber,string docType,DateTime startDate,DateTime endDate)
+        {
+            return PartialView();
         }
         public ActionResult _GetBatchByDateRange()
         {

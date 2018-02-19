@@ -43,11 +43,12 @@
                     </div>
                     <div class="form-group col-md-6">
                         <label for="input1">Document Type</label>
-                        <select class="selectpicker" id="docType">
+                        @Html.DropDownList("DocType", ViewBag.DocType as SelectList, "Select DocType", htmlAttributes: new { @class = "selectpicker" })
+                        @*<select class="selectpicker" id="docType">
                             <option>Basic User</option>
                             <option>Admin</option>
                             <option>Super Admin</option>
-                        </select>
+                        </select>*@
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -76,154 +77,47 @@
     </div>
 
 </div>
-<div class="panel panel-default">
-    <div class="panel-heading">
-        <div class="panel-title">
-            MailPiece Details
-            <span class="pull-right" style=" margin-right: 20%;">
-                <a href="/Home/MailPiece" class="btn btn-transparent-red"><i class="fa fa-reply"></i> Pull Back</a>
-            </span>
-
-        </div>
-    </div>
-    <div class="panel-body">
-        <table class="table table-responsive" id="sample_2">
-            <thead>
-                <tr>
-                    <th>
-                        <input type="checkbox" id="selectall" class="cl-check" />
-                        <label for="selectall"></label>
-                    </th>
-                    <th>#</th>
-                    <th>Business Id</th>
-                    <th>Recipient Name</th>
-                    <th>Address</th>
-                    <th>Current status</th>
-                    <th>Shipping Cost</th>
-                    <th>Shipping Time</th>
-
-                </tr>
-            </thead>
-            <tbody>
-                @for (int i = 1; i <= 35; i++)
-                {
-                    <tr class="row-small">
-                        <td>
-                            <input type="checkbox" id="checkbox-demo_@(i)" class="cl-check checkall" />
-                            <label for="checkbox-demo_@(i)"></label>
-                        </td>
-                        <td>
-                            <span>@i</span>
-                        </td>
-                        <td>
-                            <span>Test @i</span>
-                        </td>
-                        <td>
-                            <span>Type @i</span>
-                        </td>
-                        <td><span>Mobile @i</span></td>
-                        <td><span>Email @i</span></td>
-                        <td><span>Education @i</span></td>
-                        <td><span>Sem/Year @i</span></td>
-
-                    </tr>
-
-                }
-            </tbody>
-
-        </table>
-    </div>
+<div class="panel panel-default" id="mailPieceList">
+    
 </div>
 
 @section Scripts{
     @Styles.Render("~/bundles/datatablescss")
     @Scripts.Render("~/bundles/datatables")
-    @*@Scripts.Render("~/bundles/cldatepicker")*@
 
     <script type="text/javascript">
         $(document).ready(function () {
-            //dateTimePickerInit();
-            var table = $('#sample_2');
-            var filename = "BatchReport";
-            var title = "Batch Report";
-            var oTable = table.dataTable({
-
-                "language": {
-                    "aria": {
-                        "sortAscending": ": activate to sort column ascending",
-                        "sortDescending": ": activate to sort column descending"
-                    },
-                    "emptyTable": "No data available in table",
-                    "info": "Showing _START_ to _END_ of _TOTAL_ entries",
-                    "infoEmpty": "No entries found",
-                    "infoFiltered": "(filtered1 from _MAX_ total entries)",
-                    "lengthMenu": "_MENU_ entries",
-                    "search": "<b>Search:</b>",
-                    "zeroRecords": "No matching records found"
-                },
-
-
-                buttons: [
-                    //{
-                    //    extend: 'colvis',
-                    //    text: 'Select Fields',
-                    //    className: 'btn purple pull-left',
-                    //    columns: ':not(.noVis)'
-                    //},
-                {
-                    extend: 'excel',
-                    text: '<i class="fa fa-file-excel-o"></i> Excel',
-                    className: 'btn btn-primary',
-                    filename: filename,
-                    title: title,
-                    exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7]
-                    }
-
-                },
-                    {
-                        extend: 'pdfHtml5',
-                        text: '<i class="fa fa-file-pdf-o"></i> Pdf',
-                        className: 'btn btn-info',
-                        filename: filename,
-                        title: title,
-                        exportOptions: {
-                            columns: [0, 1, 2, 3, 4, 5, 6, 7]
-                        },
-
-                    }
-
-
-
-                ],
-
-                "order": [
-                    [1, 'asc']
-                ],
-                "lengthMenu": [
-                    [5, 10, 25, 50, 100, -1],
-                    [5, 10, 25, 50, 100, "All"] // change per page values here
-                ],
-                // set the initial value
-                "pageLength": 5,
-
-                "dom": "<'row' <'col-md-12'B>><'row'<'col-md-6 col-sm-12'l><'col-md-6 col-sm-12'f>r><'table-scrollable't><'row'<'col-md-5 col-sm-12'i><'col-md-7 col-sm-12'p>>", // horizobtal scrollable datatable
-
-
-            });
-
-
-            oTable.find('#selectall').change(function () {
-                var checked = jQuery(this).is(":checked");
-                $(".checkall",  oTable.fnGetNodes()).each(function () {
-                    if (checked) {
-                        $(this).prop("checked", true);
-                    } else {
-                        $(this).prop("checked", false);
-                    }
-                });
-            });
+            window.clui.dateTimePickerInit();
+            FilterData();
         });
-       
+        function FilterData() {
+
+            var loanNumber = $("#loanNumber").val();
+            var docType = $("#DocType").val();
+
+            var selectedData = $("#dp4").val().split('-');
+
+            var startDate = selectedData[0].trim();
+            var endDate = selectedData[1].trim();
+            var el = $('#mailPieceList');
+            el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
+            $.ajax({
+                type: "POST",
+                url: "/PullBackRequest/_GetMailPieceList",
+                data: JSON.stringify({ loanNumber: loanNumber, docType: docType, startDate: startDate, endDate: endDate }),
+                contentType: "application/json; charset=utf-8",
+                success: function (res) {
+                    el.html(res);
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    var msg = 'Error on reloading the content. Please check your connection and try again.';
+                    el.html("<div class='alert alert-info'><span>" + msg + "</span></div>");
+                }
+
+            });
+        }
+        $("#filterData").click(function () {
+            FilterData();
+        });
     </script>
 }
