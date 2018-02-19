@@ -39,16 +39,16 @@ namespace AM.Services.Models
             get
             {
                 string address = string.Format("{0} {1} {2} {3} {4} {5} {6} {7} {8}",
-                    RetRcptAddrOptionalLine1AboveStreet.IsNullOrWhiteSpace() ? null : RetRcptAddrOptionalLine1AboveStreet + ", ",
-                    RetRcptAddrOptionalLine2AboveStreet.IsNullOrWhiteSpace() ? null : RetRcptAddrOptionalLine2AboveStreet + ", ",
-                    RetRcptAddressStreet.IsNullOrWhiteSpace() ? null : RetRcptAddressStreet + ", ",
-                    RetRcptAddressAptOrSuiteOrOther.IsNullOrWhiteSpace() ? null : RetRcptAddressAptOrSuiteOrOther + ", ",
-                    RetRcptAddrOptionalLine1BelowStreet.IsNullOrWhiteSpace() ? null : RetRcptAddrOptionalLine1BelowStreet + ", ",
-                    RetRcptAddrOptionalLine2BelowStreet.IsNullOrWhiteSpace() ? null : RetRcptAddrOptionalLine2BelowStreet + ", ",
-                    RetRcptAddressCity.IsNullOrWhiteSpace() ? null : RetRcptAddressCity + ", ",
-                    RetRcptAddressState.IsNullOrWhiteSpace() ? null : RetRcptAddressState + ", ",
-                    RetRcptAddressZip.IsNullOrWhiteSpace() ? null : RetRcptAddressZip + ", ");
-                return address.IsNullOrWhiteSpace() ? address : address.TrimEnd(',').Trim();
+                    RetRcptAddrOptionalLine1AboveStreet.IsNullOrWhiteSpace() ? null : RetRcptAddrOptionalLine1AboveStreet.Trim() + ", ",
+                    RetRcptAddrOptionalLine2AboveStreet.IsNullOrWhiteSpace() ? null : RetRcptAddrOptionalLine2AboveStreet.Trim() + ", ",
+                    RetRcptAddressStreet.IsNullOrWhiteSpace() ? null : RetRcptAddressStreet.Trim() + ", ",
+                    RetRcptAddressAptOrSuiteOrOther.IsNullOrWhiteSpace() ? null : RetRcptAddressAptOrSuiteOrOther.Trim() + ", ",
+                    RetRcptAddrOptionalLine1BelowStreet.IsNullOrWhiteSpace() ? null : RetRcptAddrOptionalLine1BelowStreet.Trim() + ", ",
+                    RetRcptAddrOptionalLine2BelowStreet.IsNullOrWhiteSpace() ? null : RetRcptAddrOptionalLine2BelowStreet.Trim() + ", ",
+                    RetRcptAddressCity.IsNullOrWhiteSpace() ? null : RetRcptAddressCity.Trim() + ", ",
+                    RetRcptAddressState.IsNullOrWhiteSpace() ? null : RetRcptAddressState.Trim() + ", ",
+                    RetRcptAddressZip.IsNullOrWhiteSpace() ? null : RetRcptAddressZip.Trim() + ", ");
+                return address.IsNullOrWhiteSpace() ? address : address.Trim(',').Trim();
             }
         }
         public string CurrentStatus { get; set; }
@@ -89,15 +89,15 @@ namespace AM.Services.Models
             get
             {
                 string address = string.Format("{0} {1} {2} {3} {4} {5} {6} {7} {8}",
-                    RcptAddrOptionalLine1AboveStreet.IsNullOrWhiteSpace() ? null : RcptAddrOptionalLine1AboveStreet + ", ",
-                    RcptAddrOptionalLine2AboveStreet.IsNullOrWhiteSpace() ? null : RcptAddrOptionalLine2AboveStreet + ", ",
-                    RcptAddressStreet.IsNullOrWhiteSpace() ? null : RcptAddressStreet + ", ",
-                    RcptAddressAptOrSuiteOrOther.IsNullOrWhiteSpace() ? null : RcptAddressAptOrSuiteOrOther + ", ",
-                    RcptAddrOptionalLine1BelowStreet.IsNullOrWhiteSpace() ? null : RcptAddrOptionalLine1BelowStreet + ", ",
-                    RcptAddrOptionalLine2BelowStreet.IsNullOrWhiteSpace() ? null : RcptAddrOptionalLine2BelowStreet + ", ",
-                    RcptAddressCity.IsNullOrWhiteSpace() ? null : RcptAddressCity + ", ",
-                    RcptAddressState.IsNullOrWhiteSpace() ? null : RcptAddressState + ", ",
-                    RcptAddressZip.IsNullOrWhiteSpace() ? null : RcptAddressZip + ", ");
+                    RcptAddrOptionalLine1AboveStreet.IsNullOrWhiteSpace() ? null : RcptAddrOptionalLine1AboveStreet.Trim() + ", ",
+                    RcptAddrOptionalLine2AboveStreet.IsNullOrWhiteSpace() ? null : RcptAddrOptionalLine2AboveStreet.Trim() + ", ",
+                    RcptAddressStreet.IsNullOrWhiteSpace() ? null : RcptAddressStreet.Trim() + ", ",
+                    RcptAddressAptOrSuiteOrOther.IsNullOrWhiteSpace() ? null : RcptAddressAptOrSuiteOrOther.Trim() + ", ",
+                    RcptAddrOptionalLine1BelowStreet.IsNullOrWhiteSpace() ? null : RcptAddrOptionalLine1BelowStreet.Trim() + ", ",
+                    RcptAddrOptionalLine2BelowStreet.IsNullOrWhiteSpace() ? null : RcptAddrOptionalLine2BelowStreet.Trim() + ", ",
+                    RcptAddressCity.IsNullOrWhiteSpace() ? null : RcptAddressCity.Trim() + ", ",
+                    RcptAddressState.IsNullOrWhiteSpace() ? null : RcptAddressState.Trim() + ", ",
+                    RcptAddressZip.IsNullOrWhiteSpace() ? null : RcptAddressZip.Trim() + ", ");
                 return address.IsNullOrWhiteSpace() ? address : address.TrimEnd(',').Trim();
             }
         }
