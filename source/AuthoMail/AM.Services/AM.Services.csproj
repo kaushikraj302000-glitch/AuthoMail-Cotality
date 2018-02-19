@@ -62,7 +62,6 @@
     <Compile Include="Demo.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="IDemo.cs" />
-    <Compile Include="Models\BatchReportInfo.cs" />
     <Compile Include="Models\DeliveryReportVM.cs" />
     <Compile Include="Models\Report.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

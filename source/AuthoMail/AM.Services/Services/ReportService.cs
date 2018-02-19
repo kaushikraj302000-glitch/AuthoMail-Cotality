@@ -16,12 +16,13 @@ namespace AM.Services.Services
 
         List<MonthlyReconReport> GetMailPieceByLoanNo(string loanNo);
         List<SummaryControlReport> GetSummaryControlByLoanNo(string loanNo);
-        List<DocTypeIdDocTypeCode> GetDocTypeList();
+        List<DocumentType> GetDocTypeList();
     }
     public class ReportService : ServiceBase, IReportService
     {
         public List<SummaryControlReport> GetBatchByParam(string loanNo, string docType, DateTime startDate, DateTime endDate)
         {
+            //string query = "select * from dbo.GetBatchByParam WHERE (cast(ReceivedOn as date) >= @startDate and cast(ReceivedOn as date)<=@endDate)";
             string query = "select b.BatchClustId,b.Id,[DocumentOrPackageType],m.BusinessFriendlyIdValue as [LoanNo],[FileName],b.ReceivedOn,m.ShippedOn as [PrintedOn],m.ShippedOn as [MailedOn],c.AppCode as ClientCode,m.TrackingNo,d.ShippingCarrier as [ShippingMethod],c.Id as [CustomerIdentifier],m.RetRcptFirstName,m.RetRcptMiddleName,m.RetRcptLastName,m.RcptAddressStreet,m.RcptAddressCity,m.RcptAddressState,m.RcptAddressZIP,m.ErrorCode,m.ErrorDesc,m.TotalPages as [PageShipped]from [AM].[Batch] b,[AM].[MailPiece] m,[Common].[Clients] cinner join [AM].[DocTypes] d on d.ClientId=c.Idwhere (m.BatchClustId=b.BatchClustId and c.Id=b.ClientId) and (cast(b.ReceivedOn as date)>=@startDate and cast(b.ReceivedOn as date)<=@endDate)";
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();
@@ -30,6 +31,7 @@ namespace AM.Services.Services
             if (!loanNo.IsNullOrWhiteSpace())
             {
                 query = string.Format("{0} AND (m.BusinessFriendlyIdValue=@loanNo)", query);
+                //query = string.Format("{0} AND (LoanNo=@loanNo)", query);
                 parameters.Add("@loanNo", loanNo);
             }
             if (!docType.IsNullOrWhiteSpace())
@@ -67,14 +69,14 @@ namespace AM.Services.Services
         }
 
 
-        public List<DocTypeIdDocTypeCode> GetDocTypeList()
+        public List<DocumentType> GetDocTypeList()
         {
             string query = "select Id,DocTypeCode FROM [AM].[DocTypes]";
             var data = db.Query(query).ToList();
-            var list = new List<DocTypeIdDocTypeCode>();
+            var list = new List<DocumentType>();
             foreach (var item in data)
             {
-                list.Add(new DocTypeIdDocTypeCode { Id = item[0], DocTypeCode = item[1] });
+                list.Add(new DocumentType { Id = item.Id, DocTypeCode = item.DocTypeCode });
             }
             return list;
         }
