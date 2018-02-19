@@ -23,7 +23,7 @@ namespace AM.Services.Services
         public List<SummaryControlReport> GetBatchByParam(string loanNo, string docType, DateTime startDate, DateTime endDate)
         {
             //string query = "select * from dbo.GetBatchByParam WHERE (cast(ReceivedOn as date) >= @startDate and cast(ReceivedOn as date)<=@endDate)";
-            string query = "select b.BatchClustId,b.Id,[DocumentOrPackageType],m.BusinessFriendlyIdValue as [LoanNo],[FileName],b.ReceivedOn,m.ShippedOn as [PrintedOn],m.ShippedOn as [MailedOn],c.AppCode as ClientCode,m.TrackingNo,d.ShippingCarrier as [ShippingMethod],c.Id as [CustomerIdentifier],m.RetRcptFirstName,m.RetRcptMiddleName,m.RetRcptLastName,m.RcptAddressStreet,m.RcptAddressCity,m.RcptAddressState,m.RcptAddressZIP,m.ErrorCode,m.ErrorDesc,m.TotalPages as [PageShipped]from [AM].[Batch] b,[AM].[MailPiece] m,[Common].[Clients] cinner join [AM].[DocTypes] d on d.ClientId=c.Idwhere (m.BatchClustId=b.BatchClustId and c.Id=b.ClientId) and (cast(b.ReceivedOn as date)>=@startDate and cast(b.ReceivedOn as date)<=@endDate)";
+            string query = "select b.BatchClustId,b.Id,[DocumentOrPackageType],m.BusinessFriendlyIdValue as [LoanNo],[FileName],b.ReceivedOn,m.ShippedOn as [PrintedOn],m.ShippedOn as [MailedOn],c.AppCode as ClientCode,m.TrackingNo,d.ShippingCarrier as [ShippingMethod],c.Id as [CustomerIdentifier],m.RetRcptFirstName,m.RetRcptMiddleName,m.RetRcptLastName,m.RcptAddressStreet,m.RcptAddressCity,m.RcptAddressState,m.RcptAddressZIP,m.ErrorCode,m.ErrorDesc,m.TotalPages as [PageShipped]from [AM].[Batch] b,[AM].[MailPiece] m,[Common].[Clients] c left outer join [AM].[DocTypes] d on d.ClientId=c.Id where (m.BatchClustId=b.BatchClustId and c.Id=b.ClientId) and (cast(b.ReceivedOn as date)>=@startDate and cast(b.ReceivedOn as date)<=@endDate)";
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@startDate", startDate);
@@ -44,7 +44,7 @@ namespace AM.Services.Services
         }
         public List<MonthlyReconReport> GetMailPieceByBatchId(int batchId)
         {
-            string query = "select b.BatchClustId, m.BusinessFriendlyIdValue as [LoanNo],[FileName],b.DocumentOrPackageType,m.RetRcptFirstName,m.RetRcptMiddleName,m.RetRcptLastName,m.RcptAddressStreet,m.RcptAddressCity,m.RcptAddressState,m.RcptAddressZIP,b.ReceivedOn,m.TotalPages,m.TrackingNo,b.PipelineStatus as [Status],m.ShippedOn as [PrintedOn],m.ShippedOn as [MailedOn],d.ShippingCarrier as [ShippingMethod]from [AM].[MailPiece] m,[AM].[Batch] binner join [AM].[DocTypes] d on d.ClientId=b.ClientIdwhere (m.BatchClustId=b.BatchClustId) and b.BatchClustId=@batchId";
+            string query = "select b.BatchClustId, m.BusinessFriendlyIdValue as [LoanNo],[FileName],b.DocumentOrPackageType,m.RetRcptFirstName,m.RetRcptMiddleName,m.RetRcptLastName,m.RcptAddressStreet,m.RcptAddressCity,m.RcptAddressState,m.RcptAddressZIP,b.ReceivedOn,m.TotalPages,m.TrackingNo,b.PipelineStatus as [Status],m.ShippedOn as [PrintedOn],m.ShippedOn as [MailedOn],d.ShippingCarrier as [ShippingMethod]from [AM].[MailPiece] m,[AM].[Batch] b left outer join [AM].[DocTypes] d on d.ClientId=b.ClientId where (m.BatchClustId=b.BatchClustId) and b.BatchClustId=@batchId";
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@batchId", batchId);
             var data = db.Query<MonthlyReconReport>(query, parameters).ToList();
@@ -52,7 +52,7 @@ namespace AM.Services.Services
         }
         public List<MonthlyReconReport> GetMailPieceByLoanNo(string loanNo)
         {
-            string query = "select m.BusinessFriendlyIdValue as [LoanNo],[FileName],b.DocumentOrPackageType,m.RetRcptFirstName,m.RetRcptMiddleName,m.RetRcptLastName,m.RcptAddressStreet,m.RcptAddressCity,m.RcptAddressState,m.RcptAddressZIP,b.ReceivedOn,m.TotalPages,m.TrackingNo,b.PipelineStatus as [Status],m.ShippedOn as [PrintedOn],m.ShippedOn as [MailedOn],d.ShippingCarrier as [ShippingMethod]from [AM].[MailPiece] m,[AM].[Batch] binner join [AM].[DocTypes] d on d.ClientId=b.ClientIdwhere (m.BatchClustId=b.BatchClustId) and m.BusinessFriendlyIdValue=@loanNo";
+            string query = "select m.BusinessFriendlyIdValue as [LoanNo],[FileName],b.DocumentOrPackageType,m.RetRcptFirstName,m.RetRcptMiddleName,m.RetRcptLastName,m.RcptAddressStreet,m.RcptAddressCity,m.RcptAddressState,m.RcptAddressZIP,b.ReceivedOn,m.TotalPages,m.TrackingNo,b.PipelineStatus as [Status],m.ShippedOn as [PrintedOn],m.ShippedOn as [MailedOn],d.ShippingCarrier as [ShippingMethod]from [AM].[MailPiece] m,[AM].[Batch] b left outer join [AM].[DocTypes] d on d.ClientId=b.ClientId where (m.BatchClustId=b.BatchClustId) and m.BusinessFriendlyIdValue=@loanNo";
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@loanNo", loanNo);
             var data = db.Query<MonthlyReconReport>(query, parameters).ToList();
@@ -61,7 +61,7 @@ namespace AM.Services.Services
 
         public List<SummaryControlReport> GetSummaryControlByLoanNo(string loanNo)
         {
-            string query = "select b.BatchClustId,b.Id,[DocumentOrPackageType],m.BusinessFriendlyIdValue as [LoanNo],[FileName],b.ReceivedOn,m.ShippedOn as [PrintedOn],m.ShippedOn as [MailedOn],c.AppCode as ClientCode,m.TrackingNo,d.ShippingCarrier as [ShippingMethod],c.Id as [CustomerIdentifier],m.RetRcptFirstName,m.RetRcptMiddleName,m.RetRcptLastName,m.RcptAddressStreet,m.RcptAddressCity,m.RcptAddressState,m.RcptAddressZIP,m.ErrorCode,m.ErrorDesc,m.TotalPages as [PageShipped]from [AM].[Batch] b,[AM].[MailPiece] m,[Common].[Clients] cinner join [AM].[DocTypes] d on d.ClientId=c.Idwhere (m.BatchClustId=b.BatchClustId and c.Id=b.ClientId) and (m.BusinessFriendlyIdValue=@loanNo)";
+            string query = "select b.BatchClustId,b.Id,[DocumentOrPackageType],m.BusinessFriendlyIdValue as [LoanNo],[FileName],b.ReceivedOn,m.ShippedOn as [PrintedOn],m.ShippedOn as [MailedOn],c.AppCode as ClientCode,m.TrackingNo,d.ShippingCarrier as [ShippingMethod],c.Id as [CustomerIdentifier],m.RetRcptFirstName,m.RetRcptMiddleName,m.RetRcptLastName,m.RcptAddressStreet,m.RcptAddressCity,m.RcptAddressState,m.RcptAddressZIP,m.ErrorCode,m.ErrorDesc,m.TotalPages as [PageShipped]from [AM].[Batch] b,[AM].[MailPiece] m,[Common].[Clients] c left outer join [AM].[DocTypes] d on d.ClientId=c.Id where (m.BatchClustId=b.BatchClustId and c.Id=b.ClientId) and (m.BusinessFriendlyIdValue=@loanNo)";
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@loanNo", loanNo);
             var data = db.Query<SummaryControlReport>(query, parameters).ToList();
@@ -85,7 +85,7 @@ namespace AM.Services.Services
 
         public List<MonthlyReconReport> GetMailPieceByParam(string loanNo, string docType, DateTime startDate, DateTime endDate)
         {
-            string query = "select b.BatchClustId, m.BusinessFriendlyIdValue as [LoanNo],[FileName],b.DocumentOrPackageType,m.RetRcptFirstName,m.RetRcptMiddleName,m.RetRcptLastName,m.RcptAddressStreet,m.RcptAddressCity,m.RcptAddressState,m.RcptAddressZIP,b.ReceivedOn,m.TotalPages,m.TrackingNo,b.PipelineStatus as [Status],m.ShippedOn as [PrintedOn],m.ShippedOn as [MailedOn],d.ShippingCarrier as [ShippingMethod]from [AM].[MailPiece] m,[AM].[Batch] binner join [AM].[DocTypes] d on d.ClientId=b.ClientIdwhere (m.BatchClustId=b.BatchClustId) and (cast(b.ReceivedOn as date)>=@startDate and cast(b.ReceivedOn as date)<=@endDate)";
+            string query = "select b.BatchClustId, m.BusinessFriendlyIdValue as [LoanNo],[FileName],b.DocumentOrPackageType,m.RetRcptFirstName,m.RetRcptMiddleName,m.RetRcptLastName,m.RcptAddressStreet,m.RcptAddressCity,m.RcptAddressState,m.RcptAddressZIP,b.ReceivedOn,m.TotalPages,m.TrackingNo,b.PipelineStatus as [Status],m.ShippedOn as [PrintedOn],m.ShippedOn as [MailedOn],d.ShippingCarrier as [ShippingMethod]from [AM].[MailPiece] m,[AM].[Batch] b left outer join [AM].[DocTypes] d on d.ClientId=b.ClientId where (m.BatchClustId=b.BatchClustId) and (cast(b.ReceivedOn as date)>=@startDate and cast(b.ReceivedOn as date)<=@endDate)";
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@startDate", startDate);
             parameters.Add("@endDate", endDate);
