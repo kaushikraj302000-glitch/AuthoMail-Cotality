@@ -66,7 +66,7 @@ namespace AM.Services.Models
         public int ErrorCode { get; set; }
         public string ErrorDesc { get; set; }
     }
-    public class DocTypeIdDocTypeCode
+    public class DocumentType
     {
         public int Id { get; set; }
         public string DocTypeCode { get; set; }

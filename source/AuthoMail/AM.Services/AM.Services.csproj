@@ -67,7 +67,6 @@
     <Compile Include="Models\Report.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Core\ServiceBase.cs" />
-    <Compile Include="IdentityStores\DbContext.cs" />
     <Compile Include="IdentityStores\RoleStore.cs" />
     <Compile Include="IdentityStores\UserStore.cs" />
     <Compile Include="Services\HomeService.cs" />
