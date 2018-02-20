@@ -24,7 +24,10 @@ namespace AM.Web.Controllers
         }
         public ActionResult _GetMailPieceList(string loanNumber,string docType,DateTime startDate,DateTime endDate)
         {
-            return PartialView();
+            ViewBag.Date = string.Format("{0} - {1}", startDate.ToShortDateString(), endDate.ToShortDateString());
+
+            var model = repoSvc.GetMailPieceByParam(loanNumber, docType, startDate, endDate);
+            return PartialView(model);
         }
     }
 }

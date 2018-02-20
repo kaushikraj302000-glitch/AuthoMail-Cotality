@@ -25,6 +25,9 @@
         float: none;
         text-align: center;
     }
+     #sample_2_wrapper{
+        overflow-x:scroll;
+    }
 </style>
 <div class="panel-group">
     <div class="panel panel-default">
@@ -111,7 +114,7 @@
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     var msg = 'Error on reloading the content. Please check your connection and try again.';
-                    el.html("<div class='alert alert-info'><span>" + msg + "</span></div>");
+                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
                 }
 
             });

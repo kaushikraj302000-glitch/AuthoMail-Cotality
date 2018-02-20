@@ -1,4 +1,5 @@
-﻿using AM.Services.Services;
+﻿using AM.Services.Models;
+using AM.Services.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,19 +18,39 @@ namespace AM.Web.Controllers
             this.homeSvc = homeSvc;
             this.repoSvc = repoSvc;
         }
-        public ActionResult BatchReport()
+        public ActionResult SummaryControlReport()
         {
             ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(), "Id", "DocTypeCode");
             return View();
         }
         public ActionResult _GetBatchList(string loanNumber, string docType, DateTime startDate, DateTime endDate)
         {
-            return PartialView();
+            ViewBag.BatchId = loanNumber;
+            ViewBag.Date = string.Format("{0} - {1}", startDate.ToShortDateString(), endDate.ToShortDateString());
+
+            var model = repoSvc.GetBatchByParam(loanNumber, docType, startDate, endDate);
+            return PartialView(model);
         }
-        public ActionResult MailPieceReport()
+        public ActionResult _GetMailPieceList(List<MonthlyReconReport> model)
         {
-            //homeSvc.GetMailPieceByBatchId(batchId);
+            return PartialView(model);
+        }
+        public ActionResult MonthReconReport()
+        {
+            ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(), "Id", "DocTypeCode");
             return View();
         }
+        public ActionResult _MonthReconReport(string loanNumber, string docType, DateTime startDate, DateTime endDate)
+        {
+            ViewBag.Date = string.Format("{0} - {1}", startDate.ToShortDateString(), endDate.ToShortDateString());
+            var model = repoSvc.GetMailPieceByParam(loanNumber,docType,startDate,endDate);
+            return PartialView("_GetMailPieceList", model);
+        }
+        public ActionResult MailPieceByBatchId(int batchId)
+        {
+            var model=repoSvc.GetMailPieceByBatchId(batchId);
+            return View(model);
+        }
+        
     }
 }
