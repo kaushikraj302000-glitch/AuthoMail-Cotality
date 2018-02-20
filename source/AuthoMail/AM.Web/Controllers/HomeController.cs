@@ -39,7 +39,7 @@ namespace AM.Web.Controllers
 
         public ActionResult GetMailPieceIdByLoanNumber(string loanNumber)
         {
-            var model=repoSvc.GetMailPieceByLoanNo(loanNumber);
+            var model = repoSvc.GetMailPieceIdFromLoanNo(loanNumber);
             return Json(model,JsonRequestBehavior.AllowGet);
         }
 

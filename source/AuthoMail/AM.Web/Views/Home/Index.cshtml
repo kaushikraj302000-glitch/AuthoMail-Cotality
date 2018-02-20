@@ -41,7 +41,7 @@
                 <label for="input2">Loan Number</label>
                 <div class="input-group">
                     <i class="fa fa-search left-icon"></i>
-                    <input class="form-control" placeholder="Loan Number" id="loanNumber">
+                    <input class="form-control" name="loanNumber" placeholder="Loan Number" id="loanNumber">
                 </div>
             </div>
             <div class="form-group text-center col-md-4">
@@ -147,6 +147,7 @@
         google.charts.setOnLoadCallback(drawChart1);
 
         function SendPullBackRequest(mailpieceIds) {
+            console.log(mailpieceIds);
             var el = $('.modal-body');
             //el.html(mailpieceIds);
             $.ajax({
@@ -168,15 +169,17 @@
         
         $("#pullback").click(function (e) {
             e.preventDefault();
-           
+            var loanNumber = $("#loanNumber").val();
+            console.log(loanNumber);
             $.ajax({
                 type: "GET",
-                url: "/Home/GetMailPieceIdByLoanNumber",
-                data: JSON.stringify({ loanNumber: $("#loanNumber").val() }),
+                url: "/Home/GetMailPieceIdByLoanNumber?loanNumber="+loanNumber,
+                //data:{ loanNumber: loanNumber},
                 contentType: "application/json; charset=utf-8",
                 success: function (res) {
                     console.log(res);
-                    //SendPullBackRequest(res)
+                    SendPullBackRequest(res)
+                   
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     var msg = 'Error on reloading the content. Please check your connection and try again.';
@@ -184,7 +187,7 @@
                 }
 
             });
-            $("#myModal").modal("show");
+            
         });
     </script>
 }
