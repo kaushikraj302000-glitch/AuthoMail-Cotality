@@ -22,7 +22,7 @@ namespace AM.Web.Controllers
             ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(), "Id", "DocTypeCode");
             return View();
         }
-        public ActionResult _GetMailPieceList(string loanNumber,string docType,DateTime startDate,DateTime endDate)
+        public ActionResult _GetMailPieceList(string loanNumber, string docType, DateTime startDate, DateTime endDate)
         {
             ViewBag.Date = string.Format("{0} - {1}", startDate.ToShortDateString(), endDate.ToShortDateString());
 
