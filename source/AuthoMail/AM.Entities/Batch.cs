@@ -18,23 +18,23 @@ namespace AM.Entities
         public string ValidationErrors { get; set; }
         public string BatchStatus { get; set; }
         public bool IsReceived { get; set; }
-        public DateTime ReceivedOn { get; set; }
+        public DateTime? ReceivedOn { get; set; }
         public bool IsDownloaded { get; set; }
-        public DateTime DownloadedOn { get; set; }
+        public DateTime? DownloadedOn { get; set; }
         public bool IsAcknowledged { get; set; }
-        public DateTime AcknowledgedOn { get; set; }
+        public DateTime? AcknowledgedOn { get; set; }
         public bool IsValidated { get; set; }
-        public DateTime ValidatedOn { get; set; }
+        public DateTime? ValidatedOn { get; set; }
         public bool IsPrepped { get; set; }
-        public DateTime PreppedOn { get; set; }
+        public DateTime? PreppedOn { get; set; }
         public bool IsSubmittedToShipping { get; set; }
-        public DateTime SubmittedToShippingOn { get; set; }
+        public DateTime? SubmittedToShippingOn { get; set; }
         public bool IsShippingResponseReceived { get; set; }
-        public DateTime ShippingResponseReceivedOn { get; set; }
+        public DateTime? ShippingResponseReceivedOn { get; set; }
         public bool IsReportPrepped { get; set; }
-        public DateTime ReportPreppedOn { get; set; }
+        public DateTime? ReportPreppedOn { get; set; }
         public bool IsReportedBack { get; set; }
-        public DateTime ReportedBackOn { get; set; }
+        public DateTime? ReportedBackOn { get; set; }
         public DateTime DueDate { get; set; }
         public int SLADays { get; set; }
         public string BusinessFriendlyIdName { get; set; }
@@ -56,6 +56,8 @@ namespace AM.Entities
         public string RetRcptAddressCity { get; set; }
         public string RetRcptAddressState { get; set; }
         public string RetRcptAddressZIP { get; set; }
+        public string BatchFilePath { get; set; }
+        public string Priority { get; set; }
     }
 
     public class BatchCustomInfo

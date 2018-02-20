@@ -11,11 +11,11 @@ namespace AM.Services
 {
     public interface IClientService//Home Service interface that has number of methods
     {
-        List<Client> GetClientList(int? clientId, bool isPnSActive);
+        List<Client> GetClientDetails(int? clientId, bool isPnSActive);
     }
     public class ClientService : ServiceBase, IClientService //It implements Interfaces 
     {
-        public List<Client> GetClientList(int? clientId, bool isPnSActive)
+        public List<Client> GetClientDetails(int? clientId, bool isPnSActive)
         {
             //Sql Query
             string query = "SELECT * FROM [Common].[Clients] WHERE IsClientActive=@isClientActive AND IsPnSActive=@isPnSActive";
