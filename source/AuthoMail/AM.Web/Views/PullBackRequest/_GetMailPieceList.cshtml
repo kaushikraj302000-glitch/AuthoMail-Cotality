@@ -1,0 +1,169 @@
+﻿@model ICollection<AM.Services.Models.MonthlyReconReport>
+<style>
+    .prev, .next {
+        font-size: 15px !important;
+        content: '' !important;
+    }
+
+    .dt-buttons {
+        float: right !important;
+        margin-top: -7%;
+    }
+
+    .dt-button {
+        margin-right: 5px;
+    }
+
+    .dataTables_wrapper .dt-buttons {
+        float: none;
+        text-align: center;
+    }
+</style>
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <div class="panel-title">MailPiece Details: @ViewBag.Date</div>
+    </div>
+    <div class="panel-body">
+        @if (Model.Count > 0)
+        {
+            var cnt = 1;
+            <table class="table table-responsive" id="sample_2">
+                <thead>
+                    <tr>
+                        <th>
+                            <input type="checkbox" id="selectall" class="cl-check" />
+                            <label for="selectall"></label>
+                        </th>
+                        <th>#</th>
+                        <th>Loan Number</th>
+                        <th>File Name</th>
+                        <th>Package Name</th>
+                        <th>Recipient Name</th>
+                        <th>Recipient Address</th>
+                        <th>Retrun Address</th>
+                        <th>Pages Shipped</th>
+                        <th>Shipping Method</th>
+                        <th>Tracking Number</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr class="row-small">
+                            <td>
+                                <input type="checkbox" id="checkbox-demo_@(cnt)" class="cl-check checkall" />
+                                <label for="checkbox-demo_@(cnt)"></label>
+                            </td>
+                            <td><span>@cnt</span></td>
+                            <td><span>@item.LoanNo</span></td>
+                            <td><span>@item.DocumentOrPackageType</span></td>
+                            <td><span>@item.FileName</span></td>
+                            <td><span>@item.RcptFirstName @item.RcptLastName </span></td>
+                            <td><span>@item.RcptAddressStreet</span></td>
+                            <td><span>Return Address</span></td>
+                            <td><span>@item.TotalPages</span></td>
+                            <td><span>@item.ShippingMethod</span></td>
+                            <td><span>@item.TrackingNo</span></td>
+                            <td><span>@item.Status</span></td>
+                        </tr>
+
+                        cnt++;
+                    }
+                </tbody>
+
+            </table>
+        }
+        else
+        {
+            <div class="alert alert-yellow">
+                <span class="sbold">MailPiece record not found.</span>
+            </div>
+        }
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        var table = $('#sample_2');
+        var filename = "PullbackReport";
+        var title = "Pullback Report";
+        var oTable = table.dataTable({
+
+            "language": {
+                "aria": {
+                    "sortAscending": ": activate to sort column ascending",
+                    "sortDescending": ": activate to sort column descending"
+                },
+                "emptyTable": "No data available in table",
+                "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+                "infoEmpty": "No entries found",
+                "infoFiltered": "(filtered1 from _MAX_ total entries)",
+                "lengthMenu": "_MENU_ entries",
+                "search": "<b>Search:</b>",
+                "zeroRecords": "No matching records found"
+            },
+
+            buttons: [
+                //{
+                //    extend: 'colvis',
+                //    text: 'Select Fields',
+                //    className: 'btn purple pull-left',
+                //    columns: ':not(.noVis)'
+                //},
+            {
+                extend: 'excel',
+                text: '<i class="fa fa-file-excel-o"></i> Excel',
+                className: 'btn btn-primary',
+                filename: filename,
+                title: title,
+                exportOptions: {
+                    columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+                }
+
+            },
+                {
+                    extend: 'pdfHtml5',
+                    text: '<i class="fa fa-file-pdf-o"></i> Pdf',
+                    className: 'btn btn-info',
+                    filename: filename,
+                    title: title,
+                    exportOptions: {
+                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+                    },
+
+                }
+
+
+
+            ],
+
+            "order": [
+                [1, 'asc']
+            ],
+            "lengthMenu": [
+                [5, 10, 25, 50, 100, -1],
+                [5, 10, 25, 50, 100, "All"] // change per page values here
+            ],
+            // set the initial value
+            "pageLength": 5,
+
+            "dom": "<'row' <'col-md-12'B>><'row'<'col-md-6 col-sm-12'l><'col-md-6 col-sm-12'f>r><'table-scrollable't><'row'<'col-md-5 col-sm-12'i><'col-md-7 col-sm-12'p>>", // horizobtal scrollable datatable
+
+
+        });
+
+
+        oTable.find('#selectall').change(function () {
+            var checked = jQuery(this).is(":checked");
+            $(".checkall", oTable.fnGetNodes()).each(function () {
+                if (checked) {
+                    $(this).prop("checked", true);
+                } else {
+                    $(this).prop("checked", false);
+                }
+            });
+        });
+    });
+
+</script>
