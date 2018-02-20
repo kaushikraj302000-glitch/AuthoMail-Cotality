@@ -39,7 +39,7 @@ namespace AM.Services.Models
     public class SummaryControlReport
     {
         public string BatchClustId { get; set; }
-        public string Id { get; set; }
+        public Guid Id { get; set; }
         public string DocumentOrPackageType { get; set; }
         public string LoanNo { get; set; }
         public string FileName { get; set; }
@@ -56,6 +56,7 @@ namespace AM.Services.Models
         public string RcptAddressCity { get; set; }
         public string RcptAddressState { get; set; }
         public string RcptAddressZIP { get; set; }
+        public string ClientCode { get; set; }
 
         public DateTime? ReceivedOn { get; set; }
         public DateTime? PrintedOn { get; set; }
