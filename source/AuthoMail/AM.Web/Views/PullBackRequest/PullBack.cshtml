@@ -26,7 +26,10 @@
         float: none;
         text-align: center;
     }
-   
+   .modal-backdrop.in {
+        opacity: .75 !important;
+        filter: alpha(opacity=75);
+    }
 </style>
 <div class="panel-group">
     <div class="panel panel-default">
@@ -83,6 +86,27 @@
     
 </div>
 
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog col-md-6" role="document">
+        <div class="modal-content">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <div class="modal-header">
+                <h1 id="myModalLabel">Pullback Response</h1>
+            </div>
+            <div class="modal-body">
+                Spicy jalapeno bacon ipsum dolor amet pig swine cow, venison tri-tip bresaola pork andouille pastrami
+                landjaeger meatball jerky flank beef. Filet mignon brisket shank, pastrami picanha sausage boudin.
+                Chicken porchetta sausage landjaeger flank. Meatball ham hock kevin shank, alcatra doner leberkas bacon
+                pastrami bresaola pork loin.
+            </div>
+            <div class="modal-footer">
+                @*<button type="button" class="btn btn-transparent" data-dismiss="modal">Cancel</button>*@
+                <button type="button" class="btn btn-primary">View All</button>
+            </div>
+        </div>
+    </div>
+</div>
 @section Scripts{
     @Styles.Render("~/bundles/datatablescss")
     @Scripts.Render("~/bundles/datatables")
