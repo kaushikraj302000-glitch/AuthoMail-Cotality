@@ -1,4 +1,4 @@
-﻿@model ICollection<AM.Services.Models.MonthlyReconReport>
+﻿@model ICollection<AM.Services.Models.PullBackInfo>
 <style>
     .prev, .next {
         font-size: 15px !important;
@@ -58,16 +58,16 @@
                     {
                         <tr class="row-small">
                             <td>
-                                <input type="checkbox" id="checkbox-demo_@(cnt)" class="cl-check checkall" />
+                                <input type="checkbox" id="checkbox-demo_@(cnt)" data-mailpieceid="@item.MailPieceId" class="cl-check checkall" />
                                 <label for="checkbox-demo_@(cnt)"></label>
                             </td>
                             <td><span>@cnt</span></td>
                             <td><span>@item.LoanNo</span></td>
                             <td><span>@item.DocumentOrPackageType</span></td>
                             <td><span>@item.FileName</span></td>
-                            <td><span>@item.RcptFirstName @item.RcptLastName </span></td>
-                            <td><span>@item.RcptAddressStreet</span></td>
-                            <td><span>Return Address</span></td>
+                            <td><span>@item.RecipientName </span></td>
+                            <td><span>@item.RCPTAddress</span></td>
+                            <td><span>@item.RetAddress</span></td>
                             <td><span>@item.TotalPages</span></td>
                             <td><span>@item.ShippingMethod</span></td>
                             <td><span>@item.TrackingNo</span></td>
@@ -178,6 +178,28 @@
     });
     $("#pullback").click(function (e) {
         e.preventDefault();
+        var mailpieceIds = [];
+        $('.checkall:checked').each(function () {
+            mailpieceIds.push($(this).data("mailpieceid"));
+            console.log($(this).data("mailpieceid"));
+
+        });
+        var el = $('.modal-body');
+        //el.html(mailpieceIds);
+        $.ajax({
+            type: "GET",
+            url: "/api/pullback/RequestPullBack/{mailPieceIds}",
+            data: JSON.stringify({ mailPieceIds: mailpieceIds }),
+            contentType: "application/json; charset=utf-8",
+            success: function (res) {
+                el.html(res);
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                var msg = 'Error on reloading the content. Please check your connection and try again.';
+                el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+            }
+
+        });
         $("#myModal").modal("show");
     });
 </script>

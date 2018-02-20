@@ -26,7 +26,7 @@ namespace AM.Web.Controllers
         {
             ViewBag.Date = string.Format("{0} - {1}", startDate.ToShortDateString(), endDate.ToShortDateString());
 
-            var model = repoSvc.GetMailPieceByParam(loanNumber, docType, startDate, endDate);
+            var model = repoSvc.GetPullBackRequestList(loanNumber, docType, startDate, endDate);
             return PartialView(model);
         }
     }
