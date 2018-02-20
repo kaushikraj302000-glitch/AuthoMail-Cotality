@@ -43,12 +43,12 @@
                         <th>#</th>
                         <th>Loan Number</th>
                         <th>File Name</th>
-                        <th>Package Name</th>
+                        @*<th>Package Name</th>*@
                         <th>Recipient Name</th>
                         <th>Recipient Address</th>
                         <th>Retrun Address</th>
                         <th>Pages Shipped</th>
-                        <th>Shipping Method</th>
+                        @*<th>Shipping Method</th>*@
                         <th>Tracking Number</th>
                         <th>Status</th>
                     </tr>
@@ -63,13 +63,13 @@
                             </td>
                             <td><span>@cnt</span></td>
                             <td><span>@item.LoanNo</span></td>
-                            <td><span>@item.DocumentOrPackageType</span></td>
+                            @*<td><span>@item.DocumentOrPackageType</span></td>*@
                             <td><span>@item.FileName</span></td>
                             <td><span>@item.RecipientName </span></td>
                             <td><span>@item.RCPTAddress</span></td>
                             <td><span>@item.RetAddress</span></td>
                             <td><span>@item.TotalPages</span></td>
-                            <td><span>@item.ShippingMethod</span></td>
+                            @*<td><span>@item.ShippingMethod</span></td>*@
                             <td><span>@item.TrackingNo</span></td>
                             <td><span>@item.Status</span></td>
                         </tr>
@@ -188,18 +188,28 @@
         //el.html(mailpieceIds);
         $.ajax({
             type: "GET",
-            url: "/api/pullback/RequestPullBack/{mailPieceIds}",
-            data: JSON.stringify({ mailPieceIds: mailpieceIds }),
+            url: "/api/PullBackApi/GeneratePullBackRequest",
+            data: { mailPieceIds: mailpieceIds },
             contentType: "application/json; charset=utf-8",
-            success: function (res) {
-                el.html(res);
+            success: function (response) {
+                if (response.Success) {
+                    if (response.Object != null) {
+                        el.html(response.Object);
+                    }
+                }
+                else {
+                    var htmlstr = "<div class='alert alert-red'><span>" + response.ErrorMessage + "</span></h1></div>";
+                    el.html(htmlstr);
+                }
+                $("#myModal").modal("show");
             },
             error: function (xhr, ajaxOptions, thrownError) {
                 var msg = 'Error on reloading the content. Please check your connection and try again.';
                 el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                $("#myModal").modal("show");
             }
 
         });
-        $("#myModal").modal("show");
+        
     });
 </script>

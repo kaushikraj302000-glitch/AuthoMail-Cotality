@@ -152,19 +152,29 @@
             //el.html(mailpieceIds);
             $.ajax({
                 type: "GET",
-                url: "/api/pullback/RequestPullBack/{mailPieceIds}",
-                data: JSON.stringify({ mailPieceIds: mailpieceIds }),
+                url: "/api/PullBackApi/GeneratePullBackRequest",
+                data: { mailPieceIds: mailpieceIds },
                 contentType: "application/json; charset=utf-8",
-                success: function (res) {
-                    el.html(res);
+                success: function (response) {
+                    if (response.Success) {
+                        if (response.Object != null) {
+                            el.html(response.Object);
+                        }
+                    }
+                    else {
+                        var htmlstr = "<div class='alert alert-red'><span>" + response.ErrorMessage + "</span></h1></div>";
+                        el.html(htmlstr);
+                    }
+                    $("#myModal").modal("show");
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     var msg = 'Error on reloading the content. Please check your connection and try again.';
                     el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    $("#myModal").modal("show");
                 }
 
             });
-            $("#myModal").modal("show");
+            
         }
         
         $("#pullback").click(function (e) {
