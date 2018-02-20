@@ -47,14 +47,6 @@ namespace AM.Services.IdentityStores
             appUserLogin = new AppUserLogins(db);
         }
 
-        public void Dispose()
-        {
-            if (db != null)
-            {
-                db.Dispose();
-                db = null;
-            }
-        }
         public Task CreateAsync(TUser user)
         {
             if (user == null) throw new ArgumentNullException("user");

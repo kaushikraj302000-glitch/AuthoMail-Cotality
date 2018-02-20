@@ -8,7 +8,7 @@
   window.clui.tooltipInit();
   window.clui.sliderInit();
   window.clui.metatableInit();
-  window.clui.dateTimePickerInit();
+  
   window.clui.mobileSearchInit();
   window.clui.mobileToggleInit();
   window.clui.mobileMenuInit();
