@@ -311,6 +311,7 @@
     <Content Include="clui\dist\fonts\Lato\Lato-Semibold.woff" />
     <Content Include="clui\dist\js\vendor\jquery.min.map" />
     <Content Include="Content\datatables\images\Sorting icons.psd" />
+    <None Include="Properties\PublishProfiles\AuthoMail.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
     <Content Include="Scripts\jquery-1.10.2.min.js" />

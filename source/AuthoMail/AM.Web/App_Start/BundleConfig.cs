@@ -14,16 +14,16 @@ namespace AM.Web
             bundles.Add(new ScriptBundle("~/bundles/cljs").Include(
                 //"~/clui/dist/js/vendor/jquery.min.js",
                         "~/clui/dist/js/corelogic-ui.js"//,
-                        //"~/clui/dist/js/corelogic-ui-module.js",
-                        //"~/clui/dist/js/components/jquery-ui.js",
-                        //"~/clui/dist/js/corelogic-ui-vendor.js"//,
+                //"~/clui/dist/js/corelogic-ui-module.js",
+                //"~/clui/dist/js/components/jquery-ui.js",
+                //"~/clui/dist/js/corelogic-ui-vendor.js"//,
                 //"~/clui/dist/js/corelogic-ui-no-bootstrap.js",
-                        //"~/clui/dist/js/vendor/moment.js"
+                //"~/clui/dist/js/vendor/moment.js"
                         ));
             //cl componet
             bundles.Add(new ScriptBundle("~/bundles/clcomponetjs").Include(
                 "~/clui/dist/js/components/dateTimePicker.js",
-                
+
                 "~/clui/dist/js/components/toggle.js",
                 "~/clui/dist/js/components/tooltip.js",
                 "~/clui/dist/js/components/alert.js",
@@ -76,8 +76,8 @@ namespace AM.Web
 
             bundles.Add(new StyleBundle("~/Content/clcss").Include(
                       "~/clui/dist/css/corelogic-ui.css",
-                      "~/clui/dist/css/components/alert.css",
-                      "~/clui/dist/css/components/fonts.css",
+                      "~/clui/dist/css/components/alert.css").Include(
+                      "~/clui/dist/css/components/fonts.css", new CssRewriteUrlTransform()).Include(
                       "~/clui/dist/css/components/footer.css",
                       "~/clui/dist/css/components/forms.css",
                       "~/clui/dist/css/components/labels.css",
