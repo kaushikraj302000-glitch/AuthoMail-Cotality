@@ -6,17 +6,42 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net.Mail;
+using System.Xml.Schema;
 
 namespace AM.Console
 {
     public static class Common
     {
         public static string AuthoMailRootFolder { get; set; }
+        public static string SchemaPath { get; set; }
         public static SmtpClient Email_SMTPClient { get; private set; }
+        public static string PnS_SFT_HostURL { get; private set; }
+        public static string PnS_SFT_UserName { get; private set; }
+        public static string PnS_SFT_Password { get; private set; }
+        public static string PnS_SFT_RootDir { get; private set; }
+
+        public static string DownloadEmailTemplate { get; private set; }
+        public static string DownloadEmail_Subject { get; private set; }
+        public static string ProccessEmail_Subject { get; private set; }
+        public static string NoBatchReceivedNotification_Subject { get; set; }
+        public static string PnSEmail_Subject { get; private set; }
+        public static string Email_To { get; private set; }
+        public static string Email_Cc { get; private set; }
+        public static bool SendEmails { get; private set; }
+
+        public static XmlSchemaSet schemas;
 
         static Common()
         {
+            schemas = new XmlSchemaSet();
             AuthoMailRootFolder = Path.GetFullPath(ConfigurationManager.AppSettings["AuthoMailRootFolder"]);
+            SchemaPath = ConfigurationManager.AppSettings["SchemaPath"];
+            schemas.Add("http://schemas.corelogic.com/ade/authomail/v1.18.0", Common.SchemaPath);
+            PnS_SFT_HostURL = ConfigurationManager.AppSettings["PnS_SFT_HostURL"];
+            PnS_SFT_UserName = ConfigurationManager.AppSettings["PnS_SFT_UserName"];
+            PnS_SFT_Password = ConfigurationManager.AppSettings["PnS_SFT_Password"];
+            PnS_SFT_RootDir = ConfigurationManager.AppSettings["PnS_SFT_RootDir"];
+
             Email_SMTPClient = new SmtpClient();
         }
 
@@ -58,6 +83,34 @@ namespace AM.Console
             dt = DateTime.SpecifyKind(dtVal, DateTimeKind.Unspecified);
             return TimeZoneInfo.ConvertTime(dtVal, TimeZoneInfo.FindSystemTimeZoneById("UTC"), TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"));
         }
+        public static DateTime UtcToClientTimeZone(DateTime dt,string clientTimeZone)
+        {
+            dt = DateTime.SpecifyKind(dt, DateTimeKind.Unspecified);
+            // Treat date as IST irrecpective of client and server timezone and covert it to UTC
+            return TimeZoneInfo.ConvertTime(dt, TimeZoneInfo.FindSystemTimeZoneById("UTC"), TimeZoneInfo.FindSystemTimeZoneById(clientTimeZone));
+        }
+        public static DateTime EstToUtc(DateTime dt)
+        {
+            dt = DateTime.SpecifyKind(dt, DateTimeKind.Unspecified);
+            // Treat date as IST irrecpective of client and server timezone and covert it to UTC
+            return TimeZoneInfo.ConvertTime(dt, TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("UTC"));
+        }
 
+
+        public static SFT_ProtocolType GetProtocolType(string protocolType)
+        {
+            SFT_ProtocolType PnS_SFT_Protocol;
+            switch (protocolType.ToLower())
+            {
+                case "ftp": PnS_SFT_Protocol = SFT_ProtocolType.ftp;
+                    break;
+                case "sftp": PnS_SFT_Protocol = SFT_ProtocolType.sftp;
+                    break;
+                case "unc": PnS_SFT_Protocol = SFT_ProtocolType.unc;
+                    break;
+                default: throw new Exception("Please provide valid protocol for 'PnS_SFT_Protocol_Value'.");
+            }
+            return PnS_SFT_Protocol;
+        }
     }
 }
