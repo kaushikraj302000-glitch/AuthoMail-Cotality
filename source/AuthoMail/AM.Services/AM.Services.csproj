@@ -52,6 +52,13 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="BatchProcessor\ClientServices.cs" />
+    <Compile Include="BatchProcessor\CommonServices.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="BatchProcessor\DocTypeServices.cs" />
+    <Compile Include="BatchProcessor\MailPieceServices.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="IdentityManage\AppRole.cs" />
     <Compile Include="IdentityManage\AppUser.cs" />
     <Compile Include="IdentityManage\AppUserClaims.cs" />
