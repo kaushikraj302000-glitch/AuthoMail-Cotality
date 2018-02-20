@@ -37,10 +37,10 @@ namespace AM.Web.Controllers
             return PartialView(data);
         }
 
-        public ActionResult MailPiece()
+        public ActionResult GetMailPieceIdByLoanNumber(string loanNumber)
         {
-            //homeSvc.GetMailPieceByBatchId(batchId);
-            return View();
+            var model=repoSvc.GetMailPieceByLoanNo(loanNumber);
+            return Json(model,JsonRequestBehavior.AllowGet);
         }
 
 
