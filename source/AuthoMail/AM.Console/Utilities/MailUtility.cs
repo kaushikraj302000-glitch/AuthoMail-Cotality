@@ -42,5 +42,32 @@ namespace AM.Console
 
             return isEmailSent;
         }
+        public static bool SendNoBatchReceivedNotificationEmail(DateTime cutOffTime)
+        {
+            bool isEmailSent = false;
+
+            try
+            {
+                using (MailMessage msg = new MailMessage())
+                {
+                    msg.IsBodyHtml = true;
+                    msg.To.Add(Common.Email_To);
+                    msg.CC.Add(Common.Email_Cc);
+                    msg.Subject = Common.NoBatchReceivedNotification_Subject;
+                    msg.Priority = MailPriority.Normal;
+                    msg.Body = string.Format("No batch available today till cutOffTime {0}.", cutOffTime.ToString("HH:mm:ss"));
+                    if (Common.SendEmails)
+                        Common.Email_SMTPClient.Send(msg);
+
+                    isEmailSent = true;
+                }
+            }
+            catch (Exception err)
+            {
+                log.Error(err);
+            }
+
+            return isEmailSent;
+        }
     }
 }

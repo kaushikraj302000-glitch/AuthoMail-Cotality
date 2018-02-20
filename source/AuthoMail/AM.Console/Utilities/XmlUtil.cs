@@ -24,7 +24,7 @@ namespace AM.Console
         {
             ValidationResult vResult = new ValidationResult() { HasErrors = false };
 
-            XDocument xDoc = XDocument.Parse(xml);
+            XDocument xDoc = XDocument.Load(xml);
             StringBuilder sbErrorMessage = new StringBuilder();
 
             xDoc.Validate(schemaSet, (o, e) =>

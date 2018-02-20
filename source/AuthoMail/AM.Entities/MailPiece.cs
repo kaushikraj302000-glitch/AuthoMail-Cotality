@@ -62,15 +62,17 @@ namespace AM.Entities
         public string ErrorDesc { get; set; }
         public string TrackingNo { get; set; }
         public bool IsPullBackRequested { get; set; }
-        public DateTime PullBackRequestedOn { get; set; }
+        public DateTime? PullBackRequestedOn { get; set; }
         public bool IsPulledBack { get; set; }
-        public DateTime PulledBackOn { get; set; }
+        public DateTime? PulledBackOn { get; set; }
         public bool IsShipped { get; set; }
-        public DateTime ShippedOn { get; set; }
+        public DateTime? ShippedOn { get; set; }
         public decimal ShippingCost { get; set; }
         public string ShippingStatus { get; set; }
         public bool IsQCRequested { get; set; }
         public bool IsQCPerformed { get; set; }
+        public string DocumentOrPackageType { get; set; }
+        public string DownloadedFilePath { get; set; }
     }
 
     public class MailPieceCustomInfo

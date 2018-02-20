@@ -14,6 +14,9 @@ namespace AM.Services.Services
         List<MonthlyReconReport> GetMailPieceByParam(string loanNo, string docType, DateTime startDate, DateTime endDate);
         List<MonthlyReconReport> GetMailPieceByBatchId(int batchId);
 
+        //Pullback Request
+        List<PullBackInfo> GetPullBackRequestList(string loanNo, string docType, DateTime startDate, DateTime endDate);
+
         List<MonthlyReconReport> GetMailPieceByLoanNo(string loanNo);
         List<SummaryControlReport> GetSummaryControlByLoanNo(string loanNo);
         List<DocumentType> GetDocTypeList();
@@ -100,6 +103,27 @@ namespace AM.Services.Services
                 parameters.Add("@docType", docType);
             }
             var data = db.Query<MonthlyReconReport>(query, parameters).ToList();
+            return data;
+        }
+
+
+        public List<PullBackInfo> GetPullBackRequestList(string loanNo, string docType, DateTime startDate, DateTime endDate)
+        {
+            string query = "select m.[Id] as [MailPieceId],m.BusinessFriendlyIdValue as [LoanNo],[FileName],b.DocumentOrPackageType,m.[RcptPrefix],m.[RcptFirstName],m.[RcptMiddleName],m.[RcptLastName],[RcptSuffix],m.RcptAddressStreet,m.RcptAddressCity,m.RcptAddressState,m.RcptAddressZIP,b.ReceivedOn,m.TotalPages,m.TrackingNo,b.PipelineStatus as [Status],m.ShippedOn as [PrintedOn],d.ShippingCarrier as [ShippingMethod],m.[RetRcptAddrOptionalLine1AboveStreet],m.[RetRcptAddrOptionalLine2AboveStreet],m.[RetRcptAddressStreet],m.[RetRcptAddressAptOrSuiteOrOther],m.[RetRcptAddrOptionalLine1BelowStreet],m.[RetRcptAddrOptionalLine2BelowStreet],m.[RetRcptAddressCity],m.[RetRcptAddressState],m.[RetRcptAddressZIP] from [AM].[MailPiece] m,[AM].[Batch] b left outer join [AM].[DocTypes] d on d.ClientId=b.ClientId where (m.BatchClustId=b.BatchClustId) and (cast(b.ReceivedOn as date)>=@startDate and cast(b.ReceivedOn as date)<=@endDate)";
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
+            parameters.Add("@startDate", startDate);
+            parameters.Add("@endDate", endDate);
+            if (!loanNo.IsNullOrWhiteSpace())
+            {
+                query = string.Format("{0} AND (m.BusinessFriendlyIdValue=@loanNo)", query);
+                parameters.Add("@loanNo", loanNo);
+            }
+            if (!docType.IsNullOrWhiteSpace())
+            {
+                query = string.Format("{0} AND (b.DocumentOrPackageType=@docType)", query);
+                parameters.Add("@docType", docType);
+            }
+            var data = db.Query<PullBackInfo>(query, parameters).ToList();
             return data;
         }
     }

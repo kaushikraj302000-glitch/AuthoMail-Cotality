@@ -3,13 +3,16 @@ using AM.Services;
 using AM.Services.Services;
 using Autofac;
 using Autofac.Integration.Mvc;
+using Autofac.Integration.WebApi;
 using Microsoft.AspNet.Identity;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.DataProtection;
 using Owin;
 using System.Data.Common;
+using System.Reflection;
 using System.Web;
+using System.Web.Http;
 using System.Web.Mvc;
 
 [assembly: OwinStartupAttribute(typeof(AM.Web.Startup))]
@@ -20,10 +23,13 @@ namespace AM.Web
         public void Configuration(IAppBuilder app)
         {
             var builder = new ContainerBuilder();
-
+            var config = new HttpConfiguration();
+            builder.RegisterWebApiFilterProvider(config);
             builder.Register<DbConnection>(d => DbFactory.Create()).InstancePerRequest();
 
             builder.RegisterControllers(typeof(MvcApplication).Assembly);
+            builder.RegisterApiControllers(Assembly.GetExecutingAssembly());
+
             builder.RegisterAssemblyTypes(typeof(HomeService).Assembly)
               .Where(t => t.Name.EndsWith("Service"))
               .AsImplementedInterfaces().InstancePerRequest();
@@ -37,6 +43,7 @@ namespace AM.Web
 
             var container = builder.Build();
             DependencyResolver.SetResolver(new AutofacDependencyResolver(container));
+            config.DependencyResolver = new AutofacWebApiDependencyResolver(container);
 
             app.UseAutofacMiddleware(container);
             app.UseAutofacMvc();
