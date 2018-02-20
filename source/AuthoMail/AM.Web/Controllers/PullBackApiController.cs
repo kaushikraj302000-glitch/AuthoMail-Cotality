@@ -59,15 +59,15 @@ namespace AM.Web.Controllers
                     bool isEmailSent = SendEmailWithPullBackForm(outputPdfPath);
                     if (isEmailSent)
                     {
-                        message = string.Format("{0}{1}", message, "PullBack request completed successfully.|");
+                        message = string.Format("{0}", "PullBack request completed successfully.");
                     }
                     else
                     {
                         isSuccess = false;
-                        message = string.Format("{0}{1}", message, "Email Sending Failure.|");
+                        message = string.Format("{0}","Email Sending Failure.");
                     }
                 }
-                return isSuccess ? JsonResponseFactory.SuccessResponse(message.Trim('|')) : JsonResponseFactory.ErrorResponse(message.Trim('|'));
+                return isSuccess ? JsonResponseFactory.SuccessResponse(message) : JsonResponseFactory.ErrorResponse(message);
             }
             catch (Exception ex)
             {
