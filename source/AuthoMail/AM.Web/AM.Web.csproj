@@ -377,6 +377,10 @@
     <Content Include="Views\Report\MonthReconReport.cshtml" />
     <Content Include="Views\Report\MailPieceByBatchId.cshtml" />
     <Content Include="Template\PullBackForm.pdf" />
+    <Content Include="Views\Report\DeliveryReport.cshtml" />
+    <Content Include="Views\Report\_GetDeliveryReport.cshtml" />
+    <Content Include="Views\Report\ErrorsReport.cshtml" />
+    <Content Include="Views\Report\_GetErrorsReport.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
