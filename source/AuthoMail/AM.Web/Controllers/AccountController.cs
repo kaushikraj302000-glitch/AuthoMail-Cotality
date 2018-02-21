@@ -76,10 +76,6 @@ namespace AM.Web.Controllers
                 return View(model);
             }
             bool isCorelogicUser = false;
-            if (model.UserName.IndexOf('@') > 0)
-            {
-                model.UserName = model.UserName.Split('@').First();
-            }
             var user = UserManager.FindByName(model.UserName);
             if (user == null)
             {
