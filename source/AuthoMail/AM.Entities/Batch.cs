@@ -35,7 +35,7 @@ namespace AM.Entities
         public DateTime? ReportPreppedOn { get; set; }
         public bool IsReportedBack { get; set; }
         public DateTime? ReportedBackOn { get; set; }
-        public DateTime DueDate { get; set; }
+        public int ChannelCode { get; set; }
         public int SLADays { get; set; }
         public string BusinessFriendlyIdName { get; set; }
         public string BusinessFriendlyIdValue { get; set; }

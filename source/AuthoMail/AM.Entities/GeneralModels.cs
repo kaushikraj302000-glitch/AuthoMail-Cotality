@@ -28,6 +28,7 @@ namespace AM.Entities
     public enum OutComeCodes
     {
         No_error,
+        Invalid_Zip_File,
         Invalid_XML_file,
         Invalid_PDF_file, 
         Missing_PDF_file,
