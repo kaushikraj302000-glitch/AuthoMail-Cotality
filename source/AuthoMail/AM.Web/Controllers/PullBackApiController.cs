@@ -11,7 +11,7 @@ using System.Web.Http;
 
 namespace AM.Web.Controllers
 {
-    //[RoutePrefix("pullback")]
+    [RoutePrefix("api/pullback")]
     public class PullBackApiController : ApiController
     {
         IPullBackService pullBackSvc;
@@ -20,20 +20,20 @@ namespace AM.Web.Controllers
             this.pullBackSvc = pullBackSvc;
         }
 
-        //[Route("RequestPullBack/{mailPieceIds}")]
-        [HttpGet]
-        public object GeneratePullBackRequest([FromUri] string[] mailPieceIds)
+        [Route("RequestPullBack/{*mailPieceIds}")]
+        [HttpPost]
+        public object GeneratePullBackRequest([FromUri] List<string> mailPieceIds)
         {
             //Testing Purpose
             //mailPieceIds = new List<string> { "0C76A5C0-3180-4F34-B04E-DD5338815EDB", "A12E6EFD-01CB-470F-898D-3200FDED4AA9", "C8EF4A23-7B37-4F33-B899-992A162CC31B" };
-            if (mailPieceIds == null || mailPieceIds.Count() == 0)
+            if (mailPieceIds == null || mailPieceIds.Count == 0)
             {
                 return JsonResponseFactory.ErrorResponse("Mailpieces can not be empty.");
             }
             try
             {
-                var list = mailPieceIds.ToList();
-                var pullBackData = pullBackSvc.GetPullBackData(list);
+               
+                var pullBackData = pullBackSvc.GetPullBackData(mailPieceIds);
 
                 if (pullBackData == null || pullBackData.Count == 0)
                 {
@@ -64,7 +64,7 @@ namespace AM.Web.Controllers
                     else
                     {
                         isSuccess = false;
-                        message = string.Format("{0}","Email Sending Failure.");
+                        message = string.Format("{0}", "Email Sending Failure.");
                     }
                 }
                 return isSuccess ? JsonResponseFactory.SuccessResponse(message) : JsonResponseFactory.ErrorResponse(message);
