@@ -51,6 +51,23 @@ namespace AM.Web.Controllers
             var model=repoSvc.GetMailPieceByBatchId(batchId);
             return View(model);
         }
+
+        public ActionResult DeliveryReport()
+        {
+            return View();
+        }
+        public ActionResult _GetDeliveryReport()
+        {
+            return PartialView();
+        }
+        public ActionResult ErrorsReport()
+        {
+            return View();
+        }
+        public ActionResult _GetErrorsReport()
+        {
+            return PartialView();
+        }
         
     }
 }
