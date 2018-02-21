@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.DirectoryServices;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Web;
 
 namespace AM.Web.Models
@@ -28,26 +29,8 @@ namespace AM.Web.Models
         {
             if (userName.IndexOf('@') != -1) userName = userName.Split('@').First();
             string adPath = string.Format("LDAP://infosolco.net");
-            // string adPath = string.Format("LDAP://corelogic.com");
             LdapAuthentication auth = new LdapAuthentication(adPath);
-            try
-            {
-                var isAuth = auth.IsAuthenticated("isc", userName, password);
-                //String groups = auth.GetGroups();
-                if (isAuth.Key)
-                {
-                    //return new KeyValuePair<bool, string>(true, groups);
-                    return new KeyValuePair<bool, string>(true, isAuth.Value);
-                }
-                else
-                {
-                    return new KeyValuePair<bool, string>(false, "Authentication did not succeed. Check user name and password.");
-                }
-            }
-            catch (Exception ex)
-            {
-                return new KeyValuePair<bool, string>(false, ex.Message);
-            }
+            return auth.IsAuthenticated("isc", userName, password);
         }
 
     }
@@ -67,7 +50,7 @@ namespace AM.Web.Models
             DirectoryEntry entry = new DirectoryEntry(_path, domainAndUsername, pwd);
 
             try
-            {//Bind to the native AdsObject to force authentication.
+            {
                 Object obj = entry.NativeObject;
 
                 DirectorySearcher search = new DirectorySearcher(entry);
@@ -82,16 +65,19 @@ namespace AM.Web.Models
                 }
 
                 //Update the new path to the user in the directory.
-                _path = result.Path;
+                //_path = result.Path;
 
                 _filterAttribute = (String)result.Properties["cn"][0];
+                return new KeyValuePair<bool, string>(true, "Success login.");
+            }
+            catch (COMException ec)
+            {
+                return new KeyValuePair<bool, string>(false, ec.Message);
             }
             catch (Exception ex)
             {
                 throw new Exception("Error authenticating user. " + ex.Message);
             }
-
-            return new KeyValuePair<bool, string>(true, _path);
         }
 
     }
