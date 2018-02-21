@@ -19,7 +19,7 @@ namespace AM.Services
         public int InsertBatchDetails(Batch mailBatch)
         {
             //Sql Query
-            string query = "INSERT INTO [AM].[Batch](Id, ClientId, DocumentOrPackageType, BatchName, PipelineStatus, ValidationStatus, ValidationErrors, BatchStatus, ReceivedOn, DownloadedOn, AcknowledgedOn, ValidatedOn, PreppedOn, SubmittedToShippingOn, ShippingResponseReceivedOn, ReportPreppedOn, ReportedBackOn, DueDate, BusinessFriendlyIdName, BusinessFriendlyIdValue, IsReturnInfoSpecified, RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RetRcptSuffix, RetRcptPhone, RetRcptOrganization, RetRcptAddrOptionalLine1AboveStreet, RetRcptAddrOptionalLine2AboveStreet, RetRcptAddressStreet, RetRcptAddressAptOrSuiteOrOther, RetRcptAddrOptionalLine1BelowStreet, RetRcptAddrOptionalLine2BelowStreet, RetRcptAddressCity,RetRcptAddressState, RetRcptAddressZIP, BatchFilePath, Priority) Output Inserted.BatchClustId VALUES (@Id, @ClientId, @DocumentOrPackageType, @BatchName, @PipelineStatus, @ValidationStatus, @ValidationErrors, @BatchStatus, @ReceivedOn, @DownloadedOn, @AcknowledgedOn, @ValidatedOn, @PreppedOn, @SubmittedToShippingOn, @ShippingResponseReceivedOn, @ReportPreppedOn, @ReportedBackOn, @DueDate, @BusinessFriendlyIdName, @BusinessFriendlyIdValue, @IsReturnInfoSpecified, @RetRcptPrefix, @RetRcptFirstName, @RetRcptMiddleName, @RetRcptLastName, @RetRcptSuffix, @RetRcptPhone, @RetRcptOrganization, @RetRcptAddrOptionalLine1AboveStreet, @RetRcptAddrOptionalLine2AboveStreet, @RetRcptAddressStreet, @RetRcptAddressAptOrSuiteOrOther, @RetRcptAddrOptionalLine1BelowStreet, @RetRcptAddrOptionalLine2BelowStreet, @RetRcptAddressCity, @RetRcptAddressState, @RetRcptAddressZIP, @BatchFilePath, @Priority)";
+            string query = "INSERT INTO [AM].[Batch](Id, ClientId, DocumentOrPackageType, BatchName, PipelineStatus, ValidationStatus, ValidationErrors, BatchStatus, ReceivedOn, DownloadedOn, AcknowledgedOn, ValidatedOn, PreppedOn, SubmittedToShippingOn, ShippingResponseReceivedOn, ReportPreppedOn, ReportedBackOn, BusinessFriendlyIdName, BusinessFriendlyIdValue, IsReturnInfoSpecified, RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RetRcptSuffix, RetRcptPhone, RetRcptOrganization, RetRcptAddrOptionalLine1AboveStreet, RetRcptAddrOptionalLine2AboveStreet, RetRcptAddressStreet, RetRcptAddressAptOrSuiteOrOther, RetRcptAddrOptionalLine1BelowStreet, RetRcptAddrOptionalLine2BelowStreet, RetRcptAddressCity,RetRcptAddressState, RetRcptAddressZIP, BatchFilePath, Priority,ChannelCode) Output Inserted.BatchClustId VALUES (@Id, @ClientId, @DocumentOrPackageType, @BatchName, @PipelineStatus, @ValidationStatus, @ValidationErrors, @BatchStatus, @ReceivedOn, @DownloadedOn, @AcknowledgedOn, @ValidatedOn, @PreppedOn, @SubmittedToShippingOn, @ShippingResponseReceivedOn, @ReportPreppedOn, @ReportedBackOn, @BusinessFriendlyIdName, @BusinessFriendlyIdValue, @IsReturnInfoSpecified, @RetRcptPrefix, @RetRcptFirstName, @RetRcptMiddleName, @RetRcptLastName, @RetRcptSuffix, @RetRcptPhone, @RetRcptOrganization, @RetRcptAddrOptionalLine1AboveStreet, @RetRcptAddrOptionalLine2AboveStreet, @RetRcptAddressStreet, @RetRcptAddressAptOrSuiteOrOther, @RetRcptAddrOptionalLine1BelowStreet, @RetRcptAddrOptionalLine2BelowStreet, @RetRcptAddressCity, @RetRcptAddressState, @RetRcptAddressZIP, @BatchFilePath, @Priority,@ChannelCode)";
 
 
             //Assign value to parameters It may one or more. Note:
@@ -42,8 +42,6 @@ namespace AM.Services
             parameters.Add("@ShippingResponseReceivedOn", mailBatch.ShippingResponseReceivedOn);
             parameters.Add("@ReportPreppedOn", mailBatch.ReportPreppedOn);
             parameters.Add("@ReportedBackOn", mailBatch.ReportedBackOn);
-            parameters.Add("@DueDate", mailBatch.DueDate);
-            //parameters.Add("@SLADays", (DateTime.UtcNow - mailBatch.DueDate).Days);
             parameters.Add("@BusinessFriendlyIdName", mailBatch.BusinessFriendlyIdName);
             parameters.Add("@BusinessFriendlyIdValue", mailBatch.BusinessFriendlyIdValue);
             parameters.Add("@IsReturnInfoSpecified", mailBatch.IsReturnInfoSpecified);
@@ -65,6 +63,7 @@ namespace AM.Services
             parameters.Add("@RetRcptAddressZIP", mailBatch.RetRcptAddressZIP);
             parameters.Add("@BatchFilePath", mailBatch.BatchFilePath);
             parameters.Add("@Priority", mailBatch.Priority);
+            parameters.Add("@ChannelCode", mailBatch.ChannelCode);
 
             /*
              * Execution of query with parateters.

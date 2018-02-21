@@ -45,7 +45,6 @@ namespace AM.Console
             catch (Exception ex)
             {
                 log.Error(ex);
-                continue;
             }
 
             if (sftSite.IsDownloadDirectoryAvailable(client.SFTADERequestDir))
@@ -108,7 +107,6 @@ namespace AM.Console
             {
                 mailBatch.Id = processXML.Id;
                 mailBatch.Priority = processXML.Priority.GetStringValue();
-                mailBatch.DueDate = processXML.DueDate;
                 mailBatch.DocumentOrPackageType = processXML.DocumentOrPackageType;
                 mailBatch.BusinessFriendlyIdName = processXML.BusinessFriendlyIdName != null ? processXML.BusinessFriendlyIdName : "";
                 mailBatch.BusinessFriendlyIdValue = processXML.BusinessFriendlyIdValue != null ? processXML.BusinessFriendlyIdValue : "";

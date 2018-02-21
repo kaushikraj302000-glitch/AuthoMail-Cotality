@@ -11,7 +11,7 @@
     <xs:attribute name="Id" type="tns:guid" use="required" />
     <xs:attribute name="BusinessFriendlyIdName" type="tns:nonEmptyString" use="optional" />
     <xs:attribute name="BusinessFriendlyIdValue" type="tns:nonEmptyString" use="optional" />
-    <xs:attribute name="DueDate" type="xs:date" use="optional" />
+    <xs:attribute name="ChannelCode" type="tns:nonEmptyString" use="optional" />
     <xs:attribute name="Priority" type="tns:Priority" use="required" />
     <xs:attribute name="DocumentOrPackageType" type="tns:nonEmptyString" use="optional" />
   </xs:complexType>

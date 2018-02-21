@@ -20,8 +20,8 @@ namespace AM.Entities
         [XmlAttribute]
         public string BusinessFriendlyIdValue { get; set; }
 
-        [XmlAttribute(DataType = "date")]
-        public DateTime DueDate { get; set; }
+        [XmlAttribute]
+        public string ChannelCode { get; set; }
 
         [XmlAttribute]
         public Priority Priority { get; set; }
