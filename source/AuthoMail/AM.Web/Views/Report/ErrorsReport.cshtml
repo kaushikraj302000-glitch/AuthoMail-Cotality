@@ -3,5 +3,111 @@
     ViewBag.Title = "ErrorsReport";
 }
 
-<h2>ErrorsReport</h2>
 
+<style>
+    .prev, .next {
+        font-size: 15px !important;
+        content: '' !important;
+    }
+
+    .dt-buttons {
+        float: right !important;
+        margin-top: -7%;
+    }
+
+    .dt-button {
+        margin-right: 5px;
+    }
+
+    .dataTables_wrapper .dt-buttons {
+        float: none;
+        text-align: center;
+    }
+</style>
+<div class="panel-group">
+    <div class="panel panel-default">
+        <div class="panel-heading" id="headingOne" data-toggle="collapse" data-parent="#metatable" href="#metaItem1">
+            <h2 class="panel-title">
+                <i class="fa fa-filter"></i> Filter
+            </h2>
+        </div>
+        <div id="metaItem1" class="panel-collapse collapse in">
+            <div class="panel-body">
+                <div class="col-md-5">
+                    <div class="form-group col-md-6">
+                        <label for="input1">Loan Number</label>
+                        <input class="form-control" name="LoanNumber" placeholder="Loan Number" id="loanNumber">
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="input1">Document Type</label>
+                        @Html.DropDownList("DocType", ViewBag.DocType as SelectList, "Select DocType", htmlAttributes: new { @class = "selectpicker" })
+
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="dp4">Select Date</label>
+                        <div class="input-group daterange" id="datepicker4">
+                            <input type="text" class="form-control" id="dp4">
+                            <span class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-md-1">
+                    <div class="form-group ">
+                        <label for="input1"></label>
+                        <button type="button" id="filterData" class="btn btn-primary">
+                            <span class="sr-only">Filter</span>
+                            <i class="fa fa-filter fa-2x"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+<div class="panel panel-default" id="batchList"></div>
+
+@section Scripts{
+    @Styles.Render("~/bundles/datatablescss")
+    @Scripts.Render("~/bundles/datatables")
+    <script>
+        $(document).ready(function () {
+            window.clui.dateTimePickerInit();
+            FilterData();
+        });
+        function FilterData() {
+
+            var loanNumber = $("#loanNumber").val();
+            var docType = $("#DocType").val();
+
+            var selectedData = $("#dp4").val().split('-');
+
+            var startDate = selectedData[0].trim();
+            var endDate = selectedData[1].trim();
+            var el = $('#batchList');
+            el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
+            $.ajax({
+                type: "POST",
+                url: "/Report/_GetDeliveryReport",
+                data: JSON.stringify({ loanNumber: loanNumber,docType:docType,startDate:startDate,endDate:endDate }),
+                contentType: "application/json; charset=utf-8",
+                success: function (res) {
+                    el.html(res);
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    var msg = 'Error on reloading the content. Please check your connection and try again.';
+                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                }
+
+            });
+        }
+        $("#filterData").click(function () {
+            FilterData();
+        });
+    </script>
+}
