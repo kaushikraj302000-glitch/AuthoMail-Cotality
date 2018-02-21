@@ -1,1 +1,152 @@
-﻿
+﻿@model ICollection<AM.Services.Models.DeliveryReport>
+<div class="panel-heading">
+    <div class="panel-title">Delivery Details: @ViewBag.Date</div>
+</div>
+<div class="panel-body">
+    @if (Model.Count > 0)
+    {
+        var cnt = 1;
+
+        <table class="table table-responsive" id="sample_2" style="overflow-x:scroll">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Batch Id</th>
+                    <th>ID</th>
+                    <th>Package Name</th>
+                    <th>Loan Number</th>
+                    <th>File Name</th>
+                    <th>Received Date</th>
+                    <th>Printed Date</th>
+                    <th>Mailed Date</th>
+                    <th>Client Code</th>
+                    <th>Tracking Number</th>
+                    <th>Shipping Method</th>
+                    <th>Customer Identifier</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Recipient Street Address</th>
+                    <th>Recipient City</th>
+                    <th>Recipient State</th>
+                    <th>Recipient Zip</th>
+                    <th>RequestID</th>
+                    <th>Pages Shipped</th>
+                    
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr class="row-small">
+                        <td><span>@cnt</span></td>
+                        <td><span>@item.BatchId</span></td>
+                        <td><span>@item.Id</span></td>
+                        <td><span>@item.DocumentOrPackageType</span></td>
+                        <td><span>@item.LoanNumber</span></td>
+                        <td><span>@item.FileName</span></td>
+                        <td><span>@item.ReceivedOn</span></td>
+                        <td><span>@item.PrintedOn</span></td>
+                        <td><span>@item.MailedOn</span></td>
+                        <td><span>@item.ClientCode</span></td>
+                        <td><span>@item.ShippingMethod</span></td>
+                        <td><span>@item.ClientCode</span></td>
+                        <td><span>@item.TrackingNo</span></td>
+                        <td><span>@item.RcptFirstName</span></td>
+                        <td><span>@item.RcptLastName </span></td>
+                        <td><span>@item.RcptAddressStreet</span></td>
+                        <td><span>@item.RcptAddressCity</span></td>
+                        <td><span>@item.RcptAddressState</span></td>
+                        <td><span>@item.RcptAddressZIP</span></td>
+                        <td><span>@item.RequestId</span></td>
+                        <td><span>@item.PagesShipped</span></td>
+                    </tr>
+
+                    cnt++;
+                }
+            </tbody>
+
+        </table>
+    }
+    else
+    {
+        <div class="alert alert-yellow">
+            <span class="sbold">Record(s) not found.</span>
+        </div>
+    }
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        var table = $('#sample_2');
+        var filename = "DeliveryReport";
+        var title = "Delivery Report";
+        var oTable = table.dataTable({
+
+            "language": {
+                "aria": {
+                    "sortAscending": ": activate to sort column ascending",
+                    "sortDescending": ": activate to sort column descending"
+                },
+                "emptyTable": "No data available in table",
+                "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+                "infoEmpty": "No entries found",
+                "infoFiltered": "(filtered1 from _MAX_ total entries)",
+                "lengthMenu": "_MENU_ entries",
+                "search": "<b>Search:</b>",
+                "zeroRecords": "No matching records found"
+            },
+
+            "scrollX": true,
+            buttons: [
+                //{
+                //    extend: 'colvis',
+                //    text: 'Select Fields',
+                //    className: 'btn purple pull-left',
+                //    columns: ':not(.noVis)'
+                //},
+            {
+                extend: 'excel',
+                text: '<i class="fa fa-file-excel-o"></i> Excel',
+                className: 'btn btn-primary',
+                filename: filename,
+                title: title,
+                //exportOptions: {
+                //    columns: [0, 1, 2, 3, 4, 5, 6, 7]
+                //}
+
+            },
+                {
+                    extend: 'pdfHtml5',
+                    text: '<i class="fa fa-file-pdf-o"></i> Pdf',
+                    className: 'btn btn-info',
+                    filename: filename,
+                    title: title,
+                    //exportOptions: {
+                    //    columns: [0, 1, 2, 3, 4, 5, 6, 7]
+                    //},
+
+                }
+
+
+
+            ],
+
+            "order": [
+                [0, 'asc']
+            ],
+            "lengthMenu": [
+                [5, 10, 25, 50, 100, -1],
+                [5, 10, 25, 50, 100, "All"] // change per page values here
+            ],
+            // set the initial value
+            "pageLength": 5,
+
+            "dom": "<'row' <'col-md-12'B>><'row'<'col-md-6 col-sm-12'l><'col-md-6 col-sm-12'f>r><'table-scrollable't><'row'<'col-md-5 col-sm-12'i><'col-md-7 col-sm-12'p>>", // horizobtal scrollable datatable
+
+
+        });
+
+
+    });
+
+</script>

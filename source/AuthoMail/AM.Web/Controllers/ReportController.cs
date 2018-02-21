@@ -54,19 +54,25 @@ namespace AM.Web.Controllers
 
         public ActionResult DeliveryReport()
         {
+            ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(), "Id", "DocTypeCode");
             return View();
         }
-        public ActionResult _GetDeliveryReport()
+        public ActionResult _GetDeliveryReport(string loanNumber, string docType, DateTime startDate, DateTime endDate)
         {
-            return PartialView();
+            ViewBag.Date = string.Format("{0} - {1}", startDate.ToShortDateString(), endDate.ToShortDateString());
+            var model = repoSvc.GetDeliveryByParam(loanNumber, docType, startDate, endDate);
+            return PartialView(model);
         }
         public ActionResult ErrorsReport()
         {
+            ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(), "Id", "DocTypeCode");
             return View();
         }
-        public ActionResult _GetErrorsReport()
+        public ActionResult _GetErrorsReport(string loanNumber, string docType, DateTime startDate, DateTime endDate)
         {
-            return PartialView();
+            ViewBag.Date = string.Format("{0} - {1}", startDate.ToShortDateString(), endDate.ToShortDateString());
+            var model = repoSvc.GetErroReportByParam(loanNumber, docType, startDate, endDate);
+            return PartialView(model);
         }
         
     }

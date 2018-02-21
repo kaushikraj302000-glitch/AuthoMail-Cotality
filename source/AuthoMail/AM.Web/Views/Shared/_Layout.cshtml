@@ -96,10 +96,12 @@
 
     @RenderSection("scripts", required: false)
     <script>
-        $(document).ready(function () {
-            init()
-
-        });
+        var baseUrl = '<%= ResolveUrl("~/") %>';
+    $(document).ready(function () {
+        init()
+        
+        console.log(baseUrl);
+    });
     </script>
 </body>
 </html>

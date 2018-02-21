@@ -151,8 +151,8 @@
             var el = $('.modal-body');
             //el.html(mailpieceIds);
             $.ajax({
-                type: "GET",
-                url: "/api/PullBackApi/GeneratePullBackRequest",
+                type: "POST",
+                url: "/api/pullback/RequestPullBack",
                 data: { mailPieceIds: mailpieceIds },
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
@@ -178,6 +178,7 @@
         }
         
         $("#pullback").click(function (e) {
+            console.log(baseUrl);
             e.preventDefault();
             var loanNumber = $("#loanNumber").val();
             console.log(loanNumber);
