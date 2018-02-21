@@ -7,6 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net.Mail;
 using System.Xml.Schema;
+using System.Xml;
+using System.Xml.Linq;
+using AM.Entities;
 
 namespace AM.Console
 {
@@ -112,5 +115,36 @@ namespace AM.Console
             }
             return PnS_SFT_Protocol;
         }
+
+        public static ValidationResultAMC ValidateAMCXMLNode(XmlNode loan)
+        {
+            XDocument xDoc = XDocument.Parse(loan.OuterXml);
+            StringBuilder sbErrorMessage = new StringBuilder();
+            OutComeCodes outcomeCode = OutComeCodes.No_error;
+
+            xDoc.Validate(schemas, (o, e) =>
+            {
+                sbErrorMessage.Append(e.Message);
+            });
+
+            string errorMsg = sbErrorMessage.ToString();
+            if (errorMsg.Contains("Address") || errorMsg.Contains("City") || errorMsg.Contains("State") || errorMsg.Contains("Zip"))
+                outcomeCode = OutComeCodes.Mailing_address_missing_or_invalid;
+            else if (errorMsg.Contains("Recipient") || errorMsg.Contains("FirstName") || errorMsg.Contains("LastName"))
+                outcomeCode = OutComeCodes.Recipient_name_missing_or_invalid;
+            else if (!string.IsNullOrEmpty(errorMsg))
+                outcomeCode = OutComeCodes.Invalid_XML_file;
+
+            ValidationResultAMC returnCode = new ValidationResultAMC() { Code = outcomeCode, ErrorMessage = errorMsg };
+
+            return returnCode;
+        }
+        
+    }
+
+    public class ValidationResultAMC
+    {
+        public OutComeCodes Code { get; set; }
+        public string ErrorMessage { get; set; }
     }
 }
