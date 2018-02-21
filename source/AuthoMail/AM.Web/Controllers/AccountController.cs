@@ -75,7 +75,32 @@ namespace AM.Web.Controllers
             {
                 return View(model);
             }
-
+            bool isCorelogicUser = false;
+            if (model.UserName.IndexOf('@') > 0)
+            {
+                model.UserName = model.UserName.Split('@').First();
+            }
+            var user = UserManager.FindByName(model.UserName);
+            if (user == null)
+            {
+                ModelState.AddModelError("", "Invalid username.");
+                return View(model);
+            }
+            if (user.Email != null && user.Email != "")
+            {
+                isCorelogicUser = CLAuthentication.HasCorelogicAccount(user.Email);
+            }
+            if (isCorelogicUser)
+            {
+                var hasLogin = CLAuthentication.LdapLogin(model.UserName, model.Password);
+                if (!hasLogin.Key)
+                {
+                    ModelState.AddModelError("", hasLogin.Value);
+                    return View(model);
+                }
+                await SignInManager.SignInAsync(user, false, false);
+                return RedirectToLocal(returnUrl);
+            }
             // This doesn't count login failures towards account lockout
             // To enable password failures to trigger account lockout, change to shouldLockout: true
             var result = await SignInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, shouldLockout: true);
