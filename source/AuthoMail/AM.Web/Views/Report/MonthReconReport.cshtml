@@ -95,7 +95,7 @@
             el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
             $.ajax({
                 type: "POST",
-                url: baseUrl + "/Report/_MonthReconReport",
+                url: baseUrl + "Report/_MonthReconReport",
                 data: JSON.stringify({ loanNumber: loanNumber,docType:docType,startDate:startDate,endDate:endDate }),
                 contentType: "application/json; charset=utf-8",
                 success: function (res) {
