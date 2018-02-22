@@ -285,7 +285,7 @@ namespace AM.Console
                         }
                         amMailPieces.Add(amMailPiece);
                     }
-                    mailPieceSvc.InsertBatchMailPiecesDetails(amMailPieces);
+                    //mailPieceSvc.InsertBatchMailPieceDetails(amMailPieces);
 
                     #region Archive Files After Download
                     foreach (var archiveFile in archiveFileList)

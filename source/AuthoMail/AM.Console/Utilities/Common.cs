@@ -17,6 +17,7 @@ namespace AM.Console
     {
         public static string AuthoMailRootFolder { get; set; }
         public static string SchemaPath { get; set; }
+        public static string SchemaPathAMC { get; set; }
         public static SmtpClient Email_SMTPClient { get; private set; }
         public static string PnS_SFT_HostURL { get; private set; }
         public static string PnS_SFT_UserName { get; private set; }
@@ -33,13 +34,18 @@ namespace AM.Console
         public static bool SendEmails { get; private set; }
 
         public static XmlSchemaSet schemas;
+        public static XmlSchemaSet schemasAMC;
 
         static Common()
         {
             schemas = new XmlSchemaSet();
+            schemasAMC = new XmlSchemaSet();
             AuthoMailRootFolder = Path.GetFullPath(ConfigurationManager.AppSettings["AuthoMailRootFolder"]);
             SchemaPath = ConfigurationManager.AppSettings["SchemaPath"];
             schemas.Add("http://schemas.corelogic.com/ade/authomail/v1.18.0", Common.SchemaPath);
+
+            SchemaPathAMC = Path.GetFullPath(ConfigurationManager.AppSettings["SchemaPathAMC"]);
+            schemasAMC.Add("http://schemas.corelogic.com/2015/amc/v1/packages", Common.SchemaPathAMC);
             PnS_SFT_HostURL = ConfigurationManager.AppSettings["PnS_SFT_HostURL"];
             PnS_SFT_UserName = ConfigurationManager.AppSettings["PnS_SFT_UserName"];
             PnS_SFT_Password = ConfigurationManager.AppSettings["PnS_SFT_Password"];
@@ -122,7 +128,7 @@ namespace AM.Console
             StringBuilder sbErrorMessage = new StringBuilder();
             OutComeCodes outcomeCode = OutComeCodes.No_error;
 
-            xDoc.Validate(schemas, (o, e) =>
+            xDoc.Validate(schemasAMC, (o, e) =>
             {
                 sbErrorMessage.Append(e.Message);
             });

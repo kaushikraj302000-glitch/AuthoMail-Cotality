@@ -12,6 +12,7 @@ namespace AM.Services
     public interface IBatchService
     {
         int InsertBatchDetails(Batch mailBatch);
+        int UpdateBatchDetails(Batch mailBatch);
         List<Batch> GetBatchesByStatus(string batchPipelineStatus);
     }
     public class BatchService : ServiceBase, IBatchService //It implements Interfaces 
@@ -73,10 +74,18 @@ namespace AM.Services
             return Convert.ToInt32(data);
         }
 
+        public int UpdateBatchDetails(Batch mailBatch)
+        {
+            string query = "UPDATE [AuthoMail].[AM].[Batch] SET [Id] = @Id,[ClientId] = @ClientId,[DocumentOrPackageType] = @DocumentOrPackageType,[BatchName] = @BatchName,[PipelineStatus] = @PipelineStatus ,[ValidationStatus] = @ValidationStatus ,[ValidationErrors] = @ValidationErrors,[BatchStatus] = @BatchStatus ,[ReceivedOn] = @ReceivedOn,[DownloadedOn] = @DownloadedOn,[AcknowledgedOn] = @AcknowledgedOn,[ValidatedOn] = @ValidatedOn,[PreppedOn] = @PreppedOn,[SubmittedToShippingOn] = @SubmittedToShippingOn,[ShippingResponseReceivedOn] =<ShippingResponseReceivedOn,[ReportPreppedOn] = @ReportPreppedOn,[ReportedBackOn] = @ReportedBackOn,[BusinessFriendlyIdName] = @BusinessFriendlyIdName ,[BusinessFriendlyIdValue] = @BusinessFriendlyIdValue ,[IsReturnInfoSpecified] = IsReturnInfoSpecified,[RetRcptPrefix] = @RetRcptPrefix ,[RetRcptFirstName] =<RetRcptFirstName ,[RetRcptMiddleName] = @RetRcptMiddleName ,[RetRcptLastName] = @RetRcptLastName ,[RetRcptSuffix] = @RetRcptSuffix ,[RetRcptPhone] = @RetRcptPhone ,[RetRcptOrganization] = @RetRcptOrganization ,[RetRcptAddrOptionalLine1AboveStreet] = @RetRcptAddrOptionalLine1AboveStreet ,[RetRcptAddrOptionalLine2AboveStreet] = @RetRcptAddrOptionalLine2AboveStreet ,[RetRcptAddressStreet] = @RetRcptAddressStreet ,[RetRcptAddressAptOrSuiteOrOther] = @RetRcptAddressAptOrSuiteOrOther ,[RetRcptAddrOptionalLine1BelowStreet] = RetRcptAddrOptionalLine1BelowStreet ,[RetRcptAddrOptionalLine2BelowStreet] = RetRcptAddrOptionalLine2BelowStreet ,[RetRcptAddressCity] = @RetRcptAddressCity ,[RetRcptAddressState] = @RetRcptAddressState ,[RetRcptAddressZIP] = @RetRcptAddressZIP ,[BatchFilePath] = @BatchFilePath ,[Priority] = @Priority ,[ChannelCode] = @ChannelCode WHERE BatchClustId=@BatchClustId";
+
+            var data = db.ExecuteScalar(query, mailBatch);
+            return Convert.ToInt32(data);
+        }
+
         public List<Batch> GetBatchesByStatus(string batchPipelineStatus)
         {
             //Sql Query
-            string query = "SELECT * FROM [AM].[Batch] WHERE PipelineStatus=@batchPipelineStatus";
+            string query = "SELECT * FROM [AM].[Batch] WHERE PipelineStatus= @batchPipelineStatus";
 
             switch (batchPipelineStatus.ToString())
             {

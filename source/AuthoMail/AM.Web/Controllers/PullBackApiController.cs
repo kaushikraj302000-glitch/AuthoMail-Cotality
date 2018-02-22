@@ -21,7 +21,7 @@ namespace AM.Web.Controllers
         }
 
         [Route("RequestPullBack/{*mailPieceIds}")]
-        [HttpPost]
+        [HttpGet]
         public object GeneratePullBackRequest([FromUri] List<string> mailPieceIds)
         {
             //Testing Purpose
