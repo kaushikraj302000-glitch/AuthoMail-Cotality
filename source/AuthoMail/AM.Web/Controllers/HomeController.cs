@@ -21,21 +21,7 @@ namespace AM.Web.Controllers
         {
             return View();
         }
-        public ActionResult _GetBatchByDateRange()
-        {
-            DateTime startDate = DateTime.Now;
-            DateTime endDate = DateTime.Now;
-            if (startDate < endDate)
-            {
-                ViewBag.Message = "Invalid date selection.";
-                return PartialView(null);
-            }
-            startDate = startDate.ToUniversalTime();
-            endDate = endDate.ToUniversalTime();
-            var data = homeSvc.GetBatchReportInfoByDateRange(startDate, endDate);
-            var d2 = homeSvc.GetMailPieceInfoByBatchId(0);
-            return PartialView(data);
-        }
+        
 
         public ActionResult GetMailPieceIdByLoanNumber(string loanNumber)
         {
