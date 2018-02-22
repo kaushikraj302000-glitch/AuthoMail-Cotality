@@ -43,6 +43,13 @@ namespace AM.Entities
     [XmlType(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0")]
     public class MailPiece
     {
+        public MailPiece()
+        {
+            DocumentOrPackage = new DocumentOrPackage();
+            RecipientInfo = new RecipientInfo();
+            ReturnInfo = new ReturnInfo();
+        }
+
         [XmlAttribute]
         public Guid Id { get; set; }
 
@@ -83,6 +90,12 @@ namespace AM.Entities
     [XmlType(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0")]
     public class RecipientInfo
     {
+        public RecipientInfo()
+        {
+            Recipient = new Recipient();
+            Corecipient = new Recipient();
+            Address = new Address();
+        }
         [XmlElement(ElementName = "Recipient")]
         public Recipient Recipient { get; set; }
 
@@ -156,6 +169,11 @@ namespace AM.Entities
     [XmlType(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0")]
     public class ReturnInfo
     {
+        public ReturnInfo()
+        {
+            Recipient = new Recipient();
+            Address = new Address();
+        }
         [XmlElement(ElementName = "Recipient")]
         public Recipient Recipient { get; set; }
 

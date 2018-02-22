@@ -43,7 +43,7 @@ namespace AM.Services
 
         public int InsertBatchMailPieceCustomDetails(List<MailPieceCustomInfo> mailPieceCustomInfos)
         {
-            string query = "INSERT INTO [AM].[MailPieceCustomInfo](MailPieceId, Key, Value) VALUES (@MailPieceId, @Key, @Value)";
+            string query = "INSERT INTO [AM].[MailPieceCustomInfo](MailPieceId, [Key], [Value]) VALUES (@MailPieceId, @Key, @Value)";
 
             var data = db.Execute(query, mailPieceCustomInfos);
             return data;

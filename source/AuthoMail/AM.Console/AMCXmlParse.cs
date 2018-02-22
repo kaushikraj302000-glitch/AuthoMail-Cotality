@@ -103,7 +103,8 @@ namespace AM.Console
                             ReceivedOn = DateTime.UtcNow,
                             Id = Guid.NewGuid(),
                             BatchFilePath = downloadedZipFilePath,
-                            Priority = Priority.High.ToString()
+                            Priority = Priority.High.ToString(),
+                            ClientId = client.Id
                         };
 
                         #endregion
@@ -182,8 +183,8 @@ namespace AM.Console
             SftpFile triggerFile = sftp.Get(triggerFilePath);
 
             //triggerFile.MoveTo(ftpBackupTriggerFilePath);
-            if (sftp.Exists(triggerFilePath))
-                triggerFile.Delete();
+            //if (sftp.Exists(triggerFilePath))
+            //triggerFile.Delete();
 
         }
 
@@ -208,7 +209,7 @@ namespace AM.Console
             downloadedXMLStrm.Close();
 
             // After downloading the zip file delete it from FTP.
-            sftp.DeleteFile(batchFileFTPPath);
+            //sftp.DeleteFile(batchFileFTPPath);
 
             return downloadedZipFilePath;
         }
@@ -302,7 +303,7 @@ namespace AM.Console
                                 MailPiece amMailPiece = new MailPiece();
                                 amMailPiece.BusinessFriendlyIdName = "LoanNbr";
                                 amMailPiece.BusinessFriendlyIdValue = package.LoanNbr;
-                                amMailPiece.DocumentOrPackage.Name = package.File;
+                                amMailPiece.DocumentOrPackage = new DocumentOrPackage() { Name = package.File };
                                 amMailPiece.DocumentOrPackageType = package.PackageName;
                                 amMailPiece.Id = package.Id;
                                 amMailPiece.RecipientInfo.Recipient.Phone = package.RecipientInfo.RecipientPhoneNo;
@@ -318,7 +319,6 @@ namespace AM.Console
                                     amMailPiece.RecipientInfo.Recipient.FirstName = package.RecipientInfo.Recipients[0].FirstName;
                                     amMailPiece.RecipientInfo.Recipient.LastName = package.RecipientInfo.Recipients[0].LastName;
                                 }
-
                                 amMailPiece.RecipientInfo.Address.AptOrSuiteOrOther = package.RecipientInfo.RecipientAddress.Line2;
                                 amMailPiece.RecipientInfo.Address.Street = package.RecipientInfo.RecipientAddress.Line1;
                                 amMailPiece.RecipientInfo.Address.State = package.RecipientInfo.RecipientAddress.State;
@@ -342,6 +342,7 @@ namespace AM.Console
                                 amMailPieces.Add(amMailPiece);
                                 #endregion
 
+                                #region AMMailPiece Data
                                 mailPiece = new AMMailPiece();
                                 mailPiece.BatchClustId = batch.BatchClustId;
                                 mailPiece.Id = package.Id;
@@ -424,7 +425,8 @@ namespace AM.Console
                                 mailPieceCustomInfos.Add(customInfoShippingMethod);
 
                                 mailPieceSvc.InsertBatchMailPieceCustomDetails(mailPieceCustomInfos);
-                            }
+                            } 
+                                #endregion
                             #endregion
                         }
                         catch (XmlException err)
@@ -588,6 +590,7 @@ namespace AM.Console
                         finally
                         {
                             // if the validation works or fails save some information in loan table.
+                            #region other Error 
                             if (parsingResult.Code != OutComeCodes.No_error)
                             {
                                 mailPiece = new AMMailPiece();
@@ -623,9 +626,11 @@ namespace AM.Console
                                     mailPiece.BusinessFriendlyIdName = "LoanNbr";
                                     mailPiece.BusinessFriendlyIdValue = loan.SelectSingleNode("./x:LoanNbr/text()", nsManager).Value;
                                 }
-                            }
 
-                            mailPieceSvc.InsertBatchMailPieceDetails(mailPiece);
+
+                                mailPieceSvc.InsertBatchMailPieceDetails(mailPiece);
+                            } 
+                            #endregion
                         }
                     }
                 }
