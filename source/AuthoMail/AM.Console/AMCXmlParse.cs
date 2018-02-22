@@ -239,6 +239,7 @@ namespace AM.Console
         {
             #region Converting AMCXml to AuthoMailXml
             MailBatch amMailBatch = new MailBatch();
+            List<MailPiece> amMailPieces = new List<MailPiece>();
             amMailBatch.Id = Guid.NewGuid();
             amMailBatch.Priority = Priority.High;
             amMailBatch.ChannelCode = "Mortgage Cadence Integration";
@@ -282,7 +283,7 @@ namespace AM.Console
                     foreach (XmlNode loan in loans)
                     {
                         AMMailPiece mailPiece = null;
-                        List<MailPieceCustomInfo> mailPieceCustomInfo = null;
+                        List<MailPieceCustomInfo> mailPieceCustomInfos = null;
                         PackageInfo package = null;
                         ValidationResultAMC parsingResult = null;
 
@@ -296,6 +297,8 @@ namespace AM.Console
                             if (parsingResult.Code == OutComeCodes.No_error)
                             {
                                 package = XmlUtil.Deserialize<PackageInfo>(loan.OuterXml);
+
+                                #region PackageInfo To MailPiece for AuthoMail
                                 MailPiece amMailPiece = new MailPiece();
                                 amMailPiece.BusinessFriendlyIdName = "LoanNbr";
                                 amMailPiece.BusinessFriendlyIdValue = package.LoanNbr;
@@ -328,12 +331,16 @@ namespace AM.Console
                                 amMailPiece.ReturnInfo.Address.City = package.ReturnInfo.ReturnAddress.City;
                                 amMailPiece.ReturnInfo.Address.State = package.ReturnInfo.ReturnAddress.State;
                                 amMailPiece.ReturnInfo.Address.Zip = package.ReturnInfo.ReturnAddress.Zip;
-                                List<Metadata> metadatas = new List<Metadata>() 
+                                amMailPiece.CustomInfo = new List<Metadata>() 
                                 { 
                                 new Metadata() { Key = "ReceivedDate", Value = package.ReceivedDate.HasValue?package.ReceivedDate.Value.ToString():"" },
-                                new Metadata() { Key = "ReceivedDate", Value = package.ReceivedDate.HasValue?package.ReceivedDate.Value.ToString():"" },
-                                new Metadata() { Key = "ReceivedDate", Value = package.ReceivedDate.HasValue?package.ReceivedDate.Value.ToString():"" }
+                                new Metadata() { Key = "RequestId", Value = package.RequestId},
+                                new Metadata() { Key = "ReceivedDate", Value = package.ShippingCredCode },
+                                new Metadata() { Key = "CustomerIdentifier", Value = package.CustomerIdentifier }
                                 };
+
+                                amMailPieces.Add(amMailPiece);
+                                #endregion
 
                                 mailPiece = new AMMailPiece();
                                 mailPiece.BatchClustId = batch.BatchClustId;
@@ -385,36 +392,38 @@ namespace AM.Console
 
                                 mailPieceSvc.InsertBatchMailPieceDetails(mailPiece);
 
-                                mailPieceCustomInfo = new List<MailPieceCustomInfo>();
+                                mailPieceCustomInfos = new List<MailPieceCustomInfo>();
                                 MailPieceCustomInfo customInfoCustomerIdentifier = new MailPieceCustomInfo();
                                 customInfoCustomerIdentifier.MailPieceId = mailPiece.Id;
                                 customInfoCustomerIdentifier.Key = "CustomerIdentifier";
                                 customInfoCustomerIdentifier.Value = package.CustomerIdentifier.ToString();
-                                mailPieceCustomInfo.Add(customInfoCustomerIdentifier);
+                                mailPieceCustomInfos.Add(customInfoCustomerIdentifier);
 
                                 MailPieceCustomInfo customInfoReceivedDate = new MailPieceCustomInfo();
                                 customInfoReceivedDate.MailPieceId = mailPiece.Id;
                                 customInfoReceivedDate.Key = "ReceivedDate";
                                 customInfoReceivedDate.Value = package.ReceivedDate.HasValue == true ? package.ReceivedDate.Value.ToString() : "";
-                                mailPieceCustomInfo.Add(customInfoReceivedDate);
+                                mailPieceCustomInfos.Add(customInfoReceivedDate);
 
                                 MailPieceCustomInfo customInfoRequestId = new MailPieceCustomInfo();
                                 customInfoRequestId.MailPieceId = mailPiece.Id;
                                 customInfoRequestId.Key = "RequestId";
                                 customInfoRequestId.Value = package.RequestId;
-                                mailPieceCustomInfo.Add(customInfoRequestId);
+                                mailPieceCustomInfos.Add(customInfoRequestId);
 
                                 MailPieceCustomInfo customInfoShippingCredCode = new MailPieceCustomInfo();
                                 customInfoShippingCredCode.MailPieceId = mailPiece.Id;
                                 customInfoShippingCredCode.Key = "ShippingCredCode";
                                 customInfoShippingCredCode.Value = package.ShippingCredCode;
-                                mailPieceCustomInfo.Add(customInfoShippingCredCode);
+                                mailPieceCustomInfos.Add(customInfoShippingCredCode);
 
                                 MailPieceCustomInfo customInfoShippingMethod = new MailPieceCustomInfo();
                                 customInfoShippingMethod.MailPieceId = mailPiece.Id;
                                 customInfoShippingMethod.Key = "ShippingMethod";
                                 customInfoShippingMethod.Value = package.ShippingMethod.ToString();
-                                mailPieceCustomInfo.Add(customInfoShippingMethod);
+                                mailPieceCustomInfos.Add(customInfoShippingMethod);
+
+                                mailPieceSvc.InsertBatchMailPieceCustomDetails(mailPieceCustomInfos);
                             }
                             #endregion
                         }

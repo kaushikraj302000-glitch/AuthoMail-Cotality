@@ -11,8 +11,11 @@ namespace AM.Console
     {
         static void Main(string[] args)
         {
-            DownloadJob downloadJob = new DownloadJob();
-            downloadJob.DownloadNewBatch();
+            //DownloadJob downloadJob = new DownloadJob();
+            //downloadJob.DownloadNewBatch();
+
+            AMCXmlParse downloadAMCJob = new AMCXmlParse();
+            downloadAMCJob.DownloadAMCXml();
         }
     }
 }
