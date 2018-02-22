@@ -1,137 +1,138 @@
 USE [AuthoMail]
-/****** Object:  StoredProcedure [dbo].[usp_UpdateDocTypeDetails]    Script Date: 2/20/2018 5:16:04 PM ******/
+GO
+/****** Object:  StoredProcedure [dbo].[usp_UpdateDocTypeDetails]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_UpdateDocTypeDetails]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_UpdateDocTypeDetails]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_UpdateBusinessUnitDetails]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_UpdateBusinessUnitDetails]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_UpdateBusinessUnitDetails]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_UpdateBusinessUnitDetails]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_RevertPipelineStatus]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_RevertPipelineStatus]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_RevertPipelineStatus]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_RevertPipelineStatus]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_MoveBatchToHistoryTables]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_MoveBatchToHistoryTables]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_MoveBatchToHistoryTables]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_MoveBatchToHistoryTables]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_LogBatchTimeLine]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_LogBatchTimeLine]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_LogBatchTimeLine]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_LogBatchTimeLine]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_InsertDocTypeDetails]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_InsertDocTypeDetails]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_InsertDocTypeDetails]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_InsertDocTypeDetails]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_InsertBusinessUnitDetails]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_InsertBusinessUnitDetails]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_InsertBusinessUnitDetails]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_InsertBusinessUnitDetails]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetTodaysSubmittedBatchesCount]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetTodaysSubmittedBatchesCount]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_GetTodaysSubmittedBatchesCount]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_GetTodaysSubmittedBatchesCount]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetSubmittedBatches]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetSubmittedBatches]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_GetSubmittedBatches]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_GetSubmittedBatches]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetStartDateOfCanceledOrSuspendedBatch]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetStartDateOfCanceledOrSuspendedBatch]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_GetStartDateOfCanceledOrSuspendedBatch]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_GetStartDateOfCanceledOrSuspendedBatch]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetPendingBatches]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetPendingBatches]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_GetPendingBatches]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_GetPendingBatches]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetNextBatchIdByJobName]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetNextBatchIdByJobName]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_GetNextBatchIdByJobName]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_GetNextBatchIdByJobName]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetNextBatchByJobName]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetNextBatchByJobName]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_GetNextBatchByJobName]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_GetNextBatchByJobName]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetMRDFResponseSchema]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetMRDFResponseSchema]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_GetMRDFResponseSchema]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_GetMRDFResponseSchema]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetMRDFResponseDataByJobId]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetMRDFResponseDataByJobId]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_GetMRDFResponseDataByJobId]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_GetMRDFResponseDataByJobId]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetMRDFRequestSchema]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetMRDFRequestSchema]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_GetMRDFRequestSchema]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_GetMRDFRequestSchema]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetMRDFRequestDataForReprintByJobId]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetMRDFRequestDataForReprintByJobId]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_GetMRDFRequestDataForReprintByJobId]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_GetMRDFRequestDataForReprintByJobId]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetMRDFRequestDataByJobId]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetMRDFRequestDataByJobId]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_GetMRDFRequestDataByJobId]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_GetMRDFRequestDataByJobId]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetFinalMRDFResponseDataByJobId]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetFinalMRDFResponseDataByJobId]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_GetFinalMRDFResponseDataByJobId]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_GetFinalMRDFResponseDataByJobId]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetDocTypesByDoctypeId]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetDocTypesByDoctypeId]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_GetDocTypesByDoctypeId]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_GetDocTypesByDoctypeId]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetDocTypeDetailsByAppId]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetDocTypeDetailsByAppId]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_GetDocTypeDetailsByAppId]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_GetDocTypeDetailsByAppId]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetClientAppDetailsById]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetClientAppDetailsById]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_GetClientAppDetailsById]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_GetClientAppDetailsById]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetBusinessUnits]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetBusinessUnits]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_GetBusinessUnits]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_GetBusinessUnits]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetBusinessUnitById]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetBusinessUnitById]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_GetBusinessUnitById]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_GetBusinessUnitById]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetBatchSummarySchema]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetBatchSummarySchema]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_GetBatchSummarySchema]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_GetBatchSummarySchema]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetBatchSummaryById]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetBatchSummaryById]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_GetBatchSummaryById]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_GetBatchSummaryById]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetAllClientAppDetail]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetAllClientAppDetail]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_GetAllClientAppDetail]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_GetAllClientAppDetail]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_DeleteMRDFResponseByJobId]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_DeleteMRDFResponseByJobId]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_DeleteMRDFResponseByJobId]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_DeleteMRDFResponseByJobId]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_DeleteMRDFRequestByJobId]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_DeleteMRDFRequestByJobId]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_DeleteMRDFRequestByJobId]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_DeleteMRDFRequestByJobId]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_CheckBatchDataForReprint]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_CheckBatchDataForReprint]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_CheckBatchDataForReprint]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_CheckBatchDataForReprint]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_BatchStatusChart]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_BatchStatusChart]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_BatchStatusChart]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_BatchStatusChart]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_ActivateOrInActivateBusinessUnit]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_ActivateOrInActivateBusinessUnit]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_ActivateOrInActivateBusinessUnit]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_ActivateOrInActivateBusinessUnit]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_ActivateInactivateDocTypes]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_ActivateInactivateDocTypes]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_ActivateInactivateDocTypes]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_ActivateInactivateDocTypes]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_ActivateClientApp]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_ActivateClientApp]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_ActivateClientApp]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[usp_ActivateClientApp]
 GO
@@ -147,6 +148,9 @@ GO
 IF  EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[Profile].[FK_UserClaims_Users]') AND parent_object_id = OBJECT_ID(N'[Profile].[UserClaims]'))
 ALTER TABLE [Profile].[UserClaims] DROP CONSTRAINT [FK_UserClaims_Users]
 GO
+IF  EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[PnS].[FK_ReprintMRDFRequest_ReprintBatches]') AND parent_object_id = OBJECT_ID(N'[PnS].[ReprintMRDFRequest]'))
+ALTER TABLE [PnS].[ReprintMRDFRequest] DROP CONSTRAINT [FK_ReprintMRDFRequest_ReprintBatches]
+GO
 IF  EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[PnS].[FK_MRDFResponse_BatchSummary]') AND parent_object_id = OBJECT_ID(N'[PnS].[MRDFResponse]'))
 ALTER TABLE [PnS].[MRDFResponse] DROP CONSTRAINT [FK_MRDFResponse_BatchSummary]
 GO
@@ -159,11 +163,11 @@ GO
 IF  EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[PnS].[FK_HistoryMRDFRequest_BatchSummary]') AND parent_object_id = OBJECT_ID(N'[PnS].[History_MRDFRequest]'))
 ALTER TABLE [PnS].[History_MRDFRequest] DROP CONSTRAINT [FK_HistoryMRDFRequest_BatchSummary]
 GO
-IF  EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[PnS].[FK_DocType_DocTypes]') AND parent_object_id = OBJECT_ID(N'[PnS].[DocType]'))
-ALTER TABLE [PnS].[DocType] DROP CONSTRAINT [FK_DocType_DocTypes]
+IF  EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[PnS].[FK_History_BatchSummary_DocTypes]') AND parent_object_id = OBJECT_ID(N'[PnS].[History_BatchSummary]'))
+ALTER TABLE [PnS].[History_BatchSummary] DROP CONSTRAINT [FK_History_BatchSummary_DocTypes]
 GO
-IF  EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[PnS].[FK_BatchSummary_PrintBatch]') AND parent_object_id = OBJECT_ID(N'[PnS].[BatchSummary]'))
-ALTER TABLE [PnS].[BatchSummary] DROP CONSTRAINT [FK_BatchSummary_PrintBatch]
+IF  EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[PnS].[FK_BatchSummary_DocTypes]') AND parent_object_id = OBJECT_ID(N'[PnS].[BatchSummary]'))
+ALTER TABLE [PnS].[BatchSummary] DROP CONSTRAINT [FK_BatchSummary_DocTypes]
 GO
 IF  EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[Common].[FK_Deliverables_SFTPChannel]') AND parent_object_id = OBJECT_ID(N'[Common].[Deliverables]'))
 ALTER TABLE [Common].[Deliverables] DROP CONSTRAINT [FK_Deliverables_SFTPChannel]
@@ -198,172 +202,175 @@ GO
 IF  EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[AM].[FK_Batch_Clients]') AND parent_object_id = OBJECT_ID(N'[AM].[Batch]'))
 ALTER TABLE [AM].[Batch] DROP CONSTRAINT [FK_Batch_Clients]
 GO
-/****** Object:  View [dbo].[view_MRDFResponseData]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  View [dbo].[view_MRDFResponseData]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[view_MRDFResponseData]'))
 DROP VIEW [dbo].[view_MRDFResponseData]
 GO
-/****** Object:  Table [Profile].[Users]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [Profile].[Users]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[Profile].[Users]') AND type in (N'U'))
 DROP TABLE [Profile].[Users]
 GO
-/****** Object:  Table [Profile].[UserRoles]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [Profile].[UserRoles]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[Profile].[UserRoles]') AND type in (N'U'))
 DROP TABLE [Profile].[UserRoles]
 GO
-/****** Object:  Table [Profile].[UserLogins]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [Profile].[UserLogins]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[Profile].[UserLogins]') AND type in (N'U'))
 DROP TABLE [Profile].[UserLogins]
 GO
-/****** Object:  Table [Profile].[UserClaims]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [Profile].[UserClaims]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[Profile].[UserClaims]') AND type in (N'U'))
 DROP TABLE [Profile].[UserClaims]
 GO
-/****** Object:  Table [Profile].[Roles]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [Profile].[Roles]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[Profile].[Roles]') AND type in (N'U'))
 DROP TABLE [Profile].[Roles]
 GO
-/****** Object:  Table [PnS].[Schema_MRDFResponse]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [PnS].[Schema_MRDFResponse]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[PnS].[Schema_MRDFResponse]') AND type in (N'U'))
 DROP TABLE [PnS].[Schema_MRDFResponse]
 GO
-/****** Object:  Table [PnS].[Schema_MRDFRequest]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [PnS].[Schema_MRDFRequest]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[PnS].[Schema_MRDFRequest]') AND type in (N'U'))
 DROP TABLE [PnS].[Schema_MRDFRequest]
 GO
-/****** Object:  Table [PnS].[Schema_BatchSummary]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [PnS].[Schema_BatchSummary]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[PnS].[Schema_BatchSummary]') AND type in (N'U'))
 DROP TABLE [PnS].[Schema_BatchSummary]
 GO
-/****** Object:  Table [PnS].[MRDFResponse]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [PnS].[ReprintMRDFRequest]    Script Date: 2/22/2018 3:20:05 PM ******/
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[PnS].[ReprintMRDFRequest]') AND type in (N'U'))
+DROP TABLE [PnS].[ReprintMRDFRequest]
+GO
+/****** Object:  Table [PnS].[ReprintBatches]    Script Date: 2/22/2018 3:20:05 PM ******/
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[PnS].[ReprintBatches]') AND type in (N'U'))
+DROP TABLE [PnS].[ReprintBatches]
+GO
+/****** Object:  Table [PnS].[MRDFResponse]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[PnS].[MRDFResponse]') AND type in (N'U'))
 DROP TABLE [PnS].[MRDFResponse]
 GO
-/****** Object:  Table [PnS].[MRDFRequest]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [PnS].[MRDFRequest]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[PnS].[MRDFRequest]') AND type in (N'U'))
 DROP TABLE [PnS].[MRDFRequest]
 GO
-/****** Object:  Table [PnS].[LogBatchTimeLine]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [PnS].[LogBatchTimeLine]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[PnS].[LogBatchTimeLine]') AND type in (N'U'))
 DROP TABLE [PnS].[LogBatchTimeLine]
 GO
-/****** Object:  Table [PnS].[History_MRDFResponse]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [PnS].[History_MRDFResponse]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[PnS].[History_MRDFResponse]') AND type in (N'U'))
 DROP TABLE [PnS].[History_MRDFResponse]
 GO
-/****** Object:  Table [PnS].[History_MRDFRequest]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [PnS].[History_MRDFRequest]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[PnS].[History_MRDFRequest]') AND type in (N'U'))
 DROP TABLE [PnS].[History_MRDFRequest]
 GO
-/****** Object:  Table [PnS].[History_BatchSummary]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [PnS].[History_BatchSummary]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[PnS].[History_BatchSummary]') AND type in (N'U'))
 DROP TABLE [PnS].[History_BatchSummary]
 GO
-/****** Object:  Table [PnS].[DocType]    Script Date: 2/20/2018 5:16:04 PM ******/
-IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[PnS].[DocType]') AND type in (N'U'))
-DROP TABLE [PnS].[DocType]
-GO
-/****** Object:  Table [PnS].[BatchSummary]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [PnS].[BatchSummary]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[PnS].[BatchSummary]') AND type in (N'U'))
 DROP TABLE [PnS].[BatchSummary]
 GO
-/****** Object:  Table [Common].[SystemSettings]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [Common].[SystemSettings]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[Common].[SystemSettings]') AND type in (N'U'))
 DROP TABLE [Common].[SystemSettings]
 GO
-/****** Object:  Table [Common].[SFTPChannel]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [Common].[SFTPChannel]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[Common].[SFTPChannel]') AND type in (N'U'))
 DROP TABLE [Common].[SFTPChannel]
 GO
-/****** Object:  Table [Common].[EmailChannel]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [Common].[EmailChannel]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[Common].[EmailChannel]') AND type in (N'U'))
 DROP TABLE [Common].[EmailChannel]
 GO
-/****** Object:  Table [Common].[Deliverables]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [Common].[Deliverables]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[Common].[Deliverables]') AND type in (N'U'))
 DROP TABLE [Common].[Deliverables]
 GO
-/****** Object:  Table [Common].[Clients]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [Common].[Clients]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[Common].[Clients]') AND type in (N'U'))
 DROP TABLE [Common].[Clients]
 GO
-/****** Object:  Table [Common].[BusinessUnit]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [Common].[BusinessUnit]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[Common].[BusinessUnit]') AND type in (N'U'))
 DROP TABLE [Common].[BusinessUnit]
 GO
-/****** Object:  Table [AM].[ShippingAccounts]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [AM].[ShippingAccounts]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[AM].[ShippingAccounts]') AND type in (N'U'))
 DROP TABLE [AM].[ShippingAccounts]
 GO
-/****** Object:  Index [CIX_AM_Batch]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Index [CIX_AM_Batch]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[AM].[PrintBatch]') AND name = N'CIX_AM_Batch')
 DROP INDEX [CIX_AM_Batch] ON [AM].[PrintBatch] WITH ( ONLINE = OFF )
 GO
-/****** Object:  Table [AM].[PrintBatch]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [AM].[PrintBatch]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[AM].[PrintBatch]') AND type in (N'U'))
 DROP TABLE [AM].[PrintBatch]
 GO
-/****** Object:  Table [AM].[PnSResponseDetails]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [AM].[PnSResponseDetails]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[AM].[PnSResponseDetails]') AND type in (N'U'))
 DROP TABLE [AM].[PnSResponseDetails]
 GO
-/****** Object:  Table [AM].[PnSResponse]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [AM].[PnSResponse]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[AM].[PnSResponse]') AND type in (N'U'))
 DROP TABLE [AM].[PnSResponse]
 GO
-/****** Object:  Table [AM].[MailPieceCustomInfo]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [AM].[MailPieceCustomInfo]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[AM].[MailPieceCustomInfo]') AND type in (N'U'))
 DROP TABLE [AM].[MailPieceCustomInfo]
 GO
-/****** Object:  Table [AM].[MailPiece]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [AM].[MailPiece]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[AM].[MailPiece]') AND type in (N'U'))
 DROP TABLE [AM].[MailPiece]
 GO
-/****** Object:  Table [AM].[LogBatchTimeLine]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [AM].[LogBatchTimeLine]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[AM].[LogBatchTimeLine]') AND type in (N'U'))
 DROP TABLE [AM].[LogBatchTimeLine]
 GO
-/****** Object:  Table [AM].[DocTypes]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [AM].[DocTypes]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[AM].[DocTypes]') AND type in (N'U'))
 DROP TABLE [AM].[DocTypes]
 GO
-/****** Object:  Table [AM].[DocTypeCoverLetters]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [AM].[DocTypeCoverLetters]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[AM].[DocTypeCoverLetters]') AND type in (N'U'))
 DROP TABLE [AM].[DocTypeCoverLetters]
 GO
-/****** Object:  Table [AM].[BatchCustomInfo]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [AM].[BatchCustomInfo]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[AM].[BatchCustomInfo]') AND type in (N'U'))
 DROP TABLE [AM].[BatchCustomInfo]
 GO
-/****** Object:  Index [CIX_AM_Batch]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Index [CIX_AM_Batch]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[AM].[Batch]') AND name = N'CIX_AM_Batch')
 DROP INDEX [CIX_AM_Batch] ON [AM].[Batch] WITH ( ONLINE = OFF )
 GO
-/****** Object:  Table [AM].[Batch]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [AM].[Batch]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[AM].[Batch]') AND type in (N'U'))
 DROP TABLE [AM].[Batch]
 GO
-
-/****** Object:  Schema [AM]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Schema [AM]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = N'AM')
 EXEC sys.sp_executesql N'CREATE SCHEMA [AM]'
 
 GO
-/****** Object:  Schema [Common]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Schema [Common]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = N'Common')
 EXEC sys.sp_executesql N'CREATE SCHEMA [Common]'
 
 GO
-/****** Object:  Schema [PnS]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Schema [PnS]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = N'PnS')
 EXEC sys.sp_executesql N'CREATE SCHEMA [PnS]'
 
 GO
-/****** Object:  Schema [Profile]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Schema [Profile]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = N'Profile')
 EXEC sys.sp_executesql N'CREATE SCHEMA [Profile]'
 
 GO
-/****** Object:  Table [AM].[Batch]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [AM].[Batch]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -400,8 +407,6 @@ CREATE TABLE [AM].[Batch](
 	[ReportPreppedOn] [datetime] NULL,
 	[IsReportedBack]  AS (case when [ReportedBackOn] IS NULL then (0) else (1) end),
 	[ReportedBackOn] [datetime] NULL,
-	[DueDate] [datetime] NULL,
-	[SLADays]  AS (case when [DueDate] IS NULL then NULL else datediff(day,CONVERT([date],getdate(),(0)),[DueDate])+(1) end),
 	[BusinessFriendlyIdName] [varchar](512) NULL,
 	[BusinessFriendlyIdValue] [varchar](512) NULL,
 	[IsReturnInfoSpecified] [bit] NULL,
@@ -423,6 +428,8 @@ CREATE TABLE [AM].[Batch](
 	[RetRcptAddressZIP] [varchar](512) NULL,
 	[BatchFilePath] [varchar](1024) NULL,
 	[Priority] [varchar](50) NULL,
+	[ChannelCode] [int] NULL,
+	[TotalLoans] [int] NULL,
  CONSTRAINT [PK_AM_Batch] PRIMARY KEY NONCLUSTERED 
 (
 	[Id] ASC
@@ -432,14 +439,14 @@ END
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Index [CIX_AM_Batch]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Index [CIX_AM_Batch]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[AM].[Batch]') AND name = N'CIX_AM_Batch')
 CREATE UNIQUE CLUSTERED INDEX [CIX_AM_Batch] ON [AM].[Batch]
 (
 	[BatchClustId] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 GO
-/****** Object:  Table [AM].[BatchCustomInfo]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [AM].[BatchCustomInfo]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -457,7 +464,7 @@ END
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [AM].[DocTypeCoverLetters]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [AM].[DocTypeCoverLetters]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -477,7 +484,7 @@ END
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [AM].[DocTypes]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [AM].[DocTypes]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -532,7 +539,7 @@ END
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [AM].[LogBatchTimeLine]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [AM].[LogBatchTimeLine]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -560,7 +567,7 @@ CREATE TABLE [AM].[LogBatchTimeLine](
 ) ON [PRIMARY]
 END
 GO
-/****** Object:  Table [AM].[MailPiece]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [AM].[MailPiece]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -644,7 +651,7 @@ END
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [AM].[MailPieceCustomInfo]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [AM].[MailPieceCustomInfo]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -662,7 +669,7 @@ END
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [AM].[PnSResponse]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [AM].[PnSResponse]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -684,7 +691,7 @@ END
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [AM].[PnSResponseDetails]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [AM].[PnSResponseDetails]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -708,7 +715,7 @@ END
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [AM].[PrintBatch]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [AM].[PrintBatch]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -739,14 +746,14 @@ END
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Index [CIX_AM_Batch]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Index [CIX_AM_Batch]    Script Date: 2/22/2018 3:20:05 PM ******/
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[AM].[PrintBatch]') AND name = N'CIX_AM_Batch')
 CREATE UNIQUE CLUSTERED INDEX [CIX_AM_Batch] ON [AM].[PrintBatch]
 (
 	[PrintBatchClustId] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 GO
-/****** Object:  Table [AM].[ShippingAccounts]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [AM].[ShippingAccounts]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -766,7 +773,7 @@ END
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [Common].[BusinessUnit]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [Common].[BusinessUnit]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -793,7 +800,7 @@ END
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [Common].[Clients]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [Common].[Clients]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -834,7 +841,7 @@ END
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [Common].[Deliverables]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [Common].[Deliverables]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -862,7 +869,7 @@ END
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [Common].[EmailChannel]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [Common].[EmailChannel]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -885,7 +892,7 @@ END
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [Common].[SFTPChannel]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [Common].[SFTPChannel]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -911,7 +918,7 @@ END
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [Common].[SystemSettings]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [Common].[SystemSettings]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -933,7 +940,7 @@ END
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [PnS].[BatchSummary]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [PnS].[BatchSummary]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -973,9 +980,7 @@ CREATE TABLE [PnS].[BatchSummary](
 	[CancelledOn] [datetime] NULL,
 	[JulianDate] [int] NULL,
 	[Images] [int] NULL,
-	[DueDate] [date] NULL,
-	[SLADays] [int] NULL,
-	[DocTypeCode] [varchar](29) NULL,
+	[DocTypeId] [int] NULL,
  CONSTRAINT [PK_BatchSummary] PRIMARY KEY CLUSTERED 
 (
 	[PrintBatch] ASC
@@ -985,30 +990,7 @@ END
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [PnS].[DocType]    Script Date: 2/20/2018 5:16:04 PM ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-SET ANSI_PADDING ON
-GO
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[PnS].[DocType]') AND type in (N'U'))
-BEGIN
-CREATE TABLE [PnS].[DocType](
-	[Id] [int] NOT NULL,
-	[CheckStockName] [varchar](50) NOT NULL,
-	[PerfCode] [varchar](50) NULL,
-	[BREName] [varchar](50) NOT NULL,
-	[Color] [char](1) NULL,
-	[BarcodeLoction] [varchar](50) NULL,
-	[MixMediaText] [varchar](255) NULL,
-	[PrintMode] [varchar](50) NULL
-) ON [PRIMARY]
-END
-GO
-SET ANSI_PADDING OFF
-GO
-/****** Object:  Table [PnS].[History_BatchSummary]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [PnS].[History_BatchSummary]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1019,13 +1001,12 @@ IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[PnS].[Hi
 BEGIN
 CREATE TABLE [PnS].[History_BatchSummary](
 	[PrintBatch] [int] NOT NULL,
-	[AppId] [int] NULL,
+	[ClientId] [int] NULL,
 	[JobName] [varchar](512) NULL,
+	[PrintFileName] [varchar](255) NULL,
+	[BatchIdentifier] [uniqueidentifier] NULL,
 	[PipelineStatus] [varchar](512) NULL,
 	[ValidationStatus] [varchar](512) NULL,
-	[PrintFileName] [varchar](512) NULL,
-	[AppPrintFormat] [varchar](512) NULL,
-	[BarcodeLocation] [varchar](512) NULL,
 	[OnValidationErrors] [varchar](512) NULL,
 	[ValidationErrors] [varchar](max) NULL,
 	[BatchStatus] [varchar](512) NULL,
@@ -1049,43 +1030,8 @@ CREATE TABLE [PnS].[History_BatchSummary](
 	[CancelledOn] [datetime] NULL,
 	[JulianDate] [int] NULL,
 	[Images] [int] NULL,
-	[PaperStock1Name] [varchar](512) NULL,
-	[PaperStock1Quantity] [int] NULL,
-	[PaperStock2Name] [varchar](512) NULL,
-	[PaperStock2Quantity] [int] NULL,
-	[PaperStock3Name] [varchar](512) NULL,
-	[PaperStock3Quantity] [int] NULL,
-	[PaperStock4Name] [varchar](512) NULL,
-	[PaperStock4Quantity] [int] NULL,
-	[PrintFormat] [varchar](512) NULL,
-	[BREPartNumber] [varchar](512) NULL,
-	[BREQuantity] [int] NULL,
-	[InsertStock2Name] [varchar](512) NULL,
-	[InsertStock2Quantity] [int] NULL,
-	[InsertStock3Name] [varchar](512) NULL,
-	[InsertStock3Quantity] [int] NULL,
-	[InsertStock4Name] [varchar](512) NULL,
-	[InsertStock4Quantity] [int] NULL,
-	[EnvelopeStockName] [varchar](512) NULL,
-	[EnvelopeStockQty] [int] NULL,
-	[TotalPostage] [varchar](512) NULL,
-	[PresortOrPSI] [varchar](512) NULL,
-	[DueDate] [date] NULL,
-	[PackageType] [varchar](512) NULL,
-	[Checks] [varchar](512) NULL,
-	[CompanySite] [varchar](512) NULL,
-	[ApplicationValue] [varchar](512) NULL,
-	[TNumber] [varchar](512) NULL,
-	[PrinterType] [varchar](512) NULL,
-	[SLADays] [int] NULL,
-	[ReprintType] [varchar](512) NULL,
-	[Color] [varchar](512) NULL,
-	[OneOrTwoUp] [int] NULL,
-	[CustId] [varchar](512) NULL,
-	[JobTag] [varchar](512) NULL,
-	[LetterCode] [varchar](512) NULL,
-	[SpecialInstructions] [varchar](512) NULL,
- CONSTRAINT [PK_HistoryBatchSummary] PRIMARY KEY CLUSTERED 
+	[DocTypeId] [int] NULL,
+ CONSTRAINT [PK_History_BatchSummary] PRIMARY KEY CLUSTERED 
 (
 	[PrintBatch] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
@@ -1094,7 +1040,7 @@ END
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [PnS].[History_MRDFRequest]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [PnS].[History_MRDFRequest]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1118,10 +1064,6 @@ CREATE TABLE [PnS].[History_MRDFRequest](
 	[ZipMark_Sel] [varchar](255) NULL,
 	[Address1] [varchar](255) NULL,
 	[Address2] [varchar](255) NULL,
-	[Address3] [varchar](255) NULL,
-	[Address4] [varchar](255) NULL,
-	[Address5] [varchar](255) NULL,
-	[Address6] [varchar](255) NULL,
 	[Zip5] [varchar](255) NULL,
 	[Zip4] [varchar](255) NULL,
 	[Zip2] [varchar](255) NULL,
@@ -1155,7 +1097,7 @@ END
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [PnS].[History_MRDFResponse]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [PnS].[History_MRDFResponse]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1184,6 +1126,8 @@ CREATE TABLE [PnS].[History_MRDFResponse](
 	[PostageMetered] [decimal](4, 3) NULL,
 	[WeightMeasured] [decimal](4, 3) NULL,
 	[ExitLocation] [varchar](50) NULL,
+	[TotalSheets] [int] NULL,
+	[PDFFileName] [varchar](255) NULL,
  CONSTRAINT [PK_HistoryMRDFResponse] PRIMARY KEY CLUSTERED 
 (
 	[JobId] ASC,
@@ -1194,7 +1138,7 @@ END
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [PnS].[LogBatchTimeLine]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [PnS].[LogBatchTimeLine]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1220,7 +1164,7 @@ CREATE TABLE [PnS].[LogBatchTimeLine](
 ) ON [PRIMARY]
 END
 GO
-/****** Object:  Table [PnS].[MRDFRequest]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [PnS].[MRDFRequest]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1244,10 +1188,6 @@ CREATE TABLE [PnS].[MRDFRequest](
 	[ZipMark_Sel] [varchar](255) NULL,
 	[Address1] [varchar](255) NULL,
 	[Address2] [varchar](255) NULL,
-	[Address3] [varchar](255) NULL,
-	[Address4] [varchar](255) NULL,
-	[Address5] [varchar](255) NULL,
-	[Address6] [varchar](255) NULL,
 	[Zip5] [varchar](255) NULL,
 	[Zip4] [varchar](255) NULL,
 	[Zip2] [varchar](255) NULL,
@@ -1281,7 +1221,7 @@ END
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [PnS].[MRDFResponse]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [PnS].[MRDFResponse]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1322,7 +1262,54 @@ END
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [PnS].[Schema_BatchSummary]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [PnS].[ReprintBatches]    Script Date: 2/22/2018 3:20:05 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[PnS].[ReprintBatches]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [PnS].[ReprintBatches](
+	[PrintBatch] [varchar](10) NOT NULL,
+	[ParentPrintBatch] [int] NULL,
+	[AppId] [int] NULL,
+	[DocTypeCode] [varchar](29) NULL,
+	[PipelineStatus] [varchar](512) NULL,
+	[PrintFileName] [varchar](512) NULL,
+	[IsSubmitted]  AS (case when [SubmittedOn] IS NULL then (0) else (1) end),
+	[SubmittedOn] [datetime] NULL,
+	[IsMRDFReceived]  AS (case when [MRDFReceivedOn] IS NULL then (0) else (1) end),
+	[MRDFReceivedOn] [datetime] NULL,
+ CONSTRAINT [PK_ReprintBatches] PRIMARY KEY CLUSTERED 
+(
+	[PrintBatch] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+END
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [PnS].[ReprintMRDFRequest]    Script Date: 2/22/2018 3:20:05 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[PnS].[ReprintMRDFRequest]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [PnS].[ReprintMRDFRequest](
+	[JobId] [varchar](10) NOT NULL,
+	[PieceId] [int] NOT NULL,
+	[IsResponseReceived] [bit] NULL
+) ON [PRIMARY]
+END
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [PnS].[Schema_BatchSummary]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1349,7 +1336,7 @@ CREATE TABLE [PnS].[Schema_BatchSummary](
 ) ON [PRIMARY]
 END
 GO
-/****** Object:  Table [PnS].[Schema_MRDFRequest]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [PnS].[Schema_MRDFRequest]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1376,7 +1363,7 @@ CREATE TABLE [PnS].[Schema_MRDFRequest](
 ) ON [PRIMARY]
 END
 GO
-/****** Object:  Table [PnS].[Schema_MRDFResponse]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [PnS].[Schema_MRDFResponse]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1401,7 +1388,7 @@ CREATE TABLE [PnS].[Schema_MRDFResponse](
 ) ON [PRIMARY]
 END
 GO
-/****** Object:  Table [Profile].[Roles]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [Profile].[Roles]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1418,7 +1405,7 @@ PRIMARY KEY CLUSTERED
 ) ON [PRIMARY]
 END
 GO
-/****** Object:  Table [Profile].[UserClaims]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [Profile].[UserClaims]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1437,7 +1424,7 @@ PRIMARY KEY CLUSTERED
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 END
 GO
-/****** Object:  Table [Profile].[UserLogins]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [Profile].[UserLogins]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1457,7 +1444,7 @@ PRIMARY KEY CLUSTERED
 ) ON [PRIMARY]
 END
 GO
-/****** Object:  Table [Profile].[UserRoles]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [Profile].[UserRoles]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1475,7 +1462,7 @@ PRIMARY KEY CLUSTERED
 ) ON [PRIMARY]
 END
 GO
-/****** Object:  Table [Profile].[Users]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  Table [Profile].[Users]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1502,23 +1489,25 @@ PRIMARY KEY CLUSTERED
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 END
 GO
-/****** Object:  View [dbo].[view_MRDFResponseData]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  View [dbo].[view_MRDFResponseData]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
 IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[view_MRDFResponseData]'))
-EXEC dbo.sp_executesql @statement = N'CREATE VIEW [dbo].[view_MRDFResponseData] AS
+EXEC dbo.sp_executesql @statement = N'
+CREATE VIEW [dbo].[view_MRDFResponseData] AS
 SELECT REQ.JobId, CASE WHEN RES.PostageMetered IS NULL THEN 0.00 ELSE RES.PostageMetered END AS PostageCost 
 ,CASE WHEN RES.DetailedErrorId IS NULL THEN ''0'' ELSE RES.DetailedErrorId END AS ErrId 
 ,RES.ProcessingTimeStamp AS ShippedOn 
 ,CASE WHEN RES.WeightMeasured IS NULL THEN 0.00 ELSE RES.WeightMeasured END AS WeightMeasured
 ,CASE WHEN RES.Disposition IS NULL THEN ''0'' ELSE RES.Disposition END AS Disposition 
 ,REQ.PieceId,REQ.[UniqueIdentifier]
-,REQ.PDFFileName, REQ.ErrDesc, REQ.MailPieceStatus,RES.TotalSheets 
+,REQ.PDFFileName, REQ.ErrDesc, REQ.MailPieceStatus,RES.TotalSheets,REQ.DivertVS3 
 FROM [PnS].MRDFRequest REQ
 LEFT JOIN [PnS].MRDFResponse RES
 ON  REQ.JobId =RES.JobId AND REQ.PieceId =RES.PieceId
+
 ' 
 GO
 IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[AM].[FK_Batch_Clients]') AND parent_object_id = OBJECT_ID(N'[AM].[Batch]'))
@@ -1598,19 +1587,19 @@ GO
 IF  EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[Common].[FK_Deliverables_SFTPChannel]') AND parent_object_id = OBJECT_ID(N'[Common].[Deliverables]'))
 ALTER TABLE [Common].[Deliverables] CHECK CONSTRAINT [FK_Deliverables_SFTPChannel]
 GO
-IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[PnS].[FK_BatchSummary_PrintBatch]') AND parent_object_id = OBJECT_ID(N'[PnS].[BatchSummary]'))
-ALTER TABLE [PnS].[BatchSummary]  WITH CHECK ADD  CONSTRAINT [FK_BatchSummary_PrintBatch] FOREIGN KEY([BatchIdentifier])
-REFERENCES [AM].[PrintBatch] ([Id])
-GO
-IF  EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[PnS].[FK_BatchSummary_PrintBatch]') AND parent_object_id = OBJECT_ID(N'[PnS].[BatchSummary]'))
-ALTER TABLE [PnS].[BatchSummary] CHECK CONSTRAINT [FK_BatchSummary_PrintBatch]
-GO
-IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[PnS].[FK_DocType_DocTypes]') AND parent_object_id = OBJECT_ID(N'[PnS].[DocType]'))
-ALTER TABLE [PnS].[DocType]  WITH CHECK ADD  CONSTRAINT [FK_DocType_DocTypes] FOREIGN KEY([Id])
+IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[PnS].[FK_BatchSummary_DocTypes]') AND parent_object_id = OBJECT_ID(N'[PnS].[BatchSummary]'))
+ALTER TABLE [PnS].[BatchSummary]  WITH CHECK ADD  CONSTRAINT [FK_BatchSummary_DocTypes] FOREIGN KEY([DocTypeId])
 REFERENCES [AM].[DocTypes] ([Id])
 GO
-IF  EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[PnS].[FK_DocType_DocTypes]') AND parent_object_id = OBJECT_ID(N'[PnS].[DocType]'))
-ALTER TABLE [PnS].[DocType] CHECK CONSTRAINT [FK_DocType_DocTypes]
+IF  EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[PnS].[FK_BatchSummary_DocTypes]') AND parent_object_id = OBJECT_ID(N'[PnS].[BatchSummary]'))
+ALTER TABLE [PnS].[BatchSummary] CHECK CONSTRAINT [FK_BatchSummary_DocTypes]
+GO
+IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[PnS].[FK_History_BatchSummary_DocTypes]') AND parent_object_id = OBJECT_ID(N'[PnS].[History_BatchSummary]'))
+ALTER TABLE [PnS].[History_BatchSummary]  WITH CHECK ADD  CONSTRAINT [FK_History_BatchSummary_DocTypes] FOREIGN KEY([DocTypeId])
+REFERENCES [AM].[DocTypes] ([Id])
+GO
+IF  EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[PnS].[FK_History_BatchSummary_DocTypes]') AND parent_object_id = OBJECT_ID(N'[PnS].[History_BatchSummary]'))
+ALTER TABLE [PnS].[History_BatchSummary] CHECK CONSTRAINT [FK_History_BatchSummary_DocTypes]
 GO
 IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[PnS].[FK_HistoryMRDFRequest_BatchSummary]') AND parent_object_id = OBJECT_ID(N'[PnS].[History_MRDFRequest]'))
 ALTER TABLE [PnS].[History_MRDFRequest]  WITH CHECK ADD  CONSTRAINT [FK_HistoryMRDFRequest_BatchSummary] FOREIGN KEY([JobId])
@@ -1639,6 +1628,13 @@ REFERENCES [PnS].[BatchSummary] ([PrintBatch])
 GO
 IF  EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[PnS].[FK_MRDFResponse_BatchSummary]') AND parent_object_id = OBJECT_ID(N'[PnS].[MRDFResponse]'))
 ALTER TABLE [PnS].[MRDFResponse] CHECK CONSTRAINT [FK_MRDFResponse_BatchSummary]
+GO
+IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[PnS].[FK_ReprintMRDFRequest_ReprintBatches]') AND parent_object_id = OBJECT_ID(N'[PnS].[ReprintMRDFRequest]'))
+ALTER TABLE [PnS].[ReprintMRDFRequest]  WITH CHECK ADD  CONSTRAINT [FK_ReprintMRDFRequest_ReprintBatches] FOREIGN KEY([JobId])
+REFERENCES [PnS].[ReprintBatches] ([PrintBatch])
+GO
+IF  EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[PnS].[FK_ReprintMRDFRequest_ReprintBatches]') AND parent_object_id = OBJECT_ID(N'[PnS].[ReprintMRDFRequest]'))
+ALTER TABLE [PnS].[ReprintMRDFRequest] CHECK CONSTRAINT [FK_ReprintMRDFRequest_ReprintBatches]
 GO
 IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[Profile].[FK_UserClaims_Users]') AND parent_object_id = OBJECT_ID(N'[Profile].[UserClaims]'))
 ALTER TABLE [Profile].[UserClaims]  WITH CHECK ADD  CONSTRAINT [FK_UserClaims_Users] FOREIGN KEY([UserId])
@@ -1672,7 +1668,7 @@ GO
 IF  EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[Profile].[FK_UsersRoles_Users]') AND parent_object_id = OBJECT_ID(N'[Profile].[UserRoles]'))
 ALTER TABLE [Profile].[UserRoles] CHECK CONSTRAINT [FK_UsersRoles_Users]
 GO
-/****** Object:  StoredProcedure [dbo].[usp_ActivateClientApp]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_ActivateClientApp]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1706,8 +1702,10 @@ BEGIN
 END
 
 
+
+
 GO
-/****** Object:  StoredProcedure [dbo].[usp_ActivateInactivateDocTypes]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_ActivateInactivateDocTypes]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1748,8 +1746,10 @@ BEGIN
 END
 
 
+
+
 GO
-/****** Object:  StoredProcedure [dbo].[usp_ActivateOrInActivateBusinessUnit]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_ActivateOrInActivateBusinessUnit]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1785,8 +1785,10 @@ BEGIN
 END
 
 
+
+
 GO
-/****** Object:  StoredProcedure [dbo].[usp_BatchStatusChart]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_BatchStatusChart]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1843,8 +1845,10 @@ BEGIN
 END
 
 
+
+
 GO
-/****** Object:  StoredProcedure [dbo].[usp_CheckBatchDataForReprint]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_CheckBatchDataForReprint]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1891,8 +1895,10 @@ BEGIN
 END
 
 
+
+
 GO
-/****** Object:  StoredProcedure [dbo].[usp_DeleteMRDFRequestByJobId]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_DeleteMRDFRequestByJobId]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1914,7 +1920,7 @@ END
 
 
 GO
-/****** Object:  StoredProcedure [dbo].[usp_DeleteMRDFResponseByJobId]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_DeleteMRDFResponseByJobId]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1936,8 +1942,10 @@ BEGIN
 END
 
 
+
+
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetAllClientAppDetail]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetAllClientAppDetail]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1952,15 +1960,15 @@ ALTER PROCEDURE [dbo].[usp_GetAllClientAppDetail]
 	
 AS
 BEGIN
-	SELECT C.Id
-	  ,B.Id As BUId
-	  ,B.CustCode
-	  ,B.BusinessUnit
-	  ,C.ClientName,C.AppCode,C.BusinessUnit,C.IsClientActive,C.IsPnSActive,C.ModifiedOn,C.ModifiedBy
-	  ,C.CreatedOn,C.CreatedBy,C.SFTProtocol,C.SFTHost,C.SFTUserName,C.SFTPassword,C.SFTADERequestDir
-	  ,C.SFTADERequestArchiveDir,C.SFTADEResponseDir,C.TimeZone
+	SELECT 
+	C.Id, C.ClientName, C.AppCode, C.BusinessUnit, C.IsClientActive, C.IsPnSActive, C.ModifiedOn, C.ModifiedBy
+	, C.CreatedOn, C.CreatedBy, C.SFTProtocol, C.SFTHost, C.SFTUserName, C.SFTPassword, C.SFTADERequestDir
+	, C.SFTADERequestArchiveDir
+	, C.SFTADEResponseDir, C.TimeZone
+	,B.Id As BUId
+	,B.CustCode
+	,B.[BusinessUnit]
   FROM [Common].[Clients] C INNER JOIN [Common].[BusinessUnit] B ON B.Id = C.BusinessUnit
-  WHERE IsPnSActive=1
 END
 
 
@@ -1969,7 +1977,7 @@ SET ANSI_NULLS ON
 
 
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetBatchSummaryById]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetBatchSummaryById]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1985,37 +1993,10 @@ ALTER PROCEDURE [dbo].[usp_GetBatchSummaryById]
 AS
 BEGIN
 
-	SELECT [PrintBatch]
-      ,[ClientId]
-      ,[JobName]
-	  ,[BatchIdentifier]
-      ,[PipelineStatus]
-      ,[ValidationStatus]
-      ,[OnValidationErrors]
-      ,[ValidationErrors]
-      ,[BatchStatus]
-      ,[IsReceived]
-      ,[ReceivedOn]
-      ,[IsDownloaded]
-      ,[DownloadedOn]
-      ,[IsPrepped]
-      ,[PreppedOn]
-      ,[IsSubmitted]
-      ,[SubmittedOn]
-      ,[IsMRDFReceived]
-      ,[MRDFReceivedOn]
-      ,[IsReportPrepped]
-      ,[ReportPreppedOn]
-      ,[IsReportedBack]
-      ,[ReportedBackOn]
-      ,[IsSuspended]
-      ,[SuspendedOn]
-      ,[IsCancelled]
-      ,[CancelledOn]
-      ,[JulianDate]
-      ,[Images]
-      ,[DueDate]
-      ,[DocTypeCode]
+	SELECT PrintBatch, ClientId, JobName, PrintFileName, BatchIdentifier, PipelineStatus, ValidationStatus, OnValidationErrors,
+ ValidationErrors, BatchStatus, IsReceived, ReceivedOn, IsDownloaded, DownloadedOn, IsPrepped, PreppedOn, IsSubmitted,
+ SubmittedOn, IsMRDFReceived, MRDFReceivedOn, IsReportPrepped, ReportPreppedOn, IsReportedBack, ReportedBackOn, IsSuspended, 
+ SuspendedOn, IsCancelled, CancelledOn, JulianDate, Images, DocTypeId
   FROM [PnS].[BatchSummary] WHERE PrintBatch = @batchId
 END
 
@@ -2024,7 +2005,7 @@ SET ANSI_NULLS ON
 
 
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetBatchSummarySchema]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetBatchSummarySchema]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -2056,9 +2037,8 @@ BEGIN
   ORDER BY Id
 END
 
-
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetBusinessUnitById]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetBusinessUnitById]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -2087,8 +2067,10 @@ BEGIN
 END
 
 
+
+
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetBusinessUnits]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetBusinessUnits]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -2116,8 +2098,10 @@ BEGIN
 END
 
 
+
+
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetClientAppDetailsById]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetClientAppDetailsById]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -2132,26 +2116,37 @@ ALTER PROCEDURE [dbo].[usp_GetClientAppDetailsById]
 	@appId int
 AS
 BEGIN
-	SELECT C.Id
+	SELECT C.[Id]
 	  ,B.Id AS BUId
 	  ,B.BusinessUnit
 	  ,B.CustCode
-      ,C.AppCode
-      ,C.ClientName
-      ,C.IsClientActive
-      ,C.IsPnSActive
-      ,C.ModifiedOn
-      ,C.ModifiedBy
-      ,C.CreatedOn
-      ,C.CreatedBy
+      ,[AppCode]
+      ,[ClientName]
+	  ,SFTProtocol
+	,SFTHost, 
+	SFTUserName, 
+	SFTPassword, 
+	SFTADERequestDir, 
+	SFTADERequestArchiveDir, 
+	SFTADEResponseDir, 
+	TimeZone
+      ,[IsClientActive]
+	  ,[IsPnSActive]
+      ,[ModifiedOn]
+      ,[ModifiedBy]
+      ,[CreatedOn]
+      ,[CreatedBy]
   FROM [Common].[Clients] C
-  INNER JOIN [Common].BusinessUnit B ON B.Id=C.BusinessUnit
+  INNER JOIN Common.BusinessUnit B ON B.Id=C.BusinessUnit
   WHERE C.Id = @appId
 END
 
 
+/****** Object:  StoredProcedure [dbo].[usp_GetDocTypeDetailsByAppId]    Script Date: 11/16/2017 17:20:30 ******/
+SET ANSI_NULLS ON
+
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetDocTypeDetailsByAppId]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetDocTypeDetailsByAppId]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -2162,30 +2157,28 @@ EXEC dbo.sp_executesql @statement = N'CREATE PROCEDURE [dbo].[usp_GetDocTypeDeta
 END
 GO
 ALTER PROCEDURE [dbo].[usp_GetDocTypeDetailsByAppId]
- @AppId int
+ @clientId int
 AS
 BEGIN
  -- SET NOCOUNT ON added to prevent extra result sets from
  -- interfering with SELECT statements.
  SET NOCOUNT ON;
  
- SELECT D.Id AS [DocTypeId],D.DocTypeCode,D.Description AS [DocTypeDesc],D.PrintSize,D.ContentScalePercent,D.IsActive,D.ModifiedOn,D.CreatedOn
-,D.ShippingCarrier,D.ShippingServiceType,D.ShippingAccount
- ,D.IsReturnInfoSpecified,D.RetRcptPrefix,D.RetRcptFirstName,D.RetRcptMiddleName
- ,D.RetRcptLastName,D.RetRcptSuffix,D.RetRcptPhone,D.RetRcptOrganization
- ,D.RetRcptAddrOptionalLine1AboveStreet,D.RetRcptAddrOptionalLine2AboveStreet
- ,D.RetRcptAddressStreet,D.RetRcptAddressAptOrSuiteOrOther,D.RetRcptAddrOptionalLine1BelowStreet
- ,D.RetRcptAddrOptionalLine2BelowStreet,D.RetRcptAddressCity,D.RetRcptAddressState
- ,D.RetRcptAddressZIP,D.ClientEmails,D.ClientContactNo,D.SupportEmails,D.SupportContactNo,D.ClientId
+ SELECT D.ClientId,D.[PrintSize],D.[ContentScalePercent],D.[QCPercent],D.[ClientEmails],D.[SupportEmails],D.[Description] as DocTypeDesc,D.DocTypeCode,D.IsActive,D.ModifiedOn
+ ,D.CreatedOn,D.Id AS DocTypeId
  FROM AM.DocTypes D
  INNER JOIN Common.Clients C ON C.Id=D.ClientId
- WHERE C.Id=@AppId
+ WHERE C.Id=@clientId
  
 END
 
 
+/****** Object:  View [dbo].[view_MRDFResponseData]    Script Date: 11/16/2017 17:20:56 ******/
+SET ANSI_NULLS ON
+
+
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetDocTypesByDoctypeId]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetDocTypesByDoctypeId]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -2210,8 +2203,10 @@ BEGIN
 END
 
 
+
+
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetFinalMRDFResponseDataByJobId]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetFinalMRDFResponseDataByJobId]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -2230,13 +2225,13 @@ BEGIN
  SET NOCOUNT ON;
  
  SELECT JobId, PostageCost, ErrId, ShippedOn, WeightMeasured, Disposition
- , PieceId, [UniqueIdentifier], PDFFileName, ErrDesc, MailPieceStatus,TotalSheets 
+ , PieceId, [UniqueIdentifier], PDFFileName, ErrDesc, MailPieceStatus,TotalSheets,DivertVS3 
  FROM view_MRDFResponseData V WHERE V.JobId=@jobId
 END
 
 
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetMRDFRequestDataByJobId]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetMRDFRequestDataByJobId]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -2261,7 +2256,7 @@ BEGIN
 	
 	SELECT JobId, PieceId, [Date], TotalSheets, InputWeight, Feeder3_Sel, Feeder4_Sel
 	, Feeder5_Sel, LowCap_Sel, NoSeal_Sel, Feeder2_Sel, ZipMark_Sel, Address1, Address2
-	, Address3, Address4, Address5, Address6, Zip5, Zip4, Zip2, DivertVS2, DivertVS3
+	, Zip5, Zip4, Zip2, DivertVS2, DivertVS3
 	, DivertVS4, ReturnLogoBitMap, ReturnLine1, ReturnLine2, ReturnLine3, ReturnLine4
 	, ReturnLine5, ReturnLine6, GroupNumber, SocialSecNumber, CheckAmount, PassThru
 	, Expansion, EndofRecord, [UniqueIdentifier], PDFFileName, ErrDesc, MailPieceStatus 
@@ -2270,7 +2265,7 @@ END
 
 
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetMRDFRequestDataForReprintByJobId]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetMRDFRequestDataForReprintByJobId]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -2305,8 +2300,10 @@ BEGIN
 END
 
 
+
+
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetMRDFRequestSchema]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetMRDFRequestSchema]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -2337,9 +2334,8 @@ BEGIN
   ORDER BY Id
 END
 
-
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetMRDFResponseDataByJobId]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetMRDFResponseDataByJobId]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -2357,14 +2353,16 @@ BEGIN
  -- interfering with SELECT statements.
  SET NOCOUNT ON;
  
- SELECT JobId, PostageCost, ErrId, ShippedOn, WeightMeasured, Disposition
- , PieceId, [UniqueIdentifier], PDFFileName, ErrDesc, MailPieceStatus,TotalSheets 
- FROM view_MRDFResponseData V WHERE V.JobId=@jobId
+ SELECT JobId, PieceId, Date, Feeder2_Fed, OperatorId, MachineId, ProcessingTimeStamp, DetailedErrorId
+ , Disposition, Input_Fed, Feeder3_Fed, Feeder4_Fed, Feeder5_Fed, ComputedWeight, MeterDate
+ , StatusSource, PostageMetered, WeightMeasured, ExitLocation, TotalSheets, PDFFileName 
+ FROM [Pns].[MRDFResponse] MS 
+ WHERE MS.JobId=@jobId
 END
 
 
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetMRDFResponseSchema]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetMRDFResponseSchema]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -2395,7 +2393,7 @@ END
 
 
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetNextBatchByJobName]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetNextBatchByJobName]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -2449,8 +2447,10 @@ BEGIN
 END
 
 
+
+
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetNextBatchIdByJobName]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetNextBatchIdByJobName]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -2498,8 +2498,12 @@ BEGIN
 END
 
 
+
+
+
+
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetPendingBatches]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetPendingBatches]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -2524,8 +2528,10 @@ BEGIN
 END
 
 
+
+
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetStartDateOfCanceledOrSuspendedBatch]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetStartDateOfCanceledOrSuspendedBatch]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -2555,8 +2561,10 @@ BEGIN
 END
 
 
+
+
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetSubmittedBatches]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetSubmittedBatches]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -2571,13 +2579,23 @@ AS
 BEGIN
 
 --SELECT * FROM dbo.BatchSummary
-SELECT PrintBatch FROM PnS.BatchSummary WHERE PipelineStatus='Submitted'
+SELECT B.PrintBatch,DT.DocTypeCode,C.AppCode,BU.CustCode,CONVERT(VARCHAR(10),B.PrintBatch) as BatchCode 
+FROM [PnS].BatchSummary B
+INNER JOIN [AM].DocTypes DT ON DT.Id=B.DocTypeId 
+INNER JOIN [Common].Clients C ON C.Id=B.ClientId
+INNER JOIN [Common].BusinessUnit BU ON BU.Id=C.BusinessUnit
+WHERE PipelineStatus='Submitted'
+UNION
+SELECT RB.ParentPrintBatch as PrintBatch,RB.DocTypeCode,C.AppCode,BU.CustCode,RB.PrintBatch as BatchCode 
+FROM [PnS].ReprintBatches RB
+INNER JOIN [Common].Clients C ON C.Id=RB.AppId
+INNER JOIN [Common].BusinessUnit BU ON BU.Id=C.BusinessUnit
+WHERE PipelineStatus='Submitted'
 
 END
 
-
 GO
-/****** Object:  StoredProcedure [dbo].[usp_GetTodaysSubmittedBatchesCount]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetTodaysSubmittedBatchesCount]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -2610,8 +2628,10 @@ BEGIN
 END
 
 
+
+
 GO
-/****** Object:  StoredProcedure [dbo].[usp_InsertBusinessUnitDetails]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_InsertBusinessUnitDetails]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -2643,8 +2663,10 @@ BEGIN
 END
 
 
+
+
 GO
-/****** Object:  StoredProcedure [dbo].[usp_InsertDocTypeDetails]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_InsertDocTypeDetails]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -2690,8 +2712,10 @@ BEGIN
 END
 
 
+
+
 GO
-/****** Object:  StoredProcedure [dbo].[usp_LogBatchTimeLine]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_LogBatchTimeLine]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -2740,14 +2764,9 @@ END
 
 
 GO
-/****** Object:  StoredProcedure [dbo].[usp_MoveBatchToHistoryTables]    Script Date: 2/20/2018 5:16:04 PM ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[usp_MoveBatchToHistoryTables]') AND type in (N'P', N'PC'))
 BEGIN
-EXEC dbo.sp_executesql @statement = N'CREATE PROCEDURE [dbo].[usp_MoveBatchToHistoryTables] AS' 
+EXEC dbo.sp_executesql @statement = N'CREATE PROCEDURE [dbo].[usp_MoveBatchToHistoryTables]  AS' 
 END
 GO
 ALTER PROCEDURE [dbo].[usp_MoveBatchToHistoryTables] 
@@ -2773,12 +2792,12 @@ BEGIN TRY
 		 SET @ErrorStep = 'Error in Copying from the BatchSummary';
 		
 		 INSERT INTO [PnS].[History_BatchSummary] 
-		 (PrintBatch, AppId, JobName, PipelineStatus, ValidationStatus, OnValidationErrors,ValidationErrors, BatchStatus,  ReceivedOn, 
+		 (PrintBatch, ClientId, JobName,PrintFileName, PipelineStatus, ValidationStatus, OnValidationErrors,ValidationErrors, BatchStatus,  ReceivedOn, 
 		  DownloadedOn, PreppedOn, SubmittedOn,  MRDFReceivedOn,  ReportPreppedOn, 
-		  ReportedBackOn,  SuspendedOn,  CancelledOn, JulianDate, Images)
-		 Select PrintBatch, ClientId, JobName,  PipelineStatus, ValidationStatus, OnValidationErrors, ValidationErrors, BatchStatus,  ReceivedOn,
+		  ReportedBackOn,  SuspendedOn,  CancelledOn, JulianDate, Images,DocTypeId)
+		 Select PrintBatch, ClientId, JobName,PrintFileName,  PipelineStatus, ValidationStatus, OnValidationErrors, ValidationErrors, BatchStatus,  ReceivedOn,
 		  DownloadedOn,  PreppedOn,  SubmittedOn,  MRDFReceivedOn,  ReportPreppedOn, 
-		  ReportedBackOn,  SuspendedOn,  CancelledOn, JulianDate, Images
+		  ReportedBackOn,  SuspendedOn,  CancelledOn, JulianDate, Images,DocTypeId
 		 FROM [PnS].[BatchSummary]
 		 WHERE PrintBatch =@batchId
 
@@ -2804,9 +2823,9 @@ BEGIN TRY
 		
         INSERT INTO [PnS].[History_MRDFResponse]
 		(JobId,PieceId,[Date],Feeder2_Fed,OperatorId,MachineId,ProcessingTimeStamp,DetailedErrorId,Disposition,Input_Fed,Feeder3_Fed,Feeder4_Fed,Feeder5_Fed,ComputedWeight,MeterDate,StatusSource,
-		PostageMetered,WeightMeasured,ExitLocation)
+		PostageMetered,WeightMeasured,ExitLocation,PDFFileName,TotalSheets)
 		SELECT JobId,PieceId,[Date],Feeder2_Fed,OperatorId,MachineId,ProcessingTimeStamp,DetailedErrorId,Disposition,Input_Fed,Feeder3_Fed,Feeder4_Fed,Feeder5_Fed,ComputedWeight,MeterDate,StatusSource,
-		PostageMetered,WeightMeasured,ExitLocation  
+		PostageMetered,WeightMeasured,ExitLocation,PDFFileName,TotalSheets
 		FROM PnS.MRDFResponse
 		WHERE JobId=@batchId
 		
@@ -2853,16 +2872,11 @@ BEGIN CATCH
         + cast(ERROR_LINE() as varchar(20)) + ' ' 
         + ERROR_MESSAGE() + ' > ' 
         + ERROR_PROCEDURE()
-    SELECT @ErrorCode As ErrorCode,@ErrorStep As ErrorMsg  
-
-    
-                               
+    SELECT @ErrorCode As ErrorCode,@ErrorStep As ErrorMsg 
 
 END CATCH
-
-
 GO
-/****** Object:  StoredProcedure [dbo].[usp_RevertPipelineStatus]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_RevertPipelineStatus]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -2928,8 +2942,10 @@ BEGIN
 END
 
 
+
+
 GO
-/****** Object:  StoredProcedure [dbo].[usp_UpdateBusinessUnitDetails]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_UpdateBusinessUnitDetails]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -2958,8 +2974,10 @@ BEGIN
 END
 
 
+
+
 GO
-/****** Object:  StoredProcedure [dbo].[usp_UpdateDocTypeDetails]    Script Date: 2/20/2018 5:16:04 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_UpdateDocTypeDetails]    Script Date: 2/22/2018 3:20:05 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -2991,6 +3009,6 @@ BEGIN
 END
 
 
-GO
-ALTER DATABASE [AuthoMail] SET  READ_WRITE 
+
+
 GO
