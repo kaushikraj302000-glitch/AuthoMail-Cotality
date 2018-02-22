@@ -96,7 +96,7 @@
 
     @RenderSection("scripts", required: false)
     <script>
-        var baseUrl = '<%= ResolveUrl("~/") %>';
+        var baseUrl = '@Url.Content("~/")';
     $(document).ready(function () {
         init()
         

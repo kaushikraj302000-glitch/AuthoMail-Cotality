@@ -152,7 +152,7 @@
             //el.html(mailpieceIds);
             $.ajax({
                 type: "POST",
-                url: "/api/pullback/RequestPullBack",
+                url: baseUrl + "api/pullback/RequestPullBack",
                 data: { mailPieceIds: mailpieceIds },
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
@@ -184,7 +184,7 @@
             console.log(loanNumber);
             $.ajax({
                 type: "GET",
-                url: "/Home/GetMailPieceIdByLoanNumber?loanNumber="+loanNumber,
+                url: baseUrl + "Home/GetMailPieceIdByLoanNumber?loanNumber=" + loanNumber,
                 //data:{ loanNumber: loanNumber},
                 contentType: "application/json; charset=utf-8",
                 success: function (res) {
