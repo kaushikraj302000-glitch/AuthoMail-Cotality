@@ -23,6 +23,7 @@ namespace AM.Web.Controllers
             ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(), "Id", "DocTypeCode");
             return View();
         }
+        [HttpPost]
         public ActionResult _GetBatchList(string loanNumber, string docType, DateTime startDate, DateTime endDate)
         {
             ViewBag.BatchId = loanNumber;
@@ -40,12 +41,14 @@ namespace AM.Web.Controllers
             ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(), "Id", "DocTypeCode");
             return View();
         }
+        [HttpPost]
         public ActionResult _MonthReconReport(string loanNumber, string docType, DateTime startDate, DateTime endDate)
         {
             ViewBag.Date = string.Format("{0} - {1}", startDate.ToShortDateString(), endDate.ToShortDateString());
             var model = repoSvc.GetMailPieceByParam(loanNumber,docType,startDate,endDate);
             return PartialView("_GetMailPieceList", model);
         }
+
         public ActionResult MailPieceByBatchId(int batchId)
         {
             var model=repoSvc.GetMailPieceByBatchId(batchId);
@@ -57,6 +60,7 @@ namespace AM.Web.Controllers
             ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(), "Id", "DocTypeCode");
             return View();
         }
+        [HttpPost]
         public ActionResult _GetDeliveryReport(string loanNumber, string docType, DateTime startDate, DateTime endDate)
         {
             ViewBag.Date = string.Format("{0} - {1}", startDate.ToShortDateString(), endDate.ToShortDateString());
@@ -68,6 +72,7 @@ namespace AM.Web.Controllers
             ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(), "Id", "DocTypeCode");
             return View();
         }
+        [HttpPost]
         public ActionResult _GetErrorsReport(string loanNumber, string docType, DateTime startDate, DateTime endDate)
         {
             ViewBag.Date = string.Format("{0} - {1}", startDate.ToShortDateString(), endDate.ToShortDateString());

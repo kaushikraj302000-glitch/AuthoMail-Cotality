@@ -21,8 +21,8 @@ namespace AM.Web.Controllers
         {
             return View();
         }
-        
 
+        [HttpPost]
         public ActionResult GetMailPieceIdByLoanNumber(string loanNumber)
         {
             var model = repoSvc.GetMailPieceIdFromLoanNo(loanNumber);

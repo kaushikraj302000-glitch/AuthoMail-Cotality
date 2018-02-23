@@ -1,0 +1,28 @@
+﻿.prev, .next {
+    font-size: 15px !important;
+    content: '' !important;
+}
+
+.dt-buttons {
+    float: right !important;
+    margin-top: -7.3% !important;
+}
+
+.dt-button {
+    margin-right: 5px !important;
+}
+
+
+.cl-check + label {
+    margin-bottom: 26% !important;
+}
+
+.dataTables_wrapper .dt-buttons {
+    float: none ;
+    text-align: center !important;
+}
+
+.modal-backdrop.in {
+    opacity: .75 !important;
+    filter: alpha(opacity=75);
+}

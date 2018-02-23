@@ -4,27 +4,7 @@
 }
 
 @model ICollection<AM.Services.Models.MonthlyReconReport>
-<style>
-    .prev, .next {
-        font-size: 15px !important;
-        content:'' !important;
-    }
-
-    .dt-buttons {
-        float: right !important;
-        margin-top: -7%;
-    }
-
-    .dt-button {
-        margin-right: 5px;
-    }
-
-    .dataTables_wrapper .dt-buttons {
-        float: none;
-        text-align: center;
-    }
-     
-</style>
+<link href="~/clui/dist/css/datatablecustom.css" rel="stylesheet" />
 <div class="panel panel-default">
     <div class="panel-heading">
         <div class="panel-title">MailPiece Details </div>
