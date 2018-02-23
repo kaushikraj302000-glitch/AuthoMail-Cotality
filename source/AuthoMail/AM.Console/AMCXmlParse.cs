@@ -103,7 +103,8 @@ namespace AM.Console
                             ReceivedOn = DateTime.UtcNow,
                             Id = Guid.NewGuid(),
                             BatchFilePath = downloadedZipFilePath,
-                            Priority = Priority.High.ToString()
+                            Priority = Priority.High.ToString(),
+                            ClientId = client.Id
                         };
 
                         #endregion
@@ -182,8 +183,8 @@ namespace AM.Console
             SftpFile triggerFile = sftp.Get(triggerFilePath);
 
             //triggerFile.MoveTo(ftpBackupTriggerFilePath);
-            if (sftp.Exists(triggerFilePath))
-                triggerFile.Delete();
+            //if (sftp.Exists(triggerFilePath))
+            //triggerFile.Delete();
 
         }
 
@@ -208,7 +209,7 @@ namespace AM.Console
             downloadedXMLStrm.Close();
 
             // After downloading the zip file delete it from FTP.
-            sftp.DeleteFile(batchFileFTPPath);
+            //sftp.DeleteFile(batchFileFTPPath);
 
             return downloadedZipFilePath;
         }
@@ -239,6 +240,7 @@ namespace AM.Console
         {
             #region Converting AMCXml to AuthoMailXml
             MailBatch amMailBatch = new MailBatch();
+            List<MailPiece> amMailPieces = new List<MailPiece>();
             amMailBatch.Id = Guid.NewGuid();
             amMailBatch.Priority = Priority.High;
             amMailBatch.ChannelCode = "Mortgage Cadence Integration";
@@ -282,7 +284,7 @@ namespace AM.Console
                     foreach (XmlNode loan in loans)
                     {
                         AMMailPiece mailPiece = null;
-                        List<MailPieceCustomInfo> mailPieceCustomInfo = null;
+                        List<MailPieceCustomInfo> mailPieceCustomInfos = null;
                         PackageInfo package = null;
                         ValidationResultAMC parsingResult = null;
 
@@ -296,10 +298,12 @@ namespace AM.Console
                             if (parsingResult.Code == OutComeCodes.No_error)
                             {
                                 package = XmlUtil.Deserialize<PackageInfo>(loan.OuterXml);
+
+                                #region PackageInfo To MailPiece for AuthoMail
                                 MailPiece amMailPiece = new MailPiece();
                                 amMailPiece.BusinessFriendlyIdName = "LoanNbr";
                                 amMailPiece.BusinessFriendlyIdValue = package.LoanNbr;
-                                amMailPiece.DocumentOrPackage.Name = package.File;
+                                amMailPiece.DocumentOrPackage = new DocumentOrPackage() { Name = package.File };
                                 amMailPiece.DocumentOrPackageType = package.PackageName;
                                 amMailPiece.Id = package.Id;
                                 amMailPiece.RecipientInfo.Recipient.Phone = package.RecipientInfo.RecipientPhoneNo;
@@ -315,7 +319,6 @@ namespace AM.Console
                                     amMailPiece.RecipientInfo.Recipient.FirstName = package.RecipientInfo.Recipients[0].FirstName;
                                     amMailPiece.RecipientInfo.Recipient.LastName = package.RecipientInfo.Recipients[0].LastName;
                                 }
-
                                 amMailPiece.RecipientInfo.Address.AptOrSuiteOrOther = package.RecipientInfo.RecipientAddress.Line2;
                                 amMailPiece.RecipientInfo.Address.Street = package.RecipientInfo.RecipientAddress.Line1;
                                 amMailPiece.RecipientInfo.Address.State = package.RecipientInfo.RecipientAddress.State;
@@ -328,13 +331,18 @@ namespace AM.Console
                                 amMailPiece.ReturnInfo.Address.City = package.ReturnInfo.ReturnAddress.City;
                                 amMailPiece.ReturnInfo.Address.State = package.ReturnInfo.ReturnAddress.State;
                                 amMailPiece.ReturnInfo.Address.Zip = package.ReturnInfo.ReturnAddress.Zip;
-                                List<Metadata> metadatas = new List<Metadata>() 
+                                amMailPiece.CustomInfo = new List<Metadata>() 
                                 { 
                                 new Metadata() { Key = "ReceivedDate", Value = package.ReceivedDate.HasValue?package.ReceivedDate.Value.ToString():"" },
-                                new Metadata() { Key = "ReceivedDate", Value = package.ReceivedDate.HasValue?package.ReceivedDate.Value.ToString():"" },
-                                new Metadata() { Key = "ReceivedDate", Value = package.ReceivedDate.HasValue?package.ReceivedDate.Value.ToString():"" }
+                                new Metadata() { Key = "RequestId", Value = package.RequestId},
+                                new Metadata() { Key = "ReceivedDate", Value = package.ShippingCredCode },
+                                new Metadata() { Key = "CustomerIdentifier", Value = package.CustomerIdentifier }
                                 };
 
+                                amMailPieces.Add(amMailPiece);
+                                #endregion
+
+                                #region AMMailPiece Data
                                 mailPiece = new AMMailPiece();
                                 mailPiece.BatchClustId = batch.BatchClustId;
                                 mailPiece.Id = package.Id;
@@ -385,37 +393,40 @@ namespace AM.Console
 
                                 mailPieceSvc.InsertBatchMailPieceDetails(mailPiece);
 
-                                mailPieceCustomInfo = new List<MailPieceCustomInfo>();
+                                mailPieceCustomInfos = new List<MailPieceCustomInfo>();
                                 MailPieceCustomInfo customInfoCustomerIdentifier = new MailPieceCustomInfo();
                                 customInfoCustomerIdentifier.MailPieceId = mailPiece.Id;
                                 customInfoCustomerIdentifier.Key = "CustomerIdentifier";
                                 customInfoCustomerIdentifier.Value = package.CustomerIdentifier.ToString();
-                                mailPieceCustomInfo.Add(customInfoCustomerIdentifier);
+                                mailPieceCustomInfos.Add(customInfoCustomerIdentifier);
 
                                 MailPieceCustomInfo customInfoReceivedDate = new MailPieceCustomInfo();
                                 customInfoReceivedDate.MailPieceId = mailPiece.Id;
                                 customInfoReceivedDate.Key = "ReceivedDate";
                                 customInfoReceivedDate.Value = package.ReceivedDate.HasValue == true ? package.ReceivedDate.Value.ToString() : "";
-                                mailPieceCustomInfo.Add(customInfoReceivedDate);
+                                mailPieceCustomInfos.Add(customInfoReceivedDate);
 
                                 MailPieceCustomInfo customInfoRequestId = new MailPieceCustomInfo();
                                 customInfoRequestId.MailPieceId = mailPiece.Id;
                                 customInfoRequestId.Key = "RequestId";
                                 customInfoRequestId.Value = package.RequestId;
-                                mailPieceCustomInfo.Add(customInfoRequestId);
+                                mailPieceCustomInfos.Add(customInfoRequestId);
 
                                 MailPieceCustomInfo customInfoShippingCredCode = new MailPieceCustomInfo();
                                 customInfoShippingCredCode.MailPieceId = mailPiece.Id;
                                 customInfoShippingCredCode.Key = "ShippingCredCode";
                                 customInfoShippingCredCode.Value = package.ShippingCredCode;
-                                mailPieceCustomInfo.Add(customInfoShippingCredCode);
+                                mailPieceCustomInfos.Add(customInfoShippingCredCode);
 
                                 MailPieceCustomInfo customInfoShippingMethod = new MailPieceCustomInfo();
                                 customInfoShippingMethod.MailPieceId = mailPiece.Id;
                                 customInfoShippingMethod.Key = "ShippingMethod";
                                 customInfoShippingMethod.Value = package.ShippingMethod.ToString();
-                                mailPieceCustomInfo.Add(customInfoShippingMethod);
-                            }
+                                mailPieceCustomInfos.Add(customInfoShippingMethod);
+
+                                mailPieceSvc.InsertBatchMailPieceCustomDetails(mailPieceCustomInfos);
+                            } 
+                                #endregion
                             #endregion
                         }
                         catch (XmlException err)
@@ -579,6 +590,7 @@ namespace AM.Console
                         finally
                         {
                             // if the validation works or fails save some information in loan table.
+                            #region other Error 
                             if (parsingResult.Code != OutComeCodes.No_error)
                             {
                                 mailPiece = new AMMailPiece();
@@ -614,9 +626,11 @@ namespace AM.Console
                                     mailPiece.BusinessFriendlyIdName = "LoanNbr";
                                     mailPiece.BusinessFriendlyIdValue = loan.SelectSingleNode("./x:LoanNbr/text()", nsManager).Value;
                                 }
-                            }
 
-                            mailPieceSvc.InsertBatchMailPieceDetails(mailPiece);
+
+                                mailPieceSvc.InsertBatchMailPieceDetails(mailPiece);
+                            } 
+                            #endregion
                         }
                     }
                 }
