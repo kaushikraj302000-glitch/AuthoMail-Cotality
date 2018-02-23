@@ -16,6 +16,7 @@ namespace AM.Entities.IdentityModels
             // Note the authenticationType must match the one defined in CookieAuthenticationOptions.AuthenticationType
             var userIdentity = await manager.CreateIdentityAsync(this, DefaultAuthenticationTypes.ApplicationCookie);
             // Add custom user claims here
+            userIdentity.AddClaim(new Claim("clientId", ClientId == null ? string.Empty : ClientId.ToString()));
             return userIdentity;
         }
     }
