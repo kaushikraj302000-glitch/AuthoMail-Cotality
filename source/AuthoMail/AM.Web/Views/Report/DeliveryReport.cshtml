@@ -2,28 +2,9 @@
 @{
     ViewBag.Title = "DeliveryReport";
 }
+<link href="~/clui/dist/css/datatablecustom.css" rel="stylesheet" />
 
 
-<style>
-    .prev, .next {
-        font-size: 15px !important;
-        content: '' !important;
-    }
-
-    .dt-buttons {
-        float: right !important;
-        margin-top: -7%;
-    }
-
-    .dt-button {
-        margin-right: 5px;
-    }
-
-    .dataTables_wrapper .dt-buttons {
-        float: none;
-        text-align: center;
-    }
-</style>
 <div class="panel-group">
     <div class="panel panel-default">
         <div class="panel-heading" id="headingOne" data-toggle="collapse" data-parent="#metatable" href="#metaItem1">
@@ -88,8 +69,8 @@
 
             var selectedData = $("#dp4").val().split('-');
 
-            var startDate = selectedData[0].trim();
-            var endDate = selectedData[1].trim();
+            var startDate = new Date(selectedData[0].trim());
+            var endDate = new Date(selectedData[1].trim());
             var el = $('#batchList');
             el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
             $.ajax({

@@ -24,8 +24,8 @@ namespace AM.Web.Controllers
             string clientId = ((ClaimsIdentity)User.Identity).FindFirst("clientId") != null ? ((ClaimsIdentity)User.Identity).FindFirst("clientId").Value : null;
             return View();
         }
-
-
+        
+        [HttpPost]
         public ActionResult GetMailPieceIdByLoanNumber(string loanNumber)
         {
             var model = repoSvc.GetMailPieceIdFromLoanNo(loanNumber);

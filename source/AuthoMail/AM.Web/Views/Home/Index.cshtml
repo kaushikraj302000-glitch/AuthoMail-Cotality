@@ -180,9 +180,9 @@
             var loanNumber = $("#loanNumber").val();
             console.log(loanNumber);
             $.ajax({
-                type: "GET",
-                url: baseUrl + "Home/GetMailPieceIdByLoanNumber?loanNumber=" + loanNumber,
-                //data:{ loanNumber: loanNumber},
+                type: "POST",
+                url: baseUrl + "Home/GetMailPieceIdByLoanNumber",//?loanNumber=" + loanNumber,
+                data:JSON.stringify({ loanNumber: loanNumber}),
                 contentType: "application/json; charset=utf-8",
                 success: function (res) {
                     console.log(res);
