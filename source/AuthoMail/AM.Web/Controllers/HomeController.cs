@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using Microsoft.AspNet.Identity;
+using System.Security.Claims;
 
 namespace AM.Web.Controllers
 {
@@ -19,14 +21,15 @@ namespace AM.Web.Controllers
         }
         public ActionResult Index()
         {
+            string clientId = ((ClaimsIdentity)User.Identity).FindFirst("clientId") != null ? ((ClaimsIdentity)User.Identity).FindFirst("clientId").Value : null;
             return View();
         }
         
-
+        [HttpPost]
         public ActionResult GetMailPieceIdByLoanNumber(string loanNumber)
         {
             var model = repoSvc.GetMailPieceIdFromLoanNo(loanNumber);
-            return Json(model,JsonRequestBehavior.AllowGet);
+            return Json(model, JsonRequestBehavior.AllowGet);
         }
 
 

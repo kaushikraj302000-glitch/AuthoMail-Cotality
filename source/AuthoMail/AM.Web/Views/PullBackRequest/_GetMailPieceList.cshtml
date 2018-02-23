@@ -1,24 +1,5 @@
 ﻿@model ICollection<AM.Services.Models.PullBackInfo>
-<style>
-    .prev, .next {
-        font-size: 15px !important;
-        content: '' !important;
-    }
 
-    .dt-buttons {
-        float: right !important;
-        margin-top: -7.4%;
-    }
-
-    .dt-button {
-        margin-right: 5px;
-    }
-
-    .dataTables_wrapper .dt-buttons {
-        float: none;
-        text-align: center;
-    }
-</style>
 <div class="panel panel-default">
     <div class="panel-heading">
         <div class="panel-title">
@@ -187,10 +168,11 @@
         var el = $('.modal-body');
         //el.html(mailpieceIds);
         $.ajax({
-            type: "GET",
+            type: "POST",
             url: baseUrl + "api/pullback/RequestPullBack",
-            data: { mailPieceIds: mailpieceIds },
+            data: JSON.stringify(mailpieceIds),
             contentType: "application/json; charset=utf-8",
+            dataType: "JSON",
             success: function (response) {
                 if (response.Success) {
                     if (response.Object != null) {

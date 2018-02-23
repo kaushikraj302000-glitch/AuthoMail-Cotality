@@ -20,9 +20,9 @@ namespace AM.Web.Controllers
             this.pullBackSvc = pullBackSvc;
         }
 
-        [Route("RequestPullBack/{*mailPieceIds}")]
-        [HttpGet]
-        public object GeneratePullBackRequest([FromUri] List<string> mailPieceIds)
+        [Route("RequestPullBack")]
+        [HttpPost]
+        public object GeneratePullBackRequest([FromBody] List<string> mailPieceIds)
         {
             //Testing Purpose
             //mailPieceIds = new List<string> { "0C76A5C0-3180-4F34-B04E-DD5338815EDB", "A12E6EFD-01CB-470F-898D-3200FDED4AA9", "C8EF4A23-7B37-4F33-B899-992A162CC31B" };

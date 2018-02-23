@@ -71,6 +71,7 @@ namespace AM.Entities.IdentityModels
         ///     Used to record failures for the purposes of lockout
         /// </summary>
         public virtual int AccessFailedCount { get; set; }
+        public int? ClientId { get; set; }
     }
     public class IdentityRole : IRole
     {

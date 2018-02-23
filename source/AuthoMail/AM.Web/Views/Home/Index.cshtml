@@ -11,22 +11,23 @@
 <div class="col-md-6">
     <div class="panel panel-default ">
         <div class="panel-heading">
-            <div class="panel-title">Weekly Batch Details</div>
+            <div class="panel-title">Today Batch Details</div>
         </div>
-        <div class="panel-body panel-gray">
-            <div id="barchart_values"></div>
-
+        <div class="panel-body panel-gray ">
+            <div id="container"></div>
         </div>
+        
     </div>
 </div>
 
 <div class="col-md-6 ">
     <div class="panel panel-default">
         <div class="panel-heading">
-            <div class="panel-title">Monthly Batch Details</div>
+            <div class="panel-title">Weekly Batch Details</div>
         </div>
-        <div class="panel-body panel-gray ">
-            <div id="container"></div>
+        <div class="panel-body panel-gray">
+            <div id="barchart_values"></div>
+
         </div>
     </div>
 </div>
@@ -113,6 +114,15 @@
 
             // Instantiate and draw the chart.
             var chart = new google.visualization.BarChart(document.getElementById('barchart_values'));
+            function selectHandler() {
+                var selectedItem = chart.getSelection()[0];
+                if (selectedItem) {
+                    var topping = data.getValue(selectedItem.row, 0);
+                    alert('The user selected ' + topping);
+                }
+            }
+
+            google.visualization.events.addListener(chart, 'select', selectHandler);
             chart.draw(data, options);
         }
         google.charts.setOnLoadCallback(drawChart);
@@ -130,7 +140,7 @@
 
             // Set chart options
             var options = {
-                'title': 'Batch Details ' + moment().subtract('month', 1).format('MMMM, YYYY'),
+                'title': 'Batch Details ' + moment().format('MMM DD, YYYY'),
                 //'width': 550,
                 'height': 300,
                 colors: ['#36c', '#dc3912', '#109618'],
@@ -139,6 +149,15 @@
 
             // Instantiate and draw the chart.
             var chart = new google.visualization.PieChart(document.getElementById('container'));
+            function selectHandler() {
+                var selectedItem = chart.getSelection()[0];
+                if (selectedItem) {
+                    var topping = data.getValue(selectedItem.row, 0);
+                    alert('The user selected ' + topping);
+                }
+            }
+
+            google.visualization.events.addListener(chart, 'select', selectHandler);
             chart.draw(data, options);
         }
         google.charts.setOnLoadCallback(drawChart1);
@@ -180,9 +199,9 @@
             var loanNumber = $("#loanNumber").val();
             console.log(loanNumber);
             $.ajax({
-                type: "GET",
-                url: baseUrl + "Home/GetMailPieceIdByLoanNumber?loanNumber=" + loanNumber,
-                //data:{ loanNumber: loanNumber},
+                type: "POST",
+                url: baseUrl + "Home/GetMailPieceIdByLoanNumber",//?loanNumber=" + loanNumber,
+                data:JSON.stringify({ loanNumber: loanNumber}),
                 contentType: "application/json; charset=utf-8",
                 success: function (res) {
                     console.log(res);
