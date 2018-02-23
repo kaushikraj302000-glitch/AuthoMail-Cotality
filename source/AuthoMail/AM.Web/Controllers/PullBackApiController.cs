@@ -1,5 +1,6 @@
 ﻿using AM.Services.Services;
 using AM.Services.Utilities;
+using AM.Web.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -32,18 +33,72 @@ namespace AM.Web.Controllers
             }
             try
             {
-               
-                var pullBackData = pullBackSvc.GetPullBackData(mailPieceIds);
 
-                if (pullBackData == null || pullBackData.Count == 0)
+                //Dictionary<string, string> mailPieceResponse = new Dictionary<string, string>();
+                List<PullBackResponse> mailPieceResponse = new List<PullBackResponse>();
+                List<string> mailPieceIdsToPullback = new List<string>();
+
+                var mailPieceData = pullBackSvc.GetMailPieceData(mailPieceIds);
+
+                if (mailPieceData == null || mailPieceData.Count == 0)
                 {
-                    return JsonResponseFactory.ErrorResponse("No pullback request found for selected mailpieces.");
+                    return JsonResponseFactory.ErrorResponse("No mailpiece data found for given loan numbers.");
                 }
-                bool isSuccess = true;
-                string message = string.Empty;
+                foreach (var item in mailPieceData)
+                {
+                    string mailPieceStatus = item.MailPieceStatus.ToString();
+                    switch (mailPieceStatus)
+                    {
+                        case "Aborted":
+                            mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.UniqueIdentifier.ToString(), Message = "Mailpiece aborted by the client.", IsSuccess = false });
+                            break;
+                        case "PulledBack":
+                            mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.UniqueIdentifier.ToString(), Message = "Mailpiece is already pulledback.", IsSuccess = false });
+                            break;
+                        case "Error":
+                            mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.UniqueIdentifier.ToString(), Message = "Mailpiece has some error.", IsSuccess = false });
+                            break;
+                        case "Shipped":
+                            mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.UniqueIdentifier.ToString(), Message = "Mailpiece already shipped so pullback cannot be requested.", IsSuccess = false });
+                            break;
+                        case "InProgress":
+                            //UPDATE "PullBackRequestedOn" time
+                            int row = pullBackSvc.UpdatePullBackRequestedOn(item.UniqueIdentifier.ToString());
+                            if (row > 0)
+                            {
+                                mailPieceIdsToPullback.Add(item.UniqueIdentifier);
+                                mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.UniqueIdentifier, Message = "Mailpiece pullback requested.", IsSuccess = true });
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                var pullBackData = pullBackSvc.GetPullBackData(mailPieceIdsToPullback);
+
+                bool isGenerated = GeneratePullBackForm(pullBackData);
+                if (!isGenerated)
+                {
+                    return JsonResponseFactory.ErrorResponse("Error while generating Pullback request form.");
+                }
+
+                return JsonResponseFactory.SuccessResponse(mailPieceResponse);
+            }
+            catch (Exception ex)
+            {
+                return JsonResponseFactory.ErrorResponse(ex.Message);
+            }
+
+        }
+
+        private bool GeneratePullBackForm(List<dynamic> pullBackData)
+        {
+            bool isGenerated = true;
+            try
+            {
                 foreach (var item in pullBackData)
                 {
-                    //string msg = item.MailPieceId.ToString();
                     Dictionary<string, string> dataForPullBackForm = new Dictionary<string, string>();
                     DateTime eastern = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, Common.ClientTimeZone);
                     dataForPullBackForm.Add("RequestDateTime", eastern.ToString());
@@ -57,23 +112,14 @@ namespace AM.Web.Controllers
                     string outputPdfPath = Path.Combine(Common.OutputDir, string.Format("{0}_{1}.pdf", item.PrintBatch.ToString(), DateTime.Now.ToString("ddMMyyyyhhmmss")));
                     Helper.MailMerge(Common.PullBackFormTemplatePath, dataForPullBackForm, outputPdfPath);
                     bool isEmailSent = SendEmailWithPullBackForm(outputPdfPath);
-                    if (isEmailSent)
-                    {
-                        message = string.Format("{0}", "PullBack request completed successfully.");
-                    }
-                    else
-                    {
-                        isSuccess = false;
-                        message = string.Format("{0}", "Email Sending Failure.");
-                    }
+
                 }
-                return isSuccess ? JsonResponseFactory.SuccessResponse(message) : JsonResponseFactory.ErrorResponse(message);
             }
             catch (Exception ex)
             {
-                return JsonResponseFactory.ErrorResponse(ex.Message);
+                isGenerated = false;
             }
-
+            return isGenerated;
         }
         private bool SendEmailWithPullBackForm(string attachmentPath)
         {
