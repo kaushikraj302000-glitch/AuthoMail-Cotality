@@ -77,7 +77,7 @@ namespace AM.Web
             bundles.Add(new StyleBundle("~/Content/clcss").Include(
                       "~/clui/dist/css/corelogic-ui.css",
                       "~/clui/dist/css/components/alert.css").Include(
-                      "~/clui/dist/css/components/fonts.css", new CssRewriteUrlTransform()).Include(
+                      "~/clui/dist/css/components/fonts.css", new CssRewriteUrlTransformWrapper()).Include(
                       "~/clui/dist/css/components/footer.css",
                       "~/clui/dist/css/components/forms.css",
                       "~/clui/dist/css/components/labels.css",
@@ -92,6 +92,14 @@ namespace AM.Web
                 "~/Content/datatables/datatables.css",
                "~/Content/datatables/plugins/bootstrap/datatables.bootstrap.css"
                ));
+        }
+    }
+
+    public class CssRewriteUrlTransformWrapper : IItemTransform
+    {
+        public string Process(string includedVirtualPath, string input)
+        {
+            return new CssRewriteUrlTransform().Process("~" + VirtualPathUtility.ToAbsolute(includedVirtualPath), input);
         }
     }
 }
