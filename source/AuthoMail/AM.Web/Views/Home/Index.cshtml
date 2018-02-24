@@ -116,9 +116,13 @@
             var chart = new google.visualization.BarChart(document.getElementById('barchart_values'));
             function selectHandler() {
                 var selectedItem = chart.getSelection()[0];
+                console.log(chart.getSelection()[0]);
+              
                 if (selectedItem) {
                     var topping = data.getValue(selectedItem.row, 0);
-                    alert('The user selected ' + topping);
+                    
+                    var columnName = data.getColumnLabel(selectedItem.column);
+                    alert(columnName+'The user selected ' + topping);
                 }
             }
 
