@@ -1,1 +1,46 @@
 ﻿જય સ્વામિનારાયણ
+
+- PCI printing
+- 
+
+- No Monthly, Daily (status by doctype)
+
+- Login page and Content pages (https://stage.authocenter.com)
+- Delivery Report and Error Report
+- Consolidated Report
+- Search by Loan, Date, DocType, Status
+- Check remaining reports
+
+- AMC (shipping fields ignore)
+- Client Id, Package Type
+- doc types
+- use custom fields for channel and print location
+- remove duedate from XML and database
+keep it tied to doctype
+- maintain business id name list (table)
+- add channel to XML (optional)
+- external dependencies (prod db, PnS file location)
+- same search screen as previous AuthoMail
+- tracking number as hyperlink
+
+Need:
+- Dashboard
+- doctype
+- Login page and Content pages (https://stage.authocenter.com)
+- 
+
+- channel, print location, tracking code
+
+
+
+A.A.
+- something about phone # (sherrie, Sapan is going to share)
+- no work on Dashboard
+- get actual document from PCI
+- able cater to multiple channels
+- new fields highlighted
+- check if postage is there in MRDF
+- CHECK ALL REPORT FIELDS WHEN UPDATing DATABASE
+- UNDERSTAND SLA terms for USAA, how to load it in DB
+- how to make other apps use the same database?
+- find PnS production location, FAGOSFTP???
