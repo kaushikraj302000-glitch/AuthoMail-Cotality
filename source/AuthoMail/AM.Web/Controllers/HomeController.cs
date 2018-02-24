@@ -24,7 +24,7 @@ namespace AM.Web.Controllers
             string clientId = ((ClaimsIdentity)User.Identity).FindFirst("clientId") != null ? ((ClaimsIdentity)User.Identity).FindFirst("clientId").Value : null;
             return View();
         }
-        
+
         [HttpPost]
         public ActionResult GetMailPieceIdByLoanNumber(string loanNumber)
         {
@@ -35,6 +35,12 @@ namespace AM.Web.Controllers
         public ActionResult Search()
         {
             return View();
+        }
+
+        [HttpPost]
+        public ActionResult ChartDetails(string status, List<int> batchIds)
+        {
+            return PartialView();
         }
 
         public ActionResult About()
