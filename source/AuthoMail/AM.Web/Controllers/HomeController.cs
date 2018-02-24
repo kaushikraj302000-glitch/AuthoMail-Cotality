@@ -32,6 +32,10 @@ namespace AM.Web.Controllers
             return Json(model, JsonRequestBehavior.AllowGet);
         }
 
+        public ActionResult Search()
+        {
+            return View();
+        }
 
         public ActionResult About()
         {
