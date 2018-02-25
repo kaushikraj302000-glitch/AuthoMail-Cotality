@@ -17,9 +17,10 @@ namespace AM.Web.Controllers
             this.homeSvc = homeSvc;
             this.repoSvc = repoSvc;
         }
-        public ActionResult PullBack()
+        public ActionResult PullBack(string loanNumber)
         {
             ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(), "Id", "DocTypeCode");
+            ViewBag.loanNumber = loanNumber;
             return View();
         }
         [HttpPost]
