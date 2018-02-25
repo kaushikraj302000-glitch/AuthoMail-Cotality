@@ -16,7 +16,7 @@
         <div class="panel-body panel-gray ">
             <div id="container"></div>
         </div>
-        
+
     </div>
 </div>
 
@@ -72,7 +72,7 @@
                 <h1 id="myModalLabel">Pullback Response</h1>
             </div>
             <div class="modal-body">
-                
+
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
@@ -81,11 +81,65 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="chartModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <div class="modal-header">
+                <h1 id="myModalLabel">Batch Details</h1>
+            </div>
+            <div class="modal-body">
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+                @*<button type="button" class="btn btn-primary">View All</button>*@
+            </div>
+        </div>
+    </div>
+</div>
+<div id="charDatatable" style="display:none"></div>
 @section Scripts{
+@Styles.Render("~/bundles/datatablescss")
+@Scripts.Render("~/bundles/datatables")
     <script src="~/clui/dist/js/vendor/moment.js"></script>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js">
     </script>
     <script type="text/javascript">
+        function GetChartDataByStatusAndBatchIds(status, ids) {
+            //var data={
+            //    status: status,
+            //    ids: ids,
+            //}
+            //var params = jQuery.param(data)
+            //console.log(baseUrl + 'Home/ChartDetails?' + params);
+            //window.location = baseUrl + 'Home/ChartDetails?' + params;
+            var el = $('.modal-body');
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "Home/ChartDetails",
+                data: JSON.stringify({ status: status, batchIds: ids }),
+                contentType: "application/json; charset=utf-8",
+                success: function (response) {
+                   // $("#charDatatable").html(response);
+                    el.html(response);
+                    $("#chartModal").on('shown.bs.modal', function (e) {
+                        console.log("call");
+                        $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+                        //drawDatatable();
+                    });
+                    //el.html($("#charDatatable").html());
+                    $("#chartModal").modal("show");
+                    //drawDatatable();
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    var msg = 'Error on reloading the content. Please check your connection and try again.';
+                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    $("#chartModal").modal("show");
+                }
+
+            });
+        }
         google.charts.load('current', { packages: ['corechart'] });
         function drawChart() {
             // Define the chart to be drawn.
@@ -116,9 +170,15 @@
             var chart = new google.visualization.BarChart(document.getElementById('barchart_values'));
             function selectHandler() {
                 var selectedItem = chart.getSelection()[0];
+                console.log(chart.getSelection()[0]);
+
                 if (selectedItem) {
                     var topping = data.getValue(selectedItem.row, 0);
-                    alert('The user selected ' + topping);
+
+                    var columnName = data.getColumnLabel(selectedItem.column);
+                    alert(columnName + 'The user selected ' + topping);
+                    var ids = [1, 2, 3, 7];
+                    GetChartDataByStatusAndBatchIds(topping, ids)
                 }
             }
 
@@ -154,6 +214,8 @@
                 if (selectedItem) {
                     var topping = data.getValue(selectedItem.row, 0);
                     alert('The user selected ' + topping);
+                    var ids = [1, 2, 3, 7];
+                    GetChartDataByStatusAndBatchIds(topping, ids)
                 }
             }
 
@@ -190,9 +252,9 @@
                 }
 
             });
-            
+
         }
-        
+
         $("#pullback").click(function (e) {
             console.log(baseUrl);
             e.preventDefault();
@@ -201,20 +263,20 @@
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Home/GetMailPieceIdByLoanNumber",//?loanNumber=" + loanNumber,
-                data:JSON.stringify({ loanNumber: loanNumber}),
+                data: JSON.stringify({ loanNumber: loanNumber }),
                 contentType: "application/json; charset=utf-8",
                 success: function (res) {
                     console.log(res);
                     SendPullBackRequest(res)
-                   
+
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     var msg = 'Error on reloading the content. Please check your connection and try again.';
-                   // el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    // el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
                 }
 
             });
-            
+
         });
     </script>
 }
