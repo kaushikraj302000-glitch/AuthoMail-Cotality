@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AM.Entities
 {
-    public class AMMailPiece
+    public class MailPieceDTO
     {
         public Guid Id { get; set; }
         public int BatchClustId { get; set; }

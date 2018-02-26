@@ -144,11 +144,11 @@ namespace AM.Console
 
                 if (processXML.MailPieces != null && processXML.MailPieces.Count > 0)
                 {
-                    List<AMMailPiece> amMailPieces = new List<AMMailPiece>();
+                    List<MailPieceDTO> amMailPieces = new List<MailPieceDTO>();
                     Dictionary<string, string> archiveFileList = new Dictionary<string, string>();
                     foreach (MailPiece mailPiece in processXML.MailPieces)
                     {
-                        AMMailPiece amMailPiece = new AMMailPiece();
+                        MailPieceDTO amMailPiece = new MailPieceDTO();
                         amMailPiece.Id = mailPiece.Id;
                         amMailPiece.BatchClustId = mailBatch.BatchClustId;
                         amMailPiece.BusinessFriendlyIdName = mailPiece.BusinessFriendlyIdName;
@@ -184,9 +184,9 @@ namespace AM.Console
                             }
                         }
 
-                        OutComeCodes validationOutCome = ValidationClientWise(client.AppCode, mailPiece);
+                        string validationOutCome = ValidationClientWise(client.AppCode, mailPiece);
 
-                        if (validationOutCome == OutComeCodes.No_error)
+                        if (validationOutCome == OutComeCodes.No_Error)
                         {
                             amMailPiece.IsRcptInfoSpecified = true;
                             amMailPiece.RcptFirstName = mailPiece.RecipientInfo.Recipient.FirstName;
@@ -242,11 +242,11 @@ namespace AM.Console
                                         sftSite.DownloadFile(pdfLocalFilePath, pdfServerFilePath);
 
                                         amMailPiece.DownloadedFilePath = pdfLocalFilePath;
-                                        amMailPiece.ErrorCode = OutComeCodes.No_error.ToString();
+                                        amMailPiece.ErrorCode = OutComeCodes.No_Error.ToString();
                                     }
                                     else
                                     {
-                                        amMailPiece.ErrorCode = OutComeCodes.Missing_PDF_file.ToString();
+                                        amMailPiece.ErrorCode = OutComeCodes.Missing_PDF.ToString();
                                         amMailPiece.ErrorDesc = "Pdf file is missing on server.";
                                     }
                                 }
@@ -268,11 +268,11 @@ namespace AM.Console
                                             archiveFileList.Add(pdfServerFilePath, pdfServerArchiveFilePath);
 
                                         amMailPiece.DownloadedFilePath = pdfLocalFilePath;
-                                        amMailPiece.ErrorCode = OutComeCodes.No_error.ToString();
+                                        amMailPiece.ErrorCode = OutComeCodes.No_Error.ToString();
                                     }
                                     else
                                     {
-                                        amMailPiece.ErrorCode = OutComeCodes.Missing_PDF_file.ToString();
+                                        amMailPiece.ErrorCode = OutComeCodes.Missing_PDF.ToString();
                                         amMailPiece.ErrorDesc = "Pdf file is missing on server.";
                                     }
                                 }
@@ -308,15 +308,15 @@ namespace AM.Console
             //}
         }
 
-        private OutComeCodes ValidationClientWise(string clientCode, MailPiece mailPiece)
+        private string ValidationClientWise(string clientCode, MailPiece mailPiece)
         {
-            OutComeCodes validationResultClientWise = OutComeCodes.No_error;
+            string validationResultClientWise = OutComeCodes.No_Error;
             switch (clientCode)
             {
-                case "USAA": validationResultClientWise = mailPiece.RecipientInfo.Recipient == null ? OutComeCodes.Recipient_name_missing_or_invalid : OutComeCodes.No_error;
+                case "USAA": validationResultClientWise = mailPiece.RecipientInfo.Recipient == null ? OutComeCodes.Recipient_Name_Missing_Or_Invalid : OutComeCodes.No_Error;
                     break;
                 default:
-                    validationResultClientWise = OutComeCodes.No_error;
+                    validationResultClientWise = OutComeCodes.No_Error;
                     break;
             }
             return validationResultClientWise;

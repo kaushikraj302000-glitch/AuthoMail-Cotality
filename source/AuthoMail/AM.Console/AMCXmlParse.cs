@@ -265,7 +265,7 @@ namespace AM.Console
                 {
                     #region Invalid XML file of the batch so just save error details
                     log.Error(err);
-                    batch.ValidationStatus = OutComeCodes.Invalid_XML_file.ToString();
+                    batch.ValidationStatus = OutComeCodes.Invalid_XML.ToString();
                     batch.ValidationErrors = err.Message;
                     batchSvc.UpdateBatchDetails(batch);
                     commonSvc.UpdateBatchStatus(batchClustId, BatchValidationStatus.Invalid);
@@ -283,7 +283,7 @@ namespace AM.Console
                 {
                     foreach (XmlNode loan in loans)
                     {
-                        AMMailPiece mailPiece = null;
+                        MailPieceDTO mailPiece = null;
                         List<MailPieceCustomInfo> mailPieceCustomInfos = null;
                         PackageInfo package = null;
                         ValidationResultAMC parsingResult = null;
@@ -295,7 +295,7 @@ namespace AM.Console
 
                             #region De-serialize XML nodes.
 
-                            if (parsingResult.Code == OutComeCodes.No_error)
+                            if (parsingResult.Code == OutComeCodes.No_Error)
                             {
                                 package = XmlUtil.Deserialize<PackageInfo>(loan.OuterXml);
 
@@ -343,7 +343,7 @@ namespace AM.Console
                                 #endregion
 
                                 #region AMMailPiece Data
-                                mailPiece = new AMMailPiece();
+                                mailPiece = new MailPieceDTO();
                                 mailPiece.BatchClustId = batch.BatchClustId;
                                 mailPiece.Id = package.Id;
                                 mailPiece.FileName = package.File;
@@ -383,11 +383,11 @@ namespace AM.Console
                                 if (File.Exists(Path.Combine(batchDirectoryPath, package.File)))
                                 {
                                     mailPiece.DownloadedFilePath = Path.Combine(batchDirectoryPath, package.File);
-                                    mailPiece.ErrorCode = OutComeCodes.No_error.ToString();
+                                    mailPiece.ErrorCode = OutComeCodes.No_Error.ToString();
                                 }
                                 else
                                 {
-                                    mailPiece.ErrorCode = OutComeCodes.Missing_PDF_file.ToString();
+                                    mailPiece.ErrorCode = OutComeCodes.Missing_PDF.ToString();
                                     mailPiece.ErrorDesc = "PDF file missing.";
                                 }
 
@@ -465,14 +465,14 @@ namespace AM.Console
                                     mailPiece.BusinessFriendlyIdName = "LoanNbr";
                                     mailPiece.BusinessFriendlyIdValue = loan.SelectSingleNode("./x:LoanNbr/text()", nsManager).Value;
                                 }
-                                mailPiece.ErrorCode = OutComeCodes.Invalid_XML_file.ToString();
+                                mailPiece.ErrorCode = OutComeCodes.Invalid_XML.ToString();
                                 mailPiece.ErrorDesc = err.Message;
                                 mailPiece.BatchClustId = batch.BatchClustId;
                             }
                             else
                             {
-                                mailPiece = new AMMailPiece();
-                                mailPiece.ErrorCode = OutComeCodes.Invalid_XML_file.ToString();
+                                mailPiece = new MailPieceDTO();
+                                mailPiece.ErrorCode = OutComeCodes.Invalid_XML.ToString();
                                 mailPiece.ErrorDesc = err.Message;
                                 mailPiece.BatchClustId = batch.BatchClustId;
                                 if (loan.SelectSingleNode("./x:LoanNbr/text()", nsManager) == null)
@@ -544,14 +544,14 @@ namespace AM.Console
                                     mailPiece.BusinessFriendlyIdName = "LoanNbr";
                                     mailPiece.BusinessFriendlyIdValue = loan.SelectSingleNode("./x:LoanNbr/text()", nsManager).Value;
                                 }
-                                mailPiece.ErrorCode = OutComeCodes.UNKNOWN_error.ToString();
+                                mailPiece.ErrorCode = OutComeCodes.Unknown_Error.ToString();
                                 mailPiece.ErrorDesc = err.Message;
                                 mailPiece.BatchClustId = batch.BatchClustId;
                             }
                             else
                             {
-                                mailPiece = new AMMailPiece();
-                                mailPiece.ErrorCode = OutComeCodes.UNKNOWN_error.ToString();
+                                mailPiece = new MailPieceDTO();
+                                mailPiece.ErrorCode = OutComeCodes.Unknown_Error.ToString();
                                 mailPiece.ErrorDesc = err.Message;
                                 mailPiece.BatchClustId = batch.BatchClustId;
                                 if (loan.SelectSingleNode("./x:LoanNbr/text()", nsManager) == null)
@@ -591,10 +591,10 @@ namespace AM.Console
                         {
                             // if the validation works or fails save some information in loan table.
                             #region other Error 
-                            if (parsingResult.Code != OutComeCodes.No_error)
+                            if (parsingResult.Code != OutComeCodes.No_Error)
                             {
-                                mailPiece = new AMMailPiece();
-                                mailPiece.ErrorCode = OutComeCodes.UNKNOWN_error.ToString();
+                                mailPiece = new MailPieceDTO();
+                                mailPiece.ErrorCode = OutComeCodes.Unknown_Error.ToString();
                                 mailPiece.ErrorDesc = parsingResult.ErrorMessage;
                                 mailPiece.BatchClustId = batch.BatchClustId;
                                 if (loan.SelectSingleNode("./x:LoanNbr/text()", nsManager) == null)
@@ -635,7 +635,7 @@ namespace AM.Console
                     }
                 }
                 #endregion
-                List<AMMailPiece> mailPieces = mailPieceSvc.GetMailPiecesByBatchClustId(batch.BatchClustId);
+                List<MailPieceDTO> mailPieces = mailPieceSvc.GetMailPiecesByBatchClustId(batch.BatchClustId);
                 //// TotalLoans is valid loans of this batch. Update the count and add barcode for each loan.
                 //if (mailPieces.Count > 0)
                 //{

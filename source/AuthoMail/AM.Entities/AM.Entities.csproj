@@ -43,16 +43,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Batch.cs" />
-    <Compile Include="Client.cs" />
-    <Compile Include="DocType.cs" />
+    <Compile Include="DTOs\Batch.cs" />
+    <Compile Include="DTOs\Client.cs" />
+    <Compile Include="DTOs\DocType.cs" />
     <Compile Include="GeneralModels.cs" />
     <Compile Include="IdentityModels\IdentityModel.cs" />
     <Compile Include="IdentityModels\ProfileUser.cs" />
     <Compile Include="MailBatch.cs" />
-    <Compile Include="MailPiece.cs" />
+    <Compile Include="DTOs\MailPiece.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ShippingAccount.cs" />
+    <Compile Include="DTOs\ShippingAccount.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

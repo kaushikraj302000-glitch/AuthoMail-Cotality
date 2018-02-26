@@ -126,7 +126,7 @@ namespace AM.Console
         {
             XDocument xDoc = XDocument.Parse(loan.OuterXml);
             StringBuilder sbErrorMessage = new StringBuilder();
-            OutComeCodes outcomeCode = OutComeCodes.No_error;
+            string outcomeCode = OutComeCodes.No_Error;
 
             xDoc.Validate(schemasAMC, (o, e) =>
             {
@@ -135,11 +135,11 @@ namespace AM.Console
 
             string errorMsg = sbErrorMessage.ToString();
             if (errorMsg.Contains("Address") || errorMsg.Contains("City") || errorMsg.Contains("State") || errorMsg.Contains("Zip"))
-                outcomeCode = OutComeCodes.Mailing_address_missing_or_invalid;
+                outcomeCode = OutComeCodes.Mailing_Address_Missing_Or_Invalid;
             else if (errorMsg.Contains("Recipient") || errorMsg.Contains("FirstName") || errorMsg.Contains("LastName"))
-                outcomeCode = OutComeCodes.Recipient_name_missing_or_invalid;
+                outcomeCode = OutComeCodes.Recipient_Name_Missing_Or_Invalid;
             else if (!string.IsNullOrEmpty(errorMsg))
-                outcomeCode = OutComeCodes.Invalid_XML_file;
+                outcomeCode = OutComeCodes.Invalid_XML;
 
             ValidationResultAMC returnCode = new ValidationResultAMC() { Code = outcomeCode, ErrorMessage = errorMsg };
 
@@ -150,7 +150,7 @@ namespace AM.Console
 
     public class ValidationResultAMC
     {
-        public OutComeCodes Code { get; set; }
+        public string Code { get; set; }
         public string ErrorMessage { get; set; }
     }
 }

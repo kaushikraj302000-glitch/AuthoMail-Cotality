@@ -39,6 +39,15 @@
                     {
                         <tr class="row-small">
                             <td>
+                                @*@switch (item.Status)
+                                    {
+                                        case "":
+                                            <input type="checkbox" id="checkbox-demo_@(cnt)" data-mailpieceid="@item.MailPieceId" class="cl-check checkall" />
+                                            <label for="checkbox-demo_@(cnt)"></label>
+                                            break;
+                                        default:
+                                            break;
+                                    }*@
                                 <input type="checkbox" id="checkbox-demo_@(cnt)" data-mailpieceid="@item.MailPieceId" class="cl-check checkall" />
                                 <label for="checkbox-demo_@(cnt)"></label>
                             </td>
@@ -159,10 +168,11 @@
     });
     $("#pullback").click(function (e) {
         e.preventDefault();
+        var oTable = $('#sample_2').dataTable();
         var mailpieceIds = [];
-        $('.checkall:checked').each(function () {
+        $(".checkall:checked", oTable.fnGetNodes()).each(function () {
             mailpieceIds.push($(this).data("mailpieceid"));
-            console.log($(this).data("mailpieceid"));
+            //console.log($(this).data("mailpieceid"));
 
         });
         var el = $('.modal-body');
@@ -174,9 +184,27 @@
             contentType: "application/json; charset=utf-8",
             dataType: "JSON",
             success: function (response) {
+                console.log(response);
                 if (response.Success) {
                     if (response.Object != null) {
-                        el.html(response.Object);
+                        var msgAdd = "<ul>";
+
+                        for (var i = 1; i < response.Object.length; i++) {
+                            if (response.Object[i] != "" || response.Object[i] == "undefined") {
+                                if (response.Object[i].IsSuccess) {
+
+                                    msgAdd += "<li><span class='text-bright-blue '>" + response.Object[i].MailPieceId + "</span>:" + response.Object[i].Message + "</li>";
+                                }
+                                else {
+                                    msgAdd += "<li ><span class='text-bright-blue '>" + response.Object[i].MailPieceId + "</span>:<span class='text-red'>" + response.Object[i].Message + "</span></li>";
+                                }
+
+                            }
+                        }
+                        msgAdd += "</ul>";
+                        //alert(msgAdd);
+                        //$("#ErrorMessage").append(msgAdd);
+                        el.html(msgAdd);
                     }
                 }
                 else {
@@ -192,6 +220,6 @@
             }
 
         });
-        
+
     });
 </script>
