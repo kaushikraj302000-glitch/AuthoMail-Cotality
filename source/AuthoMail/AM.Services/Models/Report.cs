@@ -145,6 +145,8 @@ namespace AM.Services.Models
         public int TotalPages { get; set; }
         public string CustomerIdentifier { get; set; }
         public string ShippingMethod { get; set; }
+        public string Channel { get; set; }//chk in report
+        public string PrintLocation { get; set; }//chk in report
     }
     public class DocumentType
     {
@@ -163,6 +165,7 @@ namespace AM.Services.Models
                 return BatchDocumentPackageName.IsNullOrWhiteSpace() ? MailPieceDocumentPackageName : BatchDocumentPackageName;
             }
         }
+        public string Channel { get; set; }
         public string BatchDocumentPackageName { get; set; }
         public string BatchName { get; set; }
         public string PipelineStatus { get; set; }
@@ -219,6 +222,7 @@ namespace AM.Services.Models
         public int TotalPages { get; set; }
         public string CustomerIdentifier { get; set; }
         public string ShippingMethod { get; set; }
+        public string RequestId { get; set; }
 
     }
 
@@ -235,6 +239,7 @@ namespace AM.Services.Models
             }
         }
         public string BatchDocumentPackageName { get; set; }
+        public string Channel { get; set; }
         public int ClientId { get; set; }
         public Guid MailPieceId { get; set; }
         public string LoanNumber { get; set; }
@@ -286,6 +291,7 @@ namespace AM.Services.Models
         public int TotalPages { get; set; }
         public string CustomerIdentifier { get; set; }
         public string ShippingMethod { get; set; }
+        public string PrintLocation { get; set; }
     }
     public class SupplyInventory
     {
