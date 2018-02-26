@@ -9,10 +9,15 @@ namespace AM.Services
     public static class Config
     {
         public static Dictionary<string,string> Msg {get; private set;}
-        public static void GetMessages()
+        static Config()
         {
+            Msg = new Dictionary<string, string>();
             ConfigService cs = new ConfigService();
-            cs.GetSharedStrings();
+            var data = cs.GetSharedStrings();
+            foreach (var item in data)
+            {
+                Msg.Add(item.Key, item.Value);
+            }            
         }
     }
 }
