@@ -292,6 +292,7 @@ namespace AM.Services.Models
         public string CustomerIdentifier { get; set; }
         public string ShippingMethod { get; set; }
         public string PrintLocation { get; set; }
+        public string RequestId { get; set; }
     }
     public class SupplyInventory
     {
