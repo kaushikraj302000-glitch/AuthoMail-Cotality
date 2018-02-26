@@ -14,7 +14,7 @@ namespace AM.Services
 
         protected ServiceBase()
         {
-            db = DbFactory.Create();
+            db = DbFactory.Create("AuthoMail");
         }
 
         protected override void DisposeCore()

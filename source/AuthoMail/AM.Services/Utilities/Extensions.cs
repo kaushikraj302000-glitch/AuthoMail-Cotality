@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AM.Entities.Utilities
+namespace AM.Entities
 {
     public static class Extensions
     {
