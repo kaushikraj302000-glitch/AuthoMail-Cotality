@@ -15,10 +15,11 @@ namespace AM.Web.Controllers
         IHomeService homeSvc;
         IReportService repoSvc;
         IPullBackService pullBackSvc;
-        public HomeController(IHomeService homeSvc, IReportService repoSvc)
+        public HomeController(IHomeService homeSvc, IReportService repoSvc, IPullBackService pullBackSvc)
         {
             this.homeSvc = homeSvc;
             this.repoSvc = repoSvc;
+            this.pullBackSvc = pullBackSvc;
         }
         public ActionResult Index()
         {
