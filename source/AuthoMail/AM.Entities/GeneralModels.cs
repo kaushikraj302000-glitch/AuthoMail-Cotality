@@ -13,12 +13,20 @@ namespace AM.Entities
         public const string Invalid = "Invalid";
     }
 
+    public enum BatchStatus
+    {
+        InProgress,
+        Failed,
+        ShippedPartial,
+        ShippedAll
+    }
+
     public static class BatchPipelineStatus
     {
         public const string Received = "Received";
         public const string Downloaded = "Downloaded";
-        public const string Acknowledged = "Acknowledged";
         public const string Validated = "Validated";
+        public const string Acknowledged = "Acknowledged";
         public const string Prepped = "Prepped";
         public const string SubmittedToShipping = "SubmittedToShipping";
         public const string ShippingResponseReceived = "ShippingResponseReceived";
