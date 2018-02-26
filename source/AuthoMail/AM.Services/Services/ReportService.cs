@@ -22,11 +22,11 @@ namespace AM.Services.Services
         //List<SupplyInventory> GetSupplyInventory(DateTime startDate, DateTime endDate);
 
         //Pullback Request
-        List<PullBackInfo> GetPullBackRequestList(string loanNo, string docType, DateTime startDate, DateTime endDate,int clientId);
-        List<string> GetMailPieceIdFromLoanNo(string loanNo);
+        List<PullBackInfo> GetPullBackRequestList(string loanNo, string docType, DateTime startDate, DateTime endDate, int clientId);
+        List<string> GetMailPieceIdFromLoanNo(string loanNo, int clientId);
 
         //List<MonthlyReconReport> GetMailPieceByLoanNo(string loanNo);
-       // List<SummaryControlReport> GetSummaryControlByLoanNo(string loanNo,int clientId);
+        // List<SummaryControlReport> GetSummaryControlByLoanNo(string loanNo,int clientId);
         List<DocumentType> GetDocTypeList();
     }
     public class ReportService : ServiceBase, IReportService
@@ -183,17 +183,18 @@ namespace AM.Services.Services
         }
 
 
-        public List<string> GetMailPieceIdFromLoanNo(string loanNo)
+        public List<string> GetMailPieceIdFromLoanNo(string loanNo, int clientId)
         {
-            string query = "select m.Id as [MailPieceId] from [AM].[Batch] b,[AM].[MailPiece] m where b.BatchClustId =m.BatchClustId and b.BusinessFriendlyIdValue=@loanNo";
+            string query = "select m.Id as [MailPieceId] from [AM].[Batch] b,[AM].[MailPiece] m where b.BatchClustId =m.BatchClustId and b.BusinessFriendlyIdValue=@loanNo AND b.ClientId=@clientId";
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@loanNo", loanNo);
+            parameters.Add("@clientId", clientId);
             var mailPieces = db.Query<string>(query, parameters).ToList();
             return mailPieces;
         }
 
 
-        
+
 
         //public List<SupplyInventory> GetSupplyInventory(DateTime startDate, DateTime endDate)
         //{

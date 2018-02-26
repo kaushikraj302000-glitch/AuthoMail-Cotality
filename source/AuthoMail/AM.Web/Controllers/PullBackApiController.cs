@@ -29,7 +29,7 @@ namespace AM.Web.Controllers
             //mailPieceIds = new List<string> { "0C76A5C0-3180-4F34-B04E-DD5338815EDB", "A12E6EFD-01CB-470F-898D-3200FDED4AA9", "C8EF4A23-7B37-4F33-B899-992A162CC31B" };
             if (mailPieceIds == null || mailPieceIds.Count == 0)
             {
-                return JsonResponseFactory.ErrorResponse("Mailpieces can not be empty.");
+                return JsonResponseFactory.ErrorResponse(Config.Msg["Empty_MP"]);
             }
             try
             {
@@ -42,7 +42,7 @@ namespace AM.Web.Controllers
 
                 if (mailPieceData == null || mailPieceData.Count == 0)
                 {
-                    return JsonResponseFactory.ErrorResponse("No mailpiece data found for given loan numbers.");
+                    return JsonResponseFactory.ErrorResponse(Config.Msg["MPDataNull"]);
                 }
                 foreach (var item in mailPieceData)
                 {
@@ -50,16 +50,16 @@ namespace AM.Web.Controllers
                     switch (mailPieceStatus)
                     {
                         case "Aborted":
-                            mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.UniqueIdentifier.ToString(), Message = "Mailpiece aborted by the client.", IsSuccess = false });
+                            mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.UniqueIdentifier.ToString(), Message = Config.Msg["Aborted"], IsSuccess = false });
                             break;
                         case "PulledBack":
-                            mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.UniqueIdentifier.ToString(), Message = "Mailpiece is already pulledback.", IsSuccess = false });
+                            mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.UniqueIdentifier.ToString(), Message = Config.Msg["PulledBack"], IsSuccess = false });
                             break;
                         case "Error":
-                            mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.UniqueIdentifier.ToString(), Message = "Mailpiece has some error.", IsSuccess = false });
+                            mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.UniqueIdentifier.ToString(), Message = Config.Msg["Error"], IsSuccess = false });
                             break;
                         case "Shipped":
-                            mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.UniqueIdentifier.ToString(), Message = "Mailpiece already shipped so pullback cannot be requested.", IsSuccess = false });
+                            mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.UniqueIdentifier.ToString(), Message = Config.Msg["Shipped"], IsSuccess = false });
                             break;
                         case "InProgress":
                             //UPDATE "PullBackRequestedOn" time
@@ -67,7 +67,7 @@ namespace AM.Web.Controllers
                             if (row > 0)
                             {
                                 mailPieceIdsToPullback.Add(item.UniqueIdentifier);
-                                mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.UniqueIdentifier, Message = "Mailpiece pullback requested.", IsSuccess = true });
+                                mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.UniqueIdentifier, Message = Config.Msg["PullBack_Success"], IsSuccess = true });
                             }
                             break;
                         default:
@@ -80,7 +80,7 @@ namespace AM.Web.Controllers
                 bool isGenerated = GeneratePullBackForm(pullBackData);
                 if (!isGenerated)
                 {
-                    return JsonResponseFactory.ErrorResponse("Error while generating Pullback request form.");
+                    return JsonResponseFactory.ErrorResponse(Config.Msg["PullBackReqFormErr"]);
                 }
 
                 return JsonResponseFactory.SuccessResponse(mailPieceResponse);
