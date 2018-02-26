@@ -55,6 +55,11 @@ namespace AM.Web.Controllers
             return PartialView();
         }
 
+        public ActionResult GetWeeklyChartData()
+        {
+            return Json(true, JsonRequestBehavior.AllowGet);
+        }
+
         public ActionResult About()
         {
             ViewBag.Message = "Your application description page.";
