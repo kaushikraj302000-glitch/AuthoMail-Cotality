@@ -14,10 +14,12 @@ namespace AM.Web.Controllers
     {
         IHomeService homeSvc;
         IReportService repoSvc;
-        public HomeController(IHomeService homeSvc, IReportService repoSvc)
+        IPullBackService pullBackSvc;
+        public HomeController(IHomeService homeSvc, IReportService repoSvc, IPullBackService pullBackSvc)
         {
             this.homeSvc = homeSvc;
             this.repoSvc = repoSvc;
+            this.pullBackSvc = pullBackSvc;
         }
         public ActionResult Index()
         {
@@ -29,7 +31,17 @@ namespace AM.Web.Controllers
         public ActionResult GetMailPieceIdByLoanNumber(string loanNumber)
         {
             var model = repoSvc.GetMailPieceIdFromLoanNo(loanNumber);
-            return Json(model, JsonRequestBehavior.AllowGet);
+            //if (model.Count > 1)
+            if (model.Count != 1)
+            {
+                return Json("PullBack", JsonRequestBehavior.AllowGet); 
+            }
+            else
+            {
+                PullBackApiController pullBackAPI = new PullBackApiController(pullBackSvc);
+                var data = pullBackAPI.GeneratePullBackRequest(model);
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
         }
 
         public ActionResult Search()

@@ -1,0 +1,20 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace AM.Services.Utilities
+{
+    public static class Common
+    {
+        static Common()
+        {
+
+        }
+
+        public static readonly DateTime Now = DateTime.Now;
+
+        public static readonly DateTime Today = DateTime.Today;
+    }
+}

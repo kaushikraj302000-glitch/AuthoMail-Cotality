@@ -100,8 +100,8 @@
 </div>
 <div id="charDatatable" style="display:none"></div>
 @section Scripts{
-@Styles.Render("~/bundles/datatablescss")
-@Scripts.Render("~/bundles/datatables")
+    @Styles.Render("~/bundles/datatablescss")
+    @Scripts.Render("~/bundles/datatables")
     <script src="~/clui/dist/js/vendor/moment.js"></script>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js">
     </script>
@@ -121,7 +121,7 @@
                 data: JSON.stringify({ status: status, batchIds: ids }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
-                   // $("#charDatatable").html(response);
+                    // $("#charDatatable").html(response);
                     el.html(response);
                     $("#chartModal").on('shown.bs.modal', function (e) {
                         console.log("call");
@@ -267,7 +267,10 @@
                 contentType: "application/json; charset=utf-8",
                 success: function (res) {
                     console.log(res);
-                    SendPullBackRequest(res)
+                    if (res == "PullBack") {
+                        window.location = baseUrl + 'PullBackRequest/PullBack?loanNumber=' + loanNumber;
+                    }
+                    //SendPullBackRequest(res)
 
                 },
                 error: function (xhr, ajaxOptions, thrownError) {

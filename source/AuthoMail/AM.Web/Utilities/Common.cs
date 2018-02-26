@@ -22,6 +22,10 @@ namespace AM.Web
             Email_Cc = ConfigurationManager.AppSettings["Email_Cc"];
         }
 
+        public static readonly DateTime Now = DateTime.Now;
+
+        public static readonly DateTime Today = DateTime.Today;
+
         public static string OutputDir { get; set; }
 
         public static string PullBackFormTemplatePath { get; set; }
@@ -35,5 +39,6 @@ namespace AM.Web
         public static string ClientTimeZone { get; set; }
 
         public static SmtpClient Email_SMTPClient { get; set; }
+
     }
 }
