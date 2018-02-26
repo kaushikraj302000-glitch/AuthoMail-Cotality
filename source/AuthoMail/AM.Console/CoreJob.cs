@@ -41,7 +41,7 @@ namespace AM.Console
                 Client client = clientSvc.GetClientDetails(batch.ClientId, true).Single();
                 List<DocType> docTypes = docTypeSvc.GetDocTypesByClientIdOrByDocTypeName(client.Id, string.Empty);
 
-                List<AMMailPiece> mailPieces = mailPieceSvc.GetMailPiecesByBatchClustId(batch.BatchClustId);
+                List<MailPieceDTO> mailPieces = mailPieceSvc.GetMailPiecesByBatchClustId(batch.BatchClustId);
 
                 if (docTypes == null || docTypes.Count == 0)
                 {
@@ -60,7 +60,7 @@ namespace AM.Console
                     continue;
                 }
 
-                var errorMailPieces = mailPieces.Where(x => x.ErrorCode != OutComeCodes.No_error.ToString()).ToList();
+                var errorMailPieces = mailPieces.Where(x => x.ErrorCode != OutComeCodes.No_Error.ToString()).ToList();
                 if ((errorMailPieces != null && errorMailPieces.Count > 0))
                 {
                     log.Error("All mail pieces have error in documents for Batch :" + batch.BatchName);
@@ -75,9 +75,9 @@ namespace AM.Console
                     continue;
                 }
 
-                var noErrorMailPieces = mailPieces.Where(x => x.ErrorCode == OutComeCodes.No_error.ToString()).ToList();
+                var noErrorMailPieces = mailPieces.Where(x => x.ErrorCode == OutComeCodes.No_Error.ToString()).ToList();
 
-                foreach (AMMailPiece mailPiece in noErrorMailPieces)
+                foreach (MailPieceDTO mailPiece in noErrorMailPieces)
                 {
 
                 }

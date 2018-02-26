@@ -76,12 +76,12 @@
     <Compile Include="Core\ServiceBase.cs" />
     <Compile Include="IdentityStores\RoleStore.cs" />
     <Compile Include="IdentityStores\UserStore.cs" />
+    <Compile Include="Services\ConfigService.cs" />
     <Compile Include="Services\HomeService.cs" />
     <Compile Include="Services\PullBackService.cs" />
     <Compile Include="Services\ReportService.cs" />
     <Compile Include="Utilities\Common.cs" />
     <Compile Include="Utilities\Config.cs" />
-    <Compile Include="Utilities\Extensions.cs" />
     <Compile Include="Utilities\JsonResponseFactory.cs" />
   </ItemGroup>
   <ItemGroup>

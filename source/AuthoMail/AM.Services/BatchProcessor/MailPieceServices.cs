@@ -9,14 +9,14 @@ namespace AM.Services
 {
     public interface IMailPieceService
     {
-        int InsertBatchMailPieceDetails(AMMailPiece mailPiece);
-        List<AMMailPiece> GetMailPiecesByBatchClustId(int batchClustId);
+        int InsertBatchMailPieceDetails(MailPieceDTO mailPiece);
+        List<MailPieceDTO> GetMailPiecesByBatchClustId(int batchClustId);
         int InsertBatchMailPieceCustomDetails(List<MailPieceCustomInfo> mailPieceCustomInfos);
         List<MailPieceCustomInfo> GetMailPiecesCustomInfosByMailPieceId(Guid mailPieceGuId);
     }
     public class MailPieceService : ServiceBase, IMailPieceService //It implements Interfaces 
     {
-        public int InsertBatchMailPieceDetails(AMMailPiece mailPiece)
+        public int InsertBatchMailPieceDetails(MailPieceDTO mailPiece)
         {
             //Sql Query
             string query = "INSERT INTO [AM].[MailPiece](Id, BatchClustId, PrintBatchClustId, BusinessFriendlyIdName, BusinessFriendlyIdValue, FileName, FilePattern, IsRcptInfoSpecified, RcptPrefix, RcptFirstName, RcptMiddleName, RcptLastName, RcptSuffix, RcptPhone, RcptOrganization, CoRcptPrefix, CoRcptFirstName, CoRcptMiddleName, CoRcptLastName, CoRcptSuffix, CoRcptPhone, CoRcptOrganization, RcptAddrOptionalLine1AboveStreet, RcptAddrOptionalLine2AboveStreet, RcptAddressStreet, RcptAddressAptOrSuiteOrOther, RcptAddrOptionalLine1BelowStreet, RcptAddrOptionalLine2BelowStreet, RcptAddressCity, RcptAddressState, RcptAddressZIP, IsReturnInfoSpecified, RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RetRcptSuffix, RetRcptPhone, RetRcptOrganization, RetRcptAddrOptionalLine1AboveStreet, RetRcptAddrOptionalLine2AboveStreet, RetRcptAddressStreet, RetRcptAddressAptOrSuiteOrOther, RetRcptAddrOptionalLine1BelowStreet, RetRcptAddrOptionalLine2BelowStreet, RetRcptAddressCity, RetRcptAddressState, RetRcptAddressZIP, PreppedFilePath, TotalPages, ErrorCode, ErrorDesc, TrackingNo, PullBackRequestedOn, PulledBackOn, ShippedOn, ShippingCost, ShippingStatus, IsQCRequested, IsQCPerformed, DocumentOrPackageType, DownloadedFilePath) VALUES (@Id, @BatchClustId, @PrintBatchClustId, @BusinessFriendlyIdName, @BusinessFriendlyIdValue, @FileName, @FilePattern, @IsRcptInfoSpecified, @RcptPrefix, @RcptFirstName, @RcptMiddleName, @RcptLastName, @RcptSuffix, @RcptPhone, @RcptOrganization, @CoRcptPrefix, @CoRcptFirstName, @CoRcptMiddleName, @CoRcptLastName, @CoRcptSuffix, @CoRcptPhone, @CoRcptOrganization, @RcptAddrOptionalLine1AboveStreet, @RcptAddrOptionalLine2AboveStreet, @RcptAddressStreet, @RcptAddressAptOrSuiteOrOther, @RcptAddrOptionalLine1BelowStreet, @RcptAddrOptionalLine2BelowStreet, @RcptAddressCity, @RcptAddressState, @RcptAddressZIP, @IsReturnInfoSpecified, @RetRcptPrefix, @RetRcptFirstName, @RetRcptMiddleName, @RetRcptLastName, @RetRcptSuffix, @RetRcptPhone, @RetRcptOrganization, @RetRcptAddrOptionalLine1AboveStreet, @RetRcptAddrOptionalLine2AboveStreet, @RetRcptAddressStreet, @RetRcptAddressAptOrSuiteOrOther, @RetRcptAddrOptionalLine1BelowStreet, @RetRcptAddrOptionalLine2BelowStreet, @RetRcptAddressCity, @RetRcptAddressState, @RetRcptAddressZIP, @PreppedFilePath, @TotalPages, @ErrorCode, @ErrorDesc, @TrackingNo, @PullBackRequestedOn, @PulledBackOn, @ShippedOn, @ShippingCost, @ShippingStatus, @IsQCRequested, @IsQCPerformed, @DocumentOrPackageType, @DownloadedFilePath)";           
@@ -29,7 +29,7 @@ namespace AM.Services
             return data;
         }
 
-        public List<AMMailPiece> GetMailPiecesByBatchClustId(int batchClustId)
+        public List<MailPieceDTO> GetMailPiecesByBatchClustId(int batchClustId)
         {
             //Sql Query
             string query = "SELECT * FROM [AM].[MailPiece] WHERE BatchClustId=@batchClustId";
@@ -37,7 +37,7 @@ namespace AM.Services
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@batchClustId", batchClustId);
 
-            var data = db.Query<AMMailPiece>(query, parameters).ToList();
+            var data = db.Query<MailPieceDTO>(query, parameters).ToList();
             return data;
         }
 
