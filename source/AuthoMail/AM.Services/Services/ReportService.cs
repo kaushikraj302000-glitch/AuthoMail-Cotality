@@ -5,12 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Dapper;
+using System.Data;
 
 namespace AM.Services.Services
 {
     public interface IReportService
     {
-        List<SummaryControlReport> GetBatchByParam(string loanNo, string docType, DateTime startDate, DateTime endDate);
+        List<SummaryControlReport> GetSummeryControlReport(int clientId, DateTime startDate, DateTime endDate, string loanNo, string docType);
         List<MonthlyReconReport> GetMailPieceByParam(string loanNo, string docType, DateTime startDate, DateTime endDate);
         List<MonthlyReconReport> GetMailPieceByBatchId(int batchId);
 
@@ -28,23 +29,24 @@ namespace AM.Services.Services
     }
     public class ReportService : ServiceBase, IReportService
     {
-        public List<SummaryControlReport> GetBatchByParam(string loanNo, string docType, DateTime startDate, DateTime endDate)
+        public List<SummaryControlReport> GetSummeryControlReport(int clientId, DateTime startDate, DateTime endDate, string loanNo, string docType)
         {
-            //string query = "select * from dbo.GetBatchByParam WHERE (cast(ReceivedOn as date) >= @startDate and cast(ReceivedOn as date)<=@endDate)";
-            string query = "select b.BatchClustId,b.Id,b.[DocumentOrPackageType],m.BusinessFriendlyIdValue as [LoanNo],[FileName],b.ReceivedOn,m.ShippedOn as [PrintedOn],m.ShippedOn as [MailedOn],c.AppCode as ClientCode,m.TrackingNo,d.ShippingCarrier as [ShippingMethod],c.Id as [CustomerIdentifier],m.RcptFirstName,m.RcptMiddleName,m.RcptLastName,m.RcptAddressStreet,m.RcptAddressCity,m.RcptAddressState,m.RcptAddressZIP,m.ErrorCode,m.ErrorDesc,m.TotalPages as [PageShipped]from [AM].[Batch] b,[AM].[MailPiece] m,[Common].[Clients] c left outer join [AM].[DocTypes] d on d.ClientId=c.Id where (m.BatchClustId=b.BatchClustId and c.Id=b.ClientId) and (cast(b.ReceivedOn as date)>=@startDate and cast(b.ReceivedOn as date)<=@endDate)";
+            string query = "select * from [dbo].[view_SummaryControlReport] WHERE ClientId=@clientId AND (cast(ReceiveDate as date) >= @startDate and cast(ReceiveDate as date)<=@endDate)";
+
+            //string que = "select b.BatchClustId,b.Id,b.[DocumentOrPackageType],m.BusinessFriendlyIdValue as [LoanNo],[FileName],b.ReceivedOn,m.ShippedOn as [PrintedOn],m.ShippedOn as [MailedOn],c.AppCode as ClientCode,m.TrackingNo,d.ShippingCarrier as [ShippingMethod],c.Id as [CustomerIdentifier],m.RcptFirstName,m.RcptMiddleName,m.RcptLastName,m.RcptAddressStreet,m.RcptAddressCity,m.RcptAddressState,m.RcptAddressZIP,m.ErrorCode,m.ErrorDesc,m.TotalPages as [PageShipped]from [AM].[Batch] b,[AM].[MailPiece] m,[Common].[Clients] c left outer join [AM].[DocTypes] d on d.ClientId=c.Id where (m.BatchClustId=b.BatchClustId and c.Id=b.ClientId) and (cast(b.ReceivedOn as date)>=@startDate and cast(b.ReceivedOn as date)<=@endDate)";
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();
+            parameters.Add("@clientId", clientId);
             parameters.Add("@startDate", startDate);
             parameters.Add("@endDate", endDate);
             if (!loanNo.IsNullOrWhiteSpace())
             {
-                query = string.Format("{0} AND (m.BusinessFriendlyIdValue=@loanNo)", query);
-                //query = string.Format("{0} AND (LoanNo=@loanNo)", query);
+                query = string.Format("{0} AND (BusinessFriendlyIdName='LoanNumber' AND LoanNumber=@loanNo)", query);
                 parameters.Add("@loanNo", loanNo);
             }
             if (!docType.IsNullOrWhiteSpace())
             {
-                query = string.Format("{0} AND (b.DocumentOrPackageType=@docType)", query);
+                query = string.Format("{0} AND (MailPieceDocumentPackageName=@docType OR BatchDocumentPackageName=@docType)", query);
                 parameters.Add("@docType", docType);
             }
             var data = db.Query<SummaryControlReport>(query, parameters).ToList();

@@ -9,13 +9,13 @@ using System.Threading.Tasks;
 
 namespace AM.Services
 {
-    public static class DbFactory
+    static class DbFactory
     {
         /// <summary>
         /// Uses connection string with name 'DefaultConnection' to create connection.
         /// </summary>
         /// <returns></returns>
-        public static DbConnection Create()
+        internal static DbConnection Create()
         {
             return Create("AuthoMail");
         }
