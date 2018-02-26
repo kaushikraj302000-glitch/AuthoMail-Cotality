@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Dapper;
 using Microsoft.AspNet.Identity;
 
-namespace AM.Entities.IdentityManage
+namespace AM.Services
 {
     public class AppUserLogins
     {

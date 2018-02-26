@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Dapper;
 using AM.Entities.IdentityModels;
 
-namespace AM.Entities.IdentityManage
+namespace AM.Services
 {
     public class AppUserRole
     {

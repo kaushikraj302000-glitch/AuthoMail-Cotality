@@ -7,7 +7,7 @@ using Dapper;
 using AM.Entities.IdentityModels;
 using System.Data;
 
-namespace AM.Entities.IdentityManage
+namespace AM.Services
 {
     public class AppUser<TUser> where TUser : IdentityUser
     {

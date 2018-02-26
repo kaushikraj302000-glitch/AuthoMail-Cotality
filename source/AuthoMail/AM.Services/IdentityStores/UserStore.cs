@@ -1,5 +1,4 @@
-﻿using AM.Entities.IdentityManage;
-using AM.Entities.IdentityModels;
+﻿using AM.Entities.IdentityModels;
 using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;

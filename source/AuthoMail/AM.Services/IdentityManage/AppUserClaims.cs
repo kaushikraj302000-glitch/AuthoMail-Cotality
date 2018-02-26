@@ -8,7 +8,7 @@ using AM.Entities.IdentityModels;
 using System.Data;
 using System.Security.Claims;
 
-namespace AM.Entities.IdentityManage
+namespace AM.Services
 {
     public class AppUserClaims
     {

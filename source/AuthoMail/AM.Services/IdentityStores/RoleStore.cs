@@ -5,8 +5,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 using AM.Entities.IdentityModels;
-using AM.Entities.IdentityManage;
 using Microsoft.AspNet.Identity;
+using AM.Services;
 
 namespace AM.Services
 {
