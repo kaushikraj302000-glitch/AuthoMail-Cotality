@@ -20,7 +20,7 @@ namespace AM.Services.Services
 
         //Pullback Request
         List<PullBackInfo> GetPullBackRequestList(string loanNo, string docType, DateTime startDate, DateTime endDate);
-        List<Guid> GetMailPieceIdFromLoanNo(string loanNo);
+        List<string> GetMailPieceIdFromLoanNo(string loanNo);
 
         List<MonthlyReconReport> GetMailPieceByLoanNo(string loanNo);
         List<SummaryControlReport> GetSummaryControlByLoanNo(string loanNo);
@@ -133,12 +133,12 @@ namespace AM.Services.Services
         }
 
 
-        public List<Guid> GetMailPieceIdFromLoanNo(string loanNo)
+        public List<string> GetMailPieceIdFromLoanNo(string loanNo)
         {
             string query = "select m.Id as [MailPieceId] from [AM].[Batch] b,[AM].[MailPiece] m where b.BatchClustId =m.BatchClustId and b.BusinessFriendlyIdValue=@loanNo";
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@loanNo", loanNo);
-            var mailPieces = db.Query<Guid>(query, parameters).ToList();
+            var mailPieces = db.Query<string>(query, parameters).ToList();
             return mailPieces;
         }
 
