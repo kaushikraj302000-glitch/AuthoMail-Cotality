@@ -17,15 +17,16 @@ namespace AM.Web.Controllers
             this.homeSvc = homeSvc;
             this.repoSvc = repoSvc;
         }
-        public ActionResult PullBack()
+        public ActionResult PullBack(string loanNumber)
         {
             ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(), "Id", "DocTypeCode");
+            ViewBag.loanNumber = loanNumber;
             return View();
         }
         [HttpPost]
         public ActionResult _GetMailPieceList(string loanNumber, string docType, DateTime startDate, DateTime endDate)
         {
-            ViewBag.Date = string.Format("{0} - {1}", startDate.ToShortDateString(), endDate.ToShortDateString());
+            ViewBag.Date = string.Format("{0} - {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
 
             var model = repoSvc.GetPullBackRequestList(loanNumber, docType, startDate, endDate);
             return PartialView(model);

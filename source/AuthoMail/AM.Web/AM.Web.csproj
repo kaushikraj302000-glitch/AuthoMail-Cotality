@@ -184,6 +184,7 @@
     <Compile Include="App_Start\Startup.Auth.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Models\CLAuthentication.cs" />
+    <Compile Include="Models\PullBackResponse.cs" />
     <Compile Include="Utilities\Common.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
@@ -378,6 +379,8 @@
     <Content Include="Views\Report\_GetDeliveryReport.cshtml" />
     <Content Include="Views\Report\ErrorsReport.cshtml" />
     <Content Include="Views\Report\_GetErrorsReport.cshtml" />
+    <Content Include="Views\Home\Search.cshtml" />
+    <Content Include="Views\Home\ChartDetails.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

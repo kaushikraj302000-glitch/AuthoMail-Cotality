@@ -14,6 +14,7 @@ namespace AM.Web.Controllers
     {
         IHomeService homeSvc;
         IReportService repoSvc;
+        IPullBackService pullBackSvc;
         public HomeController(IHomeService homeSvc, IReportService repoSvc)
         {
             this.homeSvc = homeSvc;
@@ -24,14 +25,34 @@ namespace AM.Web.Controllers
             string clientId = ((ClaimsIdentity)User.Identity).FindFirst("clientId") != null ? ((ClaimsIdentity)User.Identity).FindFirst("clientId").Value : null;
             return View();
         }
-        
+
         [HttpPost]
         public ActionResult GetMailPieceIdByLoanNumber(string loanNumber)
         {
             var model = repoSvc.GetMailPieceIdFromLoanNo(loanNumber);
-            return Json(model, JsonRequestBehavior.AllowGet);
+            //if (model.Count > 1)
+            if (model.Count != 1)
+            {
+                return Json("PullBack", JsonRequestBehavior.AllowGet); 
+            }
+            else
+            {
+                PullBackApiController pullBackAPI = new PullBackApiController(pullBackSvc);
+                var data = pullBackAPI.GeneratePullBackRequest(model);
+                return Json(data, JsonRequestBehavior.AllowGet);
+            }
         }
 
+        public ActionResult Search()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult ChartDetails(string status, List<int> batchIds)
+        {
+            return PartialView();
+        }
 
         public ActionResult About()
         {
