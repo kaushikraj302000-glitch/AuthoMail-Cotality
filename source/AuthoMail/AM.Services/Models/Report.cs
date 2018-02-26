@@ -11,7 +11,12 @@ namespace AM.Services.Models
         public Guid BatchId { get; set; }
         public string BatchClustId { get; set; }
         public DateTime ReceiveDate { get; set; }
-        public string BatchDocumentPackageName { get; set; }
+        public string BatchDocumentPackageName {
+            get
+            {
+                return BatchDocumentPackageName.IsNullOrWhiteSpace() ? MailPieceDocumentPackageName : BatchDocumentPackageName;
+            }
+            set; }
         public string PipelineStatus { get; set; }
         public int ClientId { get; set; }
         public Guid MailPieceId { get; set; }
@@ -75,7 +80,14 @@ namespace AM.Services.Models
         public Guid BatchId { get; set; }
         public string BatchClustId { get; set; }
         public DateTime ReceiveDate { get; set; }
-        public string BatchDocumentPackageName { get; set; }
+        public string BatchDocumentPackageName
+        {
+            get
+            {
+                return BatchDocumentPackageName.IsNullOrWhiteSpace() ? MailPieceDocumentPackageName : BatchDocumentPackageName;
+            }
+            set;
+        }
         public string BatchName { get; set; }
         public string PipelineStatus { get; set; }
         public int ClientId { get; set; }
@@ -142,7 +154,12 @@ namespace AM.Services.Models
         public Guid BatchId { get; set; }
         public string BatchClustId { get; set; }
         public DateTime ReceiveDate { get; set; }
-        public string BatchDocumentPackageName { get; set; }
+        public string BatchDocumentPackageName {
+            get
+            {
+                return BatchDocumentPackageName.IsNullOrWhiteSpace() ? MailPieceDocumentPackageName : BatchDocumentPackageName;
+            }
+            set; }
         public string BatchName { get; set; }
         public string PipelineStatus { get; set; }
         public int ClientId { get; set; }
@@ -206,7 +223,12 @@ namespace AM.Services.Models
         public Guid BatchId { get; set; }
         public string BatchClustId { get; set; }
         public DateTime ReceiveDate { get; set; }
-        public string BatchDocumentPackageName { get; set; }
+        public string BatchDocumentPackageName {
+            get
+            {
+                return BatchDocumentPackageName.IsNullOrWhiteSpace() ? MailPieceDocumentPackageName : BatchDocumentPackageName;
+            }
+            set; }
         public int ClientId { get; set; }
         public Guid MailPieceId { get; set; }
         public string LoanNumber { get; set; }

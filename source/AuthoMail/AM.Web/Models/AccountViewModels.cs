@@ -110,13 +110,4 @@ namespace AM.Web.Models
         [Display(Name = "Email")]
         public string Email { get; set; }
     }
-    public static class IdentityExtensions
-    {
-        public static string GetClientId(this IIdentity identity)
-        {
-            var claim = ((ClaimsIdentity)identity).FindFirst("clientId");
-            // Test for null to avoid issues during local testing
-            return (claim != null) ? claim.Value : string.Empty;
-        }
-    }
 }
