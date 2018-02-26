@@ -12,6 +12,7 @@
                 <tr>
                     <th>#</th>
                     <th>Batch Id</th>
+                    <th>Channel</th>
                     <th>ID</th>
                     <th>Package Name</th>
                     <th>Loan Number</th>
@@ -30,6 +31,7 @@
                     <th>Recipient State</th>
                     <th>Recipient Zip</th>
                     <th>RequestID</th>
+                    <th>Print Location</th>
                     <th>Pages Shipped</th>
                     
                 </tr>
@@ -40,16 +42,17 @@
                     <tr class="row-small">
                         <td><span>@cnt</span></td>
                         <td><span>@item.BatchId</span></td>
-                        <td><span>@item.Id</span></td>
-                        <td><span>@item.DocumentOrPackageType</span></td>
+                        <td><span>@item.MailPieceId</span></td>
+                        <td><span>@item.Channel</span></td>
+                        <td><span>@item.DocumentOrPackageName</span></td>
                         <td><span>@item.LoanNumber</span></td>
                         <td><span>@item.FileName</span></td>
-                        <td><span>@item.ReceivedOn</span></td>
+                        <td><span>@item.ReceiveDate</span></td>
                         <td><span>@item.PrintedOn</span></td>
                         <td><span>@item.MailedOn</span></td>
-                        <td><span>@item.ClientCode</span></td>
+                        <td><span>@item.ClientId</span></td>
                         <td><span>@item.ShippingMethod</span></td>
-                        <td><span>@item.ClientCode</span></td>
+                        <td><span>@item.CustomerIdentifier</span></td>
                         <td><span>@item.TrackingNo</span></td>
                         <td><span>@item.RcptFirstName</span></td>
                         <td><span>@item.RcptLastName </span></td>
@@ -58,7 +61,8 @@
                         <td><span>@item.RcptAddressState</span></td>
                         <td><span>@item.RcptAddressZIP</span></td>
                         <td><span>@item.RequestId</span></td>
-                        <td><span>@item.PagesShipped</span></td>
+                        <td><span>@item.PrintLocation</span></td>
+                        <td><span>@item.TotalPages</span></td>
                     </tr>
 
                     cnt++;

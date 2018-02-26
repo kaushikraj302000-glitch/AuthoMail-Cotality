@@ -12,6 +12,8 @@
                 <tr>
                     <th>#</th>
                     <th>Batch Id</th>
+                    <th>ID</th>
+                    <th>Channel</th>
                     <th>Client Code</th>
                     <th>Package Name</th>
                     <th>Loan Number</th>
@@ -36,10 +38,12 @@
                     <tr class="row-small">
                         <td><span>@cnt</span></td>
                         <td><span>@item.BatchClustId</span></td>
-                        <td><span>@item.DocumentOrPackageType</span></td>
-                        <td><span>@item.LoanNo</span></td>
+                        <td><span>@item.MailPieceId</span></td>
+                        <td><span>@item.Channel</span></td>
+                        <td><span>@item.DocumentOrPackageName</span></td>
+                        <td><span>@item.LoanNumber</span></td>
                         <td><span>@item.FileName</span></td>
-                        <td><span>@item.ReceivedOn</span></td>
+                        <td><span>@item.ReceiveDate</span></td>
                         <td><span>@item.RcptFirstName</span></td>
                         <td><span>@item.RcptLastName </span></td>
                         <td><span>@item.RcptAddressStreet</span></td>
@@ -49,8 +53,8 @@
                         <td><span>@item.ErrorCode</span></td>
                         <td><span>@item.ErrorDesc</span></td>
                         <td><span>@item.ShippingMethod</span></td>
-                        <td><span>@item.ClientCode</span></td>
-                        <td><span>@item.ShippingMethod</span></td>
+                        <td><span>@item.CustomerIdentifier</span></td>
+                        <td><span>@item.RequestId</span></td>
                        
                     </tr>
 
