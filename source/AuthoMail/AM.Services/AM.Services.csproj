@@ -77,7 +77,6 @@
     <Compile Include="IdentityStores\RoleStore.cs" />
     <Compile Include="IdentityStores\UserStore.cs" />
     <Compile Include="Services\HomeService.cs" />
-    <Compile Include="Services\MessageService.cs" />
     <Compile Include="Services\PullBackService.cs" />
     <Compile Include="Services\ReportService.cs" />
     <Compile Include="Utilities\Extensions.cs" />
