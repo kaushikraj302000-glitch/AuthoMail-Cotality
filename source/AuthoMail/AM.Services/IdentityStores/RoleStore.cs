@@ -8,7 +8,7 @@ using AM.Entities.IdentityModels;
 using AM.Entities.IdentityManage;
 using Microsoft.AspNet.Identity;
 
-namespace AM.Services.IdentityStores
+namespace AM.Services
 {
     public class RoleStore<TRole> : ServiceBase, IQueryableRoleStore<TRole> where TRole : IdentityRole
     {

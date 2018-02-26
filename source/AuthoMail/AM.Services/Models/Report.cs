@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AM.Services.Models
+namespace AM.Services
 {
     public class MonthlyReconReport
     {

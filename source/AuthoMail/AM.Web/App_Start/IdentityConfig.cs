@@ -10,7 +10,7 @@ using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using AM.Web.Models;
 using AM.Entities.IdentityModels;
-using AM.Services.IdentityStores;
+using AM.Services;
 using Microsoft.Owin.Security.DataProtection;
 
 namespace AM.Web
