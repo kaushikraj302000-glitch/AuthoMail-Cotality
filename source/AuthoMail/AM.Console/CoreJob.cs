@@ -60,7 +60,7 @@ namespace AM.Console
                     continue;
                 }
 
-                var errorMailPieces = mailPieces.Where(x => x.ErrorCode != OutComeCodes.No_error.ToString()).ToList();
+                var errorMailPieces = mailPieces.Where(x => x.ErrorCode != OutComeCodes.No_Error.ToString()).ToList();
                 if ((errorMailPieces != null && errorMailPieces.Count > 0))
                 {
                     log.Error("All mail pieces have error in documents for Batch :" + batch.BatchName);
@@ -75,7 +75,7 @@ namespace AM.Console
                     continue;
                 }
 
-                var noErrorMailPieces = mailPieces.Where(x => x.ErrorCode == OutComeCodes.No_error.ToString()).ToList();
+                var noErrorMailPieces = mailPieces.Where(x => x.ErrorCode == OutComeCodes.No_Error.ToString()).ToList();
 
                 foreach (MailPieceDTO mailPiece in noErrorMailPieces)
                 {

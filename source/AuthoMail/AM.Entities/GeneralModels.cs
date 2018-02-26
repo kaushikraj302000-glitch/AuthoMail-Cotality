@@ -33,15 +33,25 @@ namespace AM.Entities
         public const string ReportPrepped = "ReportPrepped";
         public const string ReportedBack = "ReportedBack";
     }
-    public enum OutComeCodes
+    public static class OutComeCodes
     {
-        No_error,
-        Invalid_Zip_File,
-        Invalid_XML_file,
-        Invalid_PDF_file, 
-        Missing_PDF_file,
-        Mailing_address_missing_or_invalid,
-        Recipient_name_missing_or_invalid,
-        UNKNOWN_error,
+        public const string No_Error = "No_Error";
+        public const string Invalid_Zip_File = "Invalid_Zip_File";
+        public const string Invalid_XML = "Invalid_XML";
+        public const string Invalid_PDF = "Invalid_PDF";
+        public const string Missing_PDF = "Missing_PDF";
+        public const string Mailing_Address_Missing_Or_Invalid = "Mailing_Address_Missing_Or_Invalid";
+        public const string Recipient_Name_Missing_Or_Invalid = "Recipient_Name_Missing_Or_Invalid";
+        public const string Unknown_Error = "Unknown_Error";
+    }
+
+    public enum ShippingStatus
+    {
+        InProgress,
+        Aborted,
+        PulledBack,
+        Error,
+        Shipped,
+        Unknown
     }
 }
