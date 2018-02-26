@@ -9,7 +9,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AM.Services.IdentityStores
+namespace AM.Services
 {
     public class UserStore<TUser> : ServiceBase,
         IUserLoginStore<TUser>,
