@@ -278,7 +278,7 @@
                 }
                 else {
                     var htmlstr = "<div class='alert alert-red'><span>" + response.ErrorMessage + "</span></h1></div>";
-                    htmlstr += '<br><blockquote class=""><p>For advance search click  @Html.ActionLink("here", "PullBack", "PullBackRequest") </P></blockquote>';
+                    htmlstr += '<br><blockquote class=""><p><i class="fa fa-search"></i> @Html.ActionLink("Advance Search", "PullBack", "PullBackRequest") </P></blockquote>';
                     el.html(htmlstr);
                 }
                 //SendPullBackRequest(res)
