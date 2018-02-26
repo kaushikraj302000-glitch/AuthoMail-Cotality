@@ -44,4 +44,14 @@ namespace AM.Entities
         public const string Recipient_Name_Missing_Or_Invalid = "Recipient_Name_Missing_Or_Invalid";
         public const string Unknown_Error = "Unknown_Error";
     }
+
+    public enum ShippingStatus
+    {
+        InProgress,
+        Aborted,
+        PulledBack,
+        Error,
+        Shipped,
+        Unknown
+    }
 }
