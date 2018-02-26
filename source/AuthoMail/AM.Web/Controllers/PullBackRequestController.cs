@@ -28,7 +28,7 @@ namespace AM.Web.Controllers
         {
             ViewBag.Date = string.Format("{0} To {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
 
-            var model = repoSvc.GetPullBackRequestList(loanNumber, docType, startDate, endDate);
+            var model = repoSvc.GetPullBackRequestList(loanNumber, docType, startDate, endDate, 3);
             return PartialView(model);
         }
     }

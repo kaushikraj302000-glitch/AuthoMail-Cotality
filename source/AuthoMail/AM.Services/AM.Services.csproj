@@ -82,7 +82,6 @@
     <Compile Include="Services\ReportService.cs" />
     <Compile Include="Utilities\Common.cs" />
     <Compile Include="Utilities\Config.cs" />
-    <Compile Include="Utilities\Extensions.cs" />
     <Compile Include="Utilities\JsonResponseFactory.cs" />
   </ItemGroup>
   <ItemGroup>
