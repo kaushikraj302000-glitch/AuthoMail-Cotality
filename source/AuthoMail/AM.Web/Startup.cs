@@ -25,9 +25,6 @@ namespace AM.Web
             var builder = new ContainerBuilder();
             var config = GlobalConfiguration.Configuration;
 
-            //Register DbConnection
-            builder.Register<DbConnection>(d => DbFactory.Create()).InstancePerRequest();
-
             builder.RegisterControllers(typeof(MvcApplication).Assembly);
             //Register WebAPi Controllers
             builder.RegisterApiControllers(Assembly.GetExecutingAssembly());
