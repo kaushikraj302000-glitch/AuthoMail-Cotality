@@ -76,6 +76,7 @@
   </xs:complexType>
   <xs:complexType name="Metadata">
     <xs:attribute name="Key" type="tns:nonEmptyString" use="required" />
+    <xs:attribute name="DataType" type="tns:DataType" use="required" />
     <xs:attribute name="Value" type="xs:string" use="required" />
   </xs:complexType>
   <xs:simpleType name="Priority">
@@ -83,6 +84,15 @@
       <xs:enumeration value="High" />
       <xs:enumeration value="Medium" />
       <xs:enumeration value="Low" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="DataType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="String" />
+      <xs:enumeration value="DateTime" />
+      <xs:enumeration value="Boolean" />
+      <xs:enumeration value="Integer" />
+      <xs:enumeration value="Float" />
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name="guid">

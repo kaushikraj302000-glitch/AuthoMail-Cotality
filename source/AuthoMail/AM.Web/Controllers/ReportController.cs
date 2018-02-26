@@ -27,7 +27,7 @@ namespace AM.Web.Controllers
         public ActionResult _GetBatchList(string loanNumber, string docType, DateTime startDate, DateTime endDate)
         {
             ViewBag.BatchId = loanNumber;
-            ViewBag.Date = string.Format("{0} - {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
+            ViewBag.Date = string.Format("{0} To {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
 
             var model = repoSvc.GetSummeryControlReport(3, startDate, endDate,loanNumber, docType);
             return PartialView(model);
@@ -44,7 +44,7 @@ namespace AM.Web.Controllers
         [HttpPost]
         public ActionResult _MonthReconReport(string loanNumber, string docType, DateTime startDate, DateTime endDate)
         {
-            ViewBag.Date = string.Format("{0} - {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
+            ViewBag.Date = string.Format("{0} To {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
             var model = repoSvc.GetMailPieceByParam(loanNumber,docType,startDate,endDate);
             return PartialView("_GetMailPieceList", model);
         }
@@ -63,7 +63,7 @@ namespace AM.Web.Controllers
         [HttpPost]
         public ActionResult _GetDeliveryReport(string loanNumber, string docType, DateTime startDate, DateTime endDate)
         {
-            ViewBag.Date = string.Format("{0} - {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
+            ViewBag.Date = string.Format("{0} To {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
             var model = repoSvc.GetDeliveryByParam(loanNumber, docType, startDate, endDate);
             return PartialView(model);
         }
@@ -75,7 +75,7 @@ namespace AM.Web.Controllers
         [HttpPost]
         public ActionResult _GetErrorsReport(string loanNumber, string docType, DateTime startDate, DateTime endDate)
         {
-            ViewBag.Date = string.Format("{0} - {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
+            ViewBag.Date = string.Format("{0} To {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
             var model = repoSvc.GetErroReportByParam(loanNumber, docType, startDate, endDate);
             return PartialView(model);
         }

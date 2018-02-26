@@ -26,7 +26,7 @@ namespace AM.Web.Controllers
         [HttpPost]
         public ActionResult _GetMailPieceList(string loanNumber, string docType, DateTime startDate, DateTime endDate)
         {
-            ViewBag.Date = string.Format("{0} - {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
+            ViewBag.Date = string.Format("{0} To {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
 
             var model = repoSvc.GetPullBackRequestList(loanNumber, docType, startDate, endDate);
             return PartialView(model);

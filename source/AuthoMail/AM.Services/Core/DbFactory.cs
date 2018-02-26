@@ -17,7 +17,7 @@ namespace AM.Services
         /// <returns></returns>
         internal static DbConnection Create()
         {
-            return Create("AuthoMail");
+            return Create("DefaultConnection");
         }
 
         /// <summary>
