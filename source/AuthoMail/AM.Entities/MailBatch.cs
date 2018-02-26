@@ -189,6 +189,9 @@ namespace AM.Entities
         public string Key { get; set; }
 
         [XmlAttribute]
+        public DataType DataType { get; set; }
+
+        [XmlAttribute]
         public string Value { get; set; }
     }
 
@@ -199,5 +202,16 @@ namespace AM.Entities
         High,
         Medium,
         Low
+    }
+
+    [Serializable]
+    [XmlType(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0")]
+    public enum DataType
+    {
+        String,
+        DateTime,
+        Boolean,
+        Integer,
+        Float
     }
 }
