@@ -283,7 +283,7 @@ namespace AM.Console
                 {
                     foreach (XmlNode loan in loans)
                     {
-                        AMMailPiece mailPiece = null;
+                        MailPieceDTO mailPiece = null;
                         List<MailPieceCustomInfo> mailPieceCustomInfos = null;
                         PackageInfo package = null;
                         ValidationResultAMC parsingResult = null;
@@ -343,7 +343,7 @@ namespace AM.Console
                                 #endregion
 
                                 #region AMMailPiece Data
-                                mailPiece = new AMMailPiece();
+                                mailPiece = new MailPieceDTO();
                                 mailPiece.BatchClustId = batch.BatchClustId;
                                 mailPiece.Id = package.Id;
                                 mailPiece.FileName = package.File;
@@ -471,7 +471,7 @@ namespace AM.Console
                             }
                             else
                             {
-                                mailPiece = new AMMailPiece();
+                                mailPiece = new MailPieceDTO();
                                 mailPiece.ErrorCode = OutComeCodes.Invalid_XML_file.ToString();
                                 mailPiece.ErrorDesc = err.Message;
                                 mailPiece.BatchClustId = batch.BatchClustId;
@@ -550,7 +550,7 @@ namespace AM.Console
                             }
                             else
                             {
-                                mailPiece = new AMMailPiece();
+                                mailPiece = new MailPieceDTO();
                                 mailPiece.ErrorCode = OutComeCodes.UNKNOWN_error.ToString();
                                 mailPiece.ErrorDesc = err.Message;
                                 mailPiece.BatchClustId = batch.BatchClustId;
@@ -593,7 +593,7 @@ namespace AM.Console
                             #region other Error 
                             if (parsingResult.Code != OutComeCodes.No_error)
                             {
-                                mailPiece = new AMMailPiece();
+                                mailPiece = new MailPieceDTO();
                                 mailPiece.ErrorCode = OutComeCodes.UNKNOWN_error.ToString();
                                 mailPiece.ErrorDesc = parsingResult.ErrorMessage;
                                 mailPiece.BatchClustId = batch.BatchClustId;
@@ -635,7 +635,7 @@ namespace AM.Console
                     }
                 }
                 #endregion
-                List<AMMailPiece> mailPieces = mailPieceSvc.GetMailPiecesByBatchClustId(batch.BatchClustId);
+                List<MailPieceDTO> mailPieces = mailPieceSvc.GetMailPiecesByBatchClustId(batch.BatchClustId);
                 //// TotalLoans is valid loans of this batch. Update the count and add barcode for each loan.
                 //if (mailPieces.Count > 0)
                 //{

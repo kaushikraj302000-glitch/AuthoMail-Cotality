@@ -144,11 +144,11 @@ namespace AM.Console
 
                 if (processXML.MailPieces != null && processXML.MailPieces.Count > 0)
                 {
-                    List<AMMailPiece> amMailPieces = new List<AMMailPiece>();
+                    List<MailPieceDTO> amMailPieces = new List<MailPieceDTO>();
                     Dictionary<string, string> archiveFileList = new Dictionary<string, string>();
                     foreach (MailPiece mailPiece in processXML.MailPieces)
                     {
-                        AMMailPiece amMailPiece = new AMMailPiece();
+                        MailPieceDTO amMailPiece = new MailPieceDTO();
                         amMailPiece.Id = mailPiece.Id;
                         amMailPiece.BatchClustId = mailBatch.BatchClustId;
                         amMailPiece.BusinessFriendlyIdName = mailPiece.BusinessFriendlyIdName;
