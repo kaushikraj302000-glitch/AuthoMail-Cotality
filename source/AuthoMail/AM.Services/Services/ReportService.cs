@@ -30,7 +30,7 @@ namespace AM.Services
         //List<MonthlyReconReport> GetMailPieceByLoanNo(string loanNo);
         // List<SummaryControlReport> GetSummaryControlByLoanNo(string loanNo,int clientId);
         List<DocumentType> GetDocTypeList();
-        List<PullBackResponse> GetPullBackResponseList(List<string> mailPieceIds, int clientId);
+        List<QuickPullBackResponse> GetQuickPullBackResponse(List<string> mailPieceIds, int clientId);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -208,12 +208,12 @@ namespace AM.Services
         }
 
 
-        public List<PullBackResponse> GetPullBackResponseList(List<string> mailPieceIds, int clientId)
+        public List<QuickPullBackResponse> GetQuickPullBackResponse(List<string> mailPieceIds, int clientId)
         {
-            string query = ReportServiceQuery.GetPullBackResponseList;
+            string query = ReportServiceQuery.GetQuickPullBackResponse;
             //Dictionary<string, object> parameters = new Dictionary<string, object>();
             //parameters.Add("@clientId", clientId);
-            var response = db.Query<PullBackResponse>(query, new { clientId = clientId, mailPieceIds = mailPieceIds }).ToList();
+            var response = db.Query<QuickPullBackResponse>(query, new { clientId = clientId, mailPieceIds = mailPieceIds }).ToList();
             return response;
         }
     }
@@ -228,6 +228,6 @@ namespace AM.Services
         public static string GetPullBackRequestList = "select m.[Id] as [MailPieceId],m.BusinessFriendlyIdValue as [LoanNo],[FileName],m.DocumentOrPackageType,m.[RcptPrefix],m.[RcptFirstName],m.[RcptMiddleName],m.[RcptLastName],[RcptSuffix],m.RcptAddressStreet,m.RcptAddressCity,m.RcptAddressState,m.RcptAddressZIP,b.ReceivedOn,m.TotalPages,m.TrackingNo,m.[ShippingStatus] as [Status],m.ShippedOn as [PrintedOn],d.ShippingCarrier as [ShippingMethod],m.[RetRcptAddrOptionalLine1AboveStreet],m.[RetRcptAddrOptionalLine2AboveStreet],m.[RetRcptAddressStreet],m.[RetRcptAddressAptOrSuiteOrOther],m.[RetRcptAddrOptionalLine1BelowStreet],m.[RetRcptAddrOptionalLine2BelowStreet],m.[RetRcptAddressCity],m.[RetRcptAddressState],m.[RetRcptAddressZIP] from [AM].[MailPiece] m,[AM].[Batch] b left outer join [AM].[DocTypes] d on d.ClientId=b.ClientId where (m.BatchClustId=b.BatchClustId) and b.ClientId=@clientId AND (cast(b.ReceivedOn as date)>=@startDate and cast(b.ReceivedOn as date)<=@endDate)";
         public static string GetMailPieceIdFromLoanNo = "select m.Id as [MailPieceId] from [AM].[Batch] b,[AM].[MailPiece] m where b.BatchClustId =m.BatchClustId and ((cast(ReceivedOn as date)=cast(GETDATE() as date) or (m.ShippingStatus=@shippingStatus and b.PipelineStatus=@pipelineStatus))) and b.BusinessFriendlyIdValue=@loanNo AND b.ClientId=@clientId";
         public static string GetQuickPullBackResponseFromLoanNo = "select m.Id as [MailPieceId],[IsPullBackRequested],[PullBackRequestedOn] from [AM].[Batch] b,[AM].[MailPiece] m where b.BatchClustId =m.BatchClustId and b.BusinessFriendlyIdValue=@loanNo AND b.ClientId=@clientId";
-        public static string GetPullBackResponseList = "select m.Id as [MailPieceId],b.BatchClustId as [BatchId],m.[FileName] as [FileName],b.[BatchName],b.BusinessFriendlyIdValue as [LoanNo],b.ReceivedOn from [AM].[MailPiece] m,[AM].[Batch] b where m.BatchClustId=b.BatchClustId and b.ClientId=@clientId and m.Id IN @mailPieceIds";
+        public static string GetQuickPullBackResponse = "select m.Id as [MailPieceId],b.BatchClustId as [BatchId],m.[FileName] as [FileName],b.[BatchName],b.BusinessFriendlyIdValue as [LoanNo],b.ReceivedOn from [AM].[MailPiece] m,[AM].[Batch] b where m.BatchClustId=b.BatchClustId and b.ClientId=@clientId and m.Id IN @mailPieceIds";
     }
 }
