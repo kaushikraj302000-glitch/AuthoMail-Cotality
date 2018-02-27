@@ -39,17 +39,23 @@
                     {
                         <tr class="row-small">
                             <td>
-                                @*@switch (item.Status)
-                                    {
-                                        case "":
-                                            <input type="checkbox" id="checkbox-demo_@(cnt)" data-mailpieceid="@item.MailPieceId" class="cl-check checkall" />
-                                            <label for="checkbox-demo_@(cnt)"></label>
-                                            break;
-                                        default:
-                                            break;
-                                    }*@
-                                <input type="checkbox" id="checkbox-demo_@(cnt)" data-mailpieceid="@item.MailPieceId" class="cl-check checkall" />
-                                <label for="checkbox-demo_@(cnt)"></label>
+                                @switch (item.Status)
+                                {
+                                    case "Aborted":
+                                    case "PulledBack":
+                                    case "Error":
+                                    case "Shipped":
+                                        <input type="checkbox" disabled id="checkbox-demo_@(cnt)" data-mailpieceid="@item.MailPieceId" class="cl-check" />
+                                        <label for="checkbox-demo_@(cnt)"></label>
+                                        break;
+                                    case "InProgress":
+                                    <input type="checkbox" id="checkbox-demo_@(cnt)" data-mailpieceid="@item.MailPieceId" class="cl-check checkall" />
+                                    <label for="checkbox-demo_@(cnt)"></label>
+                                        break;
+                                    
+                                }
+                                @*<input type="checkbox" id="checkbox-demo_@(cnt)" data-mailpieceid="@item.MailPieceId" class="cl-check checkall" />
+                                <label for="checkbox-demo_@(cnt)"></label>*@
                             </td>
                             <td><span>@cnt</span></td>
                             <td><span>@item.LoanNo</span></td>
@@ -61,10 +67,31 @@
                             <td><span>@item.TotalPages</span></td>
                             @*<td><span>@item.ShippingMethod</span></td>*@
                             <td><span>@item.TrackingNo</span></td>
-                            <td><span>@item.Status</span></td>
+                            <td>
+                                @switch (item.Status)
+                                {
+                                    case "Aborted":
+                                        <span class="label medium label-warning">@item.Status</span>
+                                        break;
+                                    case "PulledBack":
+                                    <span class="label medium label-red">@item.Status</span>
+                                        break;
+                                    case "Error":
+                                    <span class="label medium label-red">@item.Status</span>
+                                        break;
+                                    case "Shipped":
+                                    <span class="label medium label-success">@item.Status</span>
+                                        break;
+                                    case "InProgress":
+                                    <span class="label medium label-blue">@item.Status</span>
+                                        break;
+
+                                }
+
+                            </td>
                         </tr>
 
-                        cnt++;
+                                cnt++;
                     }
                 </tbody>
 
@@ -189,7 +216,7 @@
                     if (response.Object != null) {
                         var msgAdd = "<ul>";
 
-                        for (var i = 1; i < response.Object.length; i++) {
+                        for (var i = 0; i < response.Object.length; i++) {
                             if (response.Object[i] != "" || response.Object[i] == "undefined") {
                                 if (response.Object[i].IsSuccess) {
 
