@@ -30,16 +30,15 @@ namespace AM.Web.Controllers
         [HttpPost]
         public ActionResult GetMailPieceIdByLoanNumber(string loanNumber)
         {
-            var model = repoSvc.GetMailPieceIdFromLoanNo(loanNumber, 3);
+            var model = repoSvc.GetQuickPullBackResponseFromLoanNo(loanNumber, 3);
             if (model.Count > 1)
-            //if (model.Count != 1)
             {
                 return Json("PullBack", JsonRequestBehavior.AllowGet);
             }
             else
             {
                 PullBackApiController pullBackAPI = new PullBackApiController(pullBackSvc);
-                var data = pullBackAPI.GeneratePullBackRequest(model);
+                var data = pullBackAPI.GeneratePullBackRequest(model.Select(m=>m.MailPieceId).ToList());
                 return Json(data, JsonRequestBehavior.AllowGet);
             }
         }

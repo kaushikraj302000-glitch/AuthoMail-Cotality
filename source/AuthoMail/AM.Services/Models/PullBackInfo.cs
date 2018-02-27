@@ -85,4 +85,13 @@ namespace AM.Services
             }
         }
     }
+    public class QuickPullBackResponse
+    {
+        public string BatchId { get; set; }
+        public string BatchName { get; set; }
+        public string MailPieceId { get; set; }
+        public DateTime ReceivedOn { get; set; }
+        public string LoanNo { get; set; }
+        public string FileName { get; set; }
+    }
 }
