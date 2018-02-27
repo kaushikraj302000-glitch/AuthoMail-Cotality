@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Dapper;
 using System.Data;
+using AM.Services.Models;
 
 namespace AM.Services
 {
@@ -23,6 +24,7 @@ namespace AM.Services
         //Pullback Request
         List<PullBackInfo> GetPullBackRequestList(string loanNo, string docType, DateTime startDate, DateTime endDate, int clientId);
         List<string> GetMailPieceIdFromLoanNo(string loanNo, int clientId);
+        List<QuickPullBackResponse> GetQuickPullBackResponseFromLoanNo(string loanNo, int clientId);
 
         //List<MonthlyReconReport> GetMailPieceByLoanNo(string loanNo);
         // List<SummaryControlReport> GetSummaryControlByLoanNo(string loanNo,int clientId);
@@ -192,12 +194,20 @@ namespace AM.Services
             return mailPieces;
         }
 
-
-
-
         //public List<SupplyInventory> GetSupplyInventory(DateTime startDate, DateTime endDate)
         //{
         //    throw new NotImplementedException();
         //}
+
+
+        public List<QuickPullBackResponse> GetQuickPullBackResponseFromLoanNo(string loanNo, int clientId)
+        {
+            string query = "select m.Id as [MailPieceId],[IsPullBackRequested],[PullBackRequestedOn] from [AM].[Batch] b,[AM].[MailPiece] m where b.BatchClustId =m.BatchClustId and b.BusinessFriendlyIdValue=@loanNo AND b.ClientId=@clientId";
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
+            parameters.Add("@loanNo", loanNo);
+            parameters.Add("@clientId", clientId);
+            var mailPieces = db.Query<QuickPullBackResponse>(query, parameters).ToList();
+            return mailPieces;
+        }
     }
 }

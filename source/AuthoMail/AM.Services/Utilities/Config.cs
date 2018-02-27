@@ -13,10 +13,10 @@ namespace AM.Services
         {
             Msg = new Dictionary<string, string>();
             ConfigService cs = new ConfigService();
-            var data = cs.GetSharedStrings();
-            foreach (var item in data)
+            var messages = cs.GetSharedStrings();
+            foreach (var message in messages)
             {
-                Msg.Add(item.Key, item.Value);
+                Msg.Add(message.Key, message.Value);
             }            
         }
     }
