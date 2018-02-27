@@ -48,7 +48,6 @@ namespace AM.Entities
     public enum ShippingStatus
     {
         InProgress,
-        Aborted,
         PulledBack,
         Error,
         Shipped,
