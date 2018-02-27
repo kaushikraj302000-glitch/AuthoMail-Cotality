@@ -118,4 +118,10 @@ namespace AM.Services.Models
         public string DocumentOrPackageType { get; set; }
         public string DownloadedFilePath { get; set; }
     }
+    public class QuickPullBackResponse
+    {
+        public string MailPieceId { get; set; }
+        public bool IsPullBackRequested { get; set; }
+        public DateTime? PullBackRequestedOn { get; set; }
+    }
 }
