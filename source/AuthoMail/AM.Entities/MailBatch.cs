@@ -15,10 +15,7 @@ namespace AM.Entities
         public Guid Id { get; set; }
 
         [XmlAttribute]
-        public string BusinessFriendlyIdName { get; set; }
-
-        [XmlAttribute]
-        public string BusinessFriendlyIdValue { get; set; }
+        public string ClientBatchId { get; set; }
 
         [XmlAttribute]
         public string ChannelCode { get; set; }
