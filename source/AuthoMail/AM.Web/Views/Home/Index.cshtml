@@ -11,10 +11,10 @@
 <div class="col-md-6">
     <div class="panel panel-default ">
         <div class="panel-heading">
-            <div class="panel-title">Today Batch Details</div>
+            <div class="panel-title">Today's MailPiece Details</div>
         </div>
         <div class="panel-body panel-gray ">
-            <div id="container"></div>
+            <div id="todayChart"></div>
         </div>
 
     </div>
@@ -26,7 +26,7 @@
             <div class="panel-title">Weekly Batch Details</div>
         </div>
         <div class="panel-body panel-gray">
-            <div id="barchart_values"></div>
+            <div id="weeklyChart"></div>
 
         </div>
     </div>
@@ -88,7 +88,7 @@
         <div class="modal-content">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal-header">
-                <h1 id="myModalLabel">Batch Details</h1>
+                <h1 id="myModalLabel">MailPiece Details</h1>
             </div>
             <div class="modal-body">
 
@@ -169,7 +169,7 @@
             };
 
             // Instantiate and draw the chart.
-            var chart = new google.visualization.BarChart(document.getElementById('barchart_values'));
+            var chart = new google.visualization.BarChart(document.getElementById('weeklyChart'));
             function selectHandler() {
                 var selectedItem = chart.getSelection()[0];
                 console.log(chart.getSelection()[0]);
@@ -191,31 +191,40 @@
 
         function drawChart1() {
             // Define the chart to be drawn.
-            var data = new google.visualization.DataTable();
-            data.addColumn('string', 'Status');
-            data.addColumn('number', 'Percentage');
-            data.addRows([
-               ['InProgress', 10.0],
-               ['Error', 25.8],
-               ['Shipped', 64.2]
+            var data = google.visualization.arrayToDataTable([
+                ['Date', 'InProgress', 'Error', 'Shipped'],
+                [moment().subtract('days', 7).format('ddd'), 2, 3, 8],
+                [moment().subtract('days', 6).format('ddd'), 1, 2, 9],
+                [moment().subtract('days', 5).format('ddd'), 3, 1, 10],
+                [moment().subtract('days', 4).format('ddd'), 0, 4, 15],
+                [moment().subtract('days', 3).format('ddd'), 1, 0, 13],
+                [moment().subtract('days', 2).format('ddd'), 2, 2, 12],
+                [moment().subtract('days', 1).format('ddd'), 8, 1, 3]
             ]);
 
-            // Set chart options
             var options = {
-                'title': 'Batch Details ' + moment().format('MMM DD, YYYY'),
-                //'width': 550,
+                title: 'Batch Details: ' + moment().subtract('days', 7).format('MM/DD/YYYY') + " - " + moment().format('MM/DD/YYYY'),
+                isStacked: true,
                 'height': 300,
-                colors: ['#36c', '#dc3912', '#109618'],
-                is3D: true
+                legend: { position: 'top', maxLines: 3 },
+                series: {
+                    0: { color: '#36c' },
+                    1: { color: '#dc3912' },
+                    2: { color: '#109618' }
+                }
             };
 
             // Instantiate and draw the chart.
-            var chart = new google.visualization.PieChart(document.getElementById('container'));
+            var chart = new google.visualization.BarChart(document.getElementById('todayChart'));
             function selectHandler() {
                 var selectedItem = chart.getSelection()[0];
+                console.log(chart.getSelection()[0]);
+
                 if (selectedItem) {
                     var topping = data.getValue(selectedItem.row, 0);
-                    alert('The user selected ' + topping);
+
+                    var columnName = data.getColumnLabel(selectedItem.column);
+                    alert(columnName + 'The user selected ' + topping);
                     var ids = [1, 2, 3, 7];
                     GetChartDataByStatusAndBatchIds(topping, ids)
                 }
