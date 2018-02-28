@@ -126,10 +126,7 @@ namespace AM.Services
         public List<MonthlyReconReport> GetMailPieceByBatchId(int batchId, int clientId)
         {
             string query = ReportServiceQuery.GetMailPieceByBatchId;
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@batchId", batchId);
-            parameters.Add("@clientId", clientId);
-            var data = db.Query<MonthlyReconReport>(query, parameters).ToList();
+            var data = db.Query<MonthlyReconReport>(query, new { batchId = batchId, clientId = clientId }).ToList();
             return data;
         }
         //public List<MonthlyReconReport> GetMailPieceByLoanNo(string loanNo)
@@ -200,10 +197,7 @@ namespace AM.Services
         public List<QuickPullBackResponse> GetQuickPullBackResponseFromLoanNo(string loanNo, int clientId)
         {
             string query = ReportServiceQuery.GetQuickPullBackResponseFromLoanNo;
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@loanNo", loanNo);
-            parameters.Add("@clientId", clientId);
-            var mailPieces = db.Query<QuickPullBackResponse>(query, parameters).ToList();
+            var mailPieces = db.Query<QuickPullBackResponse>(query, new { loanNo = loanNo, clientId = clientId }).ToList();
             return mailPieces;
         }
 
@@ -211,8 +205,6 @@ namespace AM.Services
         public List<QuickPullBackResponse> GetQuickPullBackResponse(List<string> mailPieceIds, int clientId)
         {
             string query = ReportServiceQuery.GetQuickPullBackResponse;
-            //Dictionary<string, object> parameters = new Dictionary<string, object>();
-            //parameters.Add("@clientId", clientId);
             var response = db.Query<QuickPullBackResponse>(query, new { clientId = clientId, mailPieceIds = mailPieceIds }).ToList();
             return response;
         }
