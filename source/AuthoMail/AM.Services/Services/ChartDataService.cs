@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Dapper;
 
-namespace AM.Services.Services
+namespace AM.Services
 {
     public interface IChartDataService
     {
