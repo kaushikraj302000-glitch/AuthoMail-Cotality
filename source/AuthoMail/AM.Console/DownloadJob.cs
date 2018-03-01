@@ -108,8 +108,8 @@ namespace AM.Console
                 mailBatch.Id = processXML.Id;
                 mailBatch.Priority = processXML.Priority.GetStringValue();
                 mailBatch.DocumentOrPackageType = processXML.DocumentOrPackageType;
-                mailBatch.BusinessFriendlyIdName = processXML.BusinessFriendlyIdName != null ? processXML.BusinessFriendlyIdName : "";
-                mailBatch.BusinessFriendlyIdValue = processXML.BusinessFriendlyIdValue != null ? processXML.BusinessFriendlyIdValue : "";
+                //mailBatch.BusinessFriendlyIdName = processXML.BusinessFriendlyIdName != null ? processXML.BusinessFriendlyIdName : "";
+                //mailBatch.BusinessFriendlyIdValue = processXML.BusinessFriendlyIdValue != null ? processXML.BusinessFriendlyIdValue : "";
                 mailBatch.BatchName = batchName;
                 if (processXML.ReturnInfo != null)
                 {
