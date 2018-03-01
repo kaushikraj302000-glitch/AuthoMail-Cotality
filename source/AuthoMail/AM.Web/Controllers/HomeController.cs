@@ -7,7 +7,6 @@ using System.Web.Mvc;
 using Microsoft.AspNet.Identity;
 using System.Security.Claims;
 using AM.Entities.IdentityModels;
-using AM.Services.Services;
 
 namespace AM.Web.Controllers
 {
