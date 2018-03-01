@@ -9,7 +9,7 @@ namespace AM.Services
     public class MonthlyReconReport
     {
         public int MailPieceId { get; set; }
-        public string MailPieceUniqueId { get; set; }
+        public Guid MailPieceUniqueId { get; set; }
         public string Channel { get; set; }//Todo
         public string BatchDocumentOrPackageType { get; set; }
         public string MailPieceDocumentOrPackageType { get; set; }
@@ -78,9 +78,9 @@ namespace AM.Services
     public class SummaryControlReport
     {
         public int BatchId { get; set; }
-        public string BatchUniqueId { get; set; }
+        public Guid BatchUniqueId { get; set; }
         public int MailPieceId { get; set; }
-        public string MailPieceUniqueId { get; set; }
+        public Guid MailPieceUniqueId { get; set; }
         public string Channel { get; set; }//Todo
         public string BatchDocumentOrPackageType { get; set; }
         public string MailPieceDocumentOrPackageType { get; set; }
@@ -155,9 +155,9 @@ namespace AM.Services
     public class ErrorReport
     {
         public int BatchId { get; set; }
-        public string BatchUniqueId { get; set; }
+        public Guid BatchUniqueId { get; set; }
         public int MailPieceId { get; set; }
-        public string MailPieceUniqueId { get; set; }
+        public Guid MailPieceUniqueId { get; set; }
         public string Channel { get; set; }//Todo
         public string BatchDocumentOrPackageType { get; set; }
         public string MailPieceDocumentOrPackageType { get; set; }
@@ -222,9 +222,9 @@ namespace AM.Services
     public class DeliveryReport
     {
         public int BatchId { get; set; }
-        public string BatchUniqueId { get; set; }
+        public Guid BatchUniqueId { get; set; }
         public int MailPieceId { get; set; }
-        public string MailPieceUniqueId { get; set; }
+        public Guid MailPieceUniqueId { get; set; }
         public string Channel { get; set; }//Todo
         public string BatchDocumentOrPackageType { get; set; }
         public string MailPieceDocumentOrPackageType { get; set; }
