@@ -9,7 +9,7 @@ namespace AM.Services
     public class PullBackInfo
     {
         public int MailPieceId { get; set; }
-        public string MailPieceUniqueId { get; set; }
+        public Guid MailPieceUniqueId { get; set; }
         public string BusinessFriendlyIdValue { get; set; }
         public string BusinessFriendlyIdName { get; set; }
         public string BatchDocumentOrPackageType { get; set; }
@@ -112,10 +112,10 @@ namespace AM.Services
     public class QuickPullBackResponse
     {
         public int BatchId { get; set; }
-        public string BatchUniqueId { get; set; }
+        public Guid BatchUniqueId { get; set; }
         public string BatchName { get; set; }
         public int MailPieceId { get; set; }
-        public string MailPieceUniqueId { get; set; }
+        public Guid MailPieceUniqueId { get; set; }
         public DateTime ReceivedOn { get; set; }
         public string BusinessFriendlyIdName { get; set; }
         public string BusinessFriendlyIdValue { get; set; }
