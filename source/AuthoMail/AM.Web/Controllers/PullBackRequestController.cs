@@ -12,10 +12,12 @@ namespace AM.Web.Controllers
         // GET: PullBackRequest
         IHomeService homeSvc;
         IReportService repoSvc;
-        public PullBackRequestController(IHomeService homeSvc, IReportService repoSvc)
+        IPullBackService pullBackSvc;
+        public PullBackRequestController(IHomeService homeSvc, IReportService repoSvc, IPullBackService pullBackSvc)
         {
             this.homeSvc = homeSvc;
             this.repoSvc = repoSvc;
+            this.pullBackSvc = pullBackSvc;
         }
         public ActionResult PullBack(string loanNumber)
         {
@@ -28,7 +30,7 @@ namespace AM.Web.Controllers
         {
             ViewBag.Date = string.Format("{0} To {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
 
-            var model = repoSvc.GetPullBackRequestList(loanNumber, docType, startDate, endDate, 3);
+            var model = pullBackSvc.GetPullBackRequestList(loanNumber, docType, startDate, endDate, 3);
             return PartialView(model);
         }
     }
