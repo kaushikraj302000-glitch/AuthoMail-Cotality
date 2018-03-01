@@ -44,7 +44,7 @@
                     <i class="fa fa-search left-icon"></i>
                     <input class="form-control" name="loanNumber" placeholder="Loan Number" required id="loanNumber">
                 </div>
-            <div class="text-red pull-left" style="display:none" id="loanNumberEmpty">This field is required.</div>
+                <div class="text-red pull-left" style="display:none" id="loanNumberEmpty">This field is required.</div>
             </div>
             <div class="form-group text-center col-md-4">
 
@@ -118,6 +118,26 @@
     </div>
 </div>
 <div id="charDatatable" style="display:none"></div>
+<div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <div class="modal-header">
+                <h2 id="myModalLabel"> Are you sure you want to do pullback?</h2>
+                <hr />
+                <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> No</button>
+                <button type="button" class="btn btn-primary" id="yesPullback"><i class="fa fa-check"></i> Yes</button>
+            </div>
+            @*<div class="modal-body">
+                    Are you sure you want do pullback?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+                    <button type="button" class="btn btn-primary" id="yesPullback">Yes</button>
+                </div>*@
+        </div>
+    </div>
+</div>
 @section Scripts{
     @Styles.Render("~/bundles/datatablescss")
     @Scripts.Render("~/bundles/datatables")
@@ -284,47 +304,53 @@
         }
 
         $("#pullback").click(function (e) {
-            console.log(baseUrl);
-            e.preventDefault();
             if ($("#loanNumber").val() != "") {
                 $("#loanNumberEmpty").hide();
-                var el = $('.modal-body');
-                var loanNumber = $("#loanNumber").val();
-                console.log(loanNumber);
-                $.ajax({
-                    type: "POST",
-                    url: baseUrl + "Home/GetMailPieceIdByLoanNumber",//?loanNumber=" + loanNumber,
-                    data: JSON.stringify({ loanNumber: loanNumber }),
-                    contentType: "application/json; charset=utf-8",
-                    success: function (response) {
-                        console.log(response);
-                        if (response == "PullBack") {
-                            window.location = baseUrl + 'PullBackRequest/PullBack?loanNumber=' + loanNumber;
-                        }
-                        if (response.Success) {
-                            if (response.Object != null) {
-                                el.html(response.Object);
-                            }
-                        }
-                        else {
-                            var htmlstr = "<div class='alert alert-red'><span>" + response.ErrorMessage + "</span></h1></div>";
-                            htmlstr += '<br><blockquote class=""><p><i class="fa fa-search"></i> @Html.ActionLink("Advance Search", "PullBack", "PullBackRequest") </P></blockquote>';
-                            el.html(htmlstr);
-                        }
-                        //SendPullBackRequest(res)
-                        $("#myModal").modal("show");
-                    },
-                    error: function (xhr, ajaxOptions, thrownError) {
-                        var msg = 'Error on reloading the content. Please check your connection and try again.';
-                        // el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
-                        $("#myModal").modal("show");
-                    }
-
-                });
-
+                $("#confirmModal").modal("show");
             } else {
                 $("#loanNumberEmpty").show();
             }
+        });
+        $("#yesPullback").click(function (e) {
+            $("#confirmModal").modal("hide");
+            console.log(baseUrl);
+            e.preventDefault();
+
+            var el = $('.modal-body');
+            var loanNumber = $("#loanNumber").val();
+            console.log(loanNumber);
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "Home/GetMailPieceIdByLoanNumber",//?loanNumber=" + loanNumber,
+                data: JSON.stringify({ loanNumber: loanNumber }),
+                contentType: "application/json; charset=utf-8",
+                success: function (response) {
+                    console.log(response);
+                    if (response == "PullBack") {
+                        window.location = baseUrl + 'PullBackRequest/PullBack?loanNumber=' + loanNumber;
+                    }
+                    if (response.Success) {
+                        if (response.Object != null) {
+                            el.html(response.Object);
+                        }
+                    }
+                    else {
+                        var htmlstr = "<div class='alert alert-red'><span>" + response.ErrorMessage + "</span></h1></div>";
+                        htmlstr += '<br><blockquote class=""><p><i class="fa fa-search"></i> @Html.ActionLink("Advance Search", "PullBack", "PullBackRequest") </P></blockquote>';
+                        el.html(htmlstr);
+                    }
+                    //SendPullBackRequest(res)
+                    $("#myModal").modal("show");
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    var msg = 'Error on reloading the content. Please check your connection and try again.';
+                    // el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    $("#myModal").modal("show");
+                }
+
+            });
+
+
         });
     </script>
 }

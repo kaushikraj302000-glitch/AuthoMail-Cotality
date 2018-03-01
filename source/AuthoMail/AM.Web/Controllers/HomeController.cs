@@ -7,6 +7,7 @@ using System.Web.Mvc;
 using Microsoft.AspNet.Identity;
 using System.Security.Claims;
 using AM.Entities.IdentityModels;
+using AM.Services.Services;
 
 namespace AM.Web.Controllers
 {
@@ -16,11 +17,13 @@ namespace AM.Web.Controllers
         IHomeService homeSvc;
         IReportService repoSvc;
         IPullBackService pullBackSvc;
-        public HomeController(IHomeService homeSvc, IReportService repoSvc, IPullBackService pullBackSvc)
+        IChartDataService chartDataSvc;
+        public HomeController(IHomeService homeSvc, IReportService repoSvc, IPullBackService pullBackSvc, IChartDataService chartDataSvc)
         {
             this.homeSvc = homeSvc;
             this.repoSvc = repoSvc;
             this.pullBackSvc = pullBackSvc;
+            this.chartDataSvc = chartDataSvc;
         }
         public ActionResult Index()
         {
@@ -54,8 +57,9 @@ namespace AM.Web.Controllers
             return PartialView();
         }
 
-        public ActionResult GetWeeklyChartData()
+        public ActionResult GetWeeklyChartData(DateTime startDate,DateTime endDate)
         {
+            var model = chartDataSvc.GetWeeklyChartData(startDate, endDate, User.Identity.GetClientId().Value);
             return Json(true, JsonRequestBehavior.AllowGet);
         }
 
