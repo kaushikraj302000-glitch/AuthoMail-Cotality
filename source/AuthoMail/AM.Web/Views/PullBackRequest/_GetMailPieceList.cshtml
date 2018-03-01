@@ -48,7 +48,7 @@
                                         <label for="checkbox-demo_@(cnt)"></label>
                                         break;
                                     case "InProgress":
-                                    <input type="checkbox" id="checkbox-demo_@(cnt)" data-mailpieceid="@item.MailPieceId" class="cl-check checkall" />
+                                    <input type="checkbox" id="checkbox-demo_@(cnt)" data-mailpieceid="@item.MailPieceUniqueId" class="cl-check checkall" />
                                     <label for="checkbox-demo_@(cnt)"></label>
                                         break;
                                     
@@ -191,7 +191,30 @@
         });
     });
     $("#pullback").click(function (e) {
+        var mailpieceIds = [];
+        var oTable = $('#sample_2').dataTable();
+        $(".checkall:checked", oTable.fnGetNodes()).each(function () {
+            mailpieceIds.push($(this).data("mailpieceid"));
+            //console.log($(this).data("mailpieceid"));
+
+        });
+        if (mailpieceIds.length == 0) {
+            window.clui.globalAlert({
+                message: 'Please select MailPiece.',
+                alertType: 'red',
+                //fontawesomeIcon: 'superpowers',
+                timeout: 5000
+            })
+            return;
+        }
+        else
+        {
+            $("#confirmModal").modal("show");
+        }
+    });
+    $("#yesPullback").click(function (e) {
         e.preventDefault();
+        $("#confirmModal").modal("hide");
         var oTable = $('#sample_2').dataTable();
         var mailpieceIds = [];
         $(".checkall:checked", oTable.fnGetNodes()).each(function () {
@@ -199,6 +222,7 @@
             //console.log($(this).data("mailpieceid"));
 
         });
+        
         var el = $('.modal-body');
         //el.html(mailpieceIds);
         $.ajax({
