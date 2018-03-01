@@ -8,10 +8,20 @@ namespace AM.Services
 {
     public class PullBackInfo
     {
-        public Guid MailPieceId { get; set; }
-        public string LoanNo { get; set; }
+        public int MailPieceId { get; set; }
+        public string MailPieceUniqueId { get; set; }
+        public string BusinessFriendlyIdValue { get; set; }
+        public string BusinessFriendlyIdName { get; set; }
+        public string BatchDocumentOrPackageType { get; set; }
+        public string MailPieceDocumentOrPackageType { get; set; }
+        public string DocumentOrPackageName
+        {
+            get
+            {
+                return BatchDocumentOrPackageType.IsNullOrWhiteSpace() ? MailPieceDocumentOrPackageType : BatchDocumentOrPackageType;
+            }
+        }
         public string FileName { get; set; }
-        public string DocumentOrPackageType { get; set; }
         public string RcptPrefix { get; set; }
         public string RcptFirstName { get; set; }
         public string RcptMiddleName { get; set; }
@@ -52,11 +62,25 @@ namespace AM.Services
             }
         }
         public DateTime? ReceivedOn { get; set; }
+        public DateTime? PrintedOn { get; set; }
         public int TotalPages { get; set; }//Pages Shipped
         public string ShippingMethod { get; set; }
-        public int TrackingNo { get; set; }
-        public string Status { get; set; }
+        public string TrackingNo { get; set; }
+        public string ShippingStatus { get; set; }
 
+        public string RetRcptPrefix { get; set; }
+        public string RetRcptFirstName { get; set; }
+        public string RetRcptMiddleName { get; set; }
+        public string RetRcptLastName { get; set; }
+        public string RetRcptSuffix { get; set; }
+        public string RetRecipientName
+        {
+            get
+            {
+                string name = string.Format("{0} {1} {2} {3} {4}", RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RetRcptSuffix);
+                return name.IsNullOrWhiteSpace() ? name : name.Trim();
+            }
+        }
         public string RetRcptOrganization { get; set; }
         public string RetRcptAddrOptionalLine1AboveStreet { get; set; }
         public string RetRcptAddrOptionalLine2AboveStreet { get; set; }
@@ -87,11 +111,14 @@ namespace AM.Services
     }
     public class QuickPullBackResponse
     {
-        public string BatchId { get; set; }
+        public int BatchId { get; set; }
+        public string BatchUniqueId { get; set; }
         public string BatchName { get; set; }
-        public string MailPieceId { get; set; }
+        public int MailPieceId { get; set; }
+        public string MailPieceUniqueId { get; set; }
         public DateTime ReceivedOn { get; set; }
-        public string LoanNo { get; set; }
+        public string BusinessFriendlyIdName { get; set; }
+        public string BusinessFriendlyIdValue { get; set; }
         public string FileName { get; set; }
     }
 }

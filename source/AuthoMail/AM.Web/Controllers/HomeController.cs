@@ -6,6 +6,7 @@ using System.Web;
 using System.Web.Mvc;
 using Microsoft.AspNet.Identity;
 using System.Security.Claims;
+using AM.Entities.IdentityModels;
 
 namespace AM.Web.Controllers
 {
@@ -23,14 +24,13 @@ namespace AM.Web.Controllers
         }
         public ActionResult Index()
         {
-            string clientId = ((ClaimsIdentity)User.Identity).FindFirst("clientId") != null ? ((ClaimsIdentity)User.Identity).FindFirst("clientId").Value : null;
             return View();
         }
 
         [HttpPost]
         public ActionResult GetMailPieceIdByLoanNumber(string loanNumber)
         {
-            var model = repoSvc.GetQuickPullBackResponseFromLoanNo(loanNumber, 3);
+            var model = repoSvc.GetMailPieceIdFromLoanNo(loanNumber, 3);
             if (model.Count > 1)
             {
                 return Json("PullBack", JsonRequestBehavior.AllowGet);
@@ -38,7 +38,7 @@ namespace AM.Web.Controllers
             else
             {
                 PullBackApiController pullBackAPI = new PullBackApiController(pullBackSvc);
-                var data = pullBackAPI.GeneratePullBackRequest(model.Select(m=>m.MailPieceId).ToList());
+                var data = pullBackAPI.GeneratePullBackRequest(model.ToList());
                 return Json(data, JsonRequestBehavior.AllowGet);
             }
         }

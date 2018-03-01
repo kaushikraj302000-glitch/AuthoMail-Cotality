@@ -16,21 +16,11 @@ namespace AM.Services
         List<DeliveryReport> GetDeliveryByParam(int clientId, DateTime startDate, DateTime endDate, string loanNo, string docType);
         List<ErrorReport> GetErrorReportByParam(int clientId, DateTime startDate, DateTime endDate, string loanNo, string docType);
         List<MonthlyReconReport> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string loanNo, string docType);
-
-        List<MonthlyReconReport> GetMailPieceByBatchId(int batchId, int clientId);
-        //Above done
-
-        //List<SupplyInventory> GetSupplyInventory(DateTime startDate, DateTime endDate);
-
-        //Pullback Request
-        List<PullBackInfo> GetPullBackRequestList(string loanNo, string docType, DateTime startDate, DateTime endDate, int clientId);
+        //Nedd to move
+        List<MailPieceSearch> GetMailPieceByBatchId(int batchId, int clientId);
+        List<DocumentType> GetDocTypeList(int clientId);
         List<string> GetMailPieceIdFromLoanNo(string loanNo, int clientId);
-        List<QuickPullBackResponse> GetQuickPullBackResponseFromLoanNo(string loanNo, int clientId);
-
-        //List<MonthlyReconReport> GetMailPieceByLoanNo(string loanNo);
-        // List<SummaryControlReport> GetSummaryControlByLoanNo(string loanNo,int clientId);
-        List<DocumentType> GetDocTypeList();
-        List<QuickPullBackResponse> GetQuickPullBackResponse(List<string> mailPieceIds, int clientId);
+        
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -123,10 +113,10 @@ namespace AM.Services
         }
 
 
-        public List<MonthlyReconReport> GetMailPieceByBatchId(int batchId, int clientId)
+        public List<MailPieceSearch> GetMailPieceByBatchId(int batchId, int clientId)
         {
             string query = ReportServiceQuery.GetMailPieceByBatchId;
-            var data = db.Query<MonthlyReconReport>(query, new { batchId = batchId, clientId = clientId }).ToList();
+            var data = db.Query<MailPieceSearch>(query, new { batchId = batchId, clientId = clientId }).ToList();
             return data;
         }
         //public List<MonthlyReconReport> GetMailPieceByLoanNo(string loanNo)
@@ -148,37 +138,16 @@ namespace AM.Services
         //}
 
 
-        public List<DocumentType> GetDocTypeList()
+        public List<DocumentType> GetDocTypeList(int clientId)
         {
             string query = ReportServiceQuery.GetDocTypeList;
-            var data = db.Query(query).ToList();
+            var data = db.Query(query, new { clientId = clientId }).ToList();
             var list = new List<DocumentType>();
             foreach (var item in data)
             {
                 list.Add(new DocumentType { Id = item.Id, DocTypeCode = item.DocTypeCode });
             }
             return list;
-        }
-
-        public List<PullBackInfo> GetPullBackRequestList(string loanNo, string docType, DateTime startDate, DateTime endDate, int clientId)
-        {
-            string query = ReportServiceQuery.GetPullBackRequestList;
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@startDate", startDate);
-            parameters.Add("@endDate", endDate);
-            parameters.Add("@clientId", clientId);
-            if (!loanNo.IsNullOrWhiteSpace())
-            {
-                query = string.Format("{0} AND (m.BusinessFriendlyIdValue=@loanNo)", query);
-                parameters.Add("@loanNo", loanNo);
-            }
-            if (!docType.IsNullOrWhiteSpace())
-            {
-                query = string.Format("{0} AND (b.DocumentOrPackageType=@docType)", query);
-                parameters.Add("@docType", docType);
-            }
-            var data = db.Query<PullBackInfo>(query, parameters).ToList();
-            return data;
         }
 
 
@@ -188,38 +157,29 @@ namespace AM.Services
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@loanNo", loanNo);
             parameters.Add("@clientId", clientId);
+            parameters.Add("@todayDate", Common.Today.Date);
             parameters.Add("@shippingStatus", ShippingStatus.InProgress);
             parameters.Add("@pipelineStatus", BatchPipelineStatus.SubmittedToShipping);
 
             var mailPieces = db.Query<string>(query, parameters).ToList();
             return mailPieces;
         }
-        public List<QuickPullBackResponse> GetQuickPullBackResponseFromLoanNo(string loanNo, int clientId)
-        {
-            string query = ReportServiceQuery.GetQuickPullBackResponseFromLoanNo;
-            var mailPieces = db.Query<QuickPullBackResponse>(query, new { loanNo = loanNo, clientId = clientId }).ToList();
-            return mailPieces;
-        }
+      
 
 
-        public List<QuickPullBackResponse> GetQuickPullBackResponse(List<string> mailPieceIds, int clientId)
-        {
-            string query = ReportServiceQuery.GetQuickPullBackResponse;
-            var response = db.Query<QuickPullBackResponse>(query, new { clientId = clientId, mailPieceIds = mailPieceIds }).ToList();
-            return response;
-        }
+       
     }
     public static class ReportServiceQuery
     {
-        public static string GetSummaryControlReport = "select * from [dbo].[view_SummaryControlReport] WHERE ClientId=@clientId AND (cast(ReceiveDate as date) >= @startDate and cast(ReceiveDate as date)<=@endDate)";
-        public static string GetDeliveryByParam = "select * from [dbo].[view_DeliveryReport] WHERE ClientId=@clientId AND (cast(ReceiveDate as date) >= @startDate and cast(ReceiveDate as date)<=@endDate)";
-        public static string GetErrorReportByParam = "select * from [dbo].[view_ErrorReport] WHERE ClientId=@clientId AND (cast(ReceiveDate as date) >= @startDate and cast(ReceiveDate as date)<=@endDate)";
-        public static string GetMonthlyReconReport = "select * from [dbo].[view_MonthlyReconReport] WHERE ClientId=@clientId AND (cast(ReceiveDate as date) >= @startDate and cast(ReceiveDate as date)<=@endDate)";
-        public static string GetMailPieceByBatchId = "select * from [dbo].[view_MonthlyReconReport] WHERE ClientId=@clientId AND BatchClustId=@batchId";
-        public static string GetDocTypeList = "select Id,DocTypeCode FROM [AM].[DocTypes]";
-        public static string GetPullBackRequestList = "select m.[Id] as [MailPieceId],m.BusinessFriendlyIdValue as [LoanNo],[FileName],m.DocumentOrPackageType,m.[RcptPrefix],m.[RcptFirstName],m.[RcptMiddleName],m.[RcptLastName],[RcptSuffix],m.RcptAddressStreet,m.RcptAddressCity,m.RcptAddressState,m.RcptAddressZIP,b.ReceivedOn,m.TotalPages,m.TrackingNo,m.[ShippingStatus] as [Status],m.ShippedOn as [PrintedOn],d.ShippingCarrier as [ShippingMethod],m.[RetRcptAddrOptionalLine1AboveStreet],m.[RetRcptAddrOptionalLine2AboveStreet],m.[RetRcptAddressStreet],m.[RetRcptAddressAptOrSuiteOrOther],m.[RetRcptAddrOptionalLine1BelowStreet],m.[RetRcptAddrOptionalLine2BelowStreet],m.[RetRcptAddressCity],m.[RetRcptAddressState],m.[RetRcptAddressZIP] from [AM].[MailPiece] m,[AM].[Batch] b left outer join [AM].[DocTypes] d on d.ClientId=b.ClientId where (m.BatchClustId=b.BatchClustId) and b.ClientId=@clientId AND (cast(b.ReceivedOn as date)>=@startDate and cast(b.ReceivedOn as date)<=@endDate)";
-        public static string GetMailPieceIdFromLoanNo = "select m.Id as [MailPieceId] from [AM].[Batch] b,[AM].[MailPiece] m where b.BatchClustId =m.BatchClustId and ((cast(ReceivedOn as date)=cast(GETDATE() as date) or (m.ShippingStatus=@shippingStatus and b.PipelineStatus=@pipelineStatus))) and b.BusinessFriendlyIdValue=@loanNo AND b.ClientId=@clientId";
-        public static string GetQuickPullBackResponseFromLoanNo = "select m.Id as [MailPieceId],[IsPullBackRequested],[PullBackRequestedOn] from [AM].[Batch] b,[AM].[MailPiece] m where b.BatchClustId =m.BatchClustId and b.BusinessFriendlyIdValue=@loanNo AND b.ClientId=@clientId";
-        public static string GetQuickPullBackResponse = "select m.Id as [MailPieceId],b.BatchClustId as [BatchId],m.[FileName] as [FileName],b.[BatchName],b.BusinessFriendlyIdValue as [LoanNo],b.ReceivedOn from [AM].[MailPiece] m,[AM].[Batch] b where m.BatchClustId=b.BatchClustId and b.ClientId=@clientId and m.Id IN @mailPieceIds";
+        public static string GetSummaryControlReport = "select * from [dbo].[view_SummaryControlReport] WHERE ClientId=@clientId AND (cast(ReceivedOn as date) >= @startDate and cast(ReceivedOn as date)<=@endDate)";
+        public static string GetDeliveryByParam = "select * from [dbo].[view_DeliveryReport] WHERE ClientId=@clientId AND (cast(ReceivedOn as date) >= @startDate and cast(ReceivedOn as date)<=@endDate)";
+        public static string GetErrorReportByParam = "select * from [dbo].[view_ErrorReport] WHERE ClientId=@clientId AND (cast(ReceivedOn as date) >= @startDate and cast(ReceivedOn as date)<=@endDate)";
+        public static string GetMonthlyReconReport = "select * from [dbo].[view_MonthlyReconReport] WHERE ClientId=@clientId AND (cast(ReceivedOn as date) >= @startDate and cast(ReceivedOn as date)<=@endDate)";
+        public static string GetMailPieceByBatchId = "select m.* from [AM].[MailPieces] m,[AM].[MailBatches] b WHERE m.BatchId=b.Id AND (BatchId=@batchId AND b.ClientId=@clientId)";
+        public static string GetDocTypeList = "select Id,DocTypeCode FROM [AM].[DocTypes] WHERE ClientId=@clientId";
+        
+        public static string GetMailPieceIdFromLoanNo = "select m.[UniqueId] as [MailPieceId] from [AM].[MailBatches] b,[AM].[MailPieces] m where b.Id = m.BatchId and ((cast(ReceivedOn as date)=cast(@todayDate as date) or (m.ShippingStatus=@shippingStatus and b.PipelineStatus=@pipelineStatus))) and b.BusinessFriendlyIdValue=@loanNo AND b.ClientId=@clientId";
+       
+       
     }
 }
