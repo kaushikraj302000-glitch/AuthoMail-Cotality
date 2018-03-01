@@ -70,6 +70,7 @@
     <Compile Include="Extensions.cs" />
     <Compile Include="IDemo.cs" />
     <Compile Include="Models\BatchReportInfo.cs" />
+    <Compile Include="Models\ChartModels.cs" />
     <Compile Include="Models\MailPieceSearch.cs" />
     <Compile Include="Models\Report.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -77,6 +78,7 @@
     <Compile Include="Core\ServiceBase.cs" />
     <Compile Include="IdentityStores\RoleStore.cs" />
     <Compile Include="IdentityStores\UserStore.cs" />
+    <Compile Include="Services\ChartDataService.cs" />
     <Compile Include="Services\ConfigService.cs" />
     <Compile Include="Services\HomeService.cs" />
     <Compile Include="Services\PullBackService.cs" />
