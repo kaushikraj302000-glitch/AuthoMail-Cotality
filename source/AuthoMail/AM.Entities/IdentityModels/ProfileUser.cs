@@ -21,16 +21,16 @@ namespace AM.Entities.IdentityModels
             userIdentity.AddClaim(new Claim("ClientId", this.ClientId.ToString()));
             return userIdentity;
         }
-        
+
     }
     public static class IdentityExtensions
     {
-        public static string GetClientId(this IIdentity identity)
+        public static int? GetClientId(this IIdentity identity)
         {
-           
             var claim = ((ClaimsIdentity)identity).FindFirst("clientId");
             // Test for null to avoid issues during local testing
-            return (claim != null) ? claim.Value : string.Empty;
+            if (claim == null || claim.Value == null || claim.Value == string.Empty) return null;
+            return Convert.ToInt32(claim.Value);
         }
     }
 
