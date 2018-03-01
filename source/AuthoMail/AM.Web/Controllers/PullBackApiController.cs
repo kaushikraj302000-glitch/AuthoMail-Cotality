@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Mail;
 using System.Web.Http;
+using Microsoft.AspNet.Identity;
 
 namespace AM.Web.Controllers
 {
@@ -44,14 +45,14 @@ namespace AM.Web.Controllers
                     return JsonResponseFactory.ErrorResponse(Config.Msg["MP_DataNull"]);
                 }
                 foreach (var item in mailPieceData)
-                {                    
+                {
                     if (item.PipelineStatus.ToString() != "Submitted")
                     {
                         mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.UniqueIdentifier.ToString(), Message = Config.Msg["MP_BatchStatusSubmitted"], IsSuccess = false });
                     }
                     else if (Convert.ToBoolean(item.IsPullBackRequested))
                     {
-                         mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.UniqueIdentifier.ToString(), Message = Config.Msg["MP_PBRequested"], IsSuccess = false });
+                        mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.UniqueIdentifier.ToString(), Message = !String.IsNullOrEmpty(item.UserName) ? string.Format("{0} by {1} on {2}", Config.Msg["MP_PBRequested"], item.UserName, item.PullBackRequestedOn.ToString()) : string.Format("{0} on {1}", Config.Msg["MP_PBRequested"], item.PullBackRequestedOn.ToString()), IsSuccess = false });
                     }
                     else if (item.MailPieceStatus.ToString() == "Aborted")
                     {
@@ -72,7 +73,7 @@ namespace AM.Web.Controllers
                     else if (item.MailPieceStatus.ToString() == "InProgress" && item.PipelineStatus.ToString() == "Submitted")
                     {
                         //UPDATE "PullBackRequestedOn" time
-                        int row = pullBackSvc.UpdatePullBackRequestedOn(item.UniqueIdentifier.ToString());
+                        int row = pullBackSvc.UpdatePullBackRequestedOn(item.UniqueIdentifier.ToString(), string.IsNullOrEmpty(User.Identity.GetUserId().ToString()) ? string.Empty : User.Identity.GetUserId());
                         if (row > 0)
                         {
                             mailPieceIdsToPullback.Add(item.UniqueIdentifier);
