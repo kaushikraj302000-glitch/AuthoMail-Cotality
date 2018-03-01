@@ -8,26 +8,27 @@ namespace AM.Services
 {
     public class MonthlyReconReport
     {
-        public Guid BatchId { get; set; }
-        public string BatchClustId { get; set; }
-        public DateTime ReceiveDate { get; set; }
+        public int MailPieceId { get; set; }
+        public string MailPieceUniqueId { get; set; }
+        public string Channel { get; set; }//Todo
+        public string BatchDocumentOrPackageType { get; set; }
+        public string MailPieceDocumentOrPackageType { get; set; }
         public string DocumentOrPackageName
         {
             get
             {
-                return BatchDocumentPackageName.IsNullOrWhiteSpace() ? MailPieceDocumentPackageName : BatchDocumentPackageName;
+                return BatchDocumentOrPackageType.IsNullOrWhiteSpace() ? MailPieceDocumentOrPackageType : BatchDocumentOrPackageType;
             }
         }
-        public string BatchDocumentPackageName { get; set; }
-        public string PipelineStatus { get; set; }
-        public int ClientId { get; set; }
-        public Guid MailPieceId { get; set; }
-        public string LoanNumber { get; set; }
-        public string FileName { get; set; }
         public string BusinessFriendlyIdName { get; set; }
+        public string BusinessFriendlyIdValue { get; set; }
+        public string FileName { get; set; }
+        public DateTime ReceiveOn { get; set; }
         public DateTime? PrintedOn { get; set; }
         public DateTime? MailedOn { get; set; }
-        public int TrackingNo { get; set; }
+        public int ClientId { get; set; }
+        public string TrackingNo { get; set; }
+        public string ShippingMethod { get; set; }
         public string RcptPrefix { get; set; }
         public string RcptFirstName { get; set; }
         public string RcptMiddleName { get; set; }
@@ -67,39 +68,40 @@ namespace AM.Services
                 return address.IsNullOrWhiteSpace() ? address : address.Trim().Trim(',');
             }
         }
-        public string MailPieceDocumentPackageName { get; set; }
-        public string ErrorCode { get; set; }
-        public string ErrorDesc { get; set; }
-        public int TotalPages { get; set; }
-        public string CustomerIdentifier { get; set; }
-        public string ShippingMethod { get; set; }
-        public string Channel { get; set; }//chk in report
-        public string PrintLocation { get; set; }//chk in report
+        public string PrintLocation { get; set; }//Todo
+        public int PagesShipped { get; set; }
+        public string ShippingStatus { get; set; }
+        public string EnvelopeType { get; set; }//Todo
+        public string Postage { get; set; }//Todo
 
     }
     public class SummaryControlReport
     {
-        public Guid BatchId { get; set; }
-        public string BatchClustId { get; set; }
-        public DateTime ReceiveDate { get; set; }
+        public int BatchId { get; set; }
+        public string BatchUniqueId { get; set; }
+        public int MailPieceId { get; set; }
+        public string MailPieceUniqueId { get; set; }
+        public string Channel { get; set; }//Todo
+        public string BatchDocumentOrPackageType { get; set; }
+        public string MailPieceDocumentOrPackageType { get; set; }
         public string DocumentOrPackageName
         {
             get
             {
-                return BatchDocumentPackageName.IsNullOrWhiteSpace() ? MailPieceDocumentPackageName : BatchDocumentPackageName;
+                return BatchDocumentOrPackageType.IsNullOrWhiteSpace() ? MailPieceDocumentOrPackageType : BatchDocumentOrPackageType;
             }
         }
-        public string BatchDocumentPackageName { get; set; }
-        public string BatchName { get; set; }
-        public string PipelineStatus { get; set; }
-        public int ClientId { get; set; }
-        public Guid MailPieceId { get; set; }
-        public string LoanNumber { get; set; }
-        public string FileName { get; set; }
         public string BusinessFriendlyIdName { get; set; }
+        public string BusinessFriendlyIdValue { get; set; }
+        public string FileName { get; set; }
+        public DateTime ReceiveOn { get; set; }
         public DateTime? PrintedOn { get; set; }
         public DateTime? MailedOn { get; set; }
-        public int TrackingNo { get; set; }
+        public int ClientId { get; set; }
+        public string ClientCode { get; set; }
+        public string TrackingNo { get; set; }
+        public string ShippingMethod { get; set; }
+        public string CustomerIdentifier { get; set; }
         public string RcptPrefix { get; set; }
         public string RcptFirstName { get; set; }
         public string RcptMiddleName { get; set; }
@@ -139,14 +141,11 @@ namespace AM.Services
                 return address.IsNullOrWhiteSpace() ? address : address.Trim().Trim(',');
             }
         }
-        public string MailPieceDocumentPackageName { get; set; }
+        public string RequestId { get; set; }//ToDo
         public string ErrorCode { get; set; }
         public string ErrorDesc { get; set; }
-        public int TotalPages { get; set; }
-        public string CustomerIdentifier { get; set; }
-        public string ShippingMethod { get; set; }
-        public string Channel { get; set; }//chk in report
-        public string PrintLocation { get; set; }//chk in report
+        public string PrintLocation { get; set; }//ToDo
+        public int PagesShipped { get; set; }
     }
     public class DocumentType
     {
@@ -155,28 +154,27 @@ namespace AM.Services
     }
     public class ErrorReport
     {
-        public Guid BatchId { get; set; }
-        public string BatchClustId { get; set; }
-        public DateTime ReceiveDate { get; set; }
+        public int BatchId { get; set; }
+        public string BatchUniqueId { get; set; }
+        public int MailPieceId { get; set; }
+        public string MailPieceUniqueId { get; set; }
+        public string Channel { get; set; }//Todo
+        public string BatchDocumentOrPackageType { get; set; }
+        public string MailPieceDocumentOrPackageType { get; set; }
         public string DocumentOrPackageName
         {
             get
             {
-                return BatchDocumentPackageName.IsNullOrWhiteSpace() ? MailPieceDocumentPackageName : BatchDocumentPackageName;
+                return BatchDocumentOrPackageType.IsNullOrWhiteSpace() ? MailPieceDocumentOrPackageType : BatchDocumentOrPackageType;
             }
         }
-        public string Channel { get; set; }
-        public string BatchDocumentPackageName { get; set; }
-        public string BatchName { get; set; }
-        public string PipelineStatus { get; set; }
-        public int ClientId { get; set; }
-        public Guid MailPieceId { get; set; }
-        public string LoanNumber { get; set; }
-        public string FileName { get; set; }
         public string BusinessFriendlyIdName { get; set; }
-        public DateTime? PrintedOn { get; set; }
-        public DateTime? MailedOn { get; set; }
-        public int TrackingNo { get; set; }
+        public string BusinessFriendlyIdValue { get; set; }
+        public string FileName { get; set; }
+        public DateTime ReceiveOn { get; set; }
+        public int ClientId { get; set; }
+        public string ShippingMethod { get; set; }
+        public string CustomerIdentifier { get; set; }
         public string RcptPrefix { get; set; }
         public string RcptFirstName { get; set; }
         public string RcptMiddleName { get; set; }
@@ -216,38 +214,38 @@ namespace AM.Services
                 return address.IsNullOrWhiteSpace() ? address : address.Trim().Trim(',');
             }
         }
-        public string MailPieceDocumentPackageName { get; set; }
+        public string RequestId { get; set; }//ToDo
         public string ErrorCode { get; set; }
         public string ErrorDesc { get; set; }
-        public int TotalPages { get; set; }
-        public string CustomerIdentifier { get; set; }
-        public string ShippingMethod { get; set; }
-        public string RequestId { get; set; }
-
     }
 
     public class DeliveryReport
     {
-        public Guid BatchId { get; set; }
-        public string BatchClustId { get; set; }
-        public DateTime ReceiveDate { get; set; }
+        public int BatchId { get; set; }
+        public string BatchUniqueId { get; set; }
+        public int MailPieceId { get; set; }
+        public string MailPieceUniqueId { get; set; }
+        public string Channel { get; set; }//Todo
+        public string BatchDocumentOrPackageType { get; set; }
+        public string MailPieceDocumentOrPackageType { get; set; }
         public string DocumentOrPackageName
         {
             get
             {
-                return BatchDocumentPackageName.IsNullOrWhiteSpace() ? MailPieceDocumentPackageName : BatchDocumentPackageName;
+                return BatchDocumentOrPackageType.IsNullOrWhiteSpace() ? MailPieceDocumentOrPackageType : BatchDocumentOrPackageType;
             }
         }
-        public string BatchDocumentPackageName { get; set; }
-        public string Channel { get; set; }
-        public int ClientId { get; set; }
-        public Guid MailPieceId { get; set; }
-        public string LoanNumber { get; set; }
-        public string FileName { get; set; }
         public string BusinessFriendlyIdName { get; set; }
+        public string BusinessFriendlyIdValue { get; set; }
+        public string FileName { get; set; }
+        public DateTime ReceiveOn { get; set; }
         public DateTime? PrintedOn { get; set; }
         public DateTime? MailedOn { get; set; }
-        public int TrackingNo { get; set; }
+        public int ClientId { get; set; }
+        public string ClientCode { get; set; }
+        public string TrackingNo { get; set; }
+        public string ShippingMethod { get; set; }
+        public string CustomerIdentifier { get; set; }
         public string RcptPrefix { get; set; }
         public string RcptFirstName { get; set; }
         public string RcptMiddleName { get; set; }
@@ -287,12 +285,9 @@ namespace AM.Services
                 return address.IsNullOrWhiteSpace() ? address : address.Trim().Trim(',');
             }
         }
-        public string MailPieceDocumentPackageName { get; set; }
-        public int TotalPages { get; set; }
-        public string CustomerIdentifier { get; set; }
-        public string ShippingMethod { get; set; }
-        public string PrintLocation { get; set; }
-        public string RequestId { get; set; }
+        public string RequestId { get; set; }//ToDo
+        public string PrintLocation { get; set; }//ToDo
+        public int PagesShipped { get; set; }
     }
     public class SupplyInventory
     {

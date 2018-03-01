@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,8 +17,20 @@ namespace AM.Entities.IdentityModels
             // Note the authenticationType must match the one defined in CookieAuthenticationOptions.AuthenticationType
             var userIdentity = await manager.CreateIdentityAsync(this, DefaultAuthenticationTypes.ApplicationCookie);
             // Add custom user claims here
-            userIdentity.AddClaim(new Claim("clientId", ClientId == null ? string.Empty : ClientId.ToString()));
+            //userIdentity.AddClaim(new Claim("clientId", ClientId == null ? string.Empty : ClientId.ToString()));
+            userIdentity.AddClaim(new Claim("ClientId", this.ClientId.ToString()));
             return userIdentity;
+        }
+        
+    }
+    public static class IdentityExtensions
+    {
+        public static string GetClientId(this IIdentity identity)
+        {
+           
+            var claim = ((ClaimsIdentity)identity).FindFirst("clientId");
+            // Test for null to avoid issues during local testing
+            return (claim != null) ? claim.Value : string.Empty;
         }
     }
 

@@ -19,7 +19,7 @@ namespace AM.Web.Controllers
         }
         public ActionResult SummaryControlReport()
         {
-            ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(), "Id", "DocTypeCode");
+            ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(3), "Id", "DocTypeCode");
             return View();
         }
         [HttpPost]
@@ -37,7 +37,7 @@ namespace AM.Web.Controllers
         }
         public ActionResult MonthReconReport()
         {
-            ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(), "Id", "DocTypeCode");
+            ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(3), "Id", "DocTypeCode");
             return View();
         }
         [HttpPost]
@@ -56,7 +56,7 @@ namespace AM.Web.Controllers
 
         public ActionResult DeliveryReport()
         {
-            ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(), "Id", "DocTypeCode");
+            ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(3), "Id", "DocTypeCode");
             return View();
         }
         [HttpPost]
@@ -68,7 +68,7 @@ namespace AM.Web.Controllers
         }
         public ActionResult ErrorsReport()
         {
-            ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(), "Id", "DocTypeCode");
+            ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(3), "Id", "DocTypeCode");
             return View();
         }
         [HttpPost]
