@@ -30,7 +30,7 @@ namespace AM.Web.Controllers
         [HttpPost]
         public ActionResult GetMailPieceIdByLoanNumber(string loanNumber)
         {
-            var model = repoSvc.GetMailPieceIdFromLoanNo(loanNumber, 3);
+            var model = repoSvc.GetMailPieceIdFromLoanNo(loanNumber, User.Identity.GetClientId().Value);
             if (model.Count > 1)
             {
                 return Json("PullBack", JsonRequestBehavior.AllowGet);

@@ -1,4 +1,4 @@
-﻿@model ICollection<AM.Services.Models.MonthlyReconReport>
+﻿@model ICollection<AM.Services.MonthlyReconReport>
 <link href="~/clui/dist/css/datatablecustom.css" rel="stylesheet" />
 <div class="panel panel-default">
     <div class="panel-heading">
@@ -27,7 +27,7 @@
                         <th>Pages Shipped</th>
                         <th>Shipping Method</th>
                         <th>Tracking Number</th>
-                        <th>Status</th>
+                        <th>Shipping Status</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -35,7 +35,7 @@
                     {
                         <tr class="row-small">
                             <td><span>@cnt</span></td>
-                            <td><span>@item.LoanNumber</span></td>
+                            <td><span>@item.BusinessFriendlyIdValue</span></td>
                             <td><span>@item.DocumentOrPackageName</span></td>
                             <td><span>@item.FileName</span></td>
                             <td><span>@item.RcptFirstName</span></td>
@@ -44,13 +44,13 @@
                             <td><span>@item.RcptAddressCity</span></td>
                             <td><span>@item.RcptAddressState</span></td>
                             <td><span>@item.RcptAddressZIP</span></td>
-                            <td><span>@item.ReceiveDate</span></td>
+                            <td><span>@item.ReceiveOn</span></td>
                             <td><span>@item.PrintedOn</span></td>
                             <td><span>@item.MailedOn</span></td>
-                            <td><span>@item.TotalPages</span></td>
+                            <td><span>@item.PagesShipped</span></td>
                             <td><span>@item.ShippingMethod</span></td>
                             <td><span>@item.TrackingNo</span></td>
-                            <td><span>@item.PipelineStatus</span></td>
+                            <td><span>@item.ShippingStatus</span></td>
                 </tr>
 
                         cnt++;

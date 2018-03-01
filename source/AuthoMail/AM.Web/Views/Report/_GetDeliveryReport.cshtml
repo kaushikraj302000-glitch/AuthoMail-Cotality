@@ -1,4 +1,4 @@
-﻿@model ICollection<AM.Services.Models.DeliveryReport>
+﻿@model ICollection<AM.Services.DeliveryReport>
 <div class="panel-heading">
     <div class="panel-title">Delivery Details: @ViewBag.Date</div>
 </div>
@@ -45,9 +45,9 @@
                         <td><span>@item.MailPieceId</span></td>
                         <td><span>@item.Channel</span></td>
                         <td><span>@item.DocumentOrPackageName</span></td>
-                        <td><span>@item.LoanNumber</span></td>
+                        <td><span>@item.BusinessFriendlyIdValue</span></td>
                         <td><span>@item.FileName</span></td>
-                        <td><span>@item.ReceiveDate</span></td>
+                        <td><span>@item.ReceiveOn</span></td>
                         <td><span>@item.PrintedOn</span></td>
                         <td><span>@item.MailedOn</span></td>
                         <td><span>@item.ClientId</span></td>
@@ -62,7 +62,7 @@
                         <td><span>@item.RcptAddressZIP</span></td>
                         <td><span>@item.RequestId</span></td>
                         <td><span>@item.PrintLocation</span></td>
-                        <td><span>@item.TotalPages</span></td>
+                        <td><span>@item.PagesShipped</span></td>
                     </tr>
 
                     cnt++;

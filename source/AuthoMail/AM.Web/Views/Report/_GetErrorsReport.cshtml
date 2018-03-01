@@ -1,4 +1,4 @@
-﻿@model ICollection<AM.Services.Models.ErrorReport>
+﻿@model ICollection<AM.Services.ErrorReport>
 <div class="panel-heading">
     <div class="panel-title">Error Details: @ViewBag.Date</div>
 </div>
@@ -37,13 +37,13 @@
                 {
                     <tr class="row-small">
                         <td><span>@cnt</span></td>
-                        <td><span>@item.BatchClustId</span></td>
+                        <td><span>@item.BatchId</span></td>
                         <td><span>@item.MailPieceId</span></td>
                         <td><span>@item.Channel</span></td>
                         <td><span>@item.DocumentOrPackageName</span></td>
-                        <td><span>@item.LoanNumber</span></td>
+                        <td><span>@item.BusinessFriendlyIdValue</span></td>
                         <td><span>@item.FileName</span></td>
-                        <td><span>@item.ReceiveDate</span></td>
+                        <td><span>@item.ReceiveOn</span></td>
                         <td><span>@item.RcptFirstName</span></td>
                         <td><span>@item.RcptLastName </span></td>
                         <td><span>@item.RcptAddressStreet</span></td>

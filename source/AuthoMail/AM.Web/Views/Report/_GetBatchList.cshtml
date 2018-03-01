@@ -1,4 +1,4 @@
-﻿@model ICollection<AM.Services.Models.SummaryControlReport>
+﻿@model ICollection<AM.Services.SummaryControlReport>
 <div class="panel-heading">
     <div class="panel-title">@ViewBag.BatchId Batch Details: @ViewBag.Date</div>
 </div>
@@ -39,12 +39,12 @@
                 {
                     <tr class="row-small">
                         <td><span>@cnt</span></td>
-                        <td><span>@item.BatchClustId</span></td>
+                        <td><span>@item.BatchId</span></td>
                         <td><span>@item.ClientId</span></td>
                         <td><span>@item.DocumentOrPackageName</span></td>
-                        <td><span>@item.LoanNumber</span></td>
+                        <td><span>@item.BusinessFriendlyIdValue</span></td>
                         <td><span>@item.FileName</span></td>
-                        <td><span>@item.ReceiveDate</span></td>
+                        <td><span>@item.ReceiveOn</span></td>
                         <td><span>@item.PrintedOn</span></td>
                         <td><span>@item.MailedOn</span></td>
                         <td><span>@item.RcptFirstName</span></td>
@@ -56,11 +56,11 @@
                         <td><span>@item.ShippingMethod</span></td>
                         <td><span>@item.CustomerIdentifier</span></td>
                         <td><span>@item.TrackingNo</span></td>
-                        <td><span>@item.TotalPages</span></td>
+                        <td><span>@item.PagesShipped</span></td>
                         <td><span>@item.ErrorCode</span></td>
                         <td><span>@item.ErrorDesc</span></td>
                         <td>
-                            @Html.ActionLink("View", "MailPieceByBatchId", "Report", new { batchId = item.BatchClustId }, new { @class = "btn btn-transparent-bright-blue" })
+                            @Html.ActionLink("View", "MailPieceByBatchId", "Report", new { batchId = item.BatchId }, new { @class = "btn btn-transparent-bright-blue" })
                             @*<a href="/Report/MailPieceByBatchId/@item.BatchClustId" class="btn btn-transparent-bright-blue">View</a>*@
                         </td>
                     </tr>

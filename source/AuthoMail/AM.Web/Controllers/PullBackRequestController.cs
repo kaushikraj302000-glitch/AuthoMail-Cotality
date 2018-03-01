@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
-
+using AM.Entities.IdentityModels;
 namespace AM.Web.Controllers
 {
     public class PullBackRequestController : Controller
@@ -21,7 +21,7 @@ namespace AM.Web.Controllers
         }
         public ActionResult PullBack(string loanNumber)
         {
-            ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(3), "Id", "DocTypeCode");
+            ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
             ViewBag.loanNumber = loanNumber;
             return View();
         }
@@ -30,7 +30,7 @@ namespace AM.Web.Controllers
         {
             ViewBag.Date = string.Format("{0} To {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
 
-            var model = pullBackSvc.GetPullBackRequestList(loanNumber, docType, startDate, endDate, 3);
+            var model = pullBackSvc.GetPullBackRequestList(loanNumber, docType, startDate, endDate, User.Identity.GetClientId().Value);
             return PartialView(model);
         }
     }
