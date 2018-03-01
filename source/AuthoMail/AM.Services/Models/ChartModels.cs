@@ -14,4 +14,12 @@ namespace AM.Services.Models
         public int ShippedAll { get; set; }
         public int Failed { get; set; }
     }
+    public class TodayMailPieceChart
+    {
+        public string BatchName { get; set; }
+        public int InProgress { get; set; }
+        public int PulledBack { get; set; }
+        public int Error { get; set; }
+        public int Shipped { get; set; }
+    }
 }
