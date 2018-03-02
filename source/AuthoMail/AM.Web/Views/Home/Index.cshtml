@@ -180,22 +180,23 @@
             });
         }
         function BindWeeklyChartData() {
+            var el = $("#weekluChart");
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Home/GetWeeklyChartData",
                 data: JSON.stringify({ startDate: new Date(moment().subtract('days', 7).format('MM/DD/YYYY')), endDate: new Date(moment().format('MM/DD/YYYY')) }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
-                    // console.log(response);
+                   // console.log(response);
                     var chartData = [];
                     chartData.push(['Date', 'InProgress', 'Failed', 'ShippedPartial', 'ShippedAll']);
                     var cnt = 0;
                     for (var i = 1; i <= response.length; i++) {
-
-                        chartData.push([moment(new Date(response[cnt].ShortDate)).format("MM/DD"), response[cnt].InProgress, response[cnt].Failed, response[cnt].ShippedPartial, response[cnt].ShippedAll]);
+                        var day = moment(new Date(response[cnt].ShortDate)).format("MM/DD/YYYY") == moment(new Date()).format("MM/DD/YYYY") ? "Today" : moment(new Date(response[cnt].ShortDate)).format("ddd");
+                        chartData.push([day, response[cnt].InProgress, response[cnt].Failed, response[cnt].ShippedPartial, response[cnt].ShippedAll]);
                         cnt++;
                     }
-                    drawChart(chartData, "weeklyChart");
+                    drawChart(chartData, "weeklyChart", 'Batch Details: ' + moment().subtract('days', 7).format('MM/DD/YYYY') + " - " + moment().format('MM/DD/YYYY'));
 
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
@@ -206,13 +207,19 @@
 
             });
         }
-        function BindTodayChartData(response) {
+        function BindTodayChartData() {
+            var el = $("#todayChart");
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Home/GetTodayChartData",
                 data: JSON.stringify({ date: new Date(moment().format('MM/DD/YYYY')) }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
+                    //console.log(response);
+                    if (response.length==0) {
+                        el.html("<div class='alert alert-red'><span>Currently no MailPieces received today</span></div>");
+                        return;
+                    }
                     var chartData = [];
                     chartData.push(['BatchName', 'InProgress', 'Error', 'PulledBack', 'Shipped']);
                     var cnt = 0;
@@ -221,13 +228,13 @@
                         chartData.push(["Batch Id: " + response[cnt].BatchId, response[cnt].InProgress, response[cnt].Error, response[cnt].PulledBack, response[cnt].Shipped]);
                         cnt++;
                     }
-                    drawChart(chartData, "todayChart");
+                    drawChart(chartData, "todayChart", 'Batch MailPiece Details: ' + moment().format('MM/DD/YYYY'));
 
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     var msg = 'Error on reloading the content. Please check your connection and try again.';
-                    //el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
-                    //$("#chartModal").modal("show");
+                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    
                 }
 
             });
@@ -236,10 +243,10 @@
 
         }
         google.charts.load('current', { packages: ['corechart'] });
-        function drawChart(chartData, div) {
+        function drawChart(chartData, div,title) {
             var data = google.visualization.arrayToDataTable(chartData);
             var options = {
-                title: 'Batch Details: ' + moment().subtract('days', 7).format('MM/DD/YYYY') + " - " + moment().format('MM/DD/YYYY'),
+                title: title,
                 isStacked: true,
                 'height': 300,
                 legend: { position: 'top', maxLines: 3 },
@@ -328,7 +335,7 @@
                 success: function (response) {
                     console.log(response);
                     if (response == "PullBack") {
-                        window.location = baseUrl + 'PullBackRequest/PullBack?loanNumber=' + loanNumber;
+                        window.location = baseUrl + 'RequestPullBack/PullBack?loanNumber=' + loanNumber;
                     }
                     if (response.Success) {
                         if (response.Object != null) {
@@ -337,7 +344,7 @@
                     }
                     else {
                         var htmlstr = "<div class='alert alert-red'><span>" + response.ErrorMessage + "</span></h1></div>";
-                        htmlstr += '<br><blockquote class=""><p><i class="fa fa-search"></i> @Html.ActionLink("Advance Search", "PullBack", "PullBackRequest") </P></blockquote>';
+                        htmlstr += '<br><blockquote class=""><p><i class="fa fa-search"></i> @Html.ActionLink("Advance Search", "PullBack", "RequestPullBack") </P></blockquote>';
                         el.html(htmlstr);
                     }
                     //SendPullBackRequest(res)
