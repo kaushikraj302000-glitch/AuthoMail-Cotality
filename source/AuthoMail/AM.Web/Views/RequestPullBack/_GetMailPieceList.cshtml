@@ -212,9 +212,9 @@
             $("#confirmModal").modal("show");
         }
     });
-    $("#yesPullback").click(function (e) {
-        e.preventDefault();
+    $("#yesPullback").unbind("click").click(function (e) {
         $("#confirmModal").modal("hide");
+        e.preventDefault();
         var oTable = $('#sample_2').dataTable();
         var mailpieceIds = [];
         $(".checkall:checked", oTable.fnGetNodes()).each(function () {
@@ -224,7 +224,7 @@
         });
         
         var el = $('.modal-body');
-        //el.html(mailpieceIds);
+        el.html(mailpieceIds);
         $.ajax({
             type: "POST",
             url: baseUrl + "api/pullback/RequestPullBack",
