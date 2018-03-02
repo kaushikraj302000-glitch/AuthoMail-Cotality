@@ -55,13 +55,20 @@ namespace AM.Web.Controllers
         {
             return PartialView();
         }
-
-        public ActionResult GetWeeklyChartData(DateTime startDate,DateTime endDate)
+        [HttpPost]
+        public ActionResult GetWeeklyChartData(DateTime startDate, DateTime endDate)
         {
             var model = chartDataSvc.GetWeeklyChartData(startDate, endDate, User.Identity.GetClientId().Value);
-            return Json(true, JsonRequestBehavior.AllowGet);
+            return Json(model.OrderByDescending(s=>s.Date).ToList(), JsonRequestBehavior.AllowGet);
         }
-
+        
+        [HttpPost]
+        public ActionResult GetTodayChartData(DateTime date)
+        {
+            var model = chartDataSvc.GetTodayMailPieceChartData(date, User.Identity.GetClientId().Value);
+            return Json(model.OrderByDescending(s => s.BatchId).ToList(), JsonRequestBehavior.AllowGet);
+        }
+        
         public ActionResult About()
         {
             ViewBag.Message = "Your application description page.";

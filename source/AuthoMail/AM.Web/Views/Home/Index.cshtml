@@ -179,20 +179,65 @@
 
             });
         }
+        function BindWeeklyChartData() {
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "Home/GetWeeklyChartData",
+                data: JSON.stringify({ startDate: new Date(moment().subtract('days', 7).format('MM/DD/YYYY')), endDate: new Date(moment().format('MM/DD/YYYY')) }),
+                contentType: "application/json; charset=utf-8",
+                success: function (response) {
+                    // console.log(response);
+                    var chartData = [];
+                    chartData.push(['Date', 'InProgress', 'Failed', 'ShippedPartial', 'ShippedAll']);
+                    var cnt = 0;
+                    for (var i = 1; i <= response.length; i++) {
+
+                        chartData.push([moment(new Date(response[cnt].ShortDate)).format("MM/DD"), response[cnt].InProgress, response[cnt].Failed, response[cnt].ShippedPartial, response[cnt].ShippedAll]);
+                        cnt++;
+                    }
+                    drawChart(chartData, "weeklyChart");
+
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    var msg = 'Error on reloading the content. Please check your connection and try again.';
+                    //el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    //$("#chartModal").modal("show");
+                }
+
+            });
+        }
+        function BindTodayChartData(response) {
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "Home/GetTodayChartData",
+                data: JSON.stringify({ date: new Date(moment().format('MM/DD/YYYY')) }),
+                contentType: "application/json; charset=utf-8",
+                success: function (response) {
+                    var chartData = [];
+                    chartData.push(['BatchName', 'InProgress', 'Error', 'PulledBack', 'Shipped']);
+                    var cnt = 0;
+                    for (var i = 1; i <= response.length; i++) {
+
+                        chartData.push(["Batch Id: " + response[cnt].BatchId, response[cnt].InProgress, response[cnt].Error, response[cnt].PulledBack, response[cnt].Shipped]);
+                        cnt++;
+                    }
+                    drawChart(chartData, "todayChart");
+
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    var msg = 'Error on reloading the content. Please check your connection and try again.';
+                    //el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    //$("#chartModal").modal("show");
+                }
+
+            });
+
+           
+
+        }
         google.charts.load('current', { packages: ['corechart'] });
-        function drawChart() {
-            // Define the chart to be drawn.
-            var data = google.visualization.arrayToDataTable([
-               ['Date', 'InProgress', 'Error', 'Shipped'],
-               [moment().subtract('days', 7).format('ddd'), 2, 3, 8],
-               [moment().subtract('days', 6).format('ddd'), 1, 2, 9],
-               [moment().subtract('days', 5).format('ddd'), 3, 1, 10],
-               [moment().subtract('days', 4).format('ddd'), 0, 4, 15],
-               [moment().subtract('days', 3).format('ddd'), 1, 0, 13],
-               [moment().subtract('days', 2).format('ddd'), 2, 2, 12],
-               [moment().subtract('days', 1).format('ddd'), 8, 1, 3]
-            ]);
-
+        function drawChart(chartData, div) {
+            var data = google.visualization.arrayToDataTable(chartData);
             var options = {
                 title: 'Batch Details: ' + moment().subtract('days', 7).format('MM/DD/YYYY') + " - " + moment().format('MM/DD/YYYY'),
                 isStacked: true,
@@ -201,12 +246,13 @@
                 series: {
                     0: { color: '#36c' },
                     1: { color: '#dc3912' },
-                    2: { color: '#109618' }
+                    2: { color: '#f90' },
+                    3: { color: '#109618' }
                 }
             };
 
             // Instantiate and draw the chart.
-            var chart = new google.visualization.BarChart(document.getElementById('weeklyChart'));
+            var chart = new google.visualization.BarChart(document.getElementById(div));
             function selectHandler() {
                 var selectedItem = chart.getSelection()[0];
                 console.log(chart.getSelection()[0]);
@@ -220,57 +266,11 @@
                     GetChartDataByStatusAndBatchIds(topping, ids)
                 }
             }
-
             google.visualization.events.addListener(chart, 'select', selectHandler);
             chart.draw(data, options);
         }
-        google.charts.setOnLoadCallback(drawChart);
-
-        function drawChart1() {
-            // Define the chart to be drawn.
-            var data = google.visualization.arrayToDataTable([
-                ['Date', 'InProgress', 'Error', 'Shipped'],
-                [moment().subtract('days', 7).format('ddd'), 2, 3, 8],
-                [moment().subtract('days', 6).format('ddd'), 1, 2, 9],
-                [moment().subtract('days', 5).format('ddd'), 3, 1, 10],
-                [moment().subtract('days', 4).format('ddd'), 0, 4, 15],
-                [moment().subtract('days', 3).format('ddd'), 1, 0, 13],
-                [moment().subtract('days', 2).format('ddd'), 2, 2, 12],
-                [moment().subtract('days', 1).format('ddd'), 8, 1, 3]
-            ]);
-
-            var options = {
-                title: 'Batch Details: ' + moment().subtract('days', 7).format('MM/DD/YYYY') + " - " + moment().format('MM/DD/YYYY'),
-                isStacked: true,
-                'height': 300,
-                legend: { position: 'top', maxLines: 3 },
-                series: {
-                    0: { color: '#36c' },
-                    1: { color: '#dc3912' },
-                    2: { color: '#109618' }
-                }
-            };
-
-            // Instantiate and draw the chart.
-            var chart = new google.visualization.BarChart(document.getElementById('todayChart'));
-            function selectHandler() {
-                var selectedItem = chart.getSelection()[0];
-                console.log(chart.getSelection()[0]);
-
-                if (selectedItem) {
-                    var topping = data.getValue(selectedItem.row, 0);
-
-                    var columnName = data.getColumnLabel(selectedItem.column);
-                    alert(columnName + 'The user selected ' + topping);
-                    var ids = [1, 2, 3, 7];
-                    GetChartDataByStatusAndBatchIds(topping, ids)
-                }
-            }
-
-            google.visualization.events.addListener(chart, 'select', selectHandler);
-            chart.draw(data, options);
-        }
-        google.charts.setOnLoadCallback(drawChart1);
+        google.charts.setOnLoadCallback(BindWeeklyChartData);
+        google.charts.setOnLoadCallback(BindTodayChartData);
 
         function SendPullBackRequest(mailpieceIds) {
             console.log(mailpieceIds);
@@ -311,6 +311,7 @@
                 $("#loanNumberEmpty").show();
             }
         });
+
         $("#yesPullback").click(function (e) {
             $("#confirmModal").modal("hide");
             console.log(baseUrl);
@@ -354,4 +355,3 @@
         });
     </script>
 }
-@*<div id="barchart_values" style="width: 900px; height: 300px;"></div>*@
