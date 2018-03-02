@@ -72,20 +72,25 @@ namespace AM.Web.Controllers
                     }
                     else if (item.MailPieceStatus.ToString() == "InProgress" && item.PipelineStatus.ToString() == "Submitted")
                     {
-                        //UPDATE "PullBackRequestedOn" time
-                        int row = pullBackSvc.UpdatePullBackRequestedOn(item.UniqueId.ToString(), string.IsNullOrEmpty(User.Identity.GetUserId().ToString()) ? string.Empty : User.Identity.GetUserId());
-                        if (row > 0)
-                        {
-                            mailPieceIdsToPullback.Add(item.UniqueId);
-                            mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.UniqueId.ToString(), Message = Config.Msg["MP_PB_Success"], IsSuccess = true });
-                        }
+                        mailPieceIdsToPullback.Add(item.UniqueId.ToString());
                     }
                 }
 
                 var pullBackData = pullBackSvc.GetPullBackData(mailPieceIdsToPullback);
 
                 bool isGenerated = GeneratePullBackForm(pullBackData);
-                if (!isGenerated)
+                if (isGenerated)
+                {
+                    foreach (var item in mailPieceIdsToPullback)
+                    {
+                        int row = pullBackSvc.UpdatePullBackRequestedOn(item.ToString(), string.IsNullOrEmpty(User.Identity.GetUserId().ToString()) ? string.Empty : User.Identity.GetUserId());
+                        if (row > 0)
+                        {
+                            mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.ToString(), Message = Config.Msg["MP_PB_Success"], IsSuccess = true });
+                        }
+                    }                    
+                }
+                else
                 {
                     return JsonResponseFactory.ErrorResponse(Config.Msg["MP_PBReqFormErr"]);
                 }
