@@ -38,7 +38,7 @@ namespace AM.Console
 
             foreach (Batch batch in downloadBatches)
             {
-                Client client = clientSvc.GetClientDetails(batch.ClientId, true).Single();
+                Client client = clientSvc.GetClientDetails(batch.ClientId).Single();
                 List<DocType> docTypes = docTypeSvc.GetDocTypesByClientIdOrByDocTypeName(client.Id, string.Empty);
 
                 List<MailPieceDTO> mailPieces = mailPieceSvc.GetMailPiecesByBatchClustId(batch.BatchClustId);

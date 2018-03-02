@@ -1,6 +1,7 @@
 ﻿using AM.Entities;
 using AM.Services;
 using log4net;
+using Renci.SshNet;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -32,70 +33,81 @@ namespace AM.Console
         {
             log.Debug("Download Batch Process Started");
 
-            Client client = clientSvc.GetClientDetails(null, true).Single(x => x.ClientName == "USAA");
+            Client client = clientSvc.GetClientDetails(null).Single(x => x.ClientName == "USAA");
 
-            //foreach (var client in clientList)
-            //{
-            SFTUtil sftSite = null;
-            try
-            {
-                sftSite = new SFTUtil(Common.GetProtocolType(client.SFTProtocol), client.SFTHost, client.SFTUserName, client.SFTPassword, 300000);
-                sftSite.Connect();
-            }
-            catch (Exception ex)
-            {
-                log.Error(ex);
-            }
+            ClientSFTChannel channelMap = clientSvc.GetClientSFTChannelMapDetails(client.Id).SingleOrDefault();
 
-            if (sftSite.IsDownloadDirectoryAvailable(client.SFTADERequestDir))
+            if (channelMap != null)
             {
-                var listFiles = sftSite.ListDirectory(client.SFTADERequestDir).Where(x => Path.GetExtension(x).Equals(".xml", StringComparison.CurrentCultureIgnoreCase)).ToList();
-                if (listFiles != null && listFiles.Count > 0)
+                SFTChannel channelDetails = clientSvc.GetSFTChannelDetails(channelMap.SFTChannelId);
+                if (channelDetails != null)
                 {
-                    log.Debug(listFiles.Count.ToString() + " files found for client : " + client.AppCode);
-
-                    foreach (var file in listFiles)
+                    SFTUtil sftSite = null;
+                    try
                     {
-                        string localDownloadPath = Path.Combine(Common.AuthoMailRootFolder, client.AppCode, Path.GetFileNameWithoutExtension(file));
-                        string serverFiledownloadPath = Path.Combine(client.SFTADERequestDir, file);
-                        string serverArchiveFilePath = Path.Combine(client.SFTADERequestArchiveDir, file);
+                        sftSite = new SFTUtil(Common.GetProtocolType(channelDetails.Protocol), channelDetails.Host, channelDetails.UserName, channelDetails.Password, 300000);
+                        sftSite.Connect();
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Error(ex);
+                    }
 
-                        //Check if directory exist or not, if exist then delete and recreate
-                        if (Directory.Exists(localDownloadPath))
-                        {
-                            Directory.Delete(localDownloadPath, true);
-                            Directory.CreateDirectory(localDownloadPath);
-                        }
-                        else
-                            Directory.CreateDirectory(localDownloadPath);
-
-                        Batch mailBatch = new Batch();
-                        mailBatch.ClientId = client.Id;
-
-                        sftSite.DownloadFile(Path.Combine(localDownloadPath, file), serverFiledownloadPath);
-
-                        mailBatch.ReceivedOn = sftSite.LastModifiedTimeOfFile(serverFiledownloadPath);
-                        mailBatch.BatchFilePath = Path.Combine(localDownloadPath, file);
-
-                        sftSite.MoveFile(serverFiledownloadPath, serverArchiveFilePath);
-
-                        ProcessXML(sftSite, Path.Combine(localDownloadPath, file), mailBatch, client, localDownloadPath);
+                    if (sftSite.IsDownloadDirectoryAvailable(channelDetails.ADERequestDir))
+                    {
 
                     }
                 }
-                else
-                {
-                    MailUtility.SendNoBatchReceivedNotificationEmail(Common.UtcToClientTimeZone(Common.GetCurrentTime(), client.TimeZone));
-                }
             }
-            else
-            {
-                //TODO: Mail for Path is not available to client or internal team
-            }
+
+            //if (sftSite.IsDownloadDirectoryAvailable(client.SFTADERequestDir))
+            //{
+            //    var listFiles = sftSite.ListDirectory(client.SFTADERequestDir).Where(x => Path.GetExtension(x).Equals(".xml", StringComparison.CurrentCultureIgnoreCase)).ToList();
+            //    if (listFiles != null && listFiles.Count > 0)
+            //    {
+            //        log.Debug(listFiles.Count.ToString() + " files found for client : " + client.AppCode);
+
+            //        foreach (var file in listFiles)
+            //        {
+            //            string localDownloadPath = Path.Combine(Common.AuthoMailRootFolder, client.AppCode, Path.GetFileNameWithoutExtension(file));
+            //            string serverFiledownloadPath = Path.Combine(client.SFTADERequestDir, file);
+            //            string serverArchiveFilePath = Path.Combine(client.SFTADERequestArchiveDir, file);
+
+            //            //Check if directory exist or not, if exist then delete and recreate
+            //            if (Directory.Exists(localDownloadPath))
+            //            {
+            //                Directory.Delete(localDownloadPath, true);
+            //                Directory.CreateDirectory(localDownloadPath);
+            //            }
+            //            else
+            //                Directory.CreateDirectory(localDownloadPath);
+
+            //            Batch mailBatch = new Batch();
+            //            mailBatch.ClientId = client.Id;
+
+            //            sftSite.DownloadFile(Path.Combine(localDownloadPath, file), serverFiledownloadPath);
+
+            //            mailBatch.ReceivedOn = sftSite.LastModifiedTimeOfFile(serverFiledownloadPath);
+            //            mailBatch.BatchFilePath = Path.Combine(localDownloadPath, file);
+
+            //            sftSite.MoveFile(serverFiledownloadPath, serverArchiveFilePath);
+
+            //            ProcessXML(sftSite, Path.Combine(localDownloadPath, file), mailBatch, client, localDownloadPath);
+
+            //        }
+            //    }
+            //    else
+            //    {
+            //        MailUtility.SendNoBatchReceivedNotificationEmail(Common.UtcToClientTimeZone(Common.GetCurrentTime(), client.TimeZone));
+            //    }
+            //}
+            //else
+            //{
+            //    //TODO: Mail for Path is not available to client or internal team
             //}
         }
 
-        private void ProcessXML(SFTUtil sftSite, string xmlFilePath, Batch mailBatch, Client client, string localDownloadPath)
+        private void ProcessXML(SFTUtil sftSite, string xmlFilePath, Batch mailBatch, Client client, string localDownloadPath, SFTChannel sftChannel)
         {
             string batchName = Path.GetFileNameWithoutExtension(xmlFilePath);
             //ValidationResult validationResult = XmlUtil.ValidateXml(Common.schemas, xmlFilePath);
@@ -221,7 +233,7 @@ namespace AM.Console
                                 amMailPiece.RcptAddrOptionalLine2BelowStreet = mailPiece.RecipientInfo.Address.OptionalLine2BelowStreet;
                             }
 
-                            List<string> availablePDF = sftSite.ListDirectory(client.SFTADERequestDir).Where(x => Path.GetExtension(x).Equals(".pdf", StringComparison.CurrentCultureIgnoreCase)).ToList();
+                            List<string> availablePDF = sftSite.ListDirectory(sftChannel.ADERequestDir).Where(x => Path.GetExtension(x).Equals(".pdf", StringComparison.CurrentCultureIgnoreCase)).ToList();
                             string pdfLocalFilePath = string.Empty;
                             string pdfServerFilePath = string.Empty;
                             string pdfServerArchiveFilePath = string.Empty;
@@ -234,8 +246,8 @@ namespace AM.Console
                                     if (availablePDF.Contains(mailPiece.DocumentOrPackage.Name))
                                     {
                                         pdfLocalFilePath = Path.Combine(localDownloadPath, mailPiece.DocumentOrPackage.Name);
-                                        pdfServerFilePath = Path.Combine(client.SFTADERequestDir, mailPiece.DocumentOrPackage.Name);
-                                        pdfServerArchiveFilePath = Path.Combine(client.SFTADERequestArchiveDir, mailPiece.DocumentOrPackage.Name);
+                                        pdfServerFilePath = Path.Combine(sftChannel.ADERequestDir, mailPiece.DocumentOrPackage.Name);
+                                        pdfServerArchiveFilePath = Path.Combine(sftChannel.ADERequestArchiveDir, mailPiece.DocumentOrPackage.Name);
                                         if (!archiveFileList.ContainsKey(pdfServerFilePath))
                                             archiveFileList.Add(pdfServerFilePath, pdfServerArchiveFilePath);
 
@@ -259,8 +271,8 @@ namespace AM.Console
                                         string pdfFileName = availablePDF.Single(x => x.Contains(mailPiece.DocumentOrPackage.Pattern));
 
                                         pdfLocalFilePath = Path.Combine(localDownloadPath, pdfFileName);
-                                        pdfServerFilePath = Path.Combine(client.SFTADERequestDir, pdfFileName);
-                                        pdfServerArchiveFilePath = Path.Combine(client.SFTADERequestArchiveDir, pdfFileName);
+                                        pdfServerFilePath = Path.Combine(sftChannel.ADERequestDir, pdfFileName);
+                                        pdfServerArchiveFilePath = Path.Combine(sftChannel.ADERequestArchiveDir, pdfFileName);
 
                                         sftSite.DownloadFile(pdfLocalFilePath, pdfServerFilePath);
 

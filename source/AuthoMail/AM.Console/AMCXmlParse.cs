@@ -34,23 +34,32 @@ namespace AM.Console
         {
             Batch mailBatch = null;
             string triggerFilePath = string.Empty;
-            Client client = clientSvc.GetClientDetails(null, true).Single(x => x.ClientName == "USAA");
-            using (SftpClient sftp = new SftpClient(client.SFTHost, client.SFTUserName, client.SFTPassword))
+            Client client = clientSvc.GetClientDetails(null).Single(x => x.ClientName == "USAA");
+            ClientSFTChannel channelMap = clientSvc.GetClientSFTChannelMapDetails(client.Id).SingleOrDefault();
+
+            if (channelMap != null)
             {
-                sftp.KeepAliveInterval = TimeSpan.FromSeconds(20);
-                sftp.Connect();
-
-                // Check if trigger file is available or not on FTP folder.
-                triggerFilePath = GetTriggerFilePath(sftp, client);
-
-                if (!string.IsNullOrEmpty(triggerFilePath))
+                SFTChannel channelDetails = clientSvc.GetSFTChannelDetails(channelMap.SFTChannelId);
+                if (channelDetails != null)
                 {
-                    // Download and Insert the batch in database first always.
-                    string zipFileFTPPath = Regex.Replace(Path.ChangeExtension(triggerFilePath, ".zip"), @"(w*)_Complete", string.Empty);
-                    mailBatch = GetNewBatchFromFTP(sftp, zipFileFTPPath, triggerFilePath, client);
+                    using (SftpClient sftp = new SftpClient(channelDetails.Host, channelDetails.UserName, channelDetails.Password))
+                    {
+                        sftp.KeepAliveInterval = TimeSpan.FromSeconds(20);
+                        sftp.Connect();
+
+                        // Check if trigger file is available or not on FTP folder.
+                        triggerFilePath = GetTriggerFilePath(sftp, channelDetails);
+
+                        if (!string.IsNullOrEmpty(triggerFilePath))
+                        {
+                            // Download and Insert the batch in database first always.
+                            string zipFileFTPPath = Regex.Replace(Path.ChangeExtension(triggerFilePath, ".zip"), @"(w*)_Complete", string.Empty);
+                            mailBatch = GetNewBatchFromFTP(sftp, zipFileFTPPath, triggerFilePath, client, channelDetails);
+                        }
+                        if (sftp.IsConnected)
+                            sftp.Disconnect();
+                    }
                 }
-                if (sftp.IsConnected)
-                    sftp.Disconnect();
             }
 
             if (mailBatch != null)
@@ -68,7 +77,7 @@ namespace AM.Console
             }
         }
 
-        private Batch GetNewBatchFromFTP(SftpClient sftp, string zipFileFTPPath, string triggerFilePath, Client client)
+        private Batch GetNewBatchFromFTP(SftpClient sftp, string zipFileFTPPath, string triggerFilePath, Client client, SFTChannel sftChannel)
         {
             Batch newBatch = null;
             string downloadedZipFilePath = string.Empty;
@@ -109,7 +118,7 @@ namespace AM.Console
 
                         #endregion
 
-                        MoveTriggerFileToBackupDir(sftp, triggerFilePath, client);
+                        MoveTriggerFileToBackupDir(sftp, triggerFilePath, sftChannel);
 
                         log.Error(string.Format("Trigger file '{0}' and corresponding zip file deleted after downloading its ZIP file.", Path.GetFileName(triggerFilePath)));
 
@@ -142,7 +151,7 @@ namespace AM.Console
 
                         newBatch.BatchClustId = batchSvc.InsertBatchDetails(newBatch);
 
-                        MoveTriggerFileToBackupDir(sftp, triggerFilePath, client);
+                        MoveTriggerFileToBackupDir(sftp, triggerFilePath, sftChannel);
                     }
                 }
             }
@@ -161,18 +170,18 @@ namespace AM.Console
                 newBatch.BatchClustId = batchSvc.InsertBatchDetails(newBatch);
                 log.Error(string.Format("Trigger file {0} found but zip file missing on FTP.", Path.GetFileName(triggerFilePath)));
 
-                MoveTriggerFileToBackupDir(sftp, triggerFilePath, client);
+                MoveTriggerFileToBackupDir(sftp, triggerFilePath, sftChannel);
             }
 
             return null;
         }
 
-        private void MoveTriggerFileToBackupDir(SftpClient sftp, string triggerFilePath, Client client)
+        private void MoveTriggerFileToBackupDir(SftpClient sftp, string triggerFilePath, SFTChannel sftChannel)
         {
             if (!sftp.IsConnected)
                 sftp.Connect();
 
-            string ftpBackupDir = client.SFTADERequestArchiveDir;
+            string ftpBackupDir = sftChannel.ADERequestArchiveDir;
 
             //if (!sftp.Exists(ftpBackupDir))
             //    sftp.CreateDirectory(ftpBackupDir);
@@ -214,14 +223,14 @@ namespace AM.Console
             return downloadedZipFilePath;
         }
 
-        private static string GetTriggerFilePath(SftpClient sftp, Client client)
+        private static string GetTriggerFilePath(SftpClient sftp, SFTChannel sftChannel)
         {
             if (sftp.IsConnected == false)
                 sftp.Connect();
 
             string ftpTriggerFilePath = string.Empty;
             DateTime pingTime = DateTime.UtcNow;
-            List<SftpFile> avialableTriggerFiles = sftp.ListDirectory(client.SFTADERequestDir).Where(f => f.IsRegularFile && Path.GetExtension(f.FullName).Equals(".go", StringComparison.CurrentCultureIgnoreCase) && Path.GetFileNameWithoutExtension(f.Name).EndsWith("_Complete")).ToList<SftpFile>();
+            List<SftpFile> avialableTriggerFiles = sftp.ListDirectory(sftChannel.ADERequestDir).Where(f => f.IsRegularFile && Path.GetExtension(f.FullName).Equals(".go", StringComparison.CurrentCultureIgnoreCase) && Path.GetFileNameWithoutExtension(f.Name).EndsWith("_Complete")).ToList<SftpFile>();
 
             if (avialableTriggerFiles != null && avialableTriggerFiles.Count > 0)
             {
@@ -425,7 +434,7 @@ namespace AM.Console
                                 mailPieceCustomInfos.Add(customInfoShippingMethod);
 
                                 mailPieceSvc.InsertBatchMailPieceCustomDetails(mailPieceCustomInfos);
-                            } 
+                            }
                                 #endregion
                             #endregion
                         }
@@ -590,7 +599,7 @@ namespace AM.Console
                         finally
                         {
                             // if the validation works or fails save some information in loan table.
-                            #region other Error 
+                            #region other Error
                             if (parsingResult.Code != OutComeCodes.No_Error)
                             {
                                 mailPiece = new MailPieceDTO();
@@ -629,7 +638,7 @@ namespace AM.Console
 
 
                                 mailPieceSvc.InsertBatchMailPieceDetails(mailPiece);
-                            } 
+                            }
                             #endregion
                         }
                     }

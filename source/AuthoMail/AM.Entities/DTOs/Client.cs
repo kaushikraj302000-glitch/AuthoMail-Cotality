@@ -12,15 +12,29 @@ namespace AM.Entities
         public string ClientName { get; set; }
         public string AppCode { get; set; }
         public int BusinessUnit { get; set; }
-        public bool IsClientActive { get; set; }
+        public bool IsAMActive { get; set; }
         public bool IsPnSActive { get; set; }
-        public string SFTProtocol { get; set; }
-        public string SFTHost { get; set; }
-        public string SFTUserName { get; set; }
-        public string SFTPassword { get; set; }
-        public string SFTADERequestDir { get; set; }
-        public string SFTADERequestArchiveDir { get; set; }
-        public string SFTADEResponseDir { get; set; }
         public string TimeZone { get; set; }
+    }
+
+    public class ClientSFTChannel
+    {
+        public int ClientId { get; set; }
+        public int SFTChannelId { get; set; }
+    }
+
+    public class SFTChannel
+    {
+        public int Id { get; set; }
+        public string Code { get; set; }
+        public string Title { get; set; }
+        public string Protocol { get; set; }
+        public string Host { get; set; }
+        public string UserName { get; set; }
+        public string Password { get; set; }
+        public string ADERequestDir { get; set; }
+        public string ADERequestArchiveDir { get; set; }
+        public string ADEResponseDir { get; set; }
+        public string PostDownloadAction { get; set; }
     }
 }

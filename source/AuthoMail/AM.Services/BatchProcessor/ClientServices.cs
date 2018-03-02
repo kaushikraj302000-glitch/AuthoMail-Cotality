@@ -11,32 +11,44 @@ namespace AM.Services
 {
     public interface IClientService//Home Service interface that has number of methods
     {
-        List<Client> GetClientDetails(int? clientId, bool isPnSActive);
+        List<Client> GetClientDetails(int? clientId);
+        List<ClientSFTChannel> GetClientSFTChannelMapDetails(int clientId);
+        SFTChannel GetSFTChannelDetails(int sftChannelId);
     }
     public class ClientService : ServiceBase, IClientService //It implements Interfaces 
     {
-        public List<Client> GetClientDetails(int? clientId, bool isPnSActive)
+        public List<Client> GetClientDetails(int? clientId)
         {
-            //Sql Query
-            string query = "SELECT * FROM [Common].[Clients] WHERE IsClientActive=@isClientActive AND IsPnSActive=@isPnSActive";
-
-            //Assign value to parameters It may one or more. Note:
-            //List of parameters declaration
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@isClientActive", true);
-            parameters.Add("@isPnSActive", isPnSActive);
+            string query = "SELECT * FROM [Common].[Clients] WHERE IsAMActive=1 ";
 
             if (clientId.HasValue)
             {
-                query = query + " AND Id=@clientId";
-                parameters.Add("@clientId", clientId.Value);
+                query = query + " AND Id={0}".Fill(clientId.Value);
             }
 
-            /*
-             * Execution of query with parateters.
-             * Without Dapper you can't create following code. So just Add "using Dapper" namespace at begin.
-            */
-            var data = db.Query<Client>(query, parameters).ToList();
+            var data = db.Query<Client>(query).ToList();
+            return data;
+        }
+
+        public List<ClientSFTChannel> GetClientSFTChannelMapDetails(int clientId)
+        {
+            string query = "SELECT ClientId, SFTChannelId FROM [Common].[ClientSFTChannels] WHERE ClientId=@clientId";
+           
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
+            parameters.Add("@clientId", clientId);
+
+            var data = db.Query<ClientSFTChannel>(query, parameters).ToList();
+            return data;
+        }
+
+        public SFTChannel GetSFTChannelDetails(int sftChannelId)
+        {
+            string query = "SELECT Id, Code, Title, Protocol, Host, UserName, Password, ADERequestDir, ADERequestArchiveDir, PostDownloadAction FROM [Common].[SFTChannels] WHERE Id=@sftChannelId";
+
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
+            parameters.Add("@sftChannelId", sftChannelId);
+
+            var data = db.Query<SFTChannel>(query, parameters).SingleOrDefault();
             return data;
         }
     }
