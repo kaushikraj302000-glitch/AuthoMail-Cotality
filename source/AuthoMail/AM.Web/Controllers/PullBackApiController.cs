@@ -83,7 +83,7 @@ namespace AM.Web.Controllers
                 {
                     foreach (var item in mailPieceIdsToPullback)
                     {
-                        int row = pullBackSvc.UpdatePullBackRequestedOn(item.ToString(), string.IsNullOrEmpty(User.Identity.GetUserId().ToString()) ? string.Empty : User.Identity.GetUserId());
+                        int row = pullBackSvc.UpdatePullBackRequestedOn(item.ToString(), string.IsNullOrEmpty(User.Identity.GetUserId().ToString()) ? string.Empty : User.Identity.GetUserId().ToString());
                         if (row > 0)
                         {
                             mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.ToString(), Message = Config.Msg["MP_PB_Success"], IsSuccess = true });
