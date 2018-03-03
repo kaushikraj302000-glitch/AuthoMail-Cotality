@@ -32,7 +32,7 @@ namespace AM.Console
         private static readonly ILog log = LogManager.GetLogger(typeof(AMCXmlParse));
         public void DownloadAMCXml()
         {
-            Batch mailBatch = null;
+            MailBatchDTO mailBatch = null;
             string triggerFilePath = string.Empty;
             Client client = clientSvc.GetClientDetails(null).Single(x => x.ClientName == "USAA");
             ClientSFTChannel channelMap = clientSvc.GetClientSFTChannelMapDetails(client.Id).SingleOrDefault();
@@ -77,9 +77,9 @@ namespace AM.Console
             }
         }
 
-        private Batch GetNewBatchFromFTP(SftpClient sftp, string zipFileFTPPath, string triggerFilePath, Client client, SFTChannel sftChannel)
+        private MailBatchDTO GetNewBatchFromFTP(SftpClient sftp, string zipFileFTPPath, string triggerFilePath, Client client, SFTChannel sftChannel)
         {
-            Batch newBatch = null;
+            MailBatchDTO newBatch = null;
             string downloadedZipFilePath = string.Empty;
 
             if (sftp.IsConnected == false)
@@ -106,12 +106,11 @@ namespace AM.Console
                         }
 
                         // Insert a new batch and get batchID, set batchDate
-                        newBatch = new Batch()
+                        newBatch = new MailBatchDTO()
                         {
                             BatchName = Path.GetFileNameWithoutExtension(downloadedZipFilePath),
                             ReceivedOn = DateTime.UtcNow,
-                            Id = Guid.NewGuid(),
-                            BatchFilePath = downloadedZipFilePath,
+                            UniqueId = Guid.NewGuid(),
                             Priority = Priority.High.ToString(),
                             ClientId = client.Id
                         };
@@ -130,26 +129,24 @@ namespace AM.Console
                             newBatch.ValidationErrors = string.Format("{0}|No XML file is available.", OutComeCodes.Invalid_Zip_File.ToString());
                         }
 
-                        newBatch.BatchClustId = batchSvc.InsertBatchDetails(newBatch);
-                        commonSvc.UpdateBatchPipeLineStatus(newBatch.BatchClustId, BatchPipelineStatus.Downloaded, Common.GetCurrentTime());
+                        newBatch.Id = batchSvc.InsertBatchDetails(newBatch);
+                        commonSvc.UpdateBatchPipeLineStatus(newBatch.Id, BatchPipelineStatus.Downloaded, Common.GetCurrentTime());
                         return newBatch;
                     }
                     catch (ZipException err)
                     {
                         // The zip file of batch is corrupt so log the error in batch table.
                         log.Error(err);
-                        newBatch = new Batch()
+                        newBatch = new MailBatchDTO()
                         {
-                            Id = Guid.NewGuid(),
                             BatchName = Path.GetFileNameWithoutExtension(triggerFilePath).TrimEnd("_Complete".ToCharArray()).ToString(),
                             ReceivedOn = Common.GetCurrentTime(),
                             DownloadedOn = Common.GetCurrentTime(),
                             ValidationStatus = OutComeCodes.Invalid_Zip_File.ToString(),
-                            ValidationErrors = string.Format("{0}|{1}", OutComeCodes.Invalid_Zip_File.ToString(), err.Message),
-                            BatchFilePath = downloadedZipFilePath
+                            ValidationErrors = string.Format("{0}|{1}", OutComeCodes.Invalid_Zip_File.ToString(), err.Message)
                         };
 
-                        newBatch.BatchClustId = batchSvc.InsertBatchDetails(newBatch);
+                        newBatch.Id = batchSvc.InsertBatchDetails(newBatch);
 
                         MoveTriggerFileToBackupDir(sftp, triggerFilePath, sftChannel);
                     }
@@ -158,7 +155,7 @@ namespace AM.Console
             // If the zip file is not available in the FTP folder then log that error.
             else
             {
-                newBatch = new Batch()
+                newBatch = new MailBatchDTO()
                 {
                     BatchName = Path.GetFileNameWithoutExtension(triggerFilePath).TrimEnd("_Complete".ToCharArray()).ToString(),
                     ReceivedOn = DateTime.UtcNow,
@@ -167,7 +164,7 @@ namespace AM.Console
                     DownloadedOn = Common.GetCurrentTime()
                 };
 
-                newBatch.BatchClustId = batchSvc.InsertBatchDetails(newBatch);
+                newBatch.Id = batchSvc.InsertBatchDetails(newBatch);
                 log.Error(string.Format("Trigger file {0} found but zip file missing on FTP.", Path.GetFileName(triggerFilePath)));
 
                 MoveTriggerFileToBackupDir(sftp, triggerFilePath, sftChannel);
@@ -245,7 +242,7 @@ namespace AM.Console
             return ftpTriggerFilePath;
         }
 
-        private void ParseLoans(Batch batch, Client client)
+        private void ParseLoans(MailBatchDTO batch, Client client)
         {
             #region Converting AMCXml to AuthoMailXml
             MailBatch amMailBatch = new MailBatch();
@@ -353,8 +350,8 @@ namespace AM.Console
 
                                 #region AMMailPiece Data
                                 mailPiece = new MailPieceDTO();
-                                mailPiece.BatchClustId = batch.BatchClustId;
-                                mailPiece.Id = package.Id;
+                                mailPiece.BatchId = batch.Id;
+                                mailPiece.UniqueId = package.Id;
                                 mailPiece.FileName = package.File;
                                 mailPiece.DocumentOrPackageType = package.PackageName;
                                 mailPiece.BusinessFriendlyIdName = "LoanNbr";
@@ -391,7 +388,6 @@ namespace AM.Console
                                 // Check if the PDF file is available or not for loan.
                                 if (File.Exists(Path.Combine(batchDirectoryPath, package.File)))
                                 {
-                                    mailPiece.DownloadedFilePath = Path.Combine(batchDirectoryPath, package.File);
                                     mailPiece.ErrorCode = OutComeCodes.No_Error.ToString();
                                 }
                                 else
@@ -457,11 +453,11 @@ namespace AM.Console
 
                                 if (loan.SelectSingleNode("./x:Id/text()", nsManager) == null)
                                 {
-                                    mailPiece.Id = Guid.Empty;
+                                    mailPiece.UniqueId = Guid.Empty;
                                 }
                                 else
                                 {
-                                    mailPiece.Id = Guid.Parse(loan.SelectSingleNode("./x:Id/text()", nsManager).Value);
+                                    mailPiece.UniqueId = Guid.Parse(loan.SelectSingleNode("./x:Id/text()", nsManager).Value);
                                 }
 
                                 if (loan.SelectSingleNode("./x:LoanNbr/text()", nsManager) == null)
@@ -476,14 +472,14 @@ namespace AM.Console
                                 }
                                 mailPiece.ErrorCode = OutComeCodes.Invalid_XML.ToString();
                                 mailPiece.ErrorDesc = err.Message;
-                                mailPiece.BatchClustId = batch.BatchClustId;
+                                mailPiece.BatchId = batch.Id;
                             }
                             else
                             {
                                 mailPiece = new MailPieceDTO();
                                 mailPiece.ErrorCode = OutComeCodes.Invalid_XML.ToString();
                                 mailPiece.ErrorDesc = err.Message;
-                                mailPiece.BatchClustId = batch.BatchClustId;
+                                mailPiece.BatchId = batch.Id;
                                 if (loan.SelectSingleNode("./x:LoanNbr/text()", nsManager) == null)
                                 {
                                     mailPiece.BusinessFriendlyIdName = "LoanNbr";
@@ -496,11 +492,11 @@ namespace AM.Console
 
                                 if (loan.SelectSingleNode("./x:Id/text()", nsManager) == null)
                                 {
-                                    mailPiece.Id = Guid.Empty;
+                                    mailPiece.UniqueId = Guid.Empty;
                                 }
                                 else
                                 {
-                                    mailPiece.Id = Guid.Parse(loan.SelectSingleNode("./x:Id/text()", nsManager).Value);
+                                    mailPiece.UniqueId = Guid.Parse(loan.SelectSingleNode("./x:Id/text()", nsManager).Value);
                                 }
 
                                 if (loan.SelectSingleNode("./x:LoanNbr/text()", nsManager) == null)
@@ -536,11 +532,11 @@ namespace AM.Console
 
                                 if (loan.SelectSingleNode("./x:Id/text()", nsManager) == null)
                                 {
-                                    mailPiece.Id = Guid.Empty;
+                                    mailPiece.UniqueId = Guid.Empty;
                                 }
                                 else
                                 {
-                                    mailPiece.Id = Guid.Parse(loan.SelectSingleNode("./x:Id/text()", nsManager).Value);
+                                    mailPiece.UniqueId = Guid.Parse(loan.SelectSingleNode("./x:Id/text()", nsManager).Value);
                                 }
 
                                 if (loan.SelectSingleNode("./x:LoanNbr/text()", nsManager) == null)
@@ -555,14 +551,14 @@ namespace AM.Console
                                 }
                                 mailPiece.ErrorCode = OutComeCodes.Unknown_Error.ToString();
                                 mailPiece.ErrorDesc = err.Message;
-                                mailPiece.BatchClustId = batch.BatchClustId;
+                                mailPiece.BatchId = batch.Id;
                             }
                             else
                             {
                                 mailPiece = new MailPieceDTO();
                                 mailPiece.ErrorCode = OutComeCodes.Unknown_Error.ToString();
                                 mailPiece.ErrorDesc = err.Message;
-                                mailPiece.BatchClustId = batch.BatchClustId;
+                                mailPiece.BatchId = batch.Id;
                                 if (loan.SelectSingleNode("./x:LoanNbr/text()", nsManager) == null)
                                 {
                                     mailPiece.BusinessFriendlyIdName = "LoanNbr";
@@ -575,11 +571,11 @@ namespace AM.Console
 
                                 if (loan.SelectSingleNode("./x:Id/text()", nsManager) == null)
                                 {
-                                    mailPiece.Id = Guid.Empty;
+                                    mailPiece.UniqueId = Guid.Empty;
                                 }
                                 else
                                 {
-                                    mailPiece.Id = Guid.Parse(loan.SelectSingleNode("./x:Id/text()", nsManager).Value);
+                                    mailPiece.UniqueId = Guid.Parse(loan.SelectSingleNode("./x:Id/text()", nsManager).Value);
                                 }
 
                                 if (loan.SelectSingleNode("./x:LoanNbr/text()", nsManager) == null)
@@ -605,7 +601,7 @@ namespace AM.Console
                                 mailPiece = new MailPieceDTO();
                                 mailPiece.ErrorCode = OutComeCodes.Unknown_Error.ToString();
                                 mailPiece.ErrorDesc = parsingResult.ErrorMessage;
-                                mailPiece.BatchClustId = batch.BatchClustId;
+                                mailPiece.BatchId = batch.Id;
                                 if (loan.SelectSingleNode("./x:LoanNbr/text()", nsManager) == null)
                                 {
                                     mailPiece.BusinessFriendlyIdName = "LoanNbr";
@@ -618,11 +614,11 @@ namespace AM.Console
 
                                 if (loan.SelectSingleNode("./x:Id/text()", nsManager) == null)
                                 {
-                                    mailPiece.Id = Guid.Empty;
+                                    mailPiece.UniqueId = Guid.Empty;
                                 }
                                 else
                                 {
-                                    mailPiece.Id = Guid.Parse(loan.SelectSingleNode("./x:Id/text()", nsManager).Value);
+                                    mailPiece.UniqueId = Guid.Parse(loan.SelectSingleNode("./x:Id/text()", nsManager).Value);
                                 }
 
                                 if (loan.SelectSingleNode("./x:LoanNbr/text()", nsManager) == null)
@@ -644,7 +640,7 @@ namespace AM.Console
                     }
                 }
                 #endregion
-                List<MailPieceDTO> mailPieces = mailPieceSvc.GetMailPiecesByBatchClustId(batch.BatchClustId);
+                List<MailPieceDTO> mailPieces = mailPieceSvc.GetMailPiecesByBatchClustId(batch.Id);
                 //// TotalLoans is valid loans of this batch. Update the count and add barcode for each loan.
                 //if (mailPieces.Count > 0)
                 //{

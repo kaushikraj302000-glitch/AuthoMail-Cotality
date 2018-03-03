@@ -225,6 +225,36 @@ namespace AM.Console
             }
         }
 
+        public bool IsFileAvailable(string serverFilePath)
+        {
+            if (Protocol == SFT_ProtocolType.ftp)
+            {
+                FTP_WebRequest = (FtpWebRequest)FtpWebRequest.Create(GetUrl(serverFilePath));
+                FTP_WebRequest.Credentials = Credentials;
+                FTP_WebRequest.Method = WebRequestMethods.Ftp.DownloadFile;
+
+                try
+                {
+                    using (FtpWebResponse FTP_WebResponse = (FtpWebResponse)FTP_WebRequest.GetResponse())
+                    {
+                        return true;
+                    }
+                }
+                catch (WebException)
+                {
+                    return false;
+                }
+            }
+            else if (Protocol == SFT_ProtocolType.unc)
+            {
+                return File.Exists(serverFilePath);
+            }
+            else
+            {
+                return SFTP_Client.Exists(serverFilePath);
+            }
+        }
+
         public void UploadFile(string localFilePath, string remoteFilePath, bool deleteLocalFile = false, bool closeConnection = false)
         {
             if (Protocol == SFT_ProtocolType.ftp)
