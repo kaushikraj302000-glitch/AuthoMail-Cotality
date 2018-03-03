@@ -123,6 +123,7 @@ namespace AM.Services
         public string BusinessFriendlyIdName { get; set; }
         public string BusinessFriendlyIdValue { get; set; }
         public string FileName { get; set; }
+        public string ShippingStatus { get; set; }
         public string PulledBackBy { get; set; }
         public DateTime? PulledBackOn { get; set; }
         public string PullBackMessage
