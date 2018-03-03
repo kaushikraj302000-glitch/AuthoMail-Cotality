@@ -10,6 +10,9 @@ namespace AM.Services
     {
         public int MailPieceId { get; set; }
         public Guid MailPieceUniqueId { get; set; }
+        public int BatchId { get; set; }
+        public Guid BatchUniqueId { get; set; }
+        public string BatchName { get; set; }
         public string BusinessFriendlyIdValue { get; set; }
         public string BusinessFriendlyIdName { get; set; }
         public string BatchDocumentOrPackageType { get; set; }
@@ -120,5 +123,16 @@ namespace AM.Services
         public string BusinessFriendlyIdName { get; set; }
         public string BusinessFriendlyIdValue { get; set; }
         public string FileName { get; set; }
+        public string PulledBackBy { get; set; }
+        public DateTime? PulledBackOn { get; set; }
+        public string PullBackMessage
+        {
+            get
+            {
+                if (PulledBackBy.IsNullOrWhiteSpace() || !PulledBackOn.HasValue) return null;
+
+                return string.Format("{0} by {1} on {2}", Config.Msg["MP_PBRequested"], PulledBackBy, PulledBackOn.Value.ToString());
+            }
+        }
     }
 }
