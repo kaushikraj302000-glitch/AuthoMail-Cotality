@@ -13,7 +13,7 @@
         <div class="panel-heading">
             <div class="panel-title">Today's MailPiece Details</div>
         </div>
-        <div class="panel-body panel-gray ">
+        <div class="panel-body panel-gray " id="todayBody">
             <div id="todayChart"></div>
         </div>
 
@@ -125,8 +125,8 @@
             <div class="modal-header">
                 <h2 id="myModalLabel"> Are you sure you want to do pullback?</h2>
                 <hr />
-                <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> No</button>
                 <button type="button" class="btn btn-primary" id="yesPullback"><i class="fa fa-check"></i> Yes</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> No</button>
             </div>
             @*<div class="modal-body">
                     Are you sure you want do pullback?
@@ -218,6 +218,7 @@
                     //console.log(response);
                     if (response.length==0) {
                         el.html("<div class='alert alert-red'><span>Currently no MailPieces received today</span></div>");
+                        $("#todayBody").css("min-height", "342px");
                         return;
                     }
                     var chartData = [];
