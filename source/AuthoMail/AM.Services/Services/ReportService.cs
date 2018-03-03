@@ -16,11 +16,12 @@ namespace AM.Services
         List<DeliveryReport> GetDeliveryByParam(int clientId, DateTime startDate, DateTime endDate, string loanNo, string docType);
         List<ErrorReport> GetErrorReportByParam(int clientId, DateTime startDate, DateTime endDate, string loanNo, string docType);
         List<MonthlyReconReport> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string loanNo, string docType);
+        List<SLAMissErrorReport> GetSLAMissErrorReport(int clientId);
         //Nedd to move
         List<MailPieceSearch> GetMailPieceByBatchId(int batchId, int clientId);
         List<DocumentType> GetDocTypeList(int clientId);
         List<string> GetMailPieceIdFromLoanNo(string loanNo, int clientId);
-        
+
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -89,7 +90,12 @@ namespace AM.Services
             return data;
         }
 
-
+        public List<SLAMissErrorReport> GetSLAMissErrorReport(int clientId)
+        {
+            string query = ReportServiceQuery.GetSLAMissErrorReport;
+            var data = db.Query<SLAMissErrorReport>(query, new { clientId = clientId }).ToList();
+            return data;
+        }
         public List<MonthlyReconReport> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string loanNo, string docType)
         {
             string query = ReportServiceQuery.GetMonthlyReconReport;
@@ -119,23 +125,7 @@ namespace AM.Services
             var data = db.Query<MailPieceSearch>(query, new { batchId = batchId, clientId = clientId }).ToList();
             return data;
         }
-        //public List<MonthlyReconReport> GetMailPieceByLoanNo(string loanNo)
-        //{
-        //    string query = "select m.BusinessFriendlyIdValue as [LoanNo],[FileName],m.DocumentOrPackageType,m.RetRcptFirstName,m.RetRcptMiddleName,m.RetRcptLastName,m.RcptAddressStreet,m.RcptAddressCity,m.RcptAddressState,m.RcptAddressZIP,b.ReceivedOn,m.TotalPages,m.TrackingNo,b.PipelineStatus as [Status],m.ShippedOn as [PrintedOn],m.ShippedOn as [MailedOn],d.ShippingCarrier as [ShippingMethod]from [AM].[MailPiece] m,[AM].[Batch] b left outer join [AM].[DocTypes] d on d.ClientId=b.ClientId where (m.BatchClustId=b.BatchClustId) and m.BusinessFriendlyIdValue=@loanNo";
-        //    Dictionary<string, object> parameters = new Dictionary<string, object>();
-        //    parameters.Add("@loanNo", loanNo);
-        //    var data = db.Query<MonthlyReconReport>(query, parameters).ToList();
-        //    return data;
-        //}
 
-        //public List<SummaryControlReport> GetSummaryControlByLoanNo(string loanNo,int clientId)
-        //{
-        //    string query = "select b.BatchClustId,b.Id,b.[DocumentOrPackageType],m.BusinessFriendlyIdValue as [LoanNo],[FileName],b.ReceivedOn,m.ShippedOn as [PrintedOn],m.ShippedOn as [MailedOn],c.AppCode as ClientCode,m.TrackingNo,d.ShippingCarrier as [ShippingMethod],c.Id as [CustomerIdentifier],m.RetRcptFirstName,m.RetRcptMiddleName,m.RetRcptLastName,m.RcptAddressStreet,m.RcptAddressCity,m.RcptAddressState,m.RcptAddressZIP,m.ErrorCode,m.ErrorDesc,m.TotalPages as [PageShipped]from [AM].[Batch] b,[AM].[MailPiece] m,[Common].[Clients] c left outer join [AM].[DocTypes] d on d.ClientId=c.Id where (m.BatchClustId=b.BatchClustId and c.Id=b.ClientId) and (m.BusinessFriendlyIdValue=@loanNo)";
-        //    Dictionary<string, object> parameters = new Dictionary<string, object>();
-        //    parameters.Add("@loanNo", loanNo);
-        //    var data = db.Query<SummaryControlReport>(query, parameters).ToList();
-        //    return data;
-        //}
 
 
         public List<DocumentType> GetDocTypeList(int clientId)
@@ -164,10 +154,8 @@ namespace AM.Services
             var mailPieces = db.Query<string>(query, parameters).ToList();
             return mailPieces;
         }
-      
 
 
-       
     }
     public static class ReportServiceQuery
     {
@@ -177,9 +165,9 @@ namespace AM.Services
         public static string GetMonthlyReconReport = "select * from [dbo].[view_MonthlyReconReport] WHERE ClientId=@clientId AND (cast(ReceivedOn as date) >= @startDate and cast(ReceivedOn as date)<=@endDate)";
         public static string GetMailPieceByBatchId = "select m.* from [AM].[MailPieces] m,[AM].[MailBatches] b WHERE m.BatchId=b.Id AND (BatchId=@batchId AND b.ClientId=@clientId)";
         public static string GetDocTypeList = "select Id,DocTypeCode FROM [AM].[DocTypes] WHERE ClientId=@clientId";
-        
+
         public static string GetMailPieceIdFromLoanNo = "select m.[UniqueId] as [MailPieceId] from [AM].[MailBatches] b,[AM].[MailPieces] m where b.Id = m.BatchId and ((cast(ReceivedOn as date)=cast(@todayDate as date) or (m.ShippingStatus=@shippingStatus and b.PipelineStatus=@pipelineStatus))) and b.BusinessFriendlyIdValue=@loanNo AND b.ClientId=@clientId";
-       
-       
+
+        public static string GetSLAMissErrorReport = "";
     }
 }

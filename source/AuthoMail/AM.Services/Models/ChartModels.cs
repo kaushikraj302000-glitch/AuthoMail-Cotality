@@ -30,4 +30,13 @@ namespace AM.Services.Models
         public int Error { get; set; }
         public int Shipped { get; set; }
     }
+    public class BatchListByChartData
+    {
+        public int BatchId { get; set; }
+        public Guid BatchUniqueId { get; set; }
+        public string BatchName { get; set; }
+        public string BatchStatus { get; set; }
+        public string DocumentOrPackageType { get; set; }
+        public DateTime? ReceivedOn { get; set; }
+    }
 }
