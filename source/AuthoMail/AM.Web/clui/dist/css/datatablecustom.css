@@ -5,9 +5,11 @@
 
 .dt-buttons {
     float: right !important;
-    margin-top: -7.3% !important;
+    margin-top: -4.3% !important;
 }
-
+.dataTables_wrapper {
+     margin-top: -3% !important;
+}
 .dt-button {
     margin-right: 5px !important;
 }
