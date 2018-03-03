@@ -7,13 +7,13 @@ using System.Web.Mvc;
 using AM.Entities.IdentityModels;
 namespace AM.Web.Controllers
 {
-    public class PullBackRequestController : Controller
+    public class RequestPullBackController : Controller
     {
         // GET: PullBackRequest
         IHomeService homeSvc;
         IReportService repoSvc;
         IPullBackService pullBackSvc;
-        public PullBackRequestController(IHomeService homeSvc, IReportService repoSvc, IPullBackService pullBackSvc)
+        public RequestPullBackController(IHomeService homeSvc, IReportService repoSvc, IPullBackService pullBackSvc)
         {
             this.homeSvc = homeSvc;
             this.repoSvc = repoSvc;
