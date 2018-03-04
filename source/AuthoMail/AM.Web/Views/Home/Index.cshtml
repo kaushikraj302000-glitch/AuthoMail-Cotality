@@ -241,6 +241,25 @@
 
             });
         }
+        function GetMailPieceById(batchId) {
+            var el = $("#batchMailPieceModal");
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "Home/MailPieceByBatchId",
+                data: JSON.stringify({ batchId: batchId }),
+                contentType: "application/json; charset=utf-8",
+                success: function (response) {
+                    el.html(response);
+                    $("#batchMailPieceModal").modal("show");
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    var msg = 'Error on reloading the content. Please check your connection and try again.';
+                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    $("#batchMailPieceModal").modal("show");
+                }
+
+            });
+        }
         google.charts.load('current', { packages: ['corechart'] });
         function drawChart(chartData, div, title) {
             var data = google.visualization.arrayToDataTable(chartData);
@@ -279,7 +298,7 @@
                     }
                     if (div == "weeklyChart") {
                         var dates = data.getValue(selectedItem.row, 5);
-                       
+
                         GetChartDataByStatusAndDate(status, dates);
                     }
                 }
@@ -320,7 +339,7 @@
 
         $("#pullback").click(function (e) {
             if ($("#loanNumber").val() != "") {
-                var el = $('.modal-body');
+
                 $.ajax({
                     type: "POST",
                     url: baseUrl + "Home/GetMailPieceIdByLoanNumber",
@@ -331,13 +350,17 @@
                         if (response == "PullBack") {
                             window.location = baseUrl + 'RequestPullBack/PullBack?loanNumber=' + loanNumber;
 
-                        }
-                        if (response == "AdvancePullBack") {
+                        } else if (response == "AdvancePullBack") {
+                            var el = $("#myModal").find('.modal-body');
                             var htmlstr = "<div class='alert alert-red'><span>No record found!</span></h1></div>";
                             htmlstr += '<br><blockquote class=""><p><i class="fa fa-search"></i> @Html.ActionLink("Advance Search", "PullBack", "RequestPullBack") </P></blockquote>';
                             el.html(htmlstr);
                             $("#myModal").modal("show");
                             return;
+                        } else {
+                            var el = $("#confirmModal").find('.modal-body');
+                            el.html(response);
+                            $("#confirmModal").modal("show");
                         }
                         el.html(response);
                         //$("#chartModal").on('shown.bs.modal', function (e) {
