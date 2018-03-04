@@ -175,13 +175,13 @@ namespace AM.Console
                 sftp.Connect();
 
             string ftpTriggerFilePath = string.Empty;
-            DateTime pingTime = DateTime.UtcNow;
+            DateTime pingTime = Common.GetCurrentTime();
             List<string> avialableTriggerFiles = sftp.ListDirectory(channelDetails.ADERequestDir).Where(f => Path.GetExtension(f).Equals(".go", StringComparison.CurrentCultureIgnoreCase) && Path.GetFileNameWithoutExtension(f).EndsWith("_Complete")).ToList();
 
             if (avialableTriggerFiles != null && avialableTriggerFiles.Count > 0)
             {
                 ftpTriggerFilePath = avialableTriggerFiles.First();
-                log.Error(string.Format("Trigger file {0} found.", Path.GetFileName(ftpTriggerFilePath)));
+                log.Debug(string.Format("Trigger file {0} found.", Path.GetFileName(ftpTriggerFilePath)));
             }
             else
             {
