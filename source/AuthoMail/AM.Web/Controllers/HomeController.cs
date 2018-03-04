@@ -30,19 +30,25 @@ namespace AM.Web.Controllers
         }
 
         [HttpPost]
-        public ActionResult GetMailPieceIdByLoanNumber(string loanNumber)
+        public ActionResult GetMailPieceIdByLoanNumber(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, DateTime startDate, DateTime endDate)
         {
-            var model = repoSvc.GetMailPieceIdFromLoanNo(loanNumber, User.Identity.GetClientId().Value);
+            var model = repoSvc.GetMailPieceIdFromLoanNo(BusinessFriendlyIdValue, User.Identity.GetClientId().Value);
+
             if (model.Count > 1)
             {
+
                 return Json("PullBack", JsonRequestBehavior.AllowGet);
+            }
+            else if (model.Count == 1)
+            {
+                var pullbackRequestData = pullBackSvc.GetPullBackRequestList(BusinessFriendlyIdValue, null, startDate, endDate, User.Identity.GetClientId().Value);
+                return PartialView("_PullBackRequestData", pullbackRequestData);
             }
             else
             {
-                PullBackApiController pullBackAPI = new PullBackApiController(pullBackSvc);
-                var data = pullBackAPI.GeneratePullBackRequest(model.ToList());
-                return Json(data, JsonRequestBehavior.AllowGet);
+                return Json("AdvancePullBack", JsonRequestBehavior.AllowGet);
             }
+
         }
 
         public ActionResult Search()
@@ -51,24 +57,44 @@ namespace AM.Web.Controllers
         }
 
         [HttpPost]
-        public ActionResult ChartDetails(string status, List<int> batchIds)
+        public ActionResult TodayChartDetails(string status, int batchId)
         {
-            return PartialView();
+            var model = chartDataSvc.GetMailPieceByParam(batchId, status, User.Identity.GetClientId().Value);
+            return PartialView("_GetChartMailPieceData",model);
+        }
+
+        public ActionResult GetMailPieceByBatchId(int batchId)
+        {
+            var model = chartDataSvc.GetMailPieceByBatchId(batchId, User.Identity.GetClientId().Value);
+            return PartialView("_GetChartMailPieceData", model);
+        }
+        [HttpPost]
+        public ActionResult WeeklyChartDetails(string status, DateTime date)
+        {
+            var model = chartDataSvc.GetBatchByParam(date, status, User.Identity.GetClientId().Value);
+            return PartialView(model);
         }
         [HttpPost]
         public ActionResult GetWeeklyChartData(DateTime startDate, DateTime endDate)
         {
             var model = chartDataSvc.GetWeeklyChartData(startDate, endDate, User.Identity.GetClientId().Value);
-            return Json(model.OrderByDescending(s=>s.Date).ToList(), JsonRequestBehavior.AllowGet);
+            return Json(model.OrderByDescending(s => s.Date).ToList(), JsonRequestBehavior.AllowGet);
         }
-        
+
         [HttpPost]
         public ActionResult GetTodayChartData(DateTime date)
         {
             var model = chartDataSvc.GetTodayMailPieceChartData(date, User.Identity.GetClientId().Value);
             return Json(model.OrderByDescending(s => s.BatchId).ToList(), JsonRequestBehavior.AllowGet);
         }
-        
+
+        [HttpPost]
+        public ActionResult GetMailPieceDataByStatusAndBatchId(string status, int batchId)
+        {
+            var model = chartDataSvc.GetMailPieceByParam(batchId, status, User.Identity.GetClientId().Value);
+            return Json(model.OrderByDescending(s => s.BatchId).ToList(), JsonRequestBehavior.AllowGet);
+        }
+
         public ActionResult About()
         {
             ViewBag.Message = "Your application description page.";

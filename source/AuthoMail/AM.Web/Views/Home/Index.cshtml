@@ -83,12 +83,12 @@
         </div>
     </div>
 </div>
-<div class="modal fade" id="chartModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+<div class="modal fade" id="batchModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal-header">
-                <h1 id="myModalLabel">MailPiece Details</h1>
+                <h1 id="myModalLabel">Batch Details</h1>
             </div>
             <div class="modal-body">
 
@@ -124,17 +124,17 @@
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal-header">
                 <h2 id="myModalLabel"> Are you sure you want to do pullback?</h2>
+                <h4>MailPiece for Pullback Request </h4>
                 <hr />
+
+            </div>
+            <div class="modal-body">
+
+            </div>
+            <div class="modal-footer">
                 <button type="button" class="btn btn-primary" id="yesPullback"><i class="fa fa-check"></i> Yes</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> No</button>
             </div>
-            @*<div class="modal-body">
-                    Are you sure you want do pullback?
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
-                    <button type="button" class="btn btn-primary" id="yesPullback">Yes</button>
-                </div>*@
         </div>
     </div>
 </div>
@@ -146,35 +146,39 @@
     </script>
     <script type="text/javascript">
         function GetChartDataByStatusAndBatchIds(status, ids) {
-            //var data={
-            //    status: status,
-            //    ids: ids,
-            //}
-            //var params = jQuery.param(data)
-            //console.log(baseUrl + 'Home/ChartDetails?' + params);
-            //window.location = baseUrl + 'Home/ChartDetails?' + params;
-            var el = $('.modal-body');
+            var el = $("#batchMailPieceModal").find('.modal-body');
             $.ajax({
                 type: "POST",
-                url: baseUrl + "Home/ChartDetails",
-                data: JSON.stringify({ status: status, batchIds: ids }),
+                url: baseUrl + "Home/TodayChartDetails",
+                data: JSON.stringify({ status: status, batchId: ids }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
-                    // $("#charDatatable").html(response);
                     el.html(response);
-                    $("#chartModal").on('shown.bs.modal', function (e) {
-                        console.log("call");
-                        $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
-                        //drawDatatable();
-                    });
-                    //el.html($("#charDatatable").html());
-                    $("#chartModal").modal("show");
-                    //drawDatatable();
+                    $("#batchMailPieceModal").modal("show");
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     var msg = 'Error on reloading the content. Please check your connection and try again.';
                     el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
-                    $("#chartModal").modal("show");
+                    $("#batchMailPieceModal").modal("show");
+                }
+
+            });
+        }
+        function GetChartDataByStatusAndDate(status, date) {
+            var el = $("#batchModal").find('.modal-body');
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "Home/WeeklyChartDetails",
+                data: JSON.stringify({ status: status, date: new Date(date) }),
+                contentType: "application/json; charset=utf-8",
+                success: function (response) {
+                    el.html(response);
+                    $("#batchModal").modal("show");
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    var msg = 'Error on reloading the content. Please check your connection and try again.';
+                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    $("#batchModal").modal("show");
                 }
 
             });
@@ -187,13 +191,12 @@
                 data: JSON.stringify({ startDate: new Date(moment().subtract('days', 7).format('MM/DD/YYYY')), endDate: new Date(moment().format('MM/DD/YYYY')) }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
-                   // console.log(response);
                     var chartData = [];
-                    chartData.push(['Date', 'InProgress', 'Failed', 'ShippedPartial', 'ShippedAll']);
+                    chartData.push(['Date', 'InProgress', 'Failed', 'ShippedPartial', 'ShippedAll', 'Dates']);
                     var cnt = 0;
                     for (var i = 1; i <= response.length; i++) {
                         var day = moment(new Date(response[cnt].ShortDate)).format("MM/DD/YYYY") == moment(new Date()).format("MM/DD/YYYY") ? "Today" : moment(new Date(response[cnt].ShortDate)).format("ddd");
-                        chartData.push([day, response[cnt].InProgress, response[cnt].Failed, response[cnt].ShippedPartial, response[cnt].ShippedAll]);
+                        chartData.push([day, response[cnt].InProgress, response[cnt].Failed, response[cnt].ShippedPartial, response[cnt].ShippedAll, moment(new Date(response[cnt].ShortDate)).format("MM/DD/YYYY")]);
                         cnt++;
                     }
                     drawChart(chartData, "weeklyChart", 'Batch Details: ' + moment().subtract('days', 7).format('MM/DD/YYYY') + " - " + moment().format('MM/DD/YYYY'));
@@ -201,8 +204,7 @@
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     var msg = 'Error on reloading the content. Please check your connection and try again.';
-                    //el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
-                    //$("#chartModal").modal("show");
+                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
                 }
 
             });
@@ -215,8 +217,7 @@
                 data: JSON.stringify({ date: new Date(moment().format('MM/DD/YYYY')) }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
-                    //console.log(response);
-                    if (response.length==0) {
+                    if (response.length == 0) {
                         el.html("<div class='alert alert-red'><span>Currently no MailPieces received today</span></div>");
                         $("#todayBody").css("min-height", "342px");
                         return;
@@ -235,17 +236,35 @@
                 error: function (xhr, ajaxOptions, thrownError) {
                     var msg = 'Error on reloading the content. Please check your connection and try again.';
                     el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
-                    
+
                 }
 
             });
+        }
+        function GetMailPieceById(batchId) {
+            var el = $("#batchMailPieceModal");
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "Home/MailPieceByBatchId",
+                data: JSON.stringify({ batchId: batchId }),
+                contentType: "application/json; charset=utf-8",
+                success: function (response) {
+                    el.html(response);
+                    $("#batchMailPieceModal").modal("show");
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    var msg = 'Error on reloading the content. Please check your connection and try again.';
+                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    $("#batchMailPieceModal").modal("show");
+                }
 
-           
-
+            });
         }
         google.charts.load('current', { packages: ['corechart'] });
-        function drawChart(chartData, div,title) {
+        function drawChart(chartData, div, title) {
             var data = google.visualization.arrayToDataTable(chartData);
+            var view = new google.visualization.DataView(data);
+            view.setColumns([0, 1, 2, 3, 4]);
             var options = {
                 title: title,
                 isStacked: true,
@@ -257,25 +276,33 @@
                     2: { color: '#f90' },
                     3: { color: '#109618' }
                 }
+
             };
 
             // Instantiate and draw the chart.
             var chart = new google.visualization.BarChart(document.getElementById(div));
+
+            google.visualization.events.addListener(chart, 'select', selectHandler);
+            chart.draw(view, options);
+
             function selectHandler() {
                 var selectedItem = chart.getSelection()[0];
-                console.log(chart.getSelection()[0]);
-
                 if (selectedItem) {
-                    var topping = data.getValue(selectedItem.row, 0);
+                    var status = data.getColumnLabel(selectedItem.column);
+                    if (div == "todayChart") {
+                        var id = data.getValue(selectedItem.row, 0);
+                        var batchId = parseInt(id.split(":")[1].trim());
+                        if (batchId != 0) {
+                            GetChartDataByStatusAndBatchIds(status, batchId);
+                        }
+                    }
+                    if (div == "weeklyChart") {
+                        var dates = data.getValue(selectedItem.row, 5);
 
-                    var columnName = data.getColumnLabel(selectedItem.column);
-                    alert(columnName + 'The user selected ' + topping);
-                    var ids = [1, 2, 3, 7];
-                    GetChartDataByStatusAndBatchIds(topping, ids)
+                        GetChartDataByStatusAndDate(status, dates);
+                    }
                 }
             }
-            google.visualization.events.addListener(chart, 'select', selectHandler);
-            chart.draw(data, options);
         }
         google.charts.setOnLoadCallback(BindWeeklyChartData);
         google.charts.setOnLoadCallback(BindTodayChartData);
@@ -283,7 +310,6 @@
         function SendPullBackRequest(mailpieceIds) {
             console.log(mailpieceIds);
             var el = $('.modal-body');
-            //el.html(mailpieceIds);
             $.ajax({
                 type: "POST",
                 url: baseUrl + "api/pullback/RequestPullBack",
@@ -313,6 +339,46 @@
 
         $("#pullback").click(function (e) {
             if ($("#loanNumber").val() != "") {
+
+                $.ajax({
+                    type: "POST",
+                    url: baseUrl + "Home/GetMailPieceIdByLoanNumber",
+                    data: JSON.stringify({ BusinessFriendlyIdName: "LoanNumber", BusinessFriendlyIdValue: $("#loanNumber").val(), startDate: new Date(moment().format("MM/DD/YYYY")), endDate: new Date(moment().format("MM/DD/YYYY")) }),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (response) {
+                        // $("#charDatatable").html(response);
+                        if (response == "PullBack") {
+                            window.location = baseUrl + 'RequestPullBack/PullBack?loanNumber=' + loanNumber;
+
+                        } else if (response == "AdvancePullBack") {
+                            var el = $("#myModal").find('.modal-body');
+                            var htmlstr = "<div class='alert alert-red'><span>No record found!</span></h1></div>";
+                            htmlstr += '<br><blockquote class=""><p><i class="fa fa-search"></i> @Html.ActionLink("Advance Search", "PullBack", "RequestPullBack") </P></blockquote>';
+                            el.html(htmlstr);
+                            $("#myModal").modal("show");
+                            return;
+                        } else {
+                            var el = $("#confirmModal").find('.modal-body');
+                            el.html(response);
+                            $("#confirmModal").modal("show");
+                        }
+                        el.html(response);
+                        //$("#chartModal").on('shown.bs.modal', function (e) {
+                        //    console.log("call");
+                        //    $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+                        //    //drawDatatable();
+                        //});
+                        //el.html($("#charDatatable").html());
+                        // $("#chartModal").modal("show");
+                        //drawDatatable();
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        var msg = 'Error on reloading the content. Please check your connection and try again.';
+                        el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                        $("#chartModal").modal("show");
+                    }
+
+                });
                 $("#loanNumberEmpty").hide();
                 $("#confirmModal").modal("show");
             } else {
@@ -325,7 +391,7 @@
             console.log(baseUrl);
             e.preventDefault();
 
-            var el = $('.modal-body');
+            var el = $("#confirmModal").find('.modal-body');
             var loanNumber = $("#loanNumber").val();
             console.log(loanNumber);
             $.ajax({
@@ -337,6 +403,11 @@
                     console.log(response);
                     if (response == "PullBack") {
                         window.location = baseUrl + 'RequestPullBack/PullBack?loanNumber=' + loanNumber;
+                    }
+                    if (response == "AdvancePullBack") {
+                        var htmlstr = "<div class='alert alert-red'><span>No record found!</span></h1></div>";
+                        htmlstr += '<br><blockquote class=""><p><i class="fa fa-search"></i> @Html.ActionLink("Advance Search", "PullBack", "RequestPullBack") </P></blockquote>';
+                        $("#myModal").find('.modal-body').html(htmlstr);
                     }
                     if (response.Success) {
                         if (response.Object != null) {
