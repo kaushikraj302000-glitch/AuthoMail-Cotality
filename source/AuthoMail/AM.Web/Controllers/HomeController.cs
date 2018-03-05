@@ -26,6 +26,7 @@ namespace AM.Web.Controllers
         }
         public ActionResult Index()
         {
+            ViewBag.BusinessId = homeSvc.GetBusinessFriendlyIdNameByclientId(User.Identity.GetClientId().Value); ;
             return View();
         }
 

@@ -96,7 +96,7 @@ namespace AM.Web.Controllers
             {
                 reportViewModel.Add(new ReportViewModel { 
                 Key=item.BatchId,
-                Value = string.Format("{0} {1}", item.BatchId, item.ReceivedOn.ToString("H:mm"))
+                Value = string.Format("{0} - {1}", item.ReceivedOn.ToString("H:mm"), item.BatchName)
                 });
             }
             ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
