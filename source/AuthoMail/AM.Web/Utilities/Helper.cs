@@ -9,16 +9,16 @@ namespace AM.Web
 {
     public class Helper
     {
-        public static void MailMerge(string templatePath, Dictionary<string, string> data, string outputFilePath)
+        public static void MailMerge(string templatePath, Dictionary<string, string> data, ref byte[] output)
         {
             using (var existingFileStream = new FileStream(templatePath, FileMode.Open))
-            using (var newFileStream = new FileStream(outputFilePath, FileMode.Create))
+            using (MemoryStream ms = new MemoryStream())
             {
                 // Open existing PDF
                 var pdfReader = new PdfReader(existingFileStream);
 
                 // PdfStamper, which will create
-                var stamper = new PdfStamper(pdfReader, newFileStream);
+                var stamper = new PdfStamper(pdfReader, ms);
 
                 var form = stamper.AcroFields;
                 foreach (var model in data)
@@ -40,6 +40,7 @@ namespace AM.Web
 
                 stamper.Close();
                 pdfReader.Close();
+                output = ms.ToArray();
             }
         }
     }

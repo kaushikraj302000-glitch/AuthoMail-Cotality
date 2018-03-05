@@ -29,8 +29,10 @@ namespace AM.Web.Controllers
         public ActionResult _GetMailPieceList(string loanNumber, string docType, DateTime startDate, DateTime endDate)
         {
             ViewBag.Date = string.Format("{0} To {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
-
-            var model = pullBackSvc.GetPullBackRequestList(loanNumber, docType, startDate, endDate, User.Identity.GetClientId().Value);
+            //Ref only. remove it. also check doctype is required or not.
+            string businessFriendlyIdName = "";
+            string businessFriendlyIdValue = "";
+            var model = pullBackSvc.GetPullBackRequestList(businessFriendlyIdName, businessFriendlyIdValue, docType, startDate, endDate, User.Identity.GetClientId().Value);
             return PartialView(model);
         }
     }

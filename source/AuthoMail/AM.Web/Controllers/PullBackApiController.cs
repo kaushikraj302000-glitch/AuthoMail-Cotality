@@ -112,7 +112,7 @@ namespace AM.Web.Controllers
                 foreach (var item in pullBackData)
                 {
                     Dictionary<string, string> dataForPullBackForm = new Dictionary<string, string>();
-                    DateTime eastern = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, Common.ClientTimeZone);
+                    DateTime eastern = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, Config.API_PB_ClientTimeZone);
                     dataForPullBackForm.Add("RequestDateTime", eastern.ToString());
                     dataForPullBackForm.Add("FileName", string.Format("{0} {1}", item.PrintFileName, item.SubmittedOn.ToString("MM/dd/yy")));
                     dataForPullBackForm.Add("JobNumber", item.PrintBatch.ToString());
@@ -121,9 +121,12 @@ namespace AM.Web.Controllers
                     dataForPullBackForm.Add("PkgInstruction", string.Empty);
                     dataForPullBackForm.Add("Comments", string.Empty);
 
-                    string outputPdfPath = Path.Combine(Common.OutputDir, string.Format("{0}_{1}.pdf", item.PrintBatch.ToString(), DateTime.Now.ToString("ddMMyyyyhhmmss")));
-                    Helper.MailMerge(Common.PullBackFormTemplatePath, dataForPullBackForm, outputPdfPath);
-                    bool isEmailSent = SendEmailWithPullBackForm(outputPdfPath);
+                    byte[] output = null;
+                    string attachmentPdfName = string.Format("{0}_{1}.pdf", item.PrintBatch.ToString(), DateTime.Now.ToString("ddMMyyyyhhmmss"));
+                    //string outputPdfPath = Path.Combine(Config.API_PB_OutputDir, string.Format("{0}_{1}.pdf", item.PrintBatch.ToString(), DateTime.Now.ToString("ddMMyyyyhhmmss")));
+                    //Helper.MailMerge(Config.API_PB_PullBackFormTemplatePath, dataForPullBackForm, outputPdfPath);
+                    Helper.MailMerge(Config.API_PB_PullBackFormTemplatePath, dataForPullBackForm, ref output);
+                    bool isEmailSent = SendEmailWithPullBackForm(output, attachmentPdfName);
 
                 }
             }
@@ -133,7 +136,7 @@ namespace AM.Web.Controllers
             }
             return isGenerated;
         }
-        private bool SendEmailWithPullBackForm(string attachmentPath)
+        private bool SendEmailWithPullBackForm(byte[] attachmentPdf, string attachmentPdfName)
         {
             bool isEmailSent = false;
 
@@ -142,16 +145,15 @@ namespace AM.Web.Controllers
                 using (MailMessage msg = new MailMessage())
                 {
                     msg.IsBodyHtml = true;
-                    msg.From = new MailAddress(Common.Email_From);
-                    msg.To.Add(Common.Email_To);
-                    msg.CC.Add(Common.Email_Cc);
+                    msg.To.Add(Config.API_Email_To);
+                    msg.CC.Add(Config.API_Email_Cc);
                     msg.Subject = string.Format("{0} \"{1}\"", "ADE", "PULL REQUEST");
                     msg.Priority = MailPriority.High;
-                    msg.Body = string.Format("Please find attached PullBackRequestForm {0}.", Path.GetFileName(attachmentPath));
+                    msg.Body = string.Format("Please find attached PullBackRequestForm {0}.", attachmentPdfName);
 
-                    msg.Attachments.Add(new Attachment(attachmentPath));
+                    msg.Attachments.Add(new Attachment(new MemoryStream(attachmentPdf), attachmentPdfName));
 
-                    Common.Email_SMTPClient.Send(msg);
+                    Config.API_Email_SMTPClient.Send(msg);
 
                     isEmailSent = true;
                 }
