@@ -48,7 +48,7 @@ namespace AM.Services
             }
 
             var result = appRole.Delete(role.Id);
-            if (result != null)
+            if (result != 0)
             {
                 return Task.FromResult<Object>(result);
             }
@@ -80,7 +80,7 @@ namespace AM.Services
             }
 
             var result = appRole.Update(role);
-            if (result != null)
+            if (result != 0)
             {
                 return Task.FromResult<Object>(result);
             }
