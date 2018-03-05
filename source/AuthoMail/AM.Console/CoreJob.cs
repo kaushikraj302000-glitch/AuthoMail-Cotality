@@ -68,10 +68,72 @@ namespace AM.Console
                     batchSvc.UpdateBatchDetails(mbi.MailBatch);
 
                     commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
+                    continue;
                 }
 
+                if (amParsedBatch != null)
+                {
+                    mbi.MailBatch.Priority = amParsedBatch.Priority.ToString();
+                    mbi.MailBatch.UniqueId = amParsedBatch.Id;
+                    mbi.MailBatch.ClientBatchId = amParsedBatch.ClientBatchId;
 
-                
+                    batchSvc.UpdateBatchDetails(mbi.MailBatch);
+
+                    if (amParsedBatch.MailPieces == null || amParsedBatch.MailPieces.Count == 0)
+                    {
+                        mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid;
+                        mbi.MailBatch.ValidationErrors = "No mailpiece found in xml for batch : {0}".Fill(mbi.MailBatch.Id);
+
+                        batchSvc.UpdateBatchDetails(mbi.MailBatch);
+
+                        commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
+                        continue;
+                    }
+                    List<MailPieceDTO> mailPieces = new List<MailPieceDTO>();
+                    foreach (var piece in amParsedBatch.MailPieces)
+                    {
+                        MailPieceDTO mailPiece = new MailPieceDTO();
+                        List<MailPieceCustomInfo> mailPieceCustInfo = new List<MailPieceCustomInfo>();
+
+                        mailPiece.BatchId = mbi.MailBatch.Id;
+
+                        ValidationResultAMC validationResult = Common.ValidateAMMailPiecesForUSAA(piece);
+
+                        if (validationResult.Code == OutComeCodes.No_Error)
+                        {
+                            mailPiece.BusinessFriendlyIdName = piece.BusinessFriendlyIdName;
+                            mailPiece.BusinessFriendlyIdValue = piece.BusinessFriendlyIdValue;
+                            mailPiece.DocumentOrPackageType = piece.DocumentOrPackageType;
+                            mailPiece.FileName = piece.DocumentOrPackage.Name;
+                            mailPiece.UniqueId = piece.Id;
+
+                            mailPiece.IsRcptInfoSpecified = true;
+                            mailPiece.RcptFirstName = piece.RecipientInfo.Recipient.FirstName;
+                            mailPiece.RcptLastName = piece.RecipientInfo.Recipient.LastName;
+                            if (piece.RecipientInfo.Corecipient != null)
+                            {
+                                mailPiece.CoRcptFirstName = piece.RecipientInfo.Corecipient.FirstName;
+                                mailPiece.CoRcptLastName = piece.RecipientInfo.Corecipient.LastName;
+                            }
+                            mailPiece.RcptAddressStreet = piece.RecipientInfo.Address.Street;
+                            mailPiece.RcptAddressCity = piece.RecipientInfo.Address.City;
+                            mailPiece.RcptAddressState = piece.RecipientInfo.Address.State;
+                            mailPiece.RcptAddressZIP = piece.RecipientInfo.Address.Zip;
+                            mailPiece.RcptPhone = piece.RecipientInfo.Recipient.Phone;
+
+                            mailPiece.IsReturnInfoSpecified = true;
+                            mailPiece.RetRcptFirstName = piece.ReturnInfo.Recipient.FirstName;
+                            mailPiece.RetRcptLastName = piece.ReturnInfo.Recipient.LastName;
+                            mailPiece.RetRcptAddressStreet = piece.ReturnInfo.Address.Street;
+                            mailPiece.RetRcptAddressCity = piece.ReturnInfo.Address.City;
+                            mailPiece.RetRcptAddressState = piece.ReturnInfo.Address.State;
+                            mailPiece.RetRcptAddressZIP = piece.ReturnInfo.Address.Zip;
+                            mailPiece.RetRcptPhone = piece.ReturnInfo.Recipient.Phone;
+                            
+
+                        }
+                    }
+                }
             }
         }
     }
