@@ -240,7 +240,7 @@ namespace AM.Console
             }
 
             return downloadedZipFilePath;
-        } 
+        }
         #endregion
 
         #region Convert AMC To AuthoMail Xml
@@ -331,15 +331,15 @@ namespace AM.Console
                 {
                     try
                     {
-                        if (package != null)
+                        MailPiece amPiece = new MailPiece();
+                        amPiece.BusinessFriendlyIdName = "LoanNbr";
+                        amPiece.BusinessFriendlyIdValue = package.LoanNbr;
+                        amPiece.DocumentOrPackage.Name = package.File;
+                        amPiece.DocumentOrPackageType = package.PackageName;
+                        amPiece.Id = package.Id;
+                        if (package.RecipientInfo != null)
                         {
-                            MailPiece amPiece = new MailPiece();
-                            amPiece.BusinessFriendlyIdName = "LoanNbr";
-                            amPiece.BusinessFriendlyIdValue = package.LoanNbr;
-                            amPiece.DocumentOrPackage.Name = package.File;
-                            amPiece.DocumentOrPackageType = package.PackageName;
-                            amPiece.Id = package.Id;
-                            if (package.RecipientInfo != null)
+                            if (package.RecipientInfo.Recipients != null && package.RecipientInfo.Recipients.Count > 0)
                             {
                                 if (package.RecipientInfo.Recipients.Count > 1)
                                 {
@@ -353,7 +353,6 @@ namespace AM.Console
                                     amPiece.RecipientInfo.Recipient.FirstName = package.RecipientInfo.Recipients[0].FirstName;
                                     amPiece.RecipientInfo.Recipient.LastName = package.RecipientInfo.Recipients[0].LastName;
                                 }
-                                amPiece.RecipientInfo.Recipient.Phone = package.RecipientInfo.RecipientPhoneNo;
                             }
 
                             if (package.RecipientInfo.RecipientAddress != null)
@@ -364,32 +363,36 @@ namespace AM.Console
                                 amPiece.RecipientInfo.Address.Zip = package.RecipientInfo.RecipientAddress.Zip;
                             }
 
-                            if (package.ReturnInfo != null)
-                            {
-                                amPiece.ReturnInfo.Recipient.FirstName = package.ReturnInfo.FirstName;
-                                amPiece.ReturnInfo.Recipient.LastName = package.ReturnInfo.LastName;
-                                amPiece.ReturnInfo.Recipient.Phone = package.ReturnInfo.ReturnPhoneNo;
+                            amPiece.RecipientInfo.Recipient.Phone = package.RecipientInfo.RecipientPhoneNo;
+                        }
 
-                                if (package.ReturnInfo.ReturnAddress != null)
-                                {
-                                    amPiece.ReturnInfo.Address.AptOrSuiteOrOther = package.RecipientInfo.RecipientAddress.Line2;
-                                    amPiece.ReturnInfo.Address.Street = package.RecipientInfo.RecipientAddress.Line1;
-                                    amPiece.ReturnInfo.Address.State = package.RecipientInfo.RecipientAddress.State;
-                                    amPiece.ReturnInfo.Address.Zip = package.RecipientInfo.RecipientAddress.Zip;
-                                }
+
+
+                        if (package.ReturnInfo != null)
+                        {
+                            amPiece.ReturnInfo.Recipient.FirstName = package.ReturnInfo.FirstName;
+                            amPiece.ReturnInfo.Recipient.LastName = package.ReturnInfo.LastName;
+                            amPiece.ReturnInfo.Recipient.Phone = package.ReturnInfo.ReturnPhoneNo;
+
+                            if (package.ReturnInfo.ReturnAddress != null)
+                            {
+                                amPiece.ReturnInfo.Address.AptOrSuiteOrOther = package.ReturnInfo.ReturnAddress.Line2;
+                                amPiece.ReturnInfo.Address.Street = package.ReturnInfo.ReturnAddress.Line1;
+                                amPiece.ReturnInfo.Address.State = package.ReturnInfo.ReturnAddress.State;
+                                amPiece.ReturnInfo.Address.Zip = package.ReturnInfo.ReturnAddress.Zip;
                             }
+                        }
 
-                            amPiece.CustomInfo = new List<Metadata>()
+                        amPiece.CustomInfo = new List<Metadata>()
                             {
-                                new Metadata() { Key = "ReceivedDate", Value = package.ReceivedDate.HasValue?package.ReceivedDate.Value.ToString():"" },
-                                new Metadata() { Key = "RequestId", Value = package.RequestId},
-                                new Metadata() { Key = "ShippingCredCode", Value = package.ShippingCredCode },
-                                new Metadata() { Key = "ShippingMethod", Value = package.ShippingMethod.ToString() },
-                                new Metadata() { Key = "CustomerIdentifier", Value = package.CustomerIdentifier }
+                                new Metadata() { Key = "ReceivedDate",DataType=DataType.DateTime, Value = package.ReceivedDate.HasValue?package.ReceivedDate.Value.ToString():null },
+                                new Metadata() { Key = "RequestId",DataType=DataType.String, Value = package.RequestId},
+                                new Metadata() { Key = "ShippingCredCode",DataType=DataType.String, Value = package.ShippingCredCode },
+                                new Metadata() { Key = "ShippingMethod",DataType=DataType.String, Value = package.ShippingMethod.ToString() },
+                                new Metadata() { Key = "CustomerIdentifier",DataType=DataType.String, Value = package.CustomerIdentifier }
                             };
 
-                            amParsedPieces.Add(amPiece);
-                        }
+                        amParsedPieces.Add(amPiece);
                     }
                     catch (Exception)
                     {
@@ -403,7 +406,7 @@ namespace AM.Console
             }
 
             return null;
-        } 
+        }
         #endregion
     }
 }

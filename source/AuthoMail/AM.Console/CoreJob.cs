@@ -22,6 +22,16 @@ namespace AM.Console
             clientSvc = new ClientService();
             batchSvc = new BatchService();
             commonSvc = new CommonService();
-        }        
+        }
+
+        public void ParseAuthoMailSchema()
+        {
+            List<MailBatchDTO> downloadBatches = batchSvc.GetBatchesByStatus(BatchPipelineStatus.Downloaded);
+            if (downloadBatches == null)
+            {
+                log.Debug("Process batches job queue is empty.");
+                return;
+            }
+        }
     }
 }
