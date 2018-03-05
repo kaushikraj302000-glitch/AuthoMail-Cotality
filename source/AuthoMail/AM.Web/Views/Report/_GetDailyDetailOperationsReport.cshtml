@@ -79,6 +79,10 @@
         </div>
         }
 </div>
+<div id="hideSelection" style="display:none">
+    
+    @Html.DropDownList("BatchList", ViewBag.BatchList as SelectList, "Select Batch")
+</div>
 <script type="text/javascript">
     $(document).ready(function () {
         var table = $('#sample_2');
