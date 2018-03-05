@@ -309,13 +309,15 @@ namespace AM.Console
             }
             catch (XmlException ex)
             {
-                mbi.MailBatch.ValidationStatus = OutComeCodes.Invalid_XML;
+                mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid;
                 mbi.MailBatch.ValidationErrors = ex.Message;
 
                 batchSvc.UpdateBatchDetails(mbi.MailBatch);
 
                 commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
             }
+
+            //We can do logic implementation for getting only 129 CustomerIdentifier's batch
 
             MailBatch amParsedBatch = new MailBatch();
             amParsedBatch.ChannelCode = mbi.SFTChannel.Code;

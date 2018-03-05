@@ -32,6 +32,47 @@ namespace AM.Console
                 log.Debug("Process batches job queue is empty.");
                 return;
             }
+
+            foreach (var batch in downloadBatches)
+            {
+                Client client = clientSvc.GetClientDetails(batch.ClientId).Single();
+                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetails(batch.SFTChannelId);
+
+                MailBatchInfo mbi = new MailBatchInfo(batch, client, sftChannelDetails);
+
+                var amXmlFilePath = Path.Combine(mbi.AMRequestPath, mbi.BatchName, mbi.BatchName + "_AuthoMail.xml");
+
+                if (!File.Exists(amXmlFilePath))
+                {
+                    mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid;
+                    mbi.MailBatch.ValidationErrors = "No AM XML file is available in {0} batch.".Fill(mbi.MailBatch.BatchName);
+
+                    batchSvc.UpdateBatchDetails(mbi.MailBatch);
+
+                    commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
+                    continue;
+                }
+
+                MailBatch amParsedBatch = null;
+                try
+                {
+                    XmlDocument amXMLDoc = new XmlDocument();
+                    amXMLDoc.LoadXml(File.ReadAllText(amXmlFilePath));
+                    amParsedBatch = XmlUtil.Deserialize<MailBatch>(amXMLDoc.OuterXml);
+                }
+                catch (XmlException ex)
+                {
+                    mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid;
+                    mbi.MailBatch.ValidationErrors = ex.Message;
+
+                    batchSvc.UpdateBatchDetails(mbi.MailBatch);
+
+                    commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
+                }
+
+
+                
+            }
         }
     }
 }

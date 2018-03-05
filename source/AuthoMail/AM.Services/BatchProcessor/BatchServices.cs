@@ -39,7 +39,7 @@ namespace AM.Services
             //Sql Query
             string query = "SELECT * FROM [AM].[MailBatches] WHERE PipelineStatus= @batchPipelineStatus";
 
-            switch (batchPipelineStatus.ToString())
+            switch (batchPipelineStatus)
             {
                 case BatchPipelineStatus.Downloaded: query += " AND IsValidated=0";
                     break;
