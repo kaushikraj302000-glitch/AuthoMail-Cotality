@@ -32,7 +32,7 @@ namespace AM.Web.Controllers
         [HttpPost]
         public ActionResult GetMailPieceIdByLoanNumber(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, DateTime startDate, DateTime endDate)
         {
-            var model = repoSvc.GetMailPieceIdFromLoanNo(BusinessFriendlyIdValue, User.Identity.GetClientId().Value);
+            var model = homeSvc.GetMailPieceIdFromLoanNo(BusinessFriendlyIdValue, User.Identity.GetClientId().Value);
 
             if (model.Count > 1)
             {

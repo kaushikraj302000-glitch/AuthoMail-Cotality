@@ -20,9 +20,7 @@ namespace AM.Services
         List<MonthlyReconReport> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate);
 
         //Need to move
-        List<MailPieceSearch> GetMailPieceByBatchId(int batchId, int clientId);
-        List<DocumentType> GetDocTypeList(int clientId);
-        List<string> GetMailPieceIdFromLoanNo(string loanNo, int clientId);
+       
 
     }
     public class ReportService : ServiceBase, IReportService
@@ -111,41 +109,7 @@ namespace AM.Services
         }
 
 
-        public List<MailPieceSearch> GetMailPieceByBatchId(int batchId, int clientId)
-        {
-            string query = ReportServiceQuery.GetMailPieceByBatchId;
-            var data = db.Query<MailPieceSearch>(query, new { batchId = batchId, clientId = clientId }).ToList();
-            return data;
-        }
-
-
-
-        public List<DocumentType> GetDocTypeList(int clientId)
-        {
-            string query = ReportServiceQuery.GetDocTypeList;
-            var data = db.Query(query, new { clientId = clientId }).ToList();
-            var list = new List<DocumentType>();
-            foreach (var item in data)
-            {
-                list.Add(new DocumentType { Id = item.Id, DocTypeCode = item.DocTypeCode });
-            }
-            return list;
-        }
-
-
-        public List<string> GetMailPieceIdFromLoanNo(string loanNo, int clientId)
-        {
-            string query = ReportServiceQuery.GetMailPieceIdFromLoanNo;
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@loanNo", loanNo);
-            parameters.Add("@clientId", clientId);
-            parameters.Add("@todayDate", Common.Today.Date);
-            parameters.Add("@shippingStatus", ShippingStatus.InProgress);
-            parameters.Add("@pipelineStatus", BatchPipelineStatus.SubmittedToShipping);
-
-            var mailPieces = db.Query<string>(query, parameters).ToList();
-            return mailPieces;
-        }
+       
 
 
     }
@@ -160,13 +124,6 @@ namespace AM.Services
         public static string GetSLAMissErrorReportByDateOrBatch = "select * from [dbo].[view_ErrorReport] WHERE ClientId=@clientId AND ShippingStatus=@shippingstatus AND SLADays < 0";
 
         public static string GetMonthlyReconReport = "select * from [dbo].[view_MonthlyReconReport] WHERE ClientId=@clientId AND (cast(ReceivedOn as date) >= cast(@startDate as date) and cast(ReceivedOn as date)<= cast(@endDate as date)) AND ShippingStatus=@shippingStatus";
-
-        public static string GetMailPieceByBatchId = "select m.* from [AM].[MailPieces] m,[AM].[MailBatches] b WHERE m.BatchId=b.Id AND (BatchId=@batchId AND b.ClientId=@clientId)";
-
-        public static string GetDocTypeList = "select Id,DocTypeCode FROM [AM].[DocTypes] WHERE ClientId=@clientId";
-
-        public static string GetMailPieceIdFromLoanNo = "select m.[UniqueId] as [MailPieceId] from [AM].[MailBatches] b,[AM].[MailPieces] m where b.Id = m.BatchId and ((cast(ReceivedOn as date)=cast(@todayDate as date) or (m.ShippingStatus=@shippingStatus and b.PipelineStatus=@pipelineStatus))) and m.BusinessFriendlyIdValue=@loanNo AND b.ClientId=@clientId";
-
 
     }
 }
