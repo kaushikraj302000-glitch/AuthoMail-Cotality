@@ -13,7 +13,7 @@ namespace AM.Services
     {
         List<MailPieceSearch> GetMailPieceByBatchId(int batchId, int clientId);
         List<DocumentType> GetDocTypeList(int clientId);
-        List<string> GetMailPieceIdFromLoanNo(string loanNo, int clientId);
+        List<string> GetMailPieceIdFromBusinessFriendlyValue(string businessFriendlyIdName, string businessFriendlyIdValue, int clientId);
         List<string> GetBusinessFriendlyIdNameByclientId(int clientId);
     }
     public class HomeService : ServiceBase, IHomeService //It implements Interfaces 
@@ -36,11 +36,12 @@ namespace AM.Services
         }
 
 
-        public List<string> GetMailPieceIdFromLoanNo(string loanNo, int clientId)
+        public List<string> GetMailPieceIdFromBusinessFriendlyValue(string businessFriendlyIdName, string businessFriendlyIdValue, int clientId)
         {
             string query = HomeServiceQuery.GetMailPieceIdFromLoanNo;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@loanNo", loanNo);
+            parameters.Add("@businessFriendlyIdName", businessFriendlyIdName);
+            parameters.Add("@businessFriendlyIdValue", businessFriendlyIdValue);
             parameters.Add("@clientId", clientId);
             parameters.Add("@todayDate", Common.Today.Date);
             parameters.Add("@shippingStatus", ShippingStatus.InProgress);
@@ -62,7 +63,7 @@ namespace AM.Services
 
         public static string GetDocTypeList = "select Id,DocTypeCode FROM [AM].[DocTypes] WHERE ClientId=@clientId";
 
-        public static string GetMailPieceIdFromLoanNo = "select m.[UniqueId] as [MailPieceId] from [AM].[MailBatches] b,[AM].[MailPieces] m where b.Id = m.BatchId and ((cast(ReceivedOn as date)=cast(@todayDate as date) or (m.ShippingStatus=@shippingStatus and b.PipelineStatus=@pipelineStatus))) and m.BusinessFriendlyIdValue=@loanNo AND b.ClientId=@clientId";
+        public static string GetMailPieceIdFromLoanNo = "select m.[UniqueId] as [MailPieceId] from [AM].[MailBatches] b,[AM].[MailPieces] m where b.Id = m.BatchId and ((cast(ReceivedOn as date)=cast(@todayDate as date) or (m.ShippingStatus=@shippingStatus and b.PipelineStatus=@pipelineStatus))) and m.BusinessFriendlyIdName=@businessFriendlyIdName AND m.BusinessFriendlyIdValue=@businessFriendlyIdValue AND b.ClientId=@clientId";
 
         public static string GetBusinessFriendlyIdNameByclientId = "SELECT DISTINCT BusinessFriendlyIdName FROM [AM].[MailPieces] m,[AM].[MailBatches] b WHERE m.BatchId=b.Id and b.ClientId=@clientId";
     }
