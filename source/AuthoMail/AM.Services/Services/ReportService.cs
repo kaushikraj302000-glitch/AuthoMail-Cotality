@@ -12,14 +12,14 @@ namespace AM.Services
 {
     public interface IReportService
     {
-        List<DailyDetailOperationsReport> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, string clientBatchId);
-        List<ErrorReport> GetErrorReportByDateOrBatch(int clientId, DateTime? date, string clientBatchId);
+        List<DailyDetailOperationsReport> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId);
+        List<ErrorReport> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId);
         List<SummaryControlReport> GetSummaryControlReport(int clientId, DateTime date);
-        List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime? date, string clientBatchId);
+        List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId);
 
         List<MonthlyReconReport> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate);
 
-        //Nedd to move
+        //Need to move
         List<MailPieceSearch> GetMailPieceByBatchId(int batchId, int clientId);
         List<DocumentType> GetDocTypeList(int clientId);
         List<string> GetMailPieceIdFromLoanNo(string loanNo, int clientId);
@@ -27,7 +27,7 @@ namespace AM.Services
     }
     public class ReportService : ServiceBase, IReportService
     {
-        public List<DailyDetailOperationsReport> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, string clientBatchId)
+        public List<DailyDetailOperationsReport> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId)
         {
             string query = ReportServiceQuery.GetDailyDetailOperationsByDateOrBatch;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
@@ -37,15 +37,15 @@ namespace AM.Services
                 query = string.Format("{0} AND cast(ReceivedOn as date) = cast(@date as date)", query);
                 parameters.Add("@date", date);
             }
-            if (!clientBatchId.IsNullOrWhiteSpace())
+            if (batchId.HasValue)
             {
-                query = string.Format("{0} AND ClientBatchId=@clientBatchId", query);
-                parameters.Add("@ClientBatchId", clientBatchId);
+                query = string.Format("{0} AND BatchId=@batchId", query);
+                parameters.Add("@batchId", batchId);
             }
             var data = db.Query<DailyDetailOperationsReport>(query, parameters).ToList();
             return data;
         }
-        public List<ErrorReport> GetErrorReportByDateOrBatch(int clientId, DateTime? date, string clientBatchId)
+        public List<ErrorReport> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId)
         {
             string query = ReportServiceQuery.GetErrorReportByDateOrBatch;
 
@@ -58,10 +58,10 @@ namespace AM.Services
                 parameters.Add("@date", date);
             }
 
-            if (!clientBatchId.IsNullOrWhiteSpace())
+            if (batchId.HasValue)
             {
-                query = string.Format("{0} AND ClientBatchId=@clientBatchId", query);
-                parameters.Add("@ClientBatchId", clientBatchId);
+                query = string.Format("{0} AND BatchId=@batchId", query);
+                parameters.Add("@batchId", batchId);
             }
             var data = db.Query<ErrorReport>(query, parameters).ToList();
             return data;
@@ -79,7 +79,7 @@ namespace AM.Services
             return data;
         }
 
-        public List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime? date, string clientBatchId)
+        public List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId)
         {
             string query = ReportServiceQuery.GetSLAMissErrorReportByDateOrBatch;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
@@ -92,10 +92,10 @@ namespace AM.Services
                 parameters.Add("@time", "19:45");
             }
             //Also verify need to define time in below clause. also check time?
-            if (!clientBatchId.IsNullOrWhiteSpace())
+            if (batchId.HasValue)
             {
-                query = string.Format("{0} AND ClientBatchId=@clientBatchId", query);
-                parameters.Add("@ClientBatchId", clientBatchId);
+                query = string.Format("{0} AND BatchId=@batchId", query);
+                parameters.Add("@batchId", batchId);
             }
             var data = db.Query<ErrorReport>(query, parameters).ToList();
             return data;
