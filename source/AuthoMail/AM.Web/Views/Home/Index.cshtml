@@ -117,6 +117,23 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="WeeklybatchMailPieceModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <button type="button" class="close" data-dismiss="modal" onclick="showModal()" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <div class="modal-header">
+                <h1 id="myModalLabel">Batch MailPiece Details</h1>
+            </div>
+            <div class="modal-body">
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="showModal()" data-dismiss="modal">Close</button>
+                @*<button type="button" class="btn btn-primary">View All</button>*@
+            </div>
+        </div>
+    </div>
+</div>
 <div id="charDatatable" style="display:none"></div>
 <div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
     <div class="modal-dialog" role="document">
@@ -241,21 +258,26 @@
 
             });
         }
+        function showModal() {
+            $("#batchModal").modal("show");
+        }
         function GetMailPieceById(batchId) {
-            var el = $("#batchMailPieceModal");
+            var el = $("#WeeklybatchMailPieceModal").find(".modal-body");
             $.ajax({
                 type: "POST",
-                url: baseUrl + "Home/MailPieceByBatchId",
+                url: baseUrl + "Home/GetMailPieceByBatchId",
                 data: JSON.stringify({ batchId: batchId }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     el.html(response);
-                    $("#batchMailPieceModal").modal("show");
+                    $("#batchModal").modal("hide");
+                    $("#WeeklybatchMailPieceModal").modal("show");
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     var msg = 'Error on reloading the content. Please check your connection and try again.';
                     el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
-                    $("#batchMailPieceModal").modal("show");
+                    $("#batchModal").modal("hide");
+                    $("#WeeklybatchMailPieceModal").modal("show");
                 }
 
             });
