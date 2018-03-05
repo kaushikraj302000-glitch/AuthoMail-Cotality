@@ -56,10 +56,10 @@ namespace AM.Services
     {
         public static string GetWeeklyChartData = "select * from dbo.ufn_GetWeeklyChartData(@startDate,@endDate,@clientId)";
 
-        public static string GetTodayMailPieceChartData = "[dbo].[TodayMailPieceChartData] @todayDate, @clientId";
+        public static string GetTodayMailPieceChartData = "[dbo].[usp_TodayMailPieceChartData] @todayDate, @clientId";
 
-        public static string GetMailPieceByParam = "[dbo].[GetMailPieceByBatchIdAndStatus] @batchId, @status, @clientId";
+        public static string GetMailPieceByParam = "[dbo].[usp_GetMailPieceByBatchIdAndStatus] @batchId, @status, @clientId";
         public static string GetBatchByParam = "select Id as [BatchId],ClientBatchId,[UniqueId] as [BatchUniqueId],BatchName,BatchStatus,DocumentOrPackageType,ReceivedOn from [AM].[MailBatches] where BatchStatus=@status and ClientId=@clientId and cast(ReceivedOn as date)=cast(@date as date)";
-        public static string GetMailPieceByBatchId = "[dbo].[GetMailPieceByBatchId] @batchId, @clientId";
+        public static string GetMailPieceByBatchId = "[dbo].[usp_GetMailPieceByBatchId] @batchId, @clientId";
     }
 }
