@@ -139,6 +139,7 @@ namespace AM.Web.Controllers
             catch (Exception ex)
             {
                 isGenerated = false;
+                throw ex;
             }
             return isGenerated;
         }
