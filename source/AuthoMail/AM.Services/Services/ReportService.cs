@@ -51,7 +51,7 @@ namespace AM.Services
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@clientId", clientId);
-            parameters.Add("@shippingstatus", ShippingStatus.Error);
+            parameters.Add("@shippingstatus", ShippingStatus.Error.ToString());
             if (date.HasValue)
             {
                 query = string.Format("{0} AND cast(ReceivedOn as date) = cast(@date as date)", query);
@@ -84,20 +84,20 @@ namespace AM.Services
             string query = ReportServiceQuery.GetSLAMissErrorReportByDateOrBatch;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@clientId", clientId);
-            parameters.Add("@shippingstatus", ShippingStatus.Error);//Need to varify
+            parameters.Add("@shippingstatus", ShippingStatus.Error.ToString());//Need to verify
             if (date.HasValue)
             {
                 query = string.Format("{0} AND (cast(ReceivedOn as date) = cast(@date as date) AND CONVERT(VARCHAR(5),ReceivedOn,108)  < @time)", query);
                 parameters.Add("@date", date);
                 parameters.Add("@time", "19:45");
             }
-            //Also verify need to define time in below clause
+            //Also verify need to define time in below clause. also check time?
             if (!clientBatchId.IsNullOrWhiteSpace())
             {
                 query = string.Format("{0} AND ClientBatchId=@clientBatchId", query);
                 parameters.Add("@ClientBatchId", clientBatchId);
             }
-            var data = db.Query<ErrorReport>(query, new { clientId = clientId }).ToList();
+            var data = db.Query<ErrorReport>(query, parameters).ToList();
             return data;
         }
 
@@ -105,13 +105,8 @@ namespace AM.Services
         {
             string query = ReportServiceQuery.GetMonthlyReconReport;
             //date must be in 26th to 25th
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@clientId", clientId);
-            parameters.Add("@startDate", startDate);
-            parameters.Add("@endDate", endDate);
-            parameters.Add("@shippingStatus", ShippingStatus.Shipped);
 
-            var data = db.Query<MonthlyReconReport>(query, parameters).ToList();
+            var data = db.Query<MonthlyReconReport>(query, new { clientId = clientId, startDate = startDate, endDate = endDate, shippingStatus = new DbString { Value = ShippingStatus.Shipped.ToString() } }).ToList();
             return data;
         }
 
@@ -170,7 +165,7 @@ namespace AM.Services
 
         public static string GetDocTypeList = "select Id,DocTypeCode FROM [AM].[DocTypes] WHERE ClientId=@clientId";
 
-        public static string GetMailPieceIdFromLoanNo = "select m.[UniqueId] as [MailPieceId] from [AM].[MailBatches] b,[AM].[MailPieces] m where b.Id = m.BatchId and ((cast(ReceivedOn as date)=cast(@todayDate as date) or (m.ShippingStatus=@shippingStatus and b.PipelineStatus=@pipelineStatus))) and b.BusinessFriendlyIdValue=@loanNo AND b.ClientId=@clientId";
+        public static string GetMailPieceIdFromLoanNo = "select m.[UniqueId] as [MailPieceId] from [AM].[MailBatches] b,[AM].[MailPieces] m where b.Id = m.BatchId and ((cast(ReceivedOn as date)=cast(@todayDate as date) or (m.ShippingStatus=@shippingStatus and b.PipelineStatus=@pipelineStatus))) and m.BusinessFriendlyIdValue=@loanNo AND b.ClientId=@clientId";
 
 
     }
