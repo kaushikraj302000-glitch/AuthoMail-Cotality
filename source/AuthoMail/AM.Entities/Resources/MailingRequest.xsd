@@ -9,6 +9,7 @@
       <xs:element minOccurs="0" maxOccurs="1" name="CustomInfo" type="tns:CustomInfo" />
     </xs:all>
     <xs:attribute name="Id" type="tns:guid" use="optional" />
+    <xs:attribute name="ClientCode" type="tns:nonEmptyString" use="required" />
     <xs:attribute name="ClientBatchId" type="tns:nonEmptyString" use="optional" />
     <xs:attribute name="ChannelCode" type="tns:nonEmptyString" use="optional" />
     <xs:attribute name="Priority" type="tns:Priority" use="required" />

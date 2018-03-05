@@ -15,6 +15,9 @@ namespace AM.Entities
         public Guid Id { get; set; }
 
         [XmlAttribute]
+        public string ClientCode { get; set; }
+
+        [XmlAttribute]
         public string ClientBatchId { get; set; }
 
         [XmlAttribute]
