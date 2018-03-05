@@ -19,14 +19,16 @@ namespace AM.Console
         public MailBatchDTO MailBatch { get; private set; }
         public Client Client { get; private set; }
         public DocType DocType { get; private set; }
+        public SFTChannel SFTChannel { get; private set; }
 
-        public MailBatchInfo(MailBatchDTO mailBatch, Client client, DocType docType)
+        public MailBatchInfo(MailBatchDTO mailBatch, Client client, DocType docType, SFTChannel sftChannel)
         {
             if (client == null || mailBatch == null) throw new ArgumentNullException("Client or MailBatch cannot be null.");
 
             MailBatch = mailBatch;
             Client = client;
             DocType = docType;
+            SFTChannel = sftChannel;
 
             Initialize(client, docType, mailBatch);
         }
@@ -35,7 +37,7 @@ namespace AM.Console
         {
             BatchName = mailBatch.BatchName.Trim();
             //Combined path
-            BatchRepo = Path.Combine(Common.AuthoMailRootFolder, client.AppCode, "{0}-{1}".Fill(mailBatch.Id));
+            BatchRepo = Path.Combine(Common.AuthoMailRootFolder, client.AppCode, "{0}".Fill(mailBatch.Id));
 
             AMRequestPath = Path.Combine(BatchRepo, "AMRequest");
             PnSRequestPath = Path.Combine(BatchRepo, "PnSRequest");
