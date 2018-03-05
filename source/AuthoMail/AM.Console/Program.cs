@@ -13,8 +13,7 @@ namespace AM.Console
         {
             DownloadJob downloadJob = new DownloadJob();
             downloadJob.DownloadNewBatch();
-            CoreJob coreJob = new CoreJob();
-            coreJob.ConvertBatchIntoAMXml();
+            downloadJob.ConvertBatchIntoAMXml();
 
             //AMCXmlParse downloadAMCJob = new AMCXmlParse();
             //downloadAMCJob.DownloadAMCXml();

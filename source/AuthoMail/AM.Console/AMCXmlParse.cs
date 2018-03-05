@@ -124,13 +124,13 @@ namespace AM.Console
                         int availableXMLFiles = Directory.GetFiles(Path.GetDirectoryName(downloadedZipFilePath), "*.xml").Count();
                         if (availableXMLFiles != 1)
                         {
-                            newBatch.DownloadedOn = Common.GetCurrentTime();
+                            newBatch.DownloadedOn = Common.Now;
                             newBatch.ValidationStatus = OutComeCodes.Invalid_Zip_File.ToString();
                             newBatch.ValidationErrors = string.Format("{0}|No XML file is available.", OutComeCodes.Invalid_Zip_File.ToString());
                         }
 
                         newBatch.Id = batchSvc.InsertBatchDetails(newBatch);
-                        commonSvc.UpdateBatchPipeLineStatus(newBatch.Id, BatchPipelineStatus.Downloaded, Common.GetCurrentTime());
+                        commonSvc.UpdateBatchPipeLineStatus(newBatch.Id, BatchPipelineStatus.Downloaded, Common.Now);
                         return newBatch;
                     }
                     catch (ZipException err)
@@ -140,8 +140,8 @@ namespace AM.Console
                         newBatch = new MailBatchDTO()
                         {
                             BatchName = Path.GetFileNameWithoutExtension(triggerFilePath).TrimEnd("_Complete".ToCharArray()).ToString(),
-                            ReceivedOn = Common.GetCurrentTime(),
-                            DownloadedOn = Common.GetCurrentTime(),
+                            ReceivedOn = Common.Now,
+                            DownloadedOn = Common.Now,
                             ValidationStatus = OutComeCodes.Invalid_Zip_File.ToString(),
                             ValidationErrors = string.Format("{0}|{1}", OutComeCodes.Invalid_Zip_File.ToString(), err.Message)
                         };
@@ -161,7 +161,7 @@ namespace AM.Console
                     ReceivedOn = DateTime.UtcNow,
                     ValidationStatus = OutComeCodes.Invalid_Zip_File.ToString(),
                     ValidationErrors = string.Format("{0}|Trigger file found but zip file is missing on FTP.", OutComeCodes.Invalid_Zip_File.ToString()),
-                    DownloadedOn = Common.GetCurrentTime()
+                    DownloadedOn = Common.Now
                 };
 
                 newBatch.Id = batchSvc.InsertBatchDetails(newBatch);
@@ -278,7 +278,7 @@ namespace AM.Console
 
                     //TODO: Mail For Invalid XML
 
-                    commonSvc.UpdateBatchPipeLineStatus(batchClustId, BatchPipelineStatus.ReportedBack, Common.GetCurrentTime());
+                    commonSvc.UpdateBatchPipeLineStatus(batchClustId, BatchPipelineStatus.ReportedBack, Common.Now);
                     #endregion
                 }
 
