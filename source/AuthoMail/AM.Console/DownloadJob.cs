@@ -87,7 +87,7 @@ namespace AM.Console
                                 //Now Download Zip File Path
 
                                 MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, sftChannelDetails);
-                                DownloadBatchFromFTP(sftSite, zipFileFTPPath, triggerFilePath, client, sftChannelDetails, mbi);
+                                DownloadBatchFromFTP(sftSite, zipFileFTPPath, triggerFilePath, sftChannelDetails, mbi);
                                 //ProcessForUSAAClient(sftSite, triggerFilePath, mbi, sftChannelDetails);
                             }
                         }
@@ -103,8 +103,18 @@ namespace AM.Console
             }
         }
 
-        private void DownloadBatchFromFTP(SFTUtil sftSite, string zipFileFTPPath, string triggerFilePath, Client client, SFTChannel channelDetails, MailBatchInfo mbi)
+        private void DownloadBatchFromFTP(SFTUtil sftSite, string zipFileFTPPath, string triggerFilePath, SFTChannel channelDetails, MailBatchInfo mbi)
         {
+            #region Create directory structure.
+
+            Common.CleanDirectory(mbi.BatchRepo);
+            mbi.AMRequestPath.CreateDirectoryIfNotExist();
+            mbi.PnSRequestPath.CreateDirectoryIfNotExist();
+            mbi.PnSResponsePath.CreateDirectoryIfNotExist();
+            mbi.AMResponsePath.CreateDirectoryIfNotExist();
+
+            #endregion
+
             string downloadedZipFilePath = string.Empty;
 
             if (sftSite.IsConnected == false)
@@ -113,7 +123,7 @@ namespace AM.Console
             // If batch zip file exists on FTP then download and process it.
             if (sftSite.IsFileAvailable(zipFileFTPPath))
             {
-                downloadedZipFilePath = DownloadBatchZipFile(sftSite, zipFileFTPPath, client, mbi);
+                downloadedZipFilePath = DownloadBatchZipFile(sftSite, zipFileFTPPath, mbi);
 
                 if (!downloadedZipFilePath.Contains("Error Occured"))
                 {
@@ -219,18 +229,9 @@ namespace AM.Console
                 sftSite.DeleteFile(triggerFTPFilePath);
         }
 
-        private string DownloadBatchZipFile(SFTUtil sftSite, string zipFileFTPPath, Client client, MailBatchInfo mbi)
+        private string DownloadBatchZipFile(SFTUtil sftSite, string zipFileFTPPath, MailBatchInfo mbi)
         {
-            commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.DownloadStart, Common.Now);
-            #region Create directory structure.
-
-            Common.CleanDirectory(mbi.BatchRepo);
-            mbi.AMRequestPath.CreateDirectoryIfNotExist();
-            mbi.PnSRequestPath.CreateDirectoryIfNotExist();
-            mbi.PnSResponsePath.CreateDirectoryIfNotExist();
-            mbi.AMResponsePath.CreateDirectoryIfNotExist();
-
-            #endregion
+            commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.DownloadStart, Common.Now);           
 
             if (sftSite.IsConnected == false)
                 sftSite.Connect();
@@ -240,9 +241,7 @@ namespace AM.Console
                 string downloadedZipFilePath = string.Empty;
                 string zipFileName = Path.GetFileName(zipFileFTPPath);
                 string batchLocalDir = mbi.AMRequestPath;
-                if (!Directory.Exists(batchLocalDir))
-                    Directory.CreateDirectory(batchLocalDir);
-
+               
                 downloadedZipFilePath = Path.Combine(batchLocalDir, zipFileName);
                 if (File.Exists(downloadedZipFilePath))
                     File.Delete(downloadedZipFilePath);

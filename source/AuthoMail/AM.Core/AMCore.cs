@@ -142,169 +142,176 @@ namespace AM.Core
 
             foreach (MailBatchDTO mailBatch in mailBatches)
             {
-                Client client = clientSvc.GetClientDetails(mailBatch.ClientId).Single(c => c.IsPnSActive == true);
-                MailBatchInfo mbi = new MailBatchInfo(mailBatch, client);
-
-                var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
-
-                List<MailPieceDTO> validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
-
-                commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingStart, Common.Now);
-
-                if (validMailPieces.Count == 0)
+                Client client = clientSvc.GetClientDetails(mailBatch.ClientId).SingleOrDefault(c => c.IsPnSActive == true);
+                if (client != null)
                 {
-                    mailBatch.ValidationStatus = BatchValidationStatus.Invalid;
-                    mailBatch.ValidationErrors = "Batch does not contains any valid mail pieces to process further.";
+                    MailBatchInfo mbi = new MailBatchInfo(mailBatch, client);
 
-                    mailBatchSvc.UpdateBatchDetails(mailBatch);
-                    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationEnd, Common.Now);
-                    commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.Failed.ToString());
+                    var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
 
-                    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
-                    continue;
-                }
+                    List<MailPieceDTO> validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
 
-                try
-                {
-                    List<PrintBatch> printBatches = new List<PrintBatch>();
+                    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingStart, Common.Now);
 
-                    PrintBatch printBatch = null;
-
-                    var docTypes = validMailPieces.Select(row => row.DocumentOrPackageType.Trim()).Distinct();
-                    foreach (var documentOrPackageType in docTypes)
+                    if (validMailPieces.Count == 0)
                     {
-                        DocType docType = docTypeSvc.GetDocTypesByDocTypeName(mbi.Client.Id, documentOrPackageType);
+                        mailBatch.ValidationStatus = BatchValidationStatus.Invalid;
+                        mailBatch.ValidationErrors = "Batch does not contains any valid mail pieces to process further.";
 
-                        //Commented because the same thing we are validating when generating document
-
-                        //if (docType == null)
-                        //{
-                        //    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
-                        //    //TODO: Ask Ravi Sir
-                        //    continue;
-                        //}
-
-                        printBatch = new PrintBatch();
-                        printBatch.AppCode = mbi.Client.AppCode;
-                        printBatch.UniqueId = Guid.NewGuid();
-                        printBatch.MailBatchId = mbi.MailBatch.Id;
-                        printBatch.DocTypeId = docType.Id;
-
-                        var filteredMailPieces = validMailPieces.Where(c => c.DocumentOrPackageType == documentOrPackageType).ToList();
-
-                        #region QC Request Logic
-                        if (docType.QCPercent > 0)
-                        {
-                            double qcCount = 0;
-                            float qcPercentage = docType.QCPercent / 100;
-                            qcCount = Math.Ceiling(filteredMailPieces.Count * qcPercentage);
-
-                            var randomIndexes = new List<int>();
-                            while (randomIndexes.Count < qcCount)
-                            {
-                                var index = random.Next(0, filteredMailPieces.Count - 1);
-                                if (!randomIndexes.Contains(index))
-                                {
-                                    randomIndexes.Add(index);
-                                }
-                            }
-
-                            randomIndexes.ForEach(index =>
-                            {
-                                filteredMailPieces[index].IsQCRequested = true;
-                            });
-                        }
-                        #endregion
-
-
-                        printBatch.MailPieces = filteredMailPieces;
-
-                        printBatches.Add(printBatch);
-                    }
-
-                    if (printBatches.Count == 0)
-                    {
-                        log.Error("No batches are available for submit to PCI.");
+                        mailBatchSvc.UpdateBatchDetails(mailBatch);
+                        commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationEnd, Common.Now);
+                        commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.Failed.ToString());
 
                         commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                         continue;
                     }
 
-                    foreach (var printBatchData in printBatches)
+                    try
                     {
-                        if (printBatchData.MailPieces.Count == 0)
+                        List<PrintBatch> printBatches = new List<PrintBatch>();
+
+                        PrintBatch printBatch = null;
+
+                        var docTypes = validMailPieces.Select(row => row.DocumentOrPackageType.Trim()).Distinct();
+                        foreach (var documentOrPackageType in docTypes)
                         {
-                            log.Error("{0} : Print batch is not containing any mail pieces.".Fill(printBatchData.UniqueId));
+                            DocType docType = docTypeSvc.GetDocTypesByDocTypeName(mbi.Client.Id, documentOrPackageType);
+
+                            //Commented because the same thing we are validating when generating document
+
+                            //if (docType == null)
+                            //{
+                            //    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
+                            //    //TODO: Ask Ravi Sir
+                            //    continue;
+                            //}
+
+                            printBatch = new PrintBatch();
+                            printBatch.AppCode = mbi.Client.AppCode;
+                            printBatch.UniqueId = Guid.NewGuid();
+                            printBatch.MailBatchId = mbi.MailBatch.Id;
+                            printBatch.DocTypeId = docType.Id;
+
+                            var filteredMailPieces = validMailPieces.Where(c => c.DocumentOrPackageType == documentOrPackageType).ToList();
+
+                            #region QC Request Logic
+                            if (docType.QCPercent > 0)
+                            {
+                                double qcCount = 0;
+                                float qcPercentage = docType.QCPercent / 100;
+                                qcCount = Math.Ceiling(filteredMailPieces.Count * qcPercentage);
+
+                                var randomIndexes = new List<int>();
+                                while (randomIndexes.Count < qcCount)
+                                {
+                                    var index = random.Next(0, filteredMailPieces.Count - 1);
+                                    if (!randomIndexes.Contains(index))
+                                    {
+                                        randomIndexes.Add(index);
+                                    }
+                                }
+
+                                randomIndexes.ForEach(index =>
+                                {
+                                    filteredMailPieces[index].IsQCRequested = true;
+                                });
+                            }
+                            #endregion
+
+
+                            printBatch.MailPieces = filteredMailPieces;
+
+                            printBatches.Add(printBatch);
+                        }
+
+                        if (printBatches.Count == 0)
+                        {
+                            log.Error("No batches are available for submit to PCI.");
+
                             commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                             continue;
                         }
 
-                        printBatchData.Id = mailBatchSvc.InsertPrintBatchDetails(printBatchData);
-
-                        string pnsRootFolder = Common.PnS_SFT_RootDir;
-                        string batchName = "{0}_{1}".Fill(mbi.MailBatch.BatchName, printBatchData.DocTypeId);
-                        string batchXMLSubmitPath = Path.Combine(pnsRootFolder, mbi.Client.AppCode, batchName + ".xml");
-                        string batchGOSubmitPath = Path.Combine(pnsRootFolder, mbi.Client.AppCode, batchName + ".go");
-                        string batchSubmitPath = Path.Combine(pnsRootFolder, mbi.Client.AppCode, batchName);
-
-                        try
+                        foreach (var printBatchData in printBatches)
                         {
-                            //TODO: Add Validation For Directory Full Access Read/Write/Delete
-
-                            if (!Directory.Exists(batchSubmitPath))
+                            if (printBatchData.MailPieces.Count == 0)
                             {
-                                Directory.CreateDirectory(batchSubmitPath);
+                                log.Error("{0} : Print batch is not containing any mail pieces.".Fill(printBatchData.UniqueId));
+                                commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
+                                continue;
+                            }
+
+                            printBatchData.Id = mailBatchSvc.InsertPrintBatchDetails(printBatchData);
+
+                            string pnsRootFolder = Common.PnS_SFT_RootDir;
+                            string batchName = "{0}_{1}".Fill(mbi.MailBatch.BatchName, printBatchData.DocTypeId);
+                            string batchXMLSubmitPath = Path.Combine(pnsRootFolder, mbi.Client.AppCode, batchName + ".xml");
+                            string batchGOSubmitPath = Path.Combine(pnsRootFolder, mbi.Client.AppCode, batchName + ".go");
+                            string batchSubmitPath = Path.Combine(pnsRootFolder, mbi.Client.AppCode, batchName);
+
+                            try
+                            {
+                                //TODO: Add Validation For Directory Full Access Read/Write/Delete
+
+                                if (!Directory.Exists(batchSubmitPath))
+                                {
+                                    Directory.CreateDirectory(batchSubmitPath);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
+                                log.Error("Error occured while creating directory :" + ex);
+                            }
+
+                            try
+                            {
+                                PnSRequest request = new PnSRequest();
+                                request.AppCode = printBatchData.AppCode;
+                                request.BatchIdentifier = printBatchData.UniqueId;
+                                request.BatchName = batchName;
+                                request.DocTypeId = printBatchData.DocTypeId;
+                                request.SLADays = 0;
+                                request.OnValidationErrors = OnValidationErrors.ProcessValidFiles;
+
+                                List<MailPieceData> mailPackage = new List<MailPieceData>();
+                                foreach (var piece in printBatchData.MailPieces)
+                                {
+                                    string fileName = "{0}_{1}".Fill(piece.Id, piece.FileName);
+                                    File.Copy(Path.Combine(mbi.PnSRequestPath, fileName), Path.Combine(batchSubmitPath, fileName), true);
+
+                                    MailPieceData mailPieceData = new MailPieceData();
+                                    mailPieceData.UniqueId = piece.UniqueId;
+                                    mailPieceData.TotalPages = piece.TotalPages;
+                                    mailPieceData.PerformQC = piece.IsQCRequested;
+                                    mailPieceData.PDFFileName = fileName;
+
+                                    mailPackage.Add(mailPieceData);
+                                }
+                                request.MailPackageData = mailPackage;
+                                File.WriteAllText(batchXMLSubmitPath, XmlUtil.Serialize<PnSRequest>(request));
+                                File.WriteAllText(batchGOSubmitPath, "");
+                                commonSvc.UpdatePrintBatchStatus(printBatchData.Id, AM.Entities.BatchStatus.InProgress.ToString());
+                                commonSvc.UpdatePrintBatchPipeLineStatus(printBatchData.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
+                            }
+                            catch (Exception ex)
+                            {
+                                commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
+                                log.Error("Error occured while generaing PnSRequest :" + ex);
                             }
                         }
-                        catch (Exception ex)
-                        {
-                            commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
-                            log.Error("Error occured while creating directory :" + ex);
-                        }
-
-                        try
-                        {
-                            PnSRequest request = new PnSRequest();
-                            request.AppCode = printBatchData.AppCode;
-                            request.BatchIdentifier = printBatchData.UniqueId;
-                            request.BatchName = batchName;
-                            request.DocTypeId = printBatchData.DocTypeId;
-                            request.SLADays = 0;
-                            request.OnValidationErrors = OnValidationErrors.ProcessValidFiles;
-
-                            List<MailPieceData> mailPackage = new List<MailPieceData>();
-                            foreach (var piece in printBatchData.MailPieces)
-                            {
-                                string fileName = "{0}_{1}".Fill(piece.Id, piece.FileName);
-                                File.Copy(Path.Combine(mbi.PnSRequestPath, fileName), Path.Combine(batchSubmitPath, fileName), true);
-
-                                MailPieceData mailPieceData = new MailPieceData();
-                                mailPieceData.UniqueId = piece.UniqueId;
-                                mailPieceData.TotalPages = piece.TotalPages;
-                                mailPieceData.PerformQC = piece.IsQCRequested;
-                                mailPieceData.PDFFileName = fileName;
-
-                                mailPackage.Add(mailPieceData);
-                            }
-                            request.MailPackageData = mailPackage;
-                            File.WriteAllText(batchXMLSubmitPath, XmlUtil.Serialize<PnSRequest>(request));
-                            File.WriteAllText(batchGOSubmitPath, "");
-                            commonSvc.UpdatePrintBatchStatus(printBatchData.Id, AM.Entities.BatchStatus.InProgress.ToString());
-                            commonSvc.UpdatePrintBatchPipeLineStatus(printBatchData.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
-                        }
-                        catch (Exception ex)
-                        {
-                            commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
-                            log.Error("Error occured while generaing PnSRequest :" + ex);
-                        }
+                        commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
+                        commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                     }
-                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
-                    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
+                    catch (Exception ex)
+                    {
+                        log.Error(ex);
+                        commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
+                    }
                 }
-                catch (Exception ex)
+                else
                 {
-                    log.Error(ex);
-                    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
+                    log.Error("Client of Batch : {0}, is not enabled for PnS service".Fill(mailBatch.BatchName));
                 }
             }
         }
