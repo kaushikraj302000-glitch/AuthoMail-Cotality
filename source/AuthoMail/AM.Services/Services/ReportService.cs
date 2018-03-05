@@ -76,8 +76,8 @@ namespace AM.Services
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@clientId", clientId);
             query = string.Format("{0} AND (ReceivedOn >= @startDate) AND (ReceivedOn <= @endDate)", query);
-            parameters.Add("@date", startDate.EstToUtc());
-            parameters.Add("@sdate", endDate.EstToUtc());
+            parameters.Add("@startDate", startDate.EstToUtc());
+            parameters.Add("@endDate", endDate.EstToUtc());
             if (!channel.IsNullOrWhiteSpace())
             {
                 query = string.Format("{0} AND Channel=@channel", query);
@@ -96,8 +96,8 @@ namespace AM.Services
             if (startDate.HasValue && endDate.HasValue)
             {
                 query = string.Format("{0} AND (ReceivedOn >= @startDate) AND (ReceivedOn <= @endDate)", query);
-                parameters.Add("@date", startDate.Value.EstToUtc());
-                parameters.Add("@sdate", endDate.Value.EstToUtc());
+                parameters.Add("@startDate", startDate.Value.EstToUtc());
+                parameters.Add("@endDate", endDate.Value.EstToUtc());
             }
             //Also verify need to define time in below clause. also check time?
             if (batchId.HasValue)
