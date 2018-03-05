@@ -13,7 +13,7 @@ namespace AM.Services
     {
         List<MailPieceSearch> GetMailPieceByBatchId(int batchId, int clientId);
         List<DocumentType> GetDocTypeList(int clientId);
-        List<string> GetMailPieceIdFromBusinessFriendlyValue(string businessFriendlyIdName, string businessFriendlyIdValue, int clientId);
+        List<Guid> GetMailPieceIdFromBusinessFriendlyValue(string businessFriendlyIdName, string businessFriendlyIdValue, int clientId);
         List<string> GetBusinessFriendlyIdNameByclientId(int clientId);
     }
     public class HomeService : ServiceBase, IHomeService //It implements Interfaces 
@@ -36,18 +36,18 @@ namespace AM.Services
         }
 
 
-        public List<string> GetMailPieceIdFromBusinessFriendlyValue(string businessFriendlyIdName, string businessFriendlyIdValue, int clientId)
+        public List<Guid> GetMailPieceIdFromBusinessFriendlyValue(string businessFriendlyIdName, string businessFriendlyIdValue, int clientId)
         {
-            string query = HomeServiceQuery.GetMailPieceIdFromLoanNo;
+            string query = HomeServiceQuery.GetMailPieceIdFromBusinessFriendlyValue;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@businessFriendlyIdName", businessFriendlyIdName);
             parameters.Add("@businessFriendlyIdValue", businessFriendlyIdValue);
             parameters.Add("@clientId", clientId);
             parameters.Add("@todayDate", Common.Today.Date);
-            parameters.Add("@shippingStatus", ShippingStatus.InProgress);
-            parameters.Add("@pipelineStatus", BatchPipelineStatus.SubmittedToShipping);
+            parameters.Add("@shippingStatus", ShippingStatus.InProgress.ToString());
+            parameters.Add("@pipelineStatus", BatchPipelineStatus.SubmittedToShipping.ToString());
 
-            var mailPieces = db.Query<string>(query, parameters).ToList();
+            var mailPieces = db.Query<Guid>(query, parameters).ToList();
             return mailPieces;
         }
         public List<string> GetBusinessFriendlyIdNameByclientId(int clientId)
@@ -63,7 +63,7 @@ namespace AM.Services
 
         public static string GetDocTypeList = "select Id,DocTypeCode FROM [AM].[DocTypes] WHERE ClientId=@clientId";
 
-        public static string GetMailPieceIdFromLoanNo = "select m.[UniqueId] as [MailPieceId] from [AM].[MailBatches] b,[AM].[MailPieces] m where b.Id = m.BatchId and ((cast(ReceivedOn as date)=cast(@todayDate as date) or (m.ShippingStatus=@shippingStatus and b.PipelineStatus=@pipelineStatus))) and m.BusinessFriendlyIdName=@businessFriendlyIdName AND m.BusinessFriendlyIdValue=@businessFriendlyIdValue AND b.ClientId=@clientId";
+        public static string GetMailPieceIdFromBusinessFriendlyValue = "select m.[UniqueId] as [MailPieceId] from [AM].[MailBatches] b,[AM].[MailPieces] m where b.Id = m.BatchId and ((cast(ReceivedOn as date)=cast(@todayDate as date) or (m.ShippingStatus=@shippingStatus and b.PipelineStatus=@pipelineStatus))) and m.BusinessFriendlyIdName=@businessFriendlyIdName AND m.BusinessFriendlyIdValue=@businessFriendlyIdValue AND b.ClientId=@clientId";
 
         public static string GetBusinessFriendlyIdNameByclientId = "SELECT DISTINCT BusinessFriendlyIdName FROM [AM].[MailPieces] m,[AM].[MailBatches] b WHERE m.BatchId=b.Id and BusinessFriendlyIdName is not null and b.ClientId=@clientId";
     }
