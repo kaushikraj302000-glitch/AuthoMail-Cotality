@@ -185,6 +185,7 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Models\CLAuthentication.cs" />
     <Compile Include="Models\PullBackResponse.cs" />
+    <Compile Include="Models\ReportViewModel.cs" />
     <Compile Include="Utilities\Common.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
@@ -383,6 +384,8 @@
     <Content Include="Views\Home\_GetChartMailPieceData.cshtml" />
     <Content Include="Views\Home\_PullBackRequestData.cshtml" />
     <Content Include="Views\Home\WeeklyChartDetails.cshtml" />
+    <Content Include="Views\Report\DailyDetailOperationsReport.cshtml" />
+    <Content Include="Views\Report\_GetDailyDetailOperationsReport.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

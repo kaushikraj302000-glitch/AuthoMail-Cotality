@@ -1,0 +1,90 @@
+﻿
+@{
+    ViewBag.Title = "DailyDetailOperationsReport";
+}
+
+<link href="~/clui/dist/css/datatablecustom.css" rel="stylesheet" />
+
+
+    <div class="panel-group">
+        <div class="panel panel-default">
+            <div class="panel-heading" id="headingOne">
+                <a role="button" data-toggle="collapse" data-parent="#accordion" href="#metaItem1">
+                    <div class="panel-title">
+                        <i class="fa fa-filter"></i> Filter for Daily Detail Operations Report
+                        <div class="collapsed-icon pull-right">
+                            <i class="fa fa-caret-left"></i>
+                        </div>
+                        <div class="expanded-icon pull-right">
+                            <i class="fa fa-caret-down"></i>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div id="metaItem1" class="panel-collapse collapse in">
+                <div class="panel-body">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="dp4">Select Date</label>
+                            <div class="input-group date" id="datepicker4">
+                                <input type="text" class="form-control" id="dp4">
+                                <span class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </span>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="col-md-1">
+                        <div class="form-group ">
+                            <label for="input1"></label>
+                            <button type="button" id="filterData" class="btn btn-primary">
+                                <span class="sr-only">Filter</span>
+                                <i class="fa fa-filter fa-2x"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="panel panel-default" id="batchList"></div>
+
+@section Scripts{
+    @Styles.Render("~/bundles/datatablescss")
+    @Scripts.Render("~/bundles/datatables")
+    <script>
+        $(document).ready(function () {
+            window.clui.dateTimePickerInit();
+            console.log(baseUrl);
+            FilterData();
+        });
+        function FilterData() {
+            var selectedData = new Date($("#dp4").val());
+            var el = $('#batchList');
+            el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "Report/_GetDailyDetailOperationsReport",
+                data: JSON.stringify({ date: selectedData }),
+                contentType: "application/json; charset=utf-8",
+                success: function (res) {
+                    el.html(res);
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    var msg = 'Error on reloading the content. Please check your connection and try again.';
+                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                }
+
+            });
+        }
+        $("#filterData").click(function () {
+            FilterData();
+        });
+    </script>
+}
+
+
+
+

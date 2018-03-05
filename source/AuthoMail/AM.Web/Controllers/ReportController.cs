@@ -5,6 +5,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using AM.Entities.IdentityModels;
+using AM.Web.Models;
 namespace AM.Web.Controllers
 {
     public class ReportController : Controller
@@ -80,5 +81,26 @@ namespace AM.Web.Controllers
             return PartialView(model);
         }
 
+        public ActionResult DailyDetailOperationsReport()
+        {
+            ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
+            return View();
+        }
+        [HttpPost]
+        public ActionResult _GetDailyDetailOperationsReport(DateTime date)
+        {
+            ViewBag.Date = date.ToString("MM/dd/yyyy");
+            var model = repoSvc.GetDailyDetailOperationsByDateOrBatch(User.Identity.GetClientId().Value, date, null);
+            List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
+            foreach (var item in model)
+            {
+                reportViewModel.Add(new ReportViewModel { 
+                Key=item.BatchId,
+                Value = string.Format("{0} {1}", item.BatchId, item.ReceivedOn.ToString("H:mm"))
+                });
+            }
+            ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
+            return PartialView(model);
+        }
     }
 }
