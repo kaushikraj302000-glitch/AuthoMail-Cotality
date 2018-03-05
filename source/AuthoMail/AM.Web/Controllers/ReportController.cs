@@ -28,7 +28,7 @@ namespace AM.Web.Controllers
             ViewBag.BatchId = loanNumber;
             ViewBag.Date = string.Format("{0} To {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
 
-            var model = repoSvc.GetSummaryControlReport(User.Identity.GetClientId().Value, startDate, endDate, loanNumber, docType);
+            var model = repoSvc.GetSummaryControlReport(User.Identity.GetClientId().Value, startDate);
             return PartialView(model);
         }
         public ActionResult _GetMailPieceList(List<MonthlyReconReport> model)
@@ -63,7 +63,8 @@ namespace AM.Web.Controllers
         public ActionResult _GetDeliveryReport(string loanNumber, string docType, DateTime startDate, DateTime endDate)
         {
             ViewBag.Date = string.Format("{0} To {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
-            var model = repoSvc.GetDailyDetailOperationsByParam(User.Identity.GetClientId().Value, startDate, endDate, loanNumber, docType);
+
+            var model = repoSvc.GetDailyDetailOperationsByDateOrBatch(User.Identity.GetClientId().Value, startDate, null);
             return PartialView(model);
         }
         public ActionResult ErrorsReport()
@@ -75,7 +76,7 @@ namespace AM.Web.Controllers
         public ActionResult _GetErrorsReport(string loanNumber, string docType, DateTime startDate, DateTime endDate)
         {
             ViewBag.Date = string.Format("{0} To {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
-            var model = repoSvc.GetErrorReportByParam(User.Identity.GetClientId().Value, startDate, endDate, loanNumber, docType);
+            var model = repoSvc.GetErrorReportByDateOrBatch(User.Identity.GetClientId().Value, startDate, null);
             return PartialView(model);
         }
 
