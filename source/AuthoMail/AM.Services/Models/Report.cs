@@ -13,6 +13,7 @@ namespace AM.Services
         public int MailPieceId { get; set; }
         public Guid MailPieceUniqueId { get; set; }
         public string ClientBatchId { get; set; }
+        public string BatchName { get; set; }
         public string Channel { get; set; }
         public string DocumentOrPackageType { get; set; }
         public string BusinessFriendlyIdName { get; set; }
@@ -50,6 +51,7 @@ namespace AM.Services
         public int MailPieceId { get; set; }
         public Guid MailPieceUniqueId { get; set; }
         public string ClientBatchId { get; set; }
+        public string BatchName { get; set; }
         public string Channel { get; set; }
         public string DocumentOrPackageType { get; set; }
         public string BusinessFriendlyIdName { get; set; }
@@ -106,6 +108,7 @@ namespace AM.Services
         public int MailPieceId { get; set; }
         public Guid MailPieceUniqueId { get; set; }
         public string ClientBatchId { get; set; }
+        public string BatchName { get; set; }
         public string Channel { get; set; }
         public string DocumentOrPackageType { get; set; }
         public string BusinessFriendlyIdName { get; set; }
