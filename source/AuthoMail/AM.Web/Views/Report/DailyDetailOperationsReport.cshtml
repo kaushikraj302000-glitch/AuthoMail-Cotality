@@ -35,6 +35,7 @@
                         </div>
 
                     </div>
+
                     <div class="col-md-1">
                         <div class="form-group ">
                             <label for="input1"></label>
@@ -42,6 +43,12 @@
                                 <span class="sr-only">Filter</span>
                                 <i class="fa fa-filter fa-2x"></i>
                             </button>
+                        </div>
+                    </div>
+                    <div class="col-md-5" id="showBatch" style="display:none">
+                        <div class="form-group" >
+                            <label for="input1">Batches</label>
+                            <div id="batchselection"></div>
                         </div>
                     </div>
                 </div>
@@ -71,10 +78,15 @@
                 contentType: "application/json; charset=utf-8",
                 success: function (res) {
                     el.html(res);
+
+                    $("#batchselection").html(el.find("#hideSelection").html());
+                    $(".selectpicker").show();
+                    $("#BatchList").addClass("selectpicker");
+                    $("#showBatch").show();
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     var msg = 'Error on reloading the content. Please check your connection and try again.';
-                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                     el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
                 }
 
             });
