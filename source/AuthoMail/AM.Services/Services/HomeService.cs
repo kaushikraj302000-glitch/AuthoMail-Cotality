@@ -65,6 +65,6 @@ namespace AM.Services
 
         public static string GetMailPieceIdFromLoanNo = "select m.[UniqueId] as [MailPieceId] from [AM].[MailBatches] b,[AM].[MailPieces] m where b.Id = m.BatchId and ((cast(ReceivedOn as date)=cast(@todayDate as date) or (m.ShippingStatus=@shippingStatus and b.PipelineStatus=@pipelineStatus))) and m.BusinessFriendlyIdName=@businessFriendlyIdName AND m.BusinessFriendlyIdValue=@businessFriendlyIdValue AND b.ClientId=@clientId";
 
-        public static string GetBusinessFriendlyIdNameByclientId = "SELECT DISTINCT BusinessFriendlyIdName FROM [AM].[MailPieces] m,[AM].[MailBatches] b WHERE m.BatchId=b.Id and b.ClientId=@clientId";
+        public static string GetBusinessFriendlyIdNameByclientId = "SELECT DISTINCT BusinessFriendlyIdName FROM [AM].[MailPieces] m,[AM].[MailBatches] b WHERE m.BatchId=b.Id and BusinessFriendlyIdName is not null and b.ClientId=@clientId";
     }
 }
