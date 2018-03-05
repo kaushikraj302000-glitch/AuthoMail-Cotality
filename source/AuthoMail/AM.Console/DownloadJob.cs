@@ -108,7 +108,7 @@ namespace AM.Console
                 if (!string.IsNullOrEmpty(downloadedZipFilePath))
                 {
                     //After successfully download update downloaded pipeline status
-                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Downloaded, Common.GetCurrentTime());
+                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Downloaded, Common.Now);
 
                     try
                     {
@@ -162,7 +162,7 @@ namespace AM.Console
                 sftp.Connect();
 
             string ftpTriggerFilePath = string.Empty;
-            DateTime pingTime = Common.GetCurrentTime();
+            DateTime pingTime = Common.Now;
             List<string> avialableTriggerFiles = sftp.ListDirectory(channelDetails.ADERequestDir).Where(f => Path.GetExtension(f).Equals(".go", StringComparison.CurrentCultureIgnoreCase) && Path.GetFileNameWithoutExtension(f).EndsWith("_Complete")).ToList();
 
             if (avialableTriggerFiles != null && avialableTriggerFiles.Count > 0)
@@ -200,7 +200,7 @@ namespace AM.Console
 
         private string DownloadBatchZipFile(SFTUtil sftSite, string zipFileFTPPath, Client client, MailBatchInfo mbi)
         {
-            commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.DownloadStart, Common.GetCurrentTime());
+            commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.DownloadStart, Common.Now);
             #region Create directory structure.
 
             Common.CleanDirectory(mbi.BatchRepo);
@@ -227,7 +227,7 @@ namespace AM.Console
             sftSite.DownloadFile(zipFileFTPPath, downloadedZipFilePath);
 
             //Update LogTime for Download complete
-            commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.DownloadEnd, Common.GetCurrentTime());
+            commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.DownloadEnd, Common.Now);
 
             if (mbi.SFTChannel.PostDownloadAction == PostDownloadAction.Archive)
             {
