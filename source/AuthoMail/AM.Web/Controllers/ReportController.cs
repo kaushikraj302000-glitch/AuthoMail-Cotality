@@ -20,7 +20,7 @@ namespace AM.Web.Controllers
         }
         public ActionResult SummaryControlReport()
         {
-            ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
+            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
             return View();
         }
         [HttpPost]
@@ -38,7 +38,7 @@ namespace AM.Web.Controllers
         }
         public ActionResult MonthReconReport()
         {
-            ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
+            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
             return View();
         }
         [HttpPost]
@@ -51,13 +51,13 @@ namespace AM.Web.Controllers
 
         public ActionResult MailPieceByBatchId(int batchId)
         {
-            var model = repoSvc.GetMailPieceByBatchId(batchId, User.Identity.GetClientId().Value);
+            var model = homeSvc.GetMailPieceByBatchId(batchId, User.Identity.GetClientId().Value);
             return View(model);
         }
 
         public ActionResult DeliveryReport()
         {
-            ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
+            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
             return View();
         }
         [HttpPost]
@@ -70,7 +70,7 @@ namespace AM.Web.Controllers
         }
         public ActionResult ErrorsReport()
         {
-            ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
+            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
             return View();
         }
         [HttpPost]
@@ -83,7 +83,7 @@ namespace AM.Web.Controllers
 
         public ActionResult DailyDetailOperationsReport()
         {
-            ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
+            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
             return View();
         }
         [HttpPost]

@@ -21,7 +21,7 @@ namespace AM.Web.Controllers
         }
         public ActionResult PullBack(string loanNumber)
         {
-            ViewBag.DocType = new SelectList(repoSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
+            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
             ViewBag.loanNumber = loanNumber;
             return View();
         }
