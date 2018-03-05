@@ -18,22 +18,21 @@ namespace AM.Console
         public string BatchName { get; private set; }
         public MailBatchDTO MailBatch { get; private set; }
         public Client Client { get; private set; }
-        public DocType DocType { get; private set; }
+        public DocType DocType { get; set; }
         public SFTChannel SFTChannel { get; private set; }
 
-        public MailBatchInfo(MailBatchDTO mailBatch, Client client, DocType docType, SFTChannel sftChannel)
+        public MailBatchInfo(MailBatchDTO mailBatch, Client client, SFTChannel sftChannel)
         {
             if (client == null || mailBatch == null) throw new ArgumentNullException("Client or MailBatch cannot be null.");
 
             MailBatch = mailBatch;
             Client = client;
-            DocType = docType;
             SFTChannel = sftChannel;
 
-            Initialize(client, docType, mailBatch);
+            Initialize(client, mailBatch);
         }
 
-        private void Initialize(Client client, DocType docType, MailBatchDTO mailBatch)
+        private void Initialize(Client client, MailBatchDTO mailBatch)
         {
             BatchName = mailBatch.BatchName.Trim();
             //Combined path

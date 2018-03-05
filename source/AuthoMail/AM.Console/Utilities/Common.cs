@@ -41,6 +41,7 @@ namespace AM.Console
             schemas = new XmlSchemaSet();
             schemasAMC = new XmlSchemaSet();
             AuthoMailRootFolder = Path.GetFullPath(ConfigurationManager.AppSettings["AuthoMailRootFolder"]);
+            AuthoMailRootFolder.CreateDirectoryIfNotExist();
             SchemaPath = ConfigurationManager.AppSettings["SchemaPath"];
             schemas.Add("http://schemas.corelogic.com/ade/authomail/v1.18.0", Common.SchemaPath);
 

@@ -21,16 +21,15 @@ namespace AM.Console
 
         IClientService clientSvc;
         IBatchService batchSvc;
-        IMailPieceService mailPieceSvc;
         ICommonService commonSvc;
         public DownloadJob()
         {
             clientSvc = new ClientService();
             batchSvc = new BatchService();
-            mailPieceSvc = new MailPieceService();
             commonSvc = new CommonService();
         }
 
+        #region Download New Batch
         public void DownloadNewBatch()
         {
             log.Debug("Download Batch Process Started");
@@ -55,9 +54,9 @@ namespace AM.Console
                         log.Error(ex);
                     }
 
-                    MailBatchDTO mailBatch = null;
                     if (sftSite.IsDownloadDirectoryAvailable(sftChannelDetails.ADERequestDir))
                     {
+                        MailBatchDTO mailBatch = null;
 
                         triggerFilePath = GetTriggerFilePath(sftSite, sftChannelDetails);
                         if (!string.IsNullOrEmpty(triggerFilePath))
@@ -79,9 +78,14 @@ namespace AM.Console
                             commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, sftSite.LastModifiedTimeOfFile(triggerFilePath));
                             //Now Download Zip File Path
 
-                            MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, null, sftChannelDetails);
+                            MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, sftChannelDetails);
                             DownloadBatchFromFTP(sftSite, zipFileFTPPath, triggerFilePath, client, sftChannelDetails, mbi);
                         }
+                        else
+                        {
+                            log.Debug("Batches are not available to download.");
+                        }
+
                         if (sftSite.IsConnected)
                             sftSite.Disconnect();
                     }
@@ -124,7 +128,7 @@ namespace AM.Console
                     catch (ZipException err)
                     {
                         // If the zip file is not available in the FTP folder then log that error.
-                        mbi.MailBatch.ValidationStatus = OutComeCodes.Invalid_Zip_File;
+                        mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid;
                         mbi.MailBatch.ValidationErrors = "Following error occured while extracting zip file :" + Environment.NewLine + err.ToString();
 
                         //Update Batch Details
@@ -135,13 +139,13 @@ namespace AM.Console
                     }
 
                     //Process trigger file as per PostDownloadAction Setup for particular SFTChannel
-                    MoveTriggerFileToBackupDir(sftSite, triggerFilePath, channelDetails);
+                    //MoveTriggerFileToBackupDir(sftSite, triggerFilePath, channelDetails);
                 }
             }
             else
             {
                 // If the zip file is not available in the FTP folder then log that error.
-                mbi.MailBatch.ValidationStatus = OutComeCodes.Missing_Zip_File;
+                mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid;
                 mbi.MailBatch.ValidationErrors = "Zip file is missing on Sft site.";
 
                 //Update Batch Details
@@ -165,13 +169,14 @@ namespace AM.Console
             {
                 ftpTriggerFilePath = avialableTriggerFiles.First();
                 log.Debug(string.Format("Trigger file {0} found.", Path.GetFileName(ftpTriggerFilePath)));
+                return Path.Combine(channelDetails.ADERequestDir, ftpTriggerFilePath);
             }
             else
             {
                 log.Error("Trigger file not found.");
             }
 
-            return Path.Combine(channelDetails.ADERequestDir, ftpTriggerFilePath);
+            return "";
         }
 
         private void MoveTriggerFileToBackupDir(SFTUtil sftSite, string triggerFTPFilePath, SFTChannel channelDetails)
@@ -235,6 +240,7 @@ namespace AM.Console
             }
 
             return downloadedZipFilePath;
-        }       
+        } 
+        #endregion
     }
 }
