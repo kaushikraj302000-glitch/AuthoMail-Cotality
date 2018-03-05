@@ -8,6 +8,7 @@ namespace AM.Services
 {
     public class PullBackInfo
     {
+        public string ClientBatchId { get; set; }
         public int MailPieceId { get; set; }
         public Guid MailPieceUniqueId { get; set; }
         public int BatchId { get; set; }
@@ -15,15 +16,7 @@ namespace AM.Services
         public string BatchName { get; set; }
         public string BusinessFriendlyIdValue { get; set; }
         public string BusinessFriendlyIdName { get; set; }
-        public string BatchDocumentOrPackageType { get; set; }
-        public string MailPieceDocumentOrPackageType { get; set; }
-        public string DocumentOrPackageName
-        {
-            get
-            {
-                return BatchDocumentOrPackageType.IsNullOrWhiteSpace() ? MailPieceDocumentOrPackageType : BatchDocumentOrPackageType;
-            }
-        }
+        public string DocumentOrPackageName { get; set; }
         public string FileName { get; set; }
         public string RcptPrefix { get; set; }
         public string RcptFirstName { get; set; }
@@ -114,6 +107,7 @@ namespace AM.Services
     }
     public class QuickPullBackResponse
     {
+        public string ClientBatchId { get; set; }
         public int BatchId { get; set; }
         public Guid BatchUniqueId { get; set; }
         public string BatchName { get; set; }

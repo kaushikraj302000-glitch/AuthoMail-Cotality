@@ -12,12 +12,14 @@ namespace AM.Services
 {
     public interface IReportService
     {
-        List<SummaryControlReport> GetSummaryControlReport(int clientId, DateTime startDate, DateTime endDate, string loanNo, string docType);
-        List<DeliveryReport> GetDeliveryByParam(int clientId, DateTime startDate, DateTime endDate, string loanNo, string docType);
-        List<ErrorReport> GetErrorReportByParam(int clientId, DateTime startDate, DateTime endDate, string loanNo, string docType);
-        List<MonthlyReconReport> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string loanNo, string docType);
-        List<SLAMissErrorReport> GetSLAMissErrorReport(int clientId);
-        //Nedd to move
+        List<DailyDetailOperationsReport> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId);
+        List<ErrorReport> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId);
+        List<SummaryControlReport> GetSummaryControlReport(int clientId, DateTime date);
+        List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId);
+
+        List<MonthlyReconReport> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate);
+
+        //Need to move
         List<MailPieceSearch> GetMailPieceByBatchId(int batchId, int clientId);
         List<DocumentType> GetDocTypeList(int clientId);
         List<string> GetMailPieceIdFromLoanNo(string loanNo, int clientId);
@@ -25,96 +27,86 @@ namespace AM.Services
     }
     public class ReportService : ServiceBase, IReportService
     {
-        public List<SummaryControlReport> GetSummaryControlReport(int clientId, DateTime startDate, DateTime endDate, string loanNo, string docType)
+        public List<DailyDetailOperationsReport> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId)
         {
-            string query = ReportServiceQuery.GetSummaryControlReport;
+            string query = ReportServiceQuery.GetDailyDetailOperationsByDateOrBatch;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@clientId", clientId);
-            parameters.Add("@startDate", startDate);
-            parameters.Add("@endDate", endDate);
-            if (!loanNo.IsNullOrWhiteSpace())
+            if (date.HasValue)
             {
-                query = string.Format("{0} AND (BusinessFriendlyIdName='LoanNumber' AND LoanNumber=@loanNo)", query);
-                parameters.Add("@loanNo", loanNo);
+                query = string.Format("{0} AND cast(ReceivedOn as date) = cast(@date as date)", query);
+                parameters.Add("@date", date);
             }
-            if (!docType.IsNullOrWhiteSpace())
+            if (batchId.HasValue)
             {
-                query = string.Format("{0} AND (MailPieceDocumentPackageName=@docType OR BatchDocumentPackageName=@docType)", query);
-                parameters.Add("@docType", docType);
+                query = string.Format("{0} AND BatchId=@batchId", query);
+                parameters.Add("@batchId", batchId);
             }
-            var data = db.Query<SummaryControlReport>(query, parameters).ToList();
+            var data = db.Query<DailyDetailOperationsReport>(query, parameters).ToList();
             return data;
         }
-        public List<DeliveryReport> GetDeliveryByParam(int clientId, DateTime startDate, DateTime endDate, string loanNo, string docType)
+        public List<ErrorReport> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId)
         {
-            string query = ReportServiceQuery.GetDeliveryByParam;
+            string query = ReportServiceQuery.GetErrorReportByDateOrBatch;
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@clientId", clientId);
-            parameters.Add("@startDate", startDate);
-            parameters.Add("@endDate", endDate);
-            if (!loanNo.IsNullOrWhiteSpace())
+            parameters.Add("@shippingstatus", ShippingStatus.Error.ToString());
+            if (date.HasValue)
             {
-                query = string.Format("{0} AND (BusinessFriendlyIdName='LoanNumber' AND LoanNumber=@loanNo)", query);
-                parameters.Add("@loanNo", loanNo);
+                query = string.Format("{0} AND cast(ReceivedOn as date) = cast(@date as date)", query);
+                parameters.Add("@date", date);
             }
-            if (!docType.IsNullOrWhiteSpace())
-            {
-                query = string.Format("{0} AND (MailPieceDocumentPackageName=@docType OR BatchDocumentPackageName=@docType)", query);
-                parameters.Add("@docType", docType);
-            }
-            var data = db.Query<DeliveryReport>(query, parameters).ToList();
-            return data;
-        }
 
-
-        public List<ErrorReport> GetErrorReportByParam(int clientId, DateTime startDate, DateTime endDate, string loanNo, string docType)
-        {
-            string query = ReportServiceQuery.GetErrorReportByParam;
-
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@clientId", clientId);
-            parameters.Add("@startDate", startDate);
-            parameters.Add("@endDate", endDate);
-            if (!loanNo.IsNullOrWhiteSpace())
+            if (batchId.HasValue)
             {
-                query = string.Format("{0} AND (BusinessFriendlyIdName='LoanNumber' AND LoanNumber=@loanNo)", query);
-                parameters.Add("@loanNo", loanNo);
-            }
-            if (!docType.IsNullOrWhiteSpace())
-            {
-                query = string.Format("{0} AND (MailPieceDocumentPackageName=@docType OR BatchDocumentPackageName=@docType)", query);
-                parameters.Add("@docType", docType);
+                query = string.Format("{0} AND BatchId=@batchId", query);
+                parameters.Add("@batchId", batchId);
             }
             var data = db.Query<ErrorReport>(query, parameters).ToList();
             return data;
         }
 
-        public List<SLAMissErrorReport> GetSLAMissErrorReport(int clientId)
+        public List<SummaryControlReport> GetSummaryControlReport(int clientId, DateTime date)
         {
-            string query = ReportServiceQuery.GetSLAMissErrorReport;
-            var data = db.Query<SLAMissErrorReport>(query, new { clientId = clientId }).ToList();
-            return data;
-        }
-        public List<MonthlyReconReport> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string loanNo, string docType)
-        {
-            string query = ReportServiceQuery.GetMonthlyReconReport;
-
+            string query = ReportServiceQuery.GetSummaryControlReport;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@clientId", clientId);
-            parameters.Add("@startDate", startDate);
-            parameters.Add("@endDate", endDate);
-            if (!loanNo.IsNullOrWhiteSpace())
+            query = string.Format("{0} AND (cast(ReceivedOn as date) = cast(@date as date) AND CONVERT(VARCHAR(5),ReceivedOn,108)  < @time)", query);
+            parameters.Add("@date", date);
+            parameters.Add("@time", "19:45");
+            var data = db.Query<SummaryControlReport>(query, parameters).ToList();
+            return data;
+        }
+
+        public List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId)
+        {
+            string query = ReportServiceQuery.GetSLAMissErrorReportByDateOrBatch;
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
+            parameters.Add("@clientId", clientId);
+            parameters.Add("@shippingstatus", ShippingStatus.Error.ToString());//Need to verify
+            if (date.HasValue)
             {
-                query = string.Format("{0} AND (BusinessFriendlyIdName='LoanNumber' AND LoanNumber=@loanNo)", query);
-                parameters.Add("@loanNo", loanNo);
+                query = string.Format("{0} AND (cast(ReceivedOn as date) = cast(@date as date) AND CONVERT(VARCHAR(5),ReceivedOn,108)  < @time)", query);
+                parameters.Add("@date", date);
+                parameters.Add("@time", "19:45");
             }
-            if (!docType.IsNullOrWhiteSpace())
+            //Also verify need to define time in below clause. also check time?
+            if (batchId.HasValue)
             {
-                query = string.Format("{0} AND (MailPieceDocumentPackageName=@docType OR BatchDocumentPackageName=@docType)", query);
-                parameters.Add("@docType", docType);
+                query = string.Format("{0} AND BatchId=@batchId", query);
+                parameters.Add("@batchId", batchId);
             }
-            var data = db.Query<MonthlyReconReport>(query, parameters).ToList();
+            var data = db.Query<ErrorReport>(query, parameters).ToList();
+            return data;
+        }
+
+        public List<MonthlyReconReport> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate)
+        {
+            string query = ReportServiceQuery.GetMonthlyReconReport;
+            //date must be in 26th to 25th
+
+            var data = db.Query<MonthlyReconReport>(query, new { clientId = clientId, startDate = startDate, endDate = endDate, shippingStatus = new DbString { Value = ShippingStatus.Shipped.ToString() } }).ToList();
             return data;
         }
 
@@ -159,15 +151,22 @@ namespace AM.Services
     }
     public static class ReportServiceQuery
     {
-        public static string GetSummaryControlReport = "select * from [dbo].[view_SummaryControlReport] WHERE ClientId=@clientId AND (cast(ReceivedOn as date) >= @startDate and cast(ReceivedOn as date)<=@endDate)";
-        public static string GetDeliveryByParam = "select * from [dbo].[view_DeliveryReport] WHERE ClientId=@clientId AND (cast(ReceivedOn as date) >= @startDate and cast(ReceivedOn as date)<=@endDate)";
-        public static string GetErrorReportByParam = "select * from [dbo].[view_ErrorReport] WHERE ClientId=@clientId AND (cast(ReceivedOn as date) >= @startDate and cast(ReceivedOn as date)<=@endDate)";
-        public static string GetMonthlyReconReport = "select * from [dbo].[view_MonthlyReconReport] WHERE ClientId=@clientId AND (cast(ReceivedOn as date) >= @startDate and cast(ReceivedOn as date)<=@endDate)";
+        public static string GetDailyDetailOperationsByDateOrBatch = "select * from [dbo].[view_DailyDetailOperationsReport] WHERE ClientId=@clientId";
+
+        public static string GetErrorReportByDateOrBatch = "select * from [dbo].[view_ErrorReport] WHERE ClientId=@clientId AND ShippingStatus=@shippingstatus";
+
+        public static string GetSummaryControlReport = "select * from [dbo].[view_SummaryControlReport] WHERE ClientId=@clientId";
+
+        public static string GetSLAMissErrorReportByDateOrBatch = "select * from [dbo].[view_ErrorReport] WHERE ClientId=@clientId AND ShippingStatus=@shippingstatus AND SLADays < 0";
+
+        public static string GetMonthlyReconReport = "select * from [dbo].[view_MonthlyReconReport] WHERE ClientId=@clientId AND (cast(ReceivedOn as date) >= cast(@startDate as date) and cast(ReceivedOn as date)<= cast(@endDate as date)) AND ShippingStatus=@shippingStatus";
+
         public static string GetMailPieceByBatchId = "select m.* from [AM].[MailPieces] m,[AM].[MailBatches] b WHERE m.BatchId=b.Id AND (BatchId=@batchId AND b.ClientId=@clientId)";
+
         public static string GetDocTypeList = "select Id,DocTypeCode FROM [AM].[DocTypes] WHERE ClientId=@clientId";
 
-        public static string GetMailPieceIdFromLoanNo = "select m.[UniqueId] as [MailPieceId] from [AM].[MailBatches] b,[AM].[MailPieces] m where b.Id = m.BatchId and ((cast(ReceivedOn as date)=cast(@todayDate as date) or (m.ShippingStatus=@shippingStatus and b.PipelineStatus=@pipelineStatus))) and b.BusinessFriendlyIdValue=@loanNo AND b.ClientId=@clientId";
+        public static string GetMailPieceIdFromLoanNo = "select m.[UniqueId] as [MailPieceId] from [AM].[MailBatches] b,[AM].[MailPieces] m where b.Id = m.BatchId and ((cast(ReceivedOn as date)=cast(@todayDate as date) or (m.ShippingStatus=@shippingStatus and b.PipelineStatus=@pipelineStatus))) and m.BusinessFriendlyIdValue=@loanNo AND b.ClientId=@clientId";
 
-        public static string GetSLAMissErrorReport = "";
+
     }
 }
