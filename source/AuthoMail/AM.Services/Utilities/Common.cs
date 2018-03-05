@@ -13,7 +13,7 @@ namespace AM.Services
 
         }
 
-        public static readonly DateTime Now = DateTime.Now;
+        public static readonly DateTime Now = DateTime.UtcNow;
 
         public static readonly DateTime Today = DateTime.Today;
     }

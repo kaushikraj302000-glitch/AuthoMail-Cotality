@@ -33,6 +33,10 @@ namespace AM.Console
         public static string Email_Cc { get; private set; }
         public static bool SendEmails { get; private set; }
 
+        public static readonly DateTime Now = DateTime.UtcNow;
+
+        public static readonly DateTime Today = DateTime.UtcNow.Date;
+
         public static XmlSchemaSet schemas;
         public static XmlSchemaSet schemasAMC;
 
@@ -41,6 +45,7 @@ namespace AM.Console
             schemas = new XmlSchemaSet();
             schemasAMC = new XmlSchemaSet();
             AuthoMailRootFolder = Path.GetFullPath(ConfigurationManager.AppSettings["AuthoMailRootFolder"]);
+            AuthoMailRootFolder.CreateDirectoryIfNotExist();
             SchemaPath = ConfigurationManager.AppSettings["SchemaPath"];
             schemas.Add("http://schemas.corelogic.com/ade/authomail/v1.18.0", Common.SchemaPath);
 
@@ -62,15 +67,6 @@ namespace AM.Console
             }
 
             Directory.CreateDirectory(path);
-        }
-
-        public static DateTime GetCurrentTime()
-        {
-            DateTime dtCurrentTime = DateTime.UtcNow;
-
-            // Any conversion of time if needed.
-
-            return dtCurrentTime;
         }
 
         public static DateTime EstToUtc(object dt)

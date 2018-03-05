@@ -22,7 +22,7 @@ namespace AM.Web
             Email_Cc = ConfigurationManager.AppSettings["Email_Cc"];
         }
 
-        public static readonly DateTime Now = DateTime.Now;
+        public static readonly DateTime Now = DateTime.UtcNow;
 
         public static readonly DateTime Today = DateTime.Today;
 

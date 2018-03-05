@@ -32,6 +32,7 @@ namespace AM.Services.Models
     }
     public class BatchListByChartData
     {
+        public string ClientBatchId { get; set; }
         public int BatchId { get; set; }
         public Guid BatchUniqueId { get; set; }
         public string BatchName { get; set; }

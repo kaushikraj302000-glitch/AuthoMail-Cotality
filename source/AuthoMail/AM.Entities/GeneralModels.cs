@@ -39,6 +39,7 @@ namespace AM.Entities
         public const string Missing_Zip_File = "Missing_Zip_File";
         public const string Invalid_Zip_File = "Invalid_Zip_File";
         public const string Invalid_XML = "Invalid_XML";
+        public const string Missing_XML = "Missing_XML";
         public const string Invalid_PDF = "Invalid_PDF";
         public const string Missing_PDF = "Missing_PDF";
         public const string Mailing_Address_Missing_Or_Invalid = "Mailing_Address_Missing_Or_Invalid";

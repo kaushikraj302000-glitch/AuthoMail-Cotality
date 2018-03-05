@@ -96,7 +96,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="CoverLetterTemplates\" />
-    <Folder Include="Download\" />
     <Folder Include="Output\" />
   </ItemGroup>
   <ItemGroup>
