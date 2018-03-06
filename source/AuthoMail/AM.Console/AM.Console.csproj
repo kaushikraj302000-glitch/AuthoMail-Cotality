@@ -52,6 +52,8 @@
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -64,6 +66,11 @@
     <Compile Include="DownloadJob.cs" />
     <Compile Include="MailBatchInfo.cs" />
     <Compile Include="Schema.cs" />
+    <Compile Include="Service References\USPSIMService\Reference.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </Compile>
     <Compile Include="Utilities\Common.cs" />
     <Compile Include="Utilities\Extensions.cs" />
     <Compile Include="Utilities\MailUtility.cs" />
@@ -78,11 +85,28 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="CoverLetterTemplates\USAA_Template.pdf" />
     <None Include="log4net.config" />
     <None Include="PackageInfoSchema.xsd">
       <SubType>Designer</SubType>
     </None>
     <None Include="packages.config" />
+    <None Include="Service References\USPSIMService\AM.Console.USPSIMService.IMBarcodeInfo.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\USPSIMService\AM.Console.USPSIMService.USPSTrackingInfo.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\USPSIMService\USPSIM.wsdl" />
+    <None Include="Service References\USPSIMService\USPSIM.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\USPSIMService\USPSIM1.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\USPSIMService\USPSIM2.xsd">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AM.Entities\AM.Entities.csproj">
@@ -95,13 +119,24 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="CoverLetterTemplates\" />
-    <Folder Include="Download\" />
     <Folder Include="Output\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="HTMLTemplates\DET.html" />
     <Content Include="HTMLTemplates\PLET.html" />
+    <None Include="Service References\USPSIMService\Reference.svcmap">
+      <Generator>WCF Proxy Generator</Generator>
+      <LastGenOutput>Reference.cs</LastGenOutput>
+    </None>
+    <None Include="Service References\USPSIMService\configuration.svcinfo" />
+    <None Include="Service References\USPSIMService\configuration91.svcinfo" />
+    <None Include="Service References\USPSIMService\USPSIM.disco" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadataStorage Include="Service References\USPSIMService\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -39,12 +39,41 @@
         </div>
         <div class="panel-body panel-gray">
             <div class="form-group col-md-8">
-                <label for="input2">Loan Number</label>
-                <div class="input-group">
-                    <i class="fa fa-search left-icon"></i>
-                    <input class="form-control" name="loanNumber" placeholder="Loan Number" required id="loanNumber">
-                </div>
-                <div class="text-red pull-left" style="display:none" id="loanNumberEmpty">This field is required.</div>
+                @*<label for="input2">Loan Number</label>
+                    <div class="input-group">
+                        <i class="fa fa-search left-icon"></i>
+                        <input class="form-control" name="loanNumber" placeholder="Loan Number" required id="loanNumber">
+                    </div>
+                    <div class="text-red pull-left" style="display:none" id="loanNumberEmpty">This field is required.</div>*@
+                @if (ViewBag.BusinessId.Count == 1)
+                {
+                    <label for="input2">@ViewBag.BusinessId[0]</label>
+                    <div class="input-group">
+                        <i class="fa fa-search left-icon"></i>
+                        <input class="form-control" name="loanNumber" placeholder="@ViewBag.BusinessId[0]" required id="BusinessFriendlyIdValue">
+                        <input type="hidden" value="@ViewBag.BusinessId[0]" name="BusinessFriendlyIdName" id="BusinessFriendlyIdName" />
+                    </div>
+                    <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
+                }
+                else
+                {
+                    <label for="input2">Select Business ID</label>
+                    <div class="input-group">
+                        <i class="fa fa-search left-icon"></i>
+                        <select id="BusinessFriendlyIdName" class="selectpicker">
+                            <option value="0">Select BusinessId</option>
+                            @foreach (var item in ViewBag.BusinessId)
+                            {
+                                <option value="@item.ToString()">@item.ToString()</option>
+                            }
+                        </select>
+                        <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdNameError">This field is required.</div>
+                        <input class="form-control" name="loanNumber" placeholder="" required id="BusinessFriendlyIdValue">
+                        <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
+                    </div>
+                }
+
+
             </div>
             <div class="form-group text-center col-md-4">
 
@@ -112,6 +141,23 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                @*<button type="button" class="btn btn-primary">View All</button>*@
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="WeeklybatchMailPieceModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <button type="button" class="close" data-dismiss="modal" onclick="showModal()" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <div class="modal-header">
+                <h1 id="myModalLabel">Batch MailPiece Details</h1>
+            </div>
+            <div class="modal-body">
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="showModal()" data-dismiss="modal">Close</button>
                 @*<button type="button" class="btn btn-primary">View All</button>*@
             </div>
         </div>
@@ -241,21 +287,26 @@
 
             });
         }
+        function showModal() {
+            $("#batchModal").modal("show");
+        }
         function GetMailPieceById(batchId) {
-            var el = $("#batchMailPieceModal");
+            var el = $("#WeeklybatchMailPieceModal").find(".modal-body");
             $.ajax({
                 type: "POST",
-                url: baseUrl + "Home/MailPieceByBatchId",
+                url: baseUrl + "Home/GetMailPieceByBatchId",
                 data: JSON.stringify({ batchId: batchId }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     el.html(response);
-                    $("#batchMailPieceModal").modal("show");
+                    $("#batchModal").modal("hide");
+                    $("#WeeklybatchMailPieceModal").modal("show");
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     var msg = 'Error on reloading the content. Please check your connection and try again.';
                     el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
-                    $("#batchMailPieceModal").modal("show");
+                    $("#batchModal").modal("hide");
+                    $("#WeeklybatchMailPieceModal").modal("show");
                 }
 
             });
@@ -338,52 +389,60 @@
         }
 
         $("#pullback").click(function (e) {
-            if ($("#loanNumber").val() != "") {
-
-                $.ajax({
-                    type: "POST",
-                    url: baseUrl + "Home/GetMailPieceIdByLoanNumber",
-                    data: JSON.stringify({ BusinessFriendlyIdName: "LoanNumber", BusinessFriendlyIdValue: $("#loanNumber").val(), startDate: new Date(moment().format("MM/DD/YYYY")), endDate: new Date(moment().format("MM/DD/YYYY")) }),
-                    contentType: "application/json; charset=utf-8",
-                    success: function (response) {
-                        // $("#charDatatable").html(response);
-                        if (response == "PullBack") {
-                            window.location = baseUrl + 'RequestPullBack/PullBack?loanNumber=' + loanNumber;
-
-                        } else if (response == "AdvancePullBack") {
-                            var el = $("#myModal").find('.modal-body');
-                            var htmlstr = "<div class='alert alert-red'><span>No record found!</span></h1></div>";
-                            htmlstr += '<br><blockquote class=""><p><i class="fa fa-search"></i> @Html.ActionLink("Advance Search", "PullBack", "RequestPullBack") </P></blockquote>';
-                            el.html(htmlstr);
-                            $("#myModal").modal("show");
-                            return;
-                        } else {
-                            var el = $("#confirmModal").find('.modal-body');
-                            el.html(response);
-                            $("#confirmModal").modal("show");
-                        }
-                        el.html(response);
-                        //$("#chartModal").on('shown.bs.modal', function (e) {
-                        //    console.log("call");
-                        //    $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
-                        //    //drawDatatable();
-                        //});
-                        //el.html($("#charDatatable").html());
-                        // $("#chartModal").modal("show");
-                        //drawDatatable();
-                    },
-                    error: function (xhr, ajaxOptions, thrownError) {
-                        var msg = 'Error on reloading the content. Please check your connection and try again.';
-                        el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
-                        $("#chartModal").modal("show");
-                    }
-
-                });
-                $("#loanNumberEmpty").hide();
-                $("#confirmModal").modal("show");
-            } else {
-                $("#loanNumberEmpty").show();
+            if ($("#BusinessFriendlyIdName").val() == "") {
+                $("#BusinessFriendlyIdNameError").show();
+                return;
             }
+           
+            if ($("#BusinessFriendlyIdValue").val() == "") {
+                $("#BusinessFriendlyIdValueError").show();
+                return;
+            }
+            
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "Home/GetMailPieceIdByLoanNumber",
+                data: JSON.stringify({ BusinessFriendlyIdName: $("#BusinessFriendlyIdName").val(), BusinessFriendlyIdValue: $("#BusinessFriendlyIdValue").val(), startDate: new Date(moment().format("MM/DD/YYYY")), endDate: new Date(moment().format("MM/DD/YYYY")) }),
+                contentType: "application/json; charset=utf-8",
+                success: function (response) {
+                    // $("#charDatatable").html(response);
+                    if (response == "PullBack") {
+                        window.location = baseUrl + 'RequestPullBack/PullBack?loanNumber=' + loanNumber;
+
+                    } else if (response == "AdvancePullBack") {
+                        var el = $("#myModal").find('.modal-body');
+                        var htmlstr = "<div class='alert alert-red'><span>No record found!</span></h1></div>";
+                        htmlstr += '<br><blockquote class=""><p><i class="fa fa-search"></i> @Html.ActionLink("Advance Search", "PullBack", "RequestPullBack") </P></blockquote>';
+                        el.html(htmlstr);
+                        $("#myModal").modal("show");
+                        return;
+                    } else {
+                        var el = $("#confirmModal").find('.modal-body');
+                        el.html(response);
+                        $("#confirmModal").modal("show");
+                    }
+                    el.html(response);
+                    //$("#chartModal").on('shown.bs.modal', function (e) {
+                    //    console.log("call");
+                    //    $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+                    //    //drawDatatable();
+                    //});
+                    //el.html($("#charDatatable").html());
+                    // $("#chartModal").modal("show");
+                    //drawDatatable();
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    var el = $("#myModal").find('.modal-body');
+                    var msg = 'Error on reloading the content. Please check your connection and try again.';
+                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    $("#myModal").modal("show");
+                }
+
+            });
+            $("#BusinessFriendlyIdNameError").hide();
+            $("#BusinessFriendlyIdValueError").hide();
+            //$("#confirmModal").modal("show");
+
         });
 
         $("#yesPullback").click(function (e) {

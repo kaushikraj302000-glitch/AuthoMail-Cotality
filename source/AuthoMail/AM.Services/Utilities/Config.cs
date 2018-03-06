@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.Hosting;
 
 namespace AM.Services
 {
@@ -18,7 +21,12 @@ namespace AM.Services
         public static string Msg_API_PB_PBReqFormErr { get; private set; }
         public static string Msg_API_PB_PullBackAlreadyRequested { get; private set; }
         public static string Msg_API_PB_PulledBack { get; private set; }
-        public static string Msg_API_PB_Shipped { get; private set; } 
+        public static string Msg_API_PB_Shipped { get; private set; }
+        public static SmtpClient API_Email_SMTPClient { get; set; }
+        public static string API_Email_To { get; private set; }
+        public static string API_Email_Cc { get; private set; }
+        public static string API_PB_ClientTimeZone { get; private set; }
+        public static string API_PB_PullBackFormTemplatePath { get; private set; }
         #endregion
 
         //public static Dictionary<string,string> Msg {get; private set;}
@@ -34,7 +42,12 @@ namespace AM.Services
             Msg_API_PB_PBReqFormErr = "Error while generating Pullback request form.";
             Msg_API_PB_PullBackAlreadyRequested = "Pullback requested already for this mailpiece";
             Msg_API_PB_PulledBack = "Mailpiece was already pulledback.";
-            Msg_API_PB_Shipped = "Mailpiece already shipped so pullback cannot be requested."; 
+            Msg_API_PB_Shipped = "Mailpiece already shipped so pullback cannot be requested.";
+            API_Email_SMTPClient = new SmtpClient();
+            API_Email_To = "avala@corelogic.com";
+            API_Email_Cc = "avala@corelogic.com";
+            API_PB_ClientTimeZone = "Eastern Standard Time";
+            API_PB_PullBackFormTemplatePath = HostingEnvironment.MapPath("~\\Template\\PullBackForm.pdf");
             #endregion
 
             //Msg = new Dictionary<string, string>();

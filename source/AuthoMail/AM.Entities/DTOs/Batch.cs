@@ -58,10 +58,19 @@ namespace AM.Entities
         public string PrintLocation { get; set; }
     }
 
-    public class BatchCustomInfo
+    public class MailBatchCustomInfo
     {
-        public Guid BatchId { get; set; }
+        public int MailBatchId { get; set; }
         public string Key { get; set; }
+        public string DataType { get; set; }
         public string Value { get; set; }
+    }
+
+    public class BatchData
+    {
+        public MailBatchDTO MailBatch{ get; set; }
+        public List<MailBatchCustomInfo> MailBatchCustomInfo { get; set; }
+        public List<MailPieceDTO> MailPieces { get; set; }
+        public List<MailPieceCustomInfo> MailPieceCustomInfo { get; set; }
     }
 }

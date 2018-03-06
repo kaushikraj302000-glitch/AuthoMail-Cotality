@@ -21,7 +21,8 @@
             <div class="navbar-header">
                 <div class="navbar-logo"></div>
                 <div class="application-name">
-                    <h1>AuthoMail@*@Html.ActionLink("AuthoMail", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })*@</h1>
+                    @*@Html.ActionLink("AuthoMail", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })*@
+                    <h1 style="line-height:50px;">AuthoMail</h1>
                 </div>
 
             </div>
@@ -34,7 +35,9 @@
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Reports <span class="caret"></span></a>
                         <ul class="dropdown-menu">
-                            <li>@Html.ActionLink("Summary Control Report", "SummaryControlReport","Report")</li>
+
+                            <li>@Html.ActionLink("Daily Detail Operations Report", "DailyDetailOperationsReport", "Report")</li>
+                            <li>@Html.ActionLink("Summary Control Report", "SummaryControlReport", "Report")</li>
                             <li>@Html.ActionLink("Month Recon Report", "MonthReconReport", "Report")</li>
                             <li>@Html.ActionLink("Delivery Report", "DeliveryReport", "Report")</li>
                             <li>@Html.ActionLink("Errors Report", "ErrorsReport", "Report")</li>
@@ -98,11 +101,11 @@
     @RenderSection("scripts", required: false)
     <script>
         var baseUrl = '@Url.Content("~/")';
-    $(document).ready(function () {
-        init()
-        
-        console.log(baseUrl);
-    });
+        $(document).ready(function () {
+            init()
+
+            console.log(baseUrl);
+        });
     </script>
 </body>
 </html>

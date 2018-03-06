@@ -15,6 +15,9 @@ namespace AM.Entities
         public Guid Id { get; set; }
 
         [XmlAttribute]
+        public string ClientCode { get; set; }
+
+        [XmlAttribute]
         public string ClientBatchId { get; set; }
 
         [XmlAttribute]
@@ -40,13 +43,6 @@ namespace AM.Entities
     [XmlType(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0")]
     public class MailPiece
     {
-        public MailPiece()
-        {
-            DocumentOrPackage = new DocumentOrPackage();
-            RecipientInfo = new RecipientInfo();
-            ReturnInfo = new ReturnInfo();
-        }
-
         [XmlAttribute]
         public Guid Id { get; set; }
 
@@ -65,8 +61,18 @@ namespace AM.Entities
         [XmlElement(ElementName = "RecipientInfo")]
         public RecipientInfo RecipientInfo { get; set; }
 
+        public bool ShouldSerializeRecipientInfo()
+        {
+            return RecipientInfo != null;
+        }
+
         [XmlElement(ElementName = "ReturnInfo")]
         public ReturnInfo ReturnInfo { get; set; }
+
+        public bool ShouldSerializeReturnInfo()
+        {
+            return ReturnInfo != null;
+        }
 
         [XmlArrayItem]
         public List<Metadata> CustomInfo { get; set; }
@@ -81,23 +87,28 @@ namespace AM.Entities
 
         [XmlAttribute]
         public string Pattern { get; set; }
+
+        [XmlAttribute]
+        public string Base64String { get; set; }
     }
 
     [Serializable]
     [XmlType(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0")]
     public class RecipientInfo
     {
-        public RecipientInfo()
-        {
-            Recipient = new Recipient();
-            Corecipient = new Recipient();
-            Address = new Address();
-        }
         [XmlElement(ElementName = "Recipient")]
         public Recipient Recipient { get; set; }
+        public bool ShouldSerializeRecipient()
+        {
+            return Recipient != null;
+        }
 
         [XmlElement(ElementName = "Corecipient")]
         public Recipient Corecipient { get; set; }
+        public bool ShouldSerializeCorecipient()
+        {
+            return Corecipient != null;
+        }
 
         [XmlElement(ElementName = "Address")]
         public Address Address { get; set; }
@@ -166,11 +177,6 @@ namespace AM.Entities
     [XmlType(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0")]
     public class ReturnInfo
     {
-        public ReturnInfo()
-        {
-            Recipient = new Recipient();
-            Address = new Address();
-        }
         [XmlElement(ElementName = "Recipient")]
         public Recipient Recipient { get; set; }
 

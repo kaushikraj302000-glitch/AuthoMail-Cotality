@@ -33,6 +33,10 @@ namespace AM.Console
         public static string Email_Cc { get; private set; }
         public static bool SendEmails { get; private set; }
 
+        public static readonly DateTime Now = DateTime.UtcNow;
+
+        public static readonly DateTime Today = DateTime.UtcNow.Date;
+
         public static XmlSchemaSet schemas;
         public static XmlSchemaSet schemasAMC;
 
@@ -41,6 +45,7 @@ namespace AM.Console
             schemas = new XmlSchemaSet();
             schemasAMC = new XmlSchemaSet();
             AuthoMailRootFolder = Path.GetFullPath(ConfigurationManager.AppSettings["AuthoMailRootFolder"]);
+            AuthoMailRootFolder.CreateDirectoryIfNotExist();
             SchemaPath = ConfigurationManager.AppSettings["SchemaPath"];
             schemas.Add("http://schemas.corelogic.com/ade/authomail/v1.18.0", Common.SchemaPath);
 
@@ -64,15 +69,6 @@ namespace AM.Console
             Directory.CreateDirectory(path);
         }
 
-        public static DateTime GetCurrentTime()
-        {
-            DateTime dtCurrentTime = DateTime.UtcNow;
-
-            // Any conversion of time if needed.
-
-            return dtCurrentTime;
-        }
-
         public static DateTime EstToUtc(object dt)
         {
             //This is defined because we don't need to verify by DateTime.Parse. it is already in proper date.
@@ -92,7 +88,7 @@ namespace AM.Console
             dt = DateTime.SpecifyKind(dtVal, DateTimeKind.Unspecified);
             return TimeZoneInfo.ConvertTime(dtVal, TimeZoneInfo.FindSystemTimeZoneById("UTC"), TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"));
         }
-        public static DateTime UtcToClientTimeZone(DateTime dt,string clientTimeZone)
+        public static DateTime UtcToClientTimeZone(DateTime dt, string clientTimeZone)
         {
             dt = DateTime.SpecifyKind(dt, DateTimeKind.Unspecified);
             // Treat date as IST irrecpective of client and server timezone and covert it to UTC
@@ -145,7 +141,87 @@ namespace AM.Console
 
             return returnCode;
         }
-        
+        public static ValidationResultAMC ValidateAMMailPiecesForUSAA(MailPiece piece)
+        {
+            StringBuilder sbErrorMessage = new StringBuilder();
+            string outcomeCode = OutComeCodes.No_Error;
+
+            if (piece.RecipientInfo == null || piece.RecipientInfo.Recipient == null)
+            {
+                outcomeCode = OutComeCodes.Recipient_Name_Missing_Or_Invalid;
+                sbErrorMessage.AppendLine("Recipient details are missing in package.");
+            }
+            else if (string.IsNullOrEmpty(piece.RecipientInfo.Recipient.FirstName) || string.IsNullOrEmpty(piece.RecipientInfo.Recipient.LastName))
+            {
+                outcomeCode = OutComeCodes.Recipient_Name_Missing_Or_Invalid;
+                sbErrorMessage.AppendLine("First name or last name is missing from Recipient details.");
+            }
+            else if (piece.RecipientInfo.Address == null)
+            {
+                outcomeCode = OutComeCodes.Mailing_Address_Missing_Or_Invalid;
+                sbErrorMessage.AppendLine("Recipient address details are missing in package.");
+            }
+            else if (string.IsNullOrEmpty(piece.RecipientInfo.Address.Street) || string.IsNullOrEmpty(piece.RecipientInfo.Address.City) || string.IsNullOrEmpty(piece.RecipientInfo.Address.State) || string.IsNullOrEmpty(piece.RecipientInfo.Address.Zip))
+            {
+                outcomeCode = OutComeCodes.Mailing_Address_Missing_Or_Invalid;
+                sbErrorMessage.AppendLine("Street or City or State or Zip is missing from recipient address in package.");
+            }
+            else if (string.IsNullOrEmpty(piece.DocumentOrPackageType))
+            {
+                outcomeCode = OutComeCodes.Invalid_XML;
+                sbErrorMessage.AppendLine("Package name is not defined in package.");
+            }
+            else if (string.IsNullOrEmpty(piece.DocumentOrPackage.Name))
+            {
+                outcomeCode = OutComeCodes.Invalid_XML;
+                sbErrorMessage.AppendLine("File attribute is not defined in package.");
+            }
+            else if (piece.ReturnInfo == null || piece.ReturnInfo.Recipient == null)
+            {
+                outcomeCode = OutComeCodes.Invalid_XML;
+                sbErrorMessage.AppendLine("Return info is not defined in package.");
+            }
+            else if (piece.ReturnInfo == null || piece.ReturnInfo.Recipient == null)
+            {
+                outcomeCode = OutComeCodes.Invalid_XML;
+                sbErrorMessage.AppendLine("Return info is not defined in package.");
+            }
+            else if (piece.ReturnInfo.Address == null || piece.ReturnInfo.Recipient == null)
+            {
+                outcomeCode = OutComeCodes.Invalid_XML;
+                sbErrorMessage.AppendLine("Return address is not defined in package.");
+            }
+            else if (string.IsNullOrEmpty(piece.ReturnInfo.Address.Street) || string.IsNullOrEmpty(piece.ReturnInfo.Address.City) || string.IsNullOrEmpty(piece.ReturnInfo.Address.State) || string.IsNullOrEmpty(piece.ReturnInfo.Address.Zip))
+            {
+                outcomeCode = OutComeCodes.Invalid_XML;
+                sbErrorMessage.AppendLine("Street or City or State or Zip is missing from return address in package.");
+            }
+            else if (piece.CustomInfo.Where(c => c.Key == "ShippingMethod").SingleOrDefault() == null)
+            {
+                outcomeCode = OutComeCodes.Invalid_XML;
+                sbErrorMessage.AppendLine("Shipping method is not defined in package.");
+            }
+            else if (piece.CustomInfo.Where(c => c.Key == "ShippingCredCode").SingleOrDefault() == null)
+            {
+                outcomeCode = OutComeCodes.Invalid_XML;
+                sbErrorMessage.AppendLine("Shipping credential code is not defined in package.");
+            }
+            else if (piece.CustomInfo.Where(c => c.Key == "RequestId").SingleOrDefault() == null)
+            {
+                outcomeCode = OutComeCodes.Invalid_XML;
+                sbErrorMessage.AppendLine("RequestId is not defined in package.");
+            }
+            else if (piece.CustomInfo.Where(c => c.Key == "CustomerIdentifier").SingleOrDefault() == null)
+            {
+                outcomeCode = OutComeCodes.Invalid_XML;
+                sbErrorMessage.AppendLine("CustomerIdentifier is not defined in package.");
+            }
+
+            ValidationResultAMC returnCode = new ValidationResultAMC() { Code = outcomeCode, ErrorMessage = sbErrorMessage.ToString() };
+
+            return returnCode;
+        }
+
     }
 
     public class ValidationResultAMC

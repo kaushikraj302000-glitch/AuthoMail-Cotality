@@ -14,65 +14,22 @@ namespace AM.Services
         int InsertBatchDetails(MailBatchDTO mailBatch);
         int UpdateBatchDetails(MailBatchDTO mailBatch);
         List<MailBatchDTO> GetBatchesByStatus(string batchPipelineStatus);
+        BatchData GetMailBatchDetailsByBatchId(int mailBatchId);
     }
     public class BatchService : ServiceBase, IBatchService //It implements Interfaces 
     {
         public int InsertBatchDetails(MailBatchDTO mailBatch)
         {
             //Sql Query
-            string query = "INSERT INTO [AM].[Batch](Id, ClientId, DocumentOrPackageType, BatchName, PipelineStatus, ValidationStatus, ValidationErrors, BatchStatus, ReceivedOn, DownloadedOn, AcknowledgedOn, ValidatedOn, PreppedOn, SubmittedToShippingOn, ShippingResponseReceivedOn, ReportPreppedOn, ReportedBackOn, BusinessFriendlyIdName, BusinessFriendlyIdValue, IsReturnInfoSpecified, RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RetRcptSuffix, RetRcptPhone, RetRcptOrganization, RetRcptAddrOptionalLine1AboveStreet, RetRcptAddrOptionalLine2AboveStreet, RetRcptAddressStreet, RetRcptAddressAptOrSuiteOrOther, RetRcptAddrOptionalLine1BelowStreet, RetRcptAddrOptionalLine2BelowStreet, RetRcptAddressCity,RetRcptAddressState, RetRcptAddressZIP, BatchFilePath, Priority,ChannelCode) Output Inserted.BatchClustId VALUES (@Id, @ClientId, @DocumentOrPackageType, @BatchName, @PipelineStatus, @ValidationStatus, @ValidationErrors, @BatchStatus, @ReceivedOn, @DownloadedOn, @AcknowledgedOn, @ValidatedOn, @PreppedOn, @SubmittedToShippingOn, @ShippingResponseReceivedOn, @ReportPreppedOn, @ReportedBackOn, @BusinessFriendlyIdName, @BusinessFriendlyIdValue, @IsReturnInfoSpecified, @RetRcptPrefix, @RetRcptFirstName, @RetRcptMiddleName, @RetRcptLastName, @RetRcptSuffix, @RetRcptPhone, @RetRcptOrganization, @RetRcptAddrOptionalLine1AboveStreet, @RetRcptAddrOptionalLine2AboveStreet, @RetRcptAddressStreet, @RetRcptAddressAptOrSuiteOrOther, @RetRcptAddrOptionalLine1BelowStreet, @RetRcptAddrOptionalLine2BelowStreet, @RetRcptAddressCity, @RetRcptAddressState, @RetRcptAddressZIP, @BatchFilePath, @Priority,@ChannelCode)";
+            string query = "INSERT INTO [AM].[MailBatches](UniqueId, ClientId, SFTChannelId, ClientBatchId, BatchName, DocumentOrPackageType, ReceivedOn, DownloadedOn, ValidatedOn, AcknowledgedOn, PreppedOn, SubmittedToShippingOn, ShippingResponseReceivedOn,  ReportPreppedOn, ReportedBackOn, Priority, BatchStatus, ValidationStatus, ValidationErrors, PipelineStatus, IsReturnInfoSpecified, RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RetRcptSuffix, RetRcptPhone, RetRcptOrganization, RetRcptAddrOptionalLine1AboveStreet, RetRcptAddrOptionalLine2AboveStreet, RetRcptAddressStreet, RetRcptAddressAptOrSuiteOrOther, RetRcptAddrOptionalLine1BelowStreet, RetRcptAddrOptionalLine2BelowStreet, RetRcptAddressCity, RetRcptAddressState, RetRcptAddressZIP, PrintLocation) Output Inserted.Id VALUES (@UniqueId, @ClientId, @SFTChannelId, @ClientBatchId, @BatchName, @DocumentOrPackageType, @ReceivedOn, @DownloadedOn, @ValidatedOn, @AcknowledgedOn, @PreppedOn, @SubmittedToShippingOn, @ShippingResponseReceivedOn, @ReportPreppedOn, @ReportedBackOn, @Priority, @BatchStatus, @ValidationStatus, @ValidationErrors, @PipelineStatus, @IsReturnInfoSpecified, @RetRcptPrefix, @RetRcptFirstName, @RetRcptMiddleName, @RetRcptLastName, @RetRcptSuffix, @RetRcptPhone, @RetRcptOrganization, @RetRcptAddrOptionalLine1AboveStreet, @RetRcptAddrOptionalLine2AboveStreet, @RetRcptAddressStreet, @RetRcptAddressAptOrSuiteOrOther, @RetRcptAddrOptionalLine1BelowStreet, @RetRcptAddrOptionalLine2BelowStreet, @RetRcptAddressCity, @RetRcptAddressState, @RetRcptAddressZIP, @PrintLocation)";
 
-
-            //Assign value to parameters It may one or more. Note:
-            //List of parameters declaration
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@Id", mailBatch.Id);
-            parameters.Add("@ClientId", mailBatch.ClientId);
-            parameters.Add("@DocumentOrPackageType", mailBatch.DocumentOrPackageType);
-            parameters.Add("@BatchName", mailBatch.BatchName);
-            parameters.Add("@PipelineStatus", mailBatch.PipelineStatus);
-            parameters.Add("@ValidationStatus", mailBatch.ValidationStatus);
-            parameters.Add("@ValidationErrors", mailBatch.ValidationErrors);
-            parameters.Add("@BatchStatus", mailBatch.BatchStatus);
-            parameters.Add("@ReceivedOn", mailBatch.ReceivedOn);
-            parameters.Add("@DownloadedOn", mailBatch.DownloadedOn);
-            parameters.Add("@AcknowledgedOn", mailBatch.AcknowledgedOn);
-            parameters.Add("@ValidatedOn", mailBatch.ValidatedOn);
-            parameters.Add("@PreppedOn", mailBatch.PreppedOn);
-            parameters.Add("@SubmittedToShippingOn", mailBatch.SubmittedToShippingOn);
-            parameters.Add("@ShippingResponseReceivedOn", mailBatch.ShippingResponseReceivedOn);
-            parameters.Add("@ReportPreppedOn", mailBatch.ReportPreppedOn);
-            parameters.Add("@ReportedBackOn", mailBatch.ReportedBackOn);
-            parameters.Add("@IsReturnInfoSpecified", mailBatch.IsReturnInfoSpecified);
-            parameters.Add("@RetRcptPrefix", mailBatch.RetRcptPrefix);
-            parameters.Add("@RetRcptFirstName", mailBatch.RetRcptFirstName);
-            parameters.Add("@RetRcptMiddleName", mailBatch.RetRcptMiddleName);
-            parameters.Add("@RetRcptLastName", mailBatch.RetRcptLastName);
-            parameters.Add("@RetRcptSuffix", mailBatch.RetRcptSuffix);
-            parameters.Add("@RetRcptPhone", mailBatch.RetRcptPhone);
-            parameters.Add("@RetRcptOrganization", mailBatch.RetRcptOrganization);
-            parameters.Add("@RetRcptAddrOptionalLine1AboveStreet", mailBatch.RetRcptAddrOptionalLine1AboveStreet);
-            parameters.Add("@RetRcptAddrOptionalLine2AboveStreet", mailBatch.RetRcptAddrOptionalLine2AboveStreet);
-            parameters.Add("@RetRcptAddressStreet", mailBatch.RetRcptAddressStreet);
-            parameters.Add("@RetRcptAddressAptOrSuiteOrOther", mailBatch.RetRcptAddressAptOrSuiteOrOther);
-            parameters.Add("@RetRcptAddrOptionalLine1BelowStreet", mailBatch.RetRcptAddrOptionalLine1BelowStreet);
-            parameters.Add("@RetRcptAddrOptionalLine2BelowStreet", mailBatch.RetRcptAddrOptionalLine2BelowStreet);
-            parameters.Add("@RetRcptAddressCity", mailBatch.RetRcptAddressCity);
-            parameters.Add("@RetRcptAddressState", mailBatch.RetRcptAddressState);
-            parameters.Add("@RetRcptAddressZIP", mailBatch.RetRcptAddressZIP);
-            parameters.Add("@Priority", mailBatch.Priority);
-
-            /*
-             * Execution of query with parateters.
-             * Without Dapper you can't create following code. So just Add "using Dapper" namespace at begin.
-            */
-            var data = db.ExecuteScalar(query, parameters);
+            var data = db.ExecuteScalar(query, mailBatch);
             return Convert.ToInt32(data);
         }
 
         public int UpdateBatchDetails(MailBatchDTO mailBatch)
         {
-            string query = "UPDATE [AuthoMail].[AM].[Batch] SET [Id] = @Id,[ClientId] = @ClientId,[DocumentOrPackageType] = @DocumentOrPackageType,[BatchName] = @BatchName,[PipelineStatus] = @PipelineStatus ,[ValidationStatus] = @ValidationStatus ,[ValidationErrors] = @ValidationErrors,[BatchStatus] = @BatchStatus ,[ReceivedOn] = @ReceivedOn,[DownloadedOn] = @DownloadedOn,[AcknowledgedOn] = @AcknowledgedOn,[ValidatedOn] = @ValidatedOn,[PreppedOn] = @PreppedOn,[SubmittedToShippingOn] = @SubmittedToShippingOn,[ShippingResponseReceivedOn] =<ShippingResponseReceivedOn,[ReportPreppedOn] = @ReportPreppedOn,[ReportedBackOn] = @ReportedBackOn,[BusinessFriendlyIdName] = @BusinessFriendlyIdName ,[BusinessFriendlyIdValue] = @BusinessFriendlyIdValue ,[IsReturnInfoSpecified] = IsReturnInfoSpecified,[RetRcptPrefix] = @RetRcptPrefix ,[RetRcptFirstName] =<RetRcptFirstName ,[RetRcptMiddleName] = @RetRcptMiddleName ,[RetRcptLastName] = @RetRcptLastName ,[RetRcptSuffix] = @RetRcptSuffix ,[RetRcptPhone] = @RetRcptPhone ,[RetRcptOrganization] = @RetRcptOrganization ,[RetRcptAddrOptionalLine1AboveStreet] = @RetRcptAddrOptionalLine1AboveStreet ,[RetRcptAddrOptionalLine2AboveStreet] = @RetRcptAddrOptionalLine2AboveStreet ,[RetRcptAddressStreet] = @RetRcptAddressStreet ,[RetRcptAddressAptOrSuiteOrOther] = @RetRcptAddressAptOrSuiteOrOther ,[RetRcptAddrOptionalLine1BelowStreet] = RetRcptAddrOptionalLine1BelowStreet ,[RetRcptAddrOptionalLine2BelowStreet] = RetRcptAddrOptionalLine2BelowStreet ,[RetRcptAddressCity] = @RetRcptAddressCity ,[RetRcptAddressState] = @RetRcptAddressState ,[RetRcptAddressZIP] = @RetRcptAddressZIP ,[BatchFilePath] = @BatchFilePath ,[Priority] = @Priority ,[ChannelCode] = @ChannelCode WHERE BatchClustId=@BatchClustId";
+            string query = "UPDATE [AM].[MailBatches] SET [UniqueId] = @UniqueId,[ClientId] = @ClientId,[DocumentOrPackageType] = @DocumentOrPackageType,[BatchName] = @BatchName,[PipelineStatus] = @PipelineStatus ,[ValidationStatus] = @ValidationStatus ,[ValidationErrors] = @ValidationErrors,[BatchStatus] = @BatchStatus ,[ReceivedOn] = @ReceivedOn,[DownloadedOn] = @DownloadedOn,[AcknowledgedOn] = @AcknowledgedOn,[ValidatedOn] = @ValidatedOn,[PreppedOn] = @PreppedOn,[SubmittedToShippingOn] = @SubmittedToShippingOn,[ShippingResponseReceivedOn] = @ShippingResponseReceivedOn,[ReportPreppedOn] = @ReportPreppedOn,[ReportedBackOn] = @ReportedBackOn,[ClientBatchId] = @ClientBatchId ,[IsReturnInfoSpecified] = IsReturnInfoSpecified,[RetRcptPrefix] = @RetRcptPrefix ,[RetRcptFirstName] =@RetRcptFirstName ,[RetRcptMiddleName] = @RetRcptMiddleName ,[RetRcptLastName] = @RetRcptLastName ,[RetRcptSuffix] = @RetRcptSuffix ,[RetRcptPhone] = @RetRcptPhone ,[RetRcptOrganization] = @RetRcptOrganization ,[RetRcptAddrOptionalLine1AboveStreet] = @RetRcptAddrOptionalLine1AboveStreet ,[RetRcptAddrOptionalLine2AboveStreet] = @RetRcptAddrOptionalLine2AboveStreet ,[RetRcptAddressStreet] = @RetRcptAddressStreet ,[RetRcptAddressAptOrSuiteOrOther] = @RetRcptAddressAptOrSuiteOrOther ,[RetRcptAddrOptionalLine1BelowStreet] = RetRcptAddrOptionalLine1BelowStreet ,[RetRcptAddrOptionalLine2BelowStreet] = RetRcptAddrOptionalLine2BelowStreet ,[RetRcptAddressCity] = @RetRcptAddressCity ,[RetRcptAddressState] = @RetRcptAddressState ,[RetRcptAddressZIP] = @RetRcptAddressZIP ,[Priority] = @Priority ,[SFTChannelId] = @SFTChannelId WHERE Id=@Id";
 
             var data = db.ExecuteScalar(query, mailBatch);
             return Convert.ToInt32(data);
@@ -81,9 +38,9 @@ namespace AM.Services
         public List<MailBatchDTO> GetBatchesByStatus(string batchPipelineStatus)
         {
             //Sql Query
-            string query = "SELECT * FROM [AM].[Batch] WHERE PipelineStatus= @batchPipelineStatus";
+            string query = "SELECT * FROM [AM].[MailBatches] WHERE PipelineStatus= @batchPipelineStatus";
 
-            switch (batchPipelineStatus.ToString())
+            switch (batchPipelineStatus)
             {
                 case BatchPipelineStatus.Downloaded: query += " AND IsValidated=0";
                     break;
@@ -112,6 +69,29 @@ namespace AM.Services
               Without Dapper you can't create following code. So just Add "using Dapper" namespace at begin.
             */
             var data = db.Query<MailBatchDTO>(query, parameters).ToList();
+            return data;
+        }
+
+        public BatchData GetMailBatchDetailsByBatchId(int mailBatchId)
+        {
+            BatchData data = null;
+            string query = @"SELECT * FROM [AM].[MailBatches] WHERE Id=@mailBatchId 
+                            SELECT * FROM [AM].[MailBatchCustomInfo] WHERE BatchId=@mailBatchId
+                            SELECT * FROM [AM].[MailPieces] WHERE BatchId=@mailBatchId
+                            SELECT * FROM [AM].[MailPieceCustomInfo] WHERE MailPieceId IN (SELECT Id FROM [AM].[MailPieces] WHERE BatchId=@mailBatchId)";
+
+            using (var multi = db.QueryMultiple(query, new { mailBatchId = mailBatchId }))
+            {
+                if (multi != null)
+                {
+                    data = new BatchData();
+                    data.MailBatch = multi.Read<MailBatchDTO>().Single();
+                    data.MailBatchCustomInfo = multi.Read<MailBatchCustomInfo>().ToList();
+                    data.MailPieces = multi.Read<MailPieceDTO>().ToList();
+                    data.MailPieceCustomInfo = multi.Read<MailPieceCustomInfo>().ToList();
+                }
+            }
+
             return data;
         }
     }

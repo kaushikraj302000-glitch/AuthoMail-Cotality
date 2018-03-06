@@ -310,7 +310,7 @@ namespace AM.Console
             }
         }
 
-        public void DownloadFile(string localFilePath, string remoteFilePath, bool deleteRemoteFile = false, bool closeConnection = false)
+        public void DownloadFile(string remoteFilePath, string localFilePath, bool deleteRemoteFile = false, bool closeConnection = false)
         {
             if (Protocol == SFT_ProtocolType.ftp)
             {
@@ -377,7 +377,7 @@ namespace AM.Console
                 List<string> remoteFiles = Directory.GetFiles(remoteDirPath).ToList();
                 foreach (string remoteFile in remoteFiles)
                 {
-                    DownloadFile(Path.Combine(localDirPath, Path.GetFileName(remoteFile)), remoteFile, deleteRemoteFile);
+                    DownloadFile(remoteFile, Path.Combine(localDirPath, Path.GetFileName(remoteFile)), deleteRemoteFile);
                 }
                 foreach (string remoteFile in remoteFiles)
                 {
@@ -410,7 +410,7 @@ namespace AM.Console
             foreach (string remoteFile in availableFiles)
             {
                 string localFilePath = Path.Combine(localDirPath, Path.GetFileName(remoteFile));
-                DownloadFile(localFilePath, GetUrl("{0}/{1}".Fill(remoteDirPath, remoteFile)), deleteRemoteFile);
+                DownloadFile(GetUrl("{0}/{1}".Fill(remoteDirPath, remoteFile)), localFilePath, deleteRemoteFile);
             }
             //log.DebugFormat("Downloading completed: {0}", DateTime.Now);
         }

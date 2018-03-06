@@ -26,13 +26,14 @@ namespace AM.Web.Controllers
         }
         public ActionResult Index()
         {
+            ViewBag.BusinessId = homeSvc.GetBusinessFriendlyIdNameByclientId(User.Identity.GetClientId().Value); ;
             return View();
         }
 
         [HttpPost]
         public ActionResult GetMailPieceIdByLoanNumber(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, DateTime startDate, DateTime endDate)
         {
-            var model = repoSvc.GetMailPieceIdFromLoanNo(BusinessFriendlyIdValue, User.Identity.GetClientId().Value);
+            var model = homeSvc.GetMailPieceIdFromBusinessFriendlyValue(BusinessFriendlyIdName, BusinessFriendlyIdValue, User.Identity.GetClientId().Value);
 
             if (model.Count > 1)
             {
@@ -41,7 +42,7 @@ namespace AM.Web.Controllers
             }
             else if (model.Count == 1)
             {
-                var pullbackRequestData = pullBackSvc.GetPullBackRequestList(BusinessFriendlyIdValue, null, startDate, endDate, User.Identity.GetClientId().Value);
+                var pullbackRequestData = pullBackSvc.GetPullBackRequestList(BusinessFriendlyIdName, BusinessFriendlyIdValue, null, startDate, endDate, User.Identity.GetClientId().Value);
                 return PartialView("_PullBackRequestData", pullbackRequestData);
             }
             else
@@ -60,7 +61,7 @@ namespace AM.Web.Controllers
         public ActionResult TodayChartDetails(string status, int batchId)
         {
             var model = chartDataSvc.GetMailPieceByParam(batchId, status, User.Identity.GetClientId().Value);
-            return PartialView("_GetChartMailPieceData",model);
+            return PartialView("_GetChartMailPieceData", model);
         }
 
         public ActionResult GetMailPieceByBatchId(int batchId)

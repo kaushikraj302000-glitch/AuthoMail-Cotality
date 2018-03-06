@@ -9,29 +9,30 @@ namespace AM.Services
 {
     public interface ISearchService
     {
-        List<MailPieceService> GetMailPieceByParam(int clientId, string loanNo, DateTime? printOn, DateTime? shippedOn);
+        List<MailPieceService> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? printedOn, DateTime? shippedOn);
     }
     public class SearchService : ServiceBase, ISearchService
     {
-        public List<MailPieceService> GetMailPieceByParam(int clientId, string loanNo, DateTime? printOn, DateTime? shippedOn)
+        public List<MailPieceService> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? printedOn, DateTime? shippedOn)
         {
             string query = "select * from [dbo].[view_MailPieceByParam] WHERE ClientId=@clientId";
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@clientId", clientId);
-            if (!loanNo.IsNullOrWhiteSpace())
+            if (!businessFriendlyIdName.IsNullOrWhiteSpace() && !businessFriendlyIdValue.IsNullOrWhiteSpace())
             {
-                query = string.Format("{0} AND (BusinessFriendlyIdName='LoanNumber' AND LoanNumber=@loanNo)", query);
-                parameters.Add("@loanNo", loanNo);
+                query = string.Format("{0} AND (BusinessFriendlyIdName=@businessFriendlyIdName AND BusinessFriendlyIdValue=@businessFriendlyIdValue)", query);
+                parameters.Add("@businessFriendlyIdName", businessFriendlyIdName);
+                parameters.Add("@businessFriendlyIdValue", businessFriendlyIdValue);
             }
-            //if (printOn != null)
-            //{
-            //    query = string.Format("{0} AND (=@printOn)", query);
-            //    parameters.Add("@printOn", printOn);
-            //}
-            if (shippedOn != null)
+            if (printedOn.HasValue)
             {
-                query = string.Format("{0} AND (ShippedOn=@shippedOn)", query);
+                query = string.Format("{0} AND (cast(PrintedOn as date)=cast(@printedOn as date))", query);
+                parameters.Add("@printedOn", printedOn);
+            }
+            if (shippedOn.HasValue)
+            {
+                query = string.Format("{0} AND (cast(ShippedOn as date)=cast(@shippedOn as date))", query);
                 parameters.Add("@shippedOn", shippedOn);
             }
             var data = db.Query<MailPieceService>(query, parameters).ToList();

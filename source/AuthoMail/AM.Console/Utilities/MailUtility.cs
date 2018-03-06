@@ -1,4 +1,5 @@
-﻿using log4net;
+﻿using AM.Entities;
+using log4net;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -68,6 +69,6 @@ namespace AM.Console
             }
 
             return isEmailSent;
-        }
+        }        
     }
 }

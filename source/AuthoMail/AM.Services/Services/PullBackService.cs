@@ -13,9 +13,8 @@ namespace AM.Services
         List<dynamic> GetPullBackData(List<string> mpIds);
 
         int UpdatePullBackRequestedOn(string mpId, string userId);
-        List<PullBackInfo> GetPullBackRequestList(string loanNo, string docType, DateTime startDate, DateTime endDate, int clientId);
-
-        List<QuickPullBackResponse> GetQuickPullBackResponseFromLoanNo(string loanNo, int clientId);
+        List<PullBackInfo> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, string docType, DateTime startDate, DateTime endDate, int clientId);
+        List<QuickPullBackResponse> GetQuickPullBackResponseFromBusinessFriendlyValue(string businessFriendlyIdName, string businessFriendlyIdValue, int clientId);
 
         List<QuickPullBackResponse> GetQuickPullBackResponse(List<string> mailPieceIds, int clientId);
     }
@@ -43,17 +42,18 @@ namespace AM.Services
             return data;
         }
 
-        public List<PullBackInfo> GetPullBackRequestList(string loanNo, string docType, DateTime startDate, DateTime endDate, int clientId)
+        public List<PullBackInfo> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, string docType, DateTime startDate, DateTime endDate, int clientId)
         {
             string query = PullBackServiceQuery.GetPullBackRequestList;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@startDate", startDate);
             parameters.Add("@endDate", endDate);
             parameters.Add("@clientId", clientId);
-            if (!loanNo.IsNullOrWhiteSpace())
+            if (!businessFriendlyIdName.IsNullOrWhiteSpace() && !businessFriendlyIdValue.IsNullOrWhiteSpace())
             {
-                query = string.Format("{0} AND (m.[BusinessFriendlyIdName]='LoanNumber' AND m.BusinessFriendlyIdValue=@loanNo)", query);
-                parameters.Add("@loanNo", loanNo);
+                query = string.Format("{0} AND (m.[BusinessFriendlyIdName]=@businessFriendlyIdName AND m.BusinessFriendlyIdValue=@businessFriendlyIdValue)", query);
+                parameters.Add("@businessFriendlyIdName", businessFriendlyIdName);
+                parameters.Add("@businessFriendlyIdValue", businessFriendlyIdValue);
             }
             if (!docType.IsNullOrWhiteSpace())
             {
@@ -63,10 +63,10 @@ namespace AM.Services
             var data = db.Query<PullBackInfo>(query, parameters).ToList();
             return data;
         }
-        public List<QuickPullBackResponse> GetQuickPullBackResponseFromLoanNo(string loanNo, int clientId)
+        public List<QuickPullBackResponse> GetQuickPullBackResponseFromBusinessFriendlyValue(string businessFriendlyIdName, string businessFriendlyIdValue, int clientId)
         {
-            string query = PullBackServiceQuery.GetQuickPullBackResponseFromLoanNo;
-            var mailPieces = db.Query<QuickPullBackResponse>(query, new { loanNo = loanNo, clientId = clientId }).ToList();
+            string query = PullBackServiceQuery.GetQuickPullBackResponseFromBusinessFriendlyValue;
+            var mailPieces = db.Query<QuickPullBackResponse>(query, new { businessFriendlyIdName = businessFriendlyIdName, businessFriendlyIdValue = businessFriendlyIdValue, clientId = clientId }).ToList();
             return mailPieces;
         }
         public List<QuickPullBackResponse> GetQuickPullBackResponse(List<string> mailPieceIds, int clientId)
@@ -79,8 +79,8 @@ namespace AM.Services
 
     public static class PullBackServiceQuery
     {
-        public static string GetPullBackRequestList = "select m.[Id] as [MailPieceId],m.[UniqueId] as [MailPieceUniqueId],b.Id as [BatchId],b.[UniqueId] as [BatchUniqueId],b.BatchName,m.BusinessFriendlyIdValue,m.BusinessFriendlyIdName,m.[FileName],m.DocumentOrPackageType as [MailPieceDocumentOrPackageType],m.[RcptPrefix],m.[RcptFirstName],m.[RcptMiddleName],m.[RcptLastName],[RcptSuffix],b.DocumentOrPackageType as [BatchDocumentOrPackageType],b.ReceivedOn,m.TotalPages,m.TrackingNo,m.[ShippingStatus],m.PrintedOn,d.ShippingCarrier as [ShippingMethod],m.RcptOrganization,m.[RcptAddrOptionalLine1AboveStreet],m.[RcptAddrOptionalLine2AboveStreet],m.[RcptAddressStreet],m.[RcptAddressAptOrSuiteOrOther],m.[RcptAddrOptionalLine1BelowStreet],m.[RcptAddrOptionalLine2BelowStreet],m.[RcptAddressCity],m.[RcptAddressState],m.[RcptAddressZIP],m.[RetRcptPrefix],m.[RetRcptFirstName],m.[RetRcptMiddleName],m.[RetRcptLastName],m.[RetRcptSuffix],m.[RetRcptOrganization],m.[RetRcptAddrOptionalLine1AboveStreet],m.[RetRcptAddrOptionalLine2AboveStreet],m.[RetRcptAddressAptOrSuiteOrOther],m.[RetRcptAddrOptionalLine1BelowStreet],m.[RetRcptAddrOptionalLine2BelowStreet],m.[RetRcptAddressCity],m.[RetRcptAddressState],m.[RetRcptAddressZIP],m.PulledBackOn,u.UserName as [PulledBackBy] from [AM].[MailBatches] b, [AM].[PrintBatches] p,[AM].[DocTypes] d,[AM].[MailPieces] m left outer join [Profile].[Users] u on m.[PulledBackRequestedBy]=u.Id where ((m.BatchId=b.Id and p.Id=m.PrintBatchId and d.Id=p.DocTypeId) and b.ClientId=@clientId) AND ((cast(b.ReceivedOn as date)>=@startDate and cast(b.ReceivedOn as date)<=@endDate))";
-        public static string GetQuickPullBackResponseFromLoanNo = "select m.Id as [MailPieceId], m.UniqueId as [MailPieceUniqueId],b.Id as [BatchId],b.UniqueId as [BatchUniqueId],b.BatchName,b.ReceivedOn,m.BusinessFriendlyIdName,m.BusinessFriendlyIdValue,m.[FileName],m.[ShippingStatus] from [AM].[MailBatches] b,[AM].[MailPieces] m where b.Id =m.BatchId and m.BusinessFriendlyIdValue=@loanNo AND b.ClientId=@clientId";
-        public static string GetQuickPullBackResponse = "select m.Id as [MailPieceId], m.UniqueId as [MailPieceUniqueId],b.Id as [BatchId],b.UniqueId as [BatchUniqueId],b.BatchName,b.ReceivedOn,m.BusinessFriendlyIdName,m.BusinessFriendlyIdValue,m.[FileName]m.ShippingStatus from [AM].[MailBatches] b,[AM].[MailPieces] m where b.Id =m.BatchId and m.UniqueId=@mailPieceIds AND b.ClientId=@clientId";
+        public static string GetPullBackRequestList = "select b.ClientBatchId,m.[Id] as [MailPieceId],m.[UniqueId] as [MailPieceUniqueId],b.Id as [BatchId],b.[UniqueId] as [BatchUniqueId],b.BatchName,m.BusinessFriendlyIdValue,m.BusinessFriendlyIdName,m.[FileName],m.DocumentOrPackageType,m.[RcptPrefix],m.[RcptFirstName],m.[RcptMiddleName],m.[RcptLastName],[RcptSuffix],b.ReceivedOn,m.TotalPages,m.TrackingNo,m.[ShippingStatus],m.PrintedOn,d.ShippingCarrier as [ShippingMethod],m.RcptOrganization,m.[RcptAddrOptionalLine1AboveStreet],m.[RcptAddrOptionalLine2AboveStreet],m.[RcptAddressStreet],m.[RcptAddressAptOrSuiteOrOther],m.[RcptAddrOptionalLine1BelowStreet],m.[RcptAddrOptionalLine2BelowStreet],m.[RcptAddressCity],m.[RcptAddressState],m.[RcptAddressZIP],m.[RetRcptPrefix],m.[RetRcptFirstName],m.[RetRcptMiddleName],m.[RetRcptLastName],m.[RetRcptSuffix],m.[RetRcptOrganization],m.[RetRcptAddrOptionalLine1AboveStreet],m.[RetRcptAddrOptionalLine2AboveStreet],m.[RetRcptAddressAptOrSuiteOrOther],m.[RetRcptAddrOptionalLine1BelowStreet],m.[RetRcptAddrOptionalLine2BelowStreet],m.[RetRcptAddressCity],m.[RetRcptAddressState],m.[RetRcptAddressZIP],m.PulledBackOn,u.UserName as [PulledBackBy] from [AM].[MailBatches] b, [AM].[PrintBatches] p,[AM].[DocTypes] d,[AM].[MailPieces] m left outer join [Profile].[Users] u on m.[PulledBackRequestedBy]=u.Id where ((m.BatchId=b.Id and p.Id=m.PrintBatchId and d.Id=p.DocTypeId) and b.ClientId=@clientId) AND ((cast(b.ReceivedOn as date)>=cast (@startDate as date) and cast(b.ReceivedOn as date)<= cast(@endDate as date)))";
+        public static string GetQuickPullBackResponseFromBusinessFriendlyValue = "select b.ClientBatchId, m.Id as [MailPieceId], m.UniqueId as [MailPieceUniqueId],b.Id as [BatchId],b.UniqueId as [BatchUniqueId],b.BatchName,b.ReceivedOn,m.BusinessFriendlyIdName,m.BusinessFriendlyIdValue,m.[FileName],m.[ShippingStatus] from [AM].[MailBatches] b,[AM].[MailPieces] m where b.Id = m.BatchId and m.BusinessFriendlyIdName=@businessFriendlyIdName and m.BusinessFriendlyIdValue=@businessFriendlyIdValue AND b.ClientId=@clientId";
+        public static string GetQuickPullBackResponse = "select b.ClientBatchId, m.Id as [MailPieceId], m.UniqueId as [MailPieceUniqueId],b.Id as [BatchId],b.UniqueId as [BatchUniqueId],b.BatchName,b.ReceivedOn,m.BusinessFriendlyIdName,m.BusinessFriendlyIdValue,m.[FileName]m.ShippingStatus from [AM].[MailBatches] b,[AM].[MailPieces] m where b.Id =m.BatchId and m.UniqueId=@mailPieceIds AND b.ClientId=@clientId";
     }
 }
