@@ -85,6 +85,7 @@ namespace AM.Entities
     {
         public int MailPieceId { get; set; }
         public string Key { get; set; }
+        public DataType DataType { get; set; }
         public string Value { get; set; }
     }
 }

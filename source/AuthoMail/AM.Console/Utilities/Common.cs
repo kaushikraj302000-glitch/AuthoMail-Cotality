@@ -145,7 +145,6 @@ namespace AM.Console
         {
             StringBuilder sbErrorMessage = new StringBuilder();
             string outcomeCode = OutComeCodes.No_Error;
-            string errorMsg = sbErrorMessage.ToString();
 
             if (piece.RecipientInfo == null || piece.RecipientInfo.Recipient == null)
             {
@@ -202,11 +201,6 @@ namespace AM.Console
                 outcomeCode = OutComeCodes.Invalid_XML;
                 sbErrorMessage.AppendLine("Shipping method is not defined in package.");
             }
-            else if (piece.CustomInfo.Where(c => c.Key == "ShippingCredentials").SingleOrDefault() == null)
-            {
-                outcomeCode = OutComeCodes.Invalid_XML;
-                sbErrorMessage.AppendLine("Shipping method is not defined in package.");
-            }
             else if (piece.CustomInfo.Where(c => c.Key == "ShippingCredCode").SingleOrDefault() == null)
             {
                 outcomeCode = OutComeCodes.Invalid_XML;
@@ -223,7 +217,7 @@ namespace AM.Console
                 sbErrorMessage.AppendLine("CustomerIdentifier is not defined in package.");
             }
 
-            ValidationResultAMC returnCode = new ValidationResultAMC() { Code = outcomeCode, ErrorMessage = errorMsg };
+            ValidationResultAMC returnCode = new ValidationResultAMC() { Code = outcomeCode, ErrorMessage = sbErrorMessage.ToString() };
 
             return returnCode;
         }

@@ -396,7 +396,7 @@ namespace AM.Console
                                     mailPiece.ErrorDesc = "PDF file missing.";
                                 }
 
-                                mailPieceSvc.InsertBatchMailPieceDetails(mailPiece);
+                                //mailPieceSvc.InsertBatchMailPieceDetails(mailPiece);
 
                                 mailPieceCustomInfos = new List<MailPieceCustomInfo>();
                                 MailPieceCustomInfo customInfoCustomerIdentifier = new MailPieceCustomInfo();
@@ -633,7 +633,7 @@ namespace AM.Console
                                 }
 
 
-                                mailPieceSvc.InsertBatchMailPieceDetails(mailPiece);
+                                //mailPieceSvc.InsertBatchMailPieceDetails(mailPiece);
                             }
                             #endregion
                         }

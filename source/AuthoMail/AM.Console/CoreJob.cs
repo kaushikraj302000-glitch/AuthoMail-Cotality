@@ -15,18 +15,20 @@ namespace AM.Console
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(CoreJob));
         IClientService clientSvc;
-        IBatchService batchSvc;
+        IBatchService mailBatchSvc;
+        IMailPieceService mailPieceSvc;
         ICommonService commonSvc;
         public CoreJob()
         {
             clientSvc = new ClientService();
-            batchSvc = new BatchService();
+            mailBatchSvc = new BatchService();
             commonSvc = new CommonService();
+            mailPieceSvc = new MailPieceService();
         }
 
         public void ParseAuthoMailSchema()
         {
-            List<MailBatchDTO> downloadBatches = batchSvc.GetBatchesByStatus(BatchPipelineStatus.Downloaded);
+            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.Downloaded);
             if (downloadBatches == null)
             {
                 log.Debug("Process batches job queue is empty.");
@@ -40,14 +42,15 @@ namespace AM.Console
 
                 MailBatchInfo mbi = new MailBatchInfo(batch, client, sftChannelDetails);
 
-                var amXmlFilePath = Path.Combine(mbi.AMRequestPath, mbi.BatchName, mbi.BatchName + "_AuthoMail.xml");
+                var fullBatchPath = Path.Combine(mbi.AMRequestPath, mbi.BatchName);
+                var amXmlFilePath = Path.Combine(fullBatchPath, mbi.BatchName + "_AuthoMail.xml");
 
                 if (!File.Exists(amXmlFilePath))
                 {
                     mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid;
                     mbi.MailBatch.ValidationErrors = "No AM XML file is available in {0} batch.".Fill(mbi.MailBatch.BatchName);
 
-                    batchSvc.UpdateBatchDetails(mbi.MailBatch);
+                    mailBatchSvc.UpdateBatchDetails(mbi.MailBatch);
 
                     commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
                     continue;
@@ -65,7 +68,7 @@ namespace AM.Console
                     mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid;
                     mbi.MailBatch.ValidationErrors = ex.Message;
 
-                    batchSvc.UpdateBatchDetails(mbi.MailBatch);
+                    mailBatchSvc.UpdateBatchDetails(mbi.MailBatch);
 
                     commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
                     continue;
@@ -77,19 +80,19 @@ namespace AM.Console
                     mbi.MailBatch.UniqueId = amParsedBatch.Id;
                     mbi.MailBatch.ClientBatchId = amParsedBatch.ClientBatchId;
 
-                    batchSvc.UpdateBatchDetails(mbi.MailBatch);
+                    mailBatchSvc.UpdateBatchDetails(mbi.MailBatch);
 
                     if (amParsedBatch.MailPieces == null || amParsedBatch.MailPieces.Count == 0)
                     {
                         mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid;
                         mbi.MailBatch.ValidationErrors = "No mailpiece found in xml for batch : {0}".Fill(mbi.MailBatch.Id);
 
-                        batchSvc.UpdateBatchDetails(mbi.MailBatch);
+                        mailBatchSvc.UpdateBatchDetails(mbi.MailBatch);
 
                         commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
                         continue;
                     }
-                    List<MailPieceDTO> mailPieces = new List<MailPieceDTO>();
+
                     foreach (var piece in amParsedBatch.MailPieces)
                     {
                         MailPieceDTO mailPiece = new MailPieceDTO();
@@ -97,43 +100,158 @@ namespace AM.Console
 
                         mailPiece.BatchId = mbi.MailBatch.Id;
 
-                        ValidationResultAMC validationResult = Common.ValidateAMMailPiecesForUSAA(piece);
-
-                        if (validationResult.Code == OutComeCodes.No_Error)
+                        try
                         {
-                            mailPiece.BusinessFriendlyIdName = piece.BusinessFriendlyIdName;
-                            mailPiece.BusinessFriendlyIdValue = piece.BusinessFriendlyIdValue;
-                            mailPiece.DocumentOrPackageType = piece.DocumentOrPackageType;
-                            mailPiece.FileName = piece.DocumentOrPackage.Name;
-                            mailPiece.UniqueId = piece.Id;
+                            commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationStart, Common.Now);
 
-                            mailPiece.IsRcptInfoSpecified = true;
-                            mailPiece.RcptFirstName = piece.RecipientInfo.Recipient.FirstName;
-                            mailPiece.RcptLastName = piece.RecipientInfo.Recipient.LastName;
-                            if (piece.RecipientInfo.Corecipient != null)
+                            ValidationResultAMC validationResult = Common.ValidateAMMailPiecesForUSAA(piece);
+
+                            if (validationResult.Code == OutComeCodes.No_Error)
                             {
-                                mailPiece.CoRcptFirstName = piece.RecipientInfo.Corecipient.FirstName;
-                                mailPiece.CoRcptLastName = piece.RecipientInfo.Corecipient.LastName;
+                                mailPiece.BusinessFriendlyIdName = piece.BusinessFriendlyIdName;
+                                mailPiece.BusinessFriendlyIdValue = piece.BusinessFriendlyIdValue;
+                                mailPiece.DocumentOrPackageType = piece.DocumentOrPackageType;
+                                mailPiece.FileName = piece.DocumentOrPackage.Name;
+                                mailPiece.UniqueId = piece.Id;
+                                mailPiece.DueDate = Common.Today; //TODO : Need to change after discussing with Ravi Sir
+                                mailPiece.IsRcptInfoSpecified = true;
+                                mailPiece.RcptFirstName = piece.RecipientInfo.Recipient.FirstName;
+                                mailPiece.RcptLastName = piece.RecipientInfo.Recipient.LastName;
+                                if (piece.RecipientInfo.Corecipient != null)
+                                {
+                                    mailPiece.CoRcptFirstName = piece.RecipientInfo.Corecipient.FirstName;
+                                    mailPiece.CoRcptLastName = piece.RecipientInfo.Corecipient.LastName;
+                                }
+                                mailPiece.RcptAddressStreet = piece.RecipientInfo.Address.Street;
+                                mailPiece.RcptAddressCity = piece.RecipientInfo.Address.City;
+                                mailPiece.RcptAddressState = piece.RecipientInfo.Address.State;
+                                mailPiece.RcptAddressZIP = piece.RecipientInfo.Address.Zip;
+                                mailPiece.RcptPhone = piece.RecipientInfo.Recipient.Phone;
+
+                                mailPiece.IsReturnInfoSpecified = true;
+                                mailPiece.RetRcptFirstName = piece.ReturnInfo.Recipient.FirstName;
+                                mailPiece.RetRcptLastName = piece.ReturnInfo.Recipient.LastName;
+                                mailPiece.RetRcptAddressStreet = piece.ReturnInfo.Address.Street;
+                                mailPiece.RetRcptAddressCity = piece.ReturnInfo.Address.City;
+                                mailPiece.RetRcptAddressState = piece.ReturnInfo.Address.State;
+                                mailPiece.RetRcptAddressZIP = piece.ReturnInfo.Address.Zip;
+                                mailPiece.RetRcptPhone = piece.ReturnInfo.Recipient.Phone;
+
+                                //Check PDF file is available or not
+                                if (!File.Exists(Path.Combine(fullBatchPath, mailPiece.FileName)))
+                                {
+                                    mailPiece.ErrorCode = OutComeCodes.Missing_PDF.ToString();
+                                    mailPiece.ErrorDesc = "Pdf file is not available.";
+                                }
+                                else
+                                {
+                                    mailPiece.ErrorCode = OutComeCodes.No_Error;
+                                }
+
+                                if (piece.CustomInfo != null && piece.CustomInfo.Count > 0)
+                                {
+                                    mailPieceCustInfo = new List<MailPieceCustomInfo>();
+                                    foreach (var item in piece.CustomInfo)
+                                    {
+                                        mailPieceCustInfo.Add(new MailPieceCustomInfo() { Key = item.Key, MailPieceId = 0, DataType = item.DataType, Value = item.Value });
+                                    }
+                                }
                             }
-                            mailPiece.RcptAddressStreet = piece.RecipientInfo.Address.Street;
-                            mailPiece.RcptAddressCity = piece.RecipientInfo.Address.City;
-                            mailPiece.RcptAddressState = piece.RecipientInfo.Address.State;
-                            mailPiece.RcptAddressZIP = piece.RecipientInfo.Address.Zip;
-                            mailPiece.RcptPhone = piece.RecipientInfo.Recipient.Phone;
+                            else
+                            {
+                                mailPiece.BusinessFriendlyIdName = piece.BusinessFriendlyIdName;
+                                mailPiece.BusinessFriendlyIdValue = piece.BusinessFriendlyIdValue;
+                                mailPiece.DocumentOrPackageType = piece.DocumentOrPackageType;
+                                mailPiece.FileName = piece.DocumentOrPackage.Name;
+                                mailPiece.UniqueId = piece.Id;
 
-                            mailPiece.IsReturnInfoSpecified = true;
-                            mailPiece.RetRcptFirstName = piece.ReturnInfo.Recipient.FirstName;
-                            mailPiece.RetRcptLastName = piece.ReturnInfo.Recipient.LastName;
-                            mailPiece.RetRcptAddressStreet = piece.ReturnInfo.Address.Street;
-                            mailPiece.RetRcptAddressCity = piece.ReturnInfo.Address.City;
-                            mailPiece.RetRcptAddressState = piece.ReturnInfo.Address.State;
-                            mailPiece.RetRcptAddressZIP = piece.ReturnInfo.Address.Zip;
-                            mailPiece.RetRcptPhone = piece.ReturnInfo.Recipient.Phone;
-                            
+                                if (piece.RecipientInfo != null)
+                                {
+                                    if (piece.RecipientInfo.Recipient != null)
+                                    {
+                                        mailPiece.IsRcptInfoSpecified = true;
+                                        mailPiece.RcptFirstName = piece.RecipientInfo.Recipient.FirstName;
+                                        mailPiece.RcptLastName = piece.RecipientInfo.Recipient.LastName;
+                                        if (piece.RecipientInfo.Corecipient != null)
+                                        {
+                                            mailPiece.CoRcptFirstName = piece.RecipientInfo.Corecipient.FirstName;
+                                            mailPiece.CoRcptLastName = piece.RecipientInfo.Corecipient.LastName;
+                                        }
+                                    }
 
+                                    if (piece.RecipientInfo.Address != null)
+                                    {
+                                        mailPiece.RcptAddressStreet = piece.RecipientInfo.Address.Street;
+                                        mailPiece.RcptAddressCity = piece.RecipientInfo.Address.City;
+                                        mailPiece.RcptAddressState = piece.RecipientInfo.Address.State;
+                                        mailPiece.RcptAddressZIP = piece.RecipientInfo.Address.Zip;
+                                        mailPiece.RcptPhone = piece.RecipientInfo.Recipient.Phone;
+                                    }
+                                }
+
+                                if (piece.ReturnInfo != null)
+                                {
+                                    if (piece.ReturnInfo.Recipient != null)
+                                    {
+                                        mailPiece.IsReturnInfoSpecified = true;
+                                        mailPiece.RetRcptFirstName = piece.ReturnInfo.Recipient.FirstName;
+                                        mailPiece.RetRcptLastName = piece.ReturnInfo.Recipient.LastName;
+                                    }
+
+                                    if (piece.ReturnInfo.Address != null)
+                                    {
+                                        mailPiece.RetRcptAddressStreet = piece.ReturnInfo.Address.Street;
+                                        mailPiece.RetRcptAddressCity = piece.ReturnInfo.Address.City;
+                                        mailPiece.RetRcptAddressState = piece.ReturnInfo.Address.State;
+                                        mailPiece.RetRcptAddressZIP = piece.ReturnInfo.Address.Zip;
+                                        mailPiece.RetRcptPhone = piece.ReturnInfo.Recipient.Phone;
+                                    }
+                                }
+
+                                mailPiece.ErrorCode = validationResult.Code.ToString();
+                                mailPiece.ErrorDesc = validationResult.ErrorMessage;
+
+                                if (piece.CustomInfo != null && piece.CustomInfo.Count > 0)
+                                {
+                                    mailPieceCustInfo = new List<MailPieceCustomInfo>();
+                                    foreach (var item in piece.CustomInfo)
+                                    {
+                                        mailPieceCustInfo.Add(new MailPieceCustomInfo() { Key = item.Key, MailPieceId = 0, DataType = item.DataType, Value = item.Value });
+                                    }
+                                }
+                            }
                         }
+                        catch (Exception ex)
+                        {
+                            log.Error(ex);
+                        }
+                        //Insert MailPiece Data and It's custome info
+                        mailPiece.Id = mailPieceSvc.InsertBatchMailPieceDetails(mailPiece, mailPieceCustInfo);
                     }
+
+                    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationEnd, Common.Now);
+                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
                 }
+            }
+        }
+
+        public void AcknowledgeReportSend()
+        {
+            List<MailBatchDTO> validatedBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.Validated);
+            if (validatedBatches == null)
+            {
+                log.Debug("Process batches job queue is empty.");
+                return;
+            }
+
+            foreach (var mailBatch in validatedBatches)
+            {
+                Client client = clientSvc.GetClientDetails(mailBatch.ClientId).Single();
+                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetails(mailBatch.SFTChannelId);
+
+                MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, sftChannelDetails);
+
+                var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
             }
         }
     }

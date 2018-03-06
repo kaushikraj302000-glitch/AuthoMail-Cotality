@@ -324,6 +324,7 @@ namespace AM.Console
             amParsedBatch.ClientBatchId = mbi.BatchName;
             amParsedBatch.Id = Guid.NewGuid();
             amParsedBatch.Priority = Priority.High;
+            amParsedBatch.ClientCode = mbi.Client.AppCode;
 
             List<MailPiece> amParsedPieces = new List<MailPiece>();
             foreach (var package in packageRequest.Packages)
@@ -371,6 +372,7 @@ namespace AM.Console
                                 amPiece.RecipientInfo.Address = new Entities.Address();
                                 amPiece.RecipientInfo.Address.AptOrSuiteOrOther = package.RecipientInfo.RecipientAddress.Line2;
                                 amPiece.RecipientInfo.Address.Street = package.RecipientInfo.RecipientAddress.Line1;
+                                amPiece.RecipientInfo.Address.City = package.RecipientInfo.RecipientAddress.City;
                                 amPiece.RecipientInfo.Address.State = package.RecipientInfo.RecipientAddress.State;
                                 amPiece.RecipientInfo.Address.Zip = package.RecipientInfo.RecipientAddress.Zip;
                             }
@@ -392,6 +394,7 @@ namespace AM.Console
 
                                 amPiece.ReturnInfo.Address.AptOrSuiteOrOther = package.ReturnInfo.ReturnAddress.Line2;
                                 amPiece.ReturnInfo.Address.Street = package.ReturnInfo.ReturnAddress.Line1;
+                                amPiece.ReturnInfo.Address.City = package.ReturnInfo.ReturnAddress.City;
                                 amPiece.ReturnInfo.Address.State = package.ReturnInfo.ReturnAddress.State;
                                 amPiece.ReturnInfo.Address.Zip = package.ReturnInfo.ReturnAddress.Zip;
                             }

@@ -14,6 +14,7 @@ namespace AM.Services
         int InsertBatchDetails(MailBatchDTO mailBatch);
         int UpdateBatchDetails(MailBatchDTO mailBatch);
         List<MailBatchDTO> GetBatchesByStatus(string batchPipelineStatus);
+        BatchData GetMailBatchDetailsByBatchId(int mailBatchId);
     }
     public class BatchService : ServiceBase, IBatchService //It implements Interfaces 
     {
@@ -68,6 +69,29 @@ namespace AM.Services
               Without Dapper you can't create following code. So just Add "using Dapper" namespace at begin.
             */
             var data = db.Query<MailBatchDTO>(query, parameters).ToList();
+            return data;
+        }
+
+        public BatchData GetMailBatchDetailsByBatchId(int mailBatchId)
+        {
+            BatchData data = null;
+            string query = @"SELECT * FROM [AM].[MailBatches] WHERE Id=@mailBatchId 
+                            SELECT * FROM [AM].[MailBatchCustomInfo] WHERE BatchId=@mailBatchId
+                            SELECT * FROM [AM].[MailPieces] WHERE BatchId=@mailBatchId
+                            SELECT * FROM [AM].[MailPieceCustomInfo] WHERE MailPieceId IN (SELECT Id FROM [AM].[MailPieces] WHERE BatchId=@mailBatchId)";
+
+            using (var multi = db.QueryMultiple(query, new { mailBatchId = mailBatchId }))
+            {
+                if (multi != null)
+                {
+                    data = new BatchData();
+                    data.MailBatch = multi.Read<MailBatchDTO>().Single();
+                    data.MailBatchCustomInfo = multi.Read<MailBatchCustomInfo>().ToList();
+                    data.MailPieces = multi.Read<MailPieceDTO>().ToList();
+                    data.MailPieceCustomInfo = multi.Read<MailPieceCustomInfo>().ToList();
+                }
+            }
+
             return data;
         }
     }
