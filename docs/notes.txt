@@ -44,8 +44,30 @@ Need:
 - AppCode unique key
 - when monitoring channels, group first, take distinct and filter Protocal <> 'Manual'
 - consolidated report group by channel, NOT on the website
-- 
-
+- during XML validation, create dictionary to test if values provided are do not conflict with other fields
+- add schema to resources (AM.Lib)
+- be careful where data is updated shipped or pulled back
+- if shipped is returned then turn qcperformed true
+- review PnS code again (esp validation)
+- report page / sheets issue, will create problems when printing is done in duplex
+- update pagecount by page size from pns.core
+- update view Pns
+- update status of MRDFRequest - it doesn't change from 'In Progress'
+- (Deferred) AM check for immediate error responses from PnS service
+- rewrite entire parsing code in PnS
+- Add ErrId in PnSRequest table and class, update it during validations and response parsing, return PageCountMismatch
+- ShouldSerilizeErrorId (make sure to correct it, if reqd)
+- check page number splitting logic
+- generate guid if not provided
+- move AM schema to resoures file
+- ask for client name for operations and admin logins
+- change report names, consolidated, and SLA miss
+- create common classes for SFTUtil (review and fix)
+- CREATE warning batches on operator dashboard : disposition = 7 or (divertVS3 = 1 and res.disposition not in (4,8))
+- implement logic for priority
+- manage timezone for SLADays and report queries where date is involved (may be treat as EST when querying)
+- common message and settings, should be able to change at runtime
+- Make PCI job to use channels from SFTChannels table
 
 A.A.
 - something about phone # (sherrie, Sapan is going to share)

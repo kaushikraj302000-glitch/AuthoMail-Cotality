@@ -11,7 +11,7 @@
     <xs:attribute name="Id" type="tns:guid" use="optional" />
     <xs:attribute name="ClientBatchId" type="tns:nonEmptyString" use="optional" />
     <xs:attribute name="ChannelCode" type="tns:nonEmptyString" use="optional" />
-    <xs:attribute name="Priority" type="tns:Priority" use="required" />
+    <xs:attribute name="Priority" type="tns:Priority" use="optional" />
     <xs:attribute name="DocumentOrPackageType" type="tns:nonEmptyString" use="optional" />
   </xs:complexType>
   <xs:complexType name="ReturnInfo">
@@ -27,7 +27,7 @@
     <xs:attribute name="MiddleName" type="xs:string" use="optional"  />
     <xs:attribute name="LastName" type="xs:string" use="optional"  />
     <xs:attribute name="Suffix" type="xs:string"  use="optional" />
-    <xs:attribute name="Phone" type="xs:string" use="optional" />
+    <xs:attribute name="Phone" type="tns:NAPhone" use="optional" />
   </xs:complexType>
   <xs:complexType name="Address">
     <xs:attribute name="OptionalLine1AboveStreet" type="xs:string" use="optional"  />
@@ -38,7 +38,7 @@
     <xs:attribute name="OptionalLine2BelowStreet" type="xs:string" use="optional"  />
     <xs:attribute name="City" type="tns:nonEmptyString" use="required"  />
     <xs:attribute name="State" type="tns:nonEmptyString" use="required"  />
-    <xs:attribute name="Zip" type="tns:nonEmptyString" use="required"  />
+    <xs:attribute name="Zip" type="tns:USZIP" use="required"  />
   </xs:complexType>
   <xs:complexType name="MailPieces">
     <xs:sequence>
@@ -103,6 +103,16 @@
   <xs:simpleType name="nonEmptyString">
     <xs:restriction base="xs:string">
       <xs:pattern value="(\s*\S\s*)+"></xs:pattern>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="USZIP">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="^(?(^00000(|-0000))|\d{5}(?:|[-\s]+\d{4}))$"></xs:pattern>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="NAPhone">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="^\(?([2-9][0-8][0-9])\)?[-. ]?([2-9][0-9]{2})[-. ]?([0-9]{4})$"></xs:pattern>
     </xs:restriction>
   </xs:simpleType>
 </xs:schema>
