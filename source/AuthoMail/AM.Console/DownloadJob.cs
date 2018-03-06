@@ -229,15 +229,15 @@ namespace AM.Console
             //Update LogTime for Download complete
             commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.DownloadEnd, Common.Now);
 
-            if (mbi.SFTChannel.PostDownloadAction == PostDownloadAction.Archive)
-            {
-                string archiveFTPFilePath = Path.Combine(mbi.SFTChannel.ADERequestArchiveDir, zipFileName);
-                sftSite.MoveFile(zipFileFTPPath, archiveFTPFilePath);
-            }
-            else
-            {
-                sftSite.DeleteFile(zipFileFTPPath);
-            }
+            //if (mbi.SFTChannel.PostDownloadAction == PostDownloadAction.Archive)
+            //{
+            //    string archiveFTPFilePath = Path.Combine(mbi.SFTChannel.ADERequestArchiveDir, zipFileName);
+            //    sftSite.MoveFile(zipFileFTPPath, archiveFTPFilePath);
+            //}
+            //else
+            //{
+            //    sftSite.DeleteFile(zipFileFTPPath);
+            //}
 
             return downloadedZipFilePath;
         }
@@ -317,7 +317,7 @@ namespace AM.Console
                 commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
             }
 
-            //We can do logic implementation for getting only 129 CustomerIdentifier's batch
+            //We can do logic implementation for getting only 166 CustomerIdentifier's batch
 
             MailBatch amParsedBatch = new MailBatch();
             amParsedBatch.ChannelCode = mbi.SFTChannel.Code;
@@ -336,15 +336,23 @@ namespace AM.Console
                         MailPiece amPiece = new MailPiece();
                         amPiece.BusinessFriendlyIdName = "LoanNbr";
                         amPiece.BusinessFriendlyIdValue = package.LoanNbr;
-                        amPiece.DocumentOrPackage.Name = package.File;
+                        if (package.File != null)
+                        {
+                            amPiece.DocumentOrPackage = new DocumentOrPackage();
+                            amPiece.DocumentOrPackage.Name = package.File;
+                        }
                         amPiece.DocumentOrPackageType = package.PackageName;
                         amPiece.Id = package.Id;
                         if (package.RecipientInfo != null)
                         {
+                            amPiece.RecipientInfo = new Entities.RecipientInfo();
+
                             if (package.RecipientInfo.Recipients != null && package.RecipientInfo.Recipients.Count > 0)
                             {
+                                amPiece.RecipientInfo.Recipient = new Entities.Recipient();
                                 if (package.RecipientInfo.Recipients.Count > 1)
                                 {
+                                    amPiece.RecipientInfo.Corecipient = new Entities.Recipient();
                                     amPiece.RecipientInfo.Recipient.FirstName = package.RecipientInfo.Recipients[0].FirstName;
                                     amPiece.RecipientInfo.Recipient.LastName = package.RecipientInfo.Recipients[0].LastName;
                                     amPiece.RecipientInfo.Corecipient.FirstName = package.RecipientInfo.Recipients[1].FirstName;
@@ -355,29 +363,33 @@ namespace AM.Console
                                     amPiece.RecipientInfo.Recipient.FirstName = package.RecipientInfo.Recipients[0].FirstName;
                                     amPiece.RecipientInfo.Recipient.LastName = package.RecipientInfo.Recipients[0].LastName;
                                 }
+                                amPiece.RecipientInfo.Recipient.Phone = package.RecipientInfo.RecipientPhoneNo;
                             }
 
                             if (package.RecipientInfo.RecipientAddress != null)
                             {
+                                amPiece.RecipientInfo.Address = new Entities.Address();
                                 amPiece.RecipientInfo.Address.AptOrSuiteOrOther = package.RecipientInfo.RecipientAddress.Line2;
                                 amPiece.RecipientInfo.Address.Street = package.RecipientInfo.RecipientAddress.Line1;
                                 amPiece.RecipientInfo.Address.State = package.RecipientInfo.RecipientAddress.State;
                                 amPiece.RecipientInfo.Address.Zip = package.RecipientInfo.RecipientAddress.Zip;
                             }
 
-                            amPiece.RecipientInfo.Recipient.Phone = package.RecipientInfo.RecipientPhoneNo;
                         }
-
-
 
                         if (package.ReturnInfo != null)
                         {
+                            amPiece.ReturnInfo = new Entities.ReturnInfo();
+                            amPiece.ReturnInfo.Recipient = new Entities.Recipient();
+
                             amPiece.ReturnInfo.Recipient.FirstName = package.ReturnInfo.FirstName;
                             amPiece.ReturnInfo.Recipient.LastName = package.ReturnInfo.LastName;
                             amPiece.ReturnInfo.Recipient.Phone = package.ReturnInfo.ReturnPhoneNo;
 
                             if (package.ReturnInfo.ReturnAddress != null)
                             {
+                                amPiece.ReturnInfo.Address = new Entities.Address();
+
                                 amPiece.ReturnInfo.Address.AptOrSuiteOrOther = package.ReturnInfo.ReturnAddress.Line2;
                                 amPiece.ReturnInfo.Address.Street = package.ReturnInfo.ReturnAddress.Line1;
                                 amPiece.ReturnInfo.Address.State = package.ReturnInfo.ReturnAddress.State;
@@ -386,13 +398,13 @@ namespace AM.Console
                         }
 
                         amPiece.CustomInfo = new List<Metadata>()
-                            {
-                                new Metadata() { Key = "ReceivedDate",DataType=DataType.DateTime, Value = package.ReceivedDate.HasValue?package.ReceivedDate.Value.ToString():null },
-                                new Metadata() { Key = "RequestId",DataType=DataType.String, Value = package.RequestId},
-                                new Metadata() { Key = "ShippingCredCode",DataType=DataType.String, Value = package.ShippingCredCode },
-                                new Metadata() { Key = "ShippingMethod",DataType=DataType.String, Value = package.ShippingMethod.ToString() },
-                                new Metadata() { Key = "CustomerIdentifier",DataType=DataType.String, Value = package.CustomerIdentifier }
-                            };
+                        {
+                            new Metadata() { Key = "RequestId",DataType=DataType.String, Value = package.RequestId},
+                            new Metadata() { Key = "CustomerIdentifier",DataType=DataType.String, Value = package.CustomerIdentifier },
+                            new Metadata() { Key = "ShippingCredCode",DataType=DataType.String, Value = package.ShippingCredCode },
+                            new Metadata() { Key = "ShippingMethod",DataType=DataType.String, Value = package.ShippingMethod.ToString() },
+                            new Metadata() { Key = "ReceivedDate",DataType=DataType.DateTime, Value = package.ReceivedDate.HasValue?package.ReceivedDate.Value.ToString():null }
+                        };
 
                         amParsedPieces.Add(amPiece);
                     }
@@ -401,13 +413,12 @@ namespace AM.Console
                         //TODO : Need to consult with Ravi Sir 
                         throw;
                     }
-                    amParsedBatch.MailPieces = amParsedPieces;
-
-                    return amParsedBatch;
                 }
             }
 
-            return null;
+            amParsedBatch.MailPieces = amParsedPieces;
+
+            return amParsedBatch;
         }
         #endregion
     }

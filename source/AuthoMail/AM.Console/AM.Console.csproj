@@ -78,6 +78,7 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="CoverLetterTemplates\USAA_Template.pdf" />
     <None Include="log4net.config" />
     <None Include="PackageInfoSchema.xsd">
       <SubType>Designer</SubType>
@@ -95,7 +96,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="CoverLetterTemplates\" />
     <Folder Include="Output\" />
   </ItemGroup>
   <ItemGroup>
