@@ -24,8 +24,33 @@
             <div class="panel-body">
                 <div class="col-md-5">
                     <div class="form-group col-md-6">
-                        <label for="input1">Loan Number</label>
-                        <input class="form-control" name="LoanNumber" value="@ViewBag.loanNumber" placeholder="Loan Number" id="loanNumber">
+                        @if (ViewBag.BusinessId.Count == 1)
+                        {
+                            <label for="BusinessFriendlyIdValue">@ViewBag.BusinessId[0]</label>
+                            <div class="input-group">
+                                <i class="fa fa-search left-icon"></i>
+                                <input class="form-control" name="BusinessFriendlyIdValue" value="@ViewBag.BusinessFriendlyIdValue" placeholder="@ViewBag.BusinessId[0]" required id="BusinessFriendlyIdValue">
+                                <input type="hidden" value="@ViewBag.BusinessId[0]"  name="BusinessFriendlyIdName" id="BusinessFriendlyIdName" />
+                            </div>
+                            <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
+                        }
+                        else
+                        {
+                            <label for="BusinessFriendlyIdName">Select Business ID</label>
+                            <div class="input-group">
+                                <i class="fa fa-search left-icon"></i>
+                                <select id="BusinessFriendlyIdName" class="selectpicker">
+                                    <option value="0">Select BusinessId</option>
+                                    @foreach (var item in ViewBag.BusinessId)
+                                    {
+                                        <option value="@item.ToString()">@item.ToString()</option>
+                                    }
+                                </select>
+                                <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdNameError">This field is required.</div>
+                                <input class="form-control" name="loanNumber" placeholder="" required id="BusinessFriendlyIdValue">
+                                <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
+                            </div>
+                        }
                     </div>
                     <div class="form-group col-md-6">
                         <label for="input1">Document Type</label>
@@ -128,7 +153,7 @@
             $.ajax({
                 type: "POST",
                 url: baseUrl + "RequestPullBack/_GetMailPieceList",
-                data: JSON.stringify({ loanNumber: loanNumber, docType: docType, startDate: startDate, endDate: endDate }),
+                data: JSON.stringify({ BusinessFriendlyIdName: $("#BusinessFriendlyIdName").val(), BusinessFriendlyIdValue: $("#BusinessFriendlyIdValue").val(), docType: docType, startDate: startDate, endDate: endDate }),
                 contentType: "application/json; charset=utf-8",
                 success: function (res) {
                     el.html(res);
