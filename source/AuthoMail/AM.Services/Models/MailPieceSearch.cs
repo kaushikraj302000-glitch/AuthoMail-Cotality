@@ -8,13 +8,19 @@ namespace AM.Services.Models
 {
     public class MailPieceSearch
     {
-        public Guid Id { get; set; }
-        public int BatchClustId { get; set; }
-        public string PrintBatchClustId { get; set; }
+        public int Id { get; set; }
+        public Guid UniqueId { get; set; }
+        public int? ClientId { get; set; }
+        public int? MailBatchId { get; set; }
+        public string PrintBatchId { get; set; }
         public string BusinessFriendlyIdName { get; set; }
         public string BusinessFriendlyIdValue { get; set; }
         public string FileName { get; set; }
         public string FilePattern { get; set; }
+        public string DocumentOrPackageType { get; set; }
+        public int SLADays { get; set; }
+        public DateTime? DueDate { get; set; }
+        public string ShippingStatus { get; set; }
         public bool IsRcptInfoSpecified { get; set; }
         public string RcptPrefix { get; set; }
         public string RcptFirstName { get; set; }
@@ -112,10 +118,10 @@ namespace AM.Services.Models
         public int IsShipped { get; set; }
         public DateTime? ShippedOn { get; set; }
         public decimal ShippingCost { get; set; }
-        public string ShippingStatus { get; set; }
+        
         public bool IsQCRequested { get; set; }
         public bool IsQCPerformed { get; set; }
-        public string DocumentOrPackageType { get; set; }
+        
         public string DownloadedFilePath { get; set; }
     }
     public class QuickPullBackResponse

@@ -54,7 +54,7 @@ namespace AM.Console
                         log.Error(ex);
                     }
 
-                    if (sftSite.IsDownloadDirectoryAvailable(sftChannelDetails.ADERequestDir))
+                    if (sftSite.IsDownloadDirectoryAvailable(sftChannelDetails.ToADEDir))
                     {
                         MailBatchDTO mailBatch = null;
 
@@ -62,7 +62,7 @@ namespace AM.Console
                         if (!string.IsNullOrEmpty(triggerFilePath))
                         {
                             // Download and Insert the batch in database first always.
-                            string zipFileFTPPath = Path.Combine(sftChannelDetails.ADERequestDir, Regex.Replace(Path.ChangeExtension(triggerFilePath, ".zip"), @"(w*)_Complete", string.Empty));
+                            string zipFileFTPPath = Path.Combine(sftChannelDetails.ToADEDir, Regex.Replace(Path.ChangeExtension(triggerFilePath, ".zip"), @"(w*)_Complete", string.Empty));
                             string batchName = Path.GetFileNameWithoutExtension(zipFileFTPPath);
 
                             string appDirRemotePath = "{0}/{1}".Fill(Common.AuthoMailRootFolder, client.AppCode);
@@ -163,13 +163,13 @@ namespace AM.Console
 
             string ftpTriggerFilePath = string.Empty;
             DateTime pingTime = Common.Now;
-            List<string> avialableTriggerFiles = sftp.ListDirectory(channelDetails.ADERequestDir).Where(f => Path.GetExtension(f).Equals(".go", StringComparison.CurrentCultureIgnoreCase) && Path.GetFileNameWithoutExtension(f).EndsWith("_Complete")).ToList();
+            List<string> avialableTriggerFiles = sftp.ListDirectory(channelDetails.ToADEDir).Where(f => Path.GetExtension(f).Equals(".go", StringComparison.CurrentCultureIgnoreCase) && Path.GetFileNameWithoutExtension(f).EndsWith("_Complete")).ToList();
 
             if (avialableTriggerFiles != null && avialableTriggerFiles.Count > 0)
             {
                 ftpTriggerFilePath = avialableTriggerFiles.First();
                 log.Debug(string.Format("Trigger file {0} found.", Path.GetFileName(ftpTriggerFilePath)));
-                return Path.Combine(channelDetails.ADERequestDir, ftpTriggerFilePath);
+                return Path.Combine(channelDetails.ToADEDir, ftpTriggerFilePath);
             }
             else
             {
@@ -184,7 +184,7 @@ namespace AM.Console
             if (!sftSite.IsConnected)
                 sftSite.Connect();
 
-            string ftpBackupDir = channelDetails.ADERequestArchiveDir;
+            string ftpBackupDir = channelDetails.ArchiveDir;
 
             string triggerFTPBackUpFilePath = Path.Combine(ftpBackupDir, Path.GetFileName(triggerFTPFilePath));
             if (sftSite.IsFileAvailable(triggerFTPBackUpFilePath))
