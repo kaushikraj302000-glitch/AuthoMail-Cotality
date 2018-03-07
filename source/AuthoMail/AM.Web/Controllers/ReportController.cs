@@ -24,12 +24,11 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult _GetBatchList(string loanNumber, string docType, DateTime startDate, DateTime endDate)
+        public ActionResult _GetBatchList(DateTime date)
         {
-            ViewBag.BatchId = loanNumber;
-            ViewBag.Date = string.Format("{0} To {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
+            ViewBag.Date = date.ToString("MM/dd/yyyy");
 
-            var model = repoSvc.GetSummaryControlReport(User.Identity.GetClientId().Value, startDate);
+            var model = repoSvc.GetSummaryControlReport(User.Identity.GetClientId().Value, date);
             return PartialView(model);
         }
         public ActionResult _GetMailPieceList(List<MonthlyReconReport> model)
@@ -74,13 +73,44 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult _GetErrorsReport(string loanNumber, string docType, DateTime startDate, DateTime endDate)
+        public ActionResult _GetErrorsReport(DateTime date)
         {
-            ViewBag.Date = string.Format("{0} To {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
-            var model = repoSvc.GetErrorReportByDateOrBatch(User.Identity.GetClientId().Value, startDate, null);
+            ViewBag.Date = date.ToString("MM/dd/yyyy");
+            var model = repoSvc.GetErrorReportByDateOrBatch(User.Identity.GetClientId().Value, date, null);
+            List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
+            foreach (var item in model)
+            {
+                reportViewModel.Add(new ReportViewModel
+                {
+                    Key = item.BatchId,
+                    Value = string.Format("{0} - {1}", item.ReceivedOn.ToString("H:mm"), item.BatchName)
+                });
+            }
+            ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
             return PartialView(model);
         }
 
+        public ActionResult ErrorSLAReport()
+        {
+            return View();
+        }
+        [HttpPost]
+        public ActionResult _GetErrorsSLAReport(DateTime date)
+        {
+            ViewBag.Date = date.ToString("MM/dd/yyyy");
+            var model = repoSvc.GetErrorReportByDateOrBatch(User.Identity.GetClientId().Value, date, null);
+            List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
+            foreach (var item in model)
+            {
+                reportViewModel.Add(new ReportViewModel
+                {
+                    Key = item.BatchId,
+                    Value = string.Format("{0} - {1}", item.ReceivedOn.ToString("H:mm"), item.BatchName)
+                });
+            }
+            ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
+            return PartialView(model);
+        }
         public ActionResult DailyDetailOperationsReport()
         {
             ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");

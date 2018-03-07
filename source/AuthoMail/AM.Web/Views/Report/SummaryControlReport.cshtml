@@ -19,21 +19,11 @@
         </div>
         <div id="metaItem1" class="panel-collapse collapse in">
             <div class="panel-body">
-                <div class="col-md-5">
-                    <div class="form-group col-md-6">
-                        <label for="input1">Loan Number</label>
-                        <input class="form-control" name="LoanNumber" placeholder="Loan Number" id="loanNumber">
-                    </div>
-                    <div class="form-group col-md-6">
-                        <label for="input1">Document Type</label>
-                        @Html.DropDownList("DocType", ViewBag.DocType as SelectList, "Select DocType", htmlAttributes: new { @class = "selectpicker" })
-                        
-                    </div>
-                </div>
-                <div class="col-md-6">
+                
+                <div class="col-md-3">
                     <div class="form-group">
                         <label for="dp4">Select Date</label>
-                        <div class="input-group daterange" id="datepicker4">
+                        <div class="input-group date" id="datepicker4">
                             <input type="text" class="form-control" id="dp4">
                             <span class="input-group-addon">
                                 <i class="fa fa-calendar"></i>
@@ -73,16 +63,15 @@
             var loanNumber = $("#loanNumber").val();
             var docType = $("#DocType").val();
 
-            var selectedData = $("#dp4").val().split('-');
+            var date = new Date($("#dp4").val());
 
-            var startDate = new Date(selectedData[0].trim());
-            var endDate = new Date(selectedData[1].trim());
+           
             var el = $('#batchList');
             el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Report/_GetBatchList",
-                data: JSON.stringify({ loanNumber: loanNumber,docType:docType,startDate:startDate,endDate:endDate }),
+                data: JSON.stringify({ date: date }),
                 contentType: "application/json; charset=utf-8",
                 success: function (res) {
                     el.html(res);

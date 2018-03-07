@@ -5,13 +5,13 @@
 <link href="~/clui/dist/css/datatablecustom.css" rel="stylesheet" />
 <style>
     .col-md-1, .col-md-2, .col-md-3 {
-        padding-left:10px !important;
-        padding-right:10px !important;
+        padding-left: 10px !important;
+        padding-right: 10px !important;
     }
 </style>
 <div class="panel-group">
     <div class="panel panel-default">
-        <div class="panel-heading" id="headingOne" >
+        <div class="panel-heading" id="headingOne">
             <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree">
                 <div class="panel-title">
 
@@ -23,29 +23,45 @@
                         <i class="fa fa-caret-down"></i>
                     </div>
 
-            </div>
+                </div>
             </a>
 
         </div>
         <div id="collapseThree" class="panel-collapse collapse in">
             <div class="panel-body">
-                <div class="col-md-2">
-                    <div class="form-group">
-                        <label for="input1">Loan Number</label>
-                        <input class="form-control" name="LoanNumber" placeholder="Loan Number" id="loanNumber">
-                    </div>
-                </div>
-                @*<div class="col-md-2"> @{//for pns operator}
-        <div class="form-group">
-            <label for="input1">Barcode Value</label>
-            <input class="form-control" name="LoanNumber" placeholder="Barcode Value" id="barcodeValue">
-        </div>
-    </div>*@
                 <div class="col-md-4">
+                    @if (ViewBag.BusinessId.Count == 1)
+                    {
+                        <label for="BusinessFriendlyIdValue">@ViewBag.BusinessId[0]</label>
+                        <div class="input-group">
+                            <i class="fa fa-search left-icon"></i>
+                            <input class="form-control" name="BusinessFriendlyIdValue" value="@ViewBag.BusinessFriendlyIdValue" placeholder="@ViewBag.BusinessId[0]" required id="BusinessFriendlyIdValue">
+                            <input type="hidden" value="@ViewBag.BusinessId[0]" name="BusinessFriendlyIdName" id="BusinessFriendlyIdName" />
+                        </div>
+                        <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
+                    }
+                    else
+                    {
+                        <label for="BusinessFriendlyIdName">Select Business ID</label>
+                        <div class="input-group">
+
+                            <select id="BusinessFriendlyIdName" class="selectpicker">
+                                <option value="">Select BusinessId</option>
+                                @foreach (var item in ViewBag.BusinessId)
+                                {
+                                    <option value="@item.ToString()">@item.ToString()</option>
+                                }
+                            </select>
+                            <input class="form-control" name="BusinessFriendlyIdValue" placeholder="" required id="BusinessFriendlyIdValue">
+
+                        </div>
+                    }
+                </div>
+                <div class="col-md-3">
                     <div class="form-group">
-                        <label for="dp4">Print On</label>
-                        <div class="input-group daterange" id="datepicker4">
-                            <input type="text" class="form-control" id="dp4">
+                        <label for="dp4">Printed On</label>
+                        <div class="input-group date" id="datepicker4">
+                            <input type="text" class="form-control" id="printedOn">
                             <span class="input-group-addon">
                                 <i class="fa fa-calendar"></i>
                             </span>
@@ -53,11 +69,11 @@
                     </div>
 
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="form-group">
                         <label for="dp4">Shipped On</label>
-                        <div class="input-group daterange" id="datepicker4">
-                            <input type="text" class="form-control" id="dp4">
+                        <div class="input-group date" id="datepicker4">
+                            <input type="text" class="form-control" id="shippedOn">
                             <span class="input-group-addon">
                                 <i class="fa fa-calendar"></i>
                             </span>
@@ -95,19 +111,12 @@
         });
         function FilterData() {
 
-            var loanNumber = $("#loanNumber").val();
-            var docType = $("#DocType").val();
-
-            var selectedData = $("#dp4").val().split('-');
-
-            var startDate = new Date(selectedData[0].trim());
-            var endDate = new Date(selectedData[1].trim());
             var el = $('#mailPieceList');
             el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
             $.ajax({
                 type: "POST",
-                url: baseUrl + "Home/_GetMailPieceList",
-                data: JSON.stringify({ loanNumber: loanNumber, docType: docType, startDate: startDate, endDate: endDate }),
+                url: baseUrl + "Home/_GetSearchData",
+                data: JSON.stringify({ BusinessFriendlyIdName: $("#BusinessFriendlyIdName").val(), BusinessFriendlyIdValue: $("#BusinessFriendlyIdValue").val(), printedOn: new Date($("#printedOn").val()), shippedOn: new Date($("#shippedOn").val()) }),
                 contentType: "application/json; charset=utf-8",
                 success: function (res) {
                     el.html(res);

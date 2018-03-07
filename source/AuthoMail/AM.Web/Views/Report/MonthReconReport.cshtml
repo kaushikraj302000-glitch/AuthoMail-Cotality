@@ -21,17 +21,7 @@
         </div>
         <div id="metaItem1" class="panel-collapse collapse in">
             <div class="panel-body">
-                <div class="col-md-5">
-                    <div class="form-group col-md-6">
-                        <label for="input1">Loan Number</label>
-                        <input class="form-control" name="LoanNumber" placeholder="Loan Number" id="loanNumber">
-                    </div>
-                    <div class="form-group col-md-6">
-                        <label for="input1">Document Type</label>
-                        @Html.DropDownList("DocType", ViewBag.DocType as SelectList, "Select DocType", htmlAttributes: new { @class = "selectpicker" })
-
-                    </div>
-                </div>
+                
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="dp4">Select Date</label>
@@ -70,6 +60,9 @@
             window.clui.dateTimePickerInit();
             FilterData();
         });
+        function BindDateDropdown() {
+            $("#dateselection").html();
+        }
         function FilterData() {
             console.log(baseUrl + "Report/_MonthReconReport");
             var loanNumber = $("#loanNumber").val();

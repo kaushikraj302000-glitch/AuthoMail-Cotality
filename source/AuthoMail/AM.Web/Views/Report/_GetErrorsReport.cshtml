@@ -5,16 +5,12 @@
 <div class="panel-body">
     @if (Model.Count > 0)
     {
-        var cnt = 1;
-
         <table class="table table-responsive" id="sample_2" style="overflow-x:scroll">
             <thead>
                 <tr>
-                    <th>#</th>
                     <th>Batch Id</th>
                     <th>ID</th>
                     <th>Channel</th>
-                    <th>Client Code</th>
                     <th>Package Name</th>
                     <th>Loan Number</th>
                     <th>File Name</th>
@@ -30,14 +26,15 @@
                     <th>Shipping Method</th>
                     <th>Customer Identifier</th>
                     <th>Request ID</th>
+                    <th>BatchId</th>
+
                 </tr>
             </thead>
             <tbody>
                 @foreach (var item in Model)
                 {
                     <tr class="row-small">
-                        <td><span>@cnt</span></td>
-                        <td><span>@item.BatchId</span></td>
+                        <td data-batchid="@item.BatchId"><span>@item.ClientBatchId</span></td>
                         <td><span>@item.MailPieceId</span></td>
                         <td><span>@item.Channel</span></td>
                         <td><span>@item.DocumentOrPackageType</span></td>
@@ -55,10 +52,9 @@
                         <td><span>@item.ShippingMethod</span></td>
                         <td><span>@item.CustomerIdentifier</span></td>
                         <td><span>@item.RequestId</span></td>
-                       
+                        <td>@item.BatchId</td>
                     </tr>
 
-                    cnt++;
                 }
             </tbody>
 
@@ -71,7 +67,10 @@
         </div>
     }
 </div>
+<div id="hideSelection">
 
+    @Html.DropDownList("BatchList", ViewBag.BatchList as SelectList, "Select Batch")
+</div>
 <script type="text/javascript">
     $(document).ready(function () {
         console.log(baseUrl);
@@ -93,6 +92,13 @@
                 "search": "<b>Search:</b>",
                 "zeroRecords": "No matching records found"
             },
+            "columnDefs": [
+                    {
+                        "targets": [18],
+                        "visible": false,
+                        "searchable": true
+                    },
+            ],
 
             "scrollX": true,
             buttons: [
@@ -108,22 +114,11 @@
                 className: 'btn btn-primary',
                 filename: filename,
                 title: title,
-                //exportOptions: {
-                //    columns: [0, 1, 2, 3, 4, 5, 6, 7]
-                //}
-
-            },
-                {
-                    extend: 'pdfHtml5',
-                    text: '<i class="fa fa-file-pdf-o"></i> Pdf',
-                    className: 'btn btn-info',
-                    filename: filename,
-                    title: title,
-                    //exportOptions: {
-                    //    columns: [0, 1, 2, 3, 4, 5, 6, 7]
-                    //},
-
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17]
                 }
+
+            }
 
 
 

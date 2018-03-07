@@ -54,9 +54,15 @@ namespace AM.Web.Controllers
 
         public ActionResult Search()
         {
+            ViewBag.BusinessId = homeSvc.GetBusinessFriendlyIdNameByclientId(User.Identity.GetClientId().Value);
             return View();
         }
-
+        [HttpPost]
+        public ActionResult _GetSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, DateTime printedOn, DateTime shippedOn)
+        {
+            //ViewBag.BusinessId = se.(User.Identity.GetClientId().Value);
+            return PartialView();
+        }
         [HttpPost]
         public ActionResult TodayChartDetails(string status, int batchId)
         {

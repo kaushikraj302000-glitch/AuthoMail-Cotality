@@ -6,12 +6,10 @@
 <div class="panel-body">
     @if (Model.Count > 0)
     {
-        var cnt = 1;
 
         <table class="table table-responsive" id="sample_2" style="overflow-x:scroll">
             <thead>
                 <tr>
-                    <th>#</th>
                     <th>Batch Id</th>
                     <th>ID</th>
                     <th>Channel</th>
@@ -41,8 +39,7 @@
                 @foreach (var item in Model)
                 {
                     <tr class="row-small">
-                        <td data-batchid="@item.BatchId"><span>@cnt</span></td>
-                        <td><span>@item.ClientBatchId</span></td>
+                        <td data-batchid="@item.BatchId"><span>@item.ClientBatchId</span></td>
                         <td><span>@item.MailPieceUniqueId</span></td>
                         <td><span>@item.Channel</span></td>
                         <td><span>@item.DocumentOrPackageType</span></td>
@@ -67,7 +64,7 @@
                         <td>@item.BatchId</td>
                     </tr>
 
-                    cnt++;
+                   
                 }
             </tbody>
 
@@ -106,7 +103,7 @@
             },
             "columnDefs": [
                     {
-                        "targets": [23],
+                        "targets": [22],
                         "visible": false,
                         "searchable": true
                     },
@@ -126,7 +123,7 @@
                 filename: filename,
                 title: title,
                 exportOptions: {
-                    columns: [1, 2, 3, 4, 5, 6, 7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22]
+                    columns: [0,1, 2, 3, 4, 5, 6, 7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
                 }
 
             }
@@ -148,7 +145,6 @@
 
 
         });
-        $(".selectpicker").change(function () { alert($(this).val()); });
         
     });
 

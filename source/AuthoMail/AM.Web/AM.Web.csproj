@@ -386,6 +386,9 @@
     <Content Include="Views\Home\WeeklyChartDetails.cshtml" />
     <Content Include="Views\Report\DailyDetailOperationsReport.cshtml" />
     <Content Include="Views\Report\_GetDailyDetailOperationsReport.cshtml" />
+    <Content Include="Views\Report\ErrorSLAReport.cshtml" />
+    <Content Include="Views\Report\_GetErrorsSLAReport.cshtml" />
+    <Content Include="Views\Home\_GetSearchData.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
