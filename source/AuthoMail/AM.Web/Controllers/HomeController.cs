@@ -14,15 +14,15 @@ namespace AM.Web.Controllers
     public class HomeController : Controller
     {
         IHomeService homeSvc;
-        IReportService repoSvc;
         IPullBackService pullBackSvc;
         IChartDataService chartDataSvc;
-        public HomeController(IHomeService homeSvc, IReportService repoSvc, IPullBackService pullBackSvc, IChartDataService chartDataSvc)
+        ISearchService serSvc;
+        public HomeController(IHomeService homeSvc, IPullBackService pullBackSvc, IChartDataService chartDataSvc, ISearchService serSvc)
         {
             this.homeSvc = homeSvc;
-            this.repoSvc = repoSvc;
             this.pullBackSvc = pullBackSvc;
             this.chartDataSvc = chartDataSvc;
+            this.serSvc = serSvc;
         }
         public ActionResult Index()
         {
@@ -60,8 +60,9 @@ namespace AM.Web.Controllers
         [HttpPost]
         public ActionResult _GetSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, DateTime printedOn, DateTime shippedOn)
         {
+            var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, printedOn, shippedOn);
             //ViewBag.BusinessId = se.(User.Identity.GetClientId().Value);
-            return PartialView();
+            return PartialView(data);
         }
         [HttpPost]
         public ActionResult TodayChartDetails(string status, int batchId)
