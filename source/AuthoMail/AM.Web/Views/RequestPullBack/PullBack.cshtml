@@ -22,7 +22,7 @@
         </div>
         <div id="metaItem1" class="panel-collapse collapse in">
             <div class="panel-body">
-                <div class="col-md-5">
+                <div class="col-md-7">
                     <div class="form-group col-md-6">
                         @if (ViewBag.BusinessId.Count == 1)
                         {
@@ -38,17 +38,16 @@
                         {
                             <label for="BusinessFriendlyIdName">Select Business ID</label>
                             <div class="input-group">
-                                <i class="fa fa-search left-icon"></i>
+
                                 <select id="BusinessFriendlyIdName" class="selectpicker">
-                                    <option value="0">Select BusinessId</option>
+                                    <option value="">Select BusinessId</option>
                                     @foreach (var item in ViewBag.BusinessId)
                                     {
                                         <option value="@item.ToString()">@item.ToString()</option>
                                     }
                                 </select>
-                                <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdNameError">This field is required.</div>
-                                <input class="form-control" name="loanNumber" placeholder="" required id="BusinessFriendlyIdValue">
-                                <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
+                                <input class="form-control" name="BusinessFriendlyIdValue" placeholder="" required id="BusinessFriendlyIdValue">
+
                             </div>
                         }
                     </div>
@@ -62,7 +61,7 @@
                             </select>*@
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="form-group">
                         <label for="dp4">Select Date</label>
                         <div class="input-group daterange" id="datepicker4">

@@ -24,12 +24,10 @@
                         <th>#</th>
                         <th>Loan Number</th>
                         <th>File Name</th>
-                        @*<th>Package Name</th>*@
                         <th>Recipient Name</th>
                         <th>Recipient Address</th>
-                        <th>Retrun Address</th>
                         <th>Pages Shipped</th>
-                        @*<th>Shipping Method</th>*@
+                        <th>Pullback Requested</th>
                         <th>Tracking Number</th>
                         <th>Shipping Status</th>
                     </tr>
@@ -53,18 +51,15 @@
                                         break;
                                     
                                 }
-                                @*<input type="checkbox" id="checkbox-demo_@(cnt)" data-mailpieceid="@item.MailPieceId" class="cl-check checkall" />
-                                <label for="checkbox-demo_@(cnt)"></label>*@
+                              
                             </td>
                             <td><span>@cnt</span></td>
                             <td><span>@item.BusinessFriendlyIdValue</span></td>
-                            @*<td><span>@item.DocumentOrPackageType</span></td>*@
                             <td><span>@item.FileName</span></td>
                             <td><span>@item.RecipientName </span></td>
                             <td><span>@item.RCPTAddress</span></td>
-                            <td><span>@item.RetAddress</span></td>
                             <td><span>@item.TotalPages</span></td>
-                            @*<td><span>@item.ShippingMethod</span></td>*@
+                            <td><span>@item.ShippingMethod</span></td>
                             <td><span>@item.TrackingNo</span></td>
                             <td>
                                 @switch (item.ShippingStatus)

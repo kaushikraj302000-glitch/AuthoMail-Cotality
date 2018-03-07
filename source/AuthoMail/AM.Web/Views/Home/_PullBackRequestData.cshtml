@@ -20,8 +20,8 @@
             @foreach (var item in Model)
             {
                 <tr class="row-small">
-                   
-                    <td><span>@cnt</span></td>
+
+                    <td class="mailpieceid" data-mailpieceid="@item.MailPieceUniqueId"><span>@cnt</span></td>
                     <td><span>@item.BusinessFriendlyIdValue</span></td>
                     <td><span>@item.FileName</span></td>
                     <td><span>@item.RecipientName </span></td>
@@ -29,12 +29,13 @@
                     <td><span>@item.RetAddress</span></td>
                     <td><span>@item.TotalPages</span></td>
                     <td><span>@item.TrackingNo</span></td>
-                    <td>
+                    <td class="status">
                         @switch (item.ShippingStatus)
                         {
 
                             case "PulledBack":
                                 <span class="label medium label-red">@item.ShippingStatus</span>
+                                
                                 break;
                             case "Error":
                             <span class="label medium label-red">@item.ShippingStatus</span>
