@@ -4,16 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Dapper;
+using AM.Services.Models;
 
 namespace AM.Services
 {
     public interface ISearchService
     {
-        List<MailPieceService> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? printedOn, DateTime? shippedOn);
+        List<MailPieceSearch> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? printedOn, DateTime? shippedOn);
     }
     public class SearchService : ServiceBase, ISearchService
     {
-        public List<MailPieceService> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? printedOn, DateTime? shippedOn)
+        public List<MailPieceSearch> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? printedOn, DateTime? shippedOn)
         {
             string query = "select * from [dbo].[view_MailPieceByParam] WHERE ClientId=@clientId";
 
@@ -35,7 +36,7 @@ namespace AM.Services
                 query = string.Format("{0} AND (cast(ShippedOn as date)=cast(@shippedOn as date))", query);
                 parameters.Add("@shippedOn", shippedOn);
             }
-            var data = db.Query<MailPieceService>(query, parameters).ToList();
+            var data = db.Query<MailPieceSearch>(query, parameters).ToList();
             return data;
         }
     }

@@ -22,21 +22,10 @@
         </div>
         <div id="metaItem1" class="panel-collapse collapse in">
             <div class="panel-body">
-                <div class="col-md-5">
-                    <div class="form-group col-md-6">
-                        <label for="input1">Loan Number</label>
-                        <input class="form-control" name="LoanNumber" placeholder="Loan Number" id="loanNumber">
-                    </div>
-                    <div class="form-group col-md-6">
-                        <label for="input1">Document Type</label>
-                        @Html.DropDownList("DocType", ViewBag.DocType as SelectList, "Select DocType", htmlAttributes: new { @class = "selectpicker" })
-
-                    </div>
-                </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="form-group">
                         <label for="dp4">Select Date</label>
-                        <div class="input-group daterange" id="datepicker4">
+                        <div class="input-group date" id="datepicker4">
                             <input type="text" class="form-control" id="dp4">
                             <span class="input-group-addon">
                                 <i class="fa fa-calendar"></i>
@@ -45,6 +34,7 @@
                     </div>
 
                 </div>
+
                 <div class="col-md-1">
                     <div class="form-group ">
                         <label for="input1"></label>
@@ -54,12 +44,19 @@
                         </button>
                     </div>
                 </div>
+                <div class="col-md-5" id="showBatch" style="display:none">
+                    <div class="form-group">
+                        <label for="input1">Select Batch</label>
+                        <div id="batchselection"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
 </div>
-<div class="panel panel-default" id="batchList"></div>
+<div class="panel panel-default" id="errorBatchList"></div>
+
 
 @section Scripts{
     @Styles.Render("~/bundles/datatablescss")
@@ -70,23 +67,28 @@
             FilterData();
         });
         function FilterData() {
-
-            var loanNumber = $("#loanNumber").val();
-            var docType = $("#DocType").val();
-
-            var selectedData = $("#dp4").val().split('-');
-
-            var startDate = new Date(selectedData[0].trim());
-            var endDate = new Date(selectedData[1].trim());
-            var el = $('#batchList');
+            var selectedData = new Date($("#dp4").val());
+            var el = $('#errorBatchList');
             el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Report/_GetErrorsReport",
-                data: JSON.stringify({ loanNumber: loanNumber,docType:docType,startDate:startDate,endDate:endDate }),
+                data: JSON.stringify({ date: selectedData }),
                 contentType: "application/json; charset=utf-8",
                 success: function (res) {
                     el.html(res);
+
+                    $("#showBatch").show();
+                    $("#batchselection").html(el.find("#hideSelection").html());
+                    $('#BatchList').addClass("selectpicker");
+                    $('.selectpicker').selectpicker('refresh');
+
+                    $("#hideSelection").html("");
+                    $('.selectpicker').on('change', function () {
+                        var selected = $(this).find("option:selected").val();
+                        var oTable = $('#sample_2').dataTable();
+                        oTable.fnFilter("^" + parseInt(selected) + "$", 23, true); //Exact value, column, reg
+                    });
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     var msg = 'Error on reloading the content. Please check your connection and try again.';
