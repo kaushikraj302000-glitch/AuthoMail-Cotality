@@ -63,6 +63,7 @@ namespace AM.Services
         public string ShippingMethod { get; set; }
         public string TrackingNo { get; set; }
         public string ShippingStatus { get; set; }
+        public bool IsPullBackRequested { get; set; }
 
         public string RetRcptPrefix { get; set; }
         public string RetRcptFirstName { get; set; }
@@ -120,6 +121,7 @@ namespace AM.Services
         public string ShippingStatus { get; set; }
         public string PulledBackBy { get; set; }
         public DateTime? PulledBackOn { get; set; }
+        public bool IsPullBackRequested { get; set; }
         public string PullBackMessage
         {
             get
