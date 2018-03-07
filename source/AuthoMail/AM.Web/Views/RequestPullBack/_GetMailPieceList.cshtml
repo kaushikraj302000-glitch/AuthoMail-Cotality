@@ -46,12 +46,21 @@
                                         <label for="checkbox-demo_@(cnt)"></label>
                                         break;
                                     case "InProgress":
-                                    <input type="checkbox" id="checkbox-demo_@(cnt)" data-mailpieceid="@item.MailPieceUniqueId" class="cl-check checkall" />
-                                    <label for="checkbox-demo_@(cnt)"></label>
+                                        if (item.IsPullBackRequested)
+                                        {
+                                            <input type="checkbox" disabled id="checkbox-demo_@(cnt)" data-mailpieceid="@item.MailPieceId" class="cl-check" />
+                                            <label for="checkbox-demo_@(cnt)"></label>
+                                        }
+                                        else
+                                        {
+                                            <input type="checkbox" id="checkbox-demo_@(cnt)" data-mailpieceid="@item.MailPieceUniqueId" class="cl-check checkall" />
+                                            <label for="checkbox-demo_@(cnt)"></label>
+                                        }
+
                                         break;
-                                    
+
                                 }
-                              
+
                             </td>
                             <td><span>@cnt</span></td>
                             <td><span>@item.BusinessFriendlyIdValue</span></td>
@@ -59,14 +68,23 @@
                             <td><span>@item.RecipientName </span></td>
                             <td><span>@item.RCPTAddress</span></td>
                             <td><span>@item.TotalPages</span></td>
-                            <td><span>@item.ShippingMethod</span></td>
+                            <td>
+                                @if (item.IsPullBackRequested)
+                                {
+                                    <span class="label medium label-yellow">Yes</span>
+                                }
+                                else
+                                {
+                                    <span class="label medium label-success">No</span>
+                                }
+                            </td>
                             <td><span>@item.TrackingNo</span></td>
                             <td>
                                 @switch (item.ShippingStatus)
                                 {
-                                   
+
                                     case "PulledBack":
-                                    <span class="label medium label-red">@item.ShippingStatus</span>
+                                        <span class="label medium label-red">@item.ShippingStatus</span>
                                         break;
                                     case "Error":
                                     <span class="label medium label-red">@item.ShippingStatus</span>
@@ -191,8 +209,7 @@
             })
             return;
         }
-        else
-        {
+        else {
             $("#confirmModal").modal("show");
         }
     });
@@ -206,7 +223,7 @@
             //console.log($(this).data("mailpieceid"));
 
         });
-        
+
         var el = $('.modal-body');
         el.html(mailpieceIds);
         $.ajax({

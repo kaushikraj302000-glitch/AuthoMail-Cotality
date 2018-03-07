@@ -10,8 +10,8 @@
                 <th>File Name</th>
                 <th>Recipient Name</th>
                 <th>Recipient Address</th>
-                <th>Retrun Address</th>
                 <th>Pages Shipped</th>
+                <th>Pullback Requested</th>
                 <th>Tracking Number</th>
                 <th>Shipping Status</th>
             </tr>
@@ -26,8 +26,18 @@
                     <td><span>@item.FileName</span></td>
                     <td><span>@item.RecipientName </span></td>
                     <td><span>@item.RCPTAddress</span></td>
-                    <td><span>@item.RetAddress</span></td>
                     <td><span>@item.TotalPages</span></td>
+                    <td class="ispullbackr">
+                        @if (item.IsPullBackRequested)
+                        {
+                            <span class="label medium label-yellow">Yes</span>
+                        }
+                        else
+                        {
+                            <span class="label medium label-success">No</span>
+                        }
+                    </td>
+
                     <td><span>@item.TrackingNo</span></td>
                     <td class="status">
                         @switch (item.ShippingStatus)

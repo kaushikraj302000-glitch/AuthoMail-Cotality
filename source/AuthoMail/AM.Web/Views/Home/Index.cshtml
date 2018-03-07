@@ -266,7 +266,7 @@
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     if (response.length == 0) {
-                        el.html("<div class='alert alert-red'><span>Currently no MailPieces received today</span></div>");
+                        el.html("<div class='alert alert-yellow'><span>Currently no MailPieces received today</span></div>");
                         $("#todayBody").css("min-height", "342px");
                         return;
                     }
@@ -422,7 +422,7 @@
             if ($("#BusinessFriendlyIdValue").val() == "") {
                 $("#BusinessFriendlyIdValueError").show();
                 return;
-                }
+            }
             //else {
             //    $("#BusinessFriendlyIdValueError").hide();
             //}
@@ -453,6 +453,7 @@
                             //drawDatatable();
                         });
                         var status = $("#sample_2").find(".status").text().trim();
+                        var IsPullbackRequested = $("#sample_2").find(".ispullbackr").text().trim();
                         switch (status) {
                             case "PulledBack":
                             case "Error":
@@ -463,10 +464,22 @@
                                 $("#noPullback").addClass("btn-primary");
                                 break;
                             case "InProgress":
-                                $("#yesPullback").show();
-                                $("#noPullback").html("<i class='fa fa-close'></i> No");
-                                $("#noPullback").removeClass("btn-primary");
-                                $("#noPullback").addClass("btn-default");
+                                if (IsPullbackRequested == "Yes") {
+                                    $("#yesPullback").hide();
+                                    $("#noPullback").html("<i class='fa fa-close'></i> Close");
+                                    $("#noPullback").removeClass("btn-default");
+                                    $("#noPullback").addClass("btn-primary");
+                                }
+                                else {
+                                    $("#yesPullback").show();
+                                    $("#noPullback").html("<i class='fa fa-close'></i> No");
+                                    $("#noPullback").removeClass("btn-primary");
+                                    $("#noPullback").addClass("btn-default");
+                                }
+                                //$("#yesPullback").show();
+                                //$("#noPullback").html("<i class='fa fa-close'></i> No");
+                                //$("#noPullback").removeClass("btn-primary");
+                                //$("#noPullback").addClass("btn-default");
                                 break;
                         }
                         console.log()
@@ -496,14 +509,14 @@
 
         });
 
-    $("#yesPullback").unbind("click").click(function (e) {
-        // console.log(baseUrl);
-        e.preventDefault();
-        $("#confirmModal").modal("hide");
-        var mailpieceId = $("#sample_2").find(".mailpieceid").data("mailpieceid");
-        console.log($("#sample_2").find(".mailpieceid").data("mailpieceid"));
-        SendPullBackRequest(mailpieceId);
-        @*var el = $("#myModal").find('.modal-body');
+        $("#yesPullback").unbind("click").click(function (e) {
+            // console.log(baseUrl);
+            e.preventDefault();
+            $("#confirmModal").modal("hide");
+            var mailpieceId = $("#sample_2").find(".mailpieceid").data("mailpieceid");
+            console.log($("#sample_2").find(".mailpieceid").data("mailpieceid"));
+            SendPullBackRequest(mailpieceId);
+            @*var el = $("#myModal").find('.modal-body');
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Home/GetMailPieceIdByLoanNumber",//?loanNumber=" + loanNumber,
@@ -541,6 +554,6 @@
             });*@
 
 
-    });
+        });
     </script>
 }
