@@ -59,18 +59,19 @@
                 {
                     <label for="BusinessFriendlyIdName">Select Business ID</label>
                     <div class="input-group">
-                        <i class="fa fa-search left-icon"></i>
+
                         <select id="BusinessFriendlyIdName" class="selectpicker">
-                            <option value="0">Select BusinessId</option>
+                            <option value="">Select BusinessId</option>
                             @foreach (var item in ViewBag.BusinessId)
                             {
                                 <option value="@item.ToString()">@item.ToString()</option>
                             }
                         </select>
-                        <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdNameError">This field is required.</div>
-                        <input class="form-control" name="loanNumber" placeholder="" required id="BusinessFriendlyIdValue">
-                        <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
+                        <input class="form-control" name="BusinessFriendlyIdValue" placeholder="" required id="BusinessFriendlyIdValue">
+
                     </div>
+                    <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdNameError">This field is required.</div>
+                    <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
                 }
 
 
@@ -178,8 +179,9 @@
 
             </div>
             <div class="modal-footer">
+
                 <button type="button" class="btn btn-primary" id="yesPullback"><i class="fa fa-check"></i> Yes</button>
-                <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> No</button>
+                <button type="button" class="btn btn-default" id="noPullback" data-dismiss="modal"><i class="fa fa-close"></i> No</button>
             </div>
         </div>
     </div>
@@ -264,7 +266,7 @@
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     if (response.length == 0) {
-                        el.html("<div class='alert alert-red'><span>Currently no MailPieces received today</span></div>");
+                        el.html("<div class='alert alert-yellow'><span>Currently no MailPieces received today</span></div>");
                         $("#todayBody").css("min-height", "342px");
                         return;
                     }
@@ -358,22 +360,43 @@
         google.charts.setOnLoadCallback(BindWeeklyChartData);
         google.charts.setOnLoadCallback(BindTodayChartData);
 
-        function SendPullBackRequest(mailpieceIds) {
+        function SendPullBackRequest(mailpieceId) {
+            var mailpieceIds = [];
+            mailpieceIds.push(mailpieceId);
             console.log(mailpieceIds);
-            var el = $('.modal-body');
+            var el = $("#myModal").find('.modal-body');
             $.ajax({
                 type: "POST",
                 url: baseUrl + "api/pullback/RequestPullBack",
-                data: { mailPieceIds: mailpieceIds },
+                data: JSON.stringify(mailpieceIds),
                 contentType: "application/json; charset=utf-8",
+                dataType: "JSON",
                 success: function (response) {
                     if (response.Success) {
                         if (response.Object != null) {
-                            el.html(response.Object);
+                            var msgAdd = "<ul>";
+
+                            for (var i = 0; i < response.Object.length; i++) {
+                                if (response.Object[i] != "" || response.Object[i] == "undefined") {
+                                    if (response.Object[i].IsSuccess) {
+
+                                        msgAdd += "<li><span class='text-bright-blue '>" + response.Object[i].MailPieceId + "</span>:" + response.Object[i].Message + "</li>";
+                                    }
+                                    else {
+                                        msgAdd += "<li ><span class='text-bright-blue '>" + response.Object[i].MailPieceId + "</span>:<span class='text-red'>" + response.Object[i].Message + "</span></li>";
+                                    }
+
+                                }
+                            }
+                            msgAdd += "</ul>";
+                            //alert(msgAdd);
+                            //$("#ErrorMessage").append(msgAdd);
+                            el.html(msgAdd);
                         }
                     }
                     else {
                         var htmlstr = "<div class='alert alert-red'><span>" + response.ErrorMessage + "</span></h1></div>";
+                        htmlstr += '<br><blockquote class=""><p><i class="fa fa-search"></i> @Html.ActionLink("Advance Search", "PullBack", "RequestPullBack") </P></blockquote>';
                         el.html(htmlstr);
                     }
                     $("#myModal").modal("show");
@@ -393,12 +416,18 @@
                 $("#BusinessFriendlyIdNameError").show();
                 return;
             }
-           
+            //else {
+            //    $("#BusinessFriendlyIdNameError").show();
+            //}
             if ($("#BusinessFriendlyIdValue").val() == "") {
                 $("#BusinessFriendlyIdValueError").show();
                 return;
             }
-            
+            //else {
+            //    $("#BusinessFriendlyIdValueError").hide();
+            //}
+
+
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Home/GetMailPieceIdByLoanNumber",
@@ -423,6 +452,37 @@
                             $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
                             //drawDatatable();
                         });
+                        var status = $("#sample_2").find(".status").text().trim();
+                        var IsPullbackRequested = $("#sample_2").find(".ispullbackr").text().trim();
+                        switch (status) {
+                            case "PulledBack":
+                            case "Error":
+                            case "Shipped":
+                                $("#yesPullback").hide();
+                                $("#noPullback").html("<i class='fa fa-close'></i> Close");
+                                $("#noPullback").removeClass("btn-default");
+                                $("#noPullback").addClass("btn-primary");
+                                break;
+                            case "InProgress":
+                                if (IsPullbackRequested == "Yes") {
+                                    $("#yesPullback").hide();
+                                    $("#noPullback").html("<i class='fa fa-close'></i> Close");
+                                    $("#noPullback").removeClass("btn-default");
+                                    $("#noPullback").addClass("btn-primary");
+                                }
+                                else {
+                                    $("#yesPullback").show();
+                                    $("#noPullback").html("<i class='fa fa-close'></i> No");
+                                    $("#noPullback").removeClass("btn-primary");
+                                    $("#noPullback").addClass("btn-default");
+                                }
+                                //$("#yesPullback").show();
+                                //$("#noPullback").html("<i class='fa fa-close'></i> No");
+                                //$("#noPullback").removeClass("btn-primary");
+                                //$("#noPullback").addClass("btn-default");
+                                break;
+                        }
+                        console.log()
                         $("#confirmModal").modal("show");
                     }
                     //el.html(response);
@@ -449,14 +509,14 @@
 
         });
 
-        $("#yesPullback").click(function (e) {
-            $("#confirmModal").modal("hide");
-            console.log(baseUrl);
+        $("#yesPullback").unbind("click").click(function (e) {
+            // console.log(baseUrl);
             e.preventDefault();
-
-            var el = $("#confirmModal").find('.modal-body');
-            var loanNumber = $("#loanNumber").val();
-            console.log(loanNumber);
+            $("#confirmModal").modal("hide");
+            var mailpieceId = $("#sample_2").find(".mailpieceid").data("mailpieceid");
+            console.log($("#sample_2").find(".mailpieceid").data("mailpieceid"));
+            SendPullBackRequest(mailpieceId);
+            @*var el = $("#myModal").find('.modal-body');
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Home/GetMailPieceIdByLoanNumber",//?loanNumber=" + loanNumber,
@@ -491,7 +551,7 @@
                     $("#myModal").modal("show");
                 }
 
-            });
+            });*@
 
 
         });

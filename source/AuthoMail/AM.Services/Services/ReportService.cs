@@ -19,9 +19,6 @@ namespace AM.Services
 
         List<MonthlyReconReport> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate);
 
-        //Need to move
-       
-
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -70,7 +67,7 @@ namespace AM.Services
             string query = ReportServiceQuery.GetSummaryControlReport;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@clientId", clientId);
-            query = string.Format("{0} AND (cast(ReceivedOn as date) = cast(@date as date) AND CONVERT(VARCHAR(5),ReceivedOn,108)  < @time)", query);
+            query = string.Format("{0} AND (cast(ReceivedOn as date) = cast(@date as date) AND CONVERT(VARCHAR(5),ReceivedOn,108)  <= @time)", query);
             parameters.Add("@date", date);
             parameters.Add("@time", "19:45");
             var data = db.Query<SummaryControlReport>(query, parameters).ToList();
@@ -107,10 +104,6 @@ namespace AM.Services
             var data = db.Query<MonthlyReconReport>(query, new { clientId = clientId, startDate = startDate, endDate = endDate, shippingStatus = new DbString { Value = ShippingStatus.Shipped.ToString() } }).ToList();
             return data;
         }
-
-
-       
-
 
     }
     public static class ReportServiceQuery
