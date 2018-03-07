@@ -1,10 +1,9 @@
 ﻿@model ICollection<AM.Services.PullBackInfo>
-
 <div class="panel panel-default">
     <div class="panel-heading">
         <div class="panel-title">
             MailPiece Details: @ViewBag.Date
-            <span class="pull-right" style=" margin-right: 11%;">
+            <span class="pull-right" @*style=" margin-right: 11%;"*@>
                 <button type="button" id="pullback" class="btn btn-transparent-red"><i class="fa fa-reply"></i> Pull Back</button>
             </span>
         </div>
@@ -37,6 +36,8 @@
                     {
                         <tr class="row-small">
                             <td>
+                                <span id="resPullBack_@(cnt)" data-trigger="hover" data-toggle="popover" data-placement="top"></span>
+
                                 @switch (item.ShippingStatus)
                                 {
                                     case "PulledBack":
@@ -53,7 +54,7 @@
                                         }
                                         else
                                         {
-                                            <input type="checkbox" id="checkbox-demo_@(cnt)" data-mailpieceid="@item.MailPieceUniqueId" class="cl-check checkall" />
+                                            <input type="checkbox" id="checkbox-demo_@(cnt)" data-cnt="@cnt" data-mailpieceid="@item.MailPieceUniqueId" class="cl-check checkall" />
                                             <label for="checkbox-demo_@(cnt)"></label>
                                         }
 
@@ -68,7 +69,7 @@
                             <td><span>@item.RecipientName </span></td>
                             <td><span>@item.RCPTAddress</span></td>
                             <td><span>@item.TotalPages</span></td>
-                            <td>
+                            <td id="IsPullBackRequested_@(cnt)">
                                 @if (item.IsPullBackRequested)
                                 {
                                     <span class="label medium label-yellow">Yes</span>
@@ -122,7 +123,7 @@
 </div>
 <script type="text/javascript">
     $(document).ready(function () {
-
+        window.clui.popoverInit();
         var table = $('#sample_2');
         var filename = "PullbackReport";
         var title = "Pullback Report";
@@ -149,17 +150,17 @@
                 //    className: 'btn purple pull-left',
                 //    columns: ':not(.noVis)'
                 //},
-            {
-                extend: 'excel',
-                text: '<i class="fa fa-file-excel-o"></i> Excel',
-                className: 'btn btn-primary',
-                filename: filename,
-                title: title,
-                exportOptions: {
-                    columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-                }
+            //{
+            //    extend: 'excel',
+            //    text: '<i class="fa fa-file-excel-o"></i> Excel',
+            //    className: 'btn btn-primary',
+            //    filename: filename,
+            //    title: title,
+            //    exportOptions: {
+            //        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+            //    }
 
-            }
+            //}
 
 
 
@@ -197,14 +198,12 @@
         var oTable = $('#sample_2').dataTable();
         $(".checkall:checked", oTable.fnGetNodes()).each(function () {
             mailpieceIds.push($(this).data("mailpieceid"));
-            //console.log($(this).data("mailpieceid"));
 
         });
         if (mailpieceIds.length == 0) {
             window.clui.globalAlert({
                 message: 'Please select MailPiece.',
                 alertType: 'red',
-                //fontawesomeIcon: 'superpowers',
                 timeout: 5000
             })
             return;
@@ -218,14 +217,15 @@
         e.preventDefault();
         var oTable = $('#sample_2').dataTable();
         var mailpieceIds = [];
+        var cnts = [];
         $(".checkall:checked", oTable.fnGetNodes()).each(function () {
             mailpieceIds.push($(this).data("mailpieceid"));
             //console.log($(this).data("mailpieceid"));
-
+            cnts.push($(this).data("cnt"));
         });
-
-        var el = $('.modal-body');
-        el.html(mailpieceIds);
+        
+        var el = $("#myModal").find('.modal-body');
+        //el.html(mailpieceIds);
         $.ajax({
             type: "POST",
             url: baseUrl + "api/pullback/RequestPullBack",
@@ -236,31 +236,43 @@
                 console.log(response);
                 if (response.Success) {
                     if (response.Object != null) {
-                        var msgAdd = "<ul>";
+
+                        //var msgAdd = "<ul>";
 
                         for (var i = 0; i < response.Object.length; i++) {
                             if (response.Object[i] != "" || response.Object[i] == "undefined") {
                                 if (response.Object[i].IsSuccess) {
-
-                                    msgAdd += "<li><span class='text-bright-blue '>" + response.Object[i].MailPieceId + "</span>:" + response.Object[i].Message + "</li>";
+                                    $("#IsPullBackRequested_" + cnts[i]).html('<span class="label medium label-yellow">Yes</span>');
+                                    $("#resPullBack_" + cnts[i]).html('<i class="fa fa-check icon-green"></i>');
+                                    $("#resPullBack_" + cnts[i]).css("margin-left", "-31%");
+                                    $("#checkbox-demo_" + cnts[i]).attr("disabled", "disabled");
+                                    $("#checkbox-demo_" + cnts[i]).prop('checked', false);
+                                    //msgAdd += "<li><span class='text-bright-blue '>" + response.Object[i].MailPieceId + "</span>:" + response.Object[i].Message + "</li>";
                                 }
                                 else {
-                                    msgAdd += "<li ><span class='text-bright-blue '>" + response.Object[i].MailPieceId + "</span>:<span class='text-red'>" + response.Object[i].Message + "</span></li>";
+                                    $("#IsPullBackRequested_" + cnts[i]).html('<span class="label medium label-yellow">Yes</span>');
+                                    $("#resPullBack_" + cnts[i]).html('<i class="fa fa-close icon-red" ></i>');
+                                    $('#resPullBack_' + cnts[i]).attr('data-content', response.Object[i].Message);
+                                    $('#resPullBack_' + cnts[i]).attr('data-original-title', "Error");
+                                    $("#resPullBack_" + cnts[i]).css("margin-left", "-25%");
+                                    $("#checkbox-demo_" + cnts[i]).attr("disabled", "disabled");
+                                    $("#checkbox-demo_" + cnts[i]).prop('checked', false);
                                 }
 
                             }
                         }
-                        msgAdd += "</ul>";
+                        //msgAdd += "</ul>";
                         //alert(msgAdd);
                         //$("#ErrorMessage").append(msgAdd);
-                        el.html(msgAdd);
+                        //el.html(msgAdd);
                     }
                 }
                 else {
                     var htmlstr = "<div class='alert alert-red'><span>" + response.ErrorMessage + "</span></h1></div>";
                     el.html(htmlstr);
+                    $("#myModal").modal("show");
                 }
-                $("#myModal").modal("show");
+                
             },
             error: function (xhr, ajaxOptions, thrownError) {
                 var msg = 'Error on reloading the content. Please check your connection and try again.';
