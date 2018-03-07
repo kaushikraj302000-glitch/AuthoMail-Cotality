@@ -9,7 +9,8 @@ namespace AM.Entities
     public class MailPieceDTO
     {
         public int Id { get; set; }
-        public int BatchId { get; set; }
+        public int ClientId { get; set; }
+        public int MailBatchId { get; set; }
         public int? PrintBatchId { get; set; }
         public Guid UniqueId { get; set; }
         public string BusinessFriendlyIdName { get; set; }

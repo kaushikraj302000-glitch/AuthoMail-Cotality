@@ -178,7 +178,7 @@ namespace AM.Console
             if (!sftp.IsConnected)
                 sftp.Connect();
 
-            string ftpBackupDir = sftChannel.ADERequestArchiveDir;
+            string ftpBackupDir = sftChannel.ArchiveDir;
 
             //if (!sftp.Exists(ftpBackupDir))
             //    sftp.CreateDirectory(ftpBackupDir);
@@ -227,7 +227,7 @@ namespace AM.Console
 
             string ftpTriggerFilePath = string.Empty;
             DateTime pingTime = DateTime.UtcNow;
-            List<SftpFile> avialableTriggerFiles = sftp.ListDirectory(sftChannel.ADERequestDir).Where(f => f.IsRegularFile && Path.GetExtension(f.FullName).Equals(".go", StringComparison.CurrentCultureIgnoreCase) && Path.GetFileNameWithoutExtension(f.Name).EndsWith("_Complete")).ToList<SftpFile>();
+            List<SftpFile> avialableTriggerFiles = sftp.ListDirectory(sftChannel.ToADEDir).Where(f => f.IsRegularFile && Path.GetExtension(f.FullName).Equals(".go", StringComparison.CurrentCultureIgnoreCase) && Path.GetFileNameWithoutExtension(f.Name).EndsWith("_Complete")).ToList<SftpFile>();
 
             if (avialableTriggerFiles != null && avialableTriggerFiles.Count > 0)
             {
@@ -350,7 +350,7 @@ namespace AM.Console
 
                                 #region AMMailPiece Data
                                 mailPiece = new MailPieceDTO();
-                                mailPiece.BatchId = batch.Id;
+                                mailPiece.MailBatchId = batch.Id;
                                 mailPiece.UniqueId = package.Id;
                                 mailPiece.FileName = package.File;
                                 mailPiece.DocumentOrPackageType = package.PackageName;
@@ -472,14 +472,14 @@ namespace AM.Console
                                 }
                                 mailPiece.ErrorCode = OutComeCodes.Invalid_XML.ToString();
                                 mailPiece.ErrorDesc = err.Message;
-                                mailPiece.BatchId = batch.Id;
+                                mailPiece.MailBatchId = batch.Id;
                             }
                             else
                             {
                                 mailPiece = new MailPieceDTO();
                                 mailPiece.ErrorCode = OutComeCodes.Invalid_XML.ToString();
                                 mailPiece.ErrorDesc = err.Message;
-                                mailPiece.BatchId = batch.Id;
+                                mailPiece.MailBatchId = batch.Id;
                                 if (loan.SelectSingleNode("./x:LoanNbr/text()", nsManager) == null)
                                 {
                                     mailPiece.BusinessFriendlyIdName = "LoanNbr";
@@ -551,14 +551,14 @@ namespace AM.Console
                                 }
                                 mailPiece.ErrorCode = OutComeCodes.Unknown_Error.ToString();
                                 mailPiece.ErrorDesc = err.Message;
-                                mailPiece.BatchId = batch.Id;
+                                mailPiece.MailBatchId = batch.Id;
                             }
                             else
                             {
                                 mailPiece = new MailPieceDTO();
                                 mailPiece.ErrorCode = OutComeCodes.Unknown_Error.ToString();
                                 mailPiece.ErrorDesc = err.Message;
-                                mailPiece.BatchId = batch.Id;
+                                mailPiece.MailBatchId = batch.Id;
                                 if (loan.SelectSingleNode("./x:LoanNbr/text()", nsManager) == null)
                                 {
                                     mailPiece.BusinessFriendlyIdName = "LoanNbr";
@@ -601,7 +601,7 @@ namespace AM.Console
                                 mailPiece = new MailPieceDTO();
                                 mailPiece.ErrorCode = OutComeCodes.Unknown_Error.ToString();
                                 mailPiece.ErrorDesc = parsingResult.ErrorMessage;
-                                mailPiece.BatchId = batch.Id;
+                                mailPiece.MailBatchId = batch.Id;
                                 if (loan.SelectSingleNode("./x:LoanNbr/text()", nsManager) == null)
                                 {
                                     mailPiece.BusinessFriendlyIdName = "LoanNbr";

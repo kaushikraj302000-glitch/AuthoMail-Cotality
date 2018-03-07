@@ -93,17 +93,16 @@ namespace AM.Console
                         continue;
                     }
 
+                    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationStart, Common.Now);
                     foreach (var piece in amParsedBatch.MailPieces)
                     {
                         MailPieceDTO mailPiece = new MailPieceDTO();
                         List<MailPieceCustomInfo> mailPieceCustInfo = new List<MailPieceCustomInfo>();
 
-                        mailPiece.BatchId = mbi.MailBatch.Id;
-
+                        mailPiece.MailBatchId = mbi.MailBatch.Id;
+                        mailPiece.ClientId = mbi.Client.Id;
                         try
                         {
-                            commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationStart, Common.Now);
-
                             ValidationResultAMC validationResult = Common.ValidateAMMailPiecesForUSAA(piece);
 
                             if (validationResult.Code == OutComeCodes.No_Error)
@@ -252,6 +251,8 @@ namespace AM.Console
                 MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, sftChannelDetails);
 
                 var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
+
+
             }
         }
     }
