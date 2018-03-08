@@ -12,6 +12,7 @@ namespace AM.Services
     public interface IBatchService
     {
         int InsertBatchDetails(MailBatchDTO mailBatch);
+        int DeleteBatchDetails(int mailBatchId);
         int UpdateBatchDetails(MailBatchDTO mailBatch);
         List<MailBatchDTO> GetBatchesByStatus(string batchPipelineStatus);
         BatchData GetMailBatchDetailsByBatchId(int mailBatchId);
@@ -27,9 +28,20 @@ namespace AM.Services
             return Convert.ToInt32(data);
         }
 
+        public int DeleteBatchDetails(int mailBatchId)
+        {
+            //Sql Query
+            string query = @"DELETE FROM [AM].[LogBatchTimeLine] WHERE MailBatchId=@Id
+                             DELETE FROM [AM].[MailBatchCustomInfo] WHERE MailBatchId=@Id
+                             DELETE FROM [AM].[MailBatches] WHERE Id=@Id;";
+
+            var data = db.Execute(query, new { Id = mailBatchId });
+            return data;
+        }
+
         public int UpdateBatchDetails(MailBatchDTO mailBatch)
         {
-            string query = "UPDATE [AM].[MailBatches] SET [UniqueId] = @UniqueId,[ClientId] = @ClientId,[DocumentOrPackageType] = @DocumentOrPackageType,[BatchName] = @BatchName,[PipelineStatus] = @PipelineStatus ,[ValidationStatus] = @ValidationStatus ,[ValidationErrors] = @ValidationErrors,[BatchStatus] = @BatchStatus ,[ReceivedOn] = @ReceivedOn,[DownloadedOn] = @DownloadedOn,[AcknowledgedOn] = @AcknowledgedOn,[ValidatedOn] = @ValidatedOn,[PreppedOn] = @PreppedOn,[SubmittedToShippingOn] = @SubmittedToShippingOn,[ShippingResponseReceivedOn] = @ShippingResponseReceivedOn,[ReportPreppedOn] = @ReportPreppedOn,[ReportedBackOn] = @ReportedBackOn,[ClientBatchId] = @ClientBatchId ,[IsReturnInfoSpecified] = IsReturnInfoSpecified,[RetRcptPrefix] = @RetRcptPrefix ,[RetRcptFirstName] =@RetRcptFirstName ,[RetRcptMiddleName] = @RetRcptMiddleName ,[RetRcptLastName] = @RetRcptLastName ,[RetRcptSuffix] = @RetRcptSuffix ,[RetRcptPhone] = @RetRcptPhone ,[RetRcptOrganization] = @RetRcptOrganization ,[RetRcptAddrOptionalLine1AboveStreet] = @RetRcptAddrOptionalLine1AboveStreet ,[RetRcptAddrOptionalLine2AboveStreet] = @RetRcptAddrOptionalLine2AboveStreet ,[RetRcptAddressStreet] = @RetRcptAddressStreet ,[RetRcptAddressAptOrSuiteOrOther] = @RetRcptAddressAptOrSuiteOrOther ,[RetRcptAddrOptionalLine1BelowStreet] = RetRcptAddrOptionalLine1BelowStreet ,[RetRcptAddrOptionalLine2BelowStreet] = RetRcptAddrOptionalLine2BelowStreet ,[RetRcptAddressCity] = @RetRcptAddressCity ,[RetRcptAddressState] = @RetRcptAddressState ,[RetRcptAddressZIP] = @RetRcptAddressZIP ,[Priority] = @Priority ,[SFTChannelId] = @SFTChannelId WHERE Id=@Id";
+            string query = "UPDATE [AM].[MailBatches] SET [UniqueId] = @UniqueId,[ClientId] = @ClientId,[DocumentOrPackageType] = @DocumentOrPackageType,[BatchName] = @BatchName ,[ValidationStatus] = @ValidationStatus ,[ValidationErrors] = @ValidationErrors,[ClientBatchId] = @ClientBatchId ,[IsReturnInfoSpecified] = IsReturnInfoSpecified,[RetRcptPrefix] = @RetRcptPrefix ,[RetRcptFirstName] =@RetRcptFirstName ,[RetRcptMiddleName] = @RetRcptMiddleName ,[RetRcptLastName] = @RetRcptLastName ,[RetRcptSuffix] = @RetRcptSuffix ,[RetRcptPhone] = @RetRcptPhone ,[RetRcptOrganization] = @RetRcptOrganization ,[RetRcptAddrOptionalLine1AboveStreet] = @RetRcptAddrOptionalLine1AboveStreet ,[RetRcptAddrOptionalLine2AboveStreet] = @RetRcptAddrOptionalLine2AboveStreet ,[RetRcptAddressStreet] = @RetRcptAddressStreet ,[RetRcptAddressAptOrSuiteOrOther] = @RetRcptAddressAptOrSuiteOrOther ,[RetRcptAddrOptionalLine1BelowStreet] = RetRcptAddrOptionalLine1BelowStreet ,[RetRcptAddrOptionalLine2BelowStreet] = RetRcptAddrOptionalLine2BelowStreet ,[RetRcptAddressCity] = @RetRcptAddressCity ,[RetRcptAddressState] = @RetRcptAddressState ,[RetRcptAddressZIP] = @RetRcptAddressZIP ,[Priority] = @Priority ,[SFTChannelId] = @SFTChannelId WHERE Id=@Id";
 
             var data = db.ExecuteScalar(query, mailBatch);
             return Convert.ToInt32(data);
@@ -76,9 +88,9 @@ namespace AM.Services
         {
             BatchData data = null;
             string query = @"SELECT * FROM [AM].[MailBatches] WHERE Id=@mailBatchId 
-                            SELECT * FROM [AM].[MailBatchCustomInfo] WHERE BatchId=@mailBatchId
-                            SELECT * FROM [AM].[MailPieces] WHERE BatchId=@mailBatchId
-                            SELECT * FROM [AM].[MailPieceCustomInfo] WHERE MailPieceId IN (SELECT Id FROM [AM].[MailPieces] WHERE BatchId=@mailBatchId)";
+                            SELECT * FROM [AM].[MailBatchCustomInfo] WHERE MailBatchId=@mailBatchId
+                            SELECT * FROM [AM].[MailPieces] WHERE MailBatchId=@mailBatchId
+                            SELECT * FROM [AM].[MailPieceCustomInfo] WHERE MailPieceId IN (SELECT Id FROM [AM].[MailPieces] WHERE MailBatchId=@mailBatchId)";
 
             using (var multi = db.QueryMultiple(query, new { mailBatchId = mailBatchId }))
             {
