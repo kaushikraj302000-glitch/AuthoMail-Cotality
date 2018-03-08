@@ -250,12 +250,12 @@
                                     //msgAdd += "<li><span class='text-bright-blue '>" + response.Object[i].MailPieceId + "</span>:" + response.Object[i].Message + "</li>";
                                 }
                                 else {
-                                    $("#IsPullBackRequested_" + cnts[i]).html('<span class="label medium label-yellow">Yes</span>');
-                                    $("#resPullBack_" + cnts[i]).html('<i class="fa fa-close icon-red" ></i>');
+                                    //$("#IsPullBackRequested_" + cnts[i]).html('<span class="label medium label-yellow">Yes</span>');
+                                    $("#resPullBack_" + cnts[i]).html('<i class="fa fa-close icon-red" style="cursor: pointer;"></i>');
                                     $('#resPullBack_' + cnts[i]).attr('data-content', response.Object[i].Message);
                                     $('#resPullBack_' + cnts[i]).attr('data-original-title', "Error");
                                     $("#resPullBack_" + cnts[i]).css("margin-left", "-25%");
-                                    $("#checkbox-demo_" + cnts[i]).attr("disabled", "disabled");
+                                    //$("#checkbox-demo_" + cnts[i]).attr("disabled", "disabled");
                                     $("#checkbox-demo_" + cnts[i]).prop('checked', false);
                                 }
 
