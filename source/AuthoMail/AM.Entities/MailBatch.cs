@@ -32,6 +32,9 @@ namespace AM.Entities
         [XmlElement(ElementName = "ReturnInfo")]
         public ReturnInfo ReturnInfo { get; set; }
 
+        [XmlElement(ElementName = "ShippingInfo")]
+        public ShippingInfo ShippingInfo { get; set; }
+
         [XmlArrayItem]
         public List<MailPiece> MailPieces { get; set; }
 
@@ -72,6 +75,14 @@ namespace AM.Entities
         public bool ShouldSerializeReturnInfo()
         {
             return ReturnInfo != null;
+        }
+
+        [XmlElement(ElementName = "ShippingInfo")]
+        public ShippingInfo ShippingInfo { get; set; }
+
+        public bool ShouldSerializeShippingInfo()
+        {
+            return ShippingInfo != null;
         }
 
         [XmlArrayItem]
@@ -200,6 +211,20 @@ namespace AM.Entities
 
     [Serializable]
     [XmlType(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0")]
+    public class ShippingInfo
+    {
+        [XmlAttribute]
+        public Carrier Carrier { get; set; }
+
+        [XmlAttribute]
+        public ServiceType ServiceType { get; set; }
+
+        [XmlAttribute]
+        public string AccountCode { get; set; }
+    }
+
+    [Serializable]
+    [XmlType(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0")]
     public enum Priority
     {
         High,
@@ -216,5 +241,27 @@ namespace AM.Entities
         Boolean,
         Integer,
         Float
+    }
+
+    [Serializable]
+    [XmlType(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0")]
+    public enum Carrier
+    {
+        USPS,
+        FedEx,
+        UPS
+    }
+    [Serializable]
+    [XmlType(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0")]
+    public enum ServiceType
+    {
+        USPS = 0,
+        FEDEX_2_DAY = 1,
+        FEDEX_EXPRESS_SAVER = 2,
+        FEDEX_GROUND = 3,
+        FIRST_OVERNIGHT = 4,
+        GROUND_HOME_DELIVERY = 5,
+        PRIORITY_OVERNIGHT = 6,
+        STANDARD_OVERNIGHT = 7
     }
 }
