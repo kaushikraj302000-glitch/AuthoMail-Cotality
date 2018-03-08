@@ -56,7 +56,15 @@ namespace AM.Console
             PnS_SFT_Password = ConfigurationManager.AppSettings["PnS_SFT_Password"];
             PnS_SFT_RootDir = ConfigurationManager.AppSettings["PnS_SFT_RootDir"];
 
+            DownloadEmailTemplate = ConfigurationManager.AppSettings["DownloadEmailTemplate"];
+            DownloadEmail_Subject = ConfigurationManager.AppSettings["DownloadEmail_Subject"];
+            ProccessEmail_Subject = ConfigurationManager.AppSettings["ProccessEmail_Subject"];
+
             Email_SMTPClient = new SmtpClient();
+            
+            Email_To = ConfigurationManager.AppSettings["Email_To"];
+            Email_Cc = ConfigurationManager.AppSettings["Email_Cc"];
+
         }
 
         public static void CleanDirectory(string path)

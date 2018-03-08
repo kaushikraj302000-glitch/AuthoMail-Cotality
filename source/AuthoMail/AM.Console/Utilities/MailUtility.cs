@@ -162,8 +162,23 @@ namespace AM.Console
                 errorReport.AppendLine();
                 foreach (MailPieceDTO mailPiece in mailPiecesWithErr)
                 {
-                    errorReport.AppendLine(string.Format("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8} {9}\t{10}\t{11}\t{12}\t{13}\t{14}\t{15}\t{16}\t{17}",
-                        mailBatch.BatchName == null ? string.Empty : mailBatch.BatchName, mailPiece.UniqueId, mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType, mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue, mailPiece.FileName == null ? string.Empty : mailPiece.FileName, mailBatch.ReceivedOn == null ? string.Empty : mailBatch.ReceivedOn.Value.ToString("yyyy-MM-dd HH:mm:ss"), mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName, mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName, mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet, mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity, mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState, mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP, mailPiece.ErrorCode, mailPiece.ErrorDesc == null ? string.Empty : mailPiece.ErrorDesc.Replace(',', ' ').Replace("\r\n", " "), mailPiecesCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").Single() == null ? string.Empty : mailPiecesCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").Single().Value, mailPiecesCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").Single() == null ? string.Empty : mailPiecesCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").Single().Value, mailPiecesCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").Single() == null ? string.Empty : mailPiecesCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").Single().Value));
+                    errorReport.AppendLine(string.Format("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8} {9}\t{10}\t{11}\t{12}\t{13}\t{14}\t{15}\t{16}",
+                        mailBatch.BatchName == null ? string.Empty : mailBatch.BatchName, mailPiece.UniqueId,
+                        mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType,
+                        mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
+                        mailPiece.FileName == null ? string.Empty : mailPiece.FileName,
+                        mailBatch.ReceivedOn == null ? string.Empty : mailBatch.ReceivedOn.Value.ToString("yyyy-MM-dd HH:mm:ss"),
+                        mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName,
+                        mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName,
+                        mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet,
+                        mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity,
+                        mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
+                        mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
+                        mailPiece.ErrorCode,
+                        mailPiece.ErrorDesc == null ? string.Empty : mailPiece.ErrorDesc.Replace(',', ' ').Replace("\r\n", " "),
+                        mailPiecesCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault() == null ? string.Empty : mailPiecesCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault().Value,
+                        mailPiecesCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").FirstOrDefault() == null ? string.Empty : mailPiecesCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").FirstOrDefault().Value,
+                        mailPiecesCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault() == null ? string.Empty : mailPiecesCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault().Value));
                 }
             }
 

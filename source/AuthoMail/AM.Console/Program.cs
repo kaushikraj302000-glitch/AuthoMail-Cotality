@@ -13,13 +13,8 @@ namespace AM.Console
         {
             DownloadJob downloadJob = new DownloadJob();
             downloadJob.DownloadNewBatch();
-            downloadJob.ConvertBatchIntoAMXml();
-
-            CoreJob coreJob = new CoreJob();
-            coreJob.ParseAuthoMailSchema();
-            coreJob.AcknowledgeReportSend();
-            //AMCXmlParse downloadAMCJob = new AMCXmlParse();
-            //downloadAMCJob.DownloadAMCXml();
+            downloadJob.ValidateBatches();
+            downloadJob.AcknowledgeBatches();
         }
     }
 }
