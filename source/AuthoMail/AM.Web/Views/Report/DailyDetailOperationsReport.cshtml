@@ -22,7 +22,7 @@
             <div class="panel-body">
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label for="dp4">Select Date</label>
+                        <label for="dp4">Select Date (In EST)</label>
                         <div class="input-group date" id="datepicker4">
                             <input type="text" class="form-control" id="dp4">
                             <span class="input-group-addon">
@@ -72,16 +72,19 @@
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Report/_GetDailyDetailOperationsReport",
-                data: JSON.stringify({ date: selectedData }),
+                data: JSON.stringify({ date: $("#dp4").val() }),
                 contentType: "application/json; charset=utf-8",
                 success: function (res) {
                     el.html(res);
 
-                    $("#showBatch").show();
                     $("#batchselection").html(el.find("#hideSelection").html());
                     $('#BatchList').addClass("selectpicker");
                     $('.selectpicker').selectpicker('refresh');
                   
+                    if ($('.selectpicker').length > 1) {
+
+                        $("#showBatch").show();
+                    }
                     $("#hideSelection").html("");
                     $('.selectpicker').on('change', function () {
                         var selected = $(this).find("option:selected").val();

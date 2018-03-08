@@ -59,19 +59,12 @@
             FilterData();
         });
         function FilterData() {
-           
-            var loanNumber = $("#loanNumber").val();
-            var docType = $("#DocType").val();
-
-            var date = new Date($("#dp4").val());
-
-           
             var el = $('#batchList');
             el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Report/_GetBatchList",
-                data: JSON.stringify({ date: date }),
+                data: JSON.stringify({ date: $("#dp4").val() }),
                 contentType: "application/json; charset=utf-8",
                 success: function (res) {
                     el.html(res);
