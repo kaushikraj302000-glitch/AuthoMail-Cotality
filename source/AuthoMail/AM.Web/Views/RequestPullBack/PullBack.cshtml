@@ -145,8 +145,8 @@
 
             var selectedData = $("#dp4").val().split('-');
 
-            var startDate = new Date(selectedData[0].trim());
-            var endDate = new Date(selectedData[1].trim());
+            var startDate =selectedData[0].trim();
+            var endDate = selectedData[1].trim();
             var el = $('#mailPieceList');
             el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
             $.ajax({

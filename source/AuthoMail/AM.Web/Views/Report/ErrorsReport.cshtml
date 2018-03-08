@@ -67,22 +67,24 @@
             FilterData();
         });
         function FilterData() {
-            var selectedData = new Date($("#dp4").val());
+            
             var el = $('#errorBatchList');
             el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Report/_GetErrorsReport",
-                data: JSON.stringify({ date: selectedData }),
+                data: JSON.stringify({ date: $("#dp4").val() }),
                 contentType: "application/json; charset=utf-8",
                 success: function (res) {
                     el.html(res);
 
-                    $("#showBatch").show();
                     $("#batchselection").html(el.find("#hideSelection").html());
                     $('#BatchList').addClass("selectpicker");
                     $('.selectpicker').selectpicker('refresh');
+                    if ($('.selectpicker').length>1) {
 
+                    $("#showBatch").show();
+                    }
                     $("#hideSelection").html("");
                     $('.selectpicker').on('change', function () {
                         var selected = $(this).find("option:selected").val();
