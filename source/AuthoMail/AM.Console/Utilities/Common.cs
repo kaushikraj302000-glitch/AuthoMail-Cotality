@@ -133,7 +133,7 @@ namespace AM.Console
             if (errorMsg.Contains("Address") || errorMsg.Contains("City") || errorMsg.Contains("State") || errorMsg.Contains("Zip"))
                 outcomeCode = OutComeCodes.Mailing_Address_Missing_Or_Invalid;
             else if (errorMsg.Contains("Recipient") || errorMsg.Contains("FirstName") || errorMsg.Contains("LastName"))
-                outcomeCode = OutComeCodes.Recipient_Name_Missing_Or_Invalid;
+                outcomeCode = OutComeCodes.Recipient_Details_Missing_Or_Invalid;
             else if (!string.IsNullOrEmpty(errorMsg))
                 outcomeCode = OutComeCodes.Invalid_XML;
 
@@ -142,7 +142,7 @@ namespace AM.Console
             return returnCode;
         }
 
-        private static ValidationResultAMC ValidateXMLNode(XmlNode xmlPiece)
+        public static ValidationResultAMC ValidateXMLNode(XmlNode xmlPiece)
         {
             var errors = ValidateAMXMLForUSAA(xmlPiece).ToList();
 
@@ -154,90 +154,24 @@ namespace AM.Console
             return new ValidationResultAMC() { Code = OutComeCodes.No_Error };
         }
 
-        public static IEnumerable<ValidationResultAMC> ValidateAMXMLForUSAA(XmlNode xmlPiece)
+        private static IEnumerable<ValidationResultAMC> ValidateAMXMLForUSAA(XmlNode xmlPiece)
         {
             XDocument xDoc = XDocument.Parse(xmlPiece.OuterXml);
             StringBuilder sbErrorMessage = new StringBuilder();
 
-            xDoc.Validate(schemaAM, (o, e) =>
+            xDoc.Validate(schemasAMC, (o, e) =>
             {
                 sbErrorMessage.Append(e.Message);
             });
 
             string errorMsg = sbErrorMessage.ToString();
 
-            if (errorMsg.Contains("Address") || errorMsg.Contains("Street") || errorMsg.Contains("City") || errorMsg.Contains("State") || errorMsg.Contains("Zip"))
-                yield return new ValidationResultAMC() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = errorMsg };
-
-            if (errorMsg.Contains("NAPhone"))
-                yield return new ValidationResultAMC() { Code = OutComeCodes.Recipient_Name_Missing_Or_Invalid, ErrorMessage = errorMsg };
-
-            if (!string.IsNullOrEmpty(errorMsg))
-                yield return new ValidationResultAMC() { Code = OutComeCodes.Invalid_XML, ErrorMessage = errorMsg };
-
-
-            //Now Parse MailPiecedata and Validate USAA Required Data
-            MailPiece piece = XmlUtil.Deserialize<MailPiece>(xmlPiece.OuterXml);
-
-            if (piece.RecipientInfo == null || piece.RecipientInfo.Recipient == null)
-            {
-                yield return new ValidationResultAMC() { Code = OutComeCodes.Recipient_Name_Missing_Or_Invalid, ErrorMessage = "Recipient details are missing in package." };
-            }
-
-            if (string.IsNullOrEmpty(piece.RecipientInfo.Recipient.FirstName) || string.IsNullOrEmpty(piece.RecipientInfo.Recipient.LastName))
-            {
-                yield return new ValidationResultAMC() { Code = OutComeCodes.Recipient_Name_Missing_Or_Invalid, ErrorMessage = "First name or last name is missing from Recipient details." };
-            }
-
-            if (piece.RecipientInfo.Address == null)
-            {
-                yield return new ValidationResultAMC() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Recipient address details are missing in package." };
-            }
-
-            if (string.IsNullOrEmpty(piece.DocumentOrPackageType))
-            {
-                yield return new ValidationResultAMC() { Code = OutComeCodes.Invalid_XML, ErrorMessage = "Package name is not defined in package." };
-            }
-
-            if (string.IsNullOrEmpty(piece.DocumentOrPackage.Name))
-            {
-                yield return new ValidationResultAMC() { Code = OutComeCodes.Invalid_XML, ErrorMessage = "File attribute is not defined in package." };
-            }
-
-            if (piece.ReturnInfo == null || piece.ReturnInfo.Recipient == null)
-            {
-                yield return new ValidationResultAMC() { Code = OutComeCodes.Invalid_XML, ErrorMessage = "Return info is not defined in package." };
-            }
-
-            if (piece.ReturnInfo == null || piece.ReturnInfo.Recipient == null)
-            {
-                yield return new ValidationResultAMC() { Code = OutComeCodes.Invalid_XML, ErrorMessage = "Recipient info of Return info is not defined in package." };
-            }
-
-            if (piece.ReturnInfo.Address == null || piece.ReturnInfo.Recipient == null)
-            {
-                yield return new ValidationResultAMC() { Code = OutComeCodes.Invalid_XML, ErrorMessage = "Return address is not defined in package." };
-            }
-
-            if (piece.CustomInfo.Where(c => c.Key == "ShippingMethod").SingleOrDefault() == null)
-            {
-                yield return new ValidationResultAMC() { Code = OutComeCodes.Invalid_XML, ErrorMessage = "Shipping method is not defined in package." };
-            }
-
-            if (piece.CustomInfo.Where(c => c.Key == "ShippingCredCode").SingleOrDefault() == null)
-            {
-                yield return new ValidationResultAMC() { Code = OutComeCodes.Invalid_XML, ErrorMessage = "Shipping credential code is not defined in package." };
-            }
-
-            if (piece.CustomInfo.Where(c => c.Key == "RequestId").SingleOrDefault() == null)
-            {
-                yield return new ValidationResultAMC() { Code = OutComeCodes.Invalid_XML, ErrorMessage = "RequestId is not defined in package." };
-            }
-
-            if (piece.CustomInfo.Where(c => c.Key == "CustomerIdentifier").SingleOrDefault() == null)
-            {
-                yield return new ValidationResultAMC() { Code = OutComeCodes.Invalid_XML, ErrorMessage = "CustomerIdentifier is not defined in package." };
-            }
+            if (errorMsg.Contains("Address") || errorMsg.Contains("City") || errorMsg.Contains("State") || errorMsg.Contains("Zip"))
+                yield return new ValidationResultAMC() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Recipient details are missing in package." };
+             if (errorMsg.Contains("Recipient") || errorMsg.Contains("FirstName") || errorMsg.Contains("LastName"))
+                 yield return new ValidationResultAMC() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Recipient details are missing in package." };
+             if (!string.IsNullOrEmpty(errorMsg))
+                 yield return new ValidationResultAMC() { Code = OutComeCodes.Invalid_XML, ErrorMessage = errorMsg };
 
             yield break;
         }
@@ -249,19 +183,20 @@ namespace AM.Console
 
             if (piece.RecipientInfo == null || piece.RecipientInfo.Recipient == null)
             {
-                outcomeCode += OutComeCodes.Recipient_Name_Missing_Or_Invalid + "|";
+                outcomeCode += OutComeCodes.Recipient_Details_Missing_Or_Invalid + "|";
                 sbErrorMessage.AppendLine("Recipient details are missing in package.");
             }
-            if (string.IsNullOrEmpty(piece.RecipientInfo.Recipient.FirstName) || string.IsNullOrEmpty(piece.RecipientInfo.Recipient.LastName))
+            else if (string.IsNullOrEmpty(piece.RecipientInfo.Recipient.FirstName) || string.IsNullOrEmpty(piece.RecipientInfo.Recipient.LastName))
             {
-                outcomeCode += OutComeCodes.Recipient_Name_Missing_Or_Invalid + "|";
+                outcomeCode += OutComeCodes.Recipient_Details_Missing_Or_Invalid + "|";
                 sbErrorMessage.AppendLine("First name or last name is missing from Recipient details.");
             }
-            if (piece.RecipientInfo.Address == null)
+            else if (piece.RecipientInfo.Address == null)
             {
                 outcomeCode += OutComeCodes.Mailing_Address_Missing_Or_Invalid + "|";
                 sbErrorMessage.AppendLine("Recipient address details are missing in package.");
             }
+
             if (string.IsNullOrEmpty(piece.DocumentOrPackageType))
             {
                 outcomeCode += OutComeCodes.Invalid_XML + "|";
@@ -277,12 +212,7 @@ namespace AM.Console
                 outcomeCode += OutComeCodes.Invalid_XML + "|";
                 sbErrorMessage.AppendLine("Return info is not defined in package.");
             }
-            if (piece.ReturnInfo == null || piece.ReturnInfo.Recipient == null)
-            {
-                outcomeCode += OutComeCodes.Invalid_XML + "|";
-                sbErrorMessage.AppendLine("Return info is not defined in package.");
-            }
-            if (piece.ReturnInfo.Address == null || piece.ReturnInfo.Recipient == null)
+            if (piece.ReturnInfo.Address == null)
             {
                 outcomeCode += OutComeCodes.Invalid_XML + "|";
                 sbErrorMessage.AppendLine("Return address is not defined in package.");
