@@ -10,6 +10,7 @@ using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using AM.Web.Models;
 using AM.Entities.IdentityModels;
+using AM.Services;
 
 namespace AM.Web.Controllers
 {
@@ -79,7 +80,12 @@ namespace AM.Web.Controllers
             var user = UserManager.FindByName(model.UserName);
             if (user == null)
             {
-                ModelState.AddModelError("", "Invalid username.");
+                ModelState.AddModelError("", Config.Msg_Web_Login_InvalidUserName);
+                return View(model);
+            }
+            if (!user.EmailConfirmed)
+            {
+                ModelState.AddModelError("", Config.Msg_Web_Login_EmailConfirm);
                 return View(model);
             }
             if (user.Email != null && user.Email != "")
@@ -110,7 +116,7 @@ namespace AM.Web.Controllers
                     return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
                 case SignInStatus.Failure:
                 default:
-                    ModelState.AddModelError("", "Invalid login attempt.");
+                    ModelState.AddModelError("", Config.Msg_Web_Login_Default);
                     return View(model);
             }
         }
