@@ -50,7 +50,7 @@ namespace AM.Services
         public List<MailBatchDTO> GetBatchesByStatus(string batchPipelineStatus)
         {
             //Sql Query
-            string query = "SELECT * FROM [AM].[MailBatches] WHERE PipelineStatus= @batchPipelineStatus";
+            string query = "SELECT * FROM [AM].[MailBatches] WHERE PipelineStatus= @batchPipelineStatus AND BatchStatus!='Failed'";
 
             switch (batchPipelineStatus)
             {

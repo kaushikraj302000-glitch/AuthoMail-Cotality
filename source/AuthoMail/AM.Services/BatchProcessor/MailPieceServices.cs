@@ -10,7 +10,7 @@ namespace AM.Services
     public interface IMailPieceService
     {
         int InsertBatchMailPieceDetails(MailPieceDTO mailPiece, List<MailPieceCustomInfo> mailPieceCustomInfo);
-        List<MailPieceDTO> GetMailPiecesByBatchClustId(int batchClustId);
+        List<MailPieceDTO> GetMailPiecesByMailBatchId(int mailBatchId);
         int InsertBatchMailPieceCustomDetails(List<MailPieceCustomInfo> mailPieceCustomInfos);
         List<MailPieceCustomInfo> GetMailPiecesCustomInfosByMailPieceId(Guid mailPieceGuId);
     }
@@ -36,7 +36,7 @@ namespace AM.Services
             return mailPieceId;
         }
 
-        public List<MailPieceDTO> GetMailPiecesByBatchClustId(int batchClustId)
+        public List<MailPieceDTO> GetMailPiecesByMailBatchId(int batchClustId)
         {
             //Sql Query
             string query = "SELECT * FROM [AM].[MailPiece] WHERE BatchClustId=@batchClustId";

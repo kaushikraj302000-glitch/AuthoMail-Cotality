@@ -292,7 +292,7 @@ namespace AM.Console
                     mbi.MailBatch.UniqueId = Guid.NewGuid();
                     mbi.MailBatch.ClientBatchId = mbi.BatchName;
                     mailBatchSvc.UpdateBatchDetails(mbi.MailBatch);
-                    
+
                     MoveTriggerFileToBackupDir(sftSite, triggerFilePath, channelDetails);
                 }
                 else
@@ -455,23 +455,13 @@ namespace AM.Console
                 var fullBatchPath = Path.Combine(mbi.AMRequestPath, mbi.BatchName);
                 var xmlFilePath = Path.Combine(fullBatchPath, mbi.BatchName + ".xml");
 
-                if (!File.Exists(xmlFilePath))
-                {
-                    mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid;
-                    mbi.MailBatch.ValidationErrors = "No AM XML file is available in {0} batch.".Fill(mbi.MailBatch.BatchName);
-
-                    mailBatchSvc.UpdateBatchDetails(mbi.MailBatch);
-
-                    commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
-                    continue;
-                }
-
                 XmlDocument batchXML = new XmlDocument();
                 XmlNamespaceManager nsManager = null;
                 XmlNodeList mailPieceNodes = null;
                 // Try to parse the XML we got from the zip file. If XML is invalid then log error.
                 try
                 {
+                    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationStart, Common.Now);
                     batchXML.LoadXml(File.ReadAllText(xmlFilePath));
                     nsManager = new XmlNamespaceManager(batchXML.NameTable);
                     nsManager.AddNamespace("x", "http://schemas.corelogic.com/2015/amc/v1/packages");
@@ -481,10 +471,12 @@ namespace AM.Console
                 {
                     #region Invalid XML file of the batch so just save error details
                     log.Error(err);
+                    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationEnd, Common.Now);
+                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
+                    commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
                     DeleteBatchDetailsAndFilesFromFolder(mbi);
                     #endregion
                 }
-                commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationStart, Common.Now);
                 if (mailPieceNodes != null)
                 {
                     foreach (XmlNode mailPieceNode in mailPieceNodes)
@@ -642,6 +634,36 @@ namespace AM.Console
                 }
                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
                 commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationStart, Common.Now);
+            }
+        }
+
+        public void AcknowledgeBatches()
+        {
+            List<MailBatchDTO> validatedBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.Validated);
+            if (validatedBatches == null)
+            {
+                log.Debug("Process batches job queue is empty.");
+                return;
+            }
+
+            foreach (var batch in validatedBatches)
+            {
+                Client client = clientSvc.GetClientDetails(batch.ClientId).Single();
+                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetails(batch.SFTChannelId);
+
+                MailBatchInfo mbi = new MailBatchInfo(batch, client, sftChannelDetails);
+
+                var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
+
+                if (data != null)
+                {
+                    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.AcknowledgeStart, Common.Now);
+
+                    MailUtility.SendDownloadNotificationEmail(mbi, data.MailPieces, data.MailPieceCustomInfo);
+
+                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
+                    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.AcknowledgeEnd, Common.Now);
+                }
             }
         }
         #endregion

@@ -640,7 +640,7 @@ namespace AM.Console
                     }
                 }
                 #endregion
-                List<MailPieceDTO> mailPieces = mailPieceSvc.GetMailPiecesByBatchClustId(batch.Id);
+                List<MailPieceDTO> mailPieces = mailPieceSvc.GetMailPiecesByMailBatchId(batch.Id);
                 //// TotalLoans is valid loans of this batch. Update the count and add barcode for each loan.
                 //if (mailPieces.Count > 0)
                 //{
