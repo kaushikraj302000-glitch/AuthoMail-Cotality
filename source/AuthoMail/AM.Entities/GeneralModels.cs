@@ -33,6 +33,7 @@ namespace AM.Entities
         public const string ReportPrepped = "ReportPrepped";
         public const string ReportedBack = "ReportedBack";
     }
+
     public static class OutComeCodes
     {
         public const string No_Error = "No_Error";
@@ -43,7 +44,7 @@ namespace AM.Entities
         public const string Invalid_PDF = "Invalid_PDF";
         public const string Missing_PDF = "Missing_PDF";
         public const string Mailing_Address_Missing_Or_Invalid = "Mailing_Address_Missing_Or_Invalid";
-        public const string Recipient_Name_Missing_Or_Invalid = "Recipient_Name_Missing_Or_Invalid";
+        public const string Recipient_Details_Missing_Or_Invalid = "Recipient_Details_Missing_Or_Invalid";
         public const string Unknown_Error = "Unknown_Error";
     }
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AM.Services;
+using System;
 using System.Collections.Generic;
 using System.DirectoryServices;
 using System.Linq;
@@ -68,7 +69,7 @@ namespace AM.Web.Models
                 //_path = result.Path;
 
                 _filterAttribute = (String)result.Properties["cn"][0];
-                return new KeyValuePair<bool, string>(true, "Success login.");
+                return new KeyValuePair<bool, string>(true, Config.Msg_Web_Login_Success);
             }
             catch (COMException ec)
             {

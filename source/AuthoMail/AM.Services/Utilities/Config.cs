@@ -28,7 +28,12 @@ namespace AM.Services
         public static string API_PB_ClientTimeZone { get; private set; }
         public static string API_PB_PullBackFormTemplatePath { get; private set; }
         #endregion
-
+        #region WEB AccountController
+        public static string Msg_Web_Login_InvalidUserName { get; private set; }
+        public static string Msg_Web_Login_EmailConfirm { get; private set; }
+        public static string Msg_Web_Login_Default { get; private set; }
+        public static string Msg_Web_Login_Success { get; private set; }
+        #endregion
         //public static Dictionary<string,string> Msg {get; private set;}
         static Config()
         {
@@ -50,6 +55,13 @@ namespace AM.Services
             API_PB_PullBackFormTemplatePath = HostingEnvironment.MapPath("~\\Template\\PullBackForm.pdf");
             #endregion
 
+            #region WEB AccountController
+            //Account Controller Login Messages
+            Msg_Web_Login_InvalidUserName = "Invalid Username.";
+            Msg_Web_Login_EmailConfirm = "Please confirm email address.";
+            Msg_Web_Login_Default = "Invalid login attempt.";
+            Msg_Web_Login_Success = "Login success.";
+            #endregion
             //Msg = new Dictionary<string, string>();
             //ConfigService cs = new ConfigService();
             //var messages = cs.GetSharedStrings();
