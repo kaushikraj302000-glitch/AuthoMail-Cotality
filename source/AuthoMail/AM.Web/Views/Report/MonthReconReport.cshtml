@@ -1,12 +1,12 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "MonthReconReport";
 }
 
 <link href="~/clui/dist/css/datatablecustom.css" rel="stylesheet" />
+<script src="~/clui/dist/js/vendor/moment.js"></script>
 <div class="panel-group">
     <div class="panel panel-default">
-        <div class="panel-heading" id="headingOne" >
+        <div class="panel-heading" id="headingOne">
             <a role="button" data-toggle="collapse" data-parent="#accordion" href="#metaItem1">
                 <div class="panel-title">
                     <i class="fa fa-filter"></i> Filter for Month Recon Report
@@ -21,16 +21,11 @@
         </div>
         <div id="metaItem1" class="panel-collapse collapse in">
             <div class="panel-body">
-                
-                <div class="col-md-6">
+
+                <div class="col-md-3">
                     <div class="form-group">
                         <label for="dp4">Select Date</label>
-                        <div class="input-group daterange" id="datepicker4">
-                            <input type="text" class="form-control" id="dp4">
-                            <span class="input-group-addon">
-                                <i class="fa fa-calendar"></i>
-                            </span>
-                        </div>
+                        <select class="selectpicker" id="dates"></select>
                     </div>
 
                 </div>
@@ -68,18 +63,21 @@
     <script>
         $(document).ready(function () {
             window.clui.dateTimePickerInit();
+            getLastMonths(6)
+
             FilterData();
+            //console.log(getLastMonths(6));
         });
         function BindDateDropdown() {
             $("#dateselection").html();
         }
         function FilterData() {
-            console.log(baseUrl + "Report/_MonthReconReport");
+            //console.log(baseUrl + "Report/_MonthReconReport");
             var loanNumber = $("#loanNumber").val();
             var docType = $("#DocType").val();
 
-            var selectedData = $("#dp4").val().split('-');
-
+            var selectedData = $("#dates").val().split('|');
+           // console.log(selectedData);
             var startDate = selectedData[0].trim();
             var endDate = selectedData[1].trim();
             var el = $('#batchList');
@@ -102,5 +100,32 @@
         $("#filterData").click(function () {
             FilterData();
         });
+        function getLastMonths(n) {
+            var m = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+            var last_n_months = [];
+            var d = new Date();
+            var d1 = new Date();
+            var last_mm_dd = [];
+            d1.setMonth(d.getMonth() - 1);
+            var option = "<option value=''>Select Date</option>"
+            for (var i = 0; i < n; i++) {
+                var key = "26-" + m[d1.getMonth()] + '-' + d1.getFullYear().toString() + " To " + "25-" + m[d.getMonth()] + '-' + d.getFullYear().toString();
+                var value = parseInt(d1.getMonth() + 1) + "/26/" + d1.getFullYear().toString() + "|" + parseInt(d.getMonth() + 1) + "/25/" + d.getFullYear().toString();
+                if (i == 0) {
+
+                    option += "<option selected='selected' value='" + value + "'>" + key + "</option>"
+                }
+                else {
+                    option += "<option value='" + value + "'>" + key + "</option>"
+                }
+                d.setMonth(d.getMonth() - 1);
+                d1.setMonth(d.getMonth() - 1);
+            }
+            $("#dates").html(option);
+            //console.log(option);
+            //return last_n_months
+        }
+
     </script>
 }
