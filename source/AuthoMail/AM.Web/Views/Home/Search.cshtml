@@ -8,6 +8,11 @@
         padding-left: 10px !important;
         padding-right: 10px !important;
     }
+
+   
+    .show-calendar{
+        width:484px !important;
+    }
 </style>
 <div class="panel-group">
     <div class="panel panel-default">
@@ -29,39 +34,69 @@
         </div>
         <div id="collapseThree" class="panel-collapse collapse in">
             <div class="panel-body">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     @if (ViewBag.BusinessId.Count == 1)
                     {
-                        <label for="BusinessFriendlyIdValue">@ViewBag.BusinessId[0]</label>
-                        <div class="input-group">
-                            <i class="fa fa-search left-icon"></i>
-                            <input class="form-control" name="BusinessFriendlyIdValue" value="@ViewBag.BusinessFriendlyIdValue" placeholder="@ViewBag.BusinessId[0]" required id="BusinessFriendlyIdValue">
-                            <input type="hidden" value="@ViewBag.BusinessId[0]" name="BusinessFriendlyIdName" id="BusinessFriendlyIdName" />
-                        </div>
-                        <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
+                    <label for="BusinessFriendlyIdValue">@ViewBag.BusinessId[0]</label>
+                    <div class="input-group">
+                        <i class="fa fa-search left-icon"></i>
+                        <input class="form-control" name="BusinessFriendlyIdValue" value="@ViewBag.BusinessFriendlyIdValue" placeholder="@ViewBag.BusinessId[0]" required id="BusinessFriendlyIdValue">
+                        <input type="hidden" value="@ViewBag.BusinessId[0]" name="BusinessFriendlyIdName" id="BusinessFriendlyIdName" />
+                    </div>
+                    <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
                     }
                     else
                     {
-                        <label for="BusinessFriendlyIdName">Select Business ID</label>
-                        <div class="input-group">
+                    <label for="BusinessFriendlyIdName">Select Business ID</label>
+                    <div class="input-group">
 
-                            <select id="BusinessFriendlyIdName" class="selectpicker">
-                                <option value="">Select BusinessId</option>
-                                @foreach (var item in ViewBag.BusinessId)
+                        <select id="BusinessFriendlyIdName" class="selectpicker">
+                            <option value="">Select BusinessId</option>
+                            @foreach (var item in ViewBag.BusinessId)
                                 {
-                                    <option value="@item.ToString()">@item.ToString()</option>
+                            <option value="@item.ToString()">@item.ToString()</option>
                                 }
-                            </select>
-                            <input class="form-control" name="BusinessFriendlyIdValue" placeholder="" required id="BusinessFriendlyIdValue">
+                        </select>
+                        <input class="form-control" name="BusinessFriendlyIdValue" placeholder="" required id="BusinessFriendlyIdValue">
 
-                        </div>
+                    </div>
                     }
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="dp4">Printed On</label>
-                        <div class="input-group date" id="datepicker4">
-                            <input type="text" class="form-control" id="printedOn">
+                        <label for="DocType">Document Type</label>
+                        @Html.DropDownList("DocType", ViewBag.DocType as SelectList, "Select DocType", htmlAttributes: new { @class = "selectpicker" })
+                    </div>
+
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="Status">Status</label>
+                        <select class="selectpicker" id="Status">
+                            <option value="">Select Status</option>
+                            <option value="InProgress">In Progress</option>
+                            <option value="PulledBack">Pulledback</option>
+                            <option value="Error">Error</option>
+                            <option value="Shipped">Shipped</option>
+                        </select>
+                    </div>
+
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="Channel">Channel</label>
+                        <select class="selectpicker" id="Channel">
+                            <option value="">Select Channel</option>
+                            <option value="Mortgage Cadence Integration">Mortgage Cadence Integration</option>
+                            <option value="CoreLogic SFTP">CoreLogic SFTP</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="receivedOn">Received  On</label>
+                        <div class="input-group daterange" id="datepicker4">
+                            <input type="text" class="form-control" id="receivedOn">
                             <span class="input-group-addon">
                                 <i class="fa fa-calendar"></i>
                             </span>
@@ -69,10 +104,10 @@
                     </div>
 
                 </div>
-                <div class="col-md-3">
+                @*<div class="col-md-3">
                     <div class="form-group">
-                        <label for="dp4">Shipped On</label>
-                        <div class="input-group date" id="datepicker4">
+                        <label for="shippedOn">Shipped On</label>
+                        <div class="input-group daterange" id="datepicker4">
                             <input type="text" class="form-control" id="shippedOn">
                             <span class="input-group-addon">
                                 <i class="fa fa-calendar"></i>
@@ -80,10 +115,10 @@
                         </div>
                     </div>
 
-                </div>
+                </div>*@
                 <div class="col-md-1">
                     <div class="form-group ">
-                        <label for="input1"> &nbsp;</label>
+                        <label for="filterData"> &nbsp;</label>
                         <button type="button" id="filterData" class="btn btn-primary">
                             <span class="sr-only">Filter</span>
                             <i class="fa fa-search"></i> Search
@@ -116,7 +151,16 @@
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Home/_GetSearchData",
-                data: JSON.stringify({ BusinessFriendlyIdName: $("#BusinessFriendlyIdName").val(), BusinessFriendlyIdValue: $("#BusinessFriendlyIdValue").val(), printedOn: $("#printedOn").val(), shippedOn: $("#shippedOn").val() }),
+                data: JSON.stringify({
+                    BusinessFriendlyIdName: $("#BusinessFriendlyIdName").val(),
+                    BusinessFriendlyIdValue: $("#BusinessFriendlyIdValue").val(),
+                    DocType: $("#DocType").val(),
+                    //shippedOnStart: $("#shippedOn").val(),
+                    //shippedOnEnd: $("#shippedOn").val(),
+                    receivedOnStart: $("#printedOn").val(),
+                    receivedOnEnd: $("#printedOn").val()
+
+                }),
                 contentType: "application/json; charset=utf-8",
                 success: function (res) {
                     el.html(res);

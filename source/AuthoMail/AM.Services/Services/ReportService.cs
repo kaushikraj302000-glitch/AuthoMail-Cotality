@@ -12,17 +12,15 @@ namespace AM.Services
 {
     public interface IReportService
     {
-        List<DailyDetailOperationsReport> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId);
-        List<ErrorReport> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId);
-        List<SummaryControlReport> GetSummaryControlReport(int clientId, DateTime date);
-        List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId);
-
-        List<MonthlyReconReport> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate);
-
+        List<DailyDetailOperationsReport> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel);
+        List<ErrorReport> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel);
+        List<SummaryControlReport> GetSummaryControlReport(int clientId, DateTime date, string channel);
+        List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string docType);
+        List<MonthlyReconReport> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel);
     }
     public class ReportService : ServiceBase, IReportService
     {
-        public List<DailyDetailOperationsReport> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId)
+        public List<DailyDetailOperationsReport> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel)
         {
             string query = ReportServiceQuery.GetDailyDetailOperationsByDateOrBatch;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
@@ -37,10 +35,15 @@ namespace AM.Services
                 query = string.Format("{0} AND BatchId=@batchId", query);
                 parameters.Add("@batchId", batchId);
             }
+            if (!channel.IsNullOrWhiteSpace())
+            {
+                query = string.Format("{0} AND Channel=@channel", query);
+                parameters.Add("@channel", channel);
+            }
             var data = db.Query<DailyDetailOperationsReport>(query, parameters).ToList();
             return data;
         }
-        public List<ErrorReport> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId)
+        public List<ErrorReport> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel)
         {
             string query = ReportServiceQuery.GetErrorReportByDateOrBatch;
 
@@ -58,11 +61,16 @@ namespace AM.Services
                 query = string.Format("{0} AND BatchId=@batchId", query);
                 parameters.Add("@batchId", batchId);
             }
+            if (!channel.IsNullOrWhiteSpace())
+            {
+                query = string.Format("{0} AND Channel=@channel", query);
+                parameters.Add("@channel", channel);
+            }
             var data = db.Query<ErrorReport>(query, parameters).ToList();
             return data;
         }
 
-        public List<SummaryControlReport> GetSummaryControlReport(int clientId, DateTime date)
+        public List<SummaryControlReport> GetSummaryControlReport(int clientId, DateTime date, string channel)
         {
             string query = ReportServiceQuery.GetSummaryControlReport;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
@@ -70,11 +78,16 @@ namespace AM.Services
             query = string.Format("{0} AND (cast(ReceivedOn as date) = cast(@date as date) AND CONVERT(VARCHAR(5),ReceivedOn,108)  <= @time)", query);
             parameters.Add("@date", date);
             parameters.Add("@time", "19:45");
+            if (!channel.IsNullOrWhiteSpace())
+            {
+                query = string.Format("{0} AND Channel=@channel", query);
+                parameters.Add("@channel", channel);
+            }
             var data = db.Query<SummaryControlReport>(query, parameters).ToList();
             return data;
         }
 
-        public List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId)
+        public List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string docType)
         {
             string query = ReportServiceQuery.GetSLAMissErrorReportByDateOrBatch;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
@@ -92,16 +105,30 @@ namespace AM.Services
                 query = string.Format("{0} AND BatchId=@batchId", query);
                 parameters.Add("@batchId", batchId);
             }
+            if(!docType.IsNullOrWhiteSpace())
+            {
+                query = string.Format("{0} AND DocumentOrPackageType=@docType", query);
+                parameters.Add("@docType", docType);
+            }
             var data = db.Query<ErrorReport>(query, parameters).ToList();
             return data;
         }
 
-        public List<MonthlyReconReport> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate)
+        public List<MonthlyReconReport> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel)
         {
             string query = ReportServiceQuery.GetMonthlyReconReport;
             //date must be in 26th to 25th
-
-            var data = db.Query<MonthlyReconReport>(query, new { clientId = clientId, startDate = startDate, endDate = endDate, shippingStatus = new DbString { Value = ShippingStatus.Shipped.ToString() } }).ToList();
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
+            parameters.Add("@clientId", clientId);
+            parameters.Add("@shippingStatus", ShippingStatus.Shipped.ToString());
+            parameters.Add("@startDate", startDate);
+            parameters.Add("@endDate", endDate);
+            if (!channel.IsNullOrWhiteSpace())
+            {
+                query = string.Format("{0} AND Channel=@channel", query);
+                parameters.Add("@channel", channel);
+            }
+            var data = db.Query<MonthlyReconReport>(query, parameters).ToList();
             return data;
         }
 

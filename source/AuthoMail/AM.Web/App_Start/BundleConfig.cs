@@ -85,6 +85,7 @@ namespace AM.Web
                       "~/clui/dist/css/components/navbar.css",
                       "~/clui/dist/css/components/page-title.css",
                       "~/clui/dist/css/components/panel.css",
+                      "~/clui/dist/css/customui.css",
                       "~/clui/dist/css/components/table.css"));
 
             bundles.Add(new StyleBundle("~/bundles/datatablescss").Include(

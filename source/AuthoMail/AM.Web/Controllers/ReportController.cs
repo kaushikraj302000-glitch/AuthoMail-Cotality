@@ -28,7 +28,7 @@ namespace AM.Web.Controllers
         {
             ViewBag.Date = date;
 
-            var model = repoSvc.GetSummaryControlReport(User.Identity.GetClientId().Value,Convert.ToDateTime(date));
+            var model = repoSvc.GetSummaryControlReport(User.Identity.GetClientId().Value, Convert.ToDateTime(date), null);
             return PartialView(model);
         }
         public ActionResult _GetMailPieceList(List<MonthlyReconReport> model)
@@ -44,7 +44,7 @@ namespace AM.Web.Controllers
         public ActionResult _MonthReconReport(string loanNumber, string docType, string startDate, string endDate)
         {
             ViewBag.Date = string.Format("{0} To {1}", startDate, endDate);
-            var model = repoSvc.GetMonthlyReconReport(User.Identity.GetClientId().Value, Convert.ToDateTime(startDate), Convert.ToDateTime(endDate));
+            var model = repoSvc.GetMonthlyReconReport(User.Identity.GetClientId().Value, Convert.ToDateTime(startDate), Convert.ToDateTime(endDate), null);
             return PartialView("_GetMailPieceList", model);
         }
 
@@ -64,7 +64,7 @@ namespace AM.Web.Controllers
         {
             ViewBag.Date = string.Format("{0} To {1}", startDate, endDate);
 
-            var model = repoSvc.GetDailyDetailOperationsByDateOrBatch(User.Identity.GetClientId().Value,Convert.ToDateTime( startDate), null);
+            var model = repoSvc.GetDailyDetailOperationsByDateOrBatch(User.Identity.GetClientId().Value, Convert.ToDateTime(startDate), null, null);
             return PartialView(model);
         }
         public ActionResult ErrorsReport()
@@ -76,7 +76,7 @@ namespace AM.Web.Controllers
         public ActionResult _GetErrorsReport(string date)
         {
             ViewBag.Date = date;
-            var model = repoSvc.GetErrorReportByDateOrBatch(User.Identity.GetClientId().Value, Convert.ToDateTime(date), null);
+            var model = repoSvc.GetErrorReportByDateOrBatch(User.Identity.GetClientId().Value, Convert.ToDateTime(date), null, null);
             List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
             foreach (var item in model)
             {
@@ -92,13 +92,14 @@ namespace AM.Web.Controllers
 
         public ActionResult ErrorSLAReport()
         {
+            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
             return View();
         }
         [HttpPost]
-        public ActionResult _GetErrorsSLAReport(string date)
+        public ActionResult _GetErrorsSLAReport(string date,string docType)
         {
             ViewBag.Date = date;
-            var model = repoSvc.GetErrorReportByDateOrBatch(User.Identity.GetClientId().Value, Convert.ToDateTime(date), null);
+            var model = repoSvc.GetSLAMissErrorReportByDateOrBatch(User.Identity.GetClientId().Value, Convert.ToDateTime(date), null,docType);
             List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
             foreach (var item in model)
             {
@@ -113,20 +114,20 @@ namespace AM.Web.Controllers
         }
         public ActionResult DailyDetailOperationsReport()
         {
-            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
             return View();
         }
         [HttpPost]
-        public ActionResult _GetDailyDetailOperationsReport(string date)
+        public ActionResult _GetDailyDetailOperationsReport(string date, string channel)
         {
             ViewBag.Date = date;
-            var model = repoSvc.GetDailyDetailOperationsByDateOrBatch(User.Identity.GetClientId().Value, Convert.ToDateTime(date), null);
+            var model = repoSvc.GetDailyDetailOperationsByDateOrBatch(User.Identity.GetClientId().Value, Convert.ToDateTime(date), null, channel);
             List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
             foreach (var item in model)
             {
-                reportViewModel.Add(new ReportViewModel { 
-                Key=item.BatchId,
-                Value = string.Format("{0} - {1}", item.ReceivedOn.ToString("H:mm"), item.BatchName)
+                reportViewModel.Add(new ReportViewModel
+                {
+                    Key = item.BatchId,
+                    Value = string.Format("{0} - {1}", item.ReceivedOn.ToString("H:mm"), item.BatchName)
                 });
             }
             ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
