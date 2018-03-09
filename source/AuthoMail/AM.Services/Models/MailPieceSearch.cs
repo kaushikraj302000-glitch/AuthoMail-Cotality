@@ -8,8 +8,8 @@ namespace AM.Services.Models
 {
     public class MailPieceSearch
     {
-        public int Id { get; set; }
-        public Guid UniqueId { get; set; }
+        public int MailPieceId { get; set; }
+        public Guid MailPieceUniqueId { get; set; }
         public int? ClientId { get; set; }
         public int? MailBatchId { get; set; }
         public string PrintBatchId { get; set; }
@@ -31,12 +31,25 @@ namespace AM.Services.Models
         {
             get
             {
-                return string.Format("{0}{1}{2}{3}{4}", RcptPrefix, RcptFirstName, RcptMiddleName, RcptLastName, RcptSuffix);
+                string name = string.Format("{0}{1}{2}{3}{4}",
+                    RcptPrefix.IsNullOrWhiteSpace() ? null : RcptPrefix.Trim() + ", ",
+                    RcptFirstName.IsNullOrWhiteSpace() ? null : RcptFirstName.Trim() + ", ",
+                    RcptMiddleName.IsNullOrWhiteSpace() ? null : RcptMiddleName.Trim() + ", ",
+                    RcptLastName.IsNullOrWhiteSpace() ? null : RcptLastName.Trim() + ", ",
+                    RcptSuffix.IsNullOrWhiteSpace() ? null : RcptSuffix.Trim() + ", ");
+                return name.IsNullOrWhiteSpace() ? name : name.Trim().Trim(',');
             }
         }
         public string RcptPhone { get; set; }
 
         public string RcptOrganization { get; set; }
+        public string CoRcptPrefix { get; set; }
+        public string CoRcptFirstName { get; set; }
+        public string CoRcptMiddleName { get; set; }
+        public string CoRcptLastName { get; set; }
+        public string CoRcptSuffix { get; set; }
+        public string CoRcptPhone { get; set; }
+        public string CoRcptOrganization { get; set; }
         public string RcptAddrOptionalLine1AboveStreet { get; set; }
         public string RcptAddrOptionalLine2AboveStreet { get; set; }
         public string RcptAddressStreet { get; set; }
@@ -74,7 +87,13 @@ namespace AM.Services.Models
         {
             get
             {
-                return string.Format("{0}{1}{2}{3}{4}", RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RcptSuffix);
+                string name = string.Format("{0}{1}{2}{3}{4}",
+                    RetRcptPrefix.IsNullOrWhiteSpace() ? null : RetRcptPrefix.Trim() + ", ",
+                    RetRcptFirstName.IsNullOrWhiteSpace() ? null : RetRcptFirstName.Trim() + ", ",
+                    RetRcptMiddleName.IsNullOrWhiteSpace() ? null : RetRcptMiddleName.Trim() + ", ",
+                    RetRcptLastName.IsNullOrWhiteSpace() ? null : RetRcptLastName.Trim() + ", ",
+                    RcptSuffix.IsNullOrWhiteSpace() ? null : RcptSuffix.Trim() + ", ");
+                return name.IsNullOrWhiteSpace() ? name : name.Trim().Trim(',');
             }
         }
         public string RetRcptPhone { get; set; }
@@ -106,8 +125,9 @@ namespace AM.Services.Models
             }
         }
 
-        public string PreppedFilePath { get; set; }
+        //public string PreppedFilePath { get; set; }
         public int TotalPages { get; set; }
+        public string TotalSheets { get; set; }
         public string ErrorCode { get; set; }
         public string ErrorDesc { get; set; }
         public int TrackingNo { get; set; }
@@ -115,14 +135,25 @@ namespace AM.Services.Models
         public DateTime? PullBackRequestedOn { get; set; }
         public int IsPulledBack { get; set; }
         public DateTime? PulledBackOn { get; set; }
+        public string PulledBackRequestedBy { get; set; }
+        public bool IsPrinted { get; set; }
+        public DateTime? PrintedOn { get; set; }
         public int IsShipped { get; set; }
         public DateTime? ShippedOn { get; set; }
         public decimal ShippingCost { get; set; }
-        
+        public decimal? Weight { get; set; }
         public bool IsQCRequested { get; set; }
         public bool IsQCPerformed { get; set; }
-        
-        public string DownloadedFilePath { get; set; }
+
+        public Guid BatchUniqueId { get; set; }
+        public string BatchName { get; set; }
+        public string BatchStatus { get; set; }
+        public DateTime? ReceivedOn { get; set; }
+        public int? SFTChannelId { get; set; }
+        public string ClientBatchId { get; set; }
+        public string PrintLocation { get; set; }
+        public string Channel { get; set; }
+
     }
     public class QuickPullBackResponse
     {
