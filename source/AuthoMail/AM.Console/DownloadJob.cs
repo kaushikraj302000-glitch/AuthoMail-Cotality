@@ -249,58 +249,58 @@ namespace AM.Console
             return downloadedZipFilePath;
         }
 
-        public void ProcessForUSAAClient(SFTUtil sftSite, string triggerFilePath, MailBatchInfo mbi, SFTChannel channelDetails)
-        {
-            var xmlFilePath = Path.Combine(mbi.AMRequestPath, mbi.BatchName, mbi.BatchName + ".xml");
+        //public void ProcessForUSAAClient(SFTUtil sftSite, string triggerFilePath, MailBatchInfo mbi, SFTChannel channelDetails)
+        //{
+        //    var xmlFilePath = Path.Combine(mbi.AMRequestPath, mbi.BatchName, mbi.BatchName + ".xml");
 
-            if (!File.Exists(xmlFilePath))
-            {
-                DeleteBatchDetailsAndFilesFromFolder(mbi);
-            }
+        //    if (!File.Exists(xmlFilePath))
+        //    {
+        //        DeleteBatchDetailsAndFilesFromFolder(mbi);
+        //    }
 
-            XmlDocument batchXML = new XmlDocument();
-            XmlNamespaceManager nsManager = null;
-            XmlNodeList mailPieceNodes = null;
-            // Try to parse the XML we got from the zip file. If XML is invalid then log error.
-            try
-            {
-                batchXML.LoadXml(File.ReadAllText(xmlFilePath));
-                nsManager = new XmlNamespaceManager(batchXML.NameTable);
-                nsManager.AddNamespace("x", "http://schemas.corelogic.com/2015/amc/v1/packages");
-                mailPieceNodes = batchXML.DocumentElement.ChildNodes;
-            }
-            catch (XmlException err)
-            {
-                #region Invalid XML file of the batch so just save error details
-                log.Error(err);
-                DeleteBatchDetailsAndFilesFromFolder(mbi);
-                #endregion
-            }
+        //    XmlDocument batchXML = new XmlDocument();
+        //    XmlNamespaceManager nsManager = null;
+        //    XmlNodeList mailPieceNodes = null;
+        //    // Try to parse the XML we got from the zip file. If XML is invalid then log error.
+        //    try
+        //    {
+        //        batchXML.LoadXml(File.ReadAllText(xmlFilePath));
+        //        nsManager = new XmlNamespaceManager(batchXML.NameTable);
+        //        nsManager.AddNamespace("x", "http://schemas.corelogic.com/2015/amc/v1/packages");
+        //        mailPieceNodes = batchXML.DocumentElement.ChildNodes;
+        //    }
+        //    catch (XmlException err)
+        //    {
+        //        #region Invalid XML file of the batch so just save error details
+        //        log.Error(err);
+        //        DeleteBatchDetailsAndFilesFromFolder(mbi);
+        //        #endregion
+        //    }
 
-            if (mailPieceNodes != null)
-            {
-                List<string> custIdList = new List<string>();
-                foreach (XmlNode mailPieceNode in mailPieceNodes)
-                {
-                    string customerIdentifierCode = mailPieceNode.SelectSingleNode("./x:CustomerIdentifier/text()", nsManager) == null ? string.Empty : mailPieceNode.SelectSingleNode("./x:CustomerIdentifier/text()", nsManager).Value;
+        //    if (mailPieceNodes != null)
+        //    {
+        //        List<string> custIdList = new List<string>();
+        //        foreach (XmlNode mailPieceNode in mailPieceNodes)
+        //        {
+        //            string customerIdentifierCode = mailPieceNode.SelectSingleNode("./x:CustomerIdentifier/text()", nsManager) == null ? string.Empty : mailPieceNode.SelectSingleNode("./x:CustomerIdentifier/text()", nsManager).Value;
 
-                    custIdList.Add(customerIdentifierCode.Trim());
-                }
+        //            custIdList.Add(customerIdentifierCode.Trim());
+        //        }
 
-                if (custIdList.Distinct().Count() == 1 && custIdList.Distinct().Single() == "166")
-                {
-                    mbi.MailBatch.UniqueId = Guid.NewGuid();
-                    mbi.MailBatch.ClientBatchId = mbi.BatchName;
-                    mailBatchSvc.UpdateBatchDetails(mbi.MailBatch);
+        //        if (custIdList.Distinct().Count() == 1 && custIdList.Distinct().Single() == "166")
+        //        {
+        //            mbi.MailBatch.UniqueId = Guid.NewGuid();
+        //            mbi.MailBatch.ClientBatchId = mbi.BatchName;
+        //            mailBatchSvc.UpdateBatchDetails(mbi.MailBatch);
 
-                    MoveTriggerFileToBackupDir(sftSite, triggerFilePath, channelDetails);
-                }
-                else
-                {
-                    DeleteBatchDetailsAndFilesFromFolder(mbi);
-                }
-            }
-        }
+        //            MoveTriggerFileToBackupDir(sftSite, triggerFilePath, channelDetails);
+        //        }
+        //        else
+        //        {
+        //            DeleteBatchDetailsAndFilesFromFolder(mbi);
+        //        }
+        //    }
+        //}
 
         private void DeleteBatchDetailsAndFilesFromFolder(MailBatchInfo mbi)
         {
