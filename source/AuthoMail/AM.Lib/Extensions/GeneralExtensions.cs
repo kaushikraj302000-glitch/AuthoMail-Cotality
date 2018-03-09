@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AM.Lib.Extensions
+namespace AM.Lib
 {
     public static class GeneralExtensions
     {

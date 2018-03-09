@@ -14,7 +14,7 @@ namespace AM.Services
         int InsertBatchDetails(MailBatchDTO mailBatch);
         int DeleteBatchDetails(int mailBatchId);
         int UpdateBatchDetails(MailBatchDTO mailBatch);
-        List<MailBatchDTO> GetBatchesByStatus(string batchPipelineStatus);
+        List<MailBatchDTO> GetBatchesByStatus(string batchPipelineStatus, string batchStatus = null);
         BatchData GetMailBatchDetailsByBatchId(int mailBatchId);
     }
     public class BatchService : ServiceBase, IBatchService //It implements Interfaces 
@@ -47,7 +47,7 @@ namespace AM.Services
             return Convert.ToInt32(data);
         }
 
-        public List<MailBatchDTO> GetBatchesByStatus(string batchPipelineStatus)
+        public List<MailBatchDTO> GetBatchesByStatus(string batchPipelineStatus, string batchStatus)
         {
             //Sql Query
             string query = "SELECT * FROM [AM].[MailBatches] WHERE PipelineStatus= @batchPipelineStatus ";
@@ -75,7 +75,13 @@ namespace AM.Services
             //Assign value to parameters It may one or more. Note:
             //List of parameters declaration
             Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@batchPipelineStatus", batchPipelineStatus.ToString());
+            parameters.Add("@batchPipelineStatus", batchPipelineStatus);
+
+            if (!string.IsNullOrEmpty(batchStatus))
+            {
+                parameters.Add("@batchStatus", batchStatus);
+                query += " AND BatchStatus=@batchStatus";
+            }
 
             /* Execution of query with parateters.
               Without Dapper you can't create following code. So just Add "using Dapper" namespace at begin.

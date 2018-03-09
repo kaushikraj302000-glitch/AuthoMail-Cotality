@@ -46,12 +46,10 @@ namespace AM.Entities
         public string CreatedBy { get; set; }
     }
 
-    public class DocTypeCoverLetters
+    public class DocTypeCoverLetter
     {
         public int DocTypeId { get; set; }
         public int SeqId { get; set; }
         public string CoverLetterTemplatePath { get; set; }
-        public string Condition { get; set; }
-        public string CarrierType { get; set; }
     }
 }

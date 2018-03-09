@@ -85,7 +85,7 @@ namespace AM.Console
 
                                 MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, sftChannelDetails);
                                 DownloadBatchFromFTP(sftSite, zipFileFTPPath, triggerFilePath, client, sftChannelDetails, mbi);
-                                ProcessForUSAAClient(sftSite, triggerFilePath, mbi, sftChannelDetails);
+                                //ProcessForUSAAClient(sftSite, triggerFilePath, mbi, sftChannelDetails);
                             }
                         }
                         else

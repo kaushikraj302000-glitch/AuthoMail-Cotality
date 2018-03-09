@@ -13,6 +13,7 @@ namespace AM.Services
         List<MailPieceDTO> GetMailPiecesByMailBatchId(int mailBatchId);
         int InsertBatchMailPieceCustomDetails(List<MailPieceCustomInfo> mailPieceCustomInfos);
         List<MailPieceCustomInfo> GetMailPiecesCustomInfosByMailPieceId(Guid mailPieceGuId);
+        int UpdateBatchMailPieceDetails(MailPieceDTO mailPiece);
     }
     public class MailPieceService : ServiceBase, IMailPieceService //It implements Interfaces 
     {
@@ -65,6 +66,29 @@ namespace AM.Services
 
             var data = db.Query<MailPieceCustomInfo>(query, parameters).ToList();
             return data;
+        }
+
+        public int UpdateBatchMailPieceDetails(MailPieceDTO mailPiece)
+        {
+            //Sql Query
+            string query = @"UPDATE [AM].[MailPieces] SET [UniqueId] = @UniqueId,[ClientId] = @ClientId,[MailBatchId] = @MailBatchId,[PrintBatchId] = @PrintBatchId,[BusinessFriendlyIdName] = @BusinessFriendlyIdName,[BusinessFriendlyIdValue] = @BusinessFriendlyIdValue,[FileName] = @FileName,[FilePattern] = @FilePattern,[DocumentOrPackageType] = @DocumentOrPackageType,[DueDate] = @DueDate,[ShippingStatus] = @ShippingStatus,[IsRcptInfoSpecified] = @IsRcptInfoSpecified,[RcptPrefix] = @RcptPrefix,[RcptFirstName] = @RcptFirstName,[RcptMiddleName] = @RcptMiddleName
+      ,[RcptLastName] = @RcptLastName,[RcptSuffix] = @RcptSuffix,[RcptPhone] = @RcptPhone,[RcptOrganization] = @RcptOrganization
+      ,[CoRcptPrefix] = @CoRcptPrefix,[CoRcptFirstName] = @CoRcptFirstName,[CoRcptMiddleName] = @CoRcptMiddleName,[CoRcptLastName] = @CoRcptLastName,[CoRcptSuffix] = @CoRcptSuffix,[CoRcptPhone] = @CoRcptPhone,[CoRcptOrganization] = @CoRcptOrganization
+      ,[RcptAddrOptionalLine1AboveStreet] = @RcptAddrOptionalLine1AboveStreet,[RcptAddrOptionalLine2AboveStreet] = @RcptAddrOptionalLine2AboveStreet,[RcptAddressStreet] = @RcptAddressStreet,[RcptAddressAptOrSuiteOrOther] = @RcptAddressAptOrSuiteOrOther,[RcptAddrOptionalLine1BelowStreet] = @RcptAddrOptionalLine1BelowStreet
+      ,[RcptAddrOptionalLine2BelowStreet] = @RcptAddrOptionalLine2BelowStreet,[RcptAddressCity] = @RcptAddressCity
+      ,[RcptAddressState] = @RcptAddressState,[RcptAddressZIP] = @RcptAddressZIP,[IsReturnInfoSpecified] = @IsReturnInfoSpecified
+      ,[RetRcptPrefix] = @RetRcptPrefix,[RetRcptFirstName] = @RetRcptFirstName,[RetRcptMiddleName] = @RetRcptMiddleName
+      ,[RetRcptLastName] = @RetRcptLastName,[RetRcptSuffix] = @RetRcptSuffix,[RetRcptPhone] = @RetRcptPhone
+      ,[RetRcptOrganization] = @RetRcptOrganization,[RetRcptAddrOptionalLine1AboveStreet] = @RetRcptAddrOptionalLine1AboveStreet
+      ,[RetRcptAddrOptionalLine2AboveStreet] = @RetRcptAddrOptionalLine2AboveStreet,[RetRcptAddressStreet] = @RetRcptAddressStreet
+      ,[RetRcptAddressAptOrSuiteOrOther] = @RetRcptAddressAptOrSuiteOrOther,[RetRcptAddrOptionalLine1BelowStreet] = @RetRcptAddrOptionalLine1BelowStreet,[RetRcptAddrOptionalLine2BelowStreet] = @RetRcptAddrOptionalLine2BelowStreet
+      ,[RetRcptAddressCity] = @RetRcptAddressCity,[RetRcptAddressState] = @RetRcptAddressState
+      ,[RetRcptAddressZIP] = @RetRcptAddressZIP,[TotalPages] = @TotalPages,[TotalSheets] = @TotalSheets,[ErrorCode] = @ErrorCode
+      ,[ErrorDesc] = @ErrorDesc,[TrackingNo] = @TrackingNo,[IsQCRequested] = @IsQCRequested
+	  WHERE Id=@Id";
+
+            var mailPieceId = db.Execute(query, mailPiece);
+            return mailPieceId;
         }
     }
 }

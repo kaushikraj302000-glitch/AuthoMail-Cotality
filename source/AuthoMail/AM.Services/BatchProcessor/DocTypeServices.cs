@@ -10,7 +10,12 @@ namespace AM.Services
 {
     public interface IDocTypeService
     {
-        List<DocType> GetDocTypesByClientIdOrByDocTypeName(int? clientId, string docTypeName);
+        List<DocType> GetDocTypesByClientIdOrByDocTypeName(int? clientId, string docTypeCode);
+
+        List<DocTypeCoverLetter> GetDocumentCoverLetterTemplates(int docTypeId);
+
+        DocType GetDocTypesByDocTypeName(int clientId, string documentOrPackageName);
+
     }
     public class DocTypeService : ServiceBase, IDocTypeService
     {
@@ -19,13 +24,13 @@ namespace AM.Services
             string query = "SELECT * FROM [AM].[DocTypes]";
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();
-            
+
             if (clientId.HasValue && string.IsNullOrEmpty(docTypeCode))
             {
                 query = query + " WHERE ClientId=@clientId";
                 parameters.Add("@clientId", clientId.Value);
             }
-            else if (clientId==null && !string.IsNullOrEmpty(docTypeCode))
+            else if (clientId == null && !string.IsNullOrEmpty(docTypeCode))
             {
                 query = query + " WHERE DocTypeCode=@docTypeCode";
                 parameters.Add("@DocTypeCode", docTypeCode);
@@ -38,6 +43,29 @@ namespace AM.Services
             }
 
             var data = db.Query<DocType>(query, parameters).ToList();
+            return data;
+        }
+
+        public List<DocTypeCoverLetter> GetDocumentCoverLetterTemplates(int docTypeId)
+        {
+            string query = "SELECT * FROM [AM].[DocTypeCoverLetters] WHERE DocTypeId=@docTypeId";
+
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
+            parameters.Add("@docTypeId", docTypeId);
+
+            var data = db.Query<DocTypeCoverLetter>(query, parameters).ToList();
+            return data;
+        }
+
+        public DocType GetDocTypesByDocTypeName(int clientId, string documentOrPackageName)
+        {
+            string query = "SELECT * FROM [AM].[DocTypes] WHERE ClientId=@clientId AND Description=@documentOrPackageName";
+
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
+            parameters.Add("@clientId", clientId);
+            parameters.Add("@documentOrPackageName", documentOrPackageName);
+
+            var data = db.Query<DocType>(query, parameters).SingleOrDefault();
             return data;
         }
     }
