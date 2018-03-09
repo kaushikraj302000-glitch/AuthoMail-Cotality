@@ -156,6 +156,15 @@ namespace AM.Core
             reader.Close();
         }
 
+        public static int GetPageCount(string filePath)
+        {
+            using (PdfReader reader = new PdfReader(filePath))
+            {
+                return reader.NumberOfPages;
+            }
+            return 0;
+        }
+
         public static float GetWidth(this PdfArray size)
         {
             return size.GetAsNumber(2).FloatValue - size.GetAsNumber(0).FloatValue;

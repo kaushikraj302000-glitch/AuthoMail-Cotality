@@ -1,5 +1,6 @@
 ﻿using AM.Entities;
 using AM.Services;
+using PCI.Lib;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -62,7 +63,6 @@ namespace AM.Core
                         string coverLetterTemplatePath = Path.Combine(Common.CoverTemplateFolder, docTypeLetter.CoverLetterTemplatePath);
                         string pdfFilePath = Path.Combine(mbi.AMRequestPath, mailPiece.FileName);
                         string outputFilePath = Path.Combine(mbi.PnSRequestPath, "{0}_{1}".Fill(mailPieceId, mailPiece.FileName));
-                        string coverLetterPath = Path.Combine(mbi.PnSRequestPath, "{0}_CoverLetter.pdf".Fill(mailPieceId));
 
                         #region Prepare dictionary of placeholders/tags to fill the PDF template.
 
@@ -80,10 +80,11 @@ namespace AM.Core
                         if (docType.ShippingCarrier == Carrier.USPS.ToString())
                         {
                             // Create final document using SmartDocs library.
-                            bool isDocumentGenerated = doc.GenerateDoc(coverLetterTemplatePath, pdfFilePath, outputFilePath, mailPieceData, docType.ContentScalePercent);
+                            int pageCount = doc.GenerateDoc(coverLetterTemplatePath, pdfFilePath, outputFilePath, mailPieceData, docType.ContentScalePercent);
 
-                            if (isDocumentGenerated)
+                            if (pageCount > 0)
                             {
+                                mailPiece.TotalPages = pageCount;
                                 mailPiece.TrackingNo = doc.TrackingCode;
                                 mailPiece.ShippingStatus = ShippingStatus.InProgress.ToString();
                             }
@@ -91,21 +92,21 @@ namespace AM.Core
                             {
                                 if (doc.ExceptionDetail.Contains("InvalidPdfException"))
                                 {
-                                    mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                                     mailPiece.ErrorCode = OutComeCodes.Invalid_PDF;
-                                    mailPiece.ErrorDesc = doc.ExceptionDetail;
                                 }
                                 else
                                 {
-                                    mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                                     mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
-                                    mailPiece.ErrorDesc = doc.ExceptionDetail;
                                 }
+                                mailPiece.TotalPages = 0;
+                                mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                mailPiece.ErrorDesc = doc.ExceptionDetail;
                             }
                         }
                     }
                     catch (Exception err)
                     {
+                        mailPiece.TotalPages = 0;
                         mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                         mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
                         mailPiece.ErrorDesc = "{0}\n{1}".Fill(err.Message, err.ToString());
@@ -136,6 +137,92 @@ namespace AM.Core
                 var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
 
                 List<MailPieceDTO> validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error || c.ErrorCode == null).ToList();
+
+                if (validMailPieces.Count == 0)
+                {
+                    continue;
+                }
+
+                commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingStart, Common.Now);
+                try
+                {
+                    List<PrintBatch> printBatches = new List<PrintBatch>();
+
+                    PrintBatch printBatch = null;
+
+                    var docTypes = validMailPieces.Select(row => row.DocumentOrPackageType.Trim()).Distinct();
+                    foreach (var documentOrPackageType in docTypes)
+                    {
+                        DocType docType = docTypeSvc.GetDocTypesByDocTypeName(mbi.Client.Id, documentOrPackageType);
+
+                        if (docType == null)
+                        {
+                            //TODO: Ask Ravi Sir
+                            continue;
+                        }
+
+                        printBatch = new PrintBatch();
+                        printBatch.AppCode = mbi.Client.AppCode;
+                        printBatch.Uniqueid = Guid.NewGuid();
+                        printBatch.MailBatchId = mbi.MailBatch.Id;
+                        printBatch.DocTypeId = docType.Id;
+                        printBatch.MailPieces = validMailPieces.Where(c => c.DocumentOrPackageType == documentOrPackageType).ToList();
+
+                        printBatches.Add(printBatch);
+                    }
+
+                    if (printBatches.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    foreach (var batch in printBatches)
+                    {
+                        if (batch.MailPieces.Count == 0)
+                        {
+                            continue;
+                        }
+
+                        string pnsRootFolder = Common.PnS_SFT_RootDir;
+                        string batchName = "{0}_{1}".Fill(mbi.MailBatch.BatchName, batch.DocTypeId);
+                        string batchSubmitPath = Path.Combine(pnsRootFolder, mbi.Client.AppCode, batchName);
+
+                        //TODO: Add Validation For Directory Full Access Read/Write/Delete
+
+                        if (!Directory.Exists(batchSubmitPath))
+                        {
+                            Directory.CreateDirectory(batchSubmitPath);
+                        }
+
+                        PnSRequest request = new PnSRequest();
+                        request.AppCode = batch.AppCode;
+                        request.BatchIdentifier = batch.Uniqueid;
+                        request.BatchName = batchName;
+                        request.DocTypeId = batch.DocTypeId;
+                        request.DueDate = Common.Today;
+                        request.OnValidationErrors = OnValidationErrors.ProcessValidFiles;
+
+                        List<MailPieceData> mailPackage = new List<MailPieceData>();
+                        foreach (var piece in batch.MailPieces)
+                        {
+                            File.Copy(Path.Combine(mbi.PnSRequestPath, piece.FileName), Path.Combine(batchSubmitPath, piece.FileName));
+                            
+                            MailPieceData mailPieceData = new MailPieceData();
+                            mailPieceData.UniqueId = piece.UniqueId;
+                            mailPieceData.TotalPages = piece.TotalPages;
+                            mailPieceData.PerformQC = piece.IsQCRequested;
+                            mailPieceData.PDFFileName = piece.FileName;
+
+                            mailPackage.Add(mailPieceData);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    log.Error(ex);
+                    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
+                }
+                commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
             }
         }
 

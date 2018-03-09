@@ -16,6 +16,7 @@ namespace AM.Services
         int UpdateBatchDetails(MailBatchDTO mailBatch);
         List<MailBatchDTO> GetBatchesByStatus(string batchPipelineStatus, string batchStatus = null);
         BatchData GetMailBatchDetailsByBatchId(int mailBatchId);
+        int InsertPrintBatchDetails(PrintBatch printBatch);
     }
     public class BatchService : ServiceBase, IBatchService //It implements Interfaces 
     {
@@ -111,6 +112,23 @@ namespace AM.Services
             }
 
             return data;
+        }
+
+        public int InsertPrintBatchDetails(PrintBatch printBatch)
+        {
+            //Sql Query
+            string query = "INSERT INTO [AM].[MailBatches](Uniqueid, MailBatchId, AppCode, DocTypeId) Output Inserted.Id VALUES (Uniqueid, MailBatchId, AppCode, DocTypeId)";
+
+            var printBatchId = db.ExecuteScalar(query, printBatch);
+
+            if (printBatchId != null || Convert.ToInt32(printBatchId) != 0)
+            {
+                string updateQuery = "UPDATE [AM].[MailPieces] SET [PrintBatchId]=@Id WHERE MailBatchId=@mailBatchId";
+
+                var data = db.Execute(updateQuery, new { Id = printBatchId, mailBatchId = printBatch.MailBatchId });
+                return data;
+            }
+            return 0;
         }
     }
 }

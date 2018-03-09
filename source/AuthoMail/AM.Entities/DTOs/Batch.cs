@@ -68,9 +68,18 @@ namespace AM.Entities
 
     public class BatchData
     {
-        public MailBatchDTO MailBatch{ get; set; }
+        public MailBatchDTO MailBatch { get; set; }
         public List<MailBatchCustomInfo> MailBatchCustomInfo { get; set; }
         public List<MailPieceDTO> MailPieces { get; set; }
         public List<MailPieceCustomInfo> MailPieceCustomInfo { get; set; }
+    }
+
+    public class PrintBatch
+    {
+        public int MailBatchId { get; set; }
+        public Guid Uniqueid { get; set; }
+        public int DocTypeId { get; set; }
+        public string AppCode { get; set; }
+        public List<MailPieceDTO> MailPieces { get; set; }
     }
 }

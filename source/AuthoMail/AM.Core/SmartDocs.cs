@@ -21,7 +21,7 @@ namespace AM.Core
         public string ExceptionDetail { get; private set; }
         public string TrackingCode { get; private set; }
 
-        public bool GenerateDoc(string coverTemplatePDFPath, string pdfAttachmentPath, string outputDocumentPath, Dictionary<string, string> mailPieceData, float contentScalePercent)
+        public int GenerateDoc(string coverTemplatePDFPath, string pdfAttachmentPath, string outputDocumentPath, Dictionary<string, string> mailPieceData, float contentScalePercent)
         {
             TrackingCode = string.Empty;
 
@@ -31,7 +31,7 @@ namespace AM.Core
             string coverLetterPDFPath = Path.Combine(outputDirPath, string.Format("CoverLetter_{0}.pdf", mailPieceData["MailPieceId"]));
             string mergeReadyFilePath = flattenPDFPath;
 
-            bool isDocGenerated = false;
+            int totalPage = 0;
             ExceptionDetail = string.Empty;
 
             try
@@ -62,7 +62,7 @@ namespace AM.Core
                 else
                 {
                     ExceptionDetail = IMBarcode.ErrorMessage;
-                    return false;
+                    return 0;
                 }
 
                 CoverLetterGen(coverTemplatePDFPath, mailPieceData, coverLetterPDFPath);
@@ -70,7 +70,7 @@ namespace AM.Core
                 if (!File.Exists(coverLetterPDFPath))
                 {
                     ExceptionDetail = "Unable to generate coverletter.";
-                    return false;
+                    return 0;
                 }
 
                 #endregion
@@ -94,14 +94,14 @@ namespace AM.Core
                     File.Delete(shrinkPDFPath);
                 }
 
-                isDocGenerated = true;
+                totalPage = PdfUtil.GetPageCount(outputDocumentPath);
             }
             catch (Exception err)
             {
                 ExceptionDetail = err.ToString();
             }
 
-            return isDocGenerated;
+            return totalPage;
         }
 
 
