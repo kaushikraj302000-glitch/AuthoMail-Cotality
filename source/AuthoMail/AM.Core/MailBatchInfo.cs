@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AM.Lib;
 
 namespace AM.Core
 {
@@ -19,15 +20,13 @@ namespace AM.Core
         public MailBatchDTO MailBatch { get; private set; }
         public Client Client { get; private set; }
         public DocType DocType { get; set; }
-        public SFTChannel SFTChannel { get; private set; }
 
-        public MailBatchInfo(MailBatchDTO mailBatch, Client client, SFTChannel sftChannel)
+        public MailBatchInfo(MailBatchDTO mailBatch, Client client)
         {
             if (client == null || mailBatch == null) throw new ArgumentNullException("Client or MailBatch cannot be null.");
 
             MailBatch = mailBatch;
             Client = client;
-            SFTChannel = sftChannel;
 
             Initialize(client, mailBatch);
         }

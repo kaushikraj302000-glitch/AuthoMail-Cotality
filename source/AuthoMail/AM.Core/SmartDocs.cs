@@ -21,23 +21,42 @@ namespace AM.Core
         public string ExceptionDetail { get; private set; }
         public string TrackingCode { get; private set; }
 
-        public bool GenerateDoc(string coverTemplatePDFPath, string pdfAttachmentPath, string outputDocumentPath, Dictionary<string, string> data, string mailPieceId, string recipientZip)
+        public bool GenerateDoc(string coverTemplatePDFPath, string pdfAttachmentPath, string outputDocumentPath, Dictionary<string, string> mailPieceData, float contentScalePercent)
         {
             TrackingCode = string.Empty;
+
             string outputDirPath = Path.GetDirectoryName(outputDocumentPath);
+            string flattenPDFPath = Path.Combine(outputDirPath, "Flatten_" + Path.GetFileName(pdfAttachmentPath));
+            string shrinkPDFPath = Path.Combine(outputDirPath, "Shrinked_" + Path.GetFileName(pdfAttachmentPath));
+            string coverLetterPDFPath = Path.Combine(outputDirPath, string.Format("CoverLetter_{0}.pdf", mailPieceData["MailPieceId"]));
+            string mergeReadyFilePath = flattenPDFPath;
+
             bool isDocGenerated = false;
             ExceptionDetail = string.Empty;
 
             try
             {
-                #region Generate CoverLetter
+                #region FlattenCode
+                PdfUtil.FlattenPDF(pdfAttachmentPath, flattenPDFPath);
+                #endregion
+
+                #region Shrink Document
+                if (contentScalePercent != 1f)
+                {
+                    PdfUtil.ShrinkAndCenterPDF(flattenPDFPath, shrinkPDFPath, contentScalePercent);
+                    mergeReadyFilePath = shrinkPDFPath;
+                }
+                #endregion
+
+
+                #region Generate Cover Letter
 
                 USPSIMClient client = new USPSIMClient();
-                IMBarcodeInfo IMBarcode = client.GenerateIMBarcode("TEST", mailPieceId, recipientZip);
+                IMBarcodeInfo IMBarcode = client.GenerateIMBarcode("TEST", mailPieceData["MailPieceId"], mailPieceData["MailPieceZip"]);
 
                 if (IMBarcode.Status == true)
                 {
-                    data.Add("Barcode", IMBarcode.BarcodeString);
+                    mailPieceData.Add("Barcode", IMBarcode.BarcodeString);
                     TrackingCode = IMBarcode.TrackingCode;
                 }
                 else
@@ -46,42 +65,33 @@ namespace AM.Core
                     return false;
                 }
 
-                string coverLetterPDFPath = Path.Combine(outputDirPath, string.Format("CoverLetter_{0}.pdf", mailPieceId));
-
-                CoverLetterGen(coverTemplatePDFPath, data, coverLetterPDFPath);
-
-                #region Generate EndPage with barcode
-
-                string endpagePDFPath = Path.Combine(outputDirPath, string.Format("EndPage_{0}.pdf", mailPieceId));
-
-                GenEndPage(Common.PDFEndPageTemplatePath, data, endpagePDFPath);
-
-                #endregion
-
-                //#region Shrink by 96%
-                //var tempShrinkedFilePath = Path.Combine(Path.GetDirectoryName(pdfAttachmentPath), Path.GetFileNameWithoutExtension(pdfAttachmentPath) + "_shrink.pdf");
-                //ShrinkAndCenterPDF(pdfAttachmentPath, tempShrinkedFilePath);
-                //#endregion
-
-                string[] mergePDFArray = { coverLetterPDFPath, pdfAttachmentPath, endpagePDFPath, outputDocumentPath };
-                PdfUtil.MergePDFs(mergePDFArray);
-                #endregion
+                CoverLetterGen(coverTemplatePDFPath, mailPieceData, coverLetterPDFPath);
 
                 if (!File.Exists(coverLetterPDFPath))
                 {
                     ExceptionDetail = "Unable to generate coverletter.";
                     return false;
                 }
-                File.Delete(coverLetterPDFPath);
 
-                //if (File.Exists(tempShrinkedFilePath))
-                //{
-                //    File.Delete(tempShrinkedFilePath);
-                //}
+                #endregion
 
-                if (File.Exists(endpagePDFPath))
+                string[] mergePDFArray = { coverLetterPDFPath, mergeReadyFilePath };
+
+                PdfUtil.BookmarkedPdfFilesMerge(outputDocumentPath, mergePDFArray);
+
+                if (File.Exists(coverTemplatePDFPath))
                 {
-                    File.Delete(endpagePDFPath);
+                    File.Delete(coverTemplatePDFPath);
+                }
+
+                if (File.Exists(flattenPDFPath))
+                {
+                    File.Delete(flattenPDFPath);
+                }
+
+                if (File.Exists(shrinkPDFPath))
+                {
+                    File.Delete(shrinkPDFPath);
                 }
 
                 isDocGenerated = true;
@@ -94,22 +104,7 @@ namespace AM.Core
             return isDocGenerated;
         }
 
-        public void ShrinkAndCenterPDF(string src, string dest)
-        {
-            PdfReader reader = new PdfReader(src);
-            PdfStamper stamper = new PdfStamper(reader, new FileStream(dest, FileMode.Create));
-            int n = reader.NumberOfPages;
-            float percentage = 0.96f;
-            for (int p = 1; p <= n; p++)
-            {
-                float offsetX = (reader.GetPageSize(p).Width * (1 - percentage)) / 2;
-                float offsetY = (reader.GetPageSize(p).Height * (1 - percentage)) / 2;
-                stamper.GetUnderContent(p).SetLiteral(String.Format("\nq {0} 0 0 {0} {1} {2} cm\nq\n", percentage, offsetX, offsetY));
-                stamper.GetOverContent(p).SetLiteral("\nQ\nQ\n");
-            }
-            stamper.Close();
-            reader.Close();
-        }
+
 
         public static void CoverLetterGen(string templatePath, Dictionary<string, string> data, string outputFilePath)
         {
@@ -125,10 +120,6 @@ namespace AM.Core
                 var form = stamper.AcroFields;
                 foreach (var model in data)
                 {
-                    //IList<AcroFields.FieldPosition> fieldPositions = form.GetFieldPositions(model.Key);
-                    //if (fieldPositions == null || fieldPositions.Count <= 0) throw new ApplicationException("Error locating field");
-                    //AcroFields.FieldPosition fieldPosition = fieldPositions[0];
-                    //fieldPosition.position.Left = Utilities.InchesToPoints(5.88f);
                     form.SetField(model.Key, model.Value);
                 }
 
@@ -158,10 +149,6 @@ namespace AM.Core
                 var form = stamper.AcroFields;
                 foreach (var model in data)
                 {
-                    //IList<AcroFields.FieldPosition> fieldPositions = form.GetFieldPositions(model.Key);
-                    //if (fieldPositions == null || fieldPositions.Count <= 0) throw new ApplicationException("Error locating field");
-                    //AcroFields.FieldPosition fieldPosition = fieldPositions[0];
-                    //fieldPosition.position.Left = Utilities.InchesToPoints(5.88f);
                     form.SetField(model.Key, model.Value);
                 }
 

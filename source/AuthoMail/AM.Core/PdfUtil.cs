@@ -11,7 +11,7 @@ namespace AM.Core
 {
     public static class PdfUtil
     {
-        private static string FlattenPDF(string srcPath, string destPath)
+        public static string FlattenPDF(string srcPath, string destPath)
         {
             string fileName = Path.GetFileName(srcPath);
             string destFilePath = Path.Combine(destPath, fileName);
@@ -138,6 +138,22 @@ namespace AM.Core
             }
             pdfCpy.Outlines = bookmarks;
             document.Close();
+        }
+
+        public static void ShrinkAndCenterPDF(string src, string dest, float scalePercent)
+        {
+            PdfReader reader = new PdfReader(src);
+            PdfStamper stamper = new PdfStamper(reader, new FileStream(dest, FileMode.Create));
+            int n = reader.NumberOfPages;
+            for (int p = 1; p <= n; p++)
+            {
+                float offsetX = (reader.GetPageSize(p).Width * (1 - scalePercent)) / 2;
+                float offsetY = (reader.GetPageSize(p).Height * (1 - scalePercent)) / 2;
+                stamper.GetUnderContent(p).SetLiteral(String.Format("\nq {0} 0 0 {0} {1} {2} cm\nq\n", scalePercent, offsetX, offsetY));
+                stamper.GetOverContent(p).SetLiteral("\nQ\nQ\n");
+            }
+            stamper.Close();
+            reader.Close();
         }
 
         public static float GetWidth(this PdfArray size)

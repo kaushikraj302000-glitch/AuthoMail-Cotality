@@ -16,6 +16,7 @@ namespace AM.Core
         private static IClientService clientSvc = new ClientService();
         private static ICommonService commonSvc = new CommonService();
         private static IMailPieceService mailPieceSvc = new MailPieceService();
+        private static IDocTypeService docTypeSvc = new DocTypeService();
 
         internal static void PrepPnSJobs()
         {
@@ -31,23 +32,37 @@ namespace AM.Core
             {
                 SmartDocs doc = new SmartDocs();
                 Client client = clientSvc.GetClientDetails(mailBatch.ClientId).Single();
-                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetails(mailBatch.SFTChannelId);
-                MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, sftChannelDetails);
+                MailBatchInfo mbi = new MailBatchInfo(mailBatch, client);
 
                 var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
 
                 List<MailPieceDTO> validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error || c.ErrorCode == null).ToList();
-
+                commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.PreppedStart, Common.Now);
                 foreach (MailPieceDTO mailPiece in validMailPieces)
                 {
                     try
                     {
+                        DocType docType = docTypeSvc.GetDocTypesByDocTypeName(mbi.Client.Id, mailPiece.DocumentOrPackageType.Trim());
+
+                        if (docType == null)
+                        {
+                            //TODO: Ask to Ravi Sir
+                            continue;
+                        }
+
+                        DocTypeCoverLetter docTypeLetter = docTypeSvc.GetDocumentCoverLetterTemplates(docType.Id).SingleOrDefault();
+
+                        if (docTypeLetter == null)
+                        {
+                            //TODO: Ask to Ravi Sir
+                            continue;
+                        }
+
                         int mailPieceId = mailPiece.Id;
+                        string coverLetterTemplatePath = Path.Combine(Common.CoverTemplateFolder, docTypeLetter.CoverLetterTemplatePath);
                         string pdfFilePath = Path.Combine(mbi.AMRequestPath, mailPiece.FileName);
                         string outputFilePath = Path.Combine(mbi.PnSRequestPath, "{0}_{1}".Fill(mailPieceId, mailPiece.FileName));
                         string coverLetterPath = Path.Combine(mbi.PnSRequestPath, "{0}_CoverLetter.pdf".Fill(mailPieceId));
-
-
 
                         #region Prepare dictionary of placeholders/tags to fill the PDF template.
 
@@ -62,46 +77,65 @@ namespace AM.Core
 
                         #endregion
 
-                        // Create final document using SmartDocs library.
-                        bool isDocumentGenerated = doc.GenerateDoc(pdfFilePath, outputFilePath, mailPieceData);
+                        if (docType.ShippingCarrier == Carrier.USPS.ToString())
+                        {
+                            // Create final document using SmartDocs library.
+                            bool isDocumentGenerated = doc.GenerateDoc(coverLetterTemplatePath, pdfFilePath, outputFilePath, mailPieceData, docType.ContentScalePercent);
 
-                        if (isDocumentGenerated)
-                        {
-                            // Update IsDocGenerated flag in DB.
-                            loan.OutputPDFFilePath = outputDocumentPath;
-                            loan.TrackingNo = doc.TrackingCode;
-                            loan.OutcomeCode = OutComeCodes.No_error;
-                            loan.DocGeneratedOn = DateTime.UtcNow;
-                        }
-                        else
-                        {
-                            // Update error in DB.                        
-                            if (doc.ExceptionDetail.Contains("InvalidPdfException"))
+                            if (isDocumentGenerated)
                             {
-                                loan.OutcomeCode = OutComeCodes.Invalid_PDF_file;
-                                loan.ErrorDetail = doc.ExceptionDetail;
-                                batch.TotalLoans = batch.TotalLoans - 1;
+                                mailPiece.TrackingNo = doc.TrackingCode;
+                                mailPiece.ShippingStatus = ShippingStatus.InProgress.ToString();
                             }
                             else
                             {
-                                loan.ErrorDetail = doc.ExceptionDetail;
-                                loan.OutcomeCode = OutComeCodes.UNKNOWN_error;
+                                if (doc.ExceptionDetail.Contains("InvalidPdfException"))
+                                {
+                                    mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                    mailPiece.ErrorCode = OutComeCodes.Invalid_PDF;
+                                    mailPiece.ErrorDesc = doc.ExceptionDetail;
+                                }
+                                else
+                                {
+                                    mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                    mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
+                                    mailPiece.ErrorDesc = doc.ExceptionDetail;
+                                }
                             }
-
-                            Common.LogError(string.Format("Document not generated for loan {0}:\n{1}", loan.LoanNbr, loan.ErrorDetail));
                         }
-
-                        db.SaveChanges();
                     }
                     catch (Exception err)
                     {
-                        loan.ErrorDetail = string.Format("{0}|{1}", err.Message, err.ToString());
-                        loan.OutcomeCode = OutComeCodes.UNKNOWN_error;
-                        db.SaveChanges();
-                        Common.LogError(err.ToString(), true);
+                        mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                        mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
+                        mailPiece.ErrorDesc = "{0}\n{1}".Fill(err.Message, err.ToString());
                     }
+                    mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                 }
 
+                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Prepped, Common.Now);
+                commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.PreppedEnd, Common.Now);
+            }
+        }
+
+        internal static void SubmitBatchesDocTypeWiseToPCI()
+        {
+            List<MailBatchDTO> mailBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.Prepped);
+
+            if (mailBatches == null || mailBatches.Count == 0)
+            {
+                log.Debug("Prep Job queue is empty.");
+                return;
+            }
+
+            foreach (MailBatchDTO mailBatch in mailBatches)
+            {
+                Client client = clientSvc.GetClientDetails(mailBatch.ClientId).Single();
+                MailBatchInfo mbi = new MailBatchInfo(mailBatch, client);
+
+                var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
+
+                List<MailPieceDTO> validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error || c.ErrorCode == null).ToList();
             }
         }
 
