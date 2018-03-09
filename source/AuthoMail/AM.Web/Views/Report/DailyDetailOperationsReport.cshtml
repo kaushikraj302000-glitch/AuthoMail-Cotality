@@ -95,7 +95,7 @@
                         $("#showBatch").show();
                     }
                     $("#hideSelection").html("");
-                    $('.selectpicker').on('change', function () {
+                    $('#BatchList').on('change', function () {
                         var selected = $(this).find("option:selected").val();
                         var oTable =  $('#sample_2').dataTable();
                         oTable.fnFilter("^" + parseInt(selected) + "$", 22, true); //Exact value, column, reg

@@ -59,9 +59,10 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult _GetSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, DateTime printedOn, DateTime shippedOn)
+        public ActionResult _GetSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string receivedOnStart, string receivedOnEnd,string status,string channel,string docType)
         {
-            var data = string.Empty;//serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, printedOn, shippedOn);
+            ViewBag.Date = string.Format("{0} To {1}", receivedOnStart, receivedOnEnd);
+            var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue,Convert.ToDateTime(receivedOnStart),Convert.ToDateTime(receivedOnEnd),docType,status,channel);
             //ViewBag.BusinessId = se.(User.Identity.GetClientId().Value);
             return PartialView(data);
         }

@@ -24,11 +24,21 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult _GetBatchList(string date)
+        public ActionResult _GetSummaryControlReport(string date, string channel)
         {
             ViewBag.Date = date;
 
-            var model = repoSvc.GetSummaryControlReport(User.Identity.GetClientId().Value, Convert.ToDateTime(date), null);
+            var model = repoSvc.GetSummaryControlReport(User.Identity.GetClientId().Value, Convert.ToDateTime(date), channel);
+            List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
+            foreach (var item in model)
+            {
+                reportViewModel.Add(new ReportViewModel
+                {
+                    Key = item.BatchId,
+                    Value = string.Format("{0} - {1}", item.ReceivedOn.ToString("H:mm"), item.BatchName)
+                });
+            }
+            ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
             return PartialView(model);
         }
         public ActionResult _GetMailPieceList(List<MonthlyReconReport> model)
@@ -41,10 +51,10 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult _MonthReconReport(string loanNumber, string docType, string startDate, string endDate)
+        public ActionResult _MonthReconReport(string loanNumber, string docType, string startDate, string endDate, string channel)
         {
             ViewBag.Date = string.Format("{0} To {1}", startDate, endDate);
-            var model = repoSvc.GetMonthlyReconReport(User.Identity.GetClientId().Value, Convert.ToDateTime(startDate), Convert.ToDateTime(endDate), null);
+            var model = repoSvc.GetMonthlyReconReport(User.Identity.GetClientId().Value, Convert.ToDateTime(startDate), Convert.ToDateTime(endDate),channel);
             return PartialView("_GetMailPieceList", model);
         }
 
@@ -73,10 +83,10 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult _GetErrorsReport(string date)
+        public ActionResult _GetErrorsReport(string date, string channel)
         {
             ViewBag.Date = date;
-            var model = repoSvc.GetErrorReportByDateOrBatch(User.Identity.GetClientId().Value, Convert.ToDateTime(date), null, null);
+            var model = repoSvc.GetErrorReportByDateOrBatch(User.Identity.GetClientId().Value, Convert.ToDateTime(date), null, channel);
             List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
             foreach (var item in model)
             {

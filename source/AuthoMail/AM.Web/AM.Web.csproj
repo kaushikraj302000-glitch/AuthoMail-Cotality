@@ -371,7 +371,7 @@
     <Content Include="Views\Shared\_LayoutLogin.cshtml" />
     <Content Include="Views\RequestPullBack\PullBack.cshtml" />
     <Content Include="Views\RequestPullBack\_GetMailPieceList.cshtml" />
-    <Content Include="Views\Report\_GetBatchList.cshtml" />
+    <Content Include="Views\Report\_GetSummaryControlReport.cshtml" />
     <Content Include="Views\Report\SummaryControlReport.cshtml" />
     <Content Include="Views\Report\_GetMailPieceList.cshtml" />
     <Content Include="Views\Report\MonthReconReport.cshtml" />

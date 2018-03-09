@@ -5,67 +5,67 @@
 <div class="panel-body">
     @if (Model.Count > 0)
     {
-        var cnt = 1;
 
         <table class="table table-responsive" id="sample_2" style="overflow-x:scroll">
             <thead>
                 <tr>
-                    <th>#</th>
                     <th>Batch Id</th>
-                    <th>Client Code</th>
+                    <th>ID</th>
+                    <th>Channel</th>
                     <th>Package Name</th>
                     <th>Loan Number</th>
                     <th>File Name</th>
                     <th>Received Date</th>
                     <th>Printed Date</th>
                     <th>Mailed Date</th>
+                    <th>Client Code</th>
+                    <th>Tracking Number</th>
+                    <th>Shipping Method</th>
+                    <th>Customer Identifier</th>
                     <th>First Name</th>
                     <th>Last Name</th>
                     <th>Recipient Street Address</th>
                     <th>Recipient City</th>
                     <th>Recipient State</th>
                     <th>Recipient Zip</th>
-                    <th>Tracking Number</th>
-                    <th>Shipping Method</th>
-                    <th>Customer Identifier</th>
-                    <th>Pages Shipped</th>
+                    <th>RequestID</th>
                     <th>Error Code</th>
                     <th>Error Text</th>
-                    <th>Action</th>
+                    <th>Print Location</th>
+                    <th>Pages Shipped</th>
+                    <th>BatchId</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var item in Model)
                 {
                     <tr class="row-small">
-                        <td><span>@cnt</span></td>
-                        <td><span>@item.BatchId</span></td>
-                        <td><span>@item.ClientId</span></td>
+                        <td data-batchid="@item.BatchId"><span>@item.BatchId</span></td>
+                        <td><span>@item.MailPieceUniqueId</span></td>
+                        <td><span>@item.Channel</span></td>
                         <td><span>@item.DocumentOrPackageType</span></td>
                         <td><span>@item.BusinessFriendlyIdValue</span></td>
                         <td><span>@item.FileName</span></td>
                         <td><span>@item.ReceivedOn</span></td>
                         <td><span>@item.PrintedOn</span></td>
                         <td><span>@item.MailedOn</span></td>
+                        <td><span>@item.ClientId</span></td>
+                        <td><span>@item.TrackingNo</span></td>
+                        <td><span>@item.ShippingMethod</span></td>
+                        <td><span>@item.CustomerIdentifier</span></td>
                         <td><span>@item.RcptFirstName</span></td>
                         <td><span>@item.RcptLastName </span></td>
                         <td><span>@item.RcptAddressStreet</span></td>
                         <td><span>@item.RcptAddressCity</span></td>
                         <td><span>@item.RcptAddressState</span></td>
                         <td><span>@item.RcptAddressZIP</span></td>
-                        <td><span>@item.ShippingMethod</span></td>
-                        <td><span>@item.CustomerIdentifier</span></td>
-                        <td><span>@item.TrackingNo</span></td>
-                        <td><span>@item.PagesShipped</span></td>
+                        <td><span>@item.RequestId</span></td>
                         <td><span>@item.ErrorCode</span></td>
                         <td><span>@item.ErrorDesc</span></td>
-                        <td>
-                            @Html.ActionLink("View", "MailPieceByBatchId", "Report", new { batchId = item.BatchId }, new { @class = "btn btn-transparent-bright-blue" })
-                            @*<a href="/Report/MailPieceByBatchId/@item.BatchClustId" class="btn btn-transparent-bright-blue">View</a>*@
-                        </td>
+                        <td><span>@item.PrintLocation</span></td>
+                        <td><span>@item.PagesShipped</span></td>
+                       <td>@item.BatchId</td>
                     </tr>
-
-                    cnt++;
                 }
             </tbody>
 
@@ -78,7 +78,10 @@
         </div>
     }
 </div>
+<div id="hideSelection">
 
+    @Html.DropDownList("BatchList", ViewBag.BatchList as SelectList, "Select Batch")
+</div>
 <script type="text/javascript">
     $(document).ready(function () {
         var table = $('#sample_2');
@@ -99,7 +102,13 @@
                 "search": "<b>Search:</b>",
                 "zeroRecords": "No matching records found"
             },
-
+            "columnDefs": [
+                    {
+                        "targets": [24],
+                        "visible": false,
+                        "searchable": true
+                    },
+            ],
             "scrollX": true,
             buttons: [
                 //{
@@ -114,22 +123,11 @@
                 className: 'btn btn-primary',
                 filename: filename,
                 title: title,
-                //exportOptions: {
-                //    columns: [0, 1, 2, 3, 4, 5, 6, 7]
-                //}
-
-            },
-                {
-                    extend: 'pdfHtml5',
-                    text: '<i class="fa fa-file-pdf-o"></i> Pdf',
-                    className: 'btn btn-info',
-                    filename: filename,
-                    title: title,
-                    //exportOptions: {
-                    //    columns: [0, 1, 2, 3, 4, 5, 6, 7]
-                    //},
-
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,23]
                 }
+
+            }
 
 
 
