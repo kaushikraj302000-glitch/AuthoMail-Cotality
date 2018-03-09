@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace AM.Console.USPSIMService {
+namespace AM.Core.USPSIMService {
     using System.Runtime.Serialization;
     using System;
     
@@ -164,7 +164,7 @@ namespace AM.Console.USPSIMService {
         private System.Runtime.Serialization.ExtensionDataObject extensionDataField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
-        private AM.Console.USPSIMService.USPSTrackingItem[] MailRouteField;
+        private AM.Core.USPSIMService.USPSTrackingItem[] MailRouteField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
         private string ProjectCodeField;
@@ -189,7 +189,7 @@ namespace AM.Console.USPSIMService {
         }
         
         [System.Runtime.Serialization.DataMemberAttribute()]
-        public AM.Console.USPSIMService.USPSTrackingItem[] MailRoute {
+        public AM.Core.USPSIMService.USPSTrackingItem[] MailRoute {
             get {
                 return this.MailRouteField;
             }
@@ -393,25 +393,25 @@ namespace AM.Console.USPSIMService {
     public interface IUSPSIM {
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IUSPSIM/GenerateIMBarcode", ReplyAction="http://tempuri.org/IUSPSIM/GenerateIMBarcodeResponse")]
-        AM.Console.USPSIMService.IMBarcodeInfo GenerateIMBarcode(string projectCode, string transactionId, string zipCode);
+        AM.Core.USPSIMService.IMBarcodeInfo GenerateIMBarcode(string projectCode, string transactionId, string zipCode);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IUSPSIM/GenerateIMBarcode", ReplyAction="http://tempuri.org/IUSPSIM/GenerateIMBarcodeResponse")]
-        System.Threading.Tasks.Task<AM.Console.USPSIMService.IMBarcodeInfo> GenerateIMBarcodeAsync(string projectCode, string transactionId, string zipCode);
+        System.Threading.Tasks.Task<AM.Core.USPSIMService.IMBarcodeInfo> GenerateIMBarcodeAsync(string projectCode, string transactionId, string zipCode);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IUSPSIM/GetShipmentStatus", ReplyAction="http://tempuri.org/IUSPSIM/GetShipmentStatusResponse")]
-        AM.Console.USPSIMService.USPSTrackingInfo GetShipmentStatus(string trackingCode);
+        AM.Core.USPSIMService.USPSTrackingInfo GetShipmentStatus(string trackingCode);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IUSPSIM/GetShipmentStatus", ReplyAction="http://tempuri.org/IUSPSIM/GetShipmentStatusResponse")]
-        System.Threading.Tasks.Task<AM.Console.USPSIMService.USPSTrackingInfo> GetShipmentStatusAsync(string trackingCode);
+        System.Threading.Tasks.Task<AM.Core.USPSIMService.USPSTrackingInfo> GetShipmentStatusAsync(string trackingCode);
     }
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
-    public interface IUSPSIMChannel : AM.Console.USPSIMService.IUSPSIM, System.ServiceModel.IClientChannel {
+    public interface IUSPSIMChannel : AM.Core.USPSIMService.IUSPSIM, System.ServiceModel.IClientChannel {
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
-    public partial class USPSIMClient : System.ServiceModel.ClientBase<AM.Console.USPSIMService.IUSPSIM>, AM.Console.USPSIMService.IUSPSIM {
+    public partial class USPSIMClient : System.ServiceModel.ClientBase<AM.Core.USPSIMService.IUSPSIM>, AM.Core.USPSIMService.IUSPSIM {
         
         public USPSIMClient() {
         }
@@ -432,19 +432,19 @@ namespace AM.Console.USPSIMService {
                 base(binding, remoteAddress) {
         }
         
-        public AM.Console.USPSIMService.IMBarcodeInfo GenerateIMBarcode(string projectCode, string transactionId, string zipCode) {
+        public AM.Core.USPSIMService.IMBarcodeInfo GenerateIMBarcode(string projectCode, string transactionId, string zipCode) {
             return base.Channel.GenerateIMBarcode(projectCode, transactionId, zipCode);
         }
         
-        public System.Threading.Tasks.Task<AM.Console.USPSIMService.IMBarcodeInfo> GenerateIMBarcodeAsync(string projectCode, string transactionId, string zipCode) {
+        public System.Threading.Tasks.Task<AM.Core.USPSIMService.IMBarcodeInfo> GenerateIMBarcodeAsync(string projectCode, string transactionId, string zipCode) {
             return base.Channel.GenerateIMBarcodeAsync(projectCode, transactionId, zipCode);
         }
         
-        public AM.Console.USPSIMService.USPSTrackingInfo GetShipmentStatus(string trackingCode) {
+        public AM.Core.USPSIMService.USPSTrackingInfo GetShipmentStatus(string trackingCode) {
             return base.Channel.GetShipmentStatus(trackingCode);
         }
         
-        public System.Threading.Tasks.Task<AM.Console.USPSIMService.USPSTrackingInfo> GetShipmentStatusAsync(string trackingCode) {
+        public System.Threading.Tasks.Task<AM.Core.USPSIMService.USPSTrackingInfo> GetShipmentStatusAsync(string trackingCode) {
             return base.Channel.GetShipmentStatusAsync(trackingCode);
         }
     }
