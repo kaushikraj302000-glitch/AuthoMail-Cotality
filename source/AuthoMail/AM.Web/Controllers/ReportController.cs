@@ -92,13 +92,14 @@ namespace AM.Web.Controllers
 
         public ActionResult ErrorSLAReport()
         {
+            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
             return View();
         }
         [HttpPost]
-        public ActionResult _GetErrorsSLAReport(string date)
+        public ActionResult _GetErrorsSLAReport(string date,string docType)
         {
             ViewBag.Date = date;
-            var model = repoSvc.GetSLAMissErrorReportByDateOrBatch(User.Identity.GetClientId().Value, Convert.ToDateTime(date), null, null);
+            var model = repoSvc.GetSLAMissErrorReportByDateOrBatch(User.Identity.GetClientId().Value, Convert.ToDateTime(date), null,docType);
             List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
             foreach (var item in model)
             {
@@ -113,14 +114,13 @@ namespace AM.Web.Controllers
         }
         public ActionResult DailyDetailOperationsReport()
         {
-            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
             return View();
         }
         [HttpPost]
-        public ActionResult _GetDailyDetailOperationsReport(string date)
+        public ActionResult _GetDailyDetailOperationsReport(string date, string channel)
         {
             ViewBag.Date = date;
-            var model = repoSvc.GetDailyDetailOperationsByDateOrBatch(User.Identity.GetClientId().Value, Convert.ToDateTime(date), null, null);
+            var model = repoSvc.GetDailyDetailOperationsByDateOrBatch(User.Identity.GetClientId().Value, Convert.ToDateTime(date), null, channel);
             List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
             foreach (var item in model)
             {

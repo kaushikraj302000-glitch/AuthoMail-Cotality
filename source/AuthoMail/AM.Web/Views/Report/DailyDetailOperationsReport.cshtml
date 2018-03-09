@@ -32,17 +32,26 @@
                     </div>
 
                 </div>
-
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="Channel">Channel</label>
+                        <select class="selectpicker" id="Channel">
+                            <option value="">Select Channel</option>
+                            <option value="Mortgage Cadence Integration">Mortgage Cadence Integration</option>
+                            <option value="CoreLogic SFTP">CoreLogic SFTP</option>
+                        </select>
+                    </div>
+                </div>
                 <div class="col-md-1">
                     <div class="form-group ">
-                        <label for="input1"></label>
+                        <label for="filterData"> &nbsp;&nbsp;&nbsp;&nbsp;</label>
                         <button type="button" id="filterData" class="btn btn-primary">
                             <span class="sr-only">Filter</span>
                             <i class="fa fa-filter fa-2x"></i>
                         </button>
                     </div>
                 </div>
-                <div class="col-md-5" id="showBatch" style="display:none">
+                <div class="col-md-2" id="showBatch" style="display:none">
                     <div class="form-group">
                         <label for="input1">Select Batch</label>
                         <div id="batchselection"></div>
@@ -72,7 +81,7 @@
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Report/_GetDailyDetailOperationsReport",
-                data: JSON.stringify({ date: $("#dp4").val() }),
+                data: JSON.stringify({ date: $("#dp4").val(), channel: $("#Channel").val() }),
                 contentType: "application/json; charset=utf-8",
                 success: function (res) {
                     el.html(res);
@@ -81,7 +90,7 @@
                     $('#BatchList').addClass("selectpicker");
                     $('.selectpicker').selectpicker('refresh');
                   
-                    if ($('.selectpicker').length > 1) {
+                    if ($('#BatchList').length > 1) {
 
                         $("#showBatch").show();
                     }

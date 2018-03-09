@@ -3,7 +3,12 @@
 }
 
 <link href="~/clui/dist/css/datatablecustom.css" rel="stylesheet" />
-
+<style>
+    .show-calendar{
+        width:484px !important;
+    }
+     
+</style>
 <div class="panel-group">
     <div class="panel panel-default">
         <div class="panel-heading" id="headingOne">
@@ -63,7 +68,7 @@
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label for="dp4">Select Date</label>
+                        <label for="dp4">Received  On</label>
                         <div class="input-group daterange" id="datepicker4">
                             <input type="text" class="form-control" id="dp4">
                             <span class="input-group-addon">
@@ -75,10 +80,10 @@
                 </div>
                 <div class="col-md-1">
                     <div class="form-group ">
-                        <label for="input1">&nbsp;</label>
+                        <label for="filterData">&nbsp;&nbsp;&nbsp;&nbsp;</label>
                         <button type="button" id="filterData" class="btn btn-primary">
                             <span class="sr-only">Filter</span>
-                            <i class="fa fa-filter fa-2x"></i>
+                            <i class="fa fa-filter fa-2x"></i> 
                         </button>
                     </div>
                 </div>
@@ -87,6 +92,7 @@
     </div>
 
 </div>
+
 <div class="panel panel-default" id="mailPieceList">
 
 </div>
