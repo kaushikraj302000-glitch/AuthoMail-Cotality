@@ -98,7 +98,7 @@ namespace AM.Web.Controllers
         public ActionResult _GetErrorsSLAReport(string date)
         {
             ViewBag.Date = date;
-            var model = repoSvc.GetErrorReportByDateOrBatch(User.Identity.GetClientId().Value, Convert.ToDateTime(date), null, null);
+            var model = repoSvc.GetSLAMissErrorReportByDateOrBatch(User.Identity.GetClientId().Value, Convert.ToDateTime(date), null, null);
             List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
             foreach (var item in model)
             {

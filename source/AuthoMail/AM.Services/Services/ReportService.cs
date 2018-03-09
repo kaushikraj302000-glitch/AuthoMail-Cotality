@@ -15,7 +15,7 @@ namespace AM.Services
         List<DailyDetailOperationsReport> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel);
         List<ErrorReport> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel);
         List<SummaryControlReport> GetSummaryControlReport(int clientId, DateTime date, string channel);
-        List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId);
+        List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string docType);
         List<MonthlyReconReport> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel);
     }
     public class ReportService : ServiceBase, IReportService
@@ -87,7 +87,7 @@ namespace AM.Services
             return data;
         }
 
-        public List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId)
+        public List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string docType)
         {
             string query = ReportServiceQuery.GetSLAMissErrorReportByDateOrBatch;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
@@ -104,6 +104,11 @@ namespace AM.Services
             {
                 query = string.Format("{0} AND BatchId=@batchId", query);
                 parameters.Add("@batchId", batchId);
+            }
+            if(!docType.IsNullOrWhiteSpace())
+            {
+                query = string.Format("{0} AND DocumentOrPackageType=@docType", query);
+                parameters.Add("@docType", docType);
             }
             var data = db.Query<ErrorReport>(query, parameters).ToList();
             return data;
