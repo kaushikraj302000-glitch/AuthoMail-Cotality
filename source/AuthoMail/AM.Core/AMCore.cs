@@ -61,7 +61,7 @@ namespace AM.Core
 
                         int mailPieceId = mailPiece.Id;
                         string coverLetterTemplatePath = Path.Combine(Common.CoverTemplateFolder, docTypeLetter.CoverLetterTemplatePath);
-                        string pdfFilePath = Path.Combine(mbi.AMRequestPath, mailPiece.FileName);
+                        string pdfFilePath = Path.Combine(mbi.AMRequestPath, mbi.BatchName, mailPiece.FileName);
                         string outputFilePath = Path.Combine(mbi.PnSRequestPath, "{0}_{1}".Fill(mailPieceId, mailPiece.FileName));
 
                         #region Prepare dictionary of placeholders/tags to fill the PDF template.
@@ -185,6 +185,8 @@ namespace AM.Core
 
                         string pnsRootFolder = Common.PnS_SFT_RootDir;
                         string batchName = "{0}_{1}".Fill(mbi.MailBatch.BatchName, batch.DocTypeId);
+                        string batchXMLSubmitPath = Path.Combine(pnsRootFolder, mbi.Client.AppCode, batchName + ".xml");
+                        string batchGOSubmitPath = Path.Combine(pnsRootFolder, mbi.Client.AppCode, batchName + ".go");
                         string batchSubmitPath = Path.Combine(pnsRootFolder, mbi.Client.AppCode, batchName);
 
                         //TODO: Add Validation For Directory Full Access Read/Write/Delete
@@ -205,16 +207,20 @@ namespace AM.Core
                         List<MailPieceData> mailPackage = new List<MailPieceData>();
                         foreach (var piece in batch.MailPieces)
                         {
-                            File.Copy(Path.Combine(mbi.PnSRequestPath, piece.FileName), Path.Combine(batchSubmitPath, piece.FileName));
-                            
+                            string fileName = "{0}_{1}".Fill(piece.Id, piece.FileName);
+                            File.Copy(Path.Combine(mbi.PnSRequestPath, fileName), Path.Combine(batchSubmitPath, fileName), true);
+
                             MailPieceData mailPieceData = new MailPieceData();
                             mailPieceData.UniqueId = piece.UniqueId;
                             mailPieceData.TotalPages = piece.TotalPages;
                             mailPieceData.PerformQC = piece.IsQCRequested;
-                            mailPieceData.PDFFileName = piece.FileName;
+                            mailPieceData.PDFFileName = fileName;
 
                             mailPackage.Add(mailPieceData);
                         }
+                        request.MailPackageData = mailPackage;
+                        File.WriteAllText(batchXMLSubmitPath, XmlUtil.Serialize<PnSRequest>(request));
+                        File.WriteAllText(batchGOSubmitPath, "");
                     }
                 }
                 catch (Exception ex)
@@ -222,6 +228,8 @@ namespace AM.Core
                     log.Error(ex);
                     commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                 }
+                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
+                commonSvc.UpdatePrintBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
                 commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
             }
         }

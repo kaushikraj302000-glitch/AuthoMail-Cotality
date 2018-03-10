@@ -13,16 +13,14 @@ namespace AM.Core
     {
         public static string FlattenPDF(string srcPath, string destPath)
         {
-            string fileName = Path.GetFileName(srcPath);
-            string destFilePath = Path.Combine(destPath, fileName);
             PdfReader.unethicalreading = true;
             PdfReader reader = new PdfReader(srcPath);
-            PdfStamper stamper = new PdfStamper(reader, new FileStream(destFilePath, FileMode.Create));
+            PdfStamper stamper = new PdfStamper(reader, new FileStream(destPath, FileMode.Create));
             stamper.FormFlattening = true;
             stamper.Close();
             reader.Close();
             PdfReader.unethicalreading = false;
-            return destFilePath;
+            return destPath;
         }
 
         public static void MergePDFs(params string[] pdflist)
@@ -142,14 +140,15 @@ namespace AM.Core
 
         public static void ShrinkAndCenterPDF(string src, string dest, float scalePercent)
         {
+            float percent = scalePercent / 100.0f;
             PdfReader reader = new PdfReader(src);
             PdfStamper stamper = new PdfStamper(reader, new FileStream(dest, FileMode.Create));
             int n = reader.NumberOfPages;
             for (int p = 1; p <= n; p++)
             {
-                float offsetX = (reader.GetPageSize(p).Width * (1 - scalePercent)) / 2;
-                float offsetY = (reader.GetPageSize(p).Height * (1 - scalePercent)) / 2;
-                stamper.GetUnderContent(p).SetLiteral(String.Format("\nq {0} 0 0 {0} {1} {2} cm\nq\n", scalePercent, offsetX, offsetY));
+                float offsetX = (reader.GetPageSize(p).Width * (1 - percent)) / 2;
+                float offsetY = (reader.GetPageSize(p).Height * (1 - percent)) / 2;
+                stamper.GetUnderContent(p).SetLiteral(String.Format("\nq {0} 0 0 {0} {1} {2} cm\nq\n", percent, offsetX, offsetY));
                 stamper.GetOverContent(p).SetLiteral("\nQ\nQ\n");
             }
             stamper.Close();
@@ -162,7 +161,6 @@ namespace AM.Core
             {
                 return reader.NumberOfPages;
             }
-            return 0;
         }
 
         public static float GetWidth(this PdfArray size)

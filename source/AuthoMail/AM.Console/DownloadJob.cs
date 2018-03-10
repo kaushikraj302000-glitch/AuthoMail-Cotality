@@ -77,6 +77,8 @@ namespace AM.Console
                                 mailBatch.ClientId = client.Id;
                                 mailBatch.BatchName = batchName;
                                 mailBatch.SFTChannelId = sftChannelDetails.Id;
+                                mailBatch.ClientBatchId = batchName;
+                                mailBatch.UniqueId = Guid.NewGuid();
                                 //Insert New Batch Entry
                                 mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
                                 //Update Pipeline Status of Batch Received
@@ -146,7 +148,7 @@ namespace AM.Console
                     }
 
                     //Process trigger file as per PostDownloadAction Setup for particular SFTChannel
-                    //MoveTriggerFileToBackupDir(sftSite, triggerFilePath, channelDetails);
+                    MoveTriggerFileToBackupDir(sftSite, triggerFilePath, channelDetails);
                 }
             }
             else
@@ -236,15 +238,19 @@ namespace AM.Console
             //Update LogTime for Download complete
             commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.DownloadEnd, Common.Now);
 
-            //if (mbi.SFTChannel.PostDownloadAction == PostDownloadAction.Archive)
-            //{
-            //    string archiveFTPFilePath = Path.Combine(mbi.SFTChannel.ADERequestArchiveDir, zipFileName);
-            //    sftSite.MoveFile(zipFileFTPPath, archiveFTPFilePath);
-            //}
-            //else
-            //{
-            //    sftSite.DeleteFile(zipFileFTPPath);
-            //}
+            if (mbi.SFTChannel.PostDownloadAction == PostDownloadAction.Archive)
+            {
+                string archiveFTPFilePath = Path.Combine(mbi.SFTChannel.ArchiveDir, zipFileName);
+               
+                if (sftSite.IsFileAvailable(archiveFTPFilePath))
+                    sftSite.DeleteFile(archiveFTPFilePath);
+
+                sftSite.MoveFile(zipFileFTPPath, archiveFTPFilePath);
+            }
+            else
+            {
+                sftSite.DeleteFile(zipFileFTPPath);
+            }
 
             return downloadedZipFilePath;
         }
@@ -471,6 +477,10 @@ namespace AM.Console
                 {
                     #region Invalid XML file of the batch so just save error details
                     log.Error(err);
+                    batch.ValidationStatus = BatchValidationStatus.Invalid;
+                    batch.ValidationErrors = err.ToString();
+
+                    mailBatchSvc.UpdateBatchDetails(batch);
                     commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationEnd, Common.Now);
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
                     commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());

@@ -41,7 +41,7 @@ namespace AM.Core
                 #endregion
 
                 #region Shrink Document
-                if (contentScalePercent != 1f)
+                if (contentScalePercent != 100f)
                 {
                     PdfUtil.ShrinkAndCenterPDF(flattenPDFPath, shrinkPDFPath, contentScalePercent);
                     mergeReadyFilePath = shrinkPDFPath;
@@ -79,9 +79,9 @@ namespace AM.Core
 
                 PdfUtil.BookmarkedPdfFilesMerge(outputDocumentPath, mergePDFArray);
 
-                if (File.Exists(coverTemplatePDFPath))
+                if (File.Exists(coverLetterPDFPath))
                 {
-                    File.Delete(coverTemplatePDFPath);
+                    File.Delete(coverLetterPDFPath);
                 }
 
                 if (File.Exists(flattenPDFPath))

@@ -17,6 +17,7 @@ namespace AM.Core
             if (Environment.UserInteractive)
             {
                 AMCore.PrepPnSJobs();
+                AMCore.SubmitBatchesDocTypeWiseToPCI();
                 AMCore.ProcessPnSResponses();
             }
             else
