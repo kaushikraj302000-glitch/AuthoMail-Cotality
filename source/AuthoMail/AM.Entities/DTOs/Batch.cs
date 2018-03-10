@@ -77,7 +77,7 @@ namespace AM.Entities
     public class PrintBatch
     {
         public int MailBatchId { get; set; }
-        public Guid Uniqueid { get; set; }
+        public Guid UniqueId { get; set; }
         public int DocTypeId { get; set; }
         public string AppCode { get; set; }
         public List<MailPieceDTO> MailPieces { get; set; }

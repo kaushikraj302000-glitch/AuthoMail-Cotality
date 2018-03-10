@@ -115,6 +115,7 @@ namespace AM.Core
                 }
 
                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Prepped, Common.Now);
+                commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.InProgress.ToString());
                 commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.PreppedEnd, Common.Now);
             }
         }
@@ -163,7 +164,7 @@ namespace AM.Core
 
                         printBatch = new PrintBatch();
                         printBatch.AppCode = mbi.Client.AppCode;
-                        printBatch.Uniqueid = Guid.NewGuid();
+                        printBatch.UniqueId = Guid.NewGuid();
                         printBatch.MailBatchId = mbi.MailBatch.Id;
                         printBatch.DocTypeId = docType.Id;
                         printBatch.MailPieces = validMailPieces.Where(c => c.DocumentOrPackageType == documentOrPackageType).ToList();
@@ -183,6 +184,7 @@ namespace AM.Core
                             continue;
                         }
 
+                        mailBatchSvc.InsertPrintBatchDetails(batch);
                         string pnsRootFolder = Common.PnS_SFT_RootDir;
                         string batchName = "{0}_{1}".Fill(mbi.MailBatch.BatchName, batch.DocTypeId);
                         string batchXMLSubmitPath = Path.Combine(pnsRootFolder, mbi.Client.AppCode, batchName + ".xml");
@@ -198,7 +200,7 @@ namespace AM.Core
 
                         PnSRequest request = new PnSRequest();
                         request.AppCode = batch.AppCode;
-                        request.BatchIdentifier = batch.Uniqueid;
+                        request.BatchIdentifier = batch.UniqueId;
                         request.BatchName = batchName;
                         request.DocTypeId = batch.DocTypeId;
                         request.DueDate = Common.Today;

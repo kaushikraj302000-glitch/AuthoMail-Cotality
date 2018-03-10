@@ -117,7 +117,7 @@ namespace AM.Services
         public int InsertPrintBatchDetails(PrintBatch printBatch)
         {
             //Sql Query
-            string query = "INSERT INTO [AM].[MailBatches](Uniqueid, MailBatchId, AppCode, DocTypeId) Output Inserted.Id VALUES (Uniqueid, MailBatchId, AppCode, DocTypeId)";
+            string query = "INSERT INTO [AM].[PrintBatches](UniqueId, MailBatchId, AppCode, DocTypeId) Output Inserted.Id VALUES (@UniqueId, @MailBatchId, @AppCode, @DocTypeId)";
 
             var printBatchId = db.ExecuteScalar(query, printBatch);
 

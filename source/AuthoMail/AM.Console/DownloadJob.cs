@@ -79,6 +79,7 @@ namespace AM.Console
                                 mailBatch.SFTChannelId = sftChannelDetails.Id;
                                 mailBatch.ClientBatchId = batchName;
                                 mailBatch.UniqueId = Guid.NewGuid();
+                                mailBatch.Priority = Priority.Medium.ToString();
                                 //Insert New Batch Entry
                                 mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
                                 //Update Pipeline Status of Batch Received
@@ -241,7 +242,7 @@ namespace AM.Console
             if (mbi.SFTChannel.PostDownloadAction == PostDownloadAction.Archive)
             {
                 string archiveFTPFilePath = Path.Combine(mbi.SFTChannel.ArchiveDir, zipFileName);
-               
+
                 if (sftSite.IsFileAvailable(archiveFTPFilePath))
                     sftSite.DeleteFile(archiveFTPFilePath);
 
@@ -664,6 +665,25 @@ namespace AM.Console
                 MailBatchInfo mbi = new MailBatchInfo(batch, client, sftChannelDetails);
 
                 var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
+
+                var validMailPieces = data.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
+                var invalidMailPieces = data.MailPieces.Where(c => c.ErrorCode != OutComeCodes.No_Error).ToList();
+
+                if (validMailPieces.Count == data.MailPieces.Count)
+                {
+                    mbi.MailBatch.ValidationStatus = BatchValidationStatus.Valid.ToString();
+                    mailBatchSvc.UpdateBatchDetails(mbi.MailBatch);
+                }
+                else if (validMailPieces.Count > 0 && invalidMailPieces.Count > 0)
+                {
+                    mbi.MailBatch.ValidationStatus = BatchValidationStatus.PartiallyValid.ToString();
+                    mailBatchSvc.UpdateBatchDetails(mbi.MailBatch);
+                }
+                else
+                {
+                    mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid.ToString();
+                    mailBatchSvc.UpdateBatchDetails(mbi.MailBatch);
+                }
 
                 if (data != null)
                 {
