@@ -17,6 +17,7 @@ namespace AM.Services
         List<MailBatchDTO> GetBatchesByStatus(string batchPipelineStatus, string batchStatus = null);
         BatchData GetMailBatchDetailsByBatchId(int mailBatchId);
         int InsertPrintBatchDetails(PrintBatch printBatch);
+        List<PrintBatch> GetSubmittedPrintBatchDetails();
     }
     public class BatchService : ServiceBase, IBatchService //It implements Interfaces 
     {
@@ -129,6 +130,17 @@ namespace AM.Services
                 return data;
             }
             return 0;
+        }
+
+        public List<PrintBatch> GetSubmittedPrintBatchDetails()
+        {
+            //Sql Query
+            string query = @"SELECT * FROM [AM].[PrintBatches] PB INNER JOIN [AM].[MailPieces] MP ON MP.PrintBatchId= PB.Id
+            WHERE IsSubmittedToShipping=1 AND IsShippingResponseReceived=0";
+
+            var printBatchId = db.Query<PrintBatch, List<MailPieceDTO>, PrintBatch>(query, (printBatch, mailPieces) => { printBatch.MailPieces = mailPieces; return printBatch; });
+
+            return null;
         }
     }
 }

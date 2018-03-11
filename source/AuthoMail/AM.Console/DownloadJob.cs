@@ -513,6 +513,7 @@ namespace AM.Console
                         {
                             if (recipientElement.SelectNodes("./x:Recipient", nsManager) != null)
                             {
+                                mailPieceDTO.IsRcptInfoSpecified = true;
                                 var recipientsData = recipientElement.SelectNodes("./x:Recipient", nsManager);
 
                                 if (recipientsData.Count > 1)
@@ -529,7 +530,7 @@ namespace AM.Console
                                     mailPieceDTO.RcptLastName = recipientsData.Item(0).SelectSingleNode("./x:LastName/text()", nsManager) == null ? null : recipientsData.Item(0).SelectSingleNode("./x:LastName/text()", nsManager).Value;
                                 }
                             }
-
+                            mailPieceDTO.IsRcptInfoSpecified = false;
 
                             mailPieceDTO.RcptPhone = recipientElement.SelectSingleNode("./x:RecipientPhoneNo/text()", nsManager) == null ? null : recipientElement.SelectSingleNode("./x:RecipientPhoneNo/text()", nsManager).Value;
 
@@ -548,11 +549,15 @@ namespace AM.Console
                                 mailPieceDTO.RcptAddressZIP = recipeintAddressElement.SelectSingleNode("./x:Zip/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:Zip/text()", nsManager).Value;
                             }
                         }
+                        else
+                        {
+                            mailPieceDTO.IsRcptInfoSpecified = false;
+                        }
 
                         var returnInfoElement = mailPieceNode.SelectSingleNode("./x:ReturnInfo", nsManager);
                         if (returnInfoElement != null)
                         {
-
+                            mailPieceDTO.IsReturnInfoSpecified = true;
                             mailPieceDTO.RetRcptFirstName = returnInfoElement.SelectSingleNode("./x:FirstName/text()", nsManager) == null ? null : returnInfoElement.SelectSingleNode("./x:FirstName/text()", nsManager).Value;
 
                             mailPieceDTO.RetRcptLastName = returnInfoElement.SelectSingleNode("./x:LastName/text()", nsManager) == null ? null : returnInfoElement.SelectSingleNode("./x:LastName/text()", nsManager).Value;
@@ -611,6 +616,8 @@ namespace AM.Console
                                 mailPieceCustomInfo.Add(customInfo);
                             }
                         }
+                        else
+                            mailPieceDTO.IsReturnInfoSpecified = false;
 
                         try
                         {

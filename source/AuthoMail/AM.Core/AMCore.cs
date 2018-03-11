@@ -184,7 +184,7 @@ namespace AM.Core
                             continue;
                         }
 
-                        mailBatchSvc.InsertPrintBatchDetails(batch);
+                        batch.Id = mailBatchSvc.InsertPrintBatchDetails(batch);
                         string pnsRootFolder = Common.PnS_SFT_RootDir;
                         string batchName = "{0}_{1}".Fill(mbi.MailBatch.BatchName, batch.DocTypeId);
                         string batchXMLSubmitPath = Path.Combine(pnsRootFolder, mbi.Client.AppCode, batchName + ".xml");
@@ -223,6 +223,8 @@ namespace AM.Core
                         request.MailPackageData = mailPackage;
                         File.WriteAllText(batchXMLSubmitPath, XmlUtil.Serialize<PnSRequest>(request));
                         File.WriteAllText(batchGOSubmitPath, "");
+                        commonSvc.UpdatePrintBatchStatus(batch.Id, AM.Entities.BatchStatus.InProgress.ToString());
+                        commonSvc.UpdatePrintBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
                     }
                 }
                 catch (Exception ex)
@@ -231,15 +233,13 @@ namespace AM.Core
                     commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                 }
                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
-                commonSvc.UpdatePrintBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
                 commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
             }
         }
 
         internal static void ProcessPnSResponses()
         {
-            log.Debug("Swaminarayan");
-            //throw new NotImplementedException();
+            var data = mailBatchSvc.GetSubmittedPrintBatchDetails();
         }
     }
 }
