@@ -124,7 +124,7 @@ namespace AM.Console
                         mbi.MailBatch.ReceivedOn = Common.UtcToClientTimeZone(mbi.MailBatch.ReceivedOn.Value, mbi.Client.TimeZone);
 
                         // Generate Error Report
-                        List<MailPieceDTO> errorMailPieces = mailPieces.Where(p => p.ShippingStatus == ShippingStatus.Error.ToString() && p.ErrorCode != OutComeCodes.No_Error).ToList();
+                        List<MailPieceDTO> errorMailPieces = mailPieces.Where(p => p.ErrorCode != OutComeCodes.No_Error).ToList();
 
                         List<MailPieceCustomInfo> filteredCustomInfo = mailPiecesCustomInfo.Where(c => errorMailPieces.Select(data => data.Id).Contains(c.MailPieceId)).ToList();
 
