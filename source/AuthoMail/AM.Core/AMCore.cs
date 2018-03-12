@@ -332,7 +332,7 @@ namespace AM.Core
                         DateTime mrdfDownloadStartTime = Common.Now;
                         DateTime responseReceivedOn = sftSite.LastModifiedTimeOfFile(responseFilePath);
 
-                        sftSite.DownloadFile(amRootFilePath, responseFilePath, true, false);
+                        sftSite.DownloadFile(responseFilePath, amRootFilePath, true, false);
                         sftSite.DeleteFile(responseTriggerFilePath);
 
                         if (File.Exists(amRootFilePath))
@@ -419,26 +419,26 @@ namespace AM.Core
                                             mailPieceSvc.UpdateBatchMailPieceDetails(row);
                                         }
                                     });
+                                }
 
-                                    var remainingData = batchData.MailPieces.Where(data => data.ShippingStatus == ShippingStatus.InProgress.ToString());
-                                    if (remainingData.Count() == 0)
+                                var remainingData = batchData.MailPieces.Where(data => data.ShippingStatus == ShippingStatus.InProgress.ToString());
+                                if (remainingData.Count() == 0)
+                                {
+                                    var shippedCount = batchData.MailPieces.Where(data => data.ShippingStatus == ShippingStatus.Shipped.ToString());
+                                    if (shippedCount.Count() == 0)
                                     {
-                                        var shippedCount = batchData.MailPieces.Where(data => data.ShippingStatus == ShippingStatus.Shipped.ToString());
-                                        if (shippedCount.Count() == 0)
-                                        {
-                                            commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.Failed.ToString());
-                                        }
-                                        else if (shippedCount.Count() < batchData.MailPieces.Count)
-                                        {
-                                            commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.ShippedPartial.ToString());
-                                        }
-                                        else
-                                        {
-                                            commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.ShippedAll.ToString());
-                                        }
-
-                                        commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ShippingResponseReceived, Common.Now);
+                                        commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.Failed.ToString());
                                     }
+                                    else if (shippedCount.Count() < batchData.MailPieces.Count)
+                                    {
+                                        commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.ShippedPartial.ToString());
+                                    }
+                                    else
+                                    {
+                                        commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.ShippedAll.ToString());
+                                    }
+
+                                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ShippingResponseReceived, Common.Now);
                                 }
                             }
                         }
