@@ -18,6 +18,7 @@ namespace AM.Core
             {
                 AMCore.PrepPnSJobs();
                 AMCore.SubmitBatchesDocTypeWiseToPCI();
+                AMCore.GetSubmittedPnSResponses();
                 AMCore.ProcessPnSResponses();
             }
             else

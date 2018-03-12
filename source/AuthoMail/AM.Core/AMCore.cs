@@ -37,7 +37,7 @@ namespace AM.Core
 
                 var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
 
-                List<MailPieceDTO> validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error || c.ErrorCode == null).ToList();
+                List<MailPieceDTO> validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
                 commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.PreppedStart, Common.Now);
                 foreach (MailPieceDTO mailPiece in validMailPieces)
                 {
@@ -126,25 +126,27 @@ namespace AM.Core
 
             if (mailBatches == null || mailBatches.Count == 0)
             {
-                log.Debug("Prep Job queue is empty.");
+                log.Debug("Submit batch Job queue is empty.");
                 return;
             }
 
             foreach (MailBatchDTO mailBatch in mailBatches)
             {
-                Client client = clientSvc.GetClientDetails(mailBatch.ClientId).Single();
+                Client client = clientSvc.GetClientDetails(mailBatch.ClientId).Single(c => c.IsPnSActive == true);
                 MailBatchInfo mbi = new MailBatchInfo(mailBatch, client);
 
                 var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
 
-                List<MailPieceDTO> validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error || c.ErrorCode == null).ToList();
+                List<MailPieceDTO> validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
+
+                commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingStart, Common.Now);
 
                 if (validMailPieces.Count == 0)
                 {
+                    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                     continue;
                 }
 
-                commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingStart, Common.Now);
                 try
                 {
                     List<PrintBatch> printBatches = new List<PrintBatch>();
@@ -158,6 +160,7 @@ namespace AM.Core
 
                         if (docType == null)
                         {
+                            commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                             //TODO: Ask Ravi Sir
                             continue;
                         }
@@ -174,66 +177,85 @@ namespace AM.Core
 
                     if (printBatches.Count == 0)
                     {
+                        commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                         continue;
                     }
 
-                    foreach (var batch in printBatches)
+                    foreach (var printBatchData in printBatches)
                     {
-                        if (batch.MailPieces.Count == 0)
+                        if (printBatchData.MailPieces.Count == 0)
                         {
+                            commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                             continue;
                         }
 
-                        batch.Id = mailBatchSvc.InsertPrintBatchDetails(batch);
+                        printBatchData.Id = mailBatchSvc.InsertPrintBatchDetails(printBatchData);
+
                         string pnsRootFolder = Common.PnS_SFT_RootDir;
-                        string batchName = "{0}_{1}".Fill(mbi.MailBatch.BatchName, batch.DocTypeId);
+                        string batchName = "{0}_{1}".Fill(mbi.MailBatch.BatchName, printBatchData.DocTypeId);
                         string batchXMLSubmitPath = Path.Combine(pnsRootFolder, mbi.Client.AppCode, batchName + ".xml");
                         string batchGOSubmitPath = Path.Combine(pnsRootFolder, mbi.Client.AppCode, batchName + ".go");
                         string batchSubmitPath = Path.Combine(pnsRootFolder, mbi.Client.AppCode, batchName);
 
-                        //TODO: Add Validation For Directory Full Access Read/Write/Delete
-
-                        if (!Directory.Exists(batchSubmitPath))
+                        try
                         {
-                            Directory.CreateDirectory(batchSubmitPath);
+                            //TODO: Add Validation For Directory Full Access Read/Write/Delete
+
+                            if (!Directory.Exists(batchSubmitPath))
+                            {
+                                Directory.CreateDirectory(batchSubmitPath);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
+                            log.Error(ex);
                         }
 
-                        PnSRequest request = new PnSRequest();
-                        request.AppCode = batch.AppCode;
-                        request.BatchIdentifier = batch.UniqueId;
-                        request.BatchName = batchName;
-                        request.DocTypeId = batch.DocTypeId;
-                        request.DueDate = Common.Today;
-                        request.OnValidationErrors = OnValidationErrors.ProcessValidFiles;
-
-                        List<MailPieceData> mailPackage = new List<MailPieceData>();
-                        foreach (var piece in batch.MailPieces)
+                        try
                         {
-                            string fileName = "{0}_{1}".Fill(piece.Id, piece.FileName);
-                            File.Copy(Path.Combine(mbi.PnSRequestPath, fileName), Path.Combine(batchSubmitPath, fileName), true);
+                            PnSRequest request = new PnSRequest();
+                            request.AppCode = printBatchData.AppCode;
+                            request.BatchIdentifier = printBatchData.UniqueId;
+                            request.BatchName = batchName;
+                            request.DocTypeId = printBatchData.DocTypeId;
+                            request.SLADays = 0;
+                            request.OnValidationErrors = OnValidationErrors.ProcessValidFiles;
 
-                            MailPieceData mailPieceData = new MailPieceData();
-                            mailPieceData.UniqueId = piece.UniqueId;
-                            mailPieceData.TotalPages = piece.TotalPages;
-                            mailPieceData.PerformQC = piece.IsQCRequested;
-                            mailPieceData.PDFFileName = fileName;
+                            List<MailPieceData> mailPackage = new List<MailPieceData>();
+                            foreach (var piece in printBatchData.MailPieces)
+                            {
+                                string fileName = "{0}_{1}".Fill(piece.Id, piece.FileName);
+                                File.Copy(Path.Combine(mbi.PnSRequestPath, fileName), Path.Combine(batchSubmitPath, fileName), true);
 
-                            mailPackage.Add(mailPieceData);
+                                MailPieceData mailPieceData = new MailPieceData();
+                                mailPieceData.UniqueId = piece.UniqueId;
+                                mailPieceData.TotalPages = piece.TotalPages;
+                                mailPieceData.PerformQC = piece.IsQCRequested;
+                                mailPieceData.PDFFileName = fileName;
+
+                                mailPackage.Add(mailPieceData);
+                            }
+                            request.MailPackageData = mailPackage;
+                            File.WriteAllText(batchXMLSubmitPath, XmlUtil.Serialize<PnSRequest>(request));
+                            File.WriteAllText(batchGOSubmitPath, "");
+                            commonSvc.UpdatePrintBatchStatus(printBatchData.Id, AM.Entities.BatchStatus.InProgress.ToString());
+                            commonSvc.UpdatePrintBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
                         }
-                        request.MailPackageData = mailPackage;
-                        File.WriteAllText(batchXMLSubmitPath, XmlUtil.Serialize<PnSRequest>(request));
-                        File.WriteAllText(batchGOSubmitPath, "");
-                        commonSvc.UpdatePrintBatchStatus(batch.Id, AM.Entities.BatchStatus.InProgress.ToString());
-                        commonSvc.UpdatePrintBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
+                        catch (Exception ex)
+                        {
+                            commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
+                            log.Error(ex);
+                        }
                     }
+                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
+                    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                 }
                 catch (Exception ex)
                 {
                     log.Error(ex);
                     commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                 }
-                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
-                commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
             }
         }
 
@@ -385,6 +407,8 @@ namespace AM.Core
                                             }
                                             else if (mailPackage.MailPieceStatus == MailPieceStatus.Shipped)
                                             {
+                                                row.PrintedOn = mailPackage.PrintedOn;
+
                                                 row.ShippedOn = mailPackage.ShippedOn;
                                                 row.ShippingCost = mailPackage.PostageCost;
                                                 row.TotalSheets = mailPackage.TotalSheets;
