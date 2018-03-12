@@ -76,7 +76,7 @@
             FilterData();
         });
         function FilterData() {
-            
+
             var el = $('#errorBatchList');
             el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
             $.ajax({
@@ -102,7 +102,7 @@
                     });
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
-                    var msg = 'Error on reloading the content. Please check your connection and try again.';
+                    var msg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
                     el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
                 }
 

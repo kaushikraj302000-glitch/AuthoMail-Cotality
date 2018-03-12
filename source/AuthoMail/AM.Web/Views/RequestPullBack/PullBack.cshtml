@@ -120,7 +120,7 @@
         <div class="modal-content">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal-header">
-                <h2 id="myModalLabel"> Are you sure you want to do pullback?</h2>
+                <h2 id="myModalLabel"> @AM.Services.Config.Msg_Web_PullBackConfirmation</h2>
                 <hr />
                 <button type="button" class="btn btn-primary" id="yesPullback"><i class="fa fa-check"></i> Yes</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> No</button>
@@ -164,8 +164,8 @@
                     el.html(res);
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
-                    var msg = 'Error on reloading the content. Please check your connection and try again.';
-                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    var msg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
+                    el.html("<div class='alert alert-red'><span>" + commonmsg + "</span></div>");
                 }
 
             });

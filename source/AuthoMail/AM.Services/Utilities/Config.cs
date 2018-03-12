@@ -34,6 +34,19 @@ namespace AM.Services
         public static string Msg_Web_Login_Default { get; private set; }
         public static string Msg_Web_Login_Success { get; private set; }
         #endregion
+
+        #region WEB Common Msg
+        public static string Msg_Web_Ajax_CommonError { get; private set; }
+        public static string Msg_Web_NoRecordFound { get; set; }
+        public static string Msg_Web_PullBackConfirmation { get; set; }
+        #endregion
+
+        #region WEB RequestPullBackController
+        public static string Msg_Web_NoMailPieceSelect { get; set; }
+        #endregion
+        #region WEB HomeController
+        public static string Msg_Web_NoMailPieceReceivedToday { get; set; }
+        #endregion
         //public static Dictionary<string,string> Msg {get; private set;}
         static Config()
         {
@@ -62,6 +75,20 @@ namespace AM.Services
             Msg_Web_Login_Default = "Invalid login attempt.";
             Msg_Web_Login_Success = "Login success.";
             #endregion
+
+            #region WEB Common Msg
+            Msg_Web_Ajax_CommonError = "Error on reloading the content. Please check your connection and try again.";
+            Msg_Web_NoRecordFound = "Record(s) not found.";
+            Msg_Web_PullBackConfirmation = "Are you sure you want to do pullback?";
+            #endregion
+
+            #region WEB RequestPullBackController
+            Msg_Web_NoMailPieceSelect = "Please select MailPiece.";
+            #endregion
+
+            #region WEB HomeController
+            Msg_Web_NoMailPieceReceivedToday = "Currently no MailPieces received today";
+            #endregion
             //Msg = new Dictionary<string, string>();
             //ConfigService cs = new ConfigService();
             //var messages = cs.GetSharedStrings();
@@ -70,5 +97,6 @@ namespace AM.Services
             //    Msg.Add(message.Key, message.Value);
             //}            
         }
+
     }
 }

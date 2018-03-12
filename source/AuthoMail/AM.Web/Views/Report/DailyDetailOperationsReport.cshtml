@@ -72,7 +72,7 @@
             window.clui.dateTimePickerInit();
             console.log(baseUrl);
             FilterData();
-           
+
         });
         function FilterData() {
             var selectedData = new Date($("#dp4").val());
@@ -89,7 +89,7 @@
                     $("#batchselection").html(el.find("#hideSelection").html());
                     $('#BatchList').addClass("selectpicker");
                     $('.selectpicker').selectpicker('refresh');
-                  
+
                     if ($('#BatchList').length > 1) {
 
                         $("#showBatch").show();
@@ -102,7 +102,7 @@
                     });
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
-                    var msg = 'Error on reloading the content. Please check your connection and try again.';
+                    var msg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
                     el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
                 }
 

@@ -170,7 +170,7 @@
         <div class="modal-content">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal-header">
-                <h2 id="confirmMsg"> Are you sure you want to do pullback?</h2>
+                <h2 id="confirmMsg"> @AM.Services.Config.Msg_Web_PullBackConfirmation</h2>
                 <h2 id="mailPieceMsg">MailPiece Detail for Pullback Request </h2>
                 @*<h4 id="pullbackmsg" class="alert alert-yellow"></h4>*@
                 <hr />
@@ -194,6 +194,7 @@
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js">
     </script>
     <script type="text/javascript">
+        var commonmsg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
         function GetChartDataByStatusAndBatchIds(status, ids) {
             var el = $("#batchMailPieceModal").find('.modal-body');
             $.ajax({
@@ -206,8 +207,7 @@
                     $("#batchMailPieceModal").modal("show");
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
-                    var msg = 'Error on reloading the content. Please check your connection and try again.';
-                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    el.html("<div class='alert alert-red'><span>" + commonmsg + "</span></div>");
                     $("#batchMailPieceModal").modal("show");
                 }
 
@@ -218,15 +218,14 @@
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Home/WeeklyChartDetails",
-                data: JSON.stringify({ status: status, date: date}),
+                data: JSON.stringify({ status: status, date: date }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     el.html(response);
                     $("#batchModal").modal("show");
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
-                    var msg = 'Error on reloading the content. Please check your connection and try again.';
-                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    el.html("<div class='alert alert-red'><span>" + commonmsg + "</span></div>");
                     $("#batchModal").modal("show");
                 }
 
@@ -237,7 +236,7 @@
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Home/GetWeeklyChartData",
-                data: JSON.stringify({ startDate: moment().subtract(7, 'days').format('MM/DD/YYYY'), endDate:moment().format('MM/DD/YYYY') }),
+                data: JSON.stringify({ startDate: moment().subtract(7, 'days').format('MM/DD/YYYY'), endDate: moment().format('MM/DD/YYYY') }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     var chartData = [];
@@ -252,8 +251,7 @@
 
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
-                    var msg = 'Error on reloading the content. Please check your connection and try again.';
-                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    el.html("<div class='alert alert-red'><span>" + commonmsg + "</span></div>");
                 }
 
             });
@@ -267,7 +265,7 @@
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     if (response.length == 0) {
-                        el.html("<div class='alert alert-yellow'><span>Currently no MailPieces received today</span></div>");
+                        el.html("<div class='alert alert-yellow'><span>@AM.Services.Config.Msg_Web_NoMailPieceReceivedToday</span></div>");
                         $("#todayBody").css("min-height", "342px");
                         return;
                     }
@@ -283,8 +281,7 @@
 
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
-                    var msg = 'Error on reloading the content. Please check your connection and try again.';
-                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    el.html("<div class='alert alert-red'><span>" + commonmsg + "</span></div>");
 
                 }
 
@@ -306,8 +303,7 @@
                     $("#WeeklybatchMailPieceModal").modal("show");
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
-                    var msg = 'Error on reloading the content. Please check your connection and try again.';
-                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    el.html("<div class='alert alert-red'><span>" + commonmsg + "</span></div>");
                     $("#batchModal").modal("hide");
                     $("#WeeklybatchMailPieceModal").modal("show");
                 }
@@ -364,7 +360,7 @@
         function SendPullBackRequest(mailpieceId) {
             var mailpieceIds = [];
             mailpieceIds.push(mailpieceId);
-            console.log(mailpieceIds);
+            //console.log(mailpieceIds);
             var el = $("#myModal").find('.modal-body');
             $.ajax({
                 type: "POST",
@@ -403,8 +399,7 @@
                     $("#myModal").modal("show");
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
-                    var msg = 'Error on reloading the content. Please check your connection and try again.';
-                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    el.html("<div class='alert alert-red'><span>" + commonmsg + "</span></div>");
                     $("#myModal").modal("show");
                 }
 
@@ -441,7 +436,7 @@
 
                     } else if (response == "AdvancePullBack") {
                         var el = $("#myModal").find('.modal-body');
-                        var htmlstr = "<div class='alert alert-red'><span>No record found!</span></h1></div>";
+                        var htmlstr = "<div class='alert alert-red'><span>@AM.Services.Config.Msg_Web_NoRecordFound</span></h1></div>";
                         htmlstr += '<br><blockquote class=""><p><u><i class="fa fa-search"></i> @Html.ActionLink("Advance Search", "PullBack", "RequestPullBack") </u></p></blockquote>';
                         el.html(htmlstr);
                         $("#myModal").modal("show");
@@ -485,7 +480,6 @@
                                 //$("#noPullback").addClass("btn-default");
                                 break;
                         }
-                        console.log()
                         $("#confirmModal").modal("show");
                     }
                     //el.html(response);
@@ -500,8 +494,7 @@
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     var el = $("#myModal").find('.modal-body');
-                    var msg = 'Error on reloading the content. Please check your connection and try again.';
-                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    el.html("<div class='alert alert-red'><span>" + commonmsg + "</span></div>");
                     $("#myModal").modal("show");
                 }
 
