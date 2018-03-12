@@ -17,7 +17,8 @@ namespace AM.Services
         List<MailBatchDTO> GetBatchesByStatus(string batchPipelineStatus, string batchStatus = null);
         BatchData GetMailBatchDetailsByBatchId(int mailBatchId);
         int InsertPrintBatchDetails(PrintBatch printBatch);
-        List<PrintBatch> GetSubmittedPrintBatchDetails();
+        List<SubmittedBatch> GetSubmittedPrintBatchDetails();
+        List<SubmittedBatch> GetResponseReceivedPrintBatchDetails();
     }
     public class BatchService : ServiceBase, IBatchService //It implements Interfaces 
     {
@@ -132,15 +133,24 @@ namespace AM.Services
             return 0;
         }
 
-        public List<PrintBatch> GetSubmittedPrintBatchDetails()
+        public List<SubmittedBatch> GetSubmittedPrintBatchDetails()
         {
             //Sql Query
-            string query = @"SELECT * FROM [AM].[PrintBatches] PB INNER JOIN [AM].[MailPieces] MP ON MP.PrintBatchId= PB.Id
-            WHERE IsSubmittedToShipping=1 AND IsShippingResponseReceived=0";
+            string query = @"SELECT PB.Id AS PrintBatchId, PB.MailBatchId, MB.BatchName,MB.BatchName+'_'+CONVERT(varchar(5),PB.DocTypeId) as SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode FROM [AM].[PrintBatches] PB INNER JOIN [AM].[MailBatches] MB ON MB.Id= PB.MailBatchId WHERE PB.IsSubmittedToShipping=1 AND PB.IsShippingResponseReceived=0";
 
-            var printBatchId = db.Query<PrintBatch, List<MailPieceDTO>, PrintBatch>(query, (printBatch, mailPieces) => { printBatch.MailPieces = mailPieces; return printBatch; });
+            var data = db.Query<SubmittedBatch>(query).ToList();
 
-            return null;
+            return data;
+        }
+
+        public List<SubmittedBatch> GetResponseReceivedPrintBatchDetails()
+        {
+            //Sql Query
+            string query = @"SELECT PB.Id AS PrintBatchId, PB.MailBatchId, MB.BatchName,MB.BatchName+'_'+CONVERT(varchar(5),PB.DocTypeId) as SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode FROM [AM].[PrintBatches] PB INNER JOIN [AM].[MailBatches] MB ON MB.Id= PB.MailBatchId WHERE PB.IsSubmittedToShipping=1 AND PB.IsShippingResponseReceived=1";
+
+            var data = db.Query<SubmittedBatch>(query).ToList();
+
+            return data;
         }
     }
 }

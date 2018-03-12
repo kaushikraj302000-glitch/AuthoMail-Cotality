@@ -13,7 +13,7 @@ namespace AM.Services
         int UpdateBatchPipeLineStatus(int batchId, string pipeLineStatus, DateTime timestamp);
         int UpdateBatchStatus(int batchId, string batchStatus);
         int AMLogBatchTimeLine(int batchId, string activityName, DateTime timeStamp);
-        int UpdatePrintBatchStatus(int printBatchId, string batchStatus);
+        int UpdatePrintBatchStatus(int printBatchId, string batchStatus, string statusDescription=null);
         int UpdatePrintBatchPipeLineStatus(int printBatchId, string pipeLineStatus, DateTime timestamp);
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
@@ -51,13 +51,14 @@ namespace AM.Services
             return db.Execute("usp_AMLogBatchTimeLine", parameters, commandType: CommandType.StoredProcedure);
         }
 
-        public int UpdatePrintBatchStatus(int printBatchId, string batchStatus)
+        public int UpdatePrintBatchStatus(int printBatchId, string batchStatus, string statusDescription = null)
         {
-            string query = "UPDATE [AM].[PrintBatches] SET BatchStatus = @batchStatus WHERE Id = @printBatchId";
+            string query = "UPDATE [AM].[PrintBatches] SET BatchStatus = @batchStatus,StatusDescription=@statusDescription WHERE Id = @printBatchId";
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@batchStatus", batchStatus);
             parameters.Add("@printBatchId", printBatchId);
+            parameters.Add("@statusDescription", statusDescription);
 
             return db.Execute(query, parameters);
         }

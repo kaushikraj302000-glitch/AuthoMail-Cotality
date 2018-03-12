@@ -84,7 +84,7 @@ namespace AM.Services
       ,[RetRcptAddressAptOrSuiteOrOther] = @RetRcptAddressAptOrSuiteOrOther,[RetRcptAddrOptionalLine1BelowStreet] = @RetRcptAddrOptionalLine1BelowStreet,[RetRcptAddrOptionalLine2BelowStreet] = @RetRcptAddrOptionalLine2BelowStreet
       ,[RetRcptAddressCity] = @RetRcptAddressCity,[RetRcptAddressState] = @RetRcptAddressState
       ,[RetRcptAddressZIP] = @RetRcptAddressZIP,[TotalPages] = @TotalPages,[TotalSheets] = @TotalSheets,[ErrorCode] = @ErrorCode
-      ,[ErrorDesc] = @ErrorDesc,[TrackingNo] = @TrackingNo,[IsQCRequested] = @IsQCRequested
+      ,[ErrorDesc] = @ErrorDesc,[TrackingNo] = @TrackingNo,[IsQCRequested] = @IsQCRequested,[IsQCPerformed] =@IsQCPerformed, [Weight] =@Weight,[ShippingStatus] =@ShippingStatus, [PulledBackOn] =@PulledBackOn
 	  WHERE Id=@Id";
 
             var mailPieceId = db.Execute(query, mailPiece);

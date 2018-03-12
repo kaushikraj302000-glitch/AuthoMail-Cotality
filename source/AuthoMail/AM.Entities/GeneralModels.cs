@@ -82,4 +82,12 @@ namespace AM.Entities
         public const string ReportBackStart = "ReportBackStart";
         public const string ReportBackEnd = "ReportBackEnd";
     }
+
+    public enum ErrorTypes
+    {
+        IO = -1,
+        CannotResize = -2,
+        PageCountMismatch = -3,
+        Reprint = 7
+    }
 }
