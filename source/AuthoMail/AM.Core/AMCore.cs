@@ -237,9 +237,195 @@ namespace AM.Core
             }
         }
 
+        internal static void GetSubmittedPnSResponses()
+        {
+            var submittedPrintBatches = mailBatchSvc.GetSubmittedPrintBatchDetails();
+
+            if (submittedPrintBatches == null || submittedPrintBatches.Count == 0)
+            {
+                log.Debug("Response download Job queue is empty.");
+                return;
+            }
+
+            SFTUtil sftSite = new SFTUtil(SFT_ProtocolType.unc, Common.PnS_SFT_HostURL, Common.PnS_SFT_UserName, Common.PnS_SFT_Password, 300000);
+
+            sftSite.Connect();
+
+            CheckAndDownloadResponseFiles(sftSite, submittedPrintBatches);
+
+            sftSite.Disconnect();
+        }
+
+        private static void CheckAndDownloadResponseFiles(SFTUtil sftSite, List<SubmittedBatch> submittedPrintBatches)
+        {
+            List<string> responseFiles;
+            var clientAppCodes = submittedPrintBatches.Select(client => client.AppCode).Distinct();
+            foreach (var appCode in clientAppCodes)
+            {
+                Client client = clientSvc.GetClientDetails(null, appCode).Single();
+
+                responseFiles = sftSite.ListDirectory(Path.Combine(Common.PnS_SFT_RootDir, client.AppCode));
+
+                var responseTriggerFiles = responseFiles
+                .Where(file => Path.GetExtension(file).ToLower() == ".rpt")
+                .Select(file => new KeyValuePair<string, string>(Path.GetFileNameWithoutExtension(file), file))
+                .ToList();
+
+                foreach (var triggerFile in responseTriggerFiles)
+                {
+                    string pnsResponseFilePath = Path.Combine(Common.PnS_SFT_RootDir, client.AppCode, triggerFile.Key + "-res.xml");
+                    string pnsResponseTriggerFilePath = Path.Combine(Common.PnS_SFT_RootDir, client.AppCode, triggerFile.Value);
+                    if (sftSite.IsFileAvailable(pnsResponseFilePath))
+                    {
+                        submittedPrintBatches.ForEach(row =>
+                        {
+                            if (row.SubmittedBatchName == triggerFile.Key)
+                            {
+                                row.ResponseFilePath = pnsResponseFilePath;
+                                row.ResponseTriggerFilePath = pnsResponseTriggerFilePath;
+                            }
+                        });
+                    }
+                }
+
+                var downloadableFiles = submittedPrintBatches.Where(c => !string.IsNullOrEmpty(c.ResponseFilePath)).ToList();
+
+                if (downloadableFiles.Count == 0)
+                {
+                    log.Debug("Response files are not available to download.");
+                    continue;
+                }
+                #region Download Response Files
+
+                foreach (var downloadableBatch in downloadableFiles)
+                {
+                    string responseTriggerFilePath = downloadableBatch.ResponseTriggerFilePath;
+                    string responseFileName = Path.GetFileName(downloadableBatch.ResponseFilePath);
+                    string responseFilePath = downloadableBatch.ResponseFilePath;
+
+                    if (sftSite.IsFileAvailable(responseFilePath))
+                    {
+                        string amRootFilePath = Path.Combine(Common.AuthoMailRootFolder, responseFileName);
+
+                        DateTime mrdfDownloadStartTime = Common.Now;
+                        DateTime responseReceivedOn = sftSite.LastModifiedTimeOfFile(responseFilePath);
+
+                        sftSite.DownloadFile(amRootFilePath, responseFilePath, true, false);
+                        sftSite.DeleteFile(responseTriggerFilePath);
+
+                        if (File.Exists(amRootFilePath))
+                        {
+                            var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(downloadableBatch.MailBatchId);
+                            var mbi = new MailBatchInfo(batchData.MailBatch, client);
+
+                            string amPnSResponsePath = Path.Combine(mbi.PnSResponsePath, responseFileName);
+
+                            File.Move(amRootFilePath, amPnSResponsePath);
+
+                            commonSvc.UpdatePrintBatchPipeLineStatus(downloadableBatch.PrintBatchId, BatchPipelineStatus.ShippingResponseReceived, Common.Now);
+                        }
+                    }
+                    else
+                    {
+                        log.Error("Trigger file is available but xml file is not available to download For PrintBatch-Id :{0}".Fill(downloadableBatch.PrintBatchId));
+                    }
+                }
+                #endregion
+            }
+        }
+
         internal static void ProcessPnSResponses()
         {
-            var data = mailBatchSvc.GetSubmittedPrintBatchDetails();
+            var responseReceivedPrintBatches = mailBatchSvc.GetResponseReceivedPrintBatchDetails();
+
+            if (responseReceivedPrintBatches == null || responseReceivedPrintBatches.Count == 0)
+            {
+                log.Debug("Response process job queue is empty.");
+                return;
+            }
+
+            foreach (var printBatch in responseReceivedPrintBatches)
+            {
+                Client client = clientSvc.GetClientDetails(null, printBatch.AppCode).Single();
+                BatchData batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(printBatch.MailBatchId);
+                MailBatchInfo mbi = new MailBatchInfo(batchData.MailBatch, client);
+
+                List<string> responseFiles = Directory.GetFiles(mbi.PnSResponsePath, "*-res.xml").ToList();
+                if (responseFiles.Count == 0)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    foreach (var resFile in responseFiles)
+                    {
+                        var pnsResponse = XmlUtil.Deserialize<PnSResponse>(File.ReadAllText(resFile));
+                        if (pnsResponse != null)
+                        {
+                            commonSvc.UpdatePrintBatchStatus(printBatch.PrintBatchId, pnsResponse.BatchStatus.ToString(), pnsResponse.StatusDescription);
+
+                            if (pnsResponse.MailPackageReport != null && pnsResponse.MailPackageReport.Count > 0)
+                            {
+                                foreach (var mailPackage in pnsResponse.MailPackageReport)
+                                {
+                                    batchData.MailPieces.ForEach(row =>
+                                    {
+                                        if (row.UniqueId == mailPackage.UniqueId)
+                                        {
+                                            if (mailPackage.MailPieceStatus == MailPieceStatus.Error)
+                                            {
+                                                row.ErrorCode = Convert.ToString((ErrorTypes)mailPackage.ErrId);
+                                                row.ErrorDesc = mailPackage.ErrDesc;
+                                            }
+                                            else if (mailPackage.MailPieceStatus == MailPieceStatus.PulledBack && row.IsPullBackRequested == true)
+                                            {
+                                                row.IsPulledBack = true;
+                                                row.PulledBackOn = mailPackage.PulledBackOn;
+                                            }
+                                            else if (mailPackage.MailPieceStatus == MailPieceStatus.Shipped)
+                                            {
+                                                row.ShippedOn = mailPackage.ShippedOn;
+                                                row.ShippingCost = mailPackage.PostageCost;
+                                                row.TotalSheets = mailPackage.TotalSheets;
+                                                row.Weight = mailPackage.WeightMeasured;
+                                            }
+                                            row.ShippingStatus = mailPackage.MailPieceStatus.ToString();
+
+                                            mailPieceSvc.UpdateBatchMailPieceDetails(row);
+                                        }
+                                    });
+
+                                    var remainingData = batchData.MailPieces.Where(data => data.ShippingStatus == ShippingStatus.InProgress.ToString());
+                                    if (remainingData.Count() == 0)
+                                    {
+                                        var shippedCount = batchData.MailPieces.Where(data => data.ShippingStatus == ShippingStatus.Shipped.ToString());
+                                        if (shippedCount.Count() == 0)
+                                        {
+                                            commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.Failed.ToString());
+                                        }
+                                        else if (shippedCount.Count() < batchData.MailPieces.Count)
+                                        {
+                                            commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.ShippedPartial.ToString());
+                                        }
+                                        else
+                                        {
+                                            commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.ShippedAll.ToString());
+                                        }
+
+                                        commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ShippingResponseReceived, Common.Now);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    //TODO: Ask To Ravi Sir
+                    throw;
+                }
+            }
         }
     }
 }
