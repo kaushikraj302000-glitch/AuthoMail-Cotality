@@ -554,7 +554,8 @@ namespace AM.Console
                                         mailPieceDTO.RcptLastName = recipientsData.Item(0).SelectSingleNode("./x:LastName/text()", nsManager) == null ? null : recipientsData.Item(0).SelectSingleNode("./x:LastName/text()", nsManager).Value;
                                     }
                                 }
-                                mailPieceDTO.IsRcptInfoSpecified = false;
+                                else
+                                    mailPieceDTO.IsRcptInfoSpecified = false;
 
                                 mailPieceDTO.RcptPhone = recipientElement.SelectSingleNode("./x:RecipientPhoneNo/text()", nsManager) == null ? null : recipientElement.SelectSingleNode("./x:RecipientPhoneNo/text()", nsManager).Value;
 
