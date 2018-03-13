@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using AM.Lib;
 namespace AM.Core
 {
     static class AMCore
@@ -170,7 +170,31 @@ namespace AM.Core
                         printBatch.UniqueId = Guid.NewGuid();
                         printBatch.MailBatchId = mbi.MailBatch.Id;
                         printBatch.DocTypeId = docType.Id;
-                        printBatch.MailPieces = validMailPieces.Where(c => c.DocumentOrPackageType == documentOrPackageType).ToList();
+
+                        var filteredMailPieces = validMailPieces.Where(c => c.DocumentOrPackageType == documentOrPackageType).ToList();
+
+                        #region QC Request Logic
+                        if (docType.QCPercent != 0)
+                        {
+                            double qcCount = 0;
+                            float qcPercentage = docType.QCPercent / 100;
+                            float qcPercent = filteredMailPieces.Count() * qcPercentage;
+                            qcCount = Math.Ceiling(qcPercent);
+
+                            var randomList = filteredMailPieces.PickRandom(Convert.ToInt32(qcCount)).Select(d => Path.GetFileNameWithoutExtension(d.FileName)).ToList();
+
+                            filteredMailPieces.ForEach(data =>
+                            {
+                                if (randomList.Contains(data.FileName))
+                                {
+                                    data.IsQCRequested = true;
+                                }
+                            });
+                        }
+                        #endregion
+
+
+                        printBatch.MailPieces = filteredMailPieces;
 
                         printBatches.Add(printBatch);
                     }
