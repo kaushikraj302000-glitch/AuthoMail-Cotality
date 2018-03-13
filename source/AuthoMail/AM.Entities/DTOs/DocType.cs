@@ -39,7 +39,7 @@ namespace AM.Entities
         public string SupportEmails { get; set; }
         public string SupportContactNo { get; set; }
         public string ClientId { get; set; }
-        public string QCPercent { get; set; }
+        public float QCPercent { get; set; }
         public DateTime ModifiedOn { get; set; }
         public DateTime CreatedOn { get; set; }
         public string ModifiedBy { get; set; }
