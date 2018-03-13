@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using AM.Lib;
 namespace AM.Console
 {
     public class MailBatchInfo

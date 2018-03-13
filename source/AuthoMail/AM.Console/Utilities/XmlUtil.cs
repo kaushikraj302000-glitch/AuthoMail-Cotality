@@ -9,7 +9,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Schema;
 using System.Xml.Serialization;
-
+using AM.Lib;
 namespace AM.Console
 {
     public class ValidationResult

@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Schema;
-
+using AM.Lib;
 namespace AM.Console
 {
     public class DownloadJob

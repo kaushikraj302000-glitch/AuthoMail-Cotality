@@ -9,7 +9,7 @@ using Renci.SshNet;
 using Renci.SshNet.Sftp;
 using Renci.SshNet.Common;
 using log4net;
-
+using AM.Lib;
 namespace AM.Console
 {
     public class SFTUtil
