@@ -7,7 +7,7 @@ using Dapper;
 using System.Data;
 using AM.Services.Models;
 using AM.Entities;
-
+using AM.Lib;
 namespace AM.Services
 {
     public interface IReportService

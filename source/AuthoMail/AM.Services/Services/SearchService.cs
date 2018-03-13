@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Dapper;
 using AM.Services.Models;
-
+using AM.Lib;
 namespace AM.Services
 {
     public interface ISearchService
