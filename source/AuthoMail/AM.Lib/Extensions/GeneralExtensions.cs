@@ -147,6 +147,30 @@ namespace AM.Lib
             return source.OrderBy(x => Guid.NewGuid());
         }
 
+        public static DateTime UtcToClientTimeZone(this DateTime dt, string clientTimeZone)
+        {
+            dt = DateTime.SpecifyKind(dt, DateTimeKind.Unspecified);
+            // Treat date as IST irrecpective of client and server timezone and covert it to UTC
+            return TimeZoneInfo.ConvertTime(dt, TimeZoneInfo.FindSystemTimeZoneById("UTC"), TimeZoneInfo.FindSystemTimeZoneById(clientTimeZone));
+        }
+
+        public static DateTime ClientTimeZoneToUtc(this DateTime dt, string clientTimeZone)
+        {
+            dt = DateTime.SpecifyKind(dt, DateTimeKind.Unspecified);
+            // Treat date as IST irrecpective of client and server timezone and covert it to UTC
+            return TimeZoneInfo.ConvertTime(dt, TimeZoneInfo.FindSystemTimeZoneById(clientTimeZone), TimeZoneInfo.FindSystemTimeZoneById("UTC"));
+        }
+
+        public static DateTime UtcToEst(this DateTime dt)
+        {
+            return dt.UtcToClientTimeZone("Eastern Standard Time");
+        }
+
+        public static DateTime EstToUtc(this DateTime dt)
+        {
+            return dt.ClientTimeZoneToUtc("Eastern Standard Time");
+        }
+
         public static object ToClrType(this string value, SqlDbTypeCustom sqlDbTypeCustom)
         {
             return value.ToClrType(sqlDbTypeCustom, null);
