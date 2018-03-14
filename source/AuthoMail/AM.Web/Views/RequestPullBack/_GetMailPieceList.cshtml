@@ -28,6 +28,7 @@
                         <th>Pages Shipped</th>
                         <th>Pullback Requested</th>
                         <th>Tracking Number</th>
+                        <th>Received On</th>
                         <th>Shipping Status</th>
                     </tr>
                 </thead>
@@ -69,6 +70,7 @@
                             <td><span>@item.RecipientName </span></td>
                             <td><span>@item.RCPTAddress</span></td>
                             <td><span>@item.TotalPages</span></td>
+                            <td><span>@item.ReceivedOnClient</span></td>
                             <td id="IsPullBackRequested_@(cnt)">
                                 @if (item.IsPullBackRequested)
                                 {

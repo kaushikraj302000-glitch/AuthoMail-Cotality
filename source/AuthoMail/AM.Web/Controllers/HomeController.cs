@@ -31,7 +31,7 @@ namespace AM.Web.Controllers
         }
 
         [HttpPost]
-        public ActionResult GetMailPieceIdByLoanNumber(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, DateTime startDate, DateTime endDate)
+        public ActionResult GetMailPieceIdByLoanNumber(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string startDate, string endDate)
         {
             var model = homeSvc.GetMailPieceIdFromBusinessFriendlyValue(BusinessFriendlyIdName, BusinessFriendlyIdValue, User.Identity.GetClientId().Value);
 
@@ -42,7 +42,7 @@ namespace AM.Web.Controllers
             }
             else if (model.Count == 1)
             {
-                var pullbackRequestData = pullBackSvc.GetPullBackRequestList(BusinessFriendlyIdName, BusinessFriendlyIdValue, null, startDate, endDate, User.Identity.GetClientId().Value);
+                var pullbackRequestData = pullBackSvc.GetPullBackRequestList(BusinessFriendlyIdName, BusinessFriendlyIdValue, null, Convert.ToDateTime(startDate),Convert.ToDateTime(endDate), User.Identity.GetClientId().Value);
                 return PartialView("_PullBackRequestData", pullbackRequestData);
             }
             else
