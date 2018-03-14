@@ -9,6 +9,7 @@ namespace AM.Services
     public class PullBackInfo
     {
         public string ClientBatchId { get; set; }
+        public string ClientTimeZone { get; set; }
         public int MailPieceId { get; set; }
         public Guid MailPieceUniqueId { get; set; }
         public int BatchId { get; set; }
@@ -27,8 +28,13 @@ namespace AM.Services
         {
             get
             {
-                string name = string.Format("{0} {1} {2} {3} {4}", RcptPrefix, RcptFirstName, RcptMiddleName, RcptLastName, RcptSuffix);
-                return name.IsNullOrWhiteSpace() ? name : name.Trim();
+                string name = string.Format("{0}{1}{2}{3}{4}",
+                    RcptPrefix.IsNullOrWhiteSpace() ? null : RcptPrefix + ", ",
+                    RcptFirstName.IsNullOrWhiteSpace() ? null : RcptFirstName + ", ",
+                    RcptMiddleName.IsNullOrWhiteSpace() ? null : RcptMiddleName + ", ",
+                    RcptLastName.IsNullOrWhiteSpace() ? null : RcptLastName + ", ",
+                    RcptSuffix.IsNullOrWhiteSpace() ? null : RcptSuffix + ", ");
+                return name.IsNullOrWhiteSpace() ? name : name.Trim(',').Trim();
             }
         }
         public string RcptAddrOptionalLine1AboveStreet { get; set; }
@@ -58,7 +64,23 @@ namespace AM.Services
             }
         }
         public DateTime? ReceivedOn { get; set; }
+        public DateTime? ReceivedOnClient
+        {
+            get
+            {
+                if (ReceivedOn.HasValue) return ReceivedOn.Value.UtcToClientTimeZone(ClientTimeZone);
+                return null;
+            }
+        }
         public DateTime? PrintedOn { get; set; }
+        public DateTime? PrintedOnClient
+        {
+            get
+            {
+                if (PrintedOn.HasValue) return PrintedOn.Value.UtcToClientTimeZone(ClientTimeZone);
+                return null;
+            }
+        }
         public int TotalPages { get; set; }//Pages Shipped
         public string ShippingMethod { get; set; }
         public string TrackingNo { get; set; }
@@ -109,18 +131,34 @@ namespace AM.Services
     public class QuickPullBackResponse
     {
         public string ClientBatchId { get; set; }
+        public string ClientTimeZone { get; set; }
         public int BatchId { get; set; }
         public Guid BatchUniqueId { get; set; }
         public string BatchName { get; set; }
         public int MailPieceId { get; set; }
         public Guid MailPieceUniqueId { get; set; }
         public DateTime ReceivedOn { get; set; }
+        public DateTime ReceivedOncClient
+        {
+            get
+            {
+                return ReceivedOn.UtcToClientTimeZone(ClientTimeZone);
+            }
+        }
         public string BusinessFriendlyIdName { get; set; }
         public string BusinessFriendlyIdValue { get; set; }
         public string FileName { get; set; }
         public string ShippingStatus { get; set; }
         public string PulledBackBy { get; set; }
         public DateTime? PulledBackOn { get; set; }
+        public DateTime? PulledBackOnClient
+        {
+            get
+            {
+                if (PulledBackOn.HasValue) return PulledBackOn.Value.UtcToClientTimeZone(ClientTimeZone);
+                return null;
+            }
+        }
         public bool IsPullBackRequested { get; set; }
         public string PullBackMessage
         {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AM.Lib;
 
 namespace AM.Services
 {
@@ -20,8 +21,31 @@ namespace AM.Services
         public string BusinessFriendlyIdValue { get; set; }
         public string FileName { get; set; }
         public DateTime ReceivedOn { get; set; }
+        public DateTime ReceivedOnclient
+        {
+            get
+            {
+                return ReceivedOn.UtcToClientTimeZone(ClientTimeZone);
+            }
+        }
         public DateTime? PrintedOn { get; set; }
+        public DateTime? PrintedOnClient
+        {
+            get
+            {
+                if (PrintedOn.HasValue) return PrintedOn.Value.UtcToClientTimeZone(ClientTimeZone);
+                return null;
+            }
+        }
         public DateTime? MailedOn { get; set; }
+        public DateTime? MailedOnClient
+        {
+            get
+            {
+                if (MailedOn.HasValue) return MailedOn.Value.UtcToClientTimeZone(ClientTimeZone);
+                return null;
+            }
+        }
         public int ClientId { get; set; }
         public string ClientCode { get; set; }
         public string TrackingNo { get; set; }
@@ -42,6 +66,7 @@ namespace AM.Services
         public string RequestId { get; set; }
         public string PrintLocation { get; set; }
         public int PagesShipped { get; set; }
+        public string ClientTimeZone { get; set; }
     }
 
     public class ErrorReport
@@ -58,8 +83,23 @@ namespace AM.Services
         public string BusinessFriendlyIdValue { get; set; }
         public int SLADays { get; set; }
         public DateTime? DueDate { get; set; }
+        public DateTime? DueDateClient
+        {
+            get
+            {
+                if (DueDate.HasValue) return DueDate.Value.UtcToClientTimeZone(ClientTimeZone);
+                return null;
+            }
+        }
         public string FileName { get; set; }
         public DateTime ReceivedOn { get; set; }
+        public DateTime ReceivedOnClient
+        {
+            get
+            {
+                return ReceivedOn.UtcToClientTimeZone(ClientTimeZone);
+            }
+        }
         public int ClientId { get; set; }
         public string ShippingMethod { get; set; }
         public string CustomerIdentifier { get; set; }
@@ -72,6 +112,7 @@ namespace AM.Services
         public string RequestId { get; set; }
         public string ErrorCode { get; set; }
         public string ErrorDesc { get; set; }
+        public string ClientTimeZone { get; set; }
     }
 
     public class MonthlyReconReport
@@ -85,8 +126,29 @@ namespace AM.Services
         public string BusinessFriendlyIdValue { get; set; }
         public string FileName { get; set; }
         public DateTime ReceivedOn { get; set; }
-        public DateTime? PrintedOn { get; set; }
-        public DateTime? MailedOn { get; set; }
+        public DateTime ReceivedOnClient
+        {
+            get
+            {
+                return ReceivedOn.UtcToClientTimeZone(ClientTimeZone);
+            }
+        }
+        public DateTime? PrintedOn
+        {
+            get
+            {
+                if (PrintedOn.HasValue) return PrintedOn.Value.UtcToClientTimeZone(ClientTimeZone);
+                return null;
+            }
+        }
+        public DateTime? MailedOn
+        {
+            get
+            {
+                if (MailedOn.HasValue) return MailedOn.Value.UtcToClientTimeZone(ClientTimeZone);
+                return null;
+            }
+        }
         public int ClientId { get; set; }
         public string TrackingNo { get; set; }
         public string ShippingMethod { get; set; }
@@ -100,7 +162,9 @@ namespace AM.Services
         public string PrintLocation { get; set; }
         public int PagesShipped { get; set; }
         public string ShippingStatus { get; set; }
+        public string ClientTimeZone { get; set; }
     }
+
     public class SummaryControlReport
     {
         public int BatchId { get; set; }
@@ -114,9 +178,29 @@ namespace AM.Services
         public string BusinessFriendlyIdName { get; set; }
         public string BusinessFriendlyIdValue { get; set; }
         public string FileName { get; set; }
-        public DateTime ReceivedOn { get; set; }
-        public DateTime? PrintedOn { get; set; }
-        public DateTime? MailedOn { get; set; }
+        public DateTime ReceivedOn
+        {
+            get
+            {
+                return ReceivedOn.UtcToClientTimeZone(ClientTimeZone);
+            }
+        }
+        public DateTime? PrintedOn
+        {
+            get
+            {
+                if (PrintedOn.HasValue) return PrintedOn.Value.UtcToClientTimeZone(ClientTimeZone);
+                return null;
+            }
+        }
+        public DateTime? MailedOn
+        {
+            get
+            {
+                if (MailedOn.HasValue) return MailedOn.Value.UtcToClientTimeZone(ClientTimeZone);
+                return null;
+            }
+        }
         public int ClientId { get; set; }
         public string ClientCode { get; set; }
         public string TrackingNo { get; set; }
@@ -133,6 +217,7 @@ namespace AM.Services
         public string ErrorDesc { get; set; }
         public string PrintLocation { get; set; }
         public int PagesShipped { get; set; }
+        public string ClientTimeZone { get; set; }
     }
     public class DocumentType
     {
@@ -141,15 +226,4 @@ namespace AM.Services
     }
 
 
-    public class SupplyInventory
-    {
-        public DateTime ReceivedOn { get; set; }
-        public string InventoryId { get; set; }
-        public string EnvelopType { get; set; }
-        public string Description { get; set; }
-        public decimal UnitPrice { get; set; }
-        public int StockReceivedQuantity { get; set; }
-        public int StockUsed { get; set; }
-        public int CurrentlyInStock { get; set; }
-    }
 }

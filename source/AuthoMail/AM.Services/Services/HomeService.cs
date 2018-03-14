@@ -59,12 +59,12 @@ namespace AM.Services
     }
     public static class HomeServiceQuery
     {
-        public static string GetMailPieceByBatchId = "select m.* from [AM].[MailPieces] m,[AM].[MailBatches] b WHERE m.BatchId=b.Id AND (MailBatchId=@batchId AND b.ClientId=@clientId)";
+        public static string GetMailPieceByBatchId = "select * from [dbo].[view_MailPieceByParam] where MailBatchId=@batchId and clientId=@clientId";
 
         public static string GetDocTypeList = "select Id,DocTypeCode FROM [AM].[DocTypes] WHERE ClientId=@clientId";
 
         public static string GetMailPieceIdFromBusinessFriendlyValue = "select m.[UniqueId] as [MailPieceId] from [AM].[MailBatches] b,[AM].[MailPieces] m where b.Id = m.MailBatchId and ((cast(ReceivedOn as date)=cast(@todayDate as date) or (m.ShippingStatus=@shippingStatus and b.PipelineStatus=@pipelineStatus))) and m.BusinessFriendlyIdName=@businessFriendlyIdName AND m.BusinessFriendlyIdValue=@businessFriendlyIdValue AND b.ClientId=@clientId";
 
-        public static string GetBusinessFriendlyIdNameByclientId = "SELECT DISTINCT BusinessFriendlyIdName FROM [AM].[MailPieces] m,[AM].[MailBatches] b WHERE m.MailBatchId=b.Id and BusinessFriendlyIdName is not null and b.ClientId=@clientId";
+        public static string GetBusinessFriendlyIdNameByclientId = "SELECT DISTINCT BusinessFriendlyIdName FROM [AM].[MailPieces] WHERE BusinessFriendlyIdName is not null AND ClientId=@clientId";
     }
 }

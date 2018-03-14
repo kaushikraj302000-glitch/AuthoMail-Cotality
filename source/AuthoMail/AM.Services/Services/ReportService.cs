@@ -75,9 +75,11 @@ namespace AM.Services
             string query = ReportServiceQuery.GetSummaryControlReport;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@clientId", clientId);
-            query = string.Format("{0} AND (cast(ReceivedOn as date) = cast(@date as date) AND CONVERT(VARCHAR(5),ReceivedOn,108)  <= @time)", query);
+            query = string.Format("{0} AND (cast(ReceivedOn as date) = cast(@sdate as date) AND CONVERT(VARCHAR(5),ReceivedOn,108)  > @stime) AND (cast(ReceivedOn as date) = cast(@date as date) AND CONVERT(VARCHAR(5),ReceivedOn,108)  <= @time)", query);
             parameters.Add("@date", date);
-            parameters.Add("@time", "19:45");
+            parameters.Add("@time", "23:45");//19:45 EST To 23:45 UTC
+            parameters.Add("@sdate", date.AddDays(-1));
+            parameters.Add("@stime", "23:45");//19:45 EST To 23:45 UTC
             if (!channel.IsNullOrWhiteSpace())
             {
                 query = string.Format("{0} AND Channel=@channel", query);
@@ -95,9 +97,15 @@ namespace AM.Services
             parameters.Add("@shippingstatus", ShippingStatus.Error.ToString());//Need to verify
             if (date.HasValue)
             {
-                query = string.Format("{0} AND (cast(ReceivedOn as date) = cast(@date as date) AND CONVERT(VARCHAR(5),ReceivedOn,108)  < @time)", query);
-                parameters.Add("@date", date);
-                parameters.Add("@time", "19:45");
+                //query = string.Format("{0} AND (cast(ReceivedOn as date) = cast(@date as date) AND CONVERT(VARCHAR(5),ReceivedOn,108)  < @time)", query);
+                //parameters.Add("@date", date);
+                //parameters.Add("@time", "23:45");
+
+                query = string.Format("{0} AND (cast(ReceivedOn as date) = cast(@sdate as date) AND CONVERT(VARCHAR(5),ReceivedOn,108)  > @stime) AND (cast(ReceivedOn as date) = cast(@date as date) AND CONVERT(VARCHAR(5),ReceivedOn,108)  <= @time)", query);
+                parameters.Add("@date", date.Value);
+                parameters.Add("@time", "23:45");//19:45 EST To 23:45 UTC
+                parameters.Add("@sdate", date.Value.AddDays(-1));
+                parameters.Add("@stime", "23:45");
             }
             //Also verify need to define time in below clause. also check time?
             if (batchId.HasValue)
@@ -105,7 +113,7 @@ namespace AM.Services
                 query = string.Format("{0} AND BatchId=@batchId", query);
                 parameters.Add("@batchId", batchId);
             }
-            if(!docType.IsNullOrWhiteSpace())
+            if (!docType.IsNullOrWhiteSpace())
             {
                 query = string.Format("{0} AND DocumentOrPackageType=@docType", query);
                 parameters.Add("@docType", docType);

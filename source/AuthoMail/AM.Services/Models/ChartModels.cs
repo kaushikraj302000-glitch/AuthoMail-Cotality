@@ -3,17 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AM.Lib;
 
 namespace AM.Services.Models
 {
     public class WeeklyChart
     {
         public DateTime Date { get; set; }
+
         public string ShortDate
         {
             get
             {
-                return this.Date.ToShortDateString();
+                return this.Date.UtcToEst().ToShortDateString();
             }
         }
         public int InProgress { get; set; }
@@ -23,8 +25,9 @@ namespace AM.Services.Models
     }
     public class TodayMailPieceChart
     {
-        public int BatchId { get; set; }
+        public int MailBatchId { get; set; }
         public string BatchName { get; set; }
+        public string ClientBatchId { get; set; }
         public int InProgress { get; set; }
         public int PulledBack { get; set; }
         public int Error { get; set; }
@@ -39,5 +42,14 @@ namespace AM.Services.Models
         public string BatchStatus { get; set; }
         public string DocumentOrPackageType { get; set; }
         public DateTime? ReceivedOn { get; set; }
+        public DateTime? ReceivedOnClient
+        {
+            get
+            {
+                if (ReceivedOn.HasValue) return ReceivedOn.Value.UtcToClientTimeZone(ClientTimeZone);
+                return null;
+            }
+        }
+        public string ClientTimeZone { get; set; }
     }
 }

@@ -95,7 +95,7 @@ namespace AM.Web.Controllers
         public ActionResult GetTodayChartData(string date)
         {
             var model = chartDataSvc.GetTodayMailPieceChartData(Convert.ToDateTime(date), User.Identity.GetClientId().Value);
-            return Json(model.OrderByDescending(s => s.BatchId).ToList(), JsonRequestBehavior.AllowGet);
+            return Json(model.OrderByDescending(s => s.MailBatchId).ToList(), JsonRequestBehavior.AllowGet);
         }
 
         [HttpPost]

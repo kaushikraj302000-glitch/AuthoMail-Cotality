@@ -11,6 +11,7 @@ namespace AM.Services.Models
         public int MailPieceId { get; set; }
         public Guid MailPieceUniqueId { get; set; }
         public int? ClientId { get; set; }
+        public string ClientTimeZone { get; set; }
         public int? MailBatchId { get; set; }
         public string PrintBatchId { get; set; }
         public string BusinessFriendlyIdName { get; set; }
@@ -20,6 +21,14 @@ namespace AM.Services.Models
         public string DocumentOrPackageType { get; set; }
         public int SLADays { get; set; }
         public DateTime? DueDate { get; set; }
+        public DateTime? DueDateClient
+        {
+            get
+            {
+                if (DueDate.HasValue) return DueDate.Value.UtcToClientTimeZone(ClientTimeZone);
+                return null;
+            }
+        }
         public string ShippingStatus { get; set; }
         public bool IsRcptInfoSpecified { get; set; }
         public string RcptPrefix { get; set; }
@@ -135,11 +144,36 @@ namespace AM.Services.Models
         public DateTime? PullBackRequestedOn { get; set; }
         public int IsPulledBack { get; set; }
         public DateTime? PulledBackOn { get; set; }
+        public DateTime? PulledBackOnClient
+        {
+            get
+            {
+                if (PulledBackOn.HasValue) return PulledBackOn.Value.UtcToClientTimeZone(ClientTimeZone);
+                return null;
+            }
+        }
         public string PulledBackRequestedBy { get; set; }
+        public string PulledBackRequestedByName { get; set; }
         public bool IsPrinted { get; set; }
         public DateTime? PrintedOn { get; set; }
+        public DateTime? PrintedOnClient
+        {
+            get
+            {
+                if (PrintedOn.HasValue) return PrintedOn.Value.UtcToClientTimeZone(ClientTimeZone);
+                return null;
+            }
+        }
         public int IsShipped { get; set; }
         public DateTime? ShippedOn { get; set; }
+        public DateTime? ShippedOnClient
+        {
+            get
+            {
+                if (ShippedOn.HasValue) return ShippedOn.Value.UtcToClientTimeZone(ClientTimeZone);
+                return null;
+            }
+        }
         public decimal ShippingCost { get; set; }
         public decimal? Weight { get; set; }
         public bool IsQCRequested { get; set; }
@@ -149,6 +183,14 @@ namespace AM.Services.Models
         public string BatchName { get; set; }
         public string BatchStatus { get; set; }
         public DateTime? ReceivedOn { get; set; }
+        public DateTime? ReceivedOnClient
+        {
+            get
+            {
+                if (ReceivedOn.HasValue) return ReceivedOn.Value.UtcToClientTimeZone(ClientTimeZone);
+                return null;
+            }
+        }
         public int? SFTChannelId { get; set; }
         public string ClientBatchId { get; set; }
         public string PrintLocation { get; set; }
