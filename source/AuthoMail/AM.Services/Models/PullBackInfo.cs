@@ -138,7 +138,7 @@ namespace AM.Services
         public int MailPieceId { get; set; }
         public Guid MailPieceUniqueId { get; set; }
         public DateTime ReceivedOn { get; set; }
-        public DateTime ReceivedOncClient
+        public DateTime ReceivedOnClient
         {
             get
             {
