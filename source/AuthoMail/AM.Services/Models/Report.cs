@@ -133,7 +133,8 @@ namespace AM.Services
                 return ReceivedOn.UtcToClientTimeZone(ClientTimeZone);
             }
         }
-        public DateTime? PrintedOn
+        public DateTime? PrintedOn { get; set; }
+        public DateTime? PrintedOnClient
         {
             get
             {
@@ -141,7 +142,8 @@ namespace AM.Services
                 return null;
             }
         }
-        public DateTime? MailedOn
+        public DateTime? MailedOn { get; set; }
+        public DateTime? MailedOnClient
         {
             get
             {
@@ -178,14 +180,16 @@ namespace AM.Services
         public string BusinessFriendlyIdName { get; set; }
         public string BusinessFriendlyIdValue { get; set; }
         public string FileName { get; set; }
-        public DateTime ReceivedOn
+        public DateTime ReceivedOn { get; set; }
+        public DateTime ReceivedOnClient
         {
             get
             {
                 return ReceivedOn.UtcToClientTimeZone(ClientTimeZone);
             }
         }
-        public DateTime? PrintedOn
+        public DateTime? PrintedOn { get; set; }
+        public DateTime? PrintedOnClient
         {
             get
             {
@@ -193,7 +197,8 @@ namespace AM.Services
                 return null;
             }
         }
-        public DateTime? MailedOn
+        public DateTime? MailedOn { get; set; }
+        public DateTime? MailedOnClient
         {
             get
             {
