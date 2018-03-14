@@ -28,7 +28,7 @@ namespace AM.Services
             if (date.HasValue)
             {
                 query = string.Format("{0} AND cast(ReceivedOn as date) = cast(@date as date)", query);
-                parameters.Add("@date", date);
+                parameters.Add("@date", date.Value.EstToUtc());
             }
             if (batchId.HasValue)
             {
@@ -53,7 +53,7 @@ namespace AM.Services
             if (date.HasValue)
             {
                 query = string.Format("{0} AND cast(ReceivedOn as date) = cast(@date as date)", query);
-                parameters.Add("@date", date);
+                parameters.Add("@date", date.Value.EstToUtc());
             }
 
             if (batchId.HasValue)
@@ -72,6 +72,7 @@ namespace AM.Services
 
         public List<SummaryControlReport> GetSummaryControlReport(int clientId, DateTime date, string channel)
         {
+            date = date.EstToUtc();
             string query = ReportServiceQuery.GetSummaryControlReport;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@clientId", clientId);
@@ -97,6 +98,7 @@ namespace AM.Services
             parameters.Add("@shippingstatus", ShippingStatus.Error.ToString());//Need to verify
             if (date.HasValue)
             {
+                date = date.Value.EstToUtc();
                 //query = string.Format("{0} AND (cast(ReceivedOn as date) = cast(@date as date) AND CONVERT(VARCHAR(5),ReceivedOn,108)  < @time)", query);
                 //parameters.Add("@date", date);
                 //parameters.Add("@time", "23:45");
@@ -129,8 +131,8 @@ namespace AM.Services
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@clientId", clientId);
             parameters.Add("@shippingStatus", ShippingStatus.Shipped.ToString());
-            parameters.Add("@startDate", startDate);
-            parameters.Add("@endDate", endDate);
+            parameters.Add("@startDate", startDate.EstToUtc());
+            parameters.Add("@endDate", endDate.EstToUtc());
             if (!channel.IsNullOrWhiteSpace())
             {
                 query = string.Format("{0} AND Channel=@channel", query);

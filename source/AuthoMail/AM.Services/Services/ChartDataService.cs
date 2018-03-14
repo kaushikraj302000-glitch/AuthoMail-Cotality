@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Dapper;
+using AM.Lib;
 
 namespace AM.Services
 {
@@ -14,21 +15,21 @@ namespace AM.Services
         List<TodayMailPieceChart> GetTodayMailPieceChartData(DateTime todayDate, int clientId);
         List<PullBackInfo> GetMailPieceByParam(int batchId, string status, int clientId);
         List<BatchListByChartData> GetBatchByParam(DateTime date, string status, int clientId);
-        List<PullBackInfo> GetMailPieceByBatchId(int batchId,int clientId);
+        List<PullBackInfo> GetMailPieceByBatchId(int batchId, int clientId);
     }
 
     public class ChartDataService : ServiceBase, IChartDataService
     {
         public List<WeeklyChart> GetWeeklyChartData(DateTime startDate, DateTime endDate, int clientId)
         {
-            var data = db.Query<WeeklyChart>(ChartDataServiceQuery.GetWeeklyChartData, new { startDate = startDate, endDate = endDate, clientId = clientId }).ToList();
+            var data = db.Query<WeeklyChart>(ChartDataServiceQuery.GetWeeklyChartData, new { startDate = startDate.EstToUtc(), endDate = endDate.EstToUtc(), clientId = clientId }).ToList();
             return data;
         }
 
 
         public List<TodayMailPieceChart> GetTodayMailPieceChartData(DateTime todayDate, int clientId)
         {
-            var data = db.Query<TodayMailPieceChart>(ChartDataServiceQuery.GetTodayMailPieceChartData, new { todayDate = todayDate, clientId = clientId }).ToList();
+            var data = db.Query<TodayMailPieceChart>(ChartDataServiceQuery.GetTodayMailPieceChartData, new { todayDate = todayDate.EstToUtc(), clientId = clientId }).ToList();
             return data;
         }
 
@@ -41,12 +42,12 @@ namespace AM.Services
 
         public List<BatchListByChartData> GetBatchByParam(DateTime date, string status, int clientId)
         {
-            var data = db.Query<BatchListByChartData>(ChartDataServiceQuery.GetBatchByParam, new { date = date, status = status, clientId = clientId }).ToList();
+            var data = db.Query<BatchListByChartData>(ChartDataServiceQuery.GetBatchByParam, new { date = date.EstToUtc(), status = status, clientId = clientId }).ToList();
             return data;
         }
 
 
-        public List<PullBackInfo> GetMailPieceByBatchId(int batchId,int clientId)
+        public List<PullBackInfo> GetMailPieceByBatchId(int batchId, int clientId)
         {
             var data = db.Query<PullBackInfo>(ChartDataServiceQuery.GetMailPieceByBatchId, new { batchId = batchId, clientId = clientId }).ToList();
             return data;

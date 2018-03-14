@@ -20,8 +20,8 @@ namespace AM.Services
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@clientId", clientId);
-            parameters.Add("@startDate", startDate);
-            parameters.Add("@endDate", endDate);
+            parameters.Add("@startDate", startDate.EstToUtc());
+            parameters.Add("@endDate", endDate.EstToUtc());
             if (!businessFriendlyIdName.IsNullOrWhiteSpace() && !businessFriendlyIdValue.IsNullOrWhiteSpace())
             {
                 query = string.Format("{0} AND (BusinessFriendlyIdName=@businessFriendlyIdName AND BusinessFriendlyIdValue=@businessFriendlyIdValue)", query);
