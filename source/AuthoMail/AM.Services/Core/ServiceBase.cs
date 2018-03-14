@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AM.Lib;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -17,7 +18,10 @@ namespace AM.Services
             db = DbFactory.Create("AuthoMail");
         }
 
-        protected override void DisposeCore()
+        /// <summary>
+        /// Dispose managed resources.
+        /// </summary>
+        protected override void DisposeManagedObjects()
         {
             if (db != null)
             {
@@ -29,44 +33,15 @@ namespace AM.Services
             }
         }
 
-        ~ServiceBase()
+        /// <summary>
+        /// Free your own state (unmanaged objects).
+        /// Set large fields to null.
+        /// </summary>
+        protected override void DisposeUnManagedObjects()
         {
-            this.Dispose();
+
+            // There are no unmanaged resources to free
+            return;
         }
     }
-
-    public abstract class Disposable : IDisposable
-    {
-        private bool disposed = false;
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            // Check to see if Dispose has already been called.
-            if (!this.disposed)
-            {
-                if (disposing)
-                {
-                    // Dispose managed resources.
-                    DisposeCore();
-                }
-
-                // Note disposing has been done.
-                disposed = true;
-            }
-        }
-
-        protected abstract void DisposeCore();
-
-        ~Disposable()
-        {
-            Dispose(false);
-        }
-    }
-
 }
