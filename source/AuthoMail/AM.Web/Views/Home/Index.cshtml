@@ -239,15 +239,20 @@
                 data: JSON.stringify({ startDate: moment().subtract(7, 'days').format('MM/DD/YYYY'), endDate: moment().format('MM/DD/YYYY') }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
+                  //  console.log(response[0].ShortDate);
                     var chartData = [];
                     chartData.push(['Date', 'InProgress', 'Failed', 'ShippedPartial', 'ShippedAll', 'Dates']);
                     var cnt = 0;
+                    var startDate = response[response.length-1].ShortDate;
+                    var endDate = response[0].ShortDate;
+                    //console.log(startDate + " " + endDate);
                     for (var i = 1; i <= response.length; i++) {
                         var day = moment(new Date(response[cnt].ShortDate)).format("MM/DD/YYYY") == moment(new Date()).format("MM/DD/YYYY") ? "Today" : moment(new Date(response[cnt].ShortDate)).format("ddd");
                         chartData.push([day, response[cnt].InProgress, response[cnt].Failed, response[cnt].ShippedPartial, response[cnt].ShippedAll, moment(new Date(response[cnt].ShortDate)).format("MM/DD/YYYY")]);
                         cnt++;
                     }
-                    drawChart(chartData, "weeklyChart", 'Batch Details: ' + moment().subtract('days', 7).format('MM/DD/YYYY') + " - " + moment().format('MM/DD/YYYY'));
+                    //console.log(chartData);
+                    drawChart(chartData, "weeklyChart", 'Batch Details (In EST): ' + moment(new Date(startDate)).format('MM/DD/YYYY') + " - " + moment(new Date(endDate)).format('MM/DD/YYYY'));
 
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
