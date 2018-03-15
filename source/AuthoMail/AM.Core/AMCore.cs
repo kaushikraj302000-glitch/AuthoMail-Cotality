@@ -19,6 +19,7 @@ namespace AM.Core
         private static IMailPieceService mailPieceSvc = new MailPieceService();
         private static IDocTypeService docTypeSvc = new DocTypeService();
 
+        private static Random random = new Random();
         internal static void PrepPnSJobs()
         {
             List<MailBatchDTO> mailBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.Acknowledged);
@@ -174,21 +175,25 @@ namespace AM.Core
                         var filteredMailPieces = validMailPieces.Where(c => c.DocumentOrPackageType == documentOrPackageType).ToList();
 
                         #region QC Request Logic
-                        if (docType.QCPercent != 0)
+                        if (docType.QCPercent > 0)
                         {
                             double qcCount = 0;
                             float qcPercentage = docType.QCPercent / 100;
-                            float qcPercent = filteredMailPieces.Count() * qcPercentage;
-                            qcCount = Math.Ceiling(qcPercent);
+                            qcCount = Math.Ceiling(filteredMailPieces.Count * qcPercentage);
 
-                            var randomList = filteredMailPieces.PickRandom(Convert.ToInt32(qcCount)).Select(d => Path.GetFileNameWithoutExtension(d.FileName)).ToList();
-
-                            filteredMailPieces.ForEach(data =>
+                            var randomIndexes = new List<int>();
+                            while (randomIndexes.Count < qcCount)
                             {
-                                if (randomList.Contains(data.FileName))
+                                var index = random.Next(0, filteredMailPieces.Count - 1);
+                                if (!randomIndexes.Contains(index))
                                 {
-                                    data.IsQCRequested = true;
+                                    randomIndexes.Add(index);
                                 }
+                            }
+
+                            randomIndexes.ForEach(index =>
+                            {
+                                filteredMailPieces[index].IsQCRequested = true;
                             });
                         }
                         #endregion
