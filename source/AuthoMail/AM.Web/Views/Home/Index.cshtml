@@ -190,7 +190,6 @@
 @section Scripts{
     @Styles.Render("~/bundles/datatablescss")
     @Scripts.Render("~/bundles/datatables")
-    <script src="~/clui/dist/js/vendor/moment.js"></script>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js">
     </script>
     <script type="text/javascript">
@@ -236,23 +235,23 @@
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Home/GetWeeklyChartData",
-                data: JSON.stringify({ startDate: moment().subtract(7, 'days').format('MM/DD/YYYY'), endDate: moment().format('MM/DD/YYYY') }),
+                data: JSON.stringify({ startDate: new Date(moment().subtract(7, 'days').format('MM/DD/YYYY')), endDate: new Date(moment().format('MM/DD/YYYY')) }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
-                  //  console.log(response[0].ShortDate);
+                    console.log(response[0].ShortDate);
                     var chartData = [];
                     chartData.push(['Date', 'InProgress', 'Failed', 'ShippedPartial', 'ShippedAll', 'Dates']);
                     var cnt = 0;
-                    var startDate = response[response.length-1].ShortDate;
+                    var startDate = response[response.length - 1].ShortDate;
                     var endDate = response[0].ShortDate;
-                    //console.log(startDate + " " + endDate);
+                    console.log(startDate + " " + endDate);
                     for (var i = 1; i <= response.length; i++) {
                         var day = moment(new Date(response[cnt].ShortDate)).format("MM/DD/YYYY") == moment(new Date()).format("MM/DD/YYYY") ? "Today" : moment(new Date(response[cnt].ShortDate)).format("ddd");
                         chartData.push([day, response[cnt].InProgress, response[cnt].Failed, response[cnt].ShippedPartial, response[cnt].ShippedAll, moment(new Date(response[cnt].ShortDate)).format("MM/DD/YYYY")]);
                         cnt++;
                     }
-                    //console.log(chartData);
-                    drawChart(chartData, "weeklyChart", 'Batch Details (In EST): ' + moment(new Date(startDate)).format('MM/DD/YYYY') + " - " + moment(new Date(endDate)).format('MM/DD/YYYY'));
+                    console.log(chartData);
+                    drawChart(chartData, "weeklyChart", 'Batch Details : ' + moment(new Date(startDate)).format('MM/DD/YYYY') + " - " + moment(new Date(endDate)).format('MM/DD/YYYY'));
 
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
@@ -262,11 +261,12 @@
             });
         }
         function BindTodayChartData() {
+            TestDateTime();
             var el = $("#todayChart");
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Home/GetTodayChartData",
-                data: JSON.stringify({ date: moment().format('MM/DD/YYYY') }),
+                data: JSON.stringify({ date: new Date(moment().format('MM/DD/YYYY')) }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     if (response.length == 0) {
@@ -279,9 +279,10 @@
                     var cnt = 0;
                     for (var i = 1; i <= response.length; i++) {
 
-                        chartData.push(["Batch Id: " + response[cnt].BatchId, response[cnt].InProgress, response[cnt].Error, response[cnt].PulledBack, response[cnt].Shipped]);
+                        chartData.push(["Batch Id: " + response[cnt].MailBatchId, response[cnt].InProgress, response[cnt].Error, response[cnt].PulledBack, response[cnt].Shipped]);
                         cnt++;
                     }
+                    console.log(chartData);
                     drawChart(chartData, "todayChart", 'Batch MailPiece Details: ' + moment().format('MM/DD/YYYY'));
 
                 },
@@ -352,7 +353,7 @@
                         }
                     }
                     if (div == "weeklyChart") {
-                        var dates = data.getValue(selectedItem.row, 5);
+                        var dates = new Date(moment(data.getValue(selectedItem.row, 5)).format('MM/DD/YYYY'));
 
                         GetChartDataByStatusAndDate(status, dates);
                     }
@@ -361,7 +362,23 @@
         }
         google.charts.setOnLoadCallback(BindWeeklyChartData);
         google.charts.setOnLoadCallback(BindTodayChartData);
+        function TestDateTime() {
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "api/pullback/GetDateTime",
+                contentType: "application/json; charset=utf-8",
+                dataType: "JSON",
+                success: function (response) {
+                    console.log(response);
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    console.log(xhr)
+                    console.log(ajaxOptions)
+                    console.log(thrownError)
+                }
 
+            });
+        }
         function SendPullBackRequest(mailpieceId) {
             var mailpieceIds = [];
             mailpieceIds.push(mailpieceId);
@@ -432,7 +449,7 @@
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Home/GetMailPieceIdByLoanNumber",
-                data: JSON.stringify({ BusinessFriendlyIdName: $("#BusinessFriendlyIdName").val(), BusinessFriendlyIdValue: $("#BusinessFriendlyIdValue").val(), startDate: moment().format("MM/DD/YYYY"), endDate: moment().format("MM/DD/YYYY") }),
+                data: JSON.stringify({ BusinessFriendlyIdName: $("#BusinessFriendlyIdName").val(), BusinessFriendlyIdValue: $("#BusinessFriendlyIdValue").val(), startDate: new Date(moment().format("MM/DD/YYYY")), endDate: new Date(moment().format("MM/DD/YYYY")) }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     // $("#charDatatable").html(response);

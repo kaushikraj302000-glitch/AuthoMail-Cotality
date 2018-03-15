@@ -24,11 +24,11 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult _GetSummaryControlReport(string date, string channel)
+        public ActionResult _GetSummaryControlReport(string startDate,string endDate, string channel)
         {
-            ViewBag.Date = date;
+            ViewBag.Date = string.Format("{0} To {1}", startDate, endDate);
             //Update startdate and enddate
-            var model = repoSvc.GetSummaryControlReport(User.Identity.GetClientId().Value, Convert.ToDateTime(date), Convert.ToDateTime(date), channel);
+            var model = repoSvc.GetSummaryControlReport(User.Identity.GetClientId().Value, DateTime.Parse(startDate), DateTime.Parse(endDate), channel);
             List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
             foreach (var item in model)
             {
@@ -51,10 +51,10 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult _MonthReconReport(string loanNumber, string docType, string startDate, string endDate, string channel)
+        public ActionResult _MonthReconReport(string loanNumber, string docType, DateTime startDate, DateTime endDate, string channel)
         {
-            ViewBag.Date = string.Format("{0} To {1}", startDate, endDate);
-            var model = repoSvc.GetMonthlyReconReport(User.Identity.GetClientId().Value, Convert.ToDateTime(startDate), Convert.ToDateTime(endDate),channel);
+            ViewBag.Date = string.Format("{0} To {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
+            var model = repoSvc.GetMonthlyReconReport(User.Identity.GetClientId().Value, startDate, endDate,channel);
             return PartialView("_GetMailPieceList", model);
         }
 
@@ -70,11 +70,11 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult _GetDeliveryReport(string loanNumber, string docType, string startDate, string endDate)
+        public ActionResult _GetDeliveryReport(string loanNumber, string docType, DateTime startDate, DateTime endDate)
         {
-            ViewBag.Date = string.Format("{0} To {1}", startDate, endDate);
+            ViewBag.Date = string.Format("{0} To {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
 
-            var model = repoSvc.GetDailyDetailOperationsByDateOrBatch(User.Identity.GetClientId().Value, Convert.ToDateTime(startDate), null, null);
+            var model = repoSvc.GetDailyDetailOperationsByDateOrBatch(User.Identity.GetClientId().Value, startDate, null, null);
             return PartialView(model);
         }
         public ActionResult ErrorsReport()
@@ -83,10 +83,10 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult _GetErrorsReport(string date, string channel)
+        public ActionResult _GetErrorsReport(DateTime date, string channel)
         {
-            ViewBag.Date = date;
-            var model = repoSvc.GetErrorReportByDateOrBatch(User.Identity.GetClientId().Value, Convert.ToDateTime(date), null, channel);
+            ViewBag.Date = date.ToString("MM/dd/yyyy");
+            var model = repoSvc.GetErrorReportByDateOrBatch(User.Identity.GetClientId().Value, date, null, channel);
             List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
             foreach (var item in model)
             {
@@ -106,11 +106,12 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult _GetErrorsSLAReport(string date,string docType)
+        public ActionResult _GetErrorsSLAReport(string startDate,string endDate, string docType)
         {
-            ViewBag.Date = date;
+            ViewBag.Date =string.Format("{0} To {1}",startDate,endDate);
+            
             //Update startDate and endDate
-            var model = repoSvc.GetSLAMissErrorReportByDateOrBatch(User.Identity.GetClientId().Value,null, Convert.ToDateTime(date), null,docType);
+            var model = repoSvc.GetSLAMissErrorReportByDateOrBatch(User.Identity.GetClientId().Value,DateTime.Parse(startDate), DateTime.Parse(endDate), null,docType);
             List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
             foreach (var item in model)
             {
@@ -128,10 +129,10 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult _GetDailyDetailOperationsReport(string date, string channel)
+        public ActionResult _GetDailyDetailOperationsReport(DateTime date, string channel)
         {
-            ViewBag.Date = date;
-            var model = repoSvc.GetDailyDetailOperationsByDateOrBatch(User.Identity.GetClientId().Value, Convert.ToDateTime(date), null, channel);
+            ViewBag.Date = date.ToString("MM/dd/yyyy");
+            var model = repoSvc.GetDailyDetailOperationsByDateOrBatch(User.Identity.GetClientId().Value, date, null, channel);
             List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
             foreach (var item in model)
             {
