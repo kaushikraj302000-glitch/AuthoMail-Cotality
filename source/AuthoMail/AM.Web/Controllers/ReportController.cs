@@ -27,8 +27,8 @@ namespace AM.Web.Controllers
         public ActionResult _GetSummaryControlReport(string date, string channel)
         {
             ViewBag.Date = date;
-
-            var model = repoSvc.GetSummaryControlReport(User.Identity.GetClientId().Value, Convert.ToDateTime(date), channel);
+            //Update startdate and enddate
+            var model = repoSvc.GetSummaryControlReport(User.Identity.GetClientId().Value, Convert.ToDateTime(date), Convert.ToDateTime(date), channel);
             List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
             foreach (var item in model)
             {
@@ -109,7 +109,8 @@ namespace AM.Web.Controllers
         public ActionResult _GetErrorsSLAReport(string date,string docType)
         {
             ViewBag.Date = date;
-            var model = repoSvc.GetSLAMissErrorReportByDateOrBatch(User.Identity.GetClientId().Value, Convert.ToDateTime(date), null,docType);
+            //Update startDate and endDate
+            var model = repoSvc.GetSLAMissErrorReportByDateOrBatch(User.Identity.GetClientId().Value,null, Convert.ToDateTime(date), null,docType);
             List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
             foreach (var item in model)
             {
