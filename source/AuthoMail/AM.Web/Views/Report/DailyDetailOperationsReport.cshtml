@@ -22,7 +22,7 @@
             <div class="panel-body">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="dp4">Select Date (In EST)</label>
+                        <label for="dp4">Select Date @*(In your local timezone)*@</label>
                         <div class="input-group date" id="datepicker4">
                             <input type="text" class="form-control" id="dp4">
                             <span class="input-group-addon">
@@ -81,7 +81,7 @@
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Report/_GetDailyDetailOperationsReport",
-                data: JSON.stringify({ date: $("#dp4").val(), channel: $("#Channel").val() }),
+                data: JSON.stringify({ date: new Date($("#dp4").val()), channel: $("#Channel").val() }),
                 contentType: "application/json; charset=utf-8",
                 success: function (res) {
                     el.html(res);

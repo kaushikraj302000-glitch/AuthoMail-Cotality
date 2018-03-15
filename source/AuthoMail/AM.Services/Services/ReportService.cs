@@ -14,8 +14,8 @@ namespace AM.Services
     {
         List<DailyDetailOperationsReport> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel);
         List<ErrorReport> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel);
-        List<SummaryControlReport> GetSummaryControlReport(int clientId, DateTime date, string channel);
-        List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string docType);
+        List<SummaryControlReport> GetSummaryControlReport(int clientId, DateTime startDate, DateTime endDate, string channel);
+        List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime? startDate, DateTime? endDate, int? batchId, string docType);
         List<MonthlyReconReport> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel);
     }
     public class ReportService : ServiceBase, IReportService
@@ -70,17 +70,14 @@ namespace AM.Services
             return data;
         }
 
-        public List<SummaryControlReport> GetSummaryControlReport(int clientId, DateTime date, string channel)
+        public List<SummaryControlReport> GetSummaryControlReport(int clientId, DateTime startDate, DateTime endDate, string channel)
         {
-            date = date.EstToUtc();
             string query = ReportServiceQuery.GetSummaryControlReport;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@clientId", clientId);
-            query = string.Format("{0} AND (cast(ReceivedOn as date) = cast(@sdate as date) AND CONVERT(VARCHAR(5),ReceivedOn,108)  > @stime) AND (cast(ReceivedOn as date) = cast(@date as date) AND CONVERT(VARCHAR(5),ReceivedOn,108)  <= @time)", query);
-            parameters.Add("@date", date);
-            parameters.Add("@time", "23:45");//19:45 EST To 23:45 UTC
-            parameters.Add("@sdate", date.AddDays(-1));
-            parameters.Add("@stime", "23:45");//19:45 EST To 23:45 UTC
+            query = string.Format("{0} AND (ReceivedOn >= @startDate) AND (ReceivedOn <= @endDate)", query);
+            parameters.Add("@date", startDate.EstToUtc());
+            parameters.Add("@sdate", endDate.EstToUtc());
             if (!channel.IsNullOrWhiteSpace())
             {
                 query = string.Format("{0} AND Channel=@channel", query);
@@ -90,24 +87,17 @@ namespace AM.Services
             return data;
         }
 
-        public List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string docType)
+        public List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime? startDate, DateTime? endDate, int? batchId, string docType)
         {
             string query = ReportServiceQuery.GetSLAMissErrorReportByDateOrBatch;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@clientId", clientId);
             parameters.Add("@shippingstatus", ShippingStatus.Error.ToString());//Need to verify
-            if (date.HasValue)
+            if (startDate.HasValue && endDate.HasValue)
             {
-                date = date.Value.EstToUtc();
-                //query = string.Format("{0} AND (cast(ReceivedOn as date) = cast(@date as date) AND CONVERT(VARCHAR(5),ReceivedOn,108)  < @time)", query);
-                //parameters.Add("@date", date);
-                //parameters.Add("@time", "23:45");
-
-                query = string.Format("{0} AND (cast(ReceivedOn as date) = cast(@sdate as date) AND CONVERT(VARCHAR(5),ReceivedOn,108)  > @stime) AND (cast(ReceivedOn as date) = cast(@date as date) AND CONVERT(VARCHAR(5),ReceivedOn,108)  <= @time)", query);
-                parameters.Add("@date", date.Value);
-                parameters.Add("@time", "23:45");//19:45 EST To 23:45 UTC
-                parameters.Add("@sdate", date.Value.AddDays(-1));
-                parameters.Add("@stime", "23:45");
+                query = string.Format("{0} AND (ReceivedOn >= @startDate) AND (ReceivedOn <= @endDate)", query);
+                parameters.Add("@date", startDate.Value.EstToUtc());
+                parameters.Add("@sdate", endDate.Value.EstToUtc());
             }
             //Also verify need to define time in below clause. also check time?
             if (batchId.HasValue)

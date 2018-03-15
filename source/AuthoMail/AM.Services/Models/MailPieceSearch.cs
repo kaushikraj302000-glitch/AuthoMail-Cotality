@@ -139,7 +139,7 @@ namespace AM.Services.Models
         public string TotalSheets { get; set; }
         public string ErrorCode { get; set; }
         public string ErrorDesc { get; set; }
-        public int TrackingNo { get; set; }
+        public string TrackingNo { get; set; }
         public int IsPullBackRequested { get; set; }
         public DateTime? PullBackRequestedOn { get; set; }
         public int IsPulledBack { get; set; }

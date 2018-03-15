@@ -23,7 +23,7 @@
             <div class="panel-body">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="dp4">Select Date (In EST)</label>
+                        <label for="dp4">Select Date @*(In your local timezone)*@</label>
                         <div class="input-group date" id="datepicker4">
                             <input type="text" class="form-control" id="dp4">
                             <span class="input-group-addon">
@@ -73,35 +73,37 @@
         });
         function FilterData() {
             var el = $('#errorBatchList');
+            var startDate= moment($("#dp4").val()).subtract(1, 'days').format("DD-MMM-YYYY")+' @AM.Services.Config.StartCutOffTime';
+            var endDate= moment($("#dp4").val()).format("DD-MMM-YYYY")+' @AM.Services.Config.EndCutOffTime';
             el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Report/_GetErrorsSLAReport",
-                data: JSON.stringify({ date: $("#dp4").val(), docType: $("#DocType").val() }),
-                contentType: "application/json; charset=utf-8",
-                success: function (res) {
-                    el.html(res);
+                data: JSON.stringify({ startDate: startDate,endDate:endDate, docType: $("#DocType").val() }),
+        contentType: "application/json; charset=utf-8",
+            success: function (res) {
+                el.html(res);
 
-                    $("#batchselection").html(el.find("#hideSelection").html());
-                    $('#BatchList').addClass("selectpicker");
-                    $('.selectpicker').selectpicker('refresh');
+                $("#batchselection").html(el.find("#hideSelection").html());
+                $('#BatchList').addClass("selectpicker");
+                $('.selectpicker').selectpicker('refresh');
 
-                    if ($('#BatchList').length > 1) {
-                        $("#showBatch").show();
-                    }
-                    $("#hideSelection").html("");
-                    $('#BatchList').on('change', function () {
-                        var selected = $(this).find("option:selected").val();
-                        var oTable = $('#sample_2').dataTable();
-                        oTable.fnFilter("^" + parseInt(selected) + "$", 10, true); //Exact value, column, reg
-                    });
-                },
-                error: function (xhr, ajaxOptions, thrownError) {
-                    var msg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
-                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                if ($('#BatchList').length > 1) {
+                    $("#showBatch").show();
                 }
+                $("#hideSelection").html("");
+                $('#BatchList').on('change', function () {
+                    var selected = $(this).find("option:selected").val();
+                    var oTable = $('#sample_2').dataTable();
+                    oTable.fnFilter("^" + parseInt(selected) + "$", 10, true); //Exact value, column, reg
+                });
+            },
+        error: function (xhr, ajaxOptions, thrownError) {
+            var msg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
+            el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+        }
 
-            });
+        });
         }
         $("#filterData").click(function () {
             FilterData();
