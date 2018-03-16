@@ -48,7 +48,9 @@ namespace AM.Core
 
                         if (docType == null)
                         {
-                            //TODO: Ask to Ravi Sir
+                            mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
+                            mailPiece.ErrorDesc = "Document type is not exist for this DocumentOrPackageType.";
+                            mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                             continue;
                         }
 

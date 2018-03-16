@@ -60,7 +60,7 @@ namespace AM.Console
                     if (sftSite.IsDownloadDirectoryAvailable(sftChannelDetails.ToADEDir))
                     {
                         triggerFilePaths = GetTriggerFilePaths(sftSite, sftChannelDetails);
-                        if (triggerFilePaths != null || triggerFilePaths.Count > 0)
+                        if (triggerFilePaths != null)
                         {
                             MailBatchDTO mailBatch = null;
                             foreach (string triggerFile in triggerFilePaths)
