@@ -10,7 +10,7 @@ using AM.Lib;
 
 namespace AM.Services
 {
-    public interface IClientService//Home Service interface that has number of methods
+    public interface IClientService : IDisposable//Home Service interface that has number of methods
     {
         List<Client> GetClientDetails(int? clientId, string appCode = "");
         List<ClientSFTChannel> GetClientSFTChannelMapDetails(int clientId);

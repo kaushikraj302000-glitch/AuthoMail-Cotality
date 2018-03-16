@@ -415,6 +415,56 @@ namespace AM.Console
             //log.DebugFormat("Downloading completed: {0}", DateTime.Now);
         }
 
+        public void DeleteDirectory(string remoteDirPath)
+        {
+            if (Protocol == SFT_ProtocolType.ftp)
+            {
+                FTP_WebRequest = (FtpWebRequest)WebRequest.Create(GetUrl(remoteDirPath));
+
+                FTP_WebRequest.Credentials = Credentials;
+
+                FTP_WebRequest.UseBinary = true;
+                FTP_WebRequest.UsePassive = true;
+
+                FTP_WebRequest.Method = WebRequestMethods.Ftp.RemoveDirectory;
+
+                using (FtpWebResponse FTP_WebResponse = (FtpWebResponse)FTP_WebRequest.GetResponse())
+                {
+                    string response = FTP_WebResponse.StatusDescription;
+                    if (response.Contains("deleted successfully"))
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        throw new Exception("Unable to delete the remote file; please try again.");
+                    }
+                }
+                //DeleteAllFiles(remoteDirPath, deleteRemoteDir, archiveRemoteDir, archiveRemoteDirPath);
+            }
+            else if (Protocol == SFT_ProtocolType.unc)
+            {
+                Directory.Delete(remoteDirPath, true);
+            }
+            else
+            {
+                if (!SFTP_Client.IsConnected)
+                {
+                    SFTP_Client.Connect();
+                }
+                SFTP_Client.DeleteDirectory(GetUrl(remoteDirPath));
+            }
+        }
+
+        private void DeleteAllFiles(string remoteDirPath)
+        {
+            List<string> availableFiles = ListDirectory(remoteDirPath);
+            foreach (string remoteFile in availableFiles)
+            {
+                DeleteFile(GetUrl("{0}/{1}".Fill(remoteDirPath, remoteFile)));
+            }
+        }
+
         public DateTime LastModifiedTimeOfFile(string remoteFilePath)
         {
             if (Protocol == SFT_ProtocolType.ftp)
@@ -538,6 +588,45 @@ namespace AM.Console
                 if (sourceFile != null && sourceFile.IsRegularFile)
                 {
                     sourceFile.MoveTo(GetUrl(destinationRemotePath));
+                }
+            }
+        }
+
+        public void MoveDirectory(string remoteDirPath, string archiveRemotePath)
+        {
+            if (Protocol == SFT_ProtocolType.ftp)
+            {
+                var files = ListDirectory(remoteDirPath);
+
+                foreach (var remoteFile in files)
+                {
+                    MoveFile(GetUrl("{0}/{1}".Fill(remoteDirPath, remoteFile)), GetUrl("{0}/{1}".Fill(archiveRemotePath, remoteFile)));
+                }
+            }
+            else if (Protocol == SFT_ProtocolType.unc)
+            {
+                if (!Directory.Exists(archiveRemotePath))
+                {
+                    Directory.CreateDirectory(archiveRemotePath);
+                }
+                Directory.Move(remoteDirPath, archiveRemotePath);
+            }
+            else
+            {
+                if (!SFTP_Client.IsConnected)
+                {
+                    SFTP_Client.Connect();
+                }
+
+                var files = ListDirectory(remoteDirPath);
+
+                foreach (var remoteFile in files)
+                {
+                    SftpFile sourceFile = SFTP_Client.Get(GetUrl("{0}/{1}".Fill(remoteDirPath, remoteFile)));
+                    if (sourceFile != null && sourceFile.IsRegularFile)
+                    {
+                        sourceFile.MoveTo(GetUrl("{0}/{1}".Fill(archiveRemotePath, remoteFile)));
+                    }
                 }
             }
         }
