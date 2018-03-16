@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="2da19858-cfe1-446b-8378-838cced4ca65" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
+<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="ad1c707c-131d-49c2-a374-bd5a62dba6ed" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
   <ClientOptions>
     <GenerateAsynchronousMethods>false</GenerateAsynchronousMethods>
     <GenerateTaskBasedAsynchronousMethod>true</GenerateTaskBasedAsynchronousMethod>
@@ -19,14 +19,14 @@
     <ServiceContractMappings />
   </ClientOptions>
   <MetadataSources>
-    <MetadataSource Address="http://usps/USPSIM.svc" Protocol="http" SourceId="1" />
+    <MetadataSource Address="http://localhost:11721/USPSIM.svc" Protocol="http" SourceId="1" />
   </MetadataSources>
   <Metadata>
-    <MetadataFile FileName="USPSIM.disco" MetadataType="Disco" ID="99790073-2a57-4f15-a06c-6112cc7d7729" SourceId="1" SourceUrl="http://usps/USPSIM.svc?disco" />
-    <MetadataFile FileName="USPSIM.xsd" MetadataType="Schema" ID="efb55623-d5b8-4f2f-98ca-434f50c8a243" SourceId="1" SourceUrl="http://usps/USPSIM.svc?xsd=xsd2" />
-    <MetadataFile FileName="USPSIM.wsdl" MetadataType="Wsdl" ID="39c9d74d-50b6-4b3e-bfa1-575f48272bfb" SourceId="1" SourceUrl="http://usps/USPSIM.svc?wsdl" />
-    <MetadataFile FileName="USPSIM1.xsd" MetadataType="Schema" ID="06b3a27b-3fc0-4dbc-b500-a395ca2b5892" SourceId="1" SourceUrl="http://usps/USPSIM.svc?xsd=xsd1" />
-    <MetadataFile FileName="USPSIM2.xsd" MetadataType="Schema" ID="82e67fc2-2663-4dbd-a403-f80fce224c02" SourceId="1" SourceUrl="http://usps/USPSIM.svc?xsd=xsd0" />
+    <MetadataFile FileName="USPSIM.disco" MetadataType="Disco" ID="3ad2cf19-3088-48f7-8e17-172dee961574" SourceId="1" SourceUrl="http://localhost:11721/USPSIM.svc?disco" />
+    <MetadataFile FileName="USPSIM.wsdl" MetadataType="Wsdl" ID="59e7c16b-6508-42fc-b94b-123cd8a85096" SourceId="1" SourceUrl="http://localhost:11721/USPSIM.svc?wsdl" />
+    <MetadataFile FileName="USPSIM.xsd" MetadataType="Schema" ID="c8874b5f-aca0-449e-9a4c-8973b7751627" SourceId="1" SourceUrl="http://localhost:11721/USPSIM.svc?xsd=xsd2" />
+    <MetadataFile FileName="USPSIM1.xsd" MetadataType="Schema" ID="c2d1f16d-9d0b-4114-95c6-497db25b3fe6" SourceId="1" SourceUrl="http://localhost:11721/USPSIM.svc?xsd=xsd1" />
+    <MetadataFile FileName="USPSIM2.xsd" MetadataType="Schema" ID="110e3b71-b38d-46e5-8287-7664da20b137" SourceId="1" SourceUrl="http://localhost:11721/USPSIM.svc?xsd=xsd0" />
   </Metadata>
   <Extensions>
     <ExtensionFile FileName="configuration91.svcinfo" Name="configuration91.svcinfo" />
