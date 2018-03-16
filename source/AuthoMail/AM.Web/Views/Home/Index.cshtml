@@ -181,8 +181,8 @@
             </div>
             <div class="modal-footer">
 
-                <button type="button" class="btn btn-primary" id="yesPullback"><i class="fa fa-check"></i> Yes</button>
-                <button type="button" class="btn btn-default" id="noPullback" data-dismiss="modal"><i class="fa fa-close"></i> No</button>
+                <button type="button" class="btn btn-default" id="yesPullback"><i class="fa fa-check"></i> Yes</button>
+                <button type="button" class="btn btn-primary" id="noPullback" data-dismiss="modal"><i class="fa fa-close"></i> No</button>
             </div>
         </div>
     </div>
@@ -254,12 +254,12 @@
                     var endDate = response[0].Date;
                     console.log(startDate + " " + endDate);
                     for (var i = 1; i <= response.length; i++) {
-                        var day = moment(new Date(response[cnt].Date)).format("MM/DD/YYYY") == moment(new Date()).format("MM/DD/YYYY") ? "Today" : moment(new Date(response[cnt].Date)).format("ddd");
-                        chartData.push([day, response[cnt].InProgress, response[cnt].Failed, response[cnt].ShippedPartial, response[cnt].ShippedAll, moment(new Date(response[cnt].Date)).format("MM/DD/YYYY")]);
+                        var day = moment(response[cnt].Date).format("MM/DD/YYYY") == moment().format("MM/DD/YYYY") ? "Today" : moment(response[cnt].Date).format("ddd");
+                        chartData.push([day, response[cnt].InProgress, response[cnt].Failed, response[cnt].ShippedPartial, response[cnt].ShippedAll, moment(response[cnt].Date).format("MM/DD/YYYY")]);
                         cnt++;
                     }
                     console.log(chartData);
-                    drawChart(chartData, "weeklyChart", 'Batch Details : ' + moment(new Date(startDate)).format('MM/DD/YYYY') + " - " + moment(new Date(endDate)).format('MM/DD/YYYY'));
+                    drawChart(chartData, "weeklyChart", 'Batch Details : ' + moment(startDate).format('MM/DD/YYYY') + " - " + moment(endDate).format('MM/DD/YYYY'));
 
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
@@ -275,7 +275,7 @@
                 type: "POST",
                 dataType: "JSON",
                 url: baseUrl + "api/chart/GetTodayChartData",
-                data: JSON.stringify(new Date(moment().format('MM/DD/YYYY'))),
+                data: JSON.stringify(moment().format('MM/DD/YYYY')),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     console.log(response);

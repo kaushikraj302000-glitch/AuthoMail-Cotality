@@ -70,7 +70,7 @@
                             <td><span>@item.RecipientName </span></td>
                             <td><span>@item.RCPTAddress</span></td>
                             <td><span>@item.TotalPages</span></td>
-                            
+
                             <td id="IsPullBackRequested_@(cnt)">
                                 @if (item.IsPullBackRequested)
                                 {
@@ -226,7 +226,7 @@
             //console.log($(this).data("mailpieceid"));
             cnts.push($(this).data("cnt"));
         });
-        
+
         var el = $("#myModal").find('.modal-body');
         //el.html(mailpieceIds);
         $.ajax({
@@ -244,10 +244,19 @@
 
                         for (var i = 0; i < response.Object.length; i++) {
                             if (response.Object[i] != "" || response.Object[i] == "undefined") {
-                                if (response.Object[i].IsSuccess) {
+                                var msg = response.Object[i].Message;
+
+                                if (response.Object[i].PullBackRequestedOn != null && response.Object[i].PulledBackRequestedBy != "") {
+
+                                    msg = msg + " by " + response.Object[i].PulledBackRequestedBy + " on " + moment(response.Object[i].PullBackRequestedOn).format("MM/DD/YYYY  HH:mm:ss");
+                                }
+                                console.log(msg);
+                                if (response.Object[i].Success) {
                                     $("#IsPullBackRequested_" + cnts[i]).html('<span class="label medium label-yellow">Yes</span>');
                                     $("#resPullBack_" + cnts[i]).html('<i class="fa fa-check icon-green"></i>');
                                     $("#resPullBack_" + cnts[i]).css("margin-left", "-31%");
+                                    $('#resPullBack_' + cnts[i]).attr('data-content', msg);
+                                    $('#resPullBack_' + cnts[i]).attr('data-original-title', "Success");
                                     $("#checkbox-demo_" + cnts[i]).attr("disabled", "disabled");
                                     $("#checkbox-demo_" + cnts[i]).prop('checked', false);
                                     //msgAdd += "<li><span class='text-bright-blue '>" + response.Object[i].MailPieceId + "</span>:" + response.Object[i].Message + "</li>";
@@ -255,7 +264,10 @@
                                 else {
                                     //$("#IsPullBackRequested_" + cnts[i]).html('<span class="label medium label-yellow">Yes</span>');
                                     $("#resPullBack_" + cnts[i]).html('<i class="fa fa-close icon-red" style="cursor: pointer;"></i>');
-                                    $('#resPullBack_' + cnts[i]).attr('data-content', response.Object[i].Message);
+                                   
+
+                                    
+                                    $('#resPullBack_' + cnts[i]).attr('data-content', msg);
                                     $('#resPullBack_' + cnts[i]).attr('data-original-title', "Error");
                                     $("#resPullBack_" + cnts[i]).css("margin-left", "-25%");
                                     //$("#checkbox-demo_" + cnts[i]).attr("disabled", "disabled");
@@ -275,7 +287,7 @@
                     el.html(htmlstr);
                     $("#myModal").modal("show");
                 }
-                
+
             },
             error: function (xhr, ajaxOptions, thrownError) {
                 var msg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
