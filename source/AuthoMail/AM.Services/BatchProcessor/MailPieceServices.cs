@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Dapper;
 namespace AM.Services
 {
-    public interface IMailPieceService
+    public interface IMailPieceService : IDisposable
     {
         int InsertBatchMailPieceDetails(MailPieceDTO mailPiece, List<MailPieceCustomInfo> mailPieceCustomInfo);
         List<MailPieceDTO> GetMailPiecesByMailBatchId(int mailBatchId);

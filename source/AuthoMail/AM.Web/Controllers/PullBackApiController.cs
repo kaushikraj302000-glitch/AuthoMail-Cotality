@@ -20,6 +20,12 @@ namespace AM.Web.Controllers
         {
             this.pullBackSvc = pullBackSvc;
         }
+        [Route("GetDateTime")]
+        [HttpPost]
+        public object GetDateTime()
+        {
+            return DateTime.Now;
+        }
 
         [Route("RequestPullBack")]
         [HttpPost]
@@ -88,7 +94,7 @@ namespace AM.Web.Controllers
                         {
                             mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.ToString(), Message = Config.Msg_API_PB_Success, IsSuccess = true });
                         }
-                    }                    
+                    }
                 }
                 else
                 {

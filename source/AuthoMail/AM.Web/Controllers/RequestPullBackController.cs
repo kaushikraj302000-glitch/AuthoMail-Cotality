@@ -28,11 +28,11 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult _GetMailPieceList(string businessFriendlyIdName, string businessFriendlyIdValue, string docType, string startDate, string endDate)
+        public ActionResult _GetMailPieceList(string businessFriendlyIdName, string businessFriendlyIdValue, string docType, DateTime startDate, DateTime endDate)
         {
-            ViewBag.Date = string.Format("{0} To {1}", startDate, endDate);
+            ViewBag.Date = string.Format("{0} To {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
             //Ref only. remove it. also check doctype is required or not.
-            var model = pullBackSvc.GetPullBackRequestList(businessFriendlyIdName, businessFriendlyIdValue, docType, Convert.ToDateTime(startDate), Convert.ToDateTime(endDate), User.Identity.GetClientId().Value);
+            var model = pullBackSvc.GetPullBackRequestList(businessFriendlyIdName, businessFriendlyIdValue, docType, startDate, endDate, User.Identity.GetClientId().Value);
             return PartialView(model);
         }
     }

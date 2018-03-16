@@ -31,7 +31,7 @@ namespace AM.Web.Controllers
         }
 
         [HttpPost]
-        public ActionResult GetMailPieceIdByLoanNumber(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string startDate, string endDate)
+        public ActionResult GetMailPieceIdByLoanNumber(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, DateTime startDate, DateTime endDate)
         {
             var model = homeSvc.GetMailPieceIdFromBusinessFriendlyValue(BusinessFriendlyIdName, BusinessFriendlyIdValue, User.Identity.GetClientId().Value);
 
@@ -42,7 +42,7 @@ namespace AM.Web.Controllers
             }
             else if (model.Count == 1)
             {
-                var pullbackRequestData = pullBackSvc.GetPullBackRequestList(BusinessFriendlyIdName, BusinessFriendlyIdValue, null, Convert.ToDateTime(startDate),Convert.ToDateTime(endDate), User.Identity.GetClientId().Value);
+                var pullbackRequestData = pullBackSvc.GetPullBackRequestList(BusinessFriendlyIdName, BusinessFriendlyIdValue, null, startDate,endDate, User.Identity.GetClientId().Value);
                 return PartialView("_PullBackRequestData", pullbackRequestData);
             }
             else
@@ -59,10 +59,10 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult _GetSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string receivedOnStart, string receivedOnEnd,string status,string channel,string docType)
+        public ActionResult _GetSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, DateTime receivedOnStart, DateTime receivedOnEnd,string status,string channel,string docType)
         {
-            ViewBag.Date = string.Format("{0} To {1}", receivedOnStart, receivedOnEnd);
-            var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue,Convert.ToDateTime(receivedOnStart),Convert.ToDateTime(receivedOnEnd),docType,status,channel);
+            ViewBag.Date = string.Format("{0} To {1}", receivedOnStart.ToString("MM/dd/yyyy"), receivedOnEnd.ToString("MM/dd/yyyy"));
+            var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue,receivedOnStart,receivedOnEnd,docType,status,channel);
             //ViewBag.BusinessId = se.(User.Identity.GetClientId().Value);
             return PartialView(data);
         }
@@ -79,22 +79,22 @@ namespace AM.Web.Controllers
             return PartialView("_GetChartMailPieceData", model);
         }
         [HttpPost]
-        public ActionResult WeeklyChartDetails(string status, string date)
+        public ActionResult WeeklyChartDetails(string status, DateTime date)
         {
-            var model = chartDataSvc.GetBatchByParam(Convert.ToDateTime(date), status, User.Identity.GetClientId().Value);
+            var model = chartDataSvc.GetBatchByParam(date, status, User.Identity.GetClientId().Value);
             return PartialView(model);
         }
         [HttpPost]
-        public ActionResult GetWeeklyChartData(string startDate, string endDate)
+        public ActionResult GetWeeklyChartData(DateTime startDate, DateTime endDate)
         {
-            var model = chartDataSvc.GetWeeklyChartData(Convert.ToDateTime(startDate), Convert.ToDateTime(endDate), User.Identity.GetClientId().Value);
+            var model = chartDataSvc.GetWeeklyChartData(startDate, endDate, User.Identity.GetClientId().Value);
             return Json(model.OrderByDescending(s => s.Date).ToList(), JsonRequestBehavior.AllowGet);
         }
 
         [HttpPost]
-        public ActionResult GetTodayChartData(string date)
+        public ActionResult GetTodayChartData(DateTime date)
         {
-            var model = chartDataSvc.GetTodayMailPieceChartData(Convert.ToDateTime(date), User.Identity.GetClientId().Value);
+            var model = chartDataSvc.GetTodayMailPieceChartData(date, User.Identity.GetClientId().Value);
             return Json(model.OrderByDescending(s => s.MailBatchId).ToList(), JsonRequestBehavior.AllowGet);
         }
 

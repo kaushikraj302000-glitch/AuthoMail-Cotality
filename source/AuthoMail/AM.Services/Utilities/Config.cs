@@ -44,9 +44,16 @@ namespace AM.Services
         #region WEB RequestPullBackController
         public static string Msg_Web_NoMailPieceSelect { get; set; }
         #endregion
+
         #region WEB HomeController
         public static string Msg_Web_NoMailPieceReceivedToday { get; set; }
         #endregion
+
+        #region WEB ReportController
+        public static string StartCutOffTime { get; private set; }
+        public static string EndCutOffTime { get; private set; }
+        #endregion
+
         //public static Dictionary<string,string> Msg {get; private set;}
         static Config()
         {
@@ -88,6 +95,11 @@ namespace AM.Services
 
             #region WEB HomeController
             Msg_Web_NoMailPieceReceivedToday = "Currently no MailPieces received today";
+            #endregion
+
+            #region WEB ReportController
+            StartCutOffTime = "19:45:01";
+            EndCutOffTime = "19:45:00";
             #endregion
             //Msg = new Dictionary<string, string>();
             //ConfigService cs = new ConfigService();

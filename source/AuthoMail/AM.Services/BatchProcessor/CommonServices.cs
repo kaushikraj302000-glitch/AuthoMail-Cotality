@@ -9,12 +9,12 @@ using AM.Lib;
 
 namespace AM.Services
 {
-    public interface ICommonService
+    public interface ICommonService : IDisposable
     {
         int UpdateBatchPipeLineStatus(int batchId, string pipeLineStatus, DateTime timestamp);
         int UpdateBatchStatus(int batchId, string batchStatus);
         int AMLogBatchTimeLine(int batchId, string activityName, DateTime timeStamp);
-        int UpdatePrintBatchStatus(int printBatchId, string batchStatus, string statusDescription=null);
+        int UpdatePrintBatchStatus(int printBatchId, string batchStatus, string statusDescription = null);
         int UpdatePrintBatchPipeLineStatus(int printBatchId, string pipeLineStatus, DateTime timestamp);
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
