@@ -11,11 +11,11 @@ namespace AM.Services.Models
     {
         public DateTime Date { get; set; }
 
-        public string ShortDate
+        public DateTime EstDate
         {
             get
             {
-                return this.Date.UtcToEst().ToShortDateString();
+                return this.Date.UtcToEst();
             }
         }
         public int InProgress { get; set; }
