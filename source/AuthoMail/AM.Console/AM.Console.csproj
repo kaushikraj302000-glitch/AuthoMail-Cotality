@@ -61,7 +61,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CoreJob.cs" />
+    <Compile Include="UploadJob.cs" />
     <Compile Include="DownloadJob.cs" />
     <Compile Include="MailBatchInfo.cs" />
     <Compile Include="Schema.cs" />
