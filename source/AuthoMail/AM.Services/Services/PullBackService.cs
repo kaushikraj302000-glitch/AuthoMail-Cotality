@@ -9,29 +9,26 @@ namespace AM.Services
 {
     public interface IPullBackService
     {
-        List<dynamic> GetMailPieceData(List<string> mpIds);
-        List<dynamic> GetPullBackData(List<string> mpIds);
-
+        List<PullBackViewModel> GetMailPieceData(List<string> mpIds);
+        List<PullBackRequestForm> GetPullBackData(List<string> mpIds);
         int UpdatePullBackRequestedOn(string mpId, string userId);
         List<PullBackInfo> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, string docType, DateTime startDate, DateTime endDate, int clientId);
         List<QuickPullBackResponse> GetQuickPullBackResponseFromBusinessFriendlyValue(string businessFriendlyIdName, string businessFriendlyIdValue, int clientId);
-
         List<QuickPullBackResponse> GetQuickPullBackResponse(List<string> mailPieceIds, int clientId);
     }
     public class PullBackService : ServiceBase, IPullBackService
     {
-
-        public List<dynamic> GetMailPieceData(List<string> mpIds)
+        public List<PullBackViewModel> GetMailPieceData(List<string> mpIds)
         {
-            string qry = string.Format("SELECT PM.[UniqueId],PB.PrintBatch,PB.PipelineStatus,PM.MailPieceStatus,AMM.IsPullBackRequested,AMM.PullBackRequestedOn,AMM.PulledBackRequestedBy,PU.UserName FROM PnS.MRDFRequest PM INNER JOIN PnS.BatchSummary PB ON PM.JobId = PB.PrintBatch INNER JOIN AM.MailPieces AMM ON PM.[UniqueId] = AMM.UniqueId LEFT OUTER JOIN [Profile].Users PU ON PU.Id = AMM.PulledBackRequestedBy WHERE PM.[UniqueId] IN @mailPieceIds");
-            var data = db.Query(qry, new { mailPieceIds = mpIds }).ToList();
+            string qry = string.Format("SELECT PM.[UniqueId] as MailPieceUniqueId,PB.PrintBatch,PB.PipelineStatus,PM.MailPieceStatus,AMM.IsPullBackRequested,AMM.PullBackRequestedOn,AMM.PulledBackRequestedBy,PU.UserName FROM PnS.MRDFRequest PM INNER JOIN PnS.BatchSummary PB ON PM.JobId = PB.PrintBatch INNER JOIN AM.MailPieces AMM ON PM.[UniqueId] = AMM.UniqueId LEFT OUTER JOIN [Profile].Users PU ON PU.Id = AMM.PulledBackRequestedBy WHERE PM.[UniqueId] IN @mailPieceIds");
+            var data = db.Query<PullBackViewModel>(qry, new { mailPieceIds = mpIds }).ToList();
             return data;
         }
-        public List<dynamic> GetPullBackData(List<string> mpIds)
+        public List<PullBackRequestForm> GetPullBackData(List<string> mpIds)
         {
             string qry = string.Format(";WITH batchSummary AS (SELECT PrintFileName,SubmittedOn,ClientId,PrintBatch,DocTypeId  FROM PnS.BatchSummary),docTypes AS (SELECT Id,DocTypeCode FROM AM.DocTypes WHERE IsActive = 1),mrdfReq AS(SELECT JobId,PieceId,[UniqueId] FROM PnS.MRDFRequest),Client AS(SELECT Id,ClientName FROM Common.Clients),RESULT AS(SELECT PBS.PrintFileName,PBS.SubmittedOn,PMR.JobId,PMR.PieceId,CC.ClientName,AD.DocTypeCode FROM batchSummary PBS	INNER JOIN AM.DocTypes AD ON AD.Id = PBS.DocTypeId	INNER JOIN mrdfReq PMR ON PBS.PrintBatch = PMR.JobId INNER JOIN Client CC ON PBS.ClientId = CC.Id WHERE PMR.[UniqueId] IN @mailPieceIds)(SELECT PrintFileName,SubmittedOn,JobId AS PrintBatch,PieceId = STUFF((SELECT DISTINCT ','+ CAST(pRES.PieceId AS VARCHAR(255)) FROM RESULT pRES WHERE pRES.JobId = RES.JobId FOR XML PATH('')),1,1,''),ClientName,DocTypeCode FROM RESULT RES GROUP BY RES.JobId,PrintFileName,SubmittedOn,ClientName,DocTypeCode)");
 
-            var data = db.Query(qry, new { mailPieceIds = mpIds }).ToList();
+            var data = db.Query<PullBackRequestForm>(qry, new { mailPieceIds = mpIds }).ToList();
             return data;
         }
 
