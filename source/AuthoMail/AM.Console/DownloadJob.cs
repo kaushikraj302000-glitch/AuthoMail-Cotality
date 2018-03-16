@@ -239,7 +239,7 @@ namespace AM.Console
             {
                 string downloadedZipFilePath = string.Empty;
                 string zipFileName = Path.GetFileName(zipFileFTPPath);
-                string batchLocalDir = Path.Combine(mbi.AMRequestPath, mbi.BatchName);
+                string batchLocalDir = mbi.AMRequestPath;
                 if (!Directory.Exists(batchLocalDir))
                     Directory.CreateDirectory(batchLocalDir);
 
@@ -275,7 +275,7 @@ namespace AM.Console
                 return "Error Occured while downloading Zip file from server :" + Environment.NewLine + ex.Message + Environment.NewLine + ex.TargetSite.ToString();
             }
         }
-        
+
         #endregion
 
         #region Validate And Acknowledge
@@ -295,8 +295,7 @@ namespace AM.Console
 
                 MailBatchInfo mbi = new MailBatchInfo(batch, client, sftChannelDetails);
 
-                var fullBatchPath = Path.Combine(mbi.AMRequestPath, mbi.BatchName);
-                var xmlFilePath = Path.Combine(fullBatchPath, mbi.BatchName + ".xml");
+                var xmlFilePath = Path.Combine(mbi.AMRequestPath, mbi.BatchName + ".xml");
 
                 XmlDocument batchXML = new XmlDocument();
                 XmlNamespaceManager nsManager = null;
@@ -483,13 +482,15 @@ namespace AM.Console
                                 mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                             }
 
-                            mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfo);
                         }
-                        catch (Exception)
+                        catch (Exception ex)
                         {
-                            //TODO: Ask to Ravi Sir
-                            throw;
+                            mailPieceDTO.ErrorCode = OutComeCodes.Invalid_XML;
+                            mailPieceDTO.ErrorDesc = ex.ToString();
+                            mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                         }
+
+                        mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfo);
                     }
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
                     commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationEnd, Common.Now);
@@ -519,7 +520,14 @@ namespace AM.Console
 
                     var validMailPieces = data.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
 
-                    if (validMailPieces.Count < data.MailPieces.Count)
+                    if (validMailPieces.Count == 0)
+                    {
+                        mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid.ToString();
+                        mbi.MailBatch.ValidationErrors = "XML doesn't have any valid nodes.";
+                        mailBatchSvc.UpdateBatchDetails(mbi.MailBatch);
+                        commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
+                    }
+                    else if (validMailPieces.Count < data.MailPieces.Count)
                     {
                         mbi.MailBatch.ValidationStatus = BatchValidationStatus.PartiallyValid.ToString();
                         mailBatchSvc.UpdateBatchDetails(mbi.MailBatch);
