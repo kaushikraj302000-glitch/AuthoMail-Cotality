@@ -9,7 +9,7 @@ using AM.Entities;
 
 namespace AM.Services
 {
-    public interface IBatchService
+    public interface IBatchService : IDisposable
     {
         int InsertBatchDetails(MailBatchDTO mailBatch);
         int DeleteBatchDetails(int mailBatchId);
