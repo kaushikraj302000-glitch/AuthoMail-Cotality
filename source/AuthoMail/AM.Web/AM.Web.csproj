@@ -183,6 +183,8 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\Startup.Auth.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Controllers\ChartApiController.cs" />
+    <Compile Include="Models\ChartViewModel.cs" />
     <Compile Include="Models\CLAuthentication.cs" />
     <Compile Include="Models\PullBackResponse.cs" />
     <Compile Include="Models\ReportViewModel.cs" />
@@ -264,6 +266,7 @@
     <Content Include="clui\dist\js\vendor\hammer.js" />
     <Content Include="clui\dist\js\vendor\jquery.min.js" />
     <Content Include="clui\dist\js\vendor\jquery.ui.touch-punch.js" />
+    <Content Include="clui\dist\js\vendor\jsondateextensions.js" />
     <Content Include="clui\dist\js\vendor\moment.js" />
     <Content Include="clui\dist\js\vendor\select2.js" />
     <Content Include="clui\images\sso-image.jpg" />

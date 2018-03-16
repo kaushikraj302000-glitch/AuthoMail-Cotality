@@ -32,6 +32,7 @@ namespace AM.Web
                 "~/clui/dist/js/components/slider.js",
                 "~/clui/dist/js/components/table.js",
                 "~/clui/dist/js/vendor/moment.js",
+                "~/clui/dist/js/vendor/jsondateextensions.js",
                 "~/clui/dist/js/components/init.js"//,
                         ));
             //cl vendor

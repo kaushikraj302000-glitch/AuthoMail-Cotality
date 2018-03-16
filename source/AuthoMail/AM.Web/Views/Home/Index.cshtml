@@ -230,24 +230,32 @@
 
             });
         }
+        function ChartViewModel(StartDate, EndDate) {
+            this.StartDate = StartDate;
+            this.EndDate = EndDate;
+        }
         function BindWeeklyChartData() {
             var el = $("#weekluChart");
+            var chartViewModel =new ChartViewModel(new Date(moment().subtract(7, 'days').format('MM/DD/YYYY')), new Date(moment().format('MM/DD/YYYY')));
+            console.log(chartViewModel);
             $.ajax({
                 type: "POST",
-                url: baseUrl + "Home/GetWeeklyChartData",
-                data: JSON.stringify({ startDate: new Date(moment().subtract(7, 'days').format('MM/DD/YYYY')), endDate: new Date(moment().format('MM/DD/YYYY')) }),
                 contentType: "application/json; charset=utf-8",
+                dataType: "JSON",
+                //url: baseUrl + "Home/GetWeeklyChartData",
+                url: baseUrl + "api/chart/GetWeeklyChartData",
+                data: JSON.stringify(chartViewModel),
                 success: function (response) {
-                    console.log(response[0].ShortDate);
+                    console.log(response);
                     var chartData = [];
                     chartData.push(['Date', 'InProgress', 'Failed', 'ShippedPartial', 'ShippedAll', 'Dates']);
                     var cnt = 0;
-                    var startDate = response[response.length - 1].ShortDate;
-                    var endDate = response[0].ShortDate;
+                    var startDate = response[response.length - 1].Date;
+                    var endDate = response[0].Date;
                     console.log(startDate + " " + endDate);
                     for (var i = 1; i <= response.length; i++) {
-                        var day = moment(new Date(response[cnt].ShortDate)).format("MM/DD/YYYY") == moment(new Date()).format("MM/DD/YYYY") ? "Today" : moment(new Date(response[cnt].ShortDate)).format("ddd");
-                        chartData.push([day, response[cnt].InProgress, response[cnt].Failed, response[cnt].ShippedPartial, response[cnt].ShippedAll, moment(new Date(response[cnt].ShortDate)).format("MM/DD/YYYY")]);
+                        var day = moment(new Date(response[cnt].Date)).format("MM/DD/YYYY") == moment(new Date()).format("MM/DD/YYYY") ? "Today" : moment(new Date(response[cnt].Date)).format("ddd");
+                        chartData.push([day, response[cnt].InProgress, response[cnt].Failed, response[cnt].ShippedPartial, response[cnt].ShippedAll, moment(new Date(response[cnt].Date)).format("MM/DD/YYYY")]);
                         cnt++;
                     }
                     console.log(chartData);
@@ -261,14 +269,16 @@
             });
         }
         function BindTodayChartData() {
-            TestDateTime();
+            //TestDateTime();
             var el = $("#todayChart");
             $.ajax({
                 type: "POST",
-                url: baseUrl + "Home/GetTodayChartData",
-                data: JSON.stringify({ date: new Date(moment().format('MM/DD/YYYY')) }),
+                dataType: "JSON",
+                url: baseUrl + "api/chart/GetTodayChartData",
+                data: JSON.stringify(new Date(moment().format('MM/DD/YYYY'))),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
+                    console.log(response);
                     if (response.length == 0) {
                         el.html("<div class='alert alert-yellow'><span>@AM.Services.Config.Msg_Web_NoMailPieceReceivedToday</span></div>");
                         $("#todayBody").css("min-height", "342px");
@@ -365,7 +375,8 @@
         function TestDateTime() {
             $.ajax({
                 type: "POST",
-                url: baseUrl + "api/pullback/GetDateTime",
+                url: baseUrl + "api/chart/GetDateTime",
+                //url: baseUrl + "Home/DoSomething",
                 contentType: "application/json; charset=utf-8",
                 dataType: "JSON",
                 success: function (response) {
