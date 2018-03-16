@@ -60,6 +60,7 @@
     <Compile Include="BatchProcessor\MailPieceServices.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Core\Handlers.cs" />
     <Compile Include="IdentityManage\AppRole.cs" />
     <Compile Include="IdentityManage\AppUser.cs" />
     <Compile Include="IdentityManage\AppUserClaims.cs" />
