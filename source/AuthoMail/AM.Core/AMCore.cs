@@ -40,6 +40,7 @@ namespace AM.Core
 
                 List<MailPieceDTO> validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
                 commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.PreppedStart, Common.Now);
+
                 foreach (MailPieceDTO mailPiece in validMailPieces)
                 {
                     try
@@ -49,21 +50,14 @@ namespace AM.Core
                         if (docType == null)
                         {
                             mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
-                            mailPiece.ErrorDesc = "Document type is not exist for this DocumentOrPackageType.";
+                            mailPiece.ErrorDesc = "Document Or Package type is not exist.";
+                            mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                             mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                             continue;
                         }
 
-                        DocTypeCoverLetter docTypeLetter = docTypeSvc.GetDocumentCoverLetterTemplates(docType.Id).SingleOrDefault();
-
-                        if (docTypeLetter == null)
-                        {
-                            //TODO: Ask to Ravi Sir
-                            continue;
-                        }
-
                         int mailPieceId = mailPiece.Id;
-                        string coverLetterTemplatePath = Path.Combine(Common.CoverTemplateFolder, docTypeLetter.CoverLetterTemplatePath);
+
                         string pdfFilePath = Path.Combine(mbi.AMRequestPath, mbi.BatchName, mailPiece.FileName);
                         string outputFilePath = Path.Combine(mbi.PnSRequestPath, "{0}_{1}".Fill(mailPieceId, mailPiece.FileName));
 
@@ -82,6 +76,19 @@ namespace AM.Core
 
                         if (docType.ShippingCarrier == Carrier.USPS.ToString())
                         {
+                            DocTypeCoverLetter docTypeLetter = docTypeSvc.GetDocumentCoverLetterTemplates(docType.Id).SingleOrDefault();
+
+                            if (docTypeLetter == null)
+                            {
+                                mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
+                                mailPiece.ErrorDesc = "Cover letter is not exist for DocumentType : {0}".Fill(mailPiece.DocumentOrPackageType);
+                                mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                continue;
+                            }
+
+                            string coverLetterTemplatePath = Path.Combine(Common.CoverTemplateFolder, docTypeLetter.CoverLetterTemplatePath);
+
                             // Create final document using SmartDocs library.
                             int pageCount = doc.GenerateDoc(coverLetterTemplatePath, pdfFilePath, outputFilePath, mailPieceData, docType.ContentScalePercent);
 
@@ -146,6 +153,13 @@ namespace AM.Core
 
                 if (validMailPieces.Count == 0)
                 {
+                    mailBatch.ValidationStatus = BatchValidationStatus.Invalid;
+                    mailBatch.ValidationErrors = "Batch does not contains any valid mail pieces to process further.";
+
+                    mailBatchSvc.UpdateBatchDetails(mailBatch);
+                    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationEnd, Common.Now);
+                    commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.Failed.ToString());
+
                     commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                     continue;
                 }
@@ -161,12 +175,14 @@ namespace AM.Core
                     {
                         DocType docType = docTypeSvc.GetDocTypesByDocTypeName(mbi.Client.Id, documentOrPackageType);
 
-                        if (docType == null)
-                        {
-                            commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
-                            //TODO: Ask Ravi Sir
-                            continue;
-                        }
+                        //Commented because the same thing we are validating when generating document
+
+                        //if (docType == null)
+                        //{
+                        //    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
+                        //    //TODO: Ask Ravi Sir
+                        //    continue;
+                        //}
 
                         printBatch = new PrintBatch();
                         printBatch.AppCode = mbi.Client.AppCode;
@@ -208,6 +224,8 @@ namespace AM.Core
 
                     if (printBatches.Count == 0)
                     {
+                        log.Error("No batches are available for submit to PCI.");
+
                         commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                         continue;
                     }
@@ -216,6 +234,7 @@ namespace AM.Core
                     {
                         if (printBatchData.MailPieces.Count == 0)
                         {
+                            log.Error("{0} : Print batch is not containing any mail pieces.".Fill(printBatchData.UniqueId));
                             commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                             continue;
                         }
@@ -240,7 +259,7 @@ namespace AM.Core
                         catch (Exception ex)
                         {
                             commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
-                            log.Error(ex);
+                            log.Error("Error occured while creating directory :" + ex);
                         }
 
                         try
@@ -276,7 +295,7 @@ namespace AM.Core
                         catch (Exception ex)
                         {
                             commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
-                            log.Error(ex);
+                            log.Error("Error occured while generaing PnSRequest :" + ex);
                         }
                     }
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
@@ -439,7 +458,6 @@ namespace AM.Core
                                             else if (mailPackage.MailPieceStatus == MailPieceStatus.Shipped)
                                             {
                                                 row.PrintedOn = mailPackage.PrintedOn;
-
                                                 row.ShippedOn = mailPackage.ShippedOn;
                                                 row.ShippingCost = mailPackage.PostageCost;
                                                 row.TotalSheets = mailPackage.TotalSheets;

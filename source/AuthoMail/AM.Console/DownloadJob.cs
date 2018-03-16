@@ -463,7 +463,7 @@ namespace AM.Console
                             ValidationResultAMC validationResult = Common.ValidateXMLNode(mailPieceNode);
                             if (validationResult.Code == OutComeCodes.No_Error)
                             {
-                                string filePath = Path.Combine(mbi.AMRequestPath, mbi.BatchName, mailPieceDTO.FileName);
+                                string filePath = Path.Combine(mbi.AMRequestPath, mailPieceDTO.FileName);
                                 if (!File.Exists(filePath))
                                 {
                                     mailPieceDTO.ErrorCode = OutComeCodes.Missing_PDF;
