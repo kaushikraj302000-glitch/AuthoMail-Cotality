@@ -58,7 +58,7 @@ namespace AM.Core
 
                         int mailPieceId = mailPiece.Id;
 
-                        string pdfFilePath = Path.Combine(mbi.AMRequestPath, mbi.BatchName, mailPiece.FileName);
+                        string pdfFilePath = Path.Combine(mbi.AMRequestPath, mailPiece.FileName);
                         string outputFilePath = Path.Combine(mbi.PnSRequestPath, "{0}_{1}".Fill(mailPieceId, mailPiece.FileName));
 
                         #region Prepare dictionary of placeholders/tags to fill the PDF template.
@@ -290,7 +290,7 @@ namespace AM.Core
                             File.WriteAllText(batchXMLSubmitPath, XmlUtil.Serialize<PnSRequest>(request));
                             File.WriteAllText(batchGOSubmitPath, "");
                             commonSvc.UpdatePrintBatchStatus(printBatchData.Id, AM.Entities.BatchStatus.InProgress.ToString());
-                            commonSvc.UpdatePrintBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
+                            commonSvc.UpdatePrintBatchPipeLineStatus(printBatchData.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
                         }
                         catch (Exception ex)
                         {

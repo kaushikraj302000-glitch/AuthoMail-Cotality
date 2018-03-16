@@ -25,5 +25,32 @@ namespace AM.Console
             commonSvc = new CommonService();
             mailPieceSvc = new MailPieceService();
         }
+
+        public void ReportPreppedProcess()
+        {
+            List<MailBatchDTO> resReceivedBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.ShippingResponseReceived);
+            if (resReceivedBatches == null)
+            {
+                log.Debug("Uploading report job queue is empty.");
+                return;
+            }
+
+            foreach (var batch in resReceivedBatches)
+            {
+                Client client = clientSvc.GetClientDetails(batch.ClientId).Single();
+                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetails(batch.SFTChannelId);
+
+                MailBatchInfo mbi = new MailBatchInfo(batch, client, sftChannelDetails);
+                var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
+                if (data != null)
+                {
+                    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.AcknowledgeStart, Common.Now);
+
+                    MailUtility.SendDailyDetailOperationReportEmail(mbi, data.MailPieces, data.MailPieceCustomInfo);
+
+                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
+                }
+            }
+        }
     }
 }

@@ -128,7 +128,7 @@ namespace AM.Services
                 string updateQuery = "UPDATE [AM].[MailPieces] SET [PrintBatchId]=@Id WHERE MailBatchId=@mailBatchId";
 
                 var data = db.Execute(updateQuery, new { Id = printBatchId, mailBatchId = printBatch.MailBatchId });
-                return data;
+                return Convert.ToInt32(printBatchId);
             }
             return 0;
         }
