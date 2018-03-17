@@ -46,7 +46,7 @@ namespace AM.Console
                 {
                     commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.AcknowledgeStart, Common.Now);
 
-                    MailUtility.SendDailyDetailOperationReportEmail(mbi, data.MailPieces, data.MailPieceCustomInfo);
+                    //MailUtility.SendDailyDetailOperationReportEmail(mbi, data.MailPieces, data.MailPieceCustomInfo);
 
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
                 }

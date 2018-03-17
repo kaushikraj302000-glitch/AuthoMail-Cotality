@@ -304,7 +304,7 @@ namespace AM.Console
 
             foreach (var batch in downloadBatches)
             {
-                Client client = clientSvc.GetClientDetails(batch.ClientId).Single();
+                Client client = clientSvc.GetClientDetails(batch.ClientId).SingleOrDefault();
                 SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetails(batch.SFTChannelId);
 
                 MailBatchInfo mbi = new MailBatchInfo(batch, client, sftChannelDetails);
@@ -338,177 +338,189 @@ namespace AM.Console
                     #endregion
                 }
 
-                if (mailPieceNodes != null)
+                if (mailPieceNodes == null)
                 {
-                    foreach (XmlNode mailPieceNode in mailPieceNodes)
+                    #region Invalid XML file of the batch so just save error details
+
+                    batch.ValidationStatus = BatchValidationStatus.Invalid;
+                    batch.ValidationErrors = "Xml does not contain any package info nodes.";
+
+                    mailBatchSvc.UpdateBatchDetails(batch);
+                    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationEnd, Common.Now);
+                    commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
+
+                    continue;
+                    #endregion
+                }
+
+                foreach (XmlNode mailPieceNode in mailPieceNodes)
+                {
+                    MailPieceDTO mailPieceDTO = new MailPieceDTO();
+                    MailPieceCustomInfo customInfo = null;
+                    List<MailPieceCustomInfo> mailPieceCustomInfo = new List<MailPieceCustomInfo>();
+                    mailPieceDTO.ClientId = client.Id;
+                    mailPieceDTO.DueDate = Common.Today;
+                    mailPieceDTO.MailBatchId = mbi.MailBatch.Id;
+
+
+                    try
                     {
-                        MailPieceDTO mailPieceDTO = new MailPieceDTO();
-                        MailPieceCustomInfo customInfo = null;
-                        List<MailPieceCustomInfo> mailPieceCustomInfo = new List<MailPieceCustomInfo>();
-                        mailPieceDTO.ClientId = client.Id;
-                        mailPieceDTO.DueDate = Common.Today;
-                        mailPieceDTO.MailBatchId = mbi.MailBatch.Id;
+
+                        mailPieceDTO.BusinessFriendlyIdName = "LoanNbr";
+                        mailPieceDTO.BusinessFriendlyIdValue = mailPieceNode.SelectSingleNode("./x:LoanNbr/text()", nsManager) == null ? string.Empty : mailPieceNode.SelectSingleNode("./x:LoanNbr/text()", nsManager).Value;
+                        mailPieceDTO.DocumentOrPackageType = mailPieceNode.SelectSingleNode("./x:PackageName/text()", nsManager) == null ? null : mailPieceNode.SelectSingleNode("./x:PackageName/text()", nsManager).Value;
+                        mailPieceDTO.UniqueId = mailPieceNode.SelectSingleNode("./x:Id/text()", nsManager) == null ? Guid.Empty : Guid.Parse(mailPieceNode.SelectSingleNode("./x:Id/text()", nsManager).Value);
+                        mailPieceDTO.FileName = mailPieceNode.SelectSingleNode("./x:File/text()", nsManager) == null ? null : mailPieceNode.SelectSingleNode("./x:File/text()", nsManager).Value;
 
 
-                        try
+
+                        var recipientElement = mailPieceNode.SelectSingleNode("./x:RecipientInfo", nsManager);
+                        if (recipientElement != null)
                         {
-
-                            mailPieceDTO.BusinessFriendlyIdName = "LoanNbr";
-                            mailPieceDTO.BusinessFriendlyIdValue = mailPieceNode.SelectSingleNode("./x:LoanNbr/text()", nsManager) == null ? string.Empty : mailPieceNode.SelectSingleNode("./x:LoanNbr/text()", nsManager).Value;
-                            mailPieceDTO.DocumentOrPackageType = mailPieceNode.SelectSingleNode("./x:PackageName/text()", nsManager) == null ? null : mailPieceNode.SelectSingleNode("./x:PackageName/text()", nsManager).Value;
-                            mailPieceDTO.UniqueId = mailPieceNode.SelectSingleNode("./x:Id/text()", nsManager) == null ? Guid.Empty : Guid.Parse(mailPieceNode.SelectSingleNode("./x:Id/text()", nsManager).Value);
-                            mailPieceDTO.FileName = mailPieceNode.SelectSingleNode("./x:File/text()", nsManager) == null ? null : mailPieceNode.SelectSingleNode("./x:File/text()", nsManager).Value;
-
-
-
-                            var recipientElement = mailPieceNode.SelectSingleNode("./x:RecipientInfo", nsManager);
-                            if (recipientElement != null)
+                            if (recipientElement.SelectNodes("./x:Recipient", nsManager) != null)
                             {
-                                if (recipientElement.SelectNodes("./x:Recipient", nsManager) != null)
+                                mailPieceDTO.IsRcptInfoSpecified = true;
+                                var recipientsData = recipientElement.SelectNodes("./x:Recipient", nsManager);
+
+                                if (recipientsData.Count > 1)
                                 {
-                                    mailPieceDTO.IsRcptInfoSpecified = true;
-                                    var recipientsData = recipientElement.SelectNodes("./x:Recipient", nsManager);
+                                    mailPieceDTO.RcptFirstName = recipientsData.Item(0).SelectSingleNode("./x:FirstName/text()", nsManager) == null ? null : recipientsData.Item(0).SelectSingleNode("./x:FirstName/text()", nsManager).Value;
+                                    mailPieceDTO.RcptLastName = recipientsData.Item(0).SelectSingleNode("./x:LastName/text()", nsManager) == null ? null : recipientsData.Item(0).SelectSingleNode("./x:LastName/text()", nsManager).Value;
 
-                                    if (recipientsData.Count > 1)
-                                    {
-                                        mailPieceDTO.RcptFirstName = recipientsData.Item(0).SelectSingleNode("./x:FirstName/text()", nsManager) == null ? null : recipientsData.Item(0).SelectSingleNode("./x:FirstName/text()", nsManager).Value;
-                                        mailPieceDTO.RcptLastName = recipientsData.Item(0).SelectSingleNode("./x:LastName/text()", nsManager) == null ? null : recipientsData.Item(0).SelectSingleNode("./x:LastName/text()", nsManager).Value;
-
-                                        mailPieceDTO.CoRcptFirstName = recipientsData.Item(1).SelectSingleNode("./x:FirstName/text()", nsManager) == null ? null : recipientsData.Item(1).SelectSingleNode("./x:FirstName/text()", nsManager).Value;
-                                        mailPieceDTO.CoRcptLastName = recipientsData.Item(1).SelectSingleNode("./x:LastName/text()", nsManager) == null ? null : recipientsData.Item(1).SelectSingleNode("./x:LastName/text()", nsManager).Value;
-                                    }
-                                    else
-                                    {
-                                        mailPieceDTO.RcptFirstName = recipientsData.Item(0).SelectSingleNode("./x:FirstName/text()", nsManager) == null ? null : recipientsData.Item(0).SelectSingleNode("./x:FirstName/text()", nsManager).Value;
-                                        mailPieceDTO.RcptLastName = recipientsData.Item(0).SelectSingleNode("./x:LastName/text()", nsManager) == null ? null : recipientsData.Item(0).SelectSingleNode("./x:LastName/text()", nsManager).Value;
-                                    }
+                                    mailPieceDTO.CoRcptFirstName = recipientsData.Item(1).SelectSingleNode("./x:FirstName/text()", nsManager) == null ? null : recipientsData.Item(1).SelectSingleNode("./x:FirstName/text()", nsManager).Value;
+                                    mailPieceDTO.CoRcptLastName = recipientsData.Item(1).SelectSingleNode("./x:LastName/text()", nsManager) == null ? null : recipientsData.Item(1).SelectSingleNode("./x:LastName/text()", nsManager).Value;
                                 }
                                 else
-                                    mailPieceDTO.IsRcptInfoSpecified = false;
-
-                                mailPieceDTO.RcptPhone = recipientElement.SelectSingleNode("./x:RecipientPhoneNo/text()", nsManager) == null ? null : recipientElement.SelectSingleNode("./x:RecipientPhoneNo/text()", nsManager).Value;
-
-                                var recipeintAddressElement = recipientElement.SelectSingleNode("./x:Address", nsManager);
-
-                                if (recipeintAddressElement != null)
                                 {
-                                    mailPieceDTO.RcptAddressStreet = recipeintAddressElement.SelectSingleNode("./x:Line1/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:Line1/text()", nsManager).Value;
-
-                                    mailPieceDTO.RcptAddressAptOrSuiteOrOther = recipeintAddressElement.SelectSingleNode("./x:Line2/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:Line2/text()", nsManager).Value;
-
-                                    mailPieceDTO.RcptAddressCity = recipeintAddressElement.SelectSingleNode("./x:City/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:City/text()", nsManager).Value;
-
-                                    mailPieceDTO.RcptAddressState = recipeintAddressElement.SelectSingleNode("./x:State/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:State/text()", nsManager).Value;
-
-                                    mailPieceDTO.RcptAddressZIP = recipeintAddressElement.SelectSingleNode("./x:Zip/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:Zip/text()", nsManager).Value;
+                                    mailPieceDTO.RcptFirstName = recipientsData.Item(0).SelectSingleNode("./x:FirstName/text()", nsManager) == null ? null : recipientsData.Item(0).SelectSingleNode("./x:FirstName/text()", nsManager).Value;
+                                    mailPieceDTO.RcptLastName = recipientsData.Item(0).SelectSingleNode("./x:LastName/text()", nsManager) == null ? null : recipientsData.Item(0).SelectSingleNode("./x:LastName/text()", nsManager).Value;
                                 }
                             }
                             else
-                            {
                                 mailPieceDTO.IsRcptInfoSpecified = false;
+
+                            mailPieceDTO.RcptPhone = recipientElement.SelectSingleNode("./x:RecipientPhoneNo/text()", nsManager) == null ? null : recipientElement.SelectSingleNode("./x:RecipientPhoneNo/text()", nsManager).Value;
+
+                            var recipeintAddressElement = recipientElement.SelectSingleNode("./x:Address", nsManager);
+
+                            if (recipeintAddressElement != null)
+                            {
+                                mailPieceDTO.RcptAddressStreet = recipeintAddressElement.SelectSingleNode("./x:Line1/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:Line1/text()", nsManager).Value;
+
+                                mailPieceDTO.RcptAddressAptOrSuiteOrOther = recipeintAddressElement.SelectSingleNode("./x:Line2/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:Line2/text()", nsManager).Value;
+
+                                mailPieceDTO.RcptAddressCity = recipeintAddressElement.SelectSingleNode("./x:City/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:City/text()", nsManager).Value;
+
+                                mailPieceDTO.RcptAddressState = recipeintAddressElement.SelectSingleNode("./x:State/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:State/text()", nsManager).Value;
+
+                                mailPieceDTO.RcptAddressZIP = recipeintAddressElement.SelectSingleNode("./x:Zip/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:Zip/text()", nsManager).Value;
+                            }
+                        }
+                        else
+                        {
+                            mailPieceDTO.IsRcptInfoSpecified = false;
+                        }
+
+                        var returnInfoElement = mailPieceNode.SelectSingleNode("./x:ReturnInfo", nsManager);
+                        if (returnInfoElement != null)
+                        {
+                            mailPieceDTO.IsReturnInfoSpecified = true;
+                            mailPieceDTO.RetRcptFirstName = returnInfoElement.SelectSingleNode("./x:FirstName/text()", nsManager) == null ? null : returnInfoElement.SelectSingleNode("./x:FirstName/text()", nsManager).Value;
+
+                            mailPieceDTO.RetRcptLastName = returnInfoElement.SelectSingleNode("./x:LastName/text()", nsManager) == null ? null : returnInfoElement.SelectSingleNode("./x:LastName/text()", nsManager).Value;
+
+
+                            mailPieceDTO.RetRcptPhone = returnInfoElement.SelectSingleNode("./x:ReturnPhoneNo/text()", nsManager) == null ? null : returnInfoElement.SelectSingleNode("./x:ReturnPhoneNo/text()", nsManager).Value;
+
+                            var returnAddressElement = returnInfoElement.SelectSingleNode("./x:Address", nsManager);
+                            if (returnAddressElement != null)
+                            {
+                                mailPieceDTO.RetRcptAddressStreet = returnAddressElement.SelectSingleNode("./x:Line1/text()", nsManager) == null ? null : returnAddressElement.SelectSingleNode("./x:Line1/text()", nsManager).Value;
+
+                                mailPieceDTO.RetRcptAddressAptOrSuiteOrOther = returnAddressElement.SelectSingleNode("./x:Line2/text()", nsManager) == null ? null : returnAddressElement.SelectSingleNode("./x:Line2/text()", nsManager).Value;
+
+                                mailPieceDTO.RetRcptAddressCity = returnAddressElement.SelectSingleNode("./x:City/text()", nsManager) == null ? null : returnAddressElement.SelectSingleNode("./x:City/text()", nsManager).Value;
+
+                                mailPieceDTO.RetRcptAddressState = returnAddressElement.SelectSingleNode("./x:State/text()", nsManager) == null ? null : returnAddressElement.SelectSingleNode("./x:State/text()", nsManager).Value;
+
+                                mailPieceDTO.RetRcptAddressZIP = returnAddressElement.SelectSingleNode("./x:Zip/text()", nsManager) == null ? null : returnAddressElement.SelectSingleNode("./x:Zip/text()", nsManager).Value;
                             }
 
-                            var returnInfoElement = mailPieceNode.SelectSingleNode("./x:ReturnInfo", nsManager);
-                            if (returnInfoElement != null)
+                            if (mailPieceNode.SelectSingleNode("./x:ShippingMethod", nsManager) != null)
                             {
-                                mailPieceDTO.IsReturnInfoSpecified = true;
-                                mailPieceDTO.RetRcptFirstName = returnInfoElement.SelectSingleNode("./x:FirstName/text()", nsManager) == null ? null : returnInfoElement.SelectSingleNode("./x:FirstName/text()", nsManager).Value;
+                                customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "ShippingMethod", DataType = DataType.String, Value = mailPieceNode.SelectSingleNode("./x:ShippingMethod/text()", nsManager).Value };
 
-                                mailPieceDTO.RetRcptLastName = returnInfoElement.SelectSingleNode("./x:LastName/text()", nsManager) == null ? null : returnInfoElement.SelectSingleNode("./x:LastName/text()", nsManager).Value;
-
-
-                                mailPieceDTO.RetRcptPhone = returnInfoElement.SelectSingleNode("./x:ReturnPhoneNo/text()", nsManager) == null ? null : returnInfoElement.SelectSingleNode("./x:ReturnPhoneNo/text()", nsManager).Value;
-
-                                var returnAddressElement = returnInfoElement.SelectSingleNode("./x:Address", nsManager);
-                                if (returnAddressElement != null)
-                                {
-                                    mailPieceDTO.RetRcptAddressStreet = returnAddressElement.SelectSingleNode("./x:Line1/text()", nsManager) == null ? null : returnAddressElement.SelectSingleNode("./x:Line1/text()", nsManager).Value;
-
-                                    mailPieceDTO.RetRcptAddressAptOrSuiteOrOther = returnAddressElement.SelectSingleNode("./x:Line2/text()", nsManager) == null ? null : returnAddressElement.SelectSingleNode("./x:Line2/text()", nsManager).Value;
-
-                                    mailPieceDTO.RetRcptAddressCity = returnAddressElement.SelectSingleNode("./x:City/text()", nsManager) == null ? null : returnAddressElement.SelectSingleNode("./x:City/text()", nsManager).Value;
-
-                                    mailPieceDTO.RetRcptAddressState = returnAddressElement.SelectSingleNode("./x:State/text()", nsManager) == null ? null : returnAddressElement.SelectSingleNode("./x:State/text()", nsManager).Value;
-
-                                    mailPieceDTO.RetRcptAddressZIP = returnAddressElement.SelectSingleNode("./x:Zip/text()", nsManager) == null ? null : returnAddressElement.SelectSingleNode("./x:Zip/text()", nsManager).Value;
-                                }
-
-                                if (mailPieceNode.SelectSingleNode("./x:ShippingMethod", nsManager) != null)
-                                {
-                                    customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "ShippingMethod", DataType = DataType.String, Value = mailPieceNode.SelectSingleNode("./x:ShippingMethod/text()", nsManager).Value };
-
-                                    mailPieceCustomInfo.Add(customInfo);
-                                }
-
-                                if (mailPieceNode.SelectSingleNode("./x:CustomerIdentifier", nsManager) != null)
-                                {
-                                    customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "CustomerIdentifier", DataType = DataType.String, Value = mailPieceNode.SelectSingleNode("./x:CustomerIdentifier/text()", nsManager).Value };
-
-                                    mailPieceCustomInfo.Add(customInfo);
-                                }
-
-                                if (mailPieceNode.SelectSingleNode("./x:RequestId", nsManager) != null)
-                                {
-                                    customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "RequestId", DataType = DataType.String, Value = mailPieceNode.SelectSingleNode("./x:RequestId/text()", nsManager).Value };
-
-                                    mailPieceCustomInfo.Add(customInfo);
-                                }
-
-                                if (mailPieceNode.SelectSingleNode("./x:ReceivedDate", nsManager) != null)
-                                {
-                                    customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "ReceivedDate", DataType = DataType.DateTime, Value = mailPieceNode.SelectSingleNode("./x:ReceivedDate/text()", nsManager).Value };
-
-                                    mailPieceCustomInfo.Add(customInfo);
-                                }
-
-                                var shippingCredElement = mailPieceNode.SelectSingleNode("./x:ShippingCredentials", nsManager);
-                                if (shippingCredElement != null)
-                                {
-                                    if (shippingCredElement.SelectSingleNode("./x:ClientCode", nsManager) != null)
-                                        customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "ShippingCredCode", DataType = DataType.String, Value = shippingCredElement.SelectSingleNode("./x:ClientCode/text()", nsManager).Value };
-
-                                    mailPieceCustomInfo.Add(customInfo);
-                                }
+                                mailPieceCustomInfo.Add(customInfo);
                             }
-                            else
-                                mailPieceDTO.IsReturnInfoSpecified = false;
 
-
-                            ValidationResultAMC validationResult = Common.ValidateXMLNode(mailPieceNode, nsManager);
-                            if (validationResult.Code == OutComeCodes.No_Error)
+                            if (mailPieceNode.SelectSingleNode("./x:CustomerIdentifier", nsManager) != null)
                             {
-                                string filePath = Path.Combine(mbi.AMRequestPath, mailPieceDTO.FileName);
-                                if (!File.Exists(filePath))
-                                {
-                                    mailPieceDTO.ErrorCode = OutComeCodes.Missing_PDF;
-                                    mailPieceDTO.ErrorDesc = "Pdf file is not available for this package.";
-                                    mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
-                                }
-                                else
-                                {
-                                    mailPieceDTO.ErrorCode = OutComeCodes.No_Error;
-                                }
+                                customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "CustomerIdentifier", DataType = DataType.String, Value = mailPieceNode.SelectSingleNode("./x:CustomerIdentifier/text()", nsManager).Value };
+
+                                mailPieceCustomInfo.Add(customInfo);
                             }
-                            else
+
+                            if (mailPieceNode.SelectSingleNode("./x:RequestId", nsManager) != null)
                             {
-                                mailPieceDTO.ErrorCode = validationResult.Code;
-                                mailPieceDTO.ErrorDesc = validationResult.ErrorMessage;
+                                customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "RequestId", DataType = DataType.String, Value = mailPieceNode.SelectSingleNode("./x:RequestId/text()", nsManager).Value };
+
+                                mailPieceCustomInfo.Add(customInfo);
+                            }
+
+                            if (mailPieceNode.SelectSingleNode("./x:ReceivedDate", nsManager) != null)
+                            {
+                                customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "ReceivedDate", DataType = DataType.DateTime, Value = mailPieceNode.SelectSingleNode("./x:ReceivedDate/text()", nsManager).Value };
+
+                                mailPieceCustomInfo.Add(customInfo);
+                            }
+
+                            var shippingCredElement = mailPieceNode.SelectSingleNode("./x:ShippingCredentials", nsManager);
+                            if (shippingCredElement != null)
+                            {
+                                if (shippingCredElement.SelectSingleNode("./x:ClientCode", nsManager) != null)
+                                    customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "ShippingCredCode", DataType = DataType.String, Value = shippingCredElement.SelectSingleNode("./x:ClientCode/text()", nsManager).Value };
+
+                                mailPieceCustomInfo.Add(customInfo);
+                            }
+                        }
+                        else
+                            mailPieceDTO.IsReturnInfoSpecified = false;
+
+
+                        ValidationResultAMC validationResult = Common.ValidateXMLNode(mailPieceNode, nsManager);
+                        if (validationResult.Code == OutComeCodes.No_Error)
+                        {
+                            string filePath = Path.Combine(mbi.AMRequestPath, mailPieceDTO.FileName);
+                            if (!File.Exists(filePath))
+                            {
+                                mailPieceDTO.ErrorCode = OutComeCodes.Missing_PDF;
+                                mailPieceDTO.ErrorDesc = "Pdf file is not available for this package.";
                                 mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                             }
-
+                            else
+                            {
+                                mailPieceDTO.ErrorCode = OutComeCodes.No_Error;
+                            }
                         }
-                        catch (Exception ex)
+                        else
                         {
-                            mailPieceDTO.ErrorCode = OutComeCodes.Invalid_XML;
-                            mailPieceDTO.ErrorDesc = ex.ToString();
+                            mailPieceDTO.ErrorCode = validationResult.Code;
+                            mailPieceDTO.ErrorDesc = validationResult.ErrorMessage;
                             mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                         }
 
-                        mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfo);
                     }
-                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
-                    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationEnd, Common.Now);
+                    catch (Exception ex)
+                    {
+                        mailPieceDTO.ErrorCode = OutComeCodes.Invalid_XML;
+                        mailPieceDTO.ErrorDesc = ex.ToString();
+                        mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
+                    }
+
+                    mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfo);
                 }
+                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
+                commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationEnd, Common.Now);
             }
         }
 
@@ -531,7 +543,6 @@ namespace AM.Console
                 var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
                 if (data != null)
                 {
-
                     var validMailPieces = data.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
 
                     if (validMailPieces.Count == 0)
@@ -555,10 +566,40 @@ namespace AM.Console
 
                     commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.AcknowledgeStart, Common.Now);
 
-                    MailUtility.SendDownloadNotificationEmail(mbi, data.MailPieces, data.MailPieceCustomInfo);
+                    MailUtility.SendDownloadNotificationEmail(mbi, data);
 
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
                     commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.AcknowledgeEnd, Common.Now);
+                }
+            }
+        }
+
+        private void GenerateUSAAFormattedErrorReport(BatchData data, MailBatchInfo mbi)
+        {
+            StringBuilder errorReport = Common.USAAErrorReport(data);
+
+            string errorReportFileName = string.Format("ER_{0}.csv", Path.GetFileNameWithoutExtension(data.MailBatch.BatchName));
+
+            using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(errorReport.ToString())))
+            {
+                using (FileStream file = new FileStream(Path.Combine(mbi.AMResponsePath, errorReportFileName), FileMode.Create, FileAccess.Write))
+                {
+                    ms.WriteTo(file);
+                }
+            }
+        }
+
+        private void GenerateUSAAFormattedDailyDetailOperationReport(BatchData data, MailBatchInfo mbi)
+        {
+            StringBuilder dailyDetailOperation = Common.USAADailyDetailOperationReport(data);
+
+            string deliveryReportFileName = string.Format("DR_{0}.csv", Path.GetFileNameWithoutExtension(data.MailBatch.BatchName));
+
+            using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(dailyDetailOperation.ToString())))
+            {
+                using (FileStream file = new FileStream(Path.Combine(mbi.AMResponsePath, deliveryReportFileName), FileMode.Create, FileAccess.Write))
+                {
+                    ms.WriteTo(file);
                 }
             }
         }
