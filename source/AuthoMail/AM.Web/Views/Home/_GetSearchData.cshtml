@@ -13,53 +13,43 @@
             <table class="table table-responsive" id="sample_2" >
                 <thead>
                     <tr>
-                        <th>Batch Id</th>
-                        <th>ID</th>
-                        <th>Channel</th>
-                        <th>Package Name</th>
                         <th>Loan Number</th>
-                        <th>File Name</th>
+                        <th>Status</th>
+                        <th>Borrower Name</th>
+                        <th>Address</th>
+                        <th>City</th>
+                        <th>Zip</th>
                         <th>Received Date</th>
                         <th>Printed Date</th>
-                        <th>Client Code</th>
                         <th>Tracking Number</th>
-                        <th>First Name</th>
-                        <th>Last Name</th>
-                        <th>Recipient Street Address</th>
-                        <th>Recipient City</th>
-                        <th>Recipient State</th>
-                        <th>Recipient Zip</th>
-                        <th>Error Code</th>
-                        <th>Error Text</th>
-                        <th>Print Location</th>
-                        <th>Pages Shipped</th>
-                        @*<th>BatchId</th>*@
+                        <th>Package Name</th>
+                        <th>Channel</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var item in Model)
                     {
                         <tr class="row-small">
-                            <td><span>@item.ClientBatchId</span></td>
-                            <td><span>@item.MailPieceUniqueId</span></td>
-                            <td><span>@item.Channel</span></td>
-                            <td><span>@item.DocumentOrPackageType</span></td>
-                            <td><span>@item.BusinessFriendlyIdValue</span></td>
-                            <td><span>@item.FileName</span></td>
-                            <td><span>@item.ReceivedOn</span></td>
-                            <td><span>@item.PrintedOn</span></td>
-                            <td><span>@item.ClientId</span></td>
-                            <td><span>@item.TrackingNo</span></td>
-                            <td><span>@item.RcptFirstName</span></td>
-                            <td><span>@item.RcptLastName </span></td>
+                            <td data-businessidvalue="@item.BusinessFriendlyIdValue"><span>@item.BusinessFriendlyIdValue</span></td>
+                            <td data-status="@item.ShippingStatus"><span>@item.ShippingStatus</span></td>
+                            <td><span>@item.RcptFirstName @item.RcptLastName</span></td>
                             <td><span>@item.RcptAddressStreet</span></td>
                             <td><span>@item.RcptAddressCity</span></td>
-                            <td><span>@item.RcptAddressState</span></td>
                             <td><span>@item.RcptAddressZIP</span></td>
-                            <td><span>@item.ErrorCode</span></td>
-                            <td><span>@item.ErrorDesc</span></td>
-                            <td><span>@item.PrintLocation</span></td>
-                            <td><span>@item.TotalPages</span></td>
+                            <td><span>@item.PrintedOn</span></td>
+                            <td><span>@item.ReceivedOn</span></td>
+                            <td class="text-center">
+                                @if (string.IsNullOrEmpty(item.TrackingNo))
+                                {
+                                    <span>--</span>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-primary"><span>@item.TrackingNo</span></button>
+                                }
+                            </td>
+                            <td data-doctype="@item.DocumentOrPackageType"><span>@item.DocumentOrPackageType</span></td>
+                            <td data-channel="@item.Channel"><span>@item.Channel</span></td>
                         </tr>
                     }
                 </tbody>
@@ -136,6 +126,6 @@
         });
 
 
-       
+
     });
 </script>

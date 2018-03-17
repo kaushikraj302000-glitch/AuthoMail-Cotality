@@ -7,6 +7,7 @@ using System.Web.Mvc;
 using Microsoft.AspNet.Identity;
 using System.Security.Claims;
 using AM.Entities.IdentityModels;
+using AM.Web.USPSIMService;
 
 namespace AM.Web.Controllers
 {
@@ -105,6 +106,17 @@ namespace AM.Web.Controllers
             return Json(model.OrderByDescending(s => s.BatchId).ToList(), JsonRequestBehavior.AllowGet);
         }
 
+        [HttpPost]
+        public ActionResult USPSTracking(string TrackingNo, string ShippingMethod)
+        {
+            if (ShippingMethod=="USPS")
+            {
+                 USPSIMClient uspsClient = new USPSIMClient();
+                USPSTrackingInfo USPSInfo = uspsClient.GetShipmentStatus(TrackingNo);
+                return Json(USPSInfo, JsonRequestBehavior.AllowGet);
+            }
+            return Json(Config.Msg_Web_NoRecordFound,JsonRequestBehavior.AllowGet);
+        }
         public ActionResult About()
         {
             ViewBag.Message = "Your application description page.";
