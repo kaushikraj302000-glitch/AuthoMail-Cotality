@@ -124,28 +124,20 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <WCFMetadata Include="Service References\" />
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadataStorage Include="Service References\USPSIMService\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Service References\USPSIMService\USPSIM.disco" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Service References\USPSIMService\configuration91.svcinfo" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Service References\USPSIMService\configuration.svcinfo" />
-  </ItemGroup>
-  <ItemGroup>
+    <Content Include="Dlls\PCI.Lib.dll" />
     <None Include="Service References\USPSIMService\Reference.svcmap">
       <Generator>WCF Proxy Generator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>
     </None>
+    <None Include="Service References\USPSIMService\configuration.svcinfo" />
+    <None Include="Service References\USPSIMService\configuration91.svcinfo" />
+    <None Include="Service References\USPSIMService\USPSIM.disco" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Dlls\PCI.Lib.dll" />
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadataStorage Include="Service References\USPSIMService\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

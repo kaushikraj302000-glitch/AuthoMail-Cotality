@@ -12,6 +12,8 @@ namespace AM.Core
 {
     public class SmartDocs
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private BaseFont timesBaseFont = BaseFont.CreateFont(BaseFont.TIMES_ROMAN, BaseFont.CP1252, false);
         private BaseFont timesBold = BaseFont.CreateFont(BaseFont.TIMES_BOLD, BaseFont.CP1252, false);
         private BaseFont timesItalic = BaseFont.CreateFont(BaseFont.TIMES_ITALIC, BaseFont.CP1252, false);
@@ -98,6 +100,7 @@ namespace AM.Core
             }
             catch (Exception err)
             {
+                log.Error(err);
                 ExceptionDetail = err.ToString();
             }
 
@@ -163,6 +166,5 @@ namespace AM.Core
                 pdfReader.Close();
             }
         }
-
     }
 }
