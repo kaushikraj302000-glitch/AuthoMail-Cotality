@@ -478,9 +478,11 @@ namespace AM.Console
                             if (shippingCredElement != null)
                             {
                                 if (shippingCredElement.SelectSingleNode("./x:ClientCode", nsManager) != null)
+                                {
                                     customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "ShippingCredCode", DataType = DataType.String, Value = shippingCredElement.SelectSingleNode("./x:ClientCode/text()", nsManager).Value };
 
-                                mailPieceCustomInfo.Add(customInfo);
+                                    mailPieceCustomInfo.Add(customInfo);
+                                }
                             }
                         }
                         else
