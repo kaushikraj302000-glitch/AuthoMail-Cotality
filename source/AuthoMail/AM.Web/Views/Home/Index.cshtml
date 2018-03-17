@@ -55,7 +55,7 @@
                     </div>
                     <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
                 }
-                else
+                else if (ViewBag.BusinessId.Count > 1)
                 {
                     <label for="BusinessFriendlyIdName">Select Business ID</label>
                     <div class="input-group">
@@ -72,6 +72,15 @@
                     </div>
                     <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdNameError">This field is required.</div>
                     <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
+                }
+                else
+                {
+                    <style>
+                        #pullback {
+                            display: none;
+                        }
+                    </style>
+                    <div class='alert alert-yellow'><span>No business friendly id found!</span></div>
                 }
 
 
@@ -230,21 +239,15 @@
 
             });
         }
-        function ChartViewModel(StartDate, EndDate) {
-            this.StartDate = StartDate;
-            this.EndDate = EndDate;
-        }
+
         function BindWeeklyChartData() {
             var el = $("#weekluChart");
-            var chartViewModel =new ChartViewModel(new Date(moment().subtract(7, 'days').format('MM/DD/YYYY')), new Date(moment().format('MM/DD/YYYY')));
-            console.log(chartViewModel);
             $.ajax({
                 type: "POST",
                 contentType: "application/json; charset=utf-8",
                 dataType: "JSON",
                 //url: baseUrl + "Home/GetWeeklyChartData",
                 url: baseUrl + "api/chart/GetWeeklyChartData",
-               // data: JSON.stringify(chartViewModel),
                 success: function (response) {
                     console.log(response);
                     var chartData = [];
@@ -255,7 +258,7 @@
                     console.log(startDate + " " + endDate);
                     for (var i = 1; i <= response.length; i++) {
                         var day = moment(response[cnt].EstDate).format("MM/DD/YYYY") == moment().format("MM/DD/YYYY") ? "Today" : moment(response[cnt].EstDate).format("ddd");
-                        chartData.push([day, response[cnt].InProgress, response[cnt].Failed, response[cnt].ShippedPartial, response[cnt].ShippedAll, moment(response[cnt].EstDate).format("MM/DD/YYYY")]);
+                        chartData.push([day, response[cnt].InProgress, response[cnt].Failed, response[cnt].ShippedPartial, response[cnt].ShippedAll, moment(response[cnt].EstDate).format("MM/DD/YYYY hh:mm:ss a")]);
                         cnt++;
                     }
                     console.log(chartData);
@@ -363,8 +366,7 @@
                         }
                     }
                     if (div == "weeklyChart") {
-                        var dates = new Date(moment(data.getValue(selectedItem.row, 5)).format('MM/DD/YYYY'));
-
+                        var dates = data.getValue(selectedItem.row, 5);
                         GetChartDataByStatusAndDate(status, dates);
                     }
                 }

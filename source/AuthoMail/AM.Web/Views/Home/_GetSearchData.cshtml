@@ -3,14 +3,14 @@
     <div class="panel-heading">
         <div class="panel-title">
             Search Details: @ViewBag.Date
-           
+
         </div>
 
     </div>
     <div class="panel-body">
         @if (Model.Count > 0)
         {
-            <table class="table table-responsive" id="sample_2" style="overflow-x:scroll">
+            <table class="table table-responsive" id="sample_2" >
                 <thead>
                     <tr>
                         <th>Batch Id</th>
@@ -73,3 +73,69 @@
         }
     </div>
 </div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        window.clui.popoverInit();
+        var table = $('#sample_2');
+        var filename = "Search";
+        var title = "Search";
+        var oTable = table.dataTable({
+
+            "language": {
+                "aria": {
+                    "sortAscending": ": activate to sort column ascending",
+                    "sortDescending": ": activate to sort column descending"
+                },
+                "emptyTable": "No data available in table",
+                "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+                "infoEmpty": "No entries found",
+                "infoFiltered": "(filtered1 from _MAX_ total entries)",
+                "lengthMenu": "_MENU_ entries",
+                "search": "<b>Search:</b>",
+                "zeroRecords": "No matching records found"
+            },
+
+            buttons: [
+                //{
+                //    extend: 'colvis',
+                //    text: 'Select Fields',
+                //    className: 'btn purple pull-left',
+                //    columns: ':not(.noVis)'
+                //},
+            //{
+            //    extend: 'excel',
+            //    text: '<i class="fa fa-file-excel-o"></i> Excel',
+            //    className: 'btn btn-primary',
+            //    filename: filename,
+            //    title: title,
+            //    exportOptions: {
+            //        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+            //    }
+
+            //}
+
+
+
+            ],
+
+            "scrollX": true,
+
+            "order": [
+                [1, 'asc']
+            ],
+            "lengthMenu": [
+                [5, 10, 25, 50, 100, -1],
+                [5, 10, 25, 50, 100, "All"] // change per page values here
+            ],
+            // set the initial value
+            "pageLength": 5,
+
+            "dom": "<'row' <'col-md-12'B>><'row'<'col-md-6 col-sm-12'l><'col-md-6 col-sm-12'f>r><'table-scrollable't><'row'<'col-md-5 col-sm-12'i><'col-md-7 col-sm-12'p>>", // horizobtal scrollable datatable
+
+
+        });
+
+
+       
+    });
+</script>
