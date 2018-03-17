@@ -96,8 +96,8 @@ namespace AM.Console
 
                         StringBuilder sb = new StringBuilder(File.ReadAllText(Common.DownloadEmailTemplate));
                         sb = sb.Replace("<%FileName%>", mbi.MailBatch.BatchName);
-                        sb = sb.Replace("<%yyyymmdd%>", Common.UtcToClientTimeZone(DateTime.UtcNow, mbi.Client.TimeZone).ToString("MM/dd/yyyy"));
-                        sb = sb.Replace("<%hhmm%>", Common.UtcToClientTimeZone(DateTime.UtcNow, mbi.Client.TimeZone).ToString("hh:mm tt"));
+                        sb = sb.Replace("<%yyyymmdd%>", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("MM/dd/yyyy"));
+                        sb = sb.Replace("<%hhmm%>", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("hh:mm tt"));
 
                         StringBuilder data = new StringBuilder();
                         data.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_SrNoStyle, "1"));
@@ -122,7 +122,7 @@ namespace AM.Console
 
                     if (msg.Body.Length > 0)
                     {
-                        mbi.MailBatch.ReceivedOn = Common.UtcToClientTimeZone(mbi.MailBatch.ReceivedOn.Value, mbi.Client.TimeZone);
+                        mbi.MailBatch.ReceivedOn = mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone);
 
                         // Generate Error Report
                         List<MailPieceDTO> errorMailPieces = mailPieces.Where(p => p.ErrorCode != OutComeCodes.No_Error).ToList();
@@ -132,7 +132,7 @@ namespace AM.Console
                         if (errorMailPieces != null && errorMailPieces.Count > 0)
                         {
                             StringBuilder errorReport = GetErrorReport(mbi.MailBatch, errorMailPieces, filteredCustomInfo);
-                            string errorReportFileName = string.Format("Error-{0}.txt", DateTime.UtcNow.ToString("yyyyMMdd-HHmmss"));
+                            string errorReportFileName = string.Format("Error-{0}.txt", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("yyyyMMdd-HHmmss"));
                             msg.Attachments.Add(new Attachment(
                                 new MemoryStream(
                                     Encoding.UTF8.GetBytes(errorReport.ToString().ToCharArray())), errorReportFileName));
@@ -176,8 +176,8 @@ namespace AM.Console
 
                         StringBuilder sb = new StringBuilder(File.ReadAllText(Common.DownloadEmailTemplate));
                         sb = sb.Replace("<%FileName%>", mbi.MailBatch.BatchName);
-                        sb = sb.Replace("<%yyyymmdd%>", Common.UtcToClientTimeZone(DateTime.UtcNow, mbi.Client.TimeZone).ToString("MM/dd/yyyy"));
-                        sb = sb.Replace("<%hhmm%>", Common.UtcToClientTimeZone(DateTime.UtcNow, mbi.Client.TimeZone).ToString("hh:mm tt"));
+                        sb = sb.Replace("<%yyyymmdd%>", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("MM/dd/yyyy"));
+                        sb = sb.Replace("<%hhmm%>", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("hh:mm tt"));
 
                         StringBuilder data = new StringBuilder();
                         data.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_SrNoStyle, "1"));
@@ -202,7 +202,7 @@ namespace AM.Console
 
                     if (msg.Body.Length > 0)
                     {
-                        mbi.MailBatch.ReceivedOn = Common.UtcToClientTimeZone(mbi.MailBatch.ReceivedOn.Value, mbi.Client.TimeZone);
+                        mbi.MailBatch.ReceivedOn = mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone);
 
                         // Generate Error Report
                         List<MailPieceDTO> shippedMailPieces = mailPieces.Where(p => p.ErrorCode == OutComeCodes.No_Error).ToList();
@@ -212,7 +212,7 @@ namespace AM.Console
                         if (shippedMailPieces != null && shippedMailPieces.Count > 0)
                         {
                             StringBuilder errorReport = GetDailyOperationReport(mbi.MailBatch, shippedMailPieces, filteredCustomInfo);
-                            string shippedReportFileName = string.Format("Delivery-{0}.txt", DateTime.UtcNow.ToString("yyyyMMdd-HHmmss"));
+                            string shippedReportFileName = string.Format("Delivery-{0}.txt", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("yyyyMMdd-HHmmss"));
                             msg.Attachments.Add(new Attachment(
                                 new MemoryStream(
                                     Encoding.UTF8.GetBytes(errorReport.ToString().ToCharArray())), shippedReportFileName));
