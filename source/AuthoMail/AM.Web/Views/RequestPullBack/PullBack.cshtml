@@ -39,7 +39,7 @@
                             </div>
                             <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
                         }
-                        else
+                        else if (ViewBag.BusinessId.Count > 1)
                         {
                             <label for="BusinessFriendlyIdName">Select Business ID</label>
                             <div class="input-group">
@@ -55,6 +55,11 @@
 
                             </div>
                         }
+                        else
+                        {
+                            <br />
+                            <div class='alert alert-yellow'><div>No business friendly id found!</div></div>
+                        }
                     </div>
                     <div class="form-group col-md-6">
                         <label for="input1">Document Type</label>
@@ -68,7 +73,7 @@
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label for="dp4">Received  On (In EST)</label>
+                        <label for="dp4">Received  On </label>
                         <div class="input-group daterange" id="datepicker4">
                             <input type="text" class="form-control" id="dp4">
                             <span class="input-group-addon">
@@ -151,8 +156,8 @@
 
             var selectedData = $("#dp4").val().split('-');
 
-            var startDate = new Date(moment(selectedData[0].trim()).format("MM/DD/YYYY"));
-            var endDate = new Date(moment(selectedData[1].trim()).format("MM/DD/YYYY"));
+            var startDate = moment(selectedData[0].trim()).format("MM/DD/YYYY");
+            var endDate = moment(selectedData[1].trim()).format("MM/DD/YYYY");
             var el = $('#mailPieceList');
             el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
             $.ajax({

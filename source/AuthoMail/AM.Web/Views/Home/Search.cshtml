@@ -9,9 +9,9 @@
         padding-right: 10px !important;
     }
 
-   
-    .show-calendar{
-        width:484px !important;
+
+    .show-calendar {
+        width: 484px !important;
     }
 </style>
 <div class="panel-group">
@@ -37,29 +37,34 @@
                 <div class="col-md-3">
                     @if (ViewBag.BusinessId.Count == 1)
                     {
-                    <label for="BusinessFriendlyIdValue">@ViewBag.BusinessId[0]</label>
-                    <div class="input-group">
-                        <i class="fa fa-search left-icon"></i>
-                        <input class="form-control" name="BusinessFriendlyIdValue" value="@ViewBag.BusinessFriendlyIdValue" placeholder="@ViewBag.BusinessId[0]" required id="BusinessFriendlyIdValue">
-                        <input type="hidden" value="@ViewBag.BusinessId[0]" name="BusinessFriendlyIdName" id="BusinessFriendlyIdName" />
-                    </div>
-                    <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
+                        <label for="BusinessFriendlyIdValue">@ViewBag.BusinessId[0]</label>
+                        <div class="input-group">
+                            <i class="fa fa-search left-icon"></i>
+                            <input class="form-control" name="BusinessFriendlyIdValue" value="@ViewBag.BusinessFriendlyIdValue" placeholder="@ViewBag.BusinessId[0]" required id="BusinessFriendlyIdValue">
+                            <input type="hidden" value="@ViewBag.BusinessId[0]" name="BusinessFriendlyIdName" id="BusinessFriendlyIdName" />
+                        </div>
+                        <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
+                    }
+                    else if (ViewBag.BusinessId.Count > 1)
+                    {
+                        <label for="BusinessFriendlyIdName">Select Business ID</label>
+                        <div class="input-group">
+
+                            <select id="BusinessFriendlyIdName" class="selectpicker">
+                                <option value="">Select BusinessId</option>
+                                @foreach (var item in ViewBag.BusinessId)
+                                {
+                                    <option value="@item.ToString()">@item.ToString()</option>
+                                }
+                            </select>
+                            <input class="form-control" name="BusinessFriendlyIdValue" placeholder="" required id="BusinessFriendlyIdValue">
+
+                        </div>
                     }
                     else
                     {
-                    <label for="BusinessFriendlyIdName">Select Business ID</label>
-                    <div class="input-group">
-
-                        <select id="BusinessFriendlyIdName" class="selectpicker">
-                            <option value="">Select BusinessId</option>
-                            @foreach (var item in ViewBag.BusinessId)
-                                {
-                            <option value="@item.ToString()">@item.ToString()</option>
-                                }
-                        </select>
-                        <input class="form-control" name="BusinessFriendlyIdValue" placeholder="" required id="BusinessFriendlyIdValue">
-
-                    </div>
+                        <br />
+                        <div class='alert alert-yellow'><div>No business friendly id found!</div></div>
                     }
                 </div>
                 <div class="col-md-3">
@@ -105,17 +110,17 @@
 
                 </div>
                 @*<div class="col-md-3">
-                    <div class="form-group">
-                        <label for="shippedOn">Shipped On</label>
-                        <div class="input-group daterange" id="datepicker4">
-                            <input type="text" class="form-control" id="shippedOn">
-                            <span class="input-group-addon">
-                                <i class="fa fa-calendar"></i>
-                            </span>
+                        <div class="form-group">
+                            <label for="shippedOn">Shipped On</label>
+                            <div class="input-group daterange" id="datepicker4">
+                                <input type="text" class="form-control" id="shippedOn">
+                                <span class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </span>
+                            </div>
                         </div>
-                    </div>
 
-                </div>*@
+                    </div>*@
                 <div class="col-md-1">
                     <div class="form-group ">
                         <label for="filterData"> &nbsp;</label>
