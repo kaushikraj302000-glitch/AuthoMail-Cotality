@@ -40,6 +40,9 @@ namespace AM.Console
         public static XmlSchemaSet schemaAM;
         public static XmlSchemaSet schemasAMC;
 
+        public static Dictionary<string, string> ValidStatesForUSAA { get; set; }
+        public static string StateListPathForUSAA { get; set; }
+
         static Common()
         {
             schemaAM = new XmlSchemaSet();
@@ -61,10 +64,27 @@ namespace AM.Console
             ProccessEmail_Subject = ConfigurationManager.AppSettings["ProccessEmail_Subject"];
 
             Email_SMTPClient = new SmtpClient();
-            
+
             Email_To = ConfigurationManager.AppSettings["Email_To"];
             Email_Cc = ConfigurationManager.AppSettings["Email_Cc"];
 
+            ValidStatesForUSAA = new Dictionary<string, string>();
+            StateListPathForUSAA = Path.GetFullPath(ConfigurationManager.AppSettings["StateListPathForUSAA"]);
+            if (!string.IsNullOrEmpty(StateListPathForUSAA))
+            {
+                if (File.Exists(StateListPathForUSAA))
+                {
+                    var stateList = File.ReadAllLines(StateListPathForUSAA);
+                    foreach (string state in stateList)
+                    {
+                        string[] stateCombo = state.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+                        if (stateCombo.Count() > 0)
+                        {
+                            ValidStatesForUSAA.Add(stateCombo[0], stateCombo[1]);
+                        }
+                    }
+                }
+            }
         }
 
         public static void CleanDirectory(string path)
@@ -76,39 +96,6 @@ namespace AM.Console
 
             Directory.CreateDirectory(path);
         }
-
-        public static DateTime EstToUtc(object dt)
-        {
-            //This is defined because we don't need to verify by DateTime.Parse. it is already in proper date.
-            DateTime dtVal = Convert.ToDateTime(dt);
-            // Treat date as Est irrecpective of client and server timezone and covert it to UTC
-
-            dt = DateTime.SpecifyKind(dtVal, DateTimeKind.Unspecified);
-            return TimeZoneInfo.ConvertTime(dtVal, TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("UTC"));
-        }
-
-        public static DateTime UtcToEst(object dt)
-        {
-            //This is defined because we don't need to verify by DateTime.Parse. it is already in proper date.
-            DateTime dtVal = Convert.ToDateTime(dt);
-            // Treat date as Est irrecpective of client and server timezone and covert it to UTC
-
-            dt = DateTime.SpecifyKind(dtVal, DateTimeKind.Unspecified);
-            return TimeZoneInfo.ConvertTime(dtVal, TimeZoneInfo.FindSystemTimeZoneById("UTC"), TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"));
-        }
-        public static DateTime UtcToClientTimeZone(DateTime dt, string clientTimeZone)
-        {
-            dt = DateTime.SpecifyKind(dt, DateTimeKind.Unspecified);
-            // Treat date as IST irrecpective of client and server timezone and covert it to UTC
-            return TimeZoneInfo.ConvertTime(dt, TimeZoneInfo.FindSystemTimeZoneById("UTC"), TimeZoneInfo.FindSystemTimeZoneById(clientTimeZone));
-        }
-        public static DateTime EstToUtc(DateTime dt)
-        {
-            dt = DateTime.SpecifyKind(dt, DateTimeKind.Unspecified);
-            // Treat date as IST irrecpective of client and server timezone and covert it to UTC
-            return TimeZoneInfo.ConvertTime(dt, TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("UTC"));
-        }
-
 
         public static SFT_ProtocolType GetProtocolType(string protocolType)
         {
@@ -150,9 +137,9 @@ namespace AM.Console
             return returnCode;
         }
 
-        public static ValidationResultAMC ValidateXMLNode(XmlNode xmlPiece)
+        public static ValidationResultAMC ValidateXMLNode(XmlNode xmlPiece, XmlNamespaceManager nsManager)
         {
-            var errors = ValidateAMXMLForUSAA(xmlPiece).ToList();
+            var errors = ValidateAMXMLForUSAA(xmlPiece, nsManager).ToList();
 
             if (errors.Count > 0)
             {
@@ -162,7 +149,7 @@ namespace AM.Console
             return new ValidationResultAMC() { Code = OutComeCodes.No_Error };
         }
 
-        private static IEnumerable<ValidationResultAMC> ValidateAMXMLForUSAA(XmlNode xmlPiece)
+        private static IEnumerable<ValidationResultAMC> ValidateAMXMLForUSAA(XmlNode xmlPiece, XmlNamespaceManager nsManager)
         {
             XDocument xDoc = XDocument.Parse(xmlPiece.OuterXml);
             StringBuilder sbErrorMessage = new StringBuilder();
@@ -175,11 +162,34 @@ namespace AM.Console
             string errorMsg = sbErrorMessage.ToString();
 
             if (errorMsg.Contains("Address") || errorMsg.Contains("City") || errorMsg.Contains("State") || errorMsg.Contains("Zip"))
+            {
                 yield return new ValidationResultAMC() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Recipient address details are missing in package." };
-             if (errorMsg.Contains("Recipient") || errorMsg.Contains("FirstName") || errorMsg.Contains("LastName"))
-                 yield return new ValidationResultAMC() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Recipient details are missing in package." };
-             if (!string.IsNullOrEmpty(errorMsg))
-                 yield return new ValidationResultAMC() { Code = OutComeCodes.Invalid_XML, ErrorMessage = errorMsg };
+            }
+            else
+            {
+                if (!errorMsg.Contains("Zip"))
+                {
+                    var recipientElement = xmlPiece.SelectSingleNode("./x:RecipientInfo", nsManager);
+                    if (recipientElement != null)
+                    {
+                        var recipeintAddressElement = recipientElement.SelectSingleNode("./x:Address", nsManager);
+
+                        if (recipeintAddressElement != null)
+                        {
+                            var stateValue = recipeintAddressElement.SelectSingleNode("./x:State/text()", nsManager).Value.Trim();
+                            if (!ValidStatesForUSAA.Keys.Contains(stateValue))
+                            {
+                                yield return new ValidationResultAMC() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "State is not from 50 states provided by client." };
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (errorMsg.Contains("Recipient") || errorMsg.Contains("FirstName") || errorMsg.Contains("LastName"))
+                yield return new ValidationResultAMC() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Recipient details are missing in package." };
+            if (!string.IsNullOrEmpty(errorMsg))
+                yield return new ValidationResultAMC() { Code = OutComeCodes.Invalid_XML, ErrorMessage = errorMsg };
 
             yield break;
         }
