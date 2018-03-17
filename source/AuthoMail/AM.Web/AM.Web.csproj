@@ -75,6 +75,7 @@
     <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
@@ -188,6 +189,11 @@
     <Compile Include="Models\CLAuthentication.cs" />
     <Compile Include="Models\PullBackResponse.cs" />
     <Compile Include="Models\ReportViewModel.cs" />
+    <Compile Include="Service References\USPSIMService\Reference.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </Compile>
     <Compile Include="Utilities\Common.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
@@ -334,6 +340,19 @@
     <Content Include="Scripts\respond.js" />
     <Content Include="Scripts\respond.min.js" />
     <Content Include="Scripts\_references.js" />
+    <Content Include="Service References\USPSIMService\AM.Web.USPSIMService.IMBarcodeInfo.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </Content>
+    <Content Include="Service References\USPSIMService\AM.Web.USPSIMService.USPSTrackingInfo.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </Content>
+    <None Include="Service References\USPSIMService\USPSIM.disco" />
+    <None Include="Service References\USPSIMService\configuration91.svcinfo" />
+    <None Include="Service References\USPSIMService\configuration.svcinfo" />
+    <None Include="Service References\USPSIMService\Reference.svcmap">
+      <Generator>WCF Proxy Generator</Generator>
+      <LastGenOutput>Reference.cs</LastGenOutput>
+    </None>
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
@@ -393,6 +412,16 @@
     <Content Include="Views\Report\ErrorSLAReport.cshtml" />
     <Content Include="Views\Report\_GetErrorsSLAReport.cshtml" />
     <Content Include="Views\Home\_GetSearchData.cshtml" />
+    <None Include="Service References\USPSIMService\USPSIM.wsdl" />
+    <None Include="Service References\USPSIMService\USPSIM.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\USPSIMService\USPSIM1.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\USPSIMService\USPSIM2.xsd">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -417,6 +446,12 @@
       <Project>{a60d6e77-74fc-419c-bf13-a7684012d0a5}</Project>
       <Name>AM.Services</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadataStorage Include="Service References\USPSIMService\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
