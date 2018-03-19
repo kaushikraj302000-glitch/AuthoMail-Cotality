@@ -85,19 +85,19 @@ namespace AM.Web.Controllers
             var model = chartDataSvc.GetBatchByParam(date, status, User.Identity.GetClientId().Value);
             return PartialView(model);
         }
-        [HttpPost]
-        public ActionResult GetWeeklyChartData(DateTime startDate, DateTime endDate)
-        {
-            var model = chartDataSvc.GetWeeklyChartData(startDate, endDate, User.Identity.GetClientId().Value);
-            return Json(model.OrderByDescending(s => s.Date).ToList(), JsonRequestBehavior.AllowGet);
-        }
+        //[HttpPost]
+        //public ActionResult GetWeeklyChartData(DateTime startDate, DateTime endDate)
+        //{
+        //    var model = chartDataSvc.GetWeeklyChartData(startDate, endDate, User.Identity.GetClientId().Value);
+        //    return Json(model.OrderByDescending(s => s.Date).ToList(), JsonRequestBehavior.AllowGet);
+        //}
 
-        [HttpPost]
-        public ActionResult GetTodayChartData(DateTime date)
-        {
-            var model = chartDataSvc.GetTodayMailPieceChartData(date, User.Identity.GetClientId().Value);
-            return Json(model.OrderByDescending(s => s.MailBatchId).ToList(), JsonRequestBehavior.AllowGet);
-        }
+        //[HttpPost]
+        //public ActionResult GetTodayChartData(DateTime date)
+        //{
+        //    var model = chartDataSvc.GetTodayMailPieceChartData(date, User.Identity.GetClientId().Value);
+        //    return Json(model.OrderByDescending(s => s.MailBatchId).ToList(), JsonRequestBehavior.AllowGet);
+        //}
 
         [HttpPost]
         public ActionResult GetMailPieceDataByStatusAndBatchId(string status, int batchId)
