@@ -81,7 +81,7 @@
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Report/_GetDailyDetailOperationsReport",
-                data: JSON.stringify({ date: new Date($("#dp4").val()), channel: $("#Channel").val() }),
+                data: JSON.stringify({ date: $("#dp4").val(), channel: $("#Channel").val() }),
                 contentType: "application/json; charset=utf-8",
                 success: function (res) {
                     el.html(res);

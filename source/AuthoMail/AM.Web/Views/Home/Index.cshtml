@@ -466,7 +466,7 @@
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Home/GetMailPieceIdByLoanNumber",
-                data: JSON.stringify({ BusinessFriendlyIdName: $("#BusinessFriendlyIdName").val(), BusinessFriendlyIdValue: $("#BusinessFriendlyIdValue").val(), startDate: new Date(moment().format("MM/DD/YYYY")), endDate: new Date(moment().format("MM/DD/YYYY")) }),
+                data: JSON.stringify({ BusinessFriendlyIdName: $("#BusinessFriendlyIdName").val(), BusinessFriendlyIdValue: $("#BusinessFriendlyIdValue").val(), startDate: moment().format("MM/DD/YYYY"), endDate: moment().format("MM/DD/YYYY") }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     // $("#charDatatable").html(response);
