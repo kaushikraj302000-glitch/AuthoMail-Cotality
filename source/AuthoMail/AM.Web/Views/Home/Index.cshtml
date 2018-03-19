@@ -495,23 +495,23 @@
                             case "Shipped":
                                 $("#yesPullback").hide();
                                 $("#noPullback").html("<i class='fa fa-close'></i> Close");
-                                $("#noPullback").removeClass("btn-default");
-                                $("#noPullback").addClass("btn-primary");
+                                $("#noPullback").removeClass("btn-primary");
+                                $("#noPullback").addClass("btn-default");
                                 break;
                             case "InProgress":
                                 if (IsPullbackRequested == "Yes") {
                                     $("#confirmMsg").hide();
                                     $("#yesPullback").hide();
                                     $("#noPullback").html("<i class='fa fa-close'></i> Close");
-                                    $("#noPullback").removeClass("btn-default");
-                                    $("#noPullback").addClass("btn-primary");
+                                    $("#noPullback").removeClass("btn-primary");
+                                    $("#noPullback").addClass("btn-default");
                                 }
                                 else {
                                     $("#confirmMsg").show();
                                     $("#yesPullback").show();
                                     $("#noPullback").html("<i class='fa fa-close'></i> No");
-                                    $("#noPullback").removeClass("btn-primary");
-                                    $("#noPullback").addClass("btn-default");
+                                    $("#noPullback").removeClass("btn-default");
+                                    $("#noPullback").addClass("btn-primary");
                                 }
                                 //$("#yesPullback").show();
                                 //$("#noPullback").html("<i class='fa fa-close'></i> No");
