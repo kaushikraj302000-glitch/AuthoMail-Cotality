@@ -245,7 +245,7 @@
                         //var msgAdd = "<ul>";
 
                         for (var i = 0; i < response.Object.length; i++) {
-                            if (response.Object[i] != "" || response.Object[i] == "undefined") {
+                            if (response.Object[i] != "" || response.Object[i] != "undefined") {
                                 var msg = response.Object[i].Message;
 
                                 if (response.Object[i].PullBackRequestedOn != null && response.Object[i].PulledBackRequestedBy != "") {

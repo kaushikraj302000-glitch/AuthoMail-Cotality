@@ -43,7 +43,7 @@
                                 }
                                 else
                                 {
-                                    <button class="btn btn-primary" onclick="GetTrackingInfo(@item.TrackingNo,@item.ShippingMethod)"><span>@item.TrackingNo</span></button>
+                                    <button class="btn btn-primary" onclick="GetTrackingInfo('@item.TrackingNo','@item.ShippingMethod')"><span>@item.TrackingNo</span></button>
                                 }
                             </td>
                             <td><span>@item.PrintedOn</span></td>
@@ -125,29 +125,7 @@
 
         });
 
-        function GetTrackingInfo(TrackingNo, ShippingMethod) {
-            //
-            var el = $('#TrackingInfo').find('.modal-body');
-            $.ajax({
-                type: "POST",
-                url: baseUrl + "Home/USPSTracking",
-                data: JSON.stringify({
-                    TrackingNo: TrackingNo,
-                    ShippingMethod: ShippingMethod
-                }),
-                contentType: "application/json; charset=utf-8",
-                success: function (res) {
-                    console.log(res);
-                    $("#TrackingInfo").modal("show");
-                },
-                error: function (xhr, ajaxOptions, thrownError) {
-                    var msg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
-                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
-                    $("#TrackingInfo").modal("show");
-                }
-
-            });
-        }
+        
 
     });
 </script>
