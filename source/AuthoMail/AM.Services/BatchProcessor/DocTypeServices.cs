@@ -59,7 +59,7 @@ namespace AM.Services
 
         public DocType GetDocTypesByDocTypeName(int clientId, string documentOrPackageName)
         {
-            string query = "SELECT * FROM [AM].[DocTypes] WHERE ClientId=@clientId AND Description=@documentOrPackageName";
+            string query = "SELECT * FROM [AM].[DocTypes] WHERE ClientId=@clientId AND DocTypeCode=@documentOrPackageName";
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@clientId", clientId);
