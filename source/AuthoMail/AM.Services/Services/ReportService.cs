@@ -38,7 +38,7 @@ namespace AM.Services
             }
             if (!channel.IsNullOrWhiteSpace())
             {
-                query = string.Format("{0} AND Channel=@channel", query);
+                query = string.Format("{0} AND ChannelCode=@channel", query);
                 parameters.Add("@channel", channel);
             }
             var data = db.Query<DailyDetailOperationsReport>(query, parameters).ToList();
@@ -64,7 +64,7 @@ namespace AM.Services
             }
             if (!channel.IsNullOrWhiteSpace())
             {
-                query = string.Format("{0} AND Channel=@channel", query);
+                query = string.Format("{0} AND ChannelCode=@channel", query);
                 parameters.Add("@channel", channel);
             }
             var data = db.Query<ErrorReport>(query, parameters).ToList();
@@ -81,7 +81,7 @@ namespace AM.Services
             parameters.Add("@endDate", endDate.EstToUtc());
             if (!channel.IsNullOrWhiteSpace())
             {
-                query = string.Format("{0} AND Channel=@channel", query);
+                query = string.Format("{0} AND ChannelCode=@channel", query);
                 parameters.Add("@channel", channel);
             }
             var data = db.Query<SummaryControlReport>(query, parameters).ToList();
@@ -126,7 +126,7 @@ namespace AM.Services
             parameters.Add("@endDate", endDate.EstToUtc());
             if (!channel.IsNullOrWhiteSpace())
             {
-                query = string.Format("{0} AND Channel=@channel", query);
+                query = string.Format("{0} AND ChannelCode=@channel", query);
                 parameters.Add("@channel", channel);
             }
             var data = db.Query<MonthlyReconReport>(query, parameters).ToList();
