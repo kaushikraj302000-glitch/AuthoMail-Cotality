@@ -10,7 +10,7 @@
     <div class="panel-body">
         @if (Model.Count > 0)
         {
-            <table class="table table-responsive" id="sample_2" >
+            <table class="table table-responsive" id="sample_2">
                 <thead>
                     <tr>
                         <th>Loan Number</th>
@@ -19,9 +19,9 @@
                         <th>Address</th>
                         <th>City</th>
                         <th>Zip</th>
+                        <th>Tracking Number</th>
                         <th>Received Date</th>
                         <th>Printed Date</th>
-                        <th>Tracking Number</th>
                         <th>Package Name</th>
                         <th>Channel</th>
                     </tr>
@@ -36,8 +36,6 @@
                             <td><span>@item.RcptAddressStreet</span></td>
                             <td><span>@item.RcptAddressCity</span></td>
                             <td><span>@item.RcptAddressZIP</span></td>
-                            <td><span>@item.PrintedOn</span></td>
-                            <td><span>@item.ReceivedOn</span></td>
                             <td class="text-center">
                                 @if (string.IsNullOrEmpty(item.TrackingNo))
                                 {
@@ -45,9 +43,11 @@
                                 }
                                 else
                                 {
-                                    <button class="btn btn-primary"><span>@item.TrackingNo</span></button>
+                                    <button class="btn btn-primary" onclick="GetTrackingInfo(@item.TrackingNo,@item.ShippingMethod)"><span>@item.TrackingNo</span></button>
                                 }
                             </td>
+                            <td><span>@item.PrintedOn</span></td>
+                            <td><span>@item.ReceivedOn</span></td>
                             <td data-doctype="@item.DocumentOrPackageType"><span>@item.DocumentOrPackageType</span></td>
                             <td data-channel="@item.Channel"><span>@item.Channel</span></td>
                         </tr>
@@ -125,7 +125,29 @@
 
         });
 
+        function GetTrackingInfo(TrackingNo, ShippingMethod) {
+            //
+            var el = $('#TrackingInfo').find('.modal-body');
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "Home/USPSTracking",
+                data: JSON.stringify({
+                    TrackingNo: TrackingNo,
+                    ShippingMethod: ShippingMethod
+                }),
+                contentType: "application/json; charset=utf-8",
+                success: function (res) {
+                    console.log(res);
+                    $("#TrackingInfo").modal("show");
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    var msg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
+                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    $("#TrackingInfo").modal("show");
+                }
 
+            });
+        }
 
     });
 </script>
