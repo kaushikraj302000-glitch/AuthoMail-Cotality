@@ -90,7 +90,7 @@ namespace AM.Console
                                     //Insert New Batch Entry
                                     mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
                                     //Update Pipeline Status of Batch Received
-                                    commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, sftSite.LastModifiedTimeOfFile(triggerFilePath));
+                                    commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, Common.Now);
 
                                     //Now Download Zip File Path
                                     MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, sftChannelDetails);
