@@ -72,7 +72,7 @@ namespace AM.Console
             return isEmailSent;
         }
 
-        public static bool SendDownloadNotificationEmail(MailBatchInfo mbi, List<MailPieceDTO> mailPieces, List<MailPieceCustomInfo> mailPiecesCustomInfo)
+        public static bool SendDownloadNotificationEmail(MailBatchInfo mbi, BatchData batchData)
         {
             bool isEmailSent = false;
 
@@ -86,7 +86,7 @@ namespace AM.Console
                     msg.Subject = Common.DownloadEmail_Subject;
                     msg.Priority = MailPriority.Normal;
 
-                    if (mailPieces.Count > 0)
+                    if (batchData.MailPieces.Count > 0)
                     {
                         #region Prepare email body
 
@@ -102,20 +102,20 @@ namespace AM.Console
                         StringBuilder data = new StringBuilder();
                         data.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_SrNoStyle, "1"));
                         data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_DescriptionStyle, "TOTAL LOANS RECEIVED"));
-                        data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, mailPieces.Count));
+                        data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, batchData.MailPieces.Count));
                         data.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_SrNoStyle, "2"));
                         data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", downloadEmail_TD_DescriptionStyle, "VALID LOANS"));
-                        data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, mailPieces.Where(l => l.ErrorCode == OutComeCodes.No_Error).Count()));
+                        data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, batchData.MailPieces.Where(l => l.ErrorCode == OutComeCodes.No_Error).Count()));
                         data.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_SrNoStyle, "3"));
                         data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", downloadEmail_TD_DescriptionStyle, "INVALID LOANS"));
-                        data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, mailPieces.Where(l => l.ErrorCode != OutComeCodes.No_Error).Count()));
+                        data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, batchData.MailPieces.Where(l => l.ErrorCode != OutComeCodes.No_Error).Count()));
 
                         sb = sb.Replace("<%trdata%>", data.ToString());
                         msg.Body = sb.ToString();
 
                         #endregion
                     }
-                    else if (mailPieces.Count == 0)
+                    else if (batchData.MailPieces.Count == 0)
                     {
                         msg.Body = string.Format("No records available in the batch file {0}.", mbi.MailBatch.BatchName);
                     }
@@ -124,19 +124,10 @@ namespace AM.Console
                     {
                         mbi.MailBatch.ReceivedOn = mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone);
 
-                        // Generate Error Report
-                        List<MailPieceDTO> errorMailPieces = mailPieces.Where(p => p.ErrorCode != OutComeCodes.No_Error).ToList();
+                        StringBuilder errorReport = Common.USAAErrorReport(batchData);
+                        string errorReportFileName = string.Format("ER-{0}.csv", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("yyyyMMdd-HHmmss"));
 
-                        List<MailPieceCustomInfo> filteredCustomInfo = mailPiecesCustomInfo.Where(c => errorMailPieces.Select(data => data.Id).Contains(c.MailPieceId)).ToList();
-
-                        if (errorMailPieces != null && errorMailPieces.Count > 0)
-                        {
-                            StringBuilder errorReport = GetErrorReport(mbi.MailBatch, errorMailPieces, filteredCustomInfo);
-                            string errorReportFileName = string.Format("Error-{0}.txt", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("yyyyMMdd-HHmmss"));
-                            msg.Attachments.Add(new Attachment(
-                                new MemoryStream(
-                                    Encoding.UTF8.GetBytes(errorReport.ToString().ToCharArray())), errorReportFileName));
-                        }
+                        msg.Attachments.Add(new Attachment(new MemoryStream(Encoding.UTF8.GetBytes(errorReport.ToString().ToCharArray())), errorReportFileName));
 
                         Common.Email_SMTPClient.Send(msg);
                         isEmailSent = true;
@@ -150,157 +141,6 @@ namespace AM.Console
             }
 
             return isEmailSent;
-        }
-
-        public static bool SendDailyDetailOperationReportEmail(MailBatchInfo mbi, List<MailPieceDTO> mailPieces, List<MailPieceCustomInfo> mailPiecesCustomInfo)
-        {
-            bool isEmailSent = false;
-
-            try
-            {
-                using (MailMessage msg = new MailMessage())
-                {
-                    msg.IsBodyHtml = true;
-                    msg.To.Add(Common.Email_To);
-                    msg.CC.Add(Common.Email_Cc);
-                    msg.Subject = Common.DownloadEmail_Subject;
-                    msg.Priority = MailPriority.Normal;
-
-                    if (mailPieces.Count > 0)
-                    {
-                        #region Prepare email body
-
-                        string downloadEmail_TD_SrNoStyle = "style='width:10%;border:solid windowtext 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
-                        string downloadEmail_TD_DescriptionStyle = "style='width:80%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'' valign='top' width='213'><p>";
-                        string downloadEmail_TD_CountStyle = "style='width:10%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
-
-                        StringBuilder sb = new StringBuilder(File.ReadAllText(Common.DownloadEmailTemplate));
-                        sb = sb.Replace("<%FileName%>", mbi.MailBatch.BatchName);
-                        sb = sb.Replace("<%yyyymmdd%>", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("MM/dd/yyyy"));
-                        sb = sb.Replace("<%hhmm%>", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("hh:mm tt"));
-
-                        StringBuilder data = new StringBuilder();
-                        data.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_SrNoStyle, "1"));
-                        data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_DescriptionStyle, "TOTAL LOANS RECEIVED"));
-                        data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, mailPieces.Count));
-                        data.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_SrNoStyle, "2"));
-                        data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", downloadEmail_TD_DescriptionStyle, "VALID LOANS"));
-                        data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, mailPieces.Where(l => l.ErrorCode == OutComeCodes.No_Error).Count()));
-                        data.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_SrNoStyle, "3"));
-                        data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", downloadEmail_TD_DescriptionStyle, "INVALID LOANS"));
-                        data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, mailPieces.Where(l => l.ErrorCode != OutComeCodes.No_Error).Count()));
-
-                        sb = sb.Replace("<%trdata%>", data.ToString());
-                        msg.Body = sb.ToString();
-
-                        #endregion
-                    }
-                    else if (mailPieces.Count == 0)
-                    {
-                        msg.Body = string.Format("No records available in the batch file {0}.", mbi.MailBatch.BatchName);
-                    }
-
-                    if (msg.Body.Length > 0)
-                    {
-                        mbi.MailBatch.ReceivedOn = mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone);
-
-                        // Generate Error Report
-                        List<MailPieceDTO> shippedMailPieces = mailPieces.Where(p => p.ErrorCode == OutComeCodes.No_Error).ToList();
-
-                        List<MailPieceCustomInfo> filteredCustomInfo = mailPiecesCustomInfo.Where(c => shippedMailPieces.Select(data => data.Id).Contains(c.MailPieceId)).ToList();
-
-                        if (shippedMailPieces != null && shippedMailPieces.Count > 0)
-                        {
-                            StringBuilder errorReport = GetDailyOperationReport(mbi.MailBatch, shippedMailPieces, filteredCustomInfo);
-                            string shippedReportFileName = string.Format("Delivery-{0}.txt", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("yyyyMMdd-HHmmss"));
-                            msg.Attachments.Add(new Attachment(
-                                new MemoryStream(
-                                    Encoding.UTF8.GetBytes(errorReport.ToString().ToCharArray())), shippedReportFileName));
-                        }
-
-                        Common.Email_SMTPClient.Send(msg);
-                        isEmailSent = true;
-                    }
-                }
-
-            }
-            catch (Exception err)
-            {
-                log.Error(err);
-            }
-
-            return isEmailSent;
-        }
-
-        private static StringBuilder GetDailyOperationReport(MailBatchDTO mailBatch, List<MailPieceDTO> shippedMailPieces, List<MailPieceCustomInfo> filteredCustomInfo)
-        {
-            StringBuilder shippedReport = new StringBuilder();
-
-            if (shippedMailPieces.Count > 0)
-            {
-                shippedReport = new StringBuilder("BatchID\tID\tPackage Name\tLoan Number\tFile Name\tDate Received\tDate Printed\tDate Mailed\tClient Code\tTracking Number\tShipping Method\tCustomer Identifier\tFirst Name\tLast Name\tRecipient Street Address\tRecipient City\tRecipient State\tRecipient Zip\tRequestID\tPages Shipped");
-                shippedReport.AppendLine();
-                foreach (MailPieceDTO mailPiece in shippedMailPieces)
-                {
-                    shippedReport.AppendLine(string.Format("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}\t{14} {15}\t{16}\t{17}\t{18}\t{19}\t{20}",
-                        mailBatch.BatchName == null ? string.Empty : mailBatch.BatchName,
-                        mailPiece.UniqueId,
-                        mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType,
-                        mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
-                        mailPiece.FileName == null ? string.Empty : mailPiece.FileName,
-                        mailBatch.ReceivedOn == null ? string.Empty : mailBatch.ReceivedOn.Value.UtcToEst().ToString(),
-                        mailPiece.PrintedOn == null ? string.Empty : mailPiece.PrintedOn.Value.UtcToEst().ToString(),
-                        mailPiece.ShippedOn == null ? string.Empty : mailPiece.ShippedOn.Value.UtcToEst().ToString(),
-                        filteredCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingCredCode").FirstOrDefault() == null ? string.Empty : filteredCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingCredCode").FirstOrDefault().Value,
-                        mailPiece.TrackingNo == null ? string.Empty : mailPiece.TrackingNo,
-                        filteredCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault() == null ? string.Empty : filteredCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault().Value,
-                        filteredCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").FirstOrDefault() == null ? string.Empty : filteredCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").FirstOrDefault().Value,
-                        mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName,
-                        mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName,
-                        mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet,
-                        mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity,
-                        mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
-                        mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
-                        filteredCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault() == null ? string.Empty : filteredCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault().Value,
-                        mailPiece.TotalSheets));
-                }
-            }
-
-            return shippedReport;
-        }
-
-        private static StringBuilder GetErrorReport(MailBatchDTO mailBatch, List<MailPieceDTO> mailPiecesWithErr, List<MailPieceCustomInfo> mailPiecesCustomInfo)
-        {
-            StringBuilder errorReport = new StringBuilder();
-
-            if (mailPiecesWithErr.Count > 0)
-            {
-                errorReport = new StringBuilder("BatchID\tID\tPackage Name\tLoan Number\tFile Name\tDate Received\tFirst Name\tLast Name\tRecipient Street Address\tRecipient City\tRecipient State\tRecipient Zip\tError Code\tError Text\tShipping Method\tCustomer Identifier\tRequestID");
-                //return errorReport;
-                errorReport.AppendLine();
-                foreach (MailPieceDTO mailPiece in mailPiecesWithErr)
-                {
-                    errorReport.AppendLine(string.Format("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8} {9}\t{10}\t{11}\t{12}\t{13}\t{14}\t{15}\t{16}",
-                        mailBatch.BatchName == null ? string.Empty : mailBatch.BatchName, mailPiece.UniqueId,
-                        mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType,
-                        mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
-                        mailPiece.FileName == null ? string.Empty : mailPiece.FileName,
-                        mailBatch.ReceivedOn == null ? string.Empty : mailBatch.ReceivedOn.Value.UtcToEst().ToString(),
-                        mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName,
-                        mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName,
-                        mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet,
-                        mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity,
-                        mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
-                        mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
-                        mailPiece.ErrorCode,
-                        mailPiece.ErrorDesc == null ? string.Empty : mailPiece.ErrorDesc.Replace(',', ' ').Replace("\r\n", " "),
-                        mailPiecesCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault() == null ? string.Empty : mailPiecesCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault().Value,
-                        mailPiecesCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").FirstOrDefault() == null ? string.Empty : mailPiecesCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").FirstOrDefault().Value,
-                        mailPiecesCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault() == null ? string.Empty : mailPiecesCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault().Value));
-                }
-            }
-
-            return errorReport;
         }
     }
 }
