@@ -79,7 +79,7 @@ namespace AM.Services
 
             #region WEB AccountController
             //Account Controller Login Messages
-            Msg_Web_Login_InvalidUserName = "Invalid Username.";
+            Msg_Web_Login_InvalidUserName = "Invalid username.";
             Msg_Web_Login_EmailConfirm = "Please confirm email address.";
             Msg_Web_Login_Default = "Invalid login attempt.";
             Msg_Web_Login_Success = "Login success.";
