@@ -407,15 +407,19 @@
                     if (response.Success) {
                         if (response.Object != null) {
                             var msgAdd = "<ul>";
-
+                            var msg = response.Object[i].Message;
                             for (var i = 0; i < response.Object.length; i++) {
                                 if (response.Object[i] != "" || response.Object[i] == "undefined") {
-                                    if (response.Object[i].IsSuccess) {
+                                    if (response.Object[i].PullBackRequestedOn != null && response.Object[i].PulledBackRequestedBy != "") {
 
-                                        msgAdd += "<li><span class='text-bright-blue '>" + response.Object[i].MailPieceId + "</span>:" + response.Object[i].Message + "</li>";
+                                        msg = msg + " by " + response.Object[i].PulledBackRequestedBy + " on " + moment(response.Object[i].PullBackRequestedOn).format("MM/DD/YYYY  HH:mm:ss");
+                                    }
+                                    if (response.Object[i].Success) {
+
+                                        msgAdd += "<li><span class='text-bright-blue '>" + $("#BusinessFriendlyIdValue").val() + "</span>:" + msg + "</li>";
                                     }
                                     else {
-                                        msgAdd += "<li ><span class='text-bright-blue '>" + response.Object[i].MailPieceId + "</span>:<span class='text-red'>" + response.Object[i].Message + "</span></li>";
+                                        msgAdd += "<li ><span class='text-bright-blue '>" + $("#BusinessFriendlyIdValue").val() + "</span>:<span class='text-red'>" + response.Object[i].Message + "</span></li>";
                                     }
 
                                 }
