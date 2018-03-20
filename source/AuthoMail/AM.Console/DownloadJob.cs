@@ -66,10 +66,10 @@ namespace AM.Console
                             triggerFilePaths = GetTriggerFilePaths(sftSite, sftChannelDetails);
                             if (triggerFilePaths != null)
                             {
-                                MailBatchDTO mailBatch = null;
-
                                 foreach (string triggerFile in triggerFilePaths)
                                 {
+                                    MailBatchDTO mailBatch = null;
+                                    
                                     string zipFileFTPPath = Path.Combine(sftChannelDetails.ToADEDir, Regex.Replace(Path.ChangeExtension(triggerFile, ".zip"), @"(w*)_Complete", string.Empty));
 
                                     string triggerFilePath = Path.Combine(sftChannelDetails.ToADEDir, triggerFile);
@@ -90,7 +90,7 @@ namespace AM.Console
                                     //Insert New Batch Entry
                                     mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
                                     //Update Pipeline Status of Batch Received
-                                    commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, Common.Now);
+                                    commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, sftSite.LastModifiedTimeOfFile(triggerFilePath));
 
                                     //Now Download Zip File Path
                                     MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, sftChannelDetails);

@@ -180,7 +180,7 @@
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal-header">
                 <h2 id="confirmMsg"> @AM.Services.Config.Msg_Web_PullBackConfirmation</h2>
-                <h2 id="mailPieceMsg">MailPiece Detail for Pullback Request </h2>
+                <h2 id="mailPieceMsg">MailPiece details of pullback request</h2>
                 @*<h4 id="pullbackmsg" class="alert alert-yellow"></h4>*@
                 <hr />
 
@@ -296,7 +296,7 @@
                         cnt++;
                     }
                     console.log(chartData);
-                    drawChart(chartData, "todayChart", 'Batch MailPiece Details: ' + moment().format('MM/DD/YYYY'));
+                    drawChart(chartData, "todayChart", 'Batch MailPiece Details ');
 
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
