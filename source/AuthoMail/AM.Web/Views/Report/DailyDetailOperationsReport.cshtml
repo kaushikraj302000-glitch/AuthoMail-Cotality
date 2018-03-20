@@ -51,7 +51,7 @@
                         </button>
                     </div>
                 </div>
-                <div class="col-md-2" id="showBatch" style="display:none">
+                <div class="col-md-3" id="showBatch" style="display:none">
                     <div class="form-group">
                         <label for="input1">Select Batch</label>
                         <div id="batchselection"></div>
@@ -90,8 +90,8 @@
                     $('#BatchList').addClass("selectpicker");
                     $('.selectpicker').selectpicker('refresh');
 
-                    if ($('#BatchList').length > 1) {
-
+                    if ($('select#BatchList option').length > 2) {
+                        console.log($('select#BatchList option'));
                         $("#showBatch").show();
                     }
                     $("#hideSelection").html("");

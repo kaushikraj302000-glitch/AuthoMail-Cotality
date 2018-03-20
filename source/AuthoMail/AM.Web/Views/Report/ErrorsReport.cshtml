@@ -90,7 +90,7 @@
                     $("#batchselection").html(el.find("#hideSelection").html());
                     $('#BatchList').addClass("selectpicker");
                     $('.selectpicker').selectpicker('refresh');
-                    if ($('#BatchList').length > 1) {
+                    if ($('select#BatchList option').length > 2) {
 
                     $("#showBatch").show();
                     }

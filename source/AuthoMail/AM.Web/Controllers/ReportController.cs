@@ -32,11 +32,15 @@ namespace AM.Web.Controllers
             List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
             foreach (var item in model)
             {
-                reportViewModel.Add(new ReportViewModel
+                var reportModel = (new ReportViewModel
                 {
                     Key = item.BatchId,
                     Value = string.Format("{0} - {1}", item.ReceivedOn.ToString("H:mm"), item.BatchName)
                 });
+                if (!reportViewModel.Any(s => s.Value == reportModel.Value))
+                {
+                    reportViewModel.Add(reportModel);
+                }
             }
             ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
             return PartialView(model);
@@ -90,11 +94,15 @@ namespace AM.Web.Controllers
             List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
             foreach (var item in model)
             {
-                reportViewModel.Add(new ReportViewModel
+                var reportModel = (new ReportViewModel
                 {
                     Key = item.BatchId,
                     Value = string.Format("{0} - {1}", item.ReceivedOn.ToString("H:mm"), item.BatchName)
                 });
+                if (!reportViewModel.Any(s => s.Value == reportModel.Value))
+                {
+                    reportViewModel.Add(reportModel);
+                }
             }
             ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
             return PartialView(model);
@@ -115,11 +123,15 @@ namespace AM.Web.Controllers
             List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
             foreach (var item in model)
             {
-                reportViewModel.Add(new ReportViewModel
+                var reportModel = (new ReportViewModel
                 {
                     Key = item.BatchId,
                     Value = string.Format("{0} - {1}", item.ReceivedOn.ToString("H:mm"), item.BatchName)
                 });
+                if (!reportViewModel.Any(s => s.Value == reportModel.Value))
+                {
+                    reportViewModel.Add(reportModel);
+                }
             }
             ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
             return PartialView(model);
@@ -136,11 +148,16 @@ namespace AM.Web.Controllers
             List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
             foreach (var item in model)
             {
-                reportViewModel.Add(new ReportViewModel
+                var reportModel = (new ReportViewModel
                 {
                     Key = item.BatchId,
                     Value = string.Format("{0} - {1}", item.ReceivedOn.ToString("H:mm"), item.BatchName)
                 });
+                if (!reportViewModel.Any(s=>s.Value==reportModel.Value))
+                {
+                    reportViewModel.Add(reportModel);
+                }
+               
             }
             ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
             return PartialView(model);
