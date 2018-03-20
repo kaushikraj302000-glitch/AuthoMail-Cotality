@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Dapper;
 using System.Data;
 using AM.Lib;
+using AM.Entities;
 
 namespace AM.Services
 {
@@ -16,6 +17,8 @@ namespace AM.Services
         int AMLogBatchTimeLine(int batchId, string activityName, DateTime timeStamp);
         int UpdatePrintBatchStatus(int printBatchId, string batchStatus, string statusDescription = null);
         int UpdatePrintBatchPipeLineStatus(int printBatchId, string pipeLineStatus, DateTime timestamp);
+        ClientBusinessIdentifier GetBusinessIdNameFromClientId(int clientId);
+        int InsertBusinessIdentifierName(ClientBusinessIdentifier clientBusinessId);
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -73,6 +76,23 @@ namespace AM.Services
             parameters.Add("@printBatchId", printBatchId);
 
             return db.Execute(query, parameters);
+        }
+
+        public ClientBusinessIdentifier GetBusinessIdNameFromClientId(int clientId)
+        {
+            string query = "SELECT * FROM [AM].[ClientBusinessIdentifiers] WHERE ClientId= @clientId ";
+
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
+            parameters.Add("@clientId", clientId);
+
+            return db.Query<ClientBusinessIdentifier>(query, parameters).SingleOrDefault();
+        }
+
+        public int InsertBusinessIdentifierName(ClientBusinessIdentifier clientBusinessId)
+        {
+            string query = "INSERT INTO [AM].[ClientBusinessIdentifiers] ( [ClientId], [BusinessIdName] ) VALUES (@ClientId, @BusinessIdName)";
+
+            return db.Execute(query, clientBusinessId);
         }
     }
 }

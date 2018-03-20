@@ -60,16 +60,16 @@ namespace AM.Services
         static Config()
         {
             #region PullBackMessages
-            Msg_API_PB_Aborted = "Mailpiece already aborted, it can't be pullback.";
-            Msg_API_PB_BatchStatusSubmitted = "Batch is currently in progress, please try again after few minutes.";
-            Msg_API_PB_DataNull = "No mailpiece(s) data found for given loan number(s).";
-            Msg_API_PB_Empty = "Mailpiece(s) can not be empty.";
-            Msg_API_PB_Error = "Mailpiece has an error.";
-            Msg_API_PB_Success = "Mailpiece pullback requested successfully.";
-            Msg_API_PB_PBReqFormErr = "An error while generating pullback request form.";
-            Msg_API_PB_PullBackAlreadyRequested = "Pullback already requested for this mailpiece.";
-            Msg_API_PB_PulledBack = "Mailpiece already pulledback.";
-            Msg_API_PB_Shipped = "Mailpiece already shipped, pullback cannot be requested.";
+            Msg_API_PB_Aborted = "Mailpiece is aborted, it is not going to be printed.";
+            Msg_API_PB_BatchStatusSubmitted = "Batch is being parsed, please try again after few minutes.";
+            Msg_API_PB_DataNull = "Mailpiece with the specified unique id is not yet received.";
+            Msg_API_PB_Empty = "At least one mailpiece id must be specified.";
+            Msg_API_PB_Error = "Mailpiece has an error, it is not going to be printed. Check error report for details.";
+            Msg_API_PB_Success = "Pullback request is recorded successfully.";
+            Msg_API_PB_PBReqFormErr = "An error occured while generating pullback request form.";
+            Msg_API_PB_PullBackAlreadyRequested = "Pullback is already requested for this mailpiece.";
+            Msg_API_PB_PulledBack = "Mailpiece is already pulled back.";
+            Msg_API_PB_Shipped = "Mailpiece is already shipped, pullback cannot be requested.";
             API_Email_SMTPClient = new SmtpClient();
             API_Email_To = "CoreLogic.PrintProduction@pcigroup.com";
             API_Email_Cc = "avala@corelogic.com,sgolvelkar@corelogic.com,brpatel@corelogic.com";
@@ -82,23 +82,23 @@ namespace AM.Services
             Msg_Web_Login_InvalidUserName = "Invalid username.";
             Msg_Web_Login_EmailConfirm = "Please confirm email address.";
             Msg_Web_Login_Default = "Invalid login attempt.";
-            Msg_Web_Login_Success = "Login success.";
+            Msg_Web_Login_Success = "Login successful.";
             MSG_WEB_Lockout = "This account has been locked out, please try again later.";
             MSG_WEB_Error = "An error occurred while processing your request.";
             #endregion
 
             #region WEB Common Msg
-            Msg_Web_Ajax_CommonError = "An error on reloading the content. Please check your connection and try again.";
-            Msg_Web_NoRecordFound = "Record(s) not found.";
-            Msg_Web_PullBackConfirmation = "Are you sure you want to pullback?";
+            Msg_Web_Ajax_CommonError = "Communication error. Please check your internet connection and try again.";
+            Msg_Web_NoRecordFound = "No Records";
+            Msg_Web_PullBackConfirmation = "Click 'Yes' to confirm your pullback request.";
             #endregion
 
             #region WEB RequestPullBackController
-            Msg_Web_NoMailPieceSelect = "Please select MailPiece(s).";
+            Msg_Web_NoMailPieceSelect = "Please select at least one mailpiece.";
             #endregion
 
             #region WEB HomeController
-            Msg_Web_NoMailPieceReceivedToday = "Currently no MailPieces received today";
+            Msg_Web_NoMailPieceReceivedToday = "No batches received today.";
             #endregion
 
             #region WEB ReportController

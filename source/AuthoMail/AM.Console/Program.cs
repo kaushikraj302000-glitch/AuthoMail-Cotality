@@ -15,6 +15,8 @@ namespace AM.Console
             downloadJob.DownloadNewBatch();
             downloadJob.ValidateBatches();
             downloadJob.AcknowledgeBatches();
+            downloadJob.ReportPreppedProcess();
+            downloadJob.ReportBackProcess();
         }
     }
 }

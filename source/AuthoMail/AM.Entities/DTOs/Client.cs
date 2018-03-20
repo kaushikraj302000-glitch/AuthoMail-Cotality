@@ -37,4 +37,10 @@ namespace AM.Entities
         public string ArchiveDir { get; set; }
         public string PostDownloadAction { get; set; }
     }
+
+    public class ClientBusinessIdentifier
+    {
+        public int ClientId { get; set; }
+        public string BusinessIdName { get; set; }
+    }
 }
