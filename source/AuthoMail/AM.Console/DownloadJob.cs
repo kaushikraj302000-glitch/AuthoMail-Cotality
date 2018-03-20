@@ -359,7 +359,8 @@ namespace AM.Console
                     MailPieceCustomInfo customInfo = null;
                     List<MailPieceCustomInfo> mailPieceCustomInfo = new List<MailPieceCustomInfo>();
                     mailPieceDTO.ClientId = client.Id;
-                    mailPieceDTO.DueDate = Common.Today;
+                    //Commented below line because we will update due date while splitting batches doc type wise.
+                    //mailPieceDTO.DueDate = Common.Today; 
                     mailPieceDTO.MailBatchId = mbi.MailBatch.Id;
 
 

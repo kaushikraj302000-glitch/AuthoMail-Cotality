@@ -56,6 +56,8 @@ namespace AM.Core
                             continue;
                         }
 
+                        mailPiece.DueDate = GetDueDate(docType.SLADays, docType.SLACutOffTime, mailBatch.ReceivedOn.Value);
+
                         int mailPieceId = mailPiece.Id;
 
                         string pdfFilePath = Path.Combine(mbi.AMRequestPath, mailPiece.FileName);
@@ -128,6 +130,26 @@ namespace AM.Core
                 commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.InProgress.ToString());
                 commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.PreppedEnd, Common.Now);
             }
+        }
+
+        private static DateTime GetDueDate(int slaDays, TimeSpan estSLACutOffTime, DateTime utcReceivedOn)
+        {
+            //ReceivedOn Time of Batch
+            var estReceivedOn = utcReceivedOn.UtcToEst();
+
+            var estReceivedOnDate = estReceivedOn.Date;
+
+            //Should be in cut off Date time
+            var estSLACutOffDateTime = (estReceivedOnDate + estSLACutOffTime);
+
+            if (estReceivedOn > estSLACutOffDateTime)
+            {
+                //Here we have actual SLA days for DocType and added 1 because batch received after cut off time.
+                slaDays += 1;
+                return (estReceivedOnDate.AddDays(slaDays) + new TimeSpan(23, 59, 59)).EstToUtc();
+            }
+            //Here we just add actual SLA days because batch received before cut off time
+            return (estReceivedOnDate.AddDays(slaDays) + new TimeSpan(23, 59, 59)).EstToUtc();
         }
 
         internal static void SubmitBatchesDocTypeWiseToPCI()
