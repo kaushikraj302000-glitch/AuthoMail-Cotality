@@ -10,14 +10,6 @@ namespace AM.Services.Models
     public class WeeklyChart
     {
         public DateTime Date { get; set; }
-
-        public DateTime EstDate
-        {
-            get
-            {
-                return this.Date.UtcToEst();
-            }
-        }
         public int InProgress { get; set; }
         public int ShippedPartial { get; set; }
         public int ShippedAll { get; set; }

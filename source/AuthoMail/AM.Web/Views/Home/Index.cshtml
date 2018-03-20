@@ -11,7 +11,7 @@
 <div class="col-md-6">
     <div class="panel panel-default ">
         <div class="panel-heading">
-            <div class="panel-title">Today's MailPiece Details</div>
+            <div class="panel-title">Today's Batch Details</div>
         </div>
         <div class="panel-body panel-gray " id="todayBody">
             <div id="todayChart"></div>
@@ -253,15 +253,16 @@
                     var chartData = [];
                     chartData.push(['Date', 'InProgress', 'Failed', 'ShippedPartial', 'ShippedAll', 'Dates']);
                     var cnt = 0;
-                    var startDate = response[response.length - 1].EstDate;
-                    var endDate = response[0].EstDate;
-                    console.log(startDate + " " + endDate);
+                    var startDate = response[response.length - 1].Date;
+                    var endDate = response[0].Date;
+                    //console.log(startDate + " " + endDate);
                     for (var i = 1; i <= response.length; i++) {
-                        var day = moment(response[cnt].EstDate).format("MM/DD/YYYY") == moment().format("MM/DD/YYYY") ? "Today" : moment(response[cnt].EstDate).format("ddd");
-                        chartData.push([day, response[cnt].InProgress, response[cnt].Failed, response[cnt].ShippedPartial, response[cnt].ShippedAll, moment(response[cnt].EstDate).format("MM/DD/YYYY hh:mm:ss a")]);
+                        console.log(moment(response[cnt].Date).format("MM/DD/YYYY") == moment().format("MM/DD/YYYY") + " " + cnt + " " + i);
+                        var day = moment(response[cnt].Date).format("MM/DD/YYYY") == moment().format("MM/DD/YYYY") ? "Today" : moment(response[cnt].Date).format("ddd");
+                        chartData.push([day, response[cnt].InProgress, response[cnt].Failed, response[cnt].ShippedPartial, response[cnt].ShippedAll, moment(response[cnt].Date).format("MM/DD/YYYY hh:mm:ss a")]);
                         cnt++;
                     }
-                    console.log(chartData);
+                   // console.log(chartData);
                     drawChart(chartData, "weeklyChart", 'Batch Details : ' + moment(startDate).format('MM/DD/YYYY') + " - " + moment(endDate).format('MM/DD/YYYY'));
 
                 },
@@ -281,22 +282,22 @@
                 //data: JSON.stringify(moment().format('MM/DD/YYYY')),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
-                    console.log(response);
+                    //console.log(response);
                     if (response.length == 0) {
                         el.html("<div class='alert alert-yellow'><span>@AM.Services.Config.Msg_Web_NoMailPieceReceivedToday</span></div>");
                         $("#todayBody").css("min-height", "342px");
                         return;
                     }
                     var chartData = [];
-                    chartData.push(['BatchName', 'InProgress', 'Error', 'PulledBack', 'Shipped']);
+                    chartData.push(['BatchName', 'InProgress', 'Error', 'PulledBack', 'Shipped','BatchId']);
                     var cnt = 0;
                     for (var i = 1; i <= response.length; i++) {
 
-                        chartData.push(["Batch Id: " + response[cnt].MailBatchId, response[cnt].InProgress, response[cnt].Error, response[cnt].PulledBack, response[cnt].Shipped]);
+                        chartData.push([response[cnt].ClientBatchId, response[cnt].InProgress, response[cnt].Error, response[cnt].PulledBack, response[cnt].Shipped, response[cnt].MailBatchId]);
                         cnt++;
                     }
-                    console.log(chartData);
-                    drawChart(chartData, "todayChart", 'Batch MailPiece Details ');
+                    //console.log(chartData);
+                    drawChart(chartData, "todayChart", 'MailPiece Status');
 
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
@@ -359,8 +360,7 @@
                 if (selectedItem) {
                     var status = data.getColumnLabel(selectedItem.column);
                     if (div == "todayChart") {
-                        var id = data.getValue(selectedItem.row, 0);
-                        var batchId = parseInt(id.split(":")[1].trim());
+                        var batchId = parseInt(data.getValue(selectedItem.row, 5));
                         if (batchId != 0) {
                             GetChartDataByStatusAndBatchIds(status, batchId);
                         }
@@ -382,12 +382,12 @@
                 contentType: "application/json; charset=utf-8",
                 dataType: "JSON",
                 success: function (response) {
-                    console.log(response);
+                   // console.log(response);
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
-                    console.log(xhr)
-                    console.log(ajaxOptions)
-                    console.log(thrownError)
+                    //console.log(xhr)
+                    //console.log(ajaxOptions)
+                    //console.log(thrownError)
                 }
 
             });
@@ -549,7 +549,7 @@
             e.preventDefault();
             $("#confirmModal").modal("hide");
             var mailpieceId = $("#sample_2").find(".mailpieceid").data("mailpieceid");
-            console.log($("#sample_2").find(".mailpieceid").data("mailpieceid"));
+          //  console.log($("#sample_2").find(".mailpieceid").data("mailpieceid"));
             SendPullBackRequest(mailpieceId);
             @*var el = $("#myModal").find('.modal-body');
             $.ajax({

@@ -28,11 +28,8 @@ namespace AM.Web.Controllers
         [HttpPost]
         public object GetWeeklyChartData()
         {
-            var estToday = DateTime.UtcNow.UtcToEst().Date;
-            // EST Week
-            var estWeekStart = (estToday.AddDays(-7)).EstToUtc();
-            var estWeekEnd = (estToday + new TimeSpan(23, 59, 59)).EstToUtc();
-            var model = chartDataSvc.GetWeeklyChartData(estWeekStart, estWeekEnd, User.Identity.GetClientId().Value);
+            
+            var model = chartDataSvc.GetWeeklyChartData(User.Identity.GetClientId().Value);
             return model.OrderByDescending(s => s.Date).ToList();
         }
 

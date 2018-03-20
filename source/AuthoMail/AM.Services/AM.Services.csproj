@@ -75,6 +75,7 @@
     <Compile Include="Models\MailPieceSearch.cs" />
     <Compile Include="Models\PullBackViewModel.cs" />
     <Compile Include="Models\Report.cs" />
+    <Compile Include="Models\WeeklyChartDTO.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Models\PullBackInfo.cs" />
     <Compile Include="Core\ServiceBase.cs" />
