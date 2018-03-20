@@ -69,7 +69,7 @@ namespace AM.Console
                                 foreach (string triggerFile in triggerFilePaths)
                                 {
                                     MailBatchDTO mailBatch = null;
-                                    
+
                                     string zipFileFTPPath = Path.Combine(sftChannelDetails.ToADEDir, Regex.Replace(Path.ChangeExtension(triggerFile, ".zip"), @"(w*)_Complete", string.Empty));
 
                                     string triggerFilePath = Path.Combine(sftChannelDetails.ToADEDir, triggerFile);
@@ -93,7 +93,7 @@ namespace AM.Console
                                     commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, sftSite.LastModifiedTimeOfFile(triggerFilePath));
 
                                     //Now Download Zip File Path
-                                    MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, sftChannelDetails);
+                                    MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, sftChannelDetails, Common.AuthoMailRootFolder);
                                     DownloadBatchFromFTP(sftSite, zipFileFTPPath, triggerFilePath, sftChannelDetails, mbi);
                                 }
                             }
@@ -307,7 +307,7 @@ namespace AM.Console
                 Client client = clientSvc.GetClientDetails(batch.ClientId).SingleOrDefault();
                 SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetails(batch.SFTChannelId);
 
-                MailBatchInfo mbi = new MailBatchInfo(batch, client, sftChannelDetails);
+                MailBatchInfo mbi = new MailBatchInfo(batch, client, sftChannelDetails, Common.AuthoMailRootFolder);
 
                 var xmlFilePath = Path.Combine(mbi.AMRequestPath, mbi.BatchName + ".xml");
 
@@ -541,7 +541,7 @@ namespace AM.Console
                 Client client = clientSvc.GetClientDetails(batch.ClientId).Single();
                 SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetails(batch.SFTChannelId);
 
-                MailBatchInfo mbi = new MailBatchInfo(batch, client, sftChannelDetails);
+                MailBatchInfo mbi = new MailBatchInfo(batch, client, sftChannelDetails, Common.AuthoMailRootFolder);
 
                 var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
                 if (data != null)

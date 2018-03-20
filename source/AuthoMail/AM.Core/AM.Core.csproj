@@ -70,7 +70,6 @@
       <DependentUpon>AMCoreService.cs</DependentUpon>
     </Compile>
     <Compile Include="Common.cs" />
-    <Compile Include="MailBatchInfo.cs" />
     <Compile Include="MailUtility.cs" />
     <Compile Include="PdfUtil.cs" />
     <Compile Include="Program.cs" />
