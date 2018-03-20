@@ -175,7 +175,7 @@
 </div>
 <div id="charDatatable" style="display:none"></div>
 <div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-lg col-md-12" role="document">
         <div class="modal-content">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal-header">
@@ -466,7 +466,7 @@
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Home/GetMailPieceIdByLoanNumber",
-                data: JSON.stringify({ BusinessFriendlyIdName: $("#BusinessFriendlyIdName").val(), BusinessFriendlyIdValue: $("#BusinessFriendlyIdValue").val(), startDate: new Date(moment().format("MM/DD/YYYY")), endDate: new Date(moment().format("MM/DD/YYYY")) }),
+                data: JSON.stringify({ BusinessFriendlyIdName: $("#BusinessFriendlyIdName").val(), BusinessFriendlyIdValue: $("#BusinessFriendlyIdValue").val(), startDate: moment().format("MM/DD/YYYY"), endDate: moment().format("MM/DD/YYYY") }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     // $("#charDatatable").html(response);
@@ -495,23 +495,23 @@
                             case "Shipped":
                                 $("#yesPullback").hide();
                                 $("#noPullback").html("<i class='fa fa-close'></i> Close");
-                                $("#noPullback").removeClass("btn-default");
-                                $("#noPullback").addClass("btn-primary");
+                                $("#noPullback").removeClass("btn-primary");
+                                $("#noPullback").addClass("btn-default");
                                 break;
                             case "InProgress":
                                 if (IsPullbackRequested == "Yes") {
                                     $("#confirmMsg").hide();
                                     $("#yesPullback").hide();
                                     $("#noPullback").html("<i class='fa fa-close'></i> Close");
-                                    $("#noPullback").removeClass("btn-default");
-                                    $("#noPullback").addClass("btn-primary");
+                                    $("#noPullback").removeClass("btn-primary");
+                                    $("#noPullback").addClass("btn-default");
                                 }
                                 else {
                                     $("#confirmMsg").show();
                                     $("#yesPullback").show();
                                     $("#noPullback").html("<i class='fa fa-close'></i> No");
-                                    $("#noPullback").removeClass("btn-primary");
-                                    $("#noPullback").addClass("btn-default");
+                                    $("#noPullback").removeClass("btn-default");
+                                    $("#noPullback").addClass("btn-primary");
                                 }
                                 //$("#yesPullback").show();
                                 //$("#noPullback").html("<i class='fa fa-close'></i> No");

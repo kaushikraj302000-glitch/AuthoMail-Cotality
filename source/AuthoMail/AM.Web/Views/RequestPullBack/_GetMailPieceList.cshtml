@@ -38,7 +38,7 @@
                     {
                         <tr class="row-small">
                             <td>
-                                <span id="resPullBack_@(cnt)" data-trigger="hover" data-toggle="popover" data-placement="top"></span>
+                                <span id="resPullBack_@(cnt)" data-trigger="hover" data-toggle="popover" data-placement="right"></span>
 
                                 @switch (item.ShippingStatus)
                                 {
@@ -187,7 +187,8 @@
         });
 
 
-        oTable.find('#selectall').change(function () {
+        $('#selectall').change(function () {
+            console.log("test");
             var checked = jQuery(this).is(":checked");
             $(".checkall", oTable.fnGetNodes()).each(function () {
                 if (checked) {
@@ -245,7 +246,7 @@
                         //var msgAdd = "<ul>";
 
                         for (var i = 0; i < response.Object.length; i++) {
-                            if (response.Object[i] != "" || response.Object[i] == "undefined") {
+                            if (response.Object[i] != "" || response.Object[i] != "undefined") {
                                 var msg = response.Object[i].Message;
 
                                 if (response.Object[i].PullBackRequestedOn != null && response.Object[i].PulledBackRequestedBy != "") {
@@ -285,9 +286,18 @@
                     }
                 }
                 else {
-                    var htmlstr = "<div class='alert alert-red'><span>" + response.ErrorMessage + "</span></h1></div>";
-                    el.html(htmlstr);
-                    $("#myModal").modal("show");
+                    for (var i = 0; i < cnts.length; i++) {
+                        $("#resPullBack_" + cnts[i]).html('<i class="fa fa-close icon-red" style="cursor: pointer;"></i>');
+
+
+
+                        $('#resPullBack_' + cnts[i]).attr('data-content', response.ErrorMessage);
+                        $('#resPullBack_' + cnts[i]).attr('data-original-title', "Error");
+                        $("#resPullBack_" + cnts[i]).css("margin-left", "-25%");
+                        //$("#checkbox-demo_" + cnts[i]).attr("disabled", "disabled");
+                        $("#checkbox-demo_" + cnts[i]).prop('checked', false);
+                    }
+                    
                 }
 
             },
