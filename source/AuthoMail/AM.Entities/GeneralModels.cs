@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using AM.Lib;
+using System.IO;
 namespace AM.Entities
 {
     public static class BatchValidationStatus
@@ -89,5 +90,42 @@ namespace AM.Entities
         CannotResize = -2,
         PageCountMismatch = -3,
         Reprint = 7
+    }
+
+    public class MailBatchInfo
+    {
+        public string BatchRepo { get; private set; }
+        public string AMRequestPath { get; private set; }
+        public string PnSRequestPath { get; private set; }
+        public string PnSResponsePath { get; private set; }
+        public string AMResponsePath { get; private set; }
+        public string BatchName { get; private set; }
+        public MailBatchDTO MailBatch { get; private set; }
+        public Client Client { get; private set; }
+        public DocType DocType { get; set; }
+        public SFTChannel SFTChannel { get; private set; }
+
+        public MailBatchInfo(MailBatchDTO mailBatch, Client client, SFTChannel sftChannel = null, string authoMailRootFolder = "")
+        {
+            if (client == null || mailBatch == null) throw new ArgumentNullException("Client or MailBatch cannot be null.");
+
+            MailBatch = mailBatch;
+            Client = client;
+            SFTChannel = sftChannel;
+
+            Initialize(client, mailBatch, authoMailRootFolder);
+        }
+
+        private void Initialize(Client client, MailBatchDTO mailBatch, string authoMailRootFolder)
+        {
+            BatchName = mailBatch.BatchName.Trim();
+            //Combined path
+            BatchRepo = Path.Combine(authoMailRootFolder, client.AppCode, "{0}".Fill(mailBatch.Id));
+
+            AMRequestPath = Path.Combine(BatchRepo, "AMRequest");
+            PnSRequestPath = Path.Combine(BatchRepo, "PnSRequest");
+            AMResponsePath = Path.Combine(BatchRepo, "AMResponse");
+            PnSResponsePath = Path.Combine(BatchRepo, "PnSResponse");
+        }
     }
 }

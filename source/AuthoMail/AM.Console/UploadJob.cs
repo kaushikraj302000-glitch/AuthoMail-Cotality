@@ -40,7 +40,7 @@ namespace AM.Console
                 Client client = clientSvc.GetClientDetails(batch.ClientId).Single();
                 SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetails(batch.SFTChannelId);
 
-                MailBatchInfo mbi = new MailBatchInfo(batch, client, sftChannelDetails);
+                MailBatchInfo mbi = new MailBatchInfo(batch, client, sftChannelDetails, Common.AuthoMailRootFolder);
                 var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
                 if (data != null)
                 {
