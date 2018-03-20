@@ -17,6 +17,7 @@ namespace AM.Services
         List<SummaryControlReport> GetSummaryControlReport(int clientId, DateTime startDate, DateTime endDate, string channel);
         List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime? startDate, DateTime? endDate, int? batchId, string docType);
         List<MonthlyReconReport> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel);
+        Dictionary<string, string> GetChannelTitle(List<string> channelCodes);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -132,6 +133,16 @@ namespace AM.Services
             return data;
         }
 
+        public Dictionary<string, string> GetChannelTitle(List<string> channelCodes)
+        {
+            var data = db.Query(ReportServiceQuery.GetChannelTitle, new { channelCodes = channelCodes });
+            var list = new Dictionary<string, string>();
+            foreach (var item in data)
+            {
+                list.Add(item.Code, item.Title);
+            }
+            return list;
+        }
     }
     public static class ReportServiceQuery
     {
@@ -144,6 +155,8 @@ namespace AM.Services
         public static string GetSLAMissErrorReportByDateOrBatch = "select * from [dbo].[view_ErrorReport] WHERE ClientId=@clientId AND SLADays < 0";
 
         public static string GetMonthlyReconReport = "select * from [dbo].[view_MonthlyReconReport] WHERE ClientId=@clientId AND (cast(ReceivedOn as date) >= cast(@startDate as date) and cast(ReceivedOn as date)<= cast(@endDate as date)) AND ShippingStatus=@shippingStatus";
+
+        public static string GetChannelTitle = "SELECT Code,Title FROM [Common].[SFTChannels] WHERE Code IN @channelCodes";
 
     }
 }
