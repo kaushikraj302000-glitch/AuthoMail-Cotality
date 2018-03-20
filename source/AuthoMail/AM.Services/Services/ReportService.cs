@@ -17,7 +17,7 @@ namespace AM.Services
         List<SummaryControlReport> GetSummaryControlReport(int clientId, DateTime startDate, DateTime endDate, string channel);
         List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime? startDate, DateTime? endDate, int? batchId, string docType);
         List<MonthlyReconReport> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel);
-        Dictionary<string, string> GetChannelTitle(List<string> channelCodes);
+        List<ChannelCodeTitle> GetChannelTitle(List<string> channelCodes);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -133,15 +133,10 @@ namespace AM.Services
             return data;
         }
 
-        public Dictionary<string, string> GetChannelTitle(List<string> channelCodes)
+        public List<ChannelCodeTitle> GetChannelTitle(List<string> channelCodes)
         {
-            var data = db.Query(ReportServiceQuery.GetChannelTitle, new { channelCodes = channelCodes });
-            var list = new Dictionary<string, string>();
-            foreach (var item in data)
-            {
-                list.Add(item.Code, item.Title);
-            }
-            return list;
+            var channelList = db.Query<ChannelCodeTitle>(ReportServiceQuery.GetChannelTitle, new { channelCodes = channelCodes }).ToList();
+            return channelList;
         }
     }
     public static class ReportServiceQuery

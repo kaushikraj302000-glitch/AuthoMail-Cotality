@@ -229,6 +229,10 @@ namespace AM.Services
         public int Id { get; set; }
         public string DocTypeCode { get; set; }
     }
-
+    public class ChannelCodeTitle
+    {
+        public string Code { get; set; }
+        public string Title { get; set; }
+    }
 
 }
