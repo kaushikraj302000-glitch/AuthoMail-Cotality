@@ -92,7 +92,7 @@ namespace AM.Services
             string query = ReportServiceQuery.GetSLAMissErrorReportByDateOrBatch;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@clientId", clientId);
-            parameters.Add("@shippingstatus", ShippingStatus.Error.ToString());//Need to verify
+            //parameters.Add("@shippingstatus", ShippingStatus.Error.ToString());//Need to verify
             if (startDate.HasValue && endDate.HasValue)
             {
                 query = string.Format("{0} AND (ReceivedOn >= @startDate) AND (ReceivedOn <= @endDate)", query);
@@ -141,7 +141,7 @@ namespace AM.Services
 
         public static string GetSummaryControlReport = "select * from [dbo].[view_SummaryControlReport] WHERE ClientId=@clientId";
 
-        public static string GetSLAMissErrorReportByDateOrBatch = "select * from [dbo].[view_ErrorReport] WHERE ClientId=@clientId AND ShippingStatus=@shippingstatus AND SLADays < 0";
+        public static string GetSLAMissErrorReportByDateOrBatch = "select * from [dbo].[view_ErrorReport] WHERE ClientId=@clientId AND SLADays < 0";
 
         public static string GetMonthlyReconReport = "select * from [dbo].[view_MonthlyReconReport] WHERE ClientId=@clientId AND (cast(ReceivedOn as date) >= cast(@startDate as date) and cast(ReceivedOn as date)<= cast(@endDate as date)) AND ShippingStatus=@shippingStatus";
 
