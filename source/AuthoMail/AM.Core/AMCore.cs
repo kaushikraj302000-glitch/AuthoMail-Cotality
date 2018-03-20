@@ -146,8 +146,8 @@ namespace AM.Core
             {
                 //Here we have actual SLA days for DocType and added 1 because batch received after cut off time.
                 slaDays += 1;
-                return (estReceivedOnDate.AddDays(slaDays) + new TimeSpan(23, 59, 59)).EstToUtc();
             }
+
             //Here we just add actual SLA days because batch received before cut off time
             return (estReceivedOnDate.AddDays(slaDays) + new TimeSpan(23, 59, 59)).EstToUtc();
         }
