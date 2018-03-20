@@ -165,6 +165,7 @@ namespace AM.Services
         public int PagesShipped { get; set; }
         public string ShippingStatus { get; set; }
         public string ClientTimeZone { get; set; }
+        public int SLADays { get; set; }
     }
 
     public class SummaryControlReport
