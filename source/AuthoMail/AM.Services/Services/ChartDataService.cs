@@ -21,30 +21,37 @@ namespace AM.Services
 
     public class ChartDataService : ServiceBase, IChartDataService
     {
-        public List<WeeklyChart> GetWeeklyChartData( int clientId)
+        public List<WeeklyChart> GetWeeklyChartData(int clientId)
         {
             var estToday = DateTime.UtcNow.UtcToEst().Date;
             // EST Week
-            var startDate = (estToday.AddDays(-8)).EstToUtc();
+            var startDate = (estToday.AddDays(-7)).EstToUtc();
             var endDate = (estToday + new TimeSpan(23, 59, 59)).EstToUtc();
             var data = db.Query<WeeklyChartDTO>(ChartDataServiceQuery.GetWeeklyChartData, new { startDate = startDate, endDate = endDate, clientId = clientId }).ToList();
-            data.ForEach(s=>s.ReceivedOn=s.ReceivedOn.UtcToEst());
+
+            // Convert received on date to EST timezone
+            data.ForEach(s => s.ReceivedOn = s.ReceivedOn.UtcToEst());
+
             var model = data.GroupBy(d => d.ReceivedOn.Date,
-                (key, g) => new WeeklyChart { 
-                Date=key,
-                Failed=g.Count(s=>s.BatchStatus==BatchStatus.Failed.ToString()),
-                InProgress = g.Count(s => s.BatchStatus == BatchStatus.InProgress.ToString()),
-                ShippedAll = g.Count(s => s.BatchStatus == BatchStatus.ShippedAll.ToString()),
-                ShippedPartial = g.Count(s => s.BatchStatus == BatchStatus.ShippedPartial.ToString())
+                (key, g) => new WeeklyChart
+                {
+                    Date = key,
+                    Weekday = key == estToday ? "Today" : key.ToString("ddd"),
+                    Failed = g.Count(s => s.BatchStatus == BatchStatus.Failed.ToString()),
+                    InProgress = g.Count(s => s.BatchStatus == BatchStatus.InProgress.ToString()),
+                    ShippedAll = g.Count(s => s.BatchStatus == BatchStatus.ShippedAll.ToString()),
+                    ShippedPartial = g.Count(s => s.BatchStatus == BatchStatus.ShippedPartial.ToString())
                 }).ToList();
+
             //DateTime dt = DateTime.Today; dt > DateTime.Today.AddDays(-8); dt = dt.AddDays(-1)
-            for (DateTime ed = endDate.UtcToEst().Date; ed >= startDate.UtcToEst().Date;ed= ed.AddDays(-1))
+            for (DateTime ed = estToday; ed >= startDate.UtcToEst().Date; ed = ed.AddDays(-1))
             {
-                if(model.Any(s=>s.Date.Date!=ed))
+                if (!model.Any(m => m.Date == ed))
                 {
                     model.Add(new WeeklyChart
                     {
                         Date = ed,
+                        Weekday = ed.ToString("ddd"),
                         Failed = 0,
                         InProgress = 0,
                         ShippedAll = 0,
@@ -52,12 +59,8 @@ namespace AM.Services
                     });
                 }
             }
-            //List<WeeklyChart> weeklyChartModel = new List<WeeklyChart>();
-            //foreach (WeeklyChart model in data.ToList().GroupBy(s=>s.ReceivedOn))
-            //{
-            //    weeklyChartModel.Add()
-            //}
-           
+
+            model = model.OrderByDescending(m => m.Date).ToList();
 
             return model;
         }
