@@ -88,9 +88,9 @@ namespace AM.Services
             #endregion
 
             #region WEB Common Msg
-            Msg_Web_Ajax_CommonError = "An error on reloading the content. Please check your connection and try again.";
-            Msg_Web_NoRecordFound = "Record(s) not found.";
-            Msg_Web_PullBackConfirmation = "Are you sure you want to pullback?";
+            Msg_Web_Ajax_CommonError = "Communication error. Please check your internet connection and try again.";
+            Msg_Web_NoRecordFound = "No Records";
+            Msg_Web_PullBackConfirmation = "Click 'Yes' to confirm your pullback request.";
             #endregion
 
             #region WEB RequestPullBackController
@@ -98,7 +98,7 @@ namespace AM.Services
             #endregion
 
             #region WEB HomeController
-            Msg_Web_NoMailPieceReceivedToday = "Currently no MailPieces received today";
+            Msg_Web_NoMailPieceReceivedToday = "No batches received today.";
             #endregion
 
             #region WEB ReportController
