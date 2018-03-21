@@ -37,7 +37,7 @@ namespace AM.Console
         {
             log.Debug("Download Batch Process Started");
 
-            Client client = clientSvc.GetClientDetails(null).SingleOrDefault(x => x.ClientName == "USAA");
+            Client client = clientSvc.GetClientDetails(null).SingleOrDefault(x => x.ClientName == "USAA" && x.IsAMActive == true);
 
             if (client != null)
             {
@@ -87,6 +87,7 @@ namespace AM.Console
                                     mailBatch.ClientBatchId = batchName;
                                     mailBatch.UniqueId = Guid.NewGuid();
                                     mailBatch.Priority = Priority.Medium.ToString();
+
                                     //Insert New Batch Entry
                                     mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
                                     //Update Pipeline Status of Batch Received
@@ -94,7 +95,7 @@ namespace AM.Console
 
                                     //Now Download Zip File Path
                                     MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, sftChannelDetails, Common.AuthoMailRootFolder);
-                                    DownloadBatchFromFTP(sftSite, zipFileFTPPath, triggerFilePath, sftChannelDetails, mbi);
+                                    DownloadBatchFromFTP(sftSite, zipFileFTPPath, triggerFilePath, mbi);
                                 }
                             }
                             else
@@ -108,7 +109,7 @@ namespace AM.Console
                     }
                     else
                     {
-                        log.Debug("No USAA sft details are found for processing.");
+                        log.Debug("SFT channel is not available or not enabled for this client.");
                     }
                 }
             }
@@ -118,7 +119,7 @@ namespace AM.Console
             }
         }
 
-        private void DownloadBatchFromFTP(SFTUtil sftSite, string zipFileFTPPath, string triggerFilePath, SFTChannel channelDetails, MailBatchInfo mbi)
+        private void DownloadBatchFromFTP(SFTUtil sftSite, string zipFileFTPPath, string triggerFilePath, MailBatchInfo mbi)
         {
             #region Create directory structure.
 
@@ -130,7 +131,7 @@ namespace AM.Console
 
             #endregion
 
-            string downloadedZipFilePath = string.Empty;
+            string containsZipFilePath = string.Empty;
 
             if (sftSite.IsConnected == false)
                 sftSite.Connect();
@@ -138,78 +139,67 @@ namespace AM.Console
             // If batch zip file exists on FTP then download and process it.
             if (sftSite.IsFileAvailable(zipFileFTPPath))
             {
-                downloadedZipFilePath = DownloadBatchZipFile(sftSite, zipFileFTPPath, mbi);
+                containsZipFilePath = DownloadBatchZipFile(sftSite, zipFileFTPPath, mbi);
 
-                if (!downloadedZipFilePath.Contains("Error Occured"))
+                if (!containsZipFilePath.Contains("Error Occured"))
                 {
-
                     try
                     {
-                        #region Try to extract zip file, insert batch in DB and delete trigger+zip files from FTP.
+                        #region Try to extract zip file and delete trigger file from FTP.
 
-                        using (ZipFile zipFile = ZipFile.Read(downloadedZipFilePath))//Read file From the Zip.
+                        using (ZipFile zipFile = ZipFile.Read(containsZipFilePath))//Read file From the Zip.
                         {
                             foreach (ZipEntry e in zipFile)
                             {
-                                e.Extract(Path.GetDirectoryName(downloadedZipFilePath), ExtractExistingFileAction.OverwriteSilently);
+                                e.Extract(Path.GetDirectoryName(containsZipFilePath), ExtractExistingFileAction.OverwriteSilently);
                             }
                         }
 
                         #endregion
-                        //After successfully download update downloaded pipeline status
+                        //After successfully downloaded and extracted update downloaded pipeline status
                         commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Downloaded, Common.Now);
 
                     }
                     catch (ZipException err)
                     {
-                        // If the zip file is not available in the FTP folder then log that error.
-                        mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid;
-                        mbi.MailBatch.ValidationErrors = "Following error occured while extracting zip file :" + Environment.NewLine + err.ToString();
-
-                        //Update Batch Details
-                        mailBatchSvc.UpdateBatchDetails(mbi.MailBatch);
-
-                        //Update Batch Status
-                        commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
+                        ReportInvalidBatch(mbi.MailBatch, "Following error occured while extracting zip file for Batch ID : {0} ".Fill(mbi.MailBatch.Id) + Environment.NewLine + err.ToString());
                     }
 
                     //Process trigger file as per PostDownloadAction Setup for particular SFTChannel
-                    MoveTriggerFileToBackupDir(sftSite, triggerFilePath, channelDetails);
+                    MoveTriggerFileToBackupDir(sftSite, triggerFilePath, mbi.SFTChannel);
                 }
                 else
                 {
-                    mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid;
-                    mbi.MailBatch.ValidationErrors = downloadedZipFilePath;
-
-                    //Update Batch Details
-                    mailBatchSvc.UpdateBatchDetails(mbi.MailBatch);
-
-                    //Update Batch Status
-                    commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
+                    ReportInvalidBatch(mbi.MailBatch, containsZipFilePath);
                 }
             }
             else
             {
-                // If the zip file is not available in the FTP folder then log that error.
-                mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid;
-                mbi.MailBatch.ValidationErrors = "Zip file is missing on Sft site.";
-
-                //Update Batch Details
-                mailBatchSvc.UpdateBatchDetails(mbi.MailBatch);
-
-                //Update Batch Status
-                commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
+                ReportInvalidBatch(mbi.MailBatch, "Zip file is missing on Sft site.");
             }
         }
 
-        private static List<string> GetTriggerFilePaths(SFTUtil sftp, SFTChannel channelDetails)
+        private void ReportInvalidBatch(MailBatchDTO mailBatch, string error)
+        {
+            // If the zip file is not available in the FTP folder then log that error.
+            mailBatch.ValidationStatus = BatchValidationStatus.Invalid;
+            mailBatch.ValidationErrors = error;
+
+            //Update Batch Details
+            mailBatchSvc.UpdateBatchDetails(mailBatch);
+
+            //Update Batch Status
+            commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.Failed.ToString());
+        }
+
+        private static List<string> GetTriggerFilePaths(SFTUtil sftp, SFTChannel sftChannelDetails)
         {
             if (sftp.IsConnected == false)
                 sftp.Connect();
 
             DateTime pingTime = Common.Now;
 
-            List<string> availableTriggerFilePaths = sftp.ListDirectory(channelDetails.ToADEDir).Where(f => Path.GetExtension(f).Equals(".go", StringComparison.CurrentCultureIgnoreCase) && Path.GetFileNameWithoutExtension(f).EndsWith("_Complete")).ToList();
+            List<string> availableTriggerFilePaths = sftp.ListDirectory(sftChannelDetails.ToADEDir).Where(f => Path.GetExtension(f).Equals(".go", StringComparison.CurrentCultureIgnoreCase) && Path.GetFileNameWithoutExtension(f).EndsWith("_Complete")).ToList();
 
             if (availableTriggerFilePaths != null && availableTriggerFilePaths.Count > 0)
             {
@@ -238,6 +228,9 @@ namespace AM.Console
 
             if (channelDetails.PostDownloadAction == PostDownloadAction.Archive)
             {
+                if (sftSite.IsFileAvailable(triggerFTPBackUpFilePath))
+                    sftSite.DeleteFile(triggerFTPBackUpFilePath);
+
                 sftSite.MoveFile(triggerFTPFilePath, triggerFTPBackUpFilePath);
             }
             else
@@ -255,11 +248,12 @@ namespace AM.Console
             {
                 string downloadedZipFilePath = string.Empty;
                 string zipFileName = Path.GetFileName(zipFileFTPPath);
-                string batchLocalDir = mbi.AMRequestPath;
 
-                downloadedZipFilePath = Path.Combine(batchLocalDir, zipFileName);
+                downloadedZipFilePath = Path.Combine(mbi.AMRequestPath, zipFileName);
+
                 if (File.Exists(downloadedZipFilePath))
                     File.Delete(downloadedZipFilePath);
+
                 //Download Zip File Path
                 sftSite.DownloadFile(zipFileFTPPath, downloadedZipFilePath);
 
@@ -576,33 +570,108 @@ namespace AM.Console
                 }
             }
         }
+        #endregion
 
-        private void GenerateUSAAFormattedErrorReport(BatchData data, MailBatchInfo mbi)
+        #region Reporting Process
+        public void ReportPreppedProcess()
         {
-            StringBuilder errorReport = Common.USAAErrorReport(data);
-
-            string errorReportFileName = string.Format("ER_{0}.csv", Path.GetFileNameWithoutExtension(data.MailBatch.BatchName));
-
-            using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(errorReport.ToString())))
+            List<MailBatchDTO> resReceivedBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.ShippingResponseReceived);
+            if (resReceivedBatches == null)
             {
-                using (FileStream file = new FileStream(Path.Combine(mbi.AMResponsePath, errorReportFileName), FileMode.Create, FileAccess.Write))
+                log.Debug("Uploading report job queue is empty.");
+                return;
+            }
+
+            foreach (var batch in resReceivedBatches)
+            {
+                Client client = clientSvc.GetClientDetails(batch.ClientId).Single();
+                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(batch.SFTChannelId);
+                MailBatchInfo mbi = new MailBatchInfo(batch, client);
+                var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
+                if (data != null)
                 {
-                    ms.WriteTo(file);
+                    try
+                    {
+                        StringBuilder deliveryReport = Common.USAADailyDetailOperationReport(data, sftChannelDetails.Title);
+                        string deliveryReportFileName = "{0}_{1}.csv".Fill("DR", data.MailBatch.BatchName);
+                        using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(deliveryReport.ToString())))
+                        {
+                            using (FileStream file = new FileStream(Path.Combine(mbi.AMResponsePath, deliveryReportFileName), FileMode.Create, FileAccess.Write))
+                            {
+                                ms.WriteTo(file);
+                            }
+                        }
+
+                        StringBuilder errorReport = Common.USAAErrorReport(data, sftChannelDetails.Title);
+                        string errorReportFileName = "{0}_{1}.csv".Fill("ER", data.MailBatch.BatchName);
+                        using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(errorReport.ToString())))
+                        {
+                            using (FileStream file = new FileStream(Path.Combine(mbi.AMResponsePath, errorReportFileName), FileMode.Create, FileAccess.Write))
+                            {
+                                ms.WriteTo(file);
+                            }
+                        }
+
+                        commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Error("Error occured while generating reports : {0}".Fill(ex.ToString()));
+                    }
                 }
             }
         }
 
-        private void GenerateUSAAFormattedDailyDetailOperationReport(BatchData data, MailBatchInfo mbi)
+        public void ReportBackProcess()
         {
-            StringBuilder dailyDetailOperation = Common.USAADailyDetailOperationReport(data);
-
-            string deliveryReportFileName = string.Format("DR_{0}.csv", Path.GetFileNameWithoutExtension(data.MailBatch.BatchName));
-
-            using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(dailyDetailOperation.ToString())))
+            List<MailBatchDTO> resReceivedBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.ReportPrepped);
+            if (resReceivedBatches == null)
             {
-                using (FileStream file = new FileStream(Path.Combine(mbi.AMResponsePath, deliveryReportFileName), FileMode.Create, FileAccess.Write))
+                log.Debug("Uploading report job queue is empty.");
+                return;
+            }
+
+            foreach (var batch in resReceivedBatches)
+            {
+                Client client = clientSvc.GetClientDetails(batch.ClientId).Single();
+                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelCode("USAA_CL");
+                if (sftChannelDetails != null)
                 {
-                    ms.WriteTo(file);
+                    SFTUtil sftSite = null;
+                    try
+                    {
+                        sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
+                        sftSite.Connect();
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Error(ex);
+                    }
+
+                    string uploadPath = sftChannelDetails.Code == "AMC_Internal" ? Common.ReportSFTUploadingPathAMC : Common.ReportSFTUploadingPathCL;
+                    if (sftSite.IsDownloadDirectoryAvailable(uploadPath))
+                    {
+                        MailBatchInfo mbi = new MailBatchInfo(batch, client, sftChannelDetails, Common.AuthoMailRootFolder);
+
+                        var reportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.csv").Where(f => f.StartsWith("DR_") || f.StartsWith("ER_")).ToList();
+
+                        try
+                        {
+                            if (reportList != null && reportList.Count > 0)
+                            {
+                                foreach (string filePath in reportList)
+                                {
+                                    sftSite.UploadFile(filePath, uploadPath);
+                                }
+
+                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            log.Error("Error occured while uploading report to Client's SFT site for Batch : {0}. Please see error :" + Environment.NewLine + ex);
+                        }
+                    }
                 }
             }
         }
