@@ -124,7 +124,7 @@ namespace AM.Console
                     {
                         mbi.MailBatch.ReceivedOn = mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone);
 
-                        StringBuilder errorReport = Common.USAAErrorReport(batchData);
+                        StringBuilder errorReport = Common.USAAErrorReport(batchData, mbi.SFTChannel.Title);
                         string errorReportFileName = string.Format("ER-{0}.csv", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("yyyyMMdd-HHmmss"));
 
                         msg.Attachments.Add(new Attachment(new MemoryStream(Encoding.UTF8.GetBytes(errorReport.ToString().ToCharArray())), errorReportFileName));
