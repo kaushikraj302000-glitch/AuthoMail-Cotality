@@ -292,16 +292,25 @@ namespace AM.Console
             List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.Downloaded);
             if (downloadBatches == null)
             {
-                log.Debug("Process batches job queue is empty.");
+                log.Debug("Job queue is empty for validating batches.");
                 return;
             }
 
             foreach (var batch in downloadBatches)
             {
                 Client client = clientSvc.GetClientDetails(batch.ClientId).SingleOrDefault();
-                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(batch.SFTChannelId);
 
-                MailBatchInfo mbi = new MailBatchInfo(batch, client, sftChannelDetails, Common.AuthoMailRootFolder);
+                MailBatchInfo mbi = new MailBatchInfo(batch, client, null, Common.AuthoMailRootFolder);
+
+                ClientBusinessIdentifier clientBusinessIdDetails = commonSvc.GetBusinessIdNameFromClientId(client.Id);
+
+                if (clientBusinessIdDetails == null)
+                {
+                    log.Error("Business Identifier is not assigned to client : {0}".Fill(client.ClientName));
+
+                    //TODO: Ask to Ravi Sir
+                    continue;
+                }
 
                 var xmlFilePath = Path.Combine(mbi.AMRequestPath, mbi.BatchName + ".xml");
 
@@ -319,32 +328,22 @@ namespace AM.Console
                 }
                 catch (XmlException err)
                 {
-                    #region Invalid XML file of the batch so just save error details
                     log.Error(err);
-                    batch.ValidationStatus = BatchValidationStatus.Invalid;
-                    batch.ValidationErrors = err.ToString();
 
-                    mailBatchSvc.UpdateBatchDetails(batch);
                     commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationEnd, Common.Now);
-                    commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
+
+                    ReportInvalidBatch(batch, err.ToString());
 
                     continue;
-                    #endregion
                 }
 
                 if (mailPieceNodes == null)
                 {
-                    #region Invalid XML file of the batch so just save error details
-
-                    batch.ValidationStatus = BatchValidationStatus.Invalid;
-                    batch.ValidationErrors = "Xml does not contain any package info nodes.";
-
-                    mailBatchSvc.UpdateBatchDetails(batch);
                     commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationEnd, Common.Now);
-                    commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
+
+                    ReportInvalidBatch(batch, "Xml does not contain any package info nodes.");
 
                     continue;
-                    #endregion
                 }
 
                 foreach (XmlNode mailPieceNode in mailPieceNodes)
@@ -353,15 +352,13 @@ namespace AM.Console
                     MailPieceCustomInfo customInfo = null;
                     List<MailPieceCustomInfo> mailPieceCustomInfo = new List<MailPieceCustomInfo>();
                     mailPieceDTO.ClientId = client.Id;
-                    //Commented below line because we will update due date while splitting batches doc type wise.
-                    //mailPieceDTO.DueDate = Common.Today; 
-                    mailPieceDTO.MailBatchId = mbi.MailBatch.Id;
 
+                    mailPieceDTO.MailBatchId = mbi.MailBatch.Id;
 
                     try
                     {
 
-                        mailPieceDTO.BusinessFriendlyIdName = "LoanNbr";
+                        mailPieceDTO.BusinessFriendlyIdName = clientBusinessIdDetails.BusinessIdName;
                         mailPieceDTO.BusinessFriendlyIdValue = mailPieceNode.SelectSingleNode("./x:LoanNbr/text()", nsManager) == null ? string.Empty : mailPieceNode.SelectSingleNode("./x:LoanNbr/text()", nsManager).Value;
                         mailPieceDTO.DocumentOrPackageType = mailPieceNode.SelectSingleNode("./x:PackageName/text()", nsManager) == null ? null : mailPieceNode.SelectSingleNode("./x:PackageName/text()", nsManager).Value;
                         mailPieceDTO.UniqueId = mailPieceNode.SelectSingleNode("./x:Id/text()", nsManager) == null ? Guid.Empty : Guid.Parse(mailPieceNode.SelectSingleNode("./x:Id/text()", nsManager).Value);
