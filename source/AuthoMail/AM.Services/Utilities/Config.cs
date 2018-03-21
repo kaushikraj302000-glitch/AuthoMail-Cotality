@@ -60,16 +60,16 @@ namespace AM.Services
         static Config()
         {
             #region PullBackMessages
-            Msg_API_PB_Aborted = "Mailpiece already aborted, it can't be pullback.";
-            Msg_API_PB_BatchStatusSubmitted = "Batch is currently in progress, please try again after few minutes.";
-            Msg_API_PB_DataNull = "No mailpiece(s) data found for given loan number(s).";
-            Msg_API_PB_Empty = "Mailpiece(s) can not be empty.";
-            Msg_API_PB_Error = "Mailpiece has an error.";
-            Msg_API_PB_Success = "Mailpiece pullback requested successfully.";
-            Msg_API_PB_PBReqFormErr = "An error while generating pullback request form.";
-            Msg_API_PB_PullBackAlreadyRequested = "Pullback already requested for this mailpiece.";
-            Msg_API_PB_PulledBack = "Mailpiece already pulledback.";
-            Msg_API_PB_Shipped = "Mailpiece already shipped, pullback cannot be requested.";
+            Msg_API_PB_Aborted = "Mailpiece is aborted, it is not going to be printed.";
+            Msg_API_PB_BatchStatusSubmitted = "Batch is being parsed, please try again after few minutes.";
+            Msg_API_PB_DataNull = "Mailpiece with the specified unique id is not yet received.";
+            Msg_API_PB_Empty = "At least one mailpiece id must be specified.";
+            Msg_API_PB_Error = "Mailpiece has an error, it is not going to be printed. Check error report for details.";
+            Msg_API_PB_Success = "Pullback request is recorded successfully.";
+            Msg_API_PB_PBReqFormErr = "An error occured while generating pullback request form.";
+            Msg_API_PB_PullBackAlreadyRequested = "Pullback is already requested for this mailpiece.";
+            Msg_API_PB_PulledBack = "Mailpiece is already pulled back.";
+            Msg_API_PB_Shipped = "Mailpiece is already shipped, pullback cannot be requested.";
             API_Email_SMTPClient = new SmtpClient();
             API_Email_To = "CoreLogic.PrintProduction@pcigroup.com";
             API_Email_Cc = "avala@corelogic.com,sgolvelkar@corelogic.com,brpatel@corelogic.com";
