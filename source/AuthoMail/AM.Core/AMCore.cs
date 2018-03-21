@@ -34,7 +34,7 @@ namespace AM.Core
             {
                 SmartDocs doc = new SmartDocs();
                 Client client = clientSvc.GetClientDetails(mailBatch.ClientId).Single();
-                MailBatchInfo mbi = new MailBatchInfo(mailBatch, client);
+                MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, null, Common.AuthoMailRootFolder);
 
                 var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
 

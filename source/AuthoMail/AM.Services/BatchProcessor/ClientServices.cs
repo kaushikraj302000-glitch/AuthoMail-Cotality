@@ -14,7 +14,8 @@ namespace AM.Services
     {
         List<Client> GetClientDetails(int? clientId, string appCode = "");
         List<ClientSFTChannel> GetClientSFTChannelMapDetails(int clientId);
-        SFTChannel GetSFTChannelDetails(int sftChannelId);
+        SFTChannel GetSFTChannelDetailsBySFTChannelId(int sftChannelId);
+        SFTChannel GetSFTChannelDetailsBySFTChannelCode(string sftChannelCode);
     }
     public class ClientService : ServiceBase, IClientService //It implements Interfaces 
     {
@@ -47,12 +48,23 @@ namespace AM.Services
             return data;
         }
 
-        public SFTChannel GetSFTChannelDetails(int sftChannelId)
+        public SFTChannel GetSFTChannelDetailsBySFTChannelId(int sftChannelId)
         {
             string query = "SELECT Id, Code, Description, Title, Protocol, Host, UserName, Password, ToADEDir, FromADEDir, ArchiveDir, PostDownloadAction FROM [Common].[SFTChannels] WHERE Id=@sftChannelId";
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@sftChannelId", sftChannelId);
+
+            var data = db.Query<SFTChannel>(query, parameters).SingleOrDefault();
+            return data;
+        }
+
+        public SFTChannel GetSFTChannelDetailsBySFTChannelCode(string sftChannelCode)
+        {
+            string query = "SELECT Id, Code, Description, Title, Protocol, Host, UserName, Password, ToADEDir, FromADEDir, ArchiveDir, PostDownloadAction FROM [Common].[SFTChannels] WHERE Code=@sftChannelCode";
+
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
+            parameters.Add("@sftChannelCode", sftChannelCode);
 
             var data = db.Query<SFTChannel>(query, parameters).SingleOrDefault();
             return data;

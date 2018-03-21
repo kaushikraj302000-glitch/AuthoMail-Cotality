@@ -47,7 +47,7 @@ namespace AM.Console
 
                 if (sftChannelMap != null)
                 {
-                    SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetails(sftChannelMap.SFTChannelId);
+                    SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(sftChannelMap.SFTChannelId);
                     if (sftChannelDetails != null)
                     {
                         SFTUtil sftSite = null;
@@ -305,7 +305,7 @@ namespace AM.Console
             foreach (var batch in downloadBatches)
             {
                 Client client = clientSvc.GetClientDetails(batch.ClientId).SingleOrDefault();
-                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetails(batch.SFTChannelId);
+                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(batch.SFTChannelId);
 
                 MailBatchInfo mbi = new MailBatchInfo(batch, client, sftChannelDetails, Common.AuthoMailRootFolder);
 
@@ -539,7 +539,7 @@ namespace AM.Console
             foreach (var batch in validatedBatches)
             {
                 Client client = clientSvc.GetClientDetails(batch.ClientId).Single();
-                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetails(batch.SFTChannelId);
+                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(batch.SFTChannelId);
 
                 MailBatchInfo mbi = new MailBatchInfo(batch, client, sftChannelDetails, Common.AuthoMailRootFolder);
 
