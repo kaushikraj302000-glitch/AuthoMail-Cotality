@@ -422,7 +422,7 @@ namespace AM.Core
 
                             File.Move(amRootFilePath, amPnSResponsePath);
 
-                            commonSvc.UpdatePrintBatchPipeLineStatus(downloadableBatch.PrintBatchId, BatchPipelineStatus.ShippingResponseReceived, Common.Now);
+                            commonSvc.UpdatePrintBatchPipeLineStatus(downloadableBatch.PrintBatchId, BatchPipelineStatus.ShippingResponseReceived, responseReceivedOn);
                         }
                     }
                     else
@@ -450,73 +450,71 @@ namespace AM.Core
                 BatchData batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(printBatch.MailBatchId);
                 MailBatchInfo mbi = new MailBatchInfo(batchData.MailBatch, client);
 
-                List<string> responseFiles = Directory.GetFiles(mbi.PnSResponsePath, "*-res.xml").ToList();
-                if (responseFiles.Count == 0)
+                var printbatchResponseFilePath = Path.Combine(mbi.PnSResponsePath, printBatch.SubmittedBatchName + "-res.xml");
+                if (!File.Exists(printbatchResponseFilePath))
                 {
+                    log.Error("Response xml file is not exist for PrintBatch ID : {0}".Fill(printBatch.PrintBatchId));
                     continue;
                 }
 
                 try
                 {
-                    foreach (var resFile in responseFiles)
+                    var pnsResponse = XmlUtil.Deserialize<PnSResponse>(File.ReadAllText(printbatchResponseFilePath));
+                    if (pnsResponse != null)
                     {
-                        var pnsResponse = XmlUtil.Deserialize<PnSResponse>(File.ReadAllText(resFile));
-                        if (pnsResponse != null)
+                        commonSvc.UpdatePrintBatchStatus(printBatch.PrintBatchId, pnsResponse.BatchStatus.ToString(), pnsResponse.StatusDescription);
+
+                        if (pnsResponse.MailPackageReport != null && pnsResponse.MailPackageReport.Count > 0)
                         {
-                            commonSvc.UpdatePrintBatchStatus(printBatch.PrintBatchId, pnsResponse.BatchStatus.ToString(), pnsResponse.StatusDescription);
-
-                            if (pnsResponse.MailPackageReport != null && pnsResponse.MailPackageReport.Count > 0)
+                            foreach (var mailPackage in pnsResponse.MailPackageReport)
                             {
-                                foreach (var mailPackage in pnsResponse.MailPackageReport)
+                                batchData.MailPieces.ForEach(row =>
                                 {
-                                    batchData.MailPieces.ForEach(row =>
+                                    if (row.UniqueId == mailPackage.UniqueId)
                                     {
-                                        if (row.UniqueId == mailPackage.UniqueId)
+                                        if (mailPackage.MailPieceStatus == MailPieceStatus.Error)
                                         {
-                                            if (mailPackage.MailPieceStatus == MailPieceStatus.Error)
-                                            {
-                                                row.ErrorCode = Convert.ToString((ErrorTypes)mailPackage.ErrId);
-                                                row.ErrorDesc = mailPackage.ErrDesc;
-                                            }
-                                            else if (mailPackage.MailPieceStatus == MailPieceStatus.PulledBack && row.IsPullBackRequested == true)
-                                            {
-                                                row.IsPulledBack = true;
-                                                row.PulledBackOn = mailPackage.PulledBackOn;
-                                            }
-                                            else if (mailPackage.MailPieceStatus == MailPieceStatus.Shipped)
-                                            {
-                                                row.PrintedOn = mailPackage.PrintedOn;
-                                                row.ShippedOn = mailPackage.ShippedOn;
-                                                row.ShippingCost = mailPackage.PostageCost;
-                                                row.TotalSheets = mailPackage.TotalSheets;
-                                                row.Weight = mailPackage.WeightMeasured;
-                                            }
-                                            row.ShippingStatus = mailPackage.MailPieceStatus.ToString();
-
-                                            mailPieceSvc.UpdateBatchMailPieceDetails(row);
+                                            row.ErrorCode = Convert.ToString((ErrorTypes)mailPackage.ErrId);
+                                            row.ErrorDesc = mailPackage.ErrDesc;
                                         }
-                                    });
-                                }
+                                        else if (mailPackage.MailPieceStatus == MailPieceStatus.PulledBack && row.IsPullBackRequested == true)
+                                        {
+                                            row.IsPulledBack = true;
+                                            row.PulledBackOn = mailPackage.PulledBackOn;
+                                        }
+                                        else if (mailPackage.MailPieceStatus == MailPieceStatus.Shipped)
+                                        {
+                                            row.PrintedOn = mailPackage.PrintedOn;
+                                            row.ShippedOn = mailPackage.ShippedOn;
+                                            row.ShippingCost = mailPackage.PostageCost;
+                                            row.TotalSheets = mailPackage.TotalSheets;
+                                            row.Weight = mailPackage.WeightMeasured;
+                                        }
+                                        row.ShippingStatus = mailPackage.MailPieceStatus.ToString();
 
-                                var remainingData = batchData.MailPieces.Where(data => data.ShippingStatus == ShippingStatus.InProgress.ToString());
-                                if (remainingData.Count() == 0)
+                                        mailPieceSvc.UpdateBatchMailPieceDetails(row);
+                                    }
+                                });
+                            }
+
+                            var remainingData = batchData.MailPieces.Where(data => data.ShippingStatus == ShippingStatus.InProgress.ToString());
+                            if (remainingData.Count() == 0)
+                            {
+                                var shippedCount = batchData.MailPieces.Where(data => data.ShippingStatus == ShippingStatus.Shipped.ToString());
+                                if (shippedCount.Count() == 0)
                                 {
-                                    var shippedCount = batchData.MailPieces.Where(data => data.ShippingStatus == ShippingStatus.Shipped.ToString());
-                                    if (shippedCount.Count() == 0)
-                                    {
-                                        commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.Failed.ToString());
-                                    }
-                                    else if (shippedCount.Count() < batchData.MailPieces.Count)
-                                    {
-                                        commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.ShippedPartial.ToString());
-                                    }
-                                    else
-                                    {
-                                        commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.ShippedAll.ToString());
-                                    }
-
-                                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ShippingResponseReceived, Common.Now);
+                                    commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.Failed.ToString());
                                 }
+                                else if (shippedCount.Count() < batchData.MailPieces.Count)
+                                {
+                                    commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.ShippedPartial.ToString());
+                                }
+                                else
+                                {
+                                    commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.ShippedAll.ToString());
+                                }
+
+                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ShippingResponseReceived, Common.Now);
                             }
                         }
                     }

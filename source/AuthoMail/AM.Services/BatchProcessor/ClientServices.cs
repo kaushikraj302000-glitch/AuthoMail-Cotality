@@ -50,7 +50,7 @@ namespace AM.Services
 
         public SFTChannel GetSFTChannelDetailsBySFTChannelId(int sftChannelId)
         {
-            string query = "SELECT Id, Code, Description, Title, Protocol, Host, UserName, Password, ToADEDir, FromADEDir, ArchiveDir, PostDownloadAction FROM [Common].[SFTChannels] WHERE Id=@sftChannelId";
+            string query = "SELECT Id, Code, Description, Title, Protocol, Host, UserName, Password, ToADEDir, FromADEDir, ArchiveDir, PostDownloadAction FROM [Common].[SFTChannels] WHERE Id=@sftChannelId AND IsActive=1";
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@sftChannelId", sftChannelId);
@@ -61,7 +61,7 @@ namespace AM.Services
 
         public SFTChannel GetSFTChannelDetailsBySFTChannelCode(string sftChannelCode)
         {
-            string query = "SELECT Id, Code, Description, Title, Protocol, Host, UserName, Password, ToADEDir, FromADEDir, ArchiveDir, PostDownloadAction FROM [Common].[SFTChannels] WHERE Code=@sftChannelCode";
+            string query = "SELECT Id, Code, Description, Title, Protocol, Host, UserName, Password, ToADEDir, FromADEDir, ArchiveDir, PostDownloadAction FROM [Common].[SFTChannels] WHERE Code=@sftChannelCode AND IsActive=1";
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@sftChannelCode", sftChannelCode);
