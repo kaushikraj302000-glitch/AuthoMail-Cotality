@@ -51,7 +51,7 @@ namespace AM.Services
                     model.Add(new WeeklyChart
                     {
                         Date = ed,
-                        Weekday = ed.ToString("ddd"),
+                        Weekday = ed == estToday ? "Today" : ed.ToString("ddd"),
                         Failed = 0,
                         InProgress = 0,
                         ShippedAll = 0,
