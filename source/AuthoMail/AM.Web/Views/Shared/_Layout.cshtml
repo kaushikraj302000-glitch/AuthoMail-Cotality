@@ -27,30 +27,34 @@
 
             </div>
             <div class="collapse navbar-collapse" id="example-navbar-collapse-3">
-                <ul class="nav navbar-nav navbar-right">
-                    <li>@Html.ActionLink("Home", "Index", "Home")</li>
-                    <li>@Html.ActionLink("Search", "Search", "Home")</li>
-                    <li>@Html.ActionLink("Request Pullback ", "PullBack", "RequestPullBack")</li>
-                    @*<li>@Html.ActionLink("Contact", "Contact", "Home")</li>*@
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Reports <span class="caret"></span></a>
-                        <ul class="dropdown-menu">
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <ul class="nav navbar-nav navbar-right">
+                        <li>@Html.ActionLink("Home", "Index", "Home")</li>
+                        <li>@Html.ActionLink("Search", "Search", "Home")</li>
+                        <li>@Html.ActionLink("Request Pullback ", "PullBack", "RequestPullBack")</li>
+                        @*<li>@Html.ActionLink("Contact", "Contact", "Home")</li>*@
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Reports <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
 
-                            <li>@Html.ActionLink("Daily Detail Operations Report", "DailyDetailOperationsReport", "Report")</li>
-                            <li>@Html.ActionLink("Errors Report", "ErrorsReport", "Report")</li>
-                            <li>@Html.ActionLink("Summary Control Report", "SummaryControlReport", "Report")</li>
-                            <li>@Html.ActionLink("Errors Report - SLA", "ErrorSLAReport", "Report")</li>
-                            <li>@Html.ActionLink("Month Recon Report", "MonthReconReport", "Report")</li>
-                            @*<li>@Html.ActionLink("Delivery Report", "DeliveryReport", "Report")</li>*@
-                            @*<li><a href="#">Another action</a></li>
-                                <li><a href="#">Something else here</a></li>
-                                <li role="separator" class="divider"></li>
-                                <li><a href="#">Separated link</a></li>*@
-                        </ul>
-                    </li>
-                    @Html.Partial("_LoginPartial")
-                </ul>
-                <i class="fa fa-times"></i>
+                                <li>@Html.ActionLink("Daily Detail Operations Report", "DailyDetailOperationsReport", "Report")</li>
+                                <li>@Html.ActionLink("Errors Report", "ErrorsReport", "Report")</li>
+                                <li>@Html.ActionLink("Summary Control Report", "SummaryControlReport", "Report")</li>
+                                <li>@Html.ActionLink("Errors Report - SLA", "ErrorSLAReport", "Report")</li>
+                                <li>@Html.ActionLink("Month Recon Report", "MonthReconReport", "Report")</li>
+                                @*<li>@Html.ActionLink("Delivery Report", "DeliveryReport", "Report")</li>*@
+                                @*<li><a href="#">Another action</a></li>
+                                    <li><a href="#">Something else here</a></li>
+                                    <li role="separator" class="divider"></li>
+                                    <li><a href="#">Separated link</a></li>*@
+                            </ul>
+                        </li>
+                        @Html.Partial("_LoginPartial")
+                    </ul>
+                    <i class="fa fa-times"></i>
+                }
+               
 
             </div>
         </div>
@@ -107,6 +111,24 @@
             JSON.useDateParser();
             console.log(baseUrl);
         });
+        $(document).ajaxSuccess(function (event, xhr, settings) {
+            //console.log("Server Result:" + cnt++);
+            //console.log(xhr.responseText);
+            if (xhr.responseText == "") {
+                window.location.reload();
+            }
+        });
+
+
+        $(document).ajaxError(function (event, jqxhr, settings, thrownError) {
+            //console.log("error:" + JSON.stringify(thrownError));
+            //console.log("Status:" + jqxhr.status);
+            if (jqxhr.status == 200) {
+                window.location.reload();
+            }
+
+        });
+
     </script>
 </body>
 </html>
