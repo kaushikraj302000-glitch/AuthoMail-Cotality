@@ -40,7 +40,7 @@ namespace AM.Services
             }
             if (!channel.IsNullOrWhiteSpace())
             {
-                query = string.Format("{0} AND Channel=@channel", query);
+                query = string.Format("{0} AND ChannelCode=@channel", query);
                 parameters.Add("@channel", channel);
             }
 

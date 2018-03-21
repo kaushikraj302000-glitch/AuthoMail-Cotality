@@ -33,6 +33,9 @@ namespace AM.Console
         public static string Email_Cc { get; private set; }
         public static bool SendEmails { get; private set; }
 
+        public static string ReportSFTUploadingChannelCode { get; private set; }
+        public static string ReportSFTUploadingPathAMC { get; private set; }
+
         public static readonly DateTime Now = DateTime.UtcNow;
 
         public static readonly DateTime Today = DateTime.UtcNow.Date;
@@ -85,6 +88,8 @@ namespace AM.Console
                     }
                 }
             }
+
+            ReportSFTUploadingPathAMC = ConfigurationManager.AppSettings["ReportSFTUploadingPathAMC"];
         }
 
         public static void CleanDirectory(string path)
@@ -265,7 +270,7 @@ namespace AM.Console
             return returnCode;
         }
 
-        public static StringBuilder USAAErrorReport(BatchData data)
+        public static StringBuilder USAAErrorReport(BatchData data, string sftChannelName)
         {
             StringBuilder errorReport = new StringBuilder("BatchID,ID,Channel,Package Name,Loan Number,File Name,Date Received,First Name,Last Name,Recipient Street Address,Recipient City,Recipient State,Recipient Zip,Error Code,Error Text,Shipping Method,Customer Identifier,RequestID");
 
@@ -277,7 +282,7 @@ namespace AM.Console
                 errorReport.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17}",
                         data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
                         mailPiece.UniqueId,
-                        data.MailBatch.SFTChannelId,
+                        sftChannelName,
                         mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType,
                         mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
                         mailPiece.FileName == null ? string.Empty : mailPiece.FileName,
@@ -298,7 +303,7 @@ namespace AM.Console
             return errorReport;
         }
 
-        public static StringBuilder USAADailyDetailOperationReport(BatchData data)
+        public static StringBuilder USAADailyDetailOperationReport(BatchData data, string sftChannelName)
         {
             StringBuilder deliveryReport = new StringBuilder("BatchID,ID,Channel,Package Name,Loan Number,File Name,Date Received,Date Printed,Date Mailed,Client Code,Tracking Number,Shipping Method,Customer Identifier,First Name,Last Name,Recipient Street Address,Recipient City,Recipient State,Recipient Zip,RequestID,Print Location,Pages Shipped");
 
@@ -310,7 +315,7 @@ namespace AM.Console
                 deliveryReport.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21}",
                         data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
                         mailPiece.UniqueId,
-                        data.MailBatch.SFTChannelId,
+                        sftChannelName,
                         mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType,
                         mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
                         mailPiece.FileName == null ? string.Empty : mailPiece.FileName,

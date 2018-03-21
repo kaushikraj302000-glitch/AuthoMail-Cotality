@@ -22,13 +22,32 @@
                     <td><span>@cnt</span></td>
                     <td><span>@item.ClientBatchId</span></td>
                     <td><span>@item.BatchName</span></td>
-                    <td><span>@item.BatchStatus</span></td>
+                    <td>
+                        @switch (item.BatchStatus)
+                        {
+
+                            case "InProgress":
+                                <span class="label medium label-red">@item.BatchStatus</span>
+
+                                break;
+                            case "Failed":
+                            <span class="label medium label-red">@item.BatchStatus</span>
+                                break;
+                            case "ShippedPartial":
+                            <span class="label medium label-success">@item.BatchStatus</span>
+                                break;
+                            case "ShippedAll":
+                            <span class="label medium label-blue">@item.BatchStatus</span>
+                                break;
+
+                        }
+                    </td>
                     <td><span>@item.ReceivedOn</span></td>
                     <td><span>@item.DocumentOrPackageType</span></td>
                     <td>
                         <button onclick="GetMailPieceById(@item.BatchId)" type="button" class="btn btn-transparent-bright-blue">View </button>
-                         @*@Html.ActionLink("View", "MailPieceByBatchId", "Home", new { batchId = item.BatchId }, new { @class = "btn btn-transparent-bright-blue" })*@
-                       
+                        @*@Html.ActionLink("View", "MailPieceByBatchId", "Home", new { batchId = item.BatchId }, new { @class = "btn btn-transparent-bright-blue" })*@
+
                     </td>
                 </tr>
 

@@ -38,7 +38,7 @@ namespace AM.Services
             }
             if (!channel.IsNullOrWhiteSpace())
             {
-                query = string.Format("{0} AND Channel=@channel", query);
+                query = string.Format("{0} AND ChannelCode=@channel", query);
                 parameters.Add("@channel", channel);
             }
             var data = db.Query<DailyDetailOperationsReport>(query, parameters).ToList();
@@ -64,7 +64,7 @@ namespace AM.Services
             }
             if (!channel.IsNullOrWhiteSpace())
             {
-                query = string.Format("{0} AND Channel=@channel", query);
+                query = string.Format("{0} AND ChannelCode=@channel", query);
                 parameters.Add("@channel", channel);
             }
             var data = db.Query<ErrorReport>(query, parameters).ToList();
@@ -81,7 +81,7 @@ namespace AM.Services
             parameters.Add("@endDate", endDate.EstToUtc());
             if (!channel.IsNullOrWhiteSpace())
             {
-                query = string.Format("{0} AND Channel=@channel", query);
+                query = string.Format("{0} AND ChannelCode=@channel", query);
                 parameters.Add("@channel", channel);
             }
             var data = db.Query<SummaryControlReport>(query, parameters).ToList();
@@ -126,7 +126,7 @@ namespace AM.Services
             parameters.Add("@endDate", endDate.EstToUtc());
             if (!channel.IsNullOrWhiteSpace())
             {
-                query = string.Format("{0} AND Channel=@channel", query);
+                query = string.Format("{0} AND ChannelCode=@channel", query);
                 parameters.Add("@channel", channel);
             }
             var data = db.Query<MonthlyReconReport>(query, parameters).ToList();
@@ -151,7 +151,7 @@ namespace AM.Services
 
         public static string GetMonthlyReconReport = "select * from [dbo].[view_MonthlyReconReport] WHERE ClientId=@clientId AND (cast(ReceivedOn as date) >= cast(@startDate as date) and cast(ReceivedOn as date) <= cast(@endDate as date)) AND ShippingStatus=@shippingStatus";//AND SLADays >= 0
 
-        public static string GetChannelTitle = "SELECT Code,Title FROM [Common].[SFTChannels] WHERE Code IN @channelCodes";
+        public static string GetChannelTitle = "SELECT Code,Title FROM [Common].[SFTChannels] WHERE IsActive=1 AND Code IN @channelCodes";
 
     }
 }

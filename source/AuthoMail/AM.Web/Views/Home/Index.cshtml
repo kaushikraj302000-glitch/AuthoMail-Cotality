@@ -11,7 +11,10 @@
 <div class="col-md-6">
     <div class="panel panel-default ">
         <div class="panel-heading">
-            <div class="panel-title">Today's Batch Details</div>
+            <div class="panel-title">
+                Today's Batch Details
+                @*<span class="pull-right"><button class="btn btn-primary" id="FullTodayChart"><i class="fa fa-window-maximize"></i></button></span>*@
+            </div>
         </div>
         <div class="panel-body panel-gray " id="todayBody">
             <div id="todayChart"></div>
@@ -102,7 +105,23 @@
 @*<button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModalGray">
         Launch demo modal
     </button>*@
+<div class="modal fade" id="TodayChartModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog modal-lg col-md-12" role="document">
+        <div class="modal-content">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <div class="modal-header">
+                <h1 id="myModalLabel">Today's Batch Details</h1>
+            </div>
+            <div class="modal-body" id="TodayChartModalBody">
 
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                @*<button type="button" class="btn btn-primary">View All</button>*@
+            </div>
+        </div>
+    </div>
+</div>
 <!-- Modal -->
 
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
@@ -180,7 +199,7 @@
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal-header">
                 <h2 id="confirmMsg"> @AM.Services.Config.Msg_Web_PullBackConfirmation</h2>
-                <h2 id="mailPieceMsg">MailPiece details of pullback request</h2>
+                <h2 id="mailPieceMsg">MailPiece details of pulled back request</h2>
                 @*<h4 id="pullbackmsg" class="alert alert-yellow"></h4>*@
                 <hr />
 
@@ -265,7 +284,7 @@
                         cnt++;
                     }
                     // console.log(chartData);
-                    drawChart(chartData, "weeklyChart", 'Batch Details : ' + moment(startDate).format('MM/DD/YYYY') + " - " + moment(endDate).format('MM/DD/YYYY'));
+                    drawChart(chartData, "weeklyChart", 'Batch Details : ' + moment(startDate).format('MM/DD/YYYY') + " - " + moment(endDate).format('MM/DD/YYYY'), 300,510);
 
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
@@ -274,14 +293,12 @@
 
             });
         }
-        function BindTodayChartData() {
-            //TestDateTime();
-            var el = $("#todayChart");
+        function GetFullChart() {
+            var el = $("#TodayChartModalBody");
             $.ajax({
                 type: "POST",
                 dataType: "JSON",
                 url: baseUrl + "api/chart/GetTodayChartData",
-                //data: JSON.stringify(moment().format('MM/DD/YYYY')),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     //console.log(response);
@@ -299,7 +316,47 @@
                         cnt++;
                     }
                     //console.log(chartData);
-                    drawChart(chartData, "todayChart", 'MailPiece Status');
+                    $("#TodayChartModal").modal("show");
+                    drawChart(chartData, "TodayChartModalBody", 'MailPiece Status', 900,1400);
+
+
+
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    el.html("<div class='alert alert-red'><span>" + commonmsg + "</span></div>");
+
+                }
+
+            });
+}
+        function BindTodayChartData() {
+            //TestDateTime();
+            var el = $("#todayChart");
+            $.ajax({
+                type: "POST",
+                dataType: "JSON",
+                url: baseUrl + "api/chart/GetTodayChartData",
+                contentType: "application/json; charset=utf-8",
+                success: function (response) {
+                    //console.log(response);
+                    if (response.length == 0) {
+                        el.html("<div class='alert alert-yellow'><span>@AM.Services.Config.Msg_Web_NoMailPieceReceivedToday</span></div>");
+                        $("#todayBody").css("min-height", "342px");
+                        return;
+                    }
+                    var chartData = [];
+                    chartData.push(['BatchName', 'InProgress', 'Error', 'PulledBack', 'Shipped', 'BatchId']);
+                    var cnt = 0;
+                    for (var i = 1; i <= response.length; i++) {
+
+                        chartData.push([response[cnt].ClientBatchId, response[cnt].InProgress, response[cnt].Error, response[cnt].PulledBack, response[cnt].Shipped, response[cnt].MailBatchId]);
+                        cnt++;
+                    }
+                    //console.log(chartData);
+                 
+                        drawChart(chartData, "todayChart", 'MailPiece Status', 300,510);
+                 
+
 
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
@@ -322,7 +379,7 @@
             }
             else {
                 $("#" + id).find(".modal-body").height(400);
-                
+
             }
 
         }
@@ -349,14 +406,15 @@
             });
         }
         google.charts.load('current', { packages: ['corechart'] });
-        function drawChart(chartData, div, title) {
+        function drawChart(chartData, div, title, height,width) {
             var data = google.visualization.arrayToDataTable(chartData);
             var view = new google.visualization.DataView(data);
             view.setColumns([0, 1, 2, 3, 4]);
             var options = {
                 title: title,
                 isStacked: true,
-                'height': 300,
+                'height': height,
+                'width':width,
                 legend: { position: 'top', maxLines: 3 },
                 series: {
                     0: { color: '#36c' },
@@ -392,6 +450,11 @@
         }
         google.charts.setOnLoadCallback(BindWeeklyChartData);
         google.charts.setOnLoadCallback(BindTodayChartData);
+        $("#FullTodayChart").click(function () {
+           
+        google.charts.setOnLoadCallback(GetFullChart);
+           
+        });
         function TestDateTime() {
             $.ajax({
                 type: "POST",

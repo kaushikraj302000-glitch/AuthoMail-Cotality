@@ -32,11 +32,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="Channel">Channel</label>
-                        <select class="selectpicker" id="Channel">
-                            <option value="">Select Channel</option>
-                            <option value="Mortgage Cadence Integration">Mortgage Cadence Integration</option>
-                            <option value="CoreLogic SFTP">CoreLogic SFTP</option>
-                        </select>
+                        @Html.Action("_Channel", "Common")
                     </div>
                 </div>
                 <div class="col-md-1">

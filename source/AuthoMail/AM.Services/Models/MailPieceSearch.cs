@@ -195,6 +195,7 @@ namespace AM.Services.Models
         public string ClientBatchId { get; set; }
         public string PrintLocation { get; set; }
         public string Channel { get; set; }
+        public string ChannelCode { get; set; }
         public string ShippingMethod { get; set; }
 
     }
