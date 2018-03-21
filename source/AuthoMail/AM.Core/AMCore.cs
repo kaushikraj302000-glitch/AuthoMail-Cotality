@@ -171,7 +171,7 @@ namespace AM.Core
                     continue;
                 }
 
-                MailBatchInfo mbi = new MailBatchInfo(mailBatch, client);
+                MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, null, Common.AuthoMailRootFolder);
 
                 var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
 
