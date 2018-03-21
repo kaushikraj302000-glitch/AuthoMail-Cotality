@@ -33,8 +33,8 @@ namespace AM.Console
         public static string Email_Cc { get; private set; }
         public static bool SendEmails { get; private set; }
 
+        public static string ReportSFTUploadingChannelCode { get; private set; }
         public static string ReportSFTUploadingPathAMC { get; private set; }
-        public static string ReportSFTUploadingPathCL { get; private set; }
 
         public static readonly DateTime Now = DateTime.UtcNow;
 
@@ -90,7 +90,6 @@ namespace AM.Console
             }
 
             ReportSFTUploadingPathAMC = ConfigurationManager.AppSettings["ReportSFTUploadingPathAMC"];
-            ReportSFTUploadingPathCL = ConfigurationManager.AppSettings["ReportSFTUploadingPathCL"];
         }
 
         public static void CleanDirectory(string path)

@@ -631,7 +631,10 @@ namespace AM.Console
             foreach (var batch in resReceivedBatches)
             {
                 Client client = clientSvc.GetClientDetails(batch.ClientId).Single();
-                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelCode("USAA_CL");
+
+                //Here for now we are taking SFT Code to Upload Reports on different channel
+
+                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelCode(Common.ReportSFTUploadingChannelCode);
                 if (sftChannelDetails != null)
                 {
                     SFTUtil sftSite = null;
@@ -645,7 +648,8 @@ namespace AM.Console
                         log.Error(ex);
                     }
 
-                    string uploadPath = sftChannelDetails.Code == "AMC_Internal" ? Common.ReportSFTUploadingPathAMC : Common.ReportSFTUploadingPathCL;
+                    string uploadPath = Common.ReportSFTUploadingPathAMC;
+
                     if (sftSite.IsDownloadDirectoryAvailable(uploadPath))
                     {
                         MailBatchInfo mbi = new MailBatchInfo(batch, client, sftChannelDetails, Common.AuthoMailRootFolder);
