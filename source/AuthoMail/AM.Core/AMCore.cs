@@ -182,7 +182,7 @@ namespace AM.Core
                 if (validMailPieces.Count == 0)
                 {
                     mailBatch.ValidationStatus = BatchValidationStatus.Invalid;
-                    mailBatch.ValidationErrors = "Batch does not contains any valid mail pieces to process further.";
+                    mailBatch.ValidationErrors = "Batch does not contain any valid mail pieces to process further.";
 
                     mailBatchSvc.UpdateBatchDetails(mailBatch);
                     commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationEnd, Common.Now);
@@ -278,11 +278,7 @@ namespace AM.Core
                         try
                         {
                             //TODO: Add Validation For Directory Full Access Read/Write/Delete
-
-                            if (!Directory.Exists(batchSubmitPath))
-                            {
-                                Directory.CreateDirectory(batchSubmitPath);
-                            }
+                            batchSubmitPath.CleanDirectory();
                         }
                         catch (Exception ex)
                         {
