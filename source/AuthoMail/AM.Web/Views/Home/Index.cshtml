@@ -257,9 +257,9 @@
                     var endDate = response[0].Date;
                     //console.log(startDate + " " + endDate);
                     for (var i = 1; i <= response.length; i++) {
-                        console.log(moment(response[cnt].Date).format("MM/DD/YYYY") == moment().format("MM/DD/YYYY") + " " + cnt + " " + i);
-                        var day = moment(response[cnt].Date).format("MM/DD/YYYY") == moment().format("MM/DD/YYYY") ? "Today" : moment(response[cnt].Date).format("ddd");
-                        chartData.push([day, response[cnt].InProgress, response[cnt].Failed, response[cnt].ShippedPartial, response[cnt].ShippedAll, moment(response[cnt].Date).format("MM/DD/YYYY hh:mm:ss a")]);
+                        //console.log(moment(response[cnt].Date).format("MM/DD/YYYY") == moment().format("MM/DD/YYYY") + " " + cnt + " " + i);
+                        //var day = moment(response[cnt].Date).format("MM/DD/YYYY") == moment().format("MM/DD/YYYY") ? "Today" : moment(response[cnt].Date).format("ddd");
+                        chartData.push([response[cnt].Weekday, response[cnt].InProgress, response[cnt].Failed, response[cnt].ShippedPartial, response[cnt].ShippedAll, moment(response[cnt].Date).format("MM/DD/YYYY hh:mm:ss a")]);
                         cnt++;
                     }
                    // console.log(chartData);
