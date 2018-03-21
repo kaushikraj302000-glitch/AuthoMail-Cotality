@@ -79,10 +79,10 @@ namespace AM.Services
 
             #region WEB AccountController
             //Account Controller Login Messages
-            Msg_Web_Login_InvalidUserName = "Invalid Username.";
+            Msg_Web_Login_InvalidUserName = "Invalid username.";
             Msg_Web_Login_EmailConfirm = "Please confirm email address.";
             Msg_Web_Login_Default = "Invalid login attempt.";
-            Msg_Web_Login_Success = "Login success.";
+            Msg_Web_Login_Success = "Login successful.";
             MSG_WEB_Lockout = "This account has been locked out, please try again later.";
             MSG_WEB_Error = "An error occurred while processing your request.";
             #endregion
@@ -94,7 +94,7 @@ namespace AM.Services
             #endregion
 
             #region WEB RequestPullBackController
-            Msg_Web_NoMailPieceSelect = "Please select MailPiece(s).";
+            Msg_Web_NoMailPieceSelect = "Please select at least one mailpiece.";
             #endregion
 
             #region WEB HomeController
