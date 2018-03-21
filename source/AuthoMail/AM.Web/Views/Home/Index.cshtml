@@ -213,6 +213,7 @@
                 success: function (response) {
                     el.html(response);
                     $("#batchMailPieceModal").modal("show");
+                    setModalHeight("batchMailPieceModal");
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     el.html("<div class='alert alert-red'><span>" + commonmsg + "</span></div>");
@@ -231,6 +232,7 @@
                 success: function (response) {
                     el.html(response);
                     $("#batchModal").modal("show");
+                    setModalHeight("batchModal");
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     el.html("<div class='alert alert-red'><span>" + commonmsg + "</span></div>");
@@ -262,7 +264,7 @@
                         chartData.push([response[cnt].Weekday, response[cnt].InProgress, response[cnt].Failed, response[cnt].ShippedPartial, response[cnt].ShippedAll, moment(response[cnt].Date).format("MM/DD/YYYY hh:mm:ss a")]);
                         cnt++;
                     }
-                   // console.log(chartData);
+                    // console.log(chartData);
                     drawChart(chartData, "weeklyChart", 'Batch Details : ' + moment(startDate).format('MM/DD/YYYY') + " - " + moment(endDate).format('MM/DD/YYYY'));
 
                 },
@@ -289,7 +291,7 @@
                         return;
                     }
                     var chartData = [];
-                    chartData.push(['BatchName', 'InProgress', 'Error', 'PulledBack', 'Shipped','BatchId']);
+                    chartData.push(['BatchName', 'InProgress', 'Error', 'PulledBack', 'Shipped', 'BatchId']);
                     var cnt = 0;
                     for (var i = 1; i <= response.length; i++) {
 
@@ -310,6 +312,21 @@
         function showModal() {
             $("#batchModal").modal("show");
         }
+        function setModalHeight(id) {
+            var bodyHeight = $("body").height();
+            var modalHeight = $("#" + id).find(".modal-body").height();
+            //console.log(bodyHeight + " " + modalHeight);
+            if (bodyHeight > modalHeight) {
+                $("#" + id).find(".modal-body").height(bodyHeight - 500);
+                $("#" + id).find(".modal-body").css("overflow-y", "scroll");
+            }
+            else {
+                $("#" + id).find(".modal-body").height(400);
+                
+            }
+
+        }
+
         function GetMailPieceById(batchId) {
             var el = $("#WeeklybatchMailPieceModal").find(".modal-body");
             $.ajax({
@@ -321,6 +338,7 @@
                     el.html(response);
                     $("#batchModal").modal("hide");
                     $("#WeeklybatchMailPieceModal").modal("show");
+                    setModalHeight("WeeklybatchMailPieceModal");
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     el.html("<div class='alert alert-red'><span>" + commonmsg + "</span></div>");
@@ -382,7 +400,7 @@
                 contentType: "application/json; charset=utf-8",
                 dataType: "JSON",
                 success: function (response) {
-                   // console.log(response);
+                    // console.log(response);
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     //console.log(xhr)
@@ -549,7 +567,7 @@
             e.preventDefault();
             $("#confirmModal").modal("hide");
             var mailpieceId = $("#sample_2").find(".mailpieceid").data("mailpieceid");
-          //  console.log($("#sample_2").find(".mailpieceid").data("mailpieceid"));
+            //  console.log($("#sample_2").find(".mailpieceid").data("mailpieceid"));
             SendPullBackRequest(mailpieceId);
             @*var el = $("#myModal").find('.modal-body');
             $.ajax({
