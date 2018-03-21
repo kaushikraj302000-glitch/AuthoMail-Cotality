@@ -16,6 +16,7 @@ namespace AM.Services
         public string ClientBatchId { get; set; }
         public string BatchName { get; set; }
         public string Channel { get; set; }
+        public string ChannelCode { get; set; }
         public string DocumentOrPackageType { get; set; }
         public string BusinessFriendlyIdName { get; set; }
         public string BusinessFriendlyIdValue { get; set; }
@@ -78,6 +79,7 @@ namespace AM.Services
         public string ClientBatchId { get; set; }
         public string BatchName { get; set; }
         public string Channel { get; set; }
+        public string ChannelCode { get; set; }
         public string DocumentOrPackageType { get; set; }
         public string BusinessFriendlyIdName { get; set; }
         public string BusinessFriendlyIdValue { get; set; }
@@ -121,6 +123,7 @@ namespace AM.Services
         public Guid MailPieceUniqueId { get; set; }
         public string ClientBatchId { get; set; }
         public string Channel { get; set; }
+        public string ChannelCode { get; set; }
         public string DocumentOrPackageType { get; set; }
         public string BusinessFriendlyIdName { get; set; }
         public string BusinessFriendlyIdValue { get; set; }
@@ -177,6 +180,7 @@ namespace AM.Services
         public string ClientBatchId { get; set; }
         public string BatchName { get; set; }
         public string Channel { get; set; }
+        public string ChannelCode { get; set; }
         public string DocumentOrPackageType { get; set; }
         public string BusinessFriendlyIdName { get; set; }
         public string BusinessFriendlyIdValue { get; set; }

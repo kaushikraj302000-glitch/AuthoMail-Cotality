@@ -185,6 +185,7 @@
     <Compile Include="App_Start\Startup.Auth.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\ChartApiController.cs" />
+    <Compile Include="Controllers\CommonController.cs" />
     <Compile Include="Models\ChartViewModel.cs" />
     <Compile Include="Models\CLAuthentication.cs" />
     <Compile Include="Models\PullBackResponse.cs" />
@@ -422,6 +423,7 @@
     <None Include="Service References\USPSIMService\USPSIM2.xsd">
       <SubType>Designer</SubType>
     </None>
+    <Content Include="Views\Common\_Channel.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
