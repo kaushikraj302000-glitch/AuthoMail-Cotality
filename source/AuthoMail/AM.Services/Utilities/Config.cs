@@ -33,6 +33,8 @@ namespace AM.Services
         public static string Msg_Web_Login_EmailConfirm { get; private set; }
         public static string Msg_Web_Login_Default { get; private set; }
         public static string Msg_Web_Login_Success { get; private set; }
+        public static string MSG_WEB_Lockout { get; private set; }
+        public static string MSG_WEB_Error { get; private set; }
         #endregion
 
         #region WEB Common Msg
@@ -81,6 +83,8 @@ namespace AM.Services
             Msg_Web_Login_EmailConfirm = "Please confirm email address.";
             Msg_Web_Login_Default = "Invalid login attempt.";
             Msg_Web_Login_Success = "Login success.";
+            MSG_WEB_Lockout = "This account has been locked out, please try again later.";
+            MSG_WEB_Error = "An error occurred while processing your request.";
             #endregion
 
             #region WEB Common Msg
