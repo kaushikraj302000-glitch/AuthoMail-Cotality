@@ -101,7 +101,7 @@ namespace AM.Services
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@clientId", clientId);
             
-            query = string.Format("{0} AND ShippingStatus IN ('{0}','{1}') ", query, ShippingStatus.Shipped.ToString(), ShippingStatus.InProgress.ToString());
+            query = string.Format("{0} AND ShippingStatus IN ('{1}','{2}') ", query, ShippingStatus.Shipped.ToString(), ShippingStatus.InProgress.ToString());
             //parameters.Add("@shippingstatus", new List<string>() { ShippingStatus.Shipped.ToString(), ShippingStatus.InProgress.ToString() });//Need to verify
 
             DateTime startDate = (date.Date + new TimeSpan(00, 00, 00));
