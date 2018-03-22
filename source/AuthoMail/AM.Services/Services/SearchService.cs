@@ -16,12 +16,12 @@ namespace AM.Services
     {
         public List<MailPieceSearch> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel)
         {
-            string query = "select * from [dbo].[view_MailPieceByParam] WHERE ClientId=@clientId AND (CAST(ReceivedOn as date) >=CAST(@startDate as date) AND CAST(ReceivedOn as date)<=CAST(@endDate as date))";
+            string query = "select * from [dbo].[view_MailPieceByParam] WHERE ClientId=@clientId AND (ReceivedOn between @startDate and @endDate)";
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@clientId", clientId);
-            parameters.Add("@startDate", startDate.EstToUtc());
-            parameters.Add("@endDate", endDate.EstToUtc());
+            parameters.Add("@startDate", (startDate + new TimeSpan(00, 00, 00)).EstToUtc());
+            parameters.Add("@endDate", (endDate + new TimeSpan(23, 59, 59)).EstToUtc());
             if (!businessFriendlyIdName.IsNullOrWhiteSpace() && !businessFriendlyIdValue.IsNullOrWhiteSpace())
             {
                 query = string.Format("{0} AND (BusinessFriendlyIdName=@businessFriendlyIdName AND BusinessFriendlyIdValue=@businessFriendlyIdValue)", query);
