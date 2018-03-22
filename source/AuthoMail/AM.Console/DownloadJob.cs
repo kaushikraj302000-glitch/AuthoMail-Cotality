@@ -87,6 +87,7 @@ namespace AM.Console
                                     mailBatch.ClientBatchId = batchName;
                                     mailBatch.UniqueId = Guid.NewGuid();
                                     mailBatch.Priority = Priority.Medium.ToString();
+                                    mailBatch.PrintLocation = "Fort Mill, SC";
 
                                     //Insert New Batch Entry
                                     mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
@@ -184,7 +185,7 @@ namespace AM.Console
             // If the zip file is not available in the FTP folder then log that error.
             mailBatch.ValidationStatus = BatchValidationStatus.Invalid;
             mailBatch.ValidationErrors = error;
-
+            mailBatch.PrintLocation = string.Empty;
             //Update Batch Details
             mailBatchSvc.UpdateBatchDetails(mailBatch);
 
