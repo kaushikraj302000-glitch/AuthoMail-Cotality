@@ -271,7 +271,7 @@ namespace AM.Console
             return returnCode;
         }
 
-        public static StringBuilder USAAErrorReport(BatchData data, string sftChannelName)
+        public static StringBuilder USAAErrorReport(BatchData data, string sftChannelName, string timeZone)
         {
             StringBuilder errorReport = new StringBuilder("BatchID,ID,Channel,Package Name,Loan Number,File Name,Date Received,First Name,Last Name,Recipient Street Address,Recipient City,Recipient State,Recipient Zip,Error Code,Error Text,Shipping Method,Customer Identifier,RequestID");
 
@@ -287,7 +287,7 @@ namespace AM.Console
                         mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType,
                         mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
                         mailPiece.FileName == null ? string.Empty : mailPiece.FileName,
-                        data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.UtcToEst().ToString(),
+                        data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
                         mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName,
                         mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName,
                         mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet,
@@ -304,7 +304,7 @@ namespace AM.Console
             return errorReport;
         }
 
-        public static StringBuilder USAADailyDetailOperationReport(BatchData data, string sftChannelName)
+        public static StringBuilder USAADailyDetailOperationReport(BatchData data, string sftChannelName, string timeZone)
         {
             StringBuilder deliveryReport = new StringBuilder("BatchID,ID,Channel,Package Name,Loan Number,File Name,Date Received,Date Printed,Date Mailed,Client Code,Tracking Number,Shipping Method,Customer Identifier,First Name,Last Name,Recipient Street Address,Recipient City,Recipient State,Recipient Zip,RequestID,Print Location,Pages Shipped");
 
@@ -320,9 +320,9 @@ namespace AM.Console
                         mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType,
                         mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
                         mailPiece.FileName == null ? string.Empty : mailPiece.FileName,
-                        data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.UtcToEst().ToString(),
-                        mailPiece.PrintedOn == null ? string.Empty : mailPiece.PrintedOn.Value.UtcToEst().ToString(),
-                        mailPiece.ShippedOn == null ? string.Empty : mailPiece.ShippedOn.Value.UtcToEst().ToString(),
+                        data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
+                        mailPiece.PrintedOn == null ? string.Empty : mailPiece.PrintedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
+                        mailPiece.ShippedOn == null ? string.Empty : mailPiece.ShippedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
                         data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingCredCode").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingCredCode").FirstOrDefault().Value,
                         mailPiece.TrackingNo == null ? string.Empty : mailPiece.TrackingNo,
                         data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault().Value,
