@@ -29,14 +29,14 @@
                     <div class="form-group">
                         <label for="Status">Select Date Type</label>
                         <select class="selectpicker" id="filterBy">
-                            <option value="DueDate">By Due Date</option>
-                            <option value="ReceivedOn">By Received Date</option>
+                            <option value="ByDueDate">By Due Date</option>
+                            <option value="ByReceivedOn">By Received Date</option>
                         </select>
                     </div>
                 </div>
                 <div class="col-md-3" >
                     <div class="form-group">
-                        <label for="dp4" id="ByDate">Due Date @*(In your local timezone)*@</label>
+                        <label for="dp4" id="ByDate">Due Date(EST)</label>
                         <div class="input-group date" id="datepicker4">
                             <input type="text" class="form-control" id="dp4">
                             <span class="input-group-addon">
@@ -80,9 +80,9 @@
             FilterData();
         });
         $("#filterBy").change(function () {
-            if ($(this).val() == "ReceivedOn") {
+            if ($(this).val() == "ByReceivedOn") {
                 $("#ByDate").text("Received Date");
-            } else if ($(this).val() == "DueDate") {
+            } else if ($(this).val() == "ByDueDate") {
                 $("#ByDate").text("Due Date");
             } else {
                 $("#ByDate").text("Select Date");

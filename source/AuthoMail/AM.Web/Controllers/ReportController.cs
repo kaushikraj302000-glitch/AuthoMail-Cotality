@@ -6,6 +6,7 @@ using System.Web;
 using System.Web.Mvc;
 using AM.Entities.IdentityModels;
 using AM.Web.Models;
+using System.Globalization;
 namespace AM.Web.Controllers
 {
     public class ReportController : Controller
@@ -13,6 +14,7 @@ namespace AM.Web.Controllers
         // GET: Report
         IHomeService homeSvc;
         IReportService repoSvc;
+        private IFormatProvider CurrentCulture;
         public ReportController(IHomeService homeSvc, IReportService repoSvc)
         {
             this.homeSvc = homeSvc;
@@ -24,11 +26,13 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult _GetSummaryControlReport(string startDate,string endDate, string channel)
+        public ActionResult _GetSummaryControlReport(string startDate, string endDate, string channel)
         {
-            ViewBag.Date = string.Format("{0} to {1}", startDate, endDate);
-            //Update startdate and enddate
-            var model = repoSvc.GetSummaryControlReport(User.Identity.GetClientId().Value, DateTime.Parse(startDate), DateTime.Parse(endDate), channel);
+            var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+
+            ViewBag.Date = string.Format("{0} to {1}", exactStartDate.ToString("MM/dd/yy HH:mm:ss"), exactEndDate.ToString("MM/dd/yy HH:mm:ss"));
+            var model = repoSvc.GetSummaryControlReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate, channel);
             List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
             foreach (var item in model)
             {
@@ -55,10 +59,13 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult _MonthReconReport(string loanNumber, string docType, DateTime startDate, DateTime endDate, string channel)
+        public ActionResult _MonthReconReport(string loanNumber, string docType, string startDate, string endDate, string channel)
         {
-            ViewBag.Date = string.Format("{0} to {1}", startDate.ToString("MM/dd/yy"), endDate.ToString("MM/dd/yy"));
-            var model = repoSvc.GetMonthlyReconReport(User.Identity.GetClientId().Value, startDate, endDate,channel);
+            var exactStartDate = DateTime.ParseExact(startDate, "M/d/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            var exactEndDate = DateTime.ParseExact(endDate, "M/d/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+
+            ViewBag.Date = string.Format("{0} to {1}", exactStartDate.ToString("MM/dd/yy"), exactEndDate.ToString("MM/dd/yy"));
+            var model = repoSvc.GetMonthlyReconReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate, channel);
             return PartialView("_GetMailPieceList", model);
         }
 
@@ -87,10 +94,11 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult _GetErrorsReport(DateTime date, string channel)
+        public ActionResult _GetErrorsReport(string date, string channel)
         {
-            ViewBag.Date = date.ToString("MM/dd/yy");
-            var model = repoSvc.GetErrorReportByDateOrBatch(User.Identity.GetClientId().Value, date, null, channel);
+            var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            ViewBag.Date = exactDate.ToString("MM/dd/yy");
+            var model = repoSvc.GetErrorReportByDateOrBatch(User.Identity.GetClientId().Value, exactDate, null, channel);
             List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
             foreach (var item in model)
             {
@@ -114,12 +122,13 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult _GetErrorsSLAReport(DateTime date, string filterBy, string docType)
+        public ActionResult _GetErrorsSLAReport(string date, string filterBy, string docType)
         {
-            ViewBag.Date = date.ToString("MM/dd/yy");
-            
+            var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            ViewBag.Date = exactDate.ToString("MM/dd/yy");
+
             //Update startDate and endDate
-            var model = repoSvc.GetSLAMissErrorReportByDateOrBatch(User.Identity.GetClientId().Value,date, null,docType,filterBy);
+            var model = repoSvc.GetSLAMissErrorReportByDateOrBatch(User.Identity.GetClientId().Value, exactDate, null, docType, filterBy);
             List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
             foreach (var item in model)
             {
@@ -141,10 +150,11 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult _GetDailyDetailOperationsReport(DateTime date, string channel)
+        public ActionResult _GetDailyDetailOperationsReport(string date, string channel)
         {
-            ViewBag.Date = date.ToString("MM/dd/yy");
-            var model = repoSvc.GetDailyDetailOperationsByDateOrBatch(User.Identity.GetClientId().Value, date, null, channel);
+            var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            ViewBag.Date = exactDate.ToString("MM/dd/yy");
+            var model = repoSvc.GetDailyDetailOperationsByDateOrBatch(User.Identity.GetClientId().Value, exactDate, null, channel);
             List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
             foreach (var item in model)
             {
@@ -153,11 +163,11 @@ namespace AM.Web.Controllers
                     Key = item.BatchId,
                     Value = string.Format("{0} - {1}", item.ReceivedOn.ToString("H:mm"), item.BatchName)
                 });
-                if (!reportViewModel.Any(s=>s.Value==reportModel.Value))
+                if (!reportViewModel.Any(s => s.Value == reportModel.Value))
                 {
                     reportViewModel.Add(reportModel);
                 }
-               
+
             }
             ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
             return PartialView(model);
