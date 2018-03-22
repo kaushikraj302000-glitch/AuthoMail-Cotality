@@ -15,7 +15,7 @@ namespace AM.Services
         List<DailyDetailOperationsReport> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel);
         List<ErrorReport> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel);
         List<SummaryControlReport> GetSummaryControlReport(int clientId, DateTime startDate, DateTime endDate, string channel);
-        List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime? startDate, DateTime? endDate, int? batchId, string docType);
+        List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime date, int? batchId, string docType, string filterBy);
         List<MonthlyReconReport> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel);
         List<ChannelCodeTitle> GetChannelTitle(List<string> channelCodes);
     }
@@ -29,8 +29,11 @@ namespace AM.Services
             parameters.Add("@shippingstatus", ShippingStatus.Shipped.ToString());
             if (date.HasValue)
             {
-                query = string.Format("{0} AND cast(ReceivedOn as date) = cast(@date as date)", query);
-                parameters.Add("@date", date.Value.EstToUtc());
+                DateTime startDate = (date.Value + new TimeSpan(00, 00, 00));
+                DateTime endDate = (date.Value + new TimeSpan(23, 59, 59));
+                query = string.Format("{0} AND ReceivedOn between @startDate and @endDate", query);
+                parameters.Add("@startDate", startDate.EstToUtc());
+                parameters.Add("@endDate", endDate.EstToUtc());
             }
             if (batchId.HasValue)
             {
@@ -54,8 +57,11 @@ namespace AM.Services
             parameters.Add("@shippingstatus", ShippingStatus.Error.ToString());
             if (date.HasValue)
             {
-                query = string.Format("{0} AND cast(ReceivedOn as date) = cast(@date as date)", query);
-                parameters.Add("@date", date.Value.EstToUtc());
+                DateTime startDate = (date.Value + new TimeSpan(00, 00, 00));
+                DateTime endDate = (date.Value + new TimeSpan(23, 59, 59));
+                query = string.Format("{0} AND ReceivedOn between @startDate and @endDate", query);
+                parameters.Add("@startDate", startDate.EstToUtc());
+                parameters.Add("@endDate", endDate.EstToUtc());
             }
 
             if (batchId.HasValue)
@@ -89,18 +95,19 @@ namespace AM.Services
             return data;
         }
 
-        public List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime? startDate, DateTime? endDate, int? batchId, string docType)
+        public List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime date, int? batchId, string docType, string filterBy)
         {
             string query = ReportServiceQuery.GetSLAMissErrorReportByDateOrBatch;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@clientId", clientId);
             //parameters.Add("@shippingstatus", ShippingStatus.Error.ToString());//Need to verify
-            if (startDate.HasValue && endDate.HasValue)
-            {
-                query = string.Format("{0} AND (ReceivedOn >= @startDate) AND (ReceivedOn <= @endDate)", query);
-                parameters.Add("@startDate", startDate.Value.EstToUtc());
-                parameters.Add("@endDate", endDate.Value.EstToUtc());
-            }
+
+            DateTime startDate = (date + new TimeSpan(00, 00, 00));
+            DateTime endDate = (date + new TimeSpan(23, 59, 59));
+            query = string.Format("{0} AND {1} between @startDate and @endDate", query, filterBy);
+            parameters.Add("@startDate", startDate.EstToUtc());
+            parameters.Add("@endDate", endDate.EstToUtc());
+
             //Also verify need to define time in below clause. also check time?
             if (batchId.HasValue)
             {
