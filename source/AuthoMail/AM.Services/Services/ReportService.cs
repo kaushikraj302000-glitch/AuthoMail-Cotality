@@ -29,8 +29,8 @@ namespace AM.Services
             parameters.Add("@shippingstatus", ShippingStatus.Shipped.ToString());
             if (date.HasValue)
             {
-                DateTime startDate = (date.Value + new TimeSpan(00, 00, 00));
-                DateTime endDate = (date.Value + new TimeSpan(23, 59, 59));
+                DateTime startDate = (date.Value.Date + new TimeSpan(00, 00, 00));
+                DateTime endDate = (date.Value.Date + new TimeSpan(23, 59, 59));
                 query = string.Format("{0} AND (ReceivedOn between @startDate and @endDate)", query);
                 parameters.Add("@startDate", startDate.EstToUtc());
                 parameters.Add("@endDate", endDate.EstToUtc());
@@ -57,8 +57,8 @@ namespace AM.Services
             parameters.Add("@shippingstatus", ShippingStatus.Error.ToString());
             if (date.HasValue)
             {
-                DateTime startDate = (date.Value + new TimeSpan(00, 00, 00));
-                DateTime endDate = (date.Value + new TimeSpan(23, 59, 59));
+                DateTime startDate = (date.Value.Date + new TimeSpan(00, 00, 00));
+                DateTime endDate = (date.Value.Date + new TimeSpan(23, 59, 59));
                 query = string.Format("{0} AND (ReceivedOn between @startDate and @endDate)", query);
                 parameters.Add("@startDate", startDate.EstToUtc());
                 parameters.Add("@endDate", endDate.EstToUtc());
@@ -102,8 +102,18 @@ namespace AM.Services
             parameters.Add("@clientId", clientId);
             //parameters.Add("@shippingstatus", ShippingStatus.Error.ToString());//Need to verify
 
-            DateTime startDate = (date + new TimeSpan(00, 00, 00));
-            DateTime endDate = (date + new TimeSpan(23, 59, 59));
+            DateTime startDate = (date.Date + new TimeSpan(00, 00, 00));
+            DateTime endDate = (date.Date + new TimeSpan(23, 59, 59));
+
+            if (filterBy == "ByReceivedOn")
+            {
+                filterBy = "ReceivedOn";
+            }
+            else
+            {
+                filterBy = "DueDate";
+            }
+
             query = string.Format("{0} AND ({1} between @startDate and @endDate)", query, filterBy);
             parameters.Add("@startDate", startDate.EstToUtc());
             parameters.Add("@endDate", endDate.EstToUtc());
@@ -130,8 +140,8 @@ namespace AM.Services
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@clientId", clientId);
             parameters.Add("@shippingStatus", ShippingStatus.Shipped.ToString());
-            parameters.Add("@startDate", (startDate + new TimeSpan(00, 00, 00)).EstToUtc());
-            parameters.Add("@endDate", (endDate + new TimeSpan(23, 59, 59)).EstToUtc());
+            parameters.Add("@startDate", (startDate.Date + new TimeSpan(00, 00, 00)).EstToUtc());
+            parameters.Add("@endDate", (endDate.Date + new TimeSpan(23, 59, 59)).EstToUtc());
             if (!channel.IsNullOrWhiteSpace())
             {
                 query = string.Format("{0} AND ChannelCode=@channel", query);
