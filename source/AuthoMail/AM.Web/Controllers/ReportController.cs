@@ -114,12 +114,12 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult _GetErrorsSLAReport(string startDate,string endDate, string docType)
+        public ActionResult _GetErrorsSLAReport(DateTime date, string filterBy, string docType)
         {
-            ViewBag.Date =string.Format("{0} to {1}",startDate,endDate);
+            ViewBag.Date = date.ToString("MM/dd/yyyy");
             
             //Update startDate and endDate
-            var model = repoSvc.GetSLAMissErrorReportByDateOrBatch(User.Identity.GetClientId().Value,DateTime.Parse(startDate), DateTime.Parse(endDate), null,docType);
+            var model = repoSvc.GetSLAMissErrorReportByDateOrBatch(User.Identity.GetClientId().Value,date, null,docType,filterBy);
             List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
             foreach (var item in model)
             {
