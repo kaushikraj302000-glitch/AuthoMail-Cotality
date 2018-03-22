@@ -43,7 +43,7 @@ namespace AM.Web.Controllers
             }
             else if (model.Count == 1)
             {
-                var pullbackRequestData = pullBackSvc.GetPullBackRequestList(BusinessFriendlyIdName, BusinessFriendlyIdValue, null, startDate,endDate, User.Identity.GetClientId().Value);
+                var pullbackRequestData = pullBackSvc.GetPullBackRequestList(BusinessFriendlyIdName, BusinessFriendlyIdValue, null, startDate, endDate, User.Identity.GetClientId().Value);
                 return PartialView("_PullBackRequestData", pullbackRequestData);
             }
             else
@@ -60,10 +60,10 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult _GetSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, DateTime receivedOnStart, DateTime receivedOnEnd,string status,string channel,string docType)
+        public ActionResult _GetSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, DateTime receivedOnStart, DateTime receivedOnEnd, string status, string channel, string docType)
         {
             ViewBag.Date = string.Format("{0} To {1}", receivedOnStart.ToString("MM/dd/yyyy"), receivedOnEnd.ToString("MM/dd/yyyy"));
-            var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue,receivedOnStart,receivedOnEnd,docType,status,channel);
+            var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, receivedOnStart, receivedOnEnd, docType, status, channel);
             //ViewBag.BusinessId = se.(User.Identity.GetClientId().Value);
             return PartialView(data);
         }
@@ -109,13 +109,10 @@ namespace AM.Web.Controllers
         [HttpPost]
         public ActionResult USPSTracking(string TrackingNo, string ShippingMethod)
         {
-            if (ShippingMethod=="USPS")
-            {
-                 USPSIMClient uspsClient = new USPSIMClient();
-                USPSTrackingInfo USPSInfo = uspsClient.GetShipmentStatus(TrackingNo);
-                return Json(USPSInfo, JsonRequestBehavior.AllowGet);
-            }
-            return Json(Config.Msg_Web_NoRecordFound,JsonRequestBehavior.AllowGet);
+            USPSIMClient uspsClient = new USPSIMClient();
+            USPSTrackingInfo USPSInfo = uspsClient.GetShipmentStatus(TrackingNo);
+            return PartialView("_TrackingInfo",USPSInfo);
+
         }
         public ActionResult About()
         {
