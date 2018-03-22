@@ -412,7 +412,7 @@ namespace AM.Core
                         if (File.Exists(amRootFilePath))
                         {
                             var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(downloadableBatch.MailBatchId);
-                            var mbi = new MailBatchInfo(batchData.MailBatch, client);
+                            var mbi = new MailBatchInfo(batchData.MailBatch, client, null, Common.AuthoMailRootFolder);
 
                             string amPnSResponsePath = Path.Combine(mbi.PnSResponsePath, responseFileName);
 
