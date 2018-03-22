@@ -424,6 +424,7 @@
       <SubType>Designer</SubType>
     </None>
     <Content Include="Views\Common\_Channel.cshtml" />
+    <Content Include="Views\Home\_TrackingInfo.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

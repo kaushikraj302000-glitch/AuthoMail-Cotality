@@ -49,12 +49,7 @@
                         </button>
                     </div>
                 </div>
-                <div class="col-md-3" id="showBatch" style="display:none">
-                    <div class="form-group">
-                        <label for="input1">Select Batch</label>
-                        <div id="batchselection"></div>
-                    </div>
-                </div>
+                
             </div>
         </div>
     </div>
@@ -73,8 +68,8 @@
         });
         function FilterData() {
             var el = $('#errorBatchList');
-            var startDate = moment($("#dp4").val() + ' @AM.Services.Config.StartCutOffTime').subtract(1, 'days').format("DD-MMM-YYYY HH:mm:ss");
-            var endDate = moment($("#dp4").val() + ' @AM.Services.Config.EndCutOffTime').format("DD-MMM-YYYY HH:mm:ss");
+            var startDate = moment($("#dp4").val() + ' @AM.Services.Config.StartCutOffTime').subtract(1, 'days').format("MM/DD/YYYY HH:mm:ss");
+            var endDate = moment($("#dp4").val() + ' @AM.Services.Config.EndCutOffTime').format("MM/DD/YYYY HH:mm:ss");
             console.log(startDate + " " + endDate)
             el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
             $.ajax({
@@ -84,20 +79,6 @@
                 contentType: "application/json; charset=utf-8",
                 success: function (res) {
                     el.html(res);
-
-                    $("#batchselection").html(el.find("#hideSelection").html());
-                    $('#BatchList').addClass("selectpicker");
-                    $('.selectpicker').selectpicker('refresh');
-
-                    if ($('select#BatchList option').length > 2) {
-                        $("#showBatch").show();
-                    }
-                    $("#hideSelection").html("");
-                    $('#BatchList').on('change', function () {
-                        var selected = $(this).find("option:selected").val();
-                        var oTable = $('#sample_2').dataTable();
-                        oTable.fnFilter("^" + parseInt(selected) + "$", 10, true); //Exact value, column, reg
-                    });
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     var msg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';

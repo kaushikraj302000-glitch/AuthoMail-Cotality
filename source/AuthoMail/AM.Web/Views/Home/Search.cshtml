@@ -161,6 +161,7 @@
         $(document).ready(function () {
             window.clui.dateTimePickerInit();
             FilterData();
+            // JSON.useDateParser(false);
         });
         function FilterData() {
 
@@ -199,6 +200,7 @@
         });
         function GetTrackingInfo(TrackingNo, ShippingMethod) {
             //
+
             var el = $('#TrackingInfo').find('.modal-body');
             $.ajax({
                 type: "POST",
@@ -208,25 +210,9 @@
                     ShippingMethod: ShippingMethod
                 }),
                 contentType: "application/json; charset=utf-8",
-                success: function (res) {
-                    console.log(res);
-                    if (res.MailRoute.lenght > 0) {
-                        var msgAdd = "<ul>";
+                success: function (response) {
+                    el.html(response);
 
-                        msgAdd += "<li><span class='text-bright-blue '>Facility Id:" + MailRoute[0].FacilityID + "</span></li>";
-                        msgAdd += "<li><span class='text-bright-blue '>Facility Name:" + MailRoute[0].FacilityName + "</span></li>";
-                        msgAdd += "<li><span class='text-bright-blue '>City:" + MailRoute[0].City + "</span></li>";
-                        msgAdd += "<li><span class='text-bright-blue '>Operation Code:" + MailRoute[0].OperationCode + "</span></li>";
-                        msgAdd += "<li><span class='text-bright-blue '>Scan Date:" + MailRoute[0].ScanDate + "</span></li>";
-                        msgAdd += "<li><span class='text-bright-blue '>Routing Code:" + res.RoutingCode + "</span></li>";
-                        msgAdd += "<li><span class='text-bright-blue '>Tracking Code:" + res.TrackingCode + "</span></li>";
-
-                        msgAdd += "</ul>";
-                    }
-                    else {
-                        var msg = '@AM.Services.Config.Msg_Web_NoRecordFound';
-                        el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
-                    }
                     $("#TrackingInfo").modal("show");
                 },
                 error: function (xhr, ajaxOptions, thrownError) {

@@ -1,7 +1,16 @@
 ﻿@model ICollection<AM.Services.DailyDetailOperationsReport>
-
+<style>
+    .bootstrap-select {
+        width: 200px !important;
+    }
+</style>
 <div class="panel-heading">
-    <div class="panel-title">Daily Detail Operations : @ViewBag.Date</div>
+    <div class="panel-title">Daily Detail Operations : <span class="normaltext">@ViewBag.Date EST</span>
+        <label for="input1">Select Batch</label>
+        <span>
+            @Html.DropDownList("BatchList", ViewBag.BatchList as SelectList, "(Time) - (Batch Name)", new { @class = "selectpicker" })
+        </span>
+    </div>
 </div>
 <div class="panel-body">
     @if (Model.Count > 0)
@@ -22,7 +31,7 @@
                     <th>Client Code</th>
                     <th>Tracking Number</th>
                     <th>Shipping Method</th>
-                    <th>Customer Identifier</th>
+                    @*<th>Customer Identifier</th>*@
                     <th>First Name</th>
                     <th>Last Name</th>
                     <th>Recipient Street Address</th>
@@ -48,10 +57,10 @@
                         <td><span>@item.ReceivedOn</span></td>
                         <td><span>@item.PrintedOn</span></td>
                         <td><span>@item.MailedOn</span></td>
-                        <td><span>@item.ClientId</span></td>
+                        <td><span>@item.ClientCode</span></td>
                         <td><span>@item.TrackingNo</span></td>
                         <td><span>@item.ShippingMethod</span></td>
-                        <td><span>@item.CustomerIdentifier</span></td>
+                        @*<td><span>@item.CustomerIdentifier</span></td>*@
                         <td><span>@item.RcptFirstName</span></td>
                         <td><span>@item.RcptLastName </span></td>
                         <td><span>@item.RcptAddressStreet</span></td>
@@ -77,10 +86,7 @@
         </div>
     }
 </div>
-<div id="hideSelection">
 
-    @Html.DropDownList("BatchList", ViewBag.BatchList as SelectList, "Select Batch")
-</div>
 <script type="text/javascript">
     $(document).ready(function () {
         var table = $('#sample_2');
@@ -103,7 +109,7 @@
             },
             "columnDefs": [
                     {
-                        "targets": [22],
+                        "targets": [21],
                         "visible": false,
                         "searchable": true
                     },
@@ -123,7 +129,7 @@
                 filename: filename,
                 title: title,
                 exportOptions: {
-                    columns: [0,1, 2, 3, 4, 5, 6, 7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
+                    columns: [0,1, 2, 3, 4, 5, 6, 7,8,9,10,11,12,13,14,15,16,17,18,19,20]
                 }
 
             }
@@ -145,7 +151,16 @@
 
 
         });
-        
+        $('.selectpicker').selectpicker('refresh');
+        $('#BatchList').on('change', function () {
+            var oTable = $('#sample_2').dataTable();
+            var selected = $(this).find("option:selected").val();
+            if (!selected) {
+                oTable.fnFilter('', 21, true);
+            } else {
+                oTable.fnFilter("^" + parseInt(selected) + "$", 21, true); //Exact value, column, reg
+            }
+        });
     });
 
 </script>
