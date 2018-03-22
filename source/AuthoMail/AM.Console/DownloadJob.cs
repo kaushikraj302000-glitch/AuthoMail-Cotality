@@ -87,6 +87,7 @@ namespace AM.Console
                                     mailBatch.ClientBatchId = batchName;
                                     mailBatch.UniqueId = Guid.NewGuid();
                                     mailBatch.Priority = Priority.Medium.ToString();
+                                    mailBatch.PrintLocation = "Fort Mill, SC";
 
                                     //Insert New Batch Entry
                                     mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
@@ -184,7 +185,7 @@ namespace AM.Console
             // If the zip file is not available in the FTP folder then log that error.
             mailBatch.ValidationStatus = BatchValidationStatus.Invalid;
             mailBatch.ValidationErrors = error;
-
+            mailBatch.PrintLocation = string.Empty;
             //Update Batch Details
             mailBatchSvc.UpdateBatchDetails(mailBatch);
 
@@ -583,7 +584,7 @@ namespace AM.Console
             {
                 Client client = clientSvc.GetClientDetails(batch.ClientId).Single();
                 SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(batch.SFTChannelId);
-                MailBatchInfo mbi = new MailBatchInfo(batch, client);
+                MailBatchInfo mbi = new MailBatchInfo(batch, client, sftChannelDetails, Common.AuthoMailRootFolder);
                 var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
                 if (data != null)
                 {
@@ -631,7 +632,10 @@ namespace AM.Console
             foreach (var batch in resReceivedBatches)
             {
                 Client client = clientSvc.GetClientDetails(batch.ClientId).Single();
-                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelCode("USAA_CL");
+
+                //Here for now we are taking SFT Code to Upload Reports on different channel
+
+                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelCode(Common.ReportSFTUploadingChannelCode);
                 if (sftChannelDetails != null)
                 {
                     SFTUtil sftSite = null;
@@ -645,7 +649,8 @@ namespace AM.Console
                         log.Error(ex);
                     }
 
-                    string uploadPath = sftChannelDetails.Code == "AMC_Internal" ? Common.ReportSFTUploadingPathAMC : Common.ReportSFTUploadingPathCL;
+                    string uploadPath = Common.ReportSFTUploadingPathAMC;
+
                     if (sftSite.IsDownloadDirectoryAvailable(uploadPath))
                     {
                         MailBatchInfo mbi = new MailBatchInfo(batch, client, sftChannelDetails, Common.AuthoMailRootFolder);

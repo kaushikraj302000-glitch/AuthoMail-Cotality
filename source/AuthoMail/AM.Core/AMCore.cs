@@ -182,7 +182,7 @@ namespace AM.Core
                 if (validMailPieces.Count == 0)
                 {
                     mailBatch.ValidationStatus = BatchValidationStatus.Invalid;
-                    mailBatch.ValidationErrors = "Batch does not contains any valid mail pieces to process further.";
+                    mailBatch.ValidationErrors = "Batch does not contain any valid mail pieces to process further.";
 
                     mailBatchSvc.UpdateBatchDetails(mailBatch);
                     commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationEnd, Common.Now);
@@ -278,11 +278,7 @@ namespace AM.Core
                         try
                         {
                             //TODO: Add Validation For Directory Full Access Read/Write/Delete
-
-                            if (!Directory.Exists(batchSubmitPath))
-                            {
-                                Directory.CreateDirectory(batchSubmitPath);
-                            }
+                            batchSubmitPath.CleanDirectory();
                         }
                         catch (Exception ex)
                         {
@@ -416,7 +412,7 @@ namespace AM.Core
                         if (File.Exists(amRootFilePath))
                         {
                             var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(downloadableBatch.MailBatchId);
-                            var mbi = new MailBatchInfo(batchData.MailBatch, client);
+                            var mbi = new MailBatchInfo(batchData.MailBatch, client, null, Common.AuthoMailRootFolder);
 
                             string amPnSResponsePath = Path.Combine(mbi.PnSResponsePath, responseFileName);
 
@@ -448,7 +444,7 @@ namespace AM.Core
             {
                 Client client = clientSvc.GetClientDetails(null, printBatch.AppCode).Single();
                 BatchData batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(printBatch.MailBatchId);
-                MailBatchInfo mbi = new MailBatchInfo(batchData.MailBatch, client);
+                MailBatchInfo mbi = new MailBatchInfo(batchData.MailBatch, client, null, Common.AuthoMailRootFolder);
 
                 var printbatchResponseFilePath = Path.Combine(mbi.PnSResponsePath, printBatch.SubmittedBatchName + "-res.xml");
                 if (!File.Exists(printbatchResponseFilePath))
