@@ -47,6 +47,7 @@ namespace AM.Entities
         public const string Mailing_Address_Missing_Or_Invalid = "Mailing_Address_Missing_Or_Invalid";
         public const string Recipient_Details_Missing_Or_Invalid = "Recipient_Details_Missing_Or_Invalid";
         public const string Unknown_Error = "Unknown_Error";
+        public const string Invalid_PackageType = "Invalid_PackageType";
     }
 
     public enum ShippingStatus
