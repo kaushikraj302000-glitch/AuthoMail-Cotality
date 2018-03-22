@@ -17,7 +17,7 @@ namespace AM.Services
         List<SummaryControlReport> GetSummaryControlReport(int clientId, DateTime startDate, DateTime endDate, string channel);
         List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime date, int? batchId, string docType, string filterBy);
         List<MonthlyReconReport> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel);
-        List<ChannelCodeTitle> GetChannelTitle(List<string> channelCodes);
+        List<ChannelCodeTitle> GetChannelTitle(int clientId);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -29,8 +29,8 @@ namespace AM.Services
             parameters.Add("@shippingstatus", ShippingStatus.Shipped.ToString());
             if (date.HasValue)
             {
-                DateTime startDate = (date.Value + new TimeSpan(00, 00, 00));
-                DateTime endDate = (date.Value + new TimeSpan(23, 59, 59));
+                DateTime startDate = (date.Value.Date + new TimeSpan(00, 00, 00));
+                DateTime endDate = (date.Value.Date + new TimeSpan(23, 59, 59));
                 query = string.Format("{0} AND (ReceivedOn between @startDate and @endDate)", query);
                 parameters.Add("@startDate", startDate.EstToUtc());
                 parameters.Add("@endDate", endDate.EstToUtc());
@@ -57,8 +57,8 @@ namespace AM.Services
             parameters.Add("@shippingstatus", ShippingStatus.Error.ToString());
             if (date.HasValue)
             {
-                DateTime startDate = (date.Value + new TimeSpan(00, 00, 00));
-                DateTime endDate = (date.Value + new TimeSpan(23, 59, 59));
+                DateTime startDate = (date.Value.Date + new TimeSpan(00, 00, 00));
+                DateTime endDate = (date.Value.Date + new TimeSpan(23, 59, 59));
                 query = string.Format("{0} AND (ReceivedOn between @startDate and @endDate)", query);
                 parameters.Add("@startDate", startDate.EstToUtc());
                 parameters.Add("@endDate", endDate.EstToUtc());
@@ -100,10 +100,22 @@ namespace AM.Services
             string query = ReportServiceQuery.GetSLAMissErrorReportByDateOrBatch;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@clientId", clientId);
-            //parameters.Add("@shippingstatus", ShippingStatus.Error.ToString());//Need to verify
+            
+            query = string.Format("{0} AND ShippingStatus IN ('{1}','{2}') ", query, ShippingStatus.Shipped.ToString(), ShippingStatus.InProgress.ToString());
+            //parameters.Add("@shippingstatus", new List<string>() { ShippingStatus.Shipped.ToString(), ShippingStatus.InProgress.ToString() });//Need to verify
 
-            DateTime startDate = (date + new TimeSpan(00, 00, 00));
-            DateTime endDate = (date + new TimeSpan(23, 59, 59));
+            DateTime startDate = (date.Date + new TimeSpan(00, 00, 00));
+            DateTime endDate = (date.Date + new TimeSpan(23, 59, 59));
+
+            if (filterBy == "ByReceivedOn")
+            {
+                filterBy = "ReceivedOn";
+            }
+            else
+            {
+                filterBy = "DueDate";
+            }
+
             query = string.Format("{0} AND ({1} between @startDate and @endDate)", query, filterBy);
             parameters.Add("@startDate", startDate.EstToUtc());
             parameters.Add("@endDate", endDate.EstToUtc());
@@ -130,8 +142,8 @@ namespace AM.Services
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@clientId", clientId);
             parameters.Add("@shippingStatus", ShippingStatus.Shipped.ToString());
-            parameters.Add("@startDate", (startDate + new TimeSpan(00, 00, 00)).EstToUtc());
-            parameters.Add("@endDate", (endDate + new TimeSpan(23, 59, 59)).EstToUtc());
+            parameters.Add("@startDate", (startDate.Date + new TimeSpan(00, 00, 00)).EstToUtc());
+            parameters.Add("@endDate", (endDate.Date + new TimeSpan(23, 59, 59)).EstToUtc());
             if (!channel.IsNullOrWhiteSpace())
             {
                 query = string.Format("{0} AND ChannelCode=@channel", query);
@@ -141,9 +153,9 @@ namespace AM.Services
             return data;
         }
 
-        public List<ChannelCodeTitle> GetChannelTitle(List<string> channelCodes)
+        public List<ChannelCodeTitle> GetChannelTitle(int clientId)
         {
-            var channelList = db.Query<ChannelCodeTitle>(ReportServiceQuery.GetChannelTitle, new { channelCodes = channelCodes }).ToList();
+            var channelList = db.Query<ChannelCodeTitle>(ReportServiceQuery.GetChannelTitle, new { clientId = clientId }).ToList();
             return channelList;
         }
     }
@@ -159,7 +171,7 @@ namespace AM.Services
 
         public static string GetMonthlyReconReport = "select * from [dbo].[view_MonthlyReconReport] WHERE ClientId=@clientId AND (ReceivedOn between @startDate and @endDate) AND ShippingStatus=@shippingStatus";//AND SLADays >= 0
 
-        public static string GetChannelTitle = "SELECT Code,Title FROM [Common].[SFTChannels] WHERE IsActive=1 AND Code IN @channelCodes";
+        public static string GetChannelTitle = "SELECT Code,Title FROM [Common].[SFTChannels] WHERE IsActive=1 AND Id in (select SFTChannelId from [Common].[ClientSFTChannels] WHERE ClientId=@clientId)";
 
     }
 }
