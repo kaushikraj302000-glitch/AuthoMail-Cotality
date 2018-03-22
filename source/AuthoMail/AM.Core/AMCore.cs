@@ -444,7 +444,7 @@ namespace AM.Core
             {
                 Client client = clientSvc.GetClientDetails(null, printBatch.AppCode).Single();
                 BatchData batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(printBatch.MailBatchId);
-                MailBatchInfo mbi = new MailBatchInfo(batchData.MailBatch, client);
+                MailBatchInfo mbi = new MailBatchInfo(batchData.MailBatch, client, null, Common.AuthoMailRootFolder);
 
                 var printbatchResponseFilePath = Path.Combine(mbi.PnSResponsePath, printBatch.SubmittedBatchName + "-res.xml");
                 if (!File.Exists(printbatchResponseFilePath))
