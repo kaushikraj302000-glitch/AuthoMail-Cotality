@@ -590,7 +590,7 @@ namespace AM.Console
                 {
                     try
                     {
-                        StringBuilder deliveryReport = Common.USAADailyDetailOperationReport(data, sftChannelDetails.Title);
+                        StringBuilder deliveryReport = Common.USAADailyDetailOperationReport(data, sftChannelDetails.Title, client.TimeZone);
                         string deliveryReportFileName = "{0}_{1}.csv".Fill("DR", data.MailBatch.BatchName);
                         using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(deliveryReport.ToString())))
                         {
@@ -600,7 +600,7 @@ namespace AM.Console
                             }
                         }
 
-                        StringBuilder errorReport = Common.USAAErrorReport(data, sftChannelDetails.Title);
+                        StringBuilder errorReport = Common.USAAErrorReport(data, sftChannelDetails.Title, client.TimeZone);
                         string errorReportFileName = "{0}_{1}.csv".Fill("ER", data.MailBatch.BatchName);
                         using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(errorReport.ToString())))
                         {
@@ -674,6 +674,10 @@ namespace AM.Console
                             log.Error("Error occured while uploading report to Client's SFT site for Batch : {0}. Please see error :" + Environment.NewLine + ex);
                         }
                     }
+                }
+                else
+                {
+                    log.Error("SFT site is not available or not enabled to upload reports.");
                 }
             }
         }

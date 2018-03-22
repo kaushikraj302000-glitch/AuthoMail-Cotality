@@ -31,7 +31,7 @@ namespace AM.Services
             {
                 DateTime startDate = (date.Value + new TimeSpan(00, 00, 00));
                 DateTime endDate = (date.Value + new TimeSpan(23, 59, 59));
-                query = string.Format("{0} AND ReceivedOn between @startDate and @endDate", query);
+                query = string.Format("{0} AND (ReceivedOn between @startDate and @endDate)", query);
                 parameters.Add("@startDate", startDate.EstToUtc());
                 parameters.Add("@endDate", endDate.EstToUtc());
             }
@@ -59,7 +59,7 @@ namespace AM.Services
             {
                 DateTime startDate = (date.Value + new TimeSpan(00, 00, 00));
                 DateTime endDate = (date.Value + new TimeSpan(23, 59, 59));
-                query = string.Format("{0} AND ReceivedOn between @startDate and @endDate", query);
+                query = string.Format("{0} AND (ReceivedOn between @startDate and @endDate)", query);
                 parameters.Add("@startDate", startDate.EstToUtc());
                 parameters.Add("@endDate", endDate.EstToUtc());
             }
@@ -83,7 +83,7 @@ namespace AM.Services
             string query = ReportServiceQuery.GetSummaryControlReport;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@clientId", clientId);
-            query = string.Format("{0} AND (ReceivedOn >= @startDate) AND (ReceivedOn <= @endDate)", query);
+            query = string.Format("{0} AND (ReceivedOn between @startDate and @endDate)", query);
             parameters.Add("@startDate", startDate.EstToUtc());
             parameters.Add("@endDate", endDate.EstToUtc());
             if (!channel.IsNullOrWhiteSpace())
@@ -104,7 +104,7 @@ namespace AM.Services
 
             DateTime startDate = (date + new TimeSpan(00, 00, 00));
             DateTime endDate = (date + new TimeSpan(23, 59, 59));
-            query = string.Format("{0} AND {1} between @startDate and @endDate", query, filterBy);
+            query = string.Format("{0} AND ({1} between @startDate and @endDate)", query, filterBy);
             parameters.Add("@startDate", startDate.EstToUtc());
             parameters.Add("@endDate", endDate.EstToUtc());
 
@@ -130,8 +130,8 @@ namespace AM.Services
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@clientId", clientId);
             parameters.Add("@shippingStatus", ShippingStatus.Shipped.ToString());
-            parameters.Add("@startDate", startDate.EstToUtc());
-            parameters.Add("@endDate", endDate.EstToUtc());
+            parameters.Add("@startDate", (startDate + new TimeSpan(00, 00, 00)).EstToUtc());
+            parameters.Add("@endDate", (endDate + new TimeSpan(23, 59, 59)).EstToUtc());
             if (!channel.IsNullOrWhiteSpace())
             {
                 query = string.Format("{0} AND ChannelCode=@channel", query);
@@ -157,7 +157,7 @@ namespace AM.Services
 
         public static string GetSLAMissErrorReportByDateOrBatch = "select * from [dbo].[view_ErrorReport] WHERE ClientId=@clientId AND SLADays < 0";
 
-        public static string GetMonthlyReconReport = "select * from [dbo].[view_MonthlyReconReport] WHERE ClientId=@clientId AND (cast(ReceivedOn as date) >= cast(@startDate as date) and cast(ReceivedOn as date) <= cast(@endDate as date)) AND ShippingStatus=@shippingStatus";//AND SLADays >= 0
+        public static string GetMonthlyReconReport = "select * from [dbo].[view_MonthlyReconReport] WHERE ClientId=@clientId AND (ReceivedOn between @startDate and @endDate) AND ShippingStatus=@shippingStatus";//AND SLADays >= 0
 
         public static string GetChannelTitle = "SELECT Code,Title FROM [Common].[SFTChannels] WHERE IsActive=1 AND Code IN @channelCodes";
 
