@@ -89,6 +89,7 @@ namespace AM.Console
                 }
             }
 
+            ReportSFTUploadingChannelCode = ConfigurationManager.AppSettings["ReportSFTUploadingChannelCode"];
             ReportSFTUploadingPathAMC = ConfigurationManager.AppSettings["ReportSFTUploadingPathAMC"];
         }
 
