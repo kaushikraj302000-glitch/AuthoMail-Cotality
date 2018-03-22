@@ -2,7 +2,11 @@
     ViewBag.Title = "DailyDetailOperationsReport";
 }
 <link href="~/clui/dist/css/datatablecustom.css" rel="stylesheet" />
-
+<style>
+    #dateFilter .bootstrap-select {
+        width: 100% !important;
+    }
+</style>
 <div class="panel-group">
     <div class="panel panel-default">
         <div class="panel-heading" id="headingOne">
@@ -32,7 +36,7 @@
                     </div>
 
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3" id="dateFilter">
                     <div class="form-group">
                         <label for="Channel">Channel</label>
                         @Html.Action("_Channel", "Common")
@@ -41,9 +45,9 @@
                 <div class="col-md-1">
                     <div class="form-group ">
                         <label for="filterData"> &nbsp;&nbsp;&nbsp;&nbsp;</label>
-                        <button type="button" id="filterData" class="btn btn-primary">
+                        <button type="button" id="filterData" class="btn btn-primary" style=" padding-top: 6%;">
                             <span class="sr-only">Filter</span>
-                            <i class="fa fa-filter fa-2x"></i>
+                            <i class="fa fa-arrow-right fa-2x"></i>
                         </button>
                     </div>
                 </div>
@@ -83,7 +87,6 @@
 
         });
         function FilterData() {
-            var selectedData = new Date($("#dp4").val());
             var el = $('#dailybatchList');
             el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
             $.ajax({

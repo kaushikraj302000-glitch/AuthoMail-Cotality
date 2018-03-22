@@ -2,7 +2,11 @@
 @{
     ViewBag.Title = "ErrorsReport";
 }
-
+<style>
+    #dateFilter .bootstrap-select{
+        width: 100% !important;
+    }
+</style>
 
 <link href="~/clui/dist/css/datatablecustom.css" rel="stylesheet" />
 <div class="panel-group">
@@ -34,7 +38,7 @@
                     </div>
 
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3" id="dateFilter">
                     <div class="form-group">
                         <label for="Channel">Channel</label>
                         @Html.Action("_Channel", "Common")
@@ -43,9 +47,9 @@
                 <div class="col-md-1">
                     <div class="form-group ">
                         <label for="input1"></label>
-                        <button type="button" id="filterData" class="btn btn-primary">
+                        <button type="button" id="filterData" class="btn btn-primary" style=" padding-top: 6%;">
                             <span class="sr-only">Filter</span>
-                            <i class="fa fa-filter fa-2x"></i>
+                            <i class="fa fa-arrow-right fa-2x"></i>
                         </button>
                     </div>
                 </div>

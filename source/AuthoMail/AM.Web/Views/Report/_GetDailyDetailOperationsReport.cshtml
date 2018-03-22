@@ -6,7 +6,7 @@
 </style>
 <div class="panel-heading">
     <div class="panel-title">Daily Detail Operations : <span class="normaltext">@ViewBag.Date EST</span>
-        <label for="input1">Select Batch</label>
+        <label for="input1" class="normallabel">Select Batch</label>
         <span>
             @Html.DropDownList("BatchList", ViewBag.BatchList as SelectList, "(Time) - (Batch Name)", new { @class = "selectpicker" })
         </span>
