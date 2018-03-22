@@ -17,7 +17,7 @@ namespace AM.Services
         List<SummaryControlReport> GetSummaryControlReport(int clientId, DateTime startDate, DateTime endDate, string channel);
         List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime date, int? batchId, string docType, string filterBy);
         List<MonthlyReconReport> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel);
-        List<ChannelCodeTitle> GetChannelTitle(List<string> channelCodes);
+        List<ChannelCodeTitle> GetChannelTitle(int clientId);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -151,9 +151,9 @@ namespace AM.Services
             return data;
         }
 
-        public List<ChannelCodeTitle> GetChannelTitle(List<string> channelCodes)
+        public List<ChannelCodeTitle> GetChannelTitle(int clientId)
         {
-            var channelList = db.Query<ChannelCodeTitle>(ReportServiceQuery.GetChannelTitle, new { channelCodes = channelCodes }).ToList();
+            var channelList = db.Query<ChannelCodeTitle>(ReportServiceQuery.GetChannelTitle, new { clientId = clientId }).ToList();
             return channelList;
         }
     }
@@ -169,7 +169,7 @@ namespace AM.Services
 
         public static string GetMonthlyReconReport = "select * from [dbo].[view_MonthlyReconReport] WHERE ClientId=@clientId AND (ReceivedOn between @startDate and @endDate) AND ShippingStatus=@shippingStatus";//AND SLADays >= 0
 
-        public static string GetChannelTitle = "SELECT Code,Title FROM [Common].[SFTChannels] WHERE IsActive=1 AND Code IN @channelCodes";
+        public static string GetChannelTitle = "SELECT Code,Title FROM [Common].[SFTChannels] WHERE IsActive=1 AND Id in (select SFTChannelId from [Common].[ClientSFTChannels] WHERE ClientId=@clientId)";
 
     }
 }

@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using Microsoft.AspNet.Identity;
+using AM.Entities.IdentityModels;
 
 namespace AM.Web.Controllers
 {
@@ -19,7 +21,7 @@ namespace AM.Web.Controllers
         [HttpGet]
         public ActionResult _Channel()
         {
-            ViewBag.Channel = new SelectList(repoSvc.GetChannelTitle(new List<string> { "AMC_Internal", "USAA_CL" }), "Code", "Title");
+            ViewBag.Channel = new SelectList(repoSvc.GetChannelTitle(User.Identity.GetClientId().Value), "Code", "Title");
             return PartialView();
         }
         [HttpPost]
