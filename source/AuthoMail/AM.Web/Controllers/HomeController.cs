@@ -106,14 +106,7 @@ namespace AM.Web.Controllers
             return Json(model.OrderByDescending(s => s.BatchId).ToList(), JsonRequestBehavior.AllowGet);
         }
 
-        [HttpPost]
-        public ActionResult USPSTracking(string TrackingNo, string ShippingMethod)
-        {
-            USPSIMClient uspsClient = new USPSIMClient();
-            USPSTrackingInfo USPSInfo = uspsClient.GetShipmentStatus(TrackingNo);
-            return PartialView("_TrackingInfo",USPSInfo);
-
-        }
+        
         public ActionResult About()
         {
             ViewBag.Message = "Your application description page.";

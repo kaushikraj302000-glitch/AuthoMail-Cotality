@@ -137,7 +137,7 @@
 
 <!-- Modal -->
 <div class="modal fade" id="TrackingInfo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-lg col-md-10" role="document">
         <div class="modal-content">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal-header">
@@ -198,31 +198,7 @@
         $("#filterData").click(function () {
             FilterData();
         });
-        function GetTrackingInfo(TrackingNo, ShippingMethod) {
-            //
-
-            var el = $('#TrackingInfo').find('.modal-body');
-            $.ajax({
-                type: "POST",
-                url: baseUrl + "Home/USPSTracking",
-                data: JSON.stringify({
-                    TrackingNo: TrackingNo,
-                    ShippingMethod: ShippingMethod
-                }),
-                contentType: "application/json; charset=utf-8",
-                success: function (response) {
-                    el.html(response);
-
-                    $("#TrackingInfo").modal("show");
-                },
-                error: function (xhr, ajaxOptions, thrownError) {
-                    var msg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
-                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
-                    $("#TrackingInfo").modal("show");
-                }
-
-            });
-        }
+        
     </script>
 }
 

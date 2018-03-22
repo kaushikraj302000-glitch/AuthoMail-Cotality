@@ -105,12 +105,35 @@
 
     @RenderSection("scripts", required: false)
     <script>
-        var baseUrl = '@Url.Content("~/")';
+    var baseUrl = '@Url.Content("~/")';
         $(document).ready(function () {
             init()
             JSON.useDateParser();
             console.log(baseUrl);
         });
+        function GetTrackingInfo(TrackingNo, ShippingMethod) {
+            var el = $('#TrackingInfo').find('.modal-body');
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "Common/USPSTracking",
+                data: JSON.stringify({
+                    TrackingNo: TrackingNo,
+                    ShippingMethod: ShippingMethod
+                }),
+                contentType: "application/json; charset=utf-8",
+                success: function (response) {
+                    el.html(response);
+
+                    $("#TrackingInfo").modal("show");
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    var msg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
+                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    $("#TrackingInfo").modal("show");
+                }
+
+            });
+        }
         $(document).ajaxSuccess(function (event, xhr, settings) {
             //console.log("Server Result:" + cnt++);
             //console.log(xhr.responseText);
