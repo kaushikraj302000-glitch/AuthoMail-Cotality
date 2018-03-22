@@ -3,6 +3,17 @@
     .bootstrap-select {
         width: 200px !important;
     }
+    .popover {
+        max-width: 700px !important;
+        max-height: 300px;
+        width: 700px;
+       
+    }
+
+    .popover-content {
+        word-wrap: break-word;
+        color: red;
+    }
 </style>
 <div class="panel-heading">
     <div class="panel-title">
@@ -40,7 +51,7 @@
                     <th>Recipient City</th>
                     <th>Recipient State</th>
                     <th>Recipient Zip</th>
-                    <th>RequestID</th>
+                    @*<th>RequestID</th>*@
                     <th>Error Code</th>
                     <th>Error Text</th>
                     <th>Error Text</th>
@@ -72,10 +83,10 @@
                         <td><span>@item.RcptAddressCity</span></td>
                         <td><span>@item.RcptAddressState</span></td>
                         <td><span>@item.RcptAddressZIP</span></td>
-                        <td><span>@item.RequestId</span></td>
+                        @*<td><span>@item.RequestId</span></td>*@
                         <td><span>@item.ErrorCode</span></td>
                         <td><span>@item.ErrorDesc</span></td>
-                        <td><span data-trigger="click" class="text-red" data-toggle="popover" data-original-title="Error" data-content="@item.ErrorDesc" data-placement="bottom"><u>Show Error</u></span></td>
+                        <td><span data-trigger="click" class="text-red" data-toggle="popover" data-original-title="Error" data-content="@item.ErrorDesc" data-placement="left"><u>Show Error</u></span></td>
                         <td><span>@item.PrintLocation</span></td>
                         <td><span>@item.PagesShipped</span></td>
                         <td>@item.BatchId</td>
@@ -116,7 +127,7 @@
             },
             "columnDefs": [
                     {
-                        "targets": [20, 24],
+                        "targets": [19, 23],
                         "visible": false,
                         "searchable": true
                     },
@@ -136,7 +147,7 @@
                 filename: filename,
                 title: title,
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 22, 23]
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22]
                 }
 
             }
@@ -164,9 +175,9 @@
             var oTable = $('#sample_2').dataTable();
             var selected = $(this).find("option:selected").val();
             if (!selected) {
-                oTable.fnFilter('', 24,true);
+                oTable.fnFilter('', 23,true);
             } else {
-                oTable.fnFilter("^" + parseInt(selected) + "$", 24, true); //Exact value, column, reg
+                oTable.fnFilter("^" + parseInt(selected) + "$", 23, true); //Exact value, column, reg
             }
         });
     });
