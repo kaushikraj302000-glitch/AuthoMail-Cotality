@@ -1,4 +1,5 @@
 ﻿using AM.Services;
+using AM.Web.USPSIMService;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +21,14 @@ namespace AM.Web.Controllers
         {
             ViewBag.Channel = new SelectList(repoSvc.GetChannelTitle(new List<string> { "AMC_Internal", "USAA_CL" }), "Code", "Title");
             return PartialView();
+        }
+        [HttpPost]
+        public ActionResult USPSTracking(string TrackingNo, string ShippingMethod)
+        {
+            USPSIMClient uspsClient = new USPSIMClient();
+            USPSTrackingInfo USPSInfo = uspsClient.GetShipmentStatus(TrackingNo);
+            return PartialView("_TrackingInfo", USPSInfo);
+
         }
     }
 }

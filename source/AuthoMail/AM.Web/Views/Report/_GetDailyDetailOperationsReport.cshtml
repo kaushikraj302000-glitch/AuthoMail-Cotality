@@ -58,7 +58,17 @@
                         <td><span>@item.PrintedOn</span></td>
                         <td><span>@item.MailedOn</span></td>
                         <td><span>@item.ClientCode</span></td>
-                        <td><span>@item.TrackingNo</span></td>
+                        <td class="text-center">
+                            @if (string.IsNullOrEmpty(item.TrackingNo))
+                            {
+                                <span>--</span>
+                            }
+                            else
+                            {
+                                <button class="btn btn-primary" onclick="GetTrackingInfo('@item.TrackingNo','@item.ShippingMethod')"><span>@item.TrackingNo</span></button>
+                            }
+                        </td>
+
                         <td><span>@item.ShippingMethod</span></td>
                         @*<td><span>@item.CustomerIdentifier</span></td>*@
                         <td><span>@item.RcptFirstName</span></td>
