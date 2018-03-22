@@ -57,7 +57,7 @@ namespace AM.Web.Controllers
         [HttpPost]
         public ActionResult _MonthReconReport(string loanNumber, string docType, DateTime startDate, DateTime endDate, string channel)
         {
-            ViewBag.Date = string.Format("{0} to {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
+            ViewBag.Date = string.Format("{0} to {1}", startDate.ToString("MM/dd/yy"), endDate.ToString("MM/dd/yy"));
             var model = repoSvc.GetMonthlyReconReport(User.Identity.GetClientId().Value, startDate, endDate,channel);
             return PartialView("_GetMailPieceList", model);
         }
@@ -76,7 +76,7 @@ namespace AM.Web.Controllers
         [HttpPost]
         public ActionResult _GetDeliveryReport(string loanNumber, string docType, DateTime startDate, DateTime endDate)
         {
-            ViewBag.Date = string.Format("{0} to {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
+            ViewBag.Date = string.Format("{0} to {1}", startDate.ToString("MM/dd/yy"), endDate.ToString("MM/dd/yy"));
 
             var model = repoSvc.GetDailyDetailOperationsByDateOrBatch(User.Identity.GetClientId().Value, startDate, null, null);
             return PartialView(model);
@@ -89,7 +89,7 @@ namespace AM.Web.Controllers
         [HttpPost]
         public ActionResult _GetErrorsReport(DateTime date, string channel)
         {
-            ViewBag.Date = date.ToString("MM/dd/yyyy");
+            ViewBag.Date = date.ToString("MM/dd/yy");
             var model = repoSvc.GetErrorReportByDateOrBatch(User.Identity.GetClientId().Value, date, null, channel);
             List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
             foreach (var item in model)
@@ -116,7 +116,7 @@ namespace AM.Web.Controllers
         [HttpPost]
         public ActionResult _GetErrorsSLAReport(DateTime date, string filterBy, string docType)
         {
-            ViewBag.Date = date.ToString("MM/dd/yyyy");
+            ViewBag.Date = date.ToString("MM/dd/yy");
             
             //Update startDate and endDate
             var model = repoSvc.GetSLAMissErrorReportByDateOrBatch(User.Identity.GetClientId().Value,date, null,docType,filterBy);
@@ -143,7 +143,7 @@ namespace AM.Web.Controllers
         [HttpPost]
         public ActionResult _GetDailyDetailOperationsReport(DateTime date, string channel)
         {
-            ViewBag.Date = date.ToString("MM/dd/yyyy");
+            ViewBag.Date = date.ToString("MM/dd/yy");
             var model = repoSvc.GetDailyDetailOperationsByDateOrBatch(User.Identity.GetClientId().Value, date, null, channel);
             List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
             foreach (var item in model)

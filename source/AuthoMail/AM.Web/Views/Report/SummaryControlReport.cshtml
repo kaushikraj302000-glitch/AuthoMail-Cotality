@@ -77,8 +77,8 @@
         });
         function FilterData() {
             var el = $('#batchList');
-            var startDate = moment($("#dp4").val() + ' @AM.Services.Config.StartCutOffTime').subtract('days', 1).format("MM/DD/YYYY HH:mm:ss ");
-            var endDate = moment($("#dp4").val() + ' @AM.Services.Config.EndCutOffTime').format("MM/DD/YYYY HH:mm:ss ");
+            var startDate = moment($("#dp4").val() + ' @AM.Services.Config.StartCutOffTime').subtract('days', 1).format("MM/DD/YY HH:mm:ss ");
+            var endDate = moment($("#dp4").val() + ' @AM.Services.Config.EndCutOffTime').format("MM/DD/YY HH:mm:ss ");
             el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
             $.ajax({
                 type: "POST",
