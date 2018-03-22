@@ -26,6 +26,7 @@ namespace AM.Services
             string query = ReportServiceQuery.GetDailyDetailOperationsByDateOrBatch;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@clientId", clientId);
+            parameters.Add("@shippingstatus", ShippingStatus.Shipped.ToString());
             if (date.HasValue)
             {
                 query = string.Format("{0} AND cast(ReceivedOn as date) = cast(@date as date)", query);
@@ -141,7 +142,7 @@ namespace AM.Services
     }
     public static class ReportServiceQuery
     {
-        public static string GetDailyDetailOperationsByDateOrBatch = "select * from [dbo].[view_DailyDetailOperationsReport] WHERE ClientId=@clientId";
+        public static string GetDailyDetailOperationsByDateOrBatch = "select * from [dbo].[view_DailyDetailOperationsReport] WHERE ClientId=@clientId AND ShippingStatus=@shippingStatus";
 
         public static string GetErrorReportByDateOrBatch = "select * from [dbo].[view_ErrorReport] WHERE ClientId=@clientId AND ShippingStatus=@shippingstatus";
 
