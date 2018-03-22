@@ -1,6 +1,18 @@
 ﻿@model ICollection<AM.Services.SummaryControlReport>
+<style>
+    .bootstrap-select {
+        width: 200px !important;
+    }
+</style>
 <div class="panel-heading">
-    <div class="panel-title">Summary Control Details: @ViewBag.Date</div>
+    <div class="panel-title">
+        Summary Control Details: <span class="normaltext">@ViewBag.Date EST</span>
+        <label for="input1">Select Batch</label>
+        <span>
+            @Html.DropDownList("BatchList", ViewBag.BatchList as SelectList, "(Time) - (Batch Name)", new { @class = "selectpicker" })
+        </span>
+
+    </div>
 </div>
 <div class="panel-body">
     @if (Model.Count > 0)
@@ -21,7 +33,7 @@
                     <th>Client Code</th>
                     <th>Tracking Number</th>
                     <th>Shipping Method</th>
-                    <th>Customer Identifier</th>
+                    @*<th>Customer Identifier</th>*@
                     <th>First Name</th>
                     <th>Last Name</th>
                     <th>Recipient Street Address</th>
@@ -30,6 +42,7 @@
                     <th>Recipient Zip</th>
                     <th>RequestID</th>
                     <th>Error Code</th>
+                    <th>Error Text</th>
                     <th>Error Text</th>
                     <th>Print Location</th>
                     <th>Pages Shipped</th>
@@ -40,7 +53,7 @@
                 @foreach (var item in Model)
                 {
                     <tr class="row-small">
-                        <td data-batchid="@item.BatchId"><span>@item.BatchId</span></td>
+                        <td data-batchid="@item.BatchId"><span>@item.ClientBatchId</span></td>
                         <td><span>@item.MailPieceUniqueId</span></td>
                         <td><span>@item.Channel</span></td>
                         <td><span>@item.DocumentOrPackageType</span></td>
@@ -49,10 +62,10 @@
                         <td><span>@item.ReceivedOn</span></td>
                         <td><span>@item.PrintedOn</span></td>
                         <td><span>@item.MailedOn</span></td>
-                        <td><span>@item.ClientId</span></td>
+                        <td><span>@item.ClientCode</span></td>
                         <td><span>@item.TrackingNo</span></td>
                         <td><span>@item.ShippingMethod</span></td>
-                        <td><span>@item.CustomerIdentifier</span></td>
+                        @*<td><span>@item.CustomerIdentifier</span></td>*@
                         <td><span>@item.RcptFirstName</span></td>
                         <td><span>@item.RcptLastName </span></td>
                         <td><span>@item.RcptAddressStreet</span></td>
@@ -62,9 +75,10 @@
                         <td><span>@item.RequestId</span></td>
                         <td><span>@item.ErrorCode</span></td>
                         <td><span>@item.ErrorDesc</span></td>
+                        <td><span data-trigger="click" class="text-red" data-toggle="popover" data-original-title="Error" data-content="@item.ErrorDesc" data-placement="bottom"><u>Show Error</u></span></td>
                         <td><span>@item.PrintLocation</span></td>
                         <td><span>@item.PagesShipped</span></td>
-                       <td>@item.BatchId</td>
+                        <td>@item.BatchId</td>
                     </tr>
                 }
             </tbody>
@@ -78,12 +92,10 @@
         </div>
     }
 </div>
-<div id="hideSelection">
 
-    @Html.DropDownList("BatchList", ViewBag.BatchList as SelectList, "Select Batch")
-</div>
 <script type="text/javascript">
     $(document).ready(function () {
+        window.clui.popoverInit();
         var table = $('#sample_2');
         var filename = "BatchReport";
         var title = "Batch Report";
@@ -104,7 +116,7 @@
             },
             "columnDefs": [
                     {
-                        "targets": [24],
+                        "targets": [20, 24],
                         "visible": false,
                         "searchable": true
                     },
@@ -124,7 +136,7 @@
                 filename: filename,
                 title: title,
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,23]
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 22, 23]
                 }
 
             }
@@ -147,8 +159,16 @@
 
 
         });
-
-
+        $('.selectpicker').selectpicker('refresh');
+        $('#BatchList').on('change', function () {
+            var oTable = $('#sample_2').dataTable();
+            var selected = $(this).find("option:selected").val();
+            if (!selected) {
+                oTable.fnFilter('', 24,true);
+            } else {
+                oTable.fnFilter("^" + parseInt(selected) + "$", 24, true); //Exact value, column, reg
+            }
+        });
     });
 
 </script>

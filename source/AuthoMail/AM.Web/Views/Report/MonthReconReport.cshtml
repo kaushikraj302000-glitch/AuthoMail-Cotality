@@ -110,10 +110,10 @@
                 var value = parseInt(d1.getMonth() + 1) + "/26/" + d1.getFullYear().toString() + "|" + parseInt(d.getMonth() + 1) + "/25/" + d.getFullYear().toString();
                 if (i == 0) {
 
-                    option += "<option selected='selected' value='" + value + "'>" + key + "</option>"
+                    option += "<option selected='selected' value='" + value + "'>" + value.replace("|", " - ") + "</option>"
                 }
                 else {
-                    option += "<option value='" + value + "'>" + key + "</option>"
+                    option += "<option value='" + value + "'>" + value.replace("|"," - ") + "</option>"
                 }
                 d.setMonth(d.getMonth() - 1);
                 d1.setMonth(d.getMonth() - 1);

@@ -26,7 +26,7 @@ namespace AM.Web.Controllers
         [HttpPost]
         public ActionResult _GetSummaryControlReport(string startDate,string endDate, string channel)
         {
-            ViewBag.Date = string.Format("{0} To {1}", startDate, endDate);
+            ViewBag.Date = string.Format("{0} to {1}", startDate, endDate);
             //Update startdate and enddate
             var model = repoSvc.GetSummaryControlReport(User.Identity.GetClientId().Value, DateTime.Parse(startDate), DateTime.Parse(endDate), channel);
             List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
@@ -57,7 +57,7 @@ namespace AM.Web.Controllers
         [HttpPost]
         public ActionResult _MonthReconReport(string loanNumber, string docType, DateTime startDate, DateTime endDate, string channel)
         {
-            ViewBag.Date = string.Format("{0} To {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
+            ViewBag.Date = string.Format("{0} to {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
             var model = repoSvc.GetMonthlyReconReport(User.Identity.GetClientId().Value, startDate, endDate,channel);
             return PartialView("_GetMailPieceList", model);
         }
@@ -76,7 +76,7 @@ namespace AM.Web.Controllers
         [HttpPost]
         public ActionResult _GetDeliveryReport(string loanNumber, string docType, DateTime startDate, DateTime endDate)
         {
-            ViewBag.Date = string.Format("{0} To {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
+            ViewBag.Date = string.Format("{0} to {1}", startDate.ToString("MM/dd/yyyy"), endDate.ToString("MM/dd/yyyy"));
 
             var model = repoSvc.GetDailyDetailOperationsByDateOrBatch(User.Identity.GetClientId().Value, startDate, null, null);
             return PartialView(model);
@@ -116,7 +116,7 @@ namespace AM.Web.Controllers
         [HttpPost]
         public ActionResult _GetErrorsSLAReport(string startDate,string endDate, string docType)
         {
-            ViewBag.Date =string.Format("{0} To {1}",startDate,endDate);
+            ViewBag.Date =string.Format("{0} to {1}",startDate,endDate);
             
             //Update startDate and endDate
             var model = repoSvc.GetSLAMissErrorReportByDateOrBatch(User.Identity.GetClientId().Value,DateTime.Parse(startDate), DateTime.Parse(endDate), null,docType);
