@@ -100,7 +100,9 @@ namespace AM.Services
             string query = ReportServiceQuery.GetSLAMissErrorReportByDateOrBatch;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@clientId", clientId);
-            //parameters.Add("@shippingstatus", ShippingStatus.Error.ToString());//Need to verify
+            
+            query = string.Format("{0} AND ShippingStatus IN ('{0}','{1}') ", query, ShippingStatus.Shipped.ToString(), ShippingStatus.InProgress.ToString());
+            //parameters.Add("@shippingstatus", new List<string>() { ShippingStatus.Shipped.ToString(), ShippingStatus.InProgress.ToString() });//Need to verify
 
             DateTime startDate = (date.Date + new TimeSpan(00, 00, 00));
             DateTime endDate = (date.Date + new TimeSpan(23, 59, 59));
