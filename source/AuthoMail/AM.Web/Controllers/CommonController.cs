@@ -10,6 +10,7 @@ using AM.Entities.IdentityModels;
 
 namespace AM.Web.Controllers
 {
+    [Authorize]
     public class CommonController : Controller
     {
         IReportService repoSvc;

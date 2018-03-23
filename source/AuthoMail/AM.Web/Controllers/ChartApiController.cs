@@ -10,6 +10,7 @@ using AM.Web.Models;
 using AM.Lib;
 namespace AM.Web.Controllers
 {
+    [Authorize]
     [RoutePrefix("api/chart")]
     public class ChartApiController : ApiController
     {
@@ -28,7 +29,7 @@ namespace AM.Web.Controllers
         [HttpPost]
         public object GetWeeklyChartData()
         {
-            
+
             var model = chartDataSvc.GetWeeklyChartData(User.Identity.GetClientId().Value);
             return model.OrderByDescending(s => s.Date).ToList();
         }
