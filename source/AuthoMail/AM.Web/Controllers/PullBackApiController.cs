@@ -12,6 +12,7 @@ using Microsoft.AspNet.Identity;
 
 namespace AM.Web.Controllers
 {
+    [Authorize]
     [RoutePrefix("api/pullback")]
     public class PullBackApiController : ApiController
     {
