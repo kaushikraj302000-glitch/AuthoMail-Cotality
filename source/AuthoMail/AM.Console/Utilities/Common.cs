@@ -185,7 +185,7 @@ namespace AM.Console
                             var stateValue = recipeintAddressElement.SelectSingleNode("./x:State/text()", nsManager).Value.Trim();
                             if (!ValidStatesForUSAA.Keys.Contains(stateValue))
                             {
-                                yield return new ValidationResultAMC() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "State is not from 50 states provided by client." };
+                                yield return new ValidationResultAMC() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Specified state is not amongst 50 valid states provided by USAA." };
                             }
                         }
                     }
