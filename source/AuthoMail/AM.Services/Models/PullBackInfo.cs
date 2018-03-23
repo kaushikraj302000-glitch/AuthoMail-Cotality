@@ -17,7 +17,7 @@ namespace AM.Services
         public string BatchName { get; set; }
         public string BusinessFriendlyIdValue { get; set; }
         public string BusinessFriendlyIdName { get; set; }
-        public string DocumentOrPackageName { get; set; }
+        public string DocumentOrPackageType { get; set; }
         public string FileName { get; set; }
         public string RcptPrefix { get; set; }
         public string RcptFirstName { get; set; }
