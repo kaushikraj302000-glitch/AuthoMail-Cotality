@@ -33,6 +33,8 @@ namespace AM.Entities
         public const string ShippingResponseReceived = "ShippingResponseReceived";
         public const string ReportPrepped = "ReportPrepped";
         public const string ReportedBack = "ReportedBack";
+        public const string Suspended = "Suspended";
+        public const string Cancelled = "Cancelled";
     }
 
     public static class OutComeCodes

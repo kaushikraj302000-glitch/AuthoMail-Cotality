@@ -27,17 +27,17 @@
                         {
 
                             case "InProgress":
-                                <span class="label medium label-red">@item.BatchStatus</span>
+                                <span class="label medium label-blue">@item.BatchStatus</span>
 
                                 break;
                             case "Failed":
                             <span class="label medium label-red">@item.BatchStatus</span>
                                 break;
                             case "ShippedPartial":
-                            <span class="label medium label-success">@item.BatchStatus</span>
+                            <span class="label medium label-yellow">@item.BatchStatus</span>
                                 break;
                             case "ShippedAll":
-                            <span class="label medium label-blue">@item.BatchStatus</span>
+                            <span class="label medium label-green">@item.BatchStatus</span>
                                 break;
 
                         }

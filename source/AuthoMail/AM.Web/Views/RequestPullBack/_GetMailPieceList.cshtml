@@ -4,7 +4,7 @@
         margin-top: -1.5% !important;
     }
 </style>
-<div class="panel panel-default">
+
     <div class="panel-heading">
         <div class="panel-title">
             MailPiece Details: <span class="normaltext">@ViewBag.Date EST</span>
@@ -130,10 +130,14 @@
             </style>
         }
     </div>
-</div>
+
 <script type="text/javascript">
     $(document).ready(function () {
-        window.clui.popoverInit();
+        $('[data-toggle="popover"]').popover({
+            'trigger': 'hover',
+            'placement': 'right',
+            'container': 'body'
+        });
         var table = $('#sample_2');
         var filename = "PullbackReport";
         var title = "Pullback Report";

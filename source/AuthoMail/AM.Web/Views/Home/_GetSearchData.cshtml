@@ -1,4 +1,10 @@
 ﻿@model ICollection<AM.Services.Models.MailPieceSearch>
+<style>
+    .popover-content {
+        word-wrap: break-word;
+        color: red;
+    }
+</style>
 
     <div class="panel-heading">
         <div class="panel-title">
@@ -40,7 +46,7 @@
 
                                         break;
                                     case "Error":
-                                    <span class="label medium label-red">@item.ShippingStatus</span>
+                                    <span class="label medium label-red" data-trigger="hover" data-toggle="popover" data-original-title="Error" data-content="@item.ErrorDesc" data-placement="left">@item.ShippingStatus</span>
                                         break;
                                     case "Shipped":
                                     <span class="label medium label-success">@item.ShippingStatus</span>
@@ -83,7 +89,11 @@
     </div>
 <script type="text/javascript">
     $(document).ready(function () {
-        window.clui.popoverInit();
+        $('[data-toggle="popover"]').popover({
+            'trigger': 'hover',
+            'placement': 'right',
+            'container': 'body'
+        });
         var table = $('#sample_2');
         var filename = "Search";
         var title = "Search";
