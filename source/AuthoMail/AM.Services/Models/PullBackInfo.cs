@@ -127,6 +127,9 @@ namespace AM.Services
                 return address.IsNullOrWhiteSpace() ? address : address.Trim(',').Trim();
             }
         }
+
+        public string ErrorCode { get; set; }
+        public string ErrorDesc { get; set; }
     }
     public class QuickPullBackResponse
     {
