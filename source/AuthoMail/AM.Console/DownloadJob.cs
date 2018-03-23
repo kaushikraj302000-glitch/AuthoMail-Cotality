@@ -41,7 +41,7 @@ namespace AM.Console
 
             if (client != null)
             {
-                ClientSFTChannel sftChannelMap = clientSvc.GetClientSFTChannelMapDetails(client.Id).SingleOrDefault();
+                ClientSFTChannel sftChannelMap = clientSvc.GetClientSFTChannelMapDetails(client.Id).FirstOrDefault();
 
                 List<string> triggerFilePaths = new List<string>();
 

@@ -49,8 +49,8 @@ namespace AM.Core
 
                         if (docType == null)
                         {
-                            mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
-                            mailPiece.ErrorDesc = "Document Or Package type is not exist.";
+                            mailPiece.ErrorCode = OutComeCodes.Invalid_PackageType;
+                            mailPiece.ErrorDesc = "Document Or Package type does not exist.";
                             mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                             mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                             continue;
