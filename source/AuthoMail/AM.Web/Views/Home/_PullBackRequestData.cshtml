@@ -11,6 +11,7 @@
                 <th>Recipient Name</th>
                 <th>Recipient Address</th>
                 <th>Pages Shipped</th>
+                <th>Document Type</th>
                 <th>Pullback Requested</th>
                 <th>Tracking Number</th>
                 <th>Shipping Status</th>
@@ -27,6 +28,7 @@
                     <td><span>@item.RecipientName </span></td>
                     <td><span>@item.RCPTAddress</span></td>
                     <td><span>@item.TotalPages</span></td>
+                    <td><span>@item.DocumentOrPackageName</span></td>
                     <td class="ispullbackr">
                         @if (item.IsPullBackRequested)
                         {

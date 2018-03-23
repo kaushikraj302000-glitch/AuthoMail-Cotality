@@ -1,10 +1,15 @@
 ﻿@model ICollection<AM.Services.PullBackInfo>
+<style>
+    .dataTables_wrapper {
+        margin-top: -1.5% !important;
+    }
+</style>
 <div class="panel panel-default">
     <div class="panel-heading">
         <div class="panel-title">
             MailPiece Details: @ViewBag.Date
             <span class="pull-right" @*style=" margin-right: 11%;"*@>
-                <button type="button" id="pullback" class="btn btn-transparent-red"><i class="fa fa-reply"></i> Pull Back</button>
+                <button type="button" id="pullback" class="btn btn-primary"><i class="fa fa-reply"></i> Request Pullback</button>
             </span>
         </div>
 
@@ -13,7 +18,7 @@
         @if (Model.Count > 0)
         {
             var cnt = 1;
-            <table class="table table-responsive" id="sample_2">
+            <table class="table table-responsive pullbacktable" id="sample_2">
                 <thead>
                     <tr>
                         <th>
@@ -30,7 +35,7 @@
                         <th>Pullback Requested</th>
                         <th>Tracking Number</th>
                         <th>Received On</th>
-                        
+
                     </tr>
                 </thead>
                 <tbody>
@@ -104,7 +109,7 @@
                             </td>
                             <td><span>@item.TrackingNo</span></td>
                             <td><span>@item.ReceivedOn</span></td>
-                            
+
                         </tr>
 
                                 cnt++;
@@ -267,9 +272,9 @@
                                 else {
                                     //$("#IsPullBackRequested_" + cnts[i]).html('<span class="label medium label-yellow">Yes</span>');
                                     $("#resPullBack_" + cnts[i]).html('<i class="fa fa-close icon-red" style="cursor: pointer;"></i>');
-                                   
 
-                                    
+
+
                                     $('#resPullBack_' + cnts[i]).attr('data-content', msg);
                                     $('#resPullBack_' + cnts[i]).attr('data-original-title', "Error");
                                     $("#resPullBack_" + cnts[i]).css("margin-left", "-25%");
@@ -297,7 +302,7 @@
                         //$("#checkbox-demo_" + cnts[i]).attr("disabled", "disabled");
                         $("#checkbox-demo_" + cnts[i]).prop('checked', false);
                     }
-                    
+
                 }
 
             },

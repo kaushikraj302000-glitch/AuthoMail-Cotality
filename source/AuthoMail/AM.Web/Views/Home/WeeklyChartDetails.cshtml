@@ -11,7 +11,7 @@
                 <th>Batch Name</th>
                 <th>Batch Status</th>
                 <th>Received On</th>
-                <th>Package Name</th>
+                
                 <th>Action</th>
             </tr>
         </thead>
@@ -43,7 +43,7 @@
                         }
                     </td>
                     <td><span>@item.ReceivedOn</span></td>
-                    <td><span>@item.DocumentOrPackageType</span></td>
+                    
                     <td>
                         <button onclick="GetMailPieceById(@item.BatchId)" type="button" class="btn btn-transparent-bright-blue">View </button>
                         @*@Html.ActionLink("View", "MailPieceByBatchId", "Home", new { batchId = item.BatchId }, new { @class = "btn btn-transparent-bright-blue" })*@

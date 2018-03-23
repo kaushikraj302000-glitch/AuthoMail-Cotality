@@ -11,6 +11,7 @@
                 <th>File Name</th>
                 <th>Recipient Name</th>
                 <th>Recipient Address</th>
+                <th>Document Type</th>
                 <th>Pages Shipped</th>
                 <th>Tracking Number</th>
                 <th>Shipping Status</th>
@@ -26,6 +27,7 @@
                     <td><span>@item.FileName</span></td>
                     <td><span>@item.RecipientName </span></td>
                     <td><span>@item.RCPTAddress</span></td>
+                    <td><span>@item.DocumentOrPackageName</span></td>
                     <td><span>@item.TotalPages</span></td>
                     <td><span>@item.TrackingNo</span></td>
                     <td>
@@ -36,7 +38,7 @@
                                 <span class="label medium label-yellow">@item.ShippingStatus</span>
                                 break;
                             case "Error":
-                            <span class="label medium label-red">@item.ShippingStatus</span>
+                            <span class="label medium label-red" data-trigger="hover" data-toggle="popover" data-original-title="Error Code:@item.ErrorCode" data-content="@item.ErrorDesc" data-placement="left">@item.ShippingStatus</span>
                                 break;
                             case "Shipped":
                             <span class="label medium label-success">@item.ShippingStatus</span>
@@ -62,3 +64,8 @@ else
         <span class="sbold">@AM.Services.Config.Msg_Web_NoRecordFound</span>
     </div>
 }
+<script>
+    $(document).ready(function () {
+        window.clui.popoverInit();
+    });
+</script>
