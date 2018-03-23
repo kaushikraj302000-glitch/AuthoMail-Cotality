@@ -41,77 +41,85 @@ namespace AM.Console
 
             if (client != null)
             {
-                ClientSFTChannel sftChannelMap = clientSvc.GetClientSFTChannelMapDetails(client.Id).FirstOrDefault();
+                List<ClientSFTChannel> sftChannels = clientSvc.GetClientSFTChannelMapDetails(client.Id);
 
-                List<string> triggerFilePaths = new List<string>();
-
-                if (sftChannelMap != null)
+                if (sftChannels != null && sftChannels.Count > 0)
                 {
-                    SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(sftChannelMap.SFTChannelId);
-                    if (sftChannelDetails != null)
+                    foreach (var sftChannel in sftChannels)
                     {
-                        SFTUtil sftSite = null;
-                        try
-                        {
-                            sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
-                            sftSite.Connect();
-                        }
-                        catch (Exception ex)
-                        {
-                            log.Error(ex);
-                        }
+                        List<string> triggerFilePaths = new List<string>();
 
-                        if (sftSite.IsDownloadDirectoryAvailable(sftChannelDetails.ToADEDir))
+                        SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(sftChannel.SFTChannelId);
+                        
+                        if (sftChannelDetails != null)
                         {
-                            triggerFilePaths = GetTriggerFilePaths(sftSite, sftChannelDetails);
-                            if (triggerFilePaths != null)
+                            SFTUtil sftSite = null;
+                            try
                             {
-                                foreach (string triggerFile in triggerFilePaths)
+                                sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
+                                sftSite.Connect();
+                            }
+                            catch (Exception ex)
+                            {
+                                log.Error(ex);
+                            }
+
+                            if (sftSite.IsDownloadDirectoryAvailable(sftChannelDetails.ToADEDir))
+                            {
+                                triggerFilePaths = GetTriggerFilePaths(sftSite, sftChannelDetails);
+                                if (triggerFilePaths != null)
                                 {
-                                    MailBatchDTO mailBatch = null;
+                                    foreach (string triggerFile in triggerFilePaths)
+                                    {
+                                        MailBatchDTO mailBatch = null;
 
-                                    string zipFileFTPPath = Path.Combine(sftChannelDetails.ToADEDir, Regex.Replace(Path.ChangeExtension(triggerFile, ".zip"), @"(w*)_Complete", string.Empty));
+                                        string zipFileFTPPath = Path.Combine(sftChannelDetails.ToADEDir, Regex.Replace(Path.ChangeExtension(triggerFile, ".zip"), @"(w*)_Complete", string.Empty));
 
-                                    string triggerFilePath = Path.Combine(sftChannelDetails.ToADEDir, triggerFile);
+                                        string triggerFilePath = Path.Combine(sftChannelDetails.ToADEDir, triggerFile);
 
-                                    //Download and Insert the batch in database first always.
-                                    string batchName = Path.GetFileNameWithoutExtension(zipFileFTPPath);
+                                        //Download and Insert the batch in database first always.
+                                        string batchName = Path.GetFileNameWithoutExtension(zipFileFTPPath);
 
-                                    string appDirRemotePath = "{0}/{1}".Fill(Common.AuthoMailRootFolder, client.AppCode);
-                                    string batchPDFsDirRemotePath = "{0}/{1}".Fill(appDirRemotePath, batchName);
+                                        string appDirRemotePath = "{0}/{1}".Fill(Common.AuthoMailRootFolder, client.AppCode);
+                                        string batchPDFsDirRemotePath = "{0}/{1}".Fill(appDirRemotePath, batchName);
 
-                                    mailBatch = new MailBatchDTO();
-                                    mailBatch.ClientId = client.Id;
-                                    mailBatch.BatchName = batchName;
-                                    mailBatch.SFTChannelId = sftChannelDetails.Id;
-                                    mailBatch.ClientBatchId = batchName;
-                                    mailBatch.UniqueId = Guid.NewGuid();
-                                    mailBatch.Priority = Priority.Medium.ToString();
-                                    mailBatch.PrintLocation = "Fort Mill, SC";
+                                        mailBatch = new MailBatchDTO();
+                                        mailBatch.ClientId = client.Id;
+                                        mailBatch.BatchName = batchName;
+                                        mailBatch.SFTChannelId = sftChannelDetails.Id;
+                                        mailBatch.ClientBatchId = batchName;
+                                        mailBatch.UniqueId = Guid.NewGuid();
+                                        mailBatch.Priority = Priority.Medium.ToString();
+                                        mailBatch.PrintLocation = "Fort Mill, SC";
 
-                                    //Insert New Batch Entry
-                                    mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
-                                    //Update Pipeline Status of Batch Received
-                                    commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, sftSite.LastModifiedTimeOfFile(triggerFilePath));
+                                        //Insert New Batch Entry
+                                        mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
+                                        //Update Pipeline Status of Batch Received
+                                        commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, sftSite.LastModifiedTimeOfFile(triggerFilePath));
 
-                                    //Now Download Zip File Path
-                                    MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, sftChannelDetails, Common.AuthoMailRootFolder);
-                                    DownloadBatchFromFTP(sftSite, zipFileFTPPath, triggerFilePath, mbi);
+                                        //Now Download Zip File Path
+                                        MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, sftChannelDetails, Common.AuthoMailRootFolder);
+                                        DownloadBatchFromFTP(sftSite, zipFileFTPPath, triggerFilePath, mbi);
+                                    }
                                 }
-                            }
-                            else
-                            {
-                                log.Debug("Batches are not available to download.");
-                            }
+                                else
+                                {
+                                    log.Debug("Batches are not available to download.");
+                                }
 
-                            if (sftSite.IsConnected)
-                                sftSite.Disconnect();
+                                if (sftSite.IsConnected)
+                                    sftSite.Disconnect();
+                            }
+                        }
+                        else
+                        {
+                            log.Debug("SFT channel is not available or not enabled for this client.");
                         }
                     }
-                    else
-                    {
-                        log.Debug("SFT channel is not available or not enabled for this client.");
-                    }
+                }
+                else
+                {
+                    log.Debug("SFT channel mapping with client does not exist.");
                 }
             }
             else
@@ -281,7 +289,7 @@ namespace AM.Console
             {
                 //Update LogTime for Download complete
                 commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.DownloadEnd, Common.Now);
-                return "Error Occured while downloading Zip file from server :" + Environment.NewLine + ex.Message + Environment.NewLine + ex.TargetSite.ToString();
+                return "Error occured while downloading Zip file from server :" + Environment.NewLine + ex.Message + Environment.NewLine + ex.TargetSite.ToString();
             }
         }
 
@@ -307,7 +315,7 @@ namespace AM.Console
 
                 if (clientBusinessIdDetails == null)
                 {
-                    log.Error("Business Identifier is not assigned to client : {0}".Fill(client.ClientName));
+                    log.Error("Business identifier is not assigned to client : {0}".Fill(client.ClientName));
 
                     //TODO: Ask to Ravi Sir
                     continue;

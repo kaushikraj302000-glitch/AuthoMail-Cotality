@@ -43,8 +43,8 @@ namespace AM.Console
         public static XmlSchemaSet schemaAM;
         public static XmlSchemaSet schemasAMC;
 
-        public static Dictionary<string, string> ValidStatesForUSAA { get; set; }
-        public static string StateListPathForUSAA { get; set; }
+        //public static Dictionary<string, string> ValidStatesForUSAA { get; set; }
+        //public static string StateListPathForUSAA { get; set; }
 
         static Common()
         {
@@ -71,23 +71,23 @@ namespace AM.Console
             Email_To = ConfigurationManager.AppSettings["Email_To"];
             Email_Cc = ConfigurationManager.AppSettings["Email_Cc"];
 
-            ValidStatesForUSAA = new Dictionary<string, string>();
-            StateListPathForUSAA = Path.GetFullPath(ConfigurationManager.AppSettings["StateListPathForUSAA"]);
-            if (!string.IsNullOrEmpty(StateListPathForUSAA))
-            {
-                if (File.Exists(StateListPathForUSAA))
-                {
-                    var stateList = File.ReadAllLines(StateListPathForUSAA);
-                    foreach (string state in stateList)
-                    {
-                        string[] stateCombo = state.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries);
-                        if (stateCombo.Count() > 0)
-                        {
-                            ValidStatesForUSAA.Add(stateCombo[0], stateCombo[1]);
-                        }
-                    }
-                }
-            }
+            //ValidStatesForUSAA = new Dictionary<string, string>();
+            //StateListPathForUSAA = Path.GetFullPath(ConfigurationManager.AppSettings["StateListPathForUSAA"]);
+            //if (!string.IsNullOrEmpty(StateListPathForUSAA))
+            //{
+            //    if (File.Exists(StateListPathForUSAA))
+            //    {
+            //        var stateList = File.ReadAllLines(StateListPathForUSAA);
+            //        foreach (string state in stateList)
+            //        {
+            //            string[] stateCombo = state.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+            //            if (stateCombo.Count() > 0)
+            //            {
+            //                ValidStatesForUSAA.Add(stateCombo[0], stateCombo[1]);
+            //            }
+            //        }
+            //    }
+            //}
 
             ReportSFTUploadingChannelCode = ConfigurationManager.AppSettings["ReportSFTUploadingChannelCode"];
             ReportSFTUploadingPathAMC = ConfigurationManager.AppSettings["ReportSFTUploadingPathAMC"];
@@ -168,32 +168,11 @@ namespace AM.Console
             string errorMsg = sbErrorMessage.ToString();
 
             if (errorMsg.Contains("Address") || errorMsg.Contains("City") || errorMsg.Contains("State") || errorMsg.Contains("Zip"))
-            {
                 yield return new ValidationResultAMC() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Recipient address details are missing in package." };
-            }
-            else
-            {
-                if (!errorMsg.Contains("Zip"))
-                {
-                    var recipientElement = xmlPiece.SelectSingleNode("./x:RecipientInfo", nsManager);
-                    if (recipientElement != null)
-                    {
-                        var recipeintAddressElement = recipientElement.SelectSingleNode("./x:Address", nsManager);
-
-                        if (recipeintAddressElement != null)
-                        {
-                            var stateValue = recipeintAddressElement.SelectSingleNode("./x:State/text()", nsManager).Value.Trim();
-                            if (!ValidStatesForUSAA.Keys.Contains(stateValue))
-                            {
-                                yield return new ValidationResultAMC() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Specified state is not amongst 50 valid states provided by USAA." };
-                            }
-                        }
-                    }
-                }
-            }
 
             if (errorMsg.Contains("Recipient") || errorMsg.Contains("FirstName") || errorMsg.Contains("LastName"))
                 yield return new ValidationResultAMC() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Recipient details are missing in package." };
+
             if (!string.IsNullOrEmpty(errorMsg))
                 yield return new ValidationResultAMC() { Code = OutComeCodes.Invalid_XML, ErrorMessage = errorMsg };
 
