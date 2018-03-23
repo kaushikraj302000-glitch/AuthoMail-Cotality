@@ -446,7 +446,7 @@
                     }
                     if (div == "weeklyChart") {
                         var dates = data.getValue(selectedItem.row, 5);
-                        GetChartDataByStatusAndDate(status, dates);
+                        GetChartDataByStatusAndDate(status, moment(dates).format("MM/DD/YYYY"));
                     }
                 }
             }
