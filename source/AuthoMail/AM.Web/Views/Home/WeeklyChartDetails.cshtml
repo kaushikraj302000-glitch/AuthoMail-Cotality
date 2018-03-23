@@ -11,7 +11,7 @@
                 <th>Batch Name</th>
                 <th>Batch Status</th>
                 <th>Received On</th>
-                <th>Package Name</th>
+                
                 <th>Action</th>
             </tr>
         </thead>
@@ -27,23 +27,23 @@
                         {
 
                             case "InProgress":
-                                <span class="label medium label-red">@item.BatchStatus</span>
+                                <span class="label medium label-blue">@item.BatchStatus</span>
 
                                 break;
                             case "Failed":
                             <span class="label medium label-red">@item.BatchStatus</span>
                                 break;
                             case "ShippedPartial":
-                            <span class="label medium label-success">@item.BatchStatus</span>
+                            <span class="label medium label-yellow">@item.BatchStatus</span>
                                 break;
                             case "ShippedAll":
-                            <span class="label medium label-blue">@item.BatchStatus</span>
+                            <span class="label medium label-green">@item.BatchStatus</span>
                                 break;
 
                         }
                     </td>
                     <td><span>@item.ReceivedOn</span></td>
-                    <td><span>@item.DocumentOrPackageType</span></td>
+                    
                     <td>
                         <button onclick="GetMailPieceById(@item.BatchId)" type="button" class="btn btn-transparent-bright-blue">View </button>
                         @*@Html.ActionLink("View", "MailPieceByBatchId", "Home", new { batchId = item.BatchId }, new { @class = "btn btn-transparent-bright-blue" })*@

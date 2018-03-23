@@ -63,7 +63,7 @@
                     </div>
                     <div class="form-group col-md-6">
                         <label for="input1">Document Type</label>
-                        @Html.DropDownList("DocType", ViewBag.DocType as SelectList, "Select DocType", htmlAttributes: new { @class = "selectpicker" })
+                        @Html.DropDownList("DocType", ViewBag.DocType as SelectList, "Select Document Type", htmlAttributes: new { @class = "selectpicker" })
                         @*<select class="selectpicker" id="docType">
                                 <option>Basic User</option>
                                 <option>Admin</option>
@@ -73,7 +73,7 @@
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label for="dp4">Received  On </label>
+                        <label for="dp4">Received  On(EST) </label>
                         <div class="input-group daterange" id="datepicker4">
                             <input type="text" class="form-control" id="dp4">
                             <span class="input-group-addon">

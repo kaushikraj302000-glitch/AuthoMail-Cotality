@@ -1,4 +1,11 @@
 ﻿@model ICollection<AM.Services.PullBackInfo>
+<style>
+    .popover-content {
+        word-wrap: break-word;
+        color: red;
+    }
+</style>
+
 @if (Model.Count > 0)
 {
     var cnt = 1;
@@ -11,6 +18,7 @@
                 <th>Recipient Name</th>
                 <th>Recipient Address</th>
                 <th>Pages Shipped</th>
+                <th>Document Type</th>
                 <th>Pullback Requested</th>
                 <th>Tracking Number</th>
                 <th>Shipping Status</th>
@@ -27,6 +35,7 @@
                     <td><span>@item.RecipientName </span></td>
                     <td><span>@item.RCPTAddress</span></td>
                     <td><span>@item.TotalPages</span></td>
+                    <td><span>@item.DocumentOrPackageType</span></td>
                     <td class="ispullbackr">
                         @if (item.IsPullBackRequested)
                         {
@@ -45,10 +54,10 @@
 
                             case "PulledBack":
                                 <span class="label medium label-red">@item.ShippingStatus</span>
-                                
+
                                 break;
                             case "Error":
-                            <span class="label medium label-red">@item.ShippingStatus</span>
+                            <span class="label medium label-red" data-trigger="hover" data-toggle="popover" data-original-title="Error" data-content="@item.ErrorDesc" data-placement="left">@item.ShippingStatus</span>
                                 break;
                             case "Shipped":
                             <span class="label medium label-success">@item.ShippingStatus</span>
@@ -68,3 +77,18 @@
 
     </table>
 }
+else
+{
+    <div class="alert alert-yellow">
+        <span class="sbold">@AM.Services.Config.Msg_Web_NoRecordFound</span>
+    </div>
+}
+<script>
+    $(document).ready(function () {
+        $('[data-toggle="popover"]').popover({
+            'trigger': 'hover',
+            'placement': 'left',
+            'container': 'body'
+        });
+    });
+</script>

@@ -70,7 +70,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="DocType">Document Type</label>
-                        @Html.DropDownList("DocType", ViewBag.DocType as SelectList, "Select DocType", htmlAttributes: new { @class = "selectpicker" })
+                        @Html.DropDownList("DocType", ViewBag.DocType as SelectList, "Select Document Type", htmlAttributes: new { @class = "selectpicker" })
                     </div>
 
                 </div>
@@ -95,7 +95,7 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="receivedOn">Received  On</label>
+                        <label for="receivedOn">Received  On(EST)</label>
                         <div class="input-group daterange" id="datepicker4">
                             <input type="text" class="form-control" id="receivedOn">
                             <span class="input-group-addon">
@@ -168,8 +168,8 @@
             var el = $('#mailPieceList');
             var selectedData = $("#receivedOn").val().split('-');
 
-            var startDate = moment(selectedData[0].trim()).format("MM/DD/YYYY");
-            var endDate = moment(selectedData[1].trim()).format("MM/DD/YYYY");
+            var startDate = selectedData[0].trim();
+            var endDate = selectedData[1].trim();
             el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
             $.ajax({
                 type: "POST",

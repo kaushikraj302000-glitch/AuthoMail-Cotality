@@ -8,6 +8,7 @@ using Microsoft.AspNet.Identity;
 using System.Security.Claims;
 using AM.Entities.IdentityModels;
 using AM.Web.USPSIMService;
+using System.Globalization;
 
 namespace AM.Web.Controllers
 {
@@ -32,8 +33,10 @@ namespace AM.Web.Controllers
         }
 
         [HttpPost]
-        public ActionResult GetMailPieceIdByLoanNumber(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, DateTime startDate, DateTime endDate)
+        public ActionResult GetMailPieceIdByLoanNumber(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string startDate, string endDate)
         {
+            var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
             var model = homeSvc.GetMailPieceIdFromBusinessFriendlyValue(BusinessFriendlyIdName, BusinessFriendlyIdValue, User.Identity.GetClientId().Value);
 
             if (model.Count > 1)
@@ -43,7 +46,7 @@ namespace AM.Web.Controllers
             }
             else if (model.Count == 1)
             {
-                var pullbackRequestData = pullBackSvc.GetPullBackRequestList(BusinessFriendlyIdName, BusinessFriendlyIdValue, null, startDate, endDate, User.Identity.GetClientId().Value);
+                var pullbackRequestData = pullBackSvc.GetPullBackRequestList(BusinessFriendlyIdName, BusinessFriendlyIdValue, null, exactStartDate, exactEndDate, User.Identity.GetClientId().Value);
                 return PartialView("_PullBackRequestData", pullbackRequestData);
             }
             else
@@ -60,10 +63,12 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult _GetSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, DateTime receivedOnStart, DateTime receivedOnEnd, string status, string channel, string docType)
+        public ActionResult _GetSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string receivedOnStart, string receivedOnEnd, string status, string channel, string docType)
         {
-            ViewBag.Date = string.Format("{0} To {1}", receivedOnStart.ToString("MM/dd/yyyy"), receivedOnEnd.ToString("MM/dd/yyyy"));
-            var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, receivedOnStart, receivedOnEnd, docType, status, channel);
+            var exactStartDate = DateTime.ParseExact(receivedOnStart, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            var exactEndDate = DateTime.ParseExact(receivedOnEnd, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            ViewBag.Date = string.Format("{0} To {1}", exactStartDate.ToString("MM/dd/yy"), exactEndDate.ToString("MM/dd/yy"));
+            var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, exactStartDate, exactEndDate, docType, status, channel);
             //ViewBag.BusinessId = se.(User.Identity.GetClientId().Value);
             return PartialView(data);
         }
@@ -80,9 +85,10 @@ namespace AM.Web.Controllers
             return PartialView("_GetChartMailPieceData", model);
         }
         [HttpPost]
-        public ActionResult WeeklyChartDetails(string status, DateTime date)
+        public ActionResult WeeklyChartDetails(string status, string date)
         {
-            var model = chartDataSvc.GetBatchByParam(date, status, User.Identity.GetClientId().Value);
+            var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            var model = chartDataSvc.GetBatchByParam(exactDate, status, User.Identity.GetClientId().Value);
             return PartialView(model);
         }
         //[HttpPost]
@@ -106,7 +112,7 @@ namespace AM.Web.Controllers
             return Json(model.OrderByDescending(s => s.BatchId).ToList(), JsonRequestBehavior.AllowGet);
         }
 
-        
+        [AllowAnonymous]
         public ActionResult About()
         {
             ViewBag.Message = "Your application description page.";

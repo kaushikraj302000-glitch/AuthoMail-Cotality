@@ -284,7 +284,7 @@
                         cnt++;
                     }
                     // console.log(chartData);
-                    drawChart(chartData, "weeklyChart", 'Batch Details : ' + moment(startDate).format('MM/DD/YYYY') + " - " + moment(endDate).format('MM/DD/YYYY'), 300,510);
+                    drawChart(chartData, "weeklyChart", 'Batch Details : ' + moment(startDate).format('MM/DD/YYYY') + " - " + moment(endDate).format('MM/DD/YYYY'), 300, 510);
 
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
@@ -317,7 +317,7 @@
                     }
                     //console.log(chartData);
                     $("#TodayChartModal").modal("show");
-                    drawChart(chartData, "TodayChartModalBody", 'MailPiece Status', 900,1400);
+                    drawChart(chartData, "TodayChartModalBody", 'MailPiece Status', 900, 1400);
 
 
 
@@ -328,7 +328,7 @@
                 }
 
             });
-}
+        }
         function BindTodayChartData() {
             //TestDateTime();
             var el = $("#todayChart");
@@ -353,9 +353,9 @@
                         cnt++;
                     }
                     //console.log(chartData);
-                 
-                        drawChart(chartData, "todayChart", 'MailPiece Status', 300,510);
-                 
+
+                    drawChart(chartData, "todayChart", 'MailPiece Status', 300, 510);
+
 
 
                 },
@@ -406,7 +406,7 @@
             });
         }
         google.charts.load('current', { packages: ['corechart'] });
-        function drawChart(chartData, div, title, height,width) {
+        function drawChart(chartData, div, title, height, width) {
             var data = google.visualization.arrayToDataTable(chartData);
             var view = new google.visualization.DataView(data);
             view.setColumns([0, 1, 2, 3, 4]);
@@ -446,7 +446,7 @@
                     }
                     if (div == "weeklyChart") {
                         var dates = data.getValue(selectedItem.row, 5);
-                        GetChartDataByStatusAndDate(status, dates);
+                        GetChartDataByStatusAndDate(status, moment(dates).format("MM/DD/YYYY"));
                     }
                 }
             }
@@ -454,9 +454,9 @@
         google.charts.setOnLoadCallback(BindWeeklyChartData);
         google.charts.setOnLoadCallback(BindTodayChartData);
         $("#FullTodayChart").click(function () {
-           
-        google.charts.setOnLoadCallback(GetFullChart);
-           
+
+            google.charts.setOnLoadCallback(GetFullChart);
+
         });
         function TestDateTime() {
             $.ajax({
@@ -529,8 +529,12 @@
             });
 
         }
-
-        $("#pullback").click(function (e) {
+        $('#BusinessFriendlyIdValue').on("keypress", function (e) {
+            if (e.keyCode == 13) {
+                RequestPullback(); // prevent the button click from happening
+            }
+        });
+        function RequestPullback() {
             if ($("#BusinessFriendlyIdName").val() == "") {
                 $("#BusinessFriendlyIdNameError").show();
                 return;
@@ -624,8 +628,9 @@
             });
             $("#BusinessFriendlyIdNameError").hide();
             $("#BusinessFriendlyIdValueError").hide();
-            //$("#confirmModal").modal("show");
-
+        }
+        $("#pullback").click(function (e) {
+            RequestPullback();
         });
 
         $("#yesPullback").unbind("click").click(function (e) {
