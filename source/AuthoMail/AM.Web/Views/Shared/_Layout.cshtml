@@ -6,7 +6,11 @@
     <title>AuthoMail</title>
     @Styles.Render("~/Content/clcss")
     @Scripts.Render("~/bundles/modernizr")
-
+    <style>
+        #mainlink:hover {
+            color:lightgray;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar navbar-default" role="navigation">
@@ -22,7 +26,7 @@
                 <div class="navbar-logo"></div>
                 <div class="application-name">
                     @*@Html.ActionLink("AuthoMail", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })*@
-                    <h1 style="line-height:50px;">AuthoMail</h1>
+                    <h1 style="line-height:50px;">@Html.ActionLink("AuthoMail", "Index", "Home", new { area = "" }, new { @class = "text-white ",@id="mainlink" })</h1>
                 </div>
 
             </div>

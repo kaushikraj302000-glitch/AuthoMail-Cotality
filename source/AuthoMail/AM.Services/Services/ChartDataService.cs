@@ -36,7 +36,7 @@ namespace AM.Services
                 (key, g) => new WeeklyChart
                 {
                     Date = key,
-                    Weekday = key == estToday ? "Today" : key.ToString("ddd"),
+                    Weekday = key == estToday ? string.Format("{0} [{1}]", "Today", key.ToString("dd")) : string.Format("{0} [{1}]", key.ToString("ddd"), key.ToString("dd")),
                     Failed = g.Count(s => s.BatchStatus == BatchStatus.Failed.ToString()),
                     InProgress = g.Count(s => s.BatchStatus == BatchStatus.InProgress.ToString()),
                     ShippedAll = g.Count(s => s.BatchStatus == BatchStatus.ShippedAll.ToString()),
@@ -51,7 +51,7 @@ namespace AM.Services
                     model.Add(new WeeklyChart
                     {
                         Date = ed,
-                        Weekday = ed == estToday ? "Today" : ed.ToString("ddd"),
+                        Weekday = ed == estToday ? string.Format("{0} [{1}]", "Today", ed.ToString("dd")) : string.Format("{0} [{1}]", ed.ToString("ddd"), ed.ToString("dd")),
                         Failed = 0,
                         InProgress = 0,
                         ShippedAll = 0,
