@@ -1,5 +1,11 @@
 ﻿@model ICollection<AM.Services.PullBackInfo>
 <link href="~/clui/dist/css/datatablecustom.css" rel="stylesheet" />
+<style>
+     .popover-content {
+        word-wrap: break-word;
+        color: red;
+    }
+</style>
 @if (Model.Count > 0)
 {
     var cnt = 1;
@@ -27,7 +33,7 @@
                     <td><span>@item.FileName</span></td>
                     <td><span>@item.RecipientName </span></td>
                     <td><span>@item.RCPTAddress</span></td>
-                    <td><span>@item.DocumentOrPackageName</span></td>
+                    <td><span>@item.DocumentOrPackageType</span></td>
                     <td><span>@item.TotalPages</span></td>
                     <td><span>@item.TrackingNo</span></td>
                     <td>
@@ -38,7 +44,7 @@
                                 <span class="label medium label-yellow">@item.ShippingStatus</span>
                                 break;
                             case "Error":
-                            <span class="label medium label-red" data-trigger="hover" data-toggle="popover" data-original-title="Error Code:@item.ErrorCode" data-content="@item.ErrorDesc" data-placement="left">@item.ShippingStatus</span>
+                            <span class="label medium label-red" data-trigger="hover" data-toggle="popover" data-original-title="Error" data-content="@item.ErrorDesc" data-placement="left">@item.ShippingStatus</span>
                                 break;
                             case "Shipped":
                             <span class="label medium label-success">@item.ShippingStatus</span>
@@ -66,6 +72,10 @@ else
 }
 <script>
     $(document).ready(function () {
-        window.clui.popoverInit();
+        $('[data-toggle="popover"]').popover({
+            'trigger': 'hover',
+            'placement': 'left',
+            'container': 'body'
+        });
     });
 </script>
