@@ -9,6 +9,7 @@ using AM.Web.Models;
 using System.Globalization;
 namespace AM.Web.Controllers
 {
+    [Authorize]
     public class ReportController : Controller
     {
         // GET: Report

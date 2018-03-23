@@ -7,6 +7,7 @@ using System.Web.Mvc;
 using AM.Entities.IdentityModels;
 namespace AM.Web.Controllers
 {
+    [Authorize]
     public class RequestPullBackController : Controller
     {
         // GET: PullBackRequest
