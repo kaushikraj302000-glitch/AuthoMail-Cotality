@@ -100,7 +100,7 @@ namespace AM.Web.Controllers
                     ModelState.AddModelError("", hasLogin.Value);
                     return View(model);
                 }
-                await SignInManager.SignInAsync(user, false, false);
+                await SignInManager.SignInAsync(user, false, model.RememberMe);
                 return RedirectToLocal(returnUrl);
             }
             // This doesn't count login failures towards account lockout
