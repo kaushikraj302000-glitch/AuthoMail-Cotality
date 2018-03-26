@@ -376,7 +376,7 @@ namespace AM.Console
                     {
                         SplitXMLAndPDFS(amcRequest, Path.GetDirectoryName(xmlFilePath), mbi.BatchName);
                         requests.Packages.RemoveAll(p => p.CustomerIdentifier != Common.USAACustIdentifier);
-                        
+
                         if (File.Exists(xmlFilePath))
                             File.Delete(xmlFilePath);
 
@@ -388,11 +388,14 @@ namespace AM.Console
 
         private void SplitXMLAndPDFS(PackageRequests request, string PDFsDir, string batchName)
         {
+            //Create folder for Separate batch for AMC in UNC path
             string batchDirectoryPath = Path.Combine(Common.AMCDirPath, batchName);
 
             batchDirectoryPath.CleanDirectory();
 
+            //Xml and 
             string amcFilePath = Path.Combine(batchDirectoryPath, string.Format("{0}.xml", batchName));
+            
             string zipFilePath = Path.Combine(Common.AMCDirPath, string.Format("{0}.zip", batchName));
             string triggerFilePath = Path.Combine(Common.AMCDirPath, string.Format("{0}_Complete.go", batchName));
 
@@ -490,7 +493,7 @@ namespace AM.Console
                     continue;
                 }
 
-                if (mailPieceNodes == null)
+                if (mailPieceNodes == null || mailPieceNodes.Count == 0)
                 {
                     commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationEnd, Common.Now);
 
