@@ -108,7 +108,7 @@ namespace AM.Services
 
         public List<PullbackRequestReport> GetPullbackRequestReport(int clientId, DateTime startDate, DateTime endDate)
         {
-            string query = "";
+            string query = "SELECT p.[Id] ,[MailBatchId] ,[MailPieceId] ,[MailPieceUniqueId] ,[Status] ,[RequestedOn] ,[RequestedBy], u.[UserName] FROM [AuthoMail].[AM].[PullBackRequests] p LEFT OUTER JOIN [Profile].[Users] u ON p.Id=u.Id  WHERE p.[ClientId] = @clientId AND p.RequestedOn BETWEEN @startDate AND @endDate";
             return db.Query<PullbackRequestReport>(query, new { clientId = clientId, startDate = startDate.EstToUtc(), endDate = endDate.EstToUtc() }).ToList();
         }
     }
