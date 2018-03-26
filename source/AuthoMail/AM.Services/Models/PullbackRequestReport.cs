@@ -17,4 +17,9 @@ namespace AM.Services
         public DateTime RequestedOn { get; set; }
         public string RequestedBy { get; set; }
     }
+    public class PullBackUser
+    {
+        public string Id { get; set; }
+        public string UserName { get; set; }
+    }
 }
