@@ -13,10 +13,11 @@ namespace AM.Console
         {
             DownloadJob downloadJob = new DownloadJob();
             downloadJob.DownloadNewBatch();
-            downloadJob.ValidateBatches();
-            downloadJob.AcknowledgeBatches();
-            downloadJob.ReportPreppedProcess();
-            downloadJob.ReportBackProcess();
+            downloadJob.SeparateUSAABatches();
+            //downloadJob.ValidateBatches();
+            //downloadJob.AcknowledgeBatches();
+            //downloadJob.ReportPreppedProcess();
+            //downloadJob.ReportBackProcess();
         }
     }
 }
