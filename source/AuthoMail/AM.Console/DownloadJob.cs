@@ -393,9 +393,9 @@ namespace AM.Console
 
             batchDirectoryPath.CleanDirectory();
 
-            //Xml and 
+            //Xml and pdf files will be copied to batchname folder.
             string amcFilePath = Path.Combine(batchDirectoryPath, string.Format("{0}.xml", batchName));
-            
+
             string zipFilePath = Path.Combine(Common.AMCDirPath, string.Format("{0}.zip", batchName));
             string triggerFilePath = Path.Combine(Common.AMCDirPath, string.Format("{0}_Complete.go", batchName));
 
@@ -777,20 +777,21 @@ namespace AM.Console
 
         public void ReportBackProcess()
         {
-            List<MailBatchDTO> resReceivedBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.ReportPrepped);
-            if (resReceivedBatches == null)
+            List<MailBatchDTO> reportPreppedBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.ReportPrepped);
+            if (reportPreppedBatches == null)
             {
                 log.Debug("Uploading report job queue is empty.");
                 return;
             }
 
-            foreach (var batch in resReceivedBatches)
+            foreach (var batch in reportPreppedBatches)
             {
                 Client client = clientSvc.GetClientDetails(batch.ClientId).Single();
 
                 //Here for now we are taking SFT Code to Upload Reports on different channel
 
-                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelCode(Common.ReportSFTUploadingChannelCode);
+                //SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelCode(Common.ReportSFTUploadingChannelCode);
+                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(batch.SFTChannelId);
                 if (sftChannelDetails != null)
                 {
                     SFTUtil sftSite = null;

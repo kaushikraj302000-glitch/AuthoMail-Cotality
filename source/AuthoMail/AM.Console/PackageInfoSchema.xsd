@@ -31,9 +31,9 @@
   </xs:complexType>
   <xs:complexType name="Address">
     <xs:sequence>
-      <xs:element minOccurs="1" maxOccurs="1" name="Line1" type="nonEmptyString" />
-      <xs:element minOccurs="0" maxOccurs="1" name="Line2" type="xs:string" />
-      <xs:element minOccurs="1" maxOccurs="1" name="City" type="nonEmptyString" />
+      <xs:element minOccurs="1" maxOccurs="1" name="Line1" type="nonEmptyStringAddress" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Line2"  type="emptyStringAddress" />
+      <xs:element minOccurs="1" maxOccurs="1" name="City" type="nonEmptyStringAddress" />
       <xs:element minOccurs="1" maxOccurs="1" name="State" type="States" />
       <xs:element minOccurs="1" maxOccurs="1" name="Zip" type="uszipcode" />
     </xs:sequence>
@@ -135,7 +135,8 @@
   </xs:simpleType>
   <xs:simpleType name="uszipcode">
     <xs:restriction base="xs:string">
-      <xs:pattern value="^(\d{5})(-\d{4})?(-\d{2})?$"/>
+      <!--<xs:pattern value="^(\d{5})(-\d{4})?(-\d{2})?$"/>-->
+      <xs:pattern value="^(\d{5})(-\d{4})?$"/>
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name="usphoneno">
@@ -146,6 +147,16 @@
   <xs:simpleType name="nonEmptyString">
     <xs:restriction base="xs:string">
       <xs:pattern value="(\s*[^\s]\s*)+"></xs:pattern>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="nonEmptyStringAddress">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="^\s*[^\s]\s*[^!@%\^\*\$]*$"></xs:pattern>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="emptyStringAddress">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="^[^!@%\^\*\$]*$"></xs:pattern>
     </xs:restriction>
   </xs:simpleType>
 </xs:schema>
