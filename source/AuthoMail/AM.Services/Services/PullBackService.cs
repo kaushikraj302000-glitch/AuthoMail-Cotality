@@ -13,7 +13,7 @@ namespace AM.Services
         List<PullBackViewModel> GetMailPieceData(List<string> mpIds);
         List<PullBackRequestForm> GetPullBackData(List<string> mpIds);
         int UpdatePullBackRequestedOn(string mpId, string userId);
-        int InsertPullBackRequestData(string mpId);
+        int InsertPullBackRequestData(string mpId,int clientId);
         List<PullBackInfo> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, string docType, DateTime startDate, DateTime endDate, int clientId);
         List<QuickPullBackResponse> GetQuickPullBackResponseFromBusinessFriendlyValue(string businessFriendlyIdName, string businessFriendlyIdValue, int clientId);
         List<QuickPullBackResponse> GetQuickPullBackResponse(List<string> mailPieceIds, int clientId);
@@ -42,9 +42,9 @@ namespace AM.Services
             return data;
         }
 
-        public int InsertPullBackRequestData(string mpId)
+        public int InsertPullBackRequestData(string mpId,int clientId)
         {
-            return db.Execute("[dbo].[usp_InsertPullBackRequestsData]", new { @MailPieceUniqueId = mpId }, commandType: CommandType.StoredProcedure);
+            return db.Execute("[dbo].[usp_InsertPullBackRequestsData]", new { @MailPieceUniqueId = mpId,@ClientId = clientId }, commandType: CommandType.StoredProcedure);
         }
 
         public List<PullBackInfo> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, string docType, DateTime startDate, DateTime endDate, int clientId)

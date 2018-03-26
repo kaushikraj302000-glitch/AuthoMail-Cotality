@@ -241,8 +241,15 @@ namespace AM.Console
 
             errorReport.AppendLine();
 
+            var erroredData = data.MailPieces.Where(l => l.ErrorCode != OutComeCodes.No_Error).ToList();
+
+            if (erroredData == null || erroredData.Count == 0)
+            {
+                return null;
+            }
+
             // All the loans where outcome code is anything except no_error are processed invalid loans.
-            foreach (MailPieceDTO mailPiece in data.MailPieces.Where(l => l.ErrorCode != OutComeCodes.No_Error))
+            foreach (MailPieceDTO mailPiece in erroredData)
             {
                 errorReport.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17}",
                         data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
@@ -274,8 +281,15 @@ namespace AM.Console
 
             deliveryReport.AppendLine();
 
+            var shippedData = data.MailPieces.Where(l => l.ShippingStatus == ShippingStatus.Shipped.ToString()).ToList();
+
+            if (shippedData == null || shippedData.Count == 0)
+            {
+                return null;
+            }
+
             // All the loans where outcome code is anything except no_error are processed invalid loans.
-            foreach (MailPieceDTO mailPiece in data.MailPieces.Where(l => l.ShippingStatus == ShippingStatus.Shipped.ToString()))
+            foreach (MailPieceDTO mailPiece in shippedData)
             {
                 deliveryReport.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21}",
                         data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,

@@ -45,6 +45,7 @@ namespace AM.Services
 
         #region WEB RequestPullBackController
         public static string Msg_Web_NoMailPieceSelect { get; set; }
+        public static string Msg_Web_NoErrorDescription { get; set; }
         #endregion
 
         #region WEB HomeController
@@ -97,6 +98,7 @@ namespace AM.Services
 
             #region WEB RequestPullBackController
             Msg_Web_NoMailPieceSelect = "Please select at least one mailpiece.";
+            Msg_Web_NoErrorDescription = "No error description.";
             #endregion
 
             #region WEB HomeController
