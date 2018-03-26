@@ -18,6 +18,7 @@ namespace AM.Services
         List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime date, int? batchId, string docType, string filterBy);
         List<MonthlyReconReport> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel);
         List<ChannelCodeTitle> GetChannelTitle(int clientId);
+        List<PullbackRequestReport> GetPullbackRequestReport(int clientId, DateTime startDate, DateTime endDate);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -102,6 +103,13 @@ namespace AM.Services
             string query = "SELECT Code,Title FROM [Common].[SFTChannels] WHERE IsActive=1 AND Id in (select SFTChannelId from [Common].[ClientSFTChannels] WHERE ClientId=@clientId)";
             var channelList = db.Query<ChannelCodeTitle>(query, new { clientId = clientId }).ToList();
             return channelList;
+        }
+
+
+        public List<PullbackRequestReport> GetPullbackRequestReport(int clientId, DateTime startDate, DateTime endDate)
+        {
+            string query = "";
+            return db.Query<PullbackRequestReport>(query, new { clientId = clientId, startDate = startDate.EstToUtc(), endDate = endDate.EstToUtc() }).ToList();
         }
     }
 }

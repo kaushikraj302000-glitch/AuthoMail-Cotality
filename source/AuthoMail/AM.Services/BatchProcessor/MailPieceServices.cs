@@ -90,7 +90,26 @@ namespace AM.Services
       ,[Weight] = @Weight,[IsQCRequested] = @IsQCRequested,[IsQCPerformed] = @IsQCPerformed WHERE Id=@Id";
 
             var mailPieceId = db.Execute(query, mailPiece);
+
+            //Update data if any pulled back
+            if (mailPiece.IsPullBackRequested == true)
+            {
+                UpdatePulledBackDetails(mailPiece.MailBatchId, mailPiece.Id, mailPiece.ShippingStatus);
+            }
             return mailPieceId;
+        }
+
+        public int UpdatePulledBackDetails(int mailBatchId, int mailPieceId, string shippingStatus)
+        {
+            //Sql Query
+            string query = @"UPDATE [AM].[PullBackRequests] SET [Status] = @status WHERE MailBatchId=@mailBatchId AND MailPieceId=@mailPieceId";
+
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
+            parameters.Add("@mailBatchId", mailBatchId);
+            parameters.Add("@mailPieceId", mailPieceId);
+            parameters.Add("@status", shippingStatus);
+
+            return db.Execute(query, parameters);
         }
     }
 }

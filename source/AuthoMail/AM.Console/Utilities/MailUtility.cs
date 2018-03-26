@@ -123,9 +123,12 @@ namespace AM.Console
                     if (msg.Body.Length > 0)
                     {
                         StringBuilder errorReport = Common.USAAErrorReport(batchData, mbi.SFTChannel.Title, mbi.Client.TimeZone);
-                        string errorReportFileName = string.Format("ER-{0}.csv", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("yyyyMMdd-HHmmss"));
+                        if (errorReport != null)
+                        {
+                            string errorReportFileName = string.Format("ER-{0}.csv", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("yyyyMMdd-HHmmss"));
 
-                        msg.Attachments.Add(new Attachment(new MemoryStream(Encoding.UTF8.GetBytes(errorReport.ToString().ToCharArray())), errorReportFileName));
+                            msg.Attachments.Add(new Attachment(new MemoryStream(Encoding.UTF8.GetBytes(errorReport.ToString().ToCharArray())), errorReportFileName));
+                        }
 
                         Common.Email_SMTPClient.Send(msg);
                         isEmailSent = true;

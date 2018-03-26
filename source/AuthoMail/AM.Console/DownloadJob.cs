@@ -304,7 +304,7 @@ namespace AM.Console
             List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.Downloaded);
             if (downloadBatches == null)
             {
-                log.Debug("Job queue is empty for validating batches.");
+                log.Debug("Separating job queue is empty.");
                 return;
             }
 
@@ -393,9 +393,9 @@ namespace AM.Console
 
             batchDirectoryPath.CleanDirectory();
 
-            //Xml and 
+            //Xml and pdf files will be copied to batchname folder.
             string amcFilePath = Path.Combine(batchDirectoryPath, string.Format("{0}.xml", batchName));
-            
+
             string zipFilePath = Path.Combine(Common.AMCDirPath, string.Format("{0}.zip", batchName));
             string triggerFilePath = Path.Combine(Common.AMCDirPath, string.Format("{0}_Complete.go", batchName));
 
@@ -679,7 +679,7 @@ namespace AM.Console
             List<MailBatchDTO> validatedBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.Validated);
             if (validatedBatches == null)
             {
-                log.Debug("Process batches job queue is empty.");
+                log.Debug("Acknowledge job queue is empty.");
                 return;
             }
 
@@ -746,22 +746,30 @@ namespace AM.Console
                     try
                     {
                         StringBuilder deliveryReport = Common.USAADailyDetailOperationReport(data, sftChannelDetails.Title, client.TimeZone);
-                        string deliveryReportFileName = "{0}_{1}.csv".Fill("DR", data.MailBatch.BatchName);
-                        using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(deliveryReport.ToString())))
+
+                        if (deliveryReport != null)
                         {
-                            using (FileStream file = new FileStream(Path.Combine(mbi.AMResponsePath, deliveryReportFileName), FileMode.Create, FileAccess.Write))
+                            string deliveryReportFileName = "{0}_{1}.csv".Fill("DR", data.MailBatch.BatchName);
+                            using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(deliveryReport.ToString())))
                             {
-                                ms.WriteTo(file);
+                                using (FileStream file = new FileStream(Path.Combine(mbi.AMResponsePath, deliveryReportFileName), FileMode.Create, FileAccess.Write))
+                                {
+                                    ms.WriteTo(file);
+                                }
                             }
                         }
 
                         StringBuilder errorReport = Common.USAAErrorReport(data, sftChannelDetails.Title, client.TimeZone);
-                        string errorReportFileName = "{0}_{1}.csv".Fill("ER", data.MailBatch.BatchName);
-                        using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(errorReport.ToString())))
+
+                        if (errorReport != null)
                         {
-                            using (FileStream file = new FileStream(Path.Combine(mbi.AMResponsePath, errorReportFileName), FileMode.Create, FileAccess.Write))
+                            string errorReportFileName = "{0}_{1}.csv".Fill("ER", data.MailBatch.BatchName);
+                            using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(errorReport.ToString())))
                             {
-                                ms.WriteTo(file);
+                                using (FileStream file = new FileStream(Path.Combine(mbi.AMResponsePath, errorReportFileName), FileMode.Create, FileAccess.Write))
+                                {
+                                    ms.WriteTo(file);
+                                }
                             }
                         }
 
@@ -777,20 +785,21 @@ namespace AM.Console
 
         public void ReportBackProcess()
         {
-            List<MailBatchDTO> resReceivedBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.ReportPrepped);
-            if (resReceivedBatches == null)
+            List<MailBatchDTO> reportPreppedBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.ReportPrepped);
+            if (reportPreppedBatches == null)
             {
                 log.Debug("Uploading report job queue is empty.");
                 return;
             }
 
-            foreach (var batch in resReceivedBatches)
+            foreach (var batch in reportPreppedBatches)
             {
                 Client client = clientSvc.GetClientDetails(batch.ClientId).Single();
 
                 //Here for now we are taking SFT Code to Upload Reports on different channel
 
-                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelCode(Common.ReportSFTUploadingChannelCode);
+                //SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelCode(Common.ReportSFTUploadingChannelCode);
+                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(batch.SFTChannelId);
                 if (sftChannelDetails != null)
                 {
                     SFTUtil sftSite = null;

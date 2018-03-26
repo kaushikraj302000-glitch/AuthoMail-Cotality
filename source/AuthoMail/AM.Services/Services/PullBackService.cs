@@ -17,6 +17,7 @@ namespace AM.Services
         List<PullBackInfo> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, string docType, DateTime startDate, DateTime endDate, int clientId);
         List<QuickPullBackResponse> GetQuickPullBackResponseFromBusinessFriendlyValue(string businessFriendlyIdName, string businessFriendlyIdValue, int clientId);
         List<QuickPullBackResponse> GetQuickPullBackResponse(List<string> mailPieceIds, int clientId);
+        List<PullBackUser> GetUsersForPullBack();
     }
     public class PullBackService : ServiceBase, IPullBackService
     {
@@ -79,6 +80,14 @@ namespace AM.Services
             var response = db.Query<QuickPullBackResponse>(query, new { clientId = clientId, mailPieceIds = mailPieceIds }).ToList();
             return response;
         }
+
+
+        public List<PullBackUser> GetUsersForPullBack()
+        {
+            string query = "SELECT DISTINCT Id,UserName FROM [Profile].[Users] WHERE Id IN(SELECT distinct RequestedBy  FROM [AuthoMail].[AM].[PullBackRequests])";
+            return db.Query<PullBackUser>(query).ToList();
+        }
+
     }
 
     public static class PullBackServiceQuery
