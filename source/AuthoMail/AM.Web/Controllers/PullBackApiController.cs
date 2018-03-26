@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Net.Mail;
 using System.Web.Http;
 using Microsoft.AspNet.Identity;
+using AM.Entities.IdentityModels;
 
 namespace AM.Web.Controllers
 {
@@ -107,7 +108,7 @@ namespace AM.Web.Controllers
                         {
                             mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.ToString(), Message = Config.Msg_API_PB_Success, PullBackRequestedOn = Common.Now, PulledBackRequestedBy = (User.Identity) == null ? string.Empty : User.Identity.Name, Success = true });
                         }
-                        int row1 = pullBackSvc.InsertPullBackRequestData(item.ToString());
+                        int row1 = pullBackSvc.InsertPullBackRequestData(item.ToString(),User.Identity.GetClientId().Value);
                     }
                 }
                 else

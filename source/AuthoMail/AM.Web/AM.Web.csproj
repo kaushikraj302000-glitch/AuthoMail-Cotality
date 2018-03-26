@@ -425,6 +425,8 @@
     </None>
     <Content Include="Views\Common\_Channel.cshtml" />
     <Content Include="Views\Common\_TrackingInfo.cshtml" />
+    <Content Include="Views\Report\PullbackRequestReport.cshtml" />
+    <Content Include="Views\Report\_GetPullbackRequestReport.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
