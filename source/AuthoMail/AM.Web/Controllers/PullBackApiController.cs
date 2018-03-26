@@ -32,6 +32,18 @@ namespace AM.Web.Controllers
         [HttpPost]
         public object GeneratePullBackRequest([FromBody] List<string> mailPieceIds)
         {
+            //try
+            //{
+            //    using (var existingFileStream = new FileStream(Config.API_PB_PullBackFormTemplatePath, FileMode.Open))
+            //    {
+            //        return "Valid";
+            //    }
+            //}
+            //catch (Exception e)
+            //{
+
+            //    return e.ToString();
+            //}
             //Testing Purpose
             //mailPieceIds = new List<string> { "0C76A5C0-3180-4F34-B04E-DD5338815EDB", "A12E6EFD-01CB-470F-898D-3200FDED4AA9", "C8EF4A23-7B37-4F33-B899-992A162CC31B" };
             if (mailPieceIds == null || mailPieceIds.Count == 0)
@@ -53,7 +65,7 @@ namespace AM.Web.Controllers
                 }
                 foreach (var item in mailPieceData)
                 {
-                    if (item.PipelineStatus.ToString() != "Submitted")
+                    if (item.PipelineStatus.ToString() == "Received" || item.PipelineStatus.ToString() == "Downloaded" || item.PipelineStatus.ToString() == "Prepped")
                     {
                         mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.MailPieceUniqueId.ToString(), Message = Config.Msg_API_PB_BatchStatusSubmitted, Success = false });
                     }
@@ -95,6 +107,7 @@ namespace AM.Web.Controllers
                         {
                             mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.ToString(), Message = Config.Msg_API_PB_Success, PullBackRequestedOn = Common.Now, PulledBackRequestedBy = (User.Identity) == null ? string.Empty : User.Identity.Name, Success = true });
                         }
+                        int row1 = pullBackSvc.InsertPullBackRequestData(item.ToString());
                     }
                 }
                 else
