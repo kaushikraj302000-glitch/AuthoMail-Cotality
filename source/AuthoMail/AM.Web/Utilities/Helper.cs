@@ -11,7 +11,7 @@ namespace AM.Web
     {
         public static void MailMerge(string templatePath, Dictionary<string, string> data, ref byte[] output)
         {
-            using (var existingFileStream = new FileStream(templatePath, FileMode.Open))
+            using (var existingFileStream = new FileStream(templatePath, FileMode.Open,FileAccess.Read))
             using (MemoryStream ms = new MemoryStream())
             {
                 // Open existing PDF

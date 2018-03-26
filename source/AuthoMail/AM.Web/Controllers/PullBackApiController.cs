@@ -35,8 +35,19 @@ namespace AM.Web.Controllers
         {
             //try
             //{
-            //    using (var existingFileStream = new FileStream(Config.API_PB_PullBackFormTemplatePath, FileMode.Open))
+            //    using (var existingFileStream = new FileStream(Config.API_PB_PullBackFormTemplatePath, FileMode.Open, FileAccess.Read))
             //    {
+            //        var data = new List<PullBackRequestForm>() { 
+            //        new PullBackRequestForm{
+            //            PrintFileName = "002416-1102-USAA-Approval.zip",
+            //            SubmittedOn = DateTime.UtcNow,
+            //            PrintBatch = 1102,
+            //            PieceId = "1",
+            //            ClientName = "USAA",
+            //            DocTypeCode = "Approval"
+            //        }
+            //        };
+            //        GeneratePullBackForm(data);
             //        return "Valid";
             //    }
             //}
@@ -108,7 +119,7 @@ namespace AM.Web.Controllers
                         {
                             mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.ToString(), Message = Config.Msg_API_PB_Success, PullBackRequestedOn = Common.Now, PulledBackRequestedBy = (User.Identity) == null ? string.Empty : User.Identity.Name, Success = true });
                         }
-                        int row1 = pullBackSvc.InsertPullBackRequestData(item.ToString(),User.Identity.GetClientId().Value);
+                        int row1 = pullBackSvc.InsertPullBackRequestData(item.ToString(), User.Identity.GetClientId().Value);
                     }
                 }
                 else
