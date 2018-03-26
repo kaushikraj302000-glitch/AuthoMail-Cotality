@@ -8,7 +8,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AM.Lib;
-using ExcelReader;
 using System.Reflection;
 
 namespace AM.Reporting
