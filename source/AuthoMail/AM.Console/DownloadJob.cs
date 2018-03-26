@@ -304,7 +304,7 @@ namespace AM.Console
             List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.Downloaded);
             if (downloadBatches == null)
             {
-                log.Debug("Job queue is empty for validating batches.");
+                log.Debug("Separating job queue is empty.");
                 return;
             }
 
@@ -679,7 +679,7 @@ namespace AM.Console
             List<MailBatchDTO> validatedBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.Validated);
             if (validatedBatches == null)
             {
-                log.Debug("Process batches job queue is empty.");
+                log.Debug("Acknowledge job queue is empty.");
                 return;
             }
 
@@ -746,22 +746,30 @@ namespace AM.Console
                     try
                     {
                         StringBuilder deliveryReport = Common.USAADailyDetailOperationReport(data, sftChannelDetails.Title, client.TimeZone);
-                        string deliveryReportFileName = "{0}_{1}.csv".Fill("DR", data.MailBatch.BatchName);
-                        using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(deliveryReport.ToString())))
+
+                        if (deliveryReport != null)
                         {
-                            using (FileStream file = new FileStream(Path.Combine(mbi.AMResponsePath, deliveryReportFileName), FileMode.Create, FileAccess.Write))
+                            string deliveryReportFileName = "{0}_{1}.csv".Fill("DR", data.MailBatch.BatchName);
+                            using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(deliveryReport.ToString())))
                             {
-                                ms.WriteTo(file);
+                                using (FileStream file = new FileStream(Path.Combine(mbi.AMResponsePath, deliveryReportFileName), FileMode.Create, FileAccess.Write))
+                                {
+                                    ms.WriteTo(file);
+                                }
                             }
                         }
 
                         StringBuilder errorReport = Common.USAAErrorReport(data, sftChannelDetails.Title, client.TimeZone);
-                        string errorReportFileName = "{0}_{1}.csv".Fill("ER", data.MailBatch.BatchName);
-                        using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(errorReport.ToString())))
+
+                        if (errorReport != null)
                         {
-                            using (FileStream file = new FileStream(Path.Combine(mbi.AMResponsePath, errorReportFileName), FileMode.Create, FileAccess.Write))
+                            string errorReportFileName = "{0}_{1}.csv".Fill("ER", data.MailBatch.BatchName);
+                            using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(errorReport.ToString())))
                             {
-                                ms.WriteTo(file);
+                                using (FileStream file = new FileStream(Path.Combine(mbi.AMResponsePath, errorReportFileName), FileMode.Create, FileAccess.Write))
+                                {
+                                    ms.WriteTo(file);
+                                }
                             }
                         }
 
