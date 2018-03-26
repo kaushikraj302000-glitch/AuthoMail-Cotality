@@ -7,6 +7,7 @@ using System.Web.Mvc;
 using AM.Entities.IdentityModels;
 using AM.Web.Models;
 using System.Globalization;
+using AM.Lib;
 namespace AM.Web.Controllers
 {
     [Authorize]
@@ -172,6 +173,21 @@ namespace AM.Web.Controllers
             }
             ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
             return PartialView(model);
+        }
+
+        public ActionResult PullbackRequestReport()
+        {
+            //ViewBag.RequestedBy = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "UserId", "RequestedBy");
+            var estToday = DateTime.UtcNow.UtcToEst().Date;
+            // EST Week
+            ViewBag.startDate = estToday.AddDays(-7);
+            ViewBag.endDate = estToday + new TimeSpan(23, 59, 59);
+            return View();
+        }
+        [HttpPost]
+        public ActionResult _GetPullbackRequestReport(string startDate, string endDate,string requestedBy)
+        {
+            return PartialView();
         }
     }
 }

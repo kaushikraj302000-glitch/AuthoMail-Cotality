@@ -1,0 +1,124 @@
+﻿@{
+    ViewBag.Title = "PullbackRequestReport";
+}
+
+<link href="~/clui/dist/css/datatablecustom.css" rel="stylesheet" />
+<style>
+    .col-md-1, .col-md-2, .col-md-3 {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+    }
+
+
+    .show-calendar {
+        width: 484px !important;
+    }
+</style>
+<div class="panel-group">
+    <div class="panel panel-default">
+        <div class="panel-heading" id="headingOne">
+            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree">
+                <div class="panel-title">
+
+                  Pullback Request Report
+                    <div class="collapsed-icon pull-right">
+                        <i class="fa fa-caret-left"></i>
+                    </div>
+                    <div class="expanded-icon pull-right">
+                        <i class="fa fa-caret-down"></i>
+                    </div>
+
+                </div>
+            </a>
+
+        </div>
+        <div id="collapseThree" class="panel-collapse collapse in">
+            <div class="panel-body">
+                
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="receivedOn">Requested  On(EST)</label>
+                        <div class="input-group daterange" id="datepicker4">
+                            <input type="text" class="form-control" id="requestedOn">
+                            <span class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="Status">Requested By</label>
+                        @*@Html.DropDownList("RequestedBy", ViewBag.RequestedBy as SelectList, "Select Requested By", htmlAttributes: new { @class = "selectpicker" })*@
+                    </div>
+
+                </div>
+                <div class="col-md-1">
+                    <div class="form-group ">
+                        <label for="filterData"> &nbsp;</label>
+                        <button type="button" id="filterData" class="btn btn-primary" style=" padding-top: 6%;">
+                            <span class="sr-only">Filter</span>
+                            <i class="fa fa-arrow-right fa-2x"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+<div class="panel panel-default" id="mailPieceList">
+
+</div>
+@section Scripts{
+    @Styles.Render("~/bundles/datatablescss")
+    @Scripts.Render("~/bundles/datatables")
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var dateTemplate = '<div class="daterangepicker dropdown-menu">' + '<div class="calendar left">' + '<div class="calendar-table"></div>' + '</div>' + '<div class="calendar right">' + '<div class="calendar-table"></div>' + '</div>' + '<div class="ranges">' + '<div class="range_inputs">' + '<button class="applyBtn" disabled="disabled" type="button"></button> ' + '<button class="cancelBtn" type="button"></button>' + '</div>' + '</div>' + '</div>';
+            $("#requestedOn").daterangepicker({
+                autoApply: true,
+                template: dateTemplate,
+                showCustomRangeLabel:false,
+                startDate: moment("@ViewBag.startDate").format("MM/DD/YYYY"),
+                endDate: moment("@ViewBag.endDate").format("MM/DD/YYYY"),
+
+            });
+            FilterData();
+            // JSON.useDateParser(false);
+        });
+        function FilterData() {
+
+            var el = $('#mailPieceList');
+            var selectedData = $("#requestedOn").val().split('-');
+
+            var startDate = selectedData[0].trim();
+            var endDate = selectedData[1].trim();
+            el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "Report/_PullbackRequestReport",
+                data: JSON.stringify({
+                    startDate: startDate,
+                    endDate: endDate,
+                    requestedBy: $("#requestedBy").val()
+                }),
+                contentType: "application/json; charset=utf-8",
+                success: function (res) {
+                    el.html(res);
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    var msg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
+                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                }
+
+            });
+        }
+        $("#filterData").click(function () {
+            FilterData();
+        });
+
+    </script>
+}
