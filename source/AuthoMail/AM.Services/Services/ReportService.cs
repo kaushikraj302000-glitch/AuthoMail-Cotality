@@ -21,157 +21,88 @@ namespace AM.Services
     }
     public class ReportService : ServiceBase, IReportService
     {
+        string conditionTemplate = "isnull({0},'') = ISNULL({1}, isnull({0},''))";
         public List<DailyDetailOperationsReport> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel)
         {
-            string query = ReportServiceQuery.GetDailyDetailOperationsByDateOrBatch;
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@clientId", clientId);
-            parameters.Add("@shippingstatus", ShippingStatus.Shipped.ToString());
-            if (date.HasValue)
+            string query = "[dbo].[uspweb_DailyDetailOperationsReport] @clientId, @startDate, @endDate, @batchId, @channel, @shippingStatus";
+            var data = db.Query<DailyDetailOperationsReport>(query, new
             {
-                DateTime startDate = (date.Value.Date + new TimeSpan(00, 00, 00));
-                DateTime endDate = (date.Value.Date + new TimeSpan(23, 59, 59));
-                query = string.Format("{0} AND (ReceivedOn between @startDate and @endDate)", query);
-                parameters.Add("@startDate", startDate.EstToUtc());
-                parameters.Add("@endDate", endDate.EstToUtc());
-            }
-            if (batchId.HasValue)
-            {
-                query = string.Format("{0} AND BatchId=@batchId", query);
-                parameters.Add("@batchId", batchId);
-            }
-            if (!channel.IsNullOrWhiteSpace())
-            {
-                query = string.Format("{0} AND ChannelCode=@channel", query);
-                parameters.Add("@channel", channel);
-            }
-            var data = db.Query<DailyDetailOperationsReport>(query, parameters).ToList();
+                clientId = clientId,
+                shippingstatus = ShippingStatus.Shipped.ToString(),
+                batchId = batchId,
+                channel = channel.IsNullOrWhiteSpace() ? null : channel,
+                startDate = date.HasValue ? (date.Value.Date + new TimeSpan(00, 00, 00)).EstToUtc() : date,
+                endDate = date.HasValue ? (date.Value.Date + new TimeSpan(23, 59, 59)).EstToUtc() : date,
+            }).ToList();
             return data;
         }
         public List<ErrorReport> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel)
         {
-            string query = ReportServiceQuery.GetErrorReportByDateOrBatch;
-
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@clientId", clientId);
-            parameters.Add("@shippingstatus", ShippingStatus.Error.ToString());
-            if (date.HasValue)
+            string query = "[dbo].[uspweb_ErrorReport] @clientId, @startDate, @endDate, @batchId, @channel, @shippingStatus";
+            var data = db.Query<ErrorReport>(query, new
             {
-                DateTime startDate = (date.Value.Date + new TimeSpan(00, 00, 00));
-                DateTime endDate = (date.Value.Date + new TimeSpan(23, 59, 59));
-                query = string.Format("{0} AND (ReceivedOn between @startDate and @endDate)", query);
-                parameters.Add("@startDate", startDate.EstToUtc());
-                parameters.Add("@endDate", endDate.EstToUtc());
-            }
-
-            if (batchId.HasValue)
-            {
-                query = string.Format("{0} AND BatchId=@batchId", query);
-                parameters.Add("@batchId", batchId);
-            }
-            if (!channel.IsNullOrWhiteSpace())
-            {
-                query = string.Format("{0} AND ChannelCode=@channel", query);
-                parameters.Add("@channel", channel);
-            }
-            var data = db.Query<ErrorReport>(query, parameters).ToList();
+                clientId = clientId,
+                shippingstatus = ShippingStatus.Error.ToString(),
+                batchId = batchId,
+                channel = channel.IsNullOrWhiteSpace() ? null : channel,
+                startDate = date.HasValue ? (date.Value.Date + new TimeSpan(00, 00, 00)).EstToUtc() : date,
+                endDate = date.HasValue ? (date.Value.Date + new TimeSpan(23, 59, 59)).EstToUtc() : date,
+            }).ToList();
             return data;
         }
 
         public List<SummaryControlReport> GetSummaryControlReport(int clientId, DateTime startDate, DateTime endDate, string channel)
         {
-            string query = ReportServiceQuery.GetSummaryControlReport;
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@clientId", clientId);
-            query = string.Format("{0} AND (ReceivedOn between @startDate and @endDate)", query);
-            parameters.Add("@startDate", startDate.EstToUtc());
-            parameters.Add("@endDate", endDate.EstToUtc());
-            if (!channel.IsNullOrWhiteSpace())
+            string query = "[dbo].[uspweb_SummaryControlReport] @clientId, @startDate, @endDate, @channel";
+            var data = db.Query<SummaryControlReport>(query, new
             {
-                query = string.Format("{0} AND ChannelCode=@channel", query);
-                parameters.Add("@channel", channel);
-            }
-            var data = db.Query<SummaryControlReport>(query, parameters).ToList();
+                clientId = clientId,
+                startDate = startDate.EstToUtc(),
+                endDate = endDate.EstToUtc(),
+                channel = channel.IsNullOrWhiteSpace() ? null : channel
+            }).ToList();
             return data;
         }
 
         public List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime date, int? batchId, string docType, string filterBy)
         {
-            string query = ReportServiceQuery.GetSLAMissErrorReportByDateOrBatch;
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@clientId", clientId);
-            
-            query = string.Format("{0} AND ShippingStatus IN ('{1}','{2}') ", query, ShippingStatus.Shipped.ToString(), ShippingStatus.InProgress.ToString());
-            //parameters.Add("@shippingstatus", new List<string>() { ShippingStatus.Shipped.ToString(), ShippingStatus.InProgress.ToString() });//Need to verify
-
-            DateTime startDate = (date.Date + new TimeSpan(00, 00, 00));
-            DateTime endDate = (date.Date + new TimeSpan(23, 59, 59));
-
-            if (filterBy == "ByReceivedOn")
+            string query = "[dbo].[uspweb_ErrorReportSLA] @clientId, @startDateRec, @endDateRec, @startDateDue, @endDateDue, @batchId, @docType, @shippingStatus";
+            bool isReceived = filterBy == "ByReceivedOn" ? true : false;
+            DateTime? dt = null;
+            var data = db.Query<ErrorReport>(query, new
             {
-                filterBy = "ReceivedOn";
-            }
-            else
-            {
-                filterBy = "DueDate";
-            }
-
-            query = string.Format("{0} AND ({1} between @startDate and @endDate)", query, filterBy);
-            parameters.Add("@startDate", startDate.EstToUtc());
-            parameters.Add("@endDate", endDate.EstToUtc());
-
-            //Also verify need to define time in below clause. also check time?
-            if (batchId.HasValue)
-            {
-                query = string.Format("{0} AND BatchId=@batchId", query);
-                parameters.Add("@batchId", batchId);
-            }
-            if (!docType.IsNullOrWhiteSpace())
-            {
-                query = string.Format("{0} AND DocumentOrPackageType=@docType", query);
-                parameters.Add("@docType", docType);
-            }
-            var data = db.Query<ErrorReport>(query, parameters).ToList();
+                clientId = clientId,
+                shippingstatus = string.Format("'{0}','{1}'", ShippingStatus.InProgress.ToString(), ShippingStatus.Shipped.ToString()),
+                batchId = batchId,
+                docType = docType.IsNullOrWhiteSpace() ? null : docType,
+                startDateRec = isReceived ? (date.Date + new TimeSpan(00, 00, 00)).EstToUtc() : dt,
+                endDateRec = isReceived ? (date.Date + new TimeSpan(23, 59, 59)).EstToUtc() : dt,
+                startDateDue = isReceived ? dt : (date.Date + new TimeSpan(00, 00, 00)).EstToUtc(),
+                endDateDue = isReceived ? dt : (date.Date + new TimeSpan(23, 59, 59)).EstToUtc()
+            }).ToList();
             return data;
         }
 
         public List<MonthlyReconReport> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel)
         {
-            string query = ReportServiceQuery.GetMonthlyReconReport;
+            string query = "[dbo].[uspweb_MonthlyReconReport] @clientId, @startDate, @endDate, @channel,@shippingStatus";
             //date must be in 26th to 25th
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@clientId", clientId);
-            parameters.Add("@shippingStatus", ShippingStatus.Shipped.ToString());
-            parameters.Add("@startDate", (startDate.Date + new TimeSpan(00, 00, 00)).EstToUtc());
-            parameters.Add("@endDate", (endDate.Date + new TimeSpan(23, 59, 59)).EstToUtc());
-            if (!channel.IsNullOrWhiteSpace())
+            var data = db.Query<MonthlyReconReport>(query, new
             {
-                query = string.Format("{0} AND ChannelCode=@channel", query);
-                parameters.Add("@channel", channel);
-            }
-            var data = db.Query<MonthlyReconReport>(query, parameters).ToList();
+                clientId = clientId,
+                startDate = (startDate.Date + new TimeSpan(00, 00, 00)).EstToUtc(),
+                endDate = (endDate.Date + new TimeSpan(23, 59, 59)).EstToUtc(),
+                channel = channel.IsNullOrWhiteSpace() ? null : channel,
+                shippingStatus = ShippingStatus.Shipped.ToString()
+            }).ToList();
             return data;
         }
 
         public List<ChannelCodeTitle> GetChannelTitle(int clientId)
         {
-            var channelList = db.Query<ChannelCodeTitle>(ReportServiceQuery.GetChannelTitle, new { clientId = clientId }).ToList();
+            string query = "SELECT Code,Title FROM [Common].[SFTChannels] WHERE IsActive=1 AND Id in (select SFTChannelId from [Common].[ClientSFTChannels] WHERE ClientId=@clientId)";
+            var channelList = db.Query<ChannelCodeTitle>(query, new { clientId = clientId }).ToList();
             return channelList;
         }
-    }
-    public static class ReportServiceQuery
-    {
-        public static string GetDailyDetailOperationsByDateOrBatch = "select * from [dbo].[view_DailyDetailOperationsReport] WHERE ClientId=@clientId AND ShippingStatus=@shippingStatus";
-
-        public static string GetErrorReportByDateOrBatch = "select * from [dbo].[view_ErrorReport] WHERE ClientId=@clientId AND ShippingStatus=@shippingstatus";
-
-        public static string GetSummaryControlReport = "select * from [dbo].[view_SummaryControlReport] WHERE ClientId=@clientId";
-
-        public static string GetSLAMissErrorReportByDateOrBatch = "select * from [dbo].[view_ErrorReport] WHERE ClientId=@clientId AND SLADays < 0";
-
-        public static string GetMonthlyReconReport = "select * from [dbo].[view_MonthlyReconReport] WHERE ClientId=@clientId AND (ReceivedOn between @startDate and @endDate) AND ShippingStatus=@shippingStatus";//AND SLADays >= 0
-
-        public static string GetChannelTitle = "SELECT Code,Title FROM [Common].[SFTChannels] WHERE IsActive=1 AND Id in (select SFTChannelId from [Common].[ClientSFTChannels] WHERE ClientId=@clientId)";
-
     }
 }

@@ -71,6 +71,7 @@ namespace AM.Core
                         mailPieceData.Add("ToAddress", mailPiece.RcptFirstName + " " + mailPiece.RcptLastName + "\n" + (string.IsNullOrEmpty(mailPiece.RcptAddressAptOrSuiteOrOther) ? mailPiece.RcptAddressStreet : string.Format("{0}\n{1}", mailPiece.RcptAddressStreet, mailPiece.RcptFirstName)) + "\n" + mailPiece.RcptAddressCity + ", " + mailPiece.RcptAddressState + ", " + mailPiece.RcptAddressZIP);
 
                         mailPieceData.Add("MailPieceId", mailPiece.Id.ToString());
+                        mailPieceData.Add("Date", DateTime.UtcNow.UtcToEst().ToString("MMMM dd, yyyy"));
                         mailPieceData.Add("MailPieceZip", mailPiece.RcptAddressZIP);
                         mailPieceData.Add("LoanNbr", mailPiece.BusinessFriendlyIdValue);
 

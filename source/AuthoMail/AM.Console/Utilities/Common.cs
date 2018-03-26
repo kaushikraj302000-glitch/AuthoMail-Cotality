@@ -43,8 +43,8 @@ namespace AM.Console
         public static XmlSchemaSet schemaAM;
         public static XmlSchemaSet schemasAMC;
 
-        //public static Dictionary<string, string> ValidStatesForUSAA { get; set; }
-        //public static string StateListPathForUSAA { get; set; }
+        public static string USAACustIdentifier { get; set; }
+        public static string AMCDirPath { get; set; }
 
         static Common()
         {
@@ -71,23 +71,8 @@ namespace AM.Console
             Email_To = ConfigurationManager.AppSettings["Email_To"];
             Email_Cc = ConfigurationManager.AppSettings["Email_Cc"];
 
-            //ValidStatesForUSAA = new Dictionary<string, string>();
-            //StateListPathForUSAA = Path.GetFullPath(ConfigurationManager.AppSettings["StateListPathForUSAA"]);
-            //if (!string.IsNullOrEmpty(StateListPathForUSAA))
-            //{
-            //    if (File.Exists(StateListPathForUSAA))
-            //    {
-            //        var stateList = File.ReadAllLines(StateListPathForUSAA);
-            //        foreach (string state in stateList)
-            //        {
-            //            string[] stateCombo = state.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries);
-            //            if (stateCombo.Count() > 0)
-            //            {
-            //                ValidStatesForUSAA.Add(stateCombo[0], stateCombo[1]);
-            //            }
-            //        }
-            //    }
-            //}
+            USAACustIdentifier = ConfigurationManager.AppSettings["USAACustIdentifier"];
+            AMCDirPath = Path.GetFullPath(ConfigurationManager.AppSettings["AMCDirPath"]);
 
             ReportSFTUploadingChannelCode = ConfigurationManager.AppSettings["ReportSFTUploadingChannelCode"];
             ReportSFTUploadingPathAMC = ConfigurationManager.AppSettings["ReportSFTUploadingPathAMC"];

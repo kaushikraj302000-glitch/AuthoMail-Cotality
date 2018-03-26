@@ -14,6 +14,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Schema;
 using AM.Lib;
+using System.IO.Compression;
 namespace AM.Console
 {
     public class DownloadJob
@@ -33,6 +34,7 @@ namespace AM.Console
         }
 
         #region Download New Batch
+
         public void DownloadNewBatch()
         {
             log.Debug("Download Batch Process Started");
@@ -50,7 +52,7 @@ namespace AM.Console
                         List<string> triggerFilePaths = new List<string>();
 
                         SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(sftChannel.SFTChannelId);
-                        
+
                         if (sftChannelDetails != null)
                         {
                             SFTUtil sftSite = null;
@@ -128,6 +130,7 @@ namespace AM.Console
             }
         }
 
+
         private void DownloadBatchFromFTP(SFTUtil sftSite, string zipFileFTPPath, string triggerFilePath, MailBatchInfo mbi)
         {
             #region Create directory structure.
@@ -156,7 +159,7 @@ namespace AM.Console
                     {
                         #region Try to extract zip file and delete trigger file from FTP.
 
-                        using (ZipFile zipFile = ZipFile.Read(containsZipFilePath))//Read file From the Zip.
+                        using (Ionic.Zip.ZipFile zipFile = Ionic.Zip.ZipFile.Read(containsZipFilePath))//Read file From the Zip.
                         {
                             foreach (ZipEntry e in zipFile)
                             {
@@ -296,6 +299,147 @@ namespace AM.Console
         #endregion
 
         #region Validate And Acknowledge
+        public void SeparateUSAABatches()
+        {
+            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.Downloaded);
+            if (downloadBatches == null)
+            {
+                log.Debug("Job queue is empty for validating batches.");
+                return;
+            }
+
+            foreach (var batch in downloadBatches)
+            {
+                Client client = clientSvc.GetClientDetails(batch.ClientId).SingleOrDefault();
+
+                MailBatchInfo mbi = new MailBatchInfo(batch, client, null, Common.AuthoMailRootFolder);
+
+                var xmlFilePath = Path.Combine(mbi.AMRequestPath, mbi.BatchName + ".xml");
+
+                XmlDocument batchXML = new XmlDocument();
+                XmlNodeList mailPieceNodes = null;
+                // Try to parse the XML we got from the zip file. If XML is invalid then log error.
+                commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationStart, Common.Now);
+                try
+                {
+                    batchXML.LoadXml(File.ReadAllText(xmlFilePath));
+                    mailPieceNodes = batchXML.DocumentElement.ChildNodes;
+                }
+                catch (XmlException err)
+                {
+                    log.Error(err);
+
+                    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationEnd, Common.Now);
+
+                    ReportInvalidBatch(batch, err.ToString());
+
+                    continue;
+                }
+
+                if (mailPieceNodes == null)
+                {
+                    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationEnd, Common.Now);
+
+                    ReportInvalidBatch(batch, "Xml does not contain any package info nodes.");
+
+                    continue;
+                }
+
+                PackageRequests requests = null;
+                PackageRequests amcRequest = null;
+
+                requests = XmlUtil.Deserialize<PackageRequests>(batchXML.OuterXml);
+
+                if (requests.Packages.Any(p => p.CustomerIdentifier != Common.USAACustIdentifier))
+                {
+                    List<PackageInfo> packages = requests.Packages.FindAll(p => p.CustomerIdentifier != Common.USAACustIdentifier);
+                    packages.ForEach(p => amcRequest = new PackageRequests()
+                    {
+                        Packages = new List<PackageInfo>() { new PackageInfo()
+                                {
+                                    CustomerIdentifier=p.CustomerIdentifier,
+                                    File=p.File,
+                                    Id=p.Id,
+                                    LoanNbr=p.LoanNbr,
+                                    PackageName=p.PackageName,
+                                    ReceivedDate=p.ReceivedDate,
+                                    RecipientInfo=p.RecipientInfo,
+                                    RequestId=p.RequestId,
+                                    ReturnInfo=p.ReturnInfo,
+                                    ShippingCredentials=p.ShippingCredentials,
+                                    ShippingMethod=p.ShippingMethod                                    
+                                }
+                            }
+                    });
+
+                    if (packages != null && packages.Count > 0)
+                    {
+                        SplitXMLAndPDFS(amcRequest, Path.GetDirectoryName(xmlFilePath), mbi.BatchName);
+                        requests.Packages.RemoveAll(p => p.CustomerIdentifier != Common.USAACustIdentifier);
+                        
+                        if (File.Exists(xmlFilePath))
+                            File.Delete(xmlFilePath);
+
+                        File.WriteAllText(xmlFilePath, XmlUtil.Serialize<PackageRequests>(requests));
+                    }
+                }
+            }
+        }
+
+        private void SplitXMLAndPDFS(PackageRequests request, string PDFsDir, string batchName)
+        {
+            string batchDirectoryPath = Path.Combine(Common.AMCDirPath, batchName);
+
+            batchDirectoryPath.CleanDirectory();
+
+            string amcFilePath = Path.Combine(batchDirectoryPath, string.Format("{0}.xml", batchName));
+            string zipFilePath = Path.Combine(Common.AMCDirPath, string.Format("{0}.zip", batchName));
+            string triggerFilePath = Path.Combine(Common.AMCDirPath, string.Format("{0}_Complete.go", batchName));
+
+            List<PackageInfo> packages = request.Packages;
+            if (packages != null)
+            {
+                foreach (PackageInfo package in packages)
+                {
+                    if (File.Exists(Path.Combine(PDFsDir, package.File)))
+                    {
+                        string sourceFile = Path.Combine(PDFsDir, package.File);
+                        string destFile = Path.Combine(batchDirectoryPath, package.File);
+
+                        if (File.Exists(destFile))
+                            File.Delete(destFile);
+
+                        File.Copy(sourceFile, destFile);
+                    }
+                }
+
+                if (File.Exists(amcFilePath))
+                    File.Delete(amcFilePath);
+
+                File.WriteAllText(amcFilePath, XmlUtil.Serialize<PackageRequests>(request));
+
+                if (File.Exists(zipFilePath))
+                    File.Delete(zipFilePath);
+
+                using (ZipArchive newFile = System.IO.Compression.ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
+                {
+                    foreach (string file in Directory.GetFiles(batchDirectoryPath).Where(fileType => !fileType.ToLower().EndsWith(".zip")))
+                    {
+                        newFile.CreateEntryFromFile(file, Path.GetFileName(file));
+                    }
+                }
+
+                //After creating zip remove batch folder
+                Directory.Delete(batchDirectoryPath, true);
+
+
+                if (File.Exists(triggerFilePath))
+                    File.Delete(triggerFilePath);
+
+                File.Create(triggerFilePath);
+            }
+        }
+
         public void ValidateBatches()
         {
             List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.Downloaded);
