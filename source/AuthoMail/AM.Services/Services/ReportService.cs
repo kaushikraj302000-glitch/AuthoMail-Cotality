@@ -21,7 +21,6 @@ namespace AM.Services
     }
     public class ReportService : ServiceBase, IReportService
     {
-        string conditionTemplate = "isnull({0},'') = ISNULL({1}, isnull({0},''))";
         public List<DailyDetailOperationsReport> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel)
         {
             string query = "[dbo].[uspweb_DailyDetailOperationsReport] @clientId, @startDate, @endDate, @batchId, @channel, @shippingStatus";

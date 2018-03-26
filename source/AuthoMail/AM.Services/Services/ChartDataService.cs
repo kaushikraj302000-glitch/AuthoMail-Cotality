@@ -99,10 +99,8 @@ namespace AM.Services
     {
         public static string GetWeeklyChartData = "select Id,BatchStatus,BatchName,ReceivedOn from AM.MailBatches Where ReceivedOn between @startDate and @endDate and ClientId=@clientId";
 
-        public static string GetTodayMailPieceChartData = "[dbo].[usp_TodayMailPieceChartData] @todayDate, @clientId";
-
-        public static string GetMailPieceByParam = "[dbo].[usp_GetMailPieceByBatchIdAndStatus] @batchId, @status, @clientId";
+        public static string GetMailPieceByParam = "[dbo].[uspweb_GetMailPieceByBatchIdAndStatus] @batchId, @status, @clientId";
         public static string GetBatchByParam = "select m.Id as [BatchId],m.ClientBatchId,m.[UniqueId] as [BatchUniqueId],m.BatchName,m.BatchStatus,m.DocumentOrPackageType,m.ReceivedOn, c.TimeZone as [ClientTimeZone] from [AM].[MailBatches] m left outer join [Common].[Clients] c ON m.ClientId=c.Id where BatchStatus=@status and ClientId=@clientId and cast(ReceivedOn as date)=cast(@date as date)";
-        public static string GetMailPieceByBatchId = "[dbo].[usp_GetMailPieceByBatchId] @batchId, @clientId";
+        public static string GetMailPieceByBatchId = "[dbo].[uspweb_GetMailPieceByBatchId] @batchId, @clientId";
     }
 }
