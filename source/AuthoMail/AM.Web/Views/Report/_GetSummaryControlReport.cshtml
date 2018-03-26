@@ -79,7 +79,7 @@
                         @*<td><span>@item.RequestId</span></td>*@
                         <td><span>@item.ErrorCode</span></td>
                         <td><span>@item.ErrorDesc</span></td>
-                        <td><span  class="text-red" data-toggle="popover" data-original-title="Error" data-content="@item.ErrorDesc" data-placement="left"><a>Show Error</a></span></td>
+                        <td><span class="text-red" data-toggle="popover" data-original-title="Error" data-html="true" data-content="@(item.ErrorDesc != string.Empty ? Html.Raw("<span class='text-red'>"+item.ErrorDesc+"</span>"):Html.Raw("<span class='text-red'>"+AM.Services.Config.Msg_Web_NoErrorDescription+"</span>"))" data-placement="left"><a>Show Error</a></span></td>
                         <td><span>@item.PrintLocation</span></td>
                         <td><span>@item.PagesShipped</span></td>
                         <td>@item.BatchId</td>
