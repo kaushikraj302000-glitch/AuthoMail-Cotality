@@ -20,7 +20,8 @@ namespace AM.Services
     {
         public List<MailPieceSearch> GetMailPieceByBatchId(int batchId, int clientId)
         {
-            var data = db.Query<MailPieceSearch>(HomeServiceQuery.GetMailPieceByBatchId, new { batchId = batchId, clientId = clientId }).ToList();
+            string query = "[dbo].[uspweb_MailPieceSearch] @clientId, null, null, null, null, null, null, null, @batchId";
+            var data = db.Query<MailPieceSearch>(query, new { batchId = batchId, clientId = clientId }).ToList();
             return data;
         }
 
