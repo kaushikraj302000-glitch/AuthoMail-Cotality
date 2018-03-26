@@ -46,7 +46,7 @@ namespace AM.Services.Models
                     RcptMiddleName.IsNullOrWhiteSpace() ? null : RcptMiddleName.Trim() + ", ",
                     RcptLastName.IsNullOrWhiteSpace() ? null : RcptLastName.Trim() + ", ",
                     RcptSuffix.IsNullOrWhiteSpace() ? null : RcptSuffix.Trim() + ", ");
-                return name.IsNullOrWhiteSpace() ? name : name.Trim().Trim(',');
+                return name.IsNullOrWhiteSpace() ? name : name.Trim().Trim(',').Trim();
             }
         }
         public string RcptPhone { get; set; }
@@ -82,7 +82,7 @@ namespace AM.Services.Models
                     RcptAddressCity.IsNullOrWhiteSpace() ? null : RcptAddressCity.Trim() + ", ",
                     RcptAddressState.IsNullOrWhiteSpace() ? null : RcptAddressState.Trim() + ", ",
                     RcptAddressZIP.IsNullOrWhiteSpace() ? null : RcptAddressZIP.Trim() + ",");
-                return address.IsNullOrWhiteSpace() ? address : address.Trim().Trim(',');
+                return address.IsNullOrWhiteSpace() ? address : address.Trim().Trim(',').Trim();
             }
         }
         public bool IsReturnInfoSpecified { get; set; }
@@ -102,7 +102,7 @@ namespace AM.Services.Models
                     RetRcptMiddleName.IsNullOrWhiteSpace() ? null : RetRcptMiddleName.Trim() + ", ",
                     RetRcptLastName.IsNullOrWhiteSpace() ? null : RetRcptLastName.Trim() + ", ",
                     RcptSuffix.IsNullOrWhiteSpace() ? null : RcptSuffix.Trim() + ", ");
-                return name.IsNullOrWhiteSpace() ? name : name.Trim().Trim(',');
+                return name.IsNullOrWhiteSpace() ? name : name.Trim().Trim(',').Trim();
             }
         }
         public string RetRcptPhone { get; set; }
@@ -130,7 +130,7 @@ namespace AM.Services.Models
                     RetRcptAddressCity.IsNullOrWhiteSpace() ? null : RetRcptAddressCity.Trim() + ", ",
                     RetRcptAddressState.IsNullOrWhiteSpace() ? null : RetRcptAddressState.Trim() + ", ",
                     RetRcptAddressZIP.IsNullOrWhiteSpace() ? null : RetRcptAddressZIP.Trim() + ",");
-                return address.IsNullOrWhiteSpace() ? address : address.Trim().Trim(',');
+                return address.IsNullOrWhiteSpace() ? address : address.Trim().Trim(',').Trim();
             }
         }
 
