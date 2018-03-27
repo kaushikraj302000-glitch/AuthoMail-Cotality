@@ -41,12 +41,12 @@ namespace AM.Services.Models
             get
             {
                 string name = string.Format("{0}{1}{2}{3}{4}",
-                    RcptPrefix.IsNullOrWhiteSpace() ? null : RcptPrefix.Trim() + ", ",
-                    RcptFirstName.IsNullOrWhiteSpace() ? null : RcptFirstName.Trim() + ", ",
-                    RcptMiddleName.IsNullOrWhiteSpace() ? null : RcptMiddleName.Trim() + ", ",
-                    RcptLastName.IsNullOrWhiteSpace() ? null : RcptLastName.Trim() + ", ",
-                    RcptSuffix.IsNullOrWhiteSpace() ? null : RcptSuffix.Trim() + ", ");
-                return name.IsNullOrWhiteSpace() ? name : name.Trim().Trim(',').Trim();
+                    RcptPrefix.IsNullOrWhiteSpace() ? null : RcptPrefix.Trim() + " ",
+                    RcptFirstName.IsNullOrWhiteSpace() ? null : RcptFirstName.Trim() + " ",
+                    RcptMiddleName.IsNullOrWhiteSpace() ? null : RcptMiddleName.Trim() + " ",
+                    RcptLastName.IsNullOrWhiteSpace() ? null : RcptLastName.Trim() + " ",
+                    RcptSuffix.IsNullOrWhiteSpace() ? null : RcptSuffix.Trim() + " ");
+                return name.IsNullOrWhiteSpace() ? name : name.Trim();
             }
         }
         public string RcptPhone { get; set; }
@@ -97,12 +97,12 @@ namespace AM.Services.Models
             get
             {
                 string name = string.Format("{0}{1}{2}{3}{4}",
-                    RetRcptPrefix.IsNullOrWhiteSpace() ? null : RetRcptPrefix.Trim() + ", ",
-                    RetRcptFirstName.IsNullOrWhiteSpace() ? null : RetRcptFirstName.Trim() + ", ",
-                    RetRcptMiddleName.IsNullOrWhiteSpace() ? null : RetRcptMiddleName.Trim() + ", ",
-                    RetRcptLastName.IsNullOrWhiteSpace() ? null : RetRcptLastName.Trim() + ", ",
-                    RcptSuffix.IsNullOrWhiteSpace() ? null : RcptSuffix.Trim() + ", ");
-                return name.IsNullOrWhiteSpace() ? name : name.Trim().Trim(',').Trim();
+                    RetRcptPrefix.IsNullOrWhiteSpace() ? null : RetRcptPrefix.Trim() + " ",
+                    RetRcptFirstName.IsNullOrWhiteSpace() ? null : RetRcptFirstName.Trim() + " ",
+                    RetRcptMiddleName.IsNullOrWhiteSpace() ? null : RetRcptMiddleName.Trim() + " ",
+                    RetRcptLastName.IsNullOrWhiteSpace() ? null : RetRcptLastName.Trim() + " ",
+                    RcptSuffix.IsNullOrWhiteSpace() ? null : RcptSuffix.Trim() + " ");
+                return name.IsNullOrWhiteSpace() ? name : name.Trim();
             }
         }
         public string RetRcptPhone { get; set; }
