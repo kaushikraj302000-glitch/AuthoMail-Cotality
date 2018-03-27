@@ -18,9 +18,4 @@ namespace AM.Services
         public string RequestedBy { get; set; }
         public string UserName { get; set; }
     }
-    public class PullBackUser
-    {
-        public string Id { get; set; }
-        public string UserName { get; set; }
-    }
 }
