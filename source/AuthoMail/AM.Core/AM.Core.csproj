@@ -87,6 +87,7 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="CoverTemplates\Generic_Template.pdf" />
+    <None Include="CoverTemplates\USAA_Template.pdf" />
     <None Include="log4net.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
