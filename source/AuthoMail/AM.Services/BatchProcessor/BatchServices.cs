@@ -34,9 +34,12 @@ namespace AM.Services
         public int DeleteBatchDetails(int mailBatchId)
         {
             //Sql Query
-            string query = @"DELETE FROM [AM].[LogBatchTimeLine] WHERE MailBatchId=@Id
-                             DELETE FROM [AM].[MailBatchCustomInfo] WHERE MailBatchId=@Id
-                             DELETE FROM [AM].[MailBatches] WHERE Id=@Id;";
+            string query = @"DELETE FROM [AM].[MailPieceCustomInfo] WHERE MailPieceId IN (SELECT Id FROM [AM].[MailPieces] WHERE MailBatchId=@Id)
+                            DELETE FROM [AM].[MailPieces] WHERE MailBatchId=@Id              
+                            DELETE FROM [AM].[PrintBatches] WHERE MailBatchId=@Id
+                            DELETE FROM [AM].[LogBatchTimeLine] WHERE MailBatchId=@Id
+                            DELETE FROM [AM].[MailBatchCustomInfo] WHERE MailBatchId=@Id
+                            DELETE FROM [AM].[MailBatches] WHERE Id=@Id;";
 
             var data = db.Execute(query, new { Id = mailBatchId });
             return data;

@@ -39,7 +39,7 @@ namespace AM.Console
         {
             log.Debug("Download Batch Process Started");
 
-            Client client = clientSvc.GetClientDetails(null).SingleOrDefault(x => x.ClientName == "USAA" && x.IsAMActive == true);
+            Client client = clientSvc.GetClientDetails(null, "USAA").SingleOrDefault(x => x.IsAMActive == true);
 
             if (client != null)
             {
@@ -317,12 +317,15 @@ namespace AM.Console
                 var xmlFilePath = Path.Combine(mbi.AMRequestPath, mbi.BatchName + ".xml");
 
                 XmlDocument batchXML = new XmlDocument();
+                XmlNamespaceManager nsManager = null;
                 XmlNodeList mailPieceNodes = null;
                 // Try to parse the XML we got from the zip file. If XML is invalid then log error.
                 commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationStart, Common.Now);
                 try
                 {
                     batchXML.LoadXml(File.ReadAllText(xmlFilePath));
+                    nsManager = new XmlNamespaceManager(batchXML.NameTable);
+                    nsManager.AddNamespace("x", "http://schemas.corelogic.com/2015/amc/v1/packages");
                     mailPieceNodes = batchXML.DocumentElement.ChildNodes;
                 }
                 catch (XmlException err)
@@ -376,13 +379,28 @@ namespace AM.Console
                     {
                         SplitXMLAndPDFS(amcRequest, Path.GetDirectoryName(xmlFilePath), mbi.BatchName);
                         requests.Packages.RemoveAll(p => p.CustomerIdentifier != Common.USAACustIdentifier);
-
+                        //After removing other document types from package request we are checking for any remaining USAA packages are there or not if not then we don't need to process that batch further so we will remove that batch's records and files from database and from folder
+                        if (requests.Packages.Count == 0)
+                        {
+                            //TODO: Ask to Ravi Sir
+                            DeleteBatchInfo(mbi.MailBatch.Id, mbi.BatchRepo);
+                            continue;
+                        }
                         if (File.Exists(xmlFilePath))
                             File.Delete(xmlFilePath);
 
                         File.WriteAllText(xmlFilePath, XmlUtil.Serialize<PackageRequests>(requests));
                     }
                 }
+            }
+        }
+
+        private void DeleteBatchInfo(int mailBatchId, string mailBatchRepo)
+        {
+            int retVal = mailBatchSvc.DeleteBatchDetails(mailBatchId);
+            if (retVal == 1)
+            {
+                Directory.Delete(mailBatchRepo, true);
             }
         }
 
