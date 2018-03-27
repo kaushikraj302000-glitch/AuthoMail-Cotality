@@ -66,13 +66,13 @@ namespace AM.Services
 
         public List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime date, int? batchId, string docType, string filterBy)
         {
-            string query = "[dbo].[uspweb_ErrorReportSLA] @clientId, @startDateRec, @endDateRec, @startDateDue, @endDateDue, @batchId, @docType, @shippingStatus";
+            string query = "[dbo].[uspweb_ErrorReportSLA] @clientId, @startDateRec, @endDateRec, @startDateDue, @endDateDue, @batchId, @docType";
             bool isReceived = filterBy == "ByReceivedOn" ? true : false;
             DateTime? dt = null;
             var data = db.Query<ErrorReport>(query, new
             {
                 clientId = clientId,
-                shippingstatus = string.Format("'{0}','{1}'", ShippingStatus.InProgress.ToString(), ShippingStatus.Shipped.ToString()),
+                //shippingstatus = string.Format("'{0}','{1}'", ShippingStatus.InProgress.ToString(), ShippingStatus.Shipped.ToString()),
                 batchId = batchId,
                 docType = docType.IsNullOrWhiteSpace() ? null : docType,
                 startDateRec = isReceived ? (date.Date + new TimeSpan(00, 00, 00)).EstToUtc() : dt,
@@ -108,7 +108,7 @@ namespace AM.Services
 
         public List<PullbackRequestReport> GetPullbackRequestReport(int clientId, DateTime startDate, DateTime endDate)
         {
-            string query = "";
+            string query = "SELECT p.[Id] ,[MailBatchId] ,[MailPieceId] ,[MailPieceUniqueId] ,[Status] ,[RequestedOn] ,[RequestedBy], u.[UserName] FROM [AuthoMail].[AM].[PullBackRequests] p LEFT OUTER JOIN [Profile].[Users] u ON p.Id=u.Id  WHERE p.[ClientId] = @clientId AND p.RequestedOn BETWEEN @startDate AND @endDate";
             return db.Query<PullbackRequestReport>(query, new { clientId = clientId, startDate = startDate.EstToUtc(), endDate = endDate.EstToUtc() }).ToList();
         }
     }
