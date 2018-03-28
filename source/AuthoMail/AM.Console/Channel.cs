@@ -135,7 +135,7 @@ namespace AM.Console
                                         {
                                             string fileName = Path.GetFileName(filePath);
                                             string ftpUploadPath = Path.Combine(uploadPath, fileName);
-                                            sftSite.UploadFile(ftpUploadPath, filePath);
+                                            sftSite.UploadFile(filePath, ftpUploadPath);
                                         }
                                         commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
                                     }
