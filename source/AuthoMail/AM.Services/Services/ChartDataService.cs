@@ -84,7 +84,9 @@ namespace AM.Services
 
         public List<BatchListByChartData> GetBatchByParam(DateTime date, string status, int clientId)
         {
-            var data = db.Query<BatchListByChartData>(ChartDataServiceQuery.GetBatchByParam, new { date = date.EstToUtc(), status = status, clientId = clientId }).ToList();
+            DateTime startDate = (date.Date + new TimeSpan(00, 00, 00)).EstToUtc();
+            DateTime endDate = (date.Date + new TimeSpan(23, 59, 59)).EstToUtc();
+            var data = db.Query<BatchListByChartData>(ChartDataServiceQuery.GetBatchByParam, new { startDate = startDate, endDate = endDate, status = status, clientId = clientId }).ToList();
             return data;
         }
 
@@ -100,7 +102,7 @@ namespace AM.Services
         public static string GetWeeklyChartData = "select Id,BatchStatus,BatchName,ReceivedOn from AM.MailBatches Where ReceivedOn between @startDate and @endDate and ClientId=@clientId";
 
         public static string GetMailPieceByParam = "[dbo].[uspweb_GetMailPieceByBatchIdAndStatus] @batchId, @status, @clientId";
-        public static string GetBatchByParam = "select m.Id as [BatchId],m.ClientBatchId,m.[UniqueId] as [BatchUniqueId],m.BatchName,m.BatchStatus,m.DocumentOrPackageType,m.ReceivedOn, c.TimeZone as [ClientTimeZone] from [AM].[MailBatches] m left outer join [Common].[Clients] c ON m.ClientId=c.Id where BatchStatus=@status and ClientId=@clientId and cast(ReceivedOn as date)=cast(@date as date)";
+        public static string GetBatchByParam = "select m.Id as [BatchId],m.ClientBatchId,m.[UniqueId] as [BatchUniqueId],m.BatchName,m.BatchStatus,m.DocumentOrPackageType,m.ReceivedOn, c.TimeZone as [ClientTimeZone] from [AM].[MailBatches] m left outer join [Common].[Clients] c ON m.ClientId=c.Id where BatchStatus=@status and ClientId=@clientId and ReceivedOn BETWEEN @startDate AND @enddate";
         public static string GetMailPieceByBatchId = "[dbo].[uspweb_GetMailPieceByBatchId] @batchId, @clientId";
     }
 }
