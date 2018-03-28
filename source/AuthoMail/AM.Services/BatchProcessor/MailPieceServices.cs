@@ -87,7 +87,7 @@ namespace AM.Services
       ,[RetRcptAddressZIP] = @RetRcptAddressZIP,[TotalPages] = @TotalPages,[TotalSheets] = @TotalSheets,[ErrorCode] = @ErrorCode
       ,[ErrorDesc] = @ErrorDesc,[TrackingNo] = @TrackingNo,[PulledBackOn] = @PulledBackOn
       ,[PrintedOn] = @PrintedOn,[ShippedOn] = @ShippedOn,[ShippingCost] = @ShippingCost
-      ,[Weight] = @Weight,[IsQCRequested] = @IsQCRequested,[IsQCPerformed] = @IsQCPerformed WHERE Id=@Id";
+      ,[Weight] = @Weight,[IsQCRequested] = @IsQCRequested,[IsQCPerformed] = @IsQCPerformed, [DocTypeId]=@DocTypeId WHERE Id=@Id";
 
             var mailPieceId = db.Execute(query, mailPiece);
 
