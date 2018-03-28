@@ -96,8 +96,10 @@ namespace AM.Console
 
                                         //Insert New Batch Entry
                                         mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
+
                                         //Update Pipeline Status of Batch Received
                                         commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, sftSite.LastModifiedTimeOfFile(triggerFilePath));
+                                        commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.InProgress.ToString());
 
                                         //Now Download Zip File Path
                                         MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, sftChannelDetails, Common.AuthoMailRootFolder);
@@ -129,7 +131,6 @@ namespace AM.Console
                 log.Debug("USAA client is not enabled for process.");
             }
         }
-
 
         private void DownloadBatchFromFTP(SFTUtil sftSite, string zipFileFTPPath, string triggerFilePath, MailBatchInfo mbi)
         {
@@ -169,8 +170,7 @@ namespace AM.Console
 
                         #endregion
                         //After successfully downloaded and extracted update downloaded pipeline status
-                        commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Downloaded, Common.Now);
-
+                        commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Downloaded, Common.Now);             
                     }
                     catch (ZipException err)
                     {
@@ -298,7 +298,7 @@ namespace AM.Console
 
         #endregion
 
-        #region Validate And Acknowledge
+        #region Separate Batches
         public void SeparateUSAABatches()
         {
             List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.Downloaded);
@@ -460,6 +460,9 @@ namespace AM.Console
                 File.Create(triggerFilePath);
             }
         }
+        #endregion
+
+        #region Validate And Acknowledge
 
         public void ValidateBatches()
         {
@@ -480,7 +483,7 @@ namespace AM.Console
 
                 if (clientBusinessIdDetails == null)
                 {
-                    log.Error("Business identifier is not assigned to client : {0}".Fill(client.ClientName));
+                    log.Error("Business identifier is not assigned to client : {0}".Fill(client.Name));
 
                     //TODO: Ask to Ravi Sir
                     continue;
