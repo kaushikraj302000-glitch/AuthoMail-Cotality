@@ -92,7 +92,7 @@ namespace AM.Console
                                         mailBatch.ClientBatchId = batchName;
                                         mailBatch.UniqueId = Guid.NewGuid();
                                         mailBatch.Priority = Priority.Medium.ToString();
-                                        mailBatch.PrintLocation = "Fort Mill, SC";
+                                        mailBatch.PrintLocation = "Fort Mill SC";
 
                                         //Insert New Batch Entry
                                         mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
@@ -797,52 +797,63 @@ namespace AM.Console
             {
                 Client client = clientSvc.GetClientDetails(batch.ClientId).Single();
 
-                //Here for now we are taking SFT Code to Upload Reports on different channel
+                string uploadPath = Common.ReportSFTUploadingPathAMC;
 
-                //SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelCode(Common.ReportSFTUploadingChannelCode);
-                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(batch.SFTChannelId);
-                if (sftChannelDetails != null)
+                MailBatchInfo mbi = new MailBatchInfo(batch, client, null, Common.AuthoMailRootFolder);
+
+                var reportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.csv").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("DR_") || Path.GetFileNameWithoutExtension(f).StartsWith("ER_")).ToList();
+
+                try
                 {
-                    SFTUtil sftSite = null;
-                    try
+                    if (reportList != null && reportList.Count > 0)
                     {
-                        sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
-                        sftSite.Connect();
-                    }
-                    catch (Exception ex)
-                    {
-                        log.Error(ex);
-                    }
+                        //Here for now we are taking SFT Code to Upload Reports on different channel
 
-                    string uploadPath = Common.ReportSFTUploadingPathAMC;
+                        //SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelCode(Common.ReportSFTUploadingChannelCode);
+                        SFTUtil sftSite = null;
 
-                    if (sftSite.IsDownloadDirectoryAvailable(uploadPath))
-                    {
-                        MailBatchInfo mbi = new MailBatchInfo(batch, client, sftChannelDetails, Common.AuthoMailRootFolder);
-
-                        var reportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.csv").Where(f => f.StartsWith("DR_") || f.StartsWith("ER_")).ToList();
-
-                        try
+                        SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(batch.SFTChannelId);
+                        if (sftChannelDetails != null)
                         {
-                            if (reportList != null && reportList.Count > 0)
+                            try
                             {
-                                foreach (string filePath in reportList)
-                                {
-                                    sftSite.UploadFile(filePath, uploadPath);
-                                }
+                                sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
+                                sftSite.Connect();
 
-                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
+                                if (sftSite.IsDownloadDirectoryAvailable(uploadPath))
+                                {
+                                    foreach (string filePath in reportList)
+                                    {
+                                        string fileName = Path.GetFileName(filePath);
+                                        string ftpUuploadPath = Path.Combine(uploadPath, fileName);
+                                        sftSite.UploadFile(filePath, ftpUuploadPath);
+                                    }
+                                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
+                                }
+                                else
+                                {
+                                    log.Error("Upload path does not exist for Client-{0} and SFT Channel Id-{1}".Fill(client.Name, sftChannelDetails.Code));
+                                }
                             }
+                            catch (Exception ex)
+                            {
+                                log.Error(ex);
+                            }
+                            sftSite.Disconnect();
                         }
-                        catch (Exception ex)
+                        else
                         {
-                            log.Error("Error occured while uploading report to Client's SFT site for Batch : {0}. Please see error :" + Environment.NewLine + ex);
+                            log.Error("SFT site is not available or not enabled to upload reports.");
                         }
+                    }
+                    else
+                    {
+                        log.Error("Reports does not exist to upload for BatchId-{0}".Fill(batch.Id));
                     }
                 }
-                else
+                catch (Exception ex)
                 {
-                    log.Error("SFT site is not available or not enabled to upload reports.");
+                    log.Error("Error occured while uploading report to Client's SFT site for Batch : {0}. Please see error :" + Environment.NewLine + ex);
                 }
             }
         }
