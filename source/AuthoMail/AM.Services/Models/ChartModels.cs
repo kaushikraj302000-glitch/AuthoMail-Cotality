@@ -25,6 +25,7 @@ namespace AM.Services
         public int PulledBack { get; set; }
         public int Error { get; set; }
         public int Shipped { get; set; }
+        public DateTime ReceivedOn { get; set; }
     }
     public class BatchListByChartData
     {

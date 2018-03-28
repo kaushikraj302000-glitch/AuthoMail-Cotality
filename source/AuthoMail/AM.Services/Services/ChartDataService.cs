@@ -67,7 +67,7 @@ namespace AM.Services
 
         public List<TodayMailPieceChart> GetTodayMailPieceChartData(DateTime todayDate, int clientId)
         {
-            string query = "select * from(select b.ClientBatchId,m.MailBatchId as [MailBatchId], b.BatchName,m.Id,m.ShippingStatus from [AM].[MailPieces] m,[AM].[MailBatches] b where m.MailBatchId=b.Id AND b.ClientId=@clientId AND  b.ReceivedOn BETWEEN @startDate AND @endDate) s PIVOT (count(Id) FOR ShippingStatus IN ([InProgress],[PulledBack],[Error],[Shipped]))pvt";
+            string query = "select * from(select b.ClientBatchId,m.MailBatchId as [MailBatchId], b.BatchName,m.Id,m.ShippingStatus, b.ReceivedOn from [AM].[MailPieces] m,[AM].[MailBatches] b where m.MailBatchId=b.Id AND b.ClientId=@clientId AND  b.ReceivedOn BETWEEN @startDate AND @endDate) s PIVOT (count(Id) FOR ShippingStatus IN ([InProgress],[PulledBack],[Error],[Shipped]))pvt";
             var data = db.Query<TodayMailPieceChart>(query, new { startDate = todayDate.ToStartDateTime().EstToUtc(), endDate = todayDate.ToEndDateTime().EstToUtc(), clientId = clientId }).ToList();
             return data;
         }

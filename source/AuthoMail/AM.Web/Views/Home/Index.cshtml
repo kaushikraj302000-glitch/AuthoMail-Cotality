@@ -189,7 +189,6 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" onclick="showModal()" data-dismiss="modal">Close</button>
-                @*<button type="button" class="btn btn-primary">View All</button>*@
             </div>
         </div>
     </div>
@@ -285,7 +284,46 @@
                 <td><span>{FileName}</span></td>
                 <td><span>{RcptNameFormatted}</span></td>
                 <td><span>{RcptAddressStreet}</span></td>
-                <td><span>{ReceivedOnFormatted}</span></td>
+                <td class="receivedon"><span>{MailPieceReceivedOn}</span></td>
+                <td><span>{DueDateFormatted}</span></td>
+                <td><span>{DocumentOrPackageType}</span></td>
+                <td><span>{TotalPages}</span></td>
+                <td><span class="small">{TrackingNo}</span></td>
+                <td><span>{ShippingStatusFormatted}</span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<!-- end table template code -->
+<!--ChartMailPiece table html template code -->
+<div id="WeeklyChartMailPieceTableContent" style="display:none">
+    <table class="table table-responsive" style="overflow-x:scroll">
+        <thead>
+            <tr>
+                <th>Loan Number</th>
+                <th>File Name</th>
+                <th>Recipient Name</th>
+                <th>Recipient Address</th>
+                <th>Received Date <span class="fontcapitalize">(Local)</span></th>
+                <th>Due Date <span class="fontcapitalize">(Local)</span></th>
+                <th>Document Type</th>
+                <th>Pages</th>
+                <th>Tracking Number</th>
+                <th>Shipping Status</th>
+            </tr>
+        </thead>
+        <tbody id="WeeklyChartMailPiecebodyContent"></tbody>
+    </table>
+</div>
+<div style="display:none">
+    <table>
+        <tbody id="WeeklyChartMailPieceBody">
+            <tr class="row-small">
+                <td><span>{BusinessFriendlyIdValue}</span></td>
+                <td><span>{FileName}</span></td>
+                <td><span>{RcptNameFormatted}</span></td>
+                <td><span>{RcptAddressStreet}</span></td>
+                <td><span>{MailPieceReceivedOn}</span></td>
                 <td><span>{DueDateFormatted}</span></td>
                 <td><span>{DocumentOrPackageType}</span></td>
                 <td><span>{TotalPages}</span></td>
@@ -334,9 +372,10 @@
     </script>
     <script type="text/javascript">
         var commonmsg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
-        function GetChartDataByStatusAndBatchIds(status, ids, clientBatchId) {
+        function GetChartDataByStatusAndBatchIds(status, ids, clientBatchId, receivedOn) {
             var el = $("#batchMailPieceModal").find('.modal-body');
-            $("#batchMailPieceModalHeader").html("Mailpiece Summary: <button type='button' style='cursor:none !important;' class='btn btn-default normaltext'>Batch Id - " + clientBatchId + "</button> ");
+            el.html("");
+            
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Home/TodayChartDetails",
@@ -347,12 +386,12 @@
                     if (response.Success) {
                         if (response.Object != null) {
                             if (response.Object.model.length > 0) {
-                                var data = FormatObject(response.Object.model);
+                                var data = FormatObjectToday(response.Object.model);
                                 console.log(data);
                                 $("#batchMailPieceModalBody").html("");
                                 //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                                 BindTemplate(data, "#ChartMailPieceBody", "#ChartMailPiecebodyContent", "#ChartMailPieceTableContent", "#batchMailPieceModalBody");
-                               
+                                $("#batchMailPieceModalHeader").html("Mailpiece Summary: <button type='button' style='cursor:none !important;' class='btn btn-default normaltext'>Batch Id - " + clientBatchId + "</button> <button type='button' style='cursor:none !important;margin-left:1%;' class='btn btn-default normaltext'>Received On - " + receivedOn + "</button>");
                                 //, Received On - " + moment(receivedOn).format("MM/DD/YY HH:mm:ss")
 
                             }
@@ -395,7 +434,7 @@
                                 $("#batchModalModalBody").html("");
                                 //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                                 BindTemplate(data, "#WeeklyChartBody", "#WeeklyChartbodyContent", "#WeeklyChartTableContent", "#batchModalModalBody");
-                               
+
                             }
                             else {
                                 el.html(" <div class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
@@ -495,18 +534,18 @@
                 url: baseUrl + "api/chart/GetTodayChartData",
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
-                    //console.log(response);
+                    console.log(response);
                     if (response.length == 0) {
                         el.html("<div class='alert alert-yellow' style='margin-bottom:10px;'><span>@AM.Services.Config.Web_Msg_NoMailPieceReceivedToday</span></div>");
                         $("#todayBody").css("min-height", "312px");
                         return;
                     }
                     var chartData = [];
-                    chartData.push(['BatchName', 'InProgress', 'Error', 'PulledBack', 'Shipped', 'BatchId']);
+                    chartData.push(['BatchName', 'InProgress', 'Error', 'PulledBack', 'Shipped', 'BatchId', 'ReceivedOn']);
                     var cnt = 0;
                     for (var i = 1; i <= response.length; i++) {
 
-                        chartData.push([response[cnt].ClientBatchId, response[cnt].InProgress, response[cnt].Error, response[cnt].PulledBack, response[cnt].Shipped, response[cnt].MailBatchId]);
+                        chartData.push([response[cnt].ClientBatchId, response[cnt].InProgress, response[cnt].Error, response[cnt].PulledBack, response[cnt].Shipped, response[cnt].MailBatchId, moment(response[cnt].ReceivedOn).format("MM/DD/YYYY  HH:mm:ss")]);
                         cnt++;
                     }
                     //console.log(chartData);
@@ -555,12 +594,12 @@
                     if (response.Success) {
                         if (response.Object != null) {
                             if (response.Object.model.length > 0) {
-                                var data = FormatObject(response.Object.model);
+                                var data = FormatObjectToday(response.Object.model);
                                 console.log(data);
                                 $("#WeeklyChartModalBody").html("");
                                 //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
-                                BindTemplate(data, "#ChartMailPieceBody", "#ChartMailPiecebodyContent", "#ChartMailPieceTableContent", "#WeeklyChartModalBody");
-                                
+                                BindTemplate(data, "#WeeklyChartMailPieceBody", "#WeeklyChartMailPiecebodyContent", "#WeeklyChartMailPieceTableContent", "#WeeklyChartModalBody");
+
 
                                 //, Received On - " + moment(receivedOn).format("MM/DD/YY HH:mm:ss")
 
@@ -624,7 +663,8 @@
                         var batchId = parseInt(data.getValue(selectedItem.row, 5));
                         var clientBatchId = data.getValue(selectedItem.row, 0);
                         if (batchId != 0) {
-                            GetChartDataByStatusAndBatchIds(status, batchId, clientBatchId);
+                            var receivedOn = data.getValue(selectedItem.row, 6);
+                            GetChartDataByStatusAndBatchIds(status, batchId, clientBatchId,receivedOn);
                         }
                     }
                     if (div == "weeklyChart") {
@@ -677,7 +717,7 @@
                             Spinners("#pullback", "fa-reply");
                             var msgAdd = "<ul>";
                             for (var i = 0; i < response.Object.length; i++) {
-                            var msg = response.Object[i].Message;
+                                var msg = response.Object[i].Message;
                                 if (response.Object[i] != "" || response.Object[i] == "undefined") {
                                     if (response.Object[i].PullBackRequestedOn != null && response.Object[i].PulledBackRequestedBy != "") {
 
@@ -821,6 +861,41 @@
             $("#BusinessFriendlyIdNameError").hide();
             $("#BusinessFriendlyIdValueError").hide();
         }
+        function FormatObjectToday(Model) {
+            $(Model).each(function () {
+                var requestedPullback = this.IsPullBackRequested ? '<span class="label medium label-yellow">Yes</span>' : '<span class="label medium label-success">No</span>';
+                var status = "";
+
+                switch (this.ShippingStatus) {
+
+                    case "PulledBack":
+                        status = '<span class="label medium label-yellow">' + this.ShippingStatus + '</span>';
+
+                        break;
+                    case "Error":
+                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.ShippingStatus + '</span>';
+                        break;
+                    case "Shipped":
+                        status = '<span class="label medium label-success">' + this.ShippingStatus + '</span>';
+                        break;
+                    case "InProgress":
+                        status = '<span class="label medium label-blue">' + this.ShippingStatus + '</span>';
+                        break;
+
+                }
+                // \''+this.TrackingNo+'\',\''+this.ShippingMethod+'\'
+                this.MailPieceReceivedOn = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
+                this.ErrorDescPopover = this.ErrorDesc == null ? "--" : '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left"><a>Error Details</a></span>';
+                this.ShippingStatusFormatted = status;
+                this.RcptNameFormatted = this.RcptFirstName + " " + this.RcptLastName;
+
+                this.IsPullBackRequestedFormatted = requestedPullback;
+            });
+            return Model;
+            console.log(Model);
+        }
         function FormatObject(Model) {
             $(Model).each(function () {
                 var requestedPullback = this.IsPullBackRequested ? '<span class="label medium label-yellow">Yes</span>' : '<span class="label medium label-success">No</span>';
@@ -844,7 +919,8 @@
 
                 }
                 // \''+this.TrackingNo+'\',\''+this.ShippingMethod+'\'
-                this.ReceivedOnFormatted = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                //this.MailPieceReceivedOn = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
                 this.ErrorDescPopover = this.ErrorDesc == null ? "--" : '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left"><a>Error Details</a></span>';
                 this.ShippingStatusFormatted = status;
