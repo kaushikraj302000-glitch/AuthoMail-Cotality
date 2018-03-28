@@ -22,6 +22,7 @@ namespace AM.Core
         private static Random random = new Random();
         internal static void PrepPnSJobs()
         {
+            log.Debug("PrepPnSJob started");
             List<MailBatchDTO> mailBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.Acknowledged);
 
             if (mailBatches == null || mailBatches.Count == 0)
@@ -124,6 +125,7 @@ namespace AM.Core
                         mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                         mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
                         mailPiece.ErrorDesc = "{0}\n{1}".Fill(err.Message, err.ToString());
+                        log.Error(err);
                     }
                     mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                 }
@@ -156,6 +158,7 @@ namespace AM.Core
 
         internal static void SubmitBatchesDocTypeWiseToPCI()
         {
+            log.Debug("Submitted Batches job started.");
             List<MailBatchDTO> mailBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.Prepped);
 
             if (mailBatches == null || mailBatches.Count == 0)
@@ -337,6 +340,7 @@ namespace AM.Core
 
         internal static void GetSubmittedPnSResponses()
         {
+            log.Debug("Get submitted job started.");
             var submittedPrintBatches = mailBatchSvc.GetSubmittedPrintBatchDetails();
 
             if (submittedPrintBatches == null || submittedPrintBatches.Count == 0)
