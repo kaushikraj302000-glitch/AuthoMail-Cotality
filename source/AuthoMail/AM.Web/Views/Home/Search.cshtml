@@ -210,7 +210,7 @@
             // JSON.useDateParser(false);
         });
         function FormatObject(Model) {
-            console.log(Model);
+            //console.log(Model);
             $(Model).each(function () {
                 this.ReceivedOnFormatted = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
@@ -242,7 +242,7 @@
                 else {
 
                     if (this.DocTypes.ShippingServiceType == "USPS") {
-                        trackingNo = '<button id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.DocTypes.ShippingServiceType + '\')"><i class="fa faspinner"></i>' + this.TrackingNo + '</button>';
+                        trackingNo = '<button id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.DocTypes.ShippingServiceType + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
                     }
                     else {
                         trackingNo = '<a id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" href="http://www.fedex.com/Tracking?cntry_code=us&action=1&track=y&tracknumbers=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
@@ -344,13 +344,13 @@
                 }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
-                    // console.log(response);
+                    // //console.log(response);
                     if (response.Success) {
                         $("#loading").hide();
                         $("#searchHeader").show();
                         $("#searchMailPieceList").show();
                         if (response.Object != null) {
-                            console.log(response.Object.model.length);
+                            //console.log(response.Object.model.length);
                             if (response.Object.model.length > 0) {
                                 $("#searchMailPieceList").html("");
                                 var data = FormatObject(response.Object.model);

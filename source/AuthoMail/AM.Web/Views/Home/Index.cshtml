@@ -382,12 +382,12 @@
                 data: JSON.stringify({ status: status, batchId: ids }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
-                    console.log(response);
+                    //console.log(response);
                     if (response.Success) {
                         if (response.Object != null) {
                             if (response.Object.model.length > 0) {
                                 var data = FormatObjectToday(response.Object.model);
-                                console.log(data);
+                                //console.log(data);
                                 $("#batchMailPieceModalBody").html("");
                                 //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                                 BindTemplate(data, "#ChartMailPieceBody", "#ChartMailPiecebodyContent", "#ChartMailPieceTableContent", "#batchMailPieceModalBody");
@@ -425,12 +425,12 @@
                 data: JSON.stringify({ status: status, date: date }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
-                    console.log(response);
+                    //console.log(response);
                     if (response.Success) {
                         if (response.Object != null) {
                             if (response.Object.model.length > 0) {
                                 var data = FormatObject(response.Object.model);
-                                console.log(data);
+                                //console.log(data);
                                 $("#batchModalModalBody").html("");
                                 //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                                 BindTemplate(data, "#WeeklyChartBody", "#WeeklyChartbodyContent", "#WeeklyChartTableContent", "#batchModalModalBody");
@@ -534,7 +534,7 @@
                 url: baseUrl + "api/chart/GetTodayChartData",
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
-                    console.log(response);
+                    //console.log(response);
                     if (response.length == 0) {
                         el.html("<div class='alert alert-yellow' style='margin-bottom:10px;'><span>@AM.Services.Config.Web_Msg_NoMailPieceReceivedToday</span></div>");
                         $("#todayBody").css("min-height", "312px");
@@ -548,7 +548,7 @@
                         chartData.push([response[cnt].ClientBatchId, response[cnt].InProgress, response[cnt].Error, response[cnt].PulledBack, response[cnt].Shipped, response[cnt].MailBatchId, moment(response[cnt].ReceivedOn).format("MM/DD/YYYY  HH:mm:ss")]);
                         cnt++;
                     }
-                    //console.log(chartData);
+                    ////console.log(chartData);
 
                     drawChart(chartData, "todayChart", 'MailPiece Status', 300, 510);
 
@@ -568,7 +568,7 @@
         function setModalHeight(id) {
             var bodyHeight = $("body").height();
             var count = $("#" + id).find("tr").length;//.find(".modal-body").height();
-            //console.log(bodyHeight + " " + modalHeight);
+            ////console.log(bodyHeight + " " + modalHeight);
             if (count > 5) {
                 $("#" + id).find(".modal-body").height(bodyHeight - 350);
                 $("#" + id).find(".modal-body").css("overflow-y", "scroll");
@@ -590,12 +590,12 @@
                 data: JSON.stringify({ batchId: batchId }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
-                    console.log(response);
+                    //console.log(response);
                     if (response.Success) {
                         if (response.Object != null) {
                             if (response.Object.model.length > 0) {
                                 var data = FormatObjectToday(response.Object.model);
-                                console.log(data);
+                                //console.log(data);
                                 $("#WeeklyChartModalBody").html("");
                                 //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                                 BindTemplate(data, "#WeeklyChartMailPieceBody", "#WeeklyChartMailPiecebodyContent", "#WeeklyChartMailPieceTableContent", "#WeeklyChartModalBody");
@@ -784,7 +784,7 @@
                 data: JSON.stringify({ BusinessFriendlyIdName: $("#BusinessFriendlyIdName").val(), BusinessFriendlyIdValue: $("#BusinessFriendlyIdValue").val(), startDate: moment().format("MM/DD/YYYY"), endDate: moment().format("MM/DD/YYYY") }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
-                    console.log(response);
+                    //console.log(response);
                     if (response.Success) {
                         if (response.Object != null) {
                             if (response.Object == "PullBack") {
@@ -894,7 +894,7 @@
                 this.IsPullBackRequestedFormatted = requestedPullback;
             });
             return Model;
-            console.log(Model);
+            //console.log(Model);
         }
         function FormatObject(Model) {
             $(Model).each(function () {
@@ -948,7 +948,7 @@
                 this.BatchStatusFormatted = batchStatus;
             });
             return Model;
-            console.log(Model);
+            //console.log(Model);
         }
         function applyDataTable() {
             $('[data-toggle="popover"]').popover({

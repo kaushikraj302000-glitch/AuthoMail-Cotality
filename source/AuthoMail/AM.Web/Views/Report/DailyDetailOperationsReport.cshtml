@@ -165,7 +165,7 @@
     <script>
         $(document).ready(function () {
             window.clui.dateTimePickerInit();
-            console.log(baseUrl);
+            //console.log(baseUrl);
             FilterData();
 
         });
@@ -256,7 +256,7 @@
                 if (this.TrackingNo!=null || this.TrackingNo!="") {
                     if (this.DocTypes.ShippingServiceType == "USPS")
                     {
-                        trackingNo = '<button id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.DocTypes.ShippingServiceType + '\')"><i class="fa faspinner"></i>' + this.TrackingNo + '</button>';
+                        trackingNo = '<button id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.DocTypes.ShippingServiceType + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
                     }
                     else
                     {
@@ -303,7 +303,7 @@
                             $('.selectpicker').selectpicker('refresh');
                             $("#dailyHeader").show();
                             $("#dailyMailPieceList").show();
-                            console.log(response.Object.model.length);
+                            //console.log(response.Object.model.length);
                             if (response.Object.model.length > 0) {
                                 $("#dailyMailPieceList").html("");
                                 var data = FormatObject(response.Object.model);
