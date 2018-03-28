@@ -10,7 +10,6 @@ namespace AM.Services
     {
         public int Id { get; set; }
         public int MailBatchId { get; set; }
-        public string ClientBatchId { get; set; }
         public int MailPieceId { get; set; }
         public Guid MailPieceUniqueId { get; set; }
         public string Status { get; set; }

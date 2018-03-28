@@ -95,7 +95,7 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="receivedOn">Received  On(EST)</label>
+                        <label for="receivedOn">Received  On (EST)</label>
                         <div class="input-group daterange" id="datepicker4">
                             <input type="text" class="form-control" id="receivedOn">
                             <span class="input-group-addon">
@@ -105,24 +105,21 @@
                     </div>
 
                 </div>
-                @*<div class="col-md-3">
-                        <div class="form-group">
-                            <label for="shippedOn">Shipped On</label>
-                            <div class="input-group daterange" id="datepicker4">
-                                <input type="text" class="form-control" id="shippedOn">
-                                <span class="input-group-addon">
-                                    <i class="fa fa-calendar"></i>
-                                </span>
-                            </div>
-                        </div>
-
-                    </div>*@
+                
                 <div class="col-md-1">
                     <div class="form-group ">
-                        <label for="filterData"> &nbsp;</label>
+                        <label for="filterData">  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
                         <button type="button" id="filterData" class="btn btn-primary">
                             <span class="sr-only">Filter</span>
                             <i class="fa fa-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-1" style=" margin-left: 1%;">
+                    <div class="form-group ">
+                        <label for="filterData"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                        <button type="button" id="resetFilter" class="btn-link">
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<u>Clear</u>
                         </button>
                     </div>
                 </div>
@@ -198,7 +195,13 @@
         $("#filterData").click(function () {
             FilterData();
         });
-        
+        $("#resetFilter").click(function () {
+            $("#Status").val("");
+            $("#DocType").val("");
+            $("#Channel").val("");
+            $("#BusinessFriendlyIdValue").val("");
+            $('.selectpicker').selectpicker('refresh');
+        });
     </script>
 }
 

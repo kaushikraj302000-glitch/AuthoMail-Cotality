@@ -6,12 +6,10 @@
     <table class="table table-responsive" id="sample_2">
         <thead>
             <tr>
-                <th>#</th>
                 <th>Batch Id</th>
                 <th>Batch Name</th>
                 <th>Batch Status</th>
-                <th>Received On</th>
-                
+                <th>Received On <span class="fontcapitalize">(Local)</span></th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -19,7 +17,6 @@
             @foreach (var item in Model)
             {
                 <tr class="row-small">
-                    <td><span>@cnt</span></td>
                     <td><span>@item.ClientBatchId</span></td>
                     <td><span>@item.BatchName</span></td>
                     <td>

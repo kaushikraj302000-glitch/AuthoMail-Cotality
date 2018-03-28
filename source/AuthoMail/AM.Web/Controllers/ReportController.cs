@@ -54,7 +54,7 @@ namespace AM.Web.Controllers
         {
             return PartialView(model);
         }
-        public ActionResult MonthReconReport()
+        public ActionResult MonthlyReconReport()
         {
             ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
             return View();
@@ -176,7 +176,6 @@ namespace AM.Web.Controllers
 
         public ActionResult PullbackRequestReport()
         {
-            //ViewBag.RequestedBy = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "UserId", "RequestedBy");
             var estToday = DateTime.UtcNow.UtcToEst().Date;
             // EST Week
             ViewBag.startDate = estToday.AddDays(-7);
@@ -184,9 +183,12 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult _GetPullbackRequestReport(string startDate, string endDate,string requestedBy)
+        public ActionResult _GetPullbackRequestReport(string startDate, string endDate)
         {
-            return PartialView();
+             var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+             ViewBag.Date = string.Format("{0} to {1}", exactStartDate.ToString("MM/dd/yy"), exactEndDate.ToString("MM/dd/yy"));
+            return PartialView(repoSvc.GetPullbackRequestReport(User.Identity.GetClientId().Value,exactStartDate,exactEndDate));
         }
     }
 }

@@ -398,7 +398,7 @@
     <Content Include="Views\Report\_GetSummaryControlReport.cshtml" />
     <Content Include="Views\Report\SummaryControlReport.cshtml" />
     <Content Include="Views\Report\_GetMailPieceList.cshtml" />
-    <Content Include="Views\Report\MonthReconReport.cshtml" />
+    <Content Include="Views\Report\MonthlyReconReport.cshtml" />
     <Content Include="Views\Report\MailPieceByBatchId.cshtml" />
     <Content Include="Template\PullBackForm.pdf" />
     <Content Include="Views\Report\DeliveryReport.cshtml" />
