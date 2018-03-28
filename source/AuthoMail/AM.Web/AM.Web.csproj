@@ -233,6 +233,7 @@
     <Content Include="clui\dist\img\circular-spinner_Color.gif" />
     <Content Include="clui\dist\img\CL_logo_footer.png" />
     <Content Include="clui\dist\img\CL_logo_header_white.png" />
+    <Content Include="clui\dist\img\favicon.png" />
     <Content Include="clui\dist\img\ui-bg_flat_0_aaaaaa_40x100.png" />
     <Content Include="clui\dist\img\ui-icons_444444_256x240.png" />
     <Content Include="clui\dist\img\ui-icons_555555_256x240.png" />

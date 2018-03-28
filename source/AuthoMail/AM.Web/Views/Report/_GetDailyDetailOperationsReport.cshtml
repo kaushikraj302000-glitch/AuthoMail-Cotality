@@ -1,14 +1,14 @@
 ﻿@model ICollection<AM.Services.DailyDetailOperationsReport>
 <style>
     .bootstrap-select {
-        width: 200px !important;
+        width: 205px !important;
     }
 </style>
 <div class="panel-heading">
     <div class="panel-title">Daily Detail Operations : <span class="normaltext">@ViewBag.Date EST</span>
-        <label for="input1" class="normallabel">Select Batch</label>
+        <label for="input1" class="normallabel">Filter by Batch</label>
         <span>
-            @Html.DropDownList("BatchList", ViewBag.BatchList as SelectList, "(Time) - (Batch Name)", new { @class = "selectpicker" })
+            @Html.DropDownList("BatchList", ViewBag.BatchList as SelectList, "All (Time - Batch Name)", new { @class = "selectpicker" })
         </span>
     </div>
 </div>

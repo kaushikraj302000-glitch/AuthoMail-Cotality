@@ -1,7 +1,7 @@
 ﻿@model ICollection<AM.Services.SummaryControlReport>
 <style>
     .bootstrap-select {
-        width: 200px !important;
+        width: 205px !important;
     }
     .popover-content {
         word-wrap: break-word;
@@ -11,9 +11,9 @@
 <div class="panel-heading">
     <div class="panel-title">
         Summary Control Details: <span class="normaltext">@ViewBag.Date EST</span>
-        <label for="input1" class="normallabel">Select Batch</label>
+        <label for="input1" class="normallabel">Filter by Batch</label>
         <span>
-            @Html.DropDownList("BatchList", ViewBag.BatchList as SelectList, "(Time) - (Batch Name)", new { @class = "selectpicker" })
+            @Html.DropDownList("BatchList", ViewBag.BatchList as SelectList, "All (Time - Batch Name)", new { @class = "selectpicker" })
         </span>
 
     </div>
@@ -79,7 +79,7 @@
                         @*<td><span>@item.RequestId</span></td>*@
                         <td><span>@item.ErrorCode</span></td>
                         <td><span>@item.ErrorDesc</span></td>
-                        <td><span class="text-red" data-toggle="popover" data-original-title="Error" data-html="true" data-content="@(item.ErrorDesc != string.Empty ? Html.Raw("<span class='text-red'>"+item.ErrorDesc+"</span>"):Html.Raw("<span class='text-red'>"+AM.Services.Config.Msg_Web_NoErrorDescription+"</span>"))" data-placement="left"><a>Show Error</a></span></td>
+                        <td><span class="text-red" data-toggle="popover" data-original-title="Error" data-html="true" data-content="@(!string.IsNullOrEmpty(item.ErrorDesc) ? Html.Raw("<span class='text-red'>" + item.ErrorDesc + "</span>") : Html.Raw("<span class='text-red'>" + AM.Services.Config.Msg_Web_NoErrorDescription + "</span>"))" data-placement="left"><a>Show Error</a></span></td>
                         <td><span>@item.PrintLocation</span></td>
                         <td><span>@item.PagesShipped</span></td>
                         <td>@item.BatchId</td>

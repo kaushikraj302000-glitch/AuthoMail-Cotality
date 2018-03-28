@@ -16,7 +16,6 @@ namespace AM.Web.Controllers
         // GET: Report
         IHomeService homeSvc;
         IReportService repoSvc;
-        private IFormatProvider CurrentCulture;
         public ReportController(IHomeService homeSvc, IReportService repoSvc)
         {
             this.homeSvc = homeSvc;
