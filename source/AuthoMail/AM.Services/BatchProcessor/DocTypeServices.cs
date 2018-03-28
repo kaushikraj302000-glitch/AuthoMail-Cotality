@@ -14,7 +14,7 @@ namespace AM.Services
 
         List<DocTypeCoverLetter> GetDocumentCoverLetterTemplates(int docTypeId);
 
-        DocType GetDocTypesByDocTypeName(int clientId, string documentOrPackageName);
+        DocType GetDocTypesByDocTypeName(int clientId, string docTypeCode, string documentOrPackageName = "");
 
     }
     public class DocTypeService : ServiceBase, IDocTypeService
@@ -57,15 +57,24 @@ namespace AM.Services
             return data;
         }
 
-        public DocType GetDocTypesByDocTypeName(int clientId, string documentOrPackageName)
+        public DocType GetDocTypesByDocTypeName(int clientId, string docTypeCode, string documentOrPackageName)
         {
-            string query = "SELECT * FROM [AM].[DocTypes] WHERE ClientId=@clientId AND DocTypeCode=@documentOrPackageName";
+            string query = "SELECT * FROM [AM].[DocTypes] WHERE ClientId=@clientId ";
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@clientId", clientId);
-            parameters.Add("@documentOrPackageName", documentOrPackageName);
+            if (!string.IsNullOrEmpty(docTypeCode))
+            {
+                query += "AND DocTypeCode=@docTypeCode";
+                parameters.Add("@docTypeCode", docTypeCode);
+            }
+            else if (!string.IsNullOrEmpty(documentOrPackageName))
+            {
+                query += "AND Description=@documentOrPackageName";
+                parameters.Add("@documentOrPackageName", documentOrPackageName);
+            }
 
-            var data = db.Query<DocType>(query, parameters).SingleOrDefault();
+            var data = db.Query<DocType>(query, parameters).FirstOrDefault();
             return data;
         }
     }

@@ -50,8 +50,8 @@ namespace AM.Services
         {
             string query = PullBackServiceQuery.GetPullBackRequestList;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@startDate", startDate.EstToUtc());
-            parameters.Add("@endDate", endDate.EstToUtc());
+            parameters.Add("@startDate", (startDate.Date + new TimeSpan(00, 00, 00)).EstToUtc());
+            parameters.Add("@endDate", (endDate.Date + new TimeSpan(23, 59, 59)).EstToUtc());
             parameters.Add("@clientId", clientId);
             if (!businessFriendlyIdName.IsNullOrWhiteSpace() && !businessFriendlyIdValue.IsNullOrWhiteSpace())
             {
