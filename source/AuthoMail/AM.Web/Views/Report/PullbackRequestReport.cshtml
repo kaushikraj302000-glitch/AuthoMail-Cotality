@@ -37,7 +37,7 @@
                 
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="receivedOn">Requested  On(EST)</label>
+                        <label for="receivedOn">Requested  On (EST)</label>
                         <div class="input-group daterange" id="datepicker4">
                             <input type="text" class="form-control" id="requestedOn">
                             <span class="input-group-addon">
@@ -47,16 +47,10 @@
                     </div>
 
                 </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="Status">Requested By</label>
-                        @*@Html.DropDownList("RequestedBy", ViewBag.RequestedBy as SelectList, "Select Requested By", htmlAttributes: new { @class = "selectpicker" })*@
-                    </div>
-
-                </div>
+                
                 <div class="col-md-1">
                     <div class="form-group ">
-                        <label for="filterData"> &nbsp;</label>
+                        <label for="filterData"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
                         <button type="button" id="filterData" class="btn btn-primary" style=" padding-top: 6%;">
                             <span class="sr-only">Filter</span>
                             <i class="fa fa-arrow-right fa-2x"></i>
@@ -99,11 +93,11 @@
             el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
             $.ajax({
                 type: "POST",
-                url: baseUrl + "Report/_PullbackRequestReport",
+                url: baseUrl + "Report/_GetPullbackRequestReport",
                 data: JSON.stringify({
                     startDate: startDate,
-                    endDate: endDate,
-                    requestedBy: $("#requestedBy").val()
+                    endDate: endDate
+                   
                 }),
                 contentType: "application/json; charset=utf-8",
                 success: function (res) {
