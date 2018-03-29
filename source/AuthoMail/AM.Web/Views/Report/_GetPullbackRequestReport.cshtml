@@ -23,33 +23,15 @@
                 @foreach (var item in Model)
                 {
                     <tr class="row-small">
-                        
+
                         <td>@item.ClientBatchId</td>
-                        <td data-status="@item.Status">
-                            @switch (item.Status)
-                            {
-
-                                case "PulledBack":
-                                    <span class="label medium label-red">@item.Status</span>
-
-                                    break;
-                                case "Error":
-                                <span class="label medium label-red">@item.Status</span>
-                                    break;
-                                case "Shipped":
-                                <span class="label medium label-success">@item.Status</span>
-                                    break;
-                                case "InProgress":
-                                <span class="label medium label-blue">@item.Status</span>
-                                    break;
-
-                            }
-                            
+                        <td>
+                            @item.Status
                         </td>
                         <td><span>@item.MailPieceUniqueId</span></td>
                         <td><span>@item.RequestedOn</span></td>
-                        <td><span>@item.RequestedBy</span></td>
-                       
+                        <td><span>@item.UserName</span></td>
+
                     </tr>
                 }
             </tbody>
@@ -64,7 +46,7 @@
 </div>
 <script type="text/javascript">
     $(document).ready(function () {
-       
+
         var table = $('#sample_2');
         var filename = "PullbackRequestReport";
         var title = "Pullback Request Report";
