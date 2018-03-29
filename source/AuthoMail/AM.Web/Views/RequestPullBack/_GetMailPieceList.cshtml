@@ -260,7 +260,7 @@
 
                                 if (response.Object[i].PullBackRequestedOn != null && response.Object[i].PulledBackRequestedBy != "") {
 
-                                    msg = msg + " by " + response.Object[i].PulledBackRequestedBy + " on " + moment(response.Object[i].PullBackRequestedOn).format("MM/DD/YYYY  HH:mm:ss");
+                                    msg = msg.slice(0, -1) + " by " + response.Object[i].PulledBackRequestedBy + " on " + moment(response.Object[i].PullBackRequestedOn).format("MM/DD/YYYY  HH:mm:ss");
                                 }
                                 console.log(msg);
                                 if (response.Object[i].Success) {
