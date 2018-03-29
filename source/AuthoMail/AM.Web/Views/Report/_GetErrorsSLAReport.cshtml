@@ -35,7 +35,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var item in Model)
+                @foreach (var item in Model.OrderBy(s => s.ReceivedOn))
                 {
                     <tr class="row-small">
                         <td data-batchid="@item.BatchId"><span>@item.DocumentOrPackageType</span></td>

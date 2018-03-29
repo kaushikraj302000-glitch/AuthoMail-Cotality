@@ -33,7 +33,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var item in Model)
+                @foreach (var item in Model.OrderBy(s => s.ReceivedOn).ThenBy(s => s.ShippedOn))
                 {
                     <tr class="row-small">
                         <td data-businessidvalue="@item.BusinessFriendlyIdValue"><span>@item.BusinessFriendlyIdValue</span></td>

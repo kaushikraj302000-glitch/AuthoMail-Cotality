@@ -29,7 +29,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var item in Model)
+                    @foreach (var item in Model.OrderBy(s => s.ReceivedOn).ThenBy(s => s.PrintedOn).ThenBy(s => s.MailedOn))
                     {
                         <tr class="row-small">
                             <td><span>@item.BusinessFriendlyIdValue</span></td>
