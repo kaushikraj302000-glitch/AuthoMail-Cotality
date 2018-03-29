@@ -50,6 +50,8 @@ namespace AM.Entities
         public const string Recipient_Details_Missing_Or_Invalid = "Recipient_Details_Missing_Or_Invalid";
         public const string Unknown_Error = "Unknown_Error";
         public const string Invalid_PackageType = "Invalid_PackageType";
+        public const string Invalid_ShippingDetails = "Invalid_ShippingDetails";
+        public const string Invalid_FedExAccount = "Invalid_FedExAccount";
     }
 
     public enum ShippingStatus
@@ -93,6 +95,18 @@ namespace AM.Entities
         CannotResize = -2,
         PageCountMismatch = -3,
         Reprint = 7
+    }
+
+    public enum ShippingServiceType
+    {
+        USPS = 0,
+        FEDEX_2_DAY = 1,
+        FEDEX_EXPRESS_SAVER = 2,
+        FEDEX_GROUND = 3,
+        FIRST_OVERNIGHT = 4,
+        GROUND_HOME_DELIVERY = 5,
+        PRIORITY_OVERNIGHT = 6,
+        STANDARD_OVERNIGHT = 7
     }
 
     public class MailBatchInfo
