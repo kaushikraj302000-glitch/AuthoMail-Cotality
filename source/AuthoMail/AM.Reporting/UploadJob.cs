@@ -46,7 +46,7 @@ namespace AM.Reporting
                             continue;
                         }
 
-                        var startDate = (DateTime.UtcNow.UtcToEst().Date.AddDays(-10) + new TimeSpan(19, 45, 01)).EstToUtc();
+                        var startDate = (DateTime.UtcNow.UtcToEst().Date.AddDays(-1) + new TimeSpan(19, 45, 01)).EstToUtc();
                         var endDate = (DateTime.UtcNow.UtcToEst().Date + new TimeSpan(19, 45, 00)).EstToUtc();
 
                         var reportData = reportSvc.GetSummaryControlReport(client.Id, startDate, endDate, sftDetails.Code).OrderBy(s => s.BatchId).ToList();
