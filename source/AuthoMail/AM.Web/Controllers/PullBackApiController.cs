@@ -149,7 +149,7 @@ namespace AM.Web.Controllers
                     dataForPullBackForm.Add("FileName", string.Format("{0} {1}", item.PrintFileName, item.SubmittedOn.Value.ToString("MM/dd/yy")));
                     dataForPullBackForm.Add("JobNumber", item.PrintBatch.ToString());
                     dataForPullBackForm.Add("PackagesToPull", string.Format("{0} : {1}", item.PrintBatch.ToString(), item.PieceId.ToString()));
-                    dataForPullBackForm.Add("Coordinator", string.Format("AuthoMail, ADE, {0}-{1}", item.ClientName, item.DocTypeCode));
+                    dataForPullBackForm.Add("Coordinator", string.Format("AuthoMail, ADE, {0}-{1}", item.Name, item.DocTypeCode));
                     dataForPullBackForm.Add("PkgInstruction", string.Empty);
                     dataForPullBackForm.Add("Comments", string.Empty);
 
