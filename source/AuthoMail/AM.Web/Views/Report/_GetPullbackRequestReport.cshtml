@@ -22,12 +22,10 @@
             <tbody>
                 @foreach (var item in Model)
                 {
-                    <tr class="row-small">
+                    <tr>
 
-                        <td>@item.ClientBatchId</td>
-                        <td>
-                            @item.Status
-                        </td>
+                        <td><span>@item.ClientBatchId</span></td>
+                        <td><span>@item.Status</span></td>
                         <td><span>@item.MailPieceUniqueId</span></td>
                         <td><span>@item.RequestedOn</span></td>
                         <td><span>@item.UserName</span></td>
