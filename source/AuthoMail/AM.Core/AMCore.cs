@@ -157,7 +157,7 @@ namespace AM.Core
                             {
                                 // FedEx account information not found; so report it as an error.
                                 mailPiece.ErrorCode = OutComeCodes.Invalid_FedExAccount;
-                                mailPiece.ErrorDesc += "FedEx account information does not exist for provided client code.";
+                                mailPiece.ErrorDesc += "FedEx account does not exist for provided client code.";
                             }
 
                             #endregion
@@ -260,7 +260,6 @@ namespace AM.Core
                     mailBatchSvc.UpdateBatchDetails(mailBatch);
                     commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationEnd, Common.Now);
                     commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.Failed.ToString());
-
                     commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                     continue;
                 }
@@ -589,10 +588,10 @@ namespace AM.Core
                         }
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     //TODO: Ask To Ravi Sir
-                    throw;
+                    log.Error(ex);
                 }
             }
         }
