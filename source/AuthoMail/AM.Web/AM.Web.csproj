@@ -225,7 +225,7 @@
     <Content Include="clui\dist\css\components\secondary_nav.css" />
     <Content Include="clui\dist\css\components\table.css" />
     <Content Include="clui\dist\css\corelogic-ui.css" />
-    <Content Include="clui\dist\css\corelogic-ui.min.css" />
+    <Content Include="clui\dist\css\corelogic-ui.min1.css" />
     <Content Include="clui\dist\css\customui.css" />
     <Content Include="clui\dist\css\datatablecustom.css" />
     <Content Include="clui\dist\fonts\Droid-Sans-Mono\droid-sans-mono-latin-400.svg" />
