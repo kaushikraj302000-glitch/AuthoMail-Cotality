@@ -89,16 +89,16 @@ namespace AM.Reporting
 
 
                             string summaryReportPath = Path.Combine(Common.AuthoMailRootFolder, summaryReportFileName);
-
-                            using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(summaryReport.ToString())))
-                            {
-                                using (FileStream file = new FileStream(summaryReportPath, FileMode.Create, FileAccess.Write))
-                                {
-                                    ms.WriteTo(file);
-                                }
-                            }
                             try
                             {
+                                using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(summaryReport.ToString())))
+                                {
+                                    using (FileStream file = new FileStream(summaryReportPath, FileMode.Create, FileAccess.Write))
+                                    {
+                                        ms.WriteTo(file);
+                                    }
+                                }
+
                                 SFTUtil sftSite = null;
 
                                 sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
@@ -108,6 +108,7 @@ namespace AM.Reporting
                                 {
                                     string ftpUuploadPath = Path.Combine(Common.ReportUploadPath, summaryReportFileName);
                                     sftSite.UploadFile(summaryReportPath, ftpUuploadPath);
+                                    log.Debug("{0}-File successfully uploaded to client's location.".Fill(summaryReportFileName));
                                 }
                                 else
                                 {
