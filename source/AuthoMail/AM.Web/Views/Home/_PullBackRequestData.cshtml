@@ -1,14 +1,15 @@
 ﻿@model ICollection<AM.Services.PullBackInfo>
-<style>
-    .popover-content {
-        word-wrap: break-word;
-        color: red;
-    }
-</style>
+
 
 @if (Model.Count > 0)
 {
     var cnt = 1;
+    <style>
+        .popover-content {
+            word-wrap: break-word;
+            color: red;
+        }
+    </style>
     <table class="table table-responsive" id="sample_2">
         <thead>
             <tr>
@@ -51,7 +52,7 @@
                         {
 
                             case "PulledBack":
-                                <span class="label medium label-red">@item.ShippingStatus</span>
+                                <span class="label medium label-yellow">@item.ShippingStatus</span>
 
                                 break;
                             case "Error":
@@ -74,14 +75,7 @@
         </tbody>
 
     </table>
-}
-else
-{
-    <div class="alert alert-yellow">
-        <span class="sbold">@AM.Services.Config.Msg_Web_NoRecordFound</span>
-    </div>
-}
-<script>
+    <script>
     $(document).ready(function () {
         $('[data-toggle="popover"]').popover({
             'trigger': 'hover',
@@ -89,4 +83,11 @@ else
             'container': 'body'
         });
     });
-</script>
+    </script>
+}
+else
+{
+    <div class="alert alert-yellow norecordpullback">
+        <span class="sbold">@AM.Services.Config.Msg_Web_NoRecordFound</span>
+    </div>
+}

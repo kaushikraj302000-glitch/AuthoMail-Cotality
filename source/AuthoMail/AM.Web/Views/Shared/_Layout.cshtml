@@ -117,6 +117,18 @@
             JSON.useDateParser();
             console.log(baseUrl);
         });
+        function Spinners(selector, IsRemove,className) {
+            if (IsRemove) {
+                $(selector).find("i").removeClass("fa-circle-o-notch fa-spin");
+                $(selector).find("i").addClass(className);
+            }
+            else
+            {
+                $(selector).find("i").removeClass(className);
+                $(selector).find("i").addClass("fa-circle-o-notch fa-spin");
+            }
+        }
+
         function GetTrackingInfo(TrackingNo, ShippingMethod) {
             var el = $('#TrackingInfo').find('.modal-body');
             $.ajax({
