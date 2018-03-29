@@ -178,8 +178,8 @@ namespace AM.Web.Controllers
         {
             var estToday = DateTime.UtcNow.UtcToEst().Date;
             // EST Week
-            ViewBag.startDate = estToday.AddDays(-7);
-            ViewBag.endDate = estToday + new TimeSpan(23, 59, 59);
+            ViewBag.startDate =(estToday.AddDays(-7)).ToString("MM/dd/yy HH:mm:ss");
+            ViewBag.endDate = (estToday + new TimeSpan(23, 59, 59)).ToString("MM/dd/yy HH:mm:ss");
             return View();
         }
         [HttpPost]
