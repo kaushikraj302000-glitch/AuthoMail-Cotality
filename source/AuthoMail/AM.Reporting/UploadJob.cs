@@ -38,9 +38,9 @@ namespace AM.Reporting
                 {
                     foreach (var sftChannel in sftChannelList)
                     {
-                        SFTChannel sftDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(sftChannel.SFTChannelId);
+                        SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(sftChannel.SFTChannelId);
 
-                        if (sftDetails == null)
+                        if (sftChannelDetails == null)
                         {
                             log.Debug("No records found for Client : {0) And SFTChannel-Id : {1}".Fill(client.AppCode, sftChannel.SFTChannelId));
                             continue;
@@ -49,7 +49,7 @@ namespace AM.Reporting
                         var startDate = (DateTime.UtcNow.UtcToEst().Date.AddDays(-1) + new TimeSpan(19, 45, 01)).EstToUtc();
                         var endDate = (DateTime.UtcNow.UtcToEst().Date + new TimeSpan(19, 45, 00)).EstToUtc();
 
-                        var reportData = reportSvc.GetSummaryControlReport(client.Id, startDate, endDate, sftDetails.Code).OrderBy(s => s.BatchId).ToList();
+                        var reportData = reportSvc.GetSummaryControlReport(client.Id, startDate, endDate, sftChannelDetails.Code).OrderBy(s => s.BatchId).ToList();
 
                         if (reportData != null && reportData.Count > 0)
                         {
@@ -61,7 +61,7 @@ namespace AM.Reporting
                                 summaryReport.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22},{23}",
                                     mailPiece.BatchId,
                                     mailPiece.BatchUniqueId,
-                                    sftDetails.Title,
+                                    sftChannelDetails.Title,
                                     mailPiece.DocumentOrPackageType,
                                     mailPiece.BusinessFriendlyIdValue,
                                     mailPiece.FileName,
@@ -85,7 +85,7 @@ namespace AM.Reporting
                                     mailPiece.PagesShipped));
                             }
 
-                            string summaryReportFileName = "{0}_{1}_{2}_{3}.csv".Fill("SummaryControlReport", client.AppCode, sftDetails.Code, DateTime.UtcNow.UtcToClientTimeZone(client.TimeZone).ToString("MM-dd-yyyy"));
+                            string summaryReportFileName = "{0}_{1}_{2}_{3}.csv".Fill("SummaryControlReport", client.AppCode, sftChannelDetails.Code, DateTime.UtcNow.UtcToClientTimeZone(client.TimeZone).ToString("MM-dd-yyyy"));
 
 
                             string summaryReportPath = Path.Combine(Common.AuthoMailRootFolder, summaryReportFileName);
@@ -96,6 +96,27 @@ namespace AM.Reporting
                                 {
                                     ms.WriteTo(file);
                                 }
+                            }
+                            try
+                            {
+                                SFTUtil sftSite = null;
+
+                                sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
+                                sftSite.Connect();
+
+                                if (sftSite.IsDownloadDirectoryAvailable(Common.ReportUploadPath))
+                                {
+                                    string ftpUuploadPath = Path.Combine(Common.ReportUploadPath, summaryReportFileName);
+                                    sftSite.UploadFile(summaryReportPath, ftpUuploadPath);
+                                }
+                                else
+                                {
+                                    log.Error("Upload path does not exist for Client-{0} and SFT Channel Id-{1}".Fill(client.Name, sftChannelDetails.Code));
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                log.Error("Error occured while uploading Summary control report :" + ex);
                             }
                         }
                     }
