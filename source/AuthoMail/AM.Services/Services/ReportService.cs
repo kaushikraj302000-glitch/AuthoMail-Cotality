@@ -108,8 +108,10 @@ namespace AM.Services
 
         public List<PullbackRequestReport> GetPullbackRequestReport(int clientId, DateTime startDate, DateTime endDate)
         {
-            string query = "SELECT p.[Id] ,[MailBatchId] ,[MailPieceId] ,[MailPieceUniqueId] ,[Status] ,[RequestedOn] ,[RequestedBy], u.[UserName],b.ClientBatchId FROM [AM].[MailBatches] b, [AM].[PullBackRequests] p LEFT OUTER JOIN [Profile].[Users] u ON p.Id=u.Id  WHERE p.[ClientId] = @clientId AND p.[MailBatchId]=b.Id AND p.RequestedOn BETWEEN @startDate AND @endDate";
-            return db.Query<PullbackRequestReport>(query, new { clientId = clientId, startDate = startDate.EstToUtc(), endDate = endDate.EstToUtc() }).ToList();
+            startDate = (startDate.Date + new TimeSpan(00, 00, 00)).EstToUtc();
+            endDate = (endDate.Date + new TimeSpan(23, 59, 59)).EstToUtc();
+            string query = "SELECT p.[Id] ,[MailBatchId] ,[MailPieceId] ,[MailPieceUniqueId] ,[Status] ,[RequestedOn] ,[RequestedBy], u.[UserName],b.ClientBatchId FROM [AM].[MailBatches] b, [AM].[PullBackRequests] p LEFT OUTER JOIN [Profile].[Users] u ON p.[RequestedBy]=u.Id  WHERE p.[ClientId] = @clientId AND p.[MailBatchId]=b.Id AND p.RequestedOn BETWEEN @startDate AND @endDate";
+            return db.Query<PullbackRequestReport>(query, new { clientId = clientId, startDate = startDate, endDate = endDate }).ToList();
         }
     }
 }
