@@ -68,10 +68,8 @@ namespace AM.Services
 
         public List<TodayMailPieceChart> GetTodayMailPieceChartData(DateTime todayDate, int clientId)
         {
-            DateTime startDate = (todayDate.Date + new TimeSpan(00, 00, 00)).EstToUtc();
-            DateTime endDate = (todayDate.Date + new TimeSpan(23, 59, 59)).EstToUtc();
             string query = "select * from(select b.ClientBatchId,m.MailBatchId as [MailBatchId], b.BatchName,m.Id,m.ShippingStatus from [AM].[MailPieces] m,[AM].[MailBatches] b where m.MailBatchId=b.Id AND b.ClientId=@clientId AND  b.ReceivedOn BETWEEN @startDate AND @endDate) s PIVOT (count(Id) FOR ShippingStatus IN ([InProgress],[PulledBack],[Error],[Shipped]))pvt";
-            var data = db.Query<TodayMailPieceChart>(query, new { startDate = startDate, endDate = endDate, clientId = clientId }).ToList();
+            var data = db.Query<TodayMailPieceChart>(query, new { startDate = todayDate.ToStartDateTime().EstToUtc(), endDate = todayDate.ToEndDateTime().EstToUtc(), clientId = clientId }).ToList();
             return data;
         }
 
@@ -83,10 +81,8 @@ namespace AM.Services
         }
 
         public List<BatchListByChartData> GetBatchByParam(DateTime date, string status, int clientId)
-        {
-            DateTime startDate = (date.Date + new TimeSpan(00, 00, 00)).EstToUtc();
-            DateTime endDate = (date.Date + new TimeSpan(23, 59, 59)).EstToUtc();
-            var data = db.Query<BatchListByChartData>(ChartDataServiceQuery.GetBatchByParam, new { startDate = startDate, endDate = endDate, status = status, clientId = clientId }).ToList();
+        {            
+            var data = db.Query<BatchListByChartData>(ChartDataServiceQuery.GetBatchByParam, new { startDate = date.ToStartDateTime().EstToUtc(), endDate = date.ToEndDateTime().EstToUtc(), status = status, clientId = clientId }).ToList();
             return data;
         }
 

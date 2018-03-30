@@ -13,7 +13,7 @@ namespace AM.Services
         List<PullBackViewModel> GetMailPieceData(List<string> mpIds);
         List<PullBackRequestForm> GetPullBackData(List<string> mpIds);
         int UpdatePullBackRequestedOn(string mpId, string userId);
-        int InsertPullBackRequestData(string mpId,int clientId);
+        int InsertPullBackRequestData(string mpId, int clientId);
         List<PullBackInfo> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, string docType, DateTime startDate, DateTime endDate, int clientId);
         List<QuickPullBackResponse> GetQuickPullBackResponseFromBusinessFriendlyValue(string businessFriendlyIdName, string businessFriendlyIdValue, int clientId);
         List<QuickPullBackResponse> GetQuickPullBackResponse(List<string> mailPieceIds, int clientId);
@@ -41,17 +41,17 @@ namespace AM.Services
             return data;
         }
 
-        public int InsertPullBackRequestData(string mpId,int clientId)
+        public int InsertPullBackRequestData(string mpId, int clientId)
         {
-            return db.Execute("[dbo].[usp_InsertPullBackRequestsData]", new { @MailPieceUniqueId = mpId,@ClientId = clientId }, commandType: CommandType.StoredProcedure);
+            return db.Execute("[dbo].[usp_InsertPullBackRequestsData]", new { @MailPieceUniqueId = mpId, @ClientId = clientId }, commandType: CommandType.StoredProcedure);
         }
 
         public List<PullBackInfo> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, string docType, DateTime startDate, DateTime endDate, int clientId)
         {
             string query = PullBackServiceQuery.GetPullBackRequestList;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@startDate", (startDate.Date + new TimeSpan(00, 00, 00)).EstToUtc());
-            parameters.Add("@endDate", (endDate.Date + new TimeSpan(23, 59, 59)).EstToUtc());
+            parameters.Add("@startDate", startDate.ToStartDateTime().EstToUtc());
+            parameters.Add("@endDate", endDate.ToEndDateTime().EstToUtc());
             parameters.Add("@clientId", clientId);
             if (!businessFriendlyIdName.IsNullOrWhiteSpace() && !businessFriendlyIdValue.IsNullOrWhiteSpace())
             {
