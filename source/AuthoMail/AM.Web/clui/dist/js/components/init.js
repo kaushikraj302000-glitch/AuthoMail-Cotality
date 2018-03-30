@@ -1,6 +1,6 @@
  function init() {
   'use strict';
-
+  JSON.useDateParser();
   window.clui.selectInit();
   window.clui.select2Init();
   window.clui.popoverInit();
