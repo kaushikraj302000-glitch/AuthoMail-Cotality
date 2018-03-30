@@ -31,8 +31,8 @@ namespace AM.Services
                 shippingstatus = ShippingStatus.Shipped.ToString(),
                 batchId = batchId,
                 channel = channel.IsNullOrWhiteSpace() ? null : channel,
-                startDate = date.HasValue ? (date.Value.Date + new TimeSpan(00, 00, 00)).EstToUtc() : date,
-                endDate = date.HasValue ? (date.Value.Date + new TimeSpan(23, 59, 59)).EstToUtc() : date,
+                startDate = date.HasValue ? (date.Value.ToStartDateTime()).EstToUtc() : date,
+                endDate = date.HasValue ? (date.Value.ToEndDateTime()).EstToUtc() : date,
             }).ToList();
             return data;
         }
@@ -45,8 +45,8 @@ namespace AM.Services
                 shippingstatus = ShippingStatus.Error.ToString(),
                 batchId = batchId,
                 channel = channel.IsNullOrWhiteSpace() ? null : channel,
-                startDate = date.HasValue ? (date.Value.Date + new TimeSpan(00, 00, 00)).EstToUtc() : date,
-                endDate = date.HasValue ? (date.Value.Date + new TimeSpan(23, 59, 59)).EstToUtc() : date,
+                startDate = date.HasValue ? (date.Value.ToStartDateTime()).EstToUtc() : date,
+                endDate = date.HasValue ? (date.Value.ToEndDateTime()).EstToUtc() : date,
             }).ToList();
             return data;
         }
@@ -72,13 +72,12 @@ namespace AM.Services
             var data = db.Query<ErrorReport>(query, new
             {
                 clientId = clientId,
-                //shippingstatus = string.Format("'{0}','{1}'", ShippingStatus.InProgress.ToString(), ShippingStatus.Shipped.ToString()),
                 batchId = batchId,
                 docType = docType.IsNullOrWhiteSpace() ? null : docType,
-                startDateRec = isReceived ? (date.Date + new TimeSpan(00, 00, 00)).EstToUtc() : dt,
-                endDateRec = isReceived ? (date.Date + new TimeSpan(23, 59, 59)).EstToUtc() : dt,
-                startDateDue = isReceived ? dt : (date.Date + new TimeSpan(00, 00, 00)).EstToUtc(),
-                endDateDue = isReceived ? dt : (date.Date + new TimeSpan(23, 59, 59)).EstToUtc()
+                startDateRec = isReceived ? (date.ToStartDateTime()).EstToUtc() : dt,
+                endDateRec = isReceived ? (date.ToEndDateTime()).EstToUtc() : dt,
+                startDateDue = isReceived ? dt : (date.ToStartDateTime()).EstToUtc(),
+                endDateDue = isReceived ? dt : (date.ToEndDateTime()).EstToUtc()
             }).ToList();
             return data;
         }
@@ -90,8 +89,8 @@ namespace AM.Services
             var data = db.Query<MonthlyReconReport>(query, new
             {
                 clientId = clientId,
-                startDate = (startDate.Date + new TimeSpan(00, 00, 00)).EstToUtc(),
-                endDate = (endDate.Date + new TimeSpan(23, 59, 59)).EstToUtc(),
+                startDate = startDate.ToStartDateTime().EstToUtc(),
+                endDate = endDate.ToEndDateTime().EstToUtc(),
                 channel = channel.IsNullOrWhiteSpace() ? null : channel,
                 shippingStatus = ShippingStatus.Shipped.ToString()
             }).ToList();
@@ -108,10 +107,8 @@ namespace AM.Services
 
         public List<PullbackRequestReport> GetPullbackRequestReport(int clientId, DateTime startDate, DateTime endDate)
         {
-            startDate = (startDate.Date + new TimeSpan(00, 00, 00)).EstToUtc();
-            endDate = (endDate.Date + new TimeSpan(23, 59, 59)).EstToUtc();
-            string query = "SELECT p.[Id] ,[MailBatchId] ,[MailPieceId] ,[MailPieceUniqueId] ,[Status] ,[RequestedOn] ,[RequestedBy], u.[UserName],b.ClientBatchId FROM [AM].[MailBatches] b, [AM].[PullBackRequests] p LEFT OUTER JOIN [Profile].[Users] u ON p.[RequestedBy]=u.Id  WHERE p.[ClientId] = @clientId AND p.[MailBatchId]=b.Id AND p.RequestedOn BETWEEN @startDate AND @endDate";
-            return db.Query<PullbackRequestReport>(query, new { clientId = clientId, startDate = startDate, endDate = endDate }).ToList();
+            string query = "SELECT p.[Id] ,[MailBatchId] ,[MailPieceId] ,[MailPieceUniqueId] ,[Status] ,[RequestedOn] ,[RequestedBy], u.[UserName],b.ClientBatchId,m.BusinessFriendlyIdName,m.BusinessFriendlyIdValue FROM [AM].[MailBatches] b,[AM].[MailPieces] m, [AM].[PullBackRequests] p LEFT OUTER JOIN [Profile].[Users] u ON p.[RequestedBy]=u.Id  WHERE p.[ClientId] = @clientId AND p.[MailBatchId]=b.Id AND p.MailPieceId = m.Id AND p.RequestedOn BETWEEN @startDate AND @endDate";
+            return db.Query<PullbackRequestReport>(query, new { clientId = clientId, startDate = startDate.ToStartDateTime().EstToUtc(), endDate = endDate.ToEndDateTime().EstToUtc() }).ToList();
         }
     }
 }

@@ -81,6 +81,7 @@ namespace AM.Services
                 return null;
             }
         }
+        public DateTime? DueDate { get; set; }
         public int TotalPages { get; set; }//Pages Shipped
         public string ShippingMethod { get; set; }
         public string TrackingNo { get; set; }

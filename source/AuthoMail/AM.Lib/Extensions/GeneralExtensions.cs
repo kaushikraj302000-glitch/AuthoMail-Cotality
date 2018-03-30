@@ -152,5 +152,13 @@ namespace AM.Lib
         {
             return dt.ClientTimeZoneToUtc("Eastern Standard Time");
         }
+        public static DateTime ToStartDateTime(this DateTime dt)
+        {
+            return (dt.Date + new TimeSpan(00, 00, 00));
+        }
+        public static DateTime ToEndDateTime(this DateTime dt)
+        {
+            return (dt.Date + new TimeSpan(23, 59, 59));
+        }
     }
 }

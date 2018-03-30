@@ -23,8 +23,8 @@ namespace AM.Services
                 clientId = clientId,
                 businessFriendlyIdName = businessFriendlyIdName.IsNullOrWhiteSpace() ? null : businessFriendlyIdName,
                 businessFriendlyIdValue = businessFriendlyIdValue.IsNullOrWhiteSpace() ? null : businessFriendlyIdValue,
-                startDate = (startDate.Date + new TimeSpan(00, 00, 00)).EstToUtc(),
-                endDate = (endDate.Date + new TimeSpan(23, 59, 59)).EstToUtc(),
+                startDate = startDate.ToStartDateTime().EstToUtc(),
+                endDate = endDate.ToEndDateTime().EstToUtc(),
                 docType = docType.IsNullOrWhiteSpace() ? null : docType,
                 shippingStatus = status.IsNullOrWhiteSpace() ? null : status,
                 channel = channel.IsNullOrWhiteSpace() ? null : channel

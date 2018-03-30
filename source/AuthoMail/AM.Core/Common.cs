@@ -28,6 +28,11 @@ namespace AM.Core
 
         public static readonly DateTime Today = DateTime.UtcNow.Date;
 
+        public static string CountryCode { get; private set; }
+        public static int NoofTime_AttemptFedexService { get; private set; }
+        public static int FedexServiceattemptInterval { get; private set; }
+        public static string CustomerTransactionId { get; set; }
+
         static Common()
         {
             AuthoMailRootFolder = ConfigurationManager.AppSettings["AuthoMailRootFolder"];
@@ -40,6 +45,11 @@ namespace AM.Core
             CoverTemplateFolder = Path.GetFullPath(ConfigurationManager.AppSettings["CoverTemplateFolder"]);
 
             Email_SMTPClient = new SmtpClient();
+
+            CountryCode = ConfigurationManager.AppSettings["CountryCode"];
+            NoofTime_AttemptFedexService = int.Parse(ConfigurationManager.AppSettings["NoofTime_AttemptFedexService"]);
+            FedexServiceattemptInterval = int.Parse(ConfigurationManager.AppSettings["FedexServiceattemptInterval"]);
+            CustomerTransactionId = ConfigurationManager.AppSettings["CustomerTransactionId"];
         }
 
         public static void CleanDirectory(string path)
@@ -83,5 +93,7 @@ namespace AM.Core
             // Treat date as IST irrecpective of client and server timezone and covert it to UTC
             return TimeZoneInfo.ConvertTime(dt, TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("UTC"));
         }
+
+
     }
 }

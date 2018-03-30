@@ -211,6 +211,7 @@ namespace AM.Services
                 return null;
             }
         }
+        public DateTime? DueDate { get; set; }
         public int ClientId { get; set; }
         public string ClientCode { get; set; }
         public string TrackingNo { get; set; }

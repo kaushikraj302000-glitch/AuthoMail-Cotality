@@ -57,6 +57,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="BatchProcessor\DocTypeServices.cs" />
+    <Compile Include="BatchProcessor\FedExServices.cs" />
     <Compile Include="BatchProcessor\MailPieceServices.cs">
       <SubType>Code</SubType>
     </Compile>
