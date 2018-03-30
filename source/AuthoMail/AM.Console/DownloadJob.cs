@@ -39,6 +39,8 @@ namespace AM.Console
         {
             log.Debug("Download Batch Process Started");
 
+            // 
+
             Client client = clientSvc.GetClientByAppCode("USAA");
 
             if (client != null)

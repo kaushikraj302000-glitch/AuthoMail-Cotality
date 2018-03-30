@@ -63,6 +63,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AMCChannel.cs" />
+    <Compile Include="Channel.cs" />
+    <Compile Include="ChannelFactory.cs" />
     <Compile Include="UploadJob.cs" />
     <Compile Include="DownloadJob.cs" />
     <Compile Include="Schema.cs" />
