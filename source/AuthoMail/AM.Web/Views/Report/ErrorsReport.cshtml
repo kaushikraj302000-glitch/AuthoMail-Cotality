@@ -1,20 +1,28 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "ErrorsReport";
 }
 <style>
-    #dateFilter .bootstrap-select{
+    #dateFilter .bootstrap-select {
         width: 100% !important;
+    }
+
+    .bootstrap-select {
+        width: 205px !important;
+    }
+
+    .popover-content {
+        word-wrap: break-word;
+        color: red;
     }
 </style>
 
 <link href="~/clui/dist/css/datatablecustom.css" rel="stylesheet" />
 <div class="panel-group">
     <div class="panel panel-default">
-        <div class="panel-heading" id="headingOne" >
+        <div class="panel-heading" id="headingOne">
             <a role="button" data-toggle="collapse" data-parent="#accordion" href="#metaItem1">
                 <div class="panel-title">
-                   Error Report
+                    Error Report
                     <div class="collapsed-icon pull-right">
                         <i class="fa fa-caret-left"></i>
                     </div>
@@ -28,9 +36,9 @@
             <div class="panel-body">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="dp4">Select Date (EST)</label>
+                        <label for="date">Select Date (EST)</label>
                         <div class="input-group date" id="datepicker4">
-                            <input type="text" class="form-control" id="dp4">
+                            <input type="text" class="form-control" id="date">
                             <span class="input-group-addon">
                                 <i class="fa fa-calendar"></i>
                             </span>
@@ -53,41 +61,233 @@
                         </button>
                     </div>
                 </div>
-                
+
             </div>
         </div>
     </div>
 
 </div>
-<div class="panel panel-default" id="errorBatchList"></div>
+<div class="panel panel-default">
+    <div class='alert alert-blue text-center' id="loading" style="display:none"><span> Loading... </span></div>
+    <div class="panel-heading" id="errorHeader">
+        <div class="panel-title">
+            Error Details: <span class="normaltext" id="headerdate"></span>
+            <label for="input1" class="normallabel">Filter by Batch</label>
+            <span id="batchListSelect">
+
+                @*@Html.DropDownList("BatchList", ViewBag.BatchList as SelectList, "All (Time - Batch Name)", new { @class = "selectpicker" })*@
+            </span>
+        </div>
+    </div>
+    <div class="panel-body" id="errorBatchList">
+
+
+    </div>
+
+</div>
 
 
 @section Scripts{
     @Styles.Render("~/bundles/datatablescss")
     @Scripts.Render("~/bundles/datatables")
+
     <script>
         $(document).ready(function () {
             window.clui.dateTimePickerInit();
+            
             FilterData();
-        });
-        function FilterData() {
+            $('[data-toggle="popover"]').popover({
+                'trigger': 'hover',
+                'placement': 'left',
+                'container': 'body'
+            });
 
+        });
+        function applyDataTable() {
+            $('[data-toggle="popover"]').popover({
+                'trigger': 'hover',
+                'placement': 'left',
+                'container': 'body'
+            });
+            var table = $('#sample_2');
+            var filename = "ErrorReport";
+            var title = "Error Report";
+            var oTable = table.dataTable({
+
+                "language": {
+                    "aria": {
+                        "sortAscending": ": activate to sort column ascending",
+                        "sortDescending": ": activate to sort column descending"
+                    },
+                    "emptyTable": "No data available in table",
+                    "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+                    "infoEmpty": "No entries found",
+                    "infoFiltered": "(filtered1 from _MAX_ total entries)",
+                    "lengthMenu": "_MENU_ entries",
+                    "search": "<b>Search:</b>",
+                    "zeroRecords": "No matching records found"
+                },
+                "columnDefs": [
+                        {
+                            "targets": [14, 17],
+                            "visible": false,
+                            "searchable": true
+                        },
+                ],
+
+                "scrollX": true,
+                buttons: [
+                    //{
+                    //    extend: 'colvis',
+                    //    text: 'Select Fields',
+                    //    className: 'btn purple pull-left',
+                    //    columns: ':not(.noVis)'
+                    //},
+                {
+                    extend: 'excel',
+                    text: '<i class="fa fa-file-excel-o fa-2x"></i>',
+                    className: 'btn btn-primary',
+                    filename: filename,
+                    title: title,
+                    exportOptions: {
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16]
+                    }
+
+                }
+
+
+
+                ],
+
+                "order": [
+                    [0, 'asc']
+                ],
+                "lengthMenu": [
+                    [5, 10, 25, 50, 100, -1],
+                    [5, 10, 25, 50, 100, "All"] // change per page values here
+                ],
+                // set the initial value
+                "pageLength": 5,
+
+                "dom": "<'row' <'col-md-12'B>><'row'<'col-md-6 col-sm-12'l><'col-md-6 col-sm-12'f>r><'table-scrollable't><'row'<'col-md-5 col-sm-12'i><'col-md-7 col-sm-12'p>>", // horizobtal scrollable datatable
+
+
+            });
+            $('.selectpicker').selectpicker('refresh');
+            $('#BatchList').on('change', function () {
+                var oTable = $('#sample_2').dataTable();
+                var selected = $(this).find("option:selected").val();
+                if (!selected) {
+                    oTable.fnFilter('', 17, true);
+                } else {
+                    oTable.fnFilter("^" + parseInt(selected) + "$", 17, true); //Exact value, column, reg
+                }
+            });
+        }
+        function FilterData() {
+            $("#errorHeader").hide();
+            $("#errorBatchList").hide();
+            var date = $("#date").val();
             var el = $('#errorBatchList');
-            el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
+            $("#headerdate").html(date + " EST");
+            $("#loading").show();
+            //el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Report/_GetErrorsReport",
-                data: JSON.stringify({ date: $("#dp4").val(), channel: $("#Channel").val()  }),
+                data: JSON.stringify({ date: date, channel: $("#Channel").val() }),
                 contentType: "application/json; charset=utf-8",
-                success: function (res) {
-                    el.html(res);
+                success: function (response) {
+                    console.log(response);
+                    if (response.Success) {
+                        if (response.Object != null) {
+                            $("#loading").hide();
+                            var sel = '<select id="BatchList" class="selectpicker">';
+                            sel = sel + "<option value=''>All (Time - Batch Name)</option>";
+                            $(response.Object.BatchList).each(function () {
+                                sel = sel + "<option value='" + this.Key + "'>" + this.Value + "</option>";
+                            });
+                            console.log(sel);
+                            $("#batchListSelect").html(sel);
+                            $('.selectpicker').selectpicker('refresh');
+                            $("#errorHeader").show();
+                            $("#errorBatchList").show();
+                            console.log(response.Object.model.length);
+                            if (response.Object.model.length > 0) {
+                                var table =  "<thead>"
+                                    + "<tr>"
+                                        + "<th>Batch Id</th>"
+                                        + "<th>MailPiece Id</th>"
+                                        + "<th>Channel</th>"
+                                        + "<th>Document Type</th>"
+                                        + "<th>Loan Number</th>"
+                                        + "<th>File Name</th>"
+                                        + "<th>Received Date <span class='fontcapitalize'>(Local)</span></th>"
+                                        + "<th>First Name</th>"
+                                        + "<th>Last Name</th>"
+                                        + "<th>Recipient Street Address</th>"
+                                        + "<th>Recipient City</th>"
+                                        + "<th>Recipient State</th>"
+                                        + "<th>Recipient Zip</th>"
+                                        + "<th>Error Code</th>"
+                                        + "<th>Error Text</th>"
+                                        + "<th>Error Text</th>"
+                                        + "<th>Shipping Method</th>"
+                                        + "<th>BatchId</th>"
+                                    + "</tr>"
+                                + "</thead>";
+
+                                //  </table>
+                                var tr = "";
+                                $(response.Object.model).each(function () {
+                                    var error = "<span class='text-red'>" + this.ErrorDesc + "</span>";
+                                    // table.fnAddData([
+                                    tr = tr + "<tr>"
+                                        + "<td><span>" + this.ClientBatchId + "</span></td>"
+                                        + "<td><span>" + this.MailPieceUniqueId + "</span></td>"
+                                        + "<td><span>" + this.Channel + "</span></td>"
+                                        + "<td><span>" + this.DocumentOrPackageType + "</span></td>"
+                                        + "<td><span>" + this.BusinessFriendlyIdValue + "</span></td>"
+                                        + "<td><span>" + this.FileName + "</span></td>"
+                                        + "<td><span>" + moment(this.ReceivedOn).format("MM/DD/YY hh:mm:ss") + "</span></td>"
+                                        + "<td><span>" + this.RcptFirstName + "</span></td>"
+                                        + "<td><span>" + this.RcptLastName + "</span></td>"
+                                        + "<td><span>" + this.RcptAddressStreet + "</span></td>"
+                                        + "<td><span>" + this.RcptAddressCity + "</span></td>"
+                                        + "<td><span>" + this.RcptAddressState + "</span></td>"
+                                        + "<td><span>" + this.RcptAddressZIP + "</span></td>"
+                                        + "<td><span>" + this.ErrorCode + "</span></td>"
+                                        + "<td><span>" + this.ErrorDesc + "</span></td>"
+                                        + "<td><p id='popoverError' data-toggle='popover' data-original-title='Error' data-html='true' data-placement='left' data-content='" + this.ErrorDesc + "'><a>Error Details</a></p>"
+                                        + "<td><span>" + this.ShippingMethod + "</span></td>"
+                                    + "<td><span>" + this.BatchId + "</span></td></tr>";
+                                });
+                                tr = tr + "</tbody>";
+                                table ="<table class='table table-responsive' id='sample_2' style='overflow-x:scroll;'>"+ table + "<tbody>" + tr+"</tbody></table>";
+                                console.log(table);
+                                $("#errorBatchList").html(table);
+
+                                applyDataTable();
+                            }
+                            else {
+                                $("#errorBatchList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Msg_Web_NoRecordFound</span></div>")
+                            }
+                        }
+
+
+                        //$("#")
+                    }
+
+                    //el.html(res);
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
+                    $("#loading").hide();
                     var msg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
-                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    el.html("<div class='alert alert-red' ><span>" + msg + "</span></div>");
                 }
 
             });
+
         }
         $("#filterData").click(function () {
             FilterData();
