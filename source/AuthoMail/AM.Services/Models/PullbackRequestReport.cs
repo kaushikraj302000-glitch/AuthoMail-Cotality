@@ -17,5 +17,7 @@ namespace AM.Services
         public DateTime RequestedOn { get; set; }
         public string RequestedBy { get; set; }
         public string UserName { get; set; }
+        public string BusinessFriendlyIdName { get; set; }
+        public string BusinessFriendlyIdValue { get; set; }
     }
 }
