@@ -18,6 +18,7 @@ namespace AM.Core
         private static ICommonService commonSvc = new CommonService();
         private static IMailPieceService mailPieceSvc = new MailPieceService();
         private static IDocTypeService docTypeSvc = new DocTypeService();
+        private static IFedExService fedExSvc = new FedExService();
 
         private static Random random = new Random();
         internal static void PrepPnSJobs()
@@ -44,6 +45,7 @@ namespace AM.Core
 
                 foreach (MailPieceDTO mailPiece in validMailPieces)
                 {
+                    int count = 0;
                     try
                     {
                         DocType docType = docTypeSvc.GetDocTypesByDocTypeName(mbi.Client.Id, "", mailPiece.DocumentOrPackageType.Trim());
@@ -64,29 +66,30 @@ namespace AM.Core
 
                         string pdfFilePath = Path.Combine(mbi.AMRequestPath, mailPiece.FileName);
                         string outputFilePath = Path.Combine(mbi.PnSRequestPath, "{0}_{1}".Fill(mailPieceId, mailPiece.FileName));
-
-                        #region Prepare dictionary of placeholders/tags to fill the PDF template.
-
-                        Dictionary<string, string> mailPieceData = new Dictionary<string, string>();
-                        mailPieceData.Add("FromAddress", mailPiece.RetRcptAddressStreet + "\n" + mailPiece.RetRcptAddressAptOrSuiteOrOther + "\n" + mailPiece.RetRcptAddressCity + ", " + mailPiece.RetRcptAddressState + ", " + mailPiece.RetRcptAddressZIP);
-
-                        mailPieceData.Add("ToAddress", mailPiece.RcptFirstName + " " + mailPiece.RcptLastName + "\n" + (string.IsNullOrEmpty(mailPiece.RcptAddressAptOrSuiteOrOther) ? mailPiece.RcptAddressStreet : string.Format("{0}\n{1}", mailPiece.RcptAddressStreet, mailPiece.RcptFirstName)) + "\n" + mailPiece.RcptAddressCity + ", " + mailPiece.RcptAddressState + ", " + mailPiece.RcptAddressZIP);
-
-                        mailPieceData.Add("MailPieceId", mailPiece.Id.ToString());
-                        mailPieceData.Add("Date", DateTime.UtcNow.UtcToEst().ToString("MMMM dd, yyyy"));
-                        mailPieceData.Add("MailPieceZip", mailPiece.RcptAddressZIP);
-                        mailPieceData.Add("LoanNbr", mailPiece.BusinessFriendlyIdValue);
-
-                        #endregion
+                        string coverLetterPdfPath = string.Empty;
 
                         if (docType.ShippingCarrier == Carrier.USPS.ToString())
                         {
+                            #region Prepare dictionary of placeholders/tags to fill the PDF template.
+
+                            Dictionary<string, string> mailPieceData = new Dictionary<string, string>();
+                            mailPieceData.Add("FromAddress", mailPiece.RetRcptAddressStreet + "\n" + mailPiece.RetRcptAddressAptOrSuiteOrOther + "\n" + mailPiece.RetRcptAddressCity + ", " + mailPiece.RetRcptAddressState + ", " + mailPiece.RetRcptAddressZIP);
+
+                            mailPieceData.Add("ToAddress", mailPiece.RcptFirstName + " " + mailPiece.RcptLastName + "\n" + (string.IsNullOrEmpty(mailPiece.RcptAddressAptOrSuiteOrOther) ? mailPiece.RcptAddressStreet : string.Format("{0}\n{1}", mailPiece.RcptAddressStreet, mailPiece.RcptFirstName)) + "\n" + mailPiece.RcptAddressCity + ", " + mailPiece.RcptAddressState + ", " + mailPiece.RcptAddressZIP);
+
+                            mailPieceData.Add("MailPieceId", mailPiece.Id.ToString());
+                            mailPieceData.Add("Date", DateTime.UtcNow.UtcToEst().ToString("MMMM dd, yyyy"));
+                            mailPieceData.Add("MailPieceZip", mailPiece.RcptAddressZIP);
+                            mailPieceData.Add("LoanNbr", mailPiece.BusinessFriendlyIdValue);
+
+                            #endregion
+
                             DocTypeCoverLetter docTypeLetter = docTypeSvc.GetDocumentCoverLetterTemplates(docType.Id).SingleOrDefault();
 
                             if (docTypeLetter == null)
                             {
                                 mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
-                                mailPiece.ErrorDesc = "Cover letter is not exist for DocumentType : {0}".Fill(mailPiece.DocumentOrPackageType);
+                                mailPiece.ErrorDesc = "Cover letter does not exist for DocumentType : {0}".Fill(mailPiece.DocumentOrPackageType);
                                 mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                                 mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                                 continue;
@@ -95,12 +98,77 @@ namespace AM.Core
                             string coverLetterTemplatePath = Path.Combine(Common.CoverTemplateFolder, docTypeLetter.CoverLetterTemplatePath);
 
                             // Create final document using SmartDocs library.
-                            int pageCount = doc.GenerateDoc(coverLetterTemplatePath, pdfFilePath, outputFilePath, mailPieceData, docType.ContentScalePercent);
+                            coverLetterPdfPath = doc.GenerateUSPSCoverLetter(coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
 
+                            if (string.IsNullOrEmpty(coverLetterPdfPath))
+                            {
+                                mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
+                                mailPiece.TotalPages = 0;
+                                mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                mailPiece.ErrorDesc = doc.ExceptionDetail;
+                            }
+                            else
+                            {
+                                mailPiece.TrackingNo = doc.TrackingCode;
+                            }
+                        }
+                        else if (docType.ShippingCarrier == Carrier.FedEx.ToString())
+                        {
+                            DocTypeCoverLetter docTypeLetter = docTypeSvc.GetDocumentCoverLetterTemplates(docType.Id).SingleOrDefault();
+
+                            if (docTypeLetter == null)
+                            {
+                                //TODO : Cover letter check for FedEx if not continue with Shipping label only
+                            }
+
+                            #region  Call FedEx web service and get create shipping label
+
+                            FedExAccountInfo fedExAccInfo = fedExSvc.GetFedExAccountDetailsByAccountCode(docType.ShippingAccountCode);
+
+                            if (fedExAccInfo != null)
+                            {
+                                CreateFedExLabel createFedExLabel = new CreateFedExLabel();
+                                bool result = false;
+                                while (count < Common.NoofTime_AttemptFedexService)
+                                {
+                                    result = createFedExLabel.Create(mailPiece, fedExAccInfo, docType, mbi);
+                                    if (result)
+                                    {
+                                        break;
+                                    }
+                                    else if (result == false && mailPiece.ErrorDesc == "Invalid_shipping_detail|General Failure")
+                                    {
+                                        System.Threading.Thread.Sleep(Common.FedexServiceattemptInterval);
+                                        count++;
+                                    }
+                                    else
+                                    {
+                                        break;
+                                    }
+                                }
+
+                                if (result)
+                                {
+                                    coverLetterPdfPath = createFedExLabel.GeneratedFedExLabelPath;
+                                    mailPiece.TrackingNo = Path.GetFileNameWithoutExtension(coverLetterPdfPath);
+                                }
+                            }
+                            else
+                            {
+                                // FedEx account information not found; so report it as an error.
+                                mailPiece.ErrorCode = OutComeCodes.Invalid_FedExAccount;
+                                mailPiece.ErrorDesc += "FedEx account does not exist for provided client code.";
+                            }
+
+                            #endregion
+                        }
+
+                        if (!string.IsNullOrEmpty(coverLetterPdfPath))
+                        {
+                            int pageCount = doc.GenerateDoc(coverLetterPdfPath, pdfFilePath, outputFilePath, docType.ContentScalePercent);
                             if (pageCount > 0)
                             {
                                 mailPiece.TotalPages = pageCount;
-                                mailPiece.TrackingNo = doc.TrackingCode;
                                 mailPiece.ShippingStatus = ShippingStatus.InProgress.ToString();
                             }
                             else
@@ -192,7 +260,6 @@ namespace AM.Core
                     mailBatchSvc.UpdateBatchDetails(mailBatch);
                     commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationEnd, Common.Now);
                     commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.Failed.ToString());
-
                     commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                     continue;
                 }
@@ -521,10 +588,10 @@ namespace AM.Core
                         }
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     //TODO: Ask To Ravi Sir
-                    throw;
+                    log.Error(ex);
                 }
             }
         }

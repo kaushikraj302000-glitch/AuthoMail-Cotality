@@ -348,36 +348,52 @@ namespace AM.Console
                     continue;
                 }
 
-                PackageRequests requests = null;
-                PackageRequests amcRequest = new PackageRequests();
-
-                requests = XmlUtil.Deserialize<PackageRequests>(batchXML.OuterXml);
-
-                List<PackageInfo> packages = requests.Packages.FindAll(p => p.CustomerIdentifier != Common.USAACustIdentifier);
-
-                if (packages != null && packages.Count > 0)
+                try
                 {
-                    amcRequest.Packages = packages;
-                    SplitXMLAndPDFS(amcRequest, Path.GetDirectoryName(xmlFilePath), mbi.BatchName);
-                    requests.Packages.RemoveAll(p => p.CustomerIdentifier != Common.USAACustIdentifier);
-                    //After removing other document types from package request we are checking for any remaining USAA packages are there or not if not then we don't need to process that batch further so we will remove that batch's records and files from database and from folder
-                    if (requests.Packages.Count == 0)
-                    {
-                        //TODO: Ask to Ravi Sir
-                        DeleteBatchInfo(mbi.MailBatch.Id, mbi.BatchRepo);
-                        continue;
-                    }
-                    if (File.Exists(xmlFilePath))
-                        File.Delete(xmlFilePath);
+                    PackageRequests requests = null;
+                    PackageRequests amcRequest = new PackageRequests();
 
-                    File.WriteAllText(xmlFilePath, XmlUtil.Serialize<PackageRequests>(requests));
+                    requests = XmlUtil.Deserialize<PackageRequests>(batchXML.OuterXml);
+
+                    List<PackageInfo> packages = requests.Packages.FindAll(p => p.CustomerIdentifier != Common.USAACustIdentifier);
+
+                    if (packages != null && packages.Count > 0)
+                    {
+                        amcRequest.Packages = packages;
+                        SplitXMLAndPDFS(amcRequest, Path.GetDirectoryName(xmlFilePath), mbi.BatchName);
+                        requests.Packages.RemoveAll(p => p.CustomerIdentifier != Common.USAACustIdentifier);
+                        //After removing other document types from package request we are checking for any remaining USAA packages are there or not if not then we don't need to process that batch further so we will remove that batch's records and files from database and from folder
+                        if (requests.Packages.Count == 0)
+                        {
+                            //TODO: Ask to Ravi Sir
+                            DeleteBatchInfo(mbi.MailBatch.Id, mbi.BatchRepo);
+                            continue;
+                        }
+
+                        if (File.Exists(xmlFilePath))
+                            File.Delete(xmlFilePath);
+
+                        File.WriteAllText(xmlFilePath, XmlUtil.Serialize<PackageRequests>(requests));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    log.Error(ex);
                 }
             }
         }
 
         private void DeleteBatchInfo(int mailBatchId, string mailBatchRepo)
         {
-            int retVal = mailBatchSvc.DeleteBatchDetails(mailBatchId);
+            int retVal = 0;
+            try
+            {
+                retVal = mailBatchSvc.DeleteBatchDetails(mailBatchId);
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex);
+            }
             if (retVal == 1)
             {
                 Directory.Delete(mailBatchRepo, true);

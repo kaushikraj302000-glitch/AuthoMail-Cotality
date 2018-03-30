@@ -16,7 +16,7 @@ namespace AM.Entities
         public bool IsActive { get; set; }
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
-        public string ShippingAccount { get; set; }
+        public string ShippingAccountCode { get; set; }
         public bool IsReturnInfoSpecified { get; set; }
         public string RetRcptPrefix { get; set; }
         public string RetRcptFirstName { get; set; }
