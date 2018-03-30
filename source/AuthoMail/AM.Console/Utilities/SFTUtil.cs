@@ -35,53 +35,58 @@ namespace AM.Console
 
         private string GetUrl(string givenUrl)
         {
-            if (givenUrl.IsNullOrWhiteSpace())
+            try
             {
-                throw new Exception("Invalid URL.");
-            }
 
-            if (Protocol == SFT_ProtocolType.ftp)
-            {
-                if (givenUrl.ToLower().StartsWith("ftp://"))
-                {
-                    return givenUrl;
-                }
-                else if (givenUrl.ToLower().StartsWith("ftp:/"))
-                {
-                    return "ftp://{0}".Fill(givenUrl.Split(":/".ToCharArray())[1]);
-                }
-                else if (givenUrl.ToLower().StartsWith("//"))
-                {
-                    return "ftp:{0}".Fill(givenUrl);
-                }
-                else if (givenUrl.ToLower().StartsWith("/"))
-                {
-                    return "ftp://{0}{1}".Fill(HostURL, givenUrl);
-                }
-                else
-                {
-                    return "ftp://{0}{1}".Fill(HostURL, givenUrl);
-                }
-            }
-            else if (Protocol == SFT_ProtocolType.sftp)
-            {
-                if (givenUrl.ToLower().StartsWith("//"))
-                {
-                    return givenUrl.Remove(0, 1);
-                }
-                else if (givenUrl.ToLower().StartsWith("/"))
-                {
-                    return givenUrl;
-                }
-                else
+                if (givenUrl.IsNullOrWhiteSpace())
                 {
                     throw new Exception("Invalid URL.");
                 }
+
+                if (Protocol == SFT_ProtocolType.ftp)
+                {
+                    if (givenUrl.ToLower().StartsWith("ftp://"))
+                    {
+                        return givenUrl;
+                    }
+                    else if (givenUrl.ToLower().StartsWith("ftp:/"))
+                    {
+                        return "ftp://{0}".Fill(givenUrl.Split(":/".ToCharArray())[1]);
+                    }
+                    else if (givenUrl.ToLower().StartsWith("//"))
+                    {
+                        return "ftp:{0}".Fill(givenUrl);
+                    }
+                    else if (givenUrl.ToLower().StartsWith("/"))
+                    {
+                        return "ftp://{0}{1}".Fill(HostURL, givenUrl);
+                    }
+                    else
+                    {
+                        return "ftp://{0}{1}".Fill(HostURL, givenUrl);
+                    }
+                }
+                else if (Protocol == SFT_ProtocolType.sftp)
+                {
+                    if (givenUrl.ToLower().StartsWith("//"))
+                    {
+                        return givenUrl.Remove(0, 1);
+                    }
+                    else if (givenUrl.ToLower().StartsWith("/"))
+                    {
+                        return givenUrl;
+                    }
+                    else
+                    {
+                        throw new Exception("Invalid URL.");
+                    }
+                }
             }
-            else
+            catch (Exception ex)
             {
-                return givenUrl;
+                log.Error(ex);
             }
+            return givenUrl;
         }
 
         private FtpWebRequest FTP_WebRequest { get; set; }
@@ -255,7 +260,7 @@ namespace AM.Console
             }
         }
 
-        public void UploadFile(string localFilePath, string remoteFilePath, bool deleteLocalFile = false, bool closeConnection = false)
+        public void UploadFile(string remoteFilePath, string localFilePath, bool deleteLocalFile = false, bool closeConnection = false)
         {
             if (Protocol == SFT_ProtocolType.ftp)
             {
@@ -364,13 +369,13 @@ namespace AM.Console
             }
         }
 
-        public void DownloadDirectory(string localDirPath, string remoteDirPath, bool deleteRemoteFile = false, bool closeConnection = false)
+        public void DownloadDirectory(string remoteDirPath, string localDirPath, bool deleteRemoteFile = false, bool closeConnection = false)
         {
             localDirPath.CreateDirectoryIfNotExist();
 
             if (Protocol == SFT_ProtocolType.ftp)
             {
-                DownloadAllFiles(localDirPath, remoteDirPath, deleteRemoteFile);
+                DownloadAllFiles(remoteDirPath, localDirPath, deleteRemoteFile);
             }
             else if (Protocol == SFT_ProtocolType.unc)
             {
@@ -394,7 +399,7 @@ namespace AM.Console
                     SFTP_Client.Connect();
                 }
 
-                DownloadAllFiles(localDirPath, remoteDirPath, deleteRemoteFile);
+                DownloadAllFiles(remoteDirPath, localDirPath, deleteRemoteFile);
 
                 if (closeConnection)
                 {
@@ -403,7 +408,7 @@ namespace AM.Console
             }
         }
 
-        private void DownloadAllFiles(string localDirPath, string remoteDirPath, bool deleteRemoteFile)
+        private void DownloadAllFiles(string remoteDirPath, string localDirPath, bool deleteRemoteFile)
         {
             List<string> availableFiles = ListDirectory(remoteDirPath);
             //log.DebugFormat("Downloading started : {0}", DateTime.Now);

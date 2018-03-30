@@ -50,10 +50,7 @@ namespace AM.Services
         {
             string query = "SELECT * FROM [AM].[DocTypeCoverLetters] WHERE DocTypeId=@docTypeId";
 
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@docTypeId", docTypeId);
-
-            var data = db.Query<DocTypeCoverLetter>(query, parameters).ToList();
+            var data = db.Query<DocTypeCoverLetter>(query, new { docTypeId = docTypeId }).ToList();
             return data;
         }
 

@@ -35,7 +35,7 @@ namespace AM.Core
             foreach (MailBatchDTO mailBatch in mailBatches)
             {
                 SmartDocs doc = new SmartDocs();
-                Client client = clientSvc.GetClientDetails(mailBatch.ClientId).Single();
+                Client client = clientSvc.GetClientById(mailBatch.ClientId);
                 MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, null, Common.AuthoMailRootFolder);
 
                 var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
@@ -227,7 +227,7 @@ namespace AM.Core
         internal static void SubmitBatchesDocTypeWiseToPCI()
         {
             log.Debug("Submitted Batches job started.");
-            List<MailBatchDTO> mailBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.Prepped);
+            List<MailBatchDTO> mailBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.Prepped).Where(x => x.BatchStatus != AM.Entities.BatchStatus.Failed.ToString()).ToList();
 
             if (mailBatches == null || mailBatches.Count == 0)
             {
@@ -237,7 +237,7 @@ namespace AM.Core
 
             foreach (MailBatchDTO mailBatch in mailBatches)
             {
-                Client client = clientSvc.GetClientDetails(mailBatch.ClientId).SingleOrDefault(c => c.IsPnSActive == true);
+                Client client = clientSvc.GetClientById(mailBatch.ClientId);
                 if (client == null)
                 {
                     log.Error("Client of Batch : {0}, is not enabled for PnS service".Fill(mailBatch.BatchName));
@@ -431,7 +431,7 @@ namespace AM.Core
             var clientAppCodes = submittedPrintBatches.Select(client => client.AppCode).Distinct();
             foreach (var appCode in clientAppCodes)
             {
-                Client client = clientSvc.GetClientDetails(null, appCode).Single();
+                Client client = clientSvc.GetClientByAppCode(appCode);
 
                 responseFiles = sftSite.ListDirectory(Path.Combine(Common.PnS_SFT_RootDir, client.AppCode));
 
@@ -515,7 +515,7 @@ namespace AM.Core
 
             foreach (var printBatch in responseReceivedPrintBatches)
             {
-                Client client = clientSvc.GetClientDetails(null, printBatch.AppCode).Single();
+                Client client = clientSvc.GetClientByAppCode(printBatch.AppCode);
                 BatchData batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(printBatch.MailBatchId);
                 MailBatchInfo mbi = new MailBatchInfo(batchData.MailBatch, client, null, Common.AuthoMailRootFolder);
 

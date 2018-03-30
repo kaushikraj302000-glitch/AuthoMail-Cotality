@@ -18,9 +18,7 @@ namespace AM.Services
         {
             string query = @"SELECT [AccountCode],[WebAuthenticationKey],[WebAuthenticationPassword],[AccountNumber],[MeterNumber] FROM [AM].[ShippingAccounts] WHERE AccountCode=@AccountCode";
 
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@AccountCode", accountCode);
-            var data = db.Query<FedExAccountInfo>(query, parameters).SingleOrDefault();
+            var data = db.Query<FedExAccountInfo>(query, new { AccountCode = accountCode }).SingleOrDefault();
 
             return data;
         }

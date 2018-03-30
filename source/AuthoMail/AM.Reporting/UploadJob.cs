@@ -28,7 +28,7 @@ namespace AM.Reporting
         public void ReportPreppedProcess()
         {
             //For now we are using 101 for USAA
-            Client client = clientSvc.GetClientDetails(null, "USAA").SingleOrDefault();
+            Client client = clientSvc.GetClientByAppCode("USAA");
 
             if (client != null)
             {
