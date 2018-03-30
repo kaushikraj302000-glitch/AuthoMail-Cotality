@@ -146,7 +146,7 @@
         <div class="modal-content">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal-header">
-                <h1 id="myModalLabel">Batch Details</h1>
+                <h1 id="batchModalHeader">Batch Details</h1>
             </div>
             <div class="modal-body">
 
@@ -180,7 +180,7 @@
         <div class="modal-content">
             <button type="button" class="close" data-dismiss="modal" onclick="showModal()" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal-header">
-                <h1 id="myModalLabel">Batch MailPiece Details</h1>
+                <h1 id="WeeklybatchMailPieceHeader">Batch MailPiece Details</h1>
             </div>
             <div class="modal-body">
 
@@ -252,6 +252,7 @@
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     el.html(response);
+                    $("#batchModalHeader").html("Batch Summary Received On - " + moment(date).format("MM/DD/YY") + " Status - " + status);
                     $("#batchModal").modal("show");
                     setModalHeight("batchModal");
                 },
@@ -373,14 +374,14 @@
         }
         function setModalHeight(id) {
             var bodyHeight = $("body").height();
-            var modalHeight = $("#" + id).find(".modal-body").height();
+            var count = $("#" + id).find("tr").length;//.find(".modal-body").height();
             //console.log(bodyHeight + " " + modalHeight);
-            if (bodyHeight > modalHeight) {
-                $("#" + id).find(".modal-body").height(bodyHeight - 500);
+            if (count > 5) {
+                $("#" + id).find(".modal-body").height(bodyHeight - 350);
                 $("#" + id).find(".modal-body").css("overflow-y", "scroll");
             }
             else {
-                $("#" + id).find(".modal-body").height(400);
+                $("#" + id).find(".modal-body").height('auto');
 
             }
 

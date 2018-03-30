@@ -3,6 +3,7 @@
     .bootstrap-select {
         width: 205px !important;
     }
+
     .popover-content {
         word-wrap: break-word;
         color: red;
@@ -32,6 +33,7 @@
                     <th>Loan Number</th>
                     <th>File Name</th>
                     <th>Received Date <span class="fontcapitalize">(Local)</span></th>
+                    <th>Due Date <span class="fontcapitalize">(Local)</span></th>
                     <th>Printed Date <span class="fontcapitalize">(Local)</span></th>
                     <th>Mailed Date <span class="fontcapitalize">(Local)</span></th>
                     <th>Client Code</th>
@@ -64,6 +66,7 @@
                         <td><span>@item.BusinessFriendlyIdValue</span></td>
                         <td><span>@item.FileName</span></td>
                         <td><span>@item.ReceivedOn</span></td>
+                        <td><span>@item.DueDate</span></td>
                         <td><span>@item.PrintedOn</span></td>
                         <td><span>@item.MailedOn</span></td>
                         <td><span>@item.ClientCode</span></td>
@@ -79,11 +82,21 @@
                         @*<td><span>@item.RequestId</span></td>*@
                         <td><span>@item.ErrorCode</span></td>
                         <td><span>@item.ErrorDesc</span></td>
-                        <td><span class="text-red" data-toggle="popover" data-original-title="Error" data-html="true" data-content="@(!string.IsNullOrEmpty(item.ErrorDesc) ? Html.Raw("<span class='text-red'>" + item.ErrorDesc + "</span>") : Html.Raw("<span class='text-red'>" + AM.Services.Config.Msg_Web_NoErrorDescription + "</span>"))" data-placement="left"><a>Show Error</a></span></td>
-                        <td><span>@item.PrintLocation</span></td>
-                        <td><span>@item.PagesShipped</span></td>
-                        <td>@item.BatchId</td>
-                    </tr>
+                        <td>
+                            @if (!string.IsNullOrEmpty(item.ErrorDesc))
+                            {
+                                <span class="text-red" data-toggle="popover" data-original-title="Error" data-html="true" data-content="@(!string.IsNullOrEmpty(item.ErrorDesc) ? Html.Raw("<span class='text-red'>" + item.ErrorDesc + "</span>") : Html.Raw("<span class='text-red'>" + AM.Services.Config.Msg_Web_NoErrorDescription + "</span>"))" data-placement="left"><a>Show Error</a></span>
+                            }
+                            else
+                            {
+                                <span></span>
+                            }
+
+                    </td>
+                    <td><span>@item.PrintLocation</span></td>
+                    <td><span>@item.PagesShipped</span></td>
+                    <td>@item.BatchId</td>
+                </tr>
                 }
             </tbody>
 
@@ -172,7 +185,7 @@
             var oTable = $('#sample_2').dataTable();
             var selected = $(this).find("option:selected").val();
             if (!selected) {
-                oTable.fnFilter('', 23,true);
+                oTable.fnFilter('', 23, true);
             } else {
                 oTable.fnFilter("^" + parseInt(selected) + "$", 23, true); //Exact value, column, reg
             }

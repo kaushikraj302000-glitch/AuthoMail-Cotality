@@ -18,7 +18,7 @@
         /// set this if you want MS Ajax Dates parsed
         /// before calling any of the other functions
         /// </summary>
-        JSON.parseMsAjaxDate = false;
+        JSON.parseMsAjaxDate = true;
 
         JSON.useDateParser = function(reset) {
             /// <summary>

@@ -113,8 +113,9 @@ namespace AM.Web.Controllers
                     reportViewModel.Add(reportModel);
                 }
             }
-            ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
-            return PartialView(model);
+            return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model }),JsonRequestBehavior.AllowGet);
+            //ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
+            //return PartialView(model);
         }
 
         public ActionResult ErrorSLAReport()
