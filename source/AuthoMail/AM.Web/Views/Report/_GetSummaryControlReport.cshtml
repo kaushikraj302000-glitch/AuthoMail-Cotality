@@ -85,7 +85,7 @@
                         <td>
                             @if (!string.IsNullOrEmpty(item.ErrorDesc))
                             {
-                                <span class="text-red" data-toggle="popover" data-original-title="Error" data-html="true" data-content="@(!string.IsNullOrEmpty(item.ErrorDesc) ? Html.Raw("<span class='text-red'>" + item.ErrorDesc + "</span>") : Html.Raw("<span class='text-red'>" + AM.Services.Config.Msg_Web_NoErrorDescription + "</span>"))" data-placement="left"><a>Show Error</a></span>
+                                <span class="text-red" data-toggle="popover" data-original-title="Error" data-html="true" data-content="@(!string.IsNullOrEmpty(item.ErrorDesc) ? Html.Raw("<span class='text-red'>" + item.ErrorDesc + "</span>") : Html.Raw("<span class='text-red'>" + AM.Services.Config.Msg_Web_NoErrorDescription + "</span>"))" data-placement="left"><a>Error Details</a></span>
                             }
                             else
                             {
@@ -137,7 +137,7 @@
             },
             "columnDefs": [
                     {
-                        "targets": [19, 23],
+                        "targets": [20, 24],
                         "visible": false,
                         "searchable": true
                     },
@@ -157,7 +157,7 @@
                 filename: filename,
                 title: title,
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22]
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 23]
                 }
 
             }
