@@ -120,7 +120,7 @@ namespace AM.Web.Controllers
                     reportViewModel.Add(reportModel);
                 }
             }
-            return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model }), JsonRequestBehavior.AllowGet);
+            return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderBy(s=>s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
             //ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
             //return PartialView(model);
         }
@@ -196,7 +196,9 @@ namespace AM.Web.Controllers
             var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
             var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
             ViewBag.Date = string.Format("{0} to {1}", exactStartDate.ToString("MM/dd/yy"), exactEndDate.ToString("MM/dd/yy"));
-            return PartialView(repoSvc.GetPullbackRequestReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate));
+            //return PartialView(repoSvc.GetPullbackRequestReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate));
+            var model = repoSvc.GetPullbackRequestReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderBy(s => s.RequestedOn) }), JsonRequestBehavior.AllowGet);
         }
     }
 }

@@ -23,7 +23,7 @@
                     <td><span>@item.ReceivedOn</span></td>
                     
                     <td>
-                        <button onclick="GetMailPieceById(@item.BatchId,'@item.ReceivedOn','@item.ClientBatchId')" type="button" class="btn btn-transparent-bright-blue">View Details</button>
+                        <button onclick="GetMailPieceById(@item.BatchId,'@item.ReceivedOn.Value.ToString("MM/dd/yy HH:mm:ss")','@item.ClientBatchId')" type="button" class="btn btn-transparent-bright-blue">View Details</button>
                         @*@Html.ActionLink("View", "MailPieceByBatchId", "Home", new { batchId = item.BatchId }, new { @class = "btn btn-transparent-bright-blue" })*@
 
                     </td>
