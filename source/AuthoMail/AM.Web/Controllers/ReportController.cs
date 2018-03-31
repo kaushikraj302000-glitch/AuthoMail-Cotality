@@ -23,7 +23,6 @@ namespace AM.Web.Controllers
         }
         public ActionResult SummaryControlReport()
         {
-            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
             return View();
         }
         [HttpPost]
@@ -56,7 +55,6 @@ namespace AM.Web.Controllers
         }
         public ActionResult MonthlyReconReport()
         {
-            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
             var dateList = new List<string>();
 
             for (var dt = DateTime.Now.Date; dt.Date >= DateTime.Now.AddMonths(-6).Date; dt = dt.AddMonths(-1).Date)
@@ -85,7 +83,6 @@ namespace AM.Web.Controllers
 
         public ActionResult DeliveryReport()
         {
-            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
             return View();
         }
         [HttpPost]
@@ -98,7 +95,6 @@ namespace AM.Web.Controllers
         }
         public ActionResult ErrorsReport()
         {
-            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
             return View();
         }
         [HttpPost]
@@ -179,7 +175,8 @@ namespace AM.Web.Controllers
 
             }
             ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
-            return PartialView(model);
+            return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderBy(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+            //return PartialView(model);
         }
 
         public ActionResult PullbackRequestReport()

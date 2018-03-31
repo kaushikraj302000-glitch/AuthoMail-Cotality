@@ -80,8 +80,8 @@
 
             var selectedData = $("#dates").val().split('-');
             // console.log(selectedData);
-            var startDate = selectedData[0].trim();
-            var endDate = selectedData[1].trim();
+            var startDate = moment(selectedData[0].trim()).format("MM/DD/YY");
+            var endDate = moment(selectedData[1].trim()).format("MM/DD/YY");
             var el = $('#batchList');
             el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
             $.ajax({

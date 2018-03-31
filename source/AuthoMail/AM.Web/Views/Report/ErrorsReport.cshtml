@@ -85,23 +85,79 @@
     </div>
 
 </div>
+<!-- table html template code -->
+<div id="errorTableContent" style="display:none">
+    <table class="table table-responsive" style="overflow-x:scroll">
+        <thead>
+            <tr>
+                <th>Batch Id</th>
+                <th>MailPiece Id</th>
+                <th>Channel</th>
+                <th>Document Type</th>
+                <th>Loan Number</th>
+                <th>File Name</th>
+                <th>Received Date <span class="fontcapitalize">(Local)</span></th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Recipient Street Address</th>
+                <th>Recipient City</th>
+                <th>Recipient State</th>
+                <th>Recipient Zip</th>
+                <th>Error Code</th>
+                <th class="ErrorText">Error Text</th>
+                <th >Error Text</th>
+                <th>Shipping Method</th>
+                <th class="BatchId">BatchId</th>
+
+            </tr>
+        </thead>
+        <tbody id="errorbodyContent"></tbody>
+    </table>
+</div>
+<div style="display:none">
+    <table>
+        <tbody id="errorBody">
+            <tr class="row-small">
+                <td><span>{ClientBatchId}</span></td>
+                <td><span>{MailPieceUniqueId}</span></td>
+                <td><span>{Channel}</span></td>
+                <td><span>{DocumentOrPackageType}</span></td>
+                <td><span>{BusinessFriendlyIdValue}</span></td>
+                <td><span>{FileName}</span></td>
+                <td><span>{ReceivedOnFormatted}</span></td>
+                <td><span>{RcptFirstName}</span></td>
+                <td><span>{RcptLastName}</span></td>
+                <td><span>{RcptAddressStreet}</span></td>
+                <td><span>{RcptAddressCity}</span></td>
+                <td><span>{RcptAddressState}</span></td>
+                <td><span>{RcptAddressZIP}</span></td>
+                <td><span>{ErrorCode}</span></td>
+                <td><span>{ErrorDesc}</span></td>
+                <td><span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="{ErrorDesc}" data-placement="left"><a>Error Details</a></span></td>
+                <td><span>{ShippingMethod}</span></td>
+                <td>{BatchId}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<!-- end table template code -->
+
 
 
 @section Scripts{
     @Styles.Render("~/bundles/datatablescss")
     @Scripts.Render("~/bundles/datatables")
-
     <script>
         $(document).ready(function () {
             window.clui.dateTimePickerInit();
-            
+
             FilterData();
             $('[data-toggle="popover"]').popover({
                 'trigger': 'hover',
                 'placement': 'left',
                 'container': 'body'
             });
-
+            
         });
         function applyDataTable() {
             $('[data-toggle="popover"]').popover({
@@ -129,7 +185,7 @@
                 },
                 "columnDefs": [
                         {
-                            "targets": [14, 17],
+                            "targets": ["ErrorText", "BatchId"],
                             "visible": false,
                             "searchable": true
                         },
@@ -184,6 +240,7 @@
                 }
             });
         }
+        
         function FilterData() {
             $("#errorHeader").hide();
             $("#errorList").hide();
@@ -207,68 +264,17 @@
                             $(response.Object.BatchList).each(function () {
                                 sel = sel + "<option value='" + this.Key + "'>" + this.Value + "</option>";
                             });
-                            console.log(sel);
+                            // console.log(sel);
                             $("#labelBatch").html("Filter by Batch");
                             $("#batchListSelect").html(sel);
                             $('.selectpicker').selectpicker('refresh');
                             $("#errorHeader").show();
                             $("#errorList").show();
-                            console.log(response.Object.model.length);
+                            //console.log(response.Object.model.length);
                             if (response.Object.model.length > 0) {
-                                var table =  "<thead>"
-                                    + "<tr>"
-                                        + "<th>Batch Id</th>"
-                                        + "<th>MailPiece Id</th>"
-                                        + "<th>Channel</th>"
-                                        + "<th>Document Type</th>"
-                                        + "<th>Loan Number</th>"
-                                        + "<th>File Name</th>"
-                                        + "<th>Received Date <span class='fontcapitalize'>(Local)</span></th>"
-                                        + "<th>First Name</th>"
-                                        + "<th>Last Name</th>"
-                                        + "<th>Recipient Street Address</th>"
-                                        + "<th>Recipient City</th>"
-                                        + "<th>Recipient State</th>"
-                                        + "<th>Recipient Zip</th>"
-                                        + "<th>Error Code</th>"
-                                        + "<th>Error Text</th>"
-                                        + "<th>Error Text</th>"
-                                        + "<th>Shipping Method</th>"
-                                        + "<th>BatchId</th>"
-                                    + "</tr>"
-                                + "</thead>";
 
-                                //  </table>
-                                var tr = "";
-                                $(response.Object.model).each(function () {
-                                    var error = "<span class='text-red'>" + this.ErrorDesc + "</span>";
-                                    // table.fnAddData([
-                                    tr = tr + "<tr>"
-                                        + "<td><span>" + this.ClientBatchId + "</span></td>"
-                                        + "<td><span>" + this.MailPieceUniqueId + "</span></td>"
-                                        + "<td><span>" + this.Channel + "</span></td>"
-                                        + "<td><span>" + this.DocumentOrPackageType + "</span></td>"
-                                        + "<td><span>" + this.BusinessFriendlyIdValue + "</span></td>"
-                                        + "<td><span>" + this.FileName + "</span></td>"
-                                        + "<td><span>" + moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss") + "</span></td>"
-                                        + "<td><span>" + this.RcptFirstName + "</span></td>"
-                                        + "<td><span>" + this.RcptLastName + "</span></td>"
-                                        + "<td><span>" + this.RcptAddressStreet + "</span></td>"
-                                        + "<td><span>" + this.RcptAddressCity + "</span></td>"
-                                        + "<td><span>" + this.RcptAddressState + "</span></td>"
-                                        + "<td><span>" + this.RcptAddressZIP + "</span></td>"
-                                        + "<td><span>" + this.ErrorCode + "</span></td>"
-                                        + "<td><span>" + this.ErrorDesc + "</span></td>"
-                                        + "<td><p id='popoverError' data-toggle='popover' data-original-title='Error' data-html='true' data-placement='left' data-content='" + this.ErrorDesc + "'><a>Error Details</a></p>"
-                                        + "<td><span>" + this.ShippingMethod + "</span></td>"
-                                    + "<td><span>" + this.BatchId + "</span></td></tr>";
-                                });
-                                tr = tr + "</tbody>";
-                                table ="<table class='table table-responsive' id='sample_2' style='overflow-x:scroll;'>"+ table + "<tbody>" + tr+"</tbody></table>";
-                                console.log(table);
-                                $("#errorList").html(table);
-
-                                applyDataTable();
+                                BindTemplate(response.Object.model, "#errorBody", "#errorbodyContent", "#errorTableContent", "#errorList");
+                               
                             }
                             else {
                                 $("#errorList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Msg_Web_NoRecordFound</span></div>")
@@ -285,7 +291,7 @@
                     $("#loading").hide();
                     $("#errorHeader").show();
                     $("#errorList").show();
-                    
+
                     var msg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
                     $("#errorList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
                 }
