@@ -233,7 +233,7 @@
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     el.html(response);
-                    $("#batchMailPieceModalHeader").html("Mailpiece Summary: Batch Id " + clientBatchId);
+                    $("#batchMailPieceModalHeader").html("Mailpiece Summary: Batch Id -" + clientBatchId);
                         //, Received On - " + moment(receivedOn).format("MM/DD/YY HH:mm:ss")
                     $("#batchMailPieceModal").modal("show");
                     setModalHeight("batchMailPieceModal");
@@ -254,7 +254,7 @@
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     el.html(response);
-                    $("#batchModalHeader").html("Batch Summary: Received On - " + moment(date).format("MM/DD/YY") + ", Status - " + status);
+                    $("#batchModalHeader").html("Batch Summary:<span class='normaltext'> Received On - " + moment(date).format("MM/DD/YY") + ", Status - " + status+"</span>");
                     $("#batchModal").modal("show");
                     setModalHeight("batchModal");
                 },
@@ -399,7 +399,7 @@
                 success: function (response) {
                     el.html(response);
                     $("#batchModal").modal("hide");
-                    $("#WeeklybatchMailPieceHeader").html("Mailpiece Summary: Batch Id " + clientBatchId + ", Received On - " + moment(receivedOn).format("MM/DD/YY HH:mm:ss"));
+                    $("#WeeklybatchMailPieceHeader").html("Mailpiece Summary: <span class='normaltext'>Batch Id -" + clientBatchId + ", Received On - " + moment(receivedOn).format("MM/DD/YY HH:mm:ss")+"</span");
                     $("#WeeklybatchMailPieceModal").modal("show");
                     setModalHeight("WeeklybatchMailPieceModal");
                 },
