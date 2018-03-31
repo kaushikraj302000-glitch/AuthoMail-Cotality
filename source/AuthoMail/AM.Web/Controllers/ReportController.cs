@@ -59,7 +59,7 @@ namespace AM.Web.Controllers
             ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
             var dateList = new List<string>();
 
-            for (var dt = DateTime.Now.Date; dt.Date >= DateTime.Now.AddMonths(-8).Date; dt = dt.AddMonths(-1).Date)
+            for (var dt = DateTime.Now.Date; dt.Date >= DateTime.Now.AddMonths(-6).Date; dt = dt.AddMonths(-1).Date)
             {
                 dateList.Add(string.Format("{0} - {1}", dt.ToString("MM/26/yyyy"), dt.AddMonths(1).ToString("MM/25/yyyy")));
             }
