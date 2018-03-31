@@ -57,6 +57,13 @@ namespace AM.Web.Controllers
         public ActionResult MonthlyReconReport()
         {
             ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
+            var dateList = new List<string>();
+
+            for (var dt = DateTime.Now.Date; dt.Date >= DateTime.Now.AddMonths(-8).Date; dt = dt.AddMonths(-1).Date)
+            {
+                dateList.Add(string.Format("{0} - {1}", dt.ToString("MM/26/yyyy"), dt.AddMonths(1).ToString("MM/25/yyyy")));
+            }
+            ViewBag.dateList = dateList;
             return View();
         }
         [HttpPost]
@@ -113,7 +120,7 @@ namespace AM.Web.Controllers
                     reportViewModel.Add(reportModel);
                 }
             }
-            return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model }),JsonRequestBehavior.AllowGet);
+            return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model }), JsonRequestBehavior.AllowGet);
             //ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
             //return PartialView(model);
         }
@@ -179,17 +186,17 @@ namespace AM.Web.Controllers
         {
             var estToday = DateTime.UtcNow.UtcToEst().Date;
             // EST Week
-            ViewBag.startDate =(estToday.AddDays(-7)).ToString("MM/dd/yy HH:mm:ss");
+            ViewBag.startDate = (estToday.AddDays(-7)).ToString("MM/dd/yy HH:mm:ss");
             ViewBag.endDate = (estToday + new TimeSpan(23, 59, 59)).ToString("MM/dd/yy HH:mm:ss");
             return View();
         }
         [HttpPost]
         public ActionResult _GetPullbackRequestReport(string startDate, string endDate)
         {
-             var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
             var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-             ViewBag.Date = string.Format("{0} to {1}", exactStartDate.ToString("MM/dd/yy"), exactEndDate.ToString("MM/dd/yy"));
-            return PartialView(repoSvc.GetPullbackRequestReport(User.Identity.GetClientId().Value,exactStartDate,exactEndDate));
+            ViewBag.Date = string.Format("{0} to {1}", exactStartDate.ToString("MM/dd/yy"), exactEndDate.ToString("MM/dd/yy"));
+            return PartialView(repoSvc.GetPullbackRequestReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate));
         }
     }
 }

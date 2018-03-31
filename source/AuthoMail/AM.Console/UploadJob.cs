@@ -37,7 +37,7 @@ namespace AM.Console
 
             foreach (var batch in resReceivedBatches)
             {
-                Client client = clientSvc.GetClientDetails(batch.ClientId).Single();
+                Client client = clientSvc.GetClientById(batch.ClientId);
                 SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(batch.SFTChannelId);
 
                 MailBatchInfo mbi = new MailBatchInfo(batch, client, sftChannelDetails, Common.AuthoMailRootFolder);

@@ -26,66 +26,40 @@ namespace AM.Services
         {
             string query = "UPDATE [AM].[MailBatches] SET PipelineStatus = @pipelineStatus, {0}On = @timestamp WHERE Id = @batchId".Fill(pipeLineStatus);
 
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@pipelineStatus", pipeLineStatus);
-            parameters.Add("@timestamp", timestamp);
-            parameters.Add("@batchId", batchId);
-
-            return db.Execute(query, parameters);
+            return db.Execute(query, new { pipeLineStatus = pipeLineStatus, timestamp = timestamp, batchId = batchId });
         }
 
         public int UpdateBatchStatus(int batchId, string batchStatus)
         {
             string query = "UPDATE [AM].[MailBatches] SET BatchStatus = @batchStatus WHERE Id = @batchId";
 
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@batchStatus", batchStatus);
-            parameters.Add("@batchId", batchId);
-
-            return db.Execute(query, parameters);
+            return db.Execute(query, new { batchStatus = batchStatus, batchId = batchId });
         }
 
         public int AMLogBatchTimeLine(int batchId, string activityName, DateTime timeStamp)
         {
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@activityName", activityName);
-            parameters.Add("@batchId", batchId);
-            parameters.Add("@timeStamp", timeStamp);
-
-            return db.Execute("usp_AMLogBatchTimeLine", parameters, commandType: CommandType.StoredProcedure);
+            return db.Execute("usp_AMLogBatchTimeLine", new { activityName = activityName, batchId = batchId, timeStamp = timeStamp }, commandType: CommandType.StoredProcedure);
         }
 
         public int UpdatePrintBatchStatus(int printBatchId, string batchStatus, string statusDescription = null)
         {
             string query = "UPDATE [AM].[PrintBatches] SET BatchStatus = @batchStatus,StatusDescription=@statusDescription WHERE Id = @printBatchId";
 
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@batchStatus", batchStatus);
-            parameters.Add("@printBatchId", printBatchId);
-            parameters.Add("@statusDescription", statusDescription);
-
-            return db.Execute(query, parameters);
+            return db.Execute(query, new { batchStatus = batchStatus, printBatchId = printBatchId, statusDescription = statusDescription });
         }
 
         public int UpdatePrintBatchPipeLineStatus(int printBatchId, string pipeLineStatus, DateTime timestamp)
         {
             string query = "UPDATE [AM].[PrintBatches] SET {0}On = @timestamp WHERE Id = @printBatchId".Fill(pipeLineStatus);
 
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@timestamp", timestamp);
-            parameters.Add("@printBatchId", printBatchId);
-
-            return db.Execute(query, parameters);
+            return db.Execute(query, new { timestamp = timestamp, printBatchId = printBatchId });
         }
 
         public ClientBusinessIdentifier GetBusinessIdNameFromClientId(int clientId)
         {
             string query = "SELECT * FROM [AM].[ClientBusinessIdentifiers] WHERE ClientId= @clientId ";
 
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@clientId", clientId);
-
-            return db.Query<ClientBusinessIdentifier>(query, parameters).SingleOrDefault();
+            return db.Query<ClientBusinessIdentifier>(query, new { clientId = clientId }).SingleOrDefault();
         }
 
         public int InsertBusinessIdentifierName(ClientBusinessIdentifier clientBusinessId)
