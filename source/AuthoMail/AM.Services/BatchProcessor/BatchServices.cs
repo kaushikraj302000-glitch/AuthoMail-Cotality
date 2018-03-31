@@ -60,19 +60,19 @@ namespace AM.Services
 
             switch (batchPipelineStatus)
             {
-                case BatchPipelineStatus.Downloaded: query += " AND IsValidated=0";
+                case BatchPipelineStatus.Downloaded: query += " AND IsDownloaded=1 AND IsValidated=0";
                     break;
-                case BatchPipelineStatus.Validated: query += " AND IsAcknowledged=0";
+                case BatchPipelineStatus.Validated: query += " AND IsValidated=1 AND IsAcknowledged=0";
                     break;
-                case BatchPipelineStatus.Acknowledged: query += " AND IsPrepped=0";
+                case BatchPipelineStatus.Acknowledged: query += " AND IsAcknowledged=1 AND IsPrepped=0";
                     break;
-                case BatchPipelineStatus.Prepped: query += " AND IsSubmittedToShipping=0";
+                case BatchPipelineStatus.Prepped: query += " AND IsPrepped=1 AND IsSubmittedToShipping=0";
                     break;
-                case BatchPipelineStatus.SubmittedToShipping: query += " AND IsShippingResponseReceived=0";
+                case BatchPipelineStatus.SubmittedToShipping: query += " AND IsSubmittedToShipping=1 AND IsShippingResponseReceived=0";
                     break;
-                case BatchPipelineStatus.ShippingResponseReceived: query += " AND IsReportPrepped=0";
+                case BatchPipelineStatus.ShippingResponseReceived: query += " AND IsShippingResponseReceived=1 AND IsReportPrepped=0";
                     break;
-                case BatchPipelineStatus.ReportPrepped: query += " AND IsReportedBack=0";
+                case BatchPipelineStatus.ReportPrepped: query += " AND IsReportPrepped=1 AND IsReportedBack=0";
                     break;
                 default:
                     break;

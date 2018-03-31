@@ -3,6 +3,7 @@ using AM.Lib;
 using AM.Services;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -55,9 +56,7 @@ namespace AM.Console
         /// <summary>
         /// Checks for available batches and marks them as Received.
         /// </summary>
-
         protected abstract void EnumerateBatches();
-
         /// <summary>
         /// Downloads all batches which are queued as Received
         /// </summary>
@@ -76,7 +75,7 @@ namespace AM.Console
         /// </summary>
         public static void ReportBack()
         {
-
+            
         }
 
         protected override void DisposeManagedObjects()
