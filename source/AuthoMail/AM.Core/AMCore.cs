@@ -48,7 +48,7 @@ namespace AM.Core
                     int count = 0;
                     try
                     {
-                        DocType docType = docTypeSvc.GetDocTypesByDocTypeName(mbi.Client.Id, "", mailPiece.DocumentOrPackageType.Trim());
+                        DocType docType = docTypeSvc.GetDocTypesByDocTypeName(mbi.Client.Id, mailPiece.DocumentOrPackageType.Trim());
 
                         if (docType == null)
                         {
@@ -273,7 +273,7 @@ namespace AM.Core
                     var docTypes = validMailPieces.Select(row => row.DocumentOrPackageType.Trim()).Distinct();
                     foreach (var documentOrPackageType in docTypes)
                     {
-                        DocType docType = docTypeSvc.GetDocTypesByDocTypeName(mbi.Client.Id, "", documentOrPackageType);
+                        DocType docType = docTypeSvc.GetDocTypesByDocTypeName(mbi.Client.Id, documentOrPackageType);
 
                         //Commented because the same thing we are validating when generating document
 
