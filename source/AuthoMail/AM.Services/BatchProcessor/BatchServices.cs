@@ -9,7 +9,7 @@ using AM.Entities;
 
 namespace AM.Services
 {
-    public interface IBatchService : IDisposable
+    public interface IMailBatchService : IDisposable
     {
         int InsertBatchDetails(MailBatchDTO mailBatch);
         int DeleteBatchDetails(int mailBatchId);
@@ -20,7 +20,7 @@ namespace AM.Services
         List<SubmittedBatch> GetSubmittedPrintBatchDetails();
         List<SubmittedBatch> GetResponseReceivedPrintBatchDetails();
     }
-    public class BatchService : ServiceBase, IBatchService //It implements Interfaces 
+    public class MailBatchService : ServiceBase, IMailBatchService //It implements Interfaces 
     {
         public int InsertBatchDetails(MailBatchDTO mailBatch)
         {

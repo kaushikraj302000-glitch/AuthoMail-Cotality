@@ -13,7 +13,7 @@ namespace AM.Core
     static class AMCore
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        private static IBatchService mailBatchSvc = new BatchService();
+        private static IMailBatchService mailBatchSvc = new MailBatchService();
         private static IClientService clientSvc = new ClientService();
         private static ICommonService commonSvc = new CommonService();
         private static IMailPieceService mailPieceSvc = new MailPieceService();

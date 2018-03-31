@@ -19,16 +19,16 @@ namespace AM.Console
 {
     public class DownloadJob
     {
-        private static readonly ILog log = LogManager.GetLogger(typeof(DownloadJob));
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         IClientService clientSvc;
-        IBatchService mailBatchSvc;
+        IMailBatchService mailBatchSvc;
         ICommonService commonSvc;
         IMailPieceService mailPieceSvc;
         public DownloadJob()
         {
             clientSvc = new ClientService();
-            mailBatchSvc = new BatchService();
+            mailBatchSvc = new MailBatchService();
             commonSvc = new CommonService();
             mailPieceSvc = new MailPieceService();
         }
