@@ -3033,7 +3033,7 @@ BEGIN
 	SET NOCOUNT ON;
 	select 
 m.Id as [MailPieceId], m.UniqueId as [MailPieceUniqueId],m.BusinessFriendlyIdName,m.BusinessFriendlyIdValue,
-m.DocumentOrPackageType,m.[FileName],m.TotalPages,m.PrintedOn,m.TrackingNo,
+m.DocumentOrPackageType,m.[FileName],m.DueDate,m.TotalPages,m.PrintedOn,m.TrackingNo,
 m.[ShippingStatus],
 m.[RcptPrefix],
 	m.[RcptFirstName],
