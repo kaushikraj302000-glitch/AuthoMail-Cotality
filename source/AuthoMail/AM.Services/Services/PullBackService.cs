@@ -61,7 +61,7 @@ namespace AM.Services
             }
             if (!docType.IsNullOrWhiteSpace())
             {
-                query = string.Format("{0} AND (m.DocumentOrPackageType=@docType OR b.DocumentOrPackageType=@docType)", query);
+                query = string.Format("{0} AND (m.DocTypeId=@docType)", query);
                 parameters.Add("@docType", docType);
             }
             var data = db.Query<PullBackInfo>(query, parameters).ToList();

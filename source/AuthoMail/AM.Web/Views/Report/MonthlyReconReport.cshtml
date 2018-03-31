@@ -27,9 +27,10 @@
                         <label for="dp4">Select Date (EST)</label>
                         @*<select class="selectpicker" id="dates"></select>*@
                         <select class="selectpicker" id="dates">
-                            @foreach (var item in ViewBag.dateList as List<string>)
+                            @foreach (var item in ViewBag.dateList as Dictionary<string, string>)
                             {
-                                <option value="@item">@item</option>
+                                string dt = string.Format("{0} - {1}", item.Key.Replace('-', '/'), item.Value.Replace('-', '/'));
+                                <option value="@(dt)">@dt</option>
                             }
                         </select>
                     </div>
@@ -80,8 +81,8 @@
 
             var selectedData = $("#dates").val().split('-');
             // console.log(selectedData);
-            var startDate = selectedData[0].trim();
-            var endDate = selectedData[1].trim();
+            var startDate = moment(selectedData[0].trim()).format("MM/DD/YY");
+            var endDate = moment(selectedData[1].trim()).format("MM/DD/YY");
             var el = $('#batchList');
             el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
             $.ajax({

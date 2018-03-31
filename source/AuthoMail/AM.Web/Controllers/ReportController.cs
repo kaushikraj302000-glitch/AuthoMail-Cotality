@@ -23,7 +23,6 @@ namespace AM.Web.Controllers
         }
         public ActionResult SummaryControlReport()
         {
-            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
             return View();
         }
         [HttpPost]
@@ -56,7 +55,6 @@ namespace AM.Web.Controllers
         }
         public ActionResult MonthlyReconReport()
         {
-            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
             var dateList = new List<string>();
 
             for (var dt = DateTime.Now.Date; dt.Date >= DateTime.Now.AddMonths(-6).Date; dt = dt.AddMonths(-1).Date)
@@ -69,8 +67,8 @@ namespace AM.Web.Controllers
         [HttpPost]
         public ActionResult _MonthReconReport(string loanNumber, string docType, string startDate, string endDate, string channel)
         {
-            var exactStartDate = DateTime.ParseExact(startDate, "M/d/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-            var exactEndDate = DateTime.ParseExact(endDate, "M/d/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
 
             ViewBag.Date = string.Format("{0} to {1}", exactStartDate.ToString("MM/dd/yy"), exactEndDate.ToString("MM/dd/yy"));
             var model = repoSvc.GetMonthlyReconReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate, channel);
@@ -85,7 +83,6 @@ namespace AM.Web.Controllers
 
         public ActionResult DeliveryReport()
         {
-            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
             return View();
         }
         [HttpPost]
@@ -98,7 +95,6 @@ namespace AM.Web.Controllers
         }
         public ActionResult ErrorsReport()
         {
-            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
             return View();
         }
         [HttpPost]
@@ -120,7 +116,7 @@ namespace AM.Web.Controllers
                     reportViewModel.Add(reportModel);
                 }
             }
-            return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderBy(s=>s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+            return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderBy(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
             //ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
             //return PartialView(model);
         }
@@ -179,7 +175,8 @@ namespace AM.Web.Controllers
 
             }
             ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
-            return PartialView(model);
+            return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderBy(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+            //return PartialView(model);
         }
 
         public ActionResult PullbackRequestReport()
