@@ -72,14 +72,14 @@
     <div class="panel-heading" id="errorHeader">
         <div class="panel-title">
             Error Details: <span class="normaltext" id="headerdate"></span>
-            <label for="input1" class="normallabel">Filter by Batch</label>
+            <label for="labelBatch" id="labelBatch" class="normallabel"></label>
             <span id="batchListSelect">
 
                 @*@Html.DropDownList("BatchList", ViewBag.BatchList as SelectList, "All (Time - Batch Name)", new { @class = "selectpicker" })*@
             </span>
         </div>
     </div>
-    <div class="panel-body" id="errorBatchList">
+    <div class="panel-body" id="errorList">
 
 
     </div>
@@ -186,9 +186,9 @@
         }
         function FilterData() {
             $("#errorHeader").hide();
-            $("#errorBatchList").hide();
+            $("#errorList").hide();
             var date = $("#date").val();
-            var el = $('#errorBatchList');
+            var el = $('#errorList');
             $("#headerdate").html(date + " EST");
             $("#loading").show();
             //el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
@@ -208,10 +208,11 @@
                                 sel = sel + "<option value='" + this.Key + "'>" + this.Value + "</option>";
                             });
                             console.log(sel);
+                            $("#labelBatch").html("Filter by Batch");
                             $("#batchListSelect").html(sel);
                             $('.selectpicker').selectpicker('refresh');
                             $("#errorHeader").show();
-                            $("#errorBatchList").show();
+                            $("#errorList").show();
                             console.log(response.Object.model.length);
                             if (response.Object.model.length > 0) {
                                 var table =  "<thead>"
@@ -249,7 +250,7 @@
                                         + "<td><span>" + this.DocumentOrPackageType + "</span></td>"
                                         + "<td><span>" + this.BusinessFriendlyIdValue + "</span></td>"
                                         + "<td><span>" + this.FileName + "</span></td>"
-                                        + "<td><span>" + moment(this.ReceivedOn).format("MM/DD/YY hh:mm:ss") + "</span></td>"
+                                        + "<td><span>" + moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss") + "</span></td>"
                                         + "<td><span>" + this.RcptFirstName + "</span></td>"
                                         + "<td><span>" + this.RcptLastName + "</span></td>"
                                         + "<td><span>" + this.RcptAddressStreet + "</span></td>"
@@ -265,12 +266,12 @@
                                 tr = tr + "</tbody>";
                                 table ="<table class='table table-responsive' id='sample_2' style='overflow-x:scroll;'>"+ table + "<tbody>" + tr+"</tbody></table>";
                                 console.log(table);
-                                $("#errorBatchList").html(table);
+                                $("#errorList").html(table);
 
                                 applyDataTable();
                             }
                             else {
-                                $("#errorBatchList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Msg_Web_NoRecordFound</span></div>")
+                                $("#errorList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Msg_Web_NoRecordFound</span></div>")
                             }
                         }
 
@@ -282,8 +283,11 @@
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     $("#loading").hide();
+                    $("#errorHeader").show();
+                    $("#errorList").show();
+                    
                     var msg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
-                    el.html("<div class='alert alert-red' ><span>" + msg + "</span></div>");
+                    $("#errorList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
                 }
 
             });
