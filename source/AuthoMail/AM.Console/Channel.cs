@@ -11,24 +11,33 @@ namespace AM.Console
 {
     abstract class Channel : Disposable
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public SFTChannel SFTChannel { get; private set; }
 
         protected ClientService clientSvc;
+        protected MailBatchService mailBatchSvc;
+        protected CommonService commonSvc;
+        protected MailPieceService mailPieceSvc;
 
         protected List<ServiceBase> services;
 
         protected Channel(string channelCode)
         {
-            // Get Channel by code
-            SFTChannel = new SFTChannel();
-
             services = new List<ServiceBase>();
 
             // Add services here
             clientSvc = GetService<ClientService>();
+            mailBatchSvc = GetService<MailBatchService>();
+            commonSvc = GetService<CommonService>();
+            mailPieceSvc = GetService<MailPieceService>();
+
+            // Get Channel by code
+            SFTChannel = clientSvc.GetSFTChannelDetailsBySFTChannelCode(channelCode);
+
         }
 
-        private T GetService<T> ()  where T : ServiceBase, new()
+        private T GetService<T>() where T : ServiceBase, new()
         {
             var service = new T();
             services.Add(service);

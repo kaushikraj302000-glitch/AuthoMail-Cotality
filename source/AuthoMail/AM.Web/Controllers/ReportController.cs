@@ -67,8 +67,8 @@ namespace AM.Web.Controllers
         [HttpPost]
         public ActionResult _MonthReconReport(string loanNumber, string docType, string startDate, string endDate, string channel)
         {
-            var exactStartDate = DateTime.ParseExact(startDate, "M/d/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-            var exactEndDate = DateTime.ParseExact(endDate, "M/d/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
 
             ViewBag.Date = string.Format("{0} to {1}", exactStartDate.ToString("MM/dd/yy"), exactEndDate.ToString("MM/dd/yy"));
             var model = repoSvc.GetMonthlyReconReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate, channel);
@@ -116,7 +116,7 @@ namespace AM.Web.Controllers
                     reportViewModel.Add(reportModel);
                 }
             }
-            return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderBy(s=>s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+            return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderBy(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
             //ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
             //return PartialView(model);
         }
