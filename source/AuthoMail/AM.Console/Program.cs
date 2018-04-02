@@ -13,12 +13,21 @@ namespace AM.Console
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         static void Main(string[] args)
-        {
-            // Process mail batches based on channel code
-
+        {            
             foreach (var arg in args)
             {
-                if (arg == "BatchReporting")
+                if (arg == "config")
+                {
+                    System.Console.WriteLine("swaminarayan");
+
+                    using (var cfgSvc = new ConfigService())
+                    {
+                        cfgSvc.SeedAMSettings();
+                    }
+
+                    return;
+                }
+                else if (arg == "BatchReporting")
                 {
                     Channel.ReportBack();
                 }
