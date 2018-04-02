@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Globalization;
 using System.IO;
@@ -159,6 +160,29 @@ namespace AM.Lib
         public static DateTime ToEndDateTime(this DateTime dt)
         {
             return (dt.Date + new TimeSpan(23, 59, 59));
+        }
+
+        public static string GetDescription(this PropertyInfo p)
+        {
+            var descAttr = p.GetCustomAttribute(typeof(DescriptionAttribute)) as DescriptionAttribute;
+            return descAttr == null ? null : descAttr.Description;
+        }
+
+        public static MethodInfo GetConversionMethod(this Type t)
+        {
+            MethodInfo Convert;
+
+            switch (t.FullName)
+            {
+                case "System.TimeSpan":
+                    Convert = typeof(TimeSpan).GetMethod("Parse", new Type[] { typeof(string) });
+                    break;
+                default:
+                    Convert = typeof(Convert).GetMethod("To" + t.Name, new Type[] { typeof(object) });
+                    break;
+            }
+
+            return Convert;
         }
     }
 }
