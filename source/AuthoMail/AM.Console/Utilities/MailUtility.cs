@@ -8,6 +8,7 @@ using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
 using AM.Lib;
+using AM.Services;
 
 namespace AM.Console
 {
@@ -32,7 +33,7 @@ namespace AM.Console
                     sb = sb.Replace("<%Reason%>", errorMsg);
 
                     msg.Body = sb.ToString();
-                    Common.Email_SMTPClient.Send(msg);
+                    cfg.Email_SMTPClient.Send(msg);
 
                     isEmailSent = true;
                 }
@@ -53,14 +54,12 @@ namespace AM.Console
                 using (MailMessage msg = new MailMessage())
                 {
                     msg.IsBodyHtml = true;
-                    msg.To.Add(Common.Email_To);
-                    msg.CC.Add(Common.Email_Cc);
-                    msg.Subject = Common.NoBatchReceivedNotification_Subject;
+                    msg.To.Add(Config.NoBatch_Email_To);
+                    msg.CC.Add(Config.NoBatch_Email_Cc);
+                    msg.Subject = Config.NoBatchReceivedNotification_Subject;
                     msg.Priority = MailPriority.Normal;
                     msg.Body = string.Format("No batch available today till cutOffTime {0}.", cutOffTime.ToString("HH:mm:ss"));
-                    if (Common.SendEmails)
-                        Common.Email_SMTPClient.Send(msg);
-
+                    cfg.Email_SMTPClient.Send(msg);
                     isEmailSent = true;
                 }
             }
@@ -72,7 +71,7 @@ namespace AM.Console
             return isEmailSent;
         }
 
-        public static bool SendDownloadNotificationEmail(MailBatchInfo mbi, BatchData batchData)
+        public static bool SendDownloadNotificationEmail(MailBatchInfo mbi, BatchData batchData, SFTChannel sftChannel)
         {
             bool isEmailSent = false;
 
@@ -81,9 +80,9 @@ namespace AM.Console
                 using (MailMessage msg = new MailMessage())
                 {
                     msg.IsBodyHtml = true;
-                    msg.To.Add(Common.Email_To);
-                    msg.CC.Add(Common.Email_Cc);
-                    msg.Subject = Common.DownloadEmail_Subject;
+                    msg.To.Add(Config.DS_Email_To);
+                    msg.CC.Add(Config.DS_Email_Cc);
+                    msg.Subject = Config.DSEmail_Subject;
                     msg.Priority = MailPriority.Normal;
 
                     if (batchData.MailPieces.Count > 0)
@@ -94,7 +93,7 @@ namespace AM.Console
                         string downloadEmail_TD_DescriptionStyle = "style='width:80%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'' valign='top' width='213'><p>";
                         string downloadEmail_TD_CountStyle = "style='width:10%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
 
-                        StringBuilder sb = new StringBuilder(File.ReadAllText(Common.DownloadEmailTemplate));
+                        StringBuilder sb = new StringBuilder(File.ReadAllText(Config.DSEmailTemplate));
                         sb = sb.Replace("<%FileName%>", mbi.MailBatch.BatchName);
                         sb = sb.Replace("<%yyyymmdd%>", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("MM/dd/yyyy"));
                         sb = sb.Replace("<%hhmm%>", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("hh:mm tt"));
@@ -122,7 +121,7 @@ namespace AM.Console
 
                     if (msg.Body.Length > 0)
                     {
-                        StringBuilder errorReport = Common.USAAErrorReport(batchData, mbi.SFTChannel.Title, mbi.Client.TimeZone);
+                        StringBuilder errorReport = cfg.USAAErrorReport(batchData, sftChannel.Title, mbi.Client.TimeZone);
                         if (errorReport != null)
                         {
                             string errorReportFileName = string.Format("ER-{0}.csv", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("yyyyMMdd-HHmmss"));
@@ -130,7 +129,7 @@ namespace AM.Console
                             msg.Attachments.Add(new Attachment(new MemoryStream(Encoding.UTF8.GetBytes(errorReport.ToString().ToCharArray())), errorReportFileName));
                         }
 
-                        Common.Email_SMTPClient.Send(msg);
+                        cfg.Email_SMTPClient.Send(msg);
                         isEmailSent = true;
                     }
                 }
