@@ -84,6 +84,11 @@
     <Compile Include="Core\ServiceBase.cs" />
     <Compile Include="IdentityStores\RoleStore.cs" />
     <Compile Include="IdentityStores\UserStore.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Services\ChartDataService.cs" />
     <Compile Include="Services\ConfigService.cs" />
     <Compile Include="Services\HomeService.cs" />
@@ -106,6 +111,15 @@
       <Project>{75996573-6449-4675-a5ff-f1c39c84d685}</Project>
       <Name>AM.Lib</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\SeedAMSeetings.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

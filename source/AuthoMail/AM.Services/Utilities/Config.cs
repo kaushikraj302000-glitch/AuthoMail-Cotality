@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web.Hosting;
 using AM.Lib;
+using System.ComponentModel;
 
 namespace AM.Services
 {
@@ -16,24 +17,40 @@ namespace AM.Services
         #region General
         public static string Environment { get; private set; }
         #endregion
-
+        
         #region PullBackRequestProps
+        [Description("When mailpiece is aborted by client or for unknown reason.")]
         public static string Msg_API_PB_Aborted { get; private set; }
+        [Description("If batchstatus is submitted then only mailpiece can be pullback.")]
         public static string Msg_API_PB_BatchStatusSubmitted { get; private set; }
+        [Description("When no data found for specified unique id.")]
         public static string Msg_API_PB_DataNull { get; private set; }
+        [Description("user have select atleast one mailpiece to request pullback.")]
         public static string Msg_API_PB_Empty { get; private set; }
+        [Description("If mailpiece has some error.")]
         public static string Msg_API_PB_Error { get; private set; }
+        [Description("If mailpiece has recorded successfully.")]
         public static string Msg_API_PB_Success { get; private set; }
+        [Description("When error occured while generating pullback form.")]
         public static string Msg_API_PB_PBReqFormErr { get; private set; }
+        [Description("When pullback is already requested by some user.")]
         public static string Msg_API_PB_PullBackAlreadyRequested { get; private set; }
+        [Description("When mailpiece is pulledback.")]
         public static string Msg_API_PB_PulledBack { get; private set; }
+        [Description("When mailpiece statis is shipped then it can not be pullback.")]
         public static string Msg_API_PB_Shipped { get; private set; }
+        [Description("To define SMTPClient for email.")]
         public static SmtpClient API_Email_SMTPClient { get; private set; }
+        [Description("To whom need to send email.")]
         public static string API_Email_To { get; private set; }
+        [Description("To whom need to send email.")]
         public static string API_Email_Cc { get; private set; }
+        [Description("Define client's local timezone.")]
         public static string API_PB_ClientTimeZone { get; private set; }
+        [Description("Path of pdf template which is used to send when pullback is requested.")]
         public static string API_PB_PullBackFormTemplatePath { get; private set; }
         #endregion
+
         #region WEB AccountController
         public static string Msg_Web_Login_InvalidUserName { get; private set; }
         public static string Msg_Web_Login_EmailConfirm { get; private set; }
@@ -67,28 +84,13 @@ namespace AM.Services
         //public static Dictionary<string,string> Msg {get; private set;}
         static Config()
         {
+           
             #region General
             Environment = "Staging";
             #endregion
 
             #region PullBackMessages
-            Msg_API_PB_Aborted = "Mailpiece is aborted, it is not going to be printed.";
-            Msg_API_PB_BatchStatusSubmitted = "Batch is being parsed, please try again after few minutes.";
-            Msg_API_PB_DataNull = "Mailpiece with the specified unique id is not yet received.";
-            Msg_API_PB_Empty = "At least one mailpiece id must be specified.";
-            Msg_API_PB_Error = "Mailpiece has an error, it is not going to be printed. Check error report for details.";
-            Msg_API_PB_Success = "Pullback request is recorded successfully.";
-            Msg_API_PB_PBReqFormErr = "An error occured while generating pullback request form.";
-            Msg_API_PB_PullBackAlreadyRequested = "Pullback is already requested for this mailpiece.";
-            Msg_API_PB_PulledBack = "Mailpiece is already pulled back.";
-            Msg_API_PB_Shipped = "Mailpiece is already shipped, pullback cannot be requested.";
             API_Email_SMTPClient = new SmtpClient();
-            //API_Email_To = "CoreLogic.PrintProduction@pcigroup.com";
-            API_Email_To = "avala@corelogic.com";
-            //API_Email_Cc = "avala@corelogic.com,sgolvelkar@corelogic.com,brpatel@corelogic.com";
-            API_Email_Cc = "avala@corelogic.com";
-            API_PB_ClientTimeZone = "Eastern Standard Time";
-            API_PB_PullBackFormTemplatePath = HostingEnvironment.MapPath("~\\Template\\PullBackForm.pdf");
             #endregion
 
             #region WEB AccountController
@@ -120,15 +122,10 @@ namespace AM.Services
             StartCutOffTime = "19:45:01";
             EndCutOffTime = "19:45:00";
             #endregion
-            //Msg = new Dictionary<string, string>();
-            //ConfigService cs = new ConfigService();
-            //var messages = cs.GetSharedStrings();
-            //foreach (var message in messages)
-            //{
-            //    Msg.Add(message.Key, message.Value);
-            //}      
+
             // Initialize config settings
             InitializeProperties<Config>();
+
         }
 
         private static void InitializeProperties<T>()
@@ -188,7 +185,7 @@ namespace AM.Services
 
             if (prop == null)
             {
-                throw new ArgumentException("No such ERP setting found. ", key);
+                throw new ArgumentException("No such AM setting found. ", key);
             }
 
             ConfigService cs = new ConfigService();
