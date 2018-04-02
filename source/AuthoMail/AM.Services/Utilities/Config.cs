@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Hosting;
+using AM.Lib;
 
 namespace AM.Services
 {
-    public static class Config
+    public class Config
     {
         #region PullBackRequestProps
         public static string Msg_API_PB_Aborted { get; private set; }
@@ -22,7 +24,7 @@ namespace AM.Services
         public static string Msg_API_PB_PullBackAlreadyRequested { get; private set; }
         public static string Msg_API_PB_PulledBack { get; private set; }
         public static string Msg_API_PB_Shipped { get; private set; }
-        public static SmtpClient API_Email_SMTPClient { get; set; }
+        public static SmtpClient API_Email_SMTPClient { get; private set; }
         public static string API_Email_To { get; private set; }
         public static string API_Email_Cc { get; private set; }
         public static string API_PB_ClientTimeZone { get; private set; }
@@ -39,17 +41,17 @@ namespace AM.Services
 
         #region WEB Common Msg
         public static string Msg_Web_Ajax_CommonError { get; private set; }
-        public static string Msg_Web_NoRecordFound { get; set; }
-        public static string Msg_Web_PullBackConfirmation { get; set; }
+        public static string Msg_Web_NoRecordFound { get; private set; }
+        public static string Msg_Web_PullBackConfirmation { get; private set; }
         #endregion
 
         #region WEB RequestPullBackController
-        public static string Msg_Web_NoMailPieceSelect { get; set; }
-        public static string Msg_Web_NoErrorDescription { get; set; }
+        public static string Msg_Web_NoMailPieceSelect { get; private set; }
+        public static string Msg_Web_NoErrorDescription { get; private set; }
         #endregion
 
         #region WEB HomeController
-        public static string Msg_Web_NoMailPieceReceivedToday { get; set; }
+        public static string Msg_Web_NoMailPieceReceivedToday { get; private set; }
         #endregion
 
         #region WEB ReportController
@@ -57,6 +59,7 @@ namespace AM.Services
         public static string EndCutOffTime { get; private set; }
         #endregion
 
+        private static List<string> errors;
         //public static Dictionary<string,string> Msg {get; private set;}
         static Config()
         {
@@ -72,10 +75,10 @@ namespace AM.Services
             Msg_API_PB_PulledBack = "Mailpiece is already pulled back.";
             Msg_API_PB_Shipped = "Mailpiece is already shipped, pullback cannot be requested.";
             API_Email_SMTPClient = new SmtpClient();
-            API_Email_To = "CoreLogic.PrintProduction@pcigroup.com";
-            //API_Email_To = "avala@corelogic.com";
-            API_Email_Cc = "avala@corelogic.com,sgolvelkar@corelogic.com,brpatel@corelogic.com";
-            //API_Email_Cc = "avala@corelogic.com";
+            //API_Email_To = "CoreLogic.PrintProduction@pcigroup.com";
+            API_Email_To = "avala@corelogic.com";
+            //API_Email_Cc = "avala@corelogic.com,sgolvelkar@corelogic.com,brpatel@corelogic.com";
+            API_Email_Cc = "avala@corelogic.com";
             API_PB_ClientTimeZone = "Eastern Standard Time";
             API_PB_PullBackFormTemplatePath = HostingEnvironment.MapPath("~\\Template\\PullBackForm.pdf");
             #endregion
@@ -115,8 +118,100 @@ namespace AM.Services
             //foreach (var message in messages)
             //{
             //    Msg.Add(message.Key, message.Value);
-            //}            
+            //}      
+            // Initialize config settings
+            InitializeProperties<Config>();
         }
 
+        private static void InitializeProperties<T>()
+        {
+            errors = new List<string>();
+
+            // Load settings from database
+            ConfigService cs = new ConfigService();
+            var settings = cs.GetSystemSettings();
+
+            PropertyInfo[] propInfo = typeof(T).GetProperties(BindingFlags.Static | BindingFlags.Public);
+
+            foreach (PropertyInfo p in propInfo)
+            {
+                //var isRequired = p.CustomAttributes.Any(ca => ca.AttributeType == typeof(RequiredInConfigAttribute));
+
+                var authomailSetting = settings.SingleOrDefault(s => s.Key == p.Name);// db.ERPSettings.Find(p.Name);
+
+                // Ignore if not stored in the database
+                if (authomailSetting == null) continue;
+
+
+                object propValue;
+                try
+                {
+                    propValue = p.PropertyType.GetConversionMethod().Invoke(null, new object[] { authomailSetting.Value });
+                }
+                catch (Exception ex)
+                {
+                    propValue = null;
+                    errors.Add(string.Format("{0}, Type - {1} : {2}", p.Name, p.PropertyType.Name, ex.ToString()));
+                }
+
+                p.SetValue(null, propValue);
+                //if (isRequired && (propValue == null || String.IsNullOrWhiteSpace(propValue.ToString())))
+                //{
+                //    errors.Add(p.Name);
+                //}
+
+                //else if (isRequired)
+                //{
+                //    errors.Add(p.Name);
+                //}
+            }
+
+        }
+
+        public static void SaveSetting(string key, string value)
+        {
+            SaveSetting(key, value, null, null);
+        }
+
+        public static void SaveSetting(string key, string value, bool? IsSystem, string DefaultValue)
+        {
+
+            var prop = typeof(Config).GetProperty(key, BindingFlags.Static | BindingFlags.Public);
+
+            if (prop == null)
+            {
+                throw new ArgumentException("No such ERP setting found. ", key);
+            }
+
+            ConfigService cs = new ConfigService();
+            var settings = cs.GetSystemSettings();
+            var authomailSetting = settings.SingleOrDefault(s => s.Key == key);   //db.ERPSettings.Find(key);
+
+            var propValue = prop.PropertyType.GetConversionMethod().Invoke(null, new object[] { value });
+            prop.SetValue(null, propValue);
+
+            if (authomailSetting == null)
+            {
+                cs.InsertSystemSetting(new AMSetting
+                {
+                    Key = key,
+                    Value = value,
+                    IsSystem = IsSystem.HasValue ? IsSystem.Value : false,
+                    DefaultValue = DefaultValue,
+                    Description = prop.GetDescription(),
+                    DataType = prop.PropertyType.Name
+                });
+            }
+            else
+            {
+                cs.UpdateSystemSetting(new AMSetting
+                {
+                    DataType = prop.PropertyType.Name,
+                    Value = value,
+                    Description = prop.GetDescription(),
+                    Key = key
+                });
+            }
+        }
     }
 }
