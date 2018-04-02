@@ -239,7 +239,6 @@
         }
         function FormatObject(Model) {
             $(Model).each(function () {
-                console.log(this.ReceivedOn)
                 this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
             });
             return Model;
