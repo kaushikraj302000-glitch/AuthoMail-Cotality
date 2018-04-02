@@ -59,7 +59,7 @@ namespace AM.Web.Controllers
 
             for (var dt = DateTime.Now.Date; dt.Date >= DateTime.Now.AddMonths(-6).Date; dt = dt.AddMonths(-1).Date)
             {
-                dateList.Add(string.Format("{0} - {1}", dt.ToString("MM/26/yyyy"), dt.AddMonths(1).ToString("MM/25/yyyy")));
+                dateList.Add(string.Format("{0}/26/{1} - {2}/25/{3}", dt.Month, dt.Year, dt.AddMonths(1).Month, dt.AddMonths(1).Year));
             }
             ViewBag.dateList = dateList;
             return View();
