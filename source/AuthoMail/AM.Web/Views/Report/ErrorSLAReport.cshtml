@@ -6,6 +6,9 @@
     #dateFilter .bootstrap-select, #DocTypeSize .bootstrap-select {
         width: 100% !important;
     }
+      .bootstrap-select {
+        width: 205px !important;
+    }
 </style>
 <link href="~/clui/dist/css/datatablecustom.css" rel="stylesheet" />
 <div class="panel-group">
@@ -36,9 +39,9 @@
                 </div>
                 <div class="col-md-3" >
                     <div class="form-group">
-                        <label for="dp4" ><span id="ByDate">Due Date</span> (EST)</label>
+                        <label for="date"><span id="ByDate">Due Date</span> (EST)</label>
                         <div class="input-group date" id="datepicker4">
-                            <input type="text" class="form-control" id="dp4">
+                            <input type="text" class="form-control" id="date">
                             <span class="input-group-addon">
                                 <i class="fa fa-calendar"></i>
                             </span>
@@ -68,46 +71,233 @@
     </div>
 
 </div>
-<div class="panel panel-default" id="errorBatchList"></div>
+<div class="panel panel-default" >
+    <div class='alert alert-blue text-center' id="loading" style="display:none"><span> Loading... </span></div>
+    <div class="panel-heading" id="SLAHeader">
+        <div class="panel-title">
+            Error SLA Details: <span class="normaltext" id="headerdate"></span>
+            <label for="labelBatch" id="labelBatch" class="normallabel"></label>
+            <span id="batchListSelect">
+            </span>
+        </div>
+    </div>
+    <div class="panel-body" id="SLABatchList">
 
+
+    </div>
+</div>
+<!-- table html template code -->
+<div id="SLATableContent" style="display:none">
+    <table class="table table-responsive" style="overflow-x:scroll">
+        <thead>
+            <tr>
+                <th>Document Type</th>
+                <th>Loan Number</th>
+                <th>File Name</th>
+                <th>Received Date <span class="fontcapitalize">(Local)</span></th>
+                <th>Due Date <span class="fontcapitalize">(Local)</span></th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Recipient Street Address</th>
+                <th>Recipient City</th>
+                <th>Recipient State</th>
+                <th>Recipient Zip</th>
+                <th class="BatchId">BatchId</th>
+            </tr>
+        </thead>
+        <tbody id="SLAbodyContent"></tbody>
+    </table>
+</div>
+<div style="display:none">
+    <table>
+        <tbody id="SLABody">
+            <tr class="row-small">
+                <td><span>{DocumentOrPackageType}</span></td>
+                <td><span>{BusinessFriendlyIdValue}</span></td>
+                <td><span>{FileName}</span></td>
+                <td><span>{ReceivedOnFormatted}</span></td>
+                <td><span>{DueDateFormatted}</span></td>
+                <td><span>{RcptFirstName}</span></td>
+                <td><span>{RcptLastName}</span></td>
+                <td><span>{RcptAddressStreet}</span></td>
+                <td><span>{RcptAddressCity}</span></td>
+                <td><span>{RcptAddressState}</span></td>
+                <td><span>{RcptAddressZIP}</span></td>
+                <td>{BatchId}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<!-- end table template code -->
 
 @section Scripts{
     @Styles.Render("~/bundles/datatablescss")
     @Scripts.Render("~/bundles/datatables")
     <script>
-        $(document).ready(function () {
-            window.clui.dateTimePickerInit();
-            FilterData();
+    $(document).ready(function () {
+        window.clui.dateTimePickerInit();
+        FilterData();
+    });
+    $("#filterBy").change(function () {
+        if ($(this).val() == "ByReceivedOn") {
+            $("#ByDate").text("Received Date");
+        } else if ($(this).val() == "ByDueDate") {
+            $("#ByDate").text("Due Date");
+        } else {
+            $("#ByDate").text("Select Date");
+        }
+    });
+    function applyDataTable() {
+        $('[data-toggle="popover"]').popover({
+            'trigger': 'hover',
+            'placement': 'left',
+            'container': 'body'
         });
-        $("#filterBy").change(function () {
-            if ($(this).val() == "ByReceivedOn") {
-                $("#ByDate").text("Received Date");
-            } else if ($(this).val() == "ByDueDate") {
-                $("#ByDate").text("Due Date");
-            } else {
-                $("#ByDate").text("Select Date");
-            }
-        });
-        function FilterData() {
-            var el = $('#errorBatchList');
-            el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
-            $.ajax({
-                type: "POST",
-                url: baseUrl + "Report/_GetErrorsSLAReport",
-                data: JSON.stringify({ date: $("#dp4").val(), filterBy: $("#filterBy").val(), docType: $("#DocType").val() }),
-                contentType: "application/json; charset=utf-8",
-                success: function (res) {
-                    el.html(res);
+        var table = $('#sample_2');
+        var filename = "ErrorReportSLA";
+        var title = "Error Report - SLA ";
+        var oTable = table.dataTable({
+
+            "language": {
+                "aria": {
+                    "sortAscending": ": activate to sort column ascending",
+                    "sortDescending": ": activate to sort column descending"
                 },
-                error: function (xhr, ajaxOptions, thrownError) {
-                    var msg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
-                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                "emptyTable": "No data available in table",
+                "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+                "infoEmpty": "No entries found",
+                "infoFiltered": "(filtered1 from _MAX_ total entries)",
+                "lengthMenu": "_MENU_ entries",
+                "search": "<b>Search:</b>",
+                "zeroRecords": "No matching records found"
+            },
+            "columnDefs": [
+                    {
+                        "targets": ["BatchId"],
+                        "visible": false,
+                        "searchable": true
+                    },
+            ],
+
+            "scrollX": true,
+            buttons: [
+                //{
+                //    extend: 'colvis',
+                //    text: 'Select Fields',
+                //    className: 'btn purple pull-left',
+                //    columns: ':not(.noVis)'
+                //},
+            {
+                extend: 'excel',
+                text: '<i class="fa fa-file-excel-o fa-2x"></i>',
+                className: 'btn btn-primary',
+                filename: filename,
+                title: title,
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                 }
 
-            });
-        }
-        $("#filterData").click(function () {
-            FilterData();
+            }
+
+
+
+            ],
+
+            "order": [
+                [0, 'asc']
+            ],
+            "lengthMenu": [
+                [5, 10, 25, 50, 100, -1],
+                [5, 10, 25, 50, 100, "All"] // change per page values here
+            ],
+            // set the initial value
+            "pageLength": 5,
+
+            "dom": "<'row' <'col-md-12'B>><'row'<'col-md-6 col-sm-12'l><'col-md-6 col-sm-12'f>r><'table-scrollable't><'row'<'col-md-5 col-sm-12'i><'col-md-7 col-sm-12'p>>", // horizobtal scrollable datatable
+
+
         });
+        $('.selectpicker').selectpicker('refresh');
+        $('#BatchList').on('change', function () {
+            var oTable = $('#sample_2').dataTable();
+            var selected = $(this).find("option:selected").val();
+            if (!selected) {
+                oTable.fnFilter('', 11, true);
+            } else {
+                oTable.fnFilter("^" + parseInt(selected) + "$", 11, true); //Exact value, column, reg
+            }
+        });
+    }
+    function FilterData() {
+        $("#SLAHeader").hide();
+        $("#SLABatchList").hide();
+        var date = $("#date").val();
+        var el = $('#SLABatchList');
+        $("#headerdate").html(date + " EST");
+        $("#loading").show();
+        var el = $('#SLABatchList');
+        el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
+        $.ajax({
+            type: "POST",
+            url: baseUrl + "Report/_GetErrorsSLAReport",
+            data: JSON.stringify({ date: date, filterBy: $("#filterBy").val(), docType: $("#DocType").val() }),
+            contentType: "application/json; charset=utf-8",
+            success: function (response) {
+                console.log(response);
+                if (response.Success) {
+                    if (response.Object != null) {
+                        $("#loading").hide();
+                        var sel = '<select id="BatchList" class="selectpicker">';
+                        sel = sel + "<option value=''>All (Time - Batch Name)</option>";
+                        $(response.Object.BatchList).each(function () {
+                            sel = sel + "<option value='" + this.Key + "'>" + this.Value + "</option>";
+                        });
+                        // console.log(sel);
+                        $("#labelBatch").html("Filter by Batch");
+                        $("#batchListSelect").html(sel);
+                        $('.selectpicker').selectpicker('refresh');
+                        $("#SLAHeader").show();
+                        $("#SLABatchList").show();
+                        //console.log(response.Object.model.length);
+                        if (response.Object.model.length > 0) {
+                            var data = FormatObject(response.Object.model);
+                            //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                            BindTemplate(data, "#SLABody", "#SLAbodyContent", "#SLATableContent", "#SLABatchList");
+                        }
+                        else {
+                            $("#SLABatchList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Msg_Web_NoRecordFound</span></div>")
+                        }
+                    }
+                } else {
+                    $("#loading").hide();
+                    $("#SLAHeader").show();
+                    $("#SLABatchList").show();
+                    $("#SLABatchList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + response.ErrorMessage + "</span></div>");
+                }
+
+
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                $("#loading").hide();
+                $("#SLAHeader").show();
+                $("#SLABatchList").show();
+
+                var msg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
+                $("#SLABatchList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
+            }
+
+        });
+    }
+        function FormatObject(Model) {
+            $(Model).each(function () {
+                this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                this.DueDateFormatted = moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
+                
+            });
+            return Model;
+        }
+    $("#filterData").click(function () {
+        FilterData();
+    });
     </script>
 }

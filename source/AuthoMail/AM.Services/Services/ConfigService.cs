@@ -9,15 +9,28 @@ namespace AM.Services
 {
     public interface IConfigService
     {
-        List<dynamic> GetSharedStrings();
+        List<AMSetting> GetSystemSettings();
+        int InsertSystemSetting(AMSetting amSetting);
+        int UpdateSystemSetting(AMSetting amSetting);
     }
     public class ConfigService : ServiceBase, IConfigService
     {
-        public List<dynamic> GetSharedStrings()
+        public List<AMSetting> GetSystemSettings()
         {
-            string qry = string.Format("SELECT [Key],Value FROM [AM].[SharedStrings]");
-            var data = db.Query(qry).ToList();            
-            return data;
+            string qry = string.Format("SELECT [Key],[DataType],[Value],[Description],[IsSystem],[DefaultValue] FROM [Common].[SystemSettings]");
+            return db.Query<AMSetting>(qry).ToList();
+        }
+
+        public int InsertSystemSetting(AMSetting amSetting)
+        {
+            var query = "INSERT INTO [Common].[SystemSettings] ([Key],[DataType],[Value],[Description],[IsSystem],[DefaultValue]) VALUES (@Key,@DataType,@Value,@Description],@IsSystem,@DefaultValue)";
+            return db.Execute(query, amSetting);
+        }
+
+        public int UpdateSystemSetting(AMSetting amSetting)
+        {
+            var query = "UPDATE [Common].[SystemSettings] SET [DataType] = @DataType,[Value] = @Value,[Description] = @Description WHERE [Key] = @Key";
+            return db.Execute(query, amSetting);
         }
     }
 }

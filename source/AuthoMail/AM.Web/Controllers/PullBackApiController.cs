@@ -180,10 +180,11 @@ namespace AM.Web.Controllers
                     msg.IsBodyHtml = true;
                     msg.To.Add(Config.API_Email_To);
                     msg.CC.Add(Config.API_Email_Cc);
-                    msg.Subject = string.Format("TEST : {0} \"{1}\"", "ADE", "PULL REQUEST");
+                    //msg.Subject = string.Format("TEST : {0} \"{1}\"", "ADE", "PULL REQUEST");
+                    msg.Subject = string.Format("{0} \"{1}\"", "ADE", "PULL REQUEST");
                     msg.Priority = MailPriority.High;
-                    msg.Body = string.Format("***TEST*** \nPlease find attached PullBackRequestForm {0}.", attachmentPdfName);
-
+                    //msg.Body = string.Format("***TEST*** \nPlease find attached PullBackRequestForm {0}.", attachmentPdfName);
+                    msg.Body = string.Format("Please find attached PullBackRequestForm {0}.", attachmentPdfName);
                     msg.Attachments.Add(new Attachment(new MemoryStream(attachmentPdf), attachmentPdfName));
 
                     Config.API_Email_SMTPClient.Send(msg);

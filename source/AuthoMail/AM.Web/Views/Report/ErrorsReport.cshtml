@@ -105,7 +105,7 @@
                 <th>Recipient Zip</th>
                 <th>Error Code</th>
                 <th class="ErrorText">Error Text</th>
-                <th >Error Text</th>
+                <th>Error Text</th>
                 <th>Shipping Method</th>
                 <th class="BatchId">BatchId</th>
 
@@ -133,7 +133,7 @@
                 <td><span>{RcptAddressZIP}</span></td>
                 <td><span>{ErrorCode}</span></td>
                 <td><span>{ErrorDesc}</span></td>
-                <td><span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="{ErrorDesc}" data-placement="left"><a>Error Details</a></span></td>
+                <td>{ErrorDescPopover}</td>
                 <td><span>{ShippingMethod}</span></td>
                 <td>{BatchId}</td>
             </tr>
@@ -141,9 +141,6 @@
     </table>
 </div>
 <!-- end table template code -->
-
-
-
 @section Scripts{
     @Styles.Render("~/bundles/datatablescss")
     @Scripts.Render("~/bundles/datatables")
@@ -157,7 +154,7 @@
                 'placement': 'left',
                 'container': 'body'
             });
-            
+
         });
         function applyDataTable() {
             $('[data-toggle="popover"]').popover({
@@ -240,7 +237,13 @@
                 }
             });
         }
-        
+        function FormatObject(Model) {
+            $(Model).each(function () {
+                this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                this.ErrorDescPopover=this.ErrorDesc==""?"":'<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="'+this.ErrorDesc+'" data-placement="left"><a>Error Details</a></span>';
+            });
+            return Model;
+        }
         function FilterData() {
             $("#errorHeader").hide();
             $("#errorList").hide();
@@ -272,20 +275,22 @@
                             $("#errorList").show();
                             //console.log(response.Object.model.length);
                             if (response.Object.model.length > 0) {
-
-                                BindTemplate(response.Object.model, "#errorBody", "#errorbodyContent", "#errorTableContent", "#errorList");
-                               
+                                var data = FormatObject(response.Object.model);
+                                //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                                BindTemplate(data, "#errorBody", "#errorbodyContent", "#errorTableContent", "#errorList");
                             }
                             else {
                                 $("#errorList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Msg_Web_NoRecordFound</span></div>")
                             }
                         }
-
-
-                        //$("#")
+                    } else {
+                        $("#loading").hide();
+                        $("#errorHeader").show();
+                        $("#errorList").show();
+                        $("#errorList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + response.ErrorMessage + "</span></div>");
                     }
 
-                    //el.html(res);
+
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     $("#loading").hide();

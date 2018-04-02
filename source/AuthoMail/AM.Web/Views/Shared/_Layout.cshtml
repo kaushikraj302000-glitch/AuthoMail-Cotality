@@ -142,7 +142,6 @@
             var bodyHtml = $(bodyId).html();
             var tableHtml = "";
             $(model).each(function () {
-                this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 tableHtml = tableHtml + bodyHtml.supplant(this);
             });
             // console.log(test1);

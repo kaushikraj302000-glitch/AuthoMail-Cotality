@@ -46,8 +46,9 @@ namespace AM.Web.Controllers
                     reportViewModel.Add(reportModel);
                 }
             }
-            ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
-            return PartialView(model);
+            //ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
+            //return PartialView(model);
+            return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderBy(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
         public ActionResult _GetMailPieceList(List<MonthlyReconReport> model)
         {
@@ -59,7 +60,7 @@ namespace AM.Web.Controllers
 
             for (var dt = DateTime.Now.Date; dt.Date >= DateTime.Now.AddMonths(-6).Date; dt = dt.AddMonths(-1).Date)
             {
-                dateList.Add(string.Format("{0} - {1}", dt.ToString("MM/26/yyyy"), dt.AddMonths(1).ToString("MM/25/yyyy")));
+                dateList.Add(string.Format("{0}/26/{1} - {2}/25/{3}", dt.Month, dt.Year, dt.AddMonths(1).Month, dt.AddMonths(1).Year));
             }
             ViewBag.dateList = dateList;
             return View();
@@ -72,7 +73,7 @@ namespace AM.Web.Controllers
 
             ViewBag.Date = string.Format("{0} to {1}", exactStartDate.ToString("MM/dd/yy"), exactEndDate.ToString("MM/dd/yy"));
             var model = repoSvc.GetMonthlyReconReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate, channel);
-            return PartialView("_GetMailPieceList", model);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderBy(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult MailPieceByBatchId(int batchId)
@@ -100,23 +101,31 @@ namespace AM.Web.Controllers
         [HttpPost]
         public ActionResult _GetErrorsReport(string date, string channel)
         {
-            var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-            ViewBag.Date = exactDate.ToString("MM/dd/yy");
-            var model = repoSvc.GetErrorReportByDateOrBatch(User.Identity.GetClientId().Value, exactDate, null, channel);
-            List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
-            foreach (var item in model)
+
+            try
             {
-                var reportModel = (new ReportViewModel
+                var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+                ViewBag.Date = exactDate.ToString("MM/dd/yy");
+                var model = repoSvc.GetErrorReportByDateOrBatch(User.Identity.GetClientId().Value, exactDate, null, channel);
+                List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
+                foreach (var item in model)
                 {
-                    Key = item.BatchId,
-                    Value = string.Format("{0} - {1}", item.ReceivedOn.ToString("H:mm"), item.BatchName)
-                });
-                if (!reportViewModel.Any(s => s.Value == reportModel.Value))
-                {
-                    reportViewModel.Add(reportModel);
+                    var reportModel = (new ReportViewModel
+                    {
+                        Key = item.BatchId,
+                        Value = string.Format("{0} - {1}", item.ReceivedOn.ToString("H:mm"), item.BatchName)
+                    });
+                    if (!reportViewModel.Any(s => s.Value == reportModel.Value))
+                    {
+                        reportViewModel.Add(reportModel);
+                    }
                 }
+                return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderBy(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
             }
-            return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderBy(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+            catch (Exception e)
+            {
+                 return Json(JsonResponseFactory.ErrorResponse(e.ToString()), JsonRequestBehavior.AllowGet);
+            }
             //ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
             //return PartialView(model);
         }
@@ -147,8 +156,7 @@ namespace AM.Web.Controllers
                     reportViewModel.Add(reportModel);
                 }
             }
-            ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
-            return PartialView(model);
+            return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderBy(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
         public ActionResult DailyDetailOperationsReport()
         {
@@ -157,25 +165,32 @@ namespace AM.Web.Controllers
         [HttpPost]
         public ActionResult _GetDailyDetailOperationsReport(string date, string channel)
         {
-            var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-            ViewBag.Date = exactDate.ToString("MM/dd/yy");
-            var model = repoSvc.GetDailyDetailOperationsByDateOrBatch(User.Identity.GetClientId().Value, exactDate, null, channel);
-            List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
-            foreach (var item in model)
+            try
             {
-                var reportModel = (new ReportViewModel
+                var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+                ViewBag.Date = exactDate.ToString("MM/dd/yy");
+                var model = repoSvc.GetDailyDetailOperationsByDateOrBatch(User.Identity.GetClientId().Value, exactDate, null, channel);
+                List<ReportViewModel> reportViewModel = new List<ReportViewModel>();
+                foreach (var item in model)
                 {
-                    Key = item.BatchId,
-                    Value = string.Format("{0} - {1}", item.ReceivedOn.ToString("H:mm"), item.BatchName)
-                });
-                if (!reportViewModel.Any(s => s.Value == reportModel.Value))
-                {
-                    reportViewModel.Add(reportModel);
-                }
+                    var reportModel = (new ReportViewModel
+                    {
+                        Key = item.BatchId,
+                        Value = string.Format("{0} - {1}", item.ReceivedOn.ToString("H:mm"), item.BatchName)
+                    });
+                    if (!reportViewModel.Any(s => s.Value == reportModel.Value))
+                    {
+                        reportViewModel.Add(reportModel);
+                    }
 
+                }
+                ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
+                return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderBy(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
             }
-            ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
-            return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderBy(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.ToString()), JsonRequestBehavior.AllowGet);
+            }
             //return PartialView(model);
         }
 
