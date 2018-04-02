@@ -14,7 +14,8 @@ namespace AM.Services
         int InsertBatchDetails(MailBatchDTO mailBatch);
         int DeleteBatchDetails(int mailBatchId);
         int UpdateBatchDetails(MailBatchDTO mailBatch);
-        List<MailBatchDTO> GetBatchesByStatus(string batchPipelineStatus);
+        int MarkMailBatchAsInvalid(int id, string errorDesc);
+        List<MailBatchDTO> GetBatchesByPipelineStatus(string batchPipelineStatus);
         BatchData GetMailBatchDetailsByBatchId(int mailBatchId);
         int InsertPrintBatchDetails(PrintBatch printBatch);
         List<SubmittedBatch> GetSubmittedPrintBatchDetails();
@@ -53,13 +54,23 @@ namespace AM.Services
             return Convert.ToInt32(data);
         }
 
-        public List<MailBatchDTO> GetBatchesByStatus(string batchPipelineStatus)
+        public int MarkMailBatchAsInvalid(int id, string errorDesc)
+        {
+            string query = "UPDATE [AM].[MailBatches] SET [ValidationStatus] = @ValidationStatus, [ValidationErrors] = @ValidationErrors, [PrintLocation] = NULL WHERE Id=@Id";
+
+            var data = db.ExecuteScalar(query, new { ValidationStatus = BatchValidationStatus.Invalid, ValidationErrors = errorDesc, Id = id });
+            return Convert.ToInt32(data);
+        }
+
+        public List<MailBatchDTO> GetBatchesByPipelineStatus(string batchPipelineStatus)
         {
             //Sql Query
-            string query = "SELECT * FROM [AM].[MailBatches] WHERE PipelineStatus= @batchPipelineStatus ";
+            string query = "SELECT * FROM [AM].[MailBatches] WHERE PipelineStatus= @batchPipelineStatus";
 
             switch (batchPipelineStatus)
             {
+                case BatchPipelineStatus.Received: query += " AND IsReceived=1 AND IsDownloaded=0";
+                    break;
                 case BatchPipelineStatus.Downloaded: query += " AND IsDownloaded=1 AND IsValidated=0";
                     break;
                 case BatchPipelineStatus.Validated: query += " AND IsValidated=1 AND IsAcknowledged=0";

@@ -8,13 +8,14 @@ namespace AM.Services
 {
     public static class Common
     {
-        static Common()
+        public static DateTime Now
         {
-
+            get { return DateTime.UtcNow; }
         }
 
-        public static readonly DateTime Now = DateTime.UtcNow;
-
-        public static readonly DateTime Today = DateTime.Today;
+        public static DateTime Today
+        {
+            get { return DateTime.UtcNow.Date; }
+        }
     }
 }

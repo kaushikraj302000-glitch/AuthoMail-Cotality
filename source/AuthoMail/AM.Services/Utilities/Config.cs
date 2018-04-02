@@ -13,6 +13,40 @@ namespace AM.Services
     {
         #region General
         public static string Environment { get; private set; }
+
+        #endregion
+
+        #region Core & Console
+        public static string AuthoMailRootFolder { get; private set; }
+
+        public static string PnS_SFT_HostURL { get; private set; }
+        public static string PnS_SFT_UserName { get; private set; }
+        public static string PnS_SFT_Password { get; private set; }
+        public static string PnS_SFT_RootDir { get; private set; }
+
+        public static string DSEmail_Subject { get; private set; }
+        public static string DSEmailTemplate { get; private set; }
+        public static string DS_Email_To { get; private set; }
+        public static string DS_Email_Cc { get; private set; }
+
+        public static string PSEmail_Subject { get; private set; }
+        public static string PSEmailTemplate { get; private set; }
+        public static string PS_Email_To { get; private set; }
+        public static string PS_Email_Cc { get; private set; }
+
+        public static string NoBatchReceivedNotification_Subject { get; set; }
+        public static string NoBatch_Email_To { get; private set; }
+        public static string NoBatch_Email_Cc { get; private set; }
+
+
+        public static string PnSEmail_Subject { get; private set; }
+        public static string PnS_Email_To { get; private set; }
+        public static string PnS_Email_Cc { get; private set; }
+
+        public static string ReportSFTUploadingChannelCode { get; private set; }
+        public static string ReportSFTUploadingPathAMC { get; private set; }
+        public static string USAACustIdentifier { get; set; }
+        public static string AMCDirPath { get; set; }
         #endregion
 
         #region PullBackRequestProps
@@ -65,7 +99,39 @@ namespace AM.Services
         static Config()
         {
             #region General
-            Environment = "Staging";
+            Environment = "Internal";
+            AuthoMailRootFolder = @"D:\AuthoMailGit\Repos\source\AuthoMail\AM.Console\bin\Debug\AuthoMailRoot";
+            #endregion
+
+            #region Console & Core
+            PnS_SFT_HostURL = @"\\MTC-sagarg\c$\MSTC\PnS";
+            PnS_SFT_UserName = "user";
+            PnS_SFT_Password = "";
+            PnS_SFT_RootDir = @"\\MTC-sagarg\c$\MSTC\PnS";
+
+            DSEmailTemplate = @"D:\AuthoMailGit\Repos\source\AuthoMail\AM.Console\HTMLTemplates\DET.html";
+            DSEmail_Subject = "TEST USAA Download Summary";
+            DS_Email_To = "sgolvelkar@corelogic.com";
+            DS_Email_Cc = "sgolvelkar@corelogic.com";
+
+            PSEmailTemplate = @"D:\AuthoMailGit\Repos\source\AuthoMail\AM.Console\HTMLTemplates\PLET.html";
+            PSEmail_Subject = "TEST USAA Production Summary";
+            PS_Email_To = "sgolvelkar@corelogic.com";
+            PS_Email_Cc = "sgolvelkar@corelogic.com";
+
+            NoBatchReceivedNotification_Subject = "No USAA batch is available";
+            NoBatch_Email_To = "sgolvelkar@corelogic.com";
+            NoBatch_Email_Cc = "sgolvelkar@corelogic.com";
+
+            PnSEmail_Subject = "TEST USAA Status Update";
+            PnS_Email_To = "sgolvelkar@corelogic.com";
+            PnS_Email_Cc = "sgolvelkar@corelogic.com";
+
+            USAACustIdentifier = "166";
+            AMCDirPath = @"\\MTC-sagarg\c$\MSTC\AM\AMC";
+
+            ReportSFTUploadingChannelCode = "USAA_CL";
+            ReportSFTUploadingPathAMC = @"/Unknown/USAA/Output";
             #endregion
 
             #region PullBackMessages
