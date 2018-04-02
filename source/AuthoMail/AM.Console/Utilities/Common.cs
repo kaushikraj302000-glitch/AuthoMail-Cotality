@@ -15,7 +15,6 @@ namespace AM.Console
 {
     public static class cfg
     {
-        
         public static SmtpClient Email_SMTPClient { get; private set; }
         public static string SchemaPath { get; set; }
         public static string SchemaPathAMC { get; set; }

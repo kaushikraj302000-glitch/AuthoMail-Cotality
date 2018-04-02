@@ -51,6 +51,7 @@ namespace AM.Console
             {
                 this.EnumerateBatches();
                 this.DownloadBatches();
+                this.SeparateBatches();
                 this.ValidateBatches();
                 this.AcknowledgeBatches();
             }
@@ -72,6 +73,10 @@ namespace AM.Console
         /// Downloads all batches which are queued as Received
         /// </summary>
         protected abstract void DownloadBatches();
+        /// <summary>
+        /// Validates all batches which are queued as Downloaded
+        /// </summary>
+        protected abstract void SeparateBatches();
         /// <summary>
         /// Validates all batches which are queued as Downloaded
         /// </summary>

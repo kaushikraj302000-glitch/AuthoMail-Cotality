@@ -19,7 +19,7 @@ namespace AM.Services
 
         #endregion
 
-        #region Core & Console
+        #region Console & Core
         public static string AuthoMailRootFolder { get; private set; }
 
         public static string PnS_SFT_HostURL { get; private set; }
@@ -54,6 +54,14 @@ namespace AM.Services
         public static string ReportSFTUploadingPathAMC { get; private set; }
         public static string USAACustIdentifier { get; set; }
         public static string AMCDirPath { get; set; }
+
+        //Core
+        public static string CoverTemplateFolder { get; private set; }
+
+        public static string CountryCode { get; private set; }
+        public static int NoofTime_AttemptFedexService { get; private set; }
+        public static int FedexServiceAttemptInterval { get; private set; }
+        public static string CustomerTransactionId { get; set; }
         #endregion
 
         #region PullBackRequestProps
@@ -124,7 +132,7 @@ namespace AM.Services
         {
 
             #region General
-            Environment = "Internal";
+            Environment = "Staging";
             AuthoMailRootFolder = @"D:\AuthoMailGit\Repos\source\AuthoMail\AM.Console\bin\Debug\AuthoMailRoot";
             #endregion
 
@@ -161,6 +169,14 @@ namespace AM.Services
 
             ReportSFTUploadingChannelCode = "USAA_CL";
             ReportSFTUploadingPathAMC = @"/Unknown/USAA/Output";
+
+            //Core Config
+
+            CoverTemplateFolder = @"D:\AuthoMailGit\Repos\source\AuthoMail\AM.Core\CoverTemplates";
+            CountryCode = "US";
+            FedexServiceAttemptInterval = 15000;
+            NoofTime_AttemptFedexService = 5;
+            CustomerTransactionId = "***Express Domestic Ship v7 Request using VC#***";
             #endregion
 
             #region PullBackMessages

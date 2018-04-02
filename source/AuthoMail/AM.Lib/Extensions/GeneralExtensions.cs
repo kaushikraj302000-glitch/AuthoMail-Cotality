@@ -35,22 +35,6 @@ namespace AM.Lib
             return String.Format(format, args);
         }
 
-        //public static bool IsFileExists(this string filePath)
-        //{
-        //    if (string.IsNullOrWhiteSpace(filePath))
-        //    {
-        //        return false;
-        //    }
-        //    else if (File.Exists(filePath))
-        //    {
-        //        return true;
-        //    }
-        //    else
-        //    {
-        //        return false;
-        //    }
-        //}
-
         public static void CreateDirectoryIfNotExist(this string dirPath)
         {
             if (!Directory.Exists(dirPath))

@@ -95,7 +95,7 @@ namespace AM.Core
                                 continue;
                             }
 
-                            string coverLetterTemplatePath = Path.Combine(Common.CoverTemplateFolder, docTypeLetter.CoverLetterTemplatePath);
+                            string coverLetterTemplatePath = Path.Combine(Config.CoverTemplateFolder, docTypeLetter.CoverLetterTemplatePath);
 
                             // Create final document using SmartDocs library.
                             coverLetterPdfPath = doc.GenerateUSPSCoverLetter(coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
@@ -129,7 +129,7 @@ namespace AM.Core
                             {
                                 CreateFedExLabel createFedExLabel = new CreateFedExLabel();
                                 bool result = false;
-                                while (count < Common.NoofTime_AttemptFedexService)
+                                while (count < Config.NoofTime_AttemptFedexService)
                                 {
                                     result = createFedExLabel.Create(mailPiece, fedExAccInfo, docType, mbi);
                                     if (result)
@@ -138,7 +138,7 @@ namespace AM.Core
                                     }
                                     else if (result == false && mailPiece.ErrorDesc == "Invalid_shipping_detail|General Failure")
                                     {
-                                        System.Threading.Thread.Sleep(Common.FedexServiceattemptInterval);
+                                        System.Threading.Thread.Sleep(Config.FedexServiceAttemptInterval);
                                         count++;
                                     }
                                     else
@@ -341,7 +341,7 @@ namespace AM.Core
 
                         printBatchData.Id = mailBatchSvc.InsertPrintBatchDetails(printBatchData);
 
-                        string pnsRootFolder = Common.PnS_SFT_RootDir;
+                        string pnsRootFolder = Config.PnS_SFT_RootDir;
                         string batchName = "{0}_{1}".Fill(mbi.MailBatch.BatchName, printBatchData.DocTypeId);
                         string batchXMLSubmitPath = Path.Combine(pnsRootFolder, mbi.Client.AppCode, batchName + ".xml");
                         string batchGOSubmitPath = Path.Combine(pnsRootFolder, mbi.Client.AppCode, batchName + ".go");
@@ -416,7 +416,7 @@ namespace AM.Core
                 return;
             }
 
-            SFTUtil sftSite = new SFTUtil(SFT_ProtocolType.unc, Common.PnS_SFT_HostURL, Common.PnS_SFT_UserName, Common.PnS_SFT_Password, 300000);
+            SFTUtil sftSite = new SFTUtil(SFT_ProtocolType.unc, Config.PnS_SFT_HostURL, Config.PnS_SFT_UserName, Config.PnS_SFT_Password, 300000);
 
             sftSite.Connect();
 
@@ -433,7 +433,7 @@ namespace AM.Core
             {
                 Client client = clientSvc.GetClientByAppCode(appCode);
 
-                responseFiles = sftSite.ListDirectory(Path.Combine(Common.PnS_SFT_RootDir, client.AppCode));
+                responseFiles = sftSite.ListDirectory(Path.Combine(Config.PnS_SFT_RootDir, client.AppCode));
 
                 var responseTriggerFiles = responseFiles
                 .Where(file => Path.GetExtension(file).ToLower() == ".rpt")
@@ -442,8 +442,8 @@ namespace AM.Core
 
                 foreach (var triggerFile in responseTriggerFiles)
                 {
-                    string pnsResponseFilePath = Path.Combine(Common.PnS_SFT_RootDir, client.AppCode, triggerFile.Key + "-res.xml");
-                    string pnsResponseTriggerFilePath = Path.Combine(Common.PnS_SFT_RootDir, client.AppCode, triggerFile.Value);
+                    string pnsResponseFilePath = Path.Combine(Config.PnS_SFT_RootDir, client.AppCode, triggerFile.Key + "-res.xml");
+                    string pnsResponseTriggerFilePath = Path.Combine(Config.PnS_SFT_RootDir, client.AppCode, triggerFile.Value);
                     if (sftSite.IsFileAvailable(pnsResponseFilePath))
                     {
                         submittedPrintBatches.ForEach(row =>
@@ -474,7 +474,7 @@ namespace AM.Core
 
                     if (sftSite.IsFileAvailable(responseFilePath))
                     {
-                        string amRootFilePath = Path.Combine(Common.AuthoMailRootFolder, responseFileName);
+                        string amRootFilePath = Path.Combine(Config.AuthoMailRootFolder, responseFileName);
 
                         DateTime mrdfDownloadStartTime = Common.Now;
                         DateTime responseReceivedOn = sftSite.LastModifiedTimeOfFile(responseFilePath);

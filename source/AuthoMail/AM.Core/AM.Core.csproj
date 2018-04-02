@@ -69,7 +69,6 @@
     <Compile Include="AMCoreService.Designer.cs">
       <DependentUpon>AMCoreService.cs</DependentUpon>
     </Compile>
-    <Compile Include="Common.cs" />
     <Compile Include="CreateFedExLabel.cs" />
     <Compile Include="MailUtility.cs" />
     <Compile Include="PdfUtil.cs" />
