@@ -37,13 +37,13 @@ namespace AM.Console
                 }
             }
 
-            DownloadJob downloadJob = new DownloadJob();
-            downloadJob.DownloadNewBatch();
-            downloadJob.SeparateUSAABatches();
-            downloadJob.ValidateBatches();
-            downloadJob.AcknowledgeBatches();
-            downloadJob.ReportPreppedProcess();
-            downloadJob.ReportBackProcess();
+            //DownloadJob downloadJob = new DownloadJob();
+            //downloadJob.DownloadNewBatch();
+            //downloadJob.SeparateUSAABatches();
+            //downloadJob.ValidateBatches();
+            //downloadJob.AcknowledgeBatches();
+            //downloadJob.ReportPreppedProcess();
+            //downloadJob.ReportBackProcess();
         }
     }
 }

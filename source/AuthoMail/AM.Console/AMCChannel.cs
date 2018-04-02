@@ -35,13 +35,13 @@ namespace AM.Console
             sftSite.Connect();
 
 
-            triggerFilePaths = GetTriggerFilePaths(sftSite, SFTChannel);
+            triggerFilePaths = GetTriggerFilePaths(sftSite);
 
             foreach (string triggerFile in triggerFilePaths)
             {
                 MailBatchDTO mailBatch = null;
 
-                string triggerFilePath = Path.Combine(SFTChannel.ToADEDir, triggerFile + "_Complete.go");
+                string triggerFilePath = Path.Combine(SFTChannel._ToADEDir, triggerFile + "_Complete.go");
 
                 //Download and Insert the batch in database first always.
                 string batchName = triggerFile;
@@ -66,10 +66,8 @@ namespace AM.Console
                 MoveTriggerFileToBackupDir(sftSite, triggerFilePath);
             }
 
-
             if (sftSite.IsConnected)
                 sftSite.Disconnect();
-
         }
 
         private void MoveTriggerFileToBackupDir(SFTUtil sftSite, string triggerFTPFilePath)
@@ -90,13 +88,11 @@ namespace AM.Console
                 sftSite.DeleteFile(triggerFTPFilePath);
         }
 
-        private List<string> GetTriggerFilePaths(SFTUtil sftSite, SFTChannel sftChannelDetails)
+        private List<string> GetTriggerFilePaths(SFTUtil sftSite)
         {
-            //if (sftSite.IsConnected == false)
-            //    sftSite.Connect();
-            var regex = new Regex(@"^(\w*)_Complete.go$", RegexOptions.IgnoreCase); // Regex.Match(, RegexOptions.IgnoreCase).Groups[1].Value
+            var regex = new Regex(@"^(\w*)_Complete.go$", RegexOptions.IgnoreCase);
 
-            List<string> availableTriggerFilePaths = sftSite.ListDirectory(sftChannelDetails.ToADEDir)
+            List<string> availableTriggerFilePaths = sftSite.ListDirectory(SFTChannel.ToADEDir)
                 .Select(f => regex.Match(Path.GetFileName(f)))
                 .Where(m => m.Success)
                 .Select(m => m.Groups[1].Value)
@@ -151,8 +147,8 @@ namespace AM.Console
 
                     string localZipFilePath = string.Empty;
                     string zipFileName = "{0}.zip".Fill(mbi.BatchName);
-                    string ftpZipFilePath = Path.Combine(SFTChannel.ToADEDir, zipFileName);
-                    string ftpTriggerFilePath = Path.Combine(SFTChannel.ToADEDir, "{0}_Complete.go".Fill(mbi.BatchName));
+                    string ftpZipFilePath = Path.Combine(SFTChannel._ToADEDir, zipFileName);
+                    string ftpTriggerFilePath = Path.Combine(SFTChannel._ToADEDir, "{0}_Complete.go".Fill(mbi.BatchName));
 
                     if (!sftSite.IsFileAvailable(ftpZipFilePath))
                     {
@@ -199,8 +195,6 @@ namespace AM.Console
                     var error = "Error occured while downloading {0} batch from SFT site for Batch-Id : {1}".Fill(mbi.BatchName, mbi.MailBatch.Id) + Environment.NewLine + ex.ToString();
 
                     log.Error(error);
-
-
 
                     continue;
                 }

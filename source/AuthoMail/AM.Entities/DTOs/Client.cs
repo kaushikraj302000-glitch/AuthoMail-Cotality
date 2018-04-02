@@ -34,7 +34,9 @@ namespace AM.Entities
         public string UserName { get; set; }
         public string Password { get; set; }
         public string ToADEDir { get; set; }
+        public string _ToADEDir { get { return Protocol == "unc" ? Host + ToADEDir : ToADEDir; } }
         public string ArchiveDir { get; set; }
+        public string _ArchiveDir { get { return Protocol == "unc" ? Host + ArchiveDir : ArchiveDir; } }
         public string PostDownloadAction { get; set; }
     }
 

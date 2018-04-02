@@ -37,7 +37,7 @@ namespace AM.Services
 
         public List<MailPieceDTO> GetMailPiecesByMailBatchId(int mailBatchId)
         {
-            string query = "SELECT * FROM [AM].[MailPiece] WHERE MailBatchId=@batchClustId";
+            string query = "SELECT * FROM [AM].[MailPieces] WHERE MailBatchId=@mailBatchId";
 
             var data = db.Query<MailPieceDTO>(query, new { MailBatchId = mailBatchId }).ToList();
             return data;
