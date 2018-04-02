@@ -78,7 +78,20 @@ namespace AM.Lib
                 }
             }
             else
-                return givenUrl;
+            {
+                if (givenUrl.StartsWith("\\"))
+                {
+                    return givenUrl;
+                }
+                else if (givenUrl.StartsWith("/"))
+                {
+                    return HostURL + givenUrl;
+                }
+                else
+                {
+                    throw new Exception("Invalid URL.");
+                }
+            }
         }
 
         private FtpWebRequest FTP_WebRequest { get; set; }
@@ -120,7 +133,7 @@ namespace AM.Lib
                     {
                         SFTP_Client.Connect();
                     }
-                    catch (SshOperationTimeoutException err)
+                    catch (SshOperationTimeoutException)
                     {
                         SFTP_Client = new SftpClient(HostURL, Username, Password);
                         SFTP_Client.KeepAliveInterval = TimeSpan.FromSeconds(KeepAliveInterval);
@@ -173,12 +186,11 @@ namespace AM.Lib
             }
             else if (Protocol == SFT_ProtocolType.unc)
             {
-                var fullDirectoryPath = Path.Combine(HostURL, downloadDirectoryPath);
-                return Directory.Exists(fullDirectoryPath);
+                return Directory.Exists(GetUrl(downloadDirectoryPath));
             }
             else
             {
-                return SFTP_Client.Exists(downloadDirectoryPath);
+                return SFTP_Client.Exists(GetUrl(downloadDirectoryPath));
             }
         }
 
@@ -204,12 +216,11 @@ namespace AM.Lib
             }
             else if (Protocol == SFT_ProtocolType.unc)
             {
-                var fullFilePath = Path.Combine(HostURL, serverFilePath);
-                return File.Exists(fullFilePath);
+                return File.Exists(GetUrl(serverFilePath));
             }
             else
             {
-                return SFTP_Client.Exists(serverFilePath);
+                return SFTP_Client.Exists(GetUrl(serverFilePath));
             }
         }
 
@@ -241,8 +252,7 @@ namespace AM.Lib
             }
             else if (Protocol == SFT_ProtocolType.unc)
             {
-                var fullFilePath = Path.Combine(HostURL, remoteFilePath);
-                File.Delete(fullFilePath);
+                File.Delete(GetUrl(remoteFilePath));
             }
             else
             {
@@ -337,8 +347,7 @@ namespace AM.Lib
             }
             else if (Protocol == SFT_ProtocolType.unc)
             {
-                var fullRemoteFilePath = Path.Combine(HostURL, remoteFilePath);
-                File.Copy(fullRemoteFilePath, localFilePath, true);
+                File.Copy(GetUrl(remoteFilePath), localFilePath, true);
             }
             else
             {
@@ -393,11 +402,11 @@ namespace AM.Lib
                     SFTP_Client.Connect();
                 }
 
-                return SFTP_Client.GetLastWriteTimeUtc(remoteFilePath);
+                return SFTP_Client.GetLastWriteTimeUtc(GetUrl(remoteFilePath));
             }
             else
             {
-                return File.GetLastWriteTimeUtc(remoteFilePath);
+                return File.GetLastWriteTimeUtc(GetUrl(remoteFilePath));
             }
         }
 
@@ -445,7 +454,8 @@ namespace AM.Lib
             }
             else
             {
-                return Directory.GetFileSystemEntries(remoteUrl).Select(f => Path.GetFileName(f)).ToList();
+                var fullDirectoryPath = GetUrl(remoteUrl);
+                return Directory.GetFileSystemEntries(fullDirectoryPath).Select(f => Path.GetFileName(f)).ToList();
             }
         }
 
@@ -470,12 +480,15 @@ namespace AM.Lib
             }
             else if (Protocol == SFT_ProtocolType.unc)
             {
-                string destinationRemoteDir = Path.GetDirectoryName(destinationRemotePath);
-                if (!Directory.Exists(destinationRemotePath))
+                string destinationFilePath = GetUrl(destinationRemotePath);
+                string destinationRemoteDir = Path.GetDirectoryName(destinationFilePath);
+
+                if (!Directory.Exists(destinationRemoteDir))
                 {
                     Directory.CreateDirectory(destinationRemoteDir);
                 }
-                File.Move(sourceRemotePath, destinationRemotePath);
+
+                File.Move(GetUrl(sourceRemotePath), GetUrl(destinationRemotePath));
             }
             else
             {
