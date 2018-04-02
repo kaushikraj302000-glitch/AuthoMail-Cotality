@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Dapper;
+using AM.Services.Properties;
 
 namespace AM.Services
 {
@@ -12,6 +13,7 @@ namespace AM.Services
         List<AMSetting> GetSystemSettings();
         int InsertSystemSetting(AMSetting amSetting);
         int UpdateSystemSetting(AMSetting amSetting);
+        void SeedAMSettings();
     }
     public class ConfigService : ServiceBase, IConfigService
     {
@@ -23,7 +25,7 @@ namespace AM.Services
 
         public int InsertSystemSetting(AMSetting amSetting)
         {
-            var query = "INSERT INTO [Common].[SystemSettings] ([Key],[DataType],[Value],[Description],[IsSystem],[DefaultValue]) VALUES (@Key,@DataType,@Value,@Description],@IsSystem,@DefaultValue)";
+            var query = "INSERT INTO [Common].[SystemSettings] ([Key],[DataType],[Value],[Description],[IsSystem],[DefaultValue]) VALUES (@Key,@DataType,@Value,@Description,@IsSystem,@DefaultValue)";
             return db.Execute(query, amSetting);
         }
 
@@ -31,6 +33,11 @@ namespace AM.Services
         {
             var query = "UPDATE [Common].[SystemSettings] SET [DataType] = @DataType,[Value] = @Value,[Description] = @Description WHERE [Key] = @Key";
             return db.Execute(query, amSetting);
+        }
+
+        public void SeedAMSettings()
+        {
+            db.Execute(Resources.SeedAMSeetings);
         }
     }
 }

@@ -10,6 +10,7 @@ using System.Net.Mail;
 using System.Web.Http;
 using Microsoft.AspNet.Identity;
 using AM.Entities.IdentityModels;
+using System.Web.Hosting;
 
 namespace AM.Web.Controllers
 {
@@ -157,7 +158,7 @@ namespace AM.Web.Controllers
                     string attachmentPdfName = string.Format("{0}_{1}.pdf", item.PrintBatch.ToString(), DateTime.Now.ToString("ddMMyyyyhhmmss"));
                     //string outputPdfPath = Path.Combine(Config.API_PB_OutputDir, string.Format("{0}_{1}.pdf", item.PrintBatch.ToString(), DateTime.Now.ToString("ddMMyyyyhhmmss")));
                     //Helper.MailMerge(Config.API_PB_PullBackFormTemplatePath, dataForPullBackForm, outputPdfPath);
-                    Helper.MailMerge(Config.API_PB_PullBackFormTemplatePath, dataForPullBackForm, ref output);
+                    Helper.MailMerge(HostingEnvironment.MapPath(Config.API_PB_PullBackFormTemplatePath), dataForPullBackForm, ref output);
                     bool isEmailSent = SendEmailWithPullBackForm(output, attachmentPdfName);
 
                 }
