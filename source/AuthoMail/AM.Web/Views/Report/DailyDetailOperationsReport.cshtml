@@ -97,6 +97,68 @@
     <div class="panel-body" id="dailyMailPieceList"></div>
 </div>
 
+<!-- table html template code -->
+<div id="dailyTableContent" style="display:none">
+    <table class="table table-responsive" style="overflow-x:scroll">
+        <thead>
+            <tr>
+                <th>Batch Id</th>
+                <th>MailPiece Id</th>
+                <th>Channel</th>
+                <th>Document Type</th>
+                <th>Loan Number</th>
+                <th>File Name</th>
+                <th>Date Received <span class="fontcapitalize">(Local)</span></th>
+                <th>Date Printed <span class="fontcapitalize">(Local)</span></th>
+                <th>Date Mailed <span class="fontcapitalize">(Local)</span></th>
+                <th>Client Code</th>
+                <th>Tracking Number</th>
+                <th>Shipping Method</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Recipient Street Address</th>
+                <th>Recipient City</th>
+                <th>Recipient State</th>
+                <th>Recipient Zip</th>
+                <th>Print Location</th>
+                <th>Pages Shipped</th>
+                <th>BatchId</th>
+
+            </tr>
+        </thead>
+        <tbody id="dailybodyContent"></tbody>
+    </table>
+</div>
+<div style="display:none">
+    <table>
+        <tbody id="dailyBody">
+            <tr class="row-small">
+                <td><span>{ClientBatchId}</span></td>
+                <td><span>{MailPieceUniqueId}</span></td>
+                <td><span>{Channel}</span></td>
+                <td><span>{DocumentOrPackageType}</span></td>
+                <td><span>{BusinessFriendlyIdValue}</span></td>
+                <td><span>{FileName}</span></td>
+                <td><span>{ReceivedOnFormatted}</span></td>
+                <td><span>{PrintedOnFormatted}</span></td>
+                <td><span>{MailedOnFormatted}</span></td>
+                <td><span>{ClientCode}</span></td>
+                <td><span>{TrackingNo}</span></td>
+                <td><span>{ShippingMethod}</span></td>
+                <td><span>{RcptFirstName}</span></td>
+                <td><span>{RcptLastName}</span></td>
+                <td><span>{RcptAddressStreet}</span></td>
+                <td><span>{RcptAddressCity}</span></td>
+                <td><span>{RcptAddressState}</span></td>
+                <td><span>{RcptAddressZIP}</span></td>
+                <td><span>{PrintLocation}</span></td>
+                <td><span>{PagesShipped}</span></td>
+                <td class="BatchId">{BatchId}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<!-- end table template code -->
 @section Scripts{
     @Styles.Render("~/bundles/datatablescss")
     @Scripts.Render("~/bundles/datatables")
@@ -133,7 +195,7 @@
                 },
                 "columnDefs": [
                         {
-                            "targets": [20],
+                            "targets": ["BatchId"],
                             "visible": false,
                             "searchable": true
                         },
@@ -200,7 +262,7 @@
                 data: JSON.stringify({ date: date, channel: $("#Channel").val() }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
-                   // console.log(response);
+                    // console.log(response);
                     if (response.Success) {
                         if (response.Object != null) {
                             $("#loading").hide();
@@ -216,91 +278,19 @@
                             $("#dailyMailPieceList").show();
                             console.log(response.Object.model.length);
                             if (response.Object.model.length > 0) {
-                                var table = "<thead>"
-                                    + "<tr>"
-                                        + "<th>Batch Id</th>"
-                                        + "<th>MailPiece Id</th>"
-                                        + "<th>Channel</th>"
-                                        + "<th>Document Type</th>"
-                                        + "<th>Loan Number</th>"
-                                        + "<th>File Name</th>"
-                                        + "<th>Received Date <span class='fontcapitalize'>(Local)</span></th>"
-                                        + "<th>Printed Date <span class='fontcapitalize'>(Local)</span></th>"
-                                        + "<th>Mailed Date <span class='fontcapitalize'>(Local)</span></th>"
-                                        + "<th>Client Code</th>"
-                                        + "<th>Tracking Number</th>"
-                                        + "<th>Shipping Method</th>"
-                                        + "<th>First Name</th>"
-                                        + "<th>Last Name</th>"
-                                        + "<th>Recipient Street Address</th>"
-                                        + "<th>Recipient City</th>"
-                                        + "<th>Recipient State</th>"
-                                        + "<th>Recipient Zip</th>"
-                                        + "<th>Print Location</th>"
-                                        + "<th>Pages Shipped</th>"
-                                        + "<th>BatchId</th>"
-                                    + "</tr>"
-                                + "</thead>";
-
-                                //  </table>
-                                var tr = "";
-                                $(response.Object.model).each(function () {
-                                    var error = "<span class='text-red'>" + this.ErrorDesc + "</span>";
-                                    var trackingNo = "";
-                                    if (this.TrackingNo == "") {
-                                        trackingNo = "<span>--</span>";
-                                    }
-                                    else {
-                                        trackingNo = "<button class='btn btn-transparent-blue btn-sm' onclick='GetTrackingInfo('" + this.TrackingNo + "','" + this.ShippingMethod + "')'><span>" + this.TrackingNo + "</span></button>";
-                                        console.log(trackingNo);
-                                    }
-                                    // table.fnAddData([
-                                    tr = tr + "<tr>"
-                                        + "<td><span>" + this.ClientBatchId + "</span></td>"
-                                        + "<td><span>" + this.MailPieceUniqueId + "</span></td>"
-                                        + "<td><span>" + this.Channel + "</span></td>"
-                                        + "<td><span>" + this.DocumentOrPackageType + "</span></td>"
-                                        + "<td><span>" + this.BusinessFriendlyIdValue + "</span></td>"
-                                        + "<td><span>" + this.FileName + "</span></td>"
-                                        + "<td><span>" + moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss") + "</span></td>"
-                                        + "<td><span>" + moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss") + "</span></td>"
-                                        + "<td><span>" + moment(this.MailedOn).format("MM/DD/YY HH:mm:ss") + "</span></td>"
-                                        + "<td><span>" + this.ClientCode + "</span></td>"
-                                        + "<td><span>" + trackingNo + "</span></td>"
-                                        + "<td><span>" + this.ShippingMethod + "</span></td>"
-                                        + "<td><span>" + this.RcptFirstName + "</span></td>"
-                                        + "<td><span>" + this.RcptLastName + "</span></td>"
-                                        + "<td><span>" + this.RcptAddressStreet + "</span></td>"
-                                        + "<td><span>" + this.RcptAddressCity + "</span></td>"
-                                        + "<td><span>" + this.RcptAddressState + "</span></td>"
-                                        + "<td><span>" + this.RcptAddressZIP + "</span></td>"
-                                        + "<td><span>" + this.PrintLocation + "</span></td>"
-                                        + "<td><span>" + this.PagesShipped + "</span></td>"
-                                        + "<td><span>" + this.BatchId + "</span></td></tr>";
-                                });
-                                tr = tr + "</tbody>";
-                                table = "<table class='table table-responsive' id='sample_2' style='overflow-x:scroll;'>" + table + "<tbody>" + tr + "</tbody></table>";
-                                //console.log(table);
-                                $("#dailyMailPieceList").html(table);
-
-                                applyDataTable();
+                                var data = FormatObject(response.Object.model);
+                                BindTemplate(data, "#dailyBody", "#dailybodyContent", "#dailyTableContent", "#dailyMailPieceList");
                             }
                             else {
                                 $("#dailyMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Msg_Web_NoRecordFound</span></div>")
                             }
                         }
-
-
-                        //$("#")
                     }
-
-                    //el.html(res);
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     $("#loading").hide();
                     $("#dailyHeader").show();
                     $("#dailyMailPieceList").show();
-
                     var msg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
                     $("#dailyMailPieceList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
                 }

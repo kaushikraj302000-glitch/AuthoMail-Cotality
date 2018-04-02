@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AM.Lib;
 
-namespace AM.Services.Models
+namespace AM.Services
 {
     public class WeeklyChart
     {
