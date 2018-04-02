@@ -60,6 +60,7 @@ namespace AM.Console
                 log.Error("Unexpected error.", ex);
 
                 // Send email to support team
+                MailUtility.SendUnexpectedExcelptionEmail(ex.ToString());
             }
         }
 

@@ -72,13 +72,11 @@ namespace AM.Console
 
         private void MoveTriggerFileToBackupDir(SFTUtil sftSite, string triggerFTPFilePath)
         {
-            //if (!sftSite.IsConnected)
-            //    sftSite.Connect();
-
             string triggerFTPBackUpFilePath = Path.Combine(SFTChannel.ArchiveDir, Path.GetFileName(triggerFTPFilePath));
 
             if (SFTChannel.PostDownloadAction == PostDownloadAction.Archive)
             {
+                //TODO: add overwrite option in SFTUtil for file moving
                 if (sftSite.IsFileAvailable(triggerFTPBackUpFilePath))
                     sftSite.DeleteFile(triggerFTPBackUpFilePath);
 
@@ -256,7 +254,7 @@ namespace AM.Console
 
                 if (!File.Exists(xmlFilePath))
                 {
-                    var error = "XML file for Batch : {0} does not exist".Fill(mbi.BatchName);
+                    var error = "XML file for Batch {0} does not exist".Fill(mbi.BatchName);
 
                     log.Error(error);
 
@@ -278,7 +276,7 @@ namespace AM.Console
                 }
                 catch (XmlException err)
                 {
-                    log.Error(err);
+                    log.Error("Unexpected error occurred while processing '{0}.xml'".Fill(mbi.BatchName), err);
 
                     ReportInvalidBatch(batch, err.ToString());
 
@@ -287,7 +285,7 @@ namespace AM.Console
 
                 if (mailPieceNodes == null || mailPieceNodes.Count == 0)
                 {
-                    ReportInvalidBatch(batch, "Xml does not contain any package info nodes.");
+                    ReportInvalidBatch(batch, "'{0}.xml' does not contain any package info node(s).".Fill(mbi.BatchName));
 
                     continue;
                 }

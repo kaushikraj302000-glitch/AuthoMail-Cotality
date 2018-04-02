@@ -46,12 +46,16 @@ namespace AM.Services
         public static string PnS_Email_To { get; private set; }
         public static string PnS_Email_Cc { get; private set; }
 
+        public static string ExceptionEmail_Subject { get; private set; }
+        public static string Exception_Email_To { get; private set; }
+        public static string Exception_Email_Cc { get; private set; }
+
         public static string ReportSFTUploadingChannelCode { get; private set; }
         public static string ReportSFTUploadingPathAMC { get; private set; }
         public static string USAACustIdentifier { get; set; }
         public static string AMCDirPath { get; set; }
         #endregion
-        
+
         #region PullBackRequestProps
         [Description("When mailpiece is aborted by client or for unknown reason.")]
         public static string Msg_API_PB_Aborted { get; private set; }
@@ -118,7 +122,7 @@ namespace AM.Services
         //public static Dictionary<string,string> Msg {get; private set;}
         static Config()
         {
-           
+
             #region General
             Environment = "Internal";
             AuthoMailRootFolder = @"D:\AuthoMailGit\Repos\source\AuthoMail\AM.Console\bin\Debug\AuthoMailRoot";
@@ -147,6 +151,10 @@ namespace AM.Services
             PnSEmail_Subject = "TEST USAA Status Update";
             PnS_Email_To = "sgolvelkar@corelogic.com";
             PnS_Email_Cc = "sgolvelkar@corelogic.com";
+
+            ExceptionEmail_Subject = "Unexpected error occurred in AuthoMail";
+            Exception_Email_To = "sgolvelkar@corelogic.com,avala@corelogic.com,vmungara@corelogic.com";
+            Exception_Email_Cc = "nirav.barot@milestonetechnoconsulting.com,milan.patel@milestonetechnoconsulting.com";
 
             USAACustIdentifier = "166";
             AMCDirPath = @"\\MTC-sagarg\c$\MSTC\AM\AMC";

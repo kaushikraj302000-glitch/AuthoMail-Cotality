@@ -71,6 +71,27 @@ namespace AM.Console
             return isEmailSent;
         }
 
+        public static void SendUnexpectedExcelptionEmail(string exception)
+        {
+            try
+            {
+                using (MailMessage msg = new MailMessage())
+                {
+                    msg.IsBodyHtml = true;
+                    msg.To.Add(Config.Exception_Email_To);
+                    msg.CC.Add(Config.Exception_Email_Cc);
+                    msg.Subject = Config.ExceptionEmail_Subject;
+                    msg.Priority = MailPriority.High;
+                    msg.Body = "Unexpected exception occured during execution." + Environment.NewLine + exception;
+                    cfg.Email_SMTPClient.Send(msg);
+                }
+            }
+            catch (Exception err)
+            {
+                log.Error(err);
+            }
+        }
+
         public static bool SendDownloadNotificationEmail(MailBatchInfo mbi, BatchData batchData, SFTChannel sftChannel)
         {
             bool isEmailSent = false;
