@@ -163,7 +163,7 @@
         <div class="modal-content">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal-header">
-                <h1 id="myModalLabel">Batch MailPiece Details</h1>
+                <h1 id="batchMailPieceModalHeader">Batch MailPiece Details</h1>
             </div>
             <div class="modal-body">
 
@@ -224,7 +224,7 @@
     </script>
     <script type="text/javascript">
         var commonmsg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
-        function GetChartDataByStatusAndBatchIds(status, ids) {
+        function GetChartDataByStatusAndBatchIds(status, ids, clientBatchId) {
             var el = $("#batchMailPieceModal").find('.modal-body');
             $.ajax({
                 type: "POST",
@@ -233,6 +233,8 @@
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     el.html(response);
+                    $("#batchMailPieceModalHeader").html("Mailpiece Summary: Batch Id -" + clientBatchId);
+                        //, Received On - " + moment(receivedOn).format("MM/DD/YY HH:mm:ss")
                     $("#batchMailPieceModal").modal("show");
                     setModalHeight("batchMailPieceModal");
                 },
@@ -252,7 +254,7 @@
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     el.html(response);
-                    $("#batchModalHeader").html("Batch Summary Received On - " + moment(date).format("MM/DD/YY") + " Status - " + status);
+                    $("#batchModalHeader").html("Batch Summary:<span class='normaltext'> Received On - " + moment(date).format("MM/DD/YY") + ", Status - " + status+"</span>");
                     $("#batchModal").modal("show");
                     setModalHeight("batchModal");
                 },
@@ -273,7 +275,7 @@
                 //url: baseUrl + "Home/GetWeeklyChartData",
                 url: baseUrl + "api/chart/GetWeeklyChartData",
                 success: function (response) {
-                    console.log(response);
+                    //console.log(response);
                     var chartData = [];
                     chartData.push(['Date', 'InProgress', 'Failed', 'ShippedPartial', 'ShippedAll', 'Dates']);
                     var cnt = 0;
@@ -387,7 +389,7 @@
 
         }
 
-        function GetMailPieceById(batchId) {
+        function GetMailPieceById(batchId, receivedOn,clientBatchId) {
             var el = $("#WeeklybatchMailPieceModal").find(".modal-body");
             $.ajax({
                 type: "POST",
@@ -397,6 +399,7 @@
                 success: function (response) {
                     el.html(response);
                     $("#batchModal").modal("hide");
+                    $("#WeeklybatchMailPieceHeader").html("Mailpiece Summary: <span class='normaltext'>Batch Id -" + clientBatchId + ", Received On - " + moment(receivedOn).format("MM/DD/YY HH:mm:ss")+"</span");
                     $("#WeeklybatchMailPieceModal").modal("show");
                     setModalHeight("WeeklybatchMailPieceModal");
                 },
@@ -443,8 +446,9 @@
                     var status = data.getColumnLabel(selectedItem.column);
                     if (div == "todayChart") {
                         var batchId = parseInt(data.getValue(selectedItem.row, 5));
+                        var clientBatchId = data.getValue(selectedItem.row, 0);
                         if (batchId != 0) {
-                            GetChartDataByStatusAndBatchIds(status, batchId);
+                            GetChartDataByStatusAndBatchIds(status, batchId, clientBatchId);
                         }
                     }
                     if (div == "weeklyChart") {

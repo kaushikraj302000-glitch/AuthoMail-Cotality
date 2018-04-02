@@ -10,39 +10,35 @@ namespace AM.Services
 {
     public interface IDocTypeService
     {
-        List<DocType> GetDocTypesByClientIdOrByDocTypeName(int? clientId, string docTypeCode);
-
+        List<DocType> GetDocTypesByClientId(int clientId);
+        DocType GetDocTypeByDocTypeCode(int clientId, string docTypeCode);
+        DocType GetDocTypesByDocTypeName(int clientId, string documentOrPackageName);
         List<DocTypeCoverLetter> GetDocumentCoverLetterTemplates(int docTypeId);
-
-        DocType GetDocTypesByDocTypeName(int clientId, string docTypeCode, string documentOrPackageName = "");
-
     }
+
     public class DocTypeService : ServiceBase, IDocTypeService
     {
-        public List<DocType> GetDocTypesByClientIdOrByDocTypeName(int? clientId, string docTypeCode)
+        public List<DocType> GetDocTypesByClientId(int clientId)
         {
-            string query = "SELECT * FROM [AM].[DocTypes]";
+            string query = "SELECT * FROM [AM].[DocTypes]  WHERE ClientId=@ClientId";
 
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
+            var data = db.Query<DocType>(query, new { ClientId = clientId }).ToList();
+            return data;
+        }
 
-            if (clientId.HasValue && string.IsNullOrEmpty(docTypeCode))
-            {
-                query = query + " WHERE ClientId=@clientId";
-                parameters.Add("@clientId", clientId.Value);
-            }
-            else if (clientId == null && !string.IsNullOrEmpty(docTypeCode))
-            {
-                query = query + " WHERE DocTypeCode=@docTypeCode";
-                parameters.Add("@DocTypeCode", docTypeCode);
-            }
-            else
-            {
-                query = query + " WHERE ClientId=@clientId AND DocTypeCode=@docTypeCode";
-                parameters.Add("@DocTypeCode", docTypeCode);
-                parameters.Add("@clientId", clientId.Value);
-            }
+        public DocType GetDocTypeByDocTypeCode(int clientId, string docTypeCode)
+        {
+            string query = "SELECT * FROM [AM].[DocTypes]  WHERE ClientId=@clientId AND DocTypeCode=@docTypeCode";
 
-            var data = db.Query<DocType>(query, parameters).ToList();
+            var data = db.Query<DocType>(query, new { clientId = clientId, docTypeCode = docTypeCode }).SingleOrDefault();
+            return data;
+        }
+
+        public DocType GetDocTypesByDocTypeName(int clientId, string documentOrPackageName)
+        {
+            string query = "SELECT * FROM [AM].[DocTypes] WHERE ClientId=@clientId AND Description=@documentOrPackageName";
+
+            var data = db.Query<DocType>(query, new { clientId = clientId, documentOrPackageName = documentOrPackageName }).FirstOrDefault();
             return data;
         }
 
@@ -50,31 +46,7 @@ namespace AM.Services
         {
             string query = "SELECT * FROM [AM].[DocTypeCoverLetters] WHERE DocTypeId=@docTypeId";
 
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@docTypeId", docTypeId);
-
-            var data = db.Query<DocTypeCoverLetter>(query, parameters).ToList();
-            return data;
-        }
-
-        public DocType GetDocTypesByDocTypeName(int clientId, string docTypeCode, string documentOrPackageName)
-        {
-            string query = "SELECT * FROM [AM].[DocTypes] WHERE ClientId=@clientId ";
-
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@clientId", clientId);
-            if (!string.IsNullOrEmpty(docTypeCode))
-            {
-                query += "AND DocTypeCode=@docTypeCode";
-                parameters.Add("@docTypeCode", docTypeCode);
-            }
-            else if (!string.IsNullOrEmpty(documentOrPackageName))
-            {
-                query += "AND Description=@documentOrPackageName";
-                parameters.Add("@documentOrPackageName", documentOrPackageName);
-            }
-
-            var data = db.Query<DocType>(query, parameters).FirstOrDefault();
+            var data = db.Query<DocTypeCoverLetter>(query, new { docTypeId = docTypeId }).ToList();
             return data;
         }
     }

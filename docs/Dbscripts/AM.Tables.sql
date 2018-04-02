@@ -2999,7 +2999,7 @@ select
 	AND ISNULL(b.ReceivedOn,0) BETWEEN ISNULL(@startDateRec, ISNULL(b.ReceivedOn, 0)) AND ISNULL(@endDateRec, ISNULL(b.ReceivedOn, 0))
 	AND ISNULL(m.DueDate,0) BETWEEN ISNULL(@startDateDue, ISNULL(m.DueDate, 0)) AND ISNULL(@endDateDue, ISNULL(m.DueDate, 0))
 	AND ISNULL(m.MailBatchId, '') = ISNULL(@batchId, ISNULL(m.MailBatchId, ''))
-	AND ISNULL(m.DocumentOrPackageType, '') = ISNULL(@docType, ISNULL(m.DocumentOrPackageType, ''))
+	AND ISNULL(m.DocTypeId, '') = ISNULL(@docType, ISNULL(m.DocTypeId, ''))
 	AND m.ShippingStatus IN ('InProgress','Shipped')
 	--AND ISNULL(m.ShippingStatus, '') IN (ISNULL('''InProgress'',''Shipped''', ISNULL(m.ShippingStatus, '')))
 	END
@@ -3033,7 +3033,7 @@ BEGIN
 	SET NOCOUNT ON;
 	select 
 m.Id as [MailPieceId], m.UniqueId as [MailPieceUniqueId],m.BusinessFriendlyIdName,m.BusinessFriendlyIdValue,
-m.DocumentOrPackageType,m.[FileName],m.TotalPages,m.PrintedOn,m.TrackingNo,
+m.DocumentOrPackageType,m.[FileName],m.DueDate,m.TotalPages,m.PrintedOn,m.TrackingNo,
 m.[ShippingStatus],
 m.[RcptPrefix],
 	m.[RcptFirstName],
@@ -3241,7 +3241,7 @@ BEGIN
 	 WHERE m.MailBatchId=b.Id AND b.SFTChannelId=ch.Id AND m.ClientId=c.Id AND m.ClientId=@clientId
 	 AND ISNULL(m.BusinessFriendlyIdName, '') = ISNULL(@businessFriendlyIdName, ISNULL(m.BusinessFriendlyIdName, ''))
 	 AND ISNULL(m.BusinessFriendlyIdValue, '') = ISNULL(@businessFriendlyIdValue, ISNULL(m.BusinessFriendlyIdValue, ''))
-	 AND ISNULL(m.DocumentOrPackageType, '') = ISNULL(@docType, ISNULL(m.DocumentOrPackageType, ''))
+	 AND ISNULL(m.DocTypeId, '') = ISNULL(@docType, ISNULL(m.DocTypeId, ''))
 	 AND ISNULL(m.ShippingStatus, '') = ISNULL(@shippingStatus, ISNULL(m.ShippingStatus, ''))
 	 AND ISNULL(ch.Code, '') = ISNULL(@channel, ISNULL(ch.Code, ''))
 	 AND ISNULL(m.MailBatchId, '') = ISNULL(@batchId, ISNULL(m.MailBatchId, ''))

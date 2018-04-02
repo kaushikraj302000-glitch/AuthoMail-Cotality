@@ -25,7 +25,13 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="dp4">Select Date (EST)</label>
-                        <select class="selectpicker" id="dates"></select>
+                        @*<select class="selectpicker" id="dates"></select>*@
+                        <select class="selectpicker" id="dates">
+                            @foreach (var item in ViewBag.dateList as List<string>)
+                            {
+                                <option value="@item">@item</option>
+                            }
+                        </select>
                     </div>
 
                 </div>
@@ -59,7 +65,7 @@
     <script>
         $(document).ready(function () {
             window.clui.dateTimePickerInit();
-            getLastMonths(6)
+            // getLastMonths(6)
 
             FilterData();
             //console.log(getLastMonths(6));
@@ -72,10 +78,10 @@
             var loanNumber = $("#loanNumber").val();
             var docType = $("#DocType").val();
 
-            var selectedData = $("#dates").val().split('|');
-           // console.log(selectedData);
-            var startDate = selectedData[0].trim();
-            var endDate = selectedData[1].trim();
+            var selectedData = $("#dates").val().split('-');
+            // console.log(selectedData);
+            var startDate = moment(selectedData[0].trim()).format("MM/DD/YY");
+            var endDate = moment(selectedData[1].trim()).format("MM/DD/YY");
             var el = $('#batchList');
             el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
             $.ajax({
@@ -113,7 +119,7 @@
                     option += "<option selected='selected' value='" + value + "'>" + value.replace("|", " - ") + "</option>"
                 }
                 else {
-                    option += "<option value='" + value + "'>" + value.replace("|"," - ") + "</option>"
+                    option += "<option value='" + value + "'>" + value.replace("|", " - ") + "</option>"
                 }
                 d.setMonth(d.getMonth() - 1);
                 d1.setMonth(d.getMonth() - 1);

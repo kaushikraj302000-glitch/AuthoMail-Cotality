@@ -16,6 +16,8 @@
                 <th>File Name</th>
                 <th>Recipient Name</th>
                 <th>Recipient Address</th>
+                <th>Received Date <span class="fontcapitalize">(Local)</span></th>
+                <th>Due Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Document Type</th>
                 <th>Pages</th>
                 <th>Tracking Number</th>
@@ -32,9 +34,11 @@
                     <td><span>@item.FileName</span></td>
                     <td><span>@item.RecipientName </span></td>
                     <td><span>@item.RCPTAddress</span></td>
+                    <td><span>@item.ReceivedOn</span></td>
+                    <td><span>@item.DueDate</span></td>
                     <td><span>@item.DocumentOrPackageType</span></td>
                     <td><span>@item.TotalPages</span></td>
-                    <td><span>@item.TrackingNo</span></td>
+                    <td><span class="small">@item.TrackingNo</span></td>
                     <td>
                         @switch (item.ShippingStatus)
                         {

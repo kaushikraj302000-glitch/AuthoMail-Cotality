@@ -63,13 +63,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AMCChannel.cs" />
+    <Compile Include="Channel.cs" />
+    <Compile Include="ChannelFactory.cs" />
     <Compile Include="UploadJob.cs" />
     <Compile Include="DownloadJob.cs" />
     <Compile Include="Schema.cs" />
     <Compile Include="Utilities\Common.cs" />
     <Compile Include="Utilities\MailUtility.cs" />
     <Compile Include="Utilities\PdfUtil.cs" />
-    <Compile Include="Utilities\SFTUtil.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities\XmlUtil.cs" />
