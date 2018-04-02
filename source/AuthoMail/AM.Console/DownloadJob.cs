@@ -19,16 +19,16 @@ namespace AM.Console
 {
     public class DownloadJob
     {
-        private static readonly ILog log = LogManager.GetLogger(typeof(DownloadJob));
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         IClientService clientSvc;
-        IBatchService mailBatchSvc;
+        IMailBatchService mailBatchSvc;
         ICommonService commonSvc;
         IMailPieceService mailPieceSvc;
         public DownloadJob()
         {
             clientSvc = new ClientService();
-            mailBatchSvc = new BatchService();
+            mailBatchSvc = new MailBatchService();
             commonSvc = new CommonService();
             mailPieceSvc = new MailPieceService();
         }
@@ -39,7 +39,9 @@ namespace AM.Console
         {
             log.Debug("Download Batch Process Started");
 
-            Client client = clientSvc.GetClientDetails(null, "USAA").SingleOrDefault(x => x.IsAMActive == true);
+            // 
+
+            Client client = clientSvc.GetClientByAppCode("USAA");
 
             if (client != null)
             {
@@ -200,6 +202,8 @@ namespace AM.Console
             //Update Batch Details
             mailBatchSvc.UpdateBatchDetails(mailBatch);
 
+            //TODO: Ask to Ravi Sir for Batch level notification And how to manage status for this
+
             //Update Batch Status
             commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.Failed.ToString());
         }
@@ -235,8 +239,6 @@ namespace AM.Console
             string ftpBackupDir = channelDetails.ArchiveDir;
 
             string triggerFTPBackUpFilePath = Path.Combine(ftpBackupDir, Path.GetFileName(triggerFTPFilePath));
-            if (sftSite.IsFileAvailable(triggerFTPBackUpFilePath))
-                sftSite.DeleteFile(triggerFTPBackUpFilePath);
 
             if (channelDetails.PostDownloadAction == PostDownloadAction.Archive)
             {
@@ -310,11 +312,18 @@ namespace AM.Console
 
             foreach (var batch in downloadBatches)
             {
-                Client client = clientSvc.GetClientDetails(batch.ClientId).SingleOrDefault();
+                Client client = clientSvc.GetClientById(batch.ClientId);
 
                 MailBatchInfo mbi = new MailBatchInfo(batch, client, null, Common.AuthoMailRootFolder);
 
                 var xmlFilePath = Path.Combine(mbi.AMRequestPath, mbi.BatchName + ".xml");
+
+                if (!File.Exists(xmlFilePath))
+                {
+                    ReportInvalidBatch(batch, "Xml file does not exist in Batch-{0}".Fill(batch.BatchName));
+
+                    continue;
+                }
 
                 XmlDocument batchXML = new XmlDocument();
                 XmlNamespaceManager nsManager = null;
@@ -335,6 +344,16 @@ namespace AM.Console
                     commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationEnd, Common.Now);
 
                     ReportInvalidBatch(batch, err.ToString());
+
+                    continue;
+                }
+                catch (Exception ex)
+                {
+                    log.Error(ex);
+
+                    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationEnd, Common.Now);
+
+                    ReportInvalidBatch(batch, ex.ToString());
 
                     continue;
                 }
@@ -462,7 +481,7 @@ namespace AM.Console
 
         public void ValidateBatches()
         {
-            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.Downloaded);
+            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.Downloaded).Where(x => x.BatchStatus != BatchStatus.Failed.ToString()).ToList();
             if (downloadBatches == null)
             {
                 log.Debug("Job queue is empty for validating batches.");
@@ -471,7 +490,7 @@ namespace AM.Console
 
             foreach (var batch in downloadBatches)
             {
-                Client client = clientSvc.GetClientDetails(batch.ClientId).SingleOrDefault();
+                Client client = clientSvc.GetClientById(batch.ClientId);
 
                 MailBatchInfo mbi = new MailBatchInfo(batch, client, null, Common.AuthoMailRootFolder);
 
@@ -506,6 +525,16 @@ namespace AM.Console
                     commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationEnd, Common.Now);
 
                     ReportInvalidBatch(batch, err.ToString());
+
+                    continue;
+                }
+                catch (Exception ex)
+                {
+                    log.Error(ex);
+
+                    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationEnd, Common.Now);
+
+                    ReportInvalidBatch(batch, ex.ToString());
 
                     continue;
                 }
@@ -702,7 +731,7 @@ namespace AM.Console
 
             foreach (var batch in validatedBatches)
             {
-                Client client = clientSvc.GetClientDetails(batch.ClientId).Single();
+                Client client = clientSvc.GetClientById(batch.ClientId);
                 SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(batch.SFTChannelId);
 
                 MailBatchInfo mbi = new MailBatchInfo(batch, client, sftChannelDetails, Common.AuthoMailRootFolder);
@@ -754,7 +783,7 @@ namespace AM.Console
 
             foreach (var batch in resReceivedBatches)
             {
-                Client client = clientSvc.GetClientDetails(batch.ClientId).Single();
+                Client client = clientSvc.GetClientById(batch.ClientId);
                 SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(batch.SFTChannelId);
                 MailBatchInfo mbi = new MailBatchInfo(batch, client, sftChannelDetails, Common.AuthoMailRootFolder);
                 var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
@@ -811,7 +840,7 @@ namespace AM.Console
 
             foreach (var batch in reportPreppedBatches)
             {
-                Client client = clientSvc.GetClientDetails(batch.ClientId).Single();
+                Client client = clientSvc.GetClientById(batch.ClientId);
 
                 string uploadPath = Common.ReportSFTUploadingPathAMC;
 
@@ -841,8 +870,8 @@ namespace AM.Console
                                     foreach (string filePath in reportList)
                                     {
                                         string fileName = Path.GetFileName(filePath);
-                                        string ftpUuploadPath = Path.Combine(uploadPath, fileName);
-                                        sftSite.UploadFile(filePath, ftpUuploadPath);
+                                        string ftpUploadPath = Path.Combine(uploadPath, fileName);
+                                        sftSite.UploadFile(ftpUploadPath, filePath);
                                     }
                                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
                                 }

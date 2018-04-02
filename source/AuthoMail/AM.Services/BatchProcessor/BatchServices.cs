@@ -9,18 +9,18 @@ using AM.Entities;
 
 namespace AM.Services
 {
-    public interface IBatchService : IDisposable
+    public interface IMailBatchService : IDisposable
     {
         int InsertBatchDetails(MailBatchDTO mailBatch);
         int DeleteBatchDetails(int mailBatchId);
         int UpdateBatchDetails(MailBatchDTO mailBatch);
-        List<MailBatchDTO> GetBatchesByStatus(string batchPipelineStatus, string batchStatus = null);
+        List<MailBatchDTO> GetBatchesByStatus(string batchPipelineStatus);
         BatchData GetMailBatchDetailsByBatchId(int mailBatchId);
         int InsertPrintBatchDetails(PrintBatch printBatch);
         List<SubmittedBatch> GetSubmittedPrintBatchDetails();
         List<SubmittedBatch> GetResponseReceivedPrintBatchDetails();
     }
-    public class BatchService : ServiceBase, IBatchService //It implements Interfaces 
+    public class MailBatchService : ServiceBase, IMailBatchService //It implements Interfaces 
     {
         public int InsertBatchDetails(MailBatchDTO mailBatch)
         {
@@ -53,46 +53,32 @@ namespace AM.Services
             return Convert.ToInt32(data);
         }
 
-        public List<MailBatchDTO> GetBatchesByStatus(string batchPipelineStatus, string batchStatus)
+        public List<MailBatchDTO> GetBatchesByStatus(string batchPipelineStatus)
         {
             //Sql Query
             string query = "SELECT * FROM [AM].[MailBatches] WHERE PipelineStatus= @batchPipelineStatus ";
 
             switch (batchPipelineStatus)
             {
-                case BatchPipelineStatus.Downloaded: query += " AND IsValidated=0";
+                case BatchPipelineStatus.Downloaded: query += " AND IsDownloaded=1 AND IsValidated=0";
                     break;
-                case BatchPipelineStatus.Validated: query += " AND IsAcknowledged=0";
+                case BatchPipelineStatus.Validated: query += " AND IsValidated=1 AND IsAcknowledged=0";
                     break;
-                case BatchPipelineStatus.Acknowledged: query += " AND IsPrepped=0";
+                case BatchPipelineStatus.Acknowledged: query += " AND IsAcknowledged=1 AND IsPrepped=0";
                     break;
-                case BatchPipelineStatus.Prepped: query += " AND IsSubmittedToShipping=0";
+                case BatchPipelineStatus.Prepped: query += " AND IsPrepped=1 AND IsSubmittedToShipping=0";
                     break;
-                case BatchPipelineStatus.SubmittedToShipping: query += " AND IsShippingResponseReceived=0";
+                case BatchPipelineStatus.SubmittedToShipping: query += " AND IsSubmittedToShipping=1 AND IsShippingResponseReceived=0";
                     break;
-                case BatchPipelineStatus.ShippingResponseReceived: query += " AND IsReportPrepped=0";
+                case BatchPipelineStatus.ShippingResponseReceived: query += " AND IsShippingResponseReceived=1 AND IsReportPrepped=0";
                     break;
-                case BatchPipelineStatus.ReportPrepped: query += " AND IsReportedBack=0";
+                case BatchPipelineStatus.ReportPrepped: query += " AND IsReportPrepped=1 AND IsReportedBack=0";
                     break;
                 default:
                     break;
             }
 
-            //Assign value to parameters It may one or more. Note:
-            //List of parameters declaration
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("@batchPipelineStatus", batchPipelineStatus);
-
-            if (!string.IsNullOrEmpty(batchStatus))
-            {
-                parameters.Add("@batchStatus", batchStatus);
-                query += " AND BatchStatus=@batchStatus";
-            }
-
-            /* Execution of query with parateters.
-              Without Dapper you can't create following code. So just Add "using Dapper" namespace at begin.
-            */
-            var data = db.Query<MailBatchDTO>(query, parameters).ToList();
+            var data = db.Query<MailBatchDTO>(query, new { batchPipelineStatus = batchPipelineStatus }).ToList();
             return data;
         }
 

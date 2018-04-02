@@ -463,32 +463,32 @@ INSERT [Common].[SFTChannels] ([Id], [Code], [Description], [Title], [Protocol],
 GO
 INSERT [Common].[SFTChannels] ([Id], [Code], [Description], [Title], [Protocol], [Host], [UserName], [Password], [ToADEDir], [FromADEDir], [ArchiveDir], [PostDownloadAction], [IsActive]) VALUES (10, N'HTLFS_Prod', N'Prod environment SFTP of HTLFS Client', N'HTLFS_Prod', N'sftp', N'htlfsftp.mortgagecadence.com', N'htlf_elc_sftp', N'8SXOcI%c*#Z0', N'/Production/Initial Disclosures', NULL, N'/Production/Initial Disclosures/Archive', N'Archive', 1)
 GO
-INSERT [Common].[SFTChannels] ([Id], [Code], [Description], [Title], [Protocol], [Host], [UserName], [Password], [ToADEDir], [FromADEDir], [ArchiveDir], [PostDownloadAction], [IsActive]) VALUES (11, N'InHousePnS_NOPI_Prod', N'Production PnS SFTP of NOPI Client', N'InHousePnS_NOPI_Prod', N'sftp', N'ftp2.resftp.com', N'gloffshore_srv', N'today123', N'', N'/gos/RPS Remediation Project', N'', N'', 1)
+INSERT [Common].[SFTChannels] ([Id], [Code], [Description], [Title], [Protocol], [Host], [UserName], [Password], [ToADEDir], [FromADEDir], [ArchiveDir], [PostDownloadAction], [IsActive]) VALUES (11, N'CL_DocSol_PnS_NOPI_Prod', N'Production PnS SFTP of NOPI Client', N'InHousePnS_NOPI_Prod', N'sftp', N'ftp2.resftp.com', N'gloffshore_srv', N'today123', N'', N'/gos/RPS Remediation Project', N'', N'', 1)
 GO
-INSERT [Common].[SFTChannels] ([Id], [Code], [Description], [Title], [Protocol], [Host], [UserName], [Password], [ToADEDir], [FromADEDir], [ArchiveDir], [PostDownloadAction], [IsActive]) VALUES (12, N'InHousePnS_HSBC_Prod', N'Production PnS SFTP of HSBC Client', N'InHousePnS_HSBC_Prod', N'sftp', N'ftp2.resftp.com', N'gloffshore_srv', N'dG9kYXkxMjM=', N'', N'/gos/HSBC', N'', N'', 1)
+INSERT [Common].[SFTChannels] ([Id], [Code], [Description], [Title], [Protocol], [Host], [UserName], [Password], [ToADEDir], [FromADEDir], [ArchiveDir], [PostDownloadAction], [IsActive]) VALUES (12, N'CL_DocSol_PnS_HSBC_Prod', N'Production PnS SFTP of HSBC Client', N'InHousePnS_HSBC_Prod', N'sftp', N'ftp2.resftp.com', N'gloffshore_srv', N'dG9kYXkxMjM=', N'', N'/gos/HSBC', N'', N'', 1)
 GO
-INSERT [Common].[SFTChannels] ([Id], [Code], [Description], [Title], [Protocol], [Host], [UserName], [Password], [ToADEDir], [FromADEDir], [ArchiveDir], [PostDownloadAction], [IsActive]) VALUES (13, N'InHousePnS_HTLFS_Prod', N'Production PnS SFTP of HTLFS Client', N'InHousePnS_HTLFS_Prod', N'sftp', N'securefile.credco.com', N'dkamdar', N'RXhLRzZtM0P=', N'', N'/Heartland_Print-Ship', N'', N'', 1)
+INSERT [Common].[SFTChannels] ([Id], [Code], [Description], [Title], [Protocol], [Host], [UserName], [Password], [ToADEDir], [FromADEDir], [ArchiveDir], [PostDownloadAction], [IsActive]) VALUES (13, N'CL_DocSol_PnS_HTLFS_Prod', N'Production PnS SFTP of HTLFS Client', N'InHousePnS_HTLFS_Prod', N'sftp', N'securefile.credco.com', N'dkamdar', N'RXhLRzZtM0P=', N'', N'/Heartland_Print-Ship', N'', N'', 1)
 GO
-INSERT [Common].[SFTChannels] ([Id], [Code], [Description], [Title], [Protocol], [Host], [UserName], [Password], [ToADEDir], [FromADEDir], [ArchiveDir], [PostDownloadAction], [IsActive]) VALUES (14, N'BOA_Prod', N'Production Shared Path of BOA Client', N'BOA_Prod', N'unc', N'Slxqn1vdappsr01.infosolco.net', N'', N'', N'/FAGOSFTP/LAS_DELFUS_Print_Ship', N'', N'/FAGOSFTP/LAS_DELFUS_Print_Ship/Backup', N'Archive', 1)
+INSERT [Common].[SFTChannels] ([Id], [Code], [Description], [Title], [Protocol], [Host], [UserName], [Password], [ToADEDir], [FromADEDir], [ArchiveDir], [PostDownloadAction], [IsActive]) VALUES (14, N'CL_FAGOSFTP_BOA_Prod', N'Production Shared Path of BOA Client', N'BOA_Prod', N'unc', N'Slxqn1vdappsr01.infosolco.net', N'', N'', N'/FAGOSFTP/LAS_DELFUS_Print_Ship', N'', N'/FAGOSFTP/LAS_DELFUS_Print_Ship/Backup', N'Archive', 1)
 GO
-INSERT [Common].[SFTChannels] ([Id], [Code], [Description], [Title], [Protocol], [Host], [UserName], [Password], [ToADEDir], [FromADEDir], [ArchiveDir], [PostDownloadAction], [IsActive]) VALUES (15, N'Condosafe_Prod', N'Production Shared Path of Condosafe Client', N'Condosafe_Prod', N'unc', N'Slxqn1vdappsr01.infosolco.net', N'', N'', N'/FAGOSFTP/CondoSafe', N'', N'/FAGOSFTP/Condosafe/Backup', N'Archive', 1)
+INSERT [Common].[SFTChannels] ([Id], [Code], [Description], [Title], [Protocol], [Host], [UserName], [Password], [ToADEDir], [FromADEDir], [ArchiveDir], [PostDownloadAction], [IsActive]) VALUES (15, N'CL_FAGOSFTP_Condosafe_Prod', N'Production Shared Path of Condosafe Client', N'Condosafe_Prod', N'unc', N'Slxqn1vdappsr01.infosolco.net', N'', N'', N'/FAGOSFTP/CondoSafe', N'', N'/FAGOSFTP/Condosafe/Backup', N'Archive', 1)
 GO
-INSERT [Common].[SFTChannels] ([Id], [Code], [Description], [Title], [Protocol], [Host], [UserName], [Password], [ToADEDir], [FromADEDir], [ArchiveDir], [PostDownloadAction], [IsActive]) VALUES (16, N'Dallas_Prod', N'Production Shared Path of Dallas Client', N'Dallas_Prod', N'unc', N'Slxqn1vdappsr01.infosolco.net', N'', N'', N'/FAGOSFTP/PNS/DallasNeighbourhoodHomes/Filetransfer/Inbound', N'', N'/FAGOSFTP/PNS/DallasNeighbourhoodHomes/Filetransfer/Inbound/Backup', N'Archive', 1)
+INSERT [Common].[SFTChannels] ([Id], [Code], [Description], [Title], [Protocol], [Host], [UserName], [Password], [ToADEDir], [FromADEDir], [ArchiveDir], [PostDownloadAction], [IsActive]) VALUES (16, N'CL_FAGOSFTP_Dallas_Prod', N'Production Shared Path of Dallas Client', N'Dallas_Prod', N'unc', N'Slxqn1vdappsr01.infosolco.net', N'', N'', N'/FAGOSFTP/PNS/DallasNeighbourhoodHomes/Filetransfer/Inbound', N'', N'/FAGOSFTP/PNS/DallasNeighbourhoodHomes/Filetransfer/Inbound/Backup', N'Archive', 1)
 GO
 INSERT [Common].[SFTChannels] ([Id], [Code], [Description], [Title], [Protocol], [Host], [UserName], [Password], [ToADEDir], [FromADEDir], [ArchiveDir], [PostDownloadAction], [IsActive]) VALUES (17, N'PCI_UAT', N'UAT environment SFTP of PCI Client', N'PCI_UAT', N'sftp', N'sftp.pcigroup.com', N'FromADE', N'iPewzypgufdd', N'/TestADE', N'/Test', N'', N'Delete', 1)
 GO
-INSERT [Common].[SFTChannels] ([Id], [Code], [Description], [Title], [Protocol], [Host], [UserName], [Password], [ToADEDir], [FromADEDir], [ArchiveDir], [PostDownloadAction], [IsActive]) VALUES (18, N'InHousePnS_DALLAS_Prod', N'UAT environment SFTP of DALLAS Client', N'InHousePnS_DALLAS_Prod', N'sftp', N'ftp2.resftp.com', N'gloffshore_srv', N'today123', N'', N'/gos', N'', N'', 1)
+INSERT [Common].[SFTChannels] ([Id], [Code], [Description], [Title], [Protocol], [Host], [UserName], [Password], [ToADEDir], [FromADEDir], [ArchiveDir], [PostDownloadAction], [IsActive]) VALUES (18, N'CL_DocSol_PnS_DALLAS_Prod', N'UAT environment SFTP of DALLAS Client', N'InHousePnS_DALLAS_Prod', N'sftp', N'ftp2.resftp.com', N'gloffshore_srv', N'today123', N'', N'/gos', N'', N'', 1)
 GO
 INSERT [Common].[SFTChannels] ([Id], [Code], [Description], [Title], [Protocol], [Host], [UserName], [Password], [ToADEDir], [FromADEDir], [ArchiveDir], [PostDownloadAction], [IsActive]) VALUES (19, N'PCI_Prod', N'Prod environment SFTP of PCI Client', N'PCI_Prod', N'sftp', N'sftp.pcigroup.com', N'FromADE', N'BV<Lq;52', N'/TestADE', N'/Test', N'', N'Delete', 1)
 GO
-INSERT [Common].[SFTChannels] ([Id], [Code], [Description], [Title], [Protocol], [Host], [UserName], [Password], [ToADEDir], [FromADEDir], [ArchiveDir], [PostDownloadAction], [IsActive]) VALUES (20, N'USAA_CL', NULL, N'CoreLogic SFTP', N'sftp', N'securefile.credco.com', N'dkamdar', N'RXhLRzZtM0P=', N'/Unknown/USAA/Input', NULL, N'/Unknown/USAA/Input/Archive', N'Archive', 1)
-GO
+INSERT [Common].[SFTChannels] ([Id], [Code], [Description], [Title], [Protocol], [Host], [UserName], [Password], [ToADEDir], [FromADEDir], [ArchiveDir], [PostDownloadAction], [IsActive]) VALUES (20, N'USAA_Staging', NULL, N'CoreLogic SFTP', N'sftp', N'securefile.credco.com', N'dkamdar', N'RXhLRzZtM0P=', N'/Unknown/USAA/Input', NULL, N'/Unknown/USAA/Input/Archive', N'Archive', 1)
 GO
 SET IDENTITY_INSERT [Common].[SFTChannels] OFF
 GO
+
 INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(65,1,'USAA_Template.pdf')
 GO
 INSERT INTO [AM].[ClientBusinessIdentifiers]([ClientId],[BusinessIdName])VALUES(101,'Loan Number')
 GO
 EXEC usp_MapClientSFTChannels 'USAA','AMC_Internal'
-EXEC usp_MapClientSFTChannels 'USAA','USAA_CL'
+EXEC usp_MapClientSFTChannels 'USAA','USAA_Staging'

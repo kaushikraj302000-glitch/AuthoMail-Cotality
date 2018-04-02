@@ -126,7 +126,32 @@
                 $(selector).find("i").addClass("fa-circle-o-notch fa-spin");
             }
         }
+        if (!String.prototype.supplant) {
+            String.prototype.supplant = function (o) {
+                return this.replace(/{([^{}]*)}/g,
+                    function (a, b) {
+                        var r = o[b];
+                        if (r == null || typeof r == "undefined") return "--";
+                        return typeof r === 'string' || typeof r === 'number' ? r : a;
+                    }
+                );
+            };
+        }
+        function BindTemplate(model, bodyId, bodyContentId, mainTableId, mainDivId) {
 
+            var bodyHtml = $(bodyId).html();
+            var tableHtml = "";
+            $(model).each(function () {
+                this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                tableHtml = tableHtml + bodyHtml.supplant(this);
+            });
+            // console.log(test1);
+
+            $(bodyContentId).html(tableHtml);
+            $(mainDivId).html($(mainTableId).html());
+            $(mainDivId).find("table").attr("id", "sample_2");
+            applyDataTable();
+        }
         function GetTrackingInfo(TrackingNo, ShippingMethod) {
             var el = $('#TrackingInfo').find('.modal-body');
             $.ajax({

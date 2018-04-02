@@ -15,13 +15,13 @@ namespace AM.Console
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(UploadJob));
         IClientService clientSvc;
-        IBatchService mailBatchSvc;
+        IMailBatchService mailBatchSvc;
         IMailPieceService mailPieceSvc;
         ICommonService commonSvc;
         public UploadJob()
         {
             clientSvc = new ClientService();
-            mailBatchSvc = new BatchService();
+            mailBatchSvc = new MailBatchService();
             commonSvc = new CommonService();
             mailPieceSvc = new MailPieceService();
         }
@@ -37,7 +37,7 @@ namespace AM.Console
 
             foreach (var batch in resReceivedBatches)
             {
-                Client client = clientSvc.GetClientDetails(batch.ClientId).Single();
+                Client client = clientSvc.GetClientById(batch.ClientId);
                 SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(batch.SFTChannelId);
 
                 MailBatchInfo mbi = new MailBatchInfo(batch, client, sftChannelDetails, Common.AuthoMailRootFolder);

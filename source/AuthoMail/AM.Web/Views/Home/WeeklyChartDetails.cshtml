@@ -8,7 +8,7 @@
             <tr>
                 <th>Batch Id</th>
                 <th>Batch Name</th>
-                <th>Batch Status</th>
+                <th>Total MailPiece</th>
                 <th>Received On <span class="fontcapitalize">(Local)</span></th>
                 <th>Action</th>
             </tr>
@@ -19,30 +19,11 @@
                 <tr class="row-small">
                     <td><span>@item.ClientBatchId</span></td>
                     <td><span>@item.BatchName</span></td>
-                    <td>
-                        @switch (item.BatchStatus)
-                        {
-
-                            case "InProgress":
-                                <span class="label medium label-blue">@item.BatchStatus</span>
-
-                                break;
-                            case "Failed":
-                            <span class="label medium label-red">@item.BatchStatus</span>
-                                break;
-                            case "ShippedPartial":
-                            <span class="label medium label-yellow">@item.BatchStatus</span>
-                                break;
-                            case "ShippedAll":
-                            <span class="label medium label-green">@item.BatchStatus</span>
-                                break;
-
-                        }
-                    </td>
+                    <td>@item.MailPieceCount</td>
                     <td><span>@item.ReceivedOn</span></td>
                     
                     <td>
-                        <button onclick="GetMailPieceById(@item.BatchId)" type="button" class="btn btn-transparent-bright-blue">View Details</button>
+                        <button onclick="GetMailPieceById(@item.BatchId,'@item.ReceivedOn.Value.ToString("MM/dd/yy HH:mm:ss")','@item.ClientBatchId')" type="button" class="btn btn-transparent-bright-blue">View Details</button>
                         @*@Html.ActionLink("View", "MailPieceByBatchId", "Home", new { batchId = item.BatchId }, new { @class = "btn btn-transparent-bright-blue" })*@
 
                     </td>

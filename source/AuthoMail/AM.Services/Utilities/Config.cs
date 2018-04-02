@@ -11,6 +11,10 @@ namespace AM.Services
 {
     public static class Config
     {
+        #region General
+        public static string Environment { get; private set; }
+        #endregion
+
         #region PullBackRequestProps
         public static string Msg_API_PB_Aborted { get; private set; }
         public static string Msg_API_PB_BatchStatusSubmitted { get; private set; }
@@ -60,6 +64,10 @@ namespace AM.Services
         //public static Dictionary<string,string> Msg {get; private set;}
         static Config()
         {
+            #region General
+            Environment = "Staging";
+            #endregion
+
             #region PullBackMessages
             Msg_API_PB_Aborted = "Mailpiece is aborted, it is not going to be printed.";
             Msg_API_PB_BatchStatusSubmitted = "Batch is being parsed, please try again after few minutes.";
