@@ -27,10 +27,9 @@
                         <label for="dp4">Select Date (EST)</label>
                         @*<select class="selectpicker" id="dates"></select>*@
                         <select class="selectpicker" id="dates">
-                            @foreach (var item in ViewBag.dateList as Dictionary<string, string>)
+                            @foreach (var item in ViewBag.dateList as List<string>)
                             {
-                                string dt = string.Format("{0} - {1}", item.Key.Replace('-', '/'), item.Value.Replace('-', '/'));
-                                <option value="@(dt)">@dt</option>
+                                <option value="@item">@item</option>
                             }
                         </select>
                     </div>

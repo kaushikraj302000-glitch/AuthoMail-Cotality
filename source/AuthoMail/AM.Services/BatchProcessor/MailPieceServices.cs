@@ -35,11 +35,11 @@ namespace AM.Services
             return mailPieceId;
         }
 
-        public List<MailPieceDTO> GetMailPiecesByMailBatchId(int batchClustId)
+        public List<MailPieceDTO> GetMailPiecesByMailBatchId(int mailBatchId)
         {
-            string query = "SELECT * FROM [AM].[MailPiece] WHERE BatchClustId=@batchClustId";
+            string query = "SELECT * FROM [AM].[MailPiece] WHERE MailBatchId=@batchClustId";
 
-            var data = db.Query<MailPieceDTO>(query, new { batchClustId = batchClustId }).ToList();
+            var data = db.Query<MailPieceDTO>(query, new { MailBatchId = mailBatchId }).ToList();
             return data;
         }
 
