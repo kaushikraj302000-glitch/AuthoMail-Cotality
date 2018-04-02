@@ -24,7 +24,7 @@ namespace AM.Core
         internal static void PrepPnSJobs()
         {
             log.Debug("PrepPnSJob started");
-            List<MailBatchDTO> mailBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.Acknowledged);
+            List<MailBatchDTO> mailBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Acknowledged);
 
             if (mailBatches == null || mailBatches.Count == 0)
             {
@@ -36,7 +36,7 @@ namespace AM.Core
             {
                 SmartDocs doc = new SmartDocs();
                 Client client = clientSvc.GetClientById(mailBatch.ClientId);
-                MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, null, Common.AuthoMailRootFolder);
+                MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.AuthoMailRootFolder);
 
                 var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
 
@@ -227,7 +227,7 @@ namespace AM.Core
         internal static void SubmitBatchesDocTypeWiseToPCI()
         {
             log.Debug("Submitted Batches job started.");
-            List<MailBatchDTO> mailBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.Prepped).Where(x => x.BatchStatus != AM.Entities.BatchStatus.Failed.ToString()).ToList();
+            List<MailBatchDTO> mailBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Prepped).Where(x => x.BatchStatus != AM.Entities.BatchStatus.Failed.ToString()).ToList();
 
             if (mailBatches == null || mailBatches.Count == 0)
             {
@@ -244,7 +244,7 @@ namespace AM.Core
                     continue;
                 }
 
-                MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, null, Common.AuthoMailRootFolder);
+                MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.AuthoMailRootFolder);
 
                 var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
 
@@ -485,7 +485,7 @@ namespace AM.Core
                         if (File.Exists(amRootFilePath))
                         {
                             var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(downloadableBatch.MailBatchId);
-                            var mbi = new MailBatchInfo(batchData.MailBatch, client, null, Common.AuthoMailRootFolder);
+                            var mbi = new MailBatchInfo(batchData.MailBatch, client, Config.AuthoMailRootFolder);
 
                             string amPnSResponsePath = Path.Combine(mbi.PnSResponsePath, responseFileName);
 
@@ -517,7 +517,7 @@ namespace AM.Core
             {
                 Client client = clientSvc.GetClientByAppCode(printBatch.AppCode);
                 BatchData batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(printBatch.MailBatchId);
-                MailBatchInfo mbi = new MailBatchInfo(batchData.MailBatch, client, null, Common.AuthoMailRootFolder);
+                MailBatchInfo mbi = new MailBatchInfo(batchData.MailBatch, client, Config.AuthoMailRootFolder);
 
                 var printbatchResponseFilePath = Path.Combine(mbi.PnSResponsePath, printBatch.SubmittedBatchName + "-res.xml");
                 if (!File.Exists(printbatchResponseFilePath))
