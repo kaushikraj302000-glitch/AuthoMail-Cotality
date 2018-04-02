@@ -53,11 +53,8 @@ namespace AM.Lib
 
         public static void CreateDirectoryIfNotExist(this string dirPath)
         {
-            if (!dirPath.IsNullOrWhiteSpace())
-            {
-                if (!Directory.Exists(dirPath))
-                    Directory.CreateDirectory(dirPath);
-            }
+            if (!Directory.Exists(dirPath))
+                Directory.CreateDirectory(dirPath);
         }
 
         public static void CleanDirectory(this string path)

@@ -133,7 +133,7 @@
                 <td><span>{RcptAddressZIP}</span></td>
                 <td><span>{ErrorCode}</span></td>
                 <td><span>{ErrorDesc}</span></td>
-                <td><span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="{ErrorDesc}" data-placement="left"><a>Error Details</a></span></td>
+                <td>{ErrorDescPopover}</td>
                 <td><span>{ShippingMethod}</span></td>
                 <td>{BatchId}</td>
             </tr>
@@ -239,8 +239,8 @@
         }
         function FormatObject(Model) {
             $(Model).each(function () {
-                console.log(this.ReceivedOn)
                 this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                this.ErrorDescPopover=this.ErrorDesc==""?"":'<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="'+this.ErrorDesc+'" data-placement="left"><a>Error Details</a></span>';
             });
             return Model;
         }

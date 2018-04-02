@@ -46,8 +46,9 @@ namespace AM.Web.Controllers
                     reportViewModel.Add(reportModel);
                 }
             }
-            ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
-            return PartialView(model);
+            //ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
+            //return PartialView(model);
+            return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderBy(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
         public ActionResult _GetMailPieceList(List<MonthlyReconReport> model)
         {
@@ -72,7 +73,7 @@ namespace AM.Web.Controllers
 
             ViewBag.Date = string.Format("{0} to {1}", exactStartDate.ToString("MM/dd/yy"), exactEndDate.ToString("MM/dd/yy"));
             var model = repoSvc.GetMonthlyReconReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate, channel);
-            return PartialView("_GetMailPieceList", model);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderBy(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult MailPieceByBatchId(int batchId)
@@ -155,8 +156,7 @@ namespace AM.Web.Controllers
                     reportViewModel.Add(reportModel);
                 }
             }
-            ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
-            return PartialView(model);
+            return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderBy(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
         public ActionResult DailyDetailOperationsReport()
         {

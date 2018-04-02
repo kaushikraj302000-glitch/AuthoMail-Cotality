@@ -1,9 +1,10 @@
 ﻿using AM.Entities;
 using AM.Lib;
-using Ionic.Zip;
+using AM.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -29,81 +30,88 @@ namespace AM.Console
             Client client = clientSvc.GetClientByAppCode("USAA");
 
             SFTUtil sftSite = null;
-            try
+
+            sftSite = new SFTUtil(cfg.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
+            sftSite.Connect();
+
+
+            triggerFilePaths = GetTriggerFilePaths(sftSite, SFTChannel);
+
+            foreach (string triggerFile in triggerFilePaths)
             {
-                sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
-                sftSite.Connect();
+                MailBatchDTO mailBatch = null;
+
+                string triggerFilePath = Path.Combine(SFTChannel.ToADEDir, triggerFile + "_Complete.go");
+
+                //Download and Insert the batch in database first always.
+                string batchName = triggerFile;
+
+                mailBatch = new MailBatchDTO();
+                mailBatch.ClientId = client.Id;
+                mailBatch.BatchName = batchName;
+                mailBatch.SFTChannelId = SFTChannel.Id;
+                mailBatch.ClientBatchId = batchName;
+                mailBatch.UniqueId = Guid.NewGuid();
+                mailBatch.Priority = Priority.Medium.ToString();
+                mailBatch.PrintLocation = "Fort Mill, SC";
+
+                //Insert New Batch Entry
+                mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
+
+                //Update Pipeline Status of Batch Received
+                commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, sftSite.LastModifiedTimeOfFile(triggerFilePath));
+                commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.InProgress.ToString());
+
+                //Delete or move trigger file after status update as Received
+                MoveTriggerFileToBackupDir(sftSite, triggerFilePath);
             }
-            catch (Exception ex)
+
+
+            if (sftSite.IsConnected)
+                sftSite.Disconnect();
+
+        }
+
+        private void MoveTriggerFileToBackupDir(SFTUtil sftSite, string triggerFTPFilePath)
+        {
+            //if (!sftSite.IsConnected)
+            //    sftSite.Connect();
+
+            string triggerFTPBackUpFilePath = Path.Combine(SFTChannel.ArchiveDir, Path.GetFileName(triggerFTPFilePath));
+
+            if (SFTChannel.PostDownloadAction == PostDownloadAction.Archive)
             {
-                log.Error(ex);
+                if (sftSite.IsFileAvailable(triggerFTPBackUpFilePath))
+                    sftSite.DeleteFile(triggerFTPBackUpFilePath);
+
+                sftSite.MoveFile(triggerFTPFilePath, triggerFTPBackUpFilePath);
             }
-
-            if (sftSite.IsDownloadDirectoryAvailable(SFTChannel.ToADEDir))
-            {
-                triggerFilePaths = GetTriggerFilePaths(sftSite, SFTChannel);
-                if (triggerFilePaths != null)
-                {
-                    foreach (string triggerFile in triggerFilePaths)
-                    {
-                        MailBatchDTO mailBatch = null;
-
-                        string zipFileFTPPath = Path.Combine(SFTChannel.ToADEDir, Regex.Replace(Path.ChangeExtension(triggerFile, ".zip"), @"(w*)_Complete", string.Empty));
-
-                        string triggerFilePath = Path.Combine(SFTChannel.ToADEDir, triggerFile);
-
-                        //Download and Insert the batch in database first always.
-                        string batchName = Path.GetFileNameWithoutExtension(zipFileFTPPath);
-
-                        string appDirRemotePath = "{0}/{1}".Fill(Common.AuthoMailRootFolder, client.AppCode);
-                        string batchPDFsDirRemotePath = "{0}/{1}".Fill(appDirRemotePath, batchName);
-
-                        mailBatch = new MailBatchDTO();
-                        mailBatch.ClientId = client.Id;
-                        mailBatch.BatchName = batchName;
-                        mailBatch.SFTChannelId = SFTChannel.Id;
-                        mailBatch.ClientBatchId = batchName;
-                        mailBatch.UniqueId = Guid.NewGuid();
-                        mailBatch.Priority = Priority.Medium.ToString();
-                        mailBatch.PrintLocation = "Fort Mill SC";
-
-                        //Insert New Batch Entry
-                        mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
-
-                        //Update Pipeline Status of Batch Received
-                        commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, sftSite.LastModifiedTimeOfFile(triggerFilePath));
-                        commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.InProgress.ToString());
-                    }
-                }
-                else
-                {
-                    log.Debug("Batches are not available to download.");
-                }
-
-                if (sftSite.IsConnected)
-                    sftSite.Disconnect();
-            }
+            else
+                sftSite.DeleteFile(triggerFTPFilePath);
         }
 
         private List<string> GetTriggerFilePaths(SFTUtil sftSite, SFTChannel sftChannelDetails)
         {
-            if (sftSite.IsConnected == false)
-                sftSite.Connect();
+            //if (sftSite.IsConnected == false)
+            //    sftSite.Connect();
+            var regex = new Regex(@"^(\w*)_Complete.go$", RegexOptions.IgnoreCase); // Regex.Match(, RegexOptions.IgnoreCase).Groups[1].Value
 
-            List<string> availableTriggerFilePaths = sftSite.ListDirectory(sftChannelDetails.ToADEDir).Where(f => Path.GetExtension(f).Equals(".go", StringComparison.CurrentCultureIgnoreCase) && Path.GetFileNameWithoutExtension(f).EndsWith("_Complete")).ToList();
+            List<string> availableTriggerFilePaths = sftSite.ListDirectory(sftChannelDetails.ToADEDir)
+                .Select(f => regex.Match(Path.GetFileName(f)))
+                .Where(m => m.Success)
+                .Select(m => m.Groups[1].Value)
+                .ToList();
 
             if (availableTriggerFilePaths != null && availableTriggerFilePaths.Count > 0)
             {
-                log.Debug(string.Format("{0} Trigger file found.", availableTriggerFilePaths.Count));
-
-                return availableTriggerFilePaths;
+                log.Debug(string.Format("{0} trigger file(s) found.", availableTriggerFilePaths.Count));
             }
             else
             {
-                log.Error("Trigger file not found.");
+                log.Error("No trigger files found hence no batches are available to download.");
             }
 
-            return null;
+            return availableTriggerFilePaths;
         }
         #endregion
 
@@ -112,86 +120,89 @@ namespace AM.Console
         {
             log.Debug("Download job queue is started.");
 
-            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.Downloaded);
+            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Received);
             if (downloadBatches == null)
             {
                 log.Debug("Download job queue is empty.");
                 return;
             }
             SFTUtil sftSite = null;
-            try
-            {
-                sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
-                sftSite.Connect();
-            }
-            catch (Exception ex)
-            {
-                log.Error(ex);
-                return;
-            }
+
+            sftSite = new SFTUtil(cfg.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
+            sftSite.Connect();
+
 
             foreach (var batch in downloadBatches)
             {
-                //TODO: Can we make client as common object to use?
                 Client client = clientSvc.GetClientById(batch.ClientId);
-                MailBatchInfo mbi = new MailBatchInfo(batch, client, null, Common.AuthoMailRootFolder);
+                MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.AuthoMailRootFolder);
 
-                //TODO: Do we need to validate FTP directory exist or not?
-
-                #region Create directory structure.
-
-                Common.CleanDirectory(mbi.BatchRepo);
-                mbi.AMRequestPath.CreateDirectoryIfNotExist();
-                mbi.PnSRequestPath.CreateDirectoryIfNotExist();
-                mbi.PnSResponsePath.CreateDirectoryIfNotExist();
-                mbi.AMResponsePath.CreateDirectoryIfNotExist();
-
-                #endregion
-
-                string localZipFilePath = string.Empty;
-
-                string ftpZipFilePath = Path.Combine(SFTChannel.ToADEDir, "{0}.zip".Fill(mbi.BatchName));
-                string ftpTriggerFilePath = Path.Combine(SFTChannel.ToADEDir, "{0}_Complete.go".Fill(mbi.BatchName));
-
-                if (sftSite.IsFileAvailable(ftpZipFilePath))
+                try
                 {
+                    #region Create directory structure.
+
+                    cfg.CleanDirectory(mbi.BatchRepo);
+                    mbi.AMRequestPath.CreateDirectoryIfNotExist();
+                    mbi.PnSRequestPath.CreateDirectoryIfNotExist();
+                    mbi.PnSResponsePath.CreateDirectoryIfNotExist();
+                    mbi.AMResponsePath.CreateDirectoryIfNotExist();
+
+                    #endregion
+
+                    string localZipFilePath = string.Empty;
+                    string zipFileName = "{0}.zip".Fill(mbi.BatchName);
+                    string ftpZipFilePath = Path.Combine(SFTChannel.ToADEDir, zipFileName);
+                    string ftpTriggerFilePath = Path.Combine(SFTChannel.ToADEDir, "{0}_Complete.go".Fill(mbi.BatchName));
+
+                    if (!sftSite.IsFileAvailable(ftpZipFilePath))
+                    {
+                        ReportInvalidBatch(mbi.MailBatch, "'{0}.zip' file is missing on SFT site.".Fill(mbi.BatchName));
+                        continue;
+                    }
+
+                    localZipFilePath = DownloadBatchZipFile(sftSite, ftpZipFilePath, ftpTriggerFilePath, mbi);
+
                     try
                     {
-                        localZipFilePath = DownloadBatchZipFile(sftSite, ftpZipFilePath, ftpTriggerFilePath, mbi);
-
-                        //First update download status then try to extract zip file and if any issue occured, we can fail that batch
-                        commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Downloaded, Common.Now);
-
-                        using (Ionic.Zip.ZipFile zipFile = Ionic.Zip.ZipFile.Read(localZipFilePath))
-                        {
-                            foreach (ZipEntry e in zipFile)
-                            {
-                                e.Extract(Path.GetDirectoryName(localZipFilePath), ExtractExistingFileAction.OverwriteSilently);
-                            }
-                        }
-                    }
-                    catch (ZipException err)
-                    {
-                        var error = "Following error occured while extracting zip file for Batch ID : {0} ".Fill(mbi.MailBatch.Id) + Environment.NewLine + err.ToString();
-
-                        log.Error(error);
-
-                        ReportInvalidBatch(mbi.MailBatch, error);
-                        continue;
+                        ZipFile.ExtractToDirectory(localZipFilePath, mbi.AMRequestPath);
                     }
                     catch (Exception ex)
                     {
-                        var error = "Error occured while downloading batch from sft site for Batch-Id : {0}".Fill(mbi.MailBatch.Id) + Environment.NewLine + ex.ToString();
+                        var error = "Unable to extract '{0}.zip' file. Batch ID : {1} ".Fill(mbi.BatchName, mbi.MailBatch.Id);
 
-                        log.Error(error);
+                        log.Error(error, ex);
 
                         ReportInvalidBatch(mbi.MailBatch, error);
                         continue;
                     }
+
+                    //Based on post download action zip file and trigger file will get moved or delete from that location
+                    if (SFTChannel.PostDownloadAction == PostDownloadAction.Archive)
+                    {
+                        //Move zip file
+                        string archiveFTPZipFilePath = Path.Combine(SFTChannel.ArchiveDir, zipFileName);
+
+                        if (sftSite.IsFileAvailable(archiveFTPZipFilePath))
+                            sftSite.DeleteFile(archiveFTPZipFilePath);
+
+                        sftSite.MoveFile(ftpZipFilePath, archiveFTPZipFilePath);
+                    }
+                    else
+                    {
+                        sftSite.DeleteFile(ftpZipFilePath);
+                    }
+
+                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Downloaded, Common.Now);
                 }
-                else
+                catch (Exception ex)
                 {
-                    ReportInvalidBatch(mbi.MailBatch, "Zip file is missing on Sft site.");
+                    var error = "Error occured while downloading {0} batch from SFT site for Batch-Id : {1}".Fill(mbi.BatchName, mbi.MailBatch.Id) + Environment.NewLine + ex.ToString();
+
+                    log.Error(error);
+
+
+
+                    continue;
                 }
             }
             if (sftSite.IsConnected)
@@ -200,43 +211,12 @@ namespace AM.Console
 
         private string DownloadBatchZipFile(SFTUtil sftSite, string ftpZipFilePath, string ftpTriggerFilePath, MailBatchInfo mbi)
         {
-            if (sftSite.IsConnected == false)
-                sftSite.Connect();
-
             string triggerFileName = Path.GetFileName(ftpTriggerFilePath);
             string zipFileName = Path.GetFileName(ftpZipFilePath);
 
             string localZipFilePath = Path.Combine(mbi.AMRequestPath, zipFileName);
 
-            if (File.Exists(localZipFilePath))
-                File.Delete(localZipFilePath);
-
             sftSite.DownloadFile(ftpZipFilePath, localZipFilePath);
-
-            //Based on post download action zip file and trigger file will get moved or delete from that location
-            if (mbi.SFTChannel.PostDownloadAction == PostDownloadAction.Archive)
-            {
-                //Move trigger file
-                string archiveFTPTriggerFilePath = Path.Combine(SFTChannel.ArchiveDir, triggerFileName);
-
-                if (sftSite.IsFileAvailable(archiveFTPTriggerFilePath))
-                    sftSite.DeleteFile(archiveFTPTriggerFilePath);
-
-                sftSite.MoveFile(ftpTriggerFilePath, archiveFTPTriggerFilePath);
-
-                //Move zip file
-                string archiveFTPZipFilePath = Path.Combine(SFTChannel.ArchiveDir, zipFileName);
-
-                if (sftSite.IsFileAvailable(archiveFTPZipFilePath))
-                    sftSite.DeleteFile(archiveFTPZipFilePath);
-
-                sftSite.MoveFile(ftpZipFilePath, archiveFTPZipFilePath);
-            }
-            else
-            {
-                sftSite.DeleteFile(ftpTriggerFilePath);
-                sftSite.DeleteFile(ftpZipFilePath);
-            }
 
             return localZipFilePath;
         }
@@ -244,16 +224,10 @@ namespace AM.Console
 
         private void ReportInvalidBatch(MailBatchDTO mailBatch, string error)
         {
-            // If the zip file is not available in the FTP folder then log that error.
-            mailBatch.ValidationStatus = BatchValidationStatus.Invalid;
-            mailBatch.ValidationErrors = error;
-            mailBatch.PrintLocation = string.Empty;
-            //Update Batch Details
-            mailBatchSvc.UpdateBatchDetails(mailBatch);
+            mailBatchSvc.MarkMailBatchAsInvalid(mailBatch.Id, error);
 
-            //TODO: Ask to Ravi Sir for Batch level notification And how to manage status for this
+            commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
 
-            //Update Batch Status
             commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.Failed.ToString());
         }
 
@@ -261,7 +235,7 @@ namespace AM.Console
         {
             log.Debug("Validate job queue is started.");
 
-            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.Downloaded);
+            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Downloaded);
             if (downloadBatches == null)
             {
                 log.Debug("Validate job queue is empty.");
@@ -271,7 +245,7 @@ namespace AM.Console
             foreach (var batch in downloadBatches)
             {
                 Client client = clientSvc.GetClientById(batch.ClientId);
-                MailBatchInfo mbi = new MailBatchInfo(batch, client, null, Common.AuthoMailRootFolder);
+                MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.AuthoMailRootFolder);
 
                 //TODO: Can we have multiple business identifier in client business?
                 ClientBusinessIdentifier clientBusinessIdDetails = commonSvc.GetBusinessIdNameFromClientId(client.Id);
@@ -456,7 +430,7 @@ namespace AM.Console
                             mailPieceDTO.IsReturnInfoSpecified = false;
 
 
-                        ValidationResultAMC validationResult = Common.ValidateXMLNode(mailPieceNode, nsManager);
+                        ValidationResultAMC validationResult = cfg.ValidateXMLNode(mailPieceNode, nsManager);
                         if (validationResult.Code == OutComeCodes.No_Error)
                         {
                             string filePath = Path.Combine(mbi.AMRequestPath, mailPieceDTO.FileName);
@@ -524,7 +498,7 @@ namespace AM.Console
         {
             log.Debug("Acknowledge job queue is started.");
 
-            List<MailBatchDTO> validatedBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.Validated);
+            List<MailBatchDTO> validatedBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Validated);
 
             if (validatedBatches == null)
             {
@@ -535,12 +509,12 @@ namespace AM.Console
             foreach (var batch in validatedBatches)
             {
                 Client client = clientSvc.GetClientById(batch.ClientId);
-                MailBatchInfo mbi = new MailBatchInfo(batch, client, null, Common.AuthoMailRootFolder);
+                MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.AuthoMailRootFolder);
 
                 var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
                 if (data != null)
                 {
-                    MailUtility.SendDownloadNotificationEmail(mbi, data);
+                    MailUtility.SendDownloadNotificationEmail(mbi, data, SFTChannel);
 
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
                 }

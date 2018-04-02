@@ -119,30 +119,27 @@ namespace AM.Entities
         public string BatchName { get; private set; }
         public MailBatchDTO MailBatch { get; private set; }
         public Client Client { get; private set; }
-        public DocType DocType { get; set; }
-        public SFTChannel SFTChannel { get; private set; }
 
-        public MailBatchInfo(MailBatchDTO mailBatch, Client client, SFTChannel sftChannel = null, string authoMailRootFolder = "")
+        public MailBatchInfo(MailBatchDTO mailBatch, Client client, string amRootFolder)
         {
             if (client == null || mailBatch == null) throw new ArgumentNullException("Client or MailBatch cannot be null.");
 
             MailBatch = mailBatch;
             Client = client;
-            SFTChannel = sftChannel;
 
-            Initialize(client, mailBatch, authoMailRootFolder);
+            Initialize(client, mailBatch, amRootFolder);
         }
 
-        private void Initialize(Client client, MailBatchDTO mailBatch, string authoMailRootFolder)
+        private void Initialize(Client client, MailBatchDTO mailBatch, string amRootFolder)
         {
             BatchName = mailBatch.BatchName.Trim();
             //Combined path
-            BatchRepo = Path.Combine(authoMailRootFolder, client.AppCode, "{0}".Fill(mailBatch.Id));
+            BatchRepo = Path.Combine(amRootFolder, client.AppCode, "{0}".Fill(mailBatch.Id));
 
             AMRequestPath = Path.Combine(BatchRepo, "AMRequest");
             PnSRequestPath = Path.Combine(BatchRepo, "PnSRequest");
-            AMResponsePath = Path.Combine(BatchRepo, "AMResponse");
             PnSResponsePath = Path.Combine(BatchRepo, "PnSResponse");
+            AMResponsePath = Path.Combine(BatchRepo, "AMResponse");
         }
     }
 }

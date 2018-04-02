@@ -13,69 +13,26 @@ using AM.Entities;
 using AM.Lib;
 namespace AM.Console
 {
-    public static class Common
+    public static class cfg
     {
-        public static string AuthoMailRootFolder { get; set; }
+        
+        public static SmtpClient Email_SMTPClient { get; private set; }
         public static string SchemaPath { get; set; }
         public static string SchemaPathAMC { get; set; }
-        public static SmtpClient Email_SMTPClient { get; private set; }
-        public static string PnS_SFT_HostURL { get; private set; }
-        public static string PnS_SFT_UserName { get; private set; }
-        public static string PnS_SFT_Password { get; private set; }
-        public static string PnS_SFT_RootDir { get; private set; }
-
-        public static string DownloadEmailTemplate { get; private set; }
-        public static string DownloadEmail_Subject { get; private set; }
-        public static string ProccessEmail_Subject { get; private set; }
-        public static string NoBatchReceivedNotification_Subject { get; set; }
-        public static string PnSEmail_Subject { get; private set; }
-        public static string Email_To { get; private set; }
-        public static string Email_Cc { get; private set; }
-        public static bool SendEmails { get; private set; }
-
-        public static string ReportSFTUploadingChannelCode { get; private set; }
-        public static string ReportSFTUploadingPathAMC { get; private set; }
-
-        public static readonly DateTime Now = DateTime.UtcNow;
-
-        public static readonly DateTime Today = DateTime.UtcNow.Date;
-
         public static XmlSchemaSet schemaAM;
         public static XmlSchemaSet schemasAMC;
 
-        public static string USAACustIdentifier { get; set; }
-        public static string AMCDirPath { get; set; }
-
-        static Common()
+        static cfg()
         {
             schemaAM = new XmlSchemaSet();
             schemasAMC = new XmlSchemaSet();
-            AuthoMailRootFolder = Path.GetFullPath(ConfigurationManager.AppSettings["AuthoMailRootFolder"]);
-            AuthoMailRootFolder.CreateDirectoryIfNotExist();
             SchemaPath = ConfigurationManager.AppSettings["SchemaPath"];
-            schemaAM.Add("http://schemas.corelogic.com/ade/authomail/v1.18.0", Common.SchemaPath);
+            schemaAM.Add("http://schemas.corelogic.com/ade/authomail/v1.18.0", cfg.SchemaPath);
 
             SchemaPathAMC = Path.GetFullPath(ConfigurationManager.AppSettings["SchemaPathAMC"]);
-            schemasAMC.Add("http://schemas.corelogic.com/2015/amc/v1/packages", Common.SchemaPathAMC);
-            PnS_SFT_HostURL = ConfigurationManager.AppSettings["PnS_SFT_HostURL"];
-            PnS_SFT_UserName = ConfigurationManager.AppSettings["PnS_SFT_UserName"];
-            PnS_SFT_Password = ConfigurationManager.AppSettings["PnS_SFT_Password"];
-            PnS_SFT_RootDir = ConfigurationManager.AppSettings["PnS_SFT_RootDir"];
-
-            DownloadEmailTemplate = ConfigurationManager.AppSettings["DownloadEmailTemplate"];
-            DownloadEmail_Subject = ConfigurationManager.AppSettings["DownloadEmail_Subject"];
-            ProccessEmail_Subject = ConfigurationManager.AppSettings["ProccessEmail_Subject"];
-
+            schemasAMC.Add("http://schemas.corelogic.com/2015/amc/v1/packages", cfg.SchemaPathAMC);
+           
             Email_SMTPClient = new SmtpClient();
-
-            Email_To = ConfigurationManager.AppSettings["Email_To"];
-            Email_Cc = ConfigurationManager.AppSettings["Email_Cc"];
-
-            USAACustIdentifier = ConfigurationManager.AppSettings["USAACustIdentifier"];
-            AMCDirPath = Path.GetFullPath(ConfigurationManager.AppSettings["AMCDirPath"]);
-
-            ReportSFTUploadingChannelCode = ConfigurationManager.AppSettings["ReportSFTUploadingChannelCode"];
-            ReportSFTUploadingPathAMC = ConfigurationManager.AppSettings["ReportSFTUploadingPathAMC"];
         }
 
         public static void CleanDirectory(string path)

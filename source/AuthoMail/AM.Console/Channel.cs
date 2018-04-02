@@ -47,10 +47,20 @@ namespace AM.Console
 
         public void ProcessBatches()
         {
-            this.EnumerateBatches();
-            this.DownloadBatches();
-            this.ValidateBatches();
-            this.AcknowledgeBatches();
+            try
+            {
+                this.EnumerateBatches();
+                this.DownloadBatches();
+                this.ValidateBatches();
+                this.AcknowledgeBatches();
+            }
+            catch (Exception ex)
+            {
+                // Log exception
+                log.Error("Unexpected error.", ex);
+
+                // Send email to support team
+            }
         }
 
         /// <summary>
@@ -75,7 +85,81 @@ namespace AM.Console
         /// </summary>
         public static void ReportBack()
         {
-            
+            using (IMailBatchService mailBatchSvc = new MailBatchService())
+            using (IClientService clientSvc = new ClientService())
+            using (ICommonService commonSvc = new CommonService())
+            {
+                List<MailBatchDTO> reportPreppedBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.ReportPrepped);
+                if (reportPreppedBatches == null)
+                {
+                    log.Debug("Uploading report job queue is empty.");
+                    return;
+                }
+
+                foreach (var batch in reportPreppedBatches)
+                {
+                    Client client = clientSvc.GetClientById(batch.ClientId);
+
+                    string uploadPath = Config.ReportSFTUploadingPathAMC;
+
+                    MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.AuthoMailRootFolder);
+
+                    var reportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.csv").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("DR_") || Path.GetFileNameWithoutExtension(f).StartsWith("ER_")).ToList();
+
+                    try
+                    {
+                        if (reportList != null && reportList.Count > 0)
+                        {
+                            //Here for now we are taking SFT Code to Upload Reports on different channel
+
+                            //SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelCode(Common.ReportSFTUploadingChannelCode);
+                            SFTUtil sftSite = null;
+
+                            SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(batch.SFTChannelId);
+                            if (sftChannelDetails != null)
+                            {
+                                try
+                                {
+                                    sftSite = new SFTUtil(cfg.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
+                                    sftSite.Connect();
+
+                                    if (sftSite.IsDownloadDirectoryAvailable(uploadPath))
+                                    {
+                                        foreach (string filePath in reportList)
+                                        {
+                                            string fileName = Path.GetFileName(filePath);
+                                            string ftpUploadPath = Path.Combine(uploadPath, fileName);
+                                            sftSite.UploadFile(ftpUploadPath, filePath);
+                                        }
+                                        commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
+                                    }
+                                    else
+                                    {
+                                        log.Error("Upload path does not exist for Client-{0} and SFT Channel Id-{1}".Fill(client.Name, sftChannelDetails.Code));
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    log.Error(ex);
+                                }
+                                sftSite.Disconnect();
+                            }
+                            else
+                            {
+                                log.Error("SFT site is not available or not enabled to upload reports.");
+                            }
+                        }
+                        else
+                        {
+                            log.Error("Reports does not exist to upload for BatchId-{0}".Fill(batch.Id));
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Error("Error occured while uploading report to Client's SFT site for Batch : {0}. Please see error :" + Environment.NewLine + ex);
+                    }
+                }
+            }
         }
 
         protected override void DisposeManagedObjects()

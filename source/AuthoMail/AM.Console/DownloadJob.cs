@@ -1,6 +1,5 @@
 ﻿using AM.Entities;
 using AM.Services;
-using Ionic.Zip;
 using log4net;
 using Renci.SshNet;
 using System;
@@ -15,6 +14,7 @@ using System.Xml.Linq;
 using System.Xml.Schema;
 using AM.Lib;
 using System.IO.Compression;
+
 namespace AM.Console
 {
     public class DownloadJob
@@ -60,7 +60,7 @@ namespace AM.Console
                             SFTUtil sftSite = null;
                             try
                             {
-                                sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
+                                sftSite = new SFTUtil(cfg.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
                                 sftSite.Connect();
                             }
                             catch (Exception ex)
@@ -84,7 +84,7 @@ namespace AM.Console
                                         //Download and Insert the batch in database first always.
                                         string batchName = Path.GetFileNameWithoutExtension(zipFileFTPPath);
 
-                                        string appDirRemotePath = "{0}/{1}".Fill(Common.AuthoMailRootFolder, client.AppCode);
+                                        string appDirRemotePath = "{0}/{1}".Fill(Config.AuthoMailRootFolder, client.AppCode);
                                         string batchPDFsDirRemotePath = "{0}/{1}".Fill(appDirRemotePath, batchName);
 
                                         mailBatch = new MailBatchDTO();
@@ -104,8 +104,8 @@ namespace AM.Console
                                         commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.InProgress.ToString());
 
                                         //Now Download Zip File Path
-                                        MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, sftChannelDetails, Common.AuthoMailRootFolder);
-                                        DownloadBatchFromFTP(sftSite, zipFileFTPPath, triggerFilePath, mbi);
+                                        MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.AuthoMailRootFolder);
+                                        DownloadBatchFromFTP(sftSite, zipFileFTPPath, triggerFilePath, mbi, sftChannelDetails);
                                     }
                                 }
                                 else
@@ -134,11 +134,11 @@ namespace AM.Console
             }
         }
 
-        private void DownloadBatchFromFTP(SFTUtil sftSite, string zipFileFTPPath, string triggerFilePath, MailBatchInfo mbi)
+        private void DownloadBatchFromFTP(SFTUtil sftSite, string zipFileFTPPath, string triggerFilePath, MailBatchInfo mbi, SFTChannel sftChannel)
         {
             #region Create directory structure.
 
-            Common.CleanDirectory(mbi.BatchRepo);
+            cfg.CleanDirectory(mbi.BatchRepo);
             mbi.AMRequestPath.CreateDirectoryIfNotExist();
             mbi.PnSRequestPath.CreateDirectoryIfNotExist();
             mbi.PnSResponsePath.CreateDirectoryIfNotExist();
@@ -154,33 +154,20 @@ namespace AM.Console
             // If batch zip file exists on FTP then download and process it.
             if (sftSite.IsFileAvailable(zipFileFTPPath))
             {
-                containsZipFilePath = DownloadBatchZipFile(sftSite, zipFileFTPPath, mbi);
+                containsZipFilePath = DownloadBatchZipFile(sftSite, zipFileFTPPath, mbi, sftChannel);
 
                 if (!containsZipFilePath.Contains("Error Occured"))
                 {
-                    try
-                    {
-                        #region Try to extract zip file and delete trigger file from FTP.
+                    #region Try to extract zip file and delete trigger file from FTP.
 
-                        using (Ionic.Zip.ZipFile zipFile = Ionic.Zip.ZipFile.Read(containsZipFilePath))//Read file From the Zip.
-                        {
-                            foreach (ZipEntry e in zipFile)
-                            {
-                                e.Extract(Path.GetDirectoryName(containsZipFilePath), ExtractExistingFileAction.OverwriteSilently);
-                            }
-                        }
+                    ZipFile.ExtractToDirectory(containsZipFilePath, mbi.AMRequestPath);
 
-                        #endregion
-                        //After successfully downloaded and extracted update downloaded pipeline status
-                        commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Downloaded, Common.Now);
-                    }
-                    catch (ZipException err)
-                    {
-                        ReportInvalidBatch(mbi.MailBatch, "Following error occured while extracting zip file for Batch ID : {0} ".Fill(mbi.MailBatch.Id) + Environment.NewLine + err.ToString());
-                    }
+                    #endregion
+                    //After successfully downloaded and extracted update downloaded pipeline status
+                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Downloaded, Common.Now);
 
                     //Process trigger file as per PostDownloadAction Setup for particular SFTChannel
-                    MoveTriggerFileToBackupDir(sftSite, triggerFilePath, mbi.SFTChannel);
+                    //MoveTriggerFileToBackupDir(sftSite, triggerFilePath, mbi.SFTChannel);
                 }
                 else
                 {
@@ -251,7 +238,7 @@ namespace AM.Console
                 sftSite.DeleteFile(triggerFTPFilePath);
         }
 
-        private string DownloadBatchZipFile(SFTUtil sftSite, string zipFileFTPPath, MailBatchInfo mbi)
+        private string DownloadBatchZipFile(SFTUtil sftSite, string zipFileFTPPath, MailBatchInfo mbi, SFTChannel sftChannel)
         {
             commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.DownloadStart, Common.Now);
 
@@ -274,9 +261,9 @@ namespace AM.Console
                 //Update LogTime for Download complete
                 commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.DownloadEnd, Common.Now);
 
-                if (mbi.SFTChannel.PostDownloadAction == PostDownloadAction.Archive)
+                if (sftChannel.PostDownloadAction == PostDownloadAction.Archive)
                 {
-                    string archiveFTPFilePath = Path.Combine(mbi.SFTChannel.ArchiveDir, zipFileName);
+                    string archiveFTPFilePath = Path.Combine(sftChannel.ArchiveDir, zipFileName);
 
                     if (sftSite.IsFileAvailable(archiveFTPFilePath))
                         sftSite.DeleteFile(archiveFTPFilePath);
@@ -303,7 +290,7 @@ namespace AM.Console
         #region Separate Batches
         public void SeparateUSAABatches()
         {
-            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.Downloaded);
+            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Downloaded);
             if (downloadBatches == null)
             {
                 log.Debug("Separating job queue is empty.");
@@ -314,7 +301,7 @@ namespace AM.Console
             {
                 Client client = clientSvc.GetClientById(batch.ClientId);
 
-                MailBatchInfo mbi = new MailBatchInfo(batch, client, null, Common.AuthoMailRootFolder);
+                MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.AuthoMailRootFolder);
 
                 var xmlFilePath = Path.Combine(mbi.AMRequestPath, mbi.BatchName + ".xml");
 
@@ -374,13 +361,13 @@ namespace AM.Console
 
                     requests = XmlUtil.Deserialize<PackageRequests>(batchXML.OuterXml);
 
-                    List<PackageInfo> packages = requests.Packages.FindAll(p => p.CustomerIdentifier != Common.USAACustIdentifier);
+                    List<PackageInfo> packages = requests.Packages.FindAll(p => p.CustomerIdentifier != cfg.USAACustIdentifier);
 
                     if (packages != null && packages.Count > 0)
                     {
                         amcRequest.Packages = packages;
                         SplitXMLAndPDFS(amcRequest, Path.GetDirectoryName(xmlFilePath), mbi.BatchName);
-                        requests.Packages.RemoveAll(p => p.CustomerIdentifier != Common.USAACustIdentifier);
+                        requests.Packages.RemoveAll(p => p.CustomerIdentifier != cfg.USAACustIdentifier);
                         //After removing other document types from package request we are checking for any remaining USAA packages are there or not if not then we don't need to process that batch further so we will remove that batch's records and files from database and from folder
                         if (requests.Packages.Count == 0)
                         {
@@ -422,15 +409,15 @@ namespace AM.Console
         private void SplitXMLAndPDFS(PackageRequests request, string PDFsDir, string batchName)
         {
             //Create folder for Separate batch for AMC in UNC path
-            string batchDirectoryPath = Path.Combine(Common.AMCDirPath, batchName);
+            string batchDirectoryPath = Path.Combine(cfg.AMCDirPath, batchName);
 
             batchDirectoryPath.CleanDirectory();
 
             //Xml and pdf files will be copied to batchname folder.
             string amcFilePath = Path.Combine(batchDirectoryPath, string.Format("{0}.xml", batchName));
 
-            string zipFilePath = Path.Combine(Common.AMCDirPath, string.Format("{0}.zip", batchName));
-            string triggerFilePath = Path.Combine(Common.AMCDirPath, string.Format("{0}_Complete.go", batchName));
+            string zipFilePath = Path.Combine(cfg.AMCDirPath, string.Format("{0}.zip", batchName));
+            string triggerFilePath = Path.Combine(cfg.AMCDirPath, string.Format("{0}_Complete.go", batchName));
 
             List<PackageInfo> packages = request.Packages;
             if (packages != null)
@@ -481,7 +468,7 @@ namespace AM.Console
 
         public void ValidateBatches()
         {
-            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.Downloaded).Where(x => x.BatchStatus != BatchStatus.Failed.ToString()).ToList();
+            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Downloaded).Where(x => x.BatchStatus != BatchStatus.Failed.ToString()).ToList();
             if (downloadBatches == null)
             {
                 log.Debug("Job queue is empty for validating batches.");
@@ -492,7 +479,7 @@ namespace AM.Console
             {
                 Client client = clientSvc.GetClientById(batch.ClientId);
 
-                MailBatchInfo mbi = new MailBatchInfo(batch, client, null, Common.AuthoMailRootFolder);
+                MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.AuthoMailRootFolder);
 
                 ClientBusinessIdentifier clientBusinessIdDetails = commonSvc.GetBusinessIdNameFromClientId(client.Id);
 
@@ -683,7 +670,7 @@ namespace AM.Console
                             mailPieceDTO.IsReturnInfoSpecified = false;
 
 
-                        ValidationResultAMC validationResult = Common.ValidateXMLNode(mailPieceNode, nsManager);
+                        ValidationResultAMC validationResult = cfg.ValidateXMLNode(mailPieceNode, nsManager);
                         if (validationResult.Code == OutComeCodes.No_Error)
                         {
                             string filePath = Path.Combine(mbi.AMRequestPath, mailPieceDTO.FileName);
@@ -722,7 +709,7 @@ namespace AM.Console
 
         public void AcknowledgeBatches()
         {
-            List<MailBatchDTO> validatedBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.Validated);
+            List<MailBatchDTO> validatedBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Validated);
             if (validatedBatches == null)
             {
                 log.Debug("Acknowledge job queue is empty.");
@@ -734,7 +721,7 @@ namespace AM.Console
                 Client client = clientSvc.GetClientById(batch.ClientId);
                 SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(batch.SFTChannelId);
 
-                MailBatchInfo mbi = new MailBatchInfo(batch, client, sftChannelDetails, Common.AuthoMailRootFolder);
+                MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.AuthoMailRootFolder);
 
                 var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
                 if (data != null)
@@ -762,7 +749,7 @@ namespace AM.Console
 
                     commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.AcknowledgeStart, Common.Now);
 
-                    MailUtility.SendDownloadNotificationEmail(mbi, data);
+                    MailUtility.SendDownloadNotificationEmail(mbi, data, sftChannelDetails);
 
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
                     commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.AcknowledgeEnd, Common.Now);
@@ -774,7 +761,7 @@ namespace AM.Console
         #region Reporting Process
         public void ReportPreppedProcess()
         {
-            List<MailBatchDTO> resReceivedBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.ShippingResponseReceived);
+            List<MailBatchDTO> resReceivedBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.ShippingResponseReceived);
             if (resReceivedBatches == null)
             {
                 log.Debug("Uploading report job queue is empty.");
@@ -785,13 +772,13 @@ namespace AM.Console
             {
                 Client client = clientSvc.GetClientById(batch.ClientId);
                 SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(batch.SFTChannelId);
-                MailBatchInfo mbi = new MailBatchInfo(batch, client, sftChannelDetails, Common.AuthoMailRootFolder);
+                MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.AuthoMailRootFolder);
                 var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
                 if (data != null)
                 {
                     try
                     {
-                        StringBuilder deliveryReport = Common.USAADailyDetailOperationReport(data, sftChannelDetails.Title, client.TimeZone);
+                        StringBuilder deliveryReport = cfg.USAADailyDetailOperationReport(data, sftChannelDetails.Title, client.TimeZone);
 
                         if (deliveryReport != null)
                         {
@@ -805,7 +792,7 @@ namespace AM.Console
                             }
                         }
 
-                        StringBuilder errorReport = Common.USAAErrorReport(data, sftChannelDetails.Title, client.TimeZone);
+                        StringBuilder errorReport = cfg.USAAErrorReport(data, sftChannelDetails.Title, client.TimeZone);
 
                         if (errorReport != null)
                         {
@@ -831,7 +818,7 @@ namespace AM.Console
 
         public void ReportBackProcess()
         {
-            List<MailBatchDTO> reportPreppedBatches = mailBatchSvc.GetBatchesByStatus(BatchPipelineStatus.ReportPrepped);
+            List<MailBatchDTO> reportPreppedBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.ReportPrepped);
             if (reportPreppedBatches == null)
             {
                 log.Debug("Uploading report job queue is empty.");
@@ -842,9 +829,9 @@ namespace AM.Console
             {
                 Client client = clientSvc.GetClientById(batch.ClientId);
 
-                string uploadPath = Common.ReportSFTUploadingPathAMC;
+                string uploadPath = cfg.ReportSFTUploadingPathAMC;
 
-                MailBatchInfo mbi = new MailBatchInfo(batch, client, null, Common.AuthoMailRootFolder);
+                MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.AuthoMailRootFolder);
 
                 var reportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.csv").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("DR_") || Path.GetFileNameWithoutExtension(f).StartsWith("ER_")).ToList();
 
@@ -862,7 +849,7 @@ namespace AM.Console
                         {
                             try
                             {
-                                sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
+                                sftSite = new SFTUtil(cfg.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
                                 sftSite.Connect();
 
                                 if (sftSite.IsDownloadDirectoryAvailable(uploadPath))
