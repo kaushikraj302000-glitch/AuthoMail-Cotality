@@ -1,4 +1,4 @@
-﻿@model ICollection<AM.Services.Models.BatchListByChartData>
+﻿@model ICollection<AM.Services.BatchListByChartData>
 <link href="~/clui/dist/css/datatablecustom.css" rel="stylesheet" />
 @if (Model.Count > 0)
 {
@@ -8,6 +8,7 @@
             <tr>
                 <th>Batch Id</th>
                 <th>Batch Name</th>
+                <th>Batch Status</th>
                 <th>Total MailPiece</th>
                 <th>Received On <span class="fontcapitalize">(Local)</span></th>
                 <th>Action</th>
@@ -19,7 +20,8 @@
                 <tr class="row-small">
                     <td><span>@item.ClientBatchId</span></td>
                     <td><span>@item.BatchName</span></td>
-                    <td>@item.MailPieceCount</td>
+                    <td><span>@item.BatchStatus</span></td>
+                    <td><span>@item.MailPieceCount</span></td>
                     <td><span>@item.ReceivedOn</span></td>
                     
                     <td>
