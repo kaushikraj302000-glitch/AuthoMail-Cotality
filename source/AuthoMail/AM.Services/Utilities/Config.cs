@@ -133,28 +133,28 @@ namespace AM.Services
 
             #region General
             Environment = "Staging";
-            AuthoMailRootFolder = @"D:\AuthoMailGit\Repos\source\AuthoMail\AM.Console\bin\Debug\AuthoMailRoot";
+            AuthoMailRootFolder = @"D:\MTC\USAA\Monitor\AuthoMailRoot";
             #endregion
 
             #region Console & Core
-            PnS_SFT_HostURL = @"\\MTC-sagarg\c$\MSTC\PnS";
+            PnS_SFT_HostURL = @"\\slxqn1vdappsr01.infosolco.net\FAGOSFTP\ADE_PnS";
             PnS_SFT_UserName = "user";
             PnS_SFT_Password = "";
-            PnS_SFT_RootDir = @"\\MTC-sagarg\c$\MSTC\PnS";
+            PnS_SFT_RootDir = @"\\slxqn1vdappsr01.infosolco.net\FAGOSFTP\ADE_PnS";
 
-            DSEmailTemplate = @"D:\AuthoMailGit\Repos\source\AuthoMail\AM.Console\HTMLTemplates\DET.html";
+            DSEmailTemplate = @"D:\MTC\USAA\Monitor\HTMLTemplates\DET.html";
             DSEmail_Subject = "TEST USAA Download Summary";
-            DS_Email_To = "sgolvelkar@corelogic.com";
-            DS_Email_Cc = "sgolvelkar@corelogic.com";
+            DS_Email_To = "brpatel@corelogic.com";
+            DS_Email_Cc = "sgolvelkar@corelogic.com,avala@corelogic.com";
 
-            PSEmailTemplate = @"D:\AuthoMailGit\Repos\source\AuthoMail\AM.Console\HTMLTemplates\PLET.html";
+            PSEmailTemplate = @"D:\MTC\USAA\Monitor\HTMLTemplates\PLET.html";
             PSEmail_Subject = "TEST USAA Production Summary";
-            PS_Email_To = "sgolvelkar@corelogic.com";
-            PS_Email_Cc = "sgolvelkar@corelogic.com";
+            PS_Email_To = "brpatel@corelogic.com";
+            PS_Email_Cc = "sgolvelkar@corelogic.com,avala@corelogic.com";
 
             NoBatchReceivedNotification_Subject = "No USAA batch is available";
-            NoBatch_Email_To = "sgolvelkar@corelogic.com";
-            NoBatch_Email_Cc = "sgolvelkar@corelogic.com";
+            NoBatch_Email_To = "brpatel@corelogic.com";
+            NoBatch_Email_Cc = "sgolvelkar@corelogic.com,avala@corelogic.com";
 
             PnSEmail_Subject = "TEST USAA Status Update";
             PnS_Email_To = "sgolvelkar@corelogic.com";
@@ -165,14 +165,14 @@ namespace AM.Services
             Exception_Email_Cc = "nirav.barot@milestonetechnoconsulting.com,milan.patel@milestonetechnoconsulting.com";
 
             USAACustIdentifier = "166";
-            AMCDirPath = @"\\MTC-sagarg\c$\MSTC\AM\AMC";
+            AMCDirPath = @"\\slxqn1vdappsr01.infosolco.net\FAGOSFTP\ADE_AM\UAT\AMC";
 
-            ReportSFTUploadingChannelCode = "USAA_CL";
-            ReportSFTUploadingPathAMC = @"/Unknown/USAA/Output";
+            ReportSFTUploadingChannelCode = "AMC_Staging";
+            ReportSFTUploadingPathAMC = @"/Reports";
 
             //Core Config
 
-            CoverTemplateFolder = @"D:\AuthoMailGit\Repos\source\AuthoMail\AM.Core\CoverTemplates";
+            CoverTemplateFolder = @"D:\MTC\USAA\Core\CoverTemplates";
             CountryCode = "US";
             FedexServiceAttemptInterval = 15000;
             NoofTime_AttemptFedexService = 5;
