@@ -44,6 +44,7 @@ namespace AM.Services
             }
         }
         public string ClientTimeZone { get; set; }
+        public string ValidationErrors { get; set; }
         public int MailPieceCount { get; set; }
     }
 }
