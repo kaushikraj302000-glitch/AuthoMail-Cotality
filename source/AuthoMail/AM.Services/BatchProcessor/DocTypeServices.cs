@@ -8,7 +8,7 @@ using Dapper;
 
 namespace AM.Services
 {
-    public interface IDocTypeService
+    public interface IDocTypeService : IDisposable
     {
         List<DocType> GetDocTypesByClientId(int clientId);
         DocType GetDocTypeByDocTypeCode(int clientId, string docTypeCode);

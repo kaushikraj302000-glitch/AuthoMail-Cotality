@@ -92,6 +92,11 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="CoverTemplates\Generic_Template.pdf" />
+    <None Include="CoverTemplates\USAA\65\USAA_65_1.pdf" />
+    <None Include="CoverTemplates\USAA\66\USAA_66_1.pdf" />
+    <None Include="CoverTemplates\USAA\68\USAA_68_1.pdf" />
+    <None Include="CoverTemplates\USAA\70\USAA_70_1.pdf" />
+    <None Include="CoverTemplates\USAA\71\USAA_71_1.pdf" />
     <None Include="CoverTemplates\USAA_Template.pdf" />
     <None Include="log4net.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
