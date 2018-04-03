@@ -104,21 +104,21 @@ namespace AM.Reporting
                                         }
                                     }
 
-                                    //SFTUtil sftSite = null;
+                                    SFTUtil sftSite = null;
 
-                                    //sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
-                                    //sftSite.Connect();
+                                    sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
+                                    sftSite.Connect();
 
-                                    //if (sftSite.IsDownloadDirectoryAvailable(Common.ReportUploadPath))
-                                    //{
-                                    //    string ftpUuploadPath = Path.Combine(Common.ReportUploadPath, summaryReportFileName);
-                                    //    sftSite.UploadFile(summaryReportPath, ftpUuploadPath);
-                                    //    log.Debug("{0}-File successfully uploaded to client's location.".Fill(summaryReportFileName));
-                                    //}
-                                    //else
-                                    //{
-                                    //    log.Error("Upload path does not exist for Client-{0} and SFT Channel Id-{1}".Fill(client.Name, sftChannelDetails.Code));
-                                    //}
+                                    if (sftSite.IsDownloadDirectoryAvailable(Common.ReportUploadPath))
+                                    {
+                                        string ftpUuploadPath = Path.Combine(Common.ReportUploadPath, summaryReportFileName);
+                                        sftSite.UploadFile(summaryReportPath, ftpUuploadPath);
+                                        log.Debug("{0}-File successfully uploaded to client's location.".Fill(summaryReportFileName));
+                                    }
+                                    else
+                                    {
+                                        log.Error("Upload path does not exist for Client-{0} and SFT Channel Id-{1}".Fill(client.Name, sftChannelDetails.Code));
+                                    }
 
                                     SendDownloadNotificationEmail(summaryReportPath, client.TimeZone, startDate, endDate);
                                 }
