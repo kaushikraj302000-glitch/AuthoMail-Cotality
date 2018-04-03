@@ -76,10 +76,6 @@ namespace AM.Console
 
             if (SFTChannel.PostDownloadAction == PostDownloadAction.Archive)
             {
-                //TODO: add overwrite option in SFTUtil for file moving
-                if (sftSite.IsFileAvailable(triggerFTPBackUpFilePath))
-                    sftSite.DeleteFile(triggerFTPBackUpFilePath);
-
                 sftSite.MoveFile(triggerFTPFilePath, triggerFTPBackUpFilePath);
             }
             else
@@ -174,10 +170,7 @@ namespace AM.Console
                     if (SFTChannel.PostDownloadAction == PostDownloadAction.Archive)
                     {
                         //Move zip file
-                        string archiveFTPZipFilePath = Path.Combine(SFTChannel.ArchiveDir, zipFileName);
-
-                        if (sftSite.IsFileAvailable(archiveFTPZipFilePath))
-                            sftSite.DeleteFile(archiveFTPZipFilePath);
+                        string archiveFTPZipFilePath = Path.Combine(SFTChannel._ArchiveDir, zipFileName);
 
                         sftSite.MoveFile(ftpZipFilePath, archiveFTPZipFilePath);
                     }
@@ -236,11 +229,9 @@ namespace AM.Console
             foreach (var batch in downloadBatches)
             {
                 Client client = clientSvc.GetClientById(batch.ClientId);
-
                 MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.AuthoMailRootFolder);
 
                 var xmlFilePath = Path.Combine(mbi.AMRequestPath, mbi.BatchName + ".xml");
-
                 if (!File.Exists(xmlFilePath))
                 {
                     ReportInvalidBatch(batch, "Xml file does not exist in Batch-{0}".Fill(batch.BatchName));
@@ -251,8 +242,6 @@ namespace AM.Console
                 XmlDocument batchXML = new XmlDocument();
                 XmlNamespaceManager nsManager = null;
                 XmlNodeList mailPieceNodes = null;
-                // Try to parse the XML we got from the zip file. If XML is invalid then log error.
-                commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationStart, Common.Now);
                 try
                 {
                     batchXML.LoadXml(File.ReadAllText(xmlFilePath));
@@ -268,19 +257,9 @@ namespace AM.Console
 
                     continue;
                 }
-                catch (Exception ex)
-                {
-                    log.Error(ex);
-
-                    ReportInvalidBatch(batch, ex.ToString());
-
-                    continue;
-                }
 
                 if (mailPieceNodes == null)
                 {
-                    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationEnd, Common.Now);
-
                     ReportInvalidBatch(batch, "Xml does not contain any package info nodes.");
 
                     continue;
@@ -304,7 +283,7 @@ namespace AM.Console
                         if (requests.Packages.Count == 0)
                         {
                             //TODO: Ask to Ravi Sir
-                            //DeleteBatchInfo(mbi.MailBatch.Id, mbi.BatchRepo);
+                            DeleteBatchInfo(mbi.MailBatch.Id, mbi.BatchRepo);
                             continue;
                         }
 
@@ -331,10 +310,6 @@ namespace AM.Console
             catch (Exception ex)
             {
                 log.Error(ex);
-            }
-            if (retVal == 1)
-            {
-                Directory.Delete(mailBatchRepo, true);
             }
         }
 
@@ -424,17 +399,6 @@ namespace AM.Console
                 }
 
                 var xmlFilePath = Path.Combine(mbi.AMRequestPath, mbi.BatchName + ".xml");
-
-                if (!File.Exists(xmlFilePath))
-                {
-                    var error = "XML file for Batch {0} does not exist".Fill(mbi.BatchName);
-
-                    log.Error(error);
-
-                    ReportInvalidBatch(batch, error);
-
-                    continue;
-                }
 
                 XmlDocument batchXML = new XmlDocument();
                 XmlNamespaceManager nsManager = null;

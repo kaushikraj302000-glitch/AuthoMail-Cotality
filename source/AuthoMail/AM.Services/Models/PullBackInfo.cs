@@ -132,6 +132,8 @@ namespace AM.Services
         public string ErrorCode { get; set; }
         public string ErrorDesc { get; set; }
     }
+
+
     public class QuickPullBackResponse
     {
         public string ClientBatchId { get; set; }
@@ -164,6 +166,7 @@ namespace AM.Services
             }
         }
         public bool IsPullBackRequested { get; set; }
+        public DateTime? PullBackRequestedOn { get; set; }
         public string PullBackMessage
         {
             get

@@ -481,12 +481,9 @@ namespace AM.Lib
             else if (Protocol == SFT_ProtocolType.unc)
             {
                 string destinationFilePath = GetUrl(destinationRemotePath);
-                string destinationRemoteDir = Path.GetDirectoryName(destinationFilePath);
 
-                if (!Directory.Exists(destinationRemoteDir))
-                {
-                    Directory.CreateDirectory(destinationRemoteDir);
-                }
+                if (File.Exists(destinationFilePath))
+                    File.Delete(destinationFilePath);
 
                 File.Move(GetUrl(sourceRemotePath), GetUrl(destinationRemotePath));
             }
@@ -500,6 +497,12 @@ namespace AM.Lib
                 SftpFile sourceFile = SFTP_Client.Get(GetUrl(sourceRemotePath));
                 if (sourceFile != null && sourceFile.IsRegularFile)
                 {
+                    //If file is already in archive folder then first we will delete it. then move it.
+                    if (SFTP_Client.Exists(GetUrl(destinationRemotePath)))
+                    {
+                        SFTP_Client.DeleteFile(GetUrl(destinationRemotePath));
+                    }
+
                     sourceFile.MoveTo(GetUrl(destinationRemotePath));
                 }
             }

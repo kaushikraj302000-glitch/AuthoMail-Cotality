@@ -245,9 +245,9 @@ namespace AM.Services
                       Description = p.GetDescription(),
                       ModifiedOn = Common.Now,
                       Id = p.Name
-                  });
-                }
+                });
             }
         }
     }
+}
 }
