@@ -486,8 +486,17 @@ GO
 SET IDENTITY_INSERT [Common].[SFTChannels] OFF
 GO
 
-INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(65,1,'USAA_Template.pdf')
+INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(65,1,'USAA_65_1.pdf')
 GO
+INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(66,1,'USAA_66_1.pdf')
+GO
+INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(65,1,'USAA_68_1.pdf')
+GO
+INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(65,1,'USAA_70_1.pdf')
+GO
+INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(65,1,'USAA_71_1.pdf')
+GO
+
 INSERT INTO [AM].[ClientBusinessIdentifiers]([ClientId],[BusinessIdName])VALUES(101,'Loan Number')
 GO
 EXEC usp_MapClientSFTChannels 'USAA','AMC_Internal'
