@@ -35,23 +35,35 @@ namespace AM.Web.Controllers
         [HttpPost]
         public ActionResult GetMailPieceIdByLoanNumber(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string startDate, string endDate)
         {
-            var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-            var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-            var model = homeSvc.GetMailPieceIdFromBusinessFriendlyValue(BusinessFriendlyIdName, BusinessFriendlyIdValue, User.Identity.GetClientId().Value);
 
-            if (model.Count > 1)
+            try
             {
+                var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+                var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+                var model = homeSvc.GetMailPieceIdFromBusinessFriendlyValue(BusinessFriendlyIdName, BusinessFriendlyIdValue, User.Identity.GetClientId().Value);
 
-                return Json("PullBack", JsonRequestBehavior.AllowGet);
+                if (model.Count > 1)
+                {
+
+                    //return Json("PullBack", JsonRequestBehavior.AllowGet);
+                    return Json(JsonResponseFactory.SuccessResponse("PullBack"), JsonRequestBehavior.AllowGet);
+                }
+                else if (model.Count == 1)
+                {
+                    var pullbackRequestData = pullBackSvc.GetPullBackRequestList(BusinessFriendlyIdName, BusinessFriendlyIdValue, null, exactStartDate, exactEndDate, User.Identity.GetClientId().Value);
+                    //return PartialView("_PullBackRequestData", pullbackRequestData);
+                    return Json(JsonResponseFactory.SuccessResponse(new { model = pullbackRequestData.OrderBy(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+                }
+                else
+                {
+                    //return Json("AdvancePullBack", JsonRequestBehavior.AllowGet);
+                    return Json(JsonResponseFactory.SuccessResponse("AdvancePullBack"), JsonRequestBehavior.AllowGet);
+                }
             }
-            else if (model.Count == 1)
+            catch (Exception e)
             {
-                var pullbackRequestData = pullBackSvc.GetPullBackRequestList(BusinessFriendlyIdName, BusinessFriendlyIdValue, null, exactStartDate, exactEndDate, User.Identity.GetClientId().Value);
-                return PartialView("_PullBackRequestData", pullbackRequestData);
-            }
-            else
-            {
-                return Json("AdvancePullBack", JsonRequestBehavior.AllowGet);
+                
+                 return Json(JsonResponseFactory.ErrorResponse(e.ToString()), JsonRequestBehavior.AllowGet);
             }
 
         }
@@ -76,20 +88,23 @@ namespace AM.Web.Controllers
         public ActionResult TodayChartDetails(string status, int batchId)
         {
             var model = chartDataSvc.GetMailPieceByParam(batchId, status, User.Identity.GetClientId().Value);
-            return PartialView("_GetChartMailPieceData", model);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderBy(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+            //return PartialView("_GetChartMailPieceData", model);
         }
 
         public ActionResult GetMailPieceByBatchId(int batchId)
         {
             var model = chartDataSvc.GetMailPieceByBatchId(batchId, User.Identity.GetClientId().Value);
-            return PartialView("_GetChartMailPieceData", model);
+            //return PartialView("_GetChartMailPieceData", model);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderBy(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
         [HttpPost]
         public ActionResult WeeklyChartDetails(string status, string date)
         {
             var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
             var model = chartDataSvc.GetBatchByParam(exactDate, status, User.Identity.GetClientId().Value);
-            return PartialView(model);
+            //return PartialView(model);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderBy(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
         //[HttpPost]
         //public ActionResult GetWeeklyChartData(DateTime startDate, DateTime endDate)
