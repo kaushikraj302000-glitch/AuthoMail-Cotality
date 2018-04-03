@@ -30,7 +30,7 @@ namespace AM.Services
                 channel = channel.IsNullOrWhiteSpace() ? null : channel
             }).ToList();
 
-            var data2 = GetMailPiecesData(clientId, businessFriendlyIdName, businessFriendlyIdValue, startDate, endDate, docType, status, channel);
+            //var data2 = GetMailPiecesData(clientId, businessFriendlyIdName, businessFriendlyIdValue, startDate, endDate, docType, status, channel);
 
             return data;
         }
