@@ -251,9 +251,9 @@
         function FormatObject(Model) {
             $(Model).each(function () {
                 this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
-                this.PrintedOnFormatted = moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
-                this.MailedOnFormatted = moment(this.MailedOn).format("MM/DD/YY HH:mm:ss");
-                this.TrackingNo = this.TrackingNo == "" ? "" : '<button class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')">' + this.TrackingNo + '</button>';
+                this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
+                this.MailedOnFormatted = this.MailedOn == null ? "--" : moment(this.MailedOn).format("MM/DD/YY HH:mm:ss");
+                this.TrackingNo = this.TrackingNo == "" ? "--" : '<button class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')">' + this.TrackingNo + '</button>';
             });
             return Model;
         }
@@ -292,9 +292,9 @@
                             }
                             else {
                                 $("#dailyMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Msg_Web_NoRecordFound</span></div>")
+                            }
+                        }
                     }
-                }
-            }
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     $("#loading").hide();
@@ -305,10 +305,10 @@
                 }
 
             });
-}
-$("#filterData").click(function () {
-    FilterData();
-});
+        }
+        $("#filterData").click(function () {
+            FilterData();
+        });
 
     </script>
 }

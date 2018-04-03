@@ -13,6 +13,7 @@
         word-wrap: break-word;
         color: red;
     }
+
     .show-calendar {
         width: 484px !important;
     }
@@ -212,7 +213,7 @@
             console.log(Model);
             $(Model).each(function () {
                 this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
-                this.ShippedOnFormatted = this.ShippedOn==null?this.ShippedOn: moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
+                this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
                 this.RcptNameFormatted = this.RcptFirstName + " " + this.RcptLastName;
                 var status = "";
 
@@ -235,7 +236,7 @@
                 }
                 this.ShippingStatusFormatted = status;
 
-                this.TrackingNoFormatted = this.TrackingNo == null ? this.TrackingNo : '<button class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')">' + this.TrackingNo + '</button>';
+                this.TrackingNoFormatted = this.TrackingNo == null ? "--" : '<button class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')">' + this.TrackingNo + '</button>';
             });
             return Model;
         }

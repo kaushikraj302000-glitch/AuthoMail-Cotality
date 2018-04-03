@@ -5,7 +5,8 @@
     #dateFilter .bootstrap-select {
         width: 100% !important;
     }
-      .bootstrap-select {
+
+    .bootstrap-select {
         width: 205px !important;
     }
 
@@ -240,10 +241,10 @@
         function FormatObject(Model) {
             $(Model).each(function () {
                 this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
-                this.PrintedOnFormatted = moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
-                this.MailedOnFormatted = moment(this.MailedOn).format("MM/DD/YY HH:mm:ss");
-                this.DueDateFormatted = moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
-                this.ErrorDescPopover = this.ErrorDesc == ""?"" : '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left"><a>Error Details</a></span>';
+                this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
+                this.MailedOnFormatted = this.MailedOn == null ? "--" : moment(this.MailedOn).format("MM/DD/YY HH:mm:ss");
+                this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
+                this.ErrorDescPopover = this.ErrorDesc == null ? "--" : '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left"><a>Error Details</a></span>';
             });
             return Model;
         }

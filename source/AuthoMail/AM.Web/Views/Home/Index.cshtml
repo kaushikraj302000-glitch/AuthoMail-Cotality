@@ -838,8 +838,8 @@
             }
             // \''+this.TrackingNo+'\',\''+this.ShippingMethod+'\'
             this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
-            this.DueDateFormatted = moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
-            this.ErrorDescPopover = this.ErrorDesc == "" ? "" : '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left"><a>Error Details</a></span>';
+            this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
+            this.ErrorDescPopover = this.ErrorDesc == null ? "--" : '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left"><a>Error Details</a></span>';
             this.ShippingStatusFormatted = status;
             this.BatchButtonFormatted = '<button onclick="GetMailPieceById( \'' + this.BatchId + '\',\'' + this.ReceivedOnFormatted + '\',\'' + this.ClientBatchId + '\')" type="button" class="btn btn-transparent-bright-blue">View Details</button>'
             this.IsPullBackRequestedFormatted = requestedPullback;
