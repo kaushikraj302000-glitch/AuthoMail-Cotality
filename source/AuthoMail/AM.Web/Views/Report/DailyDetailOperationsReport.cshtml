@@ -287,6 +287,7 @@
                             $("#dailyMailPieceList").show();
                             console.log(response.Object.model.length);
                             if (response.Object.model.length > 0) {
+                                $("#dailyMailPieceList").html("");
                                 var data = FormatObject(response.Object.model);
                                 BindTemplate(data, "#dailyBody", "#dailybodyContent", "#dailyTableContent", "#dailyMailPieceList");
                             }
