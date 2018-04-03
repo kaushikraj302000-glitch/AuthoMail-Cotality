@@ -339,6 +339,7 @@
                         if (response.Object != null) {
                             console.log(response.Object.model.length);
                             if (response.Object.model.length > 0) {
+                                $("#searchMailPieceList").html("");
                                 var data = FormatObject(response.Object.model);
                                 BindTemplate(data, "#SearchBody", "#SearchbodyContent", "#SearchTableContent", "#searchMailPieceList");
                             }

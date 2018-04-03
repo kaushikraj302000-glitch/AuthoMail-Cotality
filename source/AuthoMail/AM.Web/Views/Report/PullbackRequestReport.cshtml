@@ -213,6 +213,7 @@
                             if (response.Object.model.length > 0) {
                                 if (response.Object.model.length > 0) {
                                     var data = FormatObject(response.Object.model);
+                                    $("#pullbackList").html();
                                     BindTemplate(data, "#pullBody", "#pullbodyContent", "#pullTableContent", "#pullbackList");
                                 }
                                 else {
