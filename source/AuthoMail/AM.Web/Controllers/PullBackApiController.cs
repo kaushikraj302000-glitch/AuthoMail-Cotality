@@ -158,7 +158,7 @@ namespace AM.Web.Controllers
                     string attachmentPdfName = string.Format("{0}_{1}.pdf", item.PrintBatch.ToString(), DateTime.Now.ToString("ddMMyyyyhhmmss"));
                     //string outputPdfPath = Path.Combine(Config.API_PB_OutputDir, string.Format("{0}_{1}.pdf", item.PrintBatch.ToString(), DateTime.Now.ToString("ddMMyyyyhhmmss")));
                     //Helper.MailMerge(Config.API_PB_PullBackFormTemplatePath, dataForPullBackForm, outputPdfPath);
-                    Helper.MailMerge(HostingEnvironment.MapPath(Config.API_PB_PullBackFormTemplatePath), dataForPullBackForm, ref output);
+                    Helper.MailMerge(Config.API_PB_PullBackFormTemplatePath, dataForPullBackForm, ref output);
                     bool isEmailSent = SendEmailWithPullBackForm(output, attachmentPdfName);
 
                 }
@@ -187,8 +187,8 @@ namespace AM.Web.Controllers
                     //msg.Body = string.Format("***TEST*** \nPlease find attached PullBackRequestForm {0}.", attachmentPdfName);
                     msg.Body = string.Format("Please find attached PullBackRequestForm {0}.", attachmentPdfName);
                     msg.Attachments.Add(new Attachment(new MemoryStream(attachmentPdf), attachmentPdfName));
-
-                    Config.API_Email_SMTPClient.Send(msg);
+                    SmtpClient sc = new SmtpClient();
+                    sc.Send(msg);
 
                     isEmailSent = true;
                 }

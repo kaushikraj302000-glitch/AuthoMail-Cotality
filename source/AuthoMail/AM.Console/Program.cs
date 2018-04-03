@@ -18,13 +18,14 @@ namespace AM.Console
             {
                 if (arg == "config")
                 {
-                    System.Console.WriteLine("swaminarayan");
+                    System.Console.WriteLine("Seeding Start");
 
                     using (var cfgSvc = new ConfigService())
                     {
-                        cfgSvc.SeedAMSettings();
+                        cfgSvc.SeedAMSettings();                        
                     }
-
+                    Config.SaveAllSetting();
+                    System.Console.WriteLine("Seed Completed.");
                     return;
                 }
                 else if (arg == "BatchReporting")
