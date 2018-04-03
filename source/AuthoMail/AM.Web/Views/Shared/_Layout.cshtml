@@ -131,7 +131,7 @@
                 return this.replace(/{([^{}]*)}/g,
                     function (a, b) {
                         var r = o[b];
-                        if (r == null || typeof r == "undefined") return "--";
+                        if (r === null || typeof r === "undefined") return "--";
                         return typeof r === 'string' || typeof r === 'number' ? r : a;
                     }
                 );
