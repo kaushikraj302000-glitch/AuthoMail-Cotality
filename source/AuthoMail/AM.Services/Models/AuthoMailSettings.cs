@@ -8,11 +8,13 @@ namespace AM.Services
 {
     public class AMSetting
     {
-        public string Key { get; set; }
+        public string Id { get; set; }
         public string DataType { get; set; }
         public string Value { get; set; }
         public string Description { get; set; }
         public bool IsSystem { get; set; }
         public string DefaultValue { get; set; }
+        public string ModifiedBy { get; set; }
+        public DateTime ModifiedOn { get; set; }
     }
 }

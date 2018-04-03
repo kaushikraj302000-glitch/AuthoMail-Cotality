@@ -15,6 +15,7 @@ namespace AM.Services
     public class Config
     {
         #region General
+        [Description("To indicate on which environment job is running.")]
         public static string Environment { get; private set; }
 
         #endregion
@@ -52,6 +53,7 @@ namespace AM.Services
 
         public static string ReportSFTUploadingChannelCode { get; private set; }
         public static string ReportSFTUploadingPathAMC { get; private set; }
+        [Description("This is unique customer identifier")]
         public static string USAACustIdentifier { get; set; }
         public static string AMCDirPath { get; set; }
 
@@ -127,95 +129,10 @@ namespace AM.Services
         #endregion
 
         private static List<string> errors;
-        //public static Dictionary<string,string> Msg {get; private set;}
         static Config()
         {
-
-            #region General
-            Environment = "Staging";
-            AuthoMailRootFolder = @"D:\AuthoMailGit\Repos\source\AuthoMail\AM.Console\bin\Debug\AuthoMailRoot";
-            #endregion
-
-            #region Console & Core
-            PnS_SFT_HostURL = @"\\MTC-sagarg\c$\MSTC\PnS";
-            PnS_SFT_UserName = "user";
-            PnS_SFT_Password = "";
-            PnS_SFT_RootDir = @"\\MTC-sagarg\c$\MSTC\PnS";
-
-            DSEmailTemplate = @"D:\AuthoMailGit\Repos\source\AuthoMail\AM.Console\HTMLTemplates\DET.html";
-            DSEmail_Subject = "TEST USAA Download Summary";
-            DS_Email_To = "sgolvelkar@corelogic.com";
-            DS_Email_Cc = "sgolvelkar@corelogic.com";
-
-            PSEmailTemplate = @"D:\AuthoMailGit\Repos\source\AuthoMail\AM.Console\HTMLTemplates\PLET.html";
-            PSEmail_Subject = "TEST USAA Production Summary";
-            PS_Email_To = "sgolvelkar@corelogic.com";
-            PS_Email_Cc = "sgolvelkar@corelogic.com";
-
-            NoBatchReceivedNotification_Subject = "No USAA batch is available";
-            NoBatch_Email_To = "sgolvelkar@corelogic.com";
-            NoBatch_Email_Cc = "sgolvelkar@corelogic.com";
-
-            PnSEmail_Subject = "TEST USAA Status Update";
-            PnS_Email_To = "sgolvelkar@corelogic.com";
-            PnS_Email_Cc = "sgolvelkar@corelogic.com";
-
-            ExceptionEmail_Subject = "Unexpected error occurred in AuthoMail";
-            Exception_Email_To = "sgolvelkar@corelogic.com,avala@corelogic.com,vmungara@corelogic.com";
-            Exception_Email_Cc = "nirav.barot@milestonetechnoconsulting.com,milan.patel@milestonetechnoconsulting.com";
-
-            USAACustIdentifier = "166";
-            AMCDirPath = @"\\MTC-sagarg\c$\MSTC\AM\AMC";
-
-            ReportSFTUploadingChannelCode = "USAA_CL";
-            ReportSFTUploadingPathAMC = @"/Unknown/USAA/Output";
-
-            //Core Config
-
-            CoverTemplateFolder = @"D:\AuthoMailGit\Repos\source\AuthoMail\AM.Core\CoverTemplates";
-            CountryCode = "US";
-            FedexServiceAttemptInterval = 15000;
-            NoofTime_AttemptFedexService = 5;
-            CustomerTransactionId = "***Express Domestic Ship v7 Request using VC#***";
-            #endregion
-
-            #region PullBackMessages
-            API_Email_SMTPClient = new SmtpClient();
-            #endregion
-
-            #region WEB AccountController
-            //Account Controller Login Messages
-            Msg_Web_Login_InvalidUserName = "Invalid username.";
-            Msg_Web_Login_EmailConfirm = "Please confirm email address.";
-            Msg_Web_Login_Default = "Invalid login attempt.";
-            Msg_Web_Login_Success = "Login successful.";
-            MSG_WEB_Lockout = "This account has been locked out, please try again later.";
-            MSG_WEB_Error = "An error occurred while processing your request.";
-            #endregion
-
-            #region WEB Common Msg
-            Msg_Web_Ajax_CommonError = "Communication error. Please check your internet connection and try again.";
-            Msg_Web_NoRecordFound = "No Records";
-            Msg_Web_PullBackConfirmation = "Click 'Yes' to confirm your pullback request.";
-            #endregion
-
-            #region WEB RequestPullBackController
-            Msg_Web_NoMailPieceSelect = "Please select at least one mailpiece.";
-            Msg_Web_NoErrorDescription = "No error description.";
-            #endregion
-
-            #region WEB HomeController
-            Msg_Web_NoMailPieceReceivedToday = "No batches received today.";
-            #endregion
-
-            #region WEB ReportController
-            StartCutOffTime = "19:45:01";
-            EndCutOffTime = "19:45:00";
-            #endregion
-
             // Initialize config settings
             InitializeProperties<Config>();
-
         }
 
         private static void InitializeProperties<T>()
@@ -232,7 +149,7 @@ namespace AM.Services
             {
                 //var isRequired = p.CustomAttributes.Any(ca => ca.AttributeType == typeof(RequiredInConfigAttribute));
 
-                var authomailSetting = settings.SingleOrDefault(s => s.Key == p.Name);// db.ERPSettings.Find(p.Name);
+                var authomailSetting = settings.SingleOrDefault(s => s.Id == p.Name);// db.ERPSettings.Find(p.Name);
 
                 // Ignore if not stored in the database
                 if (authomailSetting == null) continue;
@@ -280,7 +197,7 @@ namespace AM.Services
 
             ConfigService cs = new ConfigService();
             var settings = cs.GetSystemSettings();
-            var authomailSetting = settings.SingleOrDefault(s => s.Key == key);   //db.ERPSettings.Find(key);
+            var authomailSetting = settings.SingleOrDefault(s => s.Id == key);   //db.ERPSettings.Find(key);
 
             var propValue = prop.PropertyType.GetConversionMethod().Invoke(null, new object[] { value });
             prop.SetValue(null, propValue);
@@ -289,7 +206,7 @@ namespace AM.Services
             {
                 cs.InsertSystemSetting(new AMSetting
                 {
-                    Key = key,
+                    Id = key,
                     Value = value,
                     IsSystem = IsSystem.HasValue ? IsSystem.Value : false,
                     DefaultValue = DefaultValue,
@@ -304,9 +221,33 @@ namespace AM.Services
                     DataType = prop.PropertyType.Name,
                     Value = value,
                     Description = prop.GetDescription(),
-                    Key = key
+                    ModifiedOn = Common.Now,
+                    Id = key
+                });
+            }
+        }
+
+        public static void SaveAllSetting()
+        {
+            PropertyInfo[] propInfo = typeof(Config).GetProperties(BindingFlags.Static | BindingFlags.Public);
+            ConfigService cs = new ConfigService();
+            var settings = cs.GetSystemSettings();
+
+            foreach (PropertyInfo p in propInfo)
+            {
+                var authomailSetting = settings.SingleOrDefault(s => s.Id == p.Name);
+                if (authomailSetting != null)
+                {
+                    cs.UpdateSystemSetting(new AMSetting
+                  {
+                      DataType = p.PropertyType.Name,
+                      Value = authomailSetting.Value,
+                      Description = p.GetDescription(),
+                      ModifiedOn = Common.Now,
+                      Id = p.Name
                 });
             }
         }
     }
+}
 }

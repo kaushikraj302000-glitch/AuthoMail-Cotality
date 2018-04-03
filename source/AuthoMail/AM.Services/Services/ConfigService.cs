@@ -19,19 +19,19 @@ namespace AM.Services
     {
         public List<AMSetting> GetSystemSettings()
         {
-            string qry = string.Format("SELECT [Key],[DataType],[Value],[Description],[IsSystem],[DefaultValue] FROM [Common].[SystemSettings]");
+            string qry = string.Format("SELECT [Id],[DataType],[Value],[Description],[IsSystem],[DefaultValue],[ModifiedBy],[ModifiedOn] FROM [Common].[SystemSettings]");
             return db.Query<AMSetting>(qry).ToList();
         }
 
         public int InsertSystemSetting(AMSetting amSetting)
         {
-            var query = "INSERT INTO [Common].[SystemSettings] ([Key],[DataType],[Value],[Description],[IsSystem],[DefaultValue]) VALUES (@Key,@DataType,@Value,@Description,@IsSystem,@DefaultValue)";
+            var query = "INSERT INTO [Common].[SystemSettings] ([Id],[DataType],[Value],[Description],[IsSystem],[DefaultValue],[ModifiedBy],[ModifiedOn]) VALUES (@Id,@DataType,@Value,@Description,@IsSystem,@DefaultValue,(select Id from [Profile].Users where UserName = 'system@mtc.com'),getutcdate())";
             return db.Execute(query, amSetting);
         }
 
         public int UpdateSystemSetting(AMSetting amSetting)
         {
-            var query = "UPDATE [Common].[SystemSettings] SET [DataType] = @DataType,[Value] = @Value,[Description] = @Description WHERE [Key] = @Key";
+            var query = "UPDATE [Common].[SystemSettings] SET [DataType] = @DataType,[Value] = @Value,[Description] = @Description,[ModifiedOn] = @ModifiedOn WHERE [Id] = @Id";
             return db.Execute(query, amSetting);
         }
 
