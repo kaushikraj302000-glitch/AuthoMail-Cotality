@@ -132,7 +132,7 @@ namespace AM.Web.Controllers
 
         public ActionResult ErrorSLAReport()
         {
-            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "DocTypeCode", "DocTypeCode");
+            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
             return View();
         }
         [HttpPost]

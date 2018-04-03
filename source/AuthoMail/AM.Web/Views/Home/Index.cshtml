@@ -393,7 +393,7 @@
                             $("#batchModalModalBody").html("");
                             //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                             BindTemplate(data, "#WeeklyChartBody", "#WeeklyChartbodyContent", "#WeeklyChartTableContent", "#batchModalModalBody");
-                            $("#batchModalHeader").html("Batch Summary:<span class='normaltext'> Received On - " + moment(date).format("MM/DD/YY") + ", Status - " + status + "</span>");
+                            $("#batchModalHeader").html("Batch Summary:<span class='normaltext'> Received On - " + moment(date).format("MM/DD/YY"));
                         }
                         else {
                             el.html(" <div class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Msg_Web_NoRecordFound</span></div>")
