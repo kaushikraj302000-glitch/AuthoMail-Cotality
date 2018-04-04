@@ -633,5 +633,153 @@ namespace AM.Core
                 }
             }
         }
+
+        internal static void ReportPreppedProcess()
+        {
+            using (IMailBatchService mailBatchSvc = new MailBatchService())
+            using (IClientService clientSvc = new ClientService())
+            using (ICommonService commonSvc = new CommonService())
+            using (IMailPieceService mailPieceSvc = new MailPieceService())
+            using (IDocTypeService docTypeSvc = new DocTypeService())
+            using (IFedExService fedExSvc = new FedExService())
+            {
+                List<MailBatchDTO> resReceivedBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.ShippingResponseReceived);
+                if (resReceivedBatches == null)
+                {
+                    log.Debug("Report prepped job queue is empty.");
+                    return;
+                }
+
+                foreach (var batch in resReceivedBatches)
+                {
+                    Client client = clientSvc.GetClientById(batch.ClientId);
+                    SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(batch.SFTChannelId);
+                    MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.AuthoMailRootFolder);
+                    var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
+                    if (data != null)
+                    {
+                        try
+                        {
+                            StringBuilder deliveryReport = USAADailyDetailOperationReport(data, sftChannelDetails.Title, client.TimeZone);
+
+                            if (deliveryReport != null)
+                            {
+                                string deliveryReportFileName = "{0}_{1}.csv".Fill("DR", data.MailBatch.BatchName);
+                                using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(deliveryReport.ToString())))
+                                {
+                                    using (FileStream file = new FileStream(Path.Combine(mbi.AMResponsePath, deliveryReportFileName), FileMode.Create, FileAccess.Write))
+                                    {
+                                        ms.WriteTo(file);
+                                    }
+                                }
+                            }
+
+                            StringBuilder errorReport = USAAErrorReport(data, sftChannelDetails.Title, client.TimeZone);
+
+                            if (errorReport != null)
+                            {
+                                string errorReportFileName = "{0}_{1}.csv".Fill("ER", data.MailBatch.BatchName);
+                                using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(errorReport.ToString())))
+                                {
+                                    using (FileStream file = new FileStream(Path.Combine(mbi.AMResponsePath, errorReportFileName), FileMode.Create, FileAccess.Write))
+                                    {
+                                        ms.WriteTo(file);
+                                    }
+                                }
+                            }
+
+                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
+                        }
+                        catch (Exception ex)
+                        {
+                            log.Error("Error occured while generating reports : {0}".Fill(ex.ToString()));
+                        }
+                    }
+                }
+            }
+        }
+        internal static StringBuilder USAAErrorReport(BatchData data, string sftChannelName, string timeZone)
+        {
+            StringBuilder errorReport = new StringBuilder("BatchID,ID,Channel,Package Name,Loan Number,File Name,Date Received,First Name,Last Name,Recipient Street Address,Recipient City,Recipient State,Recipient Zip,Error Code,Error Text,Shipping Method,Customer Identifier,RequestID");
+
+            errorReport.AppendLine();
+
+            var erroredData = data.MailPieces.Where(l => l.ErrorCode != OutComeCodes.No_Error).ToList();
+
+            if (erroredData == null || erroredData.Count == 0)
+            {
+                return null;
+            }
+
+            // All the loans where outcome code is anything except no_error are processed invalid loans.
+            foreach (MailPieceDTO mailPiece in erroredData)
+            {
+                errorReport.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17}",
+                        data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
+                        mailPiece.UniqueId,
+                        sftChannelName,
+                        mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType,
+                        mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
+                        mailPiece.FileName == null ? string.Empty : mailPiece.FileName,
+                        data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
+                        mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName,
+                        mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName,
+                        mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet,
+                        mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity,
+                        mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
+                        mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
+                        mailPiece.ErrorCode,
+                        mailPiece.ErrorDesc == null ? string.Empty : mailPiece.ErrorDesc.Replace(',', ' ').Replace("\r\n", " "),
+                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault().Value,
+                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").FirstOrDefault().Value,
+                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault().Value));
+            }
+
+            return errorReport;
+        }
+
+        internal static StringBuilder USAADailyDetailOperationReport(BatchData data, string sftChannelName, string timeZone)
+        {
+            StringBuilder deliveryReport = new StringBuilder("BatchID,ID,Channel,Package Name,Loan Number,File Name,Date Received,Date Printed,Date Mailed,Client Code,Tracking Number,Shipping Method,Customer Identifier,First Name,Last Name,Recipient Street Address,Recipient City,Recipient State,Recipient Zip,RequestID,Print Location,Pages Shipped");
+
+            deliveryReport.AppendLine();
+
+            var shippedData = data.MailPieces.Where(l => l.ShippingStatus == ShippingStatus.Shipped.ToString()).ToList();
+
+            if (shippedData == null || shippedData.Count == 0)
+            {
+                return null;
+            }
+
+            // All the loans where outcome code is anything except no_error are processed invalid loans.
+            foreach (MailPieceDTO mailPiece in shippedData)
+            {
+                deliveryReport.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21}",
+                        data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
+                        mailPiece.UniqueId,
+                        sftChannelName,
+                        mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType,
+                        mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
+                        mailPiece.FileName == null ? string.Empty : mailPiece.FileName,
+                        data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
+                        mailPiece.PrintedOn == null ? string.Empty : mailPiece.PrintedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
+                        mailPiece.ShippedOn == null ? string.Empty : mailPiece.ShippedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
+                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingCredCode").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingCredCode").FirstOrDefault().Value,
+                        mailPiece.TrackingNo == null ? string.Empty : mailPiece.TrackingNo,
+                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault().Value,
+                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").FirstOrDefault().Value,
+                        mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName,
+                        mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName,
+                        mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet,
+                        mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity,
+                        mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
+                        mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
+                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault().Value,
+                        data.MailBatch.PrintLocation,
+                        mailPiece.TotalSheets));
+            }
+
+            return deliveryReport;
+        }
     }
 }

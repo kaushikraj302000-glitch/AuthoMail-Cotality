@@ -20,15 +20,22 @@ namespace AM.Core
                 AMCore.SubmitBatchesDocTypeWiseToPCI();
                 AMCore.GetSubmittedPnSResponses();
                 AMCore.ProcessPnSResponses();
+                AMCore.ReportPreppedProcess();
             }
             else
             {
-                ServiceBase[] ServicesToRun;
-                ServicesToRun = new ServiceBase[] 
-                { 
-                    new AMCoreService() 
-                };
-                ServiceBase.Run(ServicesToRun);
+                AMCore.PrepPnSJobs();
+                AMCore.SubmitBatchesDocTypeWiseToPCI();
+                AMCore.GetSubmittedPnSResponses();
+                AMCore.ProcessPnSResponses();
+                AMCore.ReportPreppedProcess();
+
+                //ServiceBase[] ServicesToRun;
+                //ServicesToRun = new ServiceBase[] 
+                //{ 
+                //    new AMCoreService() 
+                //};
+                //ServiceBase.Run(ServicesToRun);
             }
         }
     }
