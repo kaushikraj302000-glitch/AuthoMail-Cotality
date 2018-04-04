@@ -3,15 +3,16 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Web;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace AM.Web
+namespace AM.Services
 {
     public class Helper
     {
         public static void MailMerge(string templatePath, Dictionary<string, string> data, ref byte[] output)
         {
-            using (var existingFileStream = new FileStream(templatePath, FileMode.Open,FileAccess.Read))
+            using (var existingFileStream = new FileStream(templatePath, FileMode.Open, FileAccess.Read))
             using (MemoryStream ms = new MemoryStream())
             {
                 // Open existing PDF
