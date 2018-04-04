@@ -11,7 +11,7 @@ namespace AM.Services
     public interface ISearchService : IDisposable
     {
         List<MailPieceSearch> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel);
-        List<MailPieces> GetMailPieces();
+        List<MailPieces> GetMailPieces(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel);
     }
     public class SearchService : ServiceBase, ISearchService
     {
@@ -30,16 +30,14 @@ namespace AM.Services
                 channel = channel.IsNullOrWhiteSpace() ? null : channel
             }).ToList();
 
-            //var data2 = GetMailPiecesData(clientId, businessFriendlyIdName, businessFriendlyIdValue, startDate, endDate, docType, status, channel);
-
             return data;
         }
 
-        public List<MailPieces> GetMailPiecesData(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel)
+        public List<MailPieces> GetMailPieces(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel)
         {
             string query = "[dbo].[uspweb_MailPieceSearchTest] @clientId, @businessFriendlyIdName, @businessFriendlyIdValue, @startDate, @endDate, @docType, @shippingStatus, @channel,null";
-            var data = db.Query<Clients, MailBatches, SFTChannels, MailPieces, DocTypes, Users, MailPieces>(query,
-                (c, b, s, m, d, u) =>
+            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, Users, DocTypes, MailPieces>(query,
+                (b, s, c, m, u, d) =>
                 {
                     m.Clients = c;
                     m.MailBatches = b;
@@ -63,22 +61,6 @@ namespace AM.Services
             return data;
         }
 
-        public List<MailPieces> GetMailPieces()
-        {
-            string query = "SELECT * FROM  [Common].[Clients] c,[AM].[MailBatches] b,[Common].[SFTChannels] ch,[AM].[MailPieces] m LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id LEFT OUTER JOIN [Profile].[Users] u ON m.PulledBackRequestedBy=u.Id WHERE m.ClientId=c.Id AND m.MailBatchId=b.Id AND b.SFTChannelId=ch.Id AND m.ClientId=101";
 
-            var data = db.Query<Clients, MailBatches, SFTChannels, MailPieces, DocTypes, Users, MailPieces>(query,
-               (c, b, s, m, d, u) =>
-               {
-                   m.Clients = c;
-                   m.MailBatches = b;
-                   b.SFTChannels = s;
-                   m.DocTypes = d;
-                   m.Users = u;
-                   return m;
-               }
-                ).ToList();
-            return data;
-        }
     }
 }
