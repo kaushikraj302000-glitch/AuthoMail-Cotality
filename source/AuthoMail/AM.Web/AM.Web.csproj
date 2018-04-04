@@ -63,10 +63,6 @@
       <HintPath>..\packages\Autofac.WebApi2.Owin.4.0.0\lib\net45\Autofac.Integration.WebApi.Owin.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="itextsharp, Version=5.5.13.0, Culture=neutral, PublicKeyToken=8354ae6d2174ddca, processorArchitecture=MSIL">
-      <HintPath>..\packages\iTextSharp.5.5.13\lib\itextsharp.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -204,7 +200,6 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Utilities\Helper.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\ManageViewModels.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -399,7 +394,6 @@
     <Content Include="Views\Report\_GetMailPieceList.cshtml" />
     <Content Include="Views\Report\MonthlyReconReport.cshtml" />
     <Content Include="Views\Report\MailPieceByBatchId.cshtml" />
-    <Content Include="Template\PullBackForm.pdf" />
     <Content Include="Views\Report\DeliveryReport.cshtml" />
     <Content Include="Views\Report\_GetDeliveryReport.cshtml" />
     <Content Include="Views\Report\ErrorsReport.cshtml" />

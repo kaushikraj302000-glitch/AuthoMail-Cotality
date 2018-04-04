@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using Dapper;
 using AM.Lib;
 using System.Data;
+using System.Net.Mail;
+using System.IO;
+using System.Web.Hosting;
 namespace AM.Services
 {
     public interface IPullBackService
@@ -17,6 +20,7 @@ namespace AM.Services
         List<PullBackInfo> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, string docType, DateTime startDate, DateTime endDate, int clientId);
         List<QuickPullBackResponse> GetQuickPullBackResponseFromBusinessFriendlyValue(string businessFriendlyIdName, string businessFriendlyIdValue, int clientId);
         List<QuickPullBackResponse> GetQuickPullBackResponse(List<string> mailPieceIds, int clientId);
+        bool GeneratePullBackForm(List<PullBackRequestForm> pullBackData);
     }
     public class PullBackService : ServiceBase, IPullBackService
     {
@@ -80,6 +84,71 @@ namespace AM.Services
             return response;
         }
 
+        public bool GeneratePullBackForm(List<PullBackRequestForm> pullBackData)
+        {
+            bool isGenerated = true;
+            try
+            {
+                foreach (var item in pullBackData)
+                {
+                    Dictionary<string, string> dataForPullBackForm = new Dictionary<string, string>();
+                    DateTime eastern = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, Config.API_PB_ClientTimeZone);
+                    dataForPullBackForm.Add("RequestDateTime", eastern.ToString());
+                    dataForPullBackForm.Add("FileName", string.Format("{0} {1}", item.PrintFileName, item.SubmittedOn.Value.ToString("MM/dd/yy")));
+                    dataForPullBackForm.Add("JobNumber", item.PrintBatch.ToString());
+                    dataForPullBackForm.Add("PackagesToPull", string.Format("{0} : {1}", item.PrintBatch.ToString(), item.PieceId.ToString()));
+                    dataForPullBackForm.Add("Coordinator", string.Format("AuthoMail, ADE, {0}-{1}", item.Name, item.DocTypeCode));
+                    dataForPullBackForm.Add("PkgInstruction", string.Empty);
+                    dataForPullBackForm.Add("Comments", string.Empty);
+
+                    byte[] output = null;
+                    string attachmentPdfName = string.Format("{0}_{1}.pdf", item.PrintBatch.ToString(), DateTime.Now.ToString("ddMMyyyyhhmmss"));
+                    //string outputPdfPath = Path.Combine(Config.API_PB_OutputDir, string.Format("{0}_{1}.pdf", item.PrintBatch.ToString(), DateTime.Now.ToString("ddMMyyyyhhmmss")));
+                    //Helper.MailMerge(Config.API_PB_PullBackFormTemplatePath, dataForPullBackForm, outputPdfPath);
+                    Helper.MailMerge(Config.API_PB_PullBackFormTemplatePath, dataForPullBackForm, ref output);
+                    bool isEmailSent = SendEmailWithPullBackForm(output, attachmentPdfName);
+
+                }
+            }
+            catch (Exception ex)
+            {
+                isGenerated = false;
+                throw ex;
+            }
+            return isGenerated;
+        }
+
+        private bool SendEmailWithPullBackForm(byte[] attachmentPdf, string attachmentPdfName)
+        {
+            bool isEmailSent = false;
+
+            try
+            {
+                using (MailMessage msg = new MailMessage())
+                {
+                    msg.IsBodyHtml = true;
+                    msg.To.Add(Config.API_Email_To);
+                    msg.CC.Add(Config.API_Email_Cc);
+                    //msg.Subject = string.Format("TEST : {0} \"{1}\"", "ADE", "PULL REQUEST");
+                    msg.Subject = string.Format("{0} \"{1}\"", "ADE", "PULL REQUEST");
+                    msg.Priority = MailPriority.High;
+                    //msg.Body = string.Format("***TEST*** \nPlease find attached PullBackRequestForm {0}.", attachmentPdfName);
+                    msg.Body = string.Format("Please find attached PullBackRequestForm {0}.", attachmentPdfName);
+                    msg.Attachments.Add(new Attachment(new MemoryStream(attachmentPdf), attachmentPdfName));
+                    SmtpClient sc = new SmtpClient();
+                    sc.Send(msg);
+
+                    isEmailSent = true;
+                }
+
+            }
+            catch (Exception err)
+            {
+                throw err;
+            }
+
+            return isEmailSent;
+        }
     }
 
     public static class PullBackServiceQuery
