@@ -23,6 +23,7 @@ namespace AM.Core
             AMCore.SubmitBatchesDocTypeWiseToPCI();
             AMCore.GetSubmittedPnSResponses();
             AMCore.ProcessPnSResponses();
+            AMCore.ReportPreppedProcess();
         }
 
         protected override void OnStop()

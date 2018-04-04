@@ -15,7 +15,6 @@ namespace AM.Console
 {
     public static class cfg
     {
-        public static SmtpClient Email_SMTPClient { get; private set; }
         public static string SchemaPath { get; set; }
         public static string SchemaPathAMC { get; set; }
         public static XmlSchemaSet schemaAM;
@@ -30,8 +29,6 @@ namespace AM.Console
 
             SchemaPathAMC = Path.GetFullPath(ConfigurationManager.AppSettings["SchemaPathAMC"]);
             schemasAMC.Add("http://schemas.corelogic.com/2015/amc/v1/packages", cfg.SchemaPathAMC);
-           
-            Email_SMTPClient = new SmtpClient();
         }
 
         public static void CleanDirectory(string path)
