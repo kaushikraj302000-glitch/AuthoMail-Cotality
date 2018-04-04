@@ -106,7 +106,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="Templates\PullBackForm.pdf" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AM.Entities\AM.Entities.csproj">
