@@ -8,7 +8,7 @@ using AM.Entities;
 
 namespace AM.Services
 {
-    public interface IHomeService//Home Service interface that has number of methods
+    public interface IHomeService : IDisposable
     {
         List<MailPieceSearch> GetMailPieceByBatchId(int batchId, int clientId);
         List<DocumentType> GetDocTypeList(int clientId);
