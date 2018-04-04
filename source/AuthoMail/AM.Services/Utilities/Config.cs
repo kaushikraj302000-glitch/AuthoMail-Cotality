@@ -93,6 +93,8 @@ namespace AM.Services
         public static string API_Email_To { get; private set; }
         [Description("To whom need to send email.")]
         public static string API_Email_Cc { get; private set; }
+        public static string API_Email_Subject { get; private set; }
+        public static string API_Email_BodyMsg { get; private set; }
         [Description("Define client's local timezone.")]
         public static string API_PB_ClientTimeZone { get; private set; }
         [Description("Path of pdf template which is used to send when pullback is requested.")]
@@ -245,9 +247,9 @@ namespace AM.Services
                       Description = p.GetDescription(),
                       ModifiedOn = Common.Now,
                       Id = p.Name
-                });
+                  });
+                }
             }
         }
     }
-}
 }

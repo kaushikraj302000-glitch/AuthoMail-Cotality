@@ -90,23 +90,22 @@
     <table class="table table-responsive" style="overflow-x:scroll">
         <thead>
             <tr>
-                <th>Batch Id</th>
-                <th>MailPiece Id</th>
-                <th>Channel</th>
-                <th>Document Type</th>
-                <th>Loan Number</th>
-                <th>File Name</th>
-                <th>Received Date <span class="fontcapitalize">(Local)</span></th>
-                <th>First Name</th>
-                <th>Last Name</th>
-                <th>Recipient Street Address</th>
-                <th>Recipient City</th>
-                <th>Recipient State</th>
-                <th>Recipient Zip</th>
-                <th>Error Code</th>
+                <th class="ClientBatchId">Batch Id</th>
+                <th class="MailPieceId">MailPiece Id</th>
+                <th class="Channel">Channel</th>
+                <th class="DocType">Document Type</th>
+                <th class="LoanNumber">Loan Number</th>
+                <th class="FileName">File Name</th>
+                <th class="ErrorCode">Error Code</th>
+                <th class="ReceivedDate">Received Date <span class="fontcapitalize">(Local)</span></th>
+                <th class="FirstName">First Name</th>
+                <th class="LastName">Last Name</th>
+                <th class="RecipientAddress">Recipient Street Address</th>
+                <th class="RecipientCity">Recipient City</th>
+                <th class="RecipientState">Recipient State</th>
+                <th class="RecipientZip">Recipient Zip</th>
                 <th class="ErrorText">Error Text</th>
-                <th>Error Text</th>
-                <th>Shipping Method</th>
+                <th class="ShippingMethod">Shipping Method</th>
                 <th class="BatchId">BatchId</th>
 
             </tr>
@@ -124,6 +123,7 @@
                 <td><span>{DocumentOrPackageType}</span></td>
                 <td><span>{BusinessFriendlyIdValue}</span></td>
                 <td><span>{FileName}</span></td>
+                <td>{ErrorDescPopover}</td>
                 <td><span>{ReceivedOnFormatted}</span></td>
                 <td><span>{RcptFirstName}</span></td>
                 <td><span>{RcptLastName}</span></td>
@@ -131,9 +131,7 @@
                 <td><span>{RcptAddressCity}</span></td>
                 <td><span>{RcptAddressState}</span></td>
                 <td><span>{RcptAddressZIP}</span></td>
-                <td><span>{ErrorCode}</span></td>
                 <td><span>{ErrorDesc}</span></td>
-                <td>{ErrorDescPopover}</td>
                 <td><span>{ShippingMethod}</span></td>
                 <td>{BatchId}</td>
             </tr>
@@ -203,7 +201,7 @@
                     filename: filename,
                     title: title,
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16]
+                        columns: [".ClientBatchId", ".MailPieceId", ".Channel", ".DocType", ".LoanNumber", ".FileName", ".ErrorCode", ".ErrorText", ".ReceivedDate", ".FirstName", ".LastName", ".RecipientAddress", ".RecipientCity", ".RecipientState", ".RecipientZip", ".ShippingMethod"],// [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16]
                     }
 
                 }
@@ -229,18 +227,20 @@
             $('.selectpicker').selectpicker('refresh');
             $('#BatchList').on('change', function () {
                 var oTable = $('#sample_2').dataTable();
+                var filterColumn = oTable.api().column(".BatchId").index();
                 var selected = $(this).find("option:selected").val();
                 if (!selected) {
-                    oTable.fnFilter('', 17, true);
+
+                    oTable.fnFilter('', filterColumn, true);
                 } else {
-                    oTable.fnFilter("^" + parseInt(selected) + "$", 17, true); //Exact value, column, reg
+                    oTable.fnFilter("^" + parseInt(selected) + "$", filterColumn, true); //Exact value, column, reg
                 }
             });
         }
         function FormatObject(Model) {
             $(Model).each(function () {
                 this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
-                this.ErrorDescPopover=this.ErrorDesc==""?"--":'<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="'+this.ErrorDesc+'" data-placement="left"><a>Error Details</a></span>';
+                this.ErrorDescPopover = this.ErrorDesc == null ? "--" : '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left"><a>' + this.ErrorCode + '</a></span>';
             });
             return Model;
         }

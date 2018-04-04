@@ -119,3 +119,7 @@ INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsS
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'StartCutOffTime', N'String', N'19:45:01', NULL, 0, N'19:45:01', (select Id from [Profile].Users where UserName = 'system@mtc.com'), GETUTCDATE())
 
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'USAACustIdentifier', N'String', N'166', NULL, 0, N'166', (select Id from [Profile].Users where UserName = 'system@mtc.com'), GETUTCDATE())
+
+INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'API_Email_BodyMsg', N'String', N'Please find attached PullBackRequestForm', N'', 0, N'Please find attached PullBackRequestForm', (select Id from [Profile].Users where UserName = 'system@mtc.com'), GETUTCDATE())
+
+INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'API_Email_Subject', N'String', N'ADE "PULL REQUEST"', N'', 0, N'ADE "PULL REQUEST"', (select Id from [Profile].Users where UserName = 'system@mtc.com'), GETUTCDATE())

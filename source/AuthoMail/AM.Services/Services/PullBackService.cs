@@ -129,15 +129,12 @@ namespace AM.Services
                     msg.IsBodyHtml = true;
                     msg.To.Add(Config.API_Email_To);
                     msg.CC.Add(Config.API_Email_Cc);
-                    //msg.Subject = string.Format("TEST : {0} \"{1}\"", "ADE", "PULL REQUEST");
-                    msg.Subject = string.Format("{0} \"{1}\"", "ADE", "PULL REQUEST");
+                    msg.Subject = Config.API_Email_Subject;
                     msg.Priority = MailPriority.High;
-                    //msg.Body = string.Format("***TEST*** \nPlease find attached PullBackRequestForm {0}.", attachmentPdfName);
-                    msg.Body = string.Format("Please find attached PullBackRequestForm {0}.", attachmentPdfName);
+                    msg.Body = string.Format("{0} {1}.", Config.API_Email_BodyMsg, attachmentPdfName);
                     msg.Attachments.Add(new Attachment(new MemoryStream(attachmentPdf), attachmentPdfName));
                     SmtpClient sc = new SmtpClient();
                     sc.Send(msg);
-
                     isEmailSent = true;
                 }
 

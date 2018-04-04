@@ -105,11 +105,10 @@
                 <th>Recipient City</th>
                 <th>Recipient State</th>
                 <th>Recipient Zip</th>
-                <th>Error Code</th>
-                <th class="ErrorText">Error Text</th>
-                <th>Error Text</th>
                 <th>Print Location</th>
                 <th>Pages Shipped</th>
+                <th class="ErrorCode">Error Code</th>
+                <th class="ErrorText">Error Text</th>
                 <th class="BatchId">BatchId</th>
             </tr>
         </thead>
@@ -139,11 +138,10 @@
                 <td><span>{RcptAddressCity}</span></td>
                 <td><span>{RcptAddressState}</span></td>
                 <td><span>{RcptAddressZIP}</span></td>
-                <td><span>{ErrorCode}</span></td>
-                <td><span>{ErrorDesc}</span></td>
-                <td><span>{ErrorDescPopover}</span></td>
                 <td><span>{PrintLocation}</span></td>
                 <td><span>{PagesShipped}</span></td>
+                <td><span>{ErrorDescPopover}</span></td>
+                <td><span>{ErrorDesc}</span></td>
                 <td>{BatchId}</td>
             </tr>
         </tbody>
@@ -204,7 +202,7 @@
                     filename: filename,
                     title: title,
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 23]
+                        columns: ["thead th:not(.BatchId)",".ErrorCode",".ErrorText"],//0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 23]
                     }
 
                 }
@@ -230,11 +228,13 @@
             $('.selectpicker').selectpicker('refresh');
             $('#BatchList').on('change', function () {
                 var oTable = $('#sample_2').dataTable();
+                var filterColumn = oTable.api().column(".BatchId").index();
                 var selected = $(this).find("option:selected").val();
                 if (!selected) {
-                    oTable.fnFilter('', 24, true);
+
+                    oTable.fnFilter('', filterColumn, true);
                 } else {
-                    oTable.fnFilter("^" + parseInt(selected) + "$", 24, true); //Exact value, column, reg
+                    oTable.fnFilter("^" + parseInt(selected) + "$", filterColumn, true); //Exact value, column, reg
                 }
             });
         }
@@ -244,7 +244,7 @@
                 this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
                 this.MailedOnFormatted = this.MailedOn == null ? "--" : moment(this.MailedOn).format("MM/DD/YY HH:mm:ss");
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
-                this.ErrorDescPopover = this.ErrorDesc == null ? "--" : '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left"><a>Error Details</a></span>';
+                this.ErrorDescPopover = this.ErrorDesc == null ? '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="No error description." data-placement="left"><a>' + this.ErrorCode + '</a></span>' : '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left"><a>' + this.ErrorCode + '</a></span>';
             });
             return Model;
         }

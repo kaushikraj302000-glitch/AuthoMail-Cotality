@@ -194,7 +194,7 @@
                     filename: filename,
                     title: title,
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                        columns: "thead th:not(.BatchId)",//[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                     }
 
                 }
@@ -220,11 +220,13 @@
             $('.selectpicker').selectpicker('refresh');
             $('#BatchList').on('change', function () {
                 var oTable = $('#sample_2').dataTable();
+                var filterColumn = oTable.api().column(".BatchId").index();
                 var selected = $(this).find("option:selected").val();
                 if (!selected) {
-                    oTable.fnFilter('', 11, true);
+
+                    oTable.fnFilter('', filterColumn, true);
                 } else {
-                    oTable.fnFilter("^" + parseInt(selected) + "$", 11, true); //Exact value, column, reg
+                    oTable.fnFilter("^" + parseInt(selected) + "$", filterColumn, true); //Exact value, column, reg
                 }
             });
         }

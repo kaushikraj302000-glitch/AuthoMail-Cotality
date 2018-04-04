@@ -215,7 +215,7 @@
                     filename: filename,
                     title: title,
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+                        columns: "thead th:not(.BatchId)",//[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
                     }
 
                 }
@@ -240,11 +240,13 @@
             $('.selectpicker').selectpicker('refresh');
             $('#BatchList').on('change', function () {
                 var oTable = $('#sample_2').dataTable();
+                var filterColumn = oTable.api().column(".BatchId").index();
                 var selected = $(this).find("option:selected").val();
                 if (!selected) {
-                    oTable.fnFilter('', 20, true);
+
+                    oTable.fnFilter('', filterColumn, true);
                 } else {
-                    oTable.fnFilter("^" + parseInt(selected) + "$", 20, true); //Exact value, column, reg
+                    oTable.fnFilter("^" + parseInt(selected) + "$", filterColumn, true); //Exact value, column, reg
                 }
             });
         }
