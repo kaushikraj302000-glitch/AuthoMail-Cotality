@@ -1,3 +1,5 @@
+USE [AuthoMail]
+
 SET IDENTITY_INSERT [Common].[BusinessUnit] ON 
 
 GO
@@ -490,11 +492,11 @@ INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplateP
 GO
 INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(66,1,'USAA_66_1.pdf')
 GO
-INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(65,1,'USAA_68_1.pdf')
+INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(68,1,'USAA_68_1.pdf')
 GO
-INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(65,1,'USAA_70_1.pdf')
+INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(70,1,'USAA_70_1.pdf')
 GO
-INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(65,1,'USAA_71_1.pdf')
+INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(71,1,'USAA_71_1.pdf')
 GO
 
 INSERT INTO [AM].[ClientBusinessIdentifiers]([ClientId],[BusinessIdName])VALUES(101,'Loan Number')
