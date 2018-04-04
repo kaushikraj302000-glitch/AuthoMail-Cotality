@@ -9,7 +9,7 @@ using AM.Entities;
 
 namespace AM.Services
 {
-    public interface IChartDataService
+    public interface IChartDataService : IDisposable
     {
         List<WeeklyChart> GetWeeklyChartData(int clientId);
         List<TodayMailPieceChart> GetTodayMailPieceChartData(DateTime todayDate, int clientId);
@@ -80,7 +80,7 @@ namespace AM.Services
         }
 
         public List<BatchListByChartData> GetBatchByParam(DateTime date, string status, int clientId)
-        {            
+        {
             var data = db.Query<BatchListByChartData>(ChartDataServiceQuery.GetBatchByParam, new { startDate = date.ToStartDateTime().EstToUtc(), endDate = date.ToEndDateTime().EstToUtc(), status = status, clientId = clientId }).ToList();
             return data;
         }

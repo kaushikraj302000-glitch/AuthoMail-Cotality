@@ -11,7 +11,7 @@ using System.IO;
 using System.Web.Hosting;
 namespace AM.Services
 {
-    public interface IPullBackService
+    public interface IPullBackService : IDisposable
     {
         List<PullBackViewModel> GetMailPieceData(List<string> mpIds);
         List<PullBackRequestForm> GetPullBackData(List<string> mpIds);

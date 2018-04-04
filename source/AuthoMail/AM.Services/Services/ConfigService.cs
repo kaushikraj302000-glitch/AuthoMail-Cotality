@@ -8,7 +8,7 @@ using AM.Services.Properties;
 
 namespace AM.Services
 {
-    public interface IConfigService
+    public interface IConfigService : IDisposable
     {
         List<AMSetting> GetSystemSettings();
         int InsertSystemSetting(AMSetting amSetting);

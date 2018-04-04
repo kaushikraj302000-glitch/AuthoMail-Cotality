@@ -8,7 +8,7 @@ using AM.Lib;
 using System.Data;
 namespace AM.Services
 {
-    public interface ISearchService
+    public interface ISearchService : IDisposable
     {
         List<MailPieceSearch> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel);
         List<MailPieces> GetMailPieces();
