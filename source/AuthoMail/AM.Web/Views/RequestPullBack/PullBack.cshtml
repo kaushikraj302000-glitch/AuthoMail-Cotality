@@ -314,7 +314,7 @@
                 ],
                 "scrollX": true,
                 "order": [
-                    [1, 'asc']
+                    [3, 'asc']
                 ],
                 "lengthMenu": [
                     [5, 10, 25, 50, 100, -1],
@@ -400,6 +400,7 @@
             FilterData();
         });
         $("#pullback").click(function (e) {
+            
             var mailpieceIds = [];
             var oTable = $('#sample_2').dataTable();
             $(".checkall:checked", oTable.fnGetNodes()).each(function () {
@@ -420,6 +421,7 @@
         });
         $("#yesPullback").unbind("click").click(function (e) {
             $("#confirmModal").modal("hide");
+            Spinners("#pullback", "fa-reply");
             e.preventDefault();
             var oTable = $('#sample_2').dataTable();
             var mailpieceIds = [];
@@ -440,6 +442,7 @@
                 dataType: "JSON",
                 success: function (response) {
                     console.log(response);
+                    Spinners("#pullback", "fa-reply");
                     if (response.Success) {
                         if (response.Object != null) {
 
@@ -502,6 +505,7 @@
 
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
+                    Spinners("#pullback", "fa-reply");
                     var msg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
                     el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
                     $("#myModal").modal("show");

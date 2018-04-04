@@ -115,8 +115,8 @@
         $(document).ready(function () {
             init()
         });
-        function Spinners(selector, IsRemove,className) {
-            if (IsRemove) {
+        function Spinners(selector,className) {
+            if ($(selector).find("i").hasClass("fa-circle-o-notch fa-spin")) {
                 $(selector).find("i").removeClass("fa-circle-o-notch fa-spin");
                 $(selector).find("i").addClass(className);
             }
