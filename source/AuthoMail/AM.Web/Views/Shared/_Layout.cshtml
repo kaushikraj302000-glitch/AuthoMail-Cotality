@@ -115,8 +115,8 @@
         $(document).ready(function () {
             init()
         });
-        function Spinners(selector, IsRemove,className) {
-            if (IsRemove) {
+        function Spinners(selector,className) {
+            if ($(selector).find("i").hasClass("fa-circle-o-notch fa-spin")) {
                 $(selector).find("i").removeClass("fa-circle-o-notch fa-spin");
                 $(selector).find("i").addClass(className);
             }
@@ -130,13 +130,33 @@
             String.prototype.supplant = function (o) {
                 return this.replace(/{([^{}]*)}/g,
                     function (a, b) {
-                        var r = o[b];
-                        if (r === null || typeof r === "undefined") return "--";
-                        return typeof r === 'string' || typeof r === 'number' ? r : a;
+                        var lst = b.split('.');
+                        $obj = o;
+                        for (var i = 0; i < (lst.length) ; i++) {
+                            var r = $obj[lst[i]];
+                            if (r === null || typeof r === "undefined") return "--";
+                            if (typeof r === 'object') {
+                                $obj = r;
+                            }
+                            else {
+                                return typeof r === 'string' || typeof r === 'number' ? r : a;
+                            }
+                        }
                     }
                 );
             };
         }
+        //if (!String.prototype.supplant) {
+        //    String.prototype.supplant = function (o) {
+        //        return this.replace(/{([^{}]*)}/g,
+        //            function (a, b) {
+        //                var r = o[b];
+        //                if (r === null || typeof r === "undefined") return "--";
+        //                return typeof r === 'string' || typeof r === 'number' ? r : a;
+        //            }
+        //        );
+        //    };
+        //}
         function BindTemplate(model, bodyId, bodyContentId, mainTableId, mainDivId) {
 
             var bodyHtml = $(bodyId).html();

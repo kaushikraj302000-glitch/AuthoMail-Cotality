@@ -9,7 +9,7 @@ using AM.Entities;
 using AM.Lib;
 namespace AM.Services
 {
-    public interface IReportService
+    public interface IReportService : IDisposable
     {
         List<DailyDetailOperationsReport> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel);
         List<ErrorReport> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel);
