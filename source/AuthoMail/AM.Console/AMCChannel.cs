@@ -192,6 +192,8 @@ namespace AM.Console
             }
             if (sftSite.IsConnected)
                 sftSite.Disconnect();
+
+            log.Debug("Download job queue is completed.");
         }
 
         private string DownloadBatchZipFile(SFTUtil sftSite, string ftpZipFilePath, string ftpTriggerFilePath, MailBatchInfo mbi)
@@ -219,6 +221,7 @@ namespace AM.Console
         #region Separate Batches
         protected override void SeparateBatches()
         {
+            log.Debug("Separate batches job queue is started.");
             List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Downloaded);
             if (downloadBatches == null)
             {
@@ -298,6 +301,7 @@ namespace AM.Console
                     log.Error(ex);
                 }
             }
+            log.Debug("Separate batches job queue is completed.");
         }
 
         private void DeleteBatchInfo(int mailBatchId, string mailBatchRepo)
@@ -621,6 +625,7 @@ namespace AM.Console
                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
                 commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationEnd, Common.Now);
             }
+            log.Debug("Validate job queue is completed.");
         }
 
         protected override void AcknowledgeBatches()
@@ -648,6 +653,8 @@ namespace AM.Console
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
                 }
             }
+
+            log.Debug("Acknowledge job queue is completed.");
         }
     }
 }

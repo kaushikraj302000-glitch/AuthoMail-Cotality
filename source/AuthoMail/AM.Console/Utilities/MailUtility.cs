@@ -15,27 +15,31 @@ namespace AM.Console
     public class MailUtility
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(MailUtility));
+
         public static bool SendBatchSuspendedNotificationEmail(int printBatchId, string errorMsg)
         {
             bool isEmailSent = false;
 
             try
             {
-                using (MailMessage msg = new MailMessage())
+                using (SmtpClient smtpClient = new SmtpClient())
                 {
-                    msg.IsBodyHtml = true;
-                    msg.To.Add("");
-                    msg.CC.Add("");
-                    msg.Subject = "URGENT: Batch Suspended For Batch-ID: " + printBatchId;
-                    msg.Priority = MailPriority.Normal;
+                    using (MailMessage msg = new MailMessage())
+                    {
+                        msg.IsBodyHtml = true;
+                        msg.To.Add("");
+                        msg.CC.Add("");
+                        msg.Subject = "URGENT: Batch Suspended For Batch-ID: " + printBatchId;
+                        msg.Priority = MailPriority.Normal;
 
-                    StringBuilder sb = new StringBuilder(File.ReadAllText(""));
-                    sb = sb.Replace("<%Reason%>", errorMsg);
+                        StringBuilder sb = new StringBuilder(File.ReadAllText(""));
+                        sb = sb.Replace("<%Reason%>", errorMsg);
 
-                    msg.Body = sb.ToString();
-                    cfg.Email_SMTPClient.Send(msg);
+                        msg.Body = sb.ToString();
+                        smtpClient.Send(msg);
 
-                    isEmailSent = true;
+                        isEmailSent = true;
+                    }
                 }
             }
             catch (Exception err)
@@ -45,22 +49,26 @@ namespace AM.Console
 
             return isEmailSent;
         }
+
         public static bool SendNoBatchReceivedNotificationEmail(DateTime cutOffTime)
         {
             bool isEmailSent = false;
 
             try
             {
-                using (MailMessage msg = new MailMessage())
+                using (SmtpClient smtpClient = new SmtpClient())
                 {
-                    msg.IsBodyHtml = true;
-                    msg.To.Add(Config.NoBatch_Email_To);
-                    msg.CC.Add(Config.NoBatch_Email_Cc);
-                    msg.Subject = Config.NoBatchReceivedNotification_Subject;
-                    msg.Priority = MailPriority.Normal;
-                    msg.Body = string.Format("No batch available today till cutOffTime {0}.", cutOffTime.ToString("HH:mm:ss"));
-                    cfg.Email_SMTPClient.Send(msg);
-                    isEmailSent = true;
+                    using (MailMessage msg = new MailMessage())
+                    {
+                        msg.IsBodyHtml = true;
+                        msg.To.Add(Config.NoBatch_Email_To);
+                        msg.CC.Add(Config.NoBatch_Email_Cc);
+                        msg.Subject = Config.NoBatchReceivedNotification_Subject;
+                        msg.Priority = MailPriority.Normal;
+                        msg.Body = string.Format("No batch available today till cutOffTime {0}.", cutOffTime.ToString("HH:mm:ss"));
+                        smtpClient.Send(msg);
+                        isEmailSent = true;
+                    }
                 }
             }
             catch (Exception err)
@@ -75,15 +83,18 @@ namespace AM.Console
         {
             try
             {
-                using (MailMessage msg = new MailMessage())
+                using (SmtpClient smtpClient = new SmtpClient())
                 {
-                    msg.IsBodyHtml = true;
-                    msg.To.Add(Config.Exception_Email_To);
-                    msg.CC.Add(Config.Exception_Email_Cc);
-                    msg.Subject = Config.ExceptionEmail_Subject;
-                    msg.Priority = MailPriority.High;
-                    msg.Body = "Unexpected exception occured during execution." + Environment.NewLine + exception;
-                    cfg.Email_SMTPClient.Send(msg);
+                    using (MailMessage msg = new MailMessage())
+                    {
+                        msg.IsBodyHtml = true;
+                        msg.To.Add(Config.Exception_Email_To);
+                        msg.CC.Add(Config.Exception_Email_Cc);
+                        msg.Subject = Config.ExceptionEmail_Subject;
+                        msg.Priority = MailPriority.High;
+                        msg.Body = "Unexpected exception occured during execution." + Environment.NewLine + exception;
+                        smtpClient.Send(msg);
+                    }
                 }
             }
             catch (Exception err)
@@ -98,63 +109,65 @@ namespace AM.Console
 
             try
             {
-                using (MailMessage msg = new MailMessage())
+                using (SmtpClient smtpClient = new SmtpClient())
                 {
-                    msg.IsBodyHtml = true;
-                    msg.To.Add(Config.DS_Email_To);
-                    msg.CC.Add(Config.DS_Email_Cc);
-                    msg.Subject = Config.DSEmail_Subject;
-                    msg.Priority = MailPriority.Normal;
-
-                    if (batchData.MailPieces.Count > 0)
+                    using (MailMessage msg = new MailMessage())
                     {
-                        #region Prepare email body
+                        msg.IsBodyHtml = true;
+                        msg.To.Add(Config.DS_Email_To);
+                        msg.CC.Add(Config.DS_Email_Cc);
+                        msg.Subject = Config.DSEmail_Subject;
+                        msg.Priority = MailPriority.Normal;
 
-                        string downloadEmail_TD_SrNoStyle = "style='width:10%;border:solid windowtext 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
-                        string downloadEmail_TD_DescriptionStyle = "style='width:80%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'' valign='top' width='213'><p>";
-                        string downloadEmail_TD_CountStyle = "style='width:10%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
-
-                        StringBuilder sb = new StringBuilder(File.ReadAllText(Config.DSEmailTemplate));
-                        sb = sb.Replace("<%FileName%>", mbi.MailBatch.BatchName);
-                        sb = sb.Replace("<%yyyymmdd%>", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("MM/dd/yyyy"));
-                        sb = sb.Replace("<%hhmm%>", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("hh:mm tt"));
-
-                        StringBuilder data = new StringBuilder();
-                        data.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_SrNoStyle, "1"));
-                        data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_DescriptionStyle, "TOTAL LOANS RECEIVED"));
-                        data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, batchData.MailPieces.Count));
-                        data.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_SrNoStyle, "2"));
-                        data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", downloadEmail_TD_DescriptionStyle, "VALID LOANS"));
-                        data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, batchData.MailPieces.Where(l => l.ErrorCode == OutComeCodes.No_Error).Count()));
-                        data.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_SrNoStyle, "3"));
-                        data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", downloadEmail_TD_DescriptionStyle, "INVALID LOANS"));
-                        data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, batchData.MailPieces.Where(l => l.ErrorCode != OutComeCodes.No_Error).Count()));
-
-                        sb = sb.Replace("<%trdata%>", data.ToString());
-                        msg.Body = sb.ToString();
-
-                        #endregion
-                    }
-                    else if (batchData.MailPieces.Count == 0)
-                    {
-                        msg.Body = string.Format("No records available in the batch file {0}.", mbi.MailBatch.BatchName);
-                    }
-
-                    if (msg.Body.Length > 0)
-                    {
-                        StringBuilder errorReport = cfg.USAAErrorReport(batchData, sftChannel.Title, mbi.Client.TimeZone);
-                        if (errorReport != null)
+                        if (batchData.MailPieces.Count > 0)
                         {
-                            string errorReportFileName = string.Format("ER-{0}.csv", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("yyyyMMdd-HHmmss"));
+                            #region Prepare email body
 
-                            msg.Attachments.Add(new Attachment(new MemoryStream(Encoding.UTF8.GetBytes(errorReport.ToString().ToCharArray())), errorReportFileName));
+                            string downloadEmail_TD_SrNoStyle = "style='width:10%;border:solid windowtext 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
+                            string downloadEmail_TD_DescriptionStyle = "style='width:80%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'' valign='top' width='213'><p>";
+                            string downloadEmail_TD_CountStyle = "style='width:10%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
+
+                            StringBuilder sb = new StringBuilder(File.ReadAllText(Config.DSEmailTemplate));
+                            sb = sb.Replace("<%FileName%>", mbi.MailBatch.BatchName);
+                            sb = sb.Replace("<%yyyymmdd%>", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("MM/dd/yyyy"));
+                            sb = sb.Replace("<%hhmm%>", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("hh:mm tt"));
+
+                            StringBuilder data = new StringBuilder();
+                            data.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_SrNoStyle, "1"));
+                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_DescriptionStyle, "TOTAL LOANS RECEIVED"));
+                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, batchData.MailPieces.Count));
+                            data.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_SrNoStyle, "2"));
+                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", downloadEmail_TD_DescriptionStyle, "VALID LOANS"));
+                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, batchData.MailPieces.Where(l => l.ErrorCode == OutComeCodes.No_Error).Count()));
+                            data.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_SrNoStyle, "3"));
+                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", downloadEmail_TD_DescriptionStyle, "INVALID LOANS"));
+                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, batchData.MailPieces.Where(l => l.ErrorCode != OutComeCodes.No_Error).Count()));
+
+                            sb = sb.Replace("<%trdata%>", data.ToString());
+                            msg.Body = sb.ToString();
+
+                            #endregion
+                        }
+                        else if (batchData.MailPieces.Count == 0)
+                        {
+                            msg.Body = string.Format("No records available in the batch file {0}.", mbi.MailBatch.BatchName);
                         }
 
-                        cfg.Email_SMTPClient.Send(msg);
-                        isEmailSent = true;
+                        if (msg.Body.Length > 0)
+                        {
+                            StringBuilder errorReport = cfg.USAAErrorReport(batchData, sftChannel.Title, mbi.Client.TimeZone);
+                            if (errorReport != null)
+                            {
+                                string errorReportFileName = string.Format("ER-{0}.csv", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("yyyyMMdd-HHmmss"));
+
+                                msg.Attachments.Add(new Attachment(new MemoryStream(Encoding.UTF8.GetBytes(errorReport.ToString().ToCharArray())), errorReportFileName));
+                            }
+
+                            smtpClient.Send(msg);
+                            isEmailSent = true;
+                        }
                     }
                 }
-
             }
             catch (Exception err)
             {

@@ -91,6 +91,7 @@ namespace AM.Console
         /// </summary>
         public static void ReportBack()
         {
+            log.Debug("ReportedBack job is started.");
             using (IMailBatchService mailBatchSvc = new MailBatchService())
             using (IClientService clientSvc = new ClientService())
             using (ICommonService commonSvc = new CommonService())
@@ -116,9 +117,6 @@ namespace AM.Console
                     {
                         if (reportList != null && reportList.Count > 0)
                         {
-                            //Here for now we are taking SFT Code to Upload Reports on different channel
-
-                            //SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelCode(Common.ReportSFTUploadingChannelCode);
                             SFTUtil sftSite = null;
 
                             SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(batch.SFTChannelId);
@@ -166,6 +164,7 @@ namespace AM.Console
                     }
                 }
             }
+            log.Debug("ReportedBack job is completed.");
         }
 
         protected override void DisposeManagedObjects()
