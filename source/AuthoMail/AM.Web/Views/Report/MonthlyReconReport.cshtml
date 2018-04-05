@@ -107,8 +107,8 @@
                 <td><span>{ReceivedOnFormatted}</span></td>
                 <td><span>{PrintedOnFormatted}</span></td>
                 <td><span>{MailedOnFormatted}</span></td>
-                <td><span>{PagesShipped}</span></td>
-                <td><span>{ShippingMethod}</span></td>
+                <td><span>{TotalPages}</span></td>
+                <td><span>{DocTypes.ShippingServiceType}</span></td>
                 <td><span>{TrackingNo}</span></td>
                 <td><span>{ShippingStatus}</span></td>
             </tr>
@@ -190,7 +190,7 @@
             $(Model).each(function () {
                 this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
-                this.MailedOnFormatted = this.MailedOn == null ? "--" : moment(this.MailedOn).format("MM/DD/YY HH:mm:ss");
+                this.MailedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
             });
             return Model;
         }
