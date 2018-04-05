@@ -2839,7 +2839,7 @@ AS
 BEGIN
 
 SELECT *
-	FROM [AM].[MailBatches] b, [Common].[Clients] c,[Common].[SFTChannels] ch,[AM].[MailPieces] m
+	FROM [AM].[MailBatches] b, [Common].[SFTChannels] ch,[Common].[Clients] c,[AM].[MailPieces] m
 	LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id
 	WHERE m.[MailBatchId]=b.Id AND c.Id=b.ClientId AND ch.Id=b.SFTChannelId AND m.ClientId=@clientId
 	AND ISNULL(b.ReceivedOn,0) BETWEEN ISNULL(@startDate, ISNULL(b.ReceivedOn, 0)) AND ISNULL(@endDate, ISNULL(b.ReceivedOn, 0))
@@ -2882,7 +2882,7 @@ AS
 BEGIN
 
 select *
-	from [AM].[MailBatches] b, [Common].[Clients] c, [Common].[SFTChannels] ch,[AM].[MailPieces] m
+	from [AM].[MailBatches] b, [Common].[SFTChannels] ch,[Common].[Clients] c,[AM].[MailPieces] m
 	left outer join [AM].[DocTypes] d on m.DocTypeId=d.Id
 	where m.MailBatchId=b.Id and c.Id=b.ClientId and ch.Id=b.SFTChannelId AND m.ClientId=@clientId
 	AND ISNULL(b.ReceivedOn,0) BETWEEN ISNULL(@startDate, ISNULL(b.ReceivedOn, 0)) AND ISNULL(@endDate, ISNULL(b.ReceivedOn, 0))
@@ -2926,7 +2926,7 @@ AS
 BEGIN
 
 select *	
-	from [AM].[MailBatches] b, [Common].[Clients] c, [Common].[SFTChannels] ch,[AM].[MailPieces] m
+	from [AM].[MailBatches] b, [Common].[SFTChannels] ch, [Common].[Clients] c,[AM].[MailPieces] m
 	left outer join [AM].[DocTypes] d on m.DocTypeId=d.Id
 	where m.MailBatchId=b.Id and c.Id=b.ClientId and ch.Id=b.SFTChannelId AND m.ClientId=@clientId AND m.SLADays < 0
 	AND ISNULL(b.ReceivedOn,0) BETWEEN ISNULL(@startDateRec, ISNULL(b.ReceivedOn, 0)) AND ISNULL(@endDateRec, ISNULL(b.ReceivedOn, 0))
@@ -3097,7 +3097,7 @@ ALTER PROCEDURE [dbo].[uspweb_MonthlyReconReport]
 	@shippingStatus varchar(255)
 AS
 select *
-	FROM [AM].[MailBatches] b, [Common].[Clients] c,[Common].[SFTChannels] ch,[AM].[MailPieces] m
+	FROM [AM].[MailBatches] b, [Common].[SFTChannels] ch,[Common].[Clients] c,[AM].[MailPieces] m
 	LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id
 	WHERE m.[MailBatchId]=b.Id AND c.Id=b.ClientId AND ch.Id=b.SFTChannelId AND m.ClientId=@clientId
 	AND ISNULL(b.ReceivedOn,0) BETWEEN ISNULL(@startDate, ISNULL(b.ReceivedOn, 0)) AND ISNULL(@endDate, ISNULL(b.ReceivedOn, 0))
@@ -3135,7 +3135,7 @@ ALTER PROCEDURE [dbo].[uspweb_SummaryControlReport]
 AS
 BEGIN
 select *
-	FROM [AM].[MailBatches] b, [Common].[Clients] c,[Common].[SFTChannels] ch,[AM].[MailPieces] m
+	FROM [AM].[MailBatches] b, [Common].[SFTChannels] ch, [Common].[Clients] c,[AM].[MailPieces] m
 	LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id
 	WHERE m.[MailBatchId]=b.Id AND c.Id=b.ClientId AND ch.Id=b.SFTChannelId AND m.ClientId=@clientId
 	AND ISNULL(b.ReceivedOn,0) BETWEEN ISNULL(@startDate, ISNULL(b.ReceivedOn, 0)) AND ISNULL(@endDate, ISNULL(b.ReceivedOn, 0))

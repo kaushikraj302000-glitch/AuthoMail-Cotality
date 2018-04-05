@@ -62,8 +62,8 @@ namespace AM.Web.Controllers
             }
             catch (Exception e)
             {
-                
-                 return Json(JsonResponseFactory.ErrorResponse(e.ToString()), JsonRequestBehavior.AllowGet);
+
+                return Json(JsonResponseFactory.ErrorResponse(e.ToString()), JsonRequestBehavior.AllowGet);
             }
 
         }
@@ -82,7 +82,7 @@ namespace AM.Web.Controllers
             ViewBag.Date = string.Format("{0} to {1}", exactStartDate.ToString("MM/dd/yy"), exactEndDate.ToString("MM/dd/yy"));
             var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, exactStartDate, exactEndDate, docType, status, channel);
             //ViewBag.BusinessId = se.(User.Identity.GetClientId().Value);
-            return Json(JsonResponseFactory.SuccessResponse(new { model = data.OrderBy(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = data.OrderBy(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
         [HttpPost]
         public ActionResult TodayChartDetails(string status, int batchId)

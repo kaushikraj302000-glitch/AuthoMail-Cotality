@@ -38,7 +38,7 @@ namespace AM.Web.Controllers
             //Ref only. remove it. also check doctype is required or not.
             var model = pullBackSvc.GetPullBackRequestList(businessFriendlyIdName, businessFriendlyIdValue, docType, exactStartDate, exactEndDate, User.Identity.GetClientId().Value);
             //return PartialView(model);
-            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.ShippingStatus == "InProgress" ).ThenBy(s=>s.IsPullBackRequested).ThenByDescending(s => s.ShippingStatus == "PulledBack")  }), JsonRequestBehavior.AllowGet);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.ShippingStatus == "InProgress" ).ThenBy(s=>s.IsPullBackRequested).ThenByDescending(s => s.ShippingStatus == "PulledBack").ThenBy(s=>s.ReceivedOn)  }), JsonRequestBehavior.AllowGet);
         }
     }
 }
