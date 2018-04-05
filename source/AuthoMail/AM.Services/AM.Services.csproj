@@ -75,6 +75,7 @@
     <Compile Include="Core\DbFactory.cs" />
     <Compile Include="Demo.cs" />
     <Compile Include="IDemo.cs" />
+    <Compile Include="Models\AccountAPI.cs" />
     <Compile Include="Models\BatchReportInfo.cs" />
     <Compile Include="Models\ChartModels.cs" />
     <Compile Include="Models\MailPieceSearch.cs" />

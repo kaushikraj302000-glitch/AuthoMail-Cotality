@@ -423,4 +423,18 @@ namespace AM.Services
         public string UserName { get; set; }
         public int? ClientId { get; set; }
     }
+
+    public class PullBackRequests
+    {
+        public int Id { get; set; }
+        public int? ClientId { get; set; }
+        public int MailBatchId { get; set; }
+        public int MailPieceId { get; set; }
+        public Guid MailPieceUniqueId { get; set; }
+        public string Status { get; set; }
+        public DateTime RequestedOn { get; set; }
+        public string RequestedBy { get; set; }
+        public MailPieces MailPieces { get; set; }
+        public Users Users { get; set; }
+    }
 }

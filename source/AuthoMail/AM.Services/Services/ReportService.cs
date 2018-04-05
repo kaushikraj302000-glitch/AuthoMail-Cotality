@@ -11,88 +11,141 @@ namespace AM.Services
 {
     public interface IReportService : IDisposable
     {
-        List<DailyDetailOperationsReport> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel);
-        List<ErrorReport> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel);
-        List<SummaryControlReport> GetSummaryControlReport(int clientId, DateTime startDate, DateTime endDate, string channel);
-        List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime date, int? batchId, string docType, string filterBy);
-        List<MonthlyReconReport> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel);
+        List<MailPieces> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel);
+        List<MailPieces> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel);
+        List<MailPieces> GetSummaryControlReport(int clientId, DateTime startDate, DateTime endDate, string channel);
+        List<MailPieces> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime date, int? batchId, string docType, string filterBy);
+        List<MailPieces> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel);
         List<ChannelCodeTitle> GetChannelTitle(int clientId);
-        List<PullbackRequestReport> GetPullbackRequestReport(int clientId, DateTime startDate, DateTime endDate);
+        List<PullBackRequests> GetPullbackRequestReport(int clientId, DateTime startDate, DateTime endDate);
     }
     public class ReportService : ServiceBase, IReportService
     {
-        public List<DailyDetailOperationsReport> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel)
+        public List<MailPieces> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel)
         {
             string query = "[dbo].[uspweb_DailyDetailOperationsReport] @clientId, @startDate, @endDate, @batchId, @channel, @shippingStatus";
-            var data = db.Query<DailyDetailOperationsReport>(query, new
-            {
-                clientId = clientId,
-                shippingstatus = ShippingStatus.Shipped.ToString(),
-                batchId = batchId,
-                channel = channel.IsNullOrWhiteSpace() ? null : channel,
-                startDate = date.HasValue ? (date.Value.ToStartDateTime()).EstToUtc() : date,
-                endDate = date.HasValue ? (date.Value.ToEndDateTime()).EstToUtc() : date,
-            }).ToList();
+            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, MailPieces>(query,
+                (b, s, c, m, d) =>
+                {
+                    m.Clients = c;
+                    m.MailBatches = b;
+                    b.SFTChannels = s;
+                    m.DocTypes = d;
+                    return m;
+                },
+                new
+                {
+                    clientId = clientId,
+                    shippingstatus = ShippingStatus.Shipped.ToString(),
+                    batchId = batchId,
+                    channel = channel.IsNullOrWhiteSpace() ? null : channel,
+                    startDate = date.HasValue ? (date.Value.ToStartDateTime()).EstToUtc() : date,
+                    endDate = date.HasValue ? (date.Value.ToEndDateTime()).EstToUtc() : date
+                }
+                ).ToList();
             return data;
         }
-        public List<ErrorReport> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel)
+        public List<MailPieces> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel)
         {
             string query = "[dbo].[uspweb_ErrorReport] @clientId, @startDate, @endDate, @batchId, @channel, @shippingStatus";
-            var data = db.Query<ErrorReport>(query, new
-            {
-                clientId = clientId,
-                shippingstatus = ShippingStatus.Error.ToString(),
-                batchId = batchId,
-                channel = channel.IsNullOrWhiteSpace() ? null : channel,
-                startDate = date.HasValue ? (date.Value.ToStartDateTime()).EstToUtc() : date,
-                endDate = date.HasValue ? (date.Value.ToEndDateTime()).EstToUtc() : date,
-            }).ToList();
+            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, MailPieces>(query,
+                (b, s, c, m, d) =>
+                {
+                    m.Clients = c;
+                    m.MailBatches = b;
+                    b.SFTChannels = s;
+                    m.DocTypes = d;
+                    return m;
+                },
+                new
+                {
+                    clientId = clientId,
+                    shippingstatus = ShippingStatus.Error.ToString(),
+                    batchId = batchId,
+                    channel = channel.IsNullOrWhiteSpace() ? null : channel,
+                    startDate = date.HasValue ? (date.Value.ToStartDateTime()).EstToUtc() : date,
+                    endDate = date.HasValue ? (date.Value.ToEndDateTime()).EstToUtc() : date
+                }
+                ).ToList();
             return data;
         }
 
-        public List<SummaryControlReport> GetSummaryControlReport(int clientId, DateTime startDate, DateTime endDate, string channel)
+        public List<MailPieces> GetSummaryControlReport(int clientId, DateTime startDate, DateTime endDate, string channel)
         {
             string query = "[dbo].[uspweb_SummaryControlReport] @clientId, @startDate, @endDate, @channel";
-            var data = db.Query<SummaryControlReport>(query, new
-            {
-                clientId = clientId,
-                startDate = startDate.EstToUtc(),
-                endDate = endDate.EstToUtc(),
-                channel = channel.IsNullOrWhiteSpace() ? null : channel
-            }).ToList();
+
+            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, MailPieces>(query,
+                (b, s, c, m, d) =>
+                {
+                    m.Clients = c;
+                    m.MailBatches = b;
+                    b.SFTChannels = s;
+                    m.DocTypes = d;
+                    return m;
+                },
+                new
+                {
+                    clientId = clientId,
+                    startDate = startDate.EstToUtc(),
+                    endDate = endDate.EstToUtc(),
+                    channel = channel.IsNullOrWhiteSpace() ? null : channel
+                }
+                ).ToList();
+
             return data;
         }
 
-        public List<ErrorReport> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime date, int? batchId, string docType, string filterBy)
+        public List<MailPieces> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime date, int? batchId, string docType, string filterBy)
         {
             string query = "[dbo].[uspweb_ErrorReportSLA] @clientId, @startDateRec, @endDateRec, @startDateDue, @endDateDue, @batchId, @docType";
             bool isReceived = filterBy == "ByReceivedOn" ? true : false;
             DateTime? dt = null;
-            var data = db.Query<ErrorReport>(query, new
-            {
-                clientId = clientId,
-                batchId = batchId,
-                docType = docType.IsNullOrWhiteSpace() ? null : docType,
-                startDateRec = isReceived ? (date.ToStartDateTime()).EstToUtc() : dt,
-                endDateRec = isReceived ? (date.ToEndDateTime()).EstToUtc() : dt,
-                startDateDue = isReceived ? dt : (date.ToStartDateTime()).EstToUtc(),
-                endDateDue = isReceived ? dt : (date.ToEndDateTime()).EstToUtc()
-            }).ToList();
+
+            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, MailPieces>(query,
+                (b, s, c, m, d) =>
+                {
+                    m.Clients = c;
+                    m.MailBatches = b;
+                    b.SFTChannels = s;
+                    m.DocTypes = d;
+                    return m;
+                },
+                new
+                {
+                    clientId = clientId,
+                    batchId = batchId,
+                    docType = docType.IsNullOrWhiteSpace() ? null : docType,
+                    startDateRec = isReceived ? (date.ToStartDateTime()).EstToUtc() : dt,
+                    endDateRec = isReceived ? (date.ToEndDateTime()).EstToUtc() : dt,
+                    startDateDue = isReceived ? dt : (date.ToStartDateTime()).EstToUtc(),
+                    endDateDue = isReceived ? dt : (date.ToEndDateTime()).EstToUtc()
+                }
+                ).ToList();
             return data;
         }
 
-        public List<MonthlyReconReport> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel)
+        public List<MailPieces> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel)
         {
             string query = "[dbo].[uspweb_MonthlyReconReport] @clientId, @startDate, @endDate, @channel,@shippingStatus";
-            //date must be in 26th to 25th
-            var data = db.Query<MonthlyReconReport>(query, new
-            {
-                clientId = clientId,
-                startDate = startDate.ToStartDateTime().EstToUtc(),
-                endDate = endDate.ToEndDateTime().EstToUtc(),
-                channel = channel.IsNullOrWhiteSpace() ? null : channel,
-                shippingStatus = ShippingStatus.Shipped.ToString()
-            }).ToList();
+
+            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, MailPieces>(query,
+                (b, s, c, m, d) =>
+                {
+                    m.Clients = c;
+                    m.MailBatches = b;
+                    b.SFTChannels = s;
+                    m.DocTypes = d;
+                    return m;
+                },
+                new
+                {
+                    clientId = clientId,
+                    startDate = startDate.ToStartDateTime().EstToUtc(),
+                    endDate = endDate.ToEndDateTime().EstToUtc(),
+                    channel = channel.IsNullOrWhiteSpace() ? null : channel,
+                    shippingStatus = ShippingStatus.Shipped.ToString()
+                }
+                ).ToList();
             return data;
         }
 
@@ -104,10 +157,26 @@ namespace AM.Services
         }
 
 
-        public List<PullbackRequestReport> GetPullbackRequestReport(int clientId, DateTime startDate, DateTime endDate)
+        public List<PullBackRequests> GetPullbackRequestReport(int clientId, DateTime startDate, DateTime endDate)
         {
-            string query = "SELECT p.[Id] ,p.[MailBatchId] ,[MailPieceId] ,[MailPieceUniqueId] ,[Status] ,[RequestedOn] ,[RequestedBy], u.[UserName],b.ClientBatchId,m.BusinessFriendlyIdName,m.BusinessFriendlyIdValue FROM [AM].[MailBatches] b,[AM].[MailPieces] m, [AM].[PullBackRequests] p LEFT OUTER JOIN [Profile].[Users] u ON p.[RequestedBy]=u.Id  WHERE p.[ClientId] = @clientId AND p.[MailBatchId]=b.Id AND p.MailPieceId = m.Id AND p.RequestedOn BETWEEN @startDate AND @endDate";
-            return db.Query<PullbackRequestReport>(query, new { clientId = clientId, startDate = startDate.ToStartDateTime().EstToUtc(), endDate = endDate.ToEndDateTime().EstToUtc() }).ToList();
+            string query = "SELECT * FROM [AM].[MailBatches] b,[AM].[MailPieces] m, [AM].[PullBackRequests] p LEFT OUTER JOIN [Profile].[Users] u ON p.[RequestedBy]=u.Id  WHERE p.[ClientId] = @clientId AND p.[MailBatchId]=b.Id AND p.MailPieceId = m.Id AND p.RequestedOn BETWEEN @startDate AND @endDate";
+            var data = db.Query<MailBatches, MailPieces, PullBackRequests, Users, PullBackRequests>(query,
+                (b, m, p, u) =>
+                {
+                    p.MailPieces = m;
+                    m.MailBatches = b;
+                    p.Users = u;
+                    return p;
+                },
+                new
+                {
+                    clientId = clientId,
+                    startDate = startDate.ToStartDateTime().EstToUtc(),
+                    endDate = endDate.ToEndDateTime().EstToUtc()
+                }).ToList();
+
+            //return db.Query<MailPieces>(query, new { clientId = clientId, startDate = startDate.ToStartDateTime().EstToUtc(), endDate = endDate.ToEndDateTime().EstToUtc() }).ToList();
+            return data;
         }
     }
 }
