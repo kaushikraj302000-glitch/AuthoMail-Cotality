@@ -128,13 +128,13 @@
                     <label for="selectall"></label>
                 </th>
                 <th>Shipping Status</th>
+                <th>Pullback Requested</th>
                 <th>Loan Number</th>
                 <th>Received Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Recipient Name</th>
                 <th>Recipient Address</th>
                 <th>Document Type</th>
                 <th>Pages Shipped</th>
-                <th>Pullback Requested</th>
                 <th>Tracking Number</th>
                 <th>File Name</th>
 
@@ -149,13 +149,13 @@
             <tr class="row-small">
                 <td><span>{CheckboxFormatted}</span></td>
                 <td><span>{ShippingStatusFormatted}</span></td>
+                <td><span>{IsPullBackRequestedFormatted}</span></td>
                 <td><span>{BusinessFriendlyIdValue}</span></td>
                 <td><span>{ReceivedOnFormatted}</span></td>
                 <td><span>{RecipientName}</span></td>
                 <td><span>{RCPTAddress}</span></td>
                 <td><span>{DocumentOrPackageType}</span></td>
                 <td><span>{TotalPages}</span></td>
-                <td><span>{IsPullBackRequestedFormatted}</span></td>
                 <td><span>{TrackingNo}</span></td>
                 <td><span>{FileName}</span></td>
             </tr>
@@ -313,9 +313,6 @@
 
                 ],
                 "scrollX": true,
-                "order": [
-                    [3, 'asc']
-                ],
                 "lengthMenu": [
                     [5, 10, 25, 50, 100, -1],
                     [5, 10, 25, 50, 100, "All"] // change per page values here

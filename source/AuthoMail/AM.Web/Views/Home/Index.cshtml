@@ -336,7 +336,7 @@
         var commonmsg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
         function GetChartDataByStatusAndBatchIds(status, ids, clientBatchId) {
             var el = $("#batchMailPieceModal").find('.modal-body');
-            $("#batchMailPieceModalHeader").html("Mailpiece Summary:<button type='button' style='cursor:none !important;' class='btn btn-default normaltext'>Batch Id - " + clientBatchId + "</button> ");
+            $("#batchMailPieceModalHeader").html("Mailpiece Summary: <button type='button' style='cursor:none !important;' class='btn btn-default normaltext'>Batch Id - " + clientBatchId + "</button> ");
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Home/TodayChartDetails",
@@ -379,7 +379,7 @@
         }
         function GetChartDataByStatusAndDate(status, date) {
             var el = $("#batchModal").find('.modal-body');
-            $("#batchModalHeader").html("Batch Summary:<button type='button' style='cursor:none !important;' class='btn btn-default normaltext'> Received On - " + moment(date).format("MM/DD/YY") + "</button>");
+            $("#batchModalHeader").html("Batch Summary: <button type='button' style='cursor:none !important;' class='btn btn-default normaltext'> Received On - " + moment(date).format("MM/DD/YY") + "</button>");
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Home/WeeklyChartDetails",
