@@ -13,9 +13,9 @@ namespace AM.Services
     {
         List<WeeklyChart> GetWeeklyChartData(int clientId);
         List<TodayMailPieceChart> GetTodayMailPieceChartData(DateTime todayDate, int clientId);
-        List<PullBackInfo> GetMailPieceByParam(int batchId, string status, int clientId);
+        List<MailPieces> GetMailPieceByParam(int batchId, string status, int clientId);
         List<BatchListByChartData> GetBatchByParam(DateTime date, string status, int clientId);
-        List<PullBackInfo> GetMailPieceByBatchId(int batchId, int clientId);
+        List<MailPieces> GetMailPieceByBatchId(int batchId, int clientId);
     }
 
     public class ChartDataService : ServiceBase, IChartDataService
@@ -73,9 +73,23 @@ namespace AM.Services
         }
 
 
-        public List<PullBackInfo> GetMailPieceByParam(int batchId, string status, int clientId)
+        public List<MailPieces> GetMailPieceByParam(int batchId, string status, int clientId)
         {
-            var data = db.Query<PullBackInfo>(ChartDataServiceQuery.GetMailPieceByParam, new { batchId = batchId, status = status, clientId = clientId }).ToList();
+            string query = "[dbo].[uspweb_GetMailPieceByBatchIdAndStatus] @batchId, @status, @clientId";
+            var data = db.Query<MailBatches, Clients, MailPieces, DocTypes, MailPieces>(query,
+                (b, c, m, d) =>
+                {
+                    m.MailBatches = b;
+                    m.Clients = c;
+                    m.DocTypes = d;
+                    return m;
+                },
+                new
+                {
+                    batchId = batchId,
+                    status = status,
+                    clientId = clientId
+                }).ToList();
             return data;
         }
 
@@ -86,9 +100,22 @@ namespace AM.Services
         }
 
 
-        public List<PullBackInfo> GetMailPieceByBatchId(int batchId, int clientId)
+        public List<MailPieces> GetMailPieceByBatchId(int batchId, int clientId)
         {
-            var data = db.Query<PullBackInfo>(ChartDataServiceQuery.GetMailPieceByBatchId, new { batchId = batchId, clientId = clientId }).ToList();
+            string query = "[dbo].[uspweb_GetMailPieceByBatchId] @batchId, @clientId";
+            var data = db.Query<MailBatches, Clients, MailPieces, DocTypes, MailPieces>(query,
+                (b, c, m, d) =>
+                {
+                    m.MailBatches = b;
+                    m.Clients = c;
+                    m.DocTypes = d;
+                    return m;
+                },
+                new
+                {
+                    batchId = batchId,
+                    clientId = clientId
+                }).ToList();
             return data;
         }
     }
@@ -96,8 +123,6 @@ namespace AM.Services
     {
         public static string GetWeeklyChartData = "select Id,BatchStatus,BatchName,ReceivedOn from AM.MailBatches Where ReceivedOn between @startDate and @endDate and ClientId=@clientId";
 
-        public static string GetMailPieceByParam = "[dbo].[uspweb_GetMailPieceByBatchIdAndStatus] @batchId, @status, @clientId";
         public static string GetBatchByParam = "select b.Id as [BatchId],b.ClientBatchId,b.[UniqueId] as [BatchUniqueId],b.BatchName,b.BatchStatus,b.DocumentOrPackageType,b.ReceivedOn,b.ValidationErrors, c.TimeZone as [ClientTimeZone],( select COUNT(Id) FROM [AM].[MailPieces]  WHERE [MailBatchId]=b.Id ) as MailPieceCount from [AM].[MailBatches] b left outer join [Common].[Clients] c ON b.ClientId=c.Id where BatchStatus=@status and ClientId=@clientId and ReceivedOn BETWEEN @startDate AND @enddate";
-        public static string GetMailPieceByBatchId = "[dbo].[uspweb_GetMailPieceByBatchId] @batchId, @clientId";
     }
 }
