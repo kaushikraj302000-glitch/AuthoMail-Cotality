@@ -111,7 +111,7 @@ namespace AM.Console
 
                     MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.AuthoMailRootFolder);
 
-                    var reportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.csv").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("DR_") || Path.GetFileNameWithoutExtension(f).StartsWith("ER_")).ToList();
+                    var reportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.csv").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-") || Path.GetFileNameWithoutExtension(f).StartsWith("Error-")).ToList();
 
                     try
                     {

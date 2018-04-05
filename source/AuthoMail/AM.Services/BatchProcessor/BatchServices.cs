@@ -125,9 +125,12 @@ namespace AM.Services
 
             if (printBatchId != null || Convert.ToInt32(printBatchId) != 0)
             {
-                string updateQuery = "UPDATE [AM].[MailPieces] SET [PrintBatchId]=@Id WHERE MailBatchId=@mailBatchId";
+                foreach (var mailPiece in printBatch.MailPieces)
+                {
+                    string updateQuery = "UPDATE [AM].[MailPieces] SET [PrintBatchId]=@PrintBatchId WHERE Id=@Id AND MailBatchId=@MailBatchId";
 
-                var data = db.Execute(updateQuery, new { Id = printBatchId, mailBatchId = printBatch.MailBatchId });
+                    var data = db.Execute(updateQuery, new { PrintBatchId = printBatchId, Id = mailPiece.Id, MailBatchId = printBatch.MailBatchId });
+                }
                 return Convert.ToInt32(printBatchId);
             }
             return 0;
@@ -146,9 +149,9 @@ namespace AM.Services
         public List<SubmittedBatch> GetResponseReceivedPrintBatchDetails()
         {
             //Sql Query
-            string query = @"SELECT PB.Id AS PrintBatchId, PB.MailBatchId, MB.BatchName,MB.BatchName+'_'+CONVERT(varchar(5),PB.DocTypeId) as SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode FROM [AM].[PrintBatches] PB INNER JOIN [AM].[MailBatches] MB ON MB.Id= PB.MailBatchId WHERE PB.IsSubmittedToShipping=1 AND PB.IsShippingResponseReceived=1";
+            string query = @"SELECT PB.Id AS PrintBatchId, PB.MailBatchId, MB.BatchName,MB.BatchName+'_'+CONVERT(varchar(5),PB.DocTypeId) as SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode FROM [AM].[PrintBatches] PB INNER JOIN [AM].[MailBatches] MB ON MB.Id= PB.MailBatchId WHERE PB.IsSubmittedToShipping=1 AND PB.IsShippingResponseReceived=1 AND  PB.BatchStatus=@BatchStatus";
 
-            var data = db.Query<SubmittedBatch>(query).ToList();
+            var data = db.Query<SubmittedBatch>(query, new { BatchStatus = BatchStatus.InProgress.ToString() }).ToList();
 
             return data;
         }
