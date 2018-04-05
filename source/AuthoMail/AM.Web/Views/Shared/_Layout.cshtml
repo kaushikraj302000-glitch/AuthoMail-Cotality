@@ -172,6 +172,8 @@
             applyDataTable();
         }
         function GetTrackingInfo(TrackingNo, ShippingMethod) {
+            selector = "#" + TrackingNo;
+            Spinners(selector, "faspinner");
             var el = $('#TrackingInfo').find('.modal-body');
             $.ajax({
                 type: "POST",
@@ -182,11 +184,13 @@
                 }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
+                    Spinners(selector, "faspinner");
                     el.html(response);
 
                     $("#TrackingInfo").modal("show");
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
+                    Spinners(selector, "faspinner");
                     var msg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
                     el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
                     $("#TrackingInfo").modal("show");

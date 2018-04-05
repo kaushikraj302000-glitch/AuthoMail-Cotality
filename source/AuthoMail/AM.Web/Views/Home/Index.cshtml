@@ -674,6 +674,7 @@
                 success: function (response) {
                     if (response.Success) {
                         if (response.Object != null) {
+                            Spinners("#pullback", "fa-reply");
                             var msgAdd = "<ul>";
                             for (var i = 0; i < response.Object.length; i++) {
                             var msg = response.Object[i].Message;
@@ -699,6 +700,7 @@
                         }
                     }
                     else {
+                        Spinners("#pullback", "fa-reply");
                         var htmlstr = "<div class='alert alert-red'><span>" + response.ErrorMessage + "</span></h1></div>";
                         htmlstr += '<br><blockquote class=""><p><u><i class="fa fa-search"></i> @Html.ActionLink("Advance Search", "PullBack", "RequestPullBack") </u></P></blockquote>';
                         el.html(htmlstr);
@@ -706,6 +708,7 @@
                     $("#myModal").modal("show");
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
+                    Spinners("#pullback", "fa-reply");
                     el.html("<div class='alert alert-red'><span>" + commonmsg + "</span></div>");
                     $("#myModal").modal("show");
                 }

@@ -107,12 +107,12 @@
                 <th>Channel</th>
                 <th>Document Type</th>
                 <th>Loan Number</th>
-                <th>File Name</th>
+                <th>Tracking Number</th>
                 <th>Date Received <span class="fontcapitalize">(Local)</span></th>
                 <th>Date Printed <span class="fontcapitalize">(Local)</span></th>
                 <th>Date Mailed <span class="fontcapitalize">(Local)</span></th>
+                <th>File Name</th>
                 <th>Client Code</th>
-                <th>Tracking Number</th>
                 <th>Shipping Method</th>
                 <th>First Name</th>
                 <th>Last Name</th>
@@ -138,12 +138,12 @@
                 <td><span>{Channel}</span></td>
                 <td><span>{DocumentOrPackageType}</span></td>
                 <td><span>{BusinessFriendlyIdValue}</span></td>
-                <td><span>{FileName}</span></td>
+                <td><span>{TrackingNo}</span></td>
                 <td><span>{ReceivedOnFormatted}</span></td>
                 <td><span>{PrintedOnFormatted}</span></td>
                 <td><span>{MailedOnFormatted}</span></td>
+                <td><span>{FileName}</span></td>
                 <td><span>{ClientCode}</span></td>
-                <td><span>{TrackingNo}</span></td>
                 <td><span>{ShippingMethod}</span></td>
                 <td><span>{RcptFirstName}</span></td>
                 <td><span>{RcptLastName}</span></td>
@@ -255,7 +255,7 @@
                 this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
                 this.MailedOnFormatted = this.MailedOn == null ? "--" : moment(this.MailedOn).format("MM/DD/YY HH:mm:ss");
-                this.TrackingNo = this.TrackingNo == "" ? "--" : '<button class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')">' + this.TrackingNo + '</button>';
+                this.TrackingNo = this.TrackingNo == "" ? "--" : '<button id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
             });
             return Model;
         }

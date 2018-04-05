@@ -281,11 +281,11 @@ namespace AM.Core
                     {
                         List<PrintBatch> printBatches = new List<PrintBatch>();
 
-                        PrintBatch printBatch = null;
 
                         var docTypes = validMailPieces.Select(row => row.DocumentOrPackageType.Trim()).Distinct();
                         foreach (var documentOrPackageType in docTypes)
                         {
+                            PrintBatch printBatch = null;
                             DocType docType = docTypeSvc.GetDocTypesByDocTypeName(mbi.Client.Id, documentOrPackageType);
 
                             //Commented because the same thing we are validating when generating document
@@ -535,6 +535,8 @@ namespace AM.Core
 
         internal static void ProcessPnSResponses()
         {
+            log.Debug("Process PnS response job is started.");
+
             using (IMailBatchService mailBatchSvc = new MailBatchService())
             using (IClientService clientSvc = new ClientService())
             using (ICommonService commonSvc = new CommonService())
@@ -542,29 +544,30 @@ namespace AM.Core
             using (IDocTypeService docTypeSvc = new DocTypeService())
             using (IFedExService fedExSvc = new FedExService())
             {
-                var responseReceivedPrintBatches = mailBatchSvc.GetResponseReceivedPrintBatchDetails();
-
-                if (responseReceivedPrintBatches == null || responseReceivedPrintBatches.Count == 0)
+                try
                 {
-                    log.Debug("Response process job queue is empty.");
-                    return;
-                }
+                    var responseReceivedPrintBatches = mailBatchSvc.GetResponseReceivedPrintBatchDetails();
 
-                foreach (var printBatch in responseReceivedPrintBatches)
-                {
-                    Client client = clientSvc.GetClientByAppCode(printBatch.AppCode);
-                    BatchData batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(printBatch.MailBatchId);
-                    MailBatchInfo mbi = new MailBatchInfo(batchData.MailBatch, client, Config.AuthoMailRootFolder);
-
-                    var printbatchResponseFilePath = Path.Combine(mbi.PnSResponsePath, printBatch.SubmittedBatchName + "-res.xml");
-                    if (!File.Exists(printbatchResponseFilePath))
+                    if (responseReceivedPrintBatches == null || responseReceivedPrintBatches.Count == 0)
                     {
-                        log.Error("Response xml file is not exist for PrintBatch ID : {0}".Fill(printBatch.PrintBatchId));
-                        continue;
+                        log.Debug("Response process job queue is empty.");
+                        return;
                     }
 
-                    try
+                    foreach (var printBatch in responseReceivedPrintBatches)
                     {
+                        Client client = clientSvc.GetClientByAppCode(printBatch.AppCode);
+                        BatchData batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(printBatch.MailBatchId);
+                        MailBatchInfo mbi = new MailBatchInfo(batchData.MailBatch, client, Config.AuthoMailRootFolder);
+
+                        var printbatchResponseFilePath = Path.Combine(mbi.PnSResponsePath, printBatch.SubmittedBatchName + "-res.xml");
+                        if (!File.Exists(printbatchResponseFilePath))
+                        {
+                            log.Error("Response xml file is not exist for PrintBatch ID : {0}".Fill(printBatch.PrintBatchId));
+                            continue;
+                        }
+
+
                         var pnsResponse = XmlUtil.Deserialize<PnSResponse>(File.ReadAllText(printbatchResponseFilePath));
                         if (pnsResponse != null)
                         {
@@ -625,17 +628,19 @@ namespace AM.Core
                             }
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        //TODO: Ask To Ravi Sir
-                        log.Error(ex);
-                    }
+                }
+                catch (Exception ex)
+                {
+                    log.Error("Error occured while processing PnS response.", ex);
                 }
             }
+            log.Debug("Process PnS response job is completed.");
         }
 
         internal static void ReportPreppedProcess()
         {
+            log.Debug("Report prepped job is started.");
+
             using (IMailBatchService mailBatchSvc = new MailBatchService())
             using (IClientService clientSvc = new ClientService())
             using (ICommonService commonSvc = new CommonService())
@@ -664,7 +669,7 @@ namespace AM.Core
 
                             if (deliveryReport != null)
                             {
-                                string deliveryReportFileName = "{0}_{1}.csv".Fill("DR", data.MailBatch.BatchName);
+                                string deliveryReportFileName = "Delivery-{0}.csv".Fill(DateTime.UtcNow.ToString("yyyyMMdd-HHmmss"));
                                 using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(deliveryReport.ToString())))
                                 {
                                     using (FileStream file = new FileStream(Path.Combine(mbi.AMResponsePath, deliveryReportFileName), FileMode.Create, FileAccess.Write))
@@ -678,7 +683,7 @@ namespace AM.Core
 
                             if (errorReport != null)
                             {
-                                string errorReportFileName = "{0}_{1}.csv".Fill("ER", data.MailBatch.BatchName);
+                                string errorReportFileName = "Error-{0}.csv".Fill(DateTime.UtcNow.ToString("yyyyMMdd-HHmmss"));
                                 using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(errorReport.ToString())))
                                 {
                                     using (FileStream file = new FileStream(Path.Combine(mbi.AMResponsePath, errorReportFileName), FileMode.Create, FileAccess.Write))
@@ -697,6 +702,8 @@ namespace AM.Core
                     }
                 }
             }
+
+            log.Debug("Report prepped job is completed.");
         }
         internal static StringBuilder USAAErrorReportAMC(BatchData data, string sftChannelName, string timeZone)
         {

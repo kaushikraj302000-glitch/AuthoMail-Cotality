@@ -236,7 +236,7 @@
                 }
                 this.ShippingStatusFormatted = status;
 
-                this.TrackingNoFormatted = this.TrackingNo == null ? "--" : '<button class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')">' + this.TrackingNo + '</button>';
+                this.TrackingNoFormatted = this.TrackingNo == null ? "--" : '<button id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
             });
             return Model;
         }
