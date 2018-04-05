@@ -52,7 +52,7 @@ namespace AM.Web.Controllers
                 {
                     var pullbackRequestData = pullBackSvc.GetPullBackRequestList(BusinessFriendlyIdName, BusinessFriendlyIdValue, null, exactStartDate, exactEndDate, User.Identity.GetClientId().Value);
                     //return PartialView("_PullBackRequestData", pullbackRequestData);
-                    return Json(JsonResponseFactory.SuccessResponse(new { model = pullbackRequestData.OrderBy(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+                    return Json(JsonResponseFactory.SuccessResponse(new { model = pullbackRequestData.OrderBy(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
                 }
                 else
                 {
@@ -88,7 +88,7 @@ namespace AM.Web.Controllers
         public ActionResult TodayChartDetails(string status, int batchId)
         {
             var model = chartDataSvc.GetMailPieceByParam(batchId, status, User.Identity.GetClientId().Value);
-            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderBy(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderBy(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
             //return PartialView("_GetChartMailPieceData", model);
         }
 
@@ -96,7 +96,7 @@ namespace AM.Web.Controllers
         {
             var model = chartDataSvc.GetMailPieceByBatchId(batchId, User.Identity.GetClientId().Value);
             //return PartialView("_GetChartMailPieceData", model);
-            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderBy(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderBy(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
         [HttpPost]
         public ActionResult WeeklyChartDetails(string status, string date)
@@ -124,7 +124,7 @@ namespace AM.Web.Controllers
         public ActionResult GetMailPieceDataByStatusAndBatchId(string status, int batchId)
         {
             var model = chartDataSvc.GetMailPieceByParam(batchId, status, User.Identity.GetClientId().Value);
-            return Json(model.OrderByDescending(s => s.BatchId).ToList(), JsonRequestBehavior.AllowGet);
+            return Json(model.OrderByDescending(s => s.MailBatches.Id).ToList(), JsonRequestBehavior.AllowGet);
         }
 
         [AllowAnonymous]
