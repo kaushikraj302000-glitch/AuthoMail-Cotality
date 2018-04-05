@@ -669,7 +669,7 @@ namespace AM.Core
 
                             if (deliveryReport != null)
                             {
-                                string deliveryReportFileName = "Delivery-{0}.csv".Fill(DateTime.UtcNow.ToString("yyyyMMdd-HHmmss"));
+                                string deliveryReportFileName = "Delivery-{0}.csv".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
                                 using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(deliveryReport.ToString())))
                                 {
                                     using (FileStream file = new FileStream(Path.Combine(mbi.AMResponsePath, deliveryReportFileName), FileMode.Create, FileAccess.Write))
@@ -683,7 +683,7 @@ namespace AM.Core
 
                             if (errorReport != null)
                             {
-                                string errorReportFileName = "Error-{0}.csv".Fill(DateTime.UtcNow.ToString("yyyyMMdd-HHmmss"));
+                                string errorReportFileName = "Error-{0}.csv".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
                                 using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(errorReport.ToString())))
                                 {
                                     using (FileStream file = new FileStream(Path.Combine(mbi.AMResponsePath, errorReportFileName), FileMode.Create, FileAccess.Write))
