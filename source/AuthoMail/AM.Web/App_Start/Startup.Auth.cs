@@ -11,6 +11,7 @@ namespace AM.Web
 {
     public partial class Startup
     {
+
         public static OAuthAuthorizationServerOptions OAuthOptions { get; private set; }
         public static string PublicClientId { get; private set; }
         // For more information on configuring authentication, please visit http://go.microsoft.com/fwlink/?LinkId=301864
@@ -34,19 +35,23 @@ namespace AM.Web
                         regenerateIdentity: (manager, user) => user.GenerateUserIdentityAsync(manager))
                 }
             });
+            //app.UseCookieAuthentication(new CookieAuthenticationOptions());
+            //app.UseExternalSignInCookie(DefaultAuthenticationTypes.ExternalCookie);
+
             PublicClientId = "self";
             OAuthOptions = new OAuthAuthorizationServerOptions
             {
                 TokenEndpointPath = new PathString("/Token"),
                 Provider = new AMOAuthProvider(PublicClientId),
                 AuthorizeEndpointPath = new PathString("/api/Account/ExternalLogin"),
-                AccessTokenExpireTimeSpan = TimeSpan.FromDays(14),
+                AccessTokenExpireTimeSpan = TimeSpan.FromMinutes(15),
                 AllowInsecureHttp = true
             };
 
             // Enable the application to use bearer tokens to authenticate users
-            app.UseOAuthBearerTokens(OAuthOptions);
-
+            app.UseOAuthAuthorizationServer(OAuthOptions);
+            app.UseOAuthBearerAuthentication(new OAuthBearerAuthenticationOptions());
+            //app.UseOAuthBearerTokens(OAuthOptions);
         }
     }
 }
