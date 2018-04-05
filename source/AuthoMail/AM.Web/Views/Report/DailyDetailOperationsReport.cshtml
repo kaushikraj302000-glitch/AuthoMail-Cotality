@@ -133,9 +133,9 @@
     <table>
         <tbody id="dailyBody">
             <tr class="row-small">
-                <td><span>{ClientBatchId}</span></td>
-                <td><span>{MailPieceUniqueId}</span></td>
-                <td><span>{Channel}</span></td>
+                <td><span>{MailBatches.ClientBatchId}</span></td>
+                <td><span>{UniqueId}</span></td>
+                <td><span>{MailBatches.SFTChannels.Title}</span></td>
                 <td><span>{DocumentOrPackageType}</span></td>
                 <td><span>{BusinessFriendlyIdValue}</span></td>
                 <td><span>{TrackingNo}</span></td>
@@ -143,17 +143,17 @@
                 <td><span>{PrintedOnFormatted}</span></td>
                 <td><span>{MailedOnFormatted}</span></td>
                 <td><span>{FileName}</span></td>
-                <td><span>{ClientCode}</span></td>
-                <td><span>{ShippingMethod}</span></td>
+                <td><span>{Clients.AppCode}</span></td>
+                <td><span>{DocTypes.ShippingServiceType}</span></td>
                 <td><span>{RcptFirstName}</span></td>
                 <td><span>{RcptLastName}</span></td>
                 <td><span>{RcptAddressStreet}</span></td>
                 <td><span>{RcptAddressCity}</span></td>
                 <td><span>{RcptAddressState}</span></td>
                 <td><span>{RcptAddressZIP}</span></td>
-                <td><span>{PrintLocation}</span></td>
-                <td><span>{PagesShipped}</span></td>
-                <td>{BatchId}</td>
+                <td><span>{MailBatches.PrintLocation}</span></td>
+                <td><span>{TotalPages}</span></td>
+                <td>{MailBatches.Id}</td>
             </tr>
         </tbody>
     </table>
@@ -252,9 +252,9 @@
         }
         function FormatObject(Model) {
             $(Model).each(function () {
-                this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                this.ReceivedOnFormatted = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
-                this.MailedOnFormatted = this.MailedOn == null ? "--" : moment(this.MailedOn).format("MM/DD/YY HH:mm:ss");
+                this.MailedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
                 this.TrackingNo = this.TrackingNo == "" ? "--" : '<button id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
             });
             return Model;
