@@ -36,7 +36,7 @@ namespace AM.Web
                 }
             });
             //app.UseCookieAuthentication(new CookieAuthenticationOptions());
-            //app.UseExternalSignInCookie(DefaultAuthenticationTypes.ExternalCookie);
+            app.UseExternalSignInCookie(DefaultAuthenticationTypes.ExternalCookie);
 
             PublicClientId = "self";
             OAuthOptions = new OAuthAuthorizationServerOptions
