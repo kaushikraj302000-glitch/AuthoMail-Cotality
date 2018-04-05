@@ -152,8 +152,8 @@
                 <td><span>{IsPullBackRequestedFormatted}</span></td>
                 <td><span>{BusinessFriendlyIdValue}</span></td>
                 <td><span>{ReceivedOnFormatted}</span></td>
-                <td><span>{RecipientName}</span></td>
-                <td><span>{RCPTAddress}</span></td>
+                <td><span>{RecipientNameFormatted}</span></td>
+                <td><span>{RcptAddressStreet}</span></td>
                 <td><span>{DocumentOrPackageType}</span></td>
                 <td><span>{TotalPages}</span></td>
                 <td><span>{TrackingNo}</span></td>
@@ -341,6 +341,7 @@
         function FormatObject(Model) {
             var cnt = 1;
             $(Model).each(function () {
+                this.RecipientNameFormatted = this.RcptFirstName + " " + this.RcptLastName;
                 var requestedPullback = this.IsPullBackRequested ? '<span id="IsPullBackRequested_' + cnt + '"><span  class="label medium label-yellow">Yes</span></span>' : '<span id="IsPullBackRequested_' + cnt + '"><span class="label medium label-success">No</span></span>';
                 var status = "";
                 var errormsg = this.ErrorDesc == null ? 'No error description.' : this.ErrorDesc;
@@ -362,7 +363,7 @@
 
                 }
                 // \''+this.TrackingNo+'\',\''+this.ShippingMethod+'\'
-                this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                this.ReceivedOnFormatted = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 //this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
                 this.ErrorDescPopover = this.ErrorDesc == null ? "--" : '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left"><a>Error Details</a></span>';
                 this.ShippingStatusFormatted = status;
@@ -374,14 +375,14 @@
                     case "PulledBack":
                     case "Error":
                     case "Shipped":
-                        checkbox = checkbox + '<input type="checkbox" disabled id="checkbox-demo_' + cnt + '" data-mailpieceid="' + this.MailPieceId + '" class="cl-check" /><label for="checkbox-demo_' + cnt + '"></label>';
+                        checkbox = checkbox + '<input type="checkbox" disabled id="checkbox-demo_' + cnt + '"  class="cl-check" /><label for="checkbox-demo_' + cnt + '"></label>';
                         break;
                     case "InProgress":
                         if (this.IsPullBackRequested) {
-                            checkbox = checkbox + '<input type="checkbox" disabled id="checkbox-demo_' + cnt + '" data-mailpieceid="' + this.MailPieceId + '" class="cl-check" /><label for="checkbox-demo_' + cnt + '"></label>';
+                            checkbox = checkbox + '<input type="checkbox" disabled id="checkbox-demo_' + cnt + '"  class="cl-check" /><label for="checkbox-demo_' + cnt + '"></label>';
                         }
                         else {
-                            checkbox = checkbox + '<input type="checkbox" id="checkbox-demo_' + cnt + '" data-cnt="' + cnt + '" data-mailpieceid="' + this.MailPieceUniqueId + '" class="cl-check checkall" /><label for="checkbox-demo_' + cnt + '"></label>';
+                            checkbox = checkbox + '<input type="checkbox" id="checkbox-demo_' + cnt + '" data-cnt="' + cnt + '" data-mailpieceid="' + this.UniqueId + '" class="cl-check checkall" /><label for="checkbox-demo_' + cnt + '"></label>';
                         }
 
                         break;

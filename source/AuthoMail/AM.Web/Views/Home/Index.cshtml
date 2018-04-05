@@ -242,11 +242,11 @@
     <table>
         <tbody id="pullbackBody">
             <tr class="row-small">
-                <td class="mailpieceid" data-mailpieceid="{MailPieceUniqueId}"><span>{BusinessFriendlyIdValue}</span></td>
+                <td class="mailpieceid" data-mailpieceid="{UniqueId}"><span>{BusinessFriendlyIdValue}</span></td>
                 <td><span>{FileName}</span></td>
                 <td><span>{ReceivedOnFormatted}</span></td>
-                <td><span>{RecipientName}</span></td>
-                <td><span>{RCPTAddress}</span></td>
+                <td><span>{RcptNameFormatted}</span></td>
+                <td><span>{RcptAddressStreet}</span></td>
                 <td><span>{TotalPages}</span></td>
                 <td><span>{DocumentOrPackageType}</span></td>
                 <td class="ispullbackr"><span>{IsPullBackRequestedFormatted}</span></td>
@@ -283,8 +283,8 @@
             <tr class="row-small">
                 <td><span>{BusinessFriendlyIdValue}</span></td>
                 <td><span>{FileName}</span></td>
-                <td><span>{RecipientName}</span></td>
-                <td><span>{RCPTAddress}</span></td>
+                <td><span>{RcptNameFormatted}</span></td>
+                <td><span>{RcptAddressStreet}</span></td>
                 <td><span>{ReceivedOnFormatted}</span></td>
                 <td><span>{DueDateFormatted}</span></td>
                 <td><span>{DocumentOrPackageType}</span></td>
@@ -848,6 +848,7 @@
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
                 this.ErrorDescPopover = this.ErrorDesc == null ? "--" : '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left"><a>Error Details</a></span>';
                 this.ShippingStatusFormatted = status;
+                this.RcptNameFormatted = this.RcptFirstName + " " + this.RcptLastName;
                 this.BatchButtonFormatted = this.MailPieceCount > 0 ? '<button onclick="GetMailPieceById( \'' + this.BatchId + '\',\'' + this.ReceivedOnFormatted + '\',\'' + this.ClientBatchId + '\')" type="button" class="btn btn-transparent-bright-blue">View Details</button>' : '<button disabled="disabled" type="button" class="btn btn-transparent-bright-blue">View Details</button>'
                 this.IsPullBackRequestedFormatted = requestedPullback;
                 var batchStatus = "";
