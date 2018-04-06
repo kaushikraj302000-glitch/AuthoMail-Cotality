@@ -62,6 +62,13 @@ namespace AM.Services
         public static string Core_CustomerTransactionId { get; set; }
         #endregion
 
+        #region Reporting_ReadOnly
+        public static readonly TimeSpan Reporting_USAA_StartCutOffTime=TimeSpan.Parse(Web_StartCutOffTime);
+        
+        public static readonly TimeSpan Reporting_USAA_EndCutOffTime= TimeSpan.Parse(Web_EndCutOffTime);
+       
+        #endregion Reporting_ReadOnly
+
         #region PullBackRequestProps
         [Description("When mailpiece is aborted by client or for unknown reason.")]
         public static string Web_Msg_API_PB_Aborted { get; private set; }

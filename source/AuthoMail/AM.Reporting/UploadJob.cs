@@ -45,49 +45,52 @@ namespace AM.Reporting
                                     continue;
                                 }
 
-                                var startDate = (DateTime.UtcNow.UtcToEst().Date.AddDays(-1) + new TimeSpan(19, 45, 01)).EstToUtc();
-                                var endDate = (DateTime.UtcNow.UtcToEst().Date + new TimeSpan(19, 45, 00)).EstToUtc();
+                                var estToday = DateTime.UtcNow.UtcToEst().Date;
 
-                                var reportData = reportSvc.GetSummaryControlReport(client.Id, startDate, endDate, sftChannelDetails.Code).OrderBy(s => s.BatchId).ToList();
+                                var startDate = estToday.AddDays(-1) + Config.Reporting_USAA_StartCutOffTime;
+                                var endDate = estToday.Date + Config.Reporting_USAA_EndCutOffTime;
+
+                                var reportData = reportSvc.GetSummaryControlReport(client.Id, startDate, endDate, sftChannelDetails.Code).OrderBy(s => s.MailBatchId).ToList();
 
                                 if (reportData != null && reportData.Count > 0)
                                 {
-                                    StringBuilder summaryReport = new StringBuilder("BatchID,Id,Channel,Package Name,Loan Number,File Name, Date Received,Date Printed,Date Mailed,Client Code,Tracking Number,Shipping Method,Customer Identifier,First Name,Last Name,Recipient Street Address,Recipient City,Recipient State,Recipient Zip,RequestId,Error Code,Error Text,Print Location,Pages Shipped");
+                                    StringBuilder summaryReport = new StringBuilder("BatchID, Id, Channel, Package Name, Loan Number, File Name, Date Received, Due Date, Date Printed, Date Mailed, Client Code, Tracking Number, Shipping Method, First Name, Last Name, Recipient Street Address, Recipient City, Recipient State, Recipient Zip, Print Location, Pages Shipped, Error Code, Error Text");
                                     summaryReport.AppendLine();
 
                                     foreach (var mailPiece in reportData)
                                     {
-                                        summaryReport.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22},{23}",
-                                            mailPiece.BatchId,
-                                            mailPiece.BatchUniqueId,
-                                            sftChannelDetails.Title,
-                                            mailPiece.DocumentOrPackageType,
+                                        var line = String.Join(",",
+                                            mailPiece.MailBatches.ClientBatchId,
+                                            mailPiece.UniqueId,
+                                            sftChannelDetails.Title.ToCsvString(),
+                                            mailPiece.DocumentOrPackageType.ToCsvString(),
                                             mailPiece.BusinessFriendlyIdValue,
-                                            mailPiece.FileName,
-                                            mailPiece.ReceivedOnClient,
-                                            mailPiece.PrintedOnClient,
-                                            mailPiece.MailedOnClient,
-                                            mailPiece.ClientCode,
+                                            mailPiece.FileName.ToCsvString(),
+                                            mailPiece.MailBatches.ReceivedOn,
+                                            mailPiece.DueDate,
+                                            mailPiece.PrintedOn,
+                                            mailPiece.ShippedOn,
+                                            mailPiece.Clients.AppCode,
                                             mailPiece.TrackingNo,
-                                            mailPiece.ShippingMethod,
-                                            mailPiece.CustomerIdentifier,
-                                            mailPiece.RcptFirstName,
-                                            mailPiece.RcptLastName,
-                                            mailPiece.RcptAddressStreet,
+                                            mailPiece.DocTypes.ShippingServiceType,
+                                            mailPiece.RcptFirstName.ToCsvString(),
+                                            mailPiece.RcptLastName.ToCsvString(),
+                                            mailPiece.RcptAddressStreet.ToCsvString(),
                                             mailPiece.RcptAddressCity,
                                             mailPiece.RcptAddressState,
                                             mailPiece.RcptAddressZIP,
-                                            mailPiece.RequestId,
+                                            mailPiece.MailBatches.PrintLocation.ToCsvString(),
+                                            mailPiece.TotalPages,
                                             mailPiece.ErrorCode,
-                                            mailPiece.ErrorDesc,
-                                            mailPiece.PrintLocation.Replace(",", " "),
-                                            mailPiece.PagesShipped));
+                                            mailPiece.ErrorDesc.ToCsvString());
+
+                                        summaryReport.AppendLine(line);
                                     }
 
                                     string summaryReportFileName = "{0}_{1}_{2}_{3}.csv".Fill("SummaryControlReport", client.AppCode, sftChannelDetails.Code, DateTime.UtcNow.UtcToClientTimeZone(client.TimeZone).ToString("MM-dd-yyyy"));
 
 
-                                    string summaryReportPath = Path.Combine(Common.AuthoMailRootFolder, summaryReportFileName);
+                                    string summaryReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, summaryReportFileName);
                                     try
                                     {
                                         using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(summaryReport.ToString())))
