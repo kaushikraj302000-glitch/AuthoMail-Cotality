@@ -695,9 +695,10 @@ namespace AM.Core
 
             log.Debug("Report prepped job is completed.");
         }
+
         internal static StringBuilder USAAErrorReportAMC(BatchData data, string sftChannelName, string timeZone)
         {
-            StringBuilder errorReport = new StringBuilder("BatchID,ID,Package Name,Loan Number,File Name,Date Received,First Name,Last Name,Recipient Street Address,Recipient City,Recipient State,Recipient Zip,Error Code,Error Text,Shipping Method,Customer Identifier,RequestID");
+            StringBuilder errorReport = new StringBuilder("BatchID, ID, Package Name, Loan Number, File Name, Date Received, First Name, Last Name, Recipient Street Address, Recipient City, Recipient State, Recipient Zip, Error Code, Error Text, Shipping Method, Customer Identifier, RequestID");
 
             errorReport.AppendLine();
 
@@ -711,24 +712,27 @@ namespace AM.Core
             // All the loans where outcome code is anything except no_error are processed invalid loans.
             foreach (MailPieceDTO mailPiece in erroredData)
             {
-                errorReport.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16}",
-                        data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
+                var line = String.Join(",",
+                    data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
                         mailPiece.UniqueId,
-                        mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType,
+                        mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType.ToCsvString(),
                         mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
-                        mailPiece.FileName == null ? string.Empty : mailPiece.FileName,
+                        mailPiece.FileName == null ? string.Empty : mailPiece.FileName.ToCsvString(),
                         data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
-                        mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName,
-                        mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName,
-                        mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet,
+                        mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName.ToCsvString(),
+                        mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName.ToCsvString(),
+                        mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet.ToCsvString(),
                         mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity,
                         mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
                         mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
                         mailPiece.ErrorCode,
-                        mailPiece.ErrorDesc == null ? string.Empty : mailPiece.ErrorDesc.Replace(',', ' ').Replace("\r\n", " "),
+                        mailPiece.ErrorDesc == null ? string.Empty : mailPiece.ErrorDesc.Replace("\r\n", " ").ToCsvString(),
                         data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault().Value,
                         data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").FirstOrDefault().Value,
-                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault().Value));
+                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault().Value
+                    );
+
+                errorReport.AppendLine(line);
             }
 
             return errorReport;
@@ -736,7 +740,7 @@ namespace AM.Core
 
         internal static StringBuilder USAADailyDetailOperationReportAMC(BatchData data, string sftChannelName, string timeZone)
         {
-            StringBuilder deliveryReport = new StringBuilder("BatchID,ID,Package Name,Loan Number,File Name,Date Received,Date Printed,Date Mailed,Client Code,Tracking Number,Shipping Method,Customer Identifier,First Name,Last Name,Recipient Street Address,Recipient City,Recipient State,Recipient Zip,RequestID,Pages Shipped");
+            StringBuilder deliveryReport = new StringBuilder("BatchID, ID, Package Name, Loan Number, File Name, Date Received, Date Printed, Date Mailed, Client Code, Tracking Number, Shipping Method, Customer Identifier, First Name, Last Name, Recipient Street Address, Recipient City, Recipient State, Recipient Zip, RequestID, Pages Shipped");
 
             deliveryReport.AppendLine();
 
@@ -750,10 +754,10 @@ namespace AM.Core
             // All the loans where outcome code is anything except no_error are processed invalid loans.
             foreach (MailPieceDTO mailPiece in shippedData)
             {
-                deliveryReport.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19}",
-                        data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
+                var line = String.Join(",",
+                    data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
                         mailPiece.UniqueId,
-                        mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType,
+                        mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType.ToCsvString(),
                         mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
                         mailPiece.FileName == null ? string.Empty : mailPiece.FileName,
                         data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
@@ -761,16 +765,18 @@ namespace AM.Core
                         mailPiece.ShippedOn == null ? string.Empty : mailPiece.ShippedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
                         data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingCredCode").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingCredCode").FirstOrDefault().Value,
                         mailPiece.TrackingNo == null ? string.Empty : mailPiece.TrackingNo,
-                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault().Value,
+                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault().Value.ToCsvString(),
                         data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").FirstOrDefault().Value,
-                        mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName,
-                        mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName,
-                        mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet,
+                        mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName.ToCsvString(),
+                        mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName.ToCsvString(),
+                        mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet.ToCsvString(),
                         mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity,
                         mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
                         mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
                         data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault().Value,
-                        mailPiece.TotalSheets));
+                        mailPiece.TotalPages);
+
+                deliveryReport.AppendLine(line);
             }
 
             return deliveryReport;

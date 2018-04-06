@@ -659,9 +659,47 @@ namespace AM.Console
                 var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
                 if (data != null)
                 {
-                    MailUtility.SendDownloadNotificationEmail(mbi, data, SFTChannel);
+                    try
+                    {
+                        StringBuilder errorData = cfg.USAAErrorReportAMC(data, SFTChannel.Title, client.TimeZone);
+                        string errorReportFileName = string.Format("Error-{0}.csv", Common.Now.ToString("yyyyMMdd-HHmmss"));
+                        string errorReportPath = string.Empty;
 
-                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
+                        if (errorData != null)
+                        {
+                            errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+                            using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(errorData.ToString())))
+                            {
+                                using (FileStream file = new FileStream(errorReportPath, FileMode.Create, FileAccess.Write))
+                                {
+                                    ms.WriteTo(file);
+                                }
+                            }
+                        }
+
+                        if (!string.IsNullOrEmpty(errorReportPath))
+                        {
+                            SFTUtil sftSite = null;
+
+                            sftSite = new SFTUtil(cfg.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
+                            sftSite.Connect();
+
+                            var ftpUploadPath = Path.Combine(Config.Monitor_ReportSFTUploadingPathAMC, errorReportFileName);
+
+                            sftSite.UploadFile(errorReportPath, ftpUploadPath);
+
+                            if (sftSite.IsConnected)
+                                sftSite.Disconnect();
+                        }
+
+                        MailUtility.SendDownloadNotificationEmail(mbi, data, errorReportPath);
+
+                        commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Error("Error occured while acknowleding for Batch-Id : {0}".Fill(mbi.BatchName), ex);
+                    }
                 }
             }
 

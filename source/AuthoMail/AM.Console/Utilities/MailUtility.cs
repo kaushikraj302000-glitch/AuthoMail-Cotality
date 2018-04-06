@@ -103,7 +103,7 @@ namespace AM.Console
             }
         }
 
-        public static bool SendDownloadNotificationEmail(MailBatchInfo mbi, BatchData batchData, SFTChannel sftChannel)
+        public static bool SendDownloadNotificationEmail(MailBatchInfo mbi, BatchData batchData, string errorReportPath)
         {
             bool isEmailSent = false;
 
@@ -155,13 +155,9 @@ namespace AM.Console
 
                         if (msg.Body.Length > 0)
                         {
-                            StringBuilder errorReport = cfg.USAAErrorReport(batchData, sftChannel.Title, mbi.Client.TimeZone);
-                            if (errorReport != null)
-                            {
-                                string errorReportFileName = string.Format("ER-{0}.csv", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("yyyyMMdd-HHmmss"));
 
-                                msg.Attachments.Add(new Attachment(new MemoryStream(Encoding.UTF8.GetBytes(errorReport.ToString().ToCharArray())), errorReportFileName));
-                            }
+                            if (!string.IsNullOrEmpty(errorReportPath))
+                                msg.Attachments.Add(new Attachment(errorReportPath));
 
                             smtpClient.Send(msg);
                             isEmailSent = true;
