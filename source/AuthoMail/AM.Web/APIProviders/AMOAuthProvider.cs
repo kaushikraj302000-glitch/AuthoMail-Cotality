@@ -9,6 +9,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
+using Microsoft.AspNet.Identity;
 
 namespace AM.Web
 {
@@ -28,7 +29,10 @@ namespace AM.Web
 
         public override async Task GrantResourceOwnerCredentials(OAuthGrantResourceOwnerCredentialsContext context)
         {
-            var userManager = context.OwinContext.GetUserManager<AMUserManager>();
+
+            //var userManager = context.OwinContext.GetUserManager<AMUserManager>();
+
+            var userManager = new UserManager<ProfileUser>(new AMUserStore());
 
             ProfileUser user = await userManager.FindAsync(context.UserName, context.Password);
             if (user == null)

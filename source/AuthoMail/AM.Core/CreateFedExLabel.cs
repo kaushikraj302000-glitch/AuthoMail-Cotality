@@ -79,7 +79,7 @@ namespace AM.Core
             request.ClientDetail.MeterNumber = fedExAccInfo.MeterNumber; // Replace "XXX" with the client's meter number
 
             request.TransactionDetail = new TransactionDetail();
-            request.TransactionDetail.CustomerTransactionId = Config.CustomerTransactionId; // The client will get the same value back in the response
+            request.TransactionDetail.CustomerTransactionId = Config.Core_CustomerTransactionId; // The client will get the same value back in the response
             //
             request.Version = new VersionId(); // WSDL version information, value is automatically set from wsdl
             //          
@@ -123,7 +123,7 @@ namespace AM.Core
             request.RequestedShipment.ShippingChargesPayment.PaymentType = PaymentType.SENDER;
             request.RequestedShipment.ShippingChargesPayment.Payor = new Payor();
             request.RequestedShipment.ShippingChargesPayment.Payor.AccountNumber = fedExAccInfo.AccountNumber; // Replace "XXX" with the payor account number
-            request.RequestedShipment.ShippingChargesPayment.Payor.CountryCode = Config.CountryCode;
+            request.RequestedShipment.ShippingChargesPayment.Payor.CountryCode = Config.Core_CountryCode;
         }
 
         private void SetLabelDetails(ProcessShipmentRequest request)
@@ -151,7 +151,7 @@ namespace AM.Core
             request.RequestedShipment.Recipient.Address.City = mailPiece.RcptAddressCity;
             request.RequestedShipment.Recipient.Address.StateOrProvinceCode = mailPiece.RcptAddressState;// This always has to be a 2 letter code.
             request.RequestedShipment.Recipient.Address.PostalCode = mailPiece.RcptAddressZIP;
-            request.RequestedShipment.Recipient.Address.CountryCode = Config.CountryCode;
+            request.RequestedShipment.Recipient.Address.CountryCode = Config.Core_CountryCode;
             request.RequestedShipment.Recipient.Address.Residential = true;
 
             // For FedEx GROUND_HOME_DELIVERY packages we must specify below flag.
@@ -175,7 +175,7 @@ namespace AM.Core
             request.RequestedShipment.Shipper.Address.City = mailPiece.RetRcptAddressCity;
             request.RequestedShipment.Shipper.Address.StateOrProvinceCode = mailPiece.RetRcptAddressState;
             request.RequestedShipment.Shipper.Address.PostalCode = mailPiece.RetRcptAddressZIP;
-            request.RequestedShipment.Shipper.Address.CountryCode = Config.CountryCode;
+            request.RequestedShipment.Shipper.Address.CountryCode = Config.Core_CountryCode;
         }
 
         private void SetPackageLineItems(ProcessShipmentRequest request)
