@@ -173,7 +173,7 @@ namespace AM.Services
             {
                 if (PulledBackBy.IsNullOrWhiteSpace() || !PulledBackOn.HasValue) return null;
 
-                return string.Format("{0} by {1} on {2}", Config.Msg_API_PB_PullBackAlreadyRequested, PulledBackBy, PulledBackOn.Value.ToString());
+                return string.Format("{0} by {1} on {2}", Config.Web_Msg_API_PB_PullBackAlreadyRequested, PulledBackBy, PulledBackOn.Value.ToString());
             }
         }
     }

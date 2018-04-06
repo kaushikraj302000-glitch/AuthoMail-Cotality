@@ -78,66 +78,66 @@ namespace AM.Services
 
         #region PullBackRequestProps
         [Description("When mailpiece is aborted by client or for unknown reason.")]
-        public static string Msg_API_PB_Aborted { get; private set; }
+        public static string Web_Msg_API_PB_Aborted { get; private set; }
         [Description("If batchstatus is submitted then only mailpiece can be pullback.")]
-        public static string Msg_API_PB_BatchStatusSubmitted { get; private set; }
+        public static string Web_Msg_API_PB_BatchStatusSubmitted { get; private set; }
         [Description("When no data found for specified unique id.")]
-        public static string Msg_API_PB_DataNull { get; private set; }
+        public static string Web_Msg_API_PB_DataNull { get; private set; }
         [Description("user have select atleast one mailpiece to request pullback.")]
-        public static string Msg_API_PB_Empty { get; private set; }
+        public static string Web_Msg_API_PB_Empty { get; private set; }
         [Description("If mailpiece has some error.")]
-        public static string Msg_API_PB_Error { get; private set; }
+        public static string Web_Msg_API_PB_Error { get; private set; }
         [Description("If mailpiece has recorded successfully.")]
-        public static string Msg_API_PB_Success { get; private set; }
+        public static string Web_Msg_API_PB_Success { get; private set; }
         [Description("When error occured while generating pullback form.")]
-        public static string Msg_API_PB_PBReqFormErr { get; private set; }
+        public static string Web_Msg_API_PB_PBReqFormErr { get; private set; }
         [Description("When pullback is already requested by some user.")]
-        public static string Msg_API_PB_PullBackAlreadyRequested { get; private set; }
+        public static string Web_Msg_API_PB_PullBackAlreadyRequested { get; private set; }
         [Description("When mailpiece is pulledback.")]
-        public static string Msg_API_PB_PulledBack { get; private set; }
+        public static string Web_Msg_API_PB_PulledBack { get; private set; }
         [Description("When mailpiece statis is shipped then it can not be pullback.")]
-        public static string Msg_API_PB_Shipped { get; private set; }
-        [Description("To define SMTPClient for email.")]
-        public static SmtpClient API_Email_SMTPClient { get; private set; }
+        public static string Web_Msg_API_PB_Shipped { get; private set; }
         [Description("To whom need to send email.")]
-        public static string API_Email_To { get; private set; }
+        public static string Web_API_Email_To { get; private set; }
         [Description("To whom need to send email.")]
-        public static string API_Email_Cc { get; private set; }
-        public static string API_Email_Subject { get; private set; }
-        public static string API_Email_BodyMsg { get; private set; }
+        public static string Web_API_Email_Cc { get; private set; }
+        public static string Web_API_Email_Subject { get; private set; }
+        public static string Web_API_Email_BodyMsg { get; private set; }
         [Description("Define client's local timezone.")]
-        public static string API_PB_ClientTimeZone { get; private set; }
+        public static string Web_API_PB_ClientTimeZone { get; private set; }
         [Description("Path of pdf template which is used to send when pullback is requested.")]
-        public static string API_PB_PullBackFormTemplatePath { get; private set; }
+        public static string Web_API_PB_PullBackFormTemplatePath { get; private set; }
         #endregion
 
         #region WEB AccountController
-        public static string Msg_Web_Login_InvalidUserName { get; private set; }
-        public static string Msg_Web_Login_EmailConfirm { get; private set; }
-        public static string Msg_Web_Login_Default { get; private set; }
-        public static string Msg_Web_Login_Success { get; private set; }
-        public static string MSG_WEB_Lockout { get; private set; }
-        public static string MSG_WEB_Error { get; private set; }
+        public static string Web_Msg_Login_InvalidUserName { get; private set; }
+        public static string Web_Msg_Login_EmailConfirm { get; private set; }
+        public static string Web_Msg_Login_Default { get; private set; }
+        public static string Web_Msg_Login_Success { get; private set; }
+        public static string Web_Msg_Lockout { get; private set; }
+        public static string Web_Msg_Error { get; private set; }
         #endregion
 
         #region WEB Common Msg
-        public static string Msg_Web_Ajax_CommonError { get; private set; }
-        public static string Msg_Web_NoRecordFound { get; private set; }
-        public static string Msg_Web_PullBackConfirmation { get; private set; }
+        public static string Web_Msg_Ajax_CommonError { get; private set; }
+        public static string Web_Msg_NoRecordFound { get; private set; }
+        public static string Web_Msg_PullBackConfirmation { get; private set; }
         #endregion
 
         #region WEB RequestPullBackController
-        public static string Msg_Web_NoMailPieceSelect { get; private set; }
-        public static string Msg_Web_NoErrorDescription { get; private set; }
+        public static string Web_Msg_NoMailPieceSelect { get; private set; }
+        public static string Web_Msg_NoErrorDescription { get; private set; }
         #endregion
 
         #region WEB HomeController
-        public static string Msg_Web_NoMailPieceReceivedToday { get; private set; }
+        public static string Web_Msg_NoMailPieceReceivedToday { get; private set; }
         #endregion
 
         #region WEB ReportController
-        public static string StartCutOffTime { get; private set; }
-        public static string EndCutOffTime { get; private set; }
+        [Description("Start cut off time for Mailpiece")]
+        public static string Web_StartCutOffTime { get; private set; }
+        [Description("End cut off time for Mailpiece")]
+        public static string Web_EndCutOffTime { get; private set; }
         #endregion
 
         private static List<string> errors;

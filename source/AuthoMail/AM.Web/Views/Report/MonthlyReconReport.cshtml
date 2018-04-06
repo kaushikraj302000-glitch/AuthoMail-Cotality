@@ -226,7 +226,7 @@
                                 BindTemplate(data, "#monthlyBody", "#monthlybodyContent", "#monthlyTableContent", "#monthlyList");
                             }
                             else {
-                                $("#monthlyList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Msg_Web_NoRecordFound</span></div>")
+                                $("#monthlyList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                             }
                         }
                     } else {
@@ -243,7 +243,7 @@
                     $("#monthlyHeader").show();
                     $("#monthlyList").show();
 
-                    var msg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
+                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
                     $("#monthlyList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
                 }
 

@@ -217,11 +217,11 @@
                                     BindTemplate(data, "#pullBody", "#pullbodyContent", "#pullTableContent", "#pullbackList");
                                 }
                                 else {
-                                    $("#pullbackList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Msg_Web_NoRecordFound</span></div>")
+                                    $("#pullbackList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                                 }
                             }
                             else {
-                                $("#pullbackList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Msg_Web_NoRecordFound</span></div>")
+                                $("#pullbackList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                             }
                         }
 
@@ -235,7 +235,7 @@
                     $("#loading").hide();
                     $("#pullbackHeader").show();
                     $("#pullbackList").show();
-                    var msg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
+                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
                     $("#pullbackList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
                 }
 

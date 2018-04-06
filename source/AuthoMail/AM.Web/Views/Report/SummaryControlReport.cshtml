@@ -253,8 +253,8 @@
             $("#summaryList").hide();
             var el = $('#summaryList');
             $("#loading").show();
-            var startDate = moment($("#dp4").val() + ' @AM.Services.Config.StartCutOffTime').subtract('days', 1).format("MM/DD/YY HH:mm:ss");
-            var endDate = moment($("#dp4").val() + ' @AM.Services.Config.EndCutOffTime').format("MM/DD/YY HH:mm:ss");
+            var startDate = moment($("#dp4").val() + ' @AM.Services.Config.Web_StartCutOffTime').subtract('days', 1).format("MM/DD/YY HH:mm:ss");
+            var endDate = moment($("#dp4").val() + ' @AM.Services.Config.Web_EndCutOffTime').format("MM/DD/YY HH:mm:ss");
             $("#headerdate").html(startDate + " to " + endDate + " EST");
             $.ajax({
                 type: "POST",
@@ -285,7 +285,7 @@
                                 BindTemplate(data, "#summaryBody", "#summarybodyContent", "#summaryTableContent", "#summaryList");
                             }
                             else {
-                                $("#summaryList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Msg_Web_NoRecordFound</span></div>")
+                                $("#summaryList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                             }
                         }
                     } else {
@@ -302,7 +302,7 @@
                     $("#summaryHeader").show();
                     $("#summaryList").show();
 
-                    var msg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
+                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
                     $("#summaryList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
                 }
 

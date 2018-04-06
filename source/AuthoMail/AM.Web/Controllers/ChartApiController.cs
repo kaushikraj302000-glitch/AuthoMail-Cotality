@@ -26,7 +26,7 @@ namespace AM.Web.Controllers
             return DateTime.Now;
         }
         [Route("GetWeeklyChartData")]
-        [HttpPost]
+        [HttpGet]
         public object GetWeeklyChartData()
         {
 
@@ -35,7 +35,7 @@ namespace AM.Web.Controllers
         }
 
         [Route("GetTodayChartData")]
-        [HttpPost]
+        [HttpGet]
         public object GetTodayChartData()
         {
             var estToday = DateTime.UtcNow.UtcToEst().Date;

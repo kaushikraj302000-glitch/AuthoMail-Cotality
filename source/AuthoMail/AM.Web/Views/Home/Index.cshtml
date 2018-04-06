@@ -200,7 +200,7 @@
         <div class="modal-content">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal-header">
-                <h2 id="confirmMsg"> @AM.Services.Config.Msg_Web_PullBackConfirmation</h2>
+                <h2 id="confirmMsg"> @AM.Services.Config.Web_Msg_PullBackConfirmation</h2>
                 <h2 id="mailPieceMsg">MailPiece details of pulled back request</h2>
                 @*<h4 id="pullbackmsg" class="alert alert-yellow"></h4>*@
                 <hr />
@@ -333,7 +333,7 @@
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js">
     </script>
     <script type="text/javascript">
-        var commonmsg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
+        var commonmsg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
         function GetChartDataByStatusAndBatchIds(status, ids, clientBatchId) {
             var el = $("#batchMailPieceModal").find('.modal-body');
             $("#batchMailPieceModalHeader").html("Mailpiece Summary: <button type='button' style='cursor:none !important;' class='btn btn-default normaltext'>Batch Id - " + clientBatchId + "</button> ");
@@ -357,7 +357,7 @@
 
                             }
                             else {
-                                el.html(" <div class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Msg_Web_NoRecordFound</span></div>")
+                                el.html(" <div class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                             }
                         }
                     }
@@ -398,7 +398,7 @@
                                
                             }
                             else {
-                                el.html(" <div class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Msg_Web_NoRecordFound</span></div>")
+                                el.html(" <div class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                             }
                         }
                     }
@@ -421,7 +421,7 @@
         function BindWeeklyChartData() {
             var el = $("#weekluChart");
             $.ajax({
-                type: "POST",
+                type: "GET",
                 contentType: "application/json; charset=utf-8",
                 dataType: "JSON",
                 //url: baseUrl + "Home/GetWeeklyChartData",
@@ -453,14 +453,14 @@
         function GetFullChart() {
             var el = $("#TodayChartModalBody");
             $.ajax({
-                type: "POST",
+                type: "GET",
                 dataType: "JSON",
                 url: baseUrl + "api/chart/GetTodayChartData",
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     //console.log(response);
                     if (response.length == 0) {
-                        el.html("<div class='alert alert-yellow'><span>@AM.Services.Config.Msg_Web_NoMailPieceReceivedToday</span></div>");
+                        el.html("<div class='alert alert-yellow'><span>@AM.Services.Config.Web_Msg_NoMailPieceReceivedToday</span></div>");
                         $("#todayBody").css("min-height", "342px");
                         return;
                     }
@@ -490,14 +490,14 @@
             //TestDateTime();
             var el = $("#todayChart");
             $.ajax({
-                type: "POST",
+                type: "GET",
                 dataType: "JSON",
                 url: baseUrl + "api/chart/GetTodayChartData",
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     //console.log(response);
                     if (response.length == 0) {
-                        el.html("<div class='alert alert-yellow'><span>@AM.Services.Config.Msg_Web_NoMailPieceReceivedToday</span></div>");
+                        el.html("<div class='alert alert-yellow'><span>@AM.Services.Config.Web_Msg_NoMailPieceReceivedToday</span></div>");
                         $("#todayBody").css("min-height", "342px");
                         return;
                     }
@@ -566,7 +566,7 @@
 
                             }
                             else {
-                                el.html(" <div class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Msg_Web_NoRecordFound</span></div>")
+                                el.html(" <div class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                             }
                         }
                     }
@@ -752,7 +752,7 @@
                                 return;
                             } else if (response.Object == "AdvancePullBack") {
                                 var el = $("#myModal").find('.modal-body');
-                                var htmlstr = "<div class='alert alert-red'><span>@AM.Services.Config.Msg_Web_NoRecordFound</span></h1></div>";
+                                var htmlstr = "<div class='alert alert-red'><span>@AM.Services.Config.Web_Msg_NoRecordFound</span></h1></div>";
                                 htmlstr += '<br><blockquote class=""><p><u><i class="fa fa-search"></i> @Html.ActionLink("Advance Search", "PullBack", "RequestPullBack") </u></p></blockquote>';
                                 el.html(htmlstr);
 
@@ -799,7 +799,7 @@
                             }
                             else {
                                 var el = $("#myModal").find('.modal-body');
-                                el.html("<div class='alert alert-yellow' ><span>" + '@AM.Services.Config.Msg_Web_NoRecordFound' + "</span></div>");
+                                el.html("<div class='alert alert-yellow' ><span>" + '@AM.Services.Config.Web_Msg_NoRecordFound' + "</span></div>");
                                 $("#myModal").modal("show");
                             }
                         }
