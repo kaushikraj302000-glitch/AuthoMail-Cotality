@@ -63,10 +63,10 @@ namespace AM.Services
         #endregion
 
         #region Reporting_ReadOnly
-        public static readonly TimeSpan Reporting_USAA_StartCutOffTime=TimeSpan.Parse(Web_StartCutOffTime);
-        
-        public static readonly TimeSpan Reporting_USAA_EndCutOffTime= TimeSpan.Parse(Web_EndCutOffTime);
-       
+        public static readonly TimeSpan Reporting_USAA_StartCutOffTime;
+
+        public static readonly TimeSpan Reporting_USAA_EndCutOffTime;
+
         #endregion Reporting_ReadOnly
 
         #region PullBackRequestProps
@@ -138,6 +138,8 @@ namespace AM.Services
         {
             // Initialize config settings
             InitializeProperties<Config>();
+            Reporting_USAA_StartCutOffTime = TimeSpan.Parse(Web_StartCutOffTime);
+            Reporting_USAA_EndCutOffTime = TimeSpan.Parse(Web_EndCutOffTime);
         }
 
         private static void InitializeProperties<T>()
