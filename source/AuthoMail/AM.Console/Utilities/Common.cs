@@ -12,6 +12,8 @@ using System.Xml.Linq;
 using AM.Entities;
 using AM.Lib;
 using AM.Console.Properties;
+using AM.Services;
+
 namespace AM.Console
 {
     public static class cfg
@@ -171,34 +173,44 @@ namespace AM.Console
                 return null;
             }
 
-            // All the loans where outcome code is anything except no_error are processed invalid loans.
-            foreach (MailPieceDTO mailPiece in shippedData)
+            using (DocTypeService docTypeSvc = new DocTypeService())
             {
-                deliveryReport.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21}",
-                        data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
-                        mailPiece.UniqueId,
-                        sftChannelName,
-                        mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType,
-                        mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
-                        mailPiece.FileName == null ? string.Empty : mailPiece.FileName,
-                        data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
-                        mailPiece.PrintedOn == null ? string.Empty : mailPiece.PrintedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
-                        mailPiece.ShippedOn == null ? string.Empty : mailPiece.ShippedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
-                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingCredCode").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingCredCode").FirstOrDefault().Value,
-                        mailPiece.TrackingNo == null ? string.Empty : mailPiece.TrackingNo,
-                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault().Value,
-                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").FirstOrDefault().Value,
-                        mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName,
-                        mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName,
-                        mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet,
-                        mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity,
-                        mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
-                        mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
-                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault().Value,
-                        data.MailBatch.PrintLocation,
-                        mailPiece.TotalSheets));
-            }
+                // All the loans where outcome code is anything except no_error are processed invalid loans.
+                foreach (MailPieceDTO mailPiece in shippedData)
+                {
+                    DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId);
 
+                    var shippingCredCode = data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingCredCode").SingleOrDefault();
+
+                    var custId = data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").SingleOrDefault();
+
+                    var requestId = data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").SingleOrDefault();
+
+                    deliveryReport.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21}",
+                            data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
+                            mailPiece.UniqueId,
+                            sftChannelName,
+                            mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType,
+                            mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
+                            mailPiece.FileName == null ? string.Empty : mailPiece.FileName,
+                            data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
+                            mailPiece.PrintedOn == null ? string.Empty : mailPiece.PrintedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
+                            mailPiece.ShippedOn == null ? string.Empty : mailPiece.ShippedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
+                            shippingCredCode == null ? string.Empty : shippingCredCode.Value,
+                            mailPiece.TrackingNo == null ? string.Empty : mailPiece.TrackingNo,
+                            docType == null ? string.Empty : docType.ShippingCarrier,
+                            custId == null ? string.Empty : custId.Value,
+                            mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName,
+                            mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName,
+                            mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet,
+                            mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity,
+                            mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
+                            mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
+                            requestId == null ? string.Empty : requestId.Value,
+                            data.MailBatch.PrintLocation,
+                            mailPiece.TotalSheets));
+                }
+            }
             return deliveryReport;
         }
 
@@ -215,31 +227,41 @@ namespace AM.Console
                 return null;
             }
 
-            // All the loans where outcome code is anything except no_error are processed invalid loans.
-            foreach (MailPieceDTO mailPiece in erroredData)
+            using (DocTypeService docTypeSvc = new DocTypeService())
             {
-                var line = String.Join(",",
-                    data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
-                        mailPiece.UniqueId,
-                        mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType.ToCsvString(),
-                        mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
-                        mailPiece.FileName == null ? string.Empty : mailPiece.FileName.ToCsvString(),
-                        data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
-                        mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName.ToCsvString(),
-                        mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName.ToCsvString(),
-                        mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet.ToCsvString(),
-                        mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity,
-                        mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
-                        mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
-                        mailPiece.ErrorCode,
-                        mailPiece.ErrorDesc == null ? string.Empty : mailPiece.ErrorDesc.Replace("\r\n", " ").ToCsvString(),
-                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault().Value,
-                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").FirstOrDefault().Value,
-                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault().Value
-                    );
+                // All the loans where outcome code is anything except no_error are processed invalid loans.
+                foreach (MailPieceDTO mailPiece in erroredData)
+                {
+                    DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId);
 
-                errorReport.AppendLine(line);
+                    var custId = data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").SingleOrDefault();
+
+                    var requestId = data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").SingleOrDefault();
+
+                    var line = String.Join(",",
+                        data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
+                            mailPiece.UniqueId,
+                            mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType.ToCsvString(),
+                            mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
+                            mailPiece.FileName == null ? string.Empty : mailPiece.FileName.ToCsvString(),
+                            data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
+                            mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName.ToCsvString(),
+                            mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName.ToCsvString(),
+                            mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet.ToCsvString(),
+                            mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity,
+                            mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
+                            mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
+                            mailPiece.ErrorCode,
+                            mailPiece.ErrorDesc == null ? string.Empty : mailPiece.ErrorDesc.Replace("\r\n", " ").ToCsvString(),
+                            docType == null ? string.Empty : docType.ShippingCarrier,
+                            custId == null ? string.Empty : custId.Value,
+                            requestId == null ? string.Empty : requestId.Value
+                        );
+
+                    errorReport.AppendLine(line);
+                }
             }
+
 
             return errorReport;
         }
