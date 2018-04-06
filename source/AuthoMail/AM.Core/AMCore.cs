@@ -204,7 +204,6 @@ namespace AM.Core
 
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Prepped, Common.Now);
                     commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.InProgress.ToString());
-                    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.PreppedEnd, Common.Now);
                 }
             }
         }
@@ -263,7 +262,6 @@ namespace AM.Core
 
                     List<MailPieceDTO> validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
 
-                    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingStart, Common.Now);
 
                     if (validMailPieces.Count == 0)
                     {
@@ -271,9 +269,7 @@ namespace AM.Core
                         mailBatch.ValidationErrors = "Batch does not contain any valid mail pieces to process further.";
 
                         mailBatchSvc.UpdateBatchDetails(mailBatch);
-                        commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationEnd, Common.Now);
                         commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.Failed.ToString());
-                        commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                         continue;
                     }
 
@@ -339,7 +335,6 @@ namespace AM.Core
                         {
                             log.Error("No batches are available for submit to PCI.");
 
-                            commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                             continue;
                         }
 
@@ -348,7 +343,6 @@ namespace AM.Core
                             if (printBatchData.MailPieces.Count == 0)
                             {
                                 log.Error("{0} : Print batch is not containing any mail pieces.".Fill(printBatchData.UniqueId));
-                                commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                                 continue;
                             }
 
@@ -367,7 +361,6 @@ namespace AM.Core
                             }
                             catch (Exception ex)
                             {
-                                commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                                 log.Error("Error occured while creating directory :" + ex);
                             }
 
@@ -403,17 +396,14 @@ namespace AM.Core
                             }
                             catch (Exception ex)
                             {
-                                commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                                 log.Error("Error occured while generaing PnSRequest :" + ex);
                             }
                         }
                         commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
-                        commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                     }
                     catch (Exception ex)
                     {
                         log.Error(ex);
-                        commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                     }
                 }
             }
