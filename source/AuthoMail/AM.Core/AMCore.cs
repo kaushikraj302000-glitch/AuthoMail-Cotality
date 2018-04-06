@@ -446,79 +446,85 @@ namespace AM.Core
             using (IDocTypeService docTypeSvc = new DocTypeService())
             using (IFedExService fedExSvc = new FedExService())
             {
-                List<string> responseFiles;
-                var clientAppCodes = submittedPrintBatches.Select(client => client.AppCode).Distinct();
-                foreach (var appCode in clientAppCodes)
+                try
                 {
-                    Client client = clientSvc.GetClientByAppCode(appCode);
-
-                    responseFiles = sftSite.ListDirectory(Path.Combine(Config.Core_PnS_SFT_RootDir, client.AppCode));
-
-                    var responseTriggerFiles = responseFiles
-                    .Where(file => Path.GetExtension(file).ToLower() == ".rpt")
-                    .Select(file => new KeyValuePair<string, string>(Path.GetFileNameWithoutExtension(file), file))
-                    .ToList();
-
-                    foreach (var triggerFile in responseTriggerFiles)
+                    List<string> responseFiles;
+                    var clientAppCodes = submittedPrintBatches.Select(client => client.AppCode).Distinct();
+                    foreach (var appCode in clientAppCodes)
                     {
-                        string pnsResponseFilePath = Path.Combine(Config.Core_PnS_SFT_RootDir, client.AppCode, triggerFile.Key + "-res.xml");
-                        string pnsResponseTriggerFilePath = Path.Combine(Config.Core_PnS_SFT_RootDir, client.AppCode, triggerFile.Value);
-                        if (sftSite.IsFileAvailable(pnsResponseFilePath))
+                        Client client = clientSvc.GetClientByAppCode(appCode);
+
+                        responseFiles = sftSite.ListDirectory(Path.Combine(Config.Core_PnS_SFT_RootDir, client.AppCode));
+
+                        var responseTriggerFiles = responseFiles
+                        .Where(file => Path.GetExtension(file).ToLower() == ".rpt")
+                        .Select(file => new KeyValuePair<string, string>(Path.GetFileNameWithoutExtension(file), file))
+                        .ToList();
+
+                        foreach (var triggerFile in responseTriggerFiles)
                         {
-                            submittedPrintBatches.ForEach(row =>
+                            string pnsResponseFilePath = Path.Combine(Config.Core_PnS_SFT_RootDir, client.AppCode, triggerFile.Key + "-res.xml");
+                            string pnsResponseTriggerFilePath = Path.Combine(Config.Core_PnS_SFT_RootDir, client.AppCode, triggerFile.Value);
+                            if (sftSite.IsFileAvailable(pnsResponseFilePath))
                             {
-                                if (row.SubmittedBatchName == triggerFile.Key)
+                                submittedPrintBatches.ForEach(row =>
                                 {
-                                    row.ResponseFilePath = pnsResponseFilePath;
-                                    row.ResponseTriggerFilePath = pnsResponseTriggerFilePath;
-                                }
-                            });
-                        }
-                    }
-
-                    var downloadableFiles = submittedPrintBatches.Where(c => !string.IsNullOrEmpty(c.ResponseFilePath)).ToList();
-
-                    if (downloadableFiles.Count == 0)
-                    {
-                        log.Debug("Response files are not available to download.");
-                        continue;
-                    }
-                    #region Download Response Files
-
-                    foreach (var downloadableBatch in downloadableFiles)
-                    {
-                        string responseTriggerFilePath = downloadableBatch.ResponseTriggerFilePath;
-                        string responseFileName = Path.GetFileName(downloadableBatch.ResponseFilePath);
-                        string responseFilePath = downloadableBatch.ResponseFilePath;
-
-                        if (sftSite.IsFileAvailable(responseFilePath))
-                        {
-                            string amRootFilePath = Path.Combine(Config.Common_AuthoMailRootFolder, responseFileName);
-
-                            DateTime mrdfDownloadStartTime = Common.Now;
-                            DateTime responseReceivedOn = sftSite.LastModifiedTimeOfFile(responseFilePath);
-
-                            sftSite.DownloadFile(responseFilePath, amRootFilePath, true, false);
-                            sftSite.DeleteFile(responseTriggerFilePath);
-
-                            if (File.Exists(amRootFilePath))
-                            {
-                                var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(downloadableBatch.MailBatchId);
-                                var mbi = new MailBatchInfo(batchData.MailBatch, client, Config.Common_AuthoMailRootFolder);
-
-                                string amPnSResponsePath = Path.Combine(mbi.PnSResponsePath, responseFileName);
-
-                                File.Move(amRootFilePath, amPnSResponsePath);
-
-                                commonSvc.UpdatePrintBatchPipeLineStatus(downloadableBatch.PrintBatchId, BatchPipelineStatus.ShippingResponseReceived, responseReceivedOn);
+                                    if (row.SubmittedBatchName == triggerFile.Key)
+                                    {
+                                        row.ResponseFilePath = pnsResponseFilePath;
+                                        row.ResponseTriggerFilePath = pnsResponseTriggerFilePath;
+                                    }
+                                });
                             }
                         }
-                        else
+
+                        var downloadableFiles = submittedPrintBatches.Where(c => !string.IsNullOrEmpty(c.ResponseFilePath)).ToList();
+
+                        if (downloadableFiles.Count == 0)
                         {
-                            log.Error("Trigger file is available but xml file is not available to download For PrintBatch-Id :{0}".Fill(downloadableBatch.PrintBatchId));
+                            log.Debug("Response files are not available to download.");
+                            continue;
                         }
+
+                        foreach (var downloadableBatch in downloadableFiles)
+                        {
+                            string responseTriggerFilePath = downloadableBatch.ResponseTriggerFilePath;
+                            string responseFileName = Path.GetFileName(downloadableBatch.ResponseFilePath);
+                            string responseFilePath = downloadableBatch.ResponseFilePath;
+
+                            if (sftSite.IsFileAvailable(responseFilePath))
+                            {
+                                string amRootFilePath = Path.Combine(Config.Common_AuthoMailRootFolder, responseFileName);
+
+                                DateTime mrdfDownloadStartTime = Common.Now;
+                                DateTime responseReceivedOn = sftSite.LastModifiedTimeOfFile(responseFilePath);
+
+                                sftSite.DownloadFile(responseFilePath, amRootFilePath, true, false);
+                                sftSite.DeleteFile(responseTriggerFilePath);
+
+                                if (File.Exists(amRootFilePath))
+                                {
+                                    var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(downloadableBatch.MailBatchId);
+                                    var mbi = new MailBatchInfo(batchData.MailBatch, client, Config.Common_AuthoMailRootFolder);
+
+                                    string amPnSResponsePath = Path.Combine(mbi.PnSResponsePath, responseFileName);
+
+                                    File.Move(amRootFilePath, amPnSResponsePath);
+
+                                    commonSvc.UpdatePrintBatchPipeLineStatus(downloadableBatch.PrintBatchId, BatchPipelineStatus.ShippingResponseReceived, responseReceivedOn);
+                                }
+                            }
+                            else
+                            {
+                                log.Error("Trigger file is available but xml file is not available to download For PrintBatch-Id :{0}".Fill(downloadableBatch.PrintBatchId));
+                            }
+                        }
+
                     }
-                    #endregion
+                }
+                catch (Exception ex)
+                {
+                    log.Error("Error occured while downloading response from PnS Service :", ex);
                 }
             }
         }
@@ -561,8 +567,6 @@ namespace AM.Core
                         var pnsResponse = XmlUtil.Deserialize<PnSResponse>(File.ReadAllText(printbatchResponseFilePath));
                         if (pnsResponse != null)
                         {
-                            commonSvc.UpdatePrintBatchStatus(printBatch.PrintBatchId, pnsResponse.BatchStatus.ToString(), pnsResponse.StatusDescription);
-
                             if (pnsResponse.MailPackageReport != null && pnsResponse.MailPackageReport.Count > 0)
                             {
                                 foreach (var mailPackage in pnsResponse.MailPackageReport)
@@ -595,7 +599,10 @@ namespace AM.Core
                                         }
                                     });
                                 }
+                                //Updates PrintBatches Status values
+                                commonSvc.UpdatePrintBatchStatus(printBatch.PrintBatchId, pnsResponse.BatchStatus.ToString(), pnsResponse.StatusDescription);
 
+                                //Check is there any remaining data for response which is in progress then after update whole mail batch status
                                 var remainingData = batchData.MailPieces.Where(data => data.ShippingStatus == ShippingStatus.InProgress.ToString());
                                 if (remainingData.Count() == 0)
                                 {
