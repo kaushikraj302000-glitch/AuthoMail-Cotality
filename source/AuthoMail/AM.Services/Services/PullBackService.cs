@@ -97,7 +97,7 @@ namespace AM.Services
                 foreach (var item in pullBackData)
                 {
                     Dictionary<string, string> dataForPullBackForm = new Dictionary<string, string>();
-                    DateTime eastern = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, Config.API_PB_ClientTimeZone);
+                    DateTime eastern = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, Config.Web_API_PB_ClientTimeZone);
                     dataForPullBackForm.Add("RequestDateTime", eastern.ToString());
                     dataForPullBackForm.Add("FileName", string.Format("{0} {1}", item.PrintFileName, item.SubmittedOn.Value.ToString("MM/dd/yy")));
                     dataForPullBackForm.Add("JobNumber", item.PrintBatch.ToString());
@@ -110,7 +110,7 @@ namespace AM.Services
                     string attachmentPdfName = string.Format("{0}_{1}.pdf", item.PrintBatch.ToString(), DateTime.Now.ToString("ddMMyyyyhhmmss"));
                     //string outputPdfPath = Path.Combine(Config.API_PB_OutputDir, string.Format("{0}_{1}.pdf", item.PrintBatch.ToString(), DateTime.Now.ToString("ddMMyyyyhhmmss")));
                     //Helper.MailMerge(Config.API_PB_PullBackFormTemplatePath, dataForPullBackForm, outputPdfPath);
-                    Helper.MailMerge(Config.API_PB_PullBackFormTemplatePath, dataForPullBackForm, ref output);
+                    Helper.MailMerge(Config.Web_API_PB_PullBackFormTemplatePath, dataForPullBackForm, ref output);
                     bool isEmailSent = SendEmailWithPullBackForm(output, attachmentPdfName);
 
                 }
@@ -132,11 +132,11 @@ namespace AM.Services
                 using (MailMessage msg = new MailMessage())
                 {
                     msg.IsBodyHtml = true;
-                    msg.To.Add(Config.API_Email_To);
-                    msg.CC.Add(Config.API_Email_Cc);
-                    msg.Subject = Config.API_Email_Subject;
+                    msg.To.Add(Config.Web_API_Email_To);
+                    msg.CC.Add(Config.Web_API_Email_Cc);
+                    msg.Subject = Config.Web_API_Email_Subject;
                     msg.Priority = MailPriority.High;
-                    msg.Body = string.Format("{0} {1}.", Config.API_Email_BodyMsg, attachmentPdfName);
+                    msg.Body = string.Format("{0} {1}.", Config.Web_API_Email_BodyMsg, attachmentPdfName);
                     msg.Attachments.Add(new Attachment(new MemoryStream(attachmentPdf), attachmentPdfName));
                     SmtpClient sc = new SmtpClient();
                     sc.Send(msg);
