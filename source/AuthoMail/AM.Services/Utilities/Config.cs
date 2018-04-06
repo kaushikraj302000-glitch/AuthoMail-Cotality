@@ -68,37 +68,35 @@ namespace AM.Services
 
         #region PullBackRequestProps
         [Description("When mailpiece is aborted by client or for unknown reason.")]
-        public static string Msg_API_PB_Aborted { get; private set; }
+        public static string Web_Msg_API_PB_Aborted { get; private set; }
         [Description("If batchstatus is submitted then only mailpiece can be pullback.")]
-        public static string Msg_API_PB_BatchStatusSubmitted { get; private set; }
+        public static string Web_Msg_API_PB_BatchStatusSubmitted { get; private set; }
         [Description("When no data found for specified unique id.")]
-        public static string Msg_API_PB_DataNull { get; private set; }
+        public static string Web_Msg_API_PB_DataNull { get; private set; }
         [Description("user have select atleast one mailpiece to request pullback.")]
-        public static string Msg_API_PB_Empty { get; private set; }
+        public static string Web_Msg_API_PB_Empty { get; private set; }
         [Description("If mailpiece has some error.")]
-        public static string Msg_API_PB_Error { get; private set; }
+        public static string Web_Msg_API_PB_Error { get; private set; }
         [Description("If mailpiece has recorded successfully.")]
-        public static string Msg_API_PB_Success { get; private set; }
+        public static string Web_Msg_API_PB_Success { get; private set; }
         [Description("When error occured while generating pullback form.")]
-        public static string Msg_API_PB_PBReqFormErr { get; private set; }
+        public static string Web_Msg_API_PB_PBReqFormErr { get; private set; }
         [Description("When pullback is already requested by some user.")]
-        public static string Msg_API_PB_PullBackAlreadyRequested { get; private set; }
+        public static string Web_Msg_API_PB_PullBackAlreadyRequested { get; private set; }
         [Description("When mailpiece is pulledback.")]
-        public static string Msg_API_PB_PulledBack { get; private set; }
+        public static string Web_Msg_API_PB_PulledBack { get; private set; }
         [Description("When mailpiece statis is shipped then it can not be pullback.")]
-        public static string Msg_API_PB_Shipped { get; private set; }
-        [Description("To define SMTPClient for email.")]
-        public static SmtpClient API_Email_SMTPClient { get; private set; }
+        public static string Web_Msg_API_PB_Shipped { get; private set; }
         [Description("To whom need to send email.")]
-        public static string API_Email_To { get; private set; }
+        public static string Web_API_Email_To { get; private set; }
         [Description("To whom need to send email.")]
-        public static string API_Email_Cc { get; private set; }
-        public static string API_Email_Subject { get; private set; }
-        public static string API_Email_BodyMsg { get; private set; }
+        public static string Web_API_Email_Cc { get; private set; }
+        public static string Web_API_Email_Subject { get; private set; }
+        public static string Web_API_Email_BodyMsg { get; private set; }
         [Description("Define client's local timezone.")]
-        public static string API_PB_ClientTimeZone { get; private set; }
+        public static string Web_API_PB_ClientTimeZone { get; private set; }
         [Description("Path of pdf template which is used to send when pullback is requested.")]
-        public static string API_PB_PullBackFormTemplatePath { get; private set; }
+        public static string Web_API_PB_PullBackFormTemplatePath { get; private set; }
         #endregion
 
         #region WEB AccountController
