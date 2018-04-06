@@ -107,9 +107,9 @@ namespace AM.Console
                 {
                     Client client = clientSvc.GetClientById(batch.ClientId);
 
-                    string uploadPath = Config.ReportSFTUploadingPathAMC;
+                    string uploadPath = Config.Monitor_ReportSFTUploadingPathAMC;
 
-                    MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.AuthoMailRootFolder);
+                    MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
 
                     var reportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.csv").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-") || Path.GetFileNameWithoutExtension(f).StartsWith("Error-")).ToList();
 

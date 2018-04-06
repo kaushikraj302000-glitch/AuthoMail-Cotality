@@ -16,54 +16,50 @@ namespace AM.Services
     {
         #region General
         [Description("To indicate on which environment job is running.")]
-        public static string Environment { get; private set; }
+        public static string Monitor_Environment { get; private set; }
 
         #endregion
 
         #region Console & Core
-        public static string AuthoMailRootFolder { get; private set; }
+        public static string Common_AuthoMailRootFolder { get; private set; }
 
-        public static string PnS_SFT_HostURL { get; private set; }
-        public static string PnS_SFT_UserName { get; private set; }
-        public static string PnS_SFT_Password { get; private set; }
-        public static string PnS_SFT_RootDir { get; private set; }
+        public static string Monitor_DSEmail_Subject { get; private set; }
+        public static string Monitor_DSEmailTemplate { get; private set; }
+        public static string Monitor_DS_Email_To { get; private set; }
+        public static string Monitor_DS_Email_Cc { get; private set; }
 
-        public static string DSEmail_Subject { get; private set; }
-        public static string DSEmailTemplate { get; private set; }
-        public static string DS_Email_To { get; private set; }
-        public static string DS_Email_Cc { get; private set; }
+        public static string Monitor_PSEmail_Subject { get; private set; }
+        public static string Monitor_PSEmailTemplate { get; private set; }
+        public static string Monitor_PS_Email_To { get; private set; }
+        public static string Monitor_PS_Email_Cc { get; private set; }
 
-        public static string PSEmail_Subject { get; private set; }
-        public static string PSEmailTemplate { get; private set; }
-        public static string PS_Email_To { get; private set; }
-        public static string PS_Email_Cc { get; private set; }
+        public static string Monitor_NoBatchReceivedNotification_Subject { get; set; }
+        public static string Monitor_NoBatch_Email_To { get; private set; }
+        public static string Monitor_NoBatch_Email_Cc { get; private set; }
 
-        public static string NoBatchReceivedNotification_Subject { get; set; }
-        public static string NoBatch_Email_To { get; private set; }
-        public static string NoBatch_Email_Cc { get; private set; }
-
-
-        public static string PnSEmail_Subject { get; private set; }
-        public static string PnS_Email_To { get; private set; }
-        public static string PnS_Email_Cc { get; private set; }
-
-        public static string ExceptionEmail_Subject { get; private set; }
-        public static string Exception_Email_To { get; private set; }
-        public static string Exception_Email_Cc { get; private set; }
-
-        public static string ReportSFTUploadingChannelCode { get; private set; }
-        public static string ReportSFTUploadingPathAMC { get; private set; }
+        public static string Monitor_ExceptionEmail_Subject { get; private set; }
+        public static string Monitor_Exception_Email_To { get; private set; }
+        public static string Monitor_Exception_Email_Cc { get; private set; }
+        public static string Monitor_ReportSFTUploadingPathAMC { get; private set; }
         [Description("This is unique customer identifier")]
-        public static string USAACustIdentifier { get; set; }
-        public static string AMCDirPath { get; set; }
+        public static string Monitor_USAACustIdentifier { get; set; }
+        public static string Monitor_AMCDirPath { get; set; }
 
         //Core
-        public static string CoverTemplateFolder { get; private set; }
+        public static string Core_PnS_SFT_HostURL { get; private set; }
+        public static string Core_PnS_SFT_UserName { get; private set; }
+        public static string Core_PnS_SFT_Password { get; private set; }
+        public static string Core_PnS_SFT_RootDir { get; private set; }
 
-        public static string CountryCode { get; private set; }
-        public static int NoofTime_AttemptFedexService { get; private set; }
-        public static int FedexServiceAttemptInterval { get; private set; }
-        public static string CustomerTransactionId { get; set; }
+        public static string Core_PnSEmail_Subject { get; private set; }
+        public static string Core_PnS_Email_To { get; private set; }
+        public static string Core_PnS_Email_Cc { get; private set; }
+
+        public static string Core_CoverTemplateFolder { get; private set; }
+        public static string Core_CountryCode { get; private set; }
+        public static int Core_NoofTime_AttemptFedexService { get; private set; }
+        public static int Core_FedexServiceAttemptInterval { get; private set; }
+        public static string Core_CustomerTransactionId { get; set; }
         #endregion
 
         #region PullBackRequestProps

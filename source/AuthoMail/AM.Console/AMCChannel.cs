@@ -125,7 +125,7 @@ namespace AM.Console
             foreach (var batch in downloadBatches)
             {
                 Client client = clientSvc.GetClientById(batch.ClientId);
-                MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.AuthoMailRootFolder);
+                MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
 
                 try
                 {
@@ -232,7 +232,7 @@ namespace AM.Console
             foreach (var batch in downloadBatches)
             {
                 Client client = clientSvc.GetClientById(batch.ClientId);
-                MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.AuthoMailRootFolder);
+                MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
 
                 var xmlFilePath = Path.Combine(mbi.AMRequestPath, mbi.BatchName + ".xml");
                 if (!File.Exists(xmlFilePath))
@@ -275,13 +275,13 @@ namespace AM.Console
 
                     requests = XmlUtil.Deserialize<PackageRequests>(batchXML.OuterXml);
 
-                    List<PackageInfo> packages = requests.Packages.FindAll(p => p.CustomerIdentifier != Config.USAACustIdentifier);
+                    List<PackageInfo> packages = requests.Packages.FindAll(p => p.CustomerIdentifier != Config.Monitor_USAACustIdentifier);
 
                     if (packages != null && packages.Count > 0)
                     {
                         amcRequest.Packages = packages;
                         SplitXMLAndPDFS(amcRequest, Path.GetDirectoryName(xmlFilePath), mbi.BatchName);
-                        requests.Packages.RemoveAll(p => p.CustomerIdentifier != Config.USAACustIdentifier);
+                        requests.Packages.RemoveAll(p => p.CustomerIdentifier != Config.Monitor_USAACustIdentifier);
                         //After removing other document types from package request we are checking for any remaining USAA packages are there or not if not then we don't need to process that batch further so we will remove that batch's records and files from database and from folder
                         if (requests.Packages.Count == 0)
                         {
@@ -320,15 +320,15 @@ namespace AM.Console
         private void SplitXMLAndPDFS(PackageRequests request, string PDFsDir, string batchName)
         {
             //Create folder for Separate batch for AMC in UNC path
-            string batchDirectoryPath = Path.Combine(Config.AMCDirPath, batchName);
+            string batchDirectoryPath = Path.Combine(Config.Monitor_AMCDirPath, batchName);
 
             batchDirectoryPath.CleanDirectory();
 
             //Xml and pdf files will be copied to batchname folder.
             string amcFilePath = Path.Combine(batchDirectoryPath, string.Format("{0}.xml", batchName));
 
-            string zipFilePath = Path.Combine(Config.AMCDirPath, string.Format("{0}.zip", batchName));
-            string triggerFilePath = Path.Combine(Config.AMCDirPath, string.Format("{0}_Complete.go", batchName));
+            string zipFilePath = Path.Combine(Config.Monitor_AMCDirPath, string.Format("{0}.zip", batchName));
+            string triggerFilePath = Path.Combine(Config.Monitor_AMCDirPath, string.Format("{0}_Complete.go", batchName));
 
             List<PackageInfo> packages = request.Packages;
             if (packages != null)
@@ -389,7 +389,7 @@ namespace AM.Console
             foreach (var batch in downloadBatches)
             {
                 Client client = clientSvc.GetClientById(batch.ClientId);
-                MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.AuthoMailRootFolder);
+                MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
 
                 //TODO: Can we have multiple business identifier in client business?
                 ClientBusinessIdentifier clientBusinessIdDetails = commonSvc.GetBusinessIdNameFromClientId(client.Id);
@@ -643,7 +643,7 @@ namespace AM.Console
             foreach (var batch in validatedBatches)
             {
                 Client client = clientSvc.GetClientById(batch.ClientId);
-                MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.AuthoMailRootFolder);
+                MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
 
                 var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
                 if (data != null)
