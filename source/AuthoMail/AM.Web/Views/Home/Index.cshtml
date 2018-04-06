@@ -461,7 +461,7 @@
                     //console.log(response);
                     if (response.length == 0) {
                         el.html("<div class='alert alert-yellow'><span>@AM.Services.Config.Web_Msg_NoMailPieceReceivedToday</span></div>");
-                        $("#todayBody").css("min-height", "342px");
+                        $("#todayBody").css("min-height", "312px");
                         return;
                     }
                     var chartData = [];
@@ -498,7 +498,7 @@
                     //console.log(response);
                     if (response.length == 0) {
                         el.html("<div class='alert alert-yellow'><span>@AM.Services.Config.Web_Msg_NoMailPieceReceivedToday</span></div>");
-                        $("#todayBody").css("min-height", "342px");
+                        $("#todayBody").css("min-height", "312px");
                         return;
                     }
                     var chartData = [];
@@ -799,7 +799,7 @@
                             }
                             else {
                                 var el = $("#myModal").find('.modal-body');
-                                el.html("<div class='alert alert-yellow' ><span>" + '@AM.Services.Config.Web_Msg_NoRecordFound' + "</span></div>");
+                                el.html("<div class='alert alert-yellow' ><span>No such mailpiece was processed today or in queue.</span></div>");
                                 $("#myModal").modal("show");
                             }
                         }

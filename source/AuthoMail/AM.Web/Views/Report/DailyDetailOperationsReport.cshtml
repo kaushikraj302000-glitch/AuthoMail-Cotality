@@ -253,14 +253,14 @@
         function FormatObject(Model) {
             $(Model).each(function () {
                 var trackingNo = "";
-                if (this.TrackingNo!="") {
-                    if(this.ShippingMethod=="USPS")
+                if (this.TrackingNo!=null || this.TrackingNo!="") {
+                    if (this.DocTypes.ShippingServiceType == "USPS")
                     {
-                        trackingNo = '<button id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> U' + this.TrackingNo + '</button>';
+                        trackingNo = '<button id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.DocTypes.ShippingServiceType + '\')"><i class="fa faspinner"></i> U ' + this.TrackingNo + '</button>';
                     }
                     else
                     {
-                        trackingNo = '<a id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" href="http://www.fedex.com/Tracking?cntry_code=us&action=1&track=y&tracknumbers=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i>  F' + this.TrackingNo + '</button>';
+                        trackingNo = '<a id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" href="http://www.fedex.com/Tracking?cntry_code=us&action=1&track=y&tracknumbers=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i>  F ' + this.TrackingNo + '</button>';
                     }
                 }
                 else
