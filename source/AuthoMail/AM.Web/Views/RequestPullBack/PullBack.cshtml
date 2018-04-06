@@ -186,7 +186,7 @@
         <div class="modal-content">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal-header">
-                <h2 id="myModalLabel"> @AM.Services.Config.Msg_Web_PullBackConfirmation</h2>
+                <h2 id="myModalLabel"> @AM.Services.Config.Web_Msg_PullBackConfirmation</h2>
                 <hr />
                 <button type="button" class="btn btn-default" id="yesPullback"><i class="fa fa-check"></i> Yes</button>
                 <button type="button" class="btn btn-primary" data-dismiss="modal"><i class="fa fa-close"></i> No</button>
@@ -243,7 +243,7 @@
                                 BindTemplate(data, "#pullbackBody", "#pullbackContent", "#pullbackTableContent", "#pullbackList");
                             }
                             else {
-                                $("#pullbackList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Msg_Web_NoRecordFound</span></div>")
+                                $("#pullbackList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                             }
                         }
                     } else {
@@ -259,7 +259,7 @@
                     $("#loading").hide();
                     $("#pullbackHeader").show();
                     $("#pullbackList").show();
-                    var msg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
+                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
                     $("#pullbackList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
                 }
 
@@ -504,7 +504,7 @@
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     Spinners("#pullback", "fa-reply");
-                    var msg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
+                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
                     el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
                     $("#myModal").modal("show");
                 }

@@ -102,32 +102,34 @@ namespace AM.Services
         #endregion
 
         #region WEB AccountController
-        public static string Msg_Web_Login_InvalidUserName { get; private set; }
-        public static string Msg_Web_Login_EmailConfirm { get; private set; }
-        public static string Msg_Web_Login_Default { get; private set; }
-        public static string Msg_Web_Login_Success { get; private set; }
-        public static string MSG_WEB_Lockout { get; private set; }
-        public static string MSG_WEB_Error { get; private set; }
+        public static string Web_Msg_Login_InvalidUserName { get; private set; }
+        public static string Web_Msg_Login_EmailConfirm { get; private set; }
+        public static string Web_Msg_Login_Default { get; private set; }
+        public static string Web_Msg_Login_Success { get; private set; }
+        public static string Web_Msg_Lockout { get; private set; }
+        public static string Web_Msg_Error { get; private set; }
         #endregion
 
         #region WEB Common Msg
-        public static string Msg_Web_Ajax_CommonError { get; private set; }
-        public static string Msg_Web_NoRecordFound { get; private set; }
-        public static string Msg_Web_PullBackConfirmation { get; private set; }
+        public static string Web_Msg_Ajax_CommonError { get; private set; }
+        public static string Web_Msg_NoRecordFound { get; private set; }
+        public static string Web_Msg_PullBackConfirmation { get; private set; }
         #endregion
 
         #region WEB RequestPullBackController
-        public static string Msg_Web_NoMailPieceSelect { get; private set; }
-        public static string Msg_Web_NoErrorDescription { get; private set; }
+        public static string Web_Msg_NoMailPieceSelect { get; private set; }
+        public static string Web_Msg_NoErrorDescription { get; private set; }
         #endregion
 
         #region WEB HomeController
-        public static string Msg_Web_NoMailPieceReceivedToday { get; private set; }
+        public static string Web_Msg_NoMailPieceReceivedToday { get; private set; }
         #endregion
 
         #region WEB ReportController
-        public static string StartCutOffTime { get; private set; }
-        public static string EndCutOffTime { get; private set; }
+        [Description("Start cut off time for Mailpiece")]
+        public static string Web_StartCutOffTime { get; private set; }
+        [Description("End cut off time for Mailpiece")]
+        public static string Web_EndCutOffTime { get; private set; }
         #endregion
 
         private static List<string> errors;

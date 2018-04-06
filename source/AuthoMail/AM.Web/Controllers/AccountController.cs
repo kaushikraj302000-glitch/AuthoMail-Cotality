@@ -80,12 +80,12 @@ namespace AM.Web.Controllers
             var user = UserManager.FindByName(model.UserName);
             if (user == null)
             {
-                ModelState.AddModelError("", Config.Msg_Web_Login_InvalidUserName);
+                ModelState.AddModelError("", Config.Web_Msg_Login_InvalidUserName);
                 return View(model);
             }
             if (!user.EmailConfirmed)
             {
-                ModelState.AddModelError("", Config.Msg_Web_Login_EmailConfirm);
+                ModelState.AddModelError("", Config.Web_Msg_Login_EmailConfirm);
                 return View(model);
             }
             if (user.Email != null && user.Email != "")
@@ -116,7 +116,7 @@ namespace AM.Web.Controllers
                     return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
                 case SignInStatus.Failure:
                 default:
-                    ModelState.AddModelError("", Config.Msg_Web_Login_Default);
+                    ModelState.AddModelError("", Config.Web_Msg_Login_Default);
                     return View(model);
             }
         }
