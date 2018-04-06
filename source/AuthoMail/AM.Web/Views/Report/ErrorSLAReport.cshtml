@@ -268,7 +268,7 @@
                                 BindTemplate(data, "#SLABody", "#SLAbodyContent", "#SLATableContent", "#SLABatchList");
                             }
                             else {
-                                $("#SLABatchList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Msg_Web_NoRecordFound</span></div>")
+                                $("#SLABatchList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                             }
                         }
                     } else {
@@ -285,7 +285,7 @@
                     $("#SLAHeader").show();
                     $("#SLABatchList").show();
 
-                    var msg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
+                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
                     $("#SLABatchList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
                 }
 

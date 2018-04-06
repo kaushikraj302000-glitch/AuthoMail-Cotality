@@ -56,7 +56,7 @@
 
                                 break;
                             case "Error":
-                            <span class="label medium label-red" data-content="@(!string.IsNullOrEmpty(item.ErrorDesc) ? Html.Raw("<span class='text-red'>" + item.ErrorDesc + "</span>") : Html.Raw("<span class='text-red'>" + AM.Services.Config.Msg_Web_NoErrorDescription + "</span>"))" data-placement="left">@item.ShippingStatus</span>
+                            <span class="label medium label-red" data-content="@(!string.IsNullOrEmpty(item.ErrorDesc) ? Html.Raw("<span class='text-red'>" + item.ErrorDesc + "</span>") : Html.Raw("<span class='text-red'>" + AM.Services.Config.Web_Msg_NoErrorDescription + "</span>"))" data-placement="left">@item.ShippingStatus</span>
                                 break;
                             case "Shipped":
                             <span class="label medium label-success">@item.ShippingStatus</span>
@@ -88,6 +88,6 @@
 else
 {
     <div class="alert alert-yellow norecordpullback">
-        <span class="sbold">@AM.Services.Config.Msg_Web_NoRecordFound</span>
+        <span class="sbold">@AM.Services.Config.Web_Msg_NoRecordFound</span>
     </div>
 }

@@ -40,7 +40,7 @@ namespace AM.Core
                 {
                     SmartDocs doc = new SmartDocs();
                     Client client = clientSvc.GetClientById(mailBatch.ClientId);
-                    MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.AuthoMailRootFolder);
+                    MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
 
                     var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
 
@@ -99,7 +99,7 @@ namespace AM.Core
                                 }
 
                                 //Folder structure and file naming convention should be Root/AppCode/DocTypeId/AppCode_DocTypeId_SeqNo.pdf
-                                string coverLetterTemplatePath = Path.Combine(Config.CoverTemplateFolder, client.AppCode, docType.Id.ToString(), docTypeLetter.CoverLetterTemplatePath);
+                                string coverLetterTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, client.AppCode, docType.Id.ToString(), docTypeLetter.CoverLetterTemplatePath);
 
                                 // Create final document using SmartDocs library.
                                 coverLetterPdfPath = doc.GenerateUSPSCoverLetter(coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
@@ -133,7 +133,7 @@ namespace AM.Core
                                 {
                                     CreateFedExLabel createFedExLabel = new CreateFedExLabel();
                                     bool result = false;
-                                    while (count < Config.NoofTime_AttemptFedexService)
+                                    while (count < Config.Core_NoofTime_AttemptFedexService)
                                     {
                                         result = createFedExLabel.Create(mailPiece, fedExAccInfo, docType, mbi);
                                         if (result)
@@ -142,7 +142,7 @@ namespace AM.Core
                                         }
                                         else if (result == false && mailPiece.ErrorDesc == "Invalid_shipping_detail|General Failure")
                                         {
-                                            System.Threading.Thread.Sleep(Config.FedexServiceAttemptInterval);
+                                            System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
                                             count++;
                                         }
                                         else
@@ -204,7 +204,6 @@ namespace AM.Core
 
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Prepped, Common.Now);
                     commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.InProgress.ToString());
-                    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.PreppedEnd, Common.Now);
                 }
             }
         }
@@ -257,13 +256,12 @@ namespace AM.Core
                         continue;
                     }
 
-                    MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.AuthoMailRootFolder);
+                    MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
 
                     var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
 
                     List<MailPieceDTO> validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
 
-                    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingStart, Common.Now);
 
                     if (validMailPieces.Count == 0)
                     {
@@ -271,9 +269,7 @@ namespace AM.Core
                         mailBatch.ValidationErrors = "Batch does not contain any valid mail pieces to process further.";
 
                         mailBatchSvc.UpdateBatchDetails(mailBatch);
-                        commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationEnd, Common.Now);
                         commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.Failed.ToString());
-                        commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                         continue;
                     }
 
@@ -339,7 +335,6 @@ namespace AM.Core
                         {
                             log.Error("No batches are available for submit to PCI.");
 
-                            commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                             continue;
                         }
 
@@ -348,13 +343,12 @@ namespace AM.Core
                             if (printBatchData.MailPieces.Count == 0)
                             {
                                 log.Error("{0} : Print batch is not containing any mail pieces.".Fill(printBatchData.UniqueId));
-                                commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                                 continue;
                             }
 
                             printBatchData.Id = mailBatchSvc.InsertPrintBatchDetails(printBatchData);
 
-                            string pnsRootFolder = Config.PnS_SFT_RootDir;
+                            string pnsRootFolder = Config.Core_PnS_SFT_RootDir;
                             string batchName = "{0}_{1}".Fill(mbi.MailBatch.BatchName, printBatchData.DocTypeId);
                             string batchXMLSubmitPath = Path.Combine(pnsRootFolder, mbi.Client.AppCode, batchName + ".xml");
                             string batchGOSubmitPath = Path.Combine(pnsRootFolder, mbi.Client.AppCode, batchName + ".go");
@@ -367,7 +361,6 @@ namespace AM.Core
                             }
                             catch (Exception ex)
                             {
-                                commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                                 log.Error("Error occured while creating directory :" + ex);
                             }
 
@@ -403,17 +396,14 @@ namespace AM.Core
                             }
                             catch (Exception ex)
                             {
-                                commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                                 log.Error("Error occured while generaing PnSRequest :" + ex);
                             }
                         }
                         commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
-                        commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                     }
                     catch (Exception ex)
                     {
                         log.Error(ex);
-                        commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
                     }
                 }
             }
@@ -437,7 +427,7 @@ namespace AM.Core
                     return;
                 }
 
-                SFTUtil sftSite = new SFTUtil(SFT_ProtocolType.unc, Config.PnS_SFT_HostURL, Config.PnS_SFT_UserName, Config.PnS_SFT_Password, 300000);
+                SFTUtil sftSite = new SFTUtil(SFT_ProtocolType.unc, Config.Core_PnS_SFT_HostURL, Config.Core_PnS_SFT_UserName, Config.Core_PnS_SFT_Password, 300000);
 
                 sftSite.Connect();
 
@@ -462,7 +452,7 @@ namespace AM.Core
                 {
                     Client client = clientSvc.GetClientByAppCode(appCode);
 
-                    responseFiles = sftSite.ListDirectory(Path.Combine(Config.PnS_SFT_RootDir, client.AppCode));
+                    responseFiles = sftSite.ListDirectory(Path.Combine(Config.Core_PnS_SFT_RootDir, client.AppCode));
 
                     var responseTriggerFiles = responseFiles
                     .Where(file => Path.GetExtension(file).ToLower() == ".rpt")
@@ -471,8 +461,8 @@ namespace AM.Core
 
                     foreach (var triggerFile in responseTriggerFiles)
                     {
-                        string pnsResponseFilePath = Path.Combine(Config.PnS_SFT_RootDir, client.AppCode, triggerFile.Key + "-res.xml");
-                        string pnsResponseTriggerFilePath = Path.Combine(Config.PnS_SFT_RootDir, client.AppCode, triggerFile.Value);
+                        string pnsResponseFilePath = Path.Combine(Config.Core_PnS_SFT_RootDir, client.AppCode, triggerFile.Key + "-res.xml");
+                        string pnsResponseTriggerFilePath = Path.Combine(Config.Core_PnS_SFT_RootDir, client.AppCode, triggerFile.Value);
                         if (sftSite.IsFileAvailable(pnsResponseFilePath))
                         {
                             submittedPrintBatches.ForEach(row =>
@@ -503,7 +493,7 @@ namespace AM.Core
 
                         if (sftSite.IsFileAvailable(responseFilePath))
                         {
-                            string amRootFilePath = Path.Combine(Config.AuthoMailRootFolder, responseFileName);
+                            string amRootFilePath = Path.Combine(Config.Common_AuthoMailRootFolder, responseFileName);
 
                             DateTime mrdfDownloadStartTime = Common.Now;
                             DateTime responseReceivedOn = sftSite.LastModifiedTimeOfFile(responseFilePath);
@@ -514,7 +504,7 @@ namespace AM.Core
                             if (File.Exists(amRootFilePath))
                             {
                                 var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(downloadableBatch.MailBatchId);
-                                var mbi = new MailBatchInfo(batchData.MailBatch, client, Config.AuthoMailRootFolder);
+                                var mbi = new MailBatchInfo(batchData.MailBatch, client, Config.Common_AuthoMailRootFolder);
 
                                 string amPnSResponsePath = Path.Combine(mbi.PnSResponsePath, responseFileName);
 
@@ -558,7 +548,7 @@ namespace AM.Core
                     {
                         Client client = clientSvc.GetClientByAppCode(printBatch.AppCode);
                         BatchData batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(printBatch.MailBatchId);
-                        MailBatchInfo mbi = new MailBatchInfo(batchData.MailBatch, client, Config.AuthoMailRootFolder);
+                        MailBatchInfo mbi = new MailBatchInfo(batchData.MailBatch, client, Config.Common_AuthoMailRootFolder);
 
                         var printbatchResponseFilePath = Path.Combine(mbi.PnSResponsePath, printBatch.SubmittedBatchName + "-res.xml");
                         if (!File.Exists(printbatchResponseFilePath))
@@ -659,7 +649,7 @@ namespace AM.Core
                 {
                     Client client = clientSvc.GetClientById(batch.ClientId);
                     SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(batch.SFTChannelId);
-                    MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.AuthoMailRootFolder);
+                    MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
                     var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
                     if (data != null)
                     {

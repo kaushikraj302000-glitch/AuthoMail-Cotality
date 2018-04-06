@@ -16,54 +16,50 @@ namespace AM.Services
     {
         #region General
         [Description("To indicate on which environment job is running.")]
-        public static string Environment { get; private set; }
+        public static string Monitor_Environment { get; private set; }
 
         #endregion
 
         #region Console & Core
-        public static string AuthoMailRootFolder { get; private set; }
+        public static string Common_AuthoMailRootFolder { get; private set; }
 
-        public static string PnS_SFT_HostURL { get; private set; }
-        public static string PnS_SFT_UserName { get; private set; }
-        public static string PnS_SFT_Password { get; private set; }
-        public static string PnS_SFT_RootDir { get; private set; }
+        public static string Monitor_DSEmail_Subject { get; private set; }
+        public static string Monitor_DSEmailTemplate { get; private set; }
+        public static string Monitor_DS_Email_To { get; private set; }
+        public static string Monitor_DS_Email_Cc { get; private set; }
 
-        public static string DSEmail_Subject { get; private set; }
-        public static string DSEmailTemplate { get; private set; }
-        public static string DS_Email_To { get; private set; }
-        public static string DS_Email_Cc { get; private set; }
+        public static string Monitor_PSEmail_Subject { get; private set; }
+        public static string Monitor_PSEmailTemplate { get; private set; }
+        public static string Monitor_PS_Email_To { get; private set; }
+        public static string Monitor_PS_Email_Cc { get; private set; }
 
-        public static string PSEmail_Subject { get; private set; }
-        public static string PSEmailTemplate { get; private set; }
-        public static string PS_Email_To { get; private set; }
-        public static string PS_Email_Cc { get; private set; }
+        public static string Monitor_NoBatchReceivedNotification_Subject { get; set; }
+        public static string Monitor_NoBatch_Email_To { get; private set; }
+        public static string Monitor_NoBatch_Email_Cc { get; private set; }
 
-        public static string NoBatchReceivedNotification_Subject { get; set; }
-        public static string NoBatch_Email_To { get; private set; }
-        public static string NoBatch_Email_Cc { get; private set; }
-
-
-        public static string PnSEmail_Subject { get; private set; }
-        public static string PnS_Email_To { get; private set; }
-        public static string PnS_Email_Cc { get; private set; }
-
-        public static string ExceptionEmail_Subject { get; private set; }
-        public static string Exception_Email_To { get; private set; }
-        public static string Exception_Email_Cc { get; private set; }
-
-        public static string ReportSFTUploadingChannelCode { get; private set; }
-        public static string ReportSFTUploadingPathAMC { get; private set; }
+        public static string Monitor_ExceptionEmail_Subject { get; private set; }
+        public static string Monitor_Exception_Email_To { get; private set; }
+        public static string Monitor_Exception_Email_Cc { get; private set; }
+        public static string Monitor_ReportSFTUploadingPathAMC { get; private set; }
         [Description("This is unique customer identifier")]
-        public static string USAACustIdentifier { get; set; }
-        public static string AMCDirPath { get; set; }
+        public static string Monitor_USAACustIdentifier { get; set; }
+        public static string Monitor_AMCDirPath { get; set; }
 
         //Core
-        public static string CoverTemplateFolder { get; private set; }
+        public static string Core_PnS_SFT_HostURL { get; private set; }
+        public static string Core_PnS_SFT_UserName { get; private set; }
+        public static string Core_PnS_SFT_Password { get; private set; }
+        public static string Core_PnS_SFT_RootDir { get; private set; }
 
-        public static string CountryCode { get; private set; }
-        public static int NoofTime_AttemptFedexService { get; private set; }
-        public static int FedexServiceAttemptInterval { get; private set; }
-        public static string CustomerTransactionId { get; set; }
+        public static string Core_PnSEmail_Subject { get; private set; }
+        public static string Core_PnS_Email_To { get; private set; }
+        public static string Core_PnS_Email_Cc { get; private set; }
+
+        public static string Core_CoverTemplateFolder { get; private set; }
+        public static string Core_CountryCode { get; private set; }
+        public static int Core_NoofTime_AttemptFedexService { get; private set; }
+        public static int Core_FedexServiceAttemptInterval { get; private set; }
+        public static string Core_CustomerTransactionId { get; set; }
         #endregion
 
         #region PullBackRequestProps
@@ -100,32 +96,34 @@ namespace AM.Services
         #endregion
 
         #region WEB AccountController
-        public static string Msg_Web_Login_InvalidUserName { get; private set; }
-        public static string Msg_Web_Login_EmailConfirm { get; private set; }
-        public static string Msg_Web_Login_Default { get; private set; }
-        public static string Msg_Web_Login_Success { get; private set; }
-        public static string MSG_WEB_Lockout { get; private set; }
-        public static string MSG_WEB_Error { get; private set; }
+        public static string Web_Msg_Login_InvalidUserName { get; private set; }
+        public static string Web_Msg_Login_EmailConfirm { get; private set; }
+        public static string Web_Msg_Login_Default { get; private set; }
+        public static string Web_Msg_Login_Success { get; private set; }
+        public static string Web_Msg_Lockout { get; private set; }
+        public static string Web_Msg_Error { get; private set; }
         #endregion
 
         #region WEB Common Msg
-        public static string Msg_Web_Ajax_CommonError { get; private set; }
-        public static string Msg_Web_NoRecordFound { get; private set; }
-        public static string Msg_Web_PullBackConfirmation { get; private set; }
+        public static string Web_Msg_Ajax_CommonError { get; private set; }
+        public static string Web_Msg_NoRecordFound { get; private set; }
+        public static string Web_Msg_PullBackConfirmation { get; private set; }
         #endregion
 
         #region WEB RequestPullBackController
-        public static string Msg_Web_NoMailPieceSelect { get; private set; }
-        public static string Msg_Web_NoErrorDescription { get; private set; }
+        public static string Web_Msg_NoMailPieceSelect { get; private set; }
+        public static string Web_Msg_NoErrorDescription { get; private set; }
         #endregion
 
         #region WEB HomeController
-        public static string Msg_Web_NoMailPieceReceivedToday { get; private set; }
+        public static string Web_Msg_NoMailPieceReceivedToday { get; private set; }
         #endregion
 
         #region WEB ReportController
-        public static string StartCutOffTime { get; private set; }
-        public static string EndCutOffTime { get; private set; }
+        [Description("Start cut off time for Mailpiece")]
+        public static string Web_StartCutOffTime { get; private set; }
+        [Description("End cut off time for Mailpiece")]
+        public static string Web_EndCutOffTime { get; private set; }
         #endregion
 
         private static List<string> errors;

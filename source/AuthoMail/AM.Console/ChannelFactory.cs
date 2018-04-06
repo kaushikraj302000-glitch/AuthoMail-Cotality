@@ -17,7 +17,7 @@ namespace AM.Console
             switch (channelPrefix)
             {
                 case "AMC":
-                    channelCode = channelPrefix + "_" + Config.Environment;
+                    channelCode = channelPrefix + "_" + Config.Monitor_Environment;
                     return new AMCChannel(channelCode);
 
                 //case "ALASKA_Staging":

@@ -61,9 +61,9 @@ namespace AM.Console
                     using (MailMessage msg = new MailMessage())
                     {
                         msg.IsBodyHtml = true;
-                        msg.To.Add(Config.NoBatch_Email_To);
-                        msg.CC.Add(Config.NoBatch_Email_Cc);
-                        msg.Subject = Config.NoBatchReceivedNotification_Subject;
+                        msg.To.Add(Config.Monitor_NoBatch_Email_To);
+                        msg.CC.Add(Config.Monitor_NoBatch_Email_Cc);
+                        msg.Subject = Config.Monitor_NoBatchReceivedNotification_Subject;
                         msg.Priority = MailPriority.Normal;
                         msg.Body = string.Format("No batch available today till cutOffTime {0}.", cutOffTime.ToString("HH:mm:ss"));
                         smtpClient.Send(msg);
@@ -88,9 +88,9 @@ namespace AM.Console
                     using (MailMessage msg = new MailMessage())
                     {
                         msg.IsBodyHtml = true;
-                        msg.To.Add(Config.Exception_Email_To);
-                        msg.CC.Add(Config.Exception_Email_Cc);
-                        msg.Subject = Config.ExceptionEmail_Subject;
+                        msg.To.Add(Config.Monitor_Exception_Email_To);
+                        msg.CC.Add(Config.Monitor_Exception_Email_Cc);
+                        msg.Subject = Config.Monitor_ExceptionEmail_Subject;
                         msg.Priority = MailPriority.High;
                         msg.Body = "Unexpected exception occured during execution." + Environment.NewLine + exception;
                         smtpClient.Send(msg);
@@ -114,9 +114,9 @@ namespace AM.Console
                     using (MailMessage msg = new MailMessage())
                     {
                         msg.IsBodyHtml = true;
-                        msg.To.Add(Config.DS_Email_To);
-                        msg.CC.Add(Config.DS_Email_Cc);
-                        msg.Subject = Config.DSEmail_Subject;
+                        msg.To.Add(Config.Monitor_DS_Email_To);
+                        msg.CC.Add(Config.Monitor_DS_Email_Cc);
+                        msg.Subject = Config.Monitor_DSEmail_Subject;
                         msg.Priority = MailPriority.Normal;
 
                         if (batchData.MailPieces.Count > 0)
@@ -127,7 +127,7 @@ namespace AM.Console
                             string downloadEmail_TD_DescriptionStyle = "style='width:80%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'' valign='top' width='213'><p>";
                             string downloadEmail_TD_CountStyle = "style='width:10%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
 
-                            StringBuilder sb = new StringBuilder(File.ReadAllText(Config.DSEmailTemplate));
+                            StringBuilder sb = new StringBuilder(File.ReadAllText(Config.Monitor_DSEmailTemplate));
                             sb = sb.Replace("<%FileName%>", mbi.MailBatch.BatchName);
                             sb = sb.Replace("<%yyyymmdd%>", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("MM/dd/yyyy"));
                             sb = sb.Replace("<%hhmm%>", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("hh:mm tt"));
