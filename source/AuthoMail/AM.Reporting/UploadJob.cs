@@ -45,8 +45,10 @@ namespace AM.Reporting
                                     continue;
                                 }
 
-                                var startDate = (DateTime.UtcNow.UtcToEst().Date.AddDays(-1) + new TimeSpan(19, 45, 01)).EstToUtc();
-                                var endDate = (DateTime.UtcNow.UtcToEst().Date + new TimeSpan(19, 45, 00)).EstToUtc();
+                                var estToday =DateTime.UtcNow.UtcToEst().Date;
+
+                                var startDate = estToday.AddDays(-1) + Config.Reporting_USAA_StartCutOffTime;
+                                var endDate = estToday.Date + Config.Reporting_USAA_EndCutOffTime;
 
                                 var reportData = reportSvc.GetSummaryControlReport(client.Id, startDate, endDate, sftChannelDetails.Code).OrderBy(s => s.MailBatchId).ToList();
 
