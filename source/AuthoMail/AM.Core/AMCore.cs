@@ -446,79 +446,85 @@ namespace AM.Core
             using (IDocTypeService docTypeSvc = new DocTypeService())
             using (IFedExService fedExSvc = new FedExService())
             {
-                List<string> responseFiles;
-                var clientAppCodes = submittedPrintBatches.Select(client => client.AppCode).Distinct();
-                foreach (var appCode in clientAppCodes)
+                try
                 {
-                    Client client = clientSvc.GetClientByAppCode(appCode);
-
-                    responseFiles = sftSite.ListDirectory(Path.Combine(Config.Core_PnS_SFT_RootDir, client.AppCode));
-
-                    var responseTriggerFiles = responseFiles
-                    .Where(file => Path.GetExtension(file).ToLower() == ".rpt")
-                    .Select(file => new KeyValuePair<string, string>(Path.GetFileNameWithoutExtension(file), file))
-                    .ToList();
-
-                    foreach (var triggerFile in responseTriggerFiles)
+                    List<string> responseFiles;
+                    var clientAppCodes = submittedPrintBatches.Select(client => client.AppCode).Distinct();
+                    foreach (var appCode in clientAppCodes)
                     {
-                        string pnsResponseFilePath = Path.Combine(Config.Core_PnS_SFT_RootDir, client.AppCode, triggerFile.Key + "-res.xml");
-                        string pnsResponseTriggerFilePath = Path.Combine(Config.Core_PnS_SFT_RootDir, client.AppCode, triggerFile.Value);
-                        if (sftSite.IsFileAvailable(pnsResponseFilePath))
+                        Client client = clientSvc.GetClientByAppCode(appCode);
+
+                        responseFiles = sftSite.ListDirectory(Path.Combine(Config.Core_PnS_SFT_RootDir, client.AppCode));
+
+                        var responseTriggerFiles = responseFiles
+                        .Where(file => Path.GetExtension(file).ToLower() == ".rpt")
+                        .Select(file => new KeyValuePair<string, string>(Path.GetFileNameWithoutExtension(file), file))
+                        .ToList();
+
+                        foreach (var triggerFile in responseTriggerFiles)
                         {
-                            submittedPrintBatches.ForEach(row =>
+                            string pnsResponseFilePath = Path.Combine(Config.Core_PnS_SFT_RootDir, client.AppCode, triggerFile.Key + "-res.xml");
+                            string pnsResponseTriggerFilePath = Path.Combine(Config.Core_PnS_SFT_RootDir, client.AppCode, triggerFile.Value);
+                            if (sftSite.IsFileAvailable(pnsResponseFilePath))
                             {
-                                if (row.SubmittedBatchName == triggerFile.Key)
+                                submittedPrintBatches.ForEach(row =>
                                 {
-                                    row.ResponseFilePath = pnsResponseFilePath;
-                                    row.ResponseTriggerFilePath = pnsResponseTriggerFilePath;
-                                }
-                            });
-                        }
-                    }
-
-                    var downloadableFiles = submittedPrintBatches.Where(c => !string.IsNullOrEmpty(c.ResponseFilePath)).ToList();
-
-                    if (downloadableFiles.Count == 0)
-                    {
-                        log.Debug("Response files are not available to download.");
-                        continue;
-                    }
-                    #region Download Response Files
-
-                    foreach (var downloadableBatch in downloadableFiles)
-                    {
-                        string responseTriggerFilePath = downloadableBatch.ResponseTriggerFilePath;
-                        string responseFileName = Path.GetFileName(downloadableBatch.ResponseFilePath);
-                        string responseFilePath = downloadableBatch.ResponseFilePath;
-
-                        if (sftSite.IsFileAvailable(responseFilePath))
-                        {
-                            string amRootFilePath = Path.Combine(Config.Common_AuthoMailRootFolder, responseFileName);
-
-                            DateTime mrdfDownloadStartTime = Common.Now;
-                            DateTime responseReceivedOn = sftSite.LastModifiedTimeOfFile(responseFilePath);
-
-                            sftSite.DownloadFile(responseFilePath, amRootFilePath, true, false);
-                            sftSite.DeleteFile(responseTriggerFilePath);
-
-                            if (File.Exists(amRootFilePath))
-                            {
-                                var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(downloadableBatch.MailBatchId);
-                                var mbi = new MailBatchInfo(batchData.MailBatch, client, Config.Common_AuthoMailRootFolder);
-
-                                string amPnSResponsePath = Path.Combine(mbi.PnSResponsePath, responseFileName);
-
-                                File.Move(amRootFilePath, amPnSResponsePath);
-
-                                commonSvc.UpdatePrintBatchPipeLineStatus(downloadableBatch.PrintBatchId, BatchPipelineStatus.ShippingResponseReceived, responseReceivedOn);
+                                    if (row.SubmittedBatchName == triggerFile.Key)
+                                    {
+                                        row.ResponseFilePath = pnsResponseFilePath;
+                                        row.ResponseTriggerFilePath = pnsResponseTriggerFilePath;
+                                    }
+                                });
                             }
                         }
-                        else
+
+                        var downloadableFiles = submittedPrintBatches.Where(c => !string.IsNullOrEmpty(c.ResponseFilePath)).ToList();
+
+                        if (downloadableFiles.Count == 0)
                         {
-                            log.Error("Trigger file is available but xml file is not available to download For PrintBatch-Id :{0}".Fill(downloadableBatch.PrintBatchId));
+                            log.Debug("Response files are not available to download.");
+                            continue;
                         }
+
+                        foreach (var downloadableBatch in downloadableFiles)
+                        {
+                            string responseTriggerFilePath = downloadableBatch.ResponseTriggerFilePath;
+                            string responseFileName = Path.GetFileName(downloadableBatch.ResponseFilePath);
+                            string responseFilePath = downloadableBatch.ResponseFilePath;
+
+                            if (sftSite.IsFileAvailable(responseFilePath))
+                            {
+                                string amRootFilePath = Path.Combine(Config.Common_AuthoMailRootFolder, responseFileName);
+
+                                DateTime mrdfDownloadStartTime = Common.Now;
+                                DateTime responseReceivedOn = sftSite.LastModifiedTimeOfFile(responseFilePath);
+
+                                sftSite.DownloadFile(responseFilePath, amRootFilePath, true, false);
+                                sftSite.DeleteFile(responseTriggerFilePath);
+
+                                if (File.Exists(amRootFilePath))
+                                {
+                                    var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(downloadableBatch.MailBatchId);
+                                    var mbi = new MailBatchInfo(batchData.MailBatch, client, Config.Common_AuthoMailRootFolder);
+
+                                    string amPnSResponsePath = Path.Combine(mbi.PnSResponsePath, responseFileName);
+
+                                    File.Move(amRootFilePath, amPnSResponsePath);
+
+                                    commonSvc.UpdatePrintBatchPipeLineStatus(downloadableBatch.PrintBatchId, BatchPipelineStatus.ShippingResponseReceived, responseReceivedOn);
+                                }
+                            }
+                            else
+                            {
+                                log.Error("Trigger file is available but xml file is not available to download For PrintBatch-Id :{0}".Fill(downloadableBatch.PrintBatchId));
+                            }
+                        }
+
                     }
-                    #endregion
+                }
+                catch (Exception ex)
+                {
+                    log.Error("Error occured while downloading response from PnS Service :", ex);
                 }
             }
         }
@@ -561,8 +567,6 @@ namespace AM.Core
                         var pnsResponse = XmlUtil.Deserialize<PnSResponse>(File.ReadAllText(printbatchResponseFilePath));
                         if (pnsResponse != null)
                         {
-                            commonSvc.UpdatePrintBatchStatus(printBatch.PrintBatchId, pnsResponse.BatchStatus.ToString(), pnsResponse.StatusDescription);
-
                             if (pnsResponse.MailPackageReport != null && pnsResponse.MailPackageReport.Count > 0)
                             {
                                 foreach (var mailPackage in pnsResponse.MailPackageReport)
@@ -595,7 +599,10 @@ namespace AM.Core
                                         }
                                     });
                                 }
+                                //Updates PrintBatches Status values
+                                commonSvc.UpdatePrintBatchStatus(printBatch.PrintBatchId, pnsResponse.BatchStatus.ToString(), pnsResponse.StatusDescription);
 
+                                //Check is there any remaining data for response which is in progress then after update whole mail batch status
                                 var remainingData = batchData.MailPieces.Where(data => data.ShippingStatus == ShippingStatus.InProgress.ToString());
                                 if (remainingData.Count() == 0)
                                 {
@@ -695,9 +702,10 @@ namespace AM.Core
 
             log.Debug("Report prepped job is completed.");
         }
+
         internal static StringBuilder USAAErrorReportAMC(BatchData data, string sftChannelName, string timeZone)
         {
-            StringBuilder errorReport = new StringBuilder("BatchID,ID,Package Name,Loan Number,File Name,Date Received,First Name,Last Name,Recipient Street Address,Recipient City,Recipient State,Recipient Zip,Error Code,Error Text,Shipping Method,Customer Identifier,RequestID");
+            StringBuilder errorReport = new StringBuilder("BatchID, ID, Package Name, Loan Number, File Name, Date Received, First Name, Last Name, Recipient Street Address, Recipient City, Recipient State, Recipient Zip, Error Code, Error Text, Shipping Method, Customer Identifier, RequestID");
 
             errorReport.AppendLine();
 
@@ -711,24 +719,27 @@ namespace AM.Core
             // All the loans where outcome code is anything except no_error are processed invalid loans.
             foreach (MailPieceDTO mailPiece in erroredData)
             {
-                errorReport.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16}",
-                        data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
+                var line = String.Join(",",
+                    data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
                         mailPiece.UniqueId,
-                        mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType,
+                        mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType.ToCsvString(),
                         mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
-                        mailPiece.FileName == null ? string.Empty : mailPiece.FileName,
+                        mailPiece.FileName == null ? string.Empty : mailPiece.FileName.ToCsvString(),
                         data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
-                        mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName,
-                        mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName,
-                        mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet,
+                        mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName.ToCsvString(),
+                        mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName.ToCsvString(),
+                        mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet.ToCsvString(),
                         mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity,
                         mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
                         mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
                         mailPiece.ErrorCode,
-                        mailPiece.ErrorDesc == null ? string.Empty : mailPiece.ErrorDesc.Replace(',', ' ').Replace("\r\n", " "),
+                        mailPiece.ErrorDesc == null ? string.Empty : mailPiece.ErrorDesc.Replace("\r\n", " ").ToCsvString(),
                         data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault().Value,
                         data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").FirstOrDefault().Value,
-                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault().Value));
+                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault().Value
+                    );
+
+                errorReport.AppendLine(line);
             }
 
             return errorReport;
@@ -736,7 +747,7 @@ namespace AM.Core
 
         internal static StringBuilder USAADailyDetailOperationReportAMC(BatchData data, string sftChannelName, string timeZone)
         {
-            StringBuilder deliveryReport = new StringBuilder("BatchID,ID,Package Name,Loan Number,File Name,Date Received,Date Printed,Date Mailed,Client Code,Tracking Number,Shipping Method,Customer Identifier,First Name,Last Name,Recipient Street Address,Recipient City,Recipient State,Recipient Zip,RequestID,Pages Shipped");
+            StringBuilder deliveryReport = new StringBuilder("BatchID, ID, Package Name, Loan Number, File Name, Date Received, Date Printed, Date Mailed, Client Code, Tracking Number, Shipping Method, Customer Identifier, First Name, Last Name, Recipient Street Address, Recipient City, Recipient State, Recipient Zip, RequestID, Pages Shipped");
 
             deliveryReport.AppendLine();
 
@@ -750,10 +761,10 @@ namespace AM.Core
             // All the loans where outcome code is anything except no_error are processed invalid loans.
             foreach (MailPieceDTO mailPiece in shippedData)
             {
-                deliveryReport.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19}",
-                        data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
+                var line = String.Join(",",
+                    data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
                         mailPiece.UniqueId,
-                        mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType,
+                        mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType.ToCsvString(),
                         mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
                         mailPiece.FileName == null ? string.Empty : mailPiece.FileName,
                         data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
@@ -761,16 +772,18 @@ namespace AM.Core
                         mailPiece.ShippedOn == null ? string.Empty : mailPiece.ShippedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
                         data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingCredCode").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingCredCode").FirstOrDefault().Value,
                         mailPiece.TrackingNo == null ? string.Empty : mailPiece.TrackingNo,
-                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault().Value,
+                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault().Value.ToCsvString(),
                         data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").FirstOrDefault().Value,
-                        mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName,
-                        mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName,
-                        mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet,
+                        mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName.ToCsvString(),
+                        mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName.ToCsvString(),
+                        mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet.ToCsvString(),
                         mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity,
                         mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
                         mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
                         data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault().Value,
-                        mailPiece.TotalSheets));
+                        mailPiece.TotalPages);
+
+                deliveryReport.AppendLine(line);
             }
 
             return deliveryReport;

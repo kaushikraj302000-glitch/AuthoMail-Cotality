@@ -200,6 +200,48 @@ namespace AM.Console
 
             return deliveryReport;
         }
+
+        internal static StringBuilder USAAErrorReportAMC(BatchData data, string sftChannelName, string timeZone)
+        {
+            StringBuilder errorReport = new StringBuilder("BatchID, ID, Package Name, Loan Number, File Name, Date Received, First Name, Last Name, Recipient Street Address, Recipient City, Recipient State, Recipient Zip, Error Code, Error Text, Shipping Method, Customer Identifier, RequestID");
+
+            errorReport.AppendLine();
+
+            var erroredData = data.MailPieces.Where(l => l.ErrorCode != OutComeCodes.No_Error).ToList();
+
+            if (erroredData == null || erroredData.Count == 0)
+            {
+                return null;
+            }
+
+            // All the loans where outcome code is anything except no_error are processed invalid loans.
+            foreach (MailPieceDTO mailPiece in erroredData)
+            {
+                var line = String.Join(",",
+                    data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
+                        mailPiece.UniqueId,
+                        mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType.ToCsvString(),
+                        mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
+                        mailPiece.FileName == null ? string.Empty : mailPiece.FileName.ToCsvString(),
+                        data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
+                        mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName.ToCsvString(),
+                        mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName.ToCsvString(),
+                        mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet.ToCsvString(),
+                        mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity,
+                        mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
+                        mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
+                        mailPiece.ErrorCode,
+                        mailPiece.ErrorDesc == null ? string.Empty : mailPiece.ErrorDesc.Replace("\r\n", " ").ToCsvString(),
+                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault().Value,
+                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").FirstOrDefault().Value,
+                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault().Value
+                    );
+
+                errorReport.AppendLine(line);
+            }
+
+            return errorReport;
+        }
     }
 
     public class ValidationResultAMC

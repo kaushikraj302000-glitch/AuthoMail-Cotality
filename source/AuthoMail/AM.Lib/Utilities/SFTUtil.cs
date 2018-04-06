@@ -264,7 +264,7 @@ namespace AM.Lib
             }
         }
 
-        public void UploadFile(string remoteFilePath, string localFilePath, bool deleteLocalFile = false, bool closeConnection = false)
+        public void UploadFile(string localFilePath, string remoteFilePath, bool deleteLocalFile = false, bool closeConnection = false)
         {
             if (Protocol == SFT_ProtocolType.ftp)
             {
@@ -294,8 +294,7 @@ namespace AM.Lib
             }
             else if (Protocol == SFT_ProtocolType.unc)
             {
-                var fullRemoteFilePath = Path.Combine(HostURL, remoteFilePath);
-                File.Copy(localFilePath, fullRemoteFilePath, true);
+                File.Copy(localFilePath, GetUrl(remoteFilePath), true);
             }
             else
             {
