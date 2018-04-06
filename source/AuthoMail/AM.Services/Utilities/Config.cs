@@ -61,6 +61,20 @@ namespace AM.Services
         public static int Core_FedexServiceAttemptInterval { get; private set; }
         public static string Core_CustomerTransactionId { get; set; }
         #endregion
+        public static TimeSpan Reporting_USAA_StartCutOffTime
+        {
+            get
+            {
+                return TimeSpan.Parse(Web_StartCutOffTime);
+            }
+        }
+        public static TimeSpan Reporting_USAA_EndCutOffTime
+        {
+            get
+            {
+                return TimeSpan.Parse(Web_EndCutOffTime);
+            }
+        }
 
         #region PullBackRequestProps
         [Description("When mailpiece is aborted by client or for unknown reason.")]

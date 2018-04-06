@@ -30,6 +30,11 @@ namespace AM.Lib
             return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(value.ToLower());
         }
 
+        public static string ToCsvString(this string value)
+        {
+            return "\"{0}\"".Fill(value ?? "");
+        }
+
         public static string Fill(this string format, params object[] args)
         {
             return String.Format(format, args);
