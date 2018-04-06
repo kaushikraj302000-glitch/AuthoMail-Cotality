@@ -135,7 +135,7 @@ namespace AM.Reporting
                         msg.IsBodyHtml = true;
                         msg.To.Add(email_To);
                         msg.CC.Add(email_Cc);
-                        msg.Subject = subject + DateTime.UtcNow.UtcToClientTimeZone(clienttimeZone).ToString("MM-dd-yyyy");
+                        msg.Subject = subject + Common.Now.UtcToClientTimeZone(clienttimeZone).ToString("MM-dd-yyyy");
                         msg.Priority = MailPriority.Normal;
                         msg.Body = "Summary Control Report From Date {0} to {1}".Fill(startDate.UtcToClientTimeZone(clienttimeZone), endDate.UtcToClientTimeZone(clienttimeZone));
 

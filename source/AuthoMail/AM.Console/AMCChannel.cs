@@ -567,7 +567,18 @@ namespace AM.Console
                         if (validationResult.Code == OutComeCodes.No_Error)
                         {
                             string filePath = Path.Combine(mbi.AMRequestPath, mailPieceDTO.FileName);
-                            if (!File.Exists(filePath))
+
+                            //Document Or Package Type validation
+
+                            var docType = docTypeSvc.GetDocTypesByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType);
+
+                            if (docType == null)
+                            {
+                                mailPieceDTO.ErrorCode = OutComeCodes.Invalid_PackageType;
+                                mailPieceDTO.ErrorDesc = "Document Or Package type does not exist.";
+                                mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
+                            }
+                            else if (!File.Exists(filePath))
                             {
                                 mailPieceDTO.ErrorCode = OutComeCodes.Missing_PDF;
                                 mailPieceDTO.ErrorDesc = "Pdf file is not available for this package.";
