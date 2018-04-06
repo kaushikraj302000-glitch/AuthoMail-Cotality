@@ -74,22 +74,6 @@ namespace AM.Services
                 }
                 ).ToList();
 
-            //Dictionary<string, object> parameters = new Dictionary<string, object>();
-            //parameters.Add("@startDate", startDate.ToStartDateTime().EstToUtc());
-            //parameters.Add("@endDate", endDate.ToEndDateTime().EstToUtc());
-            //parameters.Add("@clientId", clientId);
-            //if (!businessFriendlyIdName.IsNullOrWhiteSpace() && !businessFriendlyIdValue.IsNullOrWhiteSpace())
-            //{
-            //    query = string.Format("{0} AND (m.[BusinessFriendlyIdName]=@businessFriendlyIdName AND m.BusinessFriendlyIdValue=@businessFriendlyIdValue)", query);
-            //    parameters.Add("@businessFriendlyIdName", businessFriendlyIdName);
-            //    parameters.Add("@businessFriendlyIdValue", businessFriendlyIdValue);
-            //}
-            //if (!docType.IsNullOrWhiteSpace())
-            //{
-            //    query = string.Format("{0} AND (m.DocTypeId=@docType)", query);
-            //    parameters.Add("@docType", docType);
-            //}
-
             return data;
         }
         public List<QuickPullBackResponse> GetQuickPullBackResponseFromBusinessFriendlyValue(string businessFriendlyIdName, string businessFriendlyIdValue, int clientId)
