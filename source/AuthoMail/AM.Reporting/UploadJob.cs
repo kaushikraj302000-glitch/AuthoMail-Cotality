@@ -45,7 +45,7 @@ namespace AM.Reporting
                                     continue;
                                 }
 
-                                var estToday =DateTime.UtcNow.UtcToEst().Date;
+                                var estToday = DateTime.UtcNow.UtcToEst().Date;
 
                                 var startDate = estToday.AddDays(-1) + Config.Reporting_USAA_StartCutOffTime;
                                 var endDate = estToday.Date + Config.Reporting_USAA_EndCutOffTime;
@@ -54,7 +54,7 @@ namespace AM.Reporting
 
                                 if (reportData != null && reportData.Count > 0)
                                 {
-                                    StringBuilder summaryReport = new StringBuilder("BatchID,Id,Channel,Package Name,Loan Number,File Name, Date Received,Date Printed,Date Mailed,Client Code,Tracking Number,Shipping Method,Customer Identifier,First Name,Last Name,Recipient Street Address,Recipient City,Recipient State,Recipient Zip,RequestId,Error Code,Error Text,Print Location,Pages Shipped");
+                                    StringBuilder summaryReport = new StringBuilder("BatchID, Id, Channel, Package Name, Loan Number, File Name, Date Received, Due Date, Date Printed, Date Mailed, Client Code, Tracking Number, Shipping Method, First Name, Last Name, Recipient Street Address, Recipient City, Recipient State, Recipient Zip, Print Location, Pages Shipped, Error Code, Error Text");
                                     summaryReport.AppendLine();
 
                                     foreach (var mailPiece in reportData)
@@ -73,14 +73,12 @@ namespace AM.Reporting
                                             mailPiece.Clients.AppCode,
                                             mailPiece.TrackingNo,
                                             mailPiece.DocTypes.ShippingServiceType,
-                                            //mailPiece.CustomerIdentifier,
                                             mailPiece.RcptFirstName.ToCsvString(),
                                             mailPiece.RcptLastName.ToCsvString(),
                                             mailPiece.RcptAddressStreet.ToCsvString(),
                                             mailPiece.RcptAddressCity,
                                             mailPiece.RcptAddressState,
                                             mailPiece.RcptAddressZIP,
-                                            //mailPiece.RequestId,
                                             mailPiece.MailBatches.PrintLocation.ToCsvString(),
                                             mailPiece.TotalPages,
                                             mailPiece.ErrorCode,
@@ -92,7 +90,7 @@ namespace AM.Reporting
                                     string summaryReportFileName = "{0}_{1}_{2}_{3}.csv".Fill("SummaryControlReport", client.AppCode, sftChannelDetails.Code, DateTime.UtcNow.UtcToClientTimeZone(client.TimeZone).ToString("MM-dd-yyyy"));
 
 
-                                    string summaryReportPath = Path.Combine(Common.AuthoMailRootFolder, summaryReportFileName);
+                                    string summaryReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, summaryReportFileName);
                                     try
                                     {
                                         using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(summaryReport.ToString())))

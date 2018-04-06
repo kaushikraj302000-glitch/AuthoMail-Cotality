@@ -461,7 +461,7 @@
                     //console.log(response);
                     if (response.length == 0) {
                         el.html("<div class='alert alert-yellow'><span>@AM.Services.Config.Web_Msg_NoMailPieceReceivedToday</span></div>");
-                        $("#todayBody").css("min-height", "342px");
+                        $("#todayBody").css("min-height", "312px");
                         return;
                     }
                     var chartData = [];
@@ -480,7 +480,7 @@
 
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
-                    el.html("<div class='alert alert-red'><span>" + commonmsg + "</span></div>");
+                    el.html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + commonmsg + "</span></div>");
 
                 }
 
@@ -497,8 +497,8 @@
                 success: function (response) {
                     //console.log(response);
                     if (response.length == 0) {
-                        el.html("<div class='alert alert-yellow'><span>@AM.Services.Config.Web_Msg_NoMailPieceReceivedToday</span></div>");
-                        $("#todayBody").css("min-height", "342px");
+                        el.html("<div class='alert alert-yellow' style='margin-bottom:10px;'><span>@AM.Services.Config.Web_Msg_NoMailPieceReceivedToday</span></div>");
+                        $("#todayBody").css("min-height", "312px");
                         return;
                     }
                     var chartData = [];
@@ -517,7 +517,7 @@
 
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
-                    el.html("<div class='alert alert-red'><span>" + commonmsg + "</span></div>");
+                    el.html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + commonmsg + "</span></div>");
 
                 }
 
@@ -566,7 +566,7 @@
 
                             }
                             else {
-                                el.html(" <div class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                                el.html(" <div class='alert alert-yellow' style='margin-bottom:10px;'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                             }
                         }
                     }
@@ -580,7 +580,7 @@
 
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
-                    el.html("<div class='alert alert-red'><span>" + commonmsg + "</span></div>");
+                    el.html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + commonmsg + "</span></div>");
                     $("#batchModal").modal("hide");
                     $("#WeeklybatchMailPieceModal").modal("show");
                 }
@@ -701,7 +701,7 @@
                     }
                     else {
                         Spinners("#pullback", "fa-reply");
-                        var htmlstr = "<div class='alert alert-red'><span>" + response.ErrorMessage + "</span></h1></div>";
+                        var htmlstr = "<div class='alert alert-red' style='margin-bottom:10px;'><span>" + response.ErrorMessage + "</span></h1></div>";
                         htmlstr += '<br><blockquote class=""><p><u><i class="fa fa-search"></i> @Html.ActionLink("Advance Search", "PullBack", "RequestPullBack") </u></P></blockquote>';
                         el.html(htmlstr);
                     }
@@ -709,7 +709,7 @@
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     Spinners("#pullback", "fa-reply");
-                    el.html("<div class='alert alert-red'><span>" + commonmsg + "</span></div>");
+                    el.html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + commonmsg + "</span></div>");
                     $("#myModal").modal("show");
                 }
 
@@ -799,7 +799,7 @@
                             }
                             else {
                                 var el = $("#myModal").find('.modal-body');
-                                el.html("<div class='alert alert-yellow' ><span>" + '@AM.Services.Config.Web_Msg_NoRecordFound' + "</span></div>");
+                                el.html("<div class='alert alert-yellow' ><span>No such mailpiece was processed today or in queue.</span></div>");
                                 $("#myModal").modal("show");
                             }
                         }
