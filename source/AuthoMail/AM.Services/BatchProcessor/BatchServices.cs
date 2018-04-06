@@ -58,8 +58,8 @@ namespace AM.Services
         {
             string query = "UPDATE [AM].[MailBatches] SET [ValidationStatus] = @ValidationStatus, [ValidationErrors] = @ValidationErrors, [PrintLocation] = NULL WHERE Id=@Id";
 
-            var data = db.ExecuteScalar(query, new { ValidationStatus = BatchValidationStatus.Invalid, ValidationErrors = errorDesc, Id = id });
-            return Convert.ToInt32(data);
+            var data = db.Execute(query, new { ValidationStatus = BatchValidationStatus.Invalid, ValidationErrors = errorDesc, Id = id });
+            return data;
         }
 
         public List<MailBatchDTO> GetBatchesByPipelineStatus(string batchPipelineStatus)

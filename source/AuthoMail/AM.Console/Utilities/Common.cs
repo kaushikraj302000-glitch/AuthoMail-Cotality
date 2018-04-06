@@ -11,24 +11,25 @@ using System.Xml;
 using System.Xml.Linq;
 using AM.Entities;
 using AM.Lib;
+using AM.Console.Properties;
 namespace AM.Console
 {
     public static class cfg
     {
-        public static string SchemaPath { get; set; }
-        public static string SchemaPathAMC { get; set; }
-        public static XmlSchemaSet schemaAM;
+        //public static string SchemaPath { get; set; }
+        //public static string SchemaPathAMC { get; set; }
+        //public static XmlSchemaSet schemaAM;
         public static XmlSchemaSet schemasAMC;
 
         static cfg()
         {
-            schemaAM = new XmlSchemaSet();
-            schemasAMC = new XmlSchemaSet();
-            SchemaPath = ConfigurationManager.AppSettings["SchemaPath"];
-            schemaAM.Add("http://schemas.corelogic.com/ade/authomail/v1.18.0", cfg.SchemaPath);
+            //schemaAM = new XmlSchemaSet();
+            //SchemaPath = ConfigurationManager.AppSettings["SchemaPath"];
+            //schemaAM.Add("http://schemas.corelogic.com/ade/authomail/v1.18.0", cfg.SchemaPath);
 
-            SchemaPathAMC = Path.GetFullPath(ConfigurationManager.AppSettings["SchemaPathAMC"]);
-            schemasAMC.Add("http://schemas.corelogic.com/2015/amc/v1/packages", cfg.SchemaPathAMC);
+            schemasAMC = new XmlSchemaSet();
+            //SchemaPathAMC = Path.GetFullPath(ConfigurationManager.AppSettings["SchemaPathAMC"]);
+            schemasAMC.Add("http://schemas.corelogic.com/2015/amc/v1/packages", XmlReader.Create(new StringReader(Resources.PackageInfoSchema)));
         }
 
         public static void CleanDirectory(string path)

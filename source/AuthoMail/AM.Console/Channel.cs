@@ -113,7 +113,7 @@ namespace AM.Console
 
                     MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
 
-                    var reportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.csv").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-") || Path.GetFileNameWithoutExtension(f).StartsWith("Error-")).ToList();
+                    var reportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.csv").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-") || Path.GetFileNameWithoutExtension(f).StartsWith("Error-") || Path.GetExtension(f).Equals("err", StringComparison.CurrentCultureIgnoreCase)).ToList();
 
                     try
                     {
@@ -137,6 +137,25 @@ namespace AM.Console
                                             string ftpUploadPath = Path.Combine(uploadPath, fileName);
                                             sftSite.UploadFile(filePath, ftpUploadPath);
                                         }
+
+                                        if (reportList.Count(f => f.StartsWith("Delivery-")) > 0)
+                                        {
+                                            string deliveryGoFilePath = Path.Combine(mbi.AMResponsePath, "DlvrReport.go");
+                                            string ftpDeliveryGoUploadPath = Path.Combine(Config.Monitor_ReportSFTUploadingPathAMC, "DlvrReport.go");
+                                            File.WriteAllText(deliveryGoFilePath, string.Empty);
+
+                                            sftSite.UploadFile(deliveryGoFilePath, ftpDeliveryGoUploadPath, true);
+                                        }
+
+                                        if (reportList.Count(f => f.StartsWith("Error-")) > 0)
+                                        {
+                                            string errorGoFilePath = Path.Combine(mbi.AMResponsePath, "ErrReport.go");
+                                            string ftpErrorGoUploadPath = Path.Combine(Config.Monitor_ReportSFTUploadingPathAMC, "ErrReport.go");
+                                            File.WriteAllText(errorGoFilePath, string.Empty);
+
+                                            sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath, true);
+                                        }
+
                                         commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
                                     }
                                     else

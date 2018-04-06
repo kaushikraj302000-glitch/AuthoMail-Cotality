@@ -47,8 +47,8 @@ namespace AM.Reporting
 
                                 var estToday = DateTime.UtcNow.UtcToEst().Date;
 
-                                var startDate = estToday.AddDays(-1) + Config.Reporting_USAA_StartCutOffTime;
-                                var endDate = estToday.Date + Config.Reporting_USAA_EndCutOffTime;
+                                var startDate = estToday.AddDays(-1) + TimeSpan.Parse(Config.Web_StartCutOffTime);
+                                var endDate = estToday.Date + TimeSpan.Parse(Config.Web_EndCutOffTime);
 
                                 var reportData = reportSvc.GetSummaryControlReport(client.Id, startDate, endDate, sftChannelDetails.Code).OrderBy(s => s.MailBatchId).ToList();
 

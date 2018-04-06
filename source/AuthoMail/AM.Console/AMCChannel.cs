@@ -146,7 +146,7 @@ namespace AM.Console
 
                     if (!sftSite.IsFileAvailable(ftpZipFilePath))
                     {
-                        ReportInvalidBatch(mbi.MailBatch, "'{0}.zip' file is missing on SFT site.".Fill(mbi.BatchName));
+                        ReportInvalidBatch(mbi, "'{0}.zip' file is missing on SFT site.".Fill(mbi.BatchName));
                         continue;
                     }
 
@@ -162,7 +162,7 @@ namespace AM.Console
 
                         log.Error(error, ex);
 
-                        ReportInvalidBatch(mbi.MailBatch, error);
+                        ReportInvalidBatch(mbi, error);
                         continue;
                     }
 
@@ -209,13 +209,19 @@ namespace AM.Console
         }
         #endregion
 
-        private void ReportInvalidBatch(MailBatchDTO mailBatch, string error)
+        private void ReportInvalidBatch(MailBatchInfo mbi, string error)
         {
-            mailBatchSvc.MarkMailBatchAsInvalid(mailBatch.Id, error);
+            //For Invalid Batch, we will generate err file 
+            string invalidBatchFileName = "{0}_InvalidZipfile.err".Fill(mbi.BatchName);
+            string invalidBatchPath = Path.Combine(mbi.AMResponsePath, invalidBatchFileName);
 
-            commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
+            File.WriteAllText(invalidBatchPath, string.Empty);
 
-            commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.Failed.ToString());
+            mailBatchSvc.MarkMailBatchAsInvalid(mbi.MailBatch.Id, error);
+
+            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
+
+            commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
         }
 
         #region Separate Batches
@@ -237,7 +243,7 @@ namespace AM.Console
                 var xmlFilePath = Path.Combine(mbi.AMRequestPath, mbi.BatchName + ".xml");
                 if (!File.Exists(xmlFilePath))
                 {
-                    ReportInvalidBatch(batch, "Xml file does not exist in Batch-{0}".Fill(batch.BatchName));
+                    ReportInvalidBatch(mbi, "Xml file does not exist in Batch-{0}".Fill(batch.BatchName));
 
                     continue;
                 }
@@ -252,18 +258,25 @@ namespace AM.Console
                     nsManager.AddNamespace("x", "http://schemas.corelogic.com/2015/amc/v1/packages");
                     mailPieceNodes = batchXML.DocumentElement.ChildNodes;
                 }
-                catch (XmlException err)
+                catch (XmlException ex)
                 {
-                    log.Error(err);
+                    var msg = "'{0}.xml' is not a valid XML document.".Fill(mbi.BatchName);
+                    log.Error(msg, ex);
 
-                    ReportInvalidBatch(batch, err.ToString());
+                    ReportInvalidBatch(mbi, msg + Environment.NewLine + ex.ToString());
 
+                    continue;
+                }
+                catch (Exception ex)
+                {
+                    log.Error(ex);
+                    ReportInvalidBatch(mbi, ex.ToString());
                     continue;
                 }
 
                 if (mailPieceNodes == null)
                 {
-                    ReportInvalidBatch(batch, "Xml does not contain any package info nodes.");
+                    ReportInvalidBatch(mbi, "Xml does not contain any package info nodes.");
 
                     continue;
                 }
@@ -419,14 +432,14 @@ namespace AM.Console
                 {
                     log.Error("Unexpected error occurred while processing '{0}.xml'".Fill(mbi.BatchName), err);
 
-                    ReportInvalidBatch(batch, err.ToString());
+                    ReportInvalidBatch(mbi, err.ToString());
 
                     continue;
                 }
 
                 if (mailPieceNodes == null || mailPieceNodes.Count == 0)
                 {
-                    ReportInvalidBatch(batch, "'{0}.xml' does not contain any package info node(s).".Fill(mbi.BatchName));
+                    ReportInvalidBatch(mbi, "'{0}.xml' does not contain any package info node(s).".Fill(mbi.BatchName));
 
                     continue;
                 }

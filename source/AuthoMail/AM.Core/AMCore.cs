@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AM.Lib;
+using System.Threading;
 namespace AM.Core
 {
     static class AMCore
@@ -691,6 +692,9 @@ namespace AM.Core
                             }
 
                             commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
+
+                            //TODO: Remove after proper naming convention
+                            Thread.Sleep(1000);
                         }
                         catch (Exception ex)
                         {
