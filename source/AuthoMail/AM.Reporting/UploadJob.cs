@@ -48,7 +48,7 @@ namespace AM.Reporting
                                 var startDate = (DateTime.UtcNow.UtcToEst().Date.AddDays(-1) + new TimeSpan(19, 45, 01)).EstToUtc();
                                 var endDate = (DateTime.UtcNow.UtcToEst().Date + new TimeSpan(19, 45, 00)).EstToUtc();
 
-                                var reportData = reportSvc.GetSummaryControlReport(client.Id, startDate, endDate, sftChannelDetails.Code).OrderBy(s => s.BatchId).ToList();
+                                var reportData = reportSvc.GetSummaryControlReport(client.Id, startDate, endDate, sftChannelDetails.Code).OrderBy(s => s.MailBatchId).ToList();
 
                                 if (reportData != null && reportData.Count > 0)
                                 {
@@ -57,31 +57,34 @@ namespace AM.Reporting
 
                                     foreach (var mailPiece in reportData)
                                     {
-                                        summaryReport.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22},{23}",
-                                            mailPiece.BatchId,
-                                            mailPiece.BatchUniqueId,
-                                            sftChannelDetails.Title,
-                                            mailPiece.DocumentOrPackageType,
+                                        var line = String.Join(",",
+                                            mailPiece.MailBatches.ClientBatchId,
+                                            mailPiece.UniqueId,
+                                            sftChannelDetails.Title.ToCsvString(),
+                                            mailPiece.DocumentOrPackageType.ToCsvString(),
                                             mailPiece.BusinessFriendlyIdValue,
-                                            mailPiece.FileName,
-                                            mailPiece.ReceivedOnClient,
-                                            mailPiece.PrintedOnClient,
-                                            mailPiece.MailedOnClient,
-                                            mailPiece.ClientCode,
+                                            mailPiece.FileName.ToCsvString(),
+                                            mailPiece.MailBatches.ReceivedOn,
+                                            mailPiece.DueDate,
+                                            mailPiece.PrintedOn,
+                                            mailPiece.ShippedOn,
+                                            mailPiece.Clients.AppCode,
                                             mailPiece.TrackingNo,
-                                            mailPiece.ShippingMethod,
-                                            mailPiece.CustomerIdentifier,
-                                            mailPiece.RcptFirstName,
-                                            mailPiece.RcptLastName,
-                                            mailPiece.RcptAddressStreet,
+                                            mailPiece.DocTypes.ShippingServiceType,
+                                            //mailPiece.CustomerIdentifier,
+                                            mailPiece.RcptFirstName.ToCsvString(),
+                                            mailPiece.RcptLastName.ToCsvString(),
+                                            mailPiece.RcptAddressStreet.ToCsvString(),
                                             mailPiece.RcptAddressCity,
                                             mailPiece.RcptAddressState,
                                             mailPiece.RcptAddressZIP,
-                                            mailPiece.RequestId,
+                                            //mailPiece.RequestId,
+                                            mailPiece.MailBatches.PrintLocation.ToCsvString(),
+                                            mailPiece.TotalPages,
                                             mailPiece.ErrorCode,
-                                            mailPiece.ErrorDesc,
-                                            mailPiece.PrintLocation.Replace(",", " "),
-                                            mailPiece.PagesShipped));
+                                            mailPiece.ErrorDesc.ToCsvString());
+
+                                        summaryReport.AppendLine(line);
                                     }
 
                                     string summaryReportFileName = "{0}_{1}_{2}_{3}.csv".Fill("SummaryControlReport", client.AppCode, sftChannelDetails.Code, DateTime.UtcNow.UtcToClientTimeZone(client.TimeZone).ToString("MM-dd-yyyy"));
