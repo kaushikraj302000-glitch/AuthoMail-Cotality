@@ -63,9 +63,21 @@ namespace AM.Services
         #endregion
 
         #region Reporting_ReadOnly
-        public static readonly TimeSpan Reporting_USAA_StartCutOffTime;
+        public static TimeSpan Reporting_USAA_StartCutOffTime
+        {
+            get
+            {
+                return Web_StartCutOffTime.IsNullOrWhiteSpace() ? TimeSpan.Zero : TimeSpan.Parse(Web_StartCutOffTime);
+            }
+        }
 
-        public static readonly TimeSpan Reporting_USAA_EndCutOffTime;
+        public static TimeSpan Reporting_USAA_EndCutOffTime
+        {
+            get
+            {
+                return Web_EndCutOffTime.IsNullOrWhiteSpace() ? TimeSpan.Zero : TimeSpan.Parse(Web_EndCutOffTime);
+            }
+        }
 
         #endregion Reporting_ReadOnly
 
@@ -138,8 +150,6 @@ namespace AM.Services
         {
             // Initialize config settings
             InitializeProperties<Config>();
-            Reporting_USAA_StartCutOffTime = TimeSpan.Parse(Web_StartCutOffTime);
-            Reporting_USAA_EndCutOffTime = TimeSpan.Parse(Web_EndCutOffTime);
         }
 
         private static void InitializeProperties<T>()
