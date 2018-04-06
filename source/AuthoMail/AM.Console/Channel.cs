@@ -20,6 +20,7 @@ namespace AM.Console
         protected MailBatchService mailBatchSvc;
         protected CommonService commonSvc;
         protected MailPieceService mailPieceSvc;
+        protected DocTypeService docTypeSvc;
 
         protected List<ServiceBase> services;
 
@@ -32,6 +33,7 @@ namespace AM.Console
             mailBatchSvc = GetService<MailBatchService>();
             commonSvc = GetService<CommonService>();
             mailPieceSvc = GetService<MailPieceService>();
+            docTypeSvc = GetService<DocTypeService>();
 
             // Get Channel by code
             SFTChannel = clientSvc.GetSFTChannelDetailsBySFTChannelCode(channelCode);
