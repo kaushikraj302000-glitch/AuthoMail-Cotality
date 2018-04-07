@@ -25,5 +25,6 @@ namespace AM.Services
         public static string Prod = "Prod";
         public static string Staging = "Staging";
         public static string QA = "QA";
+        public static string Internal = "Internal";
     }
 }
