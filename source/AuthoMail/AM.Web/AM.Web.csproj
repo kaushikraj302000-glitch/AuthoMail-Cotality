@@ -352,6 +352,7 @@
       <Generator>WCF Proxy Generator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>
     </None>
+    <Content Include="Views\Report\MonthlyReconReport.cshtml" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
@@ -391,25 +392,11 @@
     <Content Include="Views\Shared\_LoginPartial.cshtml" />
     <Content Include="Views\Shared\_LayoutLogin.cshtml" />
     <Content Include="Views\RequestPullBack\PullBack.cshtml" />
-    <Content Include="Views\RequestPullBack\_GetMailPieceList.cshtml" />
-    <Content Include="Views\Report\_GetSummaryControlReport.cshtml" />
     <Content Include="Views\Report\SummaryControlReport.cshtml" />
-    <Content Include="Views\Report\_GetMailPieceList.cshtml" />
-    <Content Include="Views\Report\MonthlyReconReport.cshtml" />
-    <Content Include="Views\Report\MailPieceByBatchId.cshtml" />
-    <Content Include="Views\Report\DeliveryReport.cshtml" />
-    <Content Include="Views\Report\_GetDeliveryReport.cshtml" />
     <Content Include="Views\Report\ErrorsReport.cshtml" />
-    <Content Include="Views\Report\_GetErrorsReport.cshtml" />
     <Content Include="Views\Home\Search.cshtml" />
-    <Content Include="Views\Home\_GetChartMailPieceData.cshtml" />
-    <Content Include="Views\Home\_PullBackRequestData.cshtml" />
-    <Content Include="Views\Home\WeeklyChartDetails.cshtml" />
     <Content Include="Views\Report\DailyDetailOperationsReport.cshtml" />
-    <Content Include="Views\Report\_GetDailyDetailOperationsReport.cshtml" />
     <Content Include="Views\Report\ErrorSLAReport.cshtml" />
-    <Content Include="Views\Report\_GetErrorsSLAReport.cshtml" />
-    <Content Include="Views\Home\_GetSearchData.cshtml" />
     <None Include="Service References\USPSIMService\USPSIM.wsdl" />
     <None Include="Service References\USPSIMService\USPSIM.xsd">
       <SubType>Designer</SubType>
@@ -423,7 +410,6 @@
     <Content Include="Views\Common\_Channel.cshtml" />
     <Content Include="Views\Common\_TrackingInfo.cshtml" />
     <Content Include="Views\Report\PullbackRequestReport.cshtml" />
-    <Content Include="Views\Report\_GetPullbackRequestReport.cshtml" />
     <Content Include="Template\PullBackForm.pdf" />
   </ItemGroup>
   <ItemGroup>

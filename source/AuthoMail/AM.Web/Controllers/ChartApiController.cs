@@ -19,12 +19,7 @@ namespace AM.Web.Controllers
         {
             this.chartDataSvc = chartDataSvc;
         }
-        [Route("GetDateTime")]
-        [HttpPost]
-        public object GetDateTime()
-        {
-            return DateTime.Now;
-        }
+       
         [Route("GetWeeklyChartData")]
         [HttpGet]
         public object GetWeeklyChartData()
