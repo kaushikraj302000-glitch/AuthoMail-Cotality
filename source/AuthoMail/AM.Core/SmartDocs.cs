@@ -1,4 +1,5 @@
 ﻿using AM.Core.USPSIMService;
+using AM.Services;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
 using System;
@@ -23,8 +24,10 @@ namespace AM.Core
         public string ExceptionDetail { get; private set; }
         public string TrackingCode { get; private set; }
 
-        public string GenerateUSPSCoverLetter(string coverTemplatePDFPath, string outputDir, Dictionary<string, string> mailPieceData)
+        public string GenerateUSPSCoverLetter(string appCode, string coverTemplatePDFPath, string outputDir, Dictionary<string, string> mailPieceData)
         {
+            appCode = Config.Monitor_Environment == Env.Prod ? appCode : "TEST";
+
             TrackingCode = string.Empty;
 
             string coverLetterPDFPath = Path.Combine(outputDir, string.Format("CoverLetter_{0}.pdf", mailPieceData["MailPieceId"]));
@@ -32,7 +35,7 @@ namespace AM.Core
             #region Generate Cover Letter
 
             USPSIMClient client = new USPSIMClient();
-            IMBarcodeInfo IMBarcode = client.GenerateIMBarcode("TEST", mailPieceData["MailPieceId"], mailPieceData["MailPieceZip"]);
+            IMBarcodeInfo IMBarcode = client.GenerateIMBarcode(appCode, mailPieceData["MailPieceId"], mailPieceData["MailPieceZip"]);
 
             if (IMBarcode.Status == true)
             {
