@@ -34,22 +34,22 @@ SET IDENTITY_INSERT [Common].[Clients] OFF
 GO
 
 
-INSERT [AM].[ShippingAccounts] (AccountCode, [WebAuthenticationKey], [WebAuthenticationPassword], [AccountNumber], [MeterNumber]) VALUES (N'CLCODE23', N'1QpG3qDipvvWQCca', N'mI1D4xmB8a4vqJPmYNxHkMDnO', N'510087160', N'118680440')
-GO		
-INSERT [AM].[ShippingAccounts] (AccountCode, [WebAuthenticationKey], [WebAuthenticationPassword], [AccountNumber], [MeterNumber]) VALUES (N'143', N'1QpG3qDipvvWQCca', N'mI1D4xmB8a4vqJPmYNxHkMDnO', N'510087160', N'118680440')
-GO		
-INSERT [AM].[ShippingAccounts] (AccountCode, [WebAuthenticationKey], [WebAuthenticationPassword], [AccountNumber], [MeterNumber]) VALUES (N'129', N'1QpG3qDipvvWQCca', N'mI1D4xmB8a4vqJPmYNxHkMDnO', N'510087160', N'118680440')
-GO		
-INSERT [AM].[ShippingAccounts] (AccountCode, [WebAuthenticationKey], [WebAuthenticationPassword], [AccountNumber], [MeterNumber]) VALUES (N'1', N'1QpG3qDipvvWQCca', N'mI1D4xmB8a4vqJPmYNxHkMDnO', N'510087160', N'118680440')
-GO		
-INSERT [AM].[ShippingAccounts] (AccountCode, [WebAuthenticationKey], [WebAuthenticationPassword], [AccountNumber], [MeterNumber]) VALUES (N'29', N'1QpG3qDipvvWQCca', N'mI1D4xmB8a4vqJPmYNxHkMDnO', N'510087160', N'118680440')
-GO		
-INSERT [AM].[ShippingAccounts] (AccountCode, [WebAuthenticationKey], [WebAuthenticationPassword], [AccountNumber], [MeterNumber]) VALUES (N'2', N'1QpG3qDipvvWQCca', N'mI1D4xmB8a4vqJPmYNxHkMDnO', N'510087160', N'118680440')
-GO		
-INSERT [AM].[ShippingAccounts] (AccountCode, [WebAuthenticationKey], [WebAuthenticationPassword], [AccountNumber], [MeterNumber]) VALUES (N'MC_PROD_AMC', N'h39J4BbKKGGPRwnd', NULL, N'864852874', N'111794325')
-GO		
-INSERT [AM].[ShippingAccounts] (AccountCode, [WebAuthenticationKey], [WebAuthenticationPassword], [AccountNumber], [MeterNumber]) VALUES (N'166', N'1QpG3qDipvvWQCca', N'mI1D4xmB8a4vqJPmYNxHkMDnO', N'510087160', N'118680440')
-GO
+--INSERT [AM].[ShippingAccounts] (AccountCode, [WebAuthenticationKey], [WebAuthenticationPassword], [AccountNumber], [MeterNumber]) VALUES (N'CLCODE23', N'1QpG3qDipvvWQCca', N'mI1D4xmB8a4vqJPmYNxHkMDnO', N'510087160', N'118680440')
+--GO		
+--INSERT [AM].[ShippingAccounts] (AccountCode, [WebAuthenticationKey], [WebAuthenticationPassword], [AccountNumber], [MeterNumber]) VALUES (N'143', N'1QpG3qDipvvWQCca', N'mI1D4xmB8a4vqJPmYNxHkMDnO', N'510087160', N'118680440')
+--GO		
+--INSERT [AM].[ShippingAccounts] (AccountCode, [WebAuthenticationKey], [WebAuthenticationPassword], [AccountNumber], [MeterNumber]) VALUES (N'129', N'1QpG3qDipvvWQCca', N'mI1D4xmB8a4vqJPmYNxHkMDnO', N'510087160', N'118680440')
+--GO		
+--INSERT [AM].[ShippingAccounts] (AccountCode, [WebAuthenticationKey], [WebAuthenticationPassword], [AccountNumber], [MeterNumber]) VALUES (N'1', N'1QpG3qDipvvWQCca', N'mI1D4xmB8a4vqJPmYNxHkMDnO', N'510087160', N'118680440')
+--GO		
+--INSERT [AM].[ShippingAccounts] (AccountCode, [WebAuthenticationKey], [WebAuthenticationPassword], [AccountNumber], [MeterNumber]) VALUES (N'29', N'1QpG3qDipvvWQCca', N'mI1D4xmB8a4vqJPmYNxHkMDnO', N'510087160', N'118680440')
+--GO		
+--INSERT [AM].[ShippingAccounts] (AccountCode, [WebAuthenticationKey], [WebAuthenticationPassword], [AccountNumber], [MeterNumber]) VALUES (N'2', N'1QpG3qDipvvWQCca', N'mI1D4xmB8a4vqJPmYNxHkMDnO', N'510087160', N'118680440')
+--GO		
+--INSERT [AM].[ShippingAccounts] (AccountCode, [WebAuthenticationKey], [WebAuthenticationPassword], [AccountNumber], [MeterNumber]) VALUES (N'MC_PROD_AMC', N'h39J4BbKKGGPRwnd', NULL, N'864852874', N'111794325')
+--GO		
+--INSERT [AM].[ShippingAccounts] (AccountCode, [WebAuthenticationKey], [WebAuthenticationPassword], [AccountNumber], [MeterNumber]) VALUES (N'166', N'1QpG3qDipvvWQCca', N'mI1D4xmB8a4vqJPmYNxHkMDnO', N'510087160', N'118680440')
+--GO
 
 
 SET IDENTITY_INSERT [AM].[DocTypes] ON 
