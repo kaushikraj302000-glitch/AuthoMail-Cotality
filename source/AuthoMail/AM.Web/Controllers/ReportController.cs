@@ -13,7 +13,6 @@ namespace AM.Web.Controllers
     [Authorize]
     public class ReportController : Controller
     {
-        // GET: Report
         IHomeService homeSvc;
         IReportService repoSvc;
         public ReportController(IHomeService homeSvc, IReportService repoSvc)
@@ -30,12 +29,9 @@ namespace AM.Web.Controllers
         {
             var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
             var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-
-            ViewBag.Date = string.Format("{0} to {1}", exactStartDate.ToString("MM/dd/yy HH:mm:ss"), exactEndDate.ToString("MM/dd/yy HH:mm:ss"));
             var model = repoSvc.GetSummaryControlReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate, channel);
             var reportViewModel = GetBatchNameAndTime(model);
-            //ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
-            //return PartialView(model);
+
             return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderBy(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
 
@@ -56,10 +52,7 @@ namespace AM.Web.Controllers
             }
             return reportViewModel;
         }
-        public ActionResult _GetMailPieceList(List<MonthlyReconReport> model)
-        {
-            return PartialView(model);
-        }
+        
         public ActionResult MonthlyReconReport()
         {
             var dateList = new List<string>();
@@ -77,29 +70,11 @@ namespace AM.Web.Controllers
             var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
             var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
 
-            ViewBag.Date = string.Format("{0} to {1}", exactStartDate.ToString("MM/dd/yy"), exactEndDate.ToString("MM/dd/yy"));
             var model = repoSvc.GetMonthlyReconReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate, channel);
             return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderBy(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
 
-        public ActionResult MailPieceByBatchId(int batchId)
-        {
-            var model = homeSvc.GetMailPieceByBatchId(batchId, User.Identity.GetClientId().Value);
-            return View(model);
-        }
-
-        public ActionResult DeliveryReport()
-        {
-            return View();
-        }
-        [HttpPost]
-        public ActionResult _GetDeliveryReport(string loanNumber, string docType, DateTime startDate, DateTime endDate)
-        {
-            ViewBag.Date = string.Format("{0} to {1}", startDate.ToString("MM/dd/yy"), endDate.ToString("MM/dd/yy"));
-
-            var model = repoSvc.GetDailyDetailOperationsByDateOrBatch(User.Identity.GetClientId().Value, startDate, null, null);
-            return PartialView(model);
-        }
+        
         public ActionResult ErrorsReport()
         {
             return View();
@@ -107,21 +82,17 @@ namespace AM.Web.Controllers
         [HttpPost]
         public ActionResult _GetErrorsReport(string date, string channel)
         {
-
             try
             {
                 var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-                ViewBag.Date = exactDate.ToString("MM/dd/yy");
                 var model = repoSvc.GetErrorReportByDateOrBatch(User.Identity.GetClientId().Value, exactDate, null, channel);
                 var reportViewModel = GetBatchNameAndTime(model);
                 return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderBy(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
             {
-                 return Json(JsonResponseFactory.ErrorResponse(e.ToString()), JsonRequestBehavior.AllowGet);
+                return Json(JsonResponseFactory.ErrorResponse(e.ToString()), JsonRequestBehavior.AllowGet);
             }
-            //ViewBag.BatchList = new SelectList(reportViewModel, "Key", "Value");
-            //return PartialView(model);
         }
 
         public ActionResult ErrorSLAReport()
@@ -133,8 +104,6 @@ namespace AM.Web.Controllers
         public ActionResult _GetErrorsSLAReport(string date, string filterBy, string docType)
         {
             var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-            ViewBag.Date = exactDate.ToString("MM/dd/yy");
-
             //Update startDate and endDate
             var model = repoSvc.GetSLAMissErrorReportByDateOrBatch(User.Identity.GetClientId().Value, exactDate, null, docType, filterBy);
             var reportViewModel = GetBatchNameAndTime(model);
@@ -150,7 +119,6 @@ namespace AM.Web.Controllers
             try
             {
                 var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-                ViewBag.Date = exactDate.ToString("MM/dd/yy");
                 var model = repoSvc.GetDailyDetailOperationsByDateOrBatch(User.Identity.GetClientId().Value, exactDate, null, channel);
                 var reportViewModel = GetBatchNameAndTime(model);
                 return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderBy(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
@@ -159,7 +127,6 @@ namespace AM.Web.Controllers
             {
                 return Json(JsonResponseFactory.ErrorResponse(e.ToString()), JsonRequestBehavior.AllowGet);
             }
-            //return PartialView(model);
         }
 
         public ActionResult PullbackRequestReport()
@@ -175,8 +142,6 @@ namespace AM.Web.Controllers
         {
             var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
             var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-            ViewBag.Date = string.Format("{0} to {1}", exactStartDate.ToString("MM/dd/yy"), exactEndDate.ToString("MM/dd/yy"));
-            //return PartialView(repoSvc.GetPullbackRequestReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate));
             var model = repoSvc.GetPullbackRequestReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate);
             return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderBy(s => s.RequestedOn) }), JsonRequestBehavior.AllowGet);
         }
