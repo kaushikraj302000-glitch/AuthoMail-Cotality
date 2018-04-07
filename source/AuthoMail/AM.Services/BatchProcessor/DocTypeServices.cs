@@ -21,7 +21,7 @@ namespace AM.Services
     {
         public List<DocType> GetDocTypesByClientId(int clientId)
         {
-            string query = "SELECT * FROM [AM].[DocTypes]  WHERE ClientId=@ClientId";
+            string query = "SELECT * FROM [AM].[DocTypes]  WHERE ClientId=@ClientId AND IsActive=1";
 
             var data = db.Query<DocType>(query, new { ClientId = clientId }).ToList();
             return data;
@@ -29,7 +29,7 @@ namespace AM.Services
 
         public DocType GetDocTypeByDocTypeCode(int clientId, string docTypeCode)
         {
-            string query = "SELECT * FROM [AM].[DocTypes]  WHERE ClientId=@clientId AND DocTypeCode=@docTypeCode";
+            string query = "SELECT * FROM [AM].[DocTypes]  WHERE ClientId=@clientId AND DocTypeCode=@docTypeCode  AND IsActive=1";
 
             var data = db.Query<DocType>(query, new { clientId = clientId, docTypeCode = docTypeCode }).SingleOrDefault();
             return data;
@@ -37,7 +37,7 @@ namespace AM.Services
 
         public DocType GetDocTypesByDocTypeName(int clientId, string documentOrPackageName)
         {
-            string query = "SELECT * FROM [AM].[DocTypes] WHERE ClientId=@clientId AND Description=@documentOrPackageName";
+            string query = "SELECT * FROM [AM].[DocTypes] WHERE ClientId=@clientId AND Description=@documentOrPackageName  AND IsActive=1";
 
             var data = db.Query<DocType>(query, new { clientId = clientId, documentOrPackageName = documentOrPackageName }).FirstOrDefault();
             return data;
@@ -45,7 +45,7 @@ namespace AM.Services
 
         public DocType GetDocTypeById(int docTypeId)
         {
-            string query = "SELECT * FROM [AM].[DocTypes] WHERE Id=@docTypeId";
+            string query = "SELECT * FROM [AM].[DocTypes] WHERE Id=@docTypeId  AND IsActive=1";
 
             var data = db.Query<DocType>(query, new { docTypeId = docTypeId}).FirstOrDefault();
             return data;
