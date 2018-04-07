@@ -103,7 +103,7 @@ namespace AM.Core
                                 string coverLetterTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, client.AppCode, docType.Id.ToString(), docTypeLetter.CoverLetterTemplatePath);
 
                                 // Create final document using SmartDocs library.
-                                coverLetterPdfPath = doc.GenerateUSPSCoverLetter(coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
+                                coverLetterPdfPath = doc.GenerateUSPSCoverLetter(client.AppCode, coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
 
                                 if (string.IsNullOrEmpty(coverLetterPdfPath))
                                 {

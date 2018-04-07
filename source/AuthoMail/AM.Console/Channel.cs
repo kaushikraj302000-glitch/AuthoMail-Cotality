@@ -144,7 +144,7 @@ namespace AM.Console
                                             string ftpDeliveryGoUploadPath = Path.Combine(Config.Monitor_ReportSFTUploadingPathAMC, "DlvrReport.go");
                                             File.WriteAllText(deliveryGoFilePath, string.Empty);
 
-                                            sftSite.UploadFile(deliveryGoFilePath, ftpDeliveryGoUploadPath, true);
+                                            sftSite.UploadFile(deliveryGoFilePath, ftpDeliveryGoUploadPath);
                                         }
 
                                         if (reportList.Count(f => f.StartsWith("Error-")) > 0)
@@ -153,7 +153,7 @@ namespace AM.Console
                                             string ftpErrorGoUploadPath = Path.Combine(Config.Monitor_ReportSFTUploadingPathAMC, "ErrReport.go");
                                             File.WriteAllText(errorGoFilePath, string.Empty);
 
-                                            sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath, true);
+                                            sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
                                         }
 
                                         commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);

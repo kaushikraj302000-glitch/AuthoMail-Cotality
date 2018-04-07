@@ -17,5 +17,14 @@ namespace AM.Services
         {
             get { return DateTime.UtcNow.Date; }
         }
+
+    }
+
+    public static class Env
+    {
+        public static string Prod = "Prod";
+        public static string Staging = "Staging";
+        public static string QA = "QA";
+        public static string Internal = "Internal";
     }
 }
