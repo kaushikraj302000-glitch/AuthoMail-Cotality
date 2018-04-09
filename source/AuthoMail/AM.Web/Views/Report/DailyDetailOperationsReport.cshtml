@@ -253,25 +253,23 @@
         function FormatObject(Model) {
             $(Model).each(function () {
                 var trackingNo = "";
-                if (this.TrackingNo!=null || this.TrackingNo!="") {
-                    if (this.DocTypes.ShippingServiceType == "USPS")
-                    {
+                if (this.TrackingNo != null || this.TrackingNo != "") {
+                    if (this.DocTypes.ShippingServiceType == "USPS") {
                         trackingNo = '<button id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.DocTypes.ShippingServiceType + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
                     }
-                    else
-                    {
+                    else {
                         trackingNo = '<a id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" href="http://www.fedex.com/Tracking?cntry_code=us&action=1&track=y&tracknumbers=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
                     }
                 }
-                else
-                {
+                else {
                     trackingNo = "--";
                 }
+                this.TotalPages = this.ShippingStatus == "Shipped" ? this.TotalPages : 0;
                 this.ReceivedOnFormatted = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
                 this.MailedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
                 this.TrackingNo = trackingNo;
-                    //this.TrackingNo == "" ? "--" : '<button id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
+                //this.TrackingNo == "" ? "--" : '<button id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
             });
             return Model;
         }

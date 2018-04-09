@@ -107,7 +107,7 @@
                 <th>Recipient Zip</th>
                 <th>Print Location</th>
                 <th>Pages Shipped</th>
-                <th class="ErrorCode">Error Code</th>
+                <th class="ErrorCode">Status</th>
                 <th class="ErrorText">Error Text</th>
                 <th class="BatchId">BatchId</th>
             </tr>
@@ -240,11 +240,12 @@
         }
         function FormatObject(Model) {
             $(Model).each(function () {
+                this.TotalPages = this.ShippingStatus == "Shipped" ? this.TotalPages : 0;
                 this.ReceivedOnFormatted = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
                 this.MailedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
-                this.ErrorDescPopover = this.ErrorDesc == null ? '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="No error description." data-placement="left"><a>' + this.ErrorCode + '</a></span>' : '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left"><a>' + this.ErrorCode + '</a></span>';
+                this.ErrorDescPopover = this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>' : '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + (this.ErrorDesc == null ? "--" : this.ErrorDesc) + '" data-placement="left"><a>' + this.ErrorCode + '</a></span>';
             });
             return Model;
         }

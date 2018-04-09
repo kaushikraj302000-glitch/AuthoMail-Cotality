@@ -15,7 +15,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model.MailRoute)
+            @foreach (var item in Model.MailRoute.OrderByDescending(s=>s.ScanDate))
             {
                 <tr>
                     <td>@item.FacilityID</td>

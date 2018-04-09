@@ -75,26 +75,26 @@ namespace AM.Web.Controllers
             var exactEndDate = DateTime.ParseExact(receivedOnEnd, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
             var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, exactStartDate, exactEndDate, docType, status, channel);
 
-            return Json(JsonResponseFactory.SuccessResponse(new { model = data.OrderBy(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = data.OrderByDescending(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
         [HttpPost]
         public ActionResult TodayChartDetails(string status, int batchId)
         {
             var model = chartDataSvc.GetMailPieceByParam(batchId, status, User.Identity.GetClientId().Value);
-            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderBy(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult GetMailPieceByBatchId(int batchId)
         {
             var model = chartDataSvc.GetMailPieceByBatchId(batchId, User.Identity.GetClientId().Value);
-            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderBy(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
         [HttpPost]
         public ActionResult WeeklyChartDetails(string status, string date)
         {
             var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
             var model = chartDataSvc.GetBatchByParam(exactDate, status, User.Identity.GetClientId().Value);
-            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderBy(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
 
         [HttpPost]
