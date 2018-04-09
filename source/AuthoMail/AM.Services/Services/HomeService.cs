@@ -10,20 +10,12 @@ namespace AM.Services
 {
     public interface IHomeService : IDisposable
     {
-        List<MailPieceSearch> GetMailPieceByBatchId(int batchId, int clientId);
         List<DocumentType> GetDocTypeList(int clientId);
         List<Guid> GetMailPieceIdFromBusinessFriendlyValue(string businessFriendlyIdName, string businessFriendlyIdValue, int clientId);
         List<string> GetBusinessFriendlyIdNameByclientId(int clientId);
     }
     public class HomeService : ServiceBase, IHomeService //It implements Interfaces 
     {
-        public List<MailPieceSearch> GetMailPieceByBatchId(int batchId, int clientId)
-        {
-            string query = "[dbo].[uspweb_MailPieceSearch] @clientId, null, null, null, null, null, null, null, @batchId";
-            var data = db.Query<MailPieceSearch>(query, new { batchId = batchId, clientId = clientId }).ToList();
-            return data;
-        }
-
         public List<DocumentType> GetDocTypeList(int clientId)
         {
             var data = db.Query(HomeServiceQuery.GetDocTypeList, new { clientId = clientId }).ToList();
