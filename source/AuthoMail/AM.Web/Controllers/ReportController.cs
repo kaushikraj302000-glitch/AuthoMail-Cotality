@@ -32,7 +32,7 @@ namespace AM.Web.Controllers
             var model = repoSvc.GetSummaryControlReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate, channel);
             var reportViewModel = GetBatchNameAndTime(model);
 
-            return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderBy(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+            return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderByDescending(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
 
         private static List<ReportViewModel> GetBatchNameAndTime(List<MailPieces> model)
@@ -71,7 +71,7 @@ namespace AM.Web.Controllers
             var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
 
             var model = repoSvc.GetMonthlyReconReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate, channel);
-            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderBy(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
 
         
@@ -87,7 +87,7 @@ namespace AM.Web.Controllers
                 var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
                 var model = repoSvc.GetErrorReportByDateOrBatch(User.Identity.GetClientId().Value, exactDate, null, channel);
                 var reportViewModel = GetBatchNameAndTime(model);
-                return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderBy(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+                return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderByDescending(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
             {
@@ -107,7 +107,7 @@ namespace AM.Web.Controllers
             //Update startDate and endDate
             var model = repoSvc.GetSLAMissErrorReportByDateOrBatch(User.Identity.GetClientId().Value, exactDate, null, docType, filterBy);
             var reportViewModel = GetBatchNameAndTime(model);
-            return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderBy(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+            return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderByDescending(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
         public ActionResult DailyDetailOperationsReport()
         {
@@ -121,7 +121,7 @@ namespace AM.Web.Controllers
                 var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
                 var model = repoSvc.GetDailyDetailOperationsByDateOrBatch(User.Identity.GetClientId().Value, exactDate, null, channel);
                 var reportViewModel = GetBatchNameAndTime(model);
-                return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderBy(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+                return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderByDescending(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
             {
@@ -143,7 +143,7 @@ namespace AM.Web.Controllers
             var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
             var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
             var model = repoSvc.GetPullbackRequestReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate);
-            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderBy(s => s.RequestedOn) }), JsonRequestBehavior.AllowGet);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.RequestedOn) }), JsonRequestBehavior.AllowGet);
         }
     }
 }

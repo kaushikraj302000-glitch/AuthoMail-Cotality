@@ -79,7 +79,6 @@
     <Compile Include="Models\BatchReportInfo.cs" />
     <Compile Include="Models\ChartModels.cs" />
     <Compile Include="Models\MailPieceSearch.cs" />
-    <Compile Include="Models\PullbackRequestReport.cs" />
     <Compile Include="Models\PullBackViewModel.cs" />
     <Compile Include="Models\Report.cs" />
     <Compile Include="Models\AuthoMailSettings.cs" />
