@@ -71,6 +71,13 @@ namespace AM.Services
         public int TotalSheets { get; set; }
         public string ErrorCode { get; set; }
         public string ErrorDesc { get; set; }
+        public string ErrorCodeDesc
+        {
+            get
+            {
+                return string.Format("{0}{1}", this.ErrorCode, this.ErrorDesc.IsNullOrWhiteSpace() ? null : (" <br/>  " + this.ErrorDesc));
+            }
+        }
         public string TrackingNo { get; set; }
         public int IsPullBackRequested { get; set; }
         public DateTime? PullBackRequestedOn { get; set; }
