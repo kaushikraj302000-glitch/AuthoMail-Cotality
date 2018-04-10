@@ -219,7 +219,7 @@
 
 <!--PullbackRequest table html template code -->
 <div id="pullbackTableContent" style="display:none">
-    <table class="table table-responsive" style="overflow-x:scroll">
+    <table class="table table-responsive" style="overflow-x:scroll;margin-bottom:2%;">
         <thead>
             <tr>
                 <th>Shipping Status</th>
@@ -258,7 +258,7 @@
 <!-- end table template code -->
 <!--ChartMailPiece table html template code -->
 <div id="ChartMailPieceTableContent" style="display:none">
-    <table class="table table-responsive" style="overflow-x:scroll">
+    <table class="table table-responsive" style="overflow-x:scroll;margin-bottom:2%;">
         <thead>
             <tr>
                 <th>Loan Number</th>
@@ -297,7 +297,7 @@
 <!-- end table template code -->
 <!--ChartMailPiece table html template code -->
 <div id="WeeklyChartMailPieceTableContent" style="display:none">
-    <table class="table table-responsive" style="overflow-x:scroll">
+    <table class="table table-responsive" style="overflow-x:scroll;margin-bottom:2%;">
         <thead>
             <tr>
                 <th>Loan Number</th>
@@ -336,7 +336,7 @@
 <!-- end table template code -->
 <!--Weekly Chart table html template code -->
 <div id="WeeklyChartTableContent" style="display:none">
-    <table class="table table-responsive" style="overflow-x:scroll">
+    <table class="table table-responsive" style="overflow-x:scroll;margin-bottom:2%;">
         <thead>
             <tr>
                 <th>Batch Id</th>
@@ -831,7 +831,7 @@
                             }
                             else {
                                 var el = $("#myModal").find('.modal-body');
-                                el.html("<div class='alert alert-yellow' ><span>No such mailpiece was processed today or in queue.</span></div>");
+                                el.html("<div class='alert alert-yellow' ><span>@AM.Services.Config.Web_Msg_NoRecordInTodayAndPendingBatches</span></div>");
                                 $("#myModal").modal("show");
                             }
                         }
