@@ -8,6 +8,10 @@
         filter: alpha(opacity=75);
     }
 
+    .bootstrap-select {
+        width: 165px !important;
+    }
+
     .popover-content {
         word-wrap: break-word;
         color: red;
@@ -19,7 +23,6 @@
             <div class="panel-heading">
                 <div class="panel-title">
                     Today's Batch Details
-                    @*<span class="pull-right"><button class="btn btn-primary" id="FullTodayChart"><i class="fa fa-window-maximize"></i></button></span>*@
                 </div>
             </div>
             <div class="panel-body panel-gray " id="todayBody">
@@ -49,15 +52,10 @@
                         <div class="panel-title"><i class="fa fa-reply"></i> Quick Pullback</div>
                     </div>
                     <div class="panel-body panel-gray">
-                        <div class="form-group col-md-8">
-                            @*<label for="input2">Loan Number</label>
-                            <div class="input-group">
-                                <i class="fa fa-search left-icon"></i>
-                                <input class="form-control" name="loanNumber" placeholder="Loan Number" required id="loanNumber">
-                            </div>
-                            <div class="text-red pull-left" style="display:none" id="loanNumberEmpty">This field is required.</div>*@
+                        <div class="form-group col-md-@(ViewBag.BusinessId.Count > 1?"9":"8")">
+
                             @if (ViewBag.BusinessId.Count == 1)
-                    {
+                            {
                                 <label for="BusinessFriendlyIdValue">@ViewBag.BusinessId[0]</label>
                                 <div class="input-group">
                                     <i class="fa fa-search left-icon"></i>
@@ -65,34 +63,34 @@
                                     <input type="hidden" value="@ViewBag.BusinessId[0]" name="BusinessFriendlyIdName" id="BusinessFriendlyIdName" />
                                 </div>
                                 <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
-                    }
-                    else if (ViewBag.BusinessId.Count > 1)
-                    {
-                        <label for="BusinessFriendlyIdName">Select Business ID</label>
+                            }
+                            else if (ViewBag.BusinessId.Count > 1)
+                            {
+                                <label for="BusinessFriendlyIdName">Select Business ID</label>
                                 <div class="input-group">
 
                                     <select id="BusinessFriendlyIdName" class="selectpicker">
                                         <option value="">Select BusinessId</option>
                                         @foreach (var item in ViewBag.BusinessId)
-                                {
+                                        {
                                             <option value="@item.ToString()">@item.ToString()</option>
-                                }
+                                        }
                                     </select>
                                     <input class="form-control" name="BusinessFriendlyIdValue" placeholder="" required id="BusinessFriendlyIdValue">
 
                                 </div>
                                 <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdNameError">This field is required.</div>
                                 <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
-                    }
-                    else
-                    {
-                        <style>
-                            #pullback {
-                                display: none;
                             }
-                        </style>
+                            else
+                            {
+                                <style>
+                                    #pullback {
+                                        display: none;
+                                    }
+                                </style>
                                 <div class='alert alert-yellow'><span>No business friendly id found!</span></div>
-                    }
+                            }
 
 
                         </div>

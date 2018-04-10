@@ -7,6 +7,12 @@
     .show-calendar {
         width: 484px !important;
     }
+    #bsselectId .bootstrap-select {
+        width: 100% !important;
+    }
+    .bootstrap-select {
+        width: 165px !important;
+    }
 
     .dataTables_wrapper {
         margin-top: -1.5% !important;
@@ -34,69 +40,67 @@
         </div>
         <div id="metaItem1" class="panel-collapse collapse in">
             <div class="panel-body">
-                <div class="col-md-7">
-                    <div class="form-group col-md-6">
-                        @if (ViewBag.BusinessId.Count == 1)
-                        {
-                            <label for="BusinessFriendlyIdValue">@ViewBag.BusinessId[0]</label>
-                            <div class="input-group">
-                                <i class="fa fa-search left-icon"></i>
-                                <input class="form-control" name="BusinessFriendlyIdValue" value="@ViewBag.BusinessFriendlyIdValue" placeholder="@ViewBag.BusinessId[0]" required id="BusinessFriendlyIdValue">
-                                <input type="hidden" value="@ViewBag.BusinessId[0]" name="BusinessFriendlyIdName" id="BusinessFriendlyIdName" />
-                            </div>
-                            <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
-                        }
-                        else if (ViewBag.BusinessId.Count > 1)
-                        {
-                            <label for="BusinessFriendlyIdName">Select Business ID</label>
-                            <div class="input-group">
+                <div class="row">
+                    <div class="col-md-7">
+                        <div class="form-group col-md-@(ViewBag.BusinessId.Count > 1?"7":"6")">
+                            @if (ViewBag.BusinessId.Count == 1)
+                            {
+                                <label for="BusinessFriendlyIdValue">@ViewBag.BusinessId[0]</label>
+                                <div class="input-group">
+                                    <i class="fa fa-search left-icon"></i>
+                                    <input class="form-control" name="BusinessFriendlyIdValue" value="@ViewBag.BusinessFriendlyIdValue" placeholder="@ViewBag.BusinessId[0]" required id="BusinessFriendlyIdValue">
+                                    <input type="hidden" value="@ViewBag.BusinessId[0]" name="BusinessFriendlyIdName" id="BusinessFriendlyIdName" />
+                                </div>
+                                <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
+                            }
+                            else if (ViewBag.BusinessId.Count > 1)
+                            {
+                                <label for="BusinessFriendlyIdName">Select Business ID</label>
+                                <div class="input-group">
 
-                                <select id="BusinessFriendlyIdName" class="selectpicker">
-                                    <option value="">Select BusinessId</option>
-                                    @foreach (var item in ViewBag.BusinessId)
-                                    {
-                                        <option value="@item.ToString()">@item.ToString()</option>
-                                    }
-                                </select>
-                                <input class="form-control" name="BusinessFriendlyIdValue" placeholder="" required id="BusinessFriendlyIdValue">
+                                    <select id="BusinessFriendlyIdName" class="selectpicker">
+                                        <option value="">Select BusinessId</option>
+                                        @foreach (var item in ViewBag.BusinessId)
+                                        {
+                                            <option value="@item.ToString()">@item.ToString()</option>
+                                        }
+                                    </select>
+                                    <input class="form-control" name="BusinessFriendlyIdValue" placeholder="" required id="BusinessFriendlyIdValue">
 
-                            </div>
-                        }
-                        else
-                        {
-                            <br />
-                            <div class='alert alert-yellow'><div>No business friendly id found!</div></div>
-                        }
-                    </div>
-                    <div class="form-group col-md-6">
-                        <label for="input1">Document Type</label>
-                        @Html.DropDownList("DocType", ViewBag.DocType as SelectList, "Select Document Type", htmlAttributes: new { @class = "selectpicker" })
-                        @*<select class="selectpicker" id="docType">
-                                <option>Basic User</option>
-                                <option>Admin</option>
-                                <option>Super Admin</option>
-                            </select>*@
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="dp4">Received  On (EST) </label>
-                        <div class="input-group daterange" id="datepicker4">
-                            <input type="text" class="form-control" id="dp4">
-                            <span class="input-group-addon">
-                                <i class="fa fa-calendar"></i>
-                            </span>
+                                </div>
+                            }
+                            else
+                            {
+                                <br />
+                                <div class='alert alert-yellow'><div>No business friendly id found!</div></div>
+                            }
+                        </div>
+                        <div class="form-group col-md-@(ViewBag.BusinessId.Count > 1?"5":"6")" id="bsselectId">
+                            <label for="input1">Document Type</label>
+                            @Html.DropDownList("DocType", ViewBag.DocType as SelectList, "Select Document Type", htmlAttributes: new { @class = "selectpicker" })
+
                         </div>
                     </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="dp4">Received  On (EST) </label>
+                            <div class="input-group daterange" id="datepicker4">
+                                <input type="text" class="form-control" id="dp4">
+                                <span class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </span>
+                            </div>
+                        </div>
 
-                </div>
-                <div class="col-md-1">
-                    <div class="form-group ">
-                        <label for="filterData">&nbsp;&nbsp;&nbsp;&nbsp;</label>
-                        <button type="button" id="filterData" class="btn btn-primary" style=" padding-top: 6%;">
-                            <span class="sr-only">Filter</span>
-                            <i class="fa fa-arrow-right fa-2x"></i>
-                        </button>
+                    </div>
+                    <div class="col-md-1">
+                        <div class="form-group ">
+                            <label for="filterData">&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                            <button type="button" id="filterData" class="btn btn-primary" style=" padding-top: 6%;">
+                                <span class="sr-only">Filter</span>
+                                <i class="fa fa-arrow-right fa-2x"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -8,7 +8,9 @@
         padding-left: 10px !important;
         padding-right: 10px !important;
     }
-
+    #businessIddiv .bootstrap-select {
+        width: 165px !important;
+    }
     .popover-content {
         word-wrap: break-word;
         color: red;
@@ -38,7 +40,7 @@
         </div>
         <div id="collapseThree" class="panel-collapse collapse in">
             <div class="panel-body">
-                <div class="col-md-3">
+                <div class="col-md-@(ViewBag.BusinessId.Count > 1?"4":"3")" id="businessIddiv">
                     @if (ViewBag.BusinessId.Count == 1)
                     {
                         <label for="BusinessFriendlyIdValue">@ViewBag.BusinessId[0]</label>
@@ -71,14 +73,14 @@
                         <div class='alert alert-yellow'><div>No business friendly id found!</div></div>
                     }
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-@(ViewBag.BusinessId.Count > 1?"4":"3")">
                     <div class="form-group">
                         <label for="DocType">Document Type</label>
                         @Html.DropDownList("DocType", ViewBag.DocType as SelectList, "Select Document Type", htmlAttributes: new { @class = "selectpicker" })
                     </div>
 
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-@(ViewBag.BusinessId.Count > 1?"4":"3")">
                     <div class="form-group">
                         <label for="Status">Status</label>
                         <select class="selectpicker" id="Status">
