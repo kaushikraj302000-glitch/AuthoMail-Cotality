@@ -343,8 +343,8 @@
             $(Model).each(function () {
                 this.RecipientNameFormatted = this.RcptFirstName + " " + this.RcptLastName;
                 var requestedPullback = this.IsPullBackRequested ? '<span id="IsPullBackRequested_' + cnt + '"><span  class="label medium label-yellow">Yes</span></span>' : '<span id="IsPullBackRequested_' + cnt + '"><span class="label medium label-success">No</span></span>';
-                var status = "";
                 var errormsg = this.ErrorDesc == null ? '@AM.Services.Config.Web_Msg_NoErrorDescription' : this.ErrorDesc;
+                var status = "";
                 switch (this.ShippingStatus) {
 
                     case "PulledBack":
@@ -362,11 +362,11 @@
                         break;
 
                 }
+                this.ShippingStatusFormatted = status;
                 // \''+this.TrackingNo+'\',\''+this.ShippingMethod+'\'
                 this.ReceivedOnFormatted = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 //this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
                 this.ErrorDescPopover = this.ErrorDesc == null ? "--" : '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left"><a>Error Details</a></span>';
-                this.ShippingStatusFormatted = status;
                 this.TotalPages = this.ShippingStatus == "Shipped" ? this.TotalPages : 0;
                 this.IsPullBackRequestedFormatted = requestedPullback;
 

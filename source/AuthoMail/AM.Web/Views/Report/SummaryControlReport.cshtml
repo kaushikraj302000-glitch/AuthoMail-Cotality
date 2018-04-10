@@ -91,6 +91,7 @@
                 <th>Channel</th>
                 <th>Document Type</th>
                 <th>Loan Number</th>
+                <th>Status</th>
                 <th>File Name</th>
                 <th>Received Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Due Date <span class="fontcapitalize">(Local)</span></th>
@@ -107,7 +108,7 @@
                 <th>Recipient Zip</th>
                 <th>Print Location</th>
                 <th>Pages Shipped</th>
-                <th class="ErrorCode">Status</th>
+                <th class="ErrorCode">Error Code</th>
                 <th class="ErrorText">Error Text</th>
                 <th class="BatchId">BatchId</th>
             </tr>
@@ -124,6 +125,7 @@
                 <td><span>{MailBatches.SFTChannels.Title}</span></td>
                 <td><span>{DocumentOrPackageType}</span></td>
                 <td><span>{BusinessFriendlyIdValue}</span></td>
+                <td><span>{ShippingStatusFormatted}</span></td>
                 <td><span>{FileName}</span></td>
                 <td><span>{ReceivedOnFormatted}</span></td>
                 <td><span>{DueDateFormatted}</span></td>
@@ -140,7 +142,7 @@
                 <td><span>{RcptAddressZIP}</span></td>
                 <td><span>{MailBatches.PrintLocation}</span></td>
                 <td><span>{TotalPages}</span></td>
-                <td><span>{ErrorDescPopover}</span></td>
+                <td><span>{ErrorCode}</span></td>
                 <td><span>{ErrorDesc}</span></td>
                 <td>{MailBatches.Id}</td>
             </tr>
@@ -182,7 +184,7 @@
                 },
                 "columnDefs": [
                         {
-                            "targets": ["ErrorText", "BatchId"],
+                            "targets": ["ErrorText", "ErrorCode", "BatchId"],
                             "visible": false,
                             "searchable": true
                         },
@@ -245,7 +247,28 @@
                 this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
                 this.MailedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
-                this.ErrorDescPopover = this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>' : '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + (this.ErrorDesc == null ? "--" : this.ErrorDesc) + '" data-placement="left"><a>' + this.ErrorCode + '</a></span>';
+                this.ErrorDescPopover = this.ErrorCode;
+                    //== "No_Error" ? '<span>' + this.ErrorCode + '</span>' : '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + (this.ErrorDesc == null ? "--" : this.ErrorDesc) + '" data-placement="left"><a>' + this.ErrorCode + '</a></span>';
+                var status = "";
+                var errormsg = this.ErrorDesc == null ? '@AM.Services.Config.Web_Msg_NoErrorDescription' : this.ErrorDesc;
+                switch (this.ShippingStatus) {
+
+                    case "PulledBack":
+                        status = '<span class="label medium label-yellow">' + this.ShippingStatus + '</span>';
+
+                        break;
+                    case "Error":
+                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error : ' + this.ErrorCode + '" data-html="true" data-content="' + errormsg + '" data-placement="left">' + this.ShippingStatus + '</span>';
+                        break;
+                    case "Shipped":
+                        status = '<span class="label medium label-success">' + this.ShippingStatus + '</span>';
+                        break;
+                    case "InProgress":
+                        status = '<span class="label medium label-blue">' + this.ShippingStatus + '</span>';
+                        break;
+
+                }
+                this.ShippingStatusFormatted = status;
             });
             return Model;
         }
@@ -312,6 +335,6 @@
         $("#filterData").click(function () {
             FilterData();
         });
-    </script>
+</script>
 }
 

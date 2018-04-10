@@ -13,94 +13,100 @@
         color: red;
     }
 </style>
-<div class="col-md-6">
-    <div class="panel panel-default ">
-        <div class="panel-heading">
-            <div class="panel-title">
-                Today's Batch Details
-                @*<span class="pull-right"><button class="btn btn-primary" id="FullTodayChart"><i class="fa fa-window-maximize"></i></button></span>*@
+<div class="row">
+    <div class="col-md-6">
+        <div class="panel panel-default ">
+            <div class="panel-heading">
+                <div class="panel-title">
+                    Today's Batch Details
+                    @*<span class="pull-right"><button class="btn btn-primary" id="FullTodayChart"><i class="fa fa-window-maximize"></i></button></span>*@
+                </div>
             </div>
-        </div>
-        <div class="panel-body panel-gray " id="todayBody">
-            <div id="todayChart"></div>
-        </div>
-
-    </div>
-</div>
-
-<div class="col-md-6 ">
-    <div class="panel panel-default">
-        <div class="panel-heading">
-            <div class="panel-title">Weekly Batch Details</div>
-        </div>
-        <div class="panel-body panel-gray">
-            <div id="weeklyChart"></div>
+            <div class="panel-body panel-gray " id="todayBody">
+                <div id="todayChart"></div>
+            </div>
 
         </div>
     </div>
-</div>
-<div class="clearfix"></div>
-<div class="col-md-6">
-    <div class="panel panel-default">
-        <div class="panel-heading">
-            <div class="panel-title"><i class="fa fa-reply"></i> Quick Pullback</div>
-        </div>
-        <div class="panel-body panel-gray">
-            <div class="form-group col-md-8">
-                @*<label for="input2">Loan Number</label>
-                    <div class="input-group">
-                        <i class="fa fa-search left-icon"></i>
-                        <input class="form-control" name="loanNumber" placeholder="Loan Number" required id="loanNumber">
-                    </div>
-                    <div class="text-red pull-left" style="display:none" id="loanNumberEmpty">This field is required.</div>*@
-                @if (ViewBag.BusinessId.Count == 1)
-                {
-                    <label for="BusinessFriendlyIdValue">@ViewBag.BusinessId[0]</label>
-                    <div class="input-group">
-                        <i class="fa fa-search left-icon"></i>
-                        <input class="form-control" name="loanNumber" placeholder="@ViewBag.BusinessId[0]" required id="BusinessFriendlyIdValue">
-                        <input type="hidden" value="@ViewBag.BusinessId[0]" name="BusinessFriendlyIdName" id="BusinessFriendlyIdName" />
-                    </div>
-                    <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
-                }
-                else if (ViewBag.BusinessId.Count > 1)
-                {
-                    <label for="BusinessFriendlyIdName">Select Business ID</label>
-                    <div class="input-group">
 
-                        <select id="BusinessFriendlyIdName" class="selectpicker">
-                            <option value="">Select BusinessId</option>
-                            @foreach (var item in ViewBag.BusinessId)
-                            {
-                                <option value="@item.ToString()">@item.ToString()</option>
+    <div class="col-md-6">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <div class="panel-title">Weekly Batch Details</div>
+                    </div>
+                    <div class="panel-body panel-gray">
+                        <div id="weeklyChart"></div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="clearfix"></div>
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <div class="panel-title"><i class="fa fa-reply"></i> Quick Pullback</div>
+                    </div>
+                    <div class="panel-body panel-gray">
+                        <div class="form-group col-md-8">
+                            @*<label for="input2">Loan Number</label>
+                            <div class="input-group">
+                                <i class="fa fa-search left-icon"></i>
+                                <input class="form-control" name="loanNumber" placeholder="Loan Number" required id="loanNumber">
+                            </div>
+                            <div class="text-red pull-left" style="display:none" id="loanNumberEmpty">This field is required.</div>*@
+                            @if (ViewBag.BusinessId.Count == 1)
+                    {
+                                <label for="BusinessFriendlyIdValue">@ViewBag.BusinessId[0]</label>
+                                <div class="input-group">
+                                    <i class="fa fa-search left-icon"></i>
+                                    <input class="form-control" name="loanNumber" placeholder="@ViewBag.BusinessId[0]" required id="BusinessFriendlyIdValue">
+                                    <input type="hidden" value="@ViewBag.BusinessId[0]" name="BusinessFriendlyIdName" id="BusinessFriendlyIdName" />
+                                </div>
+                                <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
+                    }
+                    else if (ViewBag.BusinessId.Count > 1)
+                    {
+                        <label for="BusinessFriendlyIdName">Select Business ID</label>
+                                <div class="input-group">
+
+                                    <select id="BusinessFriendlyIdName" class="selectpicker">
+                                        <option value="">Select BusinessId</option>
+                                        @foreach (var item in ViewBag.BusinessId)
+                                {
+                                            <option value="@item.ToString()">@item.ToString()</option>
+                                }
+                                    </select>
+                                    <input class="form-control" name="BusinessFriendlyIdValue" placeholder="" required id="BusinessFriendlyIdValue">
+
+                                </div>
+                                <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdNameError">This field is required.</div>
+                                <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
+                    }
+                    else
+                    {
+                        <style>
+                            #pullback {
+                                display: none;
                             }
-                        </select>
-                        <input class="form-control" name="BusinessFriendlyIdValue" placeholder="" required id="BusinessFriendlyIdValue">
+                        </style>
+                                <div class='alert alert-yellow'><span>No business friendly id found!</span></div>
+                    }
 
+
+                        </div>
+                        <div class="form-group text-center col-md-1">
+
+                            <label for="pullback">&nbsp;&nbsp;&nbsp;</label>
+                            <button type="button" id="pullback" class="btn btn-primary ">
+                                <span class="sr-only"></span>
+                                <i class="fa fa-reply fa-2x" style="margin-top: 24%;"></i>
+
+                            </button>
+                        </div>
                     </div>
-                    <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdNameError">This field is required.</div>
-                    <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
-                }
-                else
-                {
-                    <style>
-                        #pullback {
-                            display: none;
-                        }
-                    </style>
-                    <div class='alert alert-yellow'><span>No business friendly id found!</span></div>
-                }
-
-
-            </div>
-            <div class="form-group text-center col-md-1">
-
-                <label for="pullback">&nbsp;&nbsp;&nbsp;</label>
-                <button type="button" id="pullback" class="btn btn-primary ">
-                    <span class="sr-only"></span>
-                    <i class="fa fa-reply fa-2x" style="margin-top: 24%;"></i>
-
-                </button>
+                </div>
             </div>
         </div>
     </div>
@@ -558,7 +564,7 @@
                     }
                     ////console.log(chartData);
 
-                    drawChart(chartData, "todayChart", 'MailPiece Status', 300, 510);
+                    drawChart(chartData, "todayChart", 'MailPiece Status', 467, 510);
 
 
 
