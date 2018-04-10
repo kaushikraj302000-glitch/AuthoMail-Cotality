@@ -188,7 +188,7 @@
 
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" onclick="showModal()" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="showModalESC" onclick="showModal()" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -219,7 +219,7 @@
 
 <!--PullbackRequest table html template code -->
 <div id="pullbackTableContent" style="display:none">
-    <table class="table table-responsive" style="overflow-x:scroll">
+    <table class="table table-responsive" style="overflow-x:scroll;margin-bottom:2%;">
         <thead>
             <tr>
                 <th>Shipping Status</th>
@@ -258,7 +258,7 @@
 <!-- end table template code -->
 <!--ChartMailPiece table html template code -->
 <div id="ChartMailPieceTableContent" style="display:none">
-    <table class="table table-responsive" style="overflow-x:scroll">
+    <table class="table table-responsive" style="overflow-x:scroll;margin-bottom:2%;">
         <thead>
             <tr>
                 <th>Loan Number</th>
@@ -297,7 +297,7 @@
 <!-- end table template code -->
 <!--ChartMailPiece table html template code -->
 <div id="WeeklyChartMailPieceTableContent" style="display:none">
-    <table class="table table-responsive" style="overflow-x:scroll">
+    <table class="table table-responsive" style="overflow-x:scroll;margin-bottom:2%;">
         <thead>
             <tr>
                 <th>Loan Number</th>
@@ -336,7 +336,7 @@
 <!-- end table template code -->
 <!--Weekly Chart table html template code -->
 <div id="WeeklyChartTableContent" style="display:none">
-    <table class="table table-responsive" style="overflow-x:scroll">
+    <table class="table table-responsive" style="overflow-x:scroll;margin-bottom:2%;">
         <thead>
             <tr>
                 <th>Batch Id</th>
@@ -371,6 +371,15 @@
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js">
     </script>
     <script type="text/javascript">
+        $(document).keyup(function (e) {
+            if (e.keyCode == 27) { // escape key maps to keycode `27`
+                if ($('#WeeklybatchMailPieceModal:visible').length == 1) {
+
+                    $("#showModalESC").click();
+                }
+            }
+        });
+
         var commonmsg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
         function GetChartDataByStatusAndBatchIds(status, ids, clientBatchId, receivedOn) {
             var el = $("#batchMailPieceModal").find('.modal-body');
@@ -822,7 +831,7 @@
                             }
                             else {
                                 var el = $("#myModal").find('.modal-body');
-                                el.html("<div class='alert alert-yellow' ><span>No such mailpiece was processed today or in queue.</span></div>");
+                                el.html("<div class='alert alert-yellow' ><span>@AM.Services.Config.Web_Msg_NoRecordInTodayAndPendingBatches</span></div>");
                                 $("#myModal").modal("show");
                             }
                         }

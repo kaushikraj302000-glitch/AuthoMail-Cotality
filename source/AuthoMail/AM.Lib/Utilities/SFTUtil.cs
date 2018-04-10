@@ -517,9 +517,7 @@ namespace AM.Lib
             }
             else if (Protocol == SFT_ProtocolType.unc)
             {
-                var fullRemoteDirectoryPath = Path.Combine(HostURL, remoteDirPath);
-
-                List<string> remoteFiles = Directory.GetFiles(fullRemoteDirectoryPath).ToList();
+                List<string> remoteFiles = Directory.GetFiles(GetUrl(remoteDirPath)).ToList();
                 foreach (string remoteFile in remoteFiles)
                 {
                     DownloadFile(remoteFile, Path.Combine(localDirPath, Path.GetFileName(remoteFile)), deleteRemoteDirectory);
@@ -527,7 +525,7 @@ namespace AM.Lib
 
                 if (deleteRemoteDirectory)
                 {
-                    Directory.Delete(fullRemoteDirectoryPath, true);
+                    Directory.Delete(GetUrl(remoteDirPath), true);
                 }
             }
             else
@@ -584,9 +582,7 @@ namespace AM.Lib
             }
             else if (Protocol == SFT_ProtocolType.unc)
             {
-                var fullRemoteDirectoryPath = Path.Combine(HostURL, remoteDirPath);
-
-                Directory.Delete(fullRemoteDirectoryPath, true);
+                Directory.Delete(GetUrl(remoteDirPath), true);
             }
             else
             {

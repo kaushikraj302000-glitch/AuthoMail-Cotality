@@ -121,3 +121,5 @@ INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsS
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_Msg_PullBackConfirmation', N'String', N'Click ''Yes'' to confirm your pullback request.', NULL, 0, N'Click ''Yes'' to confirm your pullback request.', (select Id from [Profile].Users where UserName = 'system@mtc.com'), GETUTCDATE())
 
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_StartCutOffTime', N'String', N'19:45:01', NULL, 0, N'19:45:01', (select Id from [Profile].Users where UserName = 'system@mtc.com'), GETUTCDATE())
+
+INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_Msg_NoRecordInTodayAndPendingBatches', N'String', N'No such records found in todays baches or pending batches', NULL, 0, N'No such records found in todays baches or pending batches', (select Id from [Profile].Users where UserName = 'system@mtc.com'), GETUTCDATE())
