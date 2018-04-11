@@ -240,7 +240,7 @@
         function FormatObject(Model) {
             $(Model).each(function () {
                 this.ReceivedOnFormatted = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
-                this.ErrorDescPopover = this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>' : '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + (this.ErrorDesc == null ? "--" : this.ErrorDesc) + '" data-placement="left"><a>' + this.ErrorCode + '</a></span>';
+                this.ErrorDescPopover = this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>' : '<span id="popoverError" data-toggle="popover" data-original-title="Error Code: ' + this.ErrorCode + '" data-html="true" data-content="' + (this.ErrorDesc == null ? "--" : this.ErrorDesc) + '" data-placement="left"><a>' + this.ErrorCode + '</a></span>';
             });
             return Model;
         }

@@ -80,7 +80,7 @@
 
                                 </div>
                                 <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdNameError">This field is required.</div>
-                                <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
+                                <div class="text-red pull-right" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
                             }
                             else
                             {
@@ -549,7 +549,7 @@
                     //console.log(response);
                     if (response.length == 0) {
                         el.html("<div class='alert alert-yellow' style='margin-bottom:10px;'><span>@AM.Services.Config.Web_Msg_NoMailPieceReceivedToday</span></div>");
-                        $("#todayBody").css("min-height", "312px");
+                        $("#todayBody").css("min-height", "476px");
                         return;
                     }
                     var chartData = [];
@@ -672,18 +672,21 @@
                 var selectedItem = chart.getSelection()[0];
                 if (selectedItem) {
                     var status = data.getColumnLabel(selectedItem.column);
-                    if (div == "todayChart") {
-                        var batchId = parseInt(data.getValue(selectedItem.row, 5));
-                        var clientBatchId = data.getValue(selectedItem.row, 0);
-                        if (batchId != 0) {
-                            var receivedOn = data.getValue(selectedItem.row, 6);
-                            GetChartDataByStatusAndBatchIds(status, batchId, clientBatchId, receivedOn);
+                    if (selectedItem.row!=null) {
+                        if (div == "todayChart") {
+                            var batchId = parseInt(data.getValue(selectedItem.row, 5));
+                            var clientBatchId = data.getValue(selectedItem.row, 0);
+                            if (batchId != 0) {
+                                var receivedOn = data.getValue(selectedItem.row, 6);
+                                GetChartDataByStatusAndBatchIds(status, batchId, clientBatchId, receivedOn);
+                            }
+                        }
+                        if (div == "weeklyChart") {
+                            var dates = data.getValue(selectedItem.row, 5);
+                            GetChartDataByStatusAndDate(status, moment(dates).format("MM/DD/YYYY"));
                         }
                     }
-                    if (div == "weeklyChart") {
-                        var dates = data.getValue(selectedItem.row, 5);
-                        GetChartDataByStatusAndDate(status, moment(dates).format("MM/DD/YYYY"));
-                    }
+                    
                 }
             }
         }
@@ -757,21 +760,29 @@
                 RequestPullback(); // prevent the button click from happening
             }
         });
+        $("#BusinessFriendlyIdName").on("change", function () {
+            if ($("#BusinessFriendlyIdName").val() == "") {
+                $("#BusinessFriendlyIdNameError").show();
+                return;
+            }
+            else {
+                $("#BusinessFriendlyIdNameError").hide();
+            }
+        });
+
         function RequestPullback() {
             if ($("#BusinessFriendlyIdName").val() == "") {
                 $("#BusinessFriendlyIdNameError").show();
                 return;
             }
-            //else {
-            //    $("#BusinessFriendlyIdNameError").show();
-            //}
+            
             if ($("#BusinessFriendlyIdValue").val() == "") {
                 $("#BusinessFriendlyIdValueError").show();
                 return;
             }
-            //else {
-            //    $("#BusinessFriendlyIdValueError").hide();
-            //}
+            else {
+                $("#BusinessFriendlyIdValueError").hide();
+            }
 
 
             $.ajax({
@@ -869,7 +880,7 @@
 
                         break;
                     case "Error":
-                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.ShippingStatus + '</span>';
+                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error : ' + this.ErrorCode + '" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.ShippingStatus + '</span>';
                         break;
                     case "Shipped":
                         status = '<span class="label medium label-success">' + this.ShippingStatus + '</span>';
@@ -904,7 +915,7 @@
 
                         break;
                     case "Error":
-                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.ShippingStatus + '</span>';
+                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error Code: ' + this.ErrorCode + '" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.ShippingStatus + '</span>';
                         break;
                     case "Shipped":
                         status = '<span class="label medium label-success">' + this.ShippingStatus + '</span>';

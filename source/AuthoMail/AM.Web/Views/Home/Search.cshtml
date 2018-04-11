@@ -226,7 +226,7 @@
 
                         break;
                     case "Error":
-                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.ShippingStatus + '</span>';
+                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error Code: ' + this.ErrorCode + '" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.ShippingStatus + '</span>';
                         break;
                     case "Shipped":
                         status = '<span class="label medium label-success">' + this.ShippingStatus + '</span>';

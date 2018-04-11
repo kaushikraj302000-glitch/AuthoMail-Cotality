@@ -142,7 +142,7 @@
                 <td><span>{RcptAddressZIP}</span></td>
                 <td><span>{MailBatches.PrintLocation}</span></td>
                 <td><span>{TotalPages}</span></td>
-                <td><span>{ErrorCode}</span></td>
+                <td><span>{ErrorDescPopover}</span></td>
                 <td><span>{ErrorDesc}</span></td>
                 <td>{MailBatches.Id}</td>
             </tr>
@@ -184,7 +184,7 @@
                 },
                 "columnDefs": [
                         {
-                            "targets": ["ErrorText", "ErrorCode", "BatchId"],
+                            "targets": ["ErrorText", "BatchId"],
                             "visible": false,
                             "searchable": true
                         },
@@ -247,8 +247,7 @@
                 this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
                 this.MailedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
-                this.ErrorDescPopover = this.ErrorCode;
-                    //== "No_Error" ? '<span>' + this.ErrorCode + '</span>' : '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + (this.ErrorDesc == null ? "--" : this.ErrorDesc) + '" data-placement="left"><a>' + this.ErrorCode + '</a></span>';
+                this.ErrorDescPopover = this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>' : '<span id="popoverError" data-toggle="popover" data-original-title="Error Code: ' + this.ErrorCode + '" data-html="true" data-content="' + (this.ErrorDesc == null ? "--" : this.ErrorDesc) + '" data-placement="left"><a>' + this.ErrorCode + '</a></span>';
                 var status = "";
                 var errormsg = this.ErrorDesc == null ? '@AM.Services.Config.Web_Msg_NoErrorDescription' : this.ErrorDesc;
                 switch (this.ShippingStatus) {
@@ -258,7 +257,7 @@
 
                         break;
                     case "Error":
-                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error : ' + this.ErrorCode + '" data-html="true" data-content="' + errormsg + '" data-placement="left">' + this.ShippingStatus + '</span>';
+                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error Code: ' + this.ErrorCode + '" data-html="true" data-content="' + errormsg + '" data-placement="left">' + this.ShippingStatus + '</span>';
                         break;
                     case "Shipped":
                         status = '<span class="label medium label-success">' + this.ShippingStatus + '</span>';
