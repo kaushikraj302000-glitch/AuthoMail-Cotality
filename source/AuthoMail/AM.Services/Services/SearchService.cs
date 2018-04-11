@@ -11,6 +11,7 @@ namespace AM.Services
     public interface ISearchService : IDisposable
     {
         List<MailPieces> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel);
+        List<MailPieces> GetAllData(int clientId);
     }
     public class SearchService : ServiceBase, ISearchService
     {
@@ -42,5 +43,53 @@ namespace AM.Services
             return data;
         }
 
+
+
+        public List<MailPieces> GetAllData(int clientId)
+        {
+            //string query = "SELECT * FROM  [AM].[MailBatches] b,[Common].[SFTChannels] ch,[Common].[Clients] c,[AM].[MailPieces] m LEFT OUTER JOIN [Profile].[Users] u ON m.PulledBackRequestedBy=u.Id LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id LEFT OUTER JOIN [AM].[MailPieceCustomInfo] cust ON m.Id=cust.MailPieceId WHERE m.MailBatchId=b.Id AND b.SFTChannelId=ch.Id AND m.ClientId=c.Id AND m.ClientId=101";
+            string query = "SELECT * FROM  [AM].[MailBatches] b,[AM].[MailPieces] m  LEFT OUTER JOIN [AM].[MailPieceCustomInfo] cust ON m.Id=cust.MailPieceId WHERE m.MailBatchId=b.Id AND m.ClientId=101";
+
+            var dict = new Dictionary<int, MailPieces>();
+            var data = db.Query<MailBatches, MailPieces, MailPieceCustomInfoTest, MailPieces>(query,
+                (b, m, cust) =>
+                {
+                    MailPieces mp;
+                    if (!dict.TryGetValue(m.Id, out mp))
+                    {
+                        mp = m;
+                        mp.MailPieceCustomInfoTest = new List<MailPieceCustomInfoTest>();
+                        mp.MailBatches = b;
+                        dict.Add(mp.Id, mp);
+                    }
+                    mp.MailPieceCustomInfoTest.Add(cust);
+                    //m.MailBatches = b;
+                    return mp;
+                }
+                //splitOn: "MailPieceId"
+                ).Distinct().ToList();
+
+            return data;
+
+            //    var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, Users, DocTypes, MailPieceCustomInfoTest, MailPieces>(query,
+            //       (b, s, c, m, u, d, cust) =>
+            //       {
+            //           MailPieces mp;
+            //           if (!dict.TryGetValue(m.Id, out mp))
+            //           {
+            //               mp = m;
+            //               mp.MailPieceCustomInfoTest = new List<MailPieceCustomInfoTest>();
+            //               dict.Add(mp.Id, mp);
+            //           }
+            //           mp.MailPieceCustomInfoTest.Add(cust);
+            //           mp.Clients = c;
+            //           mp.MailBatches = b;
+            //           b.SFTChannels = s;
+            //           mp.DocTypes = d;
+            //           mp.Users = u;
+            //           return mp;
+            //       }
+            //       ).Distinct().ToList();
+        }
     }
 }
