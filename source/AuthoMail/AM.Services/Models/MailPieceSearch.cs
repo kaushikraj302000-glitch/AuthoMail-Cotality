@@ -97,6 +97,7 @@ namespace AM.Services
         public Clients Clients { get; set; }
         public DocTypes DocTypes { get; set; }
         public Users Users { get; set; }
+        public List<MailPieceCustomInfoTest> MailPieceCustomInfoTest { get; set; }
 
     }
     public class MailBatches
@@ -150,6 +151,7 @@ namespace AM.Services
         public string RetRcptAddressZIP { get; set; }
         public string PrintLocation { get; set; }
         public SFTChannels SFTChannels { get; set; }
+        public Clients Clients { get; set; }
     }
     public class Clients
     {
@@ -229,6 +231,14 @@ namespace AM.Services
         public string Email { get; set; }
         public string UserName { get; set; }
         public int? ClientId { get; set; }
+    }
+
+    public class MailPieceCustomInfoTest
+    {
+        public int MailPieceId { get; set; }
+        public string Key { get; set; }
+        public string DataType { get; set; }
+        public string Value { get; set; }
     }
 
     public class PullBackRequests
