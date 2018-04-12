@@ -77,6 +77,10 @@ namespace AM.Web.Controllers
                 return View(model);
             }
             bool isCorelogicUser = false;
+            if (model.UserName.IndexOf('@') > 0 && model.UserName.Split('@')[1] == "corelogic.com")
+            {
+                model.UserName = model.UserName.Split('@')[0];
+            }
             var user = UserManager.FindByName(model.UserName);
             if (user == null)
             {
