@@ -499,10 +499,10 @@
                     for (var i = 1; i <= response.length; i++) {
                         //console.log(moment(response[cnt].Date).format("MM/DD/YYYY") == moment().format("MM/DD/YYYY") + " " + cnt + " " + i);
                         //var day = moment(response[cnt].Date).format("MM/DD/YYYY") == moment().format("MM/DD/YYYY") ? "Today" : moment(response[cnt].Date).format("ddd");
-                        chartData.push([response[cnt].Weekday, response[cnt].InProgress, response[cnt].Failed, response[cnt].Failed, response[cnt].ShippedAll, response[cnt].ShippedPartial, moment(response[cnt].Date).format("MM/DD/YYYY hh:mm:ss a")]);
+                        chartData.push([response[cnt].Weekday, response[cnt].InProgress, response[cnt].Failed, response[cnt].PulledBack, response[cnt].ShippedAll, response[cnt].ShippedPartial, moment(response[cnt].Date).format("MM/DD/YYYY hh:mm:ss a")]);
                         ticksArr.uniquePush(response[cnt].InProgress);
                         ticksArr.uniquePush(response[cnt].Failed);
-                        ticksArr.uniquePush(response[cnt].Failed);
+                        ticksArr.uniquePush(response[cnt].PulledBack);
                         ticksArr.uniquePush(response[cnt].ShippedPartial);
                         ticksArr.uniquePush(response[cnt].ShippedAll);
 
@@ -666,14 +666,12 @@
                 for (var i = 0; i < ticksArr.length; i++) {
                     max += ticksArr[i];
                 }
-                console.log(max);
                 return max;
             }
 
         };
         google.charts.load('current', { packages: ['corechart'] });
         function drawChart(chartData, div, title, height, width, ticksArr) {
-            console.log(chartData);
             var data = google.visualization.arrayToDataTable(chartData);
             var view = new google.visualization.DataView(data);
             var colors = [];
@@ -699,9 +697,8 @@
                     3: { color: '#539536' }
                 };
             }
-            console.log(ticksArr);
             var checkMax = makeTicks(ticksArr);
-            if (checkMax > 3) {
+            if (checkMax > 2) {
                 ticksArr = null;
             }
             var options = {
@@ -996,13 +993,15 @@
 
                     case "InProgress":
                         batchStatus = '<span class="label medium label-blue">' + this.BatchStatus + '</span>';
-
+                        break;
+                    case "PulledBack":
+                        batchStatus = '<span class="label medium label-yellow">' + this.BatchStatus + '</span>';
                         break;
                     case "Failed":
                         batchStatus = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + (this.ValidationErrors == null ? "--" : this.ValidationErrors) + '" data-placement="left">' + this.BatchStatus + '</span>';
                         break;
                     case "ShippedPartial":
-                        batchStatus = '<span class="label medium label-yellow">' + this.BatchStatus + '</span>';
+                        batchStatus = '<span class="label medium label-orange">' + this.BatchStatus + '</span>';
                         break;
                     case "ShippedAll":
                         batchStatus = '<span class="label medium label-green">' + this.BatchStatus + '</span>';
