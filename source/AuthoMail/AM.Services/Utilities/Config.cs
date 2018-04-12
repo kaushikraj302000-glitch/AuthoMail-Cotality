@@ -23,6 +23,7 @@ namespace AM.Services
         #endregion
 
         #region Console & Core
+        public static string Monitor_AMCPulledBackDate { get; set; }
         public static string Monitor_AMC_ReportDateFormat { get; private set; }
         public static string Monitor_DSEmail_Subject { get; private set; }
         public static string Monitor_DSEmailTemplate { get; private set; }
