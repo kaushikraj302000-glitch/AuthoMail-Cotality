@@ -34,6 +34,10 @@
       <HintPath>..\packages\Dapper.1.50.4\lib\net451\Dapper.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Ionic.Zip, Version=1.9.1.8, Culture=neutral, PublicKeyToken=edbe51ad942a3f5c, processorArchitecture=MSIL">
+      <HintPath>..\packages\Ionic.Zip.1.9.1.8\lib\Ionic.Zip.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="itextsharp, Version=5.5.13.0, Culture=neutral, PublicKeyToken=8354ae6d2174ddca, processorArchitecture=MSIL">
       <HintPath>..\packages\iTextSharp.5.5.13\lib\itextsharp.dll</HintPath>
       <Private>True</Private>
@@ -79,6 +83,7 @@
     <Compile Include="Models\BatchReportInfo.cs" />
     <Compile Include="Models\ChartModels.cs" />
     <Compile Include="Models\MailPieceSearch.cs" />
+    <Compile Include="Models\MRDFResponse.cs" />
     <Compile Include="Models\PullBackViewModel.cs" />
     <Compile Include="Models\Report.cs" />
     <Compile Include="Models\AuthoMailSettings.cs" />
@@ -96,6 +101,7 @@
     <Compile Include="Services\ChartDataService.cs" />
     <Compile Include="Services\ConfigService.cs" />
     <Compile Include="Services\HomeService.cs" />
+    <Compile Include="Services\MRDFResponseService.cs" />
     <Compile Include="Services\PendingBatchesService.cs" />
     <Compile Include="Services\PullBackService.cs" />
     <Compile Include="Services\ReportService.cs" />
