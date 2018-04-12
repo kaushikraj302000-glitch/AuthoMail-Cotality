@@ -408,7 +408,7 @@ namespace AM.Core
                     {
                         Client client = clientSvc.GetClientByAppCode(appCode);
 
-                        responseFiles = Directory.EnumerateFiles(Path.Combine(Config.Core_PnS_SFT_RootDir, client.AppCode), ".rpt").ToList();
+                        responseFiles = Directory.EnumerateFiles(Path.Combine(Config.Core_PnS_SFT_RootDir, client.AppCode), "*.rpt").ToList();
 
                         var responseTriggerFiles = responseFiles
                         .Select(file => new KeyValuePair<string, string>(Path.GetFileNameWithoutExtension(file), file))
