@@ -116,9 +116,9 @@ namespace AM.Lib
                         throw new Exception("Please provide valid Host or root UNC path.");
                     }
                 }
-                catch (Exception err)
+                catch (Exception ex)
                 {
-                    throw new Exception("Unable to connect to provided UNC path. \n{0}".Fill(err.ToString()));
+                    throw new Exception("Unable to connect to provided UNC path. \n{0}".Fill(ex.ToString()));
                 }
             }
             else
@@ -582,7 +582,9 @@ namespace AM.Lib
             }
             else if (Protocol == SFT_ProtocolType.unc)
             {
-                Directory.Delete(GetUrl(remoteDirPath), true);
+                var directoryPath = GetUrl(remoteDirPath);
+                if (Directory.Exists(directoryPath))
+                    Directory.Delete(directoryPath, true);
             }
             else
             {
@@ -681,7 +683,7 @@ namespace AM.Lib
                     SFTP_Client.Disconnect();
                 }
             }
-        }
+        }        
 
         public void Disconnect()
         {
