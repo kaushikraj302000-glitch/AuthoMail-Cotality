@@ -1,4 +1,5 @@
-﻿using AM.Entities;
+﻿using AM.Console.Properties;
+using AM.Entities;
 using AM.Lib;
 using AM.Services;
 using System;
@@ -10,6 +11,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Xml.Linq;
+using System.Xml.Schema;
 
 namespace AM.Console
 {
@@ -17,8 +20,22 @@ namespace AM.Console
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        protected AMCService amcSvc;
+
+        private static XmlSchemaSet schemas;
+
+        static AMCChannel()
+        {
+            schemas = new XmlSchemaSet();
+            schemas.Add("http://schemas.corelogic.com/2015/amc/v1/packages", XmlReader.Create(new StringReader(Resources.PackageInfoSchema)));
+        }
+
+
         public AMCChannel(string channelCode)
-            : base(channelCode) { }
+            : base(channelCode)
+        {
+            amcSvc = GetService<AMCService>();
+        }
 
         #region EnumerateBatches
         protected override void EnumerateBatches()
@@ -29,11 +46,8 @@ namespace AM.Console
 
             Client client = clientSvc.GetClientByAppCode("USAA");
 
-            SFTUtil sftSite = null;
-
-            sftSite = new SFTUtil(cfg.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
+            SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
             sftSite.Connect();
-
 
             triggerFilePaths = GetTriggerFilePaths(sftSite);
 
@@ -41,7 +55,7 @@ namespace AM.Console
             {
                 MailBatchDTO mailBatch = null;
 
-                string triggerFilePath = Path.Combine(SFTChannel._ToADEDir, triggerFile + "_Complete.go");
+                string triggerFilePath = Path.Combine(SFTChannel.ToADEDir, triggerFile + "_Complete.go");
 
                 //Download and Insert the batch in database first always.
                 string batchName = triggerFile;
@@ -53,7 +67,7 @@ namespace AM.Console
                 mailBatch.ClientBatchId = batchName;
                 mailBatch.UniqueId = Guid.NewGuid();
                 mailBatch.Priority = Priority.Medium.ToString();
-                mailBatch.PrintLocation = "Fort Mill, SC";
+                mailBatch.PrintLocation = Config.Common_PrintLocation;
 
                 //Insert New Batch Entry
                 mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
@@ -116,9 +130,8 @@ namespace AM.Console
                 log.Debug("Download job queue is empty.");
                 return;
             }
-            SFTUtil sftSite = null;
 
-            sftSite = new SFTUtil(cfg.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
+            SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
             sftSite.Connect();
 
 
@@ -131,7 +144,7 @@ namespace AM.Console
                 {
                     #region Create directory structure.
 
-                    cfg.CleanDirectory(mbi.BatchRepo);
+                    mbi.BatchRepo.CleanDirectory();
                     mbi.AMRequestPath.CreateDirectoryIfNotExist();
                     mbi.PnSRequestPath.CreateDirectoryIfNotExist();
                     mbi.PnSResponsePath.CreateDirectoryIfNotExist();
@@ -141,8 +154,8 @@ namespace AM.Console
 
                     string localZipFilePath = string.Empty;
                     string zipFileName = "{0}.zip".Fill(mbi.BatchName);
-                    string ftpZipFilePath = Path.Combine(SFTChannel._ToADEDir, zipFileName);
-                    string ftpTriggerFilePath = Path.Combine(SFTChannel._ToADEDir, "{0}_Complete.go".Fill(mbi.BatchName));
+                    string ftpZipFilePath = Path.Combine(SFTChannel.ToADEDir, zipFileName);
+                    string ftpTriggerFilePath = Path.Combine(SFTChannel.ToADEDir, "{0}_Complete.go".Fill(mbi.BatchName));
 
                     if (!sftSite.IsFileAvailable(ftpZipFilePath))
                     {
@@ -158,11 +171,11 @@ namespace AM.Console
                     }
                     catch (Exception ex)
                     {
-                        var error = "Unable to extract '{0}.zip' file. Batch ID : {1} ".Fill(mbi.BatchName, mbi.MailBatch.Id);
+                        var msg = "Unable to extract '{0}.zip' file. Batch ID : {1} ".Fill(mbi.BatchName, mbi.MailBatch.Id);
 
-                        log.Error(error, ex);
+                        log.Error(msg, ex);
 
-                        ReportInvalidBatch(mbi, error);
+                        ReportInvalidBatch(mbi, msg);
                         continue;
                     }
 
@@ -170,7 +183,7 @@ namespace AM.Console
                     if (SFTChannel.PostDownloadAction == PostDownloadAction.Archive)
                     {
                         //Move zip file
-                        string archiveFTPZipFilePath = Path.Combine(SFTChannel._ArchiveDir, zipFileName);
+                        string archiveFTPZipFilePath = Path.Combine(SFTChannel.ArchiveDir, zipFileName);
 
                         sftSite.MoveFile(ftpZipFilePath, archiveFTPZipFilePath);
                     }
@@ -194,6 +207,12 @@ namespace AM.Console
                 sftSite.Disconnect();
 
             log.Debug("Download job queue is completed.");
+
+            //if (Config.Common_Environment != Env.Prod)
+            //{
+            // Separate batches for USAA from AMC
+            SeparateBatches();
+            //}
         }
 
         private string DownloadBatchZipFile(SFTUtil sftSite, string ftpZipFilePath, string ftpTriggerFilePath, MailBatchInfo mbi)
@@ -225,7 +244,7 @@ namespace AM.Console
         }
 
         #region Separate Batches
-        protected override void SeparateBatches()
+        protected void SeparateBatches()
         {
             log.Debug("Separate batches job queue is started.");
             List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Downloaded);
@@ -263,14 +282,15 @@ namespace AM.Console
                     var msg = "'{0}.xml' is not a valid XML document.".Fill(mbi.BatchName);
                     log.Error(msg, ex);
 
-                    ReportInvalidBatch(mbi, msg + Environment.NewLine + ex.ToString());
+                    ReportInvalidBatch(mbi, msg);
 
                     continue;
                 }
                 catch (Exception ex)
                 {
-                    log.Error(ex);
-                    ReportInvalidBatch(mbi, ex.ToString());
+                    var msg = "'{0}.xml' is not a valid XML document.".Fill(mbi.BatchName);
+                    log.Error(msg, ex);
+                    ReportInvalidBatch(mbi, ex.Message);
                     continue;
                 }
 
@@ -311,7 +331,7 @@ namespace AM.Console
                 }
                 catch (Exception ex)
                 {
-                    log.Error(ex);
+                    log.Error("Error occured while separating AMC batches from Batch '{0}.xml'".Fill(mbi.BatchName), ex);
                 }
             }
             log.Debug("Separate batches job queue is completed.");
@@ -428,12 +448,20 @@ namespace AM.Console
                     nsManager.AddNamespace("x", "http://schemas.corelogic.com/2015/amc/v1/packages");
                     mailPieceNodes = batchXML.DocumentElement.ChildNodes;
                 }
-                catch (XmlException err)
+                catch (XmlException ex)
                 {
-                    log.Error("Unexpected error occurred while processing '{0}.xml'".Fill(mbi.BatchName), err);
+                    var msg = "'{0}.xml' is not a valid XML document.".Fill(mbi.BatchName);
+                    log.Error(msg, ex);
 
-                    ReportInvalidBatch(mbi, err.ToString());
+                    ReportInvalidBatch(mbi, msg);
 
+                    continue;
+                }
+                catch (Exception ex)
+                {
+                    var msg = "'{0}.xml' is not a valid XML document.".Fill(mbi.BatchName);
+                    log.Error(msg, ex);
+                    ReportInvalidBatch(mbi, ex.Message);
                     continue;
                 }
 
@@ -455,6 +483,7 @@ namespace AM.Console
 
                     try
                     {
+                        #region Reading nodes using XPath
                         mailPieceDTO.BusinessFriendlyIdName = clientBusinessIdDetails.BusinessIdName;
                         mailPieceDTO.BusinessFriendlyIdValue = mailPieceNode.SelectSingleNode("./x:LoanNbr/text()", nsManager) == null ? string.Empty : mailPieceNode.SelectSingleNode("./x:LoanNbr/text()", nsManager).Value;
                         mailPieceDTO.DocumentOrPackageType = mailPieceNode.SelectSingleNode("./x:PackageName/text()", nsManager) == null ? null : mailPieceNode.SelectSingleNode("./x:PackageName/text()", nsManager).Value;
@@ -574,26 +603,45 @@ namespace AM.Console
                         }
                         else
                             mailPieceDTO.IsReturnInfoSpecified = false;
+                        #endregion
 
-
-                        ValidationResultAMC validationResult = cfg.ValidateXMLNode(mailPieceNode, nsManager);
+                        MailPieceValidationResult validationResult = ValidatePackgeInfoNode(mailPieceNode);
                         if (validationResult.Code == OutComeCodes.No_Error)
                         {
                             string filePath = Path.Combine(mbi.AMRequestPath, mailPieceDTO.FileName);
 
-                            //Document Or Package Type validation
+                            var validStateList = Resources.ValidStatesForUSAA
+                                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                                .Select(state => state.Trim())
+                                .ToList();
 
-                            var docType = docTypeSvc.GetDocTypesByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType);
+                            //Document Or Package Type validation
+                            var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType);
+
+                            if (docType != null)
+                                mailPieceDTO.DocTypeId = docType.Id;
 
                             if (docType == null)
                             {
                                 mailPieceDTO.ErrorCode = OutComeCodes.Invalid_PackageType;
-                                mailPieceDTO.ErrorDesc = "Document Or Package type does not exist.";
+                                mailPieceDTO.ErrorDesc = "The specified document or package type '{0}' is not configured.".Fill(mailPieceDTO.DocumentOrPackageType);
+                                mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
+                            }
+                            else if (!validStateList.Contains(mailPieceDTO.RcptAddressState))
+                            {
+                                mailPieceDTO.ErrorCode = OutComeCodes.Mailing_Address_Missing_Or_Invalid;
+                                mailPieceDTO.ErrorDesc = "State '{0}' is not amongst the valid states in receipient mailing address.".Fill(mailPieceDTO.RcptAddressState);
+                                mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
+                            }
+                            else if (!validStateList.Contains(mailPieceDTO.RetRcptAddressState))
+                            {
+                                mailPieceDTO.ErrorCode = OutComeCodes.Mailing_Address_Missing_Or_Invalid;
+                                mailPieceDTO.ErrorDesc = "State '{0}' is not amongst the valid states in return mailing address.".Fill(mailPieceDTO.RetRcptAddressState);
                                 mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                             }
                             else if (!File.Exists(filePath))
                             {
-                                mailPieceDTO.ErrorCode = OutComeCodes.Missing_PDF;
+                                mailPieceDTO.ErrorCode = OutComeCodes.Missing_PDF_File;
                                 mailPieceDTO.ErrorDesc = "Pdf file is not available for this package.";
                                 mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                             }
@@ -608,14 +656,15 @@ namespace AM.Console
                             mailPieceDTO.ErrorDesc = validationResult.ErrorMessage;
                             mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                         }
-
                     }
                     catch (Exception ex)
                     {
-                        log.Error(ex);
+                        var msg = "Unable to process package info node.".Fill(mbi.BatchName);
 
-                        mailPieceDTO.ErrorCode = OutComeCodes.Invalid_XML;
-                        mailPieceDTO.ErrorDesc = ex.ToString();
+                        log.Error(msg, ex);
+
+                        mailPieceDTO.ErrorCode = OutComeCodes.Unknown_Error;
+                        mailPieceDTO.ErrorDesc = msg + Environment.NewLine + ex.Message;
                         mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                     }
 
@@ -623,6 +672,7 @@ namespace AM.Console
                 }
 
                 //TODO: Do we need to check all mail pieces are valid, partially valid or failed and update batch status according to that?
+
                 var data = mailPieceSvc.GetMailPiecesByMailBatchId(mbi.MailBatch.Id);
                 if (data != null)
                 {
@@ -631,8 +681,8 @@ namespace AM.Console
                     if (validMailPieces.Count == 0)
                     {
                         mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid.ToString();
-                        mbi.MailBatch.ValidationErrors = "Xml does not contain any package info nodes.";
-                        commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
+                        mbi.MailBatch.ValidationErrors = "Xml does not contain any valid package info nodes.";
+                        commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());                        
                     }
                     else if (validMailPieces.Count < data.Count)
                     {
@@ -643,11 +693,10 @@ namespace AM.Console
                         mbi.MailBatch.ValidationStatus = BatchValidationStatus.Valid.ToString();
                     }
 
-                    mailBatchSvc.UpdateBatchDetails(mbi.MailBatch);
+                    commonSvc.UpdateBatchValidationStatus(mbi.MailBatch.Id, mbi.MailBatch.ValidationStatus, mbi.MailBatch.ValidationErrors);
                 }
 
                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
-                commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.ValidationEnd, Common.Now);
             }
             log.Debug("Validate job queue is completed.");
         }
@@ -674,40 +723,58 @@ namespace AM.Console
                 {
                     try
                     {
-                        StringBuilder errorData = cfg.USAAErrorReportAMC(data, SFTChannel.Title, client.TimeZone);
                         string errorReportFileName = string.Format("Error-{0}.csv", Common.Now.ToString("yyyyMMdd-HHmmss"));
-                        string errorReportPath = string.Empty;
+                        string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 
-                        if (errorData != null)
+                        string errorGoFileName = "ErrReport.go";
+                        string errorGoFilePath = Path.Combine(mbi.AMResponsePath, errorGoFileName);
+                        string ftpErrorGoUploadPath = Path.Combine(Config.Monitor_ReportSFTUploadingPathAMC, errorGoFileName);
+
+                        // valid: ack, pvalid: err rpt upload, invalid: Generate Error Report, ReportPrepped
+
+                        if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.Invalid)
                         {
-                            errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-                            using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(errorData.ToString())))
+                            StringBuilder errorData = amcSvc.AMCErrorReport(data);
+                            if (errorData != null)
                             {
-                                using (FileStream file = new FileStream(errorReportPath, FileMode.Create, FileAccess.Write))
-                                {
-                                    ms.WriteTo(file);
-                                }
+                                File.WriteAllText(errorReportPath, errorData.ToString());                               
                             }
-                        }
 
-                        if (!string.IsNullOrEmpty(errorReportPath))
+                            // Batch status Prepped
+                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
+                        }
+                        else if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.PartiallyValid)
                         {
-                            SFTUtil sftSite = null;
+                            StringBuilder errorData = amcSvc.AMCErrorReport(data);
 
-                            sftSite = new SFTUtil(cfg.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
-                            sftSite.Connect();
+                            if (errorData != null)
+                            {
+                                File.WriteAllText(errorReportPath, errorData.ToString());
 
-                            var ftpUploadPath = Path.Combine(Config.Monitor_ReportSFTUploadingPathAMC, errorReportFileName);
+                                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
+                                sftSite.Connect();
 
-                            sftSite.UploadFile(errorReportPath, ftpUploadPath);
+                                var ftpUploadPath = Path.Combine(Config.Monitor_ReportSFTUploadingPathAMC, errorReportFileName);
 
-                            if (sftSite.IsConnected)
-                                sftSite.Disconnect();
+                                sftSite.UploadFile(errorReportPath, ftpUploadPath);
+
+                                // Upload Error.GO file after uploading error report
+                                File.WriteAllText(errorGoFilePath, string.Empty);
+
+                                sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
+
+                                if (sftSite.IsConnected)
+                                    sftSite.Disconnect();
+                            }
+                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
                         }
+                        else
+                        {
+                            // Batch is valid
+                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
+                        }                        
 
-                        MailUtility.SendDownloadNotificationEmail(mbi, data, errorReportPath);
-
-                        commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
+                        MailUtility.SendDownloadNotificationEmail(mbi, data, errorReportPath);                        
                     }
                     catch (Exception ex)
                     {
@@ -717,6 +784,42 @@ namespace AM.Console
             }
 
             log.Debug("Acknowledge job queue is completed.");
+        }
+
+        private MailPieceValidationResult ValidatePackgeInfoNode(XmlNode xmlPiece)
+        {
+            var errors = GetAllPackageInfoErrors(xmlPiece).ToList();
+
+            if (errors.Count > 0)
+            {
+                return new MailPieceValidationResult() { Code = errors.First().Code, ErrorMessage = string.Join(" | ", errors.Select(row => row.ErrorMessage)) };
+            }
+
+            return new MailPieceValidationResult() { Code = OutComeCodes.No_Error };
+        }
+
+        private IEnumerable<MailPieceValidationResult> GetAllPackageInfoErrors(XmlNode xmlPiece)
+        {
+            XDocument xDoc = XDocument.Parse(xmlPiece.OuterXml);
+            StringBuilder sbErrorMessage = new StringBuilder();
+
+            xDoc.Validate(schemas, (o, e) =>
+            {
+                sbErrorMessage.Append(e.Message);
+            });
+
+            string errorMsg = sbErrorMessage.ToString();
+
+            if (errorMsg.Contains("Address") || errorMsg.Contains("City") || errorMsg.Contains("State") || errorMsg.Contains("Zip"))
+                yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Recipient address details are missing or invalid in package." };
+
+            if (errorMsg.Contains("Recipient") || errorMsg.Contains("FirstName") || errorMsg.Contains("LastName"))
+                yield return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Recipient details are missing or invalid in package." };
+
+            if (!string.IsNullOrEmpty(errorMsg))
+                yield return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_XML_File, ErrorMessage = errorMsg };
+
+            yield break;
         }
     }
 }

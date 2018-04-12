@@ -16,11 +16,11 @@ namespace AM.Console
 
         public SFTChannel SFTChannel { get; private set; }
 
-        protected ClientService clientSvc;
-        protected MailBatchService mailBatchSvc;
-        protected CommonService commonSvc;
-        protected MailPieceService mailPieceSvc;
-        protected DocTypeService docTypeSvc;
+        protected IClientService clientSvc;
+        protected IMailBatchService mailBatchSvc;
+        protected ICommonService commonSvc;
+        protected IMailPieceService mailPieceSvc;
+        protected IDocTypeService docTypeSvc;
 
         protected List<ServiceBase> services;
 
@@ -40,7 +40,7 @@ namespace AM.Console
 
         }
 
-        private T GetService<T>() where T : ServiceBase, new()
+        protected T GetService<T>() where T : ServiceBase, new()
         {
             var service = new T();
             services.Add(service);
@@ -53,7 +53,6 @@ namespace AM.Console
             {
                 this.EnumerateBatches();
                 this.DownloadBatches();
-                this.SeparateBatches();
                 this.ValidateBatches();
                 this.AcknowledgeBatches();
             }
@@ -75,10 +74,6 @@ namespace AM.Console
         /// Downloads all batches which are queued as Received
         /// </summary>
         protected abstract void DownloadBatches();
-        /// <summary>
-        /// Validates all batches which are queued as Downloaded
-        /// </summary>
-        protected abstract void SeparateBatches();
         /// <summary>
         /// Validates all batches which are queued as Downloaded
         /// </summary>
@@ -113,76 +108,75 @@ namespace AM.Console
 
                     MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
 
-                    var reportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.csv").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-") || Path.GetFileNameWithoutExtension(f).StartsWith("Error-") || Path.GetExtension(f).Equals("err", StringComparison.CurrentCultureIgnoreCase)).ToList();
+                    var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
 
-                    try
+                    var reportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.csv").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-") || Path.GetFileNameWithoutExtension(f).StartsWith("Error-") || Path.GetExtension(f).Equals(".err", StringComparison.CurrentCultureIgnoreCase)).ToList();
+
+
+                    if (reportList != null && reportList.Count > 0)
                     {
-                        if (reportList != null && reportList.Count > 0)
+                        SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(batch.SFTChannelId);
+                        if (sftChannelDetails != null)
                         {
-                            SFTUtil sftSite = null;
-
-                            SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(batch.SFTChannelId);
-                            if (sftChannelDetails != null)
+                            try
                             {
-                                try
+                                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
+                                sftSite.Connect();
+
+                                if (sftSite.IsDownloadDirectoryAvailable(uploadPath))
                                 {
-                                    sftSite = new SFTUtil(cfg.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
-                                    sftSite.Connect();
-
-                                    if (sftSite.IsDownloadDirectoryAvailable(uploadPath))
+                                    foreach (string filePath in reportList)
                                     {
-                                        foreach (string filePath in reportList)
-                                        {
-                                            string fileName = Path.GetFileName(filePath);
-                                            string ftpUploadPath = Path.Combine(uploadPath, fileName);
-                                            sftSite.UploadFile(filePath, ftpUploadPath);
-                                        }
-
-                                        if (reportList.Count(f => f.StartsWith("Delivery-")) > 0)
-                                        {
-                                            string deliveryGoFilePath = Path.Combine(mbi.AMResponsePath, "DlvrReport.go");
-                                            string ftpDeliveryGoUploadPath = Path.Combine(Config.Monitor_ReportSFTUploadingPathAMC, "DlvrReport.go");
-                                            File.WriteAllText(deliveryGoFilePath, string.Empty);
-
-                                            sftSite.UploadFile(deliveryGoFilePath, ftpDeliveryGoUploadPath);
-                                        }
-
-                                        if (reportList.Count(f => f.StartsWith("Error-")) > 0)
-                                        {
-                                            string errorGoFilePath = Path.Combine(mbi.AMResponsePath, "ErrReport.go");
-                                            string ftpErrorGoUploadPath = Path.Combine(Config.Monitor_ReportSFTUploadingPathAMC, "ErrReport.go");
-                                            File.WriteAllText(errorGoFilePath, string.Empty);
-
-                                            sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
-                                        }
-
-                                        commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
+                                        string fileName = Path.GetFileName(filePath);
+                                        string ftpUploadPath = Path.Combine(uploadPath, fileName);
+                                        sftSite.UploadFile(filePath, ftpUploadPath);
                                     }
-                                    else
+
+                                    if (reportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-")) > 0)
                                     {
-                                        log.Error("Upload path does not exist for Client-{0} and SFT Channel Id-{1}".Fill(client.Name, sftChannelDetails.Code));
+                                        string deliveryGoFilePath = Path.Combine(mbi.AMResponsePath, "DlvrReport.go");
+                                        string ftpDeliveryGoUploadPath = Path.Combine(Config.Monitor_ReportSFTUploadingPathAMC, "DlvrReport.go");
+                                        File.WriteAllText(deliveryGoFilePath, string.Empty);
+
+                                        sftSite.UploadFile(deliveryGoFilePath, ftpDeliveryGoUploadPath);
                                     }
+
+                                    if (reportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Error-")) > 0)
+                                    {
+                                        string errorGoFilePath = Path.Combine(mbi.AMResponsePath, "ErrReport.go");
+                                        string ftpErrorGoUploadPath = Path.Combine(Config.Monitor_ReportSFTUploadingPathAMC, "ErrReport.go");
+                                        File.WriteAllText(errorGoFilePath, string.Empty);
+
+                                        sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
+                                    }
+
+                                    MailUtility.SendProductionNotificationEmail(mbi, data, reportList);
+
+
+                                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
                                 }
-                                catch (Exception ex)
+                                else
                                 {
-                                    log.Error(ex);
+                                    log.Error("Upload path does not exist for Client-{0} and SFT Channel Id-{1}".Fill(client.Name, sftChannelDetails.Code));
                                 }
+
                                 sftSite.Disconnect();
                             }
-                            else
+                            catch (Exception ex)
                             {
-                                log.Error("SFT site is not available or not enabled to upload reports.");
+                                log.Error(ex);
                             }
                         }
                         else
                         {
-                            log.Error("Reports does not exist to upload for BatchId-{0}".Fill(batch.Id));
+                            log.Error("SFT site is not available or not enabled to upload reports.");
                         }
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        log.Error("Error occured while uploading report to Client's SFT site for Batch : {0}. Please see error :" + Environment.NewLine + ex);
+                        log.Error("Reports does not exist to upload for BatchId-{0}".Fill(batch.Id));
                     }
+
                 }
             }
             log.Debug("ReportedBack job is completed.");
