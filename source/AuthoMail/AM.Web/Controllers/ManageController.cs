@@ -228,6 +228,17 @@ namespace AM.Web.Controllers
             {
                 return View(model);
             }
+            var existingUser = await UserManager.FindByNameAsync(User.Identity.Name);
+            if (existingUser == null)
+            {
+                ModelState.AddModelError("", "User not found.");
+                return View(model);
+            }
+            if (existingUser.Email.Split('@')[1] == "corelogic.com")
+            {
+                ModelState.AddModelError("", "User doesn't allow to change password.");
+                return View(model);
+            }
             var result = await UserManager.ChangePasswordAsync(User.Identity.GetUserId(), model.OldPassword, model.NewPassword);
             if (result.Succeeded)
             {
