@@ -664,6 +664,8 @@
             var view = new google.visualization.DataView(data);
             var colors = [];
             var series;
+            var hTitle = "Total Mailpieces";
+            var vTitle = "Client Batches Name";
             if (div == "weeklyChart") {
                 view.setColumns([0, 1, 2, 3, 4, 5]);
                 series = {
@@ -673,7 +675,8 @@
                     3: { color: '#539536' },
                     4: { color: '#f63' }
                 };
-                //colors = ['#069', '#e03c31', '#e7ab08', '#539536', '#f63'];
+                hTitle = "Total Batches";
+                vTitle = "Days";
             }
             else {
                 view.setColumns([0, 1, 2, 3, 4]);
@@ -707,9 +710,12 @@
                 hAxis: {
                     minValue: 0,
                     ticks: ticksArr,
-                    format: 0
+                    format: 0,
+                    title: hTitle,
                 },
-
+                vAxis: {
+                    title: vTitle
+                },
                 legend: { position: 'top', maxLines: 3 },
                 series: series
 
