@@ -383,7 +383,16 @@
                 }
             }
         });
+        Array.prototype.uniquePush = function (item) {
+            if (this.indexOf(item) == -1)
+                this.push(item);
 
+            this.sort(function (a, b) {
+                var a1 = a, b1 = b;
+                if (a1 == b1) return 0;
+                return a1 > b1 ? 1 : -1;
+            });
+        };
         var commonmsg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
         function GetChartDataByStatusAndBatchIds(status, ids, clientBatchId, receivedOn) {
             var el = $("#batchMailPieceModal").find('.modal-body');
@@ -481,7 +490,8 @@
                 success: function (response) {
                     //console.log(response);
                     var chartData = [];
-                    chartData.push(['Date', 'InProgress', 'Failed', 'ShippedPartial', 'ShippedAll', 'Dates']);
+                    var ticksArr = [];
+                    chartData.push(['Date', 'InProgress', 'Failed', 'PulledBack', 'ShippedAll', 'ShippedPartial', 'Dates']);
                     var cnt = 0;
                     var startDate = response[response.length - 1].Date;
                     var endDate = response[0].Date;
@@ -489,11 +499,17 @@
                     for (var i = 1; i <= response.length; i++) {
                         //console.log(moment(response[cnt].Date).format("MM/DD/YYYY") == moment().format("MM/DD/YYYY") + " " + cnt + " " + i);
                         //var day = moment(response[cnt].Date).format("MM/DD/YYYY") == moment().format("MM/DD/YYYY") ? "Today" : moment(response[cnt].Date).format("ddd");
-                        chartData.push([response[cnt].Weekday, response[cnt].InProgress, response[cnt].Failed, response[cnt].ShippedPartial, response[cnt].ShippedAll, moment(response[cnt].Date).format("MM/DD/YYYY hh:mm:ss a")]);
+                        chartData.push([response[cnt].Weekday, response[cnt].InProgress, response[cnt].Failed, response[cnt].Failed, response[cnt].ShippedAll, response[cnt].ShippedPartial, moment(response[cnt].Date).format("MM/DD/YYYY hh:mm:ss a")]);
+                        ticksArr.uniquePush(response[cnt].InProgress);
+                        ticksArr.uniquePush(response[cnt].Failed);
+                        ticksArr.uniquePush(response[cnt].Failed);
+                        ticksArr.uniquePush(response[cnt].ShippedPartial);
+                        ticksArr.uniquePush(response[cnt].ShippedAll);
+
                         cnt++;
                     }
                     // console.log(chartData);
-                    drawChart(chartData, "weeklyChart", 'Batch Details : ' + moment(startDate).format('MM/DD/YYYY') + " - " + moment(endDate).format('MM/DD/YYYY'), 300, 510);
+                    drawChart(chartData, "weeklyChart", 'Batch Details : ' + moment(startDate).format('MM/DD/YYYY') + " - " + moment(endDate).format('MM/DD/YYYY'), 300, 510, ticksArr);
 
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
@@ -555,14 +571,20 @@
                     var chartData = [];
                     chartData.push(['BatchName', 'InProgress', 'Error', 'PulledBack', 'Shipped', 'BatchId', 'ReceivedOn']);
                     var cnt = 0;
+                    var ticksArr = [];
                     for (var i = 1; i <= response.length; i++) {
 
                         chartData.push([response[cnt].ClientBatchId, response[cnt].InProgress, response[cnt].Error, response[cnt].PulledBack, response[cnt].Shipped, response[cnt].MailBatchId, moment(response[cnt].ReceivedOn).format("MM/DD/YYYY  HH:mm:ss")]);
+                        ticksArr.uniquePush(response[cnt].InProgress);
+                        ticksArr.uniquePush(response[cnt].Error);
+                        ticksArr.uniquePush(response[cnt].PulledBack);
+                        ticksArr.uniquePush(response[cnt].Shipped);
+
                         cnt++;
                     }
                     ////console.log(chartData);
 
-                    drawChart(chartData, "todayChart", 'MailPiece Status', 467, 510);
+                    drawChart(chartData, "todayChart", 'MailPiece Status', 467, 510, ticksArr);
 
 
 
@@ -638,27 +660,62 @@
 
             });
         }
+        var makeTicks = function (ticksArr) {
+            if (ticksArr != null) {
+                var max = 0;
+                for (var i = 0; i < ticksArr.length; i++) {
+                    max += ticksArr[i];
+                }
+                console.log(max);
+                return max;
+            }
+
+        };
         google.charts.load('current', { packages: ['corechart'] });
-        function drawChart(chartData, div, title, height, width) {
+        function drawChart(chartData, div, title, height, width, ticksArr) {
+            console.log(chartData);
             var data = google.visualization.arrayToDataTable(chartData);
             var view = new google.visualization.DataView(data);
-            view.setColumns([0, 1, 2, 3, 4]);
+            var colors = [];
+            var series;
+            if (div == "weeklyChart") {
+                view.setColumns([0, 1, 2, 3, 4, 5]);
+                series = {
+                    0: { color: '#069' },
+                    1: { color: '#e03c31' },
+                    2: { color: '#e7ab08' },
+                    3: { color: '#539536' },
+                    4: { color: '#f63' }
+                };
+                //colors = ['#069', '#e03c31', '#e7ab08', '#539536', '#f63'];
+            }
+            else {
+                view.setColumns([0, 1, 2, 3, 4]);
+                //colors = ['#069', '#e03c31', '#e7ab08', '#539536'];
+                series = {
+                    0: { color: '#069' },
+                    1: { color: '#e03c31' },
+                    2: { color: '#e7ab08' },
+                    3: { color: '#539536' }
+                };
+            }
+            console.log(ticksArr);
+            var checkMax = makeTicks(ticksArr);
+            if (checkMax > 3) {
+                ticksArr = null;
+            }
             var options = {
                 title: title,
                 isStacked: true,
                 'height': height,
                 'width': width,
                 hAxis: {
-                    format: 0
+                    minValue: 0,
+                    ticks: ticksArr
                 },
-                
+
                 legend: { position: 'top', maxLines: 3 },
-                series: {
-                    0: { color: '#36c' },
-                    1: { color: '#dc3912' },
-                    2: { color: '#f90' },
-                    3: { color: '#109618' }
-                }
+                series: series
 
             };
 
@@ -672,7 +729,7 @@
                 var selectedItem = chart.getSelection()[0];
                 if (selectedItem) {
                     var status = data.getColumnLabel(selectedItem.column);
-                    if (selectedItem.row!=null) {
+                    if (selectedItem.row != null) {
                         if (div == "todayChart") {
                             var batchId = parseInt(data.getValue(selectedItem.row, 5));
                             var clientBatchId = data.getValue(selectedItem.row, 0);
@@ -682,11 +739,11 @@
                             }
                         }
                         if (div == "weeklyChart") {
-                            var dates = data.getValue(selectedItem.row, 5);
+                            var dates = data.getValue(selectedItem.row, 6);
                             GetChartDataByStatusAndDate(status, moment(dates).format("MM/DD/YYYY"));
                         }
                     }
-                    
+
                 }
             }
         }
@@ -775,7 +832,7 @@
                 $("#BusinessFriendlyIdNameError").show();
                 return;
             }
-            
+
             if ($("#BusinessFriendlyIdValue").val() == "") {
                 $("#BusinessFriendlyIdValueError").show();
                 return;

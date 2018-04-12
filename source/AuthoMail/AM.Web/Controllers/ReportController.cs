@@ -52,12 +52,15 @@ namespace AM.Web.Controllers
             }
             return reportViewModel;
         }
-        
+
         public ActionResult MonthlyReconReport()
         {
             var dateList = new List<string>();
 
-            for (var dt = DateTime.Now.Date; dt.Date >= DateTime.Now.AddMonths(-6).Date; dt = dt.AddMonths(-1).Date)
+            var currDate = DateTime.UtcNow.UtcToEst();
+            if (currDate.Day <= 25) currDate = currDate.AddMonths(-1);
+
+            for (var dt = currDate.Date; dt.Date >= currDate.AddMonths(-6).Date; dt = dt.AddMonths(-1).Date)
             {
                 dateList.Add(string.Format("{0}/26/{1} - {2}/25/{3}", dt.Month, dt.Year, dt.AddMonths(1).Month, dt.AddMonths(1).Year));
             }
@@ -74,7 +77,7 @@ namespace AM.Web.Controllers
             return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
 
-        
+
         public ActionResult ErrorsReport()
         {
             return View();

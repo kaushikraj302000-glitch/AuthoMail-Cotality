@@ -39,7 +39,8 @@ namespace AM.Services
                     Failed = g.Count(s => s.BatchStatus == BatchStatus.Failed.ToString()),
                     InProgress = g.Count(s => s.BatchStatus == BatchStatus.InProgress.ToString()),
                     ShippedAll = g.Count(s => s.BatchStatus == BatchStatus.ShippedAll.ToString()),
-                    ShippedPartial = g.Count(s => s.BatchStatus == BatchStatus.ShippedPartial.ToString())
+                    ShippedPartial = g.Count(s => s.BatchStatus == BatchStatus.ShippedPartial.ToString()),
+                    PulledBack = g.Count(s => s.BatchStatus == BatchStatus.PulledBack.ToString())
                 }).ToList();
 
             //DateTime dt = DateTime.Today; dt > DateTime.Today.AddDays(-8); dt = dt.AddDays(-1)
@@ -54,7 +55,8 @@ namespace AM.Services
                         Failed = 0,
                         InProgress = 0,
                         ShippedAll = 0,
-                        ShippedPartial = 0
+                        ShippedPartial = 0,
+                        PulledBack = 0
                     });
                 }
             }
