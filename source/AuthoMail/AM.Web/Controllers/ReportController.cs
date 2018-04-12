@@ -58,7 +58,7 @@ namespace AM.Web.Controllers
             var dateList = new List<string>();
 
             var currDate = DateTime.UtcNow.UtcToEst();
-            if (currDate.Day < 25) currDate = currDate.AddMonths(-1);
+            if (currDate.Day <= 25) currDate = currDate.AddMonths(-1);
 
             for (var dt = currDate.Date; dt.Date >= currDate.AddMonths(-6).Date; dt = dt.AddMonths(-1).Date)
             {
