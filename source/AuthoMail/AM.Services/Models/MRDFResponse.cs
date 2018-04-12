@@ -13,6 +13,7 @@ namespace AM.Services
         public string JobId { get; set; }
         public string PieceId { get; set; }
         public string TotalSheets { get; set; }
+        public string PDFFileName { get; set; }
         public string OperatorId { get; set; }
         public string MachineId { get; set; }
         public string ProcessingTimeStamp { get; set; }
