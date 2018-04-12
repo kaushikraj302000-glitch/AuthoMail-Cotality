@@ -725,13 +725,13 @@
                     }
                 },
                 vAxis: {
-                    title: vTitle,
+                    //title: vTitle,
                     
-                    titleTextStyle: {
-                        fontSize: 12,
-                        bold: true,
-                        
-                    }
+                    //titleTextStyle: {
+                    //    fontSize: 12,
+                    //    bold: true,
+                    //    
+                    //}
                 },
                 legend: { position: 'top', maxLines: 3 },
                 series: series
@@ -883,11 +883,12 @@
                                 return;
                             } else if (response.Object.model.length == 1) {
                                 var data = FormatObject(response.Object.model);
+                                //console.log(data[0].IsPullBackRequested);
                                 $("#confirmModalBody").html("");
                                 BindTemplate(data, "#pullbackBody", "#pullbackbodyContent", "#pullbackTableContent", "#confirmModalBody");
-                                var status = $("#sample_2").find(".status").text().trim();
-                                var IsPullbackRequested = $("#sample_2").find(".ispullbackr").text().trim();
-                                switch (status) {
+                                //var IsPullbackRequested = $("#sample_2").find(".ispullbackr").text().trim();
+                                switch (data[0].ShippingStatus) {
+
                                     case "PulledBack":
                                     case "Error":
                                     case "Shipped":
@@ -898,7 +899,7 @@
                                         $("#noPullback").addClass("btn-primary");
                                         break;
                                     case "InProgress":
-                                        if (IsPullbackRequested == "Yes") {
+                                        if (data[0].IsPullBackRequested == 1) {
                                             $("#confirmMsg").hide();
                                             $("#yesPullback").hide();
                                             $("#noPullback").html("Close");
