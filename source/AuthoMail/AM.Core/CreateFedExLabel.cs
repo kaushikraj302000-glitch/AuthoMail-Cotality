@@ -27,10 +27,13 @@ namespace AM.Core
             ShipPortTypeClient service = new ShipPortTypeClient();
 
             // For production account we always need to use production URL. Devang sir clarified that until the shipping label barcode is scanned by FedEx we will not get billed. So, if needed for UAT also we can use production URL.
-            if (docType.ShippingAccountCode == "MC_PROD_AMC" || docType.ShippingAccountCode == "Corelogic.Prod")
+            if (Config.Common_Environment == Env.Prod)
             {
-                service.Endpoint.Address = new System.ServiceModel.EndpointAddress("https://gateway.fedex.com:443/web-services");
-                //service.Endpoint.Address = new System.ServiceModel.EndpointAddress("https://wsbeta.fedex.com:443/web-services/ship");
+                service.Endpoint.Address = new System.ServiceModel.EndpointAddress(Config.Core_FedExProdService);
+            }
+            else
+            {
+                service.Endpoint.Address = new System.ServiceModel.EndpointAddress(Config.Core_FedExTestService);
             }
 
             // Call the ship web service passing in a shipment request and returning a shipment reply
@@ -43,14 +46,14 @@ namespace AM.Core
             else
             {
                 List<Notification> notificaitons = new List<Notification>(reply.Notifications);
-                StringBuilder sbMessages = new StringBuilder(string.Format("Error occurred while generating FedEx label for AMC LoanNbr:{0}<br/>", mailPiece.BusinessFriendlyIdValue));
+                StringBuilder sbMessages = new StringBuilder(string.Format("Error occurred while generating FedEx label for client {0} and {1} : {2}<br/>", mbi.Client.AppCode, mailPiece.BusinessFriendlyIdName, mailPiece.BusinessFriendlyIdValue));
                 notificaitons.ForEach(n => sbMessages = sbMessages.AppendLine(n.Message));
                 log.Error(sbMessages.ToString());
 
-                mailPiece.ErrorCode = OutComeCodes.Invalid_ShippingDetails;
+                mailPiece.ErrorCode = OutComeCodes.Invalid_ShippingDetail;
 
                 // TODO: Check other props of notification. Sometimes rarely in error message FedEx exception also comes. So, we have to replace all new lines in message with space.
-                mailPiece.ErrorDesc = string.Format("{0}|{1}", OutComeCodes.Invalid_ShippingDetails, reply.Notifications[0].Message);
+                mailPiece.ErrorDesc = string.Format("{0}|{1}", OutComeCodes.Invalid_ShippingDetail, reply.Notifications[0].Message);
                 isLabelGenerated = false;
             }
 
@@ -79,7 +82,7 @@ namespace AM.Core
             request.ClientDetail.MeterNumber = fedExAccInfo.MeterNumber; // Replace "XXX" with the client's meter number
 
             request.TransactionDetail = new TransactionDetail();
-            request.TransactionDetail.CustomerTransactionId = Config.Core_CustomerTransactionId; // The client will get the same value back in the response
+            request.TransactionDetail.CustomerTransactionId = mailPiece.Id.ToString(); // The client will get the same value back in the response
             //
             request.Version = new VersionId(); // WSDL version information, value is automatically set from wsdl
             //          
