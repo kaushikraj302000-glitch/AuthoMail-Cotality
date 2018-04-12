@@ -19,7 +19,8 @@ namespace AM.Entities
         InProgress,
         Failed,
         ShippedPartial,
-        ShippedAll
+        ShippedAll,
+        PulledBack
     }
 
     public static class BatchPipelineStatus
