@@ -688,7 +688,6 @@
             var ticksArr = new Array();
             if (sumArr.length > 0) {
                 var maxSum = Math.max.apply(Math, sumArr);
-                console.log("Max:" + maxSum);
                 if (maxSum < 5) {
                     ticksArr = new Array();
                     for (var i = 0; i <= maxSum; i++) {
@@ -707,6 +706,7 @@
                 'width': width,
                 hAxis: {
                     minValue: 0,
+                    ticks: ticksArr,
                     format: 0
                 },
 
