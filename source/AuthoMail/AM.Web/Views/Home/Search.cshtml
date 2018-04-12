@@ -8,7 +8,9 @@
         padding-left: 10px !important;
         padding-right: 10px !important;
     }
-
+    #businessIddiv .bootstrap-select {
+        width: 165px !important;
+    }
     .popover-content {
         word-wrap: break-word;
         color: red;
@@ -38,7 +40,7 @@
         </div>
         <div id="collapseThree" class="panel-collapse collapse in">
             <div class="panel-body">
-                <div class="col-md-3">
+                <div class="col-md-@(ViewBag.BusinessId.Count > 1?"4":"3")" id="businessIddiv">
                     @if (ViewBag.BusinessId.Count == 1)
                     {
                         <label for="BusinessFriendlyIdValue">@ViewBag.BusinessId[0]</label>
@@ -71,14 +73,14 @@
                         <div class='alert alert-yellow'><div>No business friendly id found!</div></div>
                     }
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-@(ViewBag.BusinessId.Count > 1?"4":"3")">
                     <div class="form-group">
                         <label for="DocType">Document Type</label>
                         @Html.DropDownList("DocType", ViewBag.DocType as SelectList, "Select Document Type", htmlAttributes: new { @class = "selectpicker" })
                     </div>
 
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-@(ViewBag.BusinessId.Count > 1?"4":"3")">
                     <div class="form-group">
                         <label for="Status">Status</label>
                         <select class="selectpicker" id="Status">
@@ -224,7 +226,7 @@
 
                         break;
                     case "Error":
-                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.ShippingStatus + '</span>';
+                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error Code: ' + this.ErrorCode + '" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.ShippingStatus + '</span>';
                         break;
                     case "Shipped":
                         status = '<span class="label medium label-success">' + this.ShippingStatus + '</span>';
@@ -242,10 +244,10 @@
                 else {
 
                     if (this.DocTypes.ShippingServiceType == "USPS") {
-                        trackingNo = '<button id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.DocTypes.ShippingServiceType + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
+                        trackingNo = '<button id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.DocTypes.ShippingServiceType + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
                     }
                     else {
-                        trackingNo = '<a id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" href="http://www.fedex.com/Tracking?cntry_code=us&action=1&track=y&tracknumbers=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
+                        trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="http://www.fedex.com/Tracking?cntry_code=us&action=1&track=y&tracknumbers=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
                     }
                 }
                 this.TrackingNoFormatted = trackingNo;

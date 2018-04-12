@@ -96,7 +96,7 @@
                 <th class="DocType">Document Type</th>
                 <th class="LoanNumber">Loan Number</th>
                 <th class="FileName">File Name</th>
-                <th class="ErrorCode">Status</th>
+                <th class="ErrorCode">Error</th>
                 <th class="ReceivedDate">Received Date <span class="fontcapitalize">(Local)</span></th>
                 <th class="FirstName">First Name</th>
                 <th class="LastName">Last Name</th>
@@ -240,7 +240,7 @@
         function FormatObject(Model) {
             $(Model).each(function () {
                 this.ReceivedOnFormatted = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
-                this.ErrorDescPopover = this.ErrorDesc == null ? "--" : '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left"><a>' + this.ErrorCode + '</a></span>';
+                this.ErrorDescPopover = this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>' : '<span id="popoverError" data-toggle="popover" data-original-title="Error Code: ' + this.ErrorCode + '" data-html="true" data-content="' + (this.ErrorDesc == null ? "--" : this.ErrorDesc) + '" data-placement="left"><a>' + this.ErrorCode + '</a></span>';
             });
             return Model;
         }

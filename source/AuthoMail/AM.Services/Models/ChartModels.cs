@@ -15,6 +15,7 @@ namespace AM.Services
         public int ShippedPartial { get; set; }
         public int ShippedAll { get; set; }
         public int Failed { get; set; }
+        public int PulledBack { get; set; }
     }
     public class TodayMailPieceChart
     {

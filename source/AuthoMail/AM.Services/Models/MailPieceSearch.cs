@@ -71,6 +71,13 @@ namespace AM.Services
         public int TotalSheets { get; set; }
         public string ErrorCode { get; set; }
         public string ErrorDesc { get; set; }
+        public string ErrorCodeDesc
+        {
+            get
+            {
+                return string.Format("{0}{1}", this.ErrorCode, this.ErrorDesc.IsNullOrWhiteSpace() ? null : (" <br/>  " + this.ErrorDesc));
+            }
+        }
         public string TrackingNo { get; set; }
         public int IsPullBackRequested { get; set; }
         public DateTime? PullBackRequestedOn { get; set; }
@@ -90,6 +97,7 @@ namespace AM.Services
         public Clients Clients { get; set; }
         public DocTypes DocTypes { get; set; }
         public Users Users { get; set; }
+        public List<MailPieceCustomInfoTest> MailPieceCustomInfoTest { get; set; }
 
     }
     public class MailBatches
@@ -143,6 +151,7 @@ namespace AM.Services
         public string RetRcptAddressZIP { get; set; }
         public string PrintLocation { get; set; }
         public SFTChannels SFTChannels { get; set; }
+        public Clients Clients { get; set; }
     }
     public class Clients
     {
@@ -222,6 +231,14 @@ namespace AM.Services
         public string Email { get; set; }
         public string UserName { get; set; }
         public int? ClientId { get; set; }
+    }
+
+    public class MailPieceCustomInfoTest
+    {
+        public int MailPieceId { get; set; }
+        public string Key { get; set; }
+        public string DataType { get; set; }
+        public string Value { get; set; }
     }
 
     public class PullBackRequests

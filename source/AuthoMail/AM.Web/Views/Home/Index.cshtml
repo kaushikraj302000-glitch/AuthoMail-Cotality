@@ -8,99 +8,103 @@
         filter: alpha(opacity=75);
     }
 
+    .bootstrap-select {
+        width: 165px !important;
+    }
+
     .popover-content {
         word-wrap: break-word;
         color: red;
     }
 </style>
-<div class="col-md-6">
-    <div class="panel panel-default ">
-        <div class="panel-heading">
-            <div class="panel-title">
-                Today's Batch Details
-                @*<span class="pull-right"><button class="btn btn-primary" id="FullTodayChart"><i class="fa fa-window-maximize"></i></button></span>*@
+<div class="row">
+    <div class="col-md-6">
+        <div class="panel panel-default ">
+            <div class="panel-heading">
+                <div class="panel-title">
+                    Today's Batch Details
+                </div>
             </div>
-        </div>
-        <div class="panel-body panel-gray " id="todayBody">
-            <div id="todayChart"></div>
-        </div>
-
-    </div>
-</div>
-
-<div class="col-md-6 ">
-    <div class="panel panel-default">
-        <div class="panel-heading">
-            <div class="panel-title">Weekly Batch Details</div>
-        </div>
-        <div class="panel-body panel-gray">
-            <div id="weeklyChart"></div>
+            <div class="panel-body panel-gray " id="todayBody">
+                <div id="todayChart"></div>
+            </div>
 
         </div>
     </div>
-</div>
-<div class="clearfix"></div>
-<div class="col-md-6">
-    <div class="panel panel-default">
-        <div class="panel-heading">
-            <div class="panel-title"><i class="fa fa-reply"></i> Quick Pullback</div>
-        </div>
-        <div class="panel-body panel-gray">
-            <div class="form-group col-md-8">
-                @*<label for="input2">Loan Number</label>
-                    <div class="input-group">
-                        <i class="fa fa-search left-icon"></i>
-                        <input class="form-control" name="loanNumber" placeholder="Loan Number" required id="loanNumber">
-                    </div>
-                    <div class="text-red pull-left" style="display:none" id="loanNumberEmpty">This field is required.</div>*@
-                @if (ViewBag.BusinessId.Count == 1)
-                {
-                    <label for="BusinessFriendlyIdValue">@ViewBag.BusinessId[0]</label>
-                    <div class="input-group">
-                        <i class="fa fa-search left-icon"></i>
-                        <input class="form-control" name="loanNumber" placeholder="@ViewBag.BusinessId[0]" required id="BusinessFriendlyIdValue">
-                        <input type="hidden" value="@ViewBag.BusinessId[0]" name="BusinessFriendlyIdName" id="BusinessFriendlyIdName" />
-                    </div>
-                    <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
-                }
-                else if (ViewBag.BusinessId.Count > 1)
-                {
-                    <label for="BusinessFriendlyIdName">Select Business ID</label>
-                    <div class="input-group">
 
-                        <select id="BusinessFriendlyIdName" class="selectpicker">
-                            <option value="">Select BusinessId</option>
-                            @foreach (var item in ViewBag.BusinessId)
+    <div class="col-md-6">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <div class="panel-title">Weekly Batch Details</div>
+                    </div>
+                    <div class="panel-body panel-gray">
+                        <div id="weeklyChart"></div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="clearfix"></div>
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <div class="panel-title"><i class="fa fa-reply"></i> Quick Pullback</div>
+                    </div>
+                    <div class="panel-body panel-gray">
+                        <div class="form-group col-md-@(ViewBag.BusinessId.Count > 1?"9":"8")">
+
+                            @if (ViewBag.BusinessId.Count == 1)
                             {
-                                <option value="@item.ToString()">@item.ToString()</option>
+                                <label for="BusinessFriendlyIdValue">@ViewBag.BusinessId[0]</label>
+                                <div class="input-group">
+                                    <i class="fa fa-search left-icon"></i>
+                                    <input class="form-control" name="loanNumber" placeholder="@ViewBag.BusinessId[0]" required id="BusinessFriendlyIdValue">
+                                    <input type="hidden" value="@ViewBag.BusinessId[0]" name="BusinessFriendlyIdName" id="BusinessFriendlyIdName" />
+                                </div>
+                                <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
                             }
-                        </select>
-                        <input class="form-control" name="BusinessFriendlyIdValue" placeholder="" required id="BusinessFriendlyIdValue">
+                            else if (ViewBag.BusinessId.Count > 1)
+                            {
+                                <label for="BusinessFriendlyIdName">Select Business ID</label>
+                                <div class="input-group">
 
+                                    <select id="BusinessFriendlyIdName" class="selectpicker">
+                                        <option value="">Select BusinessId</option>
+                                        @foreach (var item in ViewBag.BusinessId)
+                                        {
+                                            <option value="@item.ToString()">@item.ToString()</option>
+                                        }
+                                    </select>
+                                    <input class="form-control" name="BusinessFriendlyIdValue" placeholder="" required id="BusinessFriendlyIdValue">
+
+                                </div>
+                                <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdNameError">This field is required.</div>
+                                <div class="text-red pull-right" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
+                            }
+                            else
+                            {
+                                <style>
+                                    #pullback {
+                                        display: none;
+                                    }
+                                </style>
+                                <div class='alert alert-yellow'><span>No business friendly id found!</span></div>
+                            }
+
+
+                        </div>
+                        <div class="form-group text-center col-md-1">
+
+                            <label for="pullback">&nbsp;&nbsp;&nbsp;</label>
+                            <button type="button" id="pullback" class="btn btn-primary ">
+                                <span class="sr-only"></span>
+                                <i class="fa fa-reply fa-2x" style="margin-top: 24%;"></i>
+
+                            </button>
+                        </div>
                     </div>
-                    <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdNameError">This field is required.</div>
-                    <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
-                }
-                else
-                {
-                    <style>
-                        #pullback {
-                            display: none;
-                        }
-                    </style>
-                    <div class='alert alert-yellow'><span>No business friendly id found!</span></div>
-                }
-
-
-            </div>
-            <div class="form-group text-center col-md-1">
-
-                <label for="pullback">&nbsp;&nbsp;&nbsp;</label>
-                <button type="button" id="pullback" class="btn btn-primary ">
-                    <span class="sr-only"></span>
-                    <i class="fa fa-reply fa-2x" style="margin-top: 24%;"></i>
-
-                </button>
+                </div>
             </div>
         </div>
     </div>
@@ -219,7 +223,7 @@
 
 <!--PullbackRequest table html template code -->
 <div id="pullbackTableContent" style="display:none">
-    <table class="table table-responsive" style="overflow-x:scroll">
+    <table class="table table-responsive" style="overflow-x:scroll;margin-bottom:2%;">
         <thead>
             <tr>
                 <th>Shipping Status</th>
@@ -258,7 +262,7 @@
 <!-- end table template code -->
 <!--ChartMailPiece table html template code -->
 <div id="ChartMailPieceTableContent" style="display:none">
-    <table class="table table-responsive" style="overflow-x:scroll">
+    <table class="table table-responsive" style="overflow-x:scroll;margin-bottom:2%;">
         <thead>
             <tr>
                 <th>Loan Number</th>
@@ -297,7 +301,7 @@
 <!-- end table template code -->
 <!--ChartMailPiece table html template code -->
 <div id="WeeklyChartMailPieceTableContent" style="display:none">
-    <table class="table table-responsive" style="overflow-x:scroll">
+    <table class="table table-responsive" style="overflow-x:scroll;margin-bottom:2%;">
         <thead>
             <tr>
                 <th>Loan Number</th>
@@ -336,7 +340,7 @@
 <!-- end table template code -->
 <!--Weekly Chart table html template code -->
 <div id="WeeklyChartTableContent" style="display:none">
-    <table class="table table-responsive" style="overflow-x:scroll">
+    <table class="table table-responsive" style="overflow-x:scroll;margin-bottom:2%;">
         <thead>
             <tr>
                 <th>Batch Id</th>
@@ -379,7 +383,17 @@
                 }
             }
         });
+        var sumArr = new Array();
+        Array.prototype.uniquePush = function (item) {
+            if (this.indexOf(item) == -1)
+                this.push(item);
 
+            this.sort(function (a, b) {
+                var a1 = a, b1 = b;
+                if (a1 == b1) return 0;
+                return a1 > b1 ? 1 : -1;
+            });
+        };
         var commonmsg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
         function GetChartDataByStatusAndBatchIds(status, ids, clientBatchId, receivedOn) {
             var el = $("#batchMailPieceModal").find('.modal-body');
@@ -477,15 +491,19 @@
                 success: function (response) {
                     //console.log(response);
                     var chartData = [];
-                    chartData.push(['Date', 'InProgress', 'Failed', 'ShippedPartial', 'ShippedAll', 'Dates']);
+                    //var ticksArr = [];
+                    chartData.push(['Date', 'InProgress', 'Failed', 'PulledBack', 'ShippedAll', 'ShippedPartial', 'Dates']);
                     var cnt = 0;
                     var startDate = response[response.length - 1].Date;
                     var endDate = response[0].Date;
+                    sumArr = new Array();
                     //console.log(startDate + " " + endDate);
                     for (var i = 1; i <= response.length; i++) {
                         //console.log(moment(response[cnt].Date).format("MM/DD/YYYY") == moment().format("MM/DD/YYYY") + " " + cnt + " " + i);
                         //var day = moment(response[cnt].Date).format("MM/DD/YYYY") == moment().format("MM/DD/YYYY") ? "Today" : moment(response[cnt].Date).format("ddd");
-                        chartData.push([response[cnt].Weekday, response[cnt].InProgress, response[cnt].Failed, response[cnt].ShippedPartial, response[cnt].ShippedAll, moment(response[cnt].Date).format("MM/DD/YYYY hh:mm:ss a")]);
+                        chartData.push([response[cnt].Weekday, response[cnt].InProgress, response[cnt].Failed, response[cnt].PulledBack, response[cnt].ShippedAll, response[cnt].ShippedPartial, moment(response[cnt].Date).format("MM/DD/YYYY hh:mm:ss a")]);
+                        sumArr.push(response[cnt].InProgress + response[cnt].Failed + response[cnt].PulledBack + response[cnt].ShippedAll + response[cnt].ShippedPartial);
+
                         cnt++;
                     }
                     // console.log(chartData);
@@ -509,7 +527,7 @@
                     //console.log(response);
                     if (response.length == 0) {
                         el.html("<div class='alert alert-yellow'><span>@AM.Services.Config.Web_Msg_NoMailPieceReceivedToday</span></div>");
-                        $("#todayBody").css("min-height", "312px");
+                        $("#todayBody").css("min-height", "467px");
                         return;
                     }
                     var chartData = [];
@@ -545,20 +563,24 @@
                     //console.log(response);
                     if (response.length == 0) {
                         el.html("<div class='alert alert-yellow' style='margin-bottom:10px;'><span>@AM.Services.Config.Web_Msg_NoMailPieceReceivedToday</span></div>");
-                        $("#todayBody").css("min-height", "312px");
+                        $("#todayBody").css("min-height", "476px");
                         return;
                     }
                     var chartData = [];
                     chartData.push(['BatchName', 'InProgress', 'Error', 'PulledBack', 'Shipped', 'BatchId', 'ReceivedOn']);
                     var cnt = 0;
+                    //var ticksArr = [];
+                    sumArr = new Array();
                     for (var i = 1; i <= response.length; i++) {
 
                         chartData.push([response[cnt].ClientBatchId, response[cnt].InProgress, response[cnt].Error, response[cnt].PulledBack, response[cnt].Shipped, response[cnt].MailBatchId, moment(response[cnt].ReceivedOn).format("MM/DD/YYYY  HH:mm:ss")]);
+                        sumArr.push(response[cnt].InProgress + response[cnt].Error + response[cnt].PulledBack + response[cnt].Shipped);
+
                         cnt++;
                     }
                     ////console.log(chartData);
 
-                    drawChart(chartData, "todayChart", 'MailPiece Status', 300, 510);
+                    drawChart(chartData, "todayChart", 'MailPiece Status', 467, 510);
 
 
 
@@ -634,27 +656,85 @@
 
             });
         }
+
+
         google.charts.load('current', { packages: ['corechart'] });
         function drawChart(chartData, div, title, height, width) {
             var data = google.visualization.arrayToDataTable(chartData);
             var view = new google.visualization.DataView(data);
-            view.setColumns([0, 1, 2, 3, 4]);
+            var colors = [];
+            var series;
+            var hTitle = "Mailpieces";
+            var vTitle = "Batch Names";
+            if (div == "weeklyChart") {
+                view.setColumns([0, 1, 2, 3, 4, 5]);
+                series = {
+                    0: { color: '#069' },
+                    1: { color: '#e03c31' },
+                    2: { color: '#e7ab08' },
+                    3: { color: '#539536' },
+                    4: { color: '#f63' }
+                };
+                hTitle = "Batches";
+                vTitle = "Week Days";
+            }
+            else {
+                view.setColumns([0, 1, 2, 3, 4]);
+                //colors = ['#069', '#e03c31', '#e7ab08', '#539536'];
+                series = {
+                    0: { color: '#069' },
+                    1: { color: '#e03c31' },
+                    2: { color: '#e7ab08' },
+                    3: { color: '#539536' }
+                };
+            }
+            var ticksArr = new Array();
+            if (sumArr.length > 0) {
+                var maxSum = Math.max.apply(Math, sumArr);
+                if (maxSum < 5) {
+                    ticksArr = new Array();
+                    for (var i = 0; i <= maxSum; i++) {
+                        ticksArr[i] = i;
+                    }
+                }
+                else {
+                    ticksArr = null;
+                }
+            }
+
             var options = {
                 title: title,
                 isStacked: true,
                 'height': height,
                 'width': width,
-                //vAxis: {
-                //    format: 0
-                //},
-                chxs: '0N*f0*',
+
+                hAxis: {
+                    minValue: 0,
+                    ticks: ticksArr,
+                    format: 0,
+                    title: hTitle,
+                    textStyle: {
+                        fontSize: 12,
+                        bold: true,
+                        //color: '#848484'
+                    },
+                    titleTextStyle: {
+                        fontSize: 12,
+                        bold: true,
+                        //color: '#848484'
+                    }
+                },
+                vAxis: {
+                    title: vTitle,
+                    
+                    titleTextStyle: {
+                        fontSize: 12,
+                        bold: true,
+                        
+                    }
+                },
                 legend: { position: 'top', maxLines: 3 },
-                series: {
-                    0: { color: '#36c' },
-                    1: { color: '#dc3912' },
-                    2: { color: '#f90' },
-                    3: { color: '#109618' }
-                }
+                series: series
 
             };
 
@@ -668,18 +748,21 @@
                 var selectedItem = chart.getSelection()[0];
                 if (selectedItem) {
                     var status = data.getColumnLabel(selectedItem.column);
-                    if (div == "todayChart") {
-                        var batchId = parseInt(data.getValue(selectedItem.row, 5));
-                        var clientBatchId = data.getValue(selectedItem.row, 0);
-                        if (batchId != 0) {
-                            var receivedOn = data.getValue(selectedItem.row, 6);
-                            GetChartDataByStatusAndBatchIds(status, batchId, clientBatchId, receivedOn);
+                    if (selectedItem.row != null) {
+                        if (div == "todayChart") {
+                            var batchId = parseInt(data.getValue(selectedItem.row, 5));
+                            var clientBatchId = data.getValue(selectedItem.row, 0);
+                            if (batchId != 0) {
+                                var receivedOn = data.getValue(selectedItem.row, 6);
+                                GetChartDataByStatusAndBatchIds(status, batchId, clientBatchId, receivedOn);
+                            }
+                        }
+                        if (div == "weeklyChart") {
+                            var dates = data.getValue(selectedItem.row, 6);
+                            GetChartDataByStatusAndDate(status, moment(dates).format("MM/DD/YYYY"));
                         }
                     }
-                    if (div == "weeklyChart") {
-                        var dates = data.getValue(selectedItem.row, 5);
-                        GetChartDataByStatusAndDate(status, moment(dates).format("MM/DD/YYYY"));
-                    }
+
                 }
             }
         }
@@ -753,21 +836,29 @@
                 RequestPullback(); // prevent the button click from happening
             }
         });
+        $("#BusinessFriendlyIdName").on("change", function () {
+            if ($("#BusinessFriendlyIdName").val() == "") {
+                $("#BusinessFriendlyIdNameError").show();
+                return;
+            }
+            else {
+                $("#BusinessFriendlyIdNameError").hide();
+            }
+        });
+
         function RequestPullback() {
             if ($("#BusinessFriendlyIdName").val() == "") {
                 $("#BusinessFriendlyIdNameError").show();
                 return;
             }
-            //else {
-            //    $("#BusinessFriendlyIdNameError").show();
-            //}
+
             if ($("#BusinessFriendlyIdValue").val() == "") {
                 $("#BusinessFriendlyIdValueError").show();
                 return;
             }
-            //else {
-            //    $("#BusinessFriendlyIdValueError").hide();
-            //}
+            else {
+                $("#BusinessFriendlyIdValueError").hide();
+            }
 
 
             $.ajax({
@@ -802,8 +893,9 @@
                                     case "Shipped":
                                         $("#yesPullback").hide();
                                         $("#noPullback").html("Close");
+                                        $("#confirmMsg").hide();
                                         $("#noPullback").removeClass("btn-primary");
-                                        $("#noPullback").addClass("btn-default");
+                                        $("#noPullback").addClass("btn-primary");
                                         break;
                                     case "InProgress":
                                         if (IsPullbackRequested == "Yes") {
@@ -831,7 +923,7 @@
                             }
                             else {
                                 var el = $("#myModal").find('.modal-body');
-                                el.html("<div class='alert alert-yellow' ><span>No such mailpiece was processed today or in queue.</span></div>");
+                                el.html("<div class='alert alert-yellow' ><span>@AM.Services.Config.Web_Msg_NoRecordInTodayAndPendingBatches</span></div>");
                                 $("#myModal").modal("show");
                             }
                         }
@@ -865,7 +957,7 @@
 
                         break;
                     case "Error":
-                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.ShippingStatus + '</span>';
+                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error : ' + this.ErrorCode + '" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.ShippingStatus + '</span>';
                         break;
                     case "Shipped":
                         status = '<span class="label medium label-success">' + this.ShippingStatus + '</span>';
@@ -900,7 +992,7 @@
 
                         break;
                     case "Error":
-                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.ShippingStatus + '</span>';
+                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error Code: ' + this.ErrorCode + '" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.ShippingStatus + '</span>';
                         break;
                     case "Shipped":
                         status = '<span class="label medium label-success">' + this.ShippingStatus + '</span>';
@@ -924,13 +1016,15 @@
 
                     case "InProgress":
                         batchStatus = '<span class="label medium label-blue">' + this.BatchStatus + '</span>';
-
+                        break;
+                    case "PulledBack":
+                        batchStatus = '<span class="label medium label-yellow">' + this.BatchStatus + '</span>';
                         break;
                     case "Failed":
                         batchStatus = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + (this.ValidationErrors == null ? "--" : this.ValidationErrors) + '" data-placement="left">' + this.BatchStatus + '</span>';
                         break;
                     case "ShippedPartial":
-                        batchStatus = '<span class="label medium label-yellow">' + this.BatchStatus + '</span>';
+                        batchStatus = '<span class="label medium label-orange">' + this.BatchStatus + '</span>';
                         break;
                     case "ShippedAll":
                         batchStatus = '<span class="label medium label-green">' + this.BatchStatus + '</span>';
