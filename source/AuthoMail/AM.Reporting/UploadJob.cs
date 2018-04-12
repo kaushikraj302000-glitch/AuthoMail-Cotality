@@ -54,25 +54,28 @@ namespace AM.Reporting
 
                                 if (reportData != null && reportData.Count > 0)
                                 {
-                                    StringBuilder summaryReport = new StringBuilder("BatchID, Id, Channel, Package Name, Loan Number, File Name, Date Received, Due Date, Date Printed, Date Mailed, Client Code, Tracking Number, Shipping Method, First Name, Last Name, Recipient Street Address, Recipient City, Recipient State, Recipient Zip, Print Location, Pages Shipped, Error Code, Error Text");
+                                    var columnName = String.Join(",", "BatchID", "Id", "Channel", "Package Name", "Loan Number", "File Name", "Date Received", "Due Date", "Date Printed", "Date Mailed", "Client Code", "Tracking Number", "Shipping Method", "First Name", "Last Name", "Recipient Street Address", "Recipient City", "Recipient State", "Recipient Zip", "Print Location", "Pages Shipped", "Status", "Error Code", "Error Text");
+
+                                    StringBuilder summaryReport = new StringBuilder(columnName);
+                                    
                                     summaryReport.AppendLine();
 
                                     foreach (var mailPiece in reportData)
                                     {
                                         var line = String.Join(",",
-                                            mailPiece.MailBatches.ClientBatchId,
+                                            mailPiece.MailBatches.ClientBatchId.ToCsvString(),
                                             mailPiece.UniqueId,
                                             sftChannelDetails.Title.ToCsvString(),
                                             mailPiece.DocumentOrPackageType.ToCsvString(),
-                                            mailPiece.BusinessFriendlyIdValue,
+                                            mailPiece.BusinessFriendlyIdValue.ToCsvString(),
                                             mailPiece.FileName.ToCsvString(),
-                                            mailPiece.MailBatches.ReceivedOn,
-                                            mailPiece.DueDate,
-                                            mailPiece.PrintedOn,
-                                            mailPiece.ShippedOn,
+                                            mailPiece.MailBatches.ReceivedOn == null ? string.Empty : mailPiece.MailBatches.ReceivedOn.Value.UtcToClientTimeZone(client.TimeZone).ToString(),
+                                            mailPiece.DueDate == null ? string.Empty : mailPiece.DueDate.Value.UtcToClientTimeZone(client.TimeZone).ToString(),
+                                            mailPiece.PrintedOn == null ? string.Empty : mailPiece.PrintedOn.Value.UtcToClientTimeZone(client.TimeZone).ToString(),
+                                            mailPiece.ShippedOn == null ? string.Empty : mailPiece.ShippedOn.Value.UtcToClientTimeZone(client.TimeZone).ToString(),
                                             mailPiece.Clients.AppCode,
-                                            mailPiece.TrackingNo,
-                                            mailPiece.DocTypes.ShippingServiceType,
+                                            mailPiece.TrackingNo.ToCsvString(),
+                                            mailPiece.DocTypes.ShippingCarrier,
                                             mailPiece.RcptFirstName.ToCsvString(),
                                             mailPiece.RcptLastName.ToCsvString(),
                                             mailPiece.RcptAddressStreet.ToCsvString(),
@@ -81,6 +84,7 @@ namespace AM.Reporting
                                             mailPiece.RcptAddressZIP,
                                             mailPiece.MailBatches.PrintLocation.ToCsvString(),
                                             mailPiece.TotalPages,
+                                            mailPiece.ShippingStatus,
                                             mailPiece.ErrorCode,
                                             mailPiece.ErrorDesc.ToCsvString());
 
@@ -147,9 +151,9 @@ namespace AM.Reporting
                 }
 
             }
-            catch (Exception err)
+            catch (Exception ex)
             {
-                log.Error(err);
+                log.Error(ex);
             }
 
             return isEmailSent;
