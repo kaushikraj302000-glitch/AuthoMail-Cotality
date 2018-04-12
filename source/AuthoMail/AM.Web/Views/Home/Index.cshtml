@@ -1051,7 +1051,7 @@
         $("#yesPullback").unbind("click").click(function (e) {
             e.preventDefault();
             $("#confirmModal").modal("hide");
-            var mailpieceId = $("#sample_2").find(".mailpieceid").data("mailpieceid");
+            var mailpieceId = $("#pullbackbodyContent").find(".mailpieceid").data("mailpieceid");
             SendPullBackRequest(mailpieceId);
         });
     </script>
