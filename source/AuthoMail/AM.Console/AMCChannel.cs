@@ -480,6 +480,7 @@ namespace AM.Console
 
                     mailPieceDTO.ClientId = client.Id;
                     mailPieceDTO.MailBatchId = mbi.MailBatch.Id;
+                    mailPieceDTO.ShippingStatus = ShippingStatus.InProgress.ToString();
 
                     try
                     {
@@ -682,7 +683,7 @@ namespace AM.Console
                     {
                         mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid.ToString();
                         mbi.MailBatch.ValidationErrors = "Xml does not contain any valid package info nodes.";
-                        commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());                        
+                        commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
                     }
                     else if (validMailPieces.Count < data.Count)
                     {
@@ -737,7 +738,7 @@ namespace AM.Console
                             StringBuilder errorData = amcSvc.AMCErrorReport(data);
                             if (errorData != null)
                             {
-                                File.WriteAllText(errorReportPath, errorData.ToString());                               
+                                File.WriteAllText(errorReportPath, errorData.ToString());
                             }
 
                             // Batch status Prepped
@@ -765,6 +766,9 @@ namespace AM.Console
 
                                 if (sftSite.IsConnected)
                                     sftSite.Disconnect();
+
+                                //After upload delete from local
+                                File.Move(errorReportPath, Path.ChangeExtension(errorReportPath, ".uploaded"));
                             }
                             commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
                         }
@@ -772,9 +776,9 @@ namespace AM.Console
                         {
                             // Batch is valid
                             commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
-                        }                        
+                        }
 
-                        MailUtility.SendDownloadNotificationEmail(mbi, data, errorReportPath);                        
+                        MailUtility.SendDownloadNotificationEmail(mbi, data, errorReportPath);
                     }
                     catch (Exception ex)
                     {

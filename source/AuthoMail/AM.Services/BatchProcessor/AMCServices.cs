@@ -77,7 +77,7 @@ namespace AM.Services
 
             deliveryReport.AppendLine();
 
-            var shippedData = data.MailPieces.Where(l => l.ShippingStatus == ShippingStatus.Shipped.ToString()).ToList();
+            var shippedData = data.MailPieces.Where(l => l.ShippingStatus == ShippingStatus.Shipped.ToString() || l.ShippingStatus == ShippingStatus.PulledBack.ToString()).ToList();
 
             if (shippedData == null || shippedData.Count == 0)
             {

@@ -31,7 +31,7 @@ namespace AM.Core
             {
                 List<MailBatchDTO> mailBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Acknowledged);
 
-                if (mailBatches == null || mailBatches.Count == 0)
+                if (mailBatches.Count == 0)
                 {
                     log.Debug("Prep Job queue is empty.");
                     return;
@@ -47,24 +47,21 @@ namespace AM.Core
 
                     List<MailPieceDTO> validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
 
+                    if (validMailPieces.Count == 0)
+                    {
+                        // TODO: Ask Ravi Sir -  Report Invalid or Keep Failed at Acknowledge level (generate report at Acknowledge level and make report prepped status)
+                        continue;
+                    }
+
                     foreach (MailPieceDTO mailPiece in validMailPieces)
                     {
-                        int count = 0;
+                        int attemptCount = 0;
                         try
                         {
-                            DocType docType = docTypeSvc.GetDocTypesByDocTypeName(mbi.Client.Id, mailPiece.DocumentOrPackageType.Trim());
-
-                            if (docType == null)
-                            {
-                                mailPiece.ErrorCode = OutComeCodes.Invalid_PackageType;
-                                mailPiece.ErrorDesc = "Document Or Package type does not exist.";
-                                mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                                mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
-                                continue;
-                            }
+                            DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value);
 
                             mailPiece.DueDate = GetDueDate(docType.SLADays, docType.SLACutOffTime, mailBatch.ReceivedOn.Value);
-                            mailPiece.DocTypeId = docType.Id;
+                            //mailPiece.DocTypeId = docType.Id;
 
                             int mailPieceId = mailPiece.Id;
 
@@ -82,7 +79,7 @@ namespace AM.Core
                                 mailPieceData.Add("ToAddress", mailPiece.RcptFirstName + " " + mailPiece.RcptLastName + "\n" + (string.IsNullOrEmpty(mailPiece.RcptAddressAptOrSuiteOrOther) ? mailPiece.RcptAddressStreet : string.Format("{0}\n{1}", mailPiece.RcptAddressStreet, mailPiece.RcptFirstName)) + "\n" + mailPiece.RcptAddressCity + ", " + mailPiece.RcptAddressState + ", " + mailPiece.RcptAddressZIP);
 
                                 mailPieceData.Add("MailPieceId", mailPiece.Id.ToString());
-                                mailPieceData.Add("Date", DateTime.UtcNow.UtcToEst().ToString("MMMM dd, yyyy"));
+                                mailPieceData.Add("Date", Common.Now.UtcToEst().ToString("MMMM dd, yyyy"));//USAA Specific
                                 mailPieceData.Add("MailPieceZip", mailPiece.RcptAddressZIP);
                                 mailPieceData.Add("LoanNbr", mailPiece.BusinessFriendlyIdValue);
 
@@ -95,6 +92,7 @@ namespace AM.Core
                                     mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
                                     mailPiece.ErrorDesc = "Cover letter does not exist for DocumentType : {0}".Fill(mailPiece.DocumentOrPackageType);
                                     mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                    mailPiece.TotalPages = 0;
                                     mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                                     continue;
                                 }
@@ -111,11 +109,11 @@ namespace AM.Core
                                     mailPiece.TotalPages = 0;
                                     mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                                     mailPiece.ErrorDesc = doc.ExceptionDetail;
+                                    mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                    continue;
                                 }
-                                else
-                                {
-                                    mailPiece.TrackingNo = doc.TrackingCode;
-                                }
+
+                                mailPiece.TrackingNo = doc.TrackingCode;
                             }
                             else if (docType.ShippingCarrier == Carrier.FedEx.ToString())
                             {
@@ -130,81 +128,92 @@ namespace AM.Core
 
                                 FedExAccountInfo fedExAccInfo = fedExSvc.GetFedExAccountDetailsByAccountCode(docType.ShippingAccountCode);
 
-                                if (fedExAccInfo != null)
+                                CreateFedExLabel createFedExLabel = new CreateFedExLabel();
+                                bool result = false;
+                                while (attemptCount < Config.Core_NoofTime_AttemptFedexService)
                                 {
-                                    CreateFedExLabel createFedExLabel = new CreateFedExLabel();
-                                    bool result = false;
-                                    while (count < Config.Core_NoofTime_AttemptFedexService)
-                                    {
-                                        result = createFedExLabel.Create(mailPiece, fedExAccInfo, docType, mbi);
-                                        if (result)
-                                        {
-                                            break;
-                                        }
-                                        else if (result == false && mailPiece.ErrorDesc == "Invalid_shipping_detail|General Failure")
-                                        {
-                                            System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
-                                            count++;
-                                        }
-                                        else
-                                        {
-                                            break;
-                                        }
-                                    }
-
+                                    result = createFedExLabel.Create(mailPiece, fedExAccInfo, docType, mbi);
                                     if (result)
                                     {
-                                        coverLetterPdfPath = createFedExLabel.GeneratedFedExLabelPath;
-                                        mailPiece.TrackingNo = Path.GetFileNameWithoutExtension(coverLetterPdfPath);
+                                        break;
+                                    }
+                                    else if (!result && mailPiece.ErrorDesc == "Invalid_shipping_detail|General Failure")
+                                    {
+                                        System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
+                                        attemptCount++;
+                                    }
+                                    else
+                                    {
+                                        break;
                                     }
                                 }
-                                else
+
+                                if (result)
                                 {
-                                    // FedEx account information not found; so report it as an error.
-                                    mailPiece.ErrorCode = OutComeCodes.Invalid_FedExAccount;
-                                    mailPiece.ErrorDesc += "FedEx account does not exist for provided client code.";
+                                    coverLetterPdfPath = createFedExLabel.GeneratedFedExLabelPath;
+                                    mailPiece.TrackingNo = Path.GetFileNameWithoutExtension(coverLetterPdfPath);
                                 }
 
                                 #endregion
                             }
 
-                            if (!string.IsNullOrEmpty(coverLetterPdfPath))
+                            if (File.Exists(coverLetterPdfPath))
                             {
                                 int pageCount = doc.GenerateDoc(coverLetterPdfPath, pdfFilePath, outputFilePath, docType.ContentScalePercent);
                                 if (pageCount > 0)
                                 {
                                     mailPiece.TotalPages = pageCount;
-                                    mailPiece.ShippingStatus = ShippingStatus.InProgress.ToString();
                                 }
                                 else
                                 {
-                                    if (doc.ExceptionDetail.Contains("InvalidPdfException"))
-                                    {
-                                        mailPiece.ErrorCode = OutComeCodes.Invalid_PDF;
-                                    }
-                                    else
-                                    {
-                                        mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
-                                    }
+                                    mailPiece.ErrorCode = OutComeCodes.Invalid_PDF_File;
                                     mailPiece.TotalPages = 0;
                                     mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                                     mailPiece.ErrorDesc = doc.ExceptionDetail;
                                 }
                             }
+                            mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                         }
-                        catch (Exception err)
+                        catch (Exception ex)
                         {
-                            mailPiece.TotalPages = 0;
-                            mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                            mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
-                            mailPiece.ErrorDesc = "{0}\n{1}".Fill(err.Message, err.ToString());
-                            log.Error(err);
+                            log.Error("Error occured while processing mail pieces {0}".Fill(mailPiece.Id), ex);
+                            continue;
                         }
-                        mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                     }
 
-                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Prepped, Common.Now);
-                    commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.InProgress.ToString());
+                    var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
+                    if (data != null)
+                    {
+                        var validMailPiecesList = data.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
+
+                        if (validMailPiecesList.Count == 0)
+                        {
+                            using (IAMCService amcSvc = new AMCService())
+                            {
+                                string errorReportFileName = string.Format("Error-{0}.csv", Common.Now.ToString("yyyyMMdd-HHmmss"));
+                                string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+                                StringBuilder errorData = amcSvc.AMCErrorReport(data);
+                                if (errorData != null)
+                                {
+                                    File.WriteAllText(errorReportPath, errorData.ToString());
+                                }
+                            }
+
+                            // Batch status Prepped
+                            mailBatchSvc.MarkMailBatchAsInvalid(mbi.MailBatch.Id, (mbi.MailBatch.ValidationErrors + Environment.NewLine + "Some documents could not be processed."));
+                            commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.Failed.ToString());
+                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
+                        }
+                        else if (validMailPiecesList.Count < data.MailPieces.Count)
+                        {
+                            commonSvc.UpdateBatchValidationStatus(mbi.MailBatch.Id, BatchValidationStatus.PartiallyValid, data.MailBatch.ValidationErrors);
+                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Prepped, Common.Now);
+                        }
+                        else
+                        {
+                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Prepped, Common.Now);
+                        }
+                    }
                 }
             }
         }
@@ -237,12 +246,12 @@ namespace AM.Core
             using (ICommonService commonSvc = new CommonService())
             using (IMailPieceService mailPieceSvc = new MailPieceService())
             using (IDocTypeService docTypeSvc = new DocTypeService())
-            using (IFedExService fedExSvc = new FedExService())
             {
                 log.Debug("Submitted Batches job started.");
-                List<MailBatchDTO> mailBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Prepped).Where(x => x.BatchStatus != AM.Entities.BatchStatus.Failed.ToString()).ToList();
 
-                if (mailBatches == null || mailBatches.Count == 0)
+                var mailBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Prepped);
+
+                if (mailBatches.Count == 0)
                 {
                     log.Debug("Submit batch Job queue is empty.");
                     return;
@@ -251,19 +260,13 @@ namespace AM.Core
                 foreach (MailBatchDTO mailBatch in mailBatches)
                 {
                     Client client = clientSvc.GetClientById(mailBatch.ClientId);
-                    if (client == null)
-                    {
-                        log.Error("Client of Batch : {0}, is not enabled for PnS service".Fill(mailBatch.BatchName));
-                        continue;
-                    }
-
                     MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
 
                     var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
 
                     List<MailPieceDTO> validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
 
-
+                    //TODO : look into this logic
                     if (validMailPieces.Count == 0)
                     {
                         mailBatch.ValidationStatus = BatchValidationStatus.Invalid;
@@ -278,29 +281,18 @@ namespace AM.Core
                     {
                         List<PrintBatch> printBatches = new List<PrintBatch>();
 
-
-                        var docTypes = validMailPieces.Select(row => row.DocumentOrPackageType.Trim()).Distinct();
-                        foreach (var documentOrPackageType in docTypes)
+                        var docTypes = validMailPieces.Select(row => row.DocTypeId.Value).Distinct();
+                        foreach (var docTypeId in docTypes)
                         {
-                            PrintBatch printBatch = null;
-                            DocType docType = docTypeSvc.GetDocTypesByDocTypeName(mbi.Client.Id, documentOrPackageType);
+                            DocType docType = docTypeSvc.GetDocTypeById(docTypeId);
 
-                            //Commented because the same thing we are validating when generating document
-
-                            //if (docType == null)
-                            //{
-                            //    commonSvc.AMLogBatchTimeLine(mbi.MailBatch.Id, AMLogBatchTimeLine.SubmittedToShippingEnd, Common.Now);
-                            //    //TODO: Ask Ravi Sir
-                            //    continue;
-                            //}
-
-                            printBatch = new PrintBatch();
+                            PrintBatch printBatch = new PrintBatch();
                             printBatch.AppCode = mbi.Client.AppCode;
                             printBatch.UniqueId = Guid.NewGuid();
                             printBatch.MailBatchId = mbi.MailBatch.Id;
                             printBatch.DocTypeId = docType.Id;
 
-                            var filteredMailPieces = validMailPieces.Where(c => c.DocumentOrPackageType == documentOrPackageType).ToList();
+                            var filteredMailPieces = validMailPieces.Where(c => c.DocTypeId == docTypeId).ToList();
 
                             #region QC Request Logic
                             if (docType.QCPercent > 0)
@@ -326,85 +318,68 @@ namespace AM.Core
                             }
                             #endregion
 
-
                             printBatch.MailPieces = filteredMailPieces;
 
                             printBatches.Add(printBatch);
                         }
 
-                        if (printBatches.Count == 0)
-                        {
-                            log.Error("No batches are available for submit to PCI.");
-
-                            continue;
-                        }
-
                         foreach (var printBatchData in printBatches)
                         {
-                            if (printBatchData.MailPieces.Count == 0)
-                            {
-                                log.Error("{0} : Print batch is not containing any mail pieces.".Fill(printBatchData.UniqueId));
-                                continue;
-                            }
-
                             printBatchData.Id = mailBatchSvc.InsertPrintBatchDetails(printBatchData);
 
                             string pnsRootFolder = Config.Core_PnS_SFT_RootDir;
-                            string batchName = "{0}_{1}".Fill(mbi.MailBatch.BatchName, printBatchData.DocTypeId);
-                            string batchXMLSubmitPath = Path.Combine(pnsRootFolder, mbi.Client.AppCode, batchName + ".xml");
-                            string batchGOSubmitPath = Path.Combine(pnsRootFolder, mbi.Client.AppCode, batchName + ".go");
-                            string batchSubmitPath = Path.Combine(pnsRootFolder, mbi.Client.AppCode, batchName);
 
-                            try
+                            //Batch naming convention will be AppCode_PrintBatchId for Batch folder, XML and Go file
+                            string batchName = "{0}_{1}".Fill(mbi.Client.AppCode, printBatchData.Id);
+                            string xmlFileName = batchName + ".xml";
+                            string goFileName = batchName + ".go";
+
+                            string remoteXMLPath = Path.Combine(pnsRootFolder, mbi.Client.AppCode, xmlFileName);
+                            string remoteGOPath = Path.Combine(pnsRootFolder, mbi.Client.AppCode, goFileName);
+                            string remoteBatchPath = Path.Combine(pnsRootFolder, mbi.Client.AppCode, batchName);
+
+                            remoteBatchPath.CleanDirectory();
+
+                            PnSRequest request = new PnSRequest();
+                            request.AppCode = printBatchData.AppCode;
+                            request.BatchIdentifier = printBatchData.UniqueId;
+                            request.BatchName = batchName;
+                            request.DocTypeId = printBatchData.DocTypeId;
+                            request.SLADays = 0;
+                            request.OnValidationErrors = OnValidationErrors.ProcessValidFiles;
+
+                            List<MailPieceData> mailPackage = new List<MailPieceData>();
+                            foreach (var piece in printBatchData.MailPieces)
                             {
-                                //TODO: Add Validation For Directory Full Access Read/Write/Delete
-                                batchSubmitPath.CleanDirectory();
-                            }
-                            catch (Exception ex)
-                            {
-                                log.Error("Error occured while creating directory :" + ex);
-                            }
+                                string fileName = "{0}_{1}".Fill(piece.Id, piece.FileName);
+                                string localFilePath = Path.Combine(mbi.PnSRequestPath, fileName);
+                                string remoteFilePath = Path.Combine(remoteBatchPath, fileName);
 
-                            try
-                            {
-                                PnSRequest request = new PnSRequest();
-                                request.AppCode = printBatchData.AppCode;
-                                request.BatchIdentifier = printBatchData.UniqueId;
-                                request.BatchName = batchName;
-                                request.DocTypeId = printBatchData.DocTypeId;
-                                request.SLADays = 0;
-                                request.OnValidationErrors = OnValidationErrors.ProcessValidFiles;
+                                File.Copy(localFilePath, remoteFilePath, true);
 
-                                List<MailPieceData> mailPackage = new List<MailPieceData>();
-                                foreach (var piece in printBatchData.MailPieces)
-                                {
-                                    string fileName = "{0}_{1}".Fill(piece.Id, piece.FileName);
-                                    File.Copy(Path.Combine(mbi.PnSRequestPath, fileName), Path.Combine(batchSubmitPath, fileName), true);
+                                MailPieceData mailPieceData = new MailPieceData();
+                                mailPieceData.UniqueId = piece.UniqueId;
+                                mailPieceData.TotalPages = piece.TotalPages;
+                                mailPieceData.PerformQC = piece.IsQCRequested;
+                                mailPieceData.PDFFileName = fileName;
 
-                                    MailPieceData mailPieceData = new MailPieceData();
-                                    mailPieceData.UniqueId = piece.UniqueId;
-                                    mailPieceData.TotalPages = piece.TotalPages;
-                                    mailPieceData.PerformQC = piece.IsQCRequested;
-                                    mailPieceData.PDFFileName = fileName;
-
-                                    mailPackage.Add(mailPieceData);
-                                }
-                                request.MailPackageData = mailPackage;
-                                File.WriteAllText(batchXMLSubmitPath, XmlUtil.Serialize<PnSRequest>(request));
-                                File.WriteAllText(batchGOSubmitPath, "");
-                                commonSvc.UpdatePrintBatchStatus(printBatchData.Id, AM.Entities.BatchStatus.InProgress.ToString());
-                                commonSvc.UpdatePrintBatchPipeLineStatus(printBatchData.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
+                                mailPackage.Add(mailPieceData);
                             }
-                            catch (Exception ex)
-                            {
-                                log.Error("Error occured while generaing PnSRequest :" + ex);
-                            }
+                            request.MailPackageData = mailPackage;
+
+                            File.WriteAllText(remoteXMLPath, request.ToXml());
+                            File.WriteAllText(remoteGOPath, "");
+
+                            commonSvc.UpdatePrintBatchStatus(printBatchData.Id, AM.Entities.BatchStatus.InProgress.ToString());
+                            commonSvc.UpdatePrintBatchPipeLineStatus(printBatchData.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
+
                         }
+                        //TODO : Can we check condition for every mail piece has printbatch id and 
                         commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
                     }
                     catch (Exception ex)
                     {
-                        log.Error(ex);
+                        log.Error("Error occured while generaing PnSRequest :" + ex);
                     }
                 }
             }
@@ -415,38 +390,16 @@ namespace AM.Core
             using (IMailBatchService mailBatchSvc = new MailBatchService())
             using (IClientService clientSvc = new ClientService())
             using (ICommonService commonSvc = new CommonService())
-            using (IMailPieceService mailPieceSvc = new MailPieceService())
-            using (IDocTypeService docTypeSvc = new DocTypeService())
-            using (IFedExService fedExSvc = new FedExService())
             {
                 log.Debug("Get submitted job started.");
                 var submittedPrintBatches = mailBatchSvc.GetSubmittedPrintBatchDetails();
 
-                if (submittedPrintBatches == null || submittedPrintBatches.Count == 0)
+                if (submittedPrintBatches.Count == 0)
                 {
                     log.Debug("Response download Job queue is empty.");
                     return;
                 }
 
-                SFTUtil sftSite = new SFTUtil(SFT_ProtocolType.unc, Config.Core_PnS_SFT_HostURL, Config.Core_PnS_SFT_UserName, Config.Core_PnS_SFT_Password, 300000);
-
-                sftSite.Connect();
-
-                CheckAndDownloadResponseFiles(sftSite, submittedPrintBatches);
-
-                sftSite.Disconnect();
-            }
-        }
-
-        private static void CheckAndDownloadResponseFiles(SFTUtil sftSite, List<SubmittedBatch> submittedPrintBatches)
-        {
-            using (IMailBatchService mailBatchSvc = new MailBatchService())
-            using (IClientService clientSvc = new ClientService())
-            using (ICommonService commonSvc = new CommonService())
-            using (IMailPieceService mailPieceSvc = new MailPieceService())
-            using (IDocTypeService docTypeSvc = new DocTypeService())
-            using (IFedExService fedExSvc = new FedExService())
-            {
                 try
                 {
                     List<string> responseFiles;
@@ -455,10 +408,9 @@ namespace AM.Core
                     {
                         Client client = clientSvc.GetClientByAppCode(appCode);
 
-                        responseFiles = sftSite.ListDirectory(Path.Combine(Config.Core_PnS_SFT_RootDir, client.AppCode));
+                        responseFiles = Directory.EnumerateFiles(Path.Combine(Config.Core_PnS_SFT_RootDir, client.AppCode), ".rpt").ToList();
 
                         var responseTriggerFiles = responseFiles
-                        .Where(file => Path.GetExtension(file).ToLower() == ".rpt")
                         .Select(file => new KeyValuePair<string, string>(Path.GetFileNameWithoutExtension(file), file))
                         .ToList();
 
@@ -466,7 +418,7 @@ namespace AM.Core
                         {
                             string pnsResponseFilePath = Path.Combine(Config.Core_PnS_SFT_RootDir, client.AppCode, triggerFile.Key + "-res.xml");
                             string pnsResponseTriggerFilePath = Path.Combine(Config.Core_PnS_SFT_RootDir, client.AppCode, triggerFile.Value);
-                            if (sftSite.IsFileAvailable(pnsResponseFilePath))
+                            if (File.Exists(pnsResponseFilePath))
                             {
                                 submittedPrintBatches.ForEach(row =>
                                 {
@@ -493,34 +445,29 @@ namespace AM.Core
                             string responseFileName = Path.GetFileName(downloadableBatch.ResponseFilePath);
                             string responseFilePath = downloadableBatch.ResponseFilePath;
 
-                            if (sftSite.IsFileAvailable(responseFilePath))
+
+                            string amRootFilePath = Path.Combine(Config.Common_AuthoMailRootFolder, responseFileName);
+
+                            DateTime mrdfDownloadStartTime = Common.Now;
+                            DateTime responseReceivedOn = File.GetLastWriteTimeUtc(responseFilePath);
+
+                            File.Copy(responseFilePath, amRootFilePath, true);
+
+                            if (File.Exists(responseTriggerFilePath))
+                                File.Delete(responseTriggerFilePath);
+
+                            if (File.Exists(amRootFilePath))
                             {
-                                string amRootFilePath = Path.Combine(Config.Common_AuthoMailRootFolder, responseFileName);
+                                var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(downloadableBatch.MailBatchId);
+                                var mbi = new MailBatchInfo(batchData.MailBatch, client, Config.Common_AuthoMailRootFolder);
 
-                                DateTime mrdfDownloadStartTime = Common.Now;
-                                DateTime responseReceivedOn = sftSite.LastModifiedTimeOfFile(responseFilePath);
+                                string amPnSResponsePath = Path.Combine(mbi.PnSResponsePath, responseFileName);
 
-                                sftSite.DownloadFile(responseFilePath, amRootFilePath, true, false);
-                                sftSite.DeleteFile(responseTriggerFilePath);
+                                File.Move(amRootFilePath, amPnSResponsePath);
 
-                                if (File.Exists(amRootFilePath))
-                                {
-                                    var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(downloadableBatch.MailBatchId);
-                                    var mbi = new MailBatchInfo(batchData.MailBatch, client, Config.Common_AuthoMailRootFolder);
-
-                                    string amPnSResponsePath = Path.Combine(mbi.PnSResponsePath, responseFileName);
-
-                                    File.Move(amRootFilePath, amPnSResponsePath);
-
-                                    commonSvc.UpdatePrintBatchPipeLineStatus(downloadableBatch.PrintBatchId, BatchPipelineStatus.ShippingResponseReceived, responseReceivedOn);
-                                }
-                            }
-                            else
-                            {
-                                log.Error("Trigger file is available but xml file is not available to download For PrintBatch-Id :{0}".Fill(downloadableBatch.PrintBatchId));
+                                commonSvc.UpdatePrintBatchPipeLineStatus(downloadableBatch.PrintBatchId, BatchPipelineStatus.ShippingResponseReceived, responseReceivedOn);
                             }
                         }
-
                     }
                 }
                 catch (Exception ex)
@@ -538,14 +485,12 @@ namespace AM.Core
             using (IClientService clientSvc = new ClientService())
             using (ICommonService commonSvc = new CommonService())
             using (IMailPieceService mailPieceSvc = new MailPieceService())
-            using (IDocTypeService docTypeSvc = new DocTypeService())
-            using (IFedExService fedExSvc = new FedExService())
             {
                 try
                 {
                     var responseReceivedPrintBatches = mailBatchSvc.GetResponseReceivedPrintBatchDetails();
 
-                    if (responseReceivedPrintBatches == null || responseReceivedPrintBatches.Count == 0)
+                    if (responseReceivedPrintBatches.Count == 0)
                     {
                         log.Debug("Response process job queue is empty.");
                         return;
@@ -554,76 +499,84 @@ namespace AM.Core
                     foreach (var printBatch in responseReceivedPrintBatches)
                     {
                         Client client = clientSvc.GetClientByAppCode(printBatch.AppCode);
+
                         BatchData batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(printBatch.MailBatchId);
+
                         MailBatchInfo mbi = new MailBatchInfo(batchData.MailBatch, client, Config.Common_AuthoMailRootFolder);
 
                         var printbatchResponseFilePath = Path.Combine(mbi.PnSResponsePath, printBatch.SubmittedBatchName + "-res.xml");
-                        if (!File.Exists(printbatchResponseFilePath))
+
+                        var pnsResponse = PnSResponse.LoadXml(File.ReadAllText(printbatchResponseFilePath));
+
+                        foreach (var mailPackage in pnsResponse.MailPackageReport)
                         {
-                            log.Error("Response xml file is not exist for PrintBatch ID : {0}".Fill(printBatch.PrintBatchId));
-                            continue;
+                            batchData.MailPieces.ForEach(row =>
+                            {
+                                if (row.UniqueId == mailPackage.UniqueId)
+                                {
+                                    if (mailPackage.MailPieceStatus == MailPieceStatus.Error)
+                                    {
+                                        row.ErrorCode = Enum.ToObject(typeof(ErrorTypes), mailPackage.ErrId).ToString();
+                                        row.ErrorDesc = mailPackage.ErrDesc;
+                                    }
+                                    else if (mailPackage.MailPieceStatus == MailPieceStatus.PulledBack)
+                                    {
+                                        row.PulledBackOn = mailPackage.PulledBackOn;
+                                    }
+                                    else if (mailPackage.MailPieceStatus == MailPieceStatus.Shipped)
+                                    {
+                                        row.PrintedOn = mailPackage.PrintedOn;
+                                        row.ShippedOn = mailPackage.ShippedOn;
+                                        row.ShippingCost = mailPackage.PostageCost;
+                                        row.TotalSheets = mailPackage.TotalSheets;
+                                        row.Weight = mailPackage.WeightMeasured;
+                                        row.IsQCPerformed = mailPackage.IsQCPerformed;
+                                    }
+                                    row.ShippingStatus = mailPackage.MailPieceStatus.ToString();
+
+                                    mailPieceSvc.UpdateBatchMailPieceShippingStatusDetails(row);
+                                }
+                            });
                         }
 
+                        //Updates PrintBatches Status values
+                        commonSvc.UpdatePrintBatchStatus(printBatch.PrintBatchId, pnsResponse.BatchStatus.ToString(), pnsResponse.StatusDescription);
 
-                        var pnsResponse = XmlUtil.Deserialize<PnSResponse>(File.ReadAllText(printbatchResponseFilePath));
-                        if (pnsResponse != null)
+                        //                InProgress,
+                        //PulledBack,
+                        //Error,
+                        //Shipped,
+
+                        //                 InProgress,
+                        //Failed,
+                        //ShippedPartial,
+                        //ShippedAll,
+                        //PulledBack
+                        //Check is there any remaining data for response which is in progress then after update whole mail batch status
+                        batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(printBatch.MailBatchId);
+                        var pendingMailPieces = batchData.MailPieces.Count(data => data.ShippingStatus == ShippingStatus.InProgress.ToString());
+
+                        if (pendingMailPieces == 0)
                         {
-                            if (pnsResponse.MailPackageReport != null && pnsResponse.MailPackageReport.Count > 0)
+
+                            if (batchData.MailPieces.All(data => data.ShippingStatus == ShippingStatus.Shipped.ToString()))
                             {
-                                foreach (var mailPackage in pnsResponse.MailPackageReport)
-                                {
-                                    batchData.MailPieces.ForEach(row =>
-                                    {
-                                        if (row.UniqueId == mailPackage.UniqueId)
-                                        {
-                                            if (mailPackage.MailPieceStatus == MailPieceStatus.Error)
-                                            {
-                                                row.ErrorCode = Convert.ToString((ErrorTypes)mailPackage.ErrId);
-                                                row.ErrorDesc = mailPackage.ErrDesc;
-                                            }
-                                            else if (mailPackage.MailPieceStatus == MailPieceStatus.PulledBack && row.IsPullBackRequested == true)
-                                            {
-                                                row.IsPulledBack = true;
-                                                row.PulledBackOn = mailPackage.PulledBackOn;
-                                            }
-                                            else if (mailPackage.MailPieceStatus == MailPieceStatus.Shipped)
-                                            {
-                                                row.PrintedOn = mailPackage.PrintedOn;
-                                                row.ShippedOn = mailPackage.ShippedOn;
-                                                row.ShippingCost = mailPackage.PostageCost;
-                                                row.TotalSheets = mailPackage.TotalSheets;
-                                                row.Weight = mailPackage.WeightMeasured;
-                                            }
-                                            row.ShippingStatus = mailPackage.MailPieceStatus.ToString();
-
-                                            mailPieceSvc.UpdateBatchMailPieceDetails(row);
-                                        }
-                                    });
-                                }
-                                //Updates PrintBatches Status values
-                                commonSvc.UpdatePrintBatchStatus(printBatch.PrintBatchId, pnsResponse.BatchStatus.ToString(), pnsResponse.StatusDescription);
-
-                                //Check is there any remaining data for response which is in progress then after update whole mail batch status
-                                var remainingData = batchData.MailPieces.Where(data => data.ShippingStatus == ShippingStatus.InProgress.ToString());
-                                if (remainingData.Count() == 0)
-                                {
-                                    var shippedCount = batchData.MailPieces.Where(data => data.ShippingStatus == ShippingStatus.Shipped.ToString());
-                                    if (shippedCount.Count() == 0)
-                                    {
-                                        commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.Failed.ToString());
-                                    }
-                                    else if (shippedCount.Count() < batchData.MailPieces.Count)
-                                    {
-                                        commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.ShippedPartial.ToString());
-                                    }
-                                    else
-                                    {
-                                        commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.ShippedAll.ToString());
-                                    }
-
-                                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ShippingResponseReceived, Common.Now);
-                                }
+                                commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.ShippedAll.ToString());
                             }
+                            else if (batchData.MailPieces.All(data => data.ShippingStatus == ShippingStatus.PulledBack.ToString()))
+                            {
+                                commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.PulledBack.ToString());
+                            }
+                            else if (batchData.MailPieces.All(data => data.ShippingStatus == ShippingStatus.Error.ToString()))
+                            {
+                                commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.Failed.ToString());
+                            }
+                            else
+                            {
+                                commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.ShippedPartial.ToString());
+                            }
+
+                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ShippingResponseReceived, Common.Now);
                         }
                     }
                 }
@@ -642,12 +595,10 @@ namespace AM.Core
             using (IMailBatchService mailBatchSvc = new MailBatchService())
             using (IClientService clientSvc = new ClientService())
             using (ICommonService commonSvc = new CommonService())
-            using (IMailPieceService mailPieceSvc = new MailPieceService())
-            using (IDocTypeService docTypeSvc = new DocTypeService())
-            using (IFedExService fedExSvc = new FedExService())
+            using (IAMCService amcSvc = new AMCService())
             {
                 List<MailBatchDTO> resReceivedBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.ShippingResponseReceived);
-                if (resReceivedBatches == null)
+                if (resReceivedBatches.Count == 0)
                 {
                     log.Debug("Report prepped job queue is empty.");
                     return;
@@ -658,40 +609,40 @@ namespace AM.Core
                     Client client = clientSvc.GetClientById(batch.ClientId);
                     SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(batch.SFTChannelId);
                     MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
+
                     var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
                     if (data != null)
                     {
                         try
                         {
-                            StringBuilder deliveryReport = USAADailyDetailOperationReportAMC(data, sftChannelDetails.Title, client.TimeZone);
+                            bool isDeliveryReportGenerated = false, isErrorReportGenerated = false;
+
+                            StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(data);
 
                             if (deliveryReport != null)
                             {
                                 string deliveryReportFileName = "Delivery-{0}.csv".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
-                                using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(deliveryReport.ToString())))
-                                {
-                                    using (FileStream file = new FileStream(Path.Combine(mbi.AMResponsePath, deliveryReportFileName), FileMode.Create, FileAccess.Write))
-                                    {
-                                        ms.WriteTo(file);
-                                    }
-                                }
+                                string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
+
+                                File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
+
+                                isDeliveryReportGenerated = true;
                             }
 
-                            StringBuilder errorReport = USAAErrorReportAMC(data, sftChannelDetails.Title, client.TimeZone);
+                            StringBuilder errorReport = amcSvc.AMCErrorReport(data);
 
                             if (errorReport != null)
                             {
                                 string errorReportFileName = "Error-{0}.csv".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
-                                using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(errorReport.ToString())))
-                                {
-                                    using (FileStream file = new FileStream(Path.Combine(mbi.AMResponsePath, errorReportFileName), FileMode.Create, FileAccess.Write))
-                                    {
-                                        ms.WriteTo(file);
-                                    }
-                                }
+                                string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+                               
+                                File.WriteAllText(errorReportPath, errorReport.ToString());
+                                
+                                isErrorReportGenerated = true;
                             }
 
-                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
+                            if (isDeliveryReportGenerated || isErrorReportGenerated)
+                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
 
                             //TODO: Remove after proper naming convention
                             Thread.Sleep(1000);
@@ -705,195 +656,6 @@ namespace AM.Core
             }
 
             log.Debug("Report prepped job is completed.");
-        }
-
-        internal static StringBuilder USAAErrorReportAMC(BatchData data, string sftChannelName, string timeZone)
-        {
-            StringBuilder errorReport = new StringBuilder("BatchID, ID, Package Name, Loan Number, File Name, Date Received, First Name, Last Name, Recipient Street Address, Recipient City, Recipient State, Recipient Zip, Error Code, Error Text, Shipping Method, Customer Identifier, RequestID");
-
-            errorReport.AppendLine();
-
-            var erroredData = data.MailPieces.Where(l => l.ErrorCode != OutComeCodes.No_Error).ToList();
-
-            if (erroredData == null || erroredData.Count == 0)
-            {
-                return null;
-            }
-            using (DocTypeService docTypeSvc = new DocTypeService())
-            {
-                // All the loans where outcome code is anything except no_error are processed invalid loans.
-                foreach (MailPieceDTO mailPiece in erroredData)
-                {
-                    DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId);
-
-
-                    var custId = data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").SingleOrDefault();
-
-                    var requestId = data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").SingleOrDefault();
-
-
-                    var line = String.Join(",",
-                        data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
-                            mailPiece.UniqueId,
-                            mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType.ToCsvString(),
-                            mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
-                            mailPiece.FileName == null ? string.Empty : mailPiece.FileName.ToCsvString(),
-                            data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
-                            mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName.ToCsvString(),
-                            mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName.ToCsvString(),
-                            mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet.ToCsvString(),
-                            mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity,
-                            mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
-                            mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
-                            mailPiece.ErrorCode,
-                            mailPiece.ErrorDesc == null ? string.Empty : mailPiece.ErrorDesc.Replace("\r\n", " ").ToCsvString(),
-                            docType == null ? string.Empty : docType.ShippingCarrier,
-                            custId == null ? string.Empty : custId.Value,
-                            requestId == null ? string.Empty : requestId.Value
-                        );
-
-                    errorReport.AppendLine(line);
-                }
-            }
-            return errorReport;
-        }
-
-        internal static StringBuilder USAADailyDetailOperationReportAMC(BatchData data, string sftChannelName, string timeZone)
-        {
-            StringBuilder deliveryReport = new StringBuilder("BatchID, ID, Package Name, Loan Number, File Name, Date Received, Date Printed, Date Mailed, Client Code, Tracking Number, Shipping Method, Customer Identifier, First Name, Last Name, Recipient Street Address, Recipient City, Recipient State, Recipient Zip, RequestID, Pages Shipped");
-
-            deliveryReport.AppendLine();
-
-            var shippedData = data.MailPieces.Where(l => l.ShippingStatus == ShippingStatus.Shipped.ToString()).ToList();
-
-            if (shippedData == null || shippedData.Count == 0)
-            {
-                return null;
-            }
-
-            using (DocTypeService docTypeSvc = new DocTypeService())
-            {
-                // All the loans where outcome code is anything except no_error are processed invalid loans.
-                foreach (MailPieceDTO mailPiece in shippedData)
-                {
-                    DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId);
-
-                    var shippingCredCode = data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingCredCode").SingleOrDefault();
-
-                    var custId = data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").SingleOrDefault();
-
-                    var requestId = data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").SingleOrDefault();
-
-                    var line = String.Join(",",
-                        data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
-                            mailPiece.UniqueId,
-                            mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType.ToCsvString(),
-                            mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
-                            mailPiece.FileName == null ? string.Empty : mailPiece.FileName,
-                            data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
-                            mailPiece.PrintedOn == null ? string.Empty : mailPiece.PrintedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
-                            mailPiece.ShippedOn == null ? string.Empty : mailPiece.ShippedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
-                            shippingCredCode == null ? string.Empty : shippingCredCode.Value,
-                            mailPiece.TrackingNo == null ? string.Empty : mailPiece.TrackingNo,
-                            docType == null ? string.Empty : docType.ShippingCarrier,
-                            custId == null ? string.Empty : custId.Value,
-                            mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName.ToCsvString(),
-                            mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName.ToCsvString(),
-                            mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet.ToCsvString(),
-                            mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity,
-                            mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
-                            mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
-                            requestId == null ? string.Empty : requestId.Value,
-                            mailPiece.TotalPages);
-
-                    deliveryReport.AppendLine(line);
-                }
-            }
-            return deliveryReport;
-        }
-
-        internal static StringBuilder USAAErrorReport(BatchData data, string sftChannelName, string timeZone)
-        {
-            StringBuilder errorReport = new StringBuilder("BatchID,ID,Channel,Package Name,Loan Number,File Name,Date Received,First Name,Last Name,Recipient Street Address,Recipient City,Recipient State,Recipient Zip,Error Code,Error Text,Shipping Method,Customer Identifier,RequestID");
-
-            errorReport.AppendLine();
-
-            var erroredData = data.MailPieces.Where(l => l.ErrorCode != OutComeCodes.No_Error).ToList();
-
-            if (erroredData == null || erroredData.Count == 0)
-            {
-                return null;
-            }
-
-            // All the loans where outcome code is anything except no_error are processed invalid loans.
-            foreach (MailPieceDTO mailPiece in erroredData)
-            {
-                errorReport.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17}",
-                        data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
-                        mailPiece.UniqueId,
-                        sftChannelName,
-                        mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType,
-                        mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
-                        mailPiece.FileName == null ? string.Empty : mailPiece.FileName,
-                        data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
-                        mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName,
-                        mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName,
-                        mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet,
-                        mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity,
-                        mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
-                        mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
-                        mailPiece.ErrorCode,
-                        mailPiece.ErrorDesc == null ? string.Empty : mailPiece.ErrorDesc.Replace(',', ' ').Replace("\r\n", " "),
-                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault().Value,
-                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").FirstOrDefault().Value,
-                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault().Value));
-            }
-
-            return errorReport;
-        }
-
-        internal static StringBuilder USAADailyDetailOperationReport(BatchData data, string sftChannelName, string timeZone)
-        {
-            StringBuilder deliveryReport = new StringBuilder("BatchID,ID,Channel,Package Name,Loan Number,File Name,Date Received,Date Printed,Date Mailed,Client Code,Tracking Number,Shipping Method,Customer Identifier,First Name,Last Name,Recipient Street Address,Recipient City,Recipient State,Recipient Zip,RequestID,Print Location,Pages Shipped");
-
-            deliveryReport.AppendLine();
-
-            var shippedData = data.MailPieces.Where(l => l.ShippingStatus == ShippingStatus.Shipped.ToString()).ToList();
-
-            if (shippedData == null || shippedData.Count == 0)
-            {
-                return null;
-            }
-
-            // All the loans where outcome code is anything except no_error are processed invalid loans.
-            foreach (MailPieceDTO mailPiece in shippedData)
-            {
-                deliveryReport.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21}",
-                        data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
-                        mailPiece.UniqueId,
-                        sftChannelName,
-                        mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType,
-                        mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
-                        mailPiece.FileName == null ? string.Empty : mailPiece.FileName,
-                        data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
-                        mailPiece.PrintedOn == null ? string.Empty : mailPiece.PrintedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
-                        mailPiece.ShippedOn == null ? string.Empty : mailPiece.ShippedOn.Value.UtcToClientTimeZone(timeZone).ToString(),
-                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingCredCode").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingCredCode").FirstOrDefault().Value,
-                        mailPiece.TrackingNo == null ? string.Empty : mailPiece.TrackingNo,
-                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingMethod").FirstOrDefault().Value,
-                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").FirstOrDefault().Value,
-                        mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName,
-                        mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName,
-                        mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet,
-                        mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity,
-                        mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
-                        mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
-                        data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault() == null ? string.Empty : data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").FirstOrDefault().Value,
-                        data.MailBatch.PrintLocation.Replace(",", " "),
-                        mailPiece.TotalSheets));
-            }
-
-            return deliveryReport;
         }
     }
 }

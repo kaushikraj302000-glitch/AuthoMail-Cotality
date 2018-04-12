@@ -70,7 +70,6 @@
       <DependentUpon>AMCoreService.cs</DependentUpon>
     </Compile>
     <Compile Include="CreateFedExLabel.cs" />
-    <Compile Include="MailUtility.cs" />
     <Compile Include="PdfUtil.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -84,7 +83,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Reference.svcmap</DependentUpon>
     </Compile>
-    <Compile Include="SFTUtil.cs" />
     <Compile Include="SmartDocs.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -92,11 +90,21 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="CoverTemplates\Generic_Template.pdf" />
-    <None Include="CoverTemplates\USAA\65\USAA_65_1.pdf" />
-    <None Include="CoverTemplates\USAA\66\USAA_66_1.pdf" />
-    <None Include="CoverTemplates\USAA\68\USAA_68_1.pdf" />
-    <None Include="CoverTemplates\USAA\70\USAA_70_1.pdf" />
-    <None Include="CoverTemplates\USAA\71\USAA_71_1.pdf" />
+    <None Include="CoverTemplates\USAA\65\USAA_65_1.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="CoverTemplates\USAA\66\USAA_66_1.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="CoverTemplates\USAA\68\USAA_68_1.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="CoverTemplates\USAA\70\USAA_70_1.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="CoverTemplates\USAA\71\USAA_71_1.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="CoverTemplates\USAA_Template.pdf" />
     <None Include="log4net.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
