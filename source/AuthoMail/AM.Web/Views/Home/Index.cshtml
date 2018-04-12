@@ -383,6 +383,7 @@
                 }
             }
         });
+        var sumArr = new Array();
         Array.prototype.uniquePush = function (item) {
             if (this.indexOf(item) == -1)
                 this.push(item);
@@ -490,26 +491,23 @@
                 success: function (response) {
                     //console.log(response);
                     var chartData = [];
-                    var ticksArr = [];
+                    //var ticksArr = [];
                     chartData.push(['Date', 'InProgress', 'Failed', 'PulledBack', 'ShippedAll', 'ShippedPartial', 'Dates']);
                     var cnt = 0;
                     var startDate = response[response.length - 1].Date;
                     var endDate = response[0].Date;
+                    sumArr = new Array();
                     //console.log(startDate + " " + endDate);
                     for (var i = 1; i <= response.length; i++) {
                         //console.log(moment(response[cnt].Date).format("MM/DD/YYYY") == moment().format("MM/DD/YYYY") + " " + cnt + " " + i);
                         //var day = moment(response[cnt].Date).format("MM/DD/YYYY") == moment().format("MM/DD/YYYY") ? "Today" : moment(response[cnt].Date).format("ddd");
                         chartData.push([response[cnt].Weekday, response[cnt].InProgress, response[cnt].Failed, response[cnt].PulledBack, response[cnt].ShippedAll, response[cnt].ShippedPartial, moment(response[cnt].Date).format("MM/DD/YYYY hh:mm:ss a")]);
-                        ticksArr.uniquePush(response[cnt].InProgress);
-                        ticksArr.uniquePush(response[cnt].Failed);
-                        ticksArr.uniquePush(response[cnt].PulledBack);
-                        ticksArr.uniquePush(response[cnt].ShippedPartial);
-                        ticksArr.uniquePush(response[cnt].ShippedAll);
+                        sumArr.push(response[cnt].InProgress + response[cnt].Failed + response[cnt].PulledBack + response[cnt].ShippedAll + response[cnt].ShippedPartial);
 
                         cnt++;
                     }
                     // console.log(chartData);
-                    drawChart(chartData, "weeklyChart", 'Batch Details : ' + moment(startDate).format('MM/DD/YYYY') + " - " + moment(endDate).format('MM/DD/YYYY'), 300, 510, ticksArr);
+                    drawChart(chartData, "weeklyChart", 'Batch Details : ' + moment(startDate).format('MM/DD/YYYY') + " - " + moment(endDate).format('MM/DD/YYYY'), 300, 510);
 
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
@@ -571,20 +569,18 @@
                     var chartData = [];
                     chartData.push(['BatchName', 'InProgress', 'Error', 'PulledBack', 'Shipped', 'BatchId', 'ReceivedOn']);
                     var cnt = 0;
-                    var ticksArr = [];
+                    //var ticksArr = [];
+                    sumArr = new Array();
                     for (var i = 1; i <= response.length; i++) {
 
                         chartData.push([response[cnt].ClientBatchId, response[cnt].InProgress, response[cnt].Error, response[cnt].PulledBack, response[cnt].Shipped, response[cnt].MailBatchId, moment(response[cnt].ReceivedOn).format("MM/DD/YYYY  HH:mm:ss")]);
-                        ticksArr.uniquePush(response[cnt].InProgress);
-                        ticksArr.uniquePush(response[cnt].Error);
-                        ticksArr.uniquePush(response[cnt].PulledBack);
-                        ticksArr.uniquePush(response[cnt].Shipped);
+                        sumArr.push(response[cnt].InProgress + response[cnt].Error + response[cnt].PulledBack + response[cnt].Shipped);
 
                         cnt++;
                     }
                     ////console.log(chartData);
 
-                    drawChart(chartData, "todayChart", 'MailPiece Status', 467, 510, ticksArr);
+                    drawChart(chartData, "todayChart", 'MailPiece Status', 467, 510);
 
 
 
@@ -660,18 +656,10 @@
 
             });
         }
-        var makeTicks = function (ticksArr) {
-            if (ticksArr != null) {
-                var max = 0;
-                for (var i = 0; i < ticksArr.length; i++) {
-                    max += ticksArr[i];
-                }
-                return max;
-            }
 
-        };
+
         google.charts.load('current', { packages: ['corechart'] });
-        function drawChart(chartData, div, title, height, width, ticksArr) {
+        function drawChart(chartData, div, title, height, width) {
             var data = google.visualization.arrayToDataTable(chartData);
             var view = new google.visualization.DataView(data);
             var colors = [];
@@ -697,10 +685,21 @@
                     3: { color: '#539536' }
                 };
             }
-            var checkMax = makeTicks(ticksArr);
-            if (checkMax > 2) {
-                ticksArr = null;
+            var ticksArr = new Array();
+            if (sumArr.length > 0) {
+                var maxSum = Math.max.apply(Math, sumArr);
+                console.log("Max:" + maxSum);
+                if (maxSum < 5) {
+                    ticksArr = new Array();
+                    for (var i = 0; i <= maxSum; i++) {
+                        ticksArr[i] = i;
+                    }
+                }
+                else {
+                    ticksArr = null;
+                }
             }
+
             var options = {
                 title: title,
                 isStacked: true,
@@ -708,7 +707,7 @@
                 'width': width,
                 hAxis: {
                     minValue: 0,
-                    ticks: ticksArr
+                    format: 0
                 },
 
                 legend: { position: 'top', maxLines: 3 },
