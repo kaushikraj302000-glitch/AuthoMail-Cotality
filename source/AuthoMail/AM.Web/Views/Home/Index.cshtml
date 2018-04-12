@@ -664,8 +664,8 @@
             var view = new google.visualization.DataView(data);
             var colors = [];
             var series;
-            var hTitle = "Total Mailpieces";
-            var vTitle = "Client Batches Name";
+            var hTitle = "Mailpieces";
+            var vTitle = "Batch Names";
             if (div == "weeklyChart") {
                 view.setColumns([0, 1, 2, 3, 4, 5]);
                 series = {
@@ -675,8 +675,8 @@
                     3: { color: '#539536' },
                     4: { color: '#f63' }
                 };
-                hTitle = "Total Batches";
-                vTitle = "Days";
+                hTitle = "Batches";
+                vTitle = "Week Days";
             }
             else {
                 view.setColumns([0, 1, 2, 3, 4]);
@@ -707,14 +707,31 @@
                 isStacked: true,
                 'height': height,
                 'width': width,
+
                 hAxis: {
                     minValue: 0,
                     ticks: ticksArr,
                     format: 0,
                     title: hTitle,
+                    textStyle: {
+                        fontSize: 12,
+                        bold: true,
+                        //color: '#848484'
+                    },
+                    titleTextStyle: {
+                        fontSize: 12,
+                        bold: true,
+                        //color: '#848484'
+                    }
                 },
                 vAxis: {
-                    title: vTitle
+                    title: vTitle,
+                    
+                    titleTextStyle: {
+                        fontSize: 12,
+                        bold: true,
+                        
+                    }
                 },
                 legend: { position: 'top', maxLines: 3 },
                 series: series
@@ -876,8 +893,9 @@
                                     case "Shipped":
                                         $("#yesPullback").hide();
                                         $("#noPullback").html("Close");
+                                        $("#confirmMsg").hide();
                                         $("#noPullback").removeClass("btn-primary");
-                                        $("#noPullback").addClass("btn-default");
+                                        $("#noPullback").addClass("btn-primary");
                                         break;
                                     case "InProgress":
                                         if (IsPullbackRequested == "Yes") {
