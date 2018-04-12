@@ -79,7 +79,7 @@ namespace AM.Entities
         public decimal Weight { get; set; }
         public bool IsQCRequested { get; set; }
         public bool IsQCPerformed { get; set; }
-        public int DocTypeId { get; set; }
+        public int? DocTypeId { get; set; }
     }
 
     public class MailPieceCustomInfo

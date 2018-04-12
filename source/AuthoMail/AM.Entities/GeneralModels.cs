@@ -19,7 +19,8 @@ namespace AM.Entities
         InProgress,
         Failed,
         ShippedPartial,
-        ShippedAll
+        ShippedAll,
+        PulledBack
     }
 
     public static class BatchPipelineStatus
@@ -42,16 +43,70 @@ namespace AM.Entities
         public const string No_Error = "No_Error";
         public const string Missing_Zip_File = "Missing_Zip_File";
         public const string Invalid_Zip_File = "Invalid_Zip_File";
-        public const string Invalid_XML = "Invalid_XML";
-        public const string Missing_XML = "Missing_XML";
-        public const string Invalid_PDF = "Invalid_PDF";
-        public const string Missing_PDF = "Missing_PDF";
+        public const string Invalid_XML_File = "Invalid_XML_File";
+        public const string Missing_XML_File = "Missing_XML_File";
+        public const string Invalid_PDF_File = "Invalid_PDF_File";
+        public const string Missing_PDF_File = "Missing_PDF_File";
         public const string Mailing_Address_Missing_Or_Invalid = "Mailing_Address_Missing_Or_Invalid";
         public const string Recipient_Details_Missing_Or_Invalid = "Recipient_Details_Missing_Or_Invalid";
         public const string Unknown_Error = "Unknown_Error";
         public const string Invalid_PackageType = "Invalid_PackageType";
-        public const string Invalid_ShippingDetails = "Invalid_ShippingDetails";
-        public const string Invalid_FedExAccount = "Invalid_FedExAccount";
+        public const string Invalid_ShippingDetail = "Invalid_ShippingDetail";
+
+        public static string GetAMCMappingCode(string amOutcomecode)
+        {
+            switch (amOutcomecode)
+            {
+                case OutComeCodes.No_Error:
+                    return AMCOutComeCodes.No_Error.ToString();
+
+                case OutComeCodes.Missing_Zip_File:
+                    return AMCOutComeCodes.Invalid_Zip_File.ToString();
+
+                case OutComeCodes.Invalid_Zip_File:
+                    return AMCOutComeCodes.Invalid_Zip_File.ToString();
+
+                case OutComeCodes.Invalid_XML_File:
+                    return AMCOutComeCodes.Invalid_XML_File.ToString();
+
+                case OutComeCodes.Missing_XML_File:
+                    return AMCOutComeCodes.Invalid_XML_File.ToString();
+
+                case OutComeCodes.Invalid_PDF_File:
+                    return AMCOutComeCodes.Invalid_PDF_File.ToString();
+
+                case OutComeCodes.Missing_PDF_File:
+                    return AMCOutComeCodes.Invalid_PDF_File.ToString();
+
+                case OutComeCodes.Mailing_Address_Missing_Or_Invalid:
+                    return AMCOutComeCodes.Mailing_address_missing_or_invalid.ToString();
+
+                case OutComeCodes.Recipient_Details_Missing_Or_Invalid:
+                    return AMCOutComeCodes.Recipient_name_missing_or_invalid.ToString();
+ 
+                case OutComeCodes.Invalid_PackageType:
+                    return AMCOutComeCodes.Invalid_shipping_detail.ToString();
+
+                case OutComeCodes.Invalid_ShippingDetail:
+                    return AMCOutComeCodes.Invalid_shipping_detail.ToString();
+
+                case OutComeCodes.Unknown_Error:
+                default:
+                    return AMCOutComeCodes.Unknown_Error.ToString();
+            }
+        }
+    }
+
+    public enum AMCOutComeCodes
+    {
+        No_Error,
+        Invalid_XML_File,
+        Invalid_PDF_File,   // If PDF file is missing or unreadable then invalid PDF.
+        Invalid_Zip_File,
+        Mailing_address_missing_or_invalid,
+        Recipient_name_missing_or_invalid,
+        Unknown_Error,
+        Invalid_shipping_detail
     }
 
     public enum ShippingStatus
