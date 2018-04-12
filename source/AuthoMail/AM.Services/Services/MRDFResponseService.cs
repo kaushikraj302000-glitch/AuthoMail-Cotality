@@ -18,7 +18,7 @@ namespace AM.Services
     {
         public void GenerateMRDFResponse()
         {
-            string query = "SELECT PB.PrintFileName,PM.JobId,PM.PieceId,PM.[Date],PM.TotalSheets FROM PnS.BatchSummary PB INNER JOIN PnS.MRDFRequest PM ON PB.PrintBatch = PM.JobId";
+            string query = "SELECT PB.PrintFileName,PM.JobId,PM.PieceId,PM.[Date],PM.TotalSheets,PM.PDFFileName FROM PnS.BatchSummary PB INNER JOIN PnS.MRDFRequest PM ON PB.PrintBatch = PM.JobId";
             var mrdfData = db.Query<MRDFResponse>(query).ToList();
 
             foreach (var items in mrdfData.GroupBy(m => m.JobId))
@@ -29,12 +29,13 @@ namespace AM.Services
                 string zipFilePath = string.Empty;
                 foreach (var item in items)
                 {
-                    outFilePath = string.Format("{0}.out", Path.Combine(@"C:\Users\akshar.vala.mtc\Desktop\03232017\AuthoMail\MRDFResponse", item.PrintFileName.Replace(".zip", "").Trim()));
-                    zipFilePath = string.Format("{0}", Path.Combine(@"C:\Users\akshar.vala.mtc\Desktop\03232017\AuthoMail\MRDFResponse", item.PrintFileName));
+                    outFilePath = string.Format("{0}.out", Path.Combine(@"C:\Users\akshar.vala.mtc\Desktop\03232017\AuthoMail\MRDFResponse", item.PrintFileName.Replace(".zip", "-000043HYFC")));
+                    zipFilePath = string.Format("{0}.zip", Path.Combine(@"C:\Users\akshar.vala.mtc\Desktop\03232017\AuthoMail\MRDFResponse", Path.GetFileNameWithoutExtension(outFilePath)));
                     item.Date = DateTime.Parse(item.Date).ToString("yyyyMMdd");
                     item.JobId = String.Format("{0:D10}", Int32.Parse(item.JobId));
                     item.PieceId = String.Format("{0:D4}", Int32.Parse(item.PieceId));
                     item.TotalSheets = String.Format("{0:D3}", Int32.Parse(item.TotalSheets));
+                    item.PDFFileName = String.Format("{0,-160}",item.PDFFileName);
                     item.OperatorId = "RichardP";
                     item.MachineId = String.Format("{0,-8}", "PCI09");
                     item.ProcessingTimeStamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
@@ -45,6 +46,7 @@ namespace AM.Services
                     responseLine = string.Format("{0}{1}{2}", responseLine.Substring(0, 85), item.JobId, responseLine.Substring(95));
                     responseLine = string.Format("{0}{1}{2}", responseLine.Substring(0, 95), item.PieceId, responseLine.Substring(99));
                     responseLine = string.Format("{0}{1}{2}", responseLine.Substring(0, 99), item.TotalSheets, responseLine.Substring(102));
+                    responseLine = string.Format("{0}{1}{2}", responseLine.Substring(0, 117), item.PDFFileName, responseLine.Substring(277));
                     responseLine = string.Format("{0}{1}{2}", responseLine.Substring(0, 800), item.OperatorId, responseLine.Substring(808));
                     responseLine = string.Format("{0}{1}{2}", responseLine.Substring(0, 808), item.MachineId, responseLine.Substring(816));
                     responseLine = string.Format("{0}{1}{2}", responseLine.Substring(0, 816), item.ProcessingTimeStamp, responseLine.Substring(830));
