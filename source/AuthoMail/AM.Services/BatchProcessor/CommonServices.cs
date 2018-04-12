@@ -14,6 +14,7 @@ namespace AM.Services
     {
         int UpdateBatchPipeLineStatus(int batchId, string pipeLineStatus, DateTime timestamp);
         int UpdateBatchStatus(int batchId, string batchStatus);
+        int UpdateBatchValidationStatus(int batchId, string validationStatus, string validationErrors);
         int AMLogBatchTimeLine(int batchId, string activityName, DateTime timeStamp);
         int UpdatePrintBatchStatus(int printBatchId, string batchStatus, string statusDescription = null);
         int UpdatePrintBatchPipeLineStatus(int printBatchId, string pipeLineStatus, DateTime timestamp);
@@ -34,6 +35,13 @@ namespace AM.Services
             string query = "UPDATE [AM].[MailBatches] SET BatchStatus = @batchStatus WHERE Id = @batchId";
 
             return db.Execute(query, new { batchStatus = batchStatus, batchId = batchId });
+        }
+
+        public int UpdateBatchValidationStatus(int batchId, string validationStatus, string validationErrors)
+        {
+            string query = "UPDATE [AM].[MailBatches] SET ValidationStatus = @validationStatus, ValidationErrors=@validationErrors WHERE Id = @batchId";
+
+            return db.Execute(query, new { batchId = batchId, validationStatus = validationStatus, validationErrors = validationErrors });
         }
 
         public int AMLogBatchTimeLine(int batchId, string activityName, DateTime timeStamp)
@@ -59,7 +67,7 @@ namespace AM.Services
         {
             string query = "SELECT * FROM [AM].[ClientBusinessIdentifiers] WHERE ClientId= @clientId ";
 
-            return db.Query<ClientBusinessIdentifier>(query, new { clientId = clientId }).SingleOrDefault();
+            return db.QuerySingleOrDefault<ClientBusinessIdentifier>(query, new { clientId = clientId });
         }
 
         public int InsertBusinessIdentifierName(ClientBusinessIdentifier clientBusinessId)

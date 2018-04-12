@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Dapper;
 using AM.Entities;
+using AM.Lib;
 
 namespace AM.Services
 {
@@ -25,11 +26,9 @@ namespace AM.Services
     {
         public int InsertBatchDetails(MailBatchDTO mailBatch)
         {
-            //Sql Query
-            string query = "INSERT INTO [AM].[MailBatches](UniqueId, ClientId, SFTChannelId, ClientBatchId, BatchName, DocumentOrPackageType, ReceivedOn, DownloadedOn, ValidatedOn, AcknowledgedOn, PreppedOn, SubmittedToShippingOn, ShippingResponseReceivedOn,  ReportPreppedOn, ReportedBackOn, Priority, BatchStatus, ValidationStatus, ValidationErrors, PipelineStatus, IsReturnInfoSpecified, RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RetRcptSuffix, RetRcptPhone, RetRcptOrganization, RetRcptAddrOptionalLine1AboveStreet, RetRcptAddrOptionalLine2AboveStreet, RetRcptAddressStreet, RetRcptAddressAptOrSuiteOrOther, RetRcptAddrOptionalLine1BelowStreet, RetRcptAddrOptionalLine2BelowStreet, RetRcptAddressCity, RetRcptAddressState, RetRcptAddressZIP, PrintLocation) Output Inserted.Id VALUES (@UniqueId, @ClientId, @SFTChannelId, @ClientBatchId, @BatchName, @DocumentOrPackageType, @ReceivedOn, @DownloadedOn, @ValidatedOn, @AcknowledgedOn, @PreppedOn, @SubmittedToShippingOn, @ShippingResponseReceivedOn, @ReportPreppedOn, @ReportedBackOn, @Priority, @BatchStatus, @ValidationStatus, @ValidationErrors, @PipelineStatus, @IsReturnInfoSpecified, @RetRcptPrefix, @RetRcptFirstName, @RetRcptMiddleName, @RetRcptLastName, @RetRcptSuffix, @RetRcptPhone, @RetRcptOrganization, @RetRcptAddrOptionalLine1AboveStreet, @RetRcptAddrOptionalLine2AboveStreet, @RetRcptAddressStreet, @RetRcptAddressAptOrSuiteOrOther, @RetRcptAddrOptionalLine1BelowStreet, @RetRcptAddrOptionalLine2BelowStreet, @RetRcptAddressCity, @RetRcptAddressState, @RetRcptAddressZIP, @PrintLocation)";
+            string query = @"INSERT INTO [AM].[MailBatches](UniqueId, ClientId, SFTChannelId, ClientBatchId, BatchName, [Priority], PrintLocation) Output Inserted.Id VALUES (@UniqueId, @ClientId, @SFTChannelId, @ClientBatchId, @BatchName, @Priority, @PrintLocation)";
 
-            var data = db.ExecuteScalar(query, mailBatch);
-            return Convert.ToInt32(data);
+            return db.ExecuteScalar<int>(query, mailBatch);
         }
 
         public int DeleteBatchDetails(int mailBatchId)
@@ -42,24 +41,21 @@ namespace AM.Services
                             DELETE FROM [AM].[MailBatchCustomInfo] WHERE MailBatchId=@Id
                             DELETE FROM [AM].[MailBatches] WHERE Id=@Id;";
 
-            var data = db.Execute(query, new { Id = mailBatchId });
-            return data;
+            return db.Execute(query, new { Id = mailBatchId });
         }
 
         public int UpdateBatchDetails(MailBatchDTO mailBatch)
         {
             string query = "UPDATE [AM].[MailBatches] SET [UniqueId] = @UniqueId,[ClientId] = @ClientId,[DocumentOrPackageType] = @DocumentOrPackageType,[BatchName] = @BatchName ,[ValidationStatus] = @ValidationStatus ,[ValidationErrors] = @ValidationErrors,[ClientBatchId] = @ClientBatchId ,[IsReturnInfoSpecified] = IsReturnInfoSpecified,[RetRcptPrefix] = @RetRcptPrefix ,[RetRcptFirstName] =@RetRcptFirstName ,[RetRcptMiddleName] = @RetRcptMiddleName ,[RetRcptLastName] = @RetRcptLastName ,[RetRcptSuffix] = @RetRcptSuffix ,[RetRcptPhone] = @RetRcptPhone ,[RetRcptOrganization] = @RetRcptOrganization ,[RetRcptAddrOptionalLine1AboveStreet] = @RetRcptAddrOptionalLine1AboveStreet ,[RetRcptAddrOptionalLine2AboveStreet] = @RetRcptAddrOptionalLine2AboveStreet ,[RetRcptAddressStreet] = @RetRcptAddressStreet ,[RetRcptAddressAptOrSuiteOrOther] = @RetRcptAddressAptOrSuiteOrOther ,[RetRcptAddrOptionalLine1BelowStreet] = RetRcptAddrOptionalLine1BelowStreet ,[RetRcptAddrOptionalLine2BelowStreet] = RetRcptAddrOptionalLine2BelowStreet ,[RetRcptAddressCity] = @RetRcptAddressCity ,[RetRcptAddressState] = @RetRcptAddressState ,[RetRcptAddressZIP] = @RetRcptAddressZIP ,[Priority] = @Priority ,[SFTChannelId] = @SFTChannelId WHERE Id=@Id";
 
-            var data = db.ExecuteScalar(query, mailBatch);
-            return Convert.ToInt32(data);
+            return db.Execute(query, mailBatch);
         }
 
         public int MarkMailBatchAsInvalid(int id, string errorDesc)
         {
             string query = "UPDATE [AM].[MailBatches] SET [ValidationStatus] = @ValidationStatus, [ValidationErrors] = @ValidationErrors, [PrintLocation] = NULL WHERE Id=@Id";
 
-            var data = db.Execute(query, new { ValidationStatus = BatchValidationStatus.Invalid, ValidationErrors = errorDesc, Id = id });
-            return data;
+            return db.Execute(query, new { ValidationStatus = BatchValidationStatus.Invalid, ValidationErrors = errorDesc, Id = id });
         }
 
         public List<MailBatchDTO> GetBatchesByPipelineStatus(string batchPipelineStatus)
@@ -121,39 +117,31 @@ namespace AM.Services
             //Sql Query
             string query = "INSERT INTO [AM].[PrintBatches](UniqueId, MailBatchId, AppCode, DocTypeId) Output Inserted.Id VALUES (@UniqueId, @MailBatchId, @AppCode, @DocTypeId)";
 
-            var printBatchId = db.ExecuteScalar(query, printBatch);
-
-            if (printBatchId != null || Convert.ToInt32(printBatchId) != 0)
+            var printBatchId = db.ExecuteScalar<int>(query, printBatch);
+            foreach (var mailPiece in printBatch.MailPieces)
             {
-                foreach (var mailPiece in printBatch.MailPieces)
-                {
-                    string updateQuery = "UPDATE [AM].[MailPieces] SET [PrintBatchId]=@PrintBatchId WHERE Id=@Id AND MailBatchId=@MailBatchId";
+                string updateQuery = "UPDATE [AM].[MailPieces] SET [PrintBatchId]=@PrintBatchId WHERE Id=@Id AND MailBatchId=@MailBatchId";
 
-                    var data = db.Execute(updateQuery, new { PrintBatchId = printBatchId, Id = mailPiece.Id, MailBatchId = printBatch.MailBatchId });
-                }
-                return Convert.ToInt32(printBatchId);
+                var data = db.Execute(updateQuery, new { PrintBatchId = printBatchId, Id = mailPiece.Id, MailBatchId = printBatch.MailBatchId });
             }
-            return 0;
+            return printBatchId;
+
         }
 
         public List<SubmittedBatch> GetSubmittedPrintBatchDetails()
         {
             //Sql Query
-            string query = @"SELECT PB.Id AS PrintBatchId, PB.MailBatchId, MB.BatchName,MB.BatchName+'_'+CONVERT(varchar(5),PB.DocTypeId) as SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode FROM [AM].[PrintBatches] PB INNER JOIN [AM].[MailBatches] MB ON MB.Id= PB.MailBatchId WHERE PB.IsSubmittedToShipping=1 AND PB.IsShippingResponseReceived=0";
+            string query = @"SELECT PB.Id AS PrintBatchId, PB.MailBatchId, MB.BatchName,PB.AppCode +'_'+ CONVERT(VARCHAR(10),PB.Id) as SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode FROM [AM].[PrintBatches] PB INNER JOIN [AM].[MailBatches] MB ON MB.Id= PB.MailBatchId WHERE PB.IsSubmittedToShipping=1 AND PB.IsShippingResponseReceived=0";
 
-            var data = db.Query<SubmittedBatch>(query).ToList();
-
-            return data;
+            return db.Query<SubmittedBatch>(query).ToList();
         }
 
         public List<SubmittedBatch> GetResponseReceivedPrintBatchDetails()
         {
             //Sql Query
-            string query = @"SELECT PB.Id AS PrintBatchId, PB.MailBatchId, MB.BatchName,MB.BatchName+'_'+CONVERT(varchar(5),PB.DocTypeId) as SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode FROM [AM].[PrintBatches] PB INNER JOIN [AM].[MailBatches] MB ON MB.Id= PB.MailBatchId WHERE PB.IsSubmittedToShipping=1 AND PB.IsShippingResponseReceived=1 AND  PB.BatchStatus=@BatchStatus";
+            string query = @"SELECT PB.Id AS PrintBatchId, PB.MailBatchId, MB.BatchName,PB.AppCode +'_'+ CONVERT(VARCHAR(10),PB.Id) as SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode FROM [AM].[PrintBatches] PB INNER JOIN [AM].[MailBatches] MB ON MB.Id= PB.MailBatchId WHERE PB.IsSubmittedToShipping=1 AND PB.IsShippingResponseReceived=1 AND  PB.BatchStatus=@BatchStatus";
 
-            var data = db.Query<SubmittedBatch>(query, new { BatchStatus = BatchStatus.InProgress.ToString() }).ToList();
-
-            return data;
+            return db.Query<SubmittedBatch>(query, new { BatchStatus = BatchStatus.InProgress.ToString() }).ToList();
         }
     }
 }

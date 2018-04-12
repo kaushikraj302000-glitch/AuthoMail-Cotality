@@ -23,14 +23,14 @@ namespace AM.Services
         public Client GetClientById(int clientId)
         {
             string query = "SELECT * FROM [Common].[Clients] WHERE IsAMActive=1 and Id = @Id ";
-            var data = db.Query<Client>(query, new { Id = clientId }).SingleOrDefault();
+            var data = db.QuerySingleOrDefault<Client>(query, new { Id = clientId });
             return data;
         }
 
         public Client GetClientByAppCode(string appCode)
         {
             string query = "SELECT * FROM [Common].[Clients] WHERE IsAMActive=1 and AppCode = @AppCode";
-            var data = db.Query<Client>(query, new { AppCode = appCode }).SingleOrDefault();
+            var data = db.QuerySingleOrDefault<Client>(query, new { AppCode = appCode });
             return data;
         }
 
@@ -46,7 +46,7 @@ namespace AM.Services
         {
             string query = "SELECT Id, Code, Description, Title, Protocol, Host, UserName, Password, ToADEDir, FromADEDir, ArchiveDir, PostDownloadAction FROM [Common].[SFTChannels] WHERE Id=@sftChannelId AND IsActive=1";
 
-            var data = db.Query<SFTChannel>(query, new { sftChannelId = sftChannelId }).SingleOrDefault();
+            var data = db.QuerySingleOrDefault<SFTChannel>(query, new { sftChannelId = sftChannelId });
             return data;
         }
 
@@ -54,7 +54,7 @@ namespace AM.Services
         {
             string query = "SELECT Id, Code, Description, Title, Protocol, Host, UserName, Password, ToADEDir, FromADEDir, ArchiveDir, PostDownloadAction FROM [Common].[SFTChannels] WHERE Code=@sftChannelCode AND IsActive=1";
 
-            var data = db.Query<SFTChannel>(query, new { sftChannelCode = sftChannelCode }).SingleOrDefault();
+            var data = db.QuerySingleOrDefault<SFTChannel>(query, new { sftChannelCode = sftChannelCode });
             return data;
         }
     }

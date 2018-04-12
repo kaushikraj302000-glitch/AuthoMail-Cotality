@@ -16,13 +16,14 @@ namespace AM.Services
     {
         #region General
         [Description("To indicate on which environment job is running.")]
-        public static string Monitor_Environment { get; private set; }
+        public static string Common_Environment { get; private set; }
+        public static string Common_AuthoMailRootFolder { get; private set; }
+        public static string Common_PrintLocation { get; private set; }
 
         #endregion
 
         #region Console & Core
-        public static string Common_AuthoMailRootFolder { get; private set; }
-
+        public static string Monitor_AMC_ReportDateFormat { get; private set; }
         public static string Monitor_DSEmail_Subject { get; private set; }
         public static string Monitor_DSEmailTemplate { get; private set; }
         public static string Monitor_DS_Email_To { get; private set; }
@@ -46,9 +47,6 @@ namespace AM.Services
         public static string Monitor_AMCDirPath { get; set; }
 
         //Core
-        public static string Core_PnS_SFT_HostURL { get; private set; }
-        public static string Core_PnS_SFT_UserName { get; private set; }
-        public static string Core_PnS_SFT_Password { get; private set; }
         public static string Core_PnS_SFT_RootDir { get; private set; }
 
         public static string Core_PnSEmail_Subject { get; private set; }
@@ -59,7 +57,10 @@ namespace AM.Services
         public static string Core_CountryCode { get; private set; }
         public static int Core_NoofTime_AttemptFedexService { get; private set; }
         public static int Core_FedexServiceAttemptInterval { get; private set; }
-        public static string Core_CustomerTransactionId { get; set; }
+
+        //FedEx URLs
+        public static string Core_FedExTestService { get; private set; }
+        public static string Core_FedExProdService { get; private set; }
         #endregion
 
         #region Reporting_ReadOnly
