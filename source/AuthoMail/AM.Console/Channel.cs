@@ -110,7 +110,9 @@ namespace AM.Console
 
                     var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
 
-                    var reportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.csv").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-") || Path.GetFileNameWithoutExtension(f).StartsWith("Error-") || Path.GetExtension(f).Equals(".err", StringComparison.CurrentCultureIgnoreCase)).ToList();
+                    var reportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.csv").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-") || Path.GetFileNameWithoutExtension(f).StartsWith("Error-")).ToList();
+
+                    reportList.AddRange(Directory.EnumerateFiles(mbi.AMResponsePath, "*.err"));
 
 
                     if (reportList != null && reportList.Count > 0)
