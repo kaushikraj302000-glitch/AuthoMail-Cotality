@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Dapper;
-using AM.Entities.IdentityModels;
+using AM.Entities;
 
 namespace AM.Services
 {

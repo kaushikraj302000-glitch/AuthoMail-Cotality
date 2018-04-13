@@ -9,8 +9,9 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using AM.Web.Models;
-using AM.Entities.IdentityModels;
+using AM.Entities;
 using AM.Services;
+using System.Net.Mail;
 
 namespace AM.Web.Controllers
 {
@@ -72,56 +73,75 @@ namespace AM.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Login(LoginViewModel model, string returnUrl)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return View(model);
+                if (!ModelState.IsValid)
+                {
+                    return View(model);
+                }
+                bool isCoreLogicUser = false;
+
+                model.UserName = model.UserName.Contains("@") ? model.UserName : model.UserName + "@corelogic.com";
+
+                var mailAddress = new MailAddress(model.UserName);
+
+                if (mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    model.UserName = mailAddress.User;
+                }
+
+                var user = UserManager.FindByName(model.UserName);
+                if (user == null)
+                {
+                    ModelState.AddModelError("", Config.Web_Msg_Login_InvalidUserName);
+                    return View(model);
+                }
+                if (!user.EmailConfirmed)
+                {
+                    ModelState.AddModelError("", Config.Web_Msg_Login_EmailConfirm);
+                    return View(model);
+                }
+                if (user.Email != null && user.Email != "")
+                {
+                    isCoreLogicUser = CLAuthentication.HasCorelogicAccount(user.Email);
+                }
+                if (isCoreLogicUser)
+                {
+                    var hasLogin = CLAuthentication.LdapLogin(model.UserName, model.Password);
+                    if (!hasLogin.Key)
+                    {
+                        ModelState.AddModelError("", hasLogin.Value);
+                        return View(model);
+                    }
+                    await SignInManager.SignInAsync(user, false, model.RememberMe);
+                    return RedirectToLocal(returnUrl);
+                }
+                // This doesn't count login failures towards account lockout
+                // To enable password failures to trigger account lockout, change to shouldLockout: true
+                var result = await SignInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, shouldLockout: true);
+                switch (result)
+                {
+                    case SignInStatus.Success:
+                        return RedirectToLocal(returnUrl);
+                    case SignInStatus.LockedOut:
+                        return View("Lockout");
+                    case SignInStatus.RequiresVerification:
+                        return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
+                    case SignInStatus.Failure:
+                    default:
+                        ModelState.AddModelError("", Config.Web_Msg_Login_Default);
+                        return View(model);
+                }
             }
-            bool isCorelogicUser = false;
-            if (model.UserName.IndexOf('@') > 0 && model.UserName.Split('@')[1] == "corelogic.com")
-            {
-                model.UserName = model.UserName.Split('@')[0];
-            }
-            var user = UserManager.FindByName(model.UserName);
-            if (user == null)
+            catch (FormatException)
             {
                 ModelState.AddModelError("", Config.Web_Msg_Login_InvalidUserName);
                 return View(model);
             }
-            if (!user.EmailConfirmed)
+            catch (Exception)
             {
-                ModelState.AddModelError("", Config.Web_Msg_Login_EmailConfirm);
+                ModelState.AddModelError("", Config.Web_Msg_Login_Default);
                 return View(model);
-            }
-            if (user.Email != null && user.Email != "")
-            {
-                isCorelogicUser = CLAuthentication.HasCorelogicAccount(user.Email);
-            }
-            if (isCorelogicUser)
-            {
-                var hasLogin = CLAuthentication.LdapLogin(model.UserName, model.Password);
-                if (!hasLogin.Key)
-                {
-                    ModelState.AddModelError("", hasLogin.Value);
-                    return View(model);
-                }
-                await SignInManager.SignInAsync(user, false, model.RememberMe);
-                return RedirectToLocal(returnUrl);
-            }
-            // This doesn't count login failures towards account lockout
-            // To enable password failures to trigger account lockout, change to shouldLockout: true
-            var result = await SignInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, shouldLockout: true);
-            switch (result)
-            {
-                case SignInStatus.Success:
-                    return RedirectToLocal(returnUrl);
-                case SignInStatus.LockedOut:
-                    return View("Lockout");
-                case SignInStatus.RequiresVerification:
-                    return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
-                case SignInStatus.Failure:
-                default:
-                    ModelState.AddModelError("", Config.Web_Msg_Login_Default);
-                    return View(model);
             }
         }
 

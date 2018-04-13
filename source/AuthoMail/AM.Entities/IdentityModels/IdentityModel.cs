@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Identity;
 
-namespace AM.Entities.IdentityModels
+namespace AM.Entities
 {
     public class IdentityUser : IUser<string>
     {

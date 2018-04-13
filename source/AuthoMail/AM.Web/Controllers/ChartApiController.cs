@@ -5,7 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
-using AM.Entities.IdentityModels;
+using AM.Entities;
 using AM.Web.Models;
 using AM.Lib;
 namespace AM.Web.Controllers

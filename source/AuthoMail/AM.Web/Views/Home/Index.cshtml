@@ -501,7 +501,13 @@
                     for (var i = 1; i <= response.length; i++) {
                         //console.log(moment(response[cnt].Date).format("MM/DD/YYYY") == moment().format("MM/DD/YYYY") + " " + cnt + " " + i);
                         //var day = moment(response[cnt].Date).format("MM/DD/YYYY") == moment().format("MM/DD/YYYY") ? "Today" : moment(response[cnt].Date).format("ddd");
-                        chartData.push([response[cnt].Weekday, response[cnt].InProgress, response[cnt].Failed, response[cnt].PulledBack, response[cnt].ShippedAll, response[cnt].ShippedPartial, moment(response[cnt].Date).format("MM/DD/YYYY hh:mm:ss a")]);
+                        var inProgressCount = parseInt(response[cnt].InProgress == 0 ? null : response[cnt].InProgress);
+                        var failedCount = parseInt(response[cnt].Failed == 0 ? null : response[cnt].Failed);
+                        var pulledBackCount = parseInt(response[cnt].PulledBack == 0 ? null : response[cnt].PulledBack);
+                        var shippedAllCount = parseInt(response[cnt].ShippedAll == 0 ? null : response[cnt].ShippedAll);
+                        var shippedPartialCount = parseInt(response[cnt].ShippedPartial == 0 ? null : response[cnt].ShippedPartial);
+
+                        chartData.push([response[cnt].Weekday, inProgressCount, failedCount, pulledBackCount, shippedAllCount, shippedPartialCount, moment(response[cnt].Date).format("MM/DD/YYYY hh:mm:ss a")]);
                         sumArr.push(response[cnt].InProgress + response[cnt].Failed + response[cnt].PulledBack + response[cnt].ShippedAll + response[cnt].ShippedPartial);
 
                         cnt++;
@@ -573,7 +579,12 @@
                     sumArr = new Array();
                     for (var i = 1; i <= response.length; i++) {
 
-                        chartData.push([response[cnt].ClientBatchId, response[cnt].InProgress, response[cnt].Error, response[cnt].PulledBack, response[cnt].Shipped, response[cnt].MailBatchId, moment(response[cnt].ReceivedOn).format("MM/DD/YYYY  HH:mm:ss")]);
+                        var inProgressCountBatch = parseInt(response[cnt].InProgress == 0 ? null : response[cnt].InProgress);
+                        var errorCountBatch = parseInt(response[cnt].Error == 0 ? null : response[cnt].Error);
+                        var pulledBackCountBatch = parseInt(response[cnt].PulledBack == 0 ? null : response[cnt].PulledBack);
+                        var shippedCountBatch = parseInt(response[cnt].Shipped == 0 ? null : response[cnt].Shipped);
+
+                        chartData.push([response[cnt].ClientBatchId, inProgressCountBatch, errorCountBatch, pulledBackCountBatch, shippedCountBatch, response[cnt].MailBatchId, moment(response[cnt].ReceivedOn).format("MM/DD/YYYY  HH:mm:ss")]);
                         sumArr.push(response[cnt].InProgress + response[cnt].Error + response[cnt].PulledBack + response[cnt].Shipped);
 
                         cnt++;
@@ -676,7 +687,7 @@
                     4: { color: '#f63' }
                 };
                 hTitle = "Batches";
-                vTitle = "Week Days";
+                vTitle = "";//"Week Days";
             }
             else {
                 view.setColumns([0, 1, 2, 3, 4]);
@@ -725,13 +736,13 @@
                     }
                 },
                 vAxis: {
-                    //title: vTitle,
-                    
-                    //titleTextStyle: {
-                    //    fontSize: 12,
-                    //    bold: true,
-                    //    
-                    //}
+                    title: vTitle,
+
+                    titleTextStyle: {
+                        fontSize: 12,
+                        bold: true,
+
+                    }
                 },
                 legend: { position: 'top', maxLines: 3 },
                 series: series
