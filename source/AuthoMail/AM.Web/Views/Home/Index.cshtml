@@ -676,7 +676,7 @@
                     4: { color: '#f63' }
                 };
                 hTitle = "Batches";
-                vTitle = "Week Days";
+                vTitle = "";//"Week Days";
             }
             else {
                 view.setColumns([0, 1, 2, 3, 4]);
@@ -725,13 +725,13 @@
                     }
                 },
                 vAxis: {
-                    //title: vTitle,
+                    title: vTitle,
                     
-                    //titleTextStyle: {
-                    //    fontSize: 12,
-                    //    bold: true,
-                    //    
-                    //}
+                    titleTextStyle: {
+                        fontSize: 12,
+                        bold: true,
+                        
+                    }
                 },
                 legend: { position: 'top', maxLines: 3 },
                 series: series
@@ -1051,7 +1051,7 @@
         $("#yesPullback").unbind("click").click(function (e) {
             e.preventDefault();
             $("#confirmModal").modal("hide");
-            var mailpieceId = $("#sample_2").find(".mailpieceid").data("mailpieceid");
+            var mailpieceId = $("#pullbackbodyContent").find(".mailpieceid").data("mailpieceid");
             SendPullBackRequest(mailpieceId);
         });
     </script>
