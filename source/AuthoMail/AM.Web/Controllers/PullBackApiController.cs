@@ -9,7 +9,7 @@ using System.Net.Http;
 using System.Net.Mail;
 using System.Web.Http;
 using Microsoft.AspNet.Identity;
-using AM.Entities.IdentityModels;
+using AM.Entities;
 using System.Web.Hosting;
 
 namespace AM.Web.Controllers

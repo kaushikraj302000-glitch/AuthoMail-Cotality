@@ -7,7 +7,7 @@ using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AM.Entities.IdentityModels
+namespace AM.Entities
 {
     // You can add profile data for the user by adding more properties to your ApplicationUser class, please visit http://go.microsoft.com/fwlink/?LinkID=317594 to learn more.
     public class ProfileUser : IdentityUser
@@ -19,6 +19,7 @@ namespace AM.Entities.IdentityModels
             // Add custom user claims here
             //userIdentity.AddClaim(new Claim("clientId", ClientId == null ? string.Empty : ClientId.ToString()));
             userIdentity.AddClaim(new Claim("ClientId", this.ClientId.ToString()));
+            userIdentity.AddClaim(new Claim("IsCorelogicUser", this.Email));
             return userIdentity;
         }
 
@@ -31,6 +32,12 @@ namespace AM.Entities.IdentityModels
             // Test for null to avoid issues during local testing
             if (claim == null || claim.Value == null || claim.Value == string.Empty) return null;
             return Convert.ToInt32(claim.Value);
+        }
+        public static bool IsCorelogicUser(this IIdentity identity)
+        {
+            var claim = ((ClaimsIdentity)identity).FindFirst("IsCorelogicUser");
+            if (claim == null || claim.Value == null || claim.Value == string.Empty) return false;
+            return string.Equals(claim.Value.Split('@')[1], "corelogic.com", StringComparison.CurrentCultureIgnoreCase) ? true : false;
         }
     }
 

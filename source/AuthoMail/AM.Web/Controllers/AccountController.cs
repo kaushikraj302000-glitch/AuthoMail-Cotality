@@ -9,7 +9,7 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using AM.Web.Models;
-using AM.Entities.IdentityModels;
+using AM.Entities;
 using AM.Services;
 
 namespace AM.Web.Controllers

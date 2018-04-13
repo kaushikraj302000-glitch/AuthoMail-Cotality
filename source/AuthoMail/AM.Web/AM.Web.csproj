@@ -225,6 +225,7 @@
     <Content Include="clui\dist\css\corelogic-ui.min1.css" />
     <Content Include="clui\dist\css\customui.css" />
     <Content Include="clui\dist\css\datatablecustom.css" />
+    <Content Include="clui\dist\css\changepasswordui.css" />
     <Content Include="clui\dist\fonts\Droid-Sans-Mono\droid-sans-mono-latin-400.svg" />
     <Content Include="clui\dist\fonts\fontawesome-webfont.svg" />
     <Content Include="clui\dist\img\circular-spinner_Color.gif" />
