@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Text;
@@ -19,7 +20,7 @@ namespace AM.Entities
             // Add custom user claims here
             //userIdentity.AddClaim(new Claim("clientId", ClientId == null ? string.Empty : ClientId.ToString()));
             userIdentity.AddClaim(new Claim("ClientId", this.ClientId.ToString()));
-            userIdentity.AddClaim(new Claim("IsCorelogicUser", this.Email));
+            userIdentity.AddClaim(new Claim("IsCoreLogicUser", this.Email));
             return userIdentity;
         }
 
@@ -33,11 +34,12 @@ namespace AM.Entities
             if (claim == null || claim.Value == null || claim.Value == string.Empty) return null;
             return Convert.ToInt32(claim.Value);
         }
-        public static bool IsCorelogicUser(this IIdentity identity)
+        public static bool IsCoreLogicUser(this IIdentity identity)
         {
-            var claim = ((ClaimsIdentity)identity).FindFirst("IsCorelogicUser");
+            var claim = ((ClaimsIdentity)identity).FindFirst("IsCoreLogicUser");
             if (claim == null || claim.Value == null || claim.Value == string.Empty) return false;
-            return string.Equals(claim.Value.Split('@')[1], "corelogic.com", StringComparison.CurrentCultureIgnoreCase) ? true : false;
+            var mailAddress = new MailAddress(claim.Value);
+            return mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase) ? true : false;
         }
     }
 

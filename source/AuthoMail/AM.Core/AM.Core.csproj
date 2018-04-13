@@ -89,20 +89,8 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="CoverTemplates\Generic_Template.pdf" />
-    <None Include="CoverTemplates\USAA\65\USAA_65_1.pdf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="CoverTemplates\USAA\66\USAA_66_1.pdf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="CoverTemplates\USAA\68\USAA_68_1.pdf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="CoverTemplates\USAA\70\USAA_70_1.pdf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="CoverTemplates\USAA\71\USAA_71_1.pdf">
+    <None Include="CoverTemplates\Generic_Template95X12.pdf" />
+    <None Include="CoverTemplates\USAA\USAA_Generic_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="CoverTemplates\USAA_Template.pdf" />
@@ -195,6 +183,7 @@
     <WCFMetadataStorage Include="Service References\ShipWebServiceRef\" />
     <WCFMetadataStorage Include="Service References\USPSIMService\" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
