@@ -70,7 +70,7 @@ namespace AM.Services
 
         public int UpdatePulledBackDetails(int mailBatchId, int mailPieceId, string shippingStatus)
         {
-            string query = @"UPDATE [AM].[PullBackRequests] SET [Status] = @status WHERE MailBatchId=@mailBatchId AND MailPieceId=@mailPieceId";
+            string query = @"UPDATE [AM].[PullBackRequests] SET [Status] = @shippingStatus WHERE MailBatchId=@mailBatchId AND MailPieceId=@mailPieceId";
 
             return db.Execute(query, new { mailBatchId = mailBatchId, mailPieceId = mailPieceId, shippingStatus = shippingStatus });
         }
