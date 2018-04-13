@@ -6,7 +6,7 @@ using System.Web;
 using System.Web.Mvc;
 using Microsoft.AspNet.Identity;
 using System.Security.Claims;
-using AM.Entities.IdentityModels;
+using AM.Entities;
 using AM.Web.USPSIMService;
 using System.Globalization;
 

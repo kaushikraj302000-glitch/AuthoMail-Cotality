@@ -1,4 +1,4 @@
-﻿using AM.Entities.IdentityModels;
+﻿using AM.Entities;
 using AM.Services;
 using Autofac;
 using Autofac.Integration.Mvc;

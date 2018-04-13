@@ -12,7 +12,7 @@ using System.Security.Claims;
 using System.Web;
 using System.Security.Cryptography;
 using Microsoft.Owin.Security.Cookies;
-using AM.Entities.IdentityModels;
+using AM.Entities;
 using System.Threading.Tasks;
 using Microsoft.Owin.Security.OAuth;
 

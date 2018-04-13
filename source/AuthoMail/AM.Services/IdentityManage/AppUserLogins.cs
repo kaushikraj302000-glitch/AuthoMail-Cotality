@@ -1,4 +1,4 @@
-﻿using AM.Entities.IdentityModels;
+﻿using AM.Entities;
 using System;
 using System.Collections.Generic;
 using System.Data;

@@ -4,7 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
-using AM.Entities.IdentityModels;
+using AM.Entities;
 using Microsoft.AspNet.Identity;
 using AM.Services;
 

@@ -4,7 +4,7 @@ using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.Cookies;
 using Owin;
-using AM.Entities.IdentityModels;
+using AM.Entities;
 using Microsoft.Owin.Security.OAuth;
 using System.Web;
 

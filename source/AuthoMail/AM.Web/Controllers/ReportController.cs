@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
-using AM.Entities.IdentityModels;
+using AM.Entities;
 using AM.Web.Models;
 using System.Globalization;
 using AM.Lib;
