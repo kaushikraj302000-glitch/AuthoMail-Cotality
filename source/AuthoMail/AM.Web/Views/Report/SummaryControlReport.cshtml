@@ -161,7 +161,7 @@
         function applyDataTable() {
             $('[data-toggle="popover"]').popover({
                 'trigger': 'hover',
-                'placement': 'left',
+                'placement': 'auto left',
                 'container': 'body'
             });
             var table = $('#sample_2');
@@ -204,7 +204,7 @@
                     filename: filename,
                     title: title,
                     exportOptions: {
-                        columns: ["thead th:not(.BatchId)",".ErrorCode",".ErrorText"],//0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 23]
+                        columns: ["thead th:not(.BatchId)", ".ErrorCode", ".ErrorText"],//0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 23]
                     }
 
                 }
@@ -247,7 +247,10 @@
                 this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
                 this.MailedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
-                this.ErrorDescPopover = this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>' : '<span id="popoverError" data-toggle="popover" data-original-title="Error Code: ' + this.ErrorCode + '" data-html="true" data-content="' + (this.ErrorDesc == null ? "--" : this.ErrorDesc) + '" data-placement="left"><a>' + this.ErrorCode + '</a></span>';
+                //this.ErrorDescPopover = this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>' : '<span id="popoverError" data-toggle="popover" data-original-title="Error Code: ' + this.ErrorCode + '" data-html="true" data-content="' + (this.ErrorDesc == null ? "--" : this.ErrorDesc) + '" data-placement="left"><a>' + this.ErrorCode + '</a></span>';
+
+                var eddDesc = "<span id='popoverError' data-toggle='popover' data-original-title='Error Code: <ErrorCode> ' data-html='true' data-content='<dataContent>' data-placement='left'><a> <ErrorCode> </a></span>".replace(/<ErrorCode>/g, this.ErrorCode).replace('<dataContent>', this.ErrorDesc == null ? "--" : this.ErrorDesc);
+                this.ErrorDescPopover =this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>': eddDesc;
                 var status = "";
                 var errormsg = this.ErrorDesc == null ? '@AM.Services.Config.Web_Msg_NoErrorDescription' : this.ErrorDesc;
                 switch (this.ShippingStatus) {
@@ -257,7 +260,7 @@
 
                         break;
                     case "Error":
-                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error Code: ' + this.ErrorCode + '" data-html="true" data-content="' + errormsg + '" data-placement="left">' + this.ShippingStatus + '</span>';
+                        status = "<span class='label medium label-red' data-toggle='popover' data-original-title='Error Code: <ErrorCode>' data-html='true' data-content='<dataContent>' data-placement='left'><Status></span>".replace(/<ErrorCode>/g, this.ErrorCode).replace('<dataContent>', this.ErrorDesc == null ? "--" : this.ErrorDesc).replace('<Status>', this.ShippingStatus);
                         break;
                     case "Shipped":
                         status = '<span class="label medium label-success">' + this.ShippingStatus + '</span>';
@@ -334,6 +337,6 @@
         $("#filterData").click(function () {
             FilterData();
         });
-</script>
+    </script>
 }
 

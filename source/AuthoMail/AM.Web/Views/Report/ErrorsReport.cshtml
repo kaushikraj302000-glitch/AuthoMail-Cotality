@@ -149,7 +149,7 @@
             FilterData();
             $('[data-toggle="popover"]').popover({
                 'trigger': 'hover',
-                'placement': 'left',
+                'placement': 'auto left',
                 'container': 'body'
             });
 
@@ -240,7 +240,9 @@
         function FormatObject(Model) {
             $(Model).each(function () {
                 this.ReceivedOnFormatted = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
-                this.ErrorDescPopover = this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>' : '<span id="popoverError" data-toggle="popover" data-original-title="Error Code: ' + this.ErrorCode + '" data-html="true" data-content="' + (this.ErrorDesc == null ? "--" : this.ErrorDesc) + '" data-placement="left"><a>' + this.ErrorCode + '</a></span>';
+                var eddDesc = "<span id='popoverError' data-toggle='popover' data-original-title='Error Code: <ErrorCode> ' data-html='true' data-content='<dataContent>' data-placement='left'><a> <ErrorCode> </a></span>".replace(/<ErrorCode>/g, this.ErrorCode).replace('<dataContent>', this.ErrorDesc == null ? "--" : this.ErrorDesc);
+               this.ErrorDescPopover = this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>' : eddDesc;
+               
             });
             return Model;
         }
