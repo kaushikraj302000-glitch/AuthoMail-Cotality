@@ -97,8 +97,8 @@ namespace AM.Core
                                     continue;
                                 }
 
-                                //Folder structure and file naming convention should be Root/AppCode/DocTypeId/AppCode_DocTypeId_SeqNo.pdf
-                                string coverLetterTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, client.AppCode, docType.Id.ToString(), docTypeLetter.CoverLetterTemplatePath);
+                                //Folder structure and file naming convention should be Root/AppCode/AppCode_DocTypeCode_SeqNo.pdf
+                                string coverLetterTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, client.AppCode, docTypeLetter.CoverLetterTemplatePath);
 
                                 // Create final document using SmartDocs library.
                                 coverLetterPdfPath = doc.GenerateUSPSCoverLetter(client.AppCode, coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
@@ -137,7 +137,7 @@ namespace AM.Core
                                     {
                                         break;
                                     }
-                                    else if (!result && mailPiece.ErrorDesc == "Invalid_shipping_detail|General Failure")
+                                    else if (!result && mailPiece.ErrorDesc.Contains("General Failure"))
                                     {
                                         System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
                                         attemptCount++;
@@ -635,9 +635,9 @@ namespace AM.Core
                             {
                                 string errorReportFileName = "Error-{0}.csv".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
                                 string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-                               
+
                                 File.WriteAllText(errorReportPath, errorReport.ToString());
-                                
+
                                 isErrorReportGenerated = true;
                             }
 

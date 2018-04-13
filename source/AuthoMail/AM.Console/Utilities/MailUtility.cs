@@ -29,7 +29,7 @@ namespace AM.Console
                         msg.IsBodyHtml = true;
                         msg.To.Add(Config.Monitor_NoBatch_Email_To);
                         msg.CC.Add(Config.Monitor_NoBatch_Email_Cc);
-                        msg.Subject = Config.Common_Environment + " : " + Config.Monitor_NoBatchReceivedNotification_Subject;
+                        msg.Subject = "{0} : {1}".Fill(Config.Common_Environment, Config.Monitor_NoBatchReceivedNotification_Subject);
                         msg.Priority = MailPriority.Normal;
                         msg.Body = string.Format("No batch available today till cutOffTime {0}.", cutOffTime.ToString("HH:mm:ss"));
                         smtpClient.Send(msg);
@@ -56,7 +56,7 @@ namespace AM.Console
                         msg.IsBodyHtml = true;
                         msg.To.Add(Config.Monitor_Exception_Email_To);
                         msg.CC.Add(Config.Monitor_Exception_Email_Cc);
-                        msg.Subject = Config.Common_Environment + " : " + Config.Monitor_ExceptionEmail_Subject;
+                        msg.Subject = "{0} : {1}".Fill(Config.Common_Environment, Config.Monitor_ExceptionEmail_Subject);
                         msg.Priority = MailPriority.High;
                         msg.Body = "Unexpected exception occured during execution." + Environment.NewLine + exception;
                         smtpClient.Send(msg);
@@ -82,7 +82,7 @@ namespace AM.Console
                         msg.IsBodyHtml = true;
                         msg.To.Add(Config.Monitor_DS_Email_To);
                         msg.CC.Add(Config.Monitor_DS_Email_Cc);
-                        msg.Subject = Config.Common_Environment + " : " + Config.Monitor_DSEmail_Subject;
+                        msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, mbi.Client.AppCode, Config.Monitor_DSEmail_Subject);
                         msg.Priority = MailPriority.Normal;
 
                         if (batchData.MailPieces.Count > 0)
@@ -152,7 +152,7 @@ namespace AM.Console
                         msg.IsBodyHtml = true;
                         msg.To.Add(Config.Monitor_PS_Email_To);
                         msg.CC.Add(Config.Monitor_PS_Email_Cc);
-                        msg.Subject = Config.Common_Environment + " : " + Config.Monitor_PSEmail_Subject;
+                        msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, mbi.Client.AppCode, Config.Monitor_PSEmail_Subject);
                         msg.Priority = MailPriority.Normal;
 
                         if (batchData.MailPieces.Count > 0)
