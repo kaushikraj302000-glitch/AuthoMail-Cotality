@@ -7,6 +7,7 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using AM.Web.Models;
+using AM.Entities;
 
 namespace AM.Web.Controllers
 {
@@ -231,12 +232,12 @@ namespace AM.Web.Controllers
             var existingUser = await UserManager.FindByNameAsync(User.Identity.Name);
             if (existingUser == null)
             {
-                ModelState.AddModelError("", "User not found.");
+                ModelState.AddModelError("", "You must be logged in to change password.");
                 return View(model);
             }
-            if (existingUser.Email.Split('@')[1] == "corelogic.com")
+            if (User.Identity.IsCoreLogicUser())
             {
-                ModelState.AddModelError("", "User doesn't allow to change password.");
+                ModelState.AddModelError("", "CoreLogic users cannot change password here.");
                 return View(model);
             }
             var result = await UserManager.ChangePasswordAsync(User.Identity.GetUserId(), model.OldPassword, model.NewPassword);
