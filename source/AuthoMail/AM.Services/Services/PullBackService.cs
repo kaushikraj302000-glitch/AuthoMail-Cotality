@@ -110,7 +110,7 @@ namespace AM.Services
                     string attachmentPdfName = string.Format("{0}_{1}.pdf", item.PrintBatch.ToString(), DateTime.Now.ToString("ddMMyyyyhhmmss"));
                     //string outputPdfPath = Path.Combine(Config.API_PB_OutputDir, string.Format("{0}_{1}.pdf", item.PrintBatch.ToString(), DateTime.Now.ToString("ddMMyyyyhhmmss")));
                     //Helper.MailMerge(Config.API_PB_PullBackFormTemplatePath, dataForPullBackForm, outputPdfPath);
-                    Helper.MailMerge(Config.Web_API_PB_PullBackFormTemplatePath, dataForPullBackForm, ref output);
+                    Helper.MailMerge(System.Web.Hosting.HostingEnvironment.MapPath(Config.Web_API_PB_PullBackFormTemplatePath), dataForPullBackForm, ref output);
                     bool isEmailSent = SendEmailWithPullBackForm(output, attachmentPdfName);
 
                 }
