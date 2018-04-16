@@ -6,6 +6,7 @@ using System.Web;
 using System.Web.Mvc;
 using AM.Entities;
 using System.Globalization;
+using AM.Lib;
 namespace AM.Web.Controllers
 {
     [Authorize]
@@ -27,6 +28,10 @@ namespace AM.Web.Controllers
             ViewBag.BusinessId = homeSvc.GetBusinessFriendlyIdNameByclientId(User.Identity.GetClientId().Value);
             ViewBag.BusinessFriendlyIdName = BusinessFriendlyIdName;
             ViewBag.BusinessFriendlyIdValue = BusinessFriendlyIdValue;
+            var estToday = DateTime.UtcNow.UtcToEst().Date;
+            // EST Week
+            ViewBag.startDate = (estToday + new TimeSpan(0, 0, 0)).ToString("MM/dd/yy");
+            ViewBag.endDate = (estToday + new TimeSpan(23, 59, 59)).ToString("MM/dd/yy");
             return View();
         }
         [HttpPost]
