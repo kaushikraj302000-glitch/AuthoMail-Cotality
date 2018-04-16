@@ -9,7 +9,7 @@ using System.Security.Claims;
 using AM.Entities;
 using AM.Web.USPSIMService;
 using System.Globalization;
-
+using AM.Lib;
 namespace AM.Web.Controllers
 {
     [Authorize]
@@ -33,12 +33,14 @@ namespace AM.Web.Controllers
         }
 
         [HttpPost]
-        public ActionResult GetMailPieceIdByLoanNumber(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string startDate, string endDate)
+        public ActionResult GetMailPieceIdByLoanNumber(string BusinessFriendlyIdName, string BusinessFriendlyIdValue)
         {
             try
             {
-                var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-                var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+                var estToday = DateTime.UtcNow.UtcToEst().Date;
+                // EST Start End
+                var startDate = (estToday + new TimeSpan(0, 0, 0));
+                var endDate = (estToday + new TimeSpan(23, 59, 59));
                 var model = homeSvc.GetMailPieceIdFromBusinessFriendlyValue(BusinessFriendlyIdName, BusinessFriendlyIdValue, User.Identity.GetClientId().Value);
 
                 if (model.Count > 1)
@@ -47,7 +49,7 @@ namespace AM.Web.Controllers
                 }
                 else if (model.Count == 1)
                 {
-                    var pullbackRequestData = pullBackSvc.GetPullBackRequestList(BusinessFriendlyIdName, BusinessFriendlyIdValue, null, exactStartDate, exactEndDate, User.Identity.GetClientId().Value);
+                    var pullbackRequestData = pullBackSvc.GetPullBackRequestList(BusinessFriendlyIdName, BusinessFriendlyIdValue, null, startDate, endDate, User.Identity.GetClientId().Value);
                     return Json(JsonResponseFactory.SuccessResponse(new { model = pullbackRequestData.OrderBy(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
                 }
                 else
