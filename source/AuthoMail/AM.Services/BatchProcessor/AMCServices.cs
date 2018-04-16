@@ -117,7 +117,7 @@ namespace AM.Services
                             mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
                             mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
                             requestId == null ? string.Empty : requestId.Value,
-                            mailPiece.TotalPages);
+                            mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? 0 : mailPiece.TotalPages);
 
                     deliveryReport.AppendLine(line);
                 }
