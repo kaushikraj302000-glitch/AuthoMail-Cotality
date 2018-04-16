@@ -64,7 +64,7 @@ INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsS
 
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_PB_ClientTimeZone', N'String', N'Eastern Standard Time', N'Define client''s local timezone.', 0, N'Eastern Standard Time', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
-INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_PB_PullBackFormTemplatePath', N'String', N'E:\Git\AuthoMail\source\AuthoMail\AM.Web\Template\PullBackForm.pdf', N'Path of pdf template which is used to send when pullback is requested.', 0, N'E:\Git\AuthoMail\source\AuthoMail\AM.Web\Template\PullBackForm.pdf', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_PB_PullBackFormTemplatePath', N'String', N'~\Template\PullBackForm.pdf', N'Path of pdf template which is used to send when pullback is requested.', 0, N'E:\Git\AuthoMail\source\AuthoMail\AM.Web\Template\PullBackForm.pdf', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_EndCutOffTime', N'String', N'19:45:00', NULL, 0, N'19:45:00', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
