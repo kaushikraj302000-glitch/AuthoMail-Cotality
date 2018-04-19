@@ -23,8 +23,8 @@ namespace AM.Services
             var existingUser = GetUserByName(user.UserName);
             if (existingUser.Count > 0) throw new Exception("User name already exist.");
 
-            string query = @"Insert into [Profile].[Users] (UserName, Id, PasswordHash, SecurityStamp,Email,EmailConfirmed,PhoneNumber,PhoneNumberConfirmed, AccessFailedCount,LockoutEnabled,LockoutEndDateUtc,TwoFactorEnabled,ClientId)
-                values (@name, @id, @pwdHash, @SecStamp,@email,@emailconfirmed,@phonenumber,@phonenumberconfirmed,@accesscount,@lockoutenabled,@lockoutenddate,@twofactorenabled,@clientId)";
+            string query = @"Insert into [Profile].[Users] (UserName, Id, PasswordHash, SecurityStamp,Email,EmailConfirmed,PhoneNumber,PhoneNumberConfirmed, AccessFailedCount,LockoutEnabled,LockoutEndDateUtc,TwoFactorEnabled,ClientId,FirstName,LastName)
+                values (@name, @id, @pwdHash, @SecStamp,@email,@emailconfirmed,@phonenumber,@phonenumberconfirmed,@accesscount,@lockoutenabled,@lockoutenddate,@twofactorenabled,@clientId,@firstName,@lastName)";
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@name", user.UserName);
@@ -40,6 +40,8 @@ namespace AM.Services
             parameters.Add("@lockoutenddate", user.LockoutEndDateUtc);
             parameters.Add("@twofactorenabled", user.TwoFactorEnabled);
             parameters.Add("@clientId", user.ClientId);
+            parameters.Add("@firstName", user.FirstName);
+            parameters.Add("@lastName", user.LastName);
 
             return db.Execute(query, parameters);
         }
@@ -59,7 +61,7 @@ namespace AM.Services
 
             string query = @"Update [Profile].[Users] set UserName = @userName, PasswordHash = @pswHash, SecurityStamp = @secStamp, 
                 Email=@email, EmailConfirmed=@emailconfirmed, PhoneNumber=@phonenumber, PhoneNumberConfirmed=@phonenumberconfirmed,
-                AccessFailedCount=@accesscount, LockoutEnabled=@lockoutenabled, LockoutEndDateUtc=@lockoutenddate, TwoFactorEnabled=@twofactorenabled,ClientId=@clientId
+                AccessFailedCount=@accesscount, LockoutEnabled=@lockoutenabled, LockoutEndDateUtc=@lockoutenddate, TwoFactorEnabled=@twofactorenabled,ClientId=@clientId,FirstName=@firstName,LastName=@lastName
                 WHERE Id = @userId";
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@userName", user.UserName);
@@ -75,6 +77,8 @@ namespace AM.Services
             parameters.Add("@lockoutenddate", user.LockoutEndDateUtc);
             parameters.Add("@twofactorenabled", user.TwoFactorEnabled);
             parameters.Add("@clientId", user.ClientId);
+            parameters.Add("@firstName", user.FirstName);
+            parameters.Add("@lastName", user.LastName);
             return db.Execute(query, parameters);
         }
         public TUser GetUserById(string userId)

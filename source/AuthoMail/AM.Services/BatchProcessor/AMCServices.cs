@@ -16,9 +16,11 @@ namespace AM.Services
 
     public class AMCService : ServiceBase, IAMCService
     {
+        const string Separator = ",";
+
         public StringBuilder AMCErrorReport(BatchData data)
         {
-            var columnName = String.Join(",", "BatchID", "ID", "Package Name", "Loan Number", "File Name", "Date Received", "First Name", "Last Name", "Recipient Street Address", "Recipient City", "Recipient State", "Recipient Zip", "Error Code", "Error Text", "Shipping Method", "Customer Identifier", "RequestID");
+            var columnName = String.Join(Separator, "BatchID", "ID", "Package Name", "Loan Number", "File Name", "Date Received", "First Name", "Last Name", "Recipient Street Address", "Recipient City", "Recipient State", "Recipient Zip", "Error Code", "Error Text", "Shipping Method", "Customer Identifier", "RequestID");
 
             StringBuilder errorReport = new StringBuilder(columnName);
 
@@ -42,21 +44,21 @@ namespace AM.Services
 
                     var requestId = data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").SingleOrDefault();
 
-                    var line = String.Join(",",
-                        data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName.ToCsvString(),
+                    var line = String.Join(Separator,
+                        data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
                             mailPiece.UniqueId,
-                            mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType.ToCsvString(),
-                            mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue.ToCsvString(),
-                            mailPiece.FileName == null ? string.Empty : mailPiece.FileName.ToCsvString(),
+                            mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType,
+                            mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
+                            mailPiece.FileName == null ? string.Empty : mailPiece.FileName,
                             data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.ToString(Config.Monitor_AMC_ReportDateFormat),
-                            mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName.ToCsvString(),
-                            mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName.ToCsvString(),
-                            mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet.ToCsvString(),
+                            mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName,
+                            mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName,
+                            mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet,
                             mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity,
                             mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
                             mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
                             OutComeCodes.GetAMCMappingCode(mailPiece.ErrorCode),
-                            mailPiece.ErrorDesc == null ? string.Empty : mailPiece.ErrorDesc.Replace("\r\n", " ").ToCsvString(),
+                            mailPiece.ErrorDesc == null ? string.Empty : mailPiece.ErrorDesc.Replace("\r\n", " "),
                             docType == null ? string.Empty : docType.ShippingCarrier,
                             custId == null ? string.Empty : custId.Value,
                             requestId == null ? string.Empty : requestId.Value
@@ -71,7 +73,7 @@ namespace AM.Services
 
         public StringBuilder AMCDeliveryReport(BatchData data)
         {
-            var columnName = String.Join(",", "BatchID", "ID", "Package Name", "Loan Number", "File Name", "Date Received", "Date Printed", "Date Mailed", "Client Code", "Tracking Number", "Shipping Method", "Customer Identifier", "First Name", "Last Name", "Recipient Street Address", "Recipient City", "Recipient State", "Recipient Zip", "RequestID", "Pages Shipped");
+            var columnName = String.Join(Separator, "BatchID", "ID", "Package Name", "Loan Number", "File Name", "Date Received", "Date Printed", "Date Mailed", "Client Code", "Tracking Number", "Shipping Method", "Customer Identifier", "First Name", "Last Name", "Recipient Street Address", "Recipient City", "Recipient State", "Recipient Zip", "RequestID", "Pages Shipped");
 
             StringBuilder deliveryReport = new StringBuilder(columnName);
 
@@ -97,27 +99,27 @@ namespace AM.Services
 
                     var requestId = data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").SingleOrDefault();
 
-                    var line = String.Join(",",
-                        data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName.ToCsvString(),
+                    var line = String.Join(Separator,
+                        data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
                             mailPiece.UniqueId,
-                            mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType.ToCsvString(),
-                            mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue.ToCsvString(),
+                            mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType,
+                            mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
                             mailPiece.FileName == null ? string.Empty : mailPiece.FileName,
                             data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.ToString(Config.Monitor_AMC_ReportDateFormat),
                             mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? Config.Monitor_AMCPulledBackDate : mailPiece.PrintedOn.Value.ToString(Config.Monitor_AMC_ReportDateFormat),
                             mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? Config.Monitor_AMCPulledBackDate : mailPiece.ShippedOn.Value.ToString(Config.Monitor_AMC_ReportDateFormat),
                             shippingCredCode == null ? string.Empty : shippingCredCode.Value,
-                            mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? string.Empty : mailPiece.TrackingNo.ToCsvString(),
+                            mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? string.Empty : mailPiece.TrackingNo,
                             docType == null ? string.Empty : docType.ShippingCarrier,
                             custId == null ? string.Empty : custId.Value,
-                            mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName.ToCsvString(),
-                            mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName.ToCsvString(),
-                            mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet.ToCsvString(),
+                            mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName,
+                            mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName,
+                            mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet,
                             mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity,
                             mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
                             mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
                             requestId == null ? string.Empty : requestId.Value,
-                            mailPiece.TotalPages);
+                            mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? 0 : mailPiece.TotalPages);
 
                     deliveryReport.AppendLine(line);
                 }
