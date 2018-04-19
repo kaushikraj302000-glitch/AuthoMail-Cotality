@@ -177,7 +177,7 @@
                 <td><span>{ReceivedOnFormatted}</span></td>
                 <td><span>{ShippedOnFormatted}</span></td>
                 <td><span>{DocumentOrPackageType}</span></td>
-                <td><span>{MailBatches.SFTChannels.Title}</span></td>
+                <td><span>{Channel}</span></td>
             </tr>
         </tbody>
     </table>
@@ -214,7 +214,8 @@
         function FormatObject(Model) {
             //console.log(Model);
             $(Model).each(function () {
-                this.ReceivedOnFormatted = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                //this.ReceivedOnFormatted = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
                 this.RcptNameFormatted = this.RcptFirstName + " " + this.RcptLastName;
                 var status = "";
@@ -242,9 +243,10 @@
                     trackingNo = "--";
                 }
                 else {
-
-                    if (this.DocTypes.ShippingServiceType == "USPS") {
-                        trackingNo = '<button id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.DocTypes.ShippingServiceType + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
+                    //if (this.DocTypes.ShippingServiceType == "USPS") {
+                    if (this.ShippingMethod == "USPS") {
+                        trackingNo = '<button id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
+                        //trackingNo = '<button id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.DocTypes.ShippingServiceType + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
                     }
                     else {
                         trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="http://www.fedex.com/Tracking?cntry_code=us&action=1&track=y&tracknumbers=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';

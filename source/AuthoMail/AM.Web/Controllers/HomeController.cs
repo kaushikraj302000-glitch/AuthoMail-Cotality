@@ -10,6 +10,9 @@ using AM.Entities;
 using AM.Web.USPSIMService;
 using System.Globalization;
 using AM.Lib;
+using AM.Web.Models;
+using AutoMapper;
+
 namespace AM.Web.Controllers
 {
     [Authorize]
@@ -77,7 +80,9 @@ namespace AM.Web.Controllers
             var exactEndDate = DateTime.ParseExact(receivedOnEnd, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
             var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, exactStartDate, exactEndDate, docType, status, channel);
 
-            return Json(JsonResponseFactory.SuccessResponse(new { model = data.OrderByDescending(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+            var model = Mapper.Map<List<SearchViewModel>>(data);
+
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
         [HttpPost]
         public ActionResult TodayChartDetails(string status, int batchId)
