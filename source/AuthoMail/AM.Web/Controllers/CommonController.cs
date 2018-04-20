@@ -14,9 +14,11 @@ namespace AM.Web.Controllers
     public class CommonController : Controller
     {
         IReportService repoSvc;
-        public CommonController(IReportService repoSvc)
+        IHomeService homeSvc;
+        public CommonController(IReportService repoSvc,IHomeService homeSvc)
         {
             this.repoSvc = repoSvc;
+            this.homeSvc = homeSvc;
         }
         // GET: Common
         [HttpGet]
@@ -32,6 +34,12 @@ namespace AM.Web.Controllers
             USPSTrackingInfo USPSInfo = uspsClient.GetShipmentStatus(TrackingNo);
             return PartialView("_TrackingInfo", USPSInfo);
 
+        }
+        [HttpGet]
+        public ActionResult GetClientNameById()
+        {
+            var model=homeSvc.GetClientNameById(User.Identity.GetClientId().Value);
+            return Json(model, JsonRequestBehavior.AllowGet);
         }
     }
 }

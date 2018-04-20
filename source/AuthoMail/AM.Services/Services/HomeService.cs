@@ -13,9 +13,15 @@ namespace AM.Services
         List<DocumentType> GetDocTypeList(int clientId);
         List<Guid> GetMailPieceIdFromBusinessFriendlyValue(string businessFriendlyIdName, string businessFriendlyIdValue, int clientId);
         List<string> GetBusinessFriendlyIdNameByclientId(int clientId);
+        string GetClientNameById(int clientId);
     }
     public class HomeService : ServiceBase, IHomeService //It implements Interfaces 
     {
+        public string GetClientNameById(int clientId)
+        {
+            var data = db.Query<string>(HomeServiceQuery.GetClientName, new { clientId = clientId }).Single();
+            return data;
+        }
         public List<DocumentType> GetDocTypeList(int clientId)
         {
             var data = db.Query(HomeServiceQuery.GetDocTypeList, new { clientId = clientId }).ToList();
@@ -51,6 +57,8 @@ namespace AM.Services
     }
     public static class HomeServiceQuery
     {
+        public static string GetClientName = "select Name from [Common].[Clients] where Id=@clientId";
+        
         public static string GetMailPieceByBatchId = "select * from [dbo].[view_MailPieceByParam] where MailBatchId=@batchId and clientId=@clientId";
 
         public static string GetDocTypeList = "select Id,DocTypeCode FROM [AM].[DocTypes] WHERE ClientId=@clientId AND IsActive=1";
