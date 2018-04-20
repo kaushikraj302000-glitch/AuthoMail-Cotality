@@ -168,15 +168,15 @@
     <table>
         <tbody id="SearchBody">
             <tr class="row-small">
-                <td data-businessidvalue="{BusinessFriendlyIdValue}"><span>{BusinessFriendlyIdValue}</span></td>
+                <td data-businessidvalue="{BusinessIdValue}"><span>{BusinessIdValue}</span></td>
                 <td><span>{ShippingStatusFormatted}</span></td>
                 <td><span>{RcptNameFormatted}</span></td>
-                <td><span>{RcptAddressCity}</span></td>
-                <td><span>{RcptAddressZIP}</span></td>
+                <td><span>{City}</span></td>
+                <td><span>{ZIP}</span></td>
                 <td><span>{TrackingNoFormatted}</span></td>
                 <td><span>{ReceivedOnFormatted}</span></td>
                 <td><span>{ShippedOnFormatted}</span></td>
-                <td><span>{DocumentOrPackageType}</span></td>
+                <td><span>{DocType}</span></td>
                 <td><span>{Channel}</span></td>
             </tr>
         </tbody>
@@ -217,23 +217,23 @@
                 //this.ReceivedOnFormatted = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
-                this.RcptNameFormatted = this.RcptFirstName + " " + this.RcptLastName;
+                this.RcptNameFormatted = this.FirstName + " " + this.LastName;
                 var status = "";
 
-                switch (this.ShippingStatus) {
+                switch (this.Status) {
 
                     case "PulledBack":
-                        status = '<span class="label medium label-yellow">' + this.ShippingStatus + '</span>';
+                        status = '<span class="label medium label-yellow">' + this.Status + '</span>';
 
                         break;
                     case "Error":
-                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error Code: ' + this.ErrorCode + '" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.ShippingStatus + '</span>';
+                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error Code: ' + this.ErrorCode + '" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.Status + '</span>';
                         break;
                     case "Shipped":
-                        status = '<span class="label medium label-success">' + this.ShippingStatus + '</span>';
+                        status = '<span class="label medium label-success">' + this.Status + '</span>';
                         break;
                     case "InProgress":
-                        status = '<span class="label medium label-blue">' + this.ShippingStatus + '</span>';
+                        status = '<span class="label medium label-blue">' + this.Status + '</span>';
                         break;
 
                 }
