@@ -78,67 +78,24 @@ namespace AM.Console.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to AE
-        ///AK
-        ///AL
-        ///AP
-        ///AR
-        ///AS
-        ///AZ
-        ///CA
-        ///CO
-        ///CT
-        ///DE
-        ///DC
-        ///FL
-        ///FM
-        ///FP
-        ///GA
-        ///GU
-        ///HI
-        ///IA
-        ///ID
-        ///IL
-        ///IN
-        ///KS
-        ///KY
-        ///LA
-        ///MA
-        ///MD
-        ///ME
-        ///MH
-        ///MI
-        ///MN
-        ///MO
-        ///MP
-        ///MS
-        ///MT
-        ///NC
-        ///ND
-        ///NE
-        ///NH
-        ///NJ
-        ///NM
-        ///NV
-        ///NY
-        ///OH
-        ///OK
-        ///OR
-        ///PA
-        ///PR
-        ///RI
-        ///SC
-        ///SD
-        ///TN
-        ///TX
-        ///UT
-        ///VA
-        ///VI
-        ///VT
-        ///WA
-        ///WI
-        ///WV
-        ///WY.
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+        ///&lt;xs:schema elementFormDefault=&quot;qualified&quot; xmlns:xs=&quot;http://www.w3.org/2001/XMLSchema&quot;&gt;
+        ///  &lt;xs:element name=&quot;RespaControl&quot; type=&quot;RespaControl&quot;/&gt;
+        ///  &lt;xs:complexType name=&quot;RespaControl&quot;&gt;
+        ///    &lt;xs:all&gt;
+        ///      &lt;xs:element name=&quot;Address&quot; type=&quot;nonEmptyString&quot; minOccurs=&quot;1&quot; maxOccurs=&quot;1&quot; /&gt;
+        ///      &lt;xs:element name=&quot;Address2&quot; type=&quot;xs:string&quot; minOccurs=&quot;0&quot; maxOccurs=&quot;1&quot; /&gt;
+        ///      &lt;xs:element name=&quot;BorrowerFirstName&quot; type=&quot;nonEmptyString&quot; minOccurs=&quot;1&quot; maxOccurs=&quot;1&quot; /&gt;
+        ///       [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string RespaControlSchema {
+            get {
+                return ResourceManager.GetString("RespaControlSchema", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to AE,AK,AL,AP,AR,AS,AZ,CA,CO,CT,DE,DC,FL,FM,FP,GA,GU,HI,IA,ID,IL,IN,KS,KY,LA,MA,MD,ME,MH,MI,MN,MO,MP,MS,MT,NC,ND,NE,NH,NJ,NM,NV,NY,OH,OK,OR,PA,PR,RI,SC,SD,TN,TX,UT,VA,VI,VT,WA,WI,WV,WY.
         /// </summary>
         internal static string ValidStatesForUSAA {
             get {

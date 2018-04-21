@@ -59,9 +59,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AlaskaChannel.cs" />
+    <Compile Include="AlaskaSchema.cs" />
     <Compile Include="AMCChannel.cs" />
     <Compile Include="Channel.cs" />
     <Compile Include="ChannelFactory.cs" />
+    <Compile Include="HSBCChannel.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -86,6 +89,9 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Resources\RespaControlSchema.xsd">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>

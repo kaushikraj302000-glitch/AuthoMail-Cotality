@@ -20,7 +20,7 @@ namespace AM.Console
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected AMCService amcSvc;
+        protected IAMCService amcSvc;
 
         private static XmlSchemaSet schemas;
 

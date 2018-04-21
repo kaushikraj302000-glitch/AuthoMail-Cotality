@@ -121,6 +121,9 @@
   <data name="PackageInfoSchema" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\packageinfoschema.xsd;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
+  <data name="RespaControlSchema" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\respacontrolschema.xsd;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
   <data name="ValidStatesForUSAA" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\validstatesforusaa.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>

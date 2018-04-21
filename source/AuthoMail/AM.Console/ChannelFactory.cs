@@ -20,8 +20,9 @@ namespace AM.Console
                     channelCode = channelPrefix + "_" + Config.Common_Environment;
                     return new AMCChannel(channelCode);
 
-                //case "ALASKA_Staging":
-                //    break;
+                case "ALASKA":
+                    channelCode = channelPrefix + "_" + Config.Common_Environment;
+                    return new AlaskaChannel(channelCode);
 
                 //case "HSBC_Staging":
                 //    // HSBC
