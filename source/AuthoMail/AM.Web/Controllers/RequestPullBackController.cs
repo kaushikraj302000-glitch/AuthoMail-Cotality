@@ -7,6 +7,8 @@ using System.Web.Mvc;
 using AM.Entities;
 using System.Globalization;
 using AM.Lib;
+using AutoMapper;
+using AM.Web.Models;
 namespace AM.Web.Controllers
 {
     [Authorize]
@@ -41,9 +43,10 @@ namespace AM.Web.Controllers
             var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
            
             //Ref only. remove it. also check doctype is required or not.
-            var model = pullBackSvc.GetPullBackRequestList(businessFriendlyIdName, businessFriendlyIdValue, docType, exactStartDate, exactEndDate, User.Identity.GetClientId().Value);
-            //return PartialView(model);
-            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.ShippingStatus == "InProgress").ThenBy(s => s.IsPullBackRequested).ThenByDescending(s => s.ShippingStatus == "PulledBack").ThenByDescending(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+            var data = pullBackSvc.GetPullBackRequestList(businessFriendlyIdName, businessFriendlyIdValue, docType, exactStartDate, exactEndDate, User.Identity.GetClientId().Value);
+
+            var model = Mapper.Map<List<MailPieceViewModel>>(data);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.Status == "InProgress").ThenBy(s => s.IsPullBackRequested).ThenByDescending(s => s.Status == "PulledBack").ThenByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
     }
 }

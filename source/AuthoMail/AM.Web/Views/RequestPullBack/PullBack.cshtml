@@ -154,11 +154,11 @@
                 <td><span>{CheckboxFormatted}</span></td>
                 <td><span>{ShippingStatusFormatted}</span></td>
                 <td><span>{IsPullBackRequestedFormatted}</span></td>
-                <td><span>{BusinessFriendlyIdValue}</span></td>
+                <td><span>{BusinessIdValue}</span></td>
                 <td><span>{ReceivedOnFormatted}</span></td>
-                <td><span>{RecipientNameFormatted}</span></td>
-                <td><span>{RcptAddressStreet}</span></td>
-                <td><span>{DocumentOrPackageType}</span></td>
+                <td><span>{Name}</span></td>
+                <td><span>{Address}</span></td>
+                <td><span>{DocType}</span></td>
                 <td><span>{TotalPages}</span></td>
                 <td><span>{TrackingNo}</span></td>
                 <td><span>{FileName}</span></td>
@@ -226,7 +226,6 @@
 
         function CheckboxCheck() {
             $(".checkall").unbind("click").bind("click",function () {
-                console.log("test");
                 if ($(this).is(":checked")) {
                     $(this).next().next().addClass("spinnericon");
                 }
@@ -370,37 +369,38 @@
     function FormatObject(Model) {
         var cnt = 1;
         $(Model).each(function () {
-            this.RecipientNameFormatted = this.RcptFirstName + " " + this.RcptLastName;
+            //this.RecipientNameFormatted = this.RcptFirstName + " " + this.RcptLastName;
             var requestedPullback = this.IsPullBackRequested ? '<span id="IsPullBackRequested_' + cnt + '"><span  class="label medium label-yellow">Yes</span></span>' : '<span id="IsPullBackRequested_' + cnt + '"><span class="label medium label-success">No</span></span>';
             var errormsg = this.ErrorDesc == null ? '@AM.Services.Config.Web_Msg_NoErrorDescription' : this.ErrorDesc;
             var status = "";
-            switch (this.ShippingStatus) {
+            this.ErrorDesc = this.ErrorDesc != null ? this.ErrorDesc.replace(/"/g, '\'') : "";
+            switch (this.Status) {
 
                 case "PulledBack":
-                    status = '<span class="label medium label-yellow">' + this.ShippingStatus + '</span>';
+                    status = '<span class="label medium label-yellow">' + this.Status + '</span>';
 
                     break;
                 case "Error":
-                    status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + errormsg + '" data-placement="left">' + this.ShippingStatus + '</span>';
+                    status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + errormsg + '" data-placement="left">' + this.Status + '</span>';
                     break;
                 case "Shipped":
-                    status = '<span class="label medium label-success">' + this.ShippingStatus + '</span>';
+                    status = '<span class="label medium label-success">' + this.Status + '</span>';
                     break;
                 case "InProgress":
-                    status = '<span class="label medium label-blue">' + this.ShippingStatus + '</span>';
+                    status = '<span class="label medium label-blue">' + this.Status + '</span>';
                     break;
 
             }
             this.ShippingStatusFormatted = status;
             // \''+this.TrackingNo+'\',\''+this.ShippingMethod+'\'
-            this.ReceivedOnFormatted = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+            this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
             //this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
             this.ErrorDescPopover = this.ErrorDesc == null ? "--" : '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left"><a>Error Details</a></span>';
-            this.TotalPages = this.ShippingStatus == "Shipped" ? this.TotalPages : 0;
+            this.TotalPages = this.Status == "Shipped" ? this.TotalPages : 0;
             this.IsPullBackRequestedFormatted = requestedPullback;
 
             var checkbox = '<span id="resPullBack_' + cnt + '" data-trigger="hover" data-html="true" data-toggle="popover" data-placement="right"></span>';
-            switch (this.ShippingStatus) {
+            switch (this.Status) {
                 case "PulledBack":
                 case "Error":
                 case "Shipped":
