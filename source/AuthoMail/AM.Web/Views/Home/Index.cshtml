@@ -247,12 +247,12 @@
             <tr class="row-small">
                 <td class="status"><span>{ShippingStatusFormatted}</span></td>
                 <td class="ispullbackr"><span>{IsPullBackRequestedFormatted}</span></td>
-                <td class="mailpieceid" data-mailpieceid="{UniqueId}"><span>{BusinessFriendlyIdValue}</span></td>
+                <td class="mailpieceid" data-mailpieceid="{UniqueId}"><span>{BusinessIdValue}</span></td>
                 <td><span>{ReceivedOnFormatted}</span></td>
-                <td><span>{RcptNameFormatted}</span></td>
-                <td><span>{RcptAddressStreet}</span></td>
+                <td><span>{Name}</span></td>
+                <td><span>{Address}</span></td>
                 <td><span>{TotalPages}</span></td>
-                <td><span>{DocumentOrPackageType}</span></td>
+                <td><span>{DocType}</span></td>
                 <td><span>{TrackingNo}</span></td>
                 <td><span>{FileName}</span></td>
             </tr>
@@ -284,13 +284,13 @@
     <table>
         <tbody id="ChartMailPieceBody">
             <tr class="row-small">
-                <td><span>{BusinessFriendlyIdValue}</span></td>
+                <td><span>{BusinessIdValue}</span></td>
                 <td><span>{FileName}</span></td>
-                <td><span>{RcptNameFormatted}</span></td>
-                <td><span>{RcptAddressStreet}</span></td>
+                <td><span>{Name}</span></td>
+                <td><span>{Address}</span></td>
                 <td class="receivedon"><span>{MailPieceReceivedOn}</span></td>
                 <td><span>{DueDateFormatted}</span></td>
-                <td><span>{DocumentOrPackageType}</span></td>
+                <td><span>{DocType}</span></td>
                 <td><span>{TotalPages}</span></td>
                 <td><span class="small">{TrackingNo}</span></td>
                 <td><span>{ShippingStatusFormatted}</span></td>
@@ -323,13 +323,13 @@
     <table>
         <tbody id="WeeklyChartMailPieceBody">
             <tr class="row-small">
-                <td><span>{BusinessFriendlyIdValue}</span></td>
+                <td><span>{BusinessIdValue}</span></td>
                 <td><span>{FileName}</span></td>
-                <td><span>{RcptNameFormatted}</span></td>
-                <td><span>{RcptAddressStreet}</span></td>
+                <td><span>{Name}</span></td>
+                <td><span>{Address}</span></td>
                 <td><span>{MailPieceReceivedOn}</span></td>
                 <td><span>{DueDateFormatted}</span></td>
-                <td><span>{DocumentOrPackageType}</span></td>
+                <td><span>{DocType}</span></td>
                 <td><span>{TotalPages}</span></td>
                 <td><span class="small">{TrackingNo}</span></td>
                 <td><span>{ShippingStatusFormatted}</span></td>
@@ -898,7 +898,7 @@
                                 $("#confirmModalBody").html("");
                                 BindTemplate(data, "#pullbackBody", "#pullbackbodyContent", "#pullbackTableContent", "#confirmModalBody");
                                 //var IsPullbackRequested = $("#sample_2").find(".ispullbackr").text().trim();
-                                switch (data[0].ShippingStatus) {
+                                switch (data[0].Status) {
 
                                     case "PulledBack":
                                     case "Error":
@@ -961,31 +961,31 @@
             $(Model).each(function () {
                 var requestedPullback = this.IsPullBackRequested ? '<span class="label medium label-yellow">Yes</span>' : '<span class="label medium label-success">No</span>';
                 var status = "";
-
-                switch (this.ShippingStatus) {
+                this.ErrorDesc = this.ErrorDesc!=null?this.ErrorDesc.replace(/"/g, '\''):"";
+                switch (this.Status) {
 
                     case "PulledBack":
-                        status = '<span class="label medium label-yellow">' + this.ShippingStatus + '</span>';
+                        status = '<span class="label medium label-yellow">' + this.Status + '</span>';
 
                         break;
                     case "Error":
-                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error : ' + this.ErrorCode + '" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.ShippingStatus + '</span>';
+                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error : ' + this.ErrorCode + '" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.Status + '</span>';
                         break;
                     case "Shipped":
-                        status = '<span class="label medium label-success">' + this.ShippingStatus + '</span>';
+                        status = '<span class="label medium label-success">' + this.Status + '</span>';
                         break;
                     case "InProgress":
-                        status = '<span class="label medium label-blue">' + this.ShippingStatus + '</span>';
+                        status = '<span class="label medium label-blue">' + this.Status + '</span>';
                         break;
 
                 }
                 // \''+this.TrackingNo+'\',\''+this.ShippingMethod+'\'
-                this.MailPieceReceivedOn = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                this.MailPieceReceivedOn = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
                 this.ErrorDescPopover = this.ErrorDesc == null ? "--" : '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left"><a>Error Details</a></span>';
                 this.ShippingStatusFormatted = status;
-                this.RcptNameFormatted = this.RcptFirstName + " " + this.RcptLastName;
+                //this.RcptNameFormatted = this.RcptFirstName + " " + this.RcptLastName;
 
                 this.IsPullBackRequestedFormatted = requestedPullback;
             });
@@ -993,24 +993,25 @@
             //console.log(Model);
         }
         function FormatObject(Model) {
+            console.log(Model);
             $(Model).each(function () {
                 var requestedPullback = this.IsPullBackRequested ? '<span class="label medium label-yellow">Yes</span>' : '<span class="label medium label-success">No</span>';
                 var status = "";
-
-                switch (this.ShippingStatus) {
+                this.ErrorDesc = this.ErrorDesc != null ? this.ErrorDesc.replace(/"/g, '\'') : "";
+                switch (this.Status) {
 
                     case "PulledBack":
-                        status = '<span class="label medium label-yellow">' + this.ShippingStatus + '</span>';
+                        status = '<span class="label medium label-yellow">' + this.Status + '</span>';
 
                         break;
                     case "Error":
-                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error Code: ' + this.ErrorCode + '" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.ShippingStatus + '</span>';
+                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error Code: ' + this.ErrorCode + '" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.Status + '</span>';
                         break;
                     case "Shipped":
-                        status = '<span class="label medium label-success">' + this.ShippingStatus + '</span>';
+                        status = '<span class="label medium label-success">' + this.Status + '</span>';
                         break;
                     case "InProgress":
-                        status = '<span class="label medium label-blue">' + this.ShippingStatus + '</span>';
+                        status = '<span class="label medium label-blue">' + this.Status + '</span>';
                         break;
 
                 }
@@ -1020,7 +1021,7 @@
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
                 this.ErrorDescPopover = this.ErrorDesc == null ? "--" : '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left"><a>Error Details</a></span>';
                 this.ShippingStatusFormatted = status;
-                this.RcptNameFormatted = this.RcptFirstName + " " + this.RcptLastName;
+                //this.RcptNameFormatted = this.RcptFirstName + " " + this.RcptLastName;
                 this.BatchButtonFormatted = this.MailPieceCount > 0 ? '<button onclick="GetMailPieceById( \'' + this.BatchId + '\',\'' + this.ReceivedOnFormatted + '\',\'' + this.ClientBatchId + '\')" type="button" class="btn btn-transparent-bright-blue">View Details</button>' : '<button disabled="disabled" type="button" class="btn btn-transparent-bright-blue">View Details</button>'
                 this.IsPullBackRequestedFormatted = requestedPullback;
                 var batchStatus = "";

@@ -248,19 +248,19 @@
                 this.MailedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
                 //this.ErrorDescPopover = this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>' : '<span id="popoverError" data-toggle="popover" data-original-title="Error Code: ' + this.ErrorCode + '" data-html="true" data-content="' + (this.ErrorDesc == null ? "--" : this.ErrorDesc) + '" data-placement="left"><a>' + this.ErrorCode + '</a></span>';
-
-                var eddDesc = "<span id='popoverError' data-toggle='popover' data-original-title='Error Code: <ErrorCode> ' data-html='true' data-content='<dataContent>' data-placement='left'><a> <ErrorCode> </a></span>".replace(/<ErrorCode>/g, this.ErrorCode).replace('<dataContent>', this.ErrorDesc == null ? "--" : this.ErrorDesc);
+                this.ErrorDesc = this.ErrorDesc != null ? this.ErrorDesc.replace(/"/g, '\'') : "";
+                var eddDesc = '<span id="popoverError" data-toggle="popover" data-original-title="Error Code: <ErrorCode>" data-html="true" data-content="'+this.ErrorDesc+'" data-placement="left"><a> <ErrorCode> </a></span>'.replace(/<ErrorCode>/g, this.ErrorCode).replace("<dataContent>", this.ErrorDesc == null ? "--" : this.ErrorDesc);
                 this.ErrorDescPopover =this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>': eddDesc;
                 var status = "";
                 var errormsg = this.ErrorDesc == null ? '@AM.Services.Config.Web_Msg_NoErrorDescription' : this.ErrorDesc;
                 switch (this.ShippingStatus) {
-
+                    
                     case "PulledBack":
                         status = '<span class="label medium label-yellow">' + this.ShippingStatus + '</span>';
 
                         break;
                     case "Error":
-                        status = "<span class='label medium label-red' data-toggle='popover' data-original-title='Error Code: <ErrorCode>' data-html='true' data-content='<dataContent>' data-placement='left'><Status></span>".replace(/<ErrorCode>/g, this.ErrorCode).replace('<dataContent>', this.ErrorDesc == null ? "--" : this.ErrorDesc).replace('<Status>', this.ShippingStatus);
+                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error Code: <ErrorCode>" data-html="true" data-content="<dataContent>" data-placement="left"><Status></span>'.replace(/<ErrorCode>/g, this.ErrorCode).replace('<dataContent>', this.ErrorDesc == null ? "--" : this.ErrorDesc).replace('<Status>', this.ShippingStatus);
                         break;
                     case "Shipped":
                         status = '<span class="label medium label-success">' + this.ShippingStatus + '</span>';

@@ -53,7 +53,8 @@ namespace AM.Web.Controllers
                 else if (model.Count == 1)
                 {
                     var pullbackRequestData = pullBackSvc.GetPullBackRequestList(BusinessFriendlyIdName, BusinessFriendlyIdValue, null, startDate, endDate, User.Identity.GetClientId().Value);
-                    return Json(JsonResponseFactory.SuccessResponse(new { model = pullbackRequestData.OrderBy(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+                    var data = Mapper.Map<List<MailPieceViewModel>>(pullbackRequestData);
+                    return Json(JsonResponseFactory.SuccessResponse(new { model = data.OrderBy(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
                 }
                 else
                 {
@@ -87,14 +88,17 @@ namespace AM.Web.Controllers
         [HttpPost]
         public ActionResult TodayChartDetails(string status, int batchId)
         {
-            var model = chartDataSvc.GetMailPieceByParam(batchId, status, User.Identity.GetClientId().Value);
-            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+            var data = chartDataSvc.GetMailPieceByParam(batchId, status, User.Identity.GetClientId().Value);
+
+            var model = Mapper.Map<List<MailPieceViewModel>>(data);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult GetMailPieceByBatchId(int batchId)
         {
-            var model = chartDataSvc.GetMailPieceByBatchId(batchId, User.Identity.GetClientId().Value);
-            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+            var data = chartDataSvc.GetMailPieceByBatchId(batchId, User.Identity.GetClientId().Value);
+            var model = Mapper.Map<List<MailPieceViewModel>>(data);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
         [HttpPost]
         public ActionResult WeeklyChartDetails(string status, string date)

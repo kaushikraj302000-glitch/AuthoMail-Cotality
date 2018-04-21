@@ -219,7 +219,7 @@
                 this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
                 this.RcptNameFormatted = this.FirstName + " " + this.LastName;
                 var status = "";
-
+                this.ErrorDesc = this.ErrorDesc != null ? this.ErrorDesc.replace(/"/g, '\'') : "";
                 switch (this.Status) {
 
                     case "PulledBack":
