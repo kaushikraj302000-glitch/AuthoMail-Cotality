@@ -83,7 +83,7 @@ namespace AM.Entities
 
                 case OutComeCodes.Recipient_Details_Missing_Or_Invalid:
                     return AMCOutComeCodes.Recipient_name_missing_or_invalid.ToString();
- 
+
                 case OutComeCodes.Invalid_PackageType:
                     return AMCOutComeCodes.Invalid_shipping_detail.ToString();
 
@@ -93,6 +93,34 @@ namespace AM.Entities
                 case OutComeCodes.Unknown_Error:
                 default:
                     return AMCOutComeCodes.Unknown_Error.ToString();
+            }
+        }
+
+        public static string GetAlaskaMappingCode(string alaskaOutcomeCode)
+        {
+            switch (alaskaOutcomeCode)
+            {
+                case OutComeCodes.No_Error:
+                    return AlaskaOutComeCodes.No_error.ToString();
+
+                case OutComeCodes.Invalid_XML_File:
+                    return AlaskaOutComeCodes.Invalid_XML_file.ToString();
+
+                case OutComeCodes.Missing_XML_File:
+                    return AlaskaOutComeCodes.Invalid_XML_file.ToString();
+
+                case OutComeCodes.Missing_PDF_File:
+                    return AlaskaOutComeCodes.Invalid_PDF_file.ToString();
+
+                case OutComeCodes.Mailing_Address_Missing_Or_Invalid:
+                    return AlaskaOutComeCodes.Mailing_address_missing_or_invalid.ToString();
+
+                case OutComeCodes.Recipient_Details_Missing_Or_Invalid:
+                    return AlaskaOutComeCodes.Recipient_name_missing_or_invalid.ToString();
+
+                case OutComeCodes.Unknown_Error:
+                default:
+                    return AlaskaOutComeCodes.UNKNOWN_error.ToString();
             }
         }
     }
@@ -109,6 +137,16 @@ namespace AM.Entities
         Invalid_shipping_detail
     }
 
+    public enum AlaskaOutComeCodes
+    {
+        No_error,
+        Invalid_XML_file,
+        Invalid_PDF_file,
+        Mailing_address_missing_or_invalid,
+        Recipient_name_missing_or_invalid,
+        UNKNOWN_error,
+    }
+
     public enum ShippingStatus
     {
         InProgress,
@@ -122,6 +160,14 @@ namespace AM.Entities
     {
         public const string Delete = "Delete";
         public const string Archive = "Archive";
+    }
+
+    public static class ReportTypes
+    {
+        public const string Error = "Error";
+        public const string Delivery = "Delivery";
+        public const string Immediate = "Immediate";
+        public const string Consolidated = "Consolidated";
     }
 
     public static class AMLogBatchTimeLine
