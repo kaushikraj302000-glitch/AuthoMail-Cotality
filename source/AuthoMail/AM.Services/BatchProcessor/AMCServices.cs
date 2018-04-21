@@ -58,7 +58,7 @@ namespace AM.Services
                             mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
                             mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
                             OutComeCodes.GetAMCMappingCode(mailPiece.ErrorCode),
-                            mailPiece.ErrorDesc == null ? string.Empty : mailPiece.ErrorDesc.Replace("\r\n", " "),
+                            mailPiece.ErrorDesc == null ? string.Empty : mailPiece.ErrorDesc.Replace("\r\n", " ").Replace(Environment.NewLine, " "),
                             docType == null ? string.Empty : docType.ShippingCarrier,
                             custId == null ? string.Empty : custId.Value,
                             requestId == null ? string.Empty : requestId.Value

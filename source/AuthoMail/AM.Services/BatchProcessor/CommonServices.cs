@@ -20,6 +20,8 @@ namespace AM.Services
         int UpdatePrintBatchPipeLineStatus(int printBatchId, string pipeLineStatus, DateTime timestamp);
         ClientBusinessIdentifier GetBusinessIdNameFromClientId(int clientId);
         int InsertBusinessIdentifierName(ClientBusinessIdentifier clientBusinessId);
+        List<Deliverable> GetDeliverablesByClientId(int clientId);
+        Deliverable GetDeliverableByReportType(int clientId, string reportType);
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -75,6 +77,32 @@ namespace AM.Services
             string query = "INSERT INTO [AM].[ClientBusinessIdentifiers] ( [ClientId], [BusinessIdName] ) VALUES (@ClientId, @BusinessIdName)";
 
             return db.Execute(query, clientBusinessId);
+        }
+
+        public List<Deliverable> GetDeliverablesByClientId(int clientId)
+        {
+            string query = "SELECT * FROM [Common].[Deliverables] WHERE ClientId= @ClientId ";
+
+            return db.Query<Deliverable>(query, new { ClientId = clientId }).ToList();
+        }
+
+        public Deliverable GetDeliverableByReportType(int clientId, string reportType)
+        {
+            string query = "[dbo].[usp_GetDeliverableByReportType] @ClientId, @ReportType";
+
+            var data = db.Query<Deliverable, EmailChannel, Deliverable>(query,
+               (d, e) =>
+               {
+                   d.EmailChannel = e;
+                   return d;
+               },
+               new
+               {
+                   ClientId = clientId,
+                   ReportType = reportType
+               }
+               );
+            return data.SingleOrDefault();
         }
     }
 }

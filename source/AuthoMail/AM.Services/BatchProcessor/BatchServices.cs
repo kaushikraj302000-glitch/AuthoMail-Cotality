@@ -26,7 +26,7 @@ namespace AM.Services
     {
         public int InsertBatchDetails(MailBatchDTO mailBatch)
         {
-            string query = @"INSERT INTO [AM].[MailBatches](UniqueId, ClientId, SFTChannelId, ClientBatchId, BatchName, [Priority], PrintLocation) Output Inserted.Id VALUES (@UniqueId, @ClientId, @SFTChannelId, @ClientBatchId, @BatchName, @Priority, @PrintLocation)";
+            string query = @"INSERT INTO [AM].[MailBatches](UniqueId, ClientId, DocumentOrPackageType, SFTChannelId, ClientBatchId, BatchName, [Priority], PrintLocation) Output Inserted.Id VALUES (@UniqueId, @ClientId, @DocumentOrPackageType, @SFTChannelId, @ClientBatchId, @BatchName, @Priority, @PrintLocation)";
 
             return db.ExecuteScalar<int>(query, mailBatch);
         }
