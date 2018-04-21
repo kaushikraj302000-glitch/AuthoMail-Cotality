@@ -170,5 +170,10 @@ namespace AM.Lib
 
             return Convert;
         }
+
+        public static object GetValueOfPropertyFromPropertyName<T>(this T cls, string propertyName)
+        {
+            return (object)cls.GetType().GetProperty(propertyName).GetValue(cls, null);
+        }
     }
 }
