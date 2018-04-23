@@ -494,18 +494,45 @@ GO
 SET IDENTITY_INSERT [Common].[SFTChannels] OFF
 GO
 
-INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(65,1,'USAA_65_1.pdf')
+INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(65,1,'USAA_USPS_Generic_1.pdf')
 GO
-INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(66,1,'USAA_66_1.pdf')
+INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(66,1,'USAA_USPS_Generic_1.pdf')
 GO
-INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(68,1,'USAA_68_1.pdf')
+INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(68,1,'USAA_USPS_Generic_1.pdf')
 GO
-INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(70,1,'USAA_70_1.pdf')
+INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(70,1,'USAA_USPS_Generic_1.pdf')
 GO
-INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(71,1,'USAA_71_1.pdf')
+INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(71,1,'USAA_USPS_Generic_1.pdf')
+GO
+
+INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(1,1,'ALASKA_USPS_Generic_1.pdf')
+GO
+INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(2,1,'ALASKA_USPS_Generic_1.pdf')
+GO
+INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(3,1,'ALASKA_USPS_Generic_1.pdf')
+GO
+INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(4,1,'ALASKA_USPS_Generic_1.pdf')
+GO
+INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(5,1,'ALASKA_USPS_Generic_1.pdf')
+GO
+INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(6,1,'ALASKA_USPS_Generic_1.pdf')
 GO
 
 INSERT INTO [AM].[ClientBusinessIdentifiers]([ClientId],[BusinessIdName])VALUES(101,'Loan Number')
 GO
 EXEC usp_MapClientSFTChannels 'USAA','AMC_Internal'
 EXEC usp_MapClientSFTChannels 'USAA','USAA_Staging'
+
+-- Email Channel Data for Alaska
+
+INSERT INTO [Common].[EmailChannels]([Title],[To],[Cc],[Bcc],[Subject],[BodyTemplate],[IsBodyHTML])VALUES('Alaska Reporting','sgolvelkar@corelogic.com','vmungara@corelogic.com',NULL,'Download Summary','HTML',0)
+GO
+INSERT INTO [Common].[EmailChannels]([Title],[To],[Cc],[Bcc],[Subject],[BodyTemplate],[IsBodyHTML])VALUES('Alaska Reporting','sgolvelkar@corelogic.com','vmungara@corelogic.com',NULL,'Production Summary','HTML',0)
+GO
+
+-- Deliverables Data for Alaska
+
+INSERT INTO [Common].[Deliverables]([ClientId],[ReportName],[ReportType],[DeliveryType],[ReportQuery],[Delimeter],[FileNameExpression],[IsSFTUploadRequired],[UploadPath],[EmailChannelId],[ScheduleId])VALUES(102,'Delivery Report','Delivery','Batch','',',','DR_{BatchName}.csv',1,'/Unknown/ALASKA/xfer-in/Mortgage/Report Folder/Delivery Report Folder',NULL,NULL)
+GO
+INSERT INTO [Common].[Deliverables]([ClientId],[ReportName],[ReportType],[DeliveryType],[ReportQuery],[Delimeter],[FileNameExpression],[IsSFTUploadRequired],[UploadPath],[EmailChannelId],[ScheduleId])VALUES(102,'Error Report','Error','Batch','',',','ER_{BatchName}.csv',1,'/Unknown/ALASKA/xfer-in/Mortgage/Report Folder/Error Folder',NULL,NULL)
+GO
