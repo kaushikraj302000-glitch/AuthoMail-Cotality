@@ -7,6 +7,7 @@ namespace AM.Web.Models
 {
     public class DailyDetailReportViewModel:MailPieceCommonViewModel
     {
+        public Guid UniqueId { get; set; }
         public string TrackingNo { get; set; }
         public int TotalPages { get; set; }
         public string ClientBatchId { get; set; }

@@ -95,22 +95,22 @@
     <table>
         <tbody id="monthlyBody">
             <tr class="row-small">
-                <td><span>{BusinessFriendlyIdValue}</span></td>
+                <td><span>{BusinessIdValue}</span></td>
                 <td><span>{FileName}</span></td>
-                <td><span>{DocumentOrPackageType}</span></td>
-                <td><span>{RcptFirstName}</span></td>
-                <td><span>{RcptLastName}</span></td>
-                <td><span>{RcptAddressStreet}</span></td>
-                <td><span>{RcptAddressCity}</span></td>
-                <td><span>{RcptAddressState}</span></td>
-                <td><span>{RcptAddressZIP}</span></td>
+                <td><span>{DocType}</span></td>
+                <td><span>{FirstName}</span></td>
+                <td><span>{LastName}</span></td>
+                <td><span>{Address}</span></td>
+                <td><span>{City}</span></td>
+                <td><span>{State}</span></td>
+                <td><span>{ZIP}</span></td>
                 <td><span>{ReceivedOnFormatted}</span></td>
                 <td><span>{PrintedOnFormatted}</span></td>
                 <td><span>{MailedOnFormatted}</span></td>
                 <td><span>{TotalPages}</span></td>
-                <td><span>{DocTypes.ShippingServiceType}</span></td>
+                <td><span>{ShippingMethod}</span></td>
                 <td><span>{TrackingNo}</span></td>
-                <td><span>{ShippingStatus}</span></td>
+                <td><span>{Status}</span></td>
             </tr>
         </tbody>
     </table>
@@ -188,8 +188,8 @@
         }
         function FormatObject(Model) {
             $(Model).each(function () {
-                this.TotalPages = this.ShippingStatus == "Shipped" ? this.TotalPages : 0;
-                this.ReceivedOnFormatted = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                this.TotalPages = this.Status == "Shipped" ? this.TotalPages : 0;
+                this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
                 this.MailedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
             });

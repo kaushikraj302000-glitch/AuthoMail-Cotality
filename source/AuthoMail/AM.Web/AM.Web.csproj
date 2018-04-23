@@ -193,8 +193,10 @@
     <Compile Include="Models\ChartViewModel.cs" />
     <Compile Include="Models\CLAuthentication.cs" />
     <Compile Include="Models\DailyDetailReportViewModel.cs" />
+    <Compile Include="Models\ErrorSLAReportViewModel.cs" />
     <Compile Include="Models\MailPieceCommonViewModel.cs" />
     <Compile Include="Models\MailPieceViewModel.cs" />
+    <Compile Include="Models\MonthlyReconReportViewModel.cs" />
     <Compile Include="Models\PullBackResponse.cs" />
     <Compile Include="Models\ReportViewModel.cs" />
     <Compile Include="Models\SearchViewModel.cs" />
