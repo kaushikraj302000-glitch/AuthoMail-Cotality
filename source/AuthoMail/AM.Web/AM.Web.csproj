@@ -192,6 +192,8 @@
     <Compile Include="Controllers\CommonController.cs" />
     <Compile Include="Models\ChartViewModel.cs" />
     <Compile Include="Models\CLAuthentication.cs" />
+    <Compile Include="Models\DailyDetailReportViewModel.cs" />
+    <Compile Include="Models\MailPieceCommonViewModel.cs" />
     <Compile Include="Models\MailPieceViewModel.cs" />
     <Compile Include="Models\PullBackResponse.cs" />
     <Compile Include="Models\ReportViewModel.cs" />

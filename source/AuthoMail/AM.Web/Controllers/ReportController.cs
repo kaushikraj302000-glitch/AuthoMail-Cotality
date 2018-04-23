@@ -8,6 +8,7 @@ using AM.Entities;
 using AM.Web.Models;
 using System.Globalization;
 using AM.Lib;
+using AutoMapper;
 namespace AM.Web.Controllers
 {
     [Authorize]
@@ -122,9 +123,10 @@ namespace AM.Web.Controllers
             try
             {
                 var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-                var model = repoSvc.GetDailyDetailOperationsByDateOrBatch(User.Identity.GetClientId().Value, exactDate, null, channel);
-                var reportViewModel = GetBatchNameAndTime(model);
-                return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderByDescending(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+                var data = repoSvc.GetDailyDetailOperationsByDateOrBatch(User.Identity.GetClientId().Value, exactDate, null, channel);
+                var reportViewModel = GetBatchNameAndTime(data);
+                var model = Mapper.Map<List<DailyDetailReportViewModel>>(data);
+                return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
             {
