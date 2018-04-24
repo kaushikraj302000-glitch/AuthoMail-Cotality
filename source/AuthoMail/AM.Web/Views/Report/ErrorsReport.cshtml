@@ -117,23 +117,23 @@
     <table>
         <tbody id="errorBody">
             <tr class="row-small">
-                <td><span>{MailBatches.ClientBatchId}</span></td>
+                <td><span>{ClientBatchId}</span></td>
                 <td><span>{UniqueId}</span></td>
-                <td><span>{MailBatches.SFTChannels.Title}</span></td>
-                <td><span>{DocumentOrPackageType}</span></td>
-                <td><span>{BusinessFriendlyIdValue}</span></td>
+                <td><span>{Channel}</span></td>
+                <td><span>{DocType}</span></td>
+                <td><span>{BusinessIdValue}</span></td>
                 <td><span>{FileName}</span></td>
                 <td><span>{ErrorDescPopover}</span></td>
                 <td><span>{ReceivedOnFormatted}</span></td>
-                <td><span>{RcptFirstName}</span></td>
-                <td><span>{RcptLastName}</span></td>
-                <td><span>{RcptAddressStreet}</span></td>
-                <td><span>{RcptAddressCity}</span></td>
-                <td><span>{RcptAddressState}</span></td>
-                <td><span>{RcptAddressZIP}</span></td>
+                <td><span>{FirstName}</span></td>
+                <td><span>{LastName}</span></td>
+                <td><span>{Address}</span></td>
+                <td><span>{City}</span></td>
+                <td><span>{State}</span></td>
+                <td><span>{ZIP}</span></td>
                 <td><span>{ErrorDesc}</span></td>
-                <td><span>{DocTypes.ShippingServiceType}</span></td>
-                <td>{MailBatches.Id}</td>
+                <td><span>{ShippingMethod}</span></td>
+                <td>{BatchId}</td>
             </tr>
         </tbody>
     </table>
@@ -234,7 +234,7 @@
         }
         function FormatObject(Model) {
             $(Model).each(function () {
-                this.ReceivedOnFormatted = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.ErrorDesc = this.ErrorDesc != null ? this.ErrorDesc.replace(/"/g, '\'') : "";
                 var eddDesc = '<span id="popoverError" data-toggle="popover" data-original-title="Error Code: <ErrorCode>" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left"><a> <ErrorCode> </a></span>'.replace(/<ErrorCode>/g, this.ErrorCode).replace("<dataContent>", this.ErrorDesc == null ? "--" : this.ErrorDesc);
                this.ErrorDescPopover = this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>' : eddDesc;
