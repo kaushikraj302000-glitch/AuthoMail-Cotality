@@ -263,7 +263,7 @@
                             //console.log(response.Object.model.length);
                             if (response.Object.model.length > 0) {
                                 var data = FormatObject(response.Object.model);
-                                $("#SLABatchList").html();
+                                $("#SLABatchList").html("");
                                 //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                                 BindTemplate(data, "#SLABody", "#SLAbodyContent", "#SLATableContent", "#SLABatchList");
                             }

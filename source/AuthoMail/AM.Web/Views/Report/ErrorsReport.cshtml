@@ -274,7 +274,7 @@
                             //console.log(response.Object.model.length);
                             if (response.Object.model.length > 0) {
                                 var data = FormatObject(response.Object.model);
-                                $("#errorList").html();
+                                $("#errorList").html("");
                                 //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                                 BindTemplate(data, "#errorBody", "#errorbodyContent", "#errorTableContent", "#errorList");
                             }

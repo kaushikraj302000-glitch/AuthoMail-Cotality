@@ -223,7 +223,7 @@
                             $("#monthlyList").show();
                             if (response.Object.model.length > 0) {
                                 var data = FormatObject(response.Object.model);
-                                $("#monthlyList").html();
+                                $("#monthlyList").html("");
                                 BindTemplate(data, "#monthlyBody", "#monthlybodyContent", "#monthlyTableContent", "#monthlyList");
                             }
                             else {
