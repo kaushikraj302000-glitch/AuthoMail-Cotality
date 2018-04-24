@@ -8,7 +8,6 @@ namespace AM.Web.Models
     public class MailPieceCommonViewModel 
     {
         public string BusinessIdValue { get; set; }
-        
         public string FileName { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }

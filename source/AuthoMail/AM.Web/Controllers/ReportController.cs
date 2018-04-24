@@ -30,10 +30,12 @@ namespace AM.Web.Controllers
         {
             var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
             var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-            var model = repoSvc.GetSummaryControlReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate, channel);
-            var reportViewModel = GetBatchNameAndTime(model);
+            var data = repoSvc.GetSummaryControlReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate, channel);
 
-            return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderByDescending(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+            var reportViewModel = GetBatchNameAndTime(data);
+            var model = Mapper.Map<List<SummaryControlViewModel>>(data);
+
+            return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
 
         private static List<ReportViewModel> GetBatchNameAndTime(List<MailPieces> model)
