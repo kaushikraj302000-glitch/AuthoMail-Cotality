@@ -425,6 +425,7 @@
     <Content Include="Views\Common\_TrackingInfo.cshtml" />
     <Content Include="Views\Report\PullbackRequestReport.cshtml" />
     <Content Include="Template\PullBackForm.pdf" />
+    <Content Include="Views\Common\_GetHeadingForBusinessId.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

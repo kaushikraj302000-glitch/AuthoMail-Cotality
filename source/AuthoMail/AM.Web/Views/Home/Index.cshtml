@@ -1,5 +1,6 @@
 ﻿@{
     ViewBag.Title = "Home Page";
+    var businessId = Html.Action("GetHeadingForBusinessId", "Common");
 }
 
 <style>
@@ -228,7 +229,7 @@
             <tr>
                 <th>Shipping Status</th>
                 <th>Pullback Requested</th>
-                <th>Loan Number</th>
+                <th>@businessId</th>
                 <th>Received Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Recipient Name</th>
                 <th>Recipient Address</th>
@@ -265,7 +266,7 @@
     <table class="table table-responsive" style="overflow-x:scroll;margin-bottom:2%;">
         <thead>
             <tr>
-                <th>Loan Number</th>
+                <th>@businessId</th>
                 <th>File Name</th>
                 <th>Recipient Name</th>
                 <th>Recipient Address</th>
@@ -304,7 +305,7 @@
     <table class="table table-responsive" style="overflow-x:scroll;margin-bottom:2%;">
         <thead>
             <tr>
-                <th>Loan Number</th>
+                <th>@businessId</th>
                 <th>File Name</th>
                 <th>Recipient Name</th>
                 <th>Recipient Address</th>
