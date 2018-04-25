@@ -41,5 +41,11 @@ namespace AM.Web.Controllers
             var model=homeSvc.GetClientNameById(User.Identity.GetClientId().Value);
             return Json(model, JsonRequestBehavior.AllowGet);
         }
+
+        public ActionResult GetHeadingForBusinessId()
+        {
+           var model= homeSvc.GetBusinessFriendlyIdNameByclientId(User.Identity.GetClientId().Value);
+           return PartialView("_GetHeadingForBusinessId", model);
+        }
     }
 }
