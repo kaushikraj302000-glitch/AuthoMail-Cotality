@@ -104,85 +104,140 @@ namespace AM.Console
                 {
                     Client client = clientSvc.GetClientById(batch.ClientId);
 
-                    string uploadPath = Config.Monitor_ReportSFTUploadingPathAMC;
+                    List<Deliverable> deliverables = commonSvc.GetDeliverablesByClientId(client.Id);
 
                     MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
 
                     var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
 
-                    var reportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.csv").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-") || Path.GetFileNameWithoutExtension(f).StartsWith("Error-")).ToList();
-
-                    reportList.AddRange(Directory.EnumerateFiles(mbi.AMResponsePath, "*.err"));
-
-
-                    if (reportList != null && reportList.Count > 0)
+                    SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(batch.SFTChannelId);
+                    if (sftChannelDetails != null)
                     {
-                        SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(batch.SFTChannelId);
-                        if (sftChannelDetails != null)
+                        try
                         {
-                            try
-                            {
-                                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
-                                sftSite.Connect();
+                            SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
+                            sftSite.Connect();
 
-                                if (sftSite.IsDownloadDirectoryAvailable(uploadPath))
-                                {
-                                    foreach (string filePath in reportList)
-                                    {
-                                        string fileName = Path.GetFileName(filePath);
-                                        string ftpUploadPath = Path.Combine(uploadPath, fileName);
-                                        sftSite.UploadFile(filePath, ftpUploadPath);
-                                    }
+                            UploadReportsToClients(mbi, sftSite, deliverables, data);
 
-                                    if (reportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-")) > 0)
-                                    {
-                                        string deliveryGoFilePath = Path.Combine(mbi.AMResponsePath, "DlvrReport.go");
-                                        string ftpDeliveryGoUploadPath = Path.Combine(Config.Monitor_ReportSFTUploadingPathAMC, "DlvrReport.go");
-                                        File.WriteAllText(deliveryGoFilePath, string.Empty);
+                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
 
-                                        sftSite.UploadFile(deliveryGoFilePath, ftpDeliveryGoUploadPath);
-                                    }
-
-                                    if (reportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Error-")) > 0)
-                                    {
-                                        string errorGoFilePath = Path.Combine(mbi.AMResponsePath, "ErrReport.go");
-                                        string ftpErrorGoUploadPath = Path.Combine(Config.Monitor_ReportSFTUploadingPathAMC, "ErrReport.go");
-                                        File.WriteAllText(errorGoFilePath, string.Empty);
-
-                                        sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
-                                    }
-
-                                    MailUtility.SendProductionNotificationEmail(mbi, data, reportList);
-
-
-                                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
-                                }
-                                else
-                                {
-                                    log.Error("Upload path does not exist for Client-{0} and SFT Channel Id-{1}".Fill(client.Name, sftChannelDetails.Code));
-                                }
-
+                            if (sftSite.IsConnected)
                                 sftSite.Disconnect();
-                            }
-                            catch (Exception ex)
-                            {
-                                log.Error(ex);
-                            }
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            log.Error("SFT site is not available or not enabled to upload reports.");
+                            log.Error(ex);
                         }
                     }
                     else
                     {
-                        log.Error("Reports does not exist to upload for BatchId-{0}".Fill(batch.Id));
+                        log.Error("SFT site is not available or not enabled to upload reports.");
                     }
-
                 }
             }
             log.Debug("ReportedBack job is completed.");
         }
+
+        private static void UploadReportsToClients(MailBatchInfo mbi, SFTUtil sftSite, List<Deliverable> deliverables, BatchData mailBatchData)
+        {
+
+            switch (mbi.Client.AppCode)
+            {
+                case "USAA":
+                    string uploadPath = deliverables.SingleOrDefault().UploadPath;
+                    if (sftSite.IsDownloadDirectoryAvailable(uploadPath))
+                    {
+                        var reportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.csv").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-") || Path.GetFileNameWithoutExtension(f).StartsWith("Error-")).ToList();
+
+                        reportList.AddRange(Directory.EnumerateFiles(mbi.AMResponsePath, "*.err"));
+
+
+                        if (reportList != null && reportList.Count > 0)
+                        {
+                            foreach (string filePath in reportList)
+                            {
+                                string fileName = Path.GetFileName(filePath);
+                                string ftpUploadPath = Path.Combine(uploadPath, fileName);
+                                sftSite.UploadFile(filePath, ftpUploadPath);
+                            }
+
+                            if (reportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-")) > 0)
+                            {
+                                string deliveryGoFilePath = Path.Combine(mbi.AMResponsePath, "DlvrReport.go");
+                                string ftpDeliveryGoUploadPath = Path.Combine(Config.Monitor_ReportSFTUploadingPathAMC, "DlvrReport.go");
+                                File.WriteAllText(deliveryGoFilePath, string.Empty);
+
+                                sftSite.UploadFile(deliveryGoFilePath, ftpDeliveryGoUploadPath);
+                            }
+
+                            if (reportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Error-")) > 0)
+                            {
+                                string errorGoFilePath = Path.Combine(mbi.AMResponsePath, "ErrReport.go");
+                                string ftpErrorGoUploadPath = Path.Combine(Config.Monitor_ReportSFTUploadingPathAMC, "ErrReport.go");
+                                File.WriteAllText(errorGoFilePath, string.Empty);
+
+                                sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
+                            }
+
+                            MailUtility.SendProductionNotificationEmail(mbi, mailBatchData, reportList);
+                        }
+                    }
+                    else
+                    {
+                        log.Error("Upload path does not exist for Client-{0} and SFT Channel Path-'{1}'".Fill(mbi.Client.Name, uploadPath));
+                    }
+                    break;
+                case "ALASKA":
+                    var reportToMail = new List<string>();
+                    foreach (var deliverable in deliverables)
+                    {
+                        if (deliverable.ReportType == ReportTypes.Delivery)
+                        {
+                            if (sftSite.IsDownloadDirectoryAvailable(deliverable.UploadPath))
+                            {
+                                var reportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.csv").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("DR_")).ToList();
+
+                                if (reportList != null && reportList.Count > 0)
+                                {
+                                    foreach (string filePath in reportList)
+                                    {
+                                        string fileName = Path.GetFileName(filePath);
+                                        string ftpUploadPath = Path.Combine(deliverable.UploadPath, fileName);
+                                        sftSite.UploadFile(filePath, ftpUploadPath);
+                                    }
+                                    reportToMail.AddRange(reportList);
+                                }
+                            }
+                        }
+                        else if (deliverable.ReportType == ReportTypes.Error)
+                        {
+                            if (sftSite.IsDownloadDirectoryAvailable(deliverable.UploadPath))
+                            {
+                                var reportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.csv").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("ER_")).ToList();
+
+                                if (reportList != null && reportList.Count > 0)
+                                {
+                                    foreach (string filePath in reportList)
+                                    {
+                                        string fileName = Path.GetFileName(filePath);
+                                        string ftpUploadPath = Path.Combine(deliverable.UploadPath, fileName);
+                                        sftSite.UploadFile(filePath, ftpUploadPath);
+                                    }
+                                    reportToMail.AddRange(reportList);
+                                }
+                            }
+                        }
+                    }
+                    MailUtility.SendProductionNotificationEmail(mbi, mailBatchData, reportToMail, deliverables.SingleOrDefault().EmailChannel);
+                    break;
+                default:
+                    break;
+            }
+
+
+        }
+
 
         protected override void DisposeManagedObjects()
         {

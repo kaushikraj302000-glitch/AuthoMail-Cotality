@@ -244,6 +244,8 @@ namespace AM.Core
                         }
                     }
 
+                    Deliverable reportDeliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Error);
+
                     var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
                     if (data != null)
                     {
@@ -251,17 +253,8 @@ namespace AM.Core
 
                         if (validMailPiecesList.Count == 0)
                         {
-                            using (IAMCService amcSvc = new AMCService())
-                            {
-                                string errorReportFileName = string.Format("Error-{0}.csv", Common.Now.ToString("yyyyMMdd-HHmmss"));
-                                string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-                                StringBuilder errorData = amcSvc.AMCErrorReport(data);
-                                if (errorData != null)
-                                {
-                                    File.WriteAllText(errorReportPath, errorData.ToString());
-                                }
-                            }
-
+                            //TODO: Remove after proper logic implementation client wise switch case implemented
+                            GenerateImmidiateReports(mbi, data, reportDeliverable);
                             // Batch status Prepped
                             mailBatchSvc.MarkMailBatchAsInvalid(mbi.MailBatch.Id, (mbi.MailBatch.ValidationErrors + Environment.NewLine + "Some documents could not be processed."));
                             commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.Failed.ToString());
@@ -278,6 +271,39 @@ namespace AM.Core
                         }
                     }
                 }
+            }
+        }
+
+        private static void GenerateImmidiateReports(MailBatchInfo mbi, BatchData mailBatchData, Deliverable deliverable)
+        {
+            switch (mbi.Client.AppCode)
+            {
+                case "USAA":
+                    using (IAMCService amcSvc = new AMCService())
+                    {
+                        string errorReportFileName = string.Format("Error-{0}.csv", Common.Now.ToString("yyyyMMdd-HHmmss"));
+                        string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+                        StringBuilder errorData = amcSvc.AMCErrorReport(mailBatchData);
+                        if (errorData != null)
+                        {
+                            File.WriteAllText(errorReportPath, errorData.ToString());
+                        }
+                    }
+                    break;
+                case "ALASKA":
+                    using (IAlaskaService alaskaSvc = new AlaskaService())
+                    {
+                        string errorReportFileName = string.Format("ER_{0}.csv", mbi.BatchName);
+                        string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+                        StringBuilder errorData = alaskaSvc.AlaskaErrorReport(mailBatchData, mbi.Client.TimeZone, deliverable.Delimeter);
+                        if (errorData != null)
+                        {
+                            File.WriteAllText(errorReportPath, errorData.ToString());
+                        }
+                    }
+                    break;
+                default:
+                    break;
             }
         }
 
@@ -670,6 +696,9 @@ namespace AM.Core
                 foreach (var batch in resReceivedBatches)
                 {
                     Client client = clientSvc.GetClientById(batch.ClientId);
+
+                    Deliverable deliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Delivery);
+
                     MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
 
                     var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
@@ -679,29 +708,7 @@ namespace AM.Core
                         {
                             bool isDeliveryReportGenerated = false, isErrorReportGenerated = false;
 
-                            StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(data);
-
-                            if (deliveryReport != null)
-                            {
-                                string deliveryReportFileName = "Delivery-{0}.csv".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
-                                string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
-
-                                File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
-
-                                isDeliveryReportGenerated = true;
-                            }
-
-                            StringBuilder errorReport = amcSvc.AMCErrorReport(data);
-
-                            if (errorReport != null)
-                            {
-                                string errorReportFileName = "Error-{0}.csv".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
-                                string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-
-                                File.WriteAllText(errorReportPath, errorReport.ToString());
-
-                                isErrorReportGenerated = true;
-                            }
+                            GenerateFinalReports(mbi, data, deliverable);
 
                             if (isDeliveryReportGenerated || isErrorReportGenerated)
                                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
@@ -718,6 +725,69 @@ namespace AM.Core
             }
 
             log.Debug("Report prepped job is completed.");
+        }
+
+        private static bool GenerateFinalReports(MailBatchInfo mbi, BatchData mailBatchData, Deliverable deliverable)
+        {
+            bool isReportGenerated = false;
+            switch (mbi.Client.AppCode)
+            {
+                case "USAA":
+                    using (IAMCService amcSvc = new AMCService())
+                    {
+                        StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(mailBatchData);
+
+                        if (deliveryReport != null)
+                        {
+                            string deliveryReportFileName = "Delivery-{0}.csv".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+                            string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
+
+                            File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
+                            isReportGenerated = true;
+                        }
+
+                        StringBuilder errorReport = amcSvc.AMCErrorReport(mailBatchData);
+
+                        if (errorReport != null)
+                        {
+                            string errorReportFileName = "Error-{0}.csv".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+                            string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+
+                            File.WriteAllText(errorReportPath, errorReport.ToString());
+                            isReportGenerated = true;
+                        }
+                    }
+                    break;
+                case "ALASKA":
+                    using (IAlaskaService alaskaSvc = new AlaskaService())
+                    {
+                        StringBuilder deliveryReport = alaskaSvc.AlaskaDeliveryReport(mailBatchData, mbi.Client.TimeZone, deliverable.Delimeter);
+
+                        if (deliveryReport != null)
+                        {
+                            string deliveryReportFileName = "DR_{0}.csv".Fill(mbi.BatchName);
+                            string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
+
+                            File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
+                            isReportGenerated = true;
+                        }
+
+                        StringBuilder errorReport = alaskaSvc.AlaskaErrorReport(mailBatchData, mbi.Client.TimeZone, deliverable.Delimeter);
+
+                        if (errorReport != null)
+                        {
+                            string errorReportFileName = "ER_{0}.csv".Fill(mbi.BatchName);
+                            string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+
+                            File.WriteAllText(errorReportPath, errorReport.ToString());
+                            isReportGenerated = true;
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+            return isReportGenerated;
         }
     }
 }
