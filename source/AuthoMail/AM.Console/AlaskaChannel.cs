@@ -339,25 +339,25 @@ namespace AM.Console
                     }
 
 
-                    //try
-                    //{
-                    mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfoList);
-                    //}
-                    //catch (SqlException ex)
-                    //{
-                    //    //2601 error code used for duplicate unique key insert 
-                    //    if (ex.Number == 2601)
-                    //    {
-                    //        var msg = "[{0}] key id is duplicate in package info node.".Fill(mailPieceDTO.UniqueId);
+                    try
+                    {
+                        mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfoList);
+                    }
+                    catch (SqlException ex)
+                    {
+                        //2601 error code used for duplicate unique key insert 
+                        if (ex.Number == 2601)
+                        {
+                            var msg = "[{0}] key id is duplicate in package info node.".Fill(mailPieceDTO.UniqueId);
 
-                    //        log.Error(msg, ex);
-                    //        mailPieceDTO.UniqueId = Guid.NewGuid();
-                    //        mailPieceDTO.ErrorCode = OutComeCodes.Invalid_DuplicateKey;
-                    //        mailPieceDTO.ErrorDesc = msg + Environment.NewLine + ex.Message;
-                    //        mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
-                    //        mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfoList);
-                    //    }
-                    //}
+                            log.Error(msg, ex);
+                            mailPieceDTO.UniqueId = Guid.NewGuid();
+                            mailPieceDTO.ErrorCode = OutComeCodes.Invalid_DuplicateKey;
+                            mailPieceDTO.ErrorDesc = msg + Environment.NewLine + ex.Message;
+                            mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
+                            mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfoList);
+                        }
+                    }
                 }
 
                 //Based on post download action pdf file will get move or delete from that location
