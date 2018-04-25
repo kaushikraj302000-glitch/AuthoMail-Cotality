@@ -23,6 +23,8 @@ namespace AM.Console
 
         protected IAMCService amcSvc;
 
+        protected Client client;
+
         private static XmlSchemaSet schemas;
 
         static AMCChannel()
@@ -36,6 +38,7 @@ namespace AM.Console
             : base(channelCode)
         {
             amcSvc = GetService<AMCService>();
+            client = clientSvc.GetClientByAppCode("USAA");
         }
 
         #region EnumerateBatches
@@ -44,8 +47,6 @@ namespace AM.Console
             log.Debug("EnumerateBatches job queue is started.");
 
             List<string> triggerFilePaths = new List<string>();
-
-            Client client = clientSvc.GetClientByAppCode("USAA");
 
             SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
             sftSite.Connect();
@@ -125,7 +126,7 @@ namespace AM.Console
         {
             log.Debug("Download job queue is started.");
 
-            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Received);
+            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Received, client.Id);
             if (downloadBatches == null)
             {
                 log.Debug("Download job queue is empty.");
@@ -138,7 +139,6 @@ namespace AM.Console
 
             foreach (var batch in downloadBatches)
             {
-                Client client = clientSvc.GetClientById(batch.ClientId);
                 MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
 
                 try
@@ -248,7 +248,7 @@ namespace AM.Console
         protected void SeparateBatches()
         {
             log.Debug("Separate batches job queue is started.");
-            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Downloaded);
+            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Downloaded, client.Id);
             if (downloadBatches == null)
             {
                 log.Debug("Separating job queue is empty.");
@@ -257,7 +257,6 @@ namespace AM.Console
 
             foreach (var batch in downloadBatches)
             {
-                Client client = clientSvc.GetClientById(batch.ClientId);
                 MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
 
                 var xmlFilePath = Path.Combine(mbi.AMRequestPath, mbi.BatchName + ".xml");
@@ -413,7 +412,7 @@ namespace AM.Console
         {
             log.Debug("Validate job queue is started.");
 
-            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Downloaded);
+            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Downloaded, client.Id);
             if (downloadBatches == null)
             {
                 log.Debug("Validate job queue is empty.");
@@ -422,7 +421,6 @@ namespace AM.Console
 
             foreach (var batch in downloadBatches)
             {
-                Client client = clientSvc.GetClientById(batch.ClientId);
                 MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
 
                 //TODO: Can we have multiple business identifier in client business?
@@ -725,7 +723,7 @@ namespace AM.Console
         {
             log.Debug("Acknowledge job queue is started.");
 
-            List<MailBatchDTO> validatedBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Validated);
+            List<MailBatchDTO> validatedBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Validated, client.Id);
 
             if (validatedBatches == null)
             {
@@ -735,7 +733,6 @@ namespace AM.Console
 
             foreach (var batch in validatedBatches)
             {
-                Client client = clientSvc.GetClientById(batch.ClientId);
                 MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
 
                 var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
