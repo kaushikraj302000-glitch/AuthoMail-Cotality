@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Schema;
+using System.Data.SqlClient;
 
 namespace AM.Console
 {
@@ -669,7 +670,25 @@ namespace AM.Console
                         mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                     }
 
-                    mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfo);
+                    try
+                    {
+                        mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfo);
+                    }
+                    catch (SqlException ex)
+                    {
+                        //2601 error code used for duplicate unique key insert 
+                        if (ex.Number == 2601)
+                        {
+                            var msg = "{0} key id is duplicate in package info node.".Fill(mailPieceDTO.UniqueId);
+
+                            log.Error(msg, ex);
+                            mailPieceDTO.UniqueId = Guid.NewGuid();
+                            mailPieceDTO.ErrorCode = OutComeCodes.Invalid_DuplicateKey;
+                            mailPieceDTO.ErrorDesc = msg + Environment.NewLine + ex.Message;
+                            mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
+                            mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfo);
+                        }
+                    }
                 }
 
                 //TODO: Do we need to check all mail pieces are valid, partially valid or failed and update batch status according to that?
@@ -767,8 +786,6 @@ namespace AM.Console
                                 if (sftSite.IsConnected)
                                     sftSite.Disconnect();
 
-                                //After upload delete from local
-                                File.Move(errorReportPath, Path.ChangeExtension(errorReportPath, ".uploaded"));
                             }
                             commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
                         }
@@ -779,6 +796,8 @@ namespace AM.Console
                         }
 
                         MailUtility.SendDownloadNotificationEmail(mbi, data, errorReportPath);
+                        //After upload delete from local
+                        File.Move(errorReportPath, Path.ChangeExtension(errorReportPath, ".uploaded"));
                     }
                     catch (Exception ex)
                     {

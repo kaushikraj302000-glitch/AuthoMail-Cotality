@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace AM.Services
@@ -46,7 +47,7 @@ namespace AM.Services
 
                     var line = String.Join(Separator,
                         data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
-                            mailPiece.UniqueId,
+                        mailPiece.ErrorCode == OutComeCodes.Invalid_DuplicateKey ? Guid.Parse(mailPiece.ErrorDesc.Substring(0, mailPiece.ErrorDesc.IndexOf(" ")).Trim()) : mailPiece.UniqueId,
                             mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType,
                             mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
                             mailPiece.FileName == null ? string.Empty : mailPiece.FileName,
@@ -58,7 +59,7 @@ namespace AM.Services
                             mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
                             mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
                             OutComeCodes.GetAMCMappingCode(mailPiece.ErrorCode),
-                            mailPiece.ErrorDesc == null ? string.Empty : mailPiece.ErrorDesc.Replace("\r\n", " ").Replace(Environment.NewLine, " "),
+                            mailPiece.ErrorDesc == null ? string.Empty : mailPiece.ErrorDesc.Replace("\r\n", " "),
                             docType == null ? string.Empty : docType.ShippingCarrier,
                             custId == null ? string.Empty : custId.Value,
                             requestId == null ? string.Empty : requestId.Value

@@ -52,6 +52,7 @@ namespace AM.Entities
         public const string Unknown_Error = "Unknown_Error";
         public const string Invalid_PackageType = "Invalid_PackageType";
         public const string Invalid_ShippingDetail = "Invalid_ShippingDetail";
+        public const string Invalid_DuplicateKey = "Invalid_DuplicateKey";
 
         public static string GetAMCMappingCode(string amOutcomecode)
         {
@@ -89,6 +90,9 @@ namespace AM.Entities
 
                 case OutComeCodes.Invalid_ShippingDetail:
                     return AMCOutComeCodes.Invalid_shipping_detail.ToString();
+
+                case OutComeCodes.Invalid_DuplicateKey:
+                    return AMCOutComeCodes.Unknown_Error.ToString();
 
                 case OutComeCodes.Unknown_Error:
                 default:
