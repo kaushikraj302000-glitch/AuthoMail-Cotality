@@ -72,11 +72,74 @@ namespace AM.Core
                             if (docType.ShippingCarrier == Carrier.USPS.ToString())
                             {
                                 #region Prepare dictionary of placeholders/tags to fill the PDF template.
+                                string fromAddress = string.Empty;
+                                if (mailPiece.IsReturnInfoSpecified)
+                                {
+                                    if (!string.IsNullOrEmpty(mailPiece.RetRcptAddrOptionalLine1AboveStreet))
+                                        fromAddress += mailPiece.RetRcptAddrOptionalLine1AboveStreet + "\n";
+                                    if (!string.IsNullOrEmpty(mailPiece.RetRcptAddrOptionalLine2AboveStreet))
+                                        fromAddress += mailPiece.RetRcptAddrOptionalLine2AboveStreet + "\n";
+
+                                    //Because Street address is must field
+                                    fromAddress += mailPiece.RetRcptAddressStreet + "\n";
+
+                                    if (!string.IsNullOrEmpty(mailPiece.RetRcptAddrOptionalLine1BelowStreet))
+                                        fromAddress += mailPiece.RetRcptAddrOptionalLine1BelowStreet + "\n";
+                                    if (!string.IsNullOrEmpty(mailPiece.RetRcptAddrOptionalLine2BelowStreet))
+                                        fromAddress += mailPiece.RetRcptAddrOptionalLine2BelowStreet + "\n";
+                                    if (!string.IsNullOrEmpty(mailPiece.RetRcptAddressAptOrSuiteOrOther))
+                                        fromAddress += mailPiece.RetRcptAddressAptOrSuiteOrOther + "\n";
+
+                                    //Because City,state,zip are must field for all client
+                                    fromAddress += mailPiece.RetRcptAddressCity + ", " + mailPiece.RetRcptAddressState + ", " + mailPiece.RetRcptAddressZIP;
+                                }
+                                else if (mbi.MailBatch.IsReturnInfoSpecified)
+                                {
+                                    if (!string.IsNullOrEmpty(mbi.MailBatch.RetRcptAddrOptionalLine1AboveStreet))
+                                        fromAddress += mbi.MailBatch.RetRcptAddrOptionalLine1AboveStreet + "\n";
+                                    if (!string.IsNullOrEmpty(mailPiece.RetRcptAddrOptionalLine2AboveStreet))
+                                        fromAddress += mbi.MailBatch.RetRcptAddrOptionalLine2AboveStreet + "\n";
+
+                                    //Because Street address is must field
+                                    fromAddress += mbi.MailBatch.RetRcptAddressStreet + "\n";
+
+                                    if (!string.IsNullOrEmpty(mbi.MailBatch.RetRcptAddrOptionalLine1BelowStreet))
+                                        fromAddress += mbi.MailBatch.RetRcptAddrOptionalLine1BelowStreet + "\n";
+                                    if (!string.IsNullOrEmpty(mbi.MailBatch.RetRcptAddrOptionalLine2BelowStreet))
+                                        fromAddress += mbi.MailBatch.RetRcptAddrOptionalLine2BelowStreet + "\n";
+                                    if (!string.IsNullOrEmpty(mbi.MailBatch.RetRcptAddressAptOrSuiteOrOther))
+                                        fromAddress += mbi.MailBatch.RetRcptAddressAptOrSuiteOrOther + "\n";
+
+                                    fromAddress += mbi.MailBatch.RetRcptAddressCity + ", " + mbi.MailBatch.RetRcptAddressState + ", " + mbi.MailBatch.RetRcptAddressZIP;
+                                }
+                                else if (docType.IsReturnInfoSpecified)
+                                {
+                                    if (!string.IsNullOrEmpty(docType.RetRcptAddrOptionalLine1AboveStreet))
+                                        fromAddress += docType.RetRcptAddrOptionalLine1AboveStreet + "\n";
+                                    if (!string.IsNullOrEmpty(docType.RetRcptAddrOptionalLine2AboveStreet))
+                                        fromAddress += docType.RetRcptAddrOptionalLine2AboveStreet + "\n";
+
+                                    //Because Street address is must field
+                                    fromAddress += docType.RetRcptAddressStreet + "\n";
+
+                                    if (!string.IsNullOrEmpty(docType.RetRcptAddrOptionalLine1BelowStreet))
+                                        fromAddress += docType.RetRcptAddrOptionalLine1BelowStreet + "\n";
+                                    if (!string.IsNullOrEmpty(docType.RetRcptAddrOptionalLine2BelowStreet))
+                                        fromAddress += docType.RetRcptAddrOptionalLine2BelowStreet + "\n";
+                                    if (!string.IsNullOrEmpty(docType.RetRcptAddressAptOrSuiteOrOther))
+                                        fromAddress += docType.RetRcptAddressAptOrSuiteOrOther + "\n";
+
+                                    fromAddress += docType.RetRcptAddressCity + ", " + docType.RetRcptAddressState + ", " + docType.RetRcptAddressZIP;
+                                }
+                                else
+                                {
+                                    //TODO: Generate error
+                                }
 
                                 Dictionary<string, string> mailPieceData = new Dictionary<string, string>();
-                                mailPieceData.Add("FromAddress", mailPiece.RetRcptAddressStreet + "\n" + mailPiece.RetRcptAddressAptOrSuiteOrOther + "\n" + mailPiece.RetRcptAddressCity + ", " + mailPiece.RetRcptAddressState + ", " + mailPiece.RetRcptAddressZIP);
+                                mailPieceData.Add("FromAddress", fromAddress);
 
-                                mailPieceData.Add("ToAddress", mailPiece.RcptFirstName + " " + mailPiece.RcptLastName + "\n" + (string.IsNullOrEmpty(mailPiece.RcptAddressAptOrSuiteOrOther) ? mailPiece.RcptAddressStreet : string.Format("{0}\n{1}", mailPiece.RcptAddressStreet, mailPiece.RcptFirstName)) + "\n" + mailPiece.RcptAddressCity + ", " + mailPiece.RcptAddressState + ", " + mailPiece.RcptAddressZIP);
+                                mailPieceData.Add("ToAddress", mailPiece.RcptFirstName + " " + mailPiece.RcptLastName + "\n" + (string.IsNullOrEmpty(mailPiece.RcptAddressAptOrSuiteOrOther) ? mailPiece.RcptAddressStreet : string.Format("{0}\n{1}", mailPiece.RcptAddressStreet, mailPiece.RcptAddressAptOrSuiteOrOther)) + "\n" + mailPiece.RcptAddressCity + ", " + mailPiece.RcptAddressState + ", " + mailPiece.RcptAddressZIP);
 
                                 mailPieceData.Add("MailPieceId", mailPiece.Id.ToString());
                                 mailPieceData.Add("Date", Common.Now.UtcToEst().ToString("MMMM dd, yyyy"));//USAA Specific
@@ -607,7 +670,6 @@ namespace AM.Core
                 foreach (var batch in resReceivedBatches)
                 {
                     Client client = clientSvc.GetClientById(batch.ClientId);
-                    SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(batch.SFTChannelId);
                     MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
 
                     var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);

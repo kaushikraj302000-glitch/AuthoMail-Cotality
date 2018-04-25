@@ -48,7 +48,7 @@ namespace AM.Services
                         mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
                         mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
                         OutComeCodes.GetAlaskaMappingCode(mailPiece.ErrorCode),
-                        mailPiece.ErrorDesc == null ? string.Empty : mailPiece.ErrorDesc.Replace("\r\n", " ").Replace(Environment.NewLine, " ").ToCsvString()
+                        mailPiece.ErrorDesc == null ? string.Empty : mailPiece.ErrorDesc.Replace("\r\n", " ").ToCsvString()
                     );
                 errorReport.AppendLine(line);
             }

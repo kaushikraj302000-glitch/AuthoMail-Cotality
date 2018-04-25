@@ -16,7 +16,7 @@ namespace AM.Services
         int DeleteBatchDetails(int mailBatchId);
         int UpdateBatchDetails(MailBatchDTO mailBatch);
         int MarkMailBatchAsInvalid(int id, string errorDesc);
-        List<MailBatchDTO> GetBatchesByPipelineStatus(string batchPipelineStatus);
+        List<MailBatchDTO> GetBatchesByPipelineStatus(string batchPipelineStatus, int? clientId = null);
         BatchData GetMailBatchDetailsByBatchId(int mailBatchId);
         int InsertPrintBatchDetails(PrintBatch printBatch);
         List<SubmittedBatch> GetSubmittedPrintBatchDetails();
@@ -58,10 +58,13 @@ namespace AM.Services
             return db.Execute(query, new { ValidationStatus = BatchValidationStatus.Invalid, ValidationErrors = errorDesc, Id = id });
         }
 
-        public List<MailBatchDTO> GetBatchesByPipelineStatus(string batchPipelineStatus)
+        public List<MailBatchDTO> GetBatchesByPipelineStatus(string batchPipelineStatus, int? clientId)
         {
             //Sql Query
             string query = "SELECT * FROM [AM].[MailBatches] WHERE PipelineStatus= @batchPipelineStatus";
+
+            if (clientId.HasValue)
+                query += " AND ClientId= @ClientId";
 
             switch (batchPipelineStatus)
             {
@@ -85,7 +88,7 @@ namespace AM.Services
                     break;
             }
 
-            var data = db.Query<MailBatchDTO>(query, new { batchPipelineStatus = batchPipelineStatus }).ToList();
+            var data = db.Query<MailBatchDTO>(query, new { batchPipelineStatus = batchPipelineStatus, ClientId = clientId }).ToList();
             return data;
         }
 

@@ -4,6 +4,7 @@ using AM.Lib;
 using AM.Services;
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -20,6 +21,8 @@ namespace AM.Console
 
         private static XmlSchemaSet schemas;
 
+        protected Client client;
+
         protected IAlaskaService alaskaSvc;
 
         static AlaskaChannel()
@@ -32,6 +35,7 @@ namespace AM.Console
             : base(channelCode)
         {
             alaskaSvc = GetService<AlaskaService>();
+            client = clientSvc.GetClientByAppCode("ALASKA");
         }
 
 
@@ -40,8 +44,6 @@ namespace AM.Console
             log.Debug("Enumerate Batches job queue for Alaska is started.");
 
             List<string> xmlFileNames = new List<string>();
-
-            Client client = clientSvc.GetClientByAppCode("ALASKA");
 
             SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
             sftSite.Connect();
@@ -108,7 +110,7 @@ namespace AM.Console
         {
             log.Debug("Alaska download job is started.");
 
-            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Received);
+            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Received, client.Id);
             if (downloadBatches.Count == 0)
             {
                 log.Debug("Alaska download job queue is empty.");
@@ -120,7 +122,6 @@ namespace AM.Console
 
             foreach (var batch in downloadBatches)
             {
-                Client client = clientSvc.GetClientById(batch.ClientId);
                 MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
 
                 try
@@ -176,7 +177,7 @@ namespace AM.Console
         {
             log.Debug("Validate job queue is started.");
 
-            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Downloaded);
+            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Downloaded, client.Id);
             if (downloadBatches.Count == 0)
             {
                 log.Debug("Validate job queue is empty.");
@@ -185,7 +186,6 @@ namespace AM.Console
 
             foreach (var mailBatch in downloadBatches)
             {
-                Client client = clientSvc.GetClientById(mailBatch.ClientId);
                 MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
 
                 ClientBusinessIdentifier clientBusinessIdDetails = commonSvc.GetBusinessIdNameFromClientId(client.Id);
@@ -219,7 +219,7 @@ namespace AM.Console
 
                 if (mailPieceNodes == null || mailPieceNodes.Count == 0)
                 {
-                    ReportInvalidBatch(mbi, "'{0}.xml' does not contain any package info node(s).".Fill(mbi.BatchName));
+                    ReportInvalidBatch(mbi, "'{0}.xml' does not contain any valid node(s).".Fill(mbi.BatchName));
 
                     continue;
                 }
@@ -242,44 +242,48 @@ namespace AM.Console
                         mailPieceDTO.MailBatchId = mbi.MailBatch.Id;
                         mailPieceDTO.ShippingStatus = ShippingStatus.InProgress.ToString();
 
+
+                        ALKRespaControl node = XmlUtil.Deserialize<ALKRespaControl>(mailPieceNode.OuterXml);
+
+                        mailPieceDTO.BusinessFriendlyIdName = clientBusinessIdDetails.BusinessIdName;
+                        mailPieceDTO.BusinessFriendlyIdValue = node.LoanNbr;
+                        mailPieceDTO.RcptFirstName = node.BorrowerFirstName;
+                        mailPieceDTO.RcptLastName = node.BorrowerLastName;
+                        mailPieceDTO.DocumentOrPackageType = mbi.MailBatch.DocumentOrPackageType;
+                        mailPieceDTO.FileName = node.File;
+
+                        mailPieceDTO.RcptAddressStreet = node.Address;
+                        mailPieceDTO.RcptAddressAptOrSuiteOrOther = node.Address2;
+                        mailPieceDTO.RcptAddressCity = node.City;
+                        mailPieceDTO.RcptAddressState = node.State;
+                        mailPieceDTO.RcptAddressZIP = node.Zip;
+                        mailPieceDTO.IsRcptInfoSpecified = true;
+
+                        if (node.ReturnInfo == null || node.ReturnInfo.Address == null)
+                        {
+                            mailPieceDTO.IsReturnInfoSpecified = false;
+                        }
+                        else
+                        {
+                            mailPieceDTO.IsReturnInfoSpecified = true;
+                            mailPieceDTO.RetRcptAddrOptionalLine1AboveStreet = node.ReturnInfo.Address.Line1;
+                            mailPieceDTO.RetRcptAddrOptionalLine2AboveStreet = node.ReturnInfo.Address.Line2;
+                            mailPieceDTO.RetRcptAddressStreet = node.ReturnInfo.Address.Line3;
+                            mailPieceDTO.RetRcptAddressCity = node.ReturnInfo.Address.City;
+                            mailPieceDTO.RetRcptAddressState = node.ReturnInfo.Address.State;
+                            mailPieceDTO.RetRcptAddressZIP = node.ReturnInfo.Address.Zip;
+                        }
+
+                        if (node.StatusID != null)
+                        {
+                            mailPieceCustomInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "StatusID", DataType = DataType.String, Value = node.StatusID };
+                            mailPieceCustomInfoList.Add(mailPieceCustomInfo);
+                        }
+
+
                         MailPieceValidationResult validationResult = ValidateRespaControlNode(mailPieceNode);
                         if (validationResult.Code == OutComeCodes.No_Error)
                         {
-                            ALKRespaControl node = XmlUtil.Deserialize<ALKRespaControl>(mailPieceNode.OuterXml);
-
-                            mailPieceDTO.BusinessFriendlyIdName = clientBusinessIdDetails.BusinessIdName;
-                            mailPieceDTO.BusinessFriendlyIdValue = node.LoanNbr;
-                            mailPieceDTO.RcptFirstName = node.BorrowerFirstName;
-                            mailPieceDTO.RcptLastName = node.BorrowerLastName;
-                            mailPieceDTO.DocumentOrPackageType = mbi.MailBatch.DocumentOrPackageType;
-                            mailPieceDTO.FileName = node.File;
-
-                            mailPieceDTO.RcptAddressStreet = node.Address;
-                            mailPieceDTO.RcptAddressAptOrSuiteOrOther = node.Address2;
-                            mailPieceDTO.RcptAddressCity = node.City;
-                            mailPieceDTO.RcptAddressState = node.State;
-                            mailPieceDTO.RcptAddressZIP = node.Zip;
-                            mailPieceDTO.IsRcptInfoSpecified = true;
-
-                            if (node.ReturnInfo == null || node.ReturnInfo.Address == null)
-                            {
-                                mailPieceDTO.IsReturnInfoSpecified = false;
-                            }
-                            else
-                            {
-                                mailPieceDTO.IsReturnInfoSpecified = true;
-                                mailPieceDTO.RetRcptAddrOptionalLine1AboveStreet = node.ReturnInfo.Address.Line1;
-                                mailPieceDTO.RetRcptAddrOptionalLine2AboveStreet = node.ReturnInfo.Address.Line2;
-                                mailPieceDTO.RetRcptAddressStreet = node.ReturnInfo.Address.Line3;
-                                mailPieceDTO.RetRcptAddressCity = node.ReturnInfo.Address.City;
-                                mailPieceDTO.RetRcptAddressState = node.ReturnInfo.Address.State;
-                                mailPieceDTO.RetRcptAddressZIP = node.ReturnInfo.Address.Zip;
-                            }
-
-
-                            mailPieceCustomInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "StatusID", DataType = DataType.String, Value = mailPieceNode.SelectSingleNode("StatusID/text()") == null ? null : node.StatusID };
-                            mailPieceCustomInfoList.Add(mailPieceCustomInfo);
-
                             //Now Check mentioned file is exist on sft or not that needs to be verified
                             string sftFilePath = Path.Combine(SFTChannel.ToADEDir, mailPieceDTO.FileName);
                             string localFilePath = Path.Combine(mbi.AMRequestPath, mailPieceDTO.FileName);
@@ -304,8 +308,11 @@ namespace AM.Console
                             }
                             else
                             {
-                                //Downloading matching file name from client SFT
-                                sftSite.DownloadFile(sftFilePath, localFilePath);
+                                if (!File.Exists(localFilePath))
+                                {
+                                    //Downloading matching file name from client SFT
+                                    sftSite.DownloadFile(sftFilePath, localFilePath);
+                                }
 
                                 //Creating collection for moving or deleting files because it may have same file for multiple nodes so can't move or delete at these level.
                                 fileListToMoveOrDelete.Add(sftFilePath);
@@ -315,60 +322,6 @@ namespace AM.Console
                         }
                         else
                         {
-                            // We are trying to get as much as possible values from node even after xml has an error
-                            mailPieceDTO.BusinessFriendlyIdValue = mailPieceNode.SelectSingleNode("LoanNbr/text()") == null ? null : mailPieceNode.SelectSingleNode("LoanNbr/text()").Value;
-
-                            mailPieceDTO.RcptFirstName = mailPieceNode.SelectSingleNode("BorrowerFirstName/text()") == null ? null : mailPieceNode.SelectSingleNode("BorrowerFirstName/text()").Value;
-
-                            mailPieceDTO.RcptLastName = mailPieceNode.SelectSingleNode("BorrowerLastName/text()") == null ? null : mailPieceNode.SelectSingleNode("BorrowerLastName/text()").Value;
-
-                            mailPieceDTO.RetRcptAddressStreet = mailPieceNode.SelectSingleNode("Address/text()") == null ? null : mailPieceNode.SelectSingleNode("Address/text()").Value;
-
-                            mailPieceDTO.RetRcptAddressCity = mailPieceNode.SelectSingleNode("City/text()") == null ? null : mailPieceNode.SelectSingleNode("City/text()").Value;
-
-                            mailPieceDTO.RetRcptAddressState = mailPieceNode.SelectSingleNode("State/text()") == null ? null : mailPieceNode.SelectSingleNode("State/text()").Value;
-
-                            mailPieceDTO.RetRcptAddressZIP = mailPieceNode.SelectSingleNode("Zip/text()") == null ? null : mailPieceNode.SelectSingleNode("Zip/text()").Value;
-
-                            mailPieceDTO.FileName = mailPieceNode.SelectSingleNode("File/text()") == null ? null : mailPieceNode.SelectSingleNode("File/text()").Value;
-
-                            var returnInfo = mailPieceNode.SelectSingleNode("ReturnInfo");
-                            if (returnInfo != null)
-                            {
-                                var returnInfoAddress = returnInfo.SelectSingleNode("Address");
-                                if (returnInfoAddress != null)
-                                {
-                                    mailPieceDTO.IsReturnInfoSpecified = true;
-
-                                    mailPieceDTO.RetRcptAddrOptionalLine1AboveStreet = returnInfoAddress.SelectSingleNode("Line1/text()") == null ? null : returnInfoAddress.SelectSingleNode("Line1/text()").Value;
-
-                                    mailPieceDTO.RetRcptAddrOptionalLine2AboveStreet = returnInfoAddress.SelectSingleNode("Line2/text()") == null ? null : returnInfoAddress.SelectSingleNode("Line2/text()").Value;
-
-                                    mailPieceDTO.RetRcptAddressStreet = returnInfoAddress.SelectSingleNode("Line3/text()") == null ? null : returnInfoAddress.SelectSingleNode("Line3/text()").Value;
-
-                                    mailPieceDTO.RetRcptAddressCity = returnInfoAddress.SelectSingleNode("City/text()") == null ? null : returnInfoAddress.SelectSingleNode("City/text()").Value;
-
-                                    mailPieceDTO.RetRcptAddressState = returnInfoAddress.SelectSingleNode("State/text()") == null ? null : returnInfoAddress.SelectSingleNode("State/text()").Value;
-
-                                    mailPieceDTO.RetRcptAddressZIP = returnInfoAddress.SelectSingleNode("Zip/text()") == null ? null : returnInfoAddress.SelectSingleNode("Zip/text()").Value;
-                                }
-                                else
-                                {
-                                    mailPieceDTO.IsReturnInfoSpecified = false;
-                                }
-                            }
-                            else
-                            {
-                                mailPieceDTO.IsReturnInfoSpecified = false;
-                            }
-
-                            //Status ID will go in custome info
-                            if (mailPieceNode.SelectSingleNode("StatusID/text()") != null)
-                            {
-                                mailPieceCustomInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "StatusID", DataType = DataType.String, Value = mailPieceNode.SelectSingleNode("StatusID/text()").Value };
-                                mailPieceCustomInfoList.Add(mailPieceCustomInfo);
-                            }
-
                             mailPieceDTO.ErrorCode = validationResult.Code;
                             mailPieceDTO.ErrorDesc = validationResult.ErrorMessage;
                             mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
@@ -376,7 +329,7 @@ namespace AM.Console
                     }
                     catch (Exception ex)
                     {
-                        var msg = "Unable to process package info node.".Fill(mbi.BatchName);
+                        var msg = "Unable to process node for batch {0}.".Fill(mbi.BatchName);
 
                         log.Error(msg, ex);
 
@@ -385,10 +338,29 @@ namespace AM.Console
                         mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                     }
 
+
+                    //try
+                    //{
                     mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfoList);
+                    //}
+                    //catch (SqlException ex)
+                    //{
+                    //    //2601 error code used for duplicate unique key insert 
+                    //    if (ex.Number == 2601)
+                    //    {
+                    //        var msg = "[{0}] key id is duplicate in package info node.".Fill(mailPieceDTO.UniqueId);
+
+                    //        log.Error(msg, ex);
+                    //        mailPieceDTO.UniqueId = Guid.NewGuid();
+                    //        mailPieceDTO.ErrorCode = OutComeCodes.Invalid_DuplicateKey;
+                    //        mailPieceDTO.ErrorDesc = msg + Environment.NewLine + ex.Message;
+                    //        mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
+                    //        mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfoList);
+                    //    }
+                    //}
                 }
 
-                //Based on post download action pdf file will get moved or delete from that location
+                //Based on post download action pdf file will get move or delete from that location
                 if (SFTChannel.PostDownloadAction == PostDownloadAction.Archive)
                 {
                     foreach (var sftFilePath in fileListToMoveOrDelete.Distinct())
@@ -400,7 +372,7 @@ namespace AM.Console
                 }
                 else
                 {
-                    foreach (var sftFilePath in fileListToMoveOrDelete)
+                    foreach (var sftFilePath in fileListToMoveOrDelete.Distinct())
                     {
                         sftSite.DeleteFile(sftFilePath);
                     }
@@ -493,7 +465,7 @@ namespace AM.Console
         {
             log.Debug("Alaska acknowledge job queue is started.");
 
-            List<MailBatchDTO> validatedBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Validated);
+            List<MailBatchDTO> validatedBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Validated, client.Id);
 
             if (validatedBatches.Count == 0)
             {
@@ -503,8 +475,6 @@ namespace AM.Console
 
             foreach (var batch in validatedBatches)
             {
-                Client client = clientSvc.GetClientById(batch.ClientId);
-
                 Deliverable reportDeliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Error);
 
                 MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
