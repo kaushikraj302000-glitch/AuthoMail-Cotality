@@ -117,7 +117,7 @@ namespace AM.Console
                         {
                             SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
                             sftSite.Connect();
-
+                            //TODO: Remove switch case after proper logic implementation of deliverables
                             UploadReportsToClients(mbi, sftSite, deliverables, data);
 
                             commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
@@ -189,51 +189,48 @@ namespace AM.Console
                     }
                     break;
                 case "ALASKA":
+
                     var reportToMail = new List<string>();
+                    //TODO: handle multiple channel code implementation
                     var emailChannel = deliverables.SingleOrDefault(x => x.ReportType == ReportTypes.Delivery).EmailChannel;
                     foreach (var deliverable in deliverables)
                     {
                         if (deliverable.ReportType == ReportTypes.Delivery)
                         {
-                            if (sftSite.IsDownloadDirectoryAvailable(deliverable.UploadPath))
-                            {
-                                var reportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.csv").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("DR_")).ToList();
+                            var reportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.csv").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("DR_")).ToList();
 
-                                if (reportList != null && reportList.Count > 0)
+                            if (reportList != null && reportList.Count > 0)
+                            {
+                                foreach (string filePath in reportList)
                                 {
-                                    foreach (string filePath in reportList)
-                                    {
-                                        string fileName = Path.GetFileName(filePath);
-                                        string ftpUploadPath = Path.Combine(deliverable.UploadPath, fileName);
-                                        sftSite.UploadFile(filePath, ftpUploadPath);
-                                    }
-                                    reportToMail.AddRange(reportList);
+                                    string fileName = Path.GetFileName(filePath);
+                                    string ftpUploadPath = Path.Combine(deliverable.UploadPath, fileName);
+                                    sftSite.UploadFile(filePath, ftpUploadPath);
                                 }
+                                reportToMail.AddRange(reportList);
                             }
                         }
                         else if (deliverable.ReportType == ReportTypes.Error)
                         {
-                            if (sftSite.IsDownloadDirectoryAvailable(deliverable.UploadPath))
-                            {
-                                var reportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.csv").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("ER_")).ToList();
+                            var reportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.csv").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("ER_")).ToList();
 
-                                if (reportList != null && reportList.Count > 0)
+                            if (reportList != null && reportList.Count > 0)
+                            {
+                                foreach (string filePath in reportList)
                                 {
-                                    foreach (string filePath in reportList)
-                                    {
-                                        string fileName = Path.GetFileName(filePath);
-                                        string ftpUploadPath = Path.Combine(deliverable.UploadPath, fileName);
-                                        sftSite.UploadFile(filePath, ftpUploadPath);
-                                    }
-                                    reportToMail.AddRange(reportList);
+                                    string fileName = Path.GetFileName(filePath);
+                                    string ftpUploadPath = Path.Combine(deliverable.UploadPath, fileName);
+                                    sftSite.UploadFile(filePath, ftpUploadPath);
                                 }
+                                reportToMail.AddRange(reportList);
                             }
                         }
                     }
                     MailUtility.SendProductionNotificationEmail(mbi, mailBatchData, reportToMail, emailChannel);
                     break;
                 default:
-                    break;
+                    throw new Exception("Invalid App Code");
+
             }
 
 
