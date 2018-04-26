@@ -190,6 +190,7 @@ namespace AM.Console
                     break;
                 case "ALASKA":
                     var reportToMail = new List<string>();
+                    var emailChannel = deliverables.SingleOrDefault(x => x.ReportType == ReportTypes.Delivery).EmailChannel;
                     foreach (var deliverable in deliverables)
                     {
                         if (deliverable.ReportType == ReportTypes.Delivery)
@@ -229,7 +230,7 @@ namespace AM.Console
                             }
                         }
                     }
-                    MailUtility.SendProductionNotificationEmail(mbi, mailBatchData, reportToMail, deliverables.SingleOrDefault().EmailChannel);
+                    MailUtility.SendProductionNotificationEmail(mbi, mailBatchData, reportToMail, emailChannel);
                     break;
                 default:
                     break;

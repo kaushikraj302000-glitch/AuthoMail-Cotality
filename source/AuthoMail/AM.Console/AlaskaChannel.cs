@@ -188,6 +188,8 @@ namespace AM.Console
             {
                 MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
 
+                Deliverable deliverables = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Error);
+
                 ClientBusinessIdentifier clientBusinessIdDetails = commonSvc.GetBusinessIdNameFromClientId(client.Id);
 
                 var xmlFilePath = Path.Combine(mbi.AMRequestPath, mbi.BatchName + ".xml");
@@ -205,7 +207,7 @@ namespace AM.Console
                     var msg = "'{0}.xml' is not a valid XML document.".Fill(mbi.BatchName);
                     log.Error(msg, ex);
 
-                    ReportInvalidBatch(mbi, msg);
+                    ReportInvalidBatch(mbi, msg, deliverables);
 
                     continue;
                 }
@@ -213,13 +215,13 @@ namespace AM.Console
                 {
                     var msg = "'{0}.xml' is not a valid XML document.".Fill(mbi.BatchName);
                     log.Error(msg, ex);
-                    ReportInvalidBatch(mbi, ex.Message);
+                    ReportInvalidBatch(mbi, ex.Message, deliverables);
                     continue;
                 }
 
                 if (mailPieceNodes == null || mailPieceNodes.Count == 0)
                 {
-                    ReportInvalidBatch(mbi, "'{0}.xml' does not contain any valid node(s).".Fill(mbi.BatchName));
+                    ReportInvalidBatch(mbi, "'{0}.xml' does not contain any valid node(s).".Fill(mbi.BatchName), deliverables);
 
                     continue;
                 }
@@ -451,12 +453,13 @@ namespace AM.Console
             yield break;
         }
 
-        private void ReportInvalidBatch(MailBatchInfo mbi, string msg)
+        private void ReportInvalidBatch(MailBatchInfo mbi, string msg, Deliverable deliverables)
         {
+            MailUtility.SendNoDataNotificationEmail(mbi, deliverables.EmailChannel, msg);
             //For Invalid Batch, we will generate error File
             mailBatchSvc.MarkMailBatchAsInvalid(mbi.MailBatch.Id, msg);
 
-            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
+            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
 
             commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
         }
