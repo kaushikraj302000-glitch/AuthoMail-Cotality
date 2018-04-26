@@ -17,5 +17,9 @@ namespace AM.Services
         public string Code { get; set; }
         public string Title { get; set; }
     }
-
+    public class ClientIdName
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
 }
