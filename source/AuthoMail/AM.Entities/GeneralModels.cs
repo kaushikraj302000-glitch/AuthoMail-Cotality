@@ -201,7 +201,13 @@ namespace AM.Entities
         PageCountMismatch = -3,
         Reprint = 7
     }
-
+    public static class AMRoles
+    {
+        public const string Admin = "Admin";
+        public const string BA = "BA";
+        public const string Client = "Client";
+        public const string PnSOperator = "PnSOperator";
+    }
     public enum ShippingServiceType
     {
         USPS = 0,
