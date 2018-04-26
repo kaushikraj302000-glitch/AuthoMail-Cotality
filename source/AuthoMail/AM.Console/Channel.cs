@@ -165,7 +165,7 @@ namespace AM.Console
                             if (reportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-")) > 0)
                             {
                                 string deliveryGoFilePath = Path.Combine(mbi.AMResponsePath, "DlvrReport.go");
-                                string ftpDeliveryGoUploadPath = Path.Combine(Config.Monitor_ReportSFTUploadingPathAMC, "DlvrReport.go");
+                                string ftpDeliveryGoUploadPath = Path.Combine(uploadPath, "DlvrReport.go");
                                 File.WriteAllText(deliveryGoFilePath, string.Empty);
 
                                 sftSite.UploadFile(deliveryGoFilePath, ftpDeliveryGoUploadPath);
@@ -174,7 +174,7 @@ namespace AM.Console
                             if (reportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Error-")) > 0)
                             {
                                 string errorGoFilePath = Path.Combine(mbi.AMResponsePath, "ErrReport.go");
-                                string ftpErrorGoUploadPath = Path.Combine(Config.Monitor_ReportSFTUploadingPathAMC, "ErrReport.go");
+                                string ftpErrorGoUploadPath = Path.Combine(uploadPath, "ErrReport.go");
                                 File.WriteAllText(errorGoFilePath, string.Empty);
 
                                 sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
