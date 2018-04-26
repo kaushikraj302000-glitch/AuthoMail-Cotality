@@ -487,17 +487,17 @@ namespace AM.Console
                 {
                     try
                     {
-                        string errorReportFileName = reportDeliverable.FileNameExpression;
+                        string errorReportFileName = "ER_{0}.csv".Fill(mbi.BatchName);
 
-                        Regex regEx = new Regex(@"{(.+?)}");
+                        //Regex regEx = new Regex(@"{(.+?)}");
 
-                        var param = regEx.Matches(errorReportFileName);
-                        for (int i = 0; i < param.Count; i++)
-                        {
-                            string propertyName = param[i].Groups[1].Value;
+                        //var param = regEx.Matches(errorReportFileName);
+                        //for (int i = 0; i < param.Count; i++)
+                        //{
+                        //    string propertyName = param[i].Groups[1].Value;
 
-                            errorReportFileName = errorReportFileName.Replace("{" + propertyName + "}", mbi.MailBatch.GetValueOfPropertyFromPropertyName(propertyName).ToString());
-                        }
+                        //    errorReportFileName = errorReportFileName.Replace("{" + propertyName + "}", mbi.MailBatch.GetValueOfPropertyFromPropertyName(propertyName).ToString());
+                        //}
 
                         string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 
