@@ -81,9 +81,21 @@ namespace AM.Services
 
         public List<Deliverable> GetDeliverablesByClientId(int clientId)
         {
-            string query = "SELECT * FROM [Common].[Deliverables] WHERE ClientId= @ClientId ";
 
-            return db.Query<Deliverable>(query, new { ClientId = clientId }).ToList();
+            string query = "[dbo].[usp_GetDeliverableByReportType] @ClientId";
+
+            var data = db.Query<Deliverable, EmailChannel, Deliverable>(query,
+               (d, e) =>
+               {
+                   d.EmailChannel = e;
+                   return d;
+               },
+               new
+               {
+                   ClientId = clientId
+               }
+               );
+            return data.ToList();
         }
 
         public Deliverable GetDeliverableByReportType(int clientId, string reportType)
