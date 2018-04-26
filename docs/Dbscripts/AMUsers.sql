@@ -8,7 +8,7 @@ DELETE FROM [Profile].[Users] WHERE [UserName] <> 'system@milestonetechnoconsult
 GO
 DELETE FROM [Profile].[Roles]
 GO
-INSERT [Profile].[Roles] ([Id], [Name]) VALUES (N'21e13837-41dc-4ffd-8223-b73cdb504c1f', N'PnsOperator')
+INSERT [Profile].[Roles] ([Id], [Name]) VALUES (N'21e13837-41dc-4ffd-8223-b73cdb504c1f', N'PnSOperator')
 INSERT [Profile].[Roles] ([Id], [Name]) VALUES (N'291cc1af-16c1-4349-a9a0-0118f4c23a38', N'Client')
 INSERT [Profile].[Roles] ([Id], [Name]) VALUES (N'4548a5a6-79b6-4f9e-b397-46b3d87f5506', N'Admin')
 INSERT [Profile].[Users] ([Id], [Email], [EmailConfirmed], [PasswordHash], [SecurityStamp], [PhoneNumber], [PhoneNumberConfirmed], [TwoFactorEnabled], [LockoutEndDateUtc], [LockoutEnabled], [AccessFailedCount], [UserName], [ClientId]) VALUES (N'0df1aa9e-9016-40d7-98e8-44e08c7fc722', N'ramin@corelogic.com', 1, N'AD6UGB5B3lMuMSRy5fIps9IvAfOsOhDKPPXsvhxVMZWKlEoinERn74idelhyCaoKqg==', N'41046913-1744-49c3-b5ac-446a3761a94c', NULL, 0, 0, NULL, 1, 0, N'ramin', 101)
@@ -29,6 +29,7 @@ INSERT [Profile].[Users] ([Id], [Email], [EmailConfirmed], [PasswordHash], [Secu
 INSERT [Profile].[Users] ([Id], [Email], [EmailConfirmed], [PasswordHash], [SecurityStamp], [PhoneNumber], [PhoneNumberConfirmed], [TwoFactorEnabled], [LockoutEndDateUtc], [LockoutEnabled], [AccessFailedCount], [UserName], [ClientId]) VALUES (N'e65ee0b8-dbf9-4de9-af2d-3cce4cdaafd8', N'ravpatel@corelogic.com', 1, N'AEBsaeK/zKPfGOiBIbaOSTbIcWlYceEHzmxJtTOqNXJtfvdhr0yyzQu7jBTz1f5NIQ==', N'e24261d1-7074-4f96-8edf-b2a029054b14', NULL, 0, 0, NULL, 1, 0, N'ravpatel', 101)
 INSERT [Profile].[Users] ([Id], [Email], [EmailConfirmed], [PasswordHash], [SecurityStamp], [PhoneNumber], [PhoneNumberConfirmed], [TwoFactorEnabled], [LockoutEndDateUtc], [LockoutEnabled], [AccessFailedCount], [UserName], [ClientId]) VALUES (N'e778c0b8-a3df-44a9-9616-ba2efc8fab08', N'skriti@corelogic.com', 1, N'AEov4Goul06m0jl7Eak9dCAQucu9Wo2BEoJ5FSu3jToNTBaRx0FA4XPMr9DJ7aFq/w==', N'2e7fdc00-34d4-49ea-a421-08d7a1e2be37', NULL, 0, 0, NULL, 1, 0, N'skriti', 101)
 INSERT [Profile].[Users] ([Id], [Email], [EmailConfirmed], [PasswordHash], [SecurityStamp], [PhoneNumber], [PhoneNumberConfirmed], [TwoFactorEnabled], [LockoutEndDateUtc], [LockoutEnabled], [AccessFailedCount], [UserName],[ClientId]) VALUES (N'ddbd153f-cae4-4155-bb24-c83024b70fd8', N'rojain@corelogic.com', 1, N'AMs+++Squv2bzet1ri4LN6sO8xBO4AZI4UjNPR6GlyBCc92JncNOtPXxL/oidJCDbw==', N'97870941-73ed-476a-b126-2f3e4bb0aeee', NULL, 0, 0, NULL, 1, 0, N'rojain',101)
+INSERT [Profile].[Users] ([Id], [Email], [EmailConfirmed], [PasswordHash], [SecurityStamp], [PhoneNumber], [PhoneNumberConfirmed], [TwoFactorEnabled], [LockoutEndDateUtc], [LockoutEnabled], [AccessFailedCount], [UserName], [ClientId]) VALUES (N'8c92157a-31d7-45e3-ab14-f231889c7777', N'K.Hoggard@alaskausa.org', 1, N'AIFx4tXfx7aI93Oa+sNSk7BKKSu6XF9JbJf61VAOL1jGlJFI3ptqJa/WjjKe2dnCRQ==', N'7e137c3a-83f1-4a0f-bb57-7126868c92ed', NULL, 0, 0, NULL, 1, 0, N'K.Hoggard@alaskausa.org', 102)
 
 INSERT [Profile].[UserRoles] ([UserId], [RoleId]) VALUES (N'0df1aa9e-9016-40d7-98e8-44e08c7fc722', N'291cc1af-16c1-4349-a9a0-0118f4c23a38')
 INSERT [Profile].[UserRoles] ([UserId], [RoleId]) VALUES (N'18698904-feb6-48ee-9792-52fceae72b1e', N'291cc1af-16c1-4349-a9a0-0118f4c23a38')
@@ -48,3 +49,4 @@ INSERT [Profile].[UserRoles] ([UserId], [RoleId]) VALUES (N'da3ed247-c24d-4dcf-a
 INSERT [Profile].[UserRoles] ([UserId], [RoleId]) VALUES (N'e65ee0b8-dbf9-4de9-af2d-3cce4cdaafd8', N'291cc1af-16c1-4349-a9a0-0118f4c23a38')
 INSERT [Profile].[UserRoles] ([UserId], [RoleId]) VALUES (N'e778c0b8-a3df-44a9-9616-ba2efc8fab08', N'291cc1af-16c1-4349-a9a0-0118f4c23a38')
 INSERT [Profile].[UserRoles] ([UserId], [RoleId]) VALUES (N'ddbd153f-cae4-4155-bb24-c83024b70fd8', N'291cc1af-16c1-4349-a9a0-0118f4c23a38')
+INSERT [Profile].[UserRoles] ([UserId], [RoleId]) VALUES (N'8c92157a-31d7-45e3-ab14-f231889c7777', N'291cc1af-16c1-4349-a9a0-0118f4c23a38')
