@@ -35,6 +35,9 @@ namespace AM.Services
         public static string Monitor_PS_Email_To { get; private set; }
         public static string Monitor_PS_Email_Cc { get; private set; }
 
+        public static string Monitor_PSNoDataEmailSubject { get; private set; }
+        public static string Monitor_PSNoDataEmailTemplate { get; private set; }
+
         public static string Monitor_NoBatchReceivedNotification_Subject { get; set; }
         public static string Monitor_NoBatch_Email_To { get; private set; }
         public static string Monitor_NoBatch_Email_Cc { get; private set; }

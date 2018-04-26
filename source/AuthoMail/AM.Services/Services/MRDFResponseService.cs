@@ -12,11 +12,11 @@ namespace AM.Services
 {
     public interface IMRDFResponseService : IDisposable
     {
-        void GenerateMRDFResponse();
+        void GenerateMRDFResponse(string outFilePath, string zipFilePath);
     }
     public class MRDFResponseService : ServiceBase, IMRDFResponseService
     {
-        public void GenerateMRDFResponse()
+        public void GenerateMRDFResponse(string outFilePath, string zipFilePath)
         {
             string query = "SELECT PB.PrintFileName,PM.JobId,PM.PieceId,PM.[Date],PM.TotalSheets,PM.PDFFileName FROM PnS.BatchSummary PB INNER JOIN PnS.MRDFRequest PM ON PB.PrintBatch = PM.JobId";
             var mrdfData = db.Query<MRDFResponse>(query).ToList();
@@ -25,22 +25,22 @@ namespace AM.Services
             {
                 string responseLine = new string(' ', 915);
                 var responseLines = new List<string>();
-                string outFilePath = string.Empty;
-                string zipFilePath = string.Empty;
+                string outFileFullPath = string.Empty;
+                string zipFileFullPath = string.Empty;
                 foreach (var item in items)
                 {
-                    outFilePath = string.Format("{0}.out", Path.Combine(@"C:\Users\akshar.vala.mtc\Desktop\03232017\AuthoMail\MRDFResponse", item.PrintFileName.Replace(".zip", "-000043HYFC")));
-                    zipFilePath = string.Format("{0}.zip", Path.Combine(@"C:\Users\akshar.vala.mtc\Desktop\03232017\AuthoMail\MRDFResponse", Path.GetFileNameWithoutExtension(outFilePath)));
+                    outFileFullPath = string.Format("{0}.out", Path.Combine(outFilePath, item.PrintFileName.Replace(".zip", "-000043HYFC")));
+                    zipFileFullPath = string.Format("{0}.zip", Path.Combine(zipFilePath, Path.GetFileNameWithoutExtension(outFilePath)));
                     item.Date = DateTime.Parse(item.Date).ToString("yyyyMMdd");
                     item.JobId = String.Format("{0:D10}", Int32.Parse(item.JobId));
                     item.PieceId = String.Format("{0:D4}", Int32.Parse(item.PieceId));
                     item.TotalSheets = String.Format("{0:D3}", Int32.Parse(item.TotalSheets));
-                    item.PDFFileName = String.Format("{0,-160}",item.PDFFileName);
+                    item.PDFFileName = String.Format("{0,-160}", item.PDFFileName);
                     item.OperatorId = "RichardP";
                     item.MachineId = String.Format("{0,-8}", "PCI09");
                     item.ProcessingTimeStamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
                     item.DetailedErrorId = String.Format("{0,-5}", "4691");
-                    item.Disposition = String.Format("{0,-2}", "4");
+                    item.Disposition = String.Format("{0,-2}", "5");
                     item.Common = "000000.00 00000000Mailrun_Files            0.0000000 Mailrun_Files            ";
                     responseLine = string.Format("{0}{1}{2}", responseLine.Substring(0, 77), item.Date, responseLine.Substring(85));
                     responseLine = string.Format("{0}{1}{2}", responseLine.Substring(0, 85), item.JobId, responseLine.Substring(95));
@@ -55,11 +55,11 @@ namespace AM.Services
                     responseLine = string.Format("{0}{1}{2}", responseLine.Substring(0, 837), item.Common, responseLine.Substring(915));
                     responseLines.Add(responseLine);
                 }
-                File.WriteAllLines(outFilePath, responseLines.ToArray());
+                File.WriteAllLines(outFileFullPath, responseLines.ToArray());
                 using (ZipFile mrdfoutZip = new ZipFile())
                 {
-                    mrdfoutZip.AddFile(outFilePath,"");
-                    mrdfoutZip.Save(zipFilePath);
+                    mrdfoutZip.AddFile(outFileFullPath, "");
+                    mrdfoutZip.Save(zipFileFullPath);
                 }
             }
         }

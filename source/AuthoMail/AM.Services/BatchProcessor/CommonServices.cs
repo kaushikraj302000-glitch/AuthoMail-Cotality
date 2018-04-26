@@ -82,7 +82,7 @@ namespace AM.Services
         public List<Deliverable> GetDeliverablesByClientId(int clientId)
         {
 
-            string query = "[dbo].[usp_GetDeliverableByReportType] @ClientId";
+            string query = "[dbo].[usp_GetDeliverableByReportType] @ClientId, @ReportType";
 
             var data = db.Query<Deliverable, EmailChannel, Deliverable>(query,
                (d, e) =>
@@ -92,7 +92,8 @@ namespace AM.Services
                },
                new
                {
-                   ClientId = clientId
+                   ClientId = clientId,
+                   ReportType = string.Empty
                }
                );
             return data.ToList();
