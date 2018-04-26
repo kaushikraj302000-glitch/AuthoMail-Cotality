@@ -8,7 +8,7 @@ DELETE FROM [Profile].[Users] WHERE [UserName] <> 'system@milestonetechnoconsult
 GO
 DELETE FROM [Profile].[Roles]
 GO
-INSERT [Profile].[Roles] ([Id], [Name]) VALUES (N'21e13837-41dc-4ffd-8223-b73cdb504c1f', N'PnsOperator')
+INSERT [Profile].[Roles] ([Id], [Name]) VALUES (N'21e13837-41dc-4ffd-8223-b73cdb504c1f', N'PnSOperator')
 INSERT [Profile].[Roles] ([Id], [Name]) VALUES (N'291cc1af-16c1-4349-a9a0-0118f4c23a38', N'Client')
 INSERT [Profile].[Roles] ([Id], [Name]) VALUES (N'4548a5a6-79b6-4f9e-b397-46b3d87f5506', N'Admin')
 INSERT [Profile].[Users] ([Id], [Email], [EmailConfirmed], [PasswordHash], [SecurityStamp], [PhoneNumber], [PhoneNumberConfirmed], [TwoFactorEnabled], [LockoutEndDateUtc], [LockoutEnabled], [AccessFailedCount], [UserName], [ClientId]) VALUES (N'0df1aa9e-9016-40d7-98e8-44e08c7fc722', N'ramin@corelogic.com', 1, N'AD6UGB5B3lMuMSRy5fIps9IvAfOsOhDKPPXsvhxVMZWKlEoinERn74idelhyCaoKqg==', N'41046913-1744-49c3-b5ac-446a3761a94c', NULL, 0, 0, NULL, 1, 0, N'ramin', 101)
