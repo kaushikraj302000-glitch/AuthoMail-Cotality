@@ -16,7 +16,7 @@ SET IDENTITY_INSERT [Common].[Clients] ON
 GO
 INSERT [Common].[Clients] ([Id], [Name], [AppCode], [BusinessUnit], [IsAMActive], [IsPnSActive], [TimeZone], [ModifiedOn], [ModifiedBy], [CreatedOn], [CreatedBy]) VALUES (101, N'USAA', N'USAA', 1, 1, 1, N'Eastern Standard Time', CAST(N'2018-02-28 12:25:47.940' AS DateTime), (select Id FROM [Profile].[Users] where UserName='system@milestonetechnoconsulting.com'), CAST(N'2018-02-27 12:25:47.940' AS DateTime), (select Id FROM [Profile].[Users] where UserName='system@milestonetechnoconsulting.com'))
 GO
-INSERT [Common].[Clients] ([Id], [Name], [AppCode], [BusinessUnit], [IsAMActive], [IsPnSActive], [TimeZone], [ModifiedOn], [ModifiedBy], [CreatedOn], [CreatedBy]) VALUES (102, N'Alaska', N'ALASKA', 1, 0, 0, N'Eastern Standard Time', CAST(N'2018-02-28 12:39:02.823' AS DateTime), (select Id FROM [Profile].[Users] where UserName='system@milestonetechnoconsulting.com'), CAST(N'2018-02-27 12:39:02.823' AS DateTime), (select Id FROM [Profile].[Users] where UserName='system@milestonetechnoconsulting.com'))
+INSERT [Common].[Clients] ([Id], [Name], [AppCode], [BusinessUnit], [IsAMActive], [IsPnSActive], [TimeZone], [ModifiedOn], [ModifiedBy], [CreatedOn], [CreatedBy]) VALUES (102, N'Alaska', N'ALASKA', 1, 0, 0, N'Pacific Standard Time', CAST(N'2018-02-28 12:39:02.823' AS DateTime), (select Id FROM [Profile].[Users] where UserName='system@milestonetechnoconsulting.com'), CAST(N'2018-02-27 12:39:02.823' AS DateTime), (select Id FROM [Profile].[Users] where UserName='system@milestonetechnoconsulting.com'))
 GO
 INSERT [Common].[Clients] ([Id], [Name], [AppCode], [BusinessUnit], [IsAMActive], [IsPnSActive], [TimeZone], [ModifiedOn], [ModifiedBy], [CreatedOn], [CreatedBy]) VALUES (103, N'Citi Valuation Mailing', N'CITIVM', 1, 0, 0, N'Eastern Standard Time', CAST(N'2018-02-28 12:39:02.823' AS DateTime), (select Id FROM [Profile].[Users] where UserName='system@milestonetechnoconsulting.com'), CAST(N'2018-02-27 12:39:02.823' AS DateTime), (select Id FROM [Profile].[Users] where UserName='system@milestonetechnoconsulting.com'))
 GO
@@ -531,10 +531,14 @@ INSERT INTO [Common].[EmailChannels]([Title],[To],[Cc],[Bcc],[Subject],[BodyTemp
 GO
 INSERT INTO [Common].[EmailChannels]([Title],[To],[Cc],[Bcc],[Subject],[BodyTemplate],[IsBodyHTML])VALUES('Alaska Reporting','sgolvelkar@corelogic.com','vmungara@corelogic.com',NULL,'Production Summary','HTML',0)
 GO
+INSERT INTO [Common].[EmailChannels]([Title],[To],[Cc],[Bcc],[Subject],[BodyTemplate],[IsBodyHTML])VALUES('USAA Reporting','sgolvelkar@corelogic.com','vmungara@corelogic.com',NULL,'Production Summary','HTML',0)
+GO
 
 -- Deliverables Data for Alaska
 
-INSERT INTO [Common].[Deliverables]([ClientId],[ReportName],[ReportType],[DeliveryType],[ReportQuery],[Delimeter],[FileNameExpression],[IsSFTUploadRequired],[UploadPath],[EmailChannelId],[ScheduleId])VALUES(102,'Delivery Report','Delivery','Batch','',',','DR_{BatchName}.csv',1,'/Unknown/ALASKA/xfer-in/Mortgage/Report Folder/Delivery Report Folder',NULL,NULL)
+INSERT INTO [Common].[Deliverables]([ClientId],[ReportName],[ReportType],[DeliveryType],[ReportQuery],[Delimeter],[FileNameExpression],[IsSFTUploadRequired],[UploadPath],[EmailChannelId],[ScheduleId])VALUES(102,'Delivery Report','Delivery','Batch','',',','DR_{BatchName}.csv',1,'/Unknown/ALASKA/xfer-in/Mortgage/Report Folder/Delivery Report Folder',2,NULL)
 GO
-INSERT INTO [Common].[Deliverables]([ClientId],[ReportName],[ReportType],[DeliveryType],[ReportQuery],[Delimeter],[FileNameExpression],[IsSFTUploadRequired],[UploadPath],[EmailChannelId],[ScheduleId])VALUES(102,'Error Report','Error','Batch','',',','ER_{BatchName}.csv',1,'/Unknown/ALASKA/xfer-in/Mortgage/Report Folder/Error Folder',NULL,NULL)
+INSERT INTO [Common].[Deliverables]([ClientId],[ReportName],[ReportType],[DeliveryType],[ReportQuery],[Delimeter],[FileNameExpression],[IsSFTUploadRequired],[UploadPath],[EmailChannelId],[ScheduleId])VALUES(102,'Error Report','Error','Batch','',',','ER_{BatchName}.csv',1,'/Unknown/ALASKA/xfer-in/Mortgage/Report Folder/Error Folder',1,NULL)
+GO
+INSERT INTO [Common].[Deliverables]([ClientId],[ReportName],[ReportType],[DeliveryType],[ReportQuery],[Delimeter],[FileNameExpression],[IsSFTUploadRequired],[UploadPath],[EmailChannelId],[ScheduleId])VALUES(101,'Error Report','Error','Batch','',',','Error-{Now:yyyyMMdd}.csv',1,'/Reports',3,NULL)
 GO

@@ -180,7 +180,7 @@ namespace AM.Console
                                 sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
                             }
 
-                            MailUtility.SendProductionNotificationEmail(mbi, mailBatchData, reportList);
+                            MailUtility.SendProductionNotificationEmail(mbi, mailBatchData, reportList, deliverables.SingleOrDefault().EmailChannel);
                         }
                     }
                     else
