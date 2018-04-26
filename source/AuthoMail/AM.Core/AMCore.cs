@@ -706,11 +706,11 @@ namespace AM.Core
                     {
                         try
                         {
-                            bool isDeliveryReportGenerated = false, isErrorReportGenerated = false;
+                            bool isReportGenerated = false;
 
-                            GenerateFinalReports(mbi, data, deliverable);
+                            isReportGenerated = GenerateFinalReports(mbi, data, deliverable);
 
-                            if (isDeliveryReportGenerated || isErrorReportGenerated)
+                            if (isReportGenerated)
                                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
 
                             //TODO: Remove after proper naming convention
