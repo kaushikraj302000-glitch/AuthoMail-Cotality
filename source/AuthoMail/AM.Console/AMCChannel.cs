@@ -733,6 +733,8 @@ namespace AM.Console
 
             foreach (var batch in validatedBatches)
             {
+                Deliverable deliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Error);
+
                 MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
 
                 var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
@@ -745,7 +747,7 @@ namespace AM.Console
 
                         string errorGoFileName = "ErrReport.go";
                         string errorGoFilePath = Path.Combine(mbi.AMResponsePath, errorGoFileName);
-                        string ftpErrorGoUploadPath = Path.Combine(Config.Monitor_ReportSFTUploadingPathAMC, errorGoFileName);
+                        string ftpErrorGoUploadPath = Path.Combine(deliverable.UploadPath, errorGoFileName);
 
                         // valid: ack, pvalid: err rpt upload, invalid: Generate Error Report, ReportPrepped
 
@@ -771,7 +773,7 @@ namespace AM.Console
                                 SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
                                 sftSite.Connect();
 
-                                var ftpUploadPath = Path.Combine(Config.Monitor_ReportSFTUploadingPathAMC, errorReportFileName);
+                                var ftpUploadPath = Path.Combine(deliverable.UploadPath, errorReportFileName);
 
                                 sftSite.UploadFile(errorReportPath, ftpUploadPath);
 
