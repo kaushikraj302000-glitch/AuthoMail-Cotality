@@ -761,6 +761,7 @@ namespace AM.Console
 
                             // Batch status Prepped
                             commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
+
                         }
                         else if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.PartiallyValid)
                         {
@@ -787,16 +788,18 @@ namespace AM.Console
 
                             }
                             commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
+
+                            MailUtility.SendDownloadNotificationEmail(mbi, data, errorReportPath);
+                            //After upload delete from local
+                            File.Move(errorReportPath, Path.ChangeExtension(errorReportPath, ".uploaded"));
                         }
                         else
                         {
                             // Batch is valid
                             commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
-                        }
 
-                        MailUtility.SendDownloadNotificationEmail(mbi, data, errorReportPath);
-                        //After upload delete from local
-                        File.Move(errorReportPath, Path.ChangeExtension(errorReportPath, ".uploaded"));
+                            MailUtility.SendDownloadNotificationEmail(mbi, data, errorReportPath);
+                        }
                     }
                     catch (Exception ex)
                     {
