@@ -26,7 +26,7 @@
                     Today's Batch Details
                 </div>
             </div>
-            <div class="panel-body panel-gray " id="todayBody">
+            <div class="panel-body panel-gray" style="padding:2% 2% 2% 2% !important;" id="todayBody">
                 <div id="todayChart"></div>
             </div>
 
@@ -40,7 +40,7 @@
                     <div class="panel-heading">
                         <div class="panel-title">Weekly Batch Details</div>
                     </div>
-                    <div class="panel-body panel-gray">
+                    <div class="panel-body panel-gray" style="padding:2% 2% 2% 2% !important;">
                         <div id="weeklyChart"></div>
 
                     </div>
@@ -52,8 +52,8 @@
                     <div class="panel-heading">
                         <div class="panel-title"><i class="fa fa-reply"></i> Quick Pullback</div>
                     </div>
-                    <div class="panel-body panel-gray">
-                        <div class="form-group col-md-@(ViewBag.BusinessId.Count > 1?"9":"8")">
+                    <div class="panel-body panel-gray" @(ViewBag.BusinessId.Count == 0 ? Html.Raw("style='padding: 2% 0% 0% 0% !important;height:95px;'") :Html.Raw("") )>
+                        <div class="form-group col-md-@(ViewBag.BusinessId.Count==0?"12":ViewBag.BusinessId.Count>1?"9":"8")">
 
                             @if (ViewBag.BusinessId.Count == 1)
                             {
@@ -514,7 +514,7 @@
                         cnt++;
                     }
                     // console.log(chartData);
-                    drawChart(chartData, "weeklyChart", 'Batch Details : ' + moment(startDate).format('MM/DD/YYYY') + " - " + moment(endDate).format('MM/DD/YYYY'), 300, 510);
+                    drawChart(chartData, "weeklyChart", 'Batch Details : ' + moment(startDate).format('MM/DD/YYYY') + " - " + moment(endDate).format('MM/DD/YYYY'), 300, 534);
 
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
@@ -570,7 +570,7 @@
                     //console.log(response);
                     if (response.length == 0) {
                         el.html("<div class='alert alert-yellow' style='margin-bottom:10px;'><span>@AM.Services.Config.Web_Msg_NoMailPieceReceivedToday</span></div>");
-                        $("#todayBody").css("min-height", "476px");
+                        $("#todayBody").css("min-height", "488px");
                         return;
                     }
                     var chartData = [];
@@ -592,7 +592,7 @@
                     }
                     ////console.log(chartData);
 
-                    drawChart(chartData, "todayChart", 'MailPiece Status', 467, 510);
+                    drawChart(chartData, "todayChart", 'MailPiece Status', 467, 534);
 
 
 
