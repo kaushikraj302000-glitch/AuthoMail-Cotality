@@ -33,13 +33,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AM.Lib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\AM.Lib\bin\Debug\AM.Lib.dll</HintPath>
-    </Reference>
-    <Reference Include="AM.Services">
-      <HintPath>..\AM.Services\bin\Debug\AM.Services.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
@@ -58,6 +51,16 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="HTMLTemplates\MonitorEmailTemp.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AM.Lib\AM.Lib.csproj">
+      <Project>{75996573-6449-4675-a5ff-f1c39c84d685}</Project>
+      <Name>AM.Lib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\AM.Services\AM.Services.csproj">
+      <Project>{a60d6e77-74fc-419c-bf13-a7684012d0a5}</Project>
+      <Name>AM.Services</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
