@@ -52,8 +52,8 @@
                     <div class="panel-heading">
                         <div class="panel-title"><i class="fa fa-reply"></i> Quick Pullback</div>
                     </div>
-                    <div class="panel-body panel-gray">
-                        <div class="form-group col-md-@(ViewBag.BusinessId.Count > 1?"9":"8")">
+                    <div class="panel-body panel-gray" @(ViewBag.BusinessId.Count == 0 ? Html.Raw("style='padding: 2% 0% 0% 0% !important;height:95px;'") :Html.Raw("") )>
+                        <div class="form-group col-md-@(ViewBag.BusinessId.Count==0?"12":ViewBag.BusinessId.Count>1?"9":"8")">
 
                             @if (ViewBag.BusinessId.Count == 1)
                             {
