@@ -197,32 +197,24 @@ namespace AM.Console
                     {
                         if (deliverable.ReportType == ReportTypes.Delivery)
                         {
-                            var reportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.csv").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("DR_")).ToList();
-
-                            if (reportList != null && reportList.Count > 0)
+                            var deliveryReportName = "DR_{0}.csv".Fill(mbi.BatchName);
+                            string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportName);
+                            if (File.Exists(deliveryReportPath))
                             {
-                                foreach (string filePath in reportList)
-                                {
-                                    string fileName = Path.GetFileName(filePath);
-                                    string ftpUploadPath = Path.Combine(deliverable.UploadPath, fileName);
-                                    sftSite.UploadFile(filePath, ftpUploadPath);
-                                }
-                                reportToMail.AddRange(reportList);
+                                string ftpUploadPath = Path.Combine(deliverable.UploadPath, deliveryReportName);
+                                sftSite.UploadFile(deliveryReportPath, ftpUploadPath);
+                                reportToMail.Add(deliveryReportPath);
                             }
                         }
                         else if (deliverable.ReportType == ReportTypes.Error)
                         {
-                            var reportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.csv").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("ER_")).ToList();
-
-                            if (reportList != null && reportList.Count > 0)
+                            var errorReportName = "ER_{0}.csv".Fill(mbi.BatchName);
+                            string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportName);
+                            if (File.Exists(errorReportPath))
                             {
-                                foreach (string filePath in reportList)
-                                {
-                                    string fileName = Path.GetFileName(filePath);
-                                    string ftpUploadPath = Path.Combine(deliverable.UploadPath, fileName);
-                                    sftSite.UploadFile(filePath, ftpUploadPath);
-                                }
-                                reportToMail.AddRange(reportList);
+                                string ftpUploadPath = Path.Combine(deliverable.UploadPath, errorReportName);
+                                sftSite.UploadFile(errorReportPath, ftpUploadPath);
+                                reportToMail.Add(errorReportPath);
                             }
                         }
                     }
@@ -232,8 +224,6 @@ namespace AM.Console
                     throw new Exception("Invalid App Code");
 
             }
-
-
         }
 
 

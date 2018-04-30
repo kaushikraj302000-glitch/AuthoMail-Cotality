@@ -45,10 +45,18 @@ namespace AM.Console
 
             List<string> xmlFileNames = new List<string>();
 
+            Deliverable deliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.NoBatch);
+
             SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
             sftSite.Connect();
 
             xmlFileNames = GetXmlFileNames(sftSite);
+
+            if (xmlFileNames.Count == 0)
+            {
+                MailUtility.SendNoBatchReceivedNotificationEmail(client, Common.Now, deliverable);
+                return;
+            }
 
             foreach (string xmlFile in xmlFileNames)
             {
