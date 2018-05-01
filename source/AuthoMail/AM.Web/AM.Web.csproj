@@ -371,6 +371,7 @@
     <Content Include="Template\CreateAccountCL.html" />
     <Content Include="Template\CreateAccount.html" />
     <Content Include="Views\Report\MonthlyReconReport.cshtml" />
+    <Content Include="Views\Shared\_LayoutCommon.cshtml" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
