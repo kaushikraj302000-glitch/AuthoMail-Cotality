@@ -21,6 +21,7 @@ namespace AM.Entities
             //userIdentity.AddClaim(new Claim("clientId", ClientId == null ? string.Empty : ClientId.ToString()));
             userIdentity.AddClaim(new Claim("ClientId", this.ClientId.ToString()));
             userIdentity.AddClaim(new Claim("IsCoreLogicUser", this.Email));
+            userIdentity.AddClaim(new Claim("DisplayName", this.DisplayName == null ? "Hello" : this.DisplayName));
             return userIdentity;
         }
 
@@ -40,6 +41,12 @@ namespace AM.Entities
             if (claim == null || claim.Value == null || claim.Value == string.Empty) return false;
             var mailAddress = new MailAddress(claim.Value);
             return mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase) ? true : false;
+        }
+        public static string DisplayName(this IIdentity identity)
+        {
+            var claim = ((ClaimsIdentity)identity).FindFirst("DisplayName");
+            if (claim == null || claim.Value == null || claim.Value == string.Empty) return string.Empty;
+            return claim.Value;
         }
     }
 
