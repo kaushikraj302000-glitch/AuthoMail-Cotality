@@ -1,0 +1,44 @@
+AuthoMail User Account Module:
+
+When user click on 'Register or Sign Up' button show this page
+
+New user registration:
+
+1. Email Address
+2. First Name (valid names, no digits or special characters)
+3. Last Name (valid names, no digits or special characters)
+4. Display Name (calculated and editable: Last Name, First Name)
+
+In case of CoreLogic auto populate 2, 3 and 4 from AD, DO NOT let them change.
+
+On submit, check if the host name of the email address is found in the common.clientdomains table. If not, show this message.
+"Users of the specified domain name '{0}' are not allowed to register."
+
+If user has already registered...
+	1. If login is active, show message that "Your account with email address - {0} - is already active. If you are having trouble logging in, reset your password."
+	2. If Email is not verified, "You must confirm your email address. Click here to resend the confirmation email in case you haven't received any."
+	3. If request if not yet approved or rejected, "Your account is not yet approved. If it is taking longer, you may escalate to Robin, Brijesh or Marian" (show their emails)
+
+If domain is valid, store registration request in AM.SignUpRequests table and show this message. If you follow the articles below, you may not need the table.
+
+Confirmation Email Sent
+
+Your registration request is recorded, please check your email and confirm your email address. Once the email address is confirmed, your request will be sent for
+approval. You should receive approval or rejection notification shortly.
+
+Create approval screen. Sent notification on approval (with default pwd) or rejection. Only Admins can approver or reject.
+
+Create Forgot Password and Password Reset (I guess both are almost same.)
+
+https://docs.microsoft.com/en-us/aspnet/mvc/overview/security/create-an-aspnet-mvc-5-web-app-with-email-confirmation-and-password-reset
+https://docs.microsoft.com/en-us/aspnet/identity/overview/features-api/account-confirmation-and-password-recovery-with-aspnet-identity
+
+
+Table Defs:
+
+Common.ClientDomains (ClientId (FK, Index), AllowedDomain varchar(255)) Composite Unique Index on ClientId and AllowedDomain)
+
+AM.SignUpRequests
+Id int , Email varchar(255), FirstName (35), LastName (35), DisplayName (70), RequestedOn, IsEmailVerified, Status (Open, Approved, Rejected), ClosedOn
+
+(make changes to this table if required, you may need to store verification token sent in email confirmation link)
