@@ -366,6 +366,7 @@
       <Generator>WCF Proxy Generator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>
     </None>
+    <Content Include="Template\ForgotPassword.html" />
     <Content Include="Template\ChangePassword.html" />
     <Content Include="Template\CreateAccountCL.html" />
     <Content Include="Template\CreateAccount.html" />

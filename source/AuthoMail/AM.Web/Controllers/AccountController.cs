@@ -13,6 +13,8 @@ using AM.Entities;
 using AM.Services;
 using System.Net.Mail;
 using System.Text;
+using AM.Lib;
+using System.Text.RegularExpressions;
 
 namespace AM.Web.Controllers
 {
@@ -205,6 +207,26 @@ namespace AM.Web.Controllers
         {
             if (ModelState.IsValid)
             {
+                if (model.FirstName.IsNullOrWhiteSpace())
+                {
+                    ModelState.AddModelError("", "First name is required.");
+                    return View(model);
+                }
+                if (model.LastName.IsNullOrWhiteSpace())
+                {
+                    ModelState.AddModelError("", "Last name is required.");
+                    return View(model);
+                }
+                if (!Regex.IsMatch(model.FirstName, @"^[a-zA-Z]+$"))
+                {
+                    ModelState.AddModelError("", "Invalid first name.");
+                    return View(model);
+                }
+                if (!Regex.IsMatch(model.LastName, @"^[a-zA-Z]+$"))
+                {
+                    ModelState.AddModelError("", "Invalid last name.");
+                    return View(model);
+                }
                 try
                 {
                     bool isCoreLogicUser = CLAuthentication.HasCorelogicAccount(model.Email);
@@ -310,10 +332,13 @@ namespace AM.Web.Controllers
 
                 // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
                 // Send an email with this link
-                // string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
-                // var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);		
-                // await UserManager.SendEmailAsync(user.Id, "Reset Password", "Please reset your password by clicking <a href=\"" + callbackUrl + "\">here</a>");
-                // return RedirectToAction("ForgotPasswordConfirmation", "Account");
+                string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
+                var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
+                StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(@"..\..\Template\ForgotPassword.html"));
+                sb.Replace("{{name}}", user.FirstName);
+                sb.Replace("{{action_url}}", callbackUrl);
+                await UserManager.SendEmailAsync(user.Id, "Reset Password", sb.ToString());
+                return RedirectToAction("ForgotPasswordConfirmation", "Account");
             }
 
             // If we got this far, something failed, redisplay form
