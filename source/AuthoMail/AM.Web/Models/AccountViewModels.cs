@@ -65,6 +65,12 @@ namespace AM.Web.Models
 
     public class RegisterViewModel
     {
+        [Required,Display(Name = "First Name")]
+        public string FirstName { get; set; }
+        [Required, Display(Name = "Last Name")]
+        public string LastName { get; set; }
+        public string DisplayName { get; set; }
+
         [Required]
         [EmailAddress]
         [Display(Name = "Email")]

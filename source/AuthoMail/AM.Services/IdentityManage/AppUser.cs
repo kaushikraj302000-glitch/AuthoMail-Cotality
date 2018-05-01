@@ -23,7 +23,7 @@ namespace AM.Services
             var existingUser = GetUserByName(user.UserName);
             if (existingUser.Count > 0) throw new Exception("User name already exist.");
 
-            string query = @"Insert into [Profile].[Users] (UserName, Id, PasswordHash, SecurityStamp,Email,EmailConfirmed,PhoneNumber,PhoneNumberConfirmed, AccessFailedCount,LockoutEnabled,LockoutEndDateUtc,TwoFactorEnabled,ClientId,FirstName,LastName)
+            string query = @"Insert into [Profile].[Users] (UserName, Id, PasswordHash, SecurityStamp,Email,EmailConfirmed,PhoneNumber,PhoneNumberConfirmed, AccessFailedCount,LockoutEnabled,LockoutEndDateUtc,TwoFactorEnabled,ClientId,FirstName,LastName,DisplayName)
                 values (@name, @id, @pwdHash, @SecStamp,@email,@emailconfirmed,@phonenumber,@phonenumberconfirmed,@accesscount,@lockoutenabled,@lockoutenddate,@twofactorenabled,@clientId,@firstName,@lastName,@displayName)";
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();

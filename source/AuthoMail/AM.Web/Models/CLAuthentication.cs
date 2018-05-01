@@ -3,8 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.DirectoryServices;
 using System.Linq;
+using System.Net.Mail;
 using System.Runtime.InteropServices;
 using System.Web;
+using AM.Lib;
 
 namespace AM.Web.Models
 {
@@ -12,18 +14,9 @@ namespace AM.Web.Models
     {
         public static bool HasCorelogicAccount(string Email)
         {
-            if (Email == null)
-            {
-                return false;
-            }
-            if (Email.IndexOf('@') == -1)
-            {
-                return false;
-            }
-            if (Email.Split('@').Last().Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase))
-            {
-                return true;
-            }
+            if (Email.IsNullOrWhiteSpace() == null) return false;
+            var mailAddress = new MailAddress(Email);
+            if (mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase)) return true;
             return false;
         }
         public static KeyValuePair<bool, string> LdapLogin(string userName, string password)
@@ -58,6 +51,9 @@ namespace AM.Web.Models
 
                 search.Filter = "(SAMAccountName=" + username + ")";
                 search.PropertiesToLoad.Add("cn");
+                search.PropertiesToLoad.Add("givenName");
+                search.PropertiesToLoad.Add("sn");
+                search.PropertiesToLoad.Add("displayName");
                 SearchResult result = search.FindOne();
 
                 if (null == result)
@@ -65,11 +61,9 @@ namespace AM.Web.Models
                     return new KeyValuePair<bool, string>(false, string.Empty);
                 }
 
-                //Update the new path to the user in the directory.
-                //_path = result.Path;
-
                 _filterAttribute = (String)result.Properties["cn"][0];
-                return new KeyValuePair<bool, string>(true, Config.Web_Msg_Login_Success);
+                string userData = string.Format("{0}|{1}|{2}", (string)result.Properties["givenName"][0], (string)result.Properties["sn"][0], (string)result.Properties["displayName"][0]);
+                return new KeyValuePair<bool, string>(true, userData);
             }
             catch (COMException ec)
             {
