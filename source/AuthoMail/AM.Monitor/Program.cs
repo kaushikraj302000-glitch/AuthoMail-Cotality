@@ -17,7 +17,6 @@ namespace AM.Monitor
             MonitorBatchesService monitorSvc = new MonitorBatchesService();
             var pendingBatchesToSubmit = monitorSvc.GetPendingBatchesToSubmit();
             var pendingBatchesToReportBack = monitorSvc.GetPendingBatchesToReportBack();
-
             string monitor_PrintBatch = "style='width:10%;border:solid windowtext 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
             string monitor_AppCode = "style='width:10%;border:solid windowtext 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
             string monitor_JobName = "style='width:10%;border:solid windowtext 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
@@ -73,11 +72,14 @@ namespace AM.Monitor
                     }
 
                 }
-                SendEmail(sb, batchData,ConfigurationManager.AppSettings["MonitorSubmitHeading"].ToString());
+                if (batchData.Length > 0)
+                {
+                    SendEmail(sb, batchData, ConfigurationManager.AppSettings["MonitorSubmitHeading"].ToString()); 
+                }
             }
             catch (Exception ex)
             {
-                throw ex;
+                LogError(ex.ToString(),true);
             }
         }
 
@@ -117,11 +119,14 @@ namespace AM.Monitor
                     }
 
                 }
-                SendEmail(sb, batchData, ConfigurationManager.AppSettings["MonitorReportbackHeading"].ToString());
+                if (batchData.Length > 0)
+                {
+                    SendEmail(sb, batchData, ConfigurationManager.AppSettings["MonitorReportbackHeading"].ToString()); 
+                }
             }
             catch (Exception ex)
             {
-                throw ex;
+                LogError(ex.ToString(), true);
             }
         }
 
@@ -142,6 +147,28 @@ namespace AM.Monitor
                     smtpClient.Send(msg);
                 }
             }
+        }
+
+        public static void LogError(string message, bool sendEmail = false)
+        {
+            Console.WriteLine(message);
+            File.AppendAllText(ConfigurationManager.AppSettings["LogFilePath"], string.Format("{0} : {1}{2}", DateTime.Now.ToString("MMddyyyy HHmmssfff"), message, Environment.NewLine));
+
+            if (sendEmail)
+            {
+                using (SmtpClient smtpClient = new SmtpClient())
+                using (MailMessage msg = new MailMessage())
+                {
+                    msg.IsBodyHtml = false;
+                    msg.To.Add(ConfigurationManager.AppSettings["LogErr_To"]);
+                    //msg.CC.Add("sandpatel@corelogic.com"); //Uncomment during production
+                    msg.Subject = "Exception occurred in AuthoMail monitor batch Job.";
+                    msg.Body = message;
+                    msg.Priority = MailPriority.High;
+                    smtpClient.Send(msg);
+                }
+            }
+
         }
     }
 }
