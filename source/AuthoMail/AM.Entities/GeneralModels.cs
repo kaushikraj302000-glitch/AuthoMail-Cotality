@@ -214,6 +214,7 @@ namespace AM.Entities
         public const string Delivery = "Delivery";
         public const string Immediate = "Immediate";
         public const string Consolidated = "Consolidated";
+        public const string NoBatch = "NoBatch";
     }
 
     public static class AMLogBatchTimeLine
