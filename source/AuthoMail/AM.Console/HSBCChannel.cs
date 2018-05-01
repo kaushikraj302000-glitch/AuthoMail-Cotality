@@ -484,7 +484,7 @@ namespace AM.Console
 
                         if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.Invalid)
                         {
-                            StringBuilder errorData = alaskaSvc.AlaskaErrorReport(mailBatchData, mbi.Client.TimeZone, reportDeliverable.Delimeter);
+                            StringBuilder errorData = hsbcSvc.HSBCErrorReport(mailBatchData, mbi.Client.TimeZone, reportDeliverable.Delimeter);
                             if (errorData != null)
                             {
                                 File.WriteAllText(errorReportPath, errorData.ToString());
@@ -495,7 +495,7 @@ namespace AM.Console
                         }
                         else if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.PartiallyValid)
                         {
-                            StringBuilder errorData = alaskaSvc.AlaskaErrorReport(mailBatchData, mbi.Client.TimeZone, reportDeliverable.Delimeter);
+                            StringBuilder errorData = hsbcSvc.HSBCErrorReport(mailBatchData, mbi.Client.TimeZone, reportDeliverable.Delimeter);
 
                             if (errorData != null)
                             {
