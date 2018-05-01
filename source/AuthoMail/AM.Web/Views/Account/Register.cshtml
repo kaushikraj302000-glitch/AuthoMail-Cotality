@@ -18,7 +18,16 @@
                         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
                         <div class="cl-form-login">
-
+                            <div class="form-group">
+                                <label for="login-email">First Name</label>
+                                @Html.TextBoxFor(m => m.FirstName, new { @class = "form-control" })
+                                @Html.ValidationMessageFor(m => m.FirstName, "", new { @class = "text-danger" })
+                            </div>
+                            <div class="form-group">
+                                <label for="login-email">Last Name</label>
+                                @Html.TextBoxFor(m => m.LastName, new { @class = "form-control" })
+                                @Html.ValidationMessageFor(m => m.LastName, "", new { @class = "text-danger" })
+                            </div>
                             <div class="form-group">
                                 <label for="login-email">Email</label>
                                 @Html.TextBoxFor(m => m.Email, new { @class = "form-control" })
@@ -64,9 +73,9 @@
             </div>
         </div>
         @*<div class="cl-learnmore">
-            <span> <b>Customer?</b></span>
-            @Html.ActionLink("Login", "Login", "Account", routeValues: null, htmlAttributes: new { id = "registerLink", @class = "btn btn-default" })
-        </div>*@
+                <span> <b>Customer?</b></span>
+                @Html.ActionLink("Login", "Login", "Account", routeValues: null, htmlAttributes: new { id = "registerLink", @class = "btn btn-default" })
+            </div>*@
     </div>
 </section>
 @section Scripts {

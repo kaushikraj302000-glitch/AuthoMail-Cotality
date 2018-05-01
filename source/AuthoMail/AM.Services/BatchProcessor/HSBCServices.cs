@@ -18,7 +18,7 @@ namespace AM.Services
     {
         public StringBuilder HSBCErrorReport(BatchData data, string clientTimeZone, string delimeter)
         {
-            var columnName = String.Join(delimeter, "BatchID", "Loan Number", "File Name", "Date Received", "Recipient FirstName", "Recipient LastName", "Recipient Street Address", "Recipient Street Address2", "Recipient City", "Recipient State", "Recipient Zip", "Error Code", "Error Text");
+            var columnName = String.Join(delimeter, "BatchID", "StatusID", "Loan Number", "File Name", "Package Name", "Date Received", "Recipient FirstName", "Recipient LastName", "Recipient Street Address", "Recipient City", "Recipient State", "Recipient Zip", "Error Code", "Error Text", "Total Postage Cost");
 
             StringBuilder errorReport = new StringBuilder(columnName);
 
@@ -26,29 +26,27 @@ namespace AM.Services
 
             var erroredData = data.MailPieces.Where(l => l.ErrorCode != OutComeCodes.No_Error).ToList();
 
-            if (erroredData == null || erroredData.Count == 0)
-            {
-                return null;
-            }
-
-
             // All the loans where outcome code is anything except no_error are processed invalid loans.
             foreach (MailPieceDTO mailPiece in erroredData)
             {
+                var statusID = data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "StatusID").SingleOrDefault();
+
                 var line = String.Join(delimeter,
-                    data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
+                    data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName + ".xml",
+                    statusID == null ? string.Empty : statusID.Value,
                         mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
                         mailPiece.FileName == null ? string.Empty : mailPiece.FileName,
+                        mailPiece.FilePattern == null ? string.Empty : mailPiece.FilePattern.ToCsvString(),
                         data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(clientTimeZone).ToString(),
-                        mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName,
-                        mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName,
-                        mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet,
-                        mailPiece.RcptAddressAptOrSuiteOrOther == null ? string.Empty : mailPiece.RcptAddressAptOrSuiteOrOther,
-                        mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity,
+                        mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName.ToCsvString(),
+                        mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName.ToCsvString(),
+                        mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet.Replace(",", "").ToCsvString(),
+                        mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity.ToCsvString(),
                         mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
                         mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
-                        OutComeCodes.GetAlaskaMappingCode(mailPiece.ErrorCode),
-                        mailPiece.ErrorDesc == null ? string.Empty : mailPiece.ErrorDesc.Replace("\r\n", " ").Replace(Environment.NewLine, " ").ToCsvString()
+                        OutComeCodes.GetHSBCMappingCode(mailPiece.ErrorCode),
+                        mailPiece.ErrorDesc == null ? string.Empty : mailPiece.ErrorDesc.Replace("\r\n", " ").ToCsvString(),
+                        string.Empty
                     );
                 errorReport.AppendLine(line);
             }
@@ -58,7 +56,7 @@ namespace AM.Services
 
         public StringBuilder HSBCDeliveryReport(BatchData data, string clientTimeZone, string delimeter)
         {
-            var columnName = String.Join(delimeter, "BatchID", "Loan Number", "File Name", "Date Received", "Date Printed", "Date Mailed", "Recipient FirstName", "Recipient LastName", "Recipient Street Address", "Recipient Street Address2", "Recipient City", "Recipient State", "Recipient Zip", "Pages Shipped");
+            var columnName = String.Join(delimeter, "BatchID", "StatusID", "Loan Number", "File Name", "Package Name", "Date Received", "Date Printed", "Date Mailed", "Recipient FirstName", "Recipient LastName", "Recipient Street Address", "Recipient City", "Recipient State", "Recipient Zip", "Pages Shipped", "Total Postage Cost");
 
             StringBuilder deliveryReport = new StringBuilder(columnName);
 
@@ -66,28 +64,28 @@ namespace AM.Services
 
             var shippedData = data.MailPieces.Where(l => l.ShippingStatus == ShippingStatus.Shipped.ToString() || l.ShippingStatus == ShippingStatus.PulledBack.ToString()).ToList();
 
-            if (shippedData == null || shippedData.Count == 0)
-            {
-                return null;
-            }
-
             foreach (MailPieceDTO mailPiece in shippedData)
             {
+                var statusID = data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "StatusID").SingleOrDefault();
+
                 var line = String.Join(delimeter,
-                    data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
+                    data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName + ".xml",
+                    statusID == null ? string.Empty : statusID.Value,
                         mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
                         mailPiece.FileName == null ? string.Empty : mailPiece.FileName,
+                         mailPiece.FilePattern == null ? string.Empty : mailPiece.FilePattern.ToCsvString(),
                         data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(clientTimeZone).ToString(),
                         mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? string.Empty : mailPiece.PrintedOn.Value.UtcToClientTimeZone(clientTimeZone).ToString(),
                         mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? string.Empty : mailPiece.ShippedOn.Value.UtcToClientTimeZone(clientTimeZone).ToString(),
-                        mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName,
-                        mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName,
-                        mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet,
-                        mailPiece.RcptAddressAptOrSuiteOrOther == null ? string.Empty : mailPiece.RcptAddressAptOrSuiteOrOther,
-                        mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity,
+                        mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName.ToCsvString(),
+                        mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName.ToCsvString(),
+                        mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet.Replace(",", "").ToCsvString(),
+                        mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity.ToCsvString(),
                         mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
                         mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
-                        mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? 0 : mailPiece.TotalPages);
+                        mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? 0 : mailPiece.TotalPages,
+                        mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? 0 : mailPiece.TotalPages
+                        );
 
                 deliveryReport.AppendLine(line);
             }

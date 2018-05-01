@@ -12,6 +12,9 @@ using AM.Web.Models;
 using AM.Entities;
 using AM.Services;
 using System.Net.Mail;
+using System.Text;
+using AM.Lib;
+using System.Text.RegularExpressions;
 
 namespace AM.Web.Controllers
 {
@@ -116,12 +119,11 @@ namespace AM.Web.Controllers
                     await SignInManager.SignInAsync(user, false, model.RememberMe);
                     return RedirectToLocal(returnUrl);
                 }
-                // This doesn't count login failures towards account lockout
-                // To enable password failures to trigger account lockout, change to shouldLockout: true
                 var result = await SignInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, shouldLockout: true);
                 switch (result)
                 {
                     case SignInStatus.Success:
+                        if (!user.ClientId.HasValue) return View("Lockout");//Create Another View for not map client.
                         return RedirectToLocal(returnUrl);
                     case SignInStatus.LockedOut:
                         return View("Lockout");
@@ -205,21 +207,86 @@ namespace AM.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = new ProfileUser { UserName = model.Email, Email = model.Email };
-                var result = await UserManager.CreateAsync(user, model.Password);
-                if (result.Succeeded)
+                if (model.FirstName.IsNullOrWhiteSpace())
                 {
-                    await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
-
-                    // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
-                    // Send an email with this link
-                    // string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
-                    // var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
-                    // await UserManager.SendEmailAsync(user.Id, "Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
-
-                    return RedirectToAction("Index", "Home");
+                    ModelState.AddModelError("", "First name is required.");
+                    return View(model);
                 }
-                AddErrors(result);
+                if (model.LastName.IsNullOrWhiteSpace())
+                {
+                    ModelState.AddModelError("", "Last name is required.");
+                    return View(model);
+                }
+                if (!Regex.IsMatch(model.FirstName, @"^[a-zA-Z]+$"))
+                {
+                    ModelState.AddModelError("", "Invalid first name.");
+                    return View(model);
+                }
+                if (!Regex.IsMatch(model.LastName, @"^[a-zA-Z]+$"))
+                {
+                    ModelState.AddModelError("", "Invalid last name.");
+                    return View(model);
+                }
+                try
+                {
+                    bool isCoreLogicUser = CLAuthentication.HasCorelogicAccount(model.Email);
+                    if (isCoreLogicUser)
+                    {
+                        var ldap = CLAuthentication.LdapLogin(model.Email, model.Password);
+                        if (!ldap.Key)
+                        {
+                            ModelState.AddModelError("", ldap.Value);
+                            return View(model);
+                        }
+                        var nm = ldap.Value.Split('|');
+                        var user = new ProfileUser
+                        {
+                            Email = model.Email,
+                            EmailConfirmed = true,
+                            LockoutEnabled = true,
+                            UserName = model.Email.Split('@').First(),
+                            FirstName = nm[0],
+                            LastName = nm[1],
+                            DisplayName = nm[2]
+                        };
+
+                        var result = await UserManager.CreateAsync(user, model.Password);
+                        if (result.Succeeded)
+                        {
+                            StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(@"..\..\Template\CreateAccountCL.html"));
+                            sb.Replace("{{name}}", user.FirstName);
+                            await UserManager.SendEmailAsync(user.Id, "Welcome to AuthoMail.", sb.ToString());
+                            UserManager.AddToRole(user.Id, AMRoles.BA);
+                            return RedirectToAction("Index", "Home");
+                        }
+                        AddErrors(result);
+                    }
+                    else
+                    {
+                        var user = new ProfileUser { UserName = model.Email, Email = model.Email, FirstName = model.FirstName, LastName = model.LastName, DisplayName = string.Format("{0}, {1}", model.LastName, model.FirstName) };
+                        var result = await UserManager.CreateAsync(user, model.Password);
+                        if (result.Succeeded)
+                        {
+                            string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
+                            StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(@"..\..\Template\CreateAccount.html"));
+                            sb.Replace("{{name}}", user.FirstName);
+                            sb.Replace("{{email}}", user.Email);
+                            var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
+                            sb.Replace("{{action_url}}", callbackUrl);
+                            await UserManager.SendEmailAsync(user.Id, "Confirm your account", sb.ToString());
+                            UserManager.AddToRole(user.Id, AMRoles.Client);
+                            return RedirectToAction("Index", "Home");
+                        }
+                        AddErrors(result);
+                    }
+                }
+                catch (FormatException)
+                {
+                    ModelState.AddModelError("", "Invalid email address.");
+                    return View(model);
+                }
+
+
             }
 
             // If we got this far, something failed, redisplay form
@@ -265,10 +332,13 @@ namespace AM.Web.Controllers
 
                 // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
                 // Send an email with this link
-                // string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
-                // var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);		
-                // await UserManager.SendEmailAsync(user.Id, "Reset Password", "Please reset your password by clicking <a href=\"" + callbackUrl + "\">here</a>");
-                // return RedirectToAction("ForgotPasswordConfirmation", "Account");
+                string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
+                var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
+                StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(@"..\..\Template\ForgotPassword.html"));
+                sb.Replace("{{name}}", user.FirstName);
+                sb.Replace("{{action_url}}", callbackUrl);
+                await UserManager.SendEmailAsync(user.Id, "Reset Password", sb.ToString());
+                return RedirectToAction("ForgotPasswordConfirmation", "Account");
             }
 
             // If we got this far, something failed, redisplay form
