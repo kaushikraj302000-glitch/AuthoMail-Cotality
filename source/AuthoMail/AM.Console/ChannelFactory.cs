@@ -24,11 +24,9 @@ namespace AM.Console
                     channelCode = channelPrefix + "_" + Config.Common_Environment;
                     return new AlaskaChannel(channelCode);
 
-                //case "HSBC_Staging":
-                //    // HSBC
-                //    // get channel id by code
-                //    // get client id by channel id
-                //    break;
+                case "HSBC":
+                    channelCode = channelPrefix + "_" + Config.Common_Environment;
+                    return new HSBCChannel(channelCode);
 
                 //// AuthoMail XML schema
                 //case "AmeriHome_Staging":
