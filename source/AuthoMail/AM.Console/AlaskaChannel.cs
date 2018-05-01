@@ -358,7 +358,7 @@ namespace AM.Console
                         //2601 error code used for duplicate unique key insert 
                         if (ex.Number == 2601)
                         {
-                            var msg = "[{0}] key id is duplicate in package info node.".Fill(mailPieceDTO.UniqueId);
+                            var msg = "{0} key id is duplicate in package info node.".Fill(mailPieceDTO.UniqueId);
 
                             log.Error(msg, ex);
                             mailPieceDTO.UniqueId = Guid.NewGuid();
