@@ -69,28 +69,72 @@
     <Compile Include="AMCoreService.Designer.cs">
       <DependentUpon>AMCoreService.cs</DependentUpon>
     </Compile>
-    <Compile Include="Common.cs" />
-    <Compile Include="MailUtility.cs" />
+    <Compile Include="CreateFedExLabel.cs" />
     <Compile Include="PdfUtil.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Service References\ShipWebServiceRef\Reference.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </Compile>
     <Compile Include="Service References\USPSIMService\Reference.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Reference.svcmap</DependentUpon>
     </Compile>
-    <Compile Include="SFTUtil.cs" />
     <Compile Include="SmartDocs.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="CoverTemplates\ALASKA\ALASKA_USPS_Generic_1.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="CoverTemplates\Generic_Template95X12.pdf" />
+    <None Include="CoverTemplates\HSBC\HSBC_USPS_Generic_1.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="CoverTemplates\USAA\USAA_USPS_Generic_1.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="CoverTemplates\USAA_Template.pdf" />
     <None Include="log4net.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
+    <None Include="Service References\ShipWebServiceRef\AM.Core.ShipWebServiceRef.CancelPendingShipmentReply.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\ShipWebServiceRef\AM.Core.ShipWebServiceRef.cancelPendingShipmentResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\ShipWebServiceRef\AM.Core.ShipWebServiceRef.CreatePendingShipmentReply.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\ShipWebServiceRef\AM.Core.ShipWebServiceRef.createPendingShipmentResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\ShipWebServiceRef\AM.Core.ShipWebServiceRef.deleteShipmentResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\ShipWebServiceRef\AM.Core.ShipWebServiceRef.ProcessShipmentReply.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\ShipWebServiceRef\AM.Core.ShipWebServiceRef.processShipmentResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\ShipWebServiceRef\AM.Core.ShipWebServiceRef.ProcessTagReply.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\ShipWebServiceRef\AM.Core.ShipWebServiceRef.processTagResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\ShipWebServiceRef\AM.Core.ShipWebServiceRef.ShipmentReply.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\ShipWebServiceRef\ShipServiceDefinitions.wsdl" />
     <None Include="Service References\USPSIMService\AM.Core.USPSIMService.IMBarcodeInfo.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
@@ -124,6 +168,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Dlls\PCI.Lib.dll" />
+    <None Include="Service References\ShipWebServiceRef\Reference.svcmap">
+      <Generator>WCF Proxy Generator</Generator>
+      <LastGenOutput>Reference.cs</LastGenOutput>
+    </None>
+    <None Include="Service References\ShipWebServiceRef\configuration.svcinfo" />
+    <None Include="Service References\ShipWebServiceRef\configuration91.svcinfo" />
     <None Include="Service References\USPSIMService\Reference.svcmap">
       <Generator>WCF Proxy Generator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>
@@ -136,8 +186,10 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
+    <WCFMetadataStorage Include="Service References\ShipWebServiceRef\" />
     <WCFMetadataStorage Include="Service References\USPSIMService\" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

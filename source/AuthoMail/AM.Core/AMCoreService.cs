@@ -19,7 +19,11 @@ namespace AM.Core
 
         protected override void OnStart(string[] args)
         {
-            // TODO: Add code here to start your service.
+            AMCore.PrepPnSJobs();
+            AMCore.SubmitBatchesDocTypeWiseToPCI();
+            AMCore.GetSubmittedPnSResponses();
+            AMCore.ProcessPnSResponses();
+            AMCore.ReportPreppedProcess();
         }
 
         protected override void OnStop()

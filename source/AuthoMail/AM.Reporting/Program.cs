@@ -10,6 +10,8 @@ namespace AM.Reporting
     {
         static void Main(string[] args)
         {
+            UploadJob ds=new UploadJob();
+            ds.ReportPreppedProcess();
         }
     }
 }

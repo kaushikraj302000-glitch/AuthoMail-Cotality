@@ -19,7 +19,8 @@ namespace AM.Entities
         InProgress,
         Failed,
         ShippedPartial,
-        ShippedAll
+        ShippedAll,
+        PulledBack
     }
 
     public static class BatchPipelineStatus
@@ -33,6 +34,8 @@ namespace AM.Entities
         public const string ShippingResponseReceived = "ShippingResponseReceived";
         public const string ReportPrepped = "ReportPrepped";
         public const string ReportedBack = "ReportedBack";
+        public const string Suspended = "Suspended";
+        public const string Cancelled = "Cancelled";
     }
 
     public static class OutComeCodes
@@ -40,13 +43,154 @@ namespace AM.Entities
         public const string No_Error = "No_Error";
         public const string Missing_Zip_File = "Missing_Zip_File";
         public const string Invalid_Zip_File = "Invalid_Zip_File";
-        public const string Invalid_XML = "Invalid_XML";
-        public const string Missing_XML = "Missing_XML";
-        public const string Invalid_PDF = "Invalid_PDF";
-        public const string Missing_PDF = "Missing_PDF";
+        public const string Invalid_XML_File = "Invalid_XML_File";
+        public const string Missing_XML_File = "Missing_XML_File";
+        public const string Invalid_PDF_File = "Invalid_PDF_File";
+        public const string Missing_PDF_File = "Missing_PDF_File";
         public const string Mailing_Address_Missing_Or_Invalid = "Mailing_Address_Missing_Or_Invalid";
         public const string Recipient_Details_Missing_Or_Invalid = "Recipient_Details_Missing_Or_Invalid";
         public const string Unknown_Error = "Unknown_Error";
+        public const string Invalid_PackageType = "Invalid_PackageType";
+        public const string Invalid_ShippingDetail = "Invalid_ShippingDetail";
+        public const string Invalid_DuplicateKey = "Invalid_DuplicateKey";
+
+        public static string GetAMCMappingCode(string amOutcomecode)
+        {
+            switch (amOutcomecode)
+            {
+                case OutComeCodes.No_Error:
+                    return AMCOutComeCodes.No_Error.ToString();
+
+                case OutComeCodes.Missing_Zip_File:
+                    return AMCOutComeCodes.Invalid_Zip_File.ToString();
+
+                case OutComeCodes.Invalid_Zip_File:
+                    return AMCOutComeCodes.Invalid_Zip_File.ToString();
+
+                case OutComeCodes.Invalid_XML_File:
+                    return AMCOutComeCodes.Invalid_XML_File.ToString();
+
+                case OutComeCodes.Missing_XML_File:
+                    return AMCOutComeCodes.Invalid_XML_File.ToString();
+
+                case OutComeCodes.Invalid_PDF_File:
+                    return AMCOutComeCodes.Invalid_PDF_File.ToString();
+
+                case OutComeCodes.Missing_PDF_File:
+                    return AMCOutComeCodes.Invalid_PDF_File.ToString();
+
+                case OutComeCodes.Mailing_Address_Missing_Or_Invalid:
+                    return AMCOutComeCodes.Mailing_address_missing_or_invalid.ToString();
+
+                case OutComeCodes.Recipient_Details_Missing_Or_Invalid:
+                    return AMCOutComeCodes.Recipient_name_missing_or_invalid.ToString();
+
+                case OutComeCodes.Invalid_PackageType:
+                    return AMCOutComeCodes.Invalid_shipping_detail.ToString();
+
+                case OutComeCodes.Invalid_ShippingDetail:
+                    return AMCOutComeCodes.Invalid_shipping_detail.ToString();
+
+                case OutComeCodes.Invalid_DuplicateKey:
+                    return AMCOutComeCodes.Unknown_Error.ToString();
+
+                case OutComeCodes.Unknown_Error:
+                default:
+                    return AMCOutComeCodes.Unknown_Error.ToString();
+            }
+        }
+
+        public static string GetAlaskaMappingCode(string alaskaOutcomeCode)
+        {
+            switch (alaskaOutcomeCode)
+            {
+                case OutComeCodes.No_Error:
+                    return AlaskaOutComeCodes.No_error.ToString();
+
+                case OutComeCodes.Invalid_XML_File:
+                    return AlaskaOutComeCodes.Invalid_XML_file.ToString();
+
+                case OutComeCodes.Missing_XML_File:
+                    return AlaskaOutComeCodes.Invalid_XML_file.ToString();
+
+                case OutComeCodes.Missing_PDF_File:
+                    return AlaskaOutComeCodes.Invalid_PDF_file.ToString();
+
+                case OutComeCodes.Mailing_Address_Missing_Or_Invalid:
+                    return AlaskaOutComeCodes.Mailing_address_missing_or_invalid.ToString();
+
+                case OutComeCodes.Recipient_Details_Missing_Or_Invalid:
+                    return AlaskaOutComeCodes.Recipient_name_missing_or_invalid.ToString();
+
+                case OutComeCodes.Unknown_Error:
+                default:
+                    return AlaskaOutComeCodes.UNKNOWN_error.ToString();
+            }
+        }
+
+        public static string GetHSBCMappingCode(string hsbcOutcomeCode)
+        {
+            switch (hsbcOutcomeCode)
+            {
+                case OutComeCodes.No_Error:
+                    return HSBCOutComeCodes.No_error.ToString();
+
+                case OutComeCodes.Invalid_XML_File:
+                    return HSBCOutComeCodes.Invalid_XML_file.ToString();
+
+                case OutComeCodes.Missing_XML_File:
+                    return HSBCOutComeCodes.Invalid_XML_file.ToString();
+
+                case OutComeCodes.Missing_PDF_File:
+                    return HSBCOutComeCodes.Invalid_PDF_file.ToString();
+
+                case OutComeCodes.Mailing_Address_Missing_Or_Invalid:
+                    return HSBCOutComeCodes.Mailing_address_missing_or_invalid.ToString();
+
+                case OutComeCodes.Recipient_Details_Missing_Or_Invalid:
+                    return HSBCOutComeCodes.Recipient_name_missing_or_invalid.ToString();
+
+                case OutComeCodes.Invalid_PackageType:
+                    return HSBCOutComeCodes.PackageName_missing_or_invalid.ToString();
+
+                case OutComeCodes.Unknown_Error:
+                default:
+                    return HSBCOutComeCodes.UNKNOWN_error.ToString();
+            }
+        }
+    }
+
+    public enum AMCOutComeCodes
+    {
+        No_Error,
+        Invalid_XML_File,
+        Invalid_PDF_File,   // If PDF file is missing or unreadable then invalid PDF.
+        Invalid_Zip_File,
+        Mailing_address_missing_or_invalid,
+        Recipient_name_missing_or_invalid,
+        Unknown_Error,
+        Invalid_shipping_detail
+    }
+
+    public enum AlaskaOutComeCodes
+    {
+        No_error,
+        Invalid_XML_file,
+        Invalid_PDF_file,
+        Mailing_address_missing_or_invalid,
+        Recipient_name_missing_or_invalid,
+        UNKNOWN_error,
+    }
+
+    public enum HSBCOutComeCodes
+    {
+        No_error,
+        Invalid_XML_file,
+        Invalid_PDF_file, // If PDF file is missing or unreadable then invalid PDF.
+        Mailing_address_missing_or_invalid,
+        Recipient_name_missing_or_invalid,
+        UNKNOWN_error,
+        PackageName_missing_or_invalid,
     }
 
     public enum ShippingStatus
@@ -62,6 +206,15 @@ namespace AM.Entities
     {
         public const string Delete = "Delete";
         public const string Archive = "Archive";
+    }
+
+    public static class ReportTypes
+    {
+        public const string Error = "Error";
+        public const string Delivery = "Delivery";
+        public const string Immediate = "Immediate";
+        public const string Consolidated = "Consolidated";
+        public const string NoBatch = "NoBatch";
     }
 
     public static class AMLogBatchTimeLine
@@ -91,6 +244,24 @@ namespace AM.Entities
         PageCountMismatch = -3,
         Reprint = 7
     }
+    public static class AMRoles
+    {
+        public const string Admin = "Admin";
+        public const string BA = "BA";
+        public const string Client = "Client";
+        public const string PnSOperator = "PnSOperator";
+    }
+    public enum ShippingServiceType
+    {
+        USPS = 0,
+        FEDEX_2_DAY = 1,
+        FEDEX_EXPRESS_SAVER = 2,
+        FEDEX_GROUND = 3,
+        FIRST_OVERNIGHT = 4,
+        GROUND_HOME_DELIVERY = 5,
+        PRIORITY_OVERNIGHT = 6,
+        STANDARD_OVERNIGHT = 7
+    }
 
     public class MailBatchInfo
     {
@@ -102,30 +273,27 @@ namespace AM.Entities
         public string BatchName { get; private set; }
         public MailBatchDTO MailBatch { get; private set; }
         public Client Client { get; private set; }
-        public DocType DocType { get; set; }
-        public SFTChannel SFTChannel { get; private set; }
 
-        public MailBatchInfo(MailBatchDTO mailBatch, Client client, SFTChannel sftChannel = null, string authoMailRootFolder = "")
+        public MailBatchInfo(MailBatchDTO mailBatch, Client client, string amRootFolder)
         {
             if (client == null || mailBatch == null) throw new ArgumentNullException("Client or MailBatch cannot be null.");
 
             MailBatch = mailBatch;
             Client = client;
-            SFTChannel = sftChannel;
 
-            Initialize(client, mailBatch, authoMailRootFolder);
+            Initialize(client, mailBatch, amRootFolder);
         }
 
-        private void Initialize(Client client, MailBatchDTO mailBatch, string authoMailRootFolder)
+        private void Initialize(Client client, MailBatchDTO mailBatch, string amRootFolder)
         {
             BatchName = mailBatch.BatchName.Trim();
             //Combined path
-            BatchRepo = Path.Combine(authoMailRootFolder, client.AppCode, "{0}".Fill(mailBatch.Id));
+            BatchRepo = Path.Combine(amRootFolder, client.AppCode, "{0}".Fill(mailBatch.Id));
 
             AMRequestPath = Path.Combine(BatchRepo, "AMRequest");
             PnSRequestPath = Path.Combine(BatchRepo, "PnSRequest");
-            AMResponsePath = Path.Combine(BatchRepo, "AMResponse");
             PnSResponsePath = Path.Combine(BatchRepo, "PnSResponse");
+            AMResponsePath = Path.Combine(BatchRepo, "AMResponse");
         }
     }
 }

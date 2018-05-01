@@ -44,9 +44,9 @@ namespace AM.Console
     [XmlType(TypeName = "RecipientInfo")]
     public class RecipientInfo
     {
-        public string RecipientPhoneNo { get; set; }
         [XmlElementAttribute(ElementName = "Recipient", IsNullable = false)]
         public virtual List<Recipient> Recipients { get; set; }
+        public string RecipientPhoneNo { get; set; }
         [XmlElementAttribute(ElementName = "Address", IsNullable = false)]
         public virtual Address RecipientAddress { get; set; }
     }

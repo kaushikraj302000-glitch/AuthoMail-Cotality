@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Globalization;
 using System.IO;
@@ -29,34 +30,20 @@ namespace AM.Lib
             return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(value.ToLower());
         }
 
+        public static string ToCsvString(this string value)
+        {
+            return "\"{0}\"".Fill(value ?? "");
+        }
+
         public static string Fill(this string format, params object[] args)
         {
             return String.Format(format, args);
         }
 
-        //public static bool IsFileExists(this string filePath)
-        //{
-        //    if (string.IsNullOrWhiteSpace(filePath))
-        //    {
-        //        return false;
-        //    }
-        //    else if (File.Exists(filePath))
-        //    {
-        //        return true;
-        //    }
-        //    else
-        //    {
-        //        return false;
-        //    }
-        //}
-
         public static void CreateDirectoryIfNotExist(this string dirPath)
         {
-            if (!dirPath.IsNullOrWhiteSpace())
-            {
-                if (!Directory.Exists(dirPath))
-                    Directory.CreateDirectory(dirPath);
-            }
+            if (!Directory.Exists(dirPath))
+                Directory.CreateDirectory(dirPath);
         }
 
         public static void CleanDirectory(this string path)
@@ -151,6 +138,42 @@ namespace AM.Lib
         public static DateTime EstToUtc(this DateTime dt)
         {
             return dt.ClientTimeZoneToUtc("Eastern Standard Time");
+        }
+        public static DateTime ToStartDateTime(this DateTime dt)
+        {
+            return (dt.Date + new TimeSpan(00, 00, 00));
+        }
+        public static DateTime ToEndDateTime(this DateTime dt)
+        {
+            return (dt.Date + new TimeSpan(23, 59, 59));
+        }
+
+        public static string GetDescription(this PropertyInfo p)
+        {
+            var descAttr = p.GetCustomAttribute(typeof(DescriptionAttribute)) as DescriptionAttribute;
+            return descAttr == null ? null : descAttr.Description;
+        }
+
+        public static MethodInfo GetConversionMethod(this Type t)
+        {
+            MethodInfo Convert;
+
+            switch (t.FullName)
+            {
+                case "System.TimeSpan":
+                    Convert = typeof(TimeSpan).GetMethod("Parse", new Type[] { typeof(string) });
+                    break;
+                default:
+                    Convert = typeof(Convert).GetMethod("To" + t.Name, new Type[] { typeof(object) });
+                    break;
+            }
+
+            return Convert;
+        }
+
+        public static object GetValueOfPropertyFromPropertyName<T>(this T cls, string propertyName)
+        {
+            return (object)cls.GetType().GetProperty(propertyName).GetValue(cls, null);
         }
     }
 }

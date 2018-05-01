@@ -17,7 +17,7 @@ namespace AM.Services
         public string BatchName { get; set; }
         public string BusinessFriendlyIdValue { get; set; }
         public string BusinessFriendlyIdName { get; set; }
-        public string DocumentOrPackageName { get; set; }
+        public string DocumentOrPackageType { get; set; }
         public string FileName { get; set; }
         public string RcptPrefix { get; set; }
         public string RcptFirstName { get; set; }
@@ -29,12 +29,12 @@ namespace AM.Services
             get
             {
                 string name = string.Format("{0}{1}{2}{3}{4}",
-                    RcptPrefix.IsNullOrWhiteSpace() ? null : RcptPrefix + ", ",
-                    RcptFirstName.IsNullOrWhiteSpace() ? null : RcptFirstName + ", ",
-                    RcptMiddleName.IsNullOrWhiteSpace() ? null : RcptMiddleName + ", ",
-                    RcptLastName.IsNullOrWhiteSpace() ? null : RcptLastName + ", ",
-                    RcptSuffix.IsNullOrWhiteSpace() ? null : RcptSuffix + ", ");
-                return name.IsNullOrWhiteSpace() ? name : name.Trim(',').Trim();
+                    RcptPrefix.IsNullOrWhiteSpace() ? null : RcptPrefix + " ",
+                    RcptFirstName.IsNullOrWhiteSpace() ? null : RcptFirstName + " ",
+                    RcptMiddleName.IsNullOrWhiteSpace() ? null : RcptMiddleName + " ",
+                    RcptLastName.IsNullOrWhiteSpace() ? null : RcptLastName + " ",
+                    RcptSuffix.IsNullOrWhiteSpace() ? null : RcptSuffix + " ");
+                return name.IsNullOrWhiteSpace() ? name : name.Trim();
             }
         }
         public string RcptAddrOptionalLine1AboveStreet { get; set; }
@@ -60,7 +60,7 @@ namespace AM.Services
                     RcptAddressCity.IsNullOrWhiteSpace() ? null : RcptAddressCity.Trim() + ", ",
                     RcptAddressState.IsNullOrWhiteSpace() ? null : RcptAddressState.Trim() + ", ",
                     RcptAddressZIP.IsNullOrWhiteSpace() ? null : RcptAddressZIP.Trim() + ", ");
-                return address.IsNullOrWhiteSpace() ? address : address.Trim(',').Trim();
+                return address.IsNullOrWhiteSpace() ? address : address.Trim().Trim(',').Trim();
             }
         }
         public DateTime? ReceivedOn { get; set; }
@@ -81,6 +81,7 @@ namespace AM.Services
                 return null;
             }
         }
+        public DateTime? DueDate { get; set; }
         public int TotalPages { get; set; }//Pages Shipped
         public string ShippingMethod { get; set; }
         public string TrackingNo { get; set; }
@@ -124,10 +125,15 @@ namespace AM.Services
                     RetRcptAddressCity.IsNullOrWhiteSpace() ? null : RetRcptAddressCity.Trim() + ", ",
                     RetRcptAddressState.IsNullOrWhiteSpace() ? null : RetRcptAddressState.Trim() + ", ",
                     RetRcptAddressZIP.IsNullOrWhiteSpace() ? null : RetRcptAddressZIP.Trim() + ", ");
-                return address.IsNullOrWhiteSpace() ? address : address.Trim(',').Trim();
+                return address.IsNullOrWhiteSpace() ? address : address.Trim().Trim(',').Trim();
             }
         }
+
+        public string ErrorCode { get; set; }
+        public string ErrorDesc { get; set; }
     }
+
+
     public class QuickPullBackResponse
     {
         public string ClientBatchId { get; set; }
@@ -160,13 +166,14 @@ namespace AM.Services
             }
         }
         public bool IsPullBackRequested { get; set; }
+        public DateTime? PullBackRequestedOn { get; set; }
         public string PullBackMessage
         {
             get
             {
                 if (PulledBackBy.IsNullOrWhiteSpace() || !PulledBackOn.HasValue) return null;
 
-                return string.Format("{0} by {1} on {2}", Config.Msg_API_PB_PullBackAlreadyRequested, PulledBackBy, PulledBackOn.Value.ToString());
+                return string.Format("{0} by {1} on {2}", Config.Web_Msg_API_PB_PullBackAlreadyRequested, PulledBackBy, PulledBackOn.Value.ToString());
             }
         }
     }

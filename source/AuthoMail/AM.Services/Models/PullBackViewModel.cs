@@ -24,7 +24,7 @@ namespace AM.Services
         public DateTime? SubmittedOn { get; set; }
         public int PrintBatch { get; set; }
         public string PieceId { get; set; }
-        public string ClientName { get; set; }
+        public string Name { get; set; }
         public string DocTypeCode { get; set; }
     }
 }

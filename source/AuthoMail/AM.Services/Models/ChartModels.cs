@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AM.Lib;
 
-namespace AM.Services.Models
+namespace AM.Services
 {
     public class WeeklyChart
     {
@@ -15,6 +15,7 @@ namespace AM.Services.Models
         public int ShippedPartial { get; set; }
         public int ShippedAll { get; set; }
         public int Failed { get; set; }
+        public int PulledBack { get; set; }
     }
     public class TodayMailPieceChart
     {
@@ -25,6 +26,7 @@ namespace AM.Services.Models
         public int PulledBack { get; set; }
         public int Error { get; set; }
         public int Shipped { get; set; }
+        public DateTime ReceivedOn { get; set; }
     }
     public class BatchListByChartData
     {
@@ -44,5 +46,7 @@ namespace AM.Services.Models
             }
         }
         public string ClientTimeZone { get; set; }
+        public string ValidationErrors { get; set; }
+        public int MailPieceCount { get; set; }
     }
 }

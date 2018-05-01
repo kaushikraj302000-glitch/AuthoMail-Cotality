@@ -5,11 +5,12 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
-using AM.Entities.IdentityModels;
+using AM.Entities;
 using AM.Web.Models;
 using AM.Lib;
 namespace AM.Web.Controllers
 {
+    [Authorize]
     [RoutePrefix("api/chart")]
     public class ChartApiController : ApiController
     {
@@ -18,23 +19,18 @@ namespace AM.Web.Controllers
         {
             this.chartDataSvc = chartDataSvc;
         }
-        [Route("GetDateTime")]
-        [HttpPost]
-        public object GetDateTime()
-        {
-            return DateTime.Now;
-        }
+       
         [Route("GetWeeklyChartData")]
-        [HttpPost]
+        [HttpGet]
         public object GetWeeklyChartData()
         {
-            
+
             var model = chartDataSvc.GetWeeklyChartData(User.Identity.GetClientId().Value);
             return model.OrderByDescending(s => s.Date).ToList();
         }
 
         [Route("GetTodayChartData")]
-        [HttpPost]
+        [HttpGet]
         public object GetTodayChartData()
         {
             var estToday = DateTime.UtcNow.UtcToEst().Date;

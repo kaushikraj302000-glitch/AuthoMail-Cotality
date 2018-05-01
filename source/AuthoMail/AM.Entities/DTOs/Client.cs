@@ -9,7 +9,7 @@ namespace AM.Entities
     public class Client
     {
         public int Id { get; set; }
-        public string ClientName { get; set; }
+        public string Name { get; set; }
         public string AppCode { get; set; }
         public int BusinessUnit { get; set; }
         public bool IsAMActive { get; set; }
@@ -36,5 +36,40 @@ namespace AM.Entities
         public string ToADEDir { get; set; }
         public string ArchiveDir { get; set; }
         public string PostDownloadAction { get; set; }
+    }
+
+    public class ClientBusinessIdentifier
+    {
+        public int ClientId { get; set; }
+        public string BusinessIdName { get; set; }
+    }
+
+    public class Deliverable
+    {
+        public int Id { get; set; }
+        public int ClientId { get; set; }
+        public string ReportName { get; set; }
+        public string ReportType { get; set; }
+        public string DeliveryType { get; set; }
+        public string ReportQuery { get; set; }
+        public string Delimeter { get; set; }
+        public string FileNameExpression { get; set; }
+        public bool IsSFTUploadRequired { get; set; }
+        public string UploadPath { get; set; }
+        public int? EmailChannelId { get; set; }
+        public int? ScheduleId { get; set; }
+        public EmailChannel EmailChannel { get; set; }
+    }
+
+    public class EmailChannel
+    {
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public string To { get; set; }
+        public string Cc { get; set; }
+        public string Bcc { get; set; }
+        public string Subject { get; set; }
+        public string BodyTemplate { get; set; }
+        public bool IsBodyHTML { get; set; }
     }
 }

@@ -9,18 +9,26 @@ using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using AM.Web.Models;
-using AM.Entities.IdentityModels;
+using AM.Entities;
 using AM.Services;
 using Microsoft.Owin.Security.DataProtection;
+using System.Net.Mail;
 
 namespace AM.Web
 {
     public class EmailService : IIdentityMessageService
     {
-        public Task SendAsync(IdentityMessage message)
+        public async Task SendAsync(IdentityMessage message)
         {
-            // Plug in your email service here to send an email.
-            return Task.FromResult(0);
+            using (MailMessage msg = new MailMessage())
+            {
+                msg.IsBodyHtml = true;
+                msg.To.Add(message.Destination);
+                msg.Subject = message.Subject;
+                msg.Body = string.Format("{0}", message.Body);
+                SmtpClient sc = new SmtpClient();
+                await sc.SendMailAsync(msg);
+            }
         }
     }
 

@@ -7,6 +7,8 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using AM.Web.Models;
+using AM.Entities;
+using AM.Lib;
 
 namespace AM.Web.Controllers
 {
@@ -49,7 +51,6 @@ namespace AM.Web.Controllers
                 _userManager = value;
             }
         }
-
         //
         // GET: /Manage/Index
         public async Task<ActionResult> Index(ManageMessageId? message)
@@ -217,7 +218,6 @@ namespace AM.Web.Controllers
         {
             return View();
         }
-
         //
         // POST: /Manage/ChangePassword
         [HttpPost]
@@ -228,9 +228,27 @@ namespace AM.Web.Controllers
             {
                 return View(model);
             }
+            var existingUser = await UserManager.FindByNameAsync(User.Identity.Name);
+            if (existingUser == null)
+            {
+                ModelState.AddModelError("", "You must be logged in to change password.");
+                return View(model);
+            }
+            if (User.Identity.IsCoreLogicUser())
+            {
+                ModelState.AddModelError("", "CoreLogic users cannot change password here.");
+                return View(model);
+            }
             var result = await UserManager.ChangePasswordAsync(User.Identity.GetUserId(), model.OldPassword, model.NewPassword);
             if (result.Succeeded)
             {
+                var body = @"
+Hi {0},
+The password for your AuthoMail Account {1} was recently changed.
+
+The AuthoMail team
+".Fill((existingUser.FirstName + " " + existingUser.LastName), User.Identity.Name);
+                await UserManager.SendEmailAsync(User.Identity.GetUserId(), "Your password changed", body);
                 var user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
                 if (user != null)
                 {

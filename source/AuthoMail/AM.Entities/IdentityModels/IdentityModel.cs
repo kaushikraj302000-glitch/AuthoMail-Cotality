@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Identity;
 
-namespace AM.Entities.IdentityModels
+namespace AM.Entities
 {
     public class IdentityUser : IUser<string>
     {
@@ -72,6 +72,9 @@ namespace AM.Entities.IdentityModels
         /// </summary>
         public virtual int AccessFailedCount { get; set; }
         public int? ClientId { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string DisplayName { get; set; }
     }
     public class IdentityRole : IRole
     {

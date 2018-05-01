@@ -4,26 +4,26 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Dapper;
-using AM.Services.Models;
 using AM.Entities;
 
 namespace AM.Services
 {
-    public interface IHomeService//Home Service interface that has number of methods
+    public interface IHomeService : IDisposable
     {
-        List<MailPieceSearch> GetMailPieceByBatchId(int batchId, int clientId);
         List<DocumentType> GetDocTypeList(int clientId);
         List<Guid> GetMailPieceIdFromBusinessFriendlyValue(string businessFriendlyIdName, string businessFriendlyIdValue, int clientId);
         List<string> GetBusinessFriendlyIdNameByclientId(int clientId);
+        string GetClientNameById(int clientId);
+        List<ClientIdName> GetAllActiveClient();
+        int SetClientIdToUser(string userId, int clientId);
     }
     public class HomeService : ServiceBase, IHomeService //It implements Interfaces 
     {
-        public List<MailPieceSearch> GetMailPieceByBatchId(int batchId, int clientId)
+        public string GetClientNameById(int clientId)
         {
-            var data = db.Query<MailPieceSearch>(HomeServiceQuery.GetMailPieceByBatchId, new { batchId = batchId, clientId = clientId }).ToList();
+            var data = db.Query<string>(HomeServiceQuery.GetClientName, new { clientId = clientId }).Single();
             return data;
         }
-
         public List<DocumentType> GetDocTypeList(int clientId)
         {
             var data = db.Query(HomeServiceQuery.GetDocTypeList, new { clientId = clientId }).ToList();
@@ -56,15 +56,31 @@ namespace AM.Services
             var data = db.Query<string>(query, new { clientId = clientId }).ToList();
             return data;
         }
+
+
+        public List<ClientIdName> GetAllActiveClient()
+        {
+            return db.Query<ClientIdName>(HomeServiceQuery.GetAllActiveClient).ToList();
+        }
+
+
+        public int SetClientIdToUser(string userId, int clientId)
+        {
+            return db.Execute(HomeServiceQuery.SetClientIdToUser, new { clientId = clientId, userId = userId });
+        }
     }
     public static class HomeServiceQuery
     {
+        public static string GetClientName = "select Name from [Common].[Clients] where Id=@clientId";
+
         public static string GetMailPieceByBatchId = "select * from [dbo].[view_MailPieceByParam] where MailBatchId=@batchId and clientId=@clientId";
 
-        public static string GetDocTypeList = "select Id,DocTypeCode FROM [AM].[DocTypes] WHERE ClientId=@clientId";
+        public static string GetDocTypeList = "select Id,DocTypeCode FROM [AM].[DocTypes] WHERE ClientId=@clientId AND IsActive=1";
 
         public static string GetMailPieceIdFromBusinessFriendlyValue = "select m.[UniqueId] as [MailPieceId] from [AM].[MailBatches] b,[AM].[MailPieces] m where b.Id = m.MailBatchId and ((cast(ReceivedOn as date)=cast(@todayDate as date) or (m.ShippingStatus=@shippingStatus and b.PipelineStatus=@pipelineStatus))) and m.BusinessFriendlyIdName=@businessFriendlyIdName AND m.BusinessFriendlyIdValue=@businessFriendlyIdValue AND b.ClientId=@clientId";
 
         public static string GetBusinessFriendlyIdNameByclientId = "SELECT DISTINCT [BusinessIdName] FROM [AM].[ClientBusinessIdentifiers] WHERE [BusinessIdName] Is NOT NULL AND ClientId=@clientId";
+        public static string GetAllActiveClient = "SELECT Id,Name FROM [Common].[Clients] WHERE IsAMActive=1";
+        public static string SetClientIdToUser = "UPDATE [Profile].[Users] SET ClientId=@clientId WHERE Id=@userId";
     }
 }

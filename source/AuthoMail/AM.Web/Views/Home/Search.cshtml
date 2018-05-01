@@ -8,7 +8,13 @@
         padding-left: 10px !important;
         padding-right: 10px !important;
     }
-
+    #businessIddiv .bootstrap-select {
+        width: 165px !important;
+    }
+    .popover-content {
+        word-wrap: break-word;
+        color: red;
+    }
 
     .show-calendar {
         width: 484px !important;
@@ -34,7 +40,7 @@
         </div>
         <div id="collapseThree" class="panel-collapse collapse in">
             <div class="panel-body">
-                <div class="col-md-3">
+                <div class="col-md-@(ViewBag.BusinessId.Count > 1?"4":"3")" id="businessIddiv">
                     @if (ViewBag.BusinessId.Count == 1)
                     {
                         <label for="BusinessFriendlyIdValue">@ViewBag.BusinessId[0]</label>
@@ -67,14 +73,14 @@
                         <div class='alert alert-yellow'><div>No business friendly id found!</div></div>
                     }
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-@(ViewBag.BusinessId.Count > 1?"4":"3")">
                     <div class="form-group">
                         <label for="DocType">Document Type</label>
-                        @Html.DropDownList("DocType", ViewBag.DocType as SelectList, "Select DocType", htmlAttributes: new { @class = "selectpicker" })
+                        @Html.DropDownList("DocType", ViewBag.DocType as SelectList, "Select Document Type", htmlAttributes: new { @class = "selectpicker" })
                     </div>
 
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-@(ViewBag.BusinessId.Count > 1?"4":"3")">
                     <div class="form-group">
                         <label for="Status">Status</label>
                         <select class="selectpicker" id="Status">
@@ -90,16 +96,12 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="Channel">Channel</label>
-                        <select class="selectpicker" id="Channel">
-                            <option value="">Select Channel</option>
-                            <option value="Mortgage Cadence Integration">Mortgage Cadence Integration</option>
-                            <option value="CoreLogic SFTP">CoreLogic SFTP</option>
-                        </select>
+                        @Html.Action("_Channel", "Common")
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="receivedOn">Received  On</label>
+                        <label for="receivedOn">Received  On (EST)</label>
                         <div class="input-group daterange" id="datepicker4">
                             <input type="text" class="form-control" id="receivedOn">
                             <span class="input-group-addon">
@@ -109,24 +111,21 @@
                     </div>
 
                 </div>
-                @*<div class="col-md-3">
-                        <div class="form-group">
-                            <label for="shippedOn">Shipped On</label>
-                            <div class="input-group daterange" id="datepicker4">
-                                <input type="text" class="form-control" id="shippedOn">
-                                <span class="input-group-addon">
-                                    <i class="fa fa-calendar"></i>
-                                </span>
-                            </div>
-                        </div>
 
-                    </div>*@
                 <div class="col-md-1">
                     <div class="form-group ">
-                        <label for="filterData"> &nbsp;</label>
+                        <label for="filterData">  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
                         <button type="button" id="filterData" class="btn btn-primary">
                             <span class="sr-only">Filter</span>
                             <i class="fa fa-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-1" style=" margin-left: 1%;">
+                    <div class="form-group ">
+                        <label for="filterData"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                        <button type="button" id="resetFilter" class="btn btn-transparent-blue">
+                            Reset
                         </button>
                     </div>
                 </div>
@@ -135,13 +134,58 @@
     </div>
 
 </div>
-<div class="panel panel-default" id="mailPieceList">
+<div class="panel panel-default">
+    <div class='alert alert-blue text-center' id="loading" style="display:none"><span> Loading... </span></div>
+    <div class="panel-heading" id="searchHeader">
+        <div class="panel-title">
+            Search Details : <span class="normaltext" id="headerdate"></span>
 
+        </div>
+    </div>
+    <div class="panel-body" id="searchMailPieceList"></div>
 </div>
-
+<!--Search table html template code -->
+<div id="SearchTableContent" style="display:none">
+    <table class="table table-responsive" style="overflow-x:scroll">
+        <thead>
+            <tr>
+                <th>@Html.Action("GetHeadingForBusinessId", "Common")</th>
+                <th>Status</th>
+                <th>Borrower Name</th>
+                <th>City</th>
+                <th>Zip</th>
+                <th>Tracking Number</th>
+                <th>Received Date <span class="fontcapitalize">(Local)</span></th>
+                <th>Shipped Date <span class="fontcapitalize">(Local)</span></th>
+                <th>Document Type</th>
+                <th>Channel</th>
+            </tr>
+        </thead>
+        <tbody id="SearchbodyContent"></tbody>
+    </table>
+</div>
+<div style="display:none">
+    <table>
+        <tbody id="SearchBody">
+            <tr class="row-small">
+                <td data-businessidvalue="{BusinessIdValue}"><span>{BusinessIdValue}</span></td>
+                <td><span>{ShippingStatusFormatted}</span></td>
+                <td><span>{RcptNameFormatted}</span></td>
+                <td><span>{City}</span></td>
+                <td><span>{ZIP}</span></td>
+                <td><span>{TrackingNoFormatted}</span></td>
+                <td><span>{ReceivedOnFormatted}</span></td>
+                <td><span>{ShippedOnFormatted}</span></td>
+                <td><span>{DocType}</span></td>
+                <td><span>{Channel}</span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<!-- end table template code -->
 <!-- Modal -->
 <div class="modal fade" id="TrackingInfo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-lg col-md-10" role="document">
         <div class="modal-content">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal-header">
@@ -165,15 +209,130 @@
         $(document).ready(function () {
             window.clui.dateTimePickerInit();
             FilterData();
+            // JSON.useDateParser(false);
         });
+        function FormatObject(Model) {
+            //console.log(Model);
+            $(Model).each(function () {
+                //this.ReceivedOnFormatted = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
+                this.RcptNameFormatted = this.FirstName + " " + this.LastName;
+                var status = "";
+                this.ErrorDesc = this.ErrorDesc != null ? this.ErrorDesc.replace(/"/g, '\'') : "";
+                switch (this.Status) {
+
+                    case "PulledBack":
+                        status = '<span class="label medium label-yellow">' + this.Status + '</span>';
+
+                        break;
+                    case "Error":
+                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error Code: ' + this.ErrorCode + '" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.Status + '</span>';
+                        break;
+                    case "Shipped":
+                        status = '<span class="label medium label-success">' + this.Status + '</span>';
+                        break;
+                    case "InProgress":
+                        status = '<span class="label medium label-blue">' + this.Status + '</span>';
+                        break;
+
+                }
+                this.ShippingStatusFormatted = status;
+                var trackingNo = "";
+                if (this.TrackingNo == null) {
+                    trackingNo = "--";
+                }
+                else {
+                    //if (this.DocTypes.ShippingServiceType == "USPS") {
+                    if (this.ShippingMethod == "USPS") {
+                        trackingNo = '<button id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
+                        //trackingNo = '<button id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.DocTypes.ShippingServiceType + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
+                    }
+                    else {
+                        trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="http://www.fedex.com/Tracking?cntry_code=us&action=1&track=y&tracknumbers=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
+                    }
+                }
+                this.TrackingNoFormatted = trackingNo;
+                //this.TrackingNo == null ? "--" : '<button id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
+            });
+            return Model;
+        }
+        function applyDataTable() {
+            $('[data-toggle="popover"]').popover({
+                'trigger': 'hover',
+                'placement': 'auto right',
+                'container': 'body'
+            });
+            var table = $('#sample_2');
+            var filename = "Search";
+            var title = "Search";
+            var oTable = table.dataTable({
+
+                "language": {
+                    "aria": {
+                        "sortAscending": ": activate to sort column ascending",
+                        "sortDescending": ": activate to sort column descending"
+                    },
+                    "emptyTable": "No data available in table",
+                    "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+                    "infoEmpty": "No entries found",
+                    "infoFiltered": "(filtered1 from _MAX_ total entries)",
+                    "lengthMenu": "_MENU_ entries",
+                    "search": "<b>Search:</b>",
+                    "zeroRecords": "No matching records found"
+                },
+
+                buttons: [
+                    //{
+                    //    extend: 'colvis',
+                    //    text: 'Select Fields',
+                    //    className: 'btn purple pull-left',
+                    //    columns: ':not(.noVis)'
+                    //},
+                //{
+                //    extend: 'excel',
+                //    text: '<i class="fa fa-file-excel-o"></i> Excel',
+                //    className: 'btn btn-primary',
+                //    filename: filename,
+                //    title: title,
+                //    exportOptions: {
+                //        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+                //    }
+
+                //}
+
+
+
+                ],
+
+                "scrollX": true,
+
+                "order": [
+                    [1, 'asc']
+                ],
+                "lengthMenu": [
+                    [5, 10, 25, 50, 100, -1],
+                    [5, 10, 25, 50, 100, "All"] // change per page values here
+                ],
+                // set the initial value
+                "pageLength": 5,
+
+                "dom": "<'row' <'col-md-12'B>><'row'<'col-md-6 col-sm-12'l><'col-md-6 col-sm-12'f>r><'table-scrollable't><'row'<'col-md-5 col-sm-12'i><'col-md-7 col-sm-12'p>>", // horizobtal scrollable datatable
+
+
+            });
+
+
+        }
         function FilterData() {
-
-            var el = $('#mailPieceList');
+            $("#searchHeader").hide();
+            $("#searchMailPieceList").hide();
+            var el = $('#searchMailPieceList');
             var selectedData = $("#receivedOn").val().split('-');
-
-            var startDate = moment(selectedData[0].trim()).format("MM/DD/YYYY");
-            var endDate = moment(selectedData[1].trim()).format("MM/DD/YYYY");
-            el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
+            $("#loading").show();
+            var startDate = moment(selectedData[0].trim()).format("MM/DD/YY");
+            var endDate = moment(selectedData[1].trim()).format("MM/DD/YY");
+            $("#headerdate").html(startDate + " to " + endDate + " EST");
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Home/_GetSearchData",
@@ -188,12 +347,35 @@
 
                 }),
                 contentType: "application/json; charset=utf-8",
-                success: function (res) {
-                    el.html(res);
+                success: function (response) {
+                    // //console.log(response);
+                    if (response.Success) {
+                        $("#loading").hide();
+                        $("#searchHeader").show();
+                        $("#searchMailPieceList").show();
+                        if (response.Object != null) {
+                            //console.log(response.Object.model.length);
+                            if (response.Object.model.length > 0) {
+                                $("#searchMailPieceList").html("");
+                                var data = FormatObject(response.Object.model);
+                                BindTemplate(data, "#SearchBody", "#SearchbodyContent", "#SearchTableContent", "#searchMailPieceList");
+                            }
+                            else {
+                                $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                            }
+                        }
+                    } else {
+                        $("#searchHeader").show();
+                        $("#searchMailPieceList").show();
+                        $("#searchMailPieceList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + response.ErrorMessage + "</span></div>");
+                    }
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
-                    var msg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
-                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    $("#loading").hide();
+                    $("#searchHeader").show();
+                    $("#searchMailPieceList").show();
+                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
+                    $("#searchMailPieceList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
                 }
 
             });
@@ -201,46 +383,13 @@
         $("#filterData").click(function () {
             FilterData();
         });
-        function GetTrackingInfo(TrackingNo, ShippingMethod) {
-            //
-            var el = $('#TrackingInfo').find('.modal-body');
-            $.ajax({
-                type: "POST",
-                url: baseUrl + "Home/USPSTracking",
-                data: JSON.stringify({
-                    TrackingNo: TrackingNo,
-                    ShippingMethod: ShippingMethod
-                }),
-                contentType: "application/json; charset=utf-8",
-                success: function (res) {
-                    console.log(res);
-                    if (res.MailRoute.lenght > 0) {
-                        var msgAdd = "<ul>";
-
-                        msgAdd += "<li><span class='text-bright-blue '>Facility Id:" + MailRoute[0].FacilityID + "</span></li>";
-                        msgAdd += "<li><span class='text-bright-blue '>Facility Name:" + MailRoute[0].FacilityName + "</span></li>";
-                        msgAdd += "<li><span class='text-bright-blue '>City:" + MailRoute[0].City + "</span></li>";
-                        msgAdd += "<li><span class='text-bright-blue '>Operation Code:" + MailRoute[0].OperationCode + "</span></li>";
-                        msgAdd += "<li><span class='text-bright-blue '>Scan Date:" + MailRoute[0].ScanDate + "</span></li>";
-                        msgAdd += "<li><span class='text-bright-blue '>Routing Code:" + res.RoutingCode + "</span></li>";
-                        msgAdd += "<li><span class='text-bright-blue '>Tracking Code:" + res.TrackingCode + "</span></li>";
-
-                        msgAdd += "</ul>";
-                    }
-                    else {
-                        var msg = '@AM.Services.Config.Msg_Web_NoRecordFound';
-                        el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
-                    }
-                    $("#TrackingInfo").modal("show");
-                },
-                error: function (xhr, ajaxOptions, thrownError) {
-                    var msg = '@AM.Services.Config.Msg_Web_Ajax_CommonError';
-                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
-                    $("#TrackingInfo").modal("show");
-                }
-
-            });
-        }
+        $("#resetFilter").click(function () {
+            $("#Status").val("");
+            $("#DocType").val("");
+            $("#Channel").val("");
+            $("#BusinessFriendlyIdValue").val("");
+            $('.selectpicker').selectpicker('refresh');
+        });
     </script>
 }
 

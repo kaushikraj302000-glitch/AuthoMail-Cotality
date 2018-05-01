@@ -63,8 +63,8 @@
       <HintPath>..\packages\Autofac.WebApi2.Owin.4.0.0\lib\net45\Autofac.Integration.WebApi.Owin.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="itextsharp, Version=5.5.13.0, Culture=neutral, PublicKeyToken=8354ae6d2174ddca, processorArchitecture=MSIL">
-      <HintPath>..\packages\iTextSharp.5.5.13\lib\itextsharp.dll</HintPath>
+    <Reference Include="AutoMapper, Version=6.2.2.0, Culture=neutral, PublicKeyToken=be96cd2c38ef1005, processorArchitecture=MSIL">
+      <HintPath>..\packages\AutoMapper.6.2.2\lib\net45\AutoMapper.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
@@ -178,23 +178,35 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="APIProviders\AMOAuthProvider.cs" />
+    <Compile Include="APIProviders\ChallengeResult.cs" />
+    <Compile Include="App_Start\AutoMapperConfig.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\IdentityConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\Startup.Auth.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Controllers\AccountApiController.cs" />
     <Compile Include="Controllers\ChartApiController.cs" />
+    <Compile Include="Controllers\CommonController.cs" />
     <Compile Include="Models\ChartViewModel.cs" />
     <Compile Include="Models\CLAuthentication.cs" />
+    <Compile Include="Models\DailyDetailReportViewModel.cs" />
+    <Compile Include="Models\ErrorReportViewModel.cs" />
+    <Compile Include="Models\ErrorSLAReportViewModel.cs" />
+    <Compile Include="Models\MailPieceCommonViewModel.cs" />
+    <Compile Include="Models\MailPieceViewModel.cs" />
+    <Compile Include="Models\MonthlyReconReportViewModel.cs" />
     <Compile Include="Models\PullBackResponse.cs" />
     <Compile Include="Models\ReportViewModel.cs" />
+    <Compile Include="Models\SearchViewModel.cs" />
+    <Compile Include="Models\SummaryControlViewModel.cs" />
     <Compile Include="Service References\USPSIMService\Reference.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Reference.svcmap</DependentUpon>
     </Compile>
-    <Compile Include="Utilities\Common.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ManageController.cs" />
@@ -204,7 +216,6 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Utilities\Helper.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\ManageViewModels.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -224,14 +235,16 @@
     <Content Include="clui\dist\css\components\secondary_nav.css" />
     <Content Include="clui\dist\css\components\table.css" />
     <Content Include="clui\dist\css\corelogic-ui.css" />
-    <Content Include="clui\dist\css\corelogic-ui.min.css" />
+    <Content Include="clui\dist\css\corelogic-ui.min1.css" />
     <Content Include="clui\dist\css\customui.css" />
     <Content Include="clui\dist\css\datatablecustom.css" />
+    <Content Include="clui\dist\css\changepasswordui.css" />
     <Content Include="clui\dist\fonts\Droid-Sans-Mono\droid-sans-mono-latin-400.svg" />
     <Content Include="clui\dist\fonts\fontawesome-webfont.svg" />
     <Content Include="clui\dist\img\circular-spinner_Color.gif" />
     <Content Include="clui\dist\img\CL_logo_footer.png" />
     <Content Include="clui\dist\img\CL_logo_header_white.png" />
+    <Content Include="clui\dist\img\favicon.png" />
     <Content Include="clui\dist\img\ui-bg_flat_0_aaaaaa_40x100.png" />
     <Content Include="clui\dist\img\ui-icons_444444_256x240.png" />
     <Content Include="clui\dist\img\ui-icons_555555_256x240.png" />
@@ -353,6 +366,7 @@
       <Generator>WCF Proxy Generator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>
     </None>
+    <Content Include="Views\Report\MonthlyReconReport.cshtml" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
@@ -392,26 +406,11 @@
     <Content Include="Views\Shared\_LoginPartial.cshtml" />
     <Content Include="Views\Shared\_LayoutLogin.cshtml" />
     <Content Include="Views\RequestPullBack\PullBack.cshtml" />
-    <Content Include="Views\RequestPullBack\_GetMailPieceList.cshtml" />
-    <Content Include="Views\Report\_GetSummaryControlReport.cshtml" />
     <Content Include="Views\Report\SummaryControlReport.cshtml" />
-    <Content Include="Views\Report\_GetMailPieceList.cshtml" />
-    <Content Include="Views\Report\MonthReconReport.cshtml" />
-    <Content Include="Views\Report\MailPieceByBatchId.cshtml" />
-    <Content Include="Template\PullBackForm.pdf" />
-    <Content Include="Views\Report\DeliveryReport.cshtml" />
-    <Content Include="Views\Report\_GetDeliveryReport.cshtml" />
     <Content Include="Views\Report\ErrorsReport.cshtml" />
-    <Content Include="Views\Report\_GetErrorsReport.cshtml" />
     <Content Include="Views\Home\Search.cshtml" />
-    <Content Include="Views\Home\_GetChartMailPieceData.cshtml" />
-    <Content Include="Views\Home\_PullBackRequestData.cshtml" />
-    <Content Include="Views\Home\WeeklyChartDetails.cshtml" />
     <Content Include="Views\Report\DailyDetailOperationsReport.cshtml" />
-    <Content Include="Views\Report\_GetDailyDetailOperationsReport.cshtml" />
     <Content Include="Views\Report\ErrorSLAReport.cshtml" />
-    <Content Include="Views\Report\_GetErrorsSLAReport.cshtml" />
-    <Content Include="Views\Home\_GetSearchData.cshtml" />
     <None Include="Service References\USPSIMService\USPSIM.wsdl" />
     <None Include="Service References\USPSIMService\USPSIM.xsd">
       <SubType>Designer</SubType>
@@ -422,15 +421,23 @@
     <None Include="Service References\USPSIMService\USPSIM2.xsd">
       <SubType>Designer</SubType>
     </None>
+    <Content Include="Views\Common\_Channel.cshtml" />
+    <Content Include="Views\Common\_TrackingInfo.cshtml" />
+    <Content Include="Views\Report\PullbackRequestReport.cshtml" />
+    <Content Include="Template\PullBackForm.pdf" />
+    <Content Include="Views\Common\_GetHeadingForBusinessId.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Views\AccountApi\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff" />
     <Content Include="fonts\glyphicons-halflings-regular.ttf" />
     <Content Include="fonts\glyphicons-halflings-regular.eot" />
-    <Content Include="packages.config" />
+    <Content Include="packages.config">
+      <SubType>Designer</SubType>
+    </Content>
     <None Include="Project_Readme.html" />
   </ItemGroup>
   <ItemGroup>

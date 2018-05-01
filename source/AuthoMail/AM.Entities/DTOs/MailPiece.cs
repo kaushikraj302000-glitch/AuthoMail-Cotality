@@ -61,7 +61,6 @@ namespace AM.Entities
         public string RetRcptAddressCity { get; set; }
         public string RetRcptAddressState { get; set; }
         public string RetRcptAddressZIP { get; set; }
-        public string PreppedFilePath { get; set; }
         public int TotalPages { get; set; }
         public int TotalSheets { get; set; }
         public string ErrorCode { get; set; }
@@ -80,6 +79,7 @@ namespace AM.Entities
         public decimal Weight { get; set; }
         public bool IsQCRequested { get; set; }
         public bool IsQCPerformed { get; set; }
+        public int? DocTypeId { get; set; }
     }
 
     public class MailPieceCustomInfo

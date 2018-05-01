@@ -6,8 +6,12 @@ using System.Web;
 using System.Web.Mvc;
 using Microsoft.AspNet.Identity;
 using System.Security.Claims;
-using AM.Entities.IdentityModels;
+using AM.Entities;
 using AM.Web.USPSIMService;
+using System.Globalization;
+using AM.Lib;
+using AM.Web.Models;
+using AutoMapper;
 
 namespace AM.Web.Controllers
 {
@@ -32,23 +36,34 @@ namespace AM.Web.Controllers
         }
 
         [HttpPost]
-        public ActionResult GetMailPieceIdByLoanNumber(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, DateTime startDate, DateTime endDate)
+        public ActionResult GetMailPieceIdByLoanNumber(string BusinessFriendlyIdName, string BusinessFriendlyIdValue)
         {
-            var model = homeSvc.GetMailPieceIdFromBusinessFriendlyValue(BusinessFriendlyIdName, BusinessFriendlyIdValue, User.Identity.GetClientId().Value);
+            try
+            {
+                var estToday = DateTime.UtcNow.UtcToEst().Date;
+                // EST Start End
+                var startDate = (estToday + new TimeSpan(0, 0, 0));
+                var endDate = (estToday + new TimeSpan(23, 59, 59));
+                var model = homeSvc.GetMailPieceIdFromBusinessFriendlyValue(BusinessFriendlyIdName, BusinessFriendlyIdValue, User.Identity.GetClientId().Value);
 
-            if (model.Count > 1)
-            {
-
-                return Json("PullBack", JsonRequestBehavior.AllowGet);
+                if (model.Count > 1)
+                {
+                    return Json(JsonResponseFactory.SuccessResponse("PullBack"), JsonRequestBehavior.AllowGet);
+                }
+                else if (model.Count == 1)
+                {
+                    var pullbackRequestData = pullBackSvc.GetPullBackRequestList(BusinessFriendlyIdName, BusinessFriendlyIdValue, null, startDate, endDate, User.Identity.GetClientId().Value);
+                    var data = Mapper.Map<List<MailPieceViewModel>>(pullbackRequestData);
+                    return Json(JsonResponseFactory.SuccessResponse(new { model = data.OrderBy(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+                }
+                else
+                {
+                    return Json(JsonResponseFactory.SuccessResponse("AdvancePullBack"), JsonRequestBehavior.AllowGet);
+                }
             }
-            else if (model.Count == 1)
+            catch (Exception e)
             {
-                var pullbackRequestData = pullBackSvc.GetPullBackRequestList(BusinessFriendlyIdName, BusinessFriendlyIdValue, null, startDate,endDate, User.Identity.GetClientId().Value);
-                return PartialView("_PullBackRequestData", pullbackRequestData);
-            }
-            else
-            {
-                return Json("AdvancePullBack", JsonRequestBehavior.AllowGet);
+                return Json(JsonResponseFactory.ErrorResponse(e.ToString()), JsonRequestBehavior.AllowGet);
             }
 
         }
@@ -56,67 +71,51 @@ namespace AM.Web.Controllers
         public ActionResult Search()
         {
             ViewBag.BusinessId = homeSvc.GetBusinessFriendlyIdNameByclientId(User.Identity.GetClientId().Value);
-            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "DocTypeCode", "DocTypeCode");
+            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
             return View();
         }
         [HttpPost]
-        public ActionResult _GetSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, DateTime receivedOnStart, DateTime receivedOnEnd,string status,string channel,string docType)
+        public ActionResult _GetSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string receivedOnStart, string receivedOnEnd, string status, string channel, string docType)
         {
-            ViewBag.Date = string.Format("{0} To {1}", receivedOnStart.ToString("MM/dd/yyyy"), receivedOnEnd.ToString("MM/dd/yyyy"));
-            var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue,receivedOnStart,receivedOnEnd,docType,status,channel);
-            //ViewBag.BusinessId = se.(User.Identity.GetClientId().Value);
-            return PartialView(data);
+            var exactStartDate = DateTime.ParseExact(receivedOnStart, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            var exactEndDate = DateTime.ParseExact(receivedOnEnd, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, exactStartDate, exactEndDate, docType, status, channel);
+
+            var model = Mapper.Map<List<SearchViewModel>>(data);
+
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
         [HttpPost]
         public ActionResult TodayChartDetails(string status, int batchId)
         {
-            var model = chartDataSvc.GetMailPieceByParam(batchId, status, User.Identity.GetClientId().Value);
-            return PartialView("_GetChartMailPieceData", model);
+            var data = chartDataSvc.GetMailPieceByParam(batchId, status, User.Identity.GetClientId().Value);
+
+            var model = Mapper.Map<List<MailPieceViewModel>>(data);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult GetMailPieceByBatchId(int batchId)
         {
-            var model = chartDataSvc.GetMailPieceByBatchId(batchId, User.Identity.GetClientId().Value);
-            return PartialView("_GetChartMailPieceData", model);
+            var data = chartDataSvc.GetMailPieceByBatchId(batchId, User.Identity.GetClientId().Value);
+            var model = Mapper.Map<List<MailPieceViewModel>>(data);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
         [HttpPost]
-        public ActionResult WeeklyChartDetails(string status, DateTime date)
+        public ActionResult WeeklyChartDetails(string status, string date)
         {
-            var model = chartDataSvc.GetBatchByParam(date, status, User.Identity.GetClientId().Value);
-            return PartialView(model);
+            var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            var model = chartDataSvc.GetBatchByParam(exactDate, status, User.Identity.GetClientId().Value);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
-        //[HttpPost]
-        //public ActionResult GetWeeklyChartData(DateTime startDate, DateTime endDate)
-        //{
-        //    var model = chartDataSvc.GetWeeklyChartData(startDate, endDate, User.Identity.GetClientId().Value);
-        //    return Json(model.OrderByDescending(s => s.Date).ToList(), JsonRequestBehavior.AllowGet);
-        //}
-
-        //[HttpPost]
-        //public ActionResult GetTodayChartData(DateTime date)
-        //{
-        //    var model = chartDataSvc.GetTodayMailPieceChartData(date, User.Identity.GetClientId().Value);
-        //    return Json(model.OrderByDescending(s => s.MailBatchId).ToList(), JsonRequestBehavior.AllowGet);
-        //}
 
         [HttpPost]
         public ActionResult GetMailPieceDataByStatusAndBatchId(string status, int batchId)
         {
             var model = chartDataSvc.GetMailPieceByParam(batchId, status, User.Identity.GetClientId().Value);
-            return Json(model.OrderByDescending(s => s.BatchId).ToList(), JsonRequestBehavior.AllowGet);
+            return Json(model.OrderByDescending(s => s.MailBatches.Id).ToList(), JsonRequestBehavior.AllowGet);
         }
 
-        [HttpPost]
-        public ActionResult USPSTracking(string TrackingNo, string ShippingMethod)
-        {
-            if (ShippingMethod=="USPS")
-            {
-                 USPSIMClient uspsClient = new USPSIMClient();
-                USPSTrackingInfo USPSInfo = uspsClient.GetShipmentStatus(TrackingNo);
-                return Json(USPSInfo, JsonRequestBehavior.AllowGet);
-            }
-            return Json(Config.Msg_Web_NoRecordFound,JsonRequestBehavior.AllowGet);
-        }
+        [AllowAnonymous]
         public ActionResult About()
         {
             ViewBag.Message = "Your application description page.";

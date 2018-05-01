@@ -69,7 +69,7 @@ namespace AM.Web.Models
                 //_path = result.Path;
 
                 _filterAttribute = (String)result.Properties["cn"][0];
-                return new KeyValuePair<bool, string>(true, Config.Msg_Web_Login_Success);
+                return new KeyValuePair<bool, string>(true, Config.Web_Msg_Login_Success);
             }
             catch (COMException ec)
             {
