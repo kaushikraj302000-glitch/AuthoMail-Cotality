@@ -13,7 +13,9 @@ namespace AM.Console
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         static void Main(string[] args)
-        {            
+        {
+            log.InfoFormat("Command line arguments : {0}", String.Join(",", args));
+
             foreach (var arg in args)
             {
                 if (arg == "config")
@@ -22,7 +24,7 @@ namespace AM.Console
 
                     using (var cfgSvc = new ConfigService())
                     {
-                        cfgSvc.SeedAMSettings();                        
+                        cfgSvc.SeedAMSettings();
                     }
                     Config.SaveAllSetting();
                     System.Console.WriteLine("Seed Completed.");
