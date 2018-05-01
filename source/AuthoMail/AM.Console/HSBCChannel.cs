@@ -286,8 +286,8 @@ namespace AM.Console
                             else
                             {
                                 string sftPdfFileName = availablePdfs.SingleOrDefault(c => c.Contains(mailPieceDTO.FilePattern)) + ".pdf";
-                                string localFilePath = Path.Combine(mbi.AMRequestPath, sftPdfFileName + ".pdf");
-                                string sftFilePath = Path.Combine(SFTChannel.ToADEDir, sftPdfFileName + ".pdf");
+                                string localFilePath = Path.Combine(mbi.AMRequestPath, sftPdfFileName);
+                                string sftFilePath = Path.Combine(SFTChannel.ToADEDir, sftPdfFileName);
 
                                 if (!sftSite.IsFileAvailable(sftFilePath))
                                 {
