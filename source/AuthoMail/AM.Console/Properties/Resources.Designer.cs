@@ -63,6 +63,23 @@ namespace AM.Console.Properties {
         /// <summary>
         ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
         ///&lt;xs:schema elementFormDefault=&quot;qualified&quot; xmlns:xs=&quot;http://www.w3.org/2001/XMLSchema&quot;&gt;
+        ///  &lt;xs:element name=&quot;RespaControl&quot; type=&quot;RespaControl&quot;/&gt;
+        ///  &lt;xs:complexType name=&quot;RespaControl&quot;&gt;
+        ///    &lt;xs:sequence&gt;
+        ///      &lt;xs:element name=&quot;Address&quot; type=&quot;nonEmptyString&quot; maxOccurs=&quot;1&quot; /&gt;
+        ///      &lt;xs:element name=&quot;Address2&quot; type=&quot;xs:string&quot; minOccurs=&quot;0&quot;  maxOccurs=&quot;1&quot; /&gt;
+        ///      &lt;xs:element name=&quot;BorrowerFirstName&quot; type=&quot;nonEmptyString&quot; maxOccurs=&quot;1&quot; /&gt;
+        ///      &lt;xs:element name=&quot;Borr [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string HSBCRespaControlSchema {
+            get {
+                return ResourceManager.GetString("HSBCRespaControlSchema", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+        ///&lt;xs:schema elementFormDefault=&quot;qualified&quot; xmlns:xs=&quot;http://www.w3.org/2001/XMLSchema&quot;&gt;
         ///  &lt;xs:element name=&quot;PackageInfo&quot; type=&quot;PackageInfo&quot; /&gt;
         ///  &lt;xs:complexType name=&quot;PackageInfo&quot;&gt;
         ///    &lt;xs:sequence&gt;
