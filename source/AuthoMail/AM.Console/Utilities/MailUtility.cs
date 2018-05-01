@@ -16,7 +16,7 @@ namespace AM.Console
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(MailUtility));
 
-        public static bool SendNoBatchReceivedNotificationEmail(DateTime cutOffTime)
+        public static bool SendNoBatchReceivedNotificationEmail(Client client, DateTime cutOffTime, Deliverable deliverable)
         {
             bool isEmailSent = false;
 
@@ -27,11 +27,11 @@ namespace AM.Console
                     using (MailMessage msg = new MailMessage())
                     {
                         msg.IsBodyHtml = true;
-                        msg.To.Add(Config.Monitor_NoBatch_Email_To);
-                        msg.CC.Add(Config.Monitor_NoBatch_Email_Cc);
-                        msg.Subject = "{0} : {1}".Fill(Config.Common_Environment, Config.Monitor_NoBatchReceivedNotification_Subject);
+                        msg.To.Add(deliverable.EmailChannel.To);
+                        msg.CC.Add(deliverable.EmailChannel.Cc);
+                        msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, client.AppCode, deliverable.EmailChannel.Subject);
                         msg.Priority = MailPriority.Normal;
-                        msg.Body = string.Format("No batch available today till cutOffTime {0}.", cutOffTime.ToString("HH:mm:ss"));
+                        msg.Body = string.Format("No batch available today till cutOffTime {0}.", cutOffTime.UtcToClientTimeZone(client.TimeZone).ToString("HH:mm"));
                         smtpClient.Send(msg);
                         isEmailSent = true;
                     }

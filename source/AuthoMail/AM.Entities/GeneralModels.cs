@@ -127,6 +127,37 @@ namespace AM.Entities
                     return AlaskaOutComeCodes.UNKNOWN_error.ToString();
             }
         }
+
+        public static string GetHSBCMappingCode(string hsbcOutcomeCode)
+        {
+            switch (hsbcOutcomeCode)
+            {
+                case OutComeCodes.No_Error:
+                    return HSBCOutComeCodes.No_error.ToString();
+
+                case OutComeCodes.Invalid_XML_File:
+                    return HSBCOutComeCodes.Invalid_XML_file.ToString();
+
+                case OutComeCodes.Missing_XML_File:
+                    return HSBCOutComeCodes.Invalid_XML_file.ToString();
+
+                case OutComeCodes.Missing_PDF_File:
+                    return HSBCOutComeCodes.Invalid_PDF_file.ToString();
+
+                case OutComeCodes.Mailing_Address_Missing_Or_Invalid:
+                    return HSBCOutComeCodes.Mailing_address_missing_or_invalid.ToString();
+
+                case OutComeCodes.Recipient_Details_Missing_Or_Invalid:
+                    return HSBCOutComeCodes.Recipient_name_missing_or_invalid.ToString();
+
+                case OutComeCodes.Invalid_PackageType:
+                    return HSBCOutComeCodes.PackageName_missing_or_invalid.ToString();
+
+                case OutComeCodes.Unknown_Error:
+                default:
+                    return HSBCOutComeCodes.UNKNOWN_error.ToString();
+            }
+        }
     }
 
     public enum AMCOutComeCodes
@@ -151,6 +182,17 @@ namespace AM.Entities
         UNKNOWN_error,
     }
 
+    public enum HSBCOutComeCodes
+    {
+        No_error,
+        Invalid_XML_file,
+        Invalid_PDF_file, // If PDF file is missing or unreadable then invalid PDF.
+        Mailing_address_missing_or_invalid,
+        Recipient_name_missing_or_invalid,
+        UNKNOWN_error,
+        PackageName_missing_or_invalid,
+    }
+
     public enum ShippingStatus
     {
         InProgress,
@@ -172,6 +214,7 @@ namespace AM.Entities
         public const string Delivery = "Delivery";
         public const string Immediate = "Immediate";
         public const string Consolidated = "Consolidated";
+        public const string NoBatch = "NoBatch";
     }
 
     public static class AMLogBatchTimeLine
