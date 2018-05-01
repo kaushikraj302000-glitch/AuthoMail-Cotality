@@ -277,7 +277,7 @@ namespace AM.Console
                                 mailPieceDTO.ErrorDesc = "The specified document or package type '{0}' is not configured.".Fill(mailPieceDTO.DocumentOrPackageType);
                                 mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                             }
-                            else if (!availablePdfs.Contains(mailPieceDTO.FilePattern))
+                            else if (!availablePdfs.Any(fName => fName.ToLower().Contains(mailPieceDTO.FilePattern.ToLower())))
                             {
                                 mailPieceDTO.ErrorCode = OutComeCodes.Missing_PDF_File;
                                 mailPieceDTO.ErrorDesc = "Pdf attachment is not available.";
@@ -297,6 +297,7 @@ namespace AM.Console
                                 }
                                 else
                                 {
+                                    mailPieceDTO.FileName = sftPdfFileName;
                                     if (!File.Exists(localFilePath))
                                     {
                                         //Downloading matching file name from client SFT
@@ -468,18 +469,8 @@ namespace AM.Console
                 {
                     try
                     {
-                        string errorReportFileName = "ER_{0}.csv".Fill(mbi.BatchName);
-
-                        //Regex regEx = new Regex(@"{(.+?)}");
-
-                        //var param = regEx.Matches(errorReportFileName);
-                        //for (int i = 0; i < param.Count; i++)
-                        //{
-                        //    string propertyName = param[i].Groups[1].Value;
-
-                        //    errorReportFileName = errorReportFileName.Replace("{" + propertyName + "}", mbi.MailBatch.GetValueOfPropertyFromPropertyName(propertyName).ToString());
-                        //}
-
+                        string errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName,mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(client.TimeZone).ToString("htt"));
+                      
                         string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 
                         if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.Invalid)

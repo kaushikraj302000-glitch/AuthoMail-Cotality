@@ -527,6 +527,8 @@ INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplateP
 GO
 INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(6,1,'ALASKA_USPS_Generic_1.pdf')
 GO
+INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])SELECT Id,1,'HSBC_USPS_Generic_1.pdf' from AM.DocTypes where ClientId = 104
+GO
 
 INSERT INTO [AM].[ClientBusinessIdentifiers]([ClientId],[BusinessIdName])VALUES(101,'Loan Number')
 GO
