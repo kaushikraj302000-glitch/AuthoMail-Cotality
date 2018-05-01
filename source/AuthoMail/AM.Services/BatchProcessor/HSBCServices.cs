@@ -26,28 +26,22 @@ namespace AM.Services
 
             var erroredData = data.MailPieces.Where(l => l.ErrorCode != OutComeCodes.No_Error).ToList();
 
-            if (erroredData == null || erroredData.Count == 0)
-            {
-                return null;
-            }
-
-
             // All the loans where outcome code is anything except no_error are processed invalid loans.
             foreach (MailPieceDTO mailPiece in erroredData)
             {
                 var statusID = data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "StatusID").SingleOrDefault();
 
                 var line = String.Join(delimeter,
-                    data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
+                    data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName + ".xml",
                     statusID == null ? string.Empty : statusID.Value,
                         mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
                         mailPiece.FileName == null ? string.Empty : mailPiece.FileName,
-                        mailPiece.FilePattern == null ? string.Empty : mailPiece.FilePattern,
+                        mailPiece.FilePattern == null ? string.Empty : mailPiece.FilePattern.ToCsvString(),
                         data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(clientTimeZone).ToString(),
-                        mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName,
-                        mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName,
-                        mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet,
-                        mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity,
+                        mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName.ToCsvString(),
+                        mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName.ToCsvString(),
+                        mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet.Replace(",", "").ToCsvString(),
+                        mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity.ToCsvString(),
                         mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
                         mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
                         OutComeCodes.GetHSBCMappingCode(mailPiece.ErrorCode),
@@ -70,28 +64,23 @@ namespace AM.Services
 
             var shippedData = data.MailPieces.Where(l => l.ShippingStatus == ShippingStatus.Shipped.ToString() || l.ShippingStatus == ShippingStatus.PulledBack.ToString()).ToList();
 
-            if (shippedData == null || shippedData.Count == 0)
-            {
-                return null;
-            }
-
             foreach (MailPieceDTO mailPiece in shippedData)
             {
                 var statusID = data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "StatusID").SingleOrDefault();
 
                 var line = String.Join(delimeter,
-                    data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
+                    data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName + ".xml",
                     statusID == null ? string.Empty : statusID.Value,
                         mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
                         mailPiece.FileName == null ? string.Empty : mailPiece.FileName,
-                         mailPiece.FilePattern == null ? string.Empty : mailPiece.FilePattern,
+                         mailPiece.FilePattern == null ? string.Empty : mailPiece.FilePattern.ToCsvString(),
                         data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(clientTimeZone).ToString(),
                         mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? string.Empty : mailPiece.PrintedOn.Value.UtcToClientTimeZone(clientTimeZone).ToString(),
                         mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? string.Empty : mailPiece.ShippedOn.Value.UtcToClientTimeZone(clientTimeZone).ToString(),
-                        mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName,
-                        mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName,
-                        mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet,
-                        mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity,
+                        mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName.ToCsvString(),
+                        mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName.ToCsvString(),
+                        mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet.Replace(",", "").ToCsvString(),
+                        mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity.ToCsvString(),
                         mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
                         mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
                         mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? 0 : mailPiece.TotalPages,

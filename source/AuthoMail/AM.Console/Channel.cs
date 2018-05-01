@@ -220,6 +220,38 @@ namespace AM.Console
                     }
                     MailUtility.SendProductionNotificationEmail(mbi, mailBatchData, reportToMail, emailChannel);
                     break;
+                case "HSBC":
+
+                    var reportToMailHSBC = new List<string>();
+                    //TODO: handle multiple channel code implementation
+                    var emailChannelHSBC = deliverables.SingleOrDefault(x => x.ReportType == ReportTypes.Delivery).EmailChannel;
+                    foreach (var deliverable in deliverables)
+                    {
+                        if (deliverable.ReportType == ReportTypes.Delivery)
+                        {
+                            var deliveryReportName = "{0}.DeliveryReport_{1}.csv".Fill(mbi.BatchName, mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
+                            string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportName);
+                            if (File.Exists(deliveryReportPath))
+                            {
+                                string ftpUploadPath = Path.Combine(deliverable.UploadPath, deliveryReportName);
+                                sftSite.UploadFile(deliveryReportPath, ftpUploadPath);
+                                reportToMailHSBC.Add(deliveryReportPath);
+                            }
+                        }
+                        else if (deliverable.ReportType == ReportTypes.Error)
+                        {
+                            var errorReportName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName, mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
+                            string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportName);
+                            if (File.Exists(errorReportPath))
+                            {
+                                string ftpUploadPath = Path.Combine(deliverable.UploadPath, errorReportName);
+                                sftSite.UploadFile(errorReportPath, ftpUploadPath);
+                                reportToMailHSBC.Add(errorReportPath);
+                            }
+                        }
+                    }
+                    MailUtility.SendProductionNotificationEmail(mbi, mailBatchData, reportToMailHSBC, emailChannelHSBC);
+                    break;
                 default:
                     throw new Exception("Invalid App Code");
 

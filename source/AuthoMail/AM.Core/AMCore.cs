@@ -784,6 +784,32 @@ namespace AM.Core
                         }
                     }
                     break;
+                case "HSBC":
+                    using (IHSBCService hsbcSvc = new HSBCService())
+                    {
+                        StringBuilder deliveryReport = hsbcSvc.HSBCDeliveryReport(mailBatchData, mbi.Client.TimeZone, deliverable.Delimeter);
+
+                        if (deliveryReport != null)
+                        {
+                            string deliveryReportFileName = "{0}.DeliveryReport_{1}.csv".Fill(mbi.BatchName, mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
+                            string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
+
+                            File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
+                            isReportGenerated = true;
+                        }
+
+                        StringBuilder errorReport = hsbcSvc.HSBCErrorReport(mailBatchData, mbi.Client.TimeZone, deliverable.Delimeter);
+
+                        if (errorReport != null)
+                        {
+                            string errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName, mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
+                            string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+
+                            File.WriteAllText(errorReportPath, errorReport.ToString());
+                            isReportGenerated = true;
+                        }
+                    }
+                    break;
                 default:
                     break;
             }
