@@ -15,6 +15,7 @@ using System.Net.Mail;
 using System.Text;
 using AM.Lib;
 using System.Text.RegularExpressions;
+using System.IO;
 
 namespace AM.Web.Controllers
 {
@@ -255,7 +256,7 @@ namespace AM.Web.Controllers
                         var result = await UserManager.CreateAsync(user, model.Password);
                         if (result.Succeeded)
                         {
-                            StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(@"..\..\Template\CreateAccountCL.html"));
+                            StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"..\..\Template\CreateAccountCL.html")));
                             sb.Replace("{{name}}", user.FirstName);
                             await UserManager.SendEmailAsync(user.Id, "Welcome to AuthoMail.", sb.ToString());
                             UserManager.AddToRole(user.Id, AMRoles.BA);
@@ -277,7 +278,7 @@ namespace AM.Web.Controllers
                         if (result.Succeeded)
                         {
                             string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
-                            StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(@"..\..\Template\CreateAccount.html"));
+                            StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"..\..\Template\CreateAccount.html")));
                             sb.Replace("{{name}}", user.FirstName);
                             sb.Replace("{{email}}", user.Email);
                             var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
@@ -332,18 +333,23 @@ namespace AM.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = await UserManager.FindByNameAsync(model.Email);
+                MailAddress mAdd = new MailAddress(model.Email);
+                if (mAdd.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    ModelState.AddModelError("", "AuthoMail uses LDAP authentication for CoreLogic users. In other words, approved CoreLogic users may use their windows username and password to log on. Since AuthoMail does not own your windows account, it doesn't provide a way to change password. You may use traditional ways to change your password such as 'Ctrl + Alt + Del' on your computer OR <a href='https://pwm.corelogic.com' target='_blank'>https://pwm.corelogic.com.</a>");
+                    return View(model);
+                }
+                var user = await UserManager.FindByEmailAsync(model.Email);
                 if (user == null || !(await UserManager.IsEmailConfirmedAsync(user.Id)))
                 {
                     // Don't reveal that the user does not exist or is not confirmed
                     return View("ForgotPasswordConfirmation");
                 }
 
-                // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
                 // Send an email with this link
                 string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
                 var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
-                StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(@"..\..\Template\ForgotPassword.html"));
+                StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\ForgotPassword.html")));
                 sb.Replace("{{name}}", user.FirstName);
                 sb.Replace("{{action_url}}", callbackUrl);
                 await UserManager.SendEmailAsync(user.Id, "Reset Password", sb.ToString());
@@ -381,7 +387,7 @@ namespace AM.Web.Controllers
             {
                 return View(model);
             }
-            var user = await UserManager.FindByNameAsync(model.Email);
+            var user = await UserManager.FindByEmailAsync(model.Email);
             if (user == null)
             {
                 // Don't reveal that the user does not exist
