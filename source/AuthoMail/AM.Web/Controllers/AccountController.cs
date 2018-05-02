@@ -210,26 +210,7 @@ namespace AM.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (model.FirstName.IsNullOrWhiteSpace())
-                {
-                    ModelState.AddModelError("", "First name is required.");
-                    return View(model);
-                }
-                if (model.LastName.IsNullOrWhiteSpace())
-                {
-                    ModelState.AddModelError("", "Last name is required.");
-                    return View(model);
-                }
-                if (!Regex.IsMatch(model.FirstName, @"^[a-zA-Z]+$"))
-                {
-                    ModelState.AddModelError("", "Invalid first name.");
-                    return View(model);
-                }
-                if (!Regex.IsMatch(model.LastName, @"^[a-zA-Z]+$"))
-                {
-                    ModelState.AddModelError("", "Invalid last name.");
-                    return View(model);
-                }
+                
                 try
                 {
                     bool isCoreLogicUser = CLAuthentication.HasCorelogicAccount(model.Email);
@@ -266,6 +247,44 @@ namespace AM.Web.Controllers
                     }
                     else
                     {
+                        if (model.FirstName.IsNullOrWhiteSpace())
+                        {
+                            ModelState.AddModelError("", "First name is required.");
+                            return View(model);
+                        }
+                        if (model.LastName.IsNullOrWhiteSpace())
+                        {
+                            ModelState.AddModelError("", "Last name is required.");
+                            return View(model);
+                        }
+                        if (!Regex.IsMatch(model.FirstName, @"^[a-zA-Z]+$"))
+                        {
+                            ModelState.AddModelError("", "Invalid first name.");
+                            return View(model);
+                        }
+                        if (!Regex.IsMatch(model.LastName, @"^[a-zA-Z]+$"))
+                        {
+                            ModelState.AddModelError("", "Invalid last name.");
+                            return View(model);
+                        }
+                        if (model.FirstName.Length > 254)
+                        {
+                            ModelState.AddModelError("", "First name out of range.");
+                            return View(model);
+                        }
+                        if (model.FirstName.Length > 254)
+                        {
+                            ModelState.AddModelError("", "Last name out of range.");
+                            return View(model);
+                        }
+                        model.DisplayName = model.DisplayName.IsNullOrWhiteSpace() ?
+                            string.Format("{0}, {1}", model.LastName, model.FirstName) :
+                            model.DisplayName;
+                        if (model.DisplayName.Length > 254)
+                        {
+                            ModelState.AddModelError("", "Display name out of range.");
+                            return View(model);
+                        }
                         MailAddress mAdd = new MailAddress(model.Email);
                         var clientdomain = supSvc.FingByDomainName(mAdd.Host);
                         if (clientdomain == null)
@@ -273,7 +292,7 @@ namespace AM.Web.Controllers
                             ModelState.AddModelError("", string.Format("Users of the specified domain name '{0}' are not allowed to register.", mAdd.Host));
                             return View(model);
                         }
-                        var user = new ProfileUser { UserName = model.Email, Email = model.Email, FirstName = model.FirstName, LastName = model.LastName, DisplayName = model.DisplayName.IsNullOrWhiteSpace() ? string.Format("{0}, {1}", model.LastName, model.FirstName) : model.DisplayName };
+                        var user = new ProfileUser { UserName = model.Email, Email = model.Email, FirstName = model.FirstName, LastName = model.LastName, DisplayName = model.DisplayName };
                         var result = await UserManager.CreateAsync(user, model.Password);
                         if (result.Succeeded)
                         {
