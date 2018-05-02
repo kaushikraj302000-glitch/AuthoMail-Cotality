@@ -17,6 +17,11 @@
         word-wrap: break-word;
         color: red;
     }
+
+    .tooltip-inner {
+        /*max-width: 453px !important;*/
+        word-wrap: break-word !important;
+    }
 </style>
 <div class="row">
     <div class="col-md-6">
@@ -52,7 +57,7 @@
                     <div class="panel-heading">
                         <div class="panel-title"><i class="fa fa-reply"></i> Quick Pullback</div>
                     </div>
-                    <div class="panel-body panel-gray" @(ViewBag.BusinessId.Count == 0 ? Html.Raw("style='padding: 2% 0% 0% 0% !important;height:95px;'") :Html.Raw("") )>
+                    <div class="panel-body panel-gray" @(ViewBag.BusinessId.Count == 0 ? Html.Raw("style='padding: 2% 0% 0% 0% !important;height:95px;'") : Html.Raw(""))>
                         <div class="form-group col-md-@(ViewBag.BusinessId.Count==0?"12":ViewBag.BusinessId.Count>1?"9":"8")">
 
                             @if (ViewBag.BusinessId.Count == 1)
@@ -359,8 +364,8 @@
     <table>
         <tbody id="WeeklyChartBody">
             <tr class="row-small">
-                <td><span>{ClientBatchId}</span></td>
-                <td><span>{BatchName}</span></td>
+                <td><span data-toggle="tooltip" data-placement="top" title="{ClientBatchId}">{ClientBatchIdFormatted}</span></td>
+                <td><span data-toggle="tooltip" data-placement="top" title="{BatchName}">{BatchNameFormatted}</span></td>
                 <td><span>{BatchStatusFormatted}</span></td>
                 <td><span>{MailPieceCount}</span></td>
                 <td><span>{ReceivedOnFormatted}</span></td>
@@ -417,7 +422,7 @@
                                 BindTemplate(data, "#ChartMailPieceBody", "#ChartMailPiecebodyContent", "#ChartMailPieceTableContent", "#batchMailPieceModalBody");
                                 $("#batchMailPieceModalHeader").html("Mailpiece Summary: <button type='button' style='cursor:none !important;' class='btn btn-default normaltext'>Batch Id - " + clientBatchId + "</button> <button type='button' style='cursor:none !important;margin-left:1%;' class='btn btn-default normaltext'>Received On - " + receivedOn + "</button>");
                                 //, Received On - " + moment(receivedOn).format("MM/DD/YY HH:mm:ss")
-
+                                window.clui.tooltipInit();
                             }
                             else {
                                 el.html(" <div class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
@@ -458,7 +463,7 @@
                                 $("#batchModalModalBody").html("");
                                 //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                                 BindTemplate(data, "#WeeklyChartBody", "#WeeklyChartbodyContent", "#WeeklyChartTableContent", "#batchModalModalBody");
-
+                                window.clui.tooltipInit();
                             }
                             else {
                                 el.html(" <div class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
@@ -625,7 +630,12 @@
         function GetMailPieceById(batchId, receivedOn, clientBatchId) {
             var el = $("#WeeklybatchMailPieceModal").find(".modal-body");
             $("#WeeklybatchMailPieceHeader").html("");
-            $("#WeeklybatchMailPieceHeader").html("Mailpiece Summary: <button type='button' style='cursor:none !important;' class='btn btn-default normaltext'>Batch Id - " + clientBatchId + "</button><button type='button' style='cursor:none !important;margin-left:1%;' class='btn btn-default normaltext'>Received On - " + moment(receivedOn).format("MM/DD/YY HH:mm:ss") + "</button>");
+            if (clientBatchId.length > 31) {
+                $("#WeeklybatchMailPieceHeader").html("Mailpiece Summary: <button type='button' style='cursor:none !important;' class='btn btn-default normaltext' data-toggle='tooltip' data-placement='bottom' title='" + clientBatchId + "'>Batch Id - " + shortName(clientBatchId) + "</button><button type='button' style='cursor:none !important;margin-left:1%;' class='btn btn-default normaltext'>Received On - " + moment(receivedOn).format("MM/DD/YY HH:mm:ss") + "</button>");
+
+            } else {
+                $("#WeeklybatchMailPieceHeader").html("Mailpiece Summary: <button type='button' style='cursor:none !important;' class='btn btn-default normaltext'>Batch Id - " + clientBatchId + "</button><button type='button' style='cursor:none !important;margin-left:1%;' class='btn btn-default normaltext'>Received On - " + moment(receivedOn).format("MM/DD/YY HH:mm:ss") + "</button>");
+            }
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Home/GetMailPieceByBatchId",
@@ -642,7 +652,7 @@
                                 //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                                 BindTemplate(data, "#WeeklyChartMailPieceBody", "#WeeklyChartMailPiecebodyContent", "#WeeklyChartMailPieceTableContent", "#WeeklyChartModalBody");
 
-
+                                window.clui.tooltipInit();
                                 //, Received On - " + moment(receivedOn).format("MM/DD/YY HH:mm:ss")
 
                             }
@@ -876,7 +886,7 @@
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Home/GetMailPieceIdByLoanNumber",
-                data: JSON.stringify({ BusinessFriendlyIdName: $("#BusinessFriendlyIdName").val().trim(), BusinessFriendlyIdValue: $("#BusinessFriendlyIdValue").val().trim()}),
+                data: JSON.stringify({ BusinessFriendlyIdName: $("#BusinessFriendlyIdName").val().trim(), BusinessFriendlyIdValue: $("#BusinessFriendlyIdValue").val().trim() }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     //console.log(response);
@@ -962,7 +972,7 @@
             $(Model).each(function () {
                 var requestedPullback = this.IsPullBackRequested ? '<span class="label medium label-yellow">Yes</span>' : '<span class="label medium label-success">No</span>';
                 var status = "";
-                this.ErrorDesc = this.ErrorDesc!=null?this.ErrorDesc.replace(/"/g, '\''):"";
+                this.ErrorDesc = this.ErrorDesc != null ? this.ErrorDesc.replace(/"/g, '\'') : "";
                 switch (this.Status) {
 
                     case "PulledBack":
@@ -993,11 +1003,16 @@
             return Model;
             //console.log(Model);
         }
+        function shortName(str) {
+            return str.length > 31 ? str.substring(0, 31) + '...' : str;
+        }
         function FormatObject(Model) {
             console.log(Model);
             $(Model).each(function () {
                 var requestedPullback = this.IsPullBackRequested ? '<span class="label medium label-yellow">Yes</span>' : '<span class="label medium label-success">No</span>';
                 var status = "";
+                this.BatchNameFormatted = shortName(this.BatchName);
+                this.ClientBatchIdFormatted = shortName(this.ClientBatchId);
                 this.ErrorDesc = this.ErrorDesc != null ? this.ErrorDesc.replace(/"/g, '\'') : "";
                 switch (this.Status) {
 

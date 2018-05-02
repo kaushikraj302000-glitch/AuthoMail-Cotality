@@ -22,16 +22,18 @@
 
                             <div class="form-group">
                                 @Html.LabelFor(m => m.UserName)
-                                @Html.TextBoxFor(m => m.UserName, new { @class = "form-control" })
+                                @Html.TextBoxFor(m => m.UserName, new { @class = "form-control", @tabindex="1" })
                                 @Html.ValidationMessageFor(m => m.UserName, "", new { @class = "text-danger" })
                             </div>
                             <div class="form-group">
                                 @Html.LabelFor(m => m.Password)
-                                @Html.PasswordFor(m => m.Password, new { @class = "form-control" })
+                                <span class="pull-right" tabindex="4">@Html.ActionLink("Forgot Password?", "ForgotPassword", "Account", new { @class = "forgot" })</span>
+                                @Html.PasswordFor(m => m.Password, new { @class = "form-control", @tabindex = "2" })
                                 @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
+                                
                             </div>
                             <div class="form-group">
-                                    <input type="submit" value="Sign In" class="btn btn-primary btn-lg btn-block">
+                                <input type="submit" tabindex="3" value="Sign In" class="btn btn-primary btn-lg btn-block">
                                 </div>
                             @*<div class="form-group">
 
