@@ -178,8 +178,9 @@ namespace AM.Console
 
                 try
                 {
+                    mailBatchXML.LoadXml(File.ReadAllText(xmlFilePath));
                     //If we get comma(,) separated packagename then we will create separate respa node for each packagename.
-                    mailPieceNodes = SeparateRespaNodes(xmlFilePath);
+                    mailPieceNodes = SeparateRespaNodes(mailBatchXML);
                 }
                 catch (XmlException ex)
                 {
@@ -198,7 +199,7 @@ namespace AM.Console
                     continue;
                 }
 
-                if (mailPieceNodes == null || mailPieceNodes.Count == 0)
+                if (mailPieceNodes == null || mailPieceNodes.Count == 0 || !mailBatchXML.DocumentElement.ChildNodes[0].HasChildNodes)
                 {
                     ReportInvalidBatch(mbi, "'{0}.xml' does not contain any valid node(s).".Fill(mbi.BatchName), deliverables);
 
@@ -285,9 +286,18 @@ namespace AM.Console
                             }
                             else
                             {
-                                string sftPdfFileName = availablePdfs.SingleOrDefault(c => c.Contains(mailPieceDTO.FilePattern)) + ".pdf";
+                                var selectedPdfs = availablePdfs.Where(p => p.ToLower().Contains(mailPieceDTO.FilePattern.ToLower()));
+                                List<PdfLastWriteTime> pdfDetails = new List<PdfLastWriteTime>();
+                                foreach (var pdf in selectedPdfs)
+                                {
+                                    PdfLastWriteTime plw = new PdfLastWriteTime();
+                                    plw.PdfFilePath = Path.Combine(SFTChannel.ToADEDir, pdf + ".pdf");
+                                    plw.LastWriteTime = sftSite.LastModifiedTimeOfFile(plw.PdfFilePath);
+                                    pdfDetails.Add(plw);
+                                }
+                                string sftFilePath = pdfDetails.OrderBy(o => o.LastWriteTime).First().PdfFilePath;
+                                string sftPdfFileName = Path.GetFileName(sftFilePath);
                                 string localFilePath = Path.Combine(mbi.AMRequestPath, sftPdfFileName);
-                                string sftFilePath = Path.Combine(SFTChannel.ToADEDir, sftPdfFileName);
 
                                 if (!sftSite.IsFileAvailable(sftFilePath))
                                 {
@@ -400,12 +410,10 @@ namespace AM.Console
             }
         }
 
-        private XmlNodeList SeparateRespaNodes(string localXmlFilePath)
+        private XmlNodeList SeparateRespaNodes(XmlDocument batchXML)
         {
             XmlNodeList respaNodes = null;
-            XmlDocument batchXML = new XmlDocument();
 
-            batchXML.LoadXml(File.ReadAllText(localXmlFilePath));
             //If XML is schema wise valid then get all XML child nodes from it.
             respaNodes = batchXML.DocumentElement.ChildNodes;
 
@@ -469,8 +477,8 @@ namespace AM.Console
                 {
                     try
                     {
-                        string errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName,mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(client.TimeZone).ToString("htt"));
-                      
+                        string errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName, mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(client.TimeZone).ToString("htt"));
+
                         string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 
                         if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.Invalid)
@@ -591,5 +599,11 @@ namespace AM.Console
 
             yield break;
         }
+    }
+
+    public class PdfLastWriteTime
+    {
+        public string PdfFilePath { get; set; }
+        public DateTime LastWriteTime { get; set; }
     }
 }
