@@ -210,7 +210,7 @@ namespace AM.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                
+
                 try
                 {
                     bool isCoreLogicUser = CLAuthentication.HasCorelogicAccount(model.Email);
@@ -237,7 +237,7 @@ namespace AM.Web.Controllers
                         var result = await UserManager.CreateAsync(user, model.Password);
                         if (result.Succeeded)
                         {
-                            StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"..\..\Template\CreateAccountCL.html")));
+                            StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\CreateAccountCL.html")));
                             sb.Replace("{{name}}", user.FirstName);
                             await UserManager.SendEmailAsync(user.Id, "Welcome to AuthoMail.", sb.ToString());
                             UserManager.AddToRole(user.Id, AMRoles.BA);
@@ -292,12 +292,12 @@ namespace AM.Web.Controllers
                             ModelState.AddModelError("", string.Format("Users of the specified domain name '{0}' are not allowed to register.", mAdd.Host));
                             return View(model);
                         }
-                        var user = new ProfileUser { UserName = model.Email, Email = model.Email, FirstName = model.FirstName, LastName = model.LastName, DisplayName = model.DisplayName };
+                        var user = new ProfileUser { UserName = model.Email, Email = model.Email, FirstName = model.FirstName, LastName = model.LastName, DisplayName = model.DisplayName, LockoutEnabled = true };
                         var result = await UserManager.CreateAsync(user, model.Password);
                         if (result.Succeeded)
                         {
                             string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
-                            StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"..\..\Template\CreateAccount.html")));
+                            StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\CreateAccount.html")));
                             sb.Replace("{{name}}", user.FirstName);
                             sb.Replace("{{email}}", user.Email);
                             var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);

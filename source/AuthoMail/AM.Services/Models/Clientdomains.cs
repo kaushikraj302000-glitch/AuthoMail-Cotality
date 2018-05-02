@@ -8,7 +8,7 @@ namespace AM.Services
 {
     public class Clientdomains
     {
-        public int ClietnId { get; set; }
+        public int ClientId { get; set; }
         public string AllowedDomain { get; set; }
     }
     public class UserRequestSignUp

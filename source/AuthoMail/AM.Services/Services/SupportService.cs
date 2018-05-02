@@ -31,7 +31,7 @@ namespace AM.Services
         public Clientdomains FingByDomainName(string domainName)
         {
             string query = "SELECT * FROM [Common].[ClientDomains] WHERE [AllowedDomain] = @domainName";
-            return db.QuerySingle<Clientdomains>(query, new { domainName = domainName });
+            return db.QuerySingleOrDefault<Clientdomains>(query, new { domainName = domainName });
         }
 
         public bool HasClientDomain(int clientId, string domainName)
@@ -61,7 +61,7 @@ namespace AM.Services
         public Clients FindClientByAppCode(string appCode)
         {
             string query = "select * from [Common].[Clients] WHERE AppCode=@appCode";
-            return db.QuerySingle<Clients>(query, new { appCode = appCode });
+            return db.QuerySingleOrDefault<Clients>(query, new { appCode = appCode });
         }
 
         public List<UserRequestSignUp> GetUsersRequestSignUp()
@@ -81,10 +81,10 @@ namespace AM.Services
         public bool ApproveUsersRequestSignUp(string email)
         {
             string getUser = "SELECT Id FROM [Profile].[Users] WHERE Email=@email";
-            string userId = db.QuerySingle<string>(getUser, new { email = email });
+            string userId = db.QuerySingleOrDefault<string>(getUser, new { email = email });
             MailAddress mAdd = new MailAddress(email);
             string getClientId = "SELECT ClientId FROM [Common].[ClientDomains] WHERE AllowedDomain=@domain";
-            int? clientId = db.QuerySingle<int>(getClientId, new { domain = mAdd.Host });
+            int? clientId = db.QuerySingleOrDefault<int>(getClientId, new { domain = mAdd.Host });
             if (userId.IsNullOrWhiteSpace() || clientId == null)
             {
                 throw new ArgumentNullException("User or Client not found.");
