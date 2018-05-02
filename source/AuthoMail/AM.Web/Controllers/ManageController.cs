@@ -244,14 +244,14 @@ namespace AM.Web.Controllers
             if (result.Succeeded)
             {
 
-                StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(@"..\..\Template\ChangePassword.html"));
+                StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\ChangePassword.html")));
                 sb.Replace("{{name}}", existingUser.FirstName);
                 sb.Replace("{{username}}", User.Identity.Name);
 
-//                var body = @"
-//Hi {0},<br/>
-//The password for your AuthoMail Account - {1} - was recently changed.<br/>If you made this change, you don't need to do anything more.<br/>If you didn't change your password, contact the AuthoMail support team to reset your password immediately.<br/><br/>Sincerely,<br/>
-//The AuthoMail team".Fill(existingUser.FirstName, User.Identity.Name);
+                //                var body = @"
+                //Hi {0},<br/>
+                //The password for your AuthoMail Account - {1} - was recently changed.<br/>If you made this change, you don't need to do anything more.<br/>If you didn't change your password, contact the AuthoMail support team to reset your password immediately.<br/><br/>Sincerely,<br/>
+                //The AuthoMail team".Fill(existingUser.FirstName, User.Identity.Name);
                 await UserManager.SendEmailAsync(User.Identity.GetUserId(), "Your password changed", sb.ToString());
                 var user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
                 if (user != null)
