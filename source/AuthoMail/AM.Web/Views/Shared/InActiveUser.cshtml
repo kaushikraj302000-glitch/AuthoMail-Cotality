@@ -1,0 +1,14 @@
+﻿@model System.Web.Mvc.HandleErrorInfo
+
+@{
+    ViewBag.Title = "Inactive Account";
+    Layout = "~/Views/Shared/_LayoutCommon.cshtml";
+}
+
+<hgroup>
+    <h1 class="text-danger">Inactive Account.</h1>
+    <h2 class="text-danger">
+        @AM.Services.Config.Web_Msg_Inactive_Account
+    
+</h2>
+</hgroup>
