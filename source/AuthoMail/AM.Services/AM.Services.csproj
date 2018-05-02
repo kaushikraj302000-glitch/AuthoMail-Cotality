@@ -85,6 +85,7 @@
     <Compile Include="Models\AccountAPI.cs" />
     <Compile Include="Models\BatchReportInfo.cs" />
     <Compile Include="Models\ChartModels.cs" />
+    <Compile Include="Models\Clientdomains.cs" />
     <Compile Include="Models\MailPieceSearch.cs" />
     <Compile Include="Models\MRDFResponse.cs" />
     <Compile Include="Models\PullBackViewModel.cs" />
@@ -110,6 +111,7 @@
     <Compile Include="Services\PullBackService.cs" />
     <Compile Include="Services\ReportService.cs" />
     <Compile Include="Services\SearchService.cs" />
+    <Compile Include="Services\SupportService.cs" />
     <Compile Include="Utilities\Common.cs" />
     <Compile Include="Utilities\Config.cs" />
     <Compile Include="Utilities\Helper.cs" />

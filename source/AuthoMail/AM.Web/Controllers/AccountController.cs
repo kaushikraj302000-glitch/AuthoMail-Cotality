@@ -23,15 +23,17 @@ namespace AM.Web.Controllers
     {
         private AMSignInManager _signInManager;
         private AMUserManager _userManager;
+        private ISupportService supSvc;
 
         public AccountController()
         {
         }
 
-        public AccountController(AMUserManager userManager, AMSignInManager signInManager)
+        public AccountController(AMUserManager userManager, AMSignInManager signInManager, ISupportService supSvc)
         {
             UserManager = userManager;
             SignInManager = signInManager;
+            this.supSvc = supSvc;
         }
 
 
@@ -123,7 +125,7 @@ namespace AM.Web.Controllers
                 switch (result)
                 {
                     case SignInStatus.Success:
-                        if (!user.ClientId.HasValue) return View("Lockout");//Create Another View for not map client.
+                        if (!user.ClientId.HasValue) return View("InActiveUser");//Create Another View for not map client.
                         return RedirectToLocal(returnUrl);
                     case SignInStatus.LockedOut:
                         return View("Lockout");
@@ -263,7 +265,14 @@ namespace AM.Web.Controllers
                     }
                     else
                     {
-                        var user = new ProfileUser { UserName = model.Email, Email = model.Email, FirstName = model.FirstName, LastName = model.LastName, DisplayName = string.Format("{0}, {1}", model.LastName, model.FirstName) };
+                        MailAddress mAdd = new MailAddress(model.Email);
+                        var clientdomain = supSvc.FingByDomainName(mAdd.Host);
+                        if (clientdomain == null)
+                        {
+                            ModelState.AddModelError("", string.Format("Users of the specified domain name '{0}' are not allowed to register.", mAdd.Host));
+                            return View(model);
+                        }
+                        var user = new ProfileUser { UserName = model.Email, Email = model.Email, FirstName = model.FirstName, LastName = model.LastName, DisplayName = model.DisplayName.IsNullOrWhiteSpace() ? string.Format("{0}, {1}", model.LastName, model.FirstName) : model.DisplayName };
                         var result = await UserManager.CreateAsync(user, model.Password);
                         if (result.Succeeded)
                         {
