@@ -432,6 +432,7 @@
     <Content Include="Template\PullBackForm.pdf" />
     <Content Include="Views\Common\_GetHeadingForBusinessId.cshtml" />
     <Content Include="Views\Shared\InActiveUser.cshtml" />
+    <Content Include="Views\Shared\_IsCoreLogicUser.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
