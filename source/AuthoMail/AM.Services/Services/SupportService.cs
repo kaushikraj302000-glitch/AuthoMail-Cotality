@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Dapper;
 using AM.Lib;
+using System.Net.Mail;
 namespace AM.Services
 {
     public interface ISupportService : IDisposable
@@ -15,6 +16,9 @@ namespace AM.Services
         int CreateClientDomain(int clientId, string domainName);
         List<Clients> GetClients();
         Clients FindClientByAppCode(string appCode);
+        List<UserRequestSignUp> GetUsersRequestSignUp();
+        int RemoveUsersRequestSignUp(string email);
+        bool ApproveUsersRequestSignUp(string email);
     }
     public class SupportService : ServiceBase, ISupportService
     {
@@ -58,6 +62,36 @@ namespace AM.Services
         {
             string query = "select * from [Common].[Clients] WHERE AppCode=@appCode";
             return db.QuerySingle<Clients>(query, new { appCode = appCode });
+        }
+
+        public List<UserRequestSignUp> GetUsersRequestSignUp()
+        {
+            string query = "SELECT UserName,Email,EmailConfirmed,FirstName,LastName,DisplayName FROM [Profile].[Users] WHERE ClientId IS NULL";
+            return db.Query<UserRequestSignUp>(query).ToList();
+        }
+
+
+        public int RemoveUsersRequestSignUp(string email)
+        {
+            string query = "DELETE FROM [Profile].[Users] WHERE Email=@email";
+            return db.Execute(query, new { email = email });
+        }
+
+
+        public bool ApproveUsersRequestSignUp(string email)
+        {
+            string getUser = "SELECT Id FROM [Profile].[Users] WHERE Email=@email";
+            string userId = db.QuerySingle<string>(getUser, new { email = email });
+            MailAddress mAdd = new MailAddress(email);
+            string getClientId = "SELECT ClientId FROM [Common].[ClientDomains] WHERE AllowedDomain=@domain";
+            int? clientId = db.QuerySingle<int>(getClientId, new { domain = mAdd.Host });
+            if (userId.IsNullOrWhiteSpace() || clientId == null)
+            {
+                throw new ArgumentNullException("User or Client not found.");
+            }
+            string setClientToUser = "UPDATE [Profile].[Users] SET ClientId=@clientId WHERE Id=@userId";
+            int result = db.Execute(setClientToUser, new { userId = userId });
+            return result > 1 ? true : false;
         }
     }
 }

@@ -11,4 +11,13 @@ namespace AM.Services
         public int ClietnId { get; set; }
         public string AllowedDomain { get; set; }
     }
+    public class UserRequestSignUp
+    {
+        public string UserName { get; set; }
+        public string Email { get; set; }
+        public bool EmailConfirmed { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string DisplayName { get; set; }
+    }
 }
