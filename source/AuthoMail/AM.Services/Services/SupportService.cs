@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Dapper;
 using AM.Lib;
 using System.Net.Mail;
+using AM.Entities;
 namespace AM.Services
 {
     public interface ISupportService : IDisposable
@@ -15,10 +16,8 @@ namespace AM.Services
         bool HasClientDomain(int clientId, string domainName);
         int CreateClientDomain(int clientId, string domainName);
         List<Clients> GetClients();
-        Clients FindClientByAppCode(string appCode);
         List<UserRequestSignUp> GetUsersRequestSignUp();
-        int RemoveUsersRequestSignUp(string email);
-        bool ApproveUsersRequestSignUp(string email);
+        KeyValuePair<bool, string> UpdateUsersRequestSignUp(string Id, string status);
     }
     public class SupportService : ServiceBase, ISupportService
     {
@@ -58,40 +57,37 @@ namespace AM.Services
             return db.Query<Clients>(query).ToList();
         }
 
-        public Clients FindClientByAppCode(string appCode)
-        {
-            string query = "select * from [Common].[Clients] WHERE AppCode=@appCode";
-            return db.QuerySingleOrDefault<Clients>(query, new { appCode = appCode });
-        }
+       
 
         public List<UserRequestSignUp> GetUsersRequestSignUp()
         {
-            string query = "SELECT UserName,Email,EmailConfirmed,FirstName,LastName,DisplayName FROM [Profile].[Users] WHERE ClientId IS NULL";
-            return db.Query<UserRequestSignUp>(query).ToList();
+            string query = "SELECT Id,UserName,Email,EmailConfirmed,FirstName,LastName,DisplayName,RequestedOn,Status FROM [Profile].[Users] WHERE Status = @status AND EmailConfirmed=1";
+            return db.Query<UserRequestSignUp>(query, new { status = AMUserStatus.Open }).ToList();
         }
 
-
-        public int RemoveUsersRequestSignUp(string email)
+        public KeyValuePair<bool, string> UpdateUsersRequestSignUp(string Id, string status)
         {
-            string query = "DELETE FROM [Profile].[Users] WHERE Email=@email";
-            return db.Execute(query, new { email = email });
-        }
-
-
-        public bool ApproveUsersRequestSignUp(string email)
-        {
-            string getUser = "SELECT Id FROM [Profile].[Users] WHERE Email=@email";
-            string userId = db.QuerySingleOrDefault<string>(getUser, new { email = email });
-            MailAddress mAdd = new MailAddress(email);
-            string getClientId = "SELECT ClientId FROM [Common].[ClientDomains] WHERE AllowedDomain=@domain";
-            int? clientId = db.QuerySingleOrDefault<int>(getClientId, new { domain = mAdd.Host });
-            if (userId.IsNullOrWhiteSpace() || clientId == null)
+            if (status.Equals(AMUserStatus.Approved, StringComparison.CurrentCultureIgnoreCase))
             {
-                throw new ArgumentNullException("User or Client not found.");
+                string emailQuery = "SELECT Email FROM [Profile].[Users] WHERE Id=@id";
+                string email = db.QuerySingleOrDefault<string>(emailQuery, new { id = Id });
+                if (email.IsNullOrWhiteSpace()) return new KeyValuePair<bool, string>(false, "Email not found.");
+
+                MailAddress mAdd = new MailAddress(email);
+                string getClientId = "SELECT ClientId FROM [Common].[ClientDomains] WHERE AllowedDomain=@domain";
+                int? clientId = db.QuerySingleOrDefault<int>(getClientId, new { domain = mAdd.Host });
+                if (clientId == null) return new KeyValuePair<bool, string>(false, "Client not found.");
+
+                string setClientToUser = "UPDATE [Profile].[Users] SET ClientId=@clientId,Status=@status,ClosedOn=@closedOn WHERE Id=@userId";
+                int result = db.Execute(setClientToUser, new { status = AMUserStatus.Approved, closedOn = DateTime.UtcNow, clientId = clientId, userId = Id });
+                return result > 1 ? new KeyValuePair<bool, string>(true, "User request has been approve.") : new KeyValuePair<bool, string>(false, "User request not yet processed.");
             }
-            string setClientToUser = "UPDATE [Profile].[Users] SET ClientId=@clientId WHERE Id=@userId";
-            int result = db.Execute(setClientToUser, new { userId = userId });
-            return result > 1 ? true : false;
+            else
+            {
+                string setClientToUser = "UPDATE [Profile].[Users] SET Status=@status,ClosedOn=@closedOn WHERE Id=@userId";
+                int result = db.Execute(setClientToUser, new { status = AMUserStatus.Rejected, closedOn = DateTime.UtcNow, userId = Id });
+                return result > 1 ? new KeyValuePair<bool, string>(true, "User request has been reject") : new KeyValuePair<bool, string>(false, "User request not yet processed");
+            }
         }
     }
 }
