@@ -243,7 +243,7 @@ namespace AM.Web.Controllers
                             sb.Replace("{{name}}", user.FirstName);
                             UserManager.AddToRole(user.Id, AMRoles.BA);
                             await UserManager.SendEmailAsync(user.Id, "Welcome to AuthoMail.", sb.ToString());
-                            return RedirectToAction("Index", "Home");
+                            return View("SuccessRegistration");
                         }
                         AddErrors(result);
                     }
@@ -306,7 +306,7 @@ namespace AM.Web.Controllers
                             sb.Replace("{{action_url}}", callbackUrl);
                             UserManager.AddToRole(user.Id, AMRoles.Client);
                             await UserManager.SendEmailAsync(user.Id, "Confirm your account", sb.ToString());
-                            return RedirectToAction("Index", "Home");
+                            return View("SuccessRegistration");
                         }
                         AddErrors(result);
                     }

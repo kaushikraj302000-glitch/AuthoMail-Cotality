@@ -434,6 +434,7 @@
     <Content Include="Views\Shared\InActiveUser.cshtml" />
     <Content Include="Views\Shared\_IsCoreLogicUser.cshtml" />
     <Content Include="Views\Shared\_LayoutRegister.cshtml" />
+    <Content Include="Views\Shared\SuccessRegistration.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
