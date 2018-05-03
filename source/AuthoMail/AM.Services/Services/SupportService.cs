@@ -43,10 +43,9 @@ namespace AM.Services
 
         public int CreateClientDomain(int clientId, string domainName)
         {
-            if (domainName.IsNullOrWhiteSpace())
-            {
-                throw new ArgumentNullException("Domain name cannot be null.");
-            }
+            if (domainName.IsNullOrWhiteSpace()) throw new ArgumentNullException("Domain name cannot be null.");
+            if (FingByDomainName(domainName) != null) return 0;
+
             string query = "INSERT INTO [Common].[ClientDomains] ([ClientId],[AllowedDomain]) VALUES (@clientId,'@domainName')";
             return db.Execute(query, new { clientId = clientId, domainName = domainName });
         }
@@ -57,7 +56,7 @@ namespace AM.Services
             return db.Query<Clients>(query).ToList();
         }
 
-       
+
 
         public List<UserRequestSignUp> GetUsersRequestSignUp()
         {

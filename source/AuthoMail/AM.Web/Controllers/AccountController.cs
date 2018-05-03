@@ -126,7 +126,12 @@ namespace AM.Web.Controllers
                 switch (result)
                 {
                     case SignInStatus.Success:
-                        if ((user.Status.Equals(AMUserStatus.Open, StringComparison.CurrentCultureIgnoreCase) || user.Status.Equals(AMUserStatus.Rejected, StringComparison.CurrentCultureIgnoreCase)) || !user.ClientId.HasValue) return View("InActiveUser");//Create Another View for not map client.
+
+                        if ((user.Status.Equals(AMUserStatus.Open, StringComparison.CurrentCultureIgnoreCase) || user.Status.Equals(AMUserStatus.Rejected, StringComparison.CurrentCultureIgnoreCase)) || !user.ClientId.HasValue)
+                        {
+                            AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+                            return View("InActiveUser");
+                        }
                         return RedirectToLocal(returnUrl);
                     case SignInStatus.LockedOut:
                         return View("Lockout");
@@ -243,7 +248,7 @@ namespace AM.Web.Controllers
                             sb.Replace("{{name}}", user.FirstName);
                             UserManager.AddToRole(user.Id, AMRoles.BA);
                             await UserManager.SendEmailAsync(user.Id, "Welcome to AuthoMail.", sb.ToString());
-                            return RedirectToAction("Index", "Home");
+                            return View("SuccessRegistration");
                         }
                         AddErrors(result);
                     }
@@ -306,7 +311,7 @@ namespace AM.Web.Controllers
                             sb.Replace("{{action_url}}", callbackUrl);
                             UserManager.AddToRole(user.Id, AMRoles.Client);
                             await UserManager.SendEmailAsync(user.Id, "Confirm your account", sb.ToString());
-                            return RedirectToAction("Index", "Home");
+                            return View("SuccessRegistration");
                         }
                         AddErrors(result);
                     }
