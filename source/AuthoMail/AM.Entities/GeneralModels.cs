@@ -251,6 +251,12 @@ namespace AM.Entities
         public const string Client = "Client";
         public const string PnSOperator = "PnSOperator";
     }
+    public static class AMUserStatus
+    {
+        public const string Open = "Open";
+        public const string Approved = "Approved";
+        public const string Rejected = "Rejected";
+    }
     public enum ShippingServiceType
     {
         USPS = 0,

@@ -75,6 +75,9 @@ namespace AM.Entities
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string DisplayName { get; set; }
+        public DateTime RequestedOn { get; set; }
+        public string Status { get; set; }
+        public DateTime? ClosedOn { get; set; }
     }
     public class IdentityRole : IRole
     {
