@@ -481,49 +481,45 @@ namespace AM.Console
 
                         string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 
-                        if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.Invalid)
+                        //Here we are generating error report eventhough it does not have any errored records
+                        StringBuilder errorData = hsbcSvc.HSBCErrorReport(mailBatchData, mbi.Client.TimeZone, reportDeliverable.Delimeter);
+                        if (errorData != null)
                         {
-                            StringBuilder errorData = hsbcSvc.HSBCErrorReport(mailBatchData, mbi.Client.TimeZone, reportDeliverable.Delimeter);
-                            if (errorData != null)
-                            {
-                                File.WriteAllText(errorReportPath, errorData.ToString());
-                            }
-
-                            // Batch status Prepped
-                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
-                        }
-                        else if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.PartiallyValid)
-                        {
-                            StringBuilder errorData = hsbcSvc.HSBCErrorReport(mailBatchData, mbi.Client.TimeZone, reportDeliverable.Delimeter);
-
-                            if (errorData != null)
-                            {
-                                File.WriteAllText(errorReportPath, errorData.ToString());
-
-                                if (reportDeliverable.IsSFTUploadRequired)
-                                {
-                                    SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
-                                    sftSite.Connect();
-
-                                    var ftpUploadPath = Path.Combine(reportDeliverable.UploadPath, errorReportFileName);
-
-                                    sftSite.UploadFile(errorReportPath, ftpUploadPath);
-
-                                    if (sftSite.IsConnected)
-                                        sftSite.Disconnect();
-                                }
-                            }
-                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
-                        }
-                        else
-                        {
-                            // Batch is valid
-                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
+                            File.WriteAllText(errorReportPath, errorData.ToString());
                         }
 
+                        //Uploading error report to client's SFT site even blank report also
+                        SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
+                        sftSite.Connect();
+
+                        var ftpUploadPath = Path.Combine(reportDeliverable.UploadPath, errorReportFileName);
+
+                        sftSite.UploadFile(errorReportPath, ftpUploadPath);
+
+                        if (sftSite.IsConnected)
+                            sftSite.Disconnect();
+
+                        //This logic added because if we get any error while sending notification to client it will update status and process batch without any error notification. So if we get true in return then only we can process further
+                        bool isMailSent = false;
                         if (reportDeliverable.EmailChannel != null)
                         {
-                            MailUtility.SendDownloadNotificationEmail(mbi, mailBatchData, errorReportPath, reportDeliverable.EmailChannel);
+                            isMailSent = MailUtility.SendDownloadNotificationEmail(mbi, mailBatchData, errorReportPath, reportDeliverable.EmailChannel);
+                        }
+
+                        if (isMailSent)
+                        {
+                            if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.Invalid)
+                            {
+                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
+                            }
+                            else if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.PartiallyValid)
+                            {
+                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
+                            }
+                            else
+                            {
+                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
+                            }
                         }
                     }
                     catch (Exception ex)

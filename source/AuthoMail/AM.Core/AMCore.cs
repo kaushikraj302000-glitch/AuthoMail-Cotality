@@ -91,7 +91,7 @@ namespace AM.Core
                                         fromAddress += mailPiece.RetRcptAddressAptOrSuiteOrOther + "\n";
 
                                     //Because City,state,zip are must field for all client
-                                    fromAddress += mailPiece.RetRcptAddressCity + ", " + mailPiece.RetRcptAddressState + ", " + mailPiece.RetRcptAddressZIP;
+                                    fromAddress += mailPiece.RetRcptAddressCity + " " + mailPiece.RetRcptAddressState + " " + mailPiece.RetRcptAddressZIP;
                                 }
                                 else if (mbi.MailBatch.IsReturnInfoSpecified)
                                 {
@@ -110,7 +110,7 @@ namespace AM.Core
                                     if (!string.IsNullOrEmpty(mbi.MailBatch.RetRcptAddressAptOrSuiteOrOther))
                                         fromAddress += mbi.MailBatch.RetRcptAddressAptOrSuiteOrOther + "\n";
 
-                                    fromAddress += mbi.MailBatch.RetRcptAddressCity + ", " + mbi.MailBatch.RetRcptAddressState + ", " + mbi.MailBatch.RetRcptAddressZIP;
+                                    fromAddress += mbi.MailBatch.RetRcptAddressCity + " " + mbi.MailBatch.RetRcptAddressState + " " + mbi.MailBatch.RetRcptAddressZIP;
                                 }
                                 else if (docType.IsReturnInfoSpecified)
                                 {
@@ -129,7 +129,7 @@ namespace AM.Core
                                     if (!string.IsNullOrEmpty(docType.RetRcptAddressAptOrSuiteOrOther))
                                         fromAddress += docType.RetRcptAddressAptOrSuiteOrOther + "\n";
 
-                                    fromAddress += docType.RetRcptAddressCity + ", " + docType.RetRcptAddressState + ", " + docType.RetRcptAddressZIP;
+                                    fromAddress += docType.RetRcptAddressCity + " " + docType.RetRcptAddressState + " " + docType.RetRcptAddressZIP;
                                 }
                                 else
                                 {
@@ -281,7 +281,7 @@ namespace AM.Core
                 case "USAA":
                     using (IAMCService amcSvc = new AMCService())
                     {
-                        string errorReportFileName = string.Format("Error-{0}.csv", Common.Now.ToString("yyyyMMdd-HHmmss"));
+                        string errorReportFileName = "Error-{0}.csv".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
                         string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
                         StringBuilder errorData = amcSvc.AMCErrorReport(mailBatchData);
                         if (errorData != null)
@@ -293,7 +293,7 @@ namespace AM.Core
                 case "ALASKA":
                     using (IAlaskaService alaskaSvc = new AlaskaService())
                     {
-                        string errorReportFileName = string.Format("ER_{0}.csv", mbi.BatchName);
+                        string errorReportFileName = "ER_{0}.csv".Fill(mbi.BatchName);
                         string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
                         StringBuilder errorData = alaskaSvc.AlaskaErrorReport(mailBatchData, mbi.Client.TimeZone, deliverable.Delimeter);
                         if (errorData != null)
@@ -302,8 +302,20 @@ namespace AM.Core
                         }
                     }
                     break;
-                default:
+                case "HSBC":
+                    using (IHSBCService hsbcSvc = new HSBCService())
+                    {
+                        string errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName, mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
+                        string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+                        StringBuilder errorData = hsbcSvc.HSBCErrorReport(mailBatchData, mbi.Client.TimeZone, deliverable.Delimeter);
+                        if (errorData != null)
+                        {
+                            File.WriteAllText(errorReportPath, errorData.ToString());
+                        }
+                    }
                     break;
+                default:
+                    throw new Exception("Invalid App Code");
             }
         }
 
@@ -789,29 +801,25 @@ namespace AM.Core
                     {
                         StringBuilder deliveryReport = hsbcSvc.HSBCDeliveryReport(mailBatchData, mbi.Client.TimeZone, deliverable.Delimeter);
 
-                        if (deliveryReport != null)
-                        {
-                            string deliveryReportFileName = "{0}.DeliveryReport_{1}.csv".Fill(mbi.BatchName, mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
-                            string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
+                        string deliveryReportFileName = "{0}.DeliveryReport_{1}.csv".Fill(mbi.BatchName, mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
+                        string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
 
-                            File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
-                            isReportGenerated = true;
-                        }
+                        File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
+
 
                         StringBuilder errorReport = hsbcSvc.HSBCErrorReport(mailBatchData, mbi.Client.TimeZone, deliverable.Delimeter);
 
-                        if (errorReport != null)
-                        {
-                            string errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName, mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
-                            string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+                        string errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName, mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
+                        string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 
-                            File.WriteAllText(errorReportPath, errorReport.ToString());
-                            isReportGenerated = true;
-                        }
+                        File.WriteAllText(errorReportPath, errorReport.ToString());
+
+
+                        isReportGenerated = true;
                     }
                     break;
                 default:
-                    break;
+                    throw new Exception("Invalid App Code");
             }
             return isReportGenerated;
         }
