@@ -23,13 +23,13 @@ namespace AM.Services
     {
         public List<Clientdomains> FindByClientId(int clientId)
         {
-            string query = "SELECT * FROM [Common].[ClientDomains] WHERE [ClientId] = @clientId";
+            string query = "SELECT cd.*,c.Name FROM [Common].[ClientDomains] cd,[Common].[Clients] c WHERE cd.[ClientId] = @clientId AND cd.ClientId=c.Id";
             return db.Query<Clientdomains>(query, new { clientId = clientId }).ToList();
         }
 
         public Clientdomains FingByDomainName(string domainName)
         {
-            string query = "SELECT * FROM [Common].[ClientDomains] WHERE [AllowedDomain] = @domainName";
+            string query = "SELECT cd.*,c.Name FROM [Common].[ClientDomains] cd,[Common].[Clients] c WHERE [AllowedDomain] = @domainName AND cd.ClientId=c.Id";
             return db.QuerySingleOrDefault<Clientdomains>(query, new { domainName = domainName });
         }
 
