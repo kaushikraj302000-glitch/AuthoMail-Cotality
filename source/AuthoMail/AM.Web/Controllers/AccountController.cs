@@ -126,7 +126,12 @@ namespace AM.Web.Controllers
                 switch (result)
                 {
                     case SignInStatus.Success:
-                        if ((user.Status.Equals(AMUserStatus.Open, StringComparison.CurrentCultureIgnoreCase) || user.Status.Equals(AMUserStatus.Rejected, StringComparison.CurrentCultureIgnoreCase)) || !user.ClientId.HasValue) return View("InActiveUser");//Create Another View for not map client.
+
+                        if ((user.Status.Equals(AMUserStatus.Open, StringComparison.CurrentCultureIgnoreCase) || user.Status.Equals(AMUserStatus.Rejected, StringComparison.CurrentCultureIgnoreCase)) || !user.ClientId.HasValue)
+                        {
+                            AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+                            return View("InActiveUser");
+                        }
                         return RedirectToLocal(returnUrl);
                     case SignInStatus.LockedOut:
                         return View("Lockout");
