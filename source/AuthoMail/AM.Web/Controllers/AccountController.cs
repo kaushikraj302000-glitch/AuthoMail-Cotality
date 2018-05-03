@@ -126,7 +126,7 @@ namespace AM.Web.Controllers
                 switch (result)
                 {
                     case SignInStatus.Success:
-                        if (!user.ClientId.HasValue) return View("InActiveUser");//Create Another View for not map client.
+                        if ((user.Status.Equals(AMUserStatus.Open, StringComparison.CurrentCultureIgnoreCase) || user.Status.Equals(AMUserStatus.Rejected, StringComparison.CurrentCultureIgnoreCase)) || !user.ClientId.HasValue) return View("InActiveUser");//Create Another View for not map client.
                         return RedirectToLocal(returnUrl);
                     case SignInStatus.LockedOut:
                         return View("Lockout");
@@ -231,16 +231,18 @@ namespace AM.Web.Controllers
                             UserName = model.Email.Split('@').First(),
                             FirstName = nm[0],
                             LastName = nm[1],
-                            DisplayName = nm[2]
+                            DisplayName = nm[2],
+                            Status = AMUserStatus.Open,
+                            RequestedOn = DateTime.UtcNow
                         };
 
-                        var result = await UserManager.CreateAsync(user, model.Password);
+                        var result = await UserManager.CreateAsync(user);
                         if (result.Succeeded)
                         {
                             StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\CreateAccountCL.html")));
                             sb.Replace("{{name}}", user.FirstName);
-                            await UserManager.SendEmailAsync(user.Id, "Welcome to AuthoMail.", sb.ToString());
                             UserManager.AddToRole(user.Id, AMRoles.BA);
+                            await UserManager.SendEmailAsync(user.Id, "Welcome to AuthoMail.", sb.ToString());
                             return RedirectToAction("Index", "Home");
                         }
                         AddErrors(result);
@@ -292,7 +294,7 @@ namespace AM.Web.Controllers
                             ModelState.AddModelError("", string.Format("Users of the specified domain name '{0}' are not allowed to register.", mAdd.Host));
                             return View(model);
                         }
-                        var user = new ProfileUser { UserName = model.Email, Email = model.Email, FirstName = model.FirstName, LastName = model.LastName, DisplayName = model.DisplayName, LockoutEnabled = true };
+                        var user = new ProfileUser { UserName = model.Email, Email = model.Email, FirstName = model.FirstName, LastName = model.LastName, DisplayName = model.DisplayName, LockoutEnabled = true, Status = AMUserStatus.Open, RequestedOn = DateTime.UtcNow };
                         var result = await UserManager.CreateAsync(user, model.Password);
                         if (result.Succeeded)
                         {
@@ -302,8 +304,8 @@ namespace AM.Web.Controllers
                             sb.Replace("{{email}}", user.Email);
                             var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
                             sb.Replace("{{action_url}}", callbackUrl);
-                            await UserManager.SendEmailAsync(user.Id, "Confirm your account", sb.ToString());
                             UserManager.AddToRole(user.Id, AMRoles.Client);
+                            await UserManager.SendEmailAsync(user.Id, "Confirm your account", sb.ToString());
                             return RedirectToAction("Index", "Home");
                         }
                         AddErrors(result);
