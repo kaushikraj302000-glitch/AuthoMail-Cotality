@@ -1,7 +1,5 @@
-USE [AuthoMail]
-
 --Default System User
-INSERT [Profile].[Users] ([Id], [Email], [EmailConfirmed], [PasswordHash], [SecurityStamp], [PhoneNumber], [PhoneNumberConfirmed], [TwoFactorEnabled], [LockoutEndDateUtc], [LockoutEnabled], [AccessFailedCount], [UserName], [ClientId]) VALUES (N'66f8d3e7-b66a-48d9-911f-d3914f1b3a11', N'system@milestonetechnoconsulting.com', 0, N'AHhKQZXRr/qfNoXKXfOHvarBuuPry3xxdwYTvc+ngR5Bo38TjwQszLLoL8AvPkR8HQ==', N'fc9fee5b-d9d3-4c0f-9ce6-8c977a23af74', NULL, 0, 0, NULL, 1, 0, N'system@milestonetechnoconsulting.com', NULL)
+INSERT [Profile].[Users] ([Id], [Email], [EmailConfirmed], [PasswordHash], [SecurityStamp], [PhoneNumber], [PhoneNumberConfirmed], [TwoFactorEnabled], [LockoutEndDateUtc], [LockoutEnabled], [AccessFailedCount], [UserName], [ClientId], [FirstName], [LastName], [DisplayName], [RequestedOn], [Status], [ClosedOn]) VALUES (N'66f8d3e7-b66a-48d9-911f-d3914f1b3a11', N'system@milestonetechnoconsulting.com', 0, NULL, N'fc9fee5b-d9d3-4c0f-9ce6-8c977a23af74', NULL, 0, 0, NULL, 1, 0, N'system@milestonetechnoconsulting.com', NULL, N'System', N'System', N'System', CAST(N'2018-05-03 07:11:48.213' AS DateTime), N'Approved', CAST(N'2018-05-03 07:11:48.213' AS DateTime))
 GO
 
 SET IDENTITY_INSERT [Common].[BusinessUnit] ON 
