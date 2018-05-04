@@ -2,13 +2,19 @@
 
 @{
     ViewBag.Title = "Inactive Account";
-    Layout = "~/Views/Shared/_LayoutCommon.cshtml";
+    Layout = "~/Views/Shared/_LayoutLogin.cshtml";
 }
+<div style="margin-top:2%">
 
-<hgroup>
-    <h1 class="text-danger">Inactive Account.</h1>
-    <h2 class="text-danger">
-        @AM.Services.Config.Web_Msg_Inactive_Account
-    
-</h2>
-</hgroup>
+</div>
+<div class="title col-md-12" style="margin-bottom:2%;">
+    <h1>@ViewBag.Title.</h1>
+
+    <div class="alert alert-red">
+        <div class="row">
+            <i class="fa fa-exclamation-circle fa-2x"></i>
+            @AM.Services.Config.Web_Msg_Inactive_Account
+        </div>
+    </div>
+</div>
+
