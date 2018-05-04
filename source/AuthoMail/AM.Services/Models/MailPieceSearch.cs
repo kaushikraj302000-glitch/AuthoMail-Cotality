@@ -208,6 +208,7 @@ namespace AM.Services
         public DateTime? CreatedOn { get; set; }
         public string ModifiedBy { get; set; }
         public string CreatedBy { get; set; }
+        public Clients Client { get; set; }
     }
     public class SFTChannels
     {

@@ -18,6 +18,8 @@ namespace AM.Services
         List<Clients> GetClients();
         List<UserRequestSignUp> GetUsersRequestSignUp();
         KeyValuePair<bool, string> UpdateUsersRequestSignUp(string Id, string status);
+        //DocTypes
+        List<DocTypes> GetDocTypes();
     }
     public class SupportService : ServiceBase, ISupportService
     {
@@ -87,6 +89,19 @@ namespace AM.Services
                 int result = db.Execute(setClientToUser, new { status = AMUserStatus.Rejected, closedOn = DateTime.UtcNow, userId = Id });
                 return result > 1 ? new KeyValuePair<bool, string>(true, "User request has been reject") : new KeyValuePair<bool, string>(false, "User request not yet processed");
             }
+        }
+
+
+        public List<DocTypes> GetDocTypes()
+        {
+            string query = "SELECT d.*,c.* FROM [AM].[DocTypes] d,[Common].[Clients] c WHERE d.ClientId=c.Id";
+            return db.Query<DocTypes, Clients, DocTypes>(query,
+                (d, c) =>
+                {
+                    d.Client = c;
+                    return d;
+                }
+                ).ToList();
         }
     }
 }
