@@ -190,6 +190,7 @@
     <Compile Include="Controllers\AccountApiController.cs" />
     <Compile Include="Controllers\ChartApiController.cs" />
     <Compile Include="Controllers\CommonController.cs" />
+    <Compile Include="Controllers\ManageClientsController.cs" />
     <Compile Include="Models\ChartViewModel.cs" />
     <Compile Include="Models\CLAuthentication.cs" />
     <Compile Include="Models\DailyDetailReportViewModel.cs" />
@@ -435,6 +436,7 @@
     <Content Include="Views\Shared\_IsCoreLogicUser.cshtml" />
     <Content Include="Views\Shared\_LayoutRegister.cshtml" />
     <Content Include="Views\Shared\SuccessRegistration.cshtml" />
+    <Content Include="Views\ManageClients\SingUpRequest.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
