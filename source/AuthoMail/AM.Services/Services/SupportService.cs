@@ -16,11 +16,13 @@ namespace AM.Services
         List<ClientDomains> GetClientDomains();
         bool HasClientDomain(int clientId, string domainName);
         int CreateClientDomain(int clientId, string domainName);
-        List<Clients> GetClients();
         List<UserRequestSignUp> GetUsersRequestSignUp();
         KeyValuePair<bool, string> UpdateUsersRequestSignUp(string Id, string status);
         //DocTypes
         List<DocTypes> GetDocTypes();
+        //Clients
+        List<Clients> GetClients();
+        KeyValuePair<bool, string> CreateClient(Clients client, string userId);
     }
     public class SupportService : ServiceBase, ISupportService
     {
@@ -53,16 +55,10 @@ namespace AM.Services
         public int CreateClientDomain(int clientId, string domainName)
         {
             if (domainName.IsNullOrWhiteSpace()) throw new ArgumentNullException("Domain name cannot be null.");
-            if (FingByDomainName(domainName) != null) return 0;
-
+            if (FingByDomainName(domainName) != null) throw new Exception("Domain name already exists.");
+            if (Uri.CheckHostName(domainName) != UriHostNameType.Dns) throw new Exception("Invalid domain name.");
             string query = "INSERT INTO [Common].[ClientDomains] ([ClientId],[AllowedDomain]) VALUES (@clientId,@domainName)";
             return db.Execute(query, new { clientId = clientId, domainName = domainName });
-        }
-
-        public List<Clients> GetClients()
-        {
-            string query = "SELECT * FROM [Common].[Clients]";
-            return db.Query<Clients>(query).ToList();
         }
 
         public List<UserRequestSignUp> GetUsersRequestSignUp()
@@ -77,24 +73,24 @@ namespace AM.Services
             {
                 string emailQuery = "SELECT Email FROM [Profile].[Users] WHERE Id=@id";
                 string email = db.QuerySingleOrDefault<string>(emailQuery, new { id = Id });
-                if (email.IsNullOrWhiteSpace()) return new KeyValuePair<bool, string>(false, "Email not found.");
+                if (email.IsNullOrWhiteSpace()) return GetKeyValue(false, "Email not found.");
 
                 MailAddress mAdd = new MailAddress(email);
                 string getClientId = "SELECT ClientId FROM [Common].[ClientDomains] WHERE AllowedDomain=@domain";
                 int? clientId = db.QuerySingleOrDefault<int>(getClientId, new { domain = mAdd.Host });
-                if (clientId == null) return new KeyValuePair<bool, string>(false, "Client not found.");
+                if (clientId == null) return GetKeyValue(false, "Client not found.");
 
                 string setClientToUser = "UPDATE [Profile].[Users] SET ClientId=@clientId,Status=@status,ClosedOn=@closedOn WHERE Id=@userId";
                 int result = db.Execute(setClientToUser, new { status = AMUserStatus.Approved, closedOn = DateTime.UtcNow, clientId = clientId, userId = Id });
-                return result > 0 ? new KeyValuePair<bool, string>(true, "User request has been approve.") : new KeyValuePair<bool, string>(false, "User request not yet processed.");
+                return result > 0 ? GetKeyValue(true, "User request has been approve.") : GetKeyValue(false, "User request not yet processed.");
             }
             if (status.Equals(AMUserStatus.Rejected, StringComparison.CurrentCultureIgnoreCase))
             {
                 string setClientToUser = "UPDATE [Profile].[Users] SET Status=@status,ClosedOn=@closedOn WHERE Id=@userId";
                 int result = db.Execute(setClientToUser, new { status = AMUserStatus.Rejected, closedOn = DateTime.UtcNow, userId = Id });
-                return result > 0 ? new KeyValuePair<bool, string>(true, "User request has been reject") : new KeyValuePair<bool, string>(false, "User request not yet processed");
+                return result > 0 ? GetKeyValue(true, "User request has been reject") : GetKeyValue(false, "User request not yet processed");
             }
-            return new KeyValuePair<bool, string>(false, "Invalid action performed.");
+            return GetKeyValue(false, "Invalid action performed.");
         }
 
 
@@ -110,5 +106,47 @@ namespace AM.Services
                 ).ToList();
         }
 
+        public List<Clients> GetClients()
+        {
+            string query = "SELECT c.*,b.* FROM [Common].[Clients] c,[Common].[BusinessUnit] b WHERE c.BusinessUnit=b.Id";
+            return db.Query<Clients, BusinessUnitModel, Clients>(query,
+                (c, b) =>
+                {
+                    c.BusinessUnitModel = b;
+                    return c;
+                }
+                ).ToList();
+        }
+
+
+        public KeyValuePair<bool, string> CreateClient(Clients client, string userId)
+        {
+            //Validation
+            if (client.Name.IsNullOrWhiteSpace()) return GetKeyValue(false, "Name is required.");
+            if (client.AppCode.IsNullOrWhiteSpace()) return GetKeyValue(false, "AppCode is required.");
+            if (client.TimeZone.IsNullOrWhiteSpace()) return GetKeyValue(false, "TimeZone is required.");
+            if (client.BusinessUnit == 0) return GetKeyValue(false, "BusinessUnit is required.");
+            string query = "INSERT INTO [Common].[Clients] ([Name], [AppCode], [BusinessUnit], [IsAMActive], [IsPnSActive], [TimeZone], [ModifiedOn], [CreatedOn], [CreatedBy] ,[ModifiedBy]) VALUES (@name,@appCode,@businessUnit,@isAMActive,@isPnSActive,@timeZone,@modifiedOn,@createdOn,@createdBy,@modifiedBy)";
+            int result = db.Execute(query, new
+            {
+                name = client.Name,
+                appcode = client.AppCode,
+                businessUnit = client.BusinessUnit,
+                isAMActive = client.IsAMActive,
+                isPnSActive = client.IsPnSActive,
+                timeZone = client.TimeZone,
+                modifiedOn = DateTime.UtcNow,
+                createdOn = DateTime.UtcNow,
+                createdBy = userId,
+                modifiedBy = userId
+            });
+            return result > 0 ? GetKeyValue(true, "Client successfully created.")
+                : GetKeyValue(false, "Invalid action performed.");
+        }
+
+        private KeyValuePair<bool, string> GetKeyValue(bool key, string value)
+        {
+            return new KeyValuePair<bool, string>(key, value);
+        }
     }
 }
