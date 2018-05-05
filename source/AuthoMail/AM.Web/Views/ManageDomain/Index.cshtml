@@ -1,0 +1,199 @@
+﻿@{
+    ViewBag.Title = "ManageDomain";
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="panel panel-default ">
+            <div class="panel-heading">
+                <div class="panel-title">
+                    <i class="fa fa-globe"></i>
+                    Add New Domain
+                </div>
+            </div>
+            <div class="panel-body panel-gray" style="padding:2% 2% 2% 2% !important;" id="todayBody">
+                <div class="form-group col-md-4">
+                    <label for="Clients">Clients</label>
+                    @Html.DropDownList("Clients", ViewBag.Clients as SelectList, "Select Client", htmlAttributes: new { @class = "selectpicker" })
+                    <div class="text-red" style="display:none" id="ClientsError">This field is required.</div>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="Clients">Domain Name</label>
+                    <input type="text" id="domain" class="form-control" name="domain"/>
+                    <div class="text-red" style="display:none" id="domainError">This field is required.</div>
+                </div>
+                <div class="form-group col-md-2">
+                    <label for="GetData">  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                    <button type="button" id="AddDomain" class="btn btn-primary">
+                        <span class="sr-only">Domian</span>
+                       Add @*<i class="fa fa-globe " style="font-size:1.5em;"></i>*@
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="col-md-6">
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <div class="panel-title"><i class="fa fa-globe"></i> Domain Details</div>
+            </div>
+            <div class="panel-body panel-gray" style="padding:2% 2% 2% 2% !important;min-height: 107px;">
+                <div class='alert alert-blue text-center' id="loading" style="display:none"><span> Loading... </span></div>
+                <div id="DomainList"></div>
+
+            </div>
+        </div>
+        <div class="clearfix"></div>
+
+
+    </div>
+</div>
+
+<!--Domain table html template code -->
+<div id="DomainTableContent" style="display:none">
+    <table class="table table-responsive" style="overflow-x:scroll">
+        <thead>
+            <tr>
+                <th>Client Name</th>
+                <th>Client Code</th>
+                <th>Domain Name</th>
+              
+            </tr>
+        </thead>
+        <tbody id="DomainbodyContent"></tbody>
+    </table>
+</div>
+<div style="display:none">
+    <table>
+        <tbody id="DomainBody">
+            <tr class="row-small">
+                <td><span>{ClientName}</span></td>
+                <td><span>{ClientId}</span></td>
+                <td><span>{AllowedDomain}</span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<!-- end table template code -->
+@section Scripts{
+    @Styles.Render("~/bundles/datatablescss")
+    @Scripts.Render("~/bundles/datatables")
+
+    <script type="text/javascript">
+    $(document).ready(function () {
+        window.clui.dateTimePickerInit();
+        GetData();
+        // JSON.useDateParser(false);
+    });
+    function FormatObject(Model) {
+        //$(Model).each(function () {
+
+        //});
+        return Model;
+    }
+    function applyDataTable() { }
+    function GetData() {
+
+        $("#DomainList").hide();
+        var el = $('#DomainList');
+        $("#loading").show();
+        $.ajax({
+            type: "GET",
+            url: baseUrl + "ManageDomain/GetDomains",
+            //data: JSON.stringify({}),
+            contentType: "application/json; charset=utf-8",
+            success: function (response) {
+                //console.log(response);
+                $("#loading").hide();
+                if (response.Success) {
+                    $("#DomainList").show();
+                    if (response.Object != null) {
+                        if (response.Object.model.length > 0) {
+                            $("#DomainList").html("");
+                            var data = FormatObject(response.Object.model);
+                            BindTemplate(data, "#DomainBody", "#DomainbodyContent", "#DomainTableContent", "#DomainList");
+                        }
+                        else {
+                            $("#DomainList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                        }
+                    }
+                } else {
+
+                    $("#DomainList").show();
+                    $("#DomainList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + response.ErrorMessage + "</span></div>");
+                }
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                $("#DomainList").show();
+                $("#loading").hide();
+                var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
+                    $("#DomainList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
+                }
+
+            });
+        }
+        $("#AddDomain").click(function () {
+            AddDomain();
+           // GetData();
+        });
+        $("#Clients").on("change", function () {
+            if ($("#Clients").val() == "") {
+                $("#ClientsError").show();
+                return;
+            }
+            else {
+                $("#ClientsError").hide();
+            }
+        });
+        function AddDomain() {
+            if ($("#Clients").val() == "") {
+                $("#ClientsError").show();
+                return;
+            }
+
+            if ($("#domain").val() == "") {
+                $("#domainError").show();
+                return;
+            }
+            else {
+                $("#domainError").hide();
+            }
+
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "ManageDomain/AddDomain",
+                data: JSON.stringify({ clientId: $("#Clients").val(), domainName: $("#domain").val().trim() }),
+                contentType: "application/json; charset=utf-8",
+                success: function (response) {
+                    if (response.Success) {
+                            window.clui.globalAlert({
+                                message: 'Domain added successfully.',
+                                alertType: 'green',
+                                timeout: 5000
+                            })
+                            $("#domain").val("");
+                            $('.selectpicker').selectpicker('refresh');
+                            GetData();
+                    }
+                    else {
+
+                        window.clui.globalAlert({
+                            message: '@AM.Services.Config.Web_Msg_Ajax_CommonError',
+                            alertType: 'red',
+                            timeout: 5000
+                        })
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                        $("#DomainList").show();
+                        var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
+                $("#DomainList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
+            }
+        });
+    }
+
+    </script>
+}
