@@ -55,7 +55,7 @@ namespace AM.Services
             if (domainName.IsNullOrWhiteSpace()) throw new ArgumentNullException("Domain name cannot be null.");
             if (FingByDomainName(domainName) != null) return 0;
 
-            string query = "INSERT INTO [Common].[ClientDomains] ([ClientId],[AllowedDomain]) VALUES (@clientId,'@domainName')";
+            string query = "INSERT INTO [Common].[ClientDomains] ([ClientId],[AllowedDomain]) VALUES (@clientId,@domainName)";
             return db.Execute(query, new { clientId = clientId, domainName = domainName });
         }
 
@@ -64,8 +64,6 @@ namespace AM.Services
             string query = "SELECT * FROM [Common].[Clients]";
             return db.Query<Clients>(query).ToList();
         }
-
-
 
         public List<UserRequestSignUp> GetUsersRequestSignUp()
         {
