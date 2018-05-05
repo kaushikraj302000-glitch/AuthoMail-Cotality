@@ -86,13 +86,13 @@ namespace AM.Services
 
                 string setClientToUser = "UPDATE [Profile].[Users] SET ClientId=@clientId,Status=@status,ClosedOn=@closedOn WHERE Id=@userId";
                 int result = db.Execute(setClientToUser, new { status = AMUserStatus.Approved, closedOn = DateTime.UtcNow, clientId = clientId, userId = Id });
-                return result > 1 ? new KeyValuePair<bool, string>(true, "User request has been approve.") : new KeyValuePair<bool, string>(false, "User request not yet processed.");
+                return result > 0 ? new KeyValuePair<bool, string>(true, "User request has been approve.") : new KeyValuePair<bool, string>(false, "User request not yet processed.");
             }
             if (status.Equals(AMUserStatus.Rejected, StringComparison.CurrentCultureIgnoreCase))
             {
                 string setClientToUser = "UPDATE [Profile].[Users] SET Status=@status,ClosedOn=@closedOn WHERE Id=@userId";
                 int result = db.Execute(setClientToUser, new { status = AMUserStatus.Rejected, closedOn = DateTime.UtcNow, userId = Id });
-                return result > 1 ? new KeyValuePair<bool, string>(true, "User request has been reject") : new KeyValuePair<bool, string>(false, "User request not yet processed");
+                return result > 0 ? new KeyValuePair<bool, string>(true, "User request has been reject") : new KeyValuePair<bool, string>(false, "User request not yet processed");
             }
             return new KeyValuePair<bool, string>(false, "Invalid action performed.");
         }
