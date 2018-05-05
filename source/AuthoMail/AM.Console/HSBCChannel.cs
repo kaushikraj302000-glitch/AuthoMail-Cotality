@@ -295,7 +295,7 @@ namespace AM.Console
                                     plw.LastWriteTime = sftSite.LastModifiedTimeOfFile(plw.PdfFilePath);
                                     pdfDetails.Add(plw);
                                 }
-                                string sftFilePath = pdfDetails.OrderBy(o => o.LastWriteTime).First().PdfFilePath;
+                                string sftFilePath = pdfDetails.OrderByDescending(o => o.LastWriteTime).First().PdfFilePath;
                                 string sftPdfFileName = Path.GetFileName(sftFilePath);
                                 string localFilePath = Path.Combine(mbi.AMRequestPath, sftPdfFileName);
 

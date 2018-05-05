@@ -537,6 +537,7 @@ GO
 --UPDATE HSBC RETURN ADDRESS FOR FROM ADDRESS ON COVER LETTER
 UPDATE [AM].[DocTypes]
 SET
+[IsReturnInfoSpecified]=1,
 [RetRcptAddrOptionalLine1AboveStreet]='HSBC Bank USA, N.A.',
 [RetRcptAddressStreet]='100 Bailey Ave',
 [RetRcptAddressCity]='Buffalo',
@@ -594,7 +595,8 @@ INSERT INTO [Common].[EmailChannels]([Title],[To],[Cc],[Bcc],[Subject],[BodyTemp
 GO
 INSERT INTO [Common].[EmailChannels]([Title],[To],[Cc],[Bcc],[Subject],[BodyTemplate],[IsBodyHTML])VALUES('HSBC Reporting','sgolvelkar@corelogic.com','vmungara@corelogic.com',NULL,'No Batch Available To Download',NULL,1)
 GO
-
+INSERT INTO [Common].[EmailChannels]([Title],[To],[Cc],[Bcc],[Subject],[BodyTemplate],[IsBodyHTML])VALUES('HSBC Reporting','sgolvelkar@corelogic.com','vmungara@corelogic.com',NULL,'Consolidated HSBC Report Summary','Consolidated Reports of todays batches.',0)
+GO
 
 -- Deliverables Data for HSBC
 
@@ -603,4 +605,6 @@ GO
 INSERT INTO [Common].[Deliverables]([ClientId],[ReportName],[ReportType],[DeliveryType],[ReportQuery],[Delimeter],[FileNameExpression],[IsSFTUploadRequired],[UploadPath],[EmailChannelId],[ScheduleId])VALUES(104,'Delivery Report','Delivery','Batch','',',','{BatchName}.DeliveryReport_{SweepTime}.csv',1,'/Unknown/HSBC/OUtput/DeliveryReports',6,NULL)
 GO
 INSERT INTO [Common].[Deliverables]([ClientId],[ReportName],[ReportType],[DeliveryType],[ReportQuery],[Delimeter],[FileNameExpression],[IsSFTUploadRequired],[UploadPath],[EmailChannelId],[ScheduleId])VALUES(104,'No Batch','NoBatch','Batch','',',','',1,'',7,NULL)
+GO
+INSERT INTO [Common].[Deliverables]([ClientId],[ReportName],[ReportType],[DeliveryType],[ReportQuery],[Delimeter],[FileNameExpression],[IsSFTUploadRequired],[UploadPath],[EmailChannelId],[ScheduleId])VALUES(104,'Consolidated Report','Consolidated','Schedule','',',','',1,'',8,NULL)
 GO

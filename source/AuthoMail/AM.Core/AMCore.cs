@@ -129,7 +129,7 @@ namespace AM.Core
                                     if (!string.IsNullOrEmpty(docType.RetRcptAddressAptOrSuiteOrOther))
                                         fromAddress += docType.RetRcptAddressAptOrSuiteOrOther + "\n";
 
-                                    fromAddress += docType.RetRcptAddressCity + " " + docType.RetRcptAddressState + " " + docType.RetRcptAddressZIP;
+                                    fromAddress += docType.RetRcptAddressCity + ", " + docType.RetRcptAddressState + " " + docType.RetRcptAddressZIP;
                                 }
                                 else
                                 {

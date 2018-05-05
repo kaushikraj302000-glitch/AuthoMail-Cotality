@@ -1,5 +1,6 @@
 ﻿using AM.Entities;
 using AM.Lib;
+using Dapper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,7 @@ namespace AM.Services
     {
         StringBuilder HSBCErrorReport(BatchData data, string clientTimeZone, string delimeter);
         StringBuilder HSBCDeliveryReport(BatchData data, string clientTimeZone, string delimeter);
+        List<HSBCConsolidateReport> ConsolidatedReport(int clientId, DateTime startReceivedOnDate, DateTime endReceivedOnDate);
     }
 
     public class HSBCService : ServiceBase, IHSBCService
@@ -90,6 +92,37 @@ namespace AM.Services
                 deliveryReport.AppendLine(line);
             }
             return deliveryReport;
+        }
+
+        public List<HSBCConsolidateReport> ConsolidatedReport(int clientId, DateTime startReceivedOnDate, DateTime endReceivedOnDate)
+        {
+            string query = @"SELECT a.*,b.* FROM 
+            (
+	            SELECT b.BatchName, p.DocumentOrPackageType ,p.BusinessFriendlyIdValue, p.[FileName], p.[FilePattern], b.ReceivedOn, p.PrintedOn 
+	            ,p.ShippedOn ,p.TotalPages ,p.RcptFirstName,p.RcptLastName ,p.RcptAddressStreet ,p.RcptAddressCity,p.RcptAddressState 
+	            ,p.RcptAddressZIP,p.Id AS [MailPieceId],p.ShippingCost
+	            FROM AM.MailBatches b
+	            INNER JOIN AM.MailPieces p on p.MailBatchId=b.Id
+	            LEFT JOIN AM.DocTypes d on d.Id=p.DocTypeId
+	            WHERE p.ErrorCode = 'No_Error' AND b.ReceivedOn >= @StartReceivedOnDate AND b.ReceivedOn < @EndReceivedOnDate AND b.ClientId=@ClientId
+            )a
+            INNER JOIN 
+            (
+	            SELECT *
+	            FROM 
+	            (
+		            SELECT 
+			            [MailPieceId],[Key], [Value]
+		            FROM AM.MailPieceCustomInfo
+	            ) AS s
+	            PIVOT
+	            (
+		            MAX([Value])
+		            FOR [Key] IN ([StatusID])
+	            )AS pvt
+            )b on a.MailPieceId=b.MailPieceId";
+
+            return db.Query<HSBCConsolidateReport>(query, new { ClientId = clientId, StartReceivedOnDate = startReceivedOnDate, EndReceivedOnDate = endReceivedOnDate }).ToList();
         }
     }
 }
