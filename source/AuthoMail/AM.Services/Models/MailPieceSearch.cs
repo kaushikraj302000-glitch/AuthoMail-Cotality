@@ -166,6 +166,7 @@ namespace AM.Services
         public string ModifiedBy { get; set; }
         public DateTime? CreatedOn { get; set; }
         public string CreatedBy { get; set; }
+        public BusinessUnitModel BusinessUnitModel { get; set; }
     }
     public class DocTypes
     {
@@ -254,5 +255,12 @@ namespace AM.Services
         public string RequestedBy { get; set; }
         public MailPieces MailPieces { get; set; }
         public Users Users { get; set; }
+    }
+    public class BusinessUnitModel
+    {
+        public int Id { get; set; }
+        public string BusinessUnit { get; set; }
+        public string CustCode { get; set; }
+        public bool IsActive { get; set; }
     }
 }
