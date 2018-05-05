@@ -1,26 +1,23 @@
 ﻿using AM.Entities;
 using AM.Services;
-using log4net;
+using AM.Lib;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AM.Lib;
-using System.Reflection;
-using System.Net.Mail;
 using System.Configuration;
+using System.Net.Mail;
 
 namespace AM.Reporting
 {
-    class UploadJob
+    static class AMCChannel
     {
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public void ReportPreppedProcess()
+        internal static void GenerateSummaryReport()
         {
-            //For now we are using 101 for USAA
             try
             {
                 using (IClientService clientSvc = new ClientService())
@@ -57,7 +54,7 @@ namespace AM.Reporting
                                     var columnName = String.Join(",", "BatchID", "Id", "Channel", "Package Name", "Loan Number", "File Name", "Date Received", "Due Date", "Date Printed", "Date Mailed", "Client Code", "Tracking Number", "Shipping Method", "First Name", "Last Name", "Recipient Street Address", "Recipient City", "Recipient State", "Recipient Zip", "Print Location", "Pages Shipped", "Status", "Error Code", "Error Text");
 
                                     StringBuilder summaryReport = new StringBuilder(columnName);
-                                    
+
                                     summaryReport.AppendLine();
 
                                     foreach (var mailPiece in reportData)
@@ -97,13 +94,7 @@ namespace AM.Reporting
                                     string summaryReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, summaryReportFileName);
                                     try
                                     {
-                                        using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(summaryReport.ToString())))
-                                        {
-                                            using (FileStream file = new FileStream(summaryReportPath, FileMode.Create, FileAccess.Write))
-                                            {
-                                                ms.WriteTo(file);
-                                            }
-                                        }
+                                        File.WriteAllText(summaryReportPath, summaryReport.ToString());
 
                                         SendDownloadNotificationEmail(summaryReportPath, client.TimeZone, startDate, endDate);
                                     }
@@ -123,7 +114,7 @@ namespace AM.Reporting
             }
         }
 
-        public bool SendDownloadNotificationEmail(string reportPath, string clienttimeZone, DateTime startDate, DateTime endDate)
+        private static bool SendDownloadNotificationEmail(string summaryReportPath, string clientTimeZone, DateTime startDate, DateTime endDate)
         {
             bool isEmailSent = false;
 
@@ -139,17 +130,16 @@ namespace AM.Reporting
                         msg.IsBodyHtml = true;
                         msg.To.Add(email_To);
                         msg.CC.Add(email_Cc);
-                        msg.Subject = subject + Common.Now.UtcToClientTimeZone(clienttimeZone).ToString("MM-dd-yyyy");
+                        msg.Subject = subject + Common.Now.UtcToClientTimeZone(clientTimeZone).ToString("MM-dd-yyyy");
                         msg.Priority = MailPriority.Normal;
-                        msg.Body = "Summary Control Report From Date {0} to {1}".Fill(startDate.UtcToClientTimeZone(clienttimeZone), endDate.UtcToClientTimeZone(clienttimeZone));
+                        msg.Body = "Summary Control Report From Date {0} to {1}".Fill(startDate.UtcToClientTimeZone(clientTimeZone), endDate.UtcToClientTimeZone(clientTimeZone));
 
-                        msg.Attachments.Add(new Attachment(reportPath));
+                        msg.Attachments.Add(new Attachment(summaryReportPath));
 
                         smtpClient.Send(msg);
                         isEmailSent = true;
                     }
                 }
-
             }
             catch (Exception ex)
             {
