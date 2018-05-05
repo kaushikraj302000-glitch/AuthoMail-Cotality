@@ -26,19 +26,19 @@ namespace AM.Services
     {
         public List<ClientDomains> FindByClientId(int clientId)
         {
-            string query = "SELECT cd.*,c.Name FROM [Common].[ClientDomains] cd,[Common].[Clients] c WHERE cd.[ClientId] = @clientId AND cd.ClientId=c.Id";
+            string query = "SELECT cd.*,c.Name as [ClientName] FROM [Common].[ClientDomains] cd,[Common].[Clients] c WHERE cd.[ClientId] = @clientId AND cd.ClientId=c.Id";
             return db.Query<ClientDomains>(query, new { clientId = clientId }).ToList();
         }
 
         public ClientDomains FingByDomainName(string domainName)
         {
-            string query = "SELECT cd.*,c.Name FROM [Common].[ClientDomains] cd,[Common].[Clients] c WHERE [AllowedDomain] = @domainName AND cd.ClientId=c.Id";
+            string query = "SELECT cd.*,c.Name as [ClientName] FROM [Common].[ClientDomains] cd,[Common].[Clients] c WHERE [AllowedDomain] = @domainName AND cd.ClientId=c.Id";
             return db.QuerySingleOrDefault<ClientDomains>(query, new { domainName = domainName });
         }
 
         public List<ClientDomains> GetClientDomains()
         {
-            string query = "SELECT cd.*,c.Name FROM [Common].[ClientDomains] cd,[Common].[Clients] c WHERE cd.ClientId=c.Id";
+            string query = "SELECT cd.*,c.Name as [ClientName] FROM [Common].[ClientDomains] cd,[Common].[Clients] c WHERE cd.ClientId=c.Id";
             return db.Query<ClientDomains>(query).ToList();
         }
 
