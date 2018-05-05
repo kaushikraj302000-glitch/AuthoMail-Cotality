@@ -11,8 +11,9 @@ namespace AM.Services
 {
     public interface ISupportService : IDisposable
     {
-        List<Clientdomains> FindByClientId(int clientId);
-        Clientdomains FingByDomainName(string domainName);
+        List<ClientDomains> FindByClientId(int clientId);
+        ClientDomains FingByDomainName(string domainName);
+        List<ClientDomains> GetClientDomains();
         bool HasClientDomain(int clientId, string domainName);
         int CreateClientDomain(int clientId, string domainName);
         List<Clients> GetClients();
@@ -23,16 +24,22 @@ namespace AM.Services
     }
     public class SupportService : ServiceBase, ISupportService
     {
-        public List<Clientdomains> FindByClientId(int clientId)
+        public List<ClientDomains> FindByClientId(int clientId)
         {
             string query = "SELECT cd.*,c.Name FROM [Common].[ClientDomains] cd,[Common].[Clients] c WHERE cd.[ClientId] = @clientId AND cd.ClientId=c.Id";
-            return db.Query<Clientdomains>(query, new { clientId = clientId }).ToList();
+            return db.Query<ClientDomains>(query, new { clientId = clientId }).ToList();
         }
 
-        public Clientdomains FingByDomainName(string domainName)
+        public ClientDomains FingByDomainName(string domainName)
         {
             string query = "SELECT cd.*,c.Name FROM [Common].[ClientDomains] cd,[Common].[Clients] c WHERE [AllowedDomain] = @domainName AND cd.ClientId=c.Id";
-            return db.QuerySingleOrDefault<Clientdomains>(query, new { domainName = domainName });
+            return db.QuerySingleOrDefault<ClientDomains>(query, new { domainName = domainName });
+        }
+
+        public List<ClientDomains> GetClientDomains()
+        {
+            string query = "SELECT cd.*,c.Name FROM [Common].[ClientDomains] cd,[Common].[Clients] c WHERE cd.ClientId=c.Id";
+            return db.Query<ClientDomains>(query).ToList();
         }
 
         public bool HasClientDomain(int clientId, string domainName)
@@ -104,5 +111,6 @@ namespace AM.Services
                 }
                 ).ToList();
         }
+
     }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AM.Services
 {
-    public class Clientdomains
+    public class ClientDomains
     {
         public int ClientId { get; set; }
         public string AllowedDomain { get; set; }

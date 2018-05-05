@@ -102,11 +102,7 @@ namespace AM.Web.Controllers
                     ModelState.AddModelError("", Config.Web_Msg_Login_InvalidUserName);
                     return View(model);
                 }
-                if (!user.EmailConfirmed)
-                {
-                    ModelState.AddModelError("", Config.Web_Msg_Login_EmailConfirm);
-                    return View(model);
-                }
+
                 if (user.Email != null && user.Email != "")
                 {
                     isCoreLogicUser = CLAuthentication.HasCorelogicAccount(user.Email);
@@ -126,7 +122,12 @@ namespace AM.Web.Controllers
                 switch (result)
                 {
                     case SignInStatus.Success:
-
+                        if (!user.EmailConfirmed)
+                        {
+                            AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+                            ModelState.AddModelError("", Config.Web_Msg_Login_EmailConfirm);
+                            return View(model);
+                        }
                         if ((user.Status.Equals(AMUserStatus.Open, StringComparison.CurrentCultureIgnoreCase) || user.Status.Equals(AMUserStatus.Rejected, StringComparison.CurrentCultureIgnoreCase)) || !user.ClientId.HasValue)
                         {
                             AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
@@ -366,11 +367,21 @@ namespace AM.Web.Controllers
                     return View(model);
                 }
                 var user = await UserManager.FindByEmailAsync(model.Email);
-                if (user == null || !(await UserManager.IsEmailConfirmedAsync(user.Id)))
+                if (user == null)
                 {
-                    // Don't reveal that the user does not exist or is not confirmed
-                    return View("ForgotPasswordConfirmation");
+                    ModelState.AddModelError("", "Couldn't find your AuthoMail Account.");
+                    return View(model);
                 }
+                if (!(await UserManager.IsEmailConfirmedAsync(user.Id)) || user.Status.Equals(AMUserStatus.Open, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    ModelState.AddModelError("", "Email not confirm or account not yet approved.");
+                    return View(model);
+                }
+                //if (user == null || !(await UserManager.IsEmailConfirmedAsync(user.Id)) || user.Status.Equals(AMUserStatus.Open, StringComparison.CurrentCultureIgnoreCase))
+                //{
+                //    // Don't reveal that the user does not exist or is not confirmed
+                //    return View("ForgotPasswordConfirmation");
+                //}
 
                 // Send an email with this link
                 string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
