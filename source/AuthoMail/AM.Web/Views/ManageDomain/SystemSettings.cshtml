@@ -1,17 +1,33 @@
 ﻿@{
     ViewBag.Title = "System Settings";
 }
+<style>
+    #dateFilter .bootstrap-select {
+        width: 100% !important;
+    }
 
+    .bootstrap-select {
+        width: 205px !important;
+    }
+
+    .popover-content {
+        word-wrap: break-word;
+        color: red;
+    }
+</style>
+<link href="~/clui/dist/css/datatablecustom.css" rel="stylesheet" />
 <div class="panel panel-default">
-    <div class="panel-heading">
-        <div class="panel-title"><i class="fa fa-globe"></i> System Settings</div>
+   
+    <div class="panel-heading" id="summaryHeader">
+        <div class="panel-title">
+            <i class="fa fa-cogs"></i> System Settings
+        </div>
     </div>
-    <div class="panel-body panel-gray" style="padding:2% 2% 2% 2% !important;min-height: 107px;">
-        <div class='alert alert-blue text-center' id="loading" style="display:none"><span> Loading... </span></div>
-        <div id="SettingList"></div>
-
+    <div class="panel-body" id="SettingList">
+        <div class='alert alert-blue text-center' id="loading" style="display:none;margin-bottom:10px;"><span> Loading... </span></div>
     </div>
 </div>
+
 
 <div id="SystemSettingTableContent" style="display:none">
     <table class="table table-responsive" style="overflow-x:scroll">
@@ -58,11 +74,98 @@
             GetSystemSettings();
         });
         function FormatObject(Model) {
+            console.log(Model);
+            $(Model).each(function () {
+                this.IsSystem = this.IsSystem ? '<span  class="label medium label-yellow">Yes</span>' : '<span class="label medium label-success">No</span>';
+                this.ModifiedOn = moment(this.ModifiedOn).format("MM/DD/YY HH:mm:ss");
+
+            });
             return Model;
         }
-        function applyDataTable() { }
+        function applyDataTable() {
+            $('[data-toggle="popover"]').popover({
+                'trigger': 'hover',
+                'placement': 'auto left',
+                'container': 'body'
+            });
+            var table = $('#sample_2');
+            var filename = "SummaryControlReport";
+            var title = "Summary Control Report";
+            var oTable = table.dataTable({
+
+                "language": {
+                    "aria": {
+                        "sortAscending": ": activate to sort column ascending",
+                        "sortDescending": ": activate to sort column descending"
+                    },
+                    "emptyTable": "No data available in table",
+                    "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+                    "infoEmpty": "No entries found",
+                    "infoFiltered": "(filtered1 from _MAX_ total entries)",
+                    "lengthMenu": "_MENU_ entries",
+                    "search": "<b>Search:</b>",
+                    "zeroRecords": "No matching records found"
+                },
+                "columnDefs": [
+                        {
+                            "targets": ["ErrorText", "BatchId"],
+                            "visible": false,
+                            "searchable": true
+                        },
+                ],
+                "scrollX": true,
+                buttons: [
+                    //{
+                    //    extend: 'colvis',
+                    //    text: 'Select Fields',
+                    //    className: 'btn purple pull-left',
+                    //    columns: ':not(.noVis)'
+                    //},
+                //{
+                //    extend: 'excel',
+                //    text: '<i class="fa fa-file-excel-o fa-2x"></i>',
+                //    className: 'btn btn-primary',
+                //    filename: filename,
+                //    title: title,
+                //    exportOptions: {
+                //        columns: ["thead th:not(.BatchId)", ".ErrorCode", ".ErrorText"],//0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 23]
+                //    }
+
+                //}
+
+
+
+                ],
+
+                "order": [
+                    [0, 'asc']
+                ],
+                "lengthMenu": [
+                    [5, 10, 25, 50, 100, -1],
+                    [5, 10, 25, 50, 100, "All"] // change per page values here
+                ],
+                // set the initial value
+                "pageLength": 5,
+
+                "dom": "<'row' <'col-md-12'B>><'row'<'col-md-6 col-sm-12'l><'col-md-6 col-sm-12'f>r><'table-scrollable't><'row'<'col-md-5 col-sm-12'i><'col-md-7 col-sm-12'p>>", // horizobtal scrollable datatable
+
+
+            });
+            $('.selectpicker').selectpicker('refresh');
+            $('#BatchList').on('change', function () {
+                var oTable = $('#sample_2').dataTable();
+                var filterColumn = oTable.api().column(".BatchId").index();
+                var selected = $(this).find("option:selected").val();
+                if (!selected) {
+
+                    oTable.fnFilter('', filterColumn, true);
+                } else {
+                    oTable.fnFilter("^" + parseInt(selected) + "$", filterColumn, true); //Exact value, column, reg
+                }
+            });
+        }
         var GetSystemSettings = function () {
-            $("#SettingList").hide();
+            //$("#SettingList").hide();
             var el = $('#SettingList');
             $("#loading").show();
             $.ajax({
