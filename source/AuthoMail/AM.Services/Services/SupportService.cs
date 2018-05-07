@@ -98,13 +98,13 @@ namespace AM.Services
 
                 string setClientToUser = "UPDATE [Profile].[Users] SET ClientId=@clientId,Status=@status,ClosedOn=@closedOn WHERE Id=@userId";
                 int result = db.Execute(setClientToUser, new { status = AMUserStatus.Approved, closedOn = DateTime.UtcNow, clientId = clientId, userId = Id });
-                return result > 0 ? GetKeyValue(true, "User request has been approve.") : GetKeyValue(false, "User request not yet processed.");
+                return result > 0 ? GetKeyValue(true, "User request has been approved.") : GetKeyValue(false, "User request not yet processed.");
             }
             if (status.Equals(AMUserStatus.Rejected, StringComparison.CurrentCultureIgnoreCase))
             {
                 string setClientToUser = "UPDATE [Profile].[Users] SET Status=@status,ClosedOn=@closedOn WHERE Id=@userId";
                 int result = db.Execute(setClientToUser, new { status = AMUserStatus.Rejected, closedOn = DateTime.UtcNow, userId = Id });
-                return result > 0 ? GetKeyValue(true, "User request has been reject") : GetKeyValue(false, "User request not yet processed");
+                return result > 0 ? GetKeyValue(true, "User request has been rejected") : GetKeyValue(false, "User request not yet processed");
             }
             return GetKeyValue(false, "Invalid action performed.");
         }
