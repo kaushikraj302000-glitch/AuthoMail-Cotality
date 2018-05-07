@@ -72,6 +72,7 @@ namespace AM.Services
         {
             if (domainName.IsNullOrWhiteSpace()) throw new Exception("Domain name cannot be null.");
             if (FingByDomainName(domainName) != null) throw new Exception("Domain name already exists.");
+            if (FingByDomainName(existingDomainName) == null) throw new Exception("Existing domain name not found.");
             if (Uri.CheckHostName(domainName) != UriHostNameType.Dns) throw new Exception("Invalid domain name.");
             string query = "UPDATE [Common].[ClientDomains] SET AllowedDomain=@doaminName WHERE AllowedDomain=@existingDomainName";
             return db.Execute(query, new { domainName = domainName, existingDomainName = existingDomainName });
