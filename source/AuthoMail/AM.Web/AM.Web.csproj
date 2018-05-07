@@ -191,8 +191,6 @@
     <Compile Include="Controllers\AdminController.cs" />
     <Compile Include="Controllers\ChartApiController.cs" />
     <Compile Include="Controllers\CommonController.cs" />
-    <Compile Include="Controllers\ManageClientsController.cs" />
-    <Compile Include="Controllers\ManageDomainController.cs" />
     <Compile Include="Models\ChartViewModel.cs" />
     <Compile Include="Models\CLAuthentication.cs" />
     <Compile Include="Models\DailyDetailReportViewModel.cs" />
@@ -445,8 +443,6 @@
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="Views\AccountApi\" />
-    <Folder Include="Views\ManageClients\" />
-    <Folder Include="Views\ManageDomain\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff" />

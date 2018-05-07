@@ -260,7 +260,7 @@
                 <td><span>{TotalPages}</span></td>
                 <td><span>{DocType}</span></td>
                 <td><span>{TrackingNo}</span></td>
-                <td><span>{FileName}</span></td>
+                <td><span data-toggle="tooltip" data-placement="top" title="{FileName}">{FileNameFormatted}</span></td>
             </tr>
         </tbody>
     </table>
@@ -291,7 +291,7 @@
         <tbody id="ChartMailPieceBody">
             <tr class="row-small">
                 <td><span>{BusinessIdValue}</span></td>
-                <td><span>{FileName}</span></td>
+                <td><span data-toggle="tooltip" data-placement="top" title="{FileName}">{FileNameFormatted}</span></td>
                 <td><span>{Name}</span></td>
                 <td><span>{Address}</span></td>
                 <td class="receivedon"><span>{MailPieceReceivedOn}</span></td>
@@ -330,7 +330,7 @@
         <tbody id="WeeklyChartMailPieceBody">
             <tr class="row-small">
                 <td><span>{BusinessIdValue}</span></td>
-                <td><span>{FileName}</span></td>
+                <td><span data-toggle="tooltip" data-placement="top" title="{FileName}">{FileNameFormatted}</span></td>
                 <td><span>{Name}</span></td>
                 <td><span>{Address}</span></td>
                 <td><span>{MailPieceReceivedOn}</span></td>
@@ -420,7 +420,13 @@
                                 $("#batchMailPieceModalBody").html("");
                                 //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                                 BindTemplate(data, "#ChartMailPieceBody", "#ChartMailPiecebodyContent", "#ChartMailPieceTableContent", "#batchMailPieceModalBody");
-                                $("#batchMailPieceModalHeader").html("Mailpiece Summary: <button type='button' style='cursor:none !important;' class='btn btn-default normaltext'>Batch Id - " + clientBatchId + "</button> <button type='button' style='cursor:none !important;margin-left:1%;' class='btn btn-default normaltext'>Received On - " + receivedOn + "</button>");
+                                if (clientBatchId.length > 31) {
+                                    $("#batchMailPieceModalHeader").html("Mailpiece Summary: <button type='button' style='cursor:none !important;' class='btn btn-default normaltext' data-toggle='tooltip' data-placement='bottom' title='" + clientBatchId + "'>Batch Id - " + shortName(clientBatchId) + "</button><button type='button' style='cursor:none !important;margin-left:1%;' class='btn btn-default normaltext'>Received On - " + moment(receivedOn).format("MM/DD/YY HH:mm:ss") + "</button>");
+
+                                } else {
+                                    $("#batchMailPieceModalHeader").html("Mailpiece Summary: <button type='button' style='cursor:none !important;' class='btn btn-default normaltext'>Batch Id - " + clientBatchId + "</button><button type='button' style='cursor:none !important;margin-left:1%;' class='btn btn-default normaltext'>Received On - " + moment(receivedOn).format("MM/DD/YY HH:mm:ss") + "</button>");
+                                }
+                                //$("#batchMailPieceModalHeader").html("Mailpiece Summary: <button type='button' style='cursor:none !important;' class='btn btn-default normaltext'>Batch Id - " + clientBatchId + "</button> <button type='button' style='cursor:none !important;margin-left:1%;' class='btn btn-default normaltext'>Received On - " + receivedOn + "</button>");
                                 //, Received On - " + moment(receivedOn).format("MM/DD/YY HH:mm:ss")
                                 window.clui.tooltipInit();
                             }
@@ -996,6 +1002,7 @@
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
                 this.ErrorDescPopover = this.ErrorDesc == null ? "--" : '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left"><a>Error Details</a></span>';
                 this.ShippingStatusFormatted = status;
+                this.FileNameFormatted = shortName(this.FileName);
                 //this.RcptNameFormatted = this.RcptFirstName + " " + this.RcptLastName;
 
                 this.IsPullBackRequestedFormatted = requestedPullback;
@@ -1004,7 +1011,8 @@
             //console.log(Model);
         }
         function shortName(str) {
-            if(typeof str != 'undefined')
+            console.log(str);
+            if(typeof str != 'undefined' && str!=null && str!="")
             return str.length > 31 ? str.substring(0, 31) + '...' : str;
         }
         function FormatObject(Model) {
@@ -1015,6 +1023,7 @@
                 this.BatchNameFormatted = shortName(this.BatchName);
                 this.ClientBatchIdFormatted = shortName(this.ClientBatchId);
                 this.ErrorDesc = this.ErrorDesc != null ? this.ErrorDesc.replace(/"/g, '\'') : "";
+                this.FileNameFormatted = shortName(this.FileName);
                 switch (this.Status) {
 
                     case "PulledBack":
