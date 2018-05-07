@@ -61,7 +61,7 @@ namespace AM.Services
 
         public int CreateClientDomain(int clientId, string domainName)
         {
-            if (domainName.IsNullOrWhiteSpace()) throw new ArgumentNullException("Domain name cannot be null.");
+            if (domainName.IsNullOrWhiteSpace()) throw new Exception("Domain name cannot be null.");
             if (FingByDomainName(domainName) != null) throw new Exception("Domain name already exists.");
             if (Uri.CheckHostName(domainName) != UriHostNameType.Dns) throw new Exception("Invalid domain name.");
             string query = "INSERT INTO [Common].[ClientDomains] ([ClientId],[AllowedDomain]) VALUES (@clientId,@domainName)";
