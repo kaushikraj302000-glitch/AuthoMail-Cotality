@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Dapper;
 using AM.Services.Properties;
+using AM.Lib;
 
 namespace AM.Services
 {
@@ -14,6 +15,8 @@ namespace AM.Services
         int InsertSystemSetting(AMSetting amSetting);
         int UpdateSystemSetting(AMSetting amSetting);
         void SeedAMSettings();
+        int UpdateValueOrDescription(string userId, string settingId, string value, string description);
+        int ResetValueSystemSetting(string userId, string settingId);
     }
     public class ConfigService : ServiceBase, IConfigService
     {
@@ -39,5 +42,32 @@ namespace AM.Services
         {
             db.Execute(Resources.SeedAMSeetings);
         }
+
+        public int UpdateValueOrDescription(string userId, string settingId, string value, string description)
+        {
+            if (!value.IsNullOrWhiteSpace() && !description.IsNullOrWhiteSpace())
+            {
+                string query = "UPDATE [Common].[SystemSettings] SET Value=@value,[Description]=@description,ModifiedBy=@modifiedBy,ModifiedOn=@modifiedOn WHERE Id=@id";
+                return db.Execute(query, new { id = @settingId, value = value, description = description, modifiedBy = userId, modifiedOn = DateTime.UtcNow });
+            }
+            if (!value.IsNullOrWhiteSpace())
+            {
+                string query = "UPDATE [Common].[SystemSettings] SET Value=@value,ModifiedBy=@modifiedBy,ModifiedOn=@modifiedOn WHERE Id=@id";
+                return db.Execute(query, new { id = @settingId, value = value, modifiedBy = userId, modifiedOn = DateTime.UtcNow });
+            }
+            if (!description.IsNullOrWhiteSpace())
+            {
+                string query = "UPDATE [Common].[SystemSettings] SET [Description]=@description,ModifiedBy=@modifiedBy,ModifiedOn=@modifiedOn WHERE Id=@id";
+                return db.Execute(query, new { id = @settingId, description = description, modifiedBy = userId, modifiedOn = DateTime.UtcNow });
+            }
+            return 0;
+        }
+
+        public int ResetValueSystemSetting(string userId, string settingId)
+        {
+            string query = "UPDATE [Common].[SystemSettings] SET Value=DefaultValue,ModifiedBy=@modifiedBy,ModifiedOn=@modifiedOn WHERE Id=@id";
+            return db.Execute(query, new { id = @settingId, modifiedBy = userId, modifiedOn = DateTime.UtcNow });
+        }
+
     }
 }

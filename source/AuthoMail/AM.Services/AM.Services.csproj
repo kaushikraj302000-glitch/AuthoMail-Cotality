@@ -85,7 +85,7 @@
     <Compile Include="Models\AccountAPI.cs" />
     <Compile Include="Models\BatchReportInfo.cs" />
     <Compile Include="Models\ChartModels.cs" />
-    <Compile Include="Models\Clientdomains.cs" />
+    <Compile Include="Models\SupportModel.cs" />
     <Compile Include="Models\CustomModels.cs" />
     <Compile Include="Models\MailPieceSearch.cs" />
     <Compile Include="Models\MRDFResponse.cs" />

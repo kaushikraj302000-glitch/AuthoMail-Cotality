@@ -22,7 +22,14 @@ namespace AM.Services
         List<DocTypes> GetDocTypes();
         //Clients
         List<Clients> GetClients();
+        List<BusinessUnitModel> GetBusinessUnitActive();
         KeyValuePair<bool, string> CreateClient(Clients client, string userId);
+        int MakeClientAMActiveOrInActive(int Id, bool isActive, string userId);
+        int MakeClientPnSActiveOrInActive(int Id, bool isActive, string userId);
+        //Business Unit
+        List<BusinessUnitModel> GetBusinessUnit();
+        int CreateBusinessUnit(BusinessUnitModel businessUnit);
+        int MakeActiveOrInActiveBusinessUnit(bool isActive, int Id);
     }
     public class SupportService : ServiceBase, ISupportService
     {
@@ -117,7 +124,11 @@ namespace AM.Services
                 }
                 ).ToList();
         }
-
+        public List<BusinessUnitModel> GetBusinessUnitActive()
+        {
+            string query = "SELECT * FROM [Common].[BusinessUnit] WHERE IsActive=1";
+            return db.Query<BusinessUnitModel>(query).ToList();
+        }
 
         public KeyValuePair<bool, string> CreateClient(Clients client, string userId)
         {
@@ -143,10 +154,38 @@ namespace AM.Services
             return result > 0 ? GetKeyValue(true, "Client successfully created.")
                 : GetKeyValue(false, "Invalid action performed.");
         }
+        public int MakeClientAMActiveOrInActive(int Id, bool isActive, string userId)
+        {
+            string query = "UPDATE [Common].[Clients] SET IsAMActive=@isActive,ModifiedOn=@modifiedOn,ModifiedBy=@modifiedBy WHERE Id=@id";
+            return db.Execute(query, new { isActive = isActive, modifiedOn = DateTime.UtcNow, modifiedBy = userId, id = Id });
+        }
+
+        public int MakeClientPnSActiveOrInActive(int Id, bool isActive, string userId)
+        {
+            string query = "UPDATE [Common].[Clients] SET IsAMActive=@isActive,ModifiedOn=@modifiedOn,ModifiedBy=@modifiedBy WHERE Id=@id";
+            return db.Execute(query, new { isActive = isActive, modifiedOn = DateTime.UtcNow, modifiedBy = userId, id = Id });
+        }
 
         private KeyValuePair<bool, string> GetKeyValue(bool key, string value)
         {
             return new KeyValuePair<bool, string>(key, value);
         }
+
+        public List<BusinessUnitModel> GetBusinessUnit()
+        {
+            string query = "SELECT * FROM [Common].[BusinessUnit]";
+            return db.Query<BusinessUnitModel>(query).ToList();
+        }
+        public int CreateBusinessUnit(BusinessUnitModel businessUnit)
+        {
+            string query = "INSERT INTO [Common].[BusinessUnit] ([BusinessUnit], [CustCode], [IsActive]) VALUES (@businessUnit, @custCode, @isActive)";
+            return db.Execute(query, new { businessUnit = businessUnit.BusinessUnit, custCode = businessUnit.CustCode, isActive = businessUnit.IsActive });
+        }
+        public int MakeActiveOrInActiveBusinessUnit(bool isActive, int Id)
+        {
+            string query = "UPDATE [Common].[BusinessUnit] SET IsActive=@isActive WHERE Id=@id";
+            return db.Execute(query, new { isActive = isActive, id = Id });
+        }
+
     }
 }
