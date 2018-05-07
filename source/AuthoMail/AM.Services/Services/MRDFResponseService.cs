@@ -30,7 +30,7 @@ namespace AM.Services
                 foreach (var item in items)
                 {
                     outFileFullPath = string.Format("{0}.out", Path.Combine(outFilePath, item.PrintFileName.Replace(".zip", "-000043HYFC")));
-                    zipFileFullPath = string.Format("{0}.zip", Path.Combine(zipFilePath, Path.GetFileNameWithoutExtension(outFilePath)));
+                    zipFileFullPath = string.Format("{0}.zip", Path.Combine(zipFilePath, Path.GetFileNameWithoutExtension(outFileFullPath)));
                     item.Date = DateTime.Parse(item.Date).ToString("yyyyMMdd");
                     item.JobId = String.Format("{0:D10}", Int32.Parse(item.JobId));
                     item.PieceId = String.Format("{0:D4}", Int32.Parse(item.PieceId));
