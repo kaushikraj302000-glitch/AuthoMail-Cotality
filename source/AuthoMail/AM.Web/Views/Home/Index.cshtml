@@ -1004,6 +1004,7 @@
             //console.log(Model);
         }
         function shortName(str) {
+            if(typeof str != 'undefined')
             return str.length > 31 ? str.substring(0, 31) + '...' : str;
         }
         function FormatObject(Model) {
