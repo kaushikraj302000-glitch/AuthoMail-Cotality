@@ -14,10 +14,12 @@ namespace AM.Web.Controllers
         // GET: ManageDomain
         ISupportService supportSvc;
         IHomeService homeSvc;
-        public ManageDomainController(ISupportService supportSvc, IHomeService homeSvc)
+        IConfigService confSvc;
+        public ManageDomainController(ISupportService supportSvc, IHomeService homeSvc, IConfigService confSvc)
         {
             this.supportSvc = supportSvc;
             this.homeSvc = homeSvc;
+            this.confSvc = confSvc;
         }
         public ActionResult Index()
         {
@@ -59,8 +61,18 @@ namespace AM.Web.Controllers
             }
             catch (Exception e)
             {
-                return Json(JsonResponseFactory.ErrorResponse(e.ToString()), JsonRequestBehavior.AllowGet);
+                return Json(JsonResponseFactory.ErrorResponse(e.Message), JsonRequestBehavior.AllowGet);
             }
+        }
+        [HttpGet]
+        public ActionResult SystemSettings()
+        {
+            return View();
+        }
+        public JsonResult GetAllSystemSettings()
+        {
+            var model = confSvc.GetSystemSettings();
+            return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
         }
     }
 }

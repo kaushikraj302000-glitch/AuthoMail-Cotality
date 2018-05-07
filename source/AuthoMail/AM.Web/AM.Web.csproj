@@ -439,6 +439,7 @@
     <Content Include="Views\Shared\SuccessRegistration.cshtml" />
     <Content Include="Views\ManageClients\SignUpRequest.cshtml" />
     <Content Include="Views\ManageDomain\Index.cshtml" />
+    <Content Include="Views\ManageDomain\SystemSettings.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

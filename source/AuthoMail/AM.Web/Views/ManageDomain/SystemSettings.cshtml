@@ -1,0 +1,104 @@
+﻿@{
+    ViewBag.Title = "System Settings";
+}
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <div class="panel-title"><i class="fa fa-globe"></i> System Settings</div>
+    </div>
+    <div class="panel-body panel-gray" style="padding:2% 2% 2% 2% !important;min-height: 107px;">
+        <div class='alert alert-blue text-center' id="loading" style="display:none"><span> Loading... </span></div>
+        <div id="SettingList"></div>
+
+    </div>
+</div>
+
+<div id="SystemSettingTableContent" style="display:none">
+    <table class="table table-responsive" style="overflow-x:scroll">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Data Type</th>
+                <th>Value</th>
+                <th>Description</th>
+                <th>IsSystem</th>
+                <th>Default Value</th>
+                <th>Modified By</th>
+                <th>Modified On</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="SystemSettingbodyContent"></tbody>
+    </table>
+</div>
+<div style="display:none">
+    <table>
+        <tbody id="SystemSettingBody">
+            <tr class="row-small">
+                <td><span>{Id}</span></td>
+                <td><span>{DataType}</span></td>
+                <td><span>{Value}</span></td>
+                <td><span>{Description}</span></td>
+                <td><span>{IsSystem}</span></td>
+                <td><span>{DefaultValue}</span></td>
+                <td><span>{ModifiedBy}</span></td>
+                <td><span>{ModifiedOn}</span></td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+@section Scripts{
+    @Styles.Render("~/bundles/datatablescss")
+    @Scripts.Render("~/bundles/datatables")
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            GetSystemSettings();
+        });
+        function FormatObject(Model) {
+            return Model;
+        }
+        function applyDataTable() { }
+        var GetSystemSettings = function () {
+            $("#SettingList").hide();
+            var el = $('#SettingList');
+            $("#loading").show();
+            $.ajax({
+                type: "GET",
+                url: baseUrl + "ManageDomain/GetAllSystemSettings",
+                //data: JSON.stringify({}),
+                contentType: "application/json; charset=utf-8",
+                success: function (response) {
+                    //console.log(response);
+                    $("#loading").hide();
+                    if (response.Success) {
+                        el.show();
+                        if (response.Object != null) {
+                            if (response.Object.length > 0) {
+                                el.html("");
+                                var data = FormatObject(response.Object);
+                                BindTemplate(data, "#SystemSettingBody", "#SystemSettingbodyContent", "#SystemSettingTableContent", "#SettingList");
+                            }
+                            else {
+                                el.html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                            }
+                        }
+                    } else {
+
+                        el.show();
+                        el.html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + response.ErrorMessage + "</span></div>");
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    el.show();
+                    $("#loading").hide();
+                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
+                    el.html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
+                }
+
+            });
+        }
+    </script>
+}
