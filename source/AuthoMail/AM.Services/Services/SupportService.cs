@@ -16,6 +16,7 @@ namespace AM.Services
         List<ClientDomains> GetClientDomains();
         bool HasClientDomain(int clientId, string domainName);
         int CreateClientDomain(int clientId, string domainName);
+        int UpdateClientDomain(string domainName, string existingDomainName);
         List<UserRequestSignUp> GetUsersRequestSignUp();
         KeyValuePair<bool, string> UpdateUsersRequestSignUp(string Id, string status);
         //DocTypes
@@ -67,7 +68,14 @@ namespace AM.Services
             string query = "INSERT INTO [Common].[ClientDomains] ([ClientId],[AllowedDomain]) VALUES (@clientId,@domainName)";
             return db.Execute(query, new { clientId = clientId, domainName = domainName });
         }
-
+        public int UpdateClientDomain(string domainName, string existingDomainName)
+        {
+            if (domainName.IsNullOrWhiteSpace()) throw new Exception("Domain name cannot be null.");
+            if (FingByDomainName(domainName) != null) throw new Exception("Domain name already exists.");
+            if (Uri.CheckHostName(domainName) != UriHostNameType.Dns) throw new Exception("Invalid domain name.");
+            string query = "UPDATE [Common].[ClientDomains] SET AllowedDomain=@doaminName WHERE AllowedDomain=@existingDomainName";
+            return db.Execute(query, new { domainName = domainName, existingDomainName = existingDomainName });
+        }
         public List<UserRequestSignUp> GetUsersRequestSignUp()
         {
             string query = "SELECT Id,UserName,Email,EmailConfirmed,FirstName,LastName,DisplayName,RequestedOn,Status FROM [Profile].[Users] WHERE Status = @status AND EmailConfirmed=1";
