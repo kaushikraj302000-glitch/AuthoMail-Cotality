@@ -113,7 +113,7 @@ namespace AM.Web.Controllers
         {
             try
             {
-                var model = confSvc.ResetValueSystemSetting(User.Identity.GetUserId(),settingId);
+                var model = confSvc.ResetValueSystemSetting(User.Identity.GetUserId(), settingId);
                 return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
@@ -122,11 +122,11 @@ namespace AM.Web.Controllers
             }
         }
         [HttpPost]
-        public ActionResult UpdateValueOrDescription(string settingId,string value,string description)
+        public ActionResult UpdateValueOrDescription(string settingId, string value, string description)
         {
             try
             {
-                var model = confSvc.UpdateValueOrDescription(User.Identity.GetUserId(),settingId,value,description);
+                var model = confSvc.UpdateValueOrDescription(User.Identity.GetUserId(), settingId, value, description);
                 return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
@@ -134,7 +134,44 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
             }
         }
-        
+
+        #endregion
+
+        #region Manage Business Unit
+
+        public ActionResult ManageBusinessUnit()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public ActionResult GetBusinessUnit()
+        {
+            try
+            {
+                var model = supportSvc.GetBusinessUnit();
+                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpPost]
+        public ActionResult CreateBusinessUnit(BusinessUnitModel businessUnit)
+        {
+            try
+            {
+                var model = supportSvc.CreateBusinessUnit(businessUnit);
+                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+
         #endregion
     }
 }

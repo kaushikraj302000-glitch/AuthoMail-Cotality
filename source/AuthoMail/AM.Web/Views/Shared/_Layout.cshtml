@@ -45,17 +45,7 @@
                                 <ul class="dropdown-menu" id="clientmenu"></ul>
                             </li>
                         }
-                        @if (User.IsInRole(AM.Entities.AMRoles.Admin))
-                        {
-                            <li class="dropdown">
-                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Manage<span class="caret"></span></a>
-                                <ul class="dropdown-menu">
-                                    <li>@Html.ActionLink("Sign Up Request", "SignUpRequest", "Admin")</li>
-                                    <li>@Html.ActionLink("Domain Details", "ManageDomain", "Admin")</li>
-                                    <li>@Html.ActionLink("System Settings", "SystemSettings", "Admin")</li>
-                                </ul>
-                            </li>
-                        }
+                        
 
                         <li>@Html.ActionLink("Search", "Search", "Home")</li>
                         <li>@Html.ActionLink("Request Pullback ", "PullBack", "RequestPullBack")</li>
@@ -72,6 +62,17 @@
 
                             </ul>
                         </li>
+                        @if (User.IsInRole(AM.Entities.AMRoles.Admin))
+                        {
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Manage<span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                    <li>@Html.ActionLink("Sign Up Request", "SignUpRequest", "Admin")</li>
+                                    <li>@Html.ActionLink("Domain Details", "ManageDomain", "Admin")</li>
+                                    <li>@Html.ActionLink("System Settings", "SystemSettings", "Admin")</li>
+                                </ul>
+                            </li>
+                        }
                         @Html.Partial("_LoginPartial")
                     </ul>
                     <i class="fa fa-times"></i>
