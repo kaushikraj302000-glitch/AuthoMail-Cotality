@@ -102,7 +102,7 @@
             $("#loading").show();
             $.ajax({
                 type: "GET",
-                url: baseUrl + "ManageDomain/GetDomains",
+                url: baseUrl + "Admin/GetDomains",
                 //data: JSON.stringify({}),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
@@ -164,7 +164,7 @@
 
             $.ajax({
                 type: "POST",
-                url: baseUrl + "ManageDomain/AddDomain",
+                url: baseUrl + "Admin/AddDomain",
                 data: JSON.stringify({ clientId: $("#Clients").val(), domainName: $("#domain").val().trim() }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {

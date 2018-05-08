@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
-
+using Microsoft.AspNet.Identity;
 namespace AM.Web.Controllers
 {
     [Authorize(Roles = AMRoles.Admin)]
@@ -103,12 +103,38 @@ namespace AM.Web.Controllers
         {
             return View();
         }
-        public JsonResult GetAllSystemSettings()
+        public ActionResult GetAllSystemSettings()
         {
             var model = confSvc.GetSystemSettings();
             return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
         }
 
+        public ActionResult ResetSetting(string settingId)
+        {
+            try
+            {
+                var model = confSvc.ResetValueSystemSetting(User.Identity.GetUserId(),settingId);
+                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+        [HttpPost]
+        public ActionResult UpdateValueOrDescription(string settingId,string value,string description)
+        {
+            try
+            {
+                var model = confSvc.UpdateValueOrDescription(User.Identity.GetUserId(),settingId,value,description);
+                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+        
         #endregion
     }
 }
