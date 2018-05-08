@@ -172,6 +172,19 @@ namespace AM.Web.Controllers
             }
         }
 
+        [HttpPost]
+        public ActionResult MakeActiveOrInActiveBusinessUnit(bool isActive, int Id)
+        {
+            try
+            {
+                var model = supportSvc.MakeActiveOrInActiveBusinessUnit(isActive, Id);
+                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
         #endregion
     }
 }

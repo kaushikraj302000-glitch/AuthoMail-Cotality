@@ -439,6 +439,7 @@
     <Content Include="Views\Admin\SignUpRequest.cshtml" />
     <Content Include="Views\Admin\ManageDomain.cshtml" />
     <Content Include="Views\Admin\SystemSettings.cshtml" />
+    <Content Include="Views\Admin\ManageBusinessUnit.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
