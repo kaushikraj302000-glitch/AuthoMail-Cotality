@@ -204,7 +204,7 @@
             // el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
             $.ajax({
                 type: "GET",
-                url: baseUrl + "ManageClients/GetSingUpRequestedList",
+                url: baseUrl + "Admin/GetSingUpRequestedList",
                 //data: JSON.stringify({ date: date, filterBy: $("#filterBy").val(), docType: $("#DocType").val() }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
@@ -283,7 +283,7 @@
             el.empty();
             $.ajax({
                 type: "POST",
-                url: baseUrl + "ManageClients/UpdateUsersRequestSignUp",
+                url: baseUrl + "Admin/UpdateUsersRequestSignUp",
                 data: JSON.stringify({ userId: userId, status: status }),
                 contentType: "application/json; charset=utf-8",
                 dataType: "JSON",
