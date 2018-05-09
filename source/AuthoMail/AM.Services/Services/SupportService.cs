@@ -29,7 +29,7 @@ namespace AM.Services
         int MakeClientPnSActiveOrInActive(int Id, bool isActive, string userId);
         //Business Unit
         List<BusinessUnitModel> GetBusinessUnit();
-        int CreateBusinessUnit(BusinessUnitModel businessUnit);
+        int CreateOrEditBusinessUnit(BusinessUnitModel businessUnit);
         int MakeActiveOrInActiveBusinessUnit(bool isActive, int Id);
     }
     public class SupportService : ServiceBase, ISupportService
@@ -185,10 +185,18 @@ namespace AM.Services
             string query = "SELECT * FROM [Common].[BusinessUnit]";
             return db.Query<BusinessUnitModel>(query).ToList();
         }
-        public int CreateBusinessUnit(BusinessUnitModel businessUnit)
+        public int CreateOrEditBusinessUnit(BusinessUnitModel businessUnit)
         {
-            string query = "INSERT INTO [Common].[BusinessUnit] ([BusinessUnit], [CustCode], [IsActive]) VALUES (@businessUnit, @custCode, @isActive)";
-            return db.Execute(query, new { businessUnit = businessUnit.BusinessUnit, custCode = businessUnit.CustCode, isActive = businessUnit.IsActive });
+            if (businessUnit.Id == 0)
+            {
+                string query = "INSERT INTO [Common].[BusinessUnit] ([BusinessUnit], [CustCode], [IsActive]) VALUES (@businessUnit, @custCode, @isActive)";
+                return db.Execute(query, new { businessUnit = businessUnit.BusinessUnit, custCode = businessUnit.CustCode, isActive = businessUnit.IsActive });
+            }
+            else
+            {
+                string query = "UPDATE [Common].[BusinessUnit] SET [BusinessUnit] = @businessUnit, [CustCode] = @custCode WHERE Id=@id";
+                return db.Execute(query, new { businessUnit = businessUnit.BusinessUnit, custCode = businessUnit.CustCode, id = businessUnit.Id });
+            }
         }
         public int MakeActiveOrInActiveBusinessUnit(bool isActive, int Id)
         {

@@ -163,7 +163,7 @@ namespace AM.Web.Controllers
         {
             try
             {
-                var model = supportSvc.CreateBusinessUnit(businessUnit);
+                var model = supportSvc.CreateOrEditBusinessUnit(businessUnit);
                 return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
