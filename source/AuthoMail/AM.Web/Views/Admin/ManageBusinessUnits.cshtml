@@ -122,14 +122,14 @@
             this.IsActive = false;
         }
         function SaveBusinessUnit() {
-            if ($("#BusinessUnit").val() == "") {
+            if ($("#BusinessUnit").val().trim() == "") {
                 $("#BusinessUnitError").show();
                 return;
             }
             else {
                 $("#BusinessUnitError").hide();
             }
-            if ($("#CustCode").val() == "") {
+            if ($("#CustCode").val().trim() == "") {
                 $("#CustCodeError").show();
                 return;
             }
@@ -161,7 +161,7 @@
                         GetBusinessUnits();
                     }
                     else {
-                        e.html(response.ErrorMessage);
+                        el.html("<div class='alert alert-red'>" + response.ErrorMessage + "</div>");
 
                     }
                     $("#myModal").modal("show");
@@ -276,7 +276,7 @@
                         GetBusinessUnits();
                     }
                     else {
-                        e.html(response.ErrorMessage);
+                        el.html("<div class='alert alert-red'>" + response.ErrorMessage + "</div>");
 
                     }
                     $("#myModal").modal("show");

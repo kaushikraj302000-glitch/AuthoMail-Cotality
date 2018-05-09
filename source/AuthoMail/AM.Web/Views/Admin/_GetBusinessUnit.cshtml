@@ -7,7 +7,7 @@
     <div class="input-group">
         <input type="hidden" name="Id" id="Id" value="@Model.Id" />
         
-        <input class="form-control" name="BusinessUnit" placeholder="Business Unit" value="@Model.BusinessUnit" required id="BusinessUnit">
+        <input class="form-control" type="text" maxlength="10" name="BusinessUnit" placeholder="Business Unit" value="@Model.BusinessUnit" required id="BusinessUnit">
         <div class="text-red pull-left" style="display:none" id="BusinessUnitError">This field is required.</div>
     </div>
 
@@ -15,7 +15,7 @@
 <div class="form-group">
     <label for="Description">Cust Code</label>
     <div class="input-group">
-        <input class="form-control" name="CustCode" placeholder="Cust Code" value="@Model.CustCode" required id="CustCode">
+        <input class="form-control" type="number" maxlength="20" name="CustCode" placeholder="Cust Code" value="@Model.CustCode" required id="CustCode">
         <div class="text-red pull-left" style="display:none" id="CustCodeError">This field is required.</div>
     </div>
 

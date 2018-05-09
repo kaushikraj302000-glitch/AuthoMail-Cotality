@@ -308,7 +308,7 @@
                     }
                     else {
                         console.log(response.ErrorMessage);
-                        el.html(response.ErrorMessage);
+                        el.html("<div class='alert alert-red'>" + response.ErrorMessage + "</div>");
 
                     }
                     $("#myModal").modal("show");

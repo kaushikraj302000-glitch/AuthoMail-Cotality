@@ -193,7 +193,7 @@
                         GetSystemSettings();
                     }
                     else {
-                        e.html(response.ErrorMessage);
+                        el.html("<div class='alert alert-red'>" + response.ErrorMessage + "</div>");
 
                     }
                     $("#myModal").modal("show");
@@ -254,8 +254,8 @@
                         GetSystemSettings();
                     }
                     else {
-                        console.log(response.ErrorMessage);
-                        e.html(response.ErrorMessage);
+                       
+                         el.html("<div class='alert alert-red'>" + response.ErrorMessage + "</div>");
 
                     }
                     $("#myModal").modal("show");
@@ -298,8 +298,8 @@
                         FilterData();
                     }
                     else {
-                        console.log(response.ErrorMessage);
-                        e.html(response.ErrorMessage);
+                        
+                         el.html("<div class='alert alert-red'>" + response.ErrorMessage + "</div>");
 
                     }
                     $("#myModal").modal("show");
