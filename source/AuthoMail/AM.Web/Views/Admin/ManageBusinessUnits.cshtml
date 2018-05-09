@@ -3,6 +3,7 @@
     ViewBag.Title = "ManageBusinessUnit";
 }
 
+<link href="~/clui/dist/css/datatablecustom.css" rel="stylesheet" />
 <style>
     #dateFilter .bootstrap-select {
         width: 100% !important;
@@ -11,57 +12,51 @@
     .bootstrap-select {
         width: 205px !important;
     }
-
+      .dataTables_wrapper {
+        margin-top: -1.5% !important;
+    }
     .popover-content {
         word-wrap: break-word;
         color: red;
     }
 </style>
-<link href="~/clui/dist/css/datatablecustom.css" rel="stylesheet" />
 <div class="panel panel-default">
 
     <div class="panel-heading" id="summaryHeader">
         <div class="panel-title">
-            <i class="fa fa-cogs"></i> System Settings
+            <i class="fa fa-briefcase"></i> Business Unit Details
+            <span class="pull-right" @*style=" margin-right: 11%;" *@>
+                <button type="button" id="addBusinessUnit" class="btn btn-primary"><i class="fa fa-plus"></i> Add Business Unit</button>
+            </span>
         </div>
     </div>
-    <div class="panel-body" id="SettingList">
+    <div class="panel-body" id="BusinessUnitList">
         <div class='alert alert-blue text-center' id="loading" style="display:none;margin-bottom:10px;"><span> Loading... </span></div>
     </div>
 </div>
 
 
-<div id="SystemSettingTableContent" style="display:none">
+<div id="BusinessUnitTableContent" style="display:none">
     <table class="table table-responsive" style="overflow-x:scroll">
         <thead>
             <tr>
+                <th>Business Unit</th>
+                <th>Cust Code</th>
+                <th>Active</th>
                 <th>Action</th>
-                <th>Id</th>
-                <th>Data Type</th>
-                <th>Value</th>
-                <th>Description</th>
-                <th>IsSystem</th>
-                <th>Default Value</th>
-                <th>Modified By</th>
-                <th>Modified On</th>
             </tr>
         </thead>
-        <tbody id="SystemSettingbodyContent"></tbody>
+        <tbody id="BusinessUnitbodyContent"></tbody>
     </table>
 </div>
 <div style="display:none">
     <table>
-        <tbody id="SystemSettingBody">
+        <tbody id="BusinessUnitBody">
             <tr class="row-small">
+                <td><span data-id="{Id}">{BusinessUnit}</span></td>
+                <td><span>{CustCode}</span></td>
+                <td><span>{IsActiveFormatted}</span></td>
                 <td>{Action}</td>
-                <td><span>{Id}</span></td>
-                <td><span>{DataType}</span></td>
-                <td><span>{Value}</span></td>
-                <td><span>{Description}</span></td>
-                <td><span>{IsSystem}</span></td>
-                <td><span>{DefaultValue}</span></td>
-                <td><span>{ModifiedBy}</span></td>
-                <td><span>{ModifiedOn}</span></td>
             </tr>
         </tbody>
     </table>
@@ -100,16 +95,17 @@
     </div>
 </div>
 
-<div class="modal fade" id="resetModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+<div class="modal fade" id="IsActiveModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal-header" style="margin-top:2%;margin-bottom:2%;">
-                <input type="hidden" id="resetsettingId" name="resetsettingId" />
-                <h2 id="myModalLabel"> Are you sure you want to reset setting?</h2>
+                <input type="hidden" id="isActive" name="isActive" />
+                <input type="hidden" id="Id" name="Id" />
+                <h2 id="IsActiveHeader"> Are you sure you want to reset setting?</h2>
                 <hr />
-                <button type="button" class="btn btn-primary" id="reset"><i class="fa fa-check"></i> Yes</button>
-                <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> No</button>
+                <button type="button" class="btn btn-primary" id="IsActiveYes"><i class="fa fa-check"></i> Yes</button>
+                <button type="button" class="btn btn-default" id="IsActiveNo" data-dismiss="modal"><i class="fa fa-close"></i> No</button>
             </div>
         </div>
     </div>
@@ -120,7 +116,7 @@
         <div class="modal-content">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal-header">
-                <h1 id="myModalLabel">Sign Up Response</h1>
+                <h1 id="myModalLabel">Business Unit</h1>
             </div>
             <div class="modal-body">
 
@@ -137,19 +133,78 @@
     <script type="text/javascript">
         $(document).ready(function () {
 
-            GetSystemSettings();
+            GetBusinessUnits();
         });
         function FormatObject(Model) {
-            console.log(Model);
             $(Model).each(function () {
-                this.IsSystem = this.IsSystem ? '<span  class="label medium label-yellow">Yes</span>' : '<span class="label medium label-success">No</span>';
-                this.ModifiedOn = moment(this.ModifiedOn).format("MM/DD/YY HH:mm:ss");
-                this.Action = '<a style="cursor: pointer;font-size:1.2em;" onclick="EditSetting(this)" data-settingid="' + this.Id + '" data-value="' + this.Value + '" data-description="' + this.Description + '"><i class="fa fa-edit text-blue" aria-hidden="true" title="Edit"></i><span class="sr-only">Edit</span></a><a style="cursor: pointer;font-size:1.2em;" onclick="ResetSetting(this)" data-settingid="' + this.Id + '" ><i class="padding-left-15 fa fa-undo text-red" aria-hidden="true" title="Reset"><span class="sr-only">Reset</span></i></a>';
-
+                this.IsActiveFormatted = this.IsActive ? '<div class="toggle-container"><input id="isactive' + this.Id + '" onclick="MakeActiveOrInActive(this)" data-id="' + this.Id + '"  data-currentvalue="' + this.IsActive + '" class="cl-toggle toggle-orange" type="checkbox" checked="checked" name="toggle-demo"/><label for="isactive' + this.Id + '">Is Active</label></div>' : '<div class="toggle-container"><input id="isactive' + this.Id + '" onclick="MakeActiveOrInActive(this)" data-currentvalue="' + this.IsActive + '" data-id="' + this.Id + '" class="cl-toggle toggle-orange" type="checkbox" name="toggle-demo"/><label for="isactive' + this.Id + '">Is Active</label></div>';
+                //this.IsSystem = this.IsSystem ? '<span  class="label medium label-yellow">Yes</span>' : '<span class="label medium label-success">No</span>';
+                //<a style="cursor: pointer;font-size:1.2em;" onclick="AddBusinessUnit(this)"  data-settingid="' + this.Id + '" ><i class="fa fa-plus text-green" aria-hidden="true" title="Add"></i><span class="sr-only">Add</span></a>
+                //this.ModifiedOn = moment(this.ModifiedOn).format("MM/DD/YY HH:mm:ss");
+                this.Action = '<a style="cursor: pointer;font-size:1.2em;" onclick="EditBusinessUnit(this)" data-settingid="' + this.Id + '" ><i class="padding-left-15 fa fa-edit text-blue" aria-hidden="true" title="Edit"><span class="sr-only">Edit</span></i></a>';
+                
             });
             return Model;
         }
+        $("#IsActiveNo").click(function () {
+            $("#isactive" + $("#IsActiveModal").find("#Id").val()).click();
+        });
+        $("#IsActiveYes").click(function () {
+            var isActive = $("#IsActiveModal").find("#isActive").val();
+            var Id = $("#IsActiveModal").find("#Id").val();
+            $("#IsActiveModal").modal("hide");
+            var el = $("#myModal").find(".modal-body");
+            el.empty();
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "Admin/MakeActiveOrInActiveBusinessUnit",
+                data: JSON.stringify({ isActive: isActive,Id:Id }),
+                contentType: "application/json; charset=utf-8",
+                dataType: "JSON",
+                success: function (response) {
+                    //Spinners("#pullback", "fa-reply");
+                    if (response.Success) {
+                        if (response.Object != null) {
+                            if (response.Object == 1 && isActive=="true") {
+                                el.html("<div class='alert alert-green'>Business unit active successfully.</div>");
+                            }
+                            if (response.Object == 1 && isActive=="false") {
+                                el.html("<div class='alert alert-green'>Business unit deactive successfully.</div>");
+                            }
+                        }
+                        GetBusinessUnits();
+                    }
+                    else {
+                        e.html(response.ErrorMessage);
 
+                    }
+                    $("#myModal").modal("show");
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+
+                    //Spinners(".spinnericon", "faspinner");
+                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
+                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    $("#myModal").modal("show");
+                }
+
+            });
+        });
+        function MakeActiveOrInActive(obj) {
+            $("#IsActiveModal").find("#isActive").val("");
+            $("#IsActiveModal").find("#Id").val("");
+            $("#IsActiveModal").find("#Id").val($(obj).data("id"));
+            if ($(obj).data("currentvalue")) {
+                $("#IsActiveModal").find("#isActive").val(false);
+                $("#IsActiveHeader").html('<h2 id="IsActiveHeader"> Are you sure you want to deactive business unit?</h2>');
+            }
+            else
+            {
+                $("#IsActiveModal").find("#isActive").val(true);
+                $("#IsActiveHeader").html('<h2 id="IsActiveHeader"> Are you sure you want to active business unit?</h2>');
+            }
+            $("#IsActiveModal").modal("show");
+        }
         function EditSetting(val) {
             $("#ValueError").hide();
             $("#DescriptionError").hide();
@@ -192,7 +247,7 @@
                                 el.html("<div class='alert alert-red'>Value can not reset.</div>");
                             }
                         }
-                        GetSystemSettings();
+                        GetBusinessUnits();
                     }
                     else {
                         e.html(response.ErrorMessage);
@@ -253,7 +308,7 @@
                                 el.html("<div class='alert alert-red'>Value and description can not update.</div>");
                             }
                         }
-                        GetSystemSettings();
+                        GetBusinessUnits();
                     }
                     else {
                         console.log(response.ErrorMessage);
@@ -272,6 +327,12 @@
 
             });
             //UpdateUserStatus($("#rejectModal").data("userid"), $("#rejectModal").data("status"))
+        });
+
+        $(".cl-toggle").change(function () {
+          var currentValue=  $(this).data("currentvalue");
+          var Id = $(this).data("id");
+          console.log(currentValue + " " + Id);
         });
 
         function UpdateUserStatus(userId, status) {
@@ -348,7 +409,7 @@
                                 "searchable": true
                             },
                     ],
-                    "scrollX": true,
+                    //"scrollX": true,
                     buttons: [
                         //{
                         //    extend: 'colvis',
@@ -399,13 +460,13 @@
                     }
                 });
             }
-            var GetSystemSettings = function () {
-                //$("#SettingList").hide();
-                var el = $('#SettingList');
+            var GetBusinessUnits = function () {
+                //$("#BusinessUnitList").hide();
+                var el = $('#BusinessUnitList');
                 $("#loading").show();
                 $.ajax({
                     type: "GET",
-                    url: baseUrl + "Admin/GetAllSystemSettings",
+                    url: baseUrl + "Admin/GetBusinessUnits",
                     //data: JSON.stringify({}),
                     contentType: "application/json; charset=utf-8",
                     success: function (response) {
@@ -417,7 +478,7 @@
                                 if (response.Object.length > 0) {
                                     el.html("");
                                     var data = FormatObject(response.Object);
-                                    BindTemplate(data, "#SystemSettingBody", "#SystemSettingbodyContent", "#SystemSettingTableContent", "#SettingList");
+                                    BindTemplate(data, "#BusinessUnitBody", "#BusinessUnitbodyContent", "#BusinessUnitTableContent", "#BusinessUnitList");
                                 }
                                 else {
                                     el.html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")

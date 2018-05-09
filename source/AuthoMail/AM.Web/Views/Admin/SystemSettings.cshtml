@@ -118,7 +118,7 @@
         <div class="modal-content">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal-header">
-                <h1 id="myModalLabel">System Setting Response</h1>
+                <h1 id="myModalLabel">System Setting</h1>
             </div>
             <div class="modal-body">
 
@@ -245,10 +245,10 @@
                     if (response.Success) {
                         if (response.Object != null) {
                             if (response.Object == 1) {
-                                el.html("<div class='alert alert-green'>Value and description Updated successfully.</div>");
+                                el.html("<div class='alert alert-green'>Save successfully.</div>");
                             }
                             else {
-                                el.html("<div class='alert alert-red'>Value and description can not update.</div>");
+                                el.html("<div class='alert alert-red'>Setting can't be save.</div>");
                             }
                         }
                         GetSystemSettings();

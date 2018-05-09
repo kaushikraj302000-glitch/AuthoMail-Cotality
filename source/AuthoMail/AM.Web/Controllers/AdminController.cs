@@ -139,13 +139,13 @@ namespace AM.Web.Controllers
 
         #region Manage Business Unit
 
-        public ActionResult ManageBusinessUnit()
+        public ActionResult ManageBusinessUnits()
         {
             return View();
         }
 
         [HttpGet]
-        public ActionResult GetBusinessUnit()
+        public ActionResult GetBusinessUnits()
         {
             try
             {
