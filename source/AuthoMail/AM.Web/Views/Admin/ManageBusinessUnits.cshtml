@@ -267,10 +267,10 @@
                     if (response.Success) {
                         if (response.Object != null) {
                             if (response.Object == 1 && isActive == "true") {
-                                el.html("<div class='alert alert-green'>Business unit active successfully.</div>");
+                                el.html("<div class='alert alert-green'>Business unit activated successfully.</div>");
                             }
                             if (response.Object == 1 && isActive == "false") {
-                                el.html("<div class='alert alert-green'>Business unit deactive successfully.</div>");
+                                el.html("<div class='alert alert-green'>Business unit deactivated successfully.</div>");
                             }
                         }
                         GetBusinessUnits();
@@ -297,11 +297,11 @@
             $("#IsActiveModal").find("#Id").val($(obj).data("id"));
             if ($(obj).data("currentvalue")) {
                 $("#IsActiveModal").find("#isActive").val(false);
-                $("#IsActiveHeader").html('<h2 id="IsActiveHeader"> Are you sure you want to deactive business unit?</h2>');
+                $("#IsActiveHeader").html('<h2 id="IsActiveHeader"> Are you sure you want to deactivate business unit?</h2>');
             }
             else {
                 $("#IsActiveModal").find("#isActive").val(true);
-                $("#IsActiveHeader").html('<h2 id="IsActiveHeader"> Are you sure you want to active business unit?</h2>');
+                $("#IsActiveHeader").html('<h2 id="IsActiveHeader"> Are you sure you want to activate business unit?</h2>');
             }
             $("#IsActiveModal").modal("show");
         }
