@@ -29,6 +29,7 @@ namespace AM.Services
         int MakeClientPnSActiveOrInActive(int Id, bool isActive, string userId);
         //Business Unit
         List<BusinessUnitModel> GetBusinessUnit();
+        BusinessUnitModel FindByIdBusinessUnit(int Id);
         int CreateOrEditBusinessUnit(BusinessUnitModel businessUnit);
         int MakeActiveOrInActiveBusinessUnit(bool isActive, int Id);
     }
@@ -184,6 +185,11 @@ namespace AM.Services
         {
             string query = "SELECT * FROM [Common].[BusinessUnit]";
             return db.Query<BusinessUnitModel>(query).ToList();
+        }
+        public BusinessUnitModel FindByIdBusinessUnit(int Id)
+        {
+            string query = "SELECT * FROM [Common].[BusinessUnit] WHERE Id=@id";
+            return db.QuerySingleOrDefault<BusinessUnitModel>(query, new { id = Id });
         }
         public int CreateOrEditBusinessUnit(BusinessUnitModel businessUnit)
         {
