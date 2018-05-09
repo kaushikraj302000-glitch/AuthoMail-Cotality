@@ -159,7 +159,7 @@ namespace AM.Web.Controllers
         }
 
         [HttpPost]
-        public ActionResult CreateBusinessUnit(BusinessUnitModel businessUnit)
+        public ActionResult CreateOrEditBusinessUnit(BusinessUnitModel businessUnit)
         {
             try
             {
@@ -170,6 +170,12 @@ namespace AM.Web.Controllers
             {
                 return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
             }
+        }
+
+        [HttpGet]
+        public ActionResult GetBusinessUnitById(int id)
+        {
+            return id == 0 ? PartialView("_GetBusinessUnit", new BusinessUnitModel()) : PartialView("_GetBusinessUnit", supportSvc.FindByIdBusinessUnit(id));
         }
 
         [HttpPost]
