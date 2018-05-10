@@ -1,6 +1,8 @@
 ﻿@{
     ViewBag.Title = "System Settings";
 }
+<link href="~/clui/dist/css/datatablecustom.css" rel="stylesheet" />
+
 <style>
     #dateFilter .bootstrap-select {
         width: 100% !important;
@@ -9,13 +11,14 @@
     .bootstrap-select {
         width: 205px !important;
     }
-
+     .dataTables_wrapper {
+        margin-top: -1.5% !important;
+    }
     .popover-content {
         word-wrap: break-word;
         color: red;
     }
 </style>
-<link href="~/clui/dist/css/datatablecustom.css" rel="stylesheet" />
 <div class="panel panel-default">
    
     <div class="panel-heading" id="summaryHeader">
@@ -209,7 +212,7 @@
             });
         });
         $("#Save").click(function () {
-            if ($("#Value").val() == "") {
+            if ($("#Value").val().trim() == "") {
                 $("#ValueError").show();
                 return;
             }
@@ -217,7 +220,7 @@
             {
                 $("#ValueError").hide();
             }
-            if ($("#Description").val() == "") {
+            if ($("#Description").val().trim() == "") {
                 $("#DescriptionError").show();
                 return;
             }
@@ -245,7 +248,7 @@
                     if (response.Success) {
                         if (response.Object != null) {
                             if (response.Object == 1) {
-                                el.html("<div class='alert alert-green'>Save successfully.</div>");
+                                el.html("<div class='alert alert-green'>Saved successfully.</div>");
                             }
                             else {
                                 el.html("<div class='alert alert-red'>Setting can't be save.</div>");
