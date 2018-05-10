@@ -25,6 +25,7 @@ namespace AM.Services
         List<Clients> GetClients();
         List<BusinessUnitModel> GetBusinessUnitActive();
         KeyValuePair<bool, string> CreateClient(Clients client, string userId);
+        KeyValuePair<bool, string> EditClient(Client client, string userId);
         int MakeClientAMActiveOrInActive(int Id, bool isActive, string userId);
         int MakeClientPnSActiveOrInActive(int Id, bool isActive, string userId);
         //Business Unit
@@ -162,6 +163,17 @@ namespace AM.Services
                 modifiedBy = userId
             });
             return result > 0 ? GetKeyValue(true, "Client successfully created.")
+                : GetKeyValue(false, "Invalid action performed.");
+        }
+        public KeyValuePair<bool, string> EditClient(Client client, string userId)
+        {
+            if (client.Name.IsNullOrWhiteSpace()) return GetKeyValue(false, "Name is required.");
+            if (client.AppCode.IsNullOrWhiteSpace()) return GetKeyValue(false, "AppCode is required.");
+            if (client.TimeZone.IsNullOrWhiteSpace()) return GetKeyValue(false, "TimeZone is required.");
+            if (client.BusinessUnit == 0) return GetKeyValue(false, "BusinessUnit is required.");
+            string query = "UPDATE [Common].[Clients] SET Name=@name,AooCode=@appCode,BusinessUnit=@businessUnit,TimeZone=@timeZone,ModifiedBy=@modifiedBy,ModifiedOn=@modifiedOn WHERE Id=@id";
+            int result = db.Execute(query, new { name = client.Name, appCode = client.AppCode, businessUnit = client.BusinessUnit, timeZone = client.TimeZone, modifiedBy = userId, modifiedOn = DateTime.UtcNow, id = client.Id });
+            return result > 0 ? GetKeyValue(true, "Client updated successfully.")
                 : GetKeyValue(false, "Invalid action performed.");
         }
         public int MakeClientAMActiveOrInActive(int Id, bool isActive, string userId)
