@@ -42,7 +42,7 @@
             <tr>
                 <th>Business Unit</th>
                 <th>Cust Code</th>
-                <th>Active</th>
+                <th>IsActive</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -152,7 +152,7 @@
                     if (response.Success) {
                         if (response.Object != null) {
                             if (response.Object == 1) {
-                                el.html("<div class='alert alert-green'>Business unit save successfully.</div>");
+                                el.html("<div class='alert alert-green'>Business unit saved successfully.</div>");
                             }
                         else {
                                 el.html("<div class='alert alert-red'>Business unit can't save successfully.</div>");
@@ -308,10 +308,10 @@
                     if (response.Success) {
                         if (response.Object != null) {
                             if (response.Object == 1 && isActive) {
-                                el.html("<div class='alert alert-green'>Business unit active successfully.</div>");
+                                el.html("<div class='alert alert-green'>Business unit activate successfully.</div>");
             }
                             if (response.Object == 1 && !isActive) {
-                                el.html("<div class='alert alert-green'>Business unit deactive successfully.</div>");
+                                el.html("<div class='alert alert-green'>Business unit deactivate successfully.</div>");
                             }
                         }
                         GetBusinessUnits();
