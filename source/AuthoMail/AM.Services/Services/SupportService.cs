@@ -94,8 +94,14 @@ namespace AM.Services
                 if (email.IsNullOrWhiteSpace()) return GetKeyValue(false, "Email not found.");
 
                 MailAddress mAdd = new MailAddress(email);
-                string getClientId = "SELECT ClientId FROM [Common].[ClientDomains] WHERE AllowedDomain=@domain";
-                int? clientId = db.QuerySingleOrDefault<int>(getClientId, new { domain = mAdd.Host });
+                var clientQuery = "SELECT ClientId,IsAMActive FROM [Common].[ClientDomains] WHERE AllowedDomain=@domain";
+
+                var client = db.QuerySingleOrDefault(clientQuery, new { domain = mAdd.Host });
+                if (!client.IsAMActivated)
+                {
+                    return GetKeyValue(false, "Client is not activated.");
+                }
+                int? clientId = client.ClientId;
                 if (clientId == null) return GetKeyValue(false, "Client not found.");
 
                 string setClientToUser = "UPDATE [Profile].[Users] SET ClientId=@clientId,Status=@status,ClosedOn=@closedOn WHERE Id=@userId";
