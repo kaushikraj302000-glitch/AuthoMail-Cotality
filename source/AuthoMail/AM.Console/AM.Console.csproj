@@ -64,6 +64,7 @@
     <Compile Include="AMCChannel.cs" />
     <Compile Include="Channel.cs" />
     <Compile Include="ChannelFactory.cs" />
+    <Compile Include="GeneralChannel.cs" />
     <Compile Include="HSBCChannel.cs" />
     <Compile Include="HSBCSchema.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -87,6 +88,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Resources\HSBCRespaControlSchema.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Resources\MailingRequest.xsd">
       <SubType>Designer</SubType>
     </None>
     <None Include="Resources\PackageInfoSchema.xsd">

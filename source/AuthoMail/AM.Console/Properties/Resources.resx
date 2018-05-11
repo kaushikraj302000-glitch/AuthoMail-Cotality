@@ -121,6 +121,9 @@
   <data name="HSBCRespaControlSchema" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\hsbcrespacontrolschema.xsd;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
+  <data name="MailingRequest" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\mailingrequest.xsd;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
   <data name="PackageInfoSchema" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\packageinfoschema.xsd;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
