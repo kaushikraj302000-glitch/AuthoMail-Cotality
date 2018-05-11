@@ -149,7 +149,7 @@ namespace AM.Web.Controllers
         {
             try
             {
-                var model = supportSvc.GetBusinessUnit();
+                var model = supportSvc.GetBusinessUnit().OrderByDescending(s => s.IsActive).ToList();
                 return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
@@ -175,7 +175,7 @@ namespace AM.Web.Controllers
         [HttpGet]
         public ActionResult GetBusinessUnitById(int id)
         {
-            return id == 0 ? PartialView("_GetBusinessUnit", new BusinessUnitModel()) : PartialView("_GetBusinessUnit", supportSvc.FindByIdBusinessUnit(id));
+            return id == 0 ? PartialView("_AddOrEditBusinessUnit", new BusinessUnitModel()) : PartialView("_AddOrEditBusinessUnit", supportSvc.FindByIdBusinessUnit(id));
         }
 
         [HttpPost]
@@ -191,6 +191,71 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
             }
         }
+        #endregion
+
+        #region Manage Client
+
+        public ActionResult ManageClients()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public ActionResult GetClients()
+        {
+            try
+            {
+                var model = supportSvc.GetClients().OrderByDescending(s => s.IsAMActive).ThenByDescending(s => s.IsPnSActive).ToList();
+                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+        [HttpPost]
+        public ActionResult MakeActiveOrDeactiveClient(bool isActive, int Id, bool isAM)
+        {
+            try
+            {
+                if (isAM)
+                {
+                    var model = supportSvc.MakeClientAMActiveOrInActive(Id,isActive,User.Identity.GetUserId());
+                    return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+                }
+                else
+                {
+                    var model = supportSvc.MakeClientPnSActiveOrInActive(Id, isActive, User.Identity.GetUserId());
+                    return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+
+                }
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpPost]
+        public ActionResult CreateOrEditClient(Clients client)
+        {
+            try
+            {
+                var model = supportSvc.CreateEditClient(client,User.Identity.GetUserId());
+                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpGet]
+        public ActionResult GetClientById(int id)
+        {
+            return id == 0 ? PartialView("_AddOrEditClient", new BusinessUnitModel()) : PartialView("_AddOrEditClient", supportSvc.FindByClientId(id));
+        }
+
         #endregion
     }
 }

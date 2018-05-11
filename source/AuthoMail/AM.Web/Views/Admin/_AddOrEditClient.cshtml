@@ -1,0 +1,24 @@
+﻿@model AM.Services.Clients
+
+<h2 id="myModalLabel">@(Model.Id == 0 ? Html.Raw("Add Client Details") : Html.Raw("Edit Client Details"))</h2>
+<hr />
+<input type="hidden" name="Id" id="Id" value="@Model.Id" />
+<div class="form-group">
+    <label for="Value">Client Name</label>
+    <div class="input-group">
+        <input class="form-control" type="text" maxlength="10" name="Name" placeholder="Client Name" value="@Model.Name" required id="Name">
+        <div class="text-red pull-left" style="display:none" id="NameError">This field is required.</div>
+    </div>
+
+</div>
+<div class="form-group">
+    <label for="Description">Cust Code</label>
+    <div class="input-group">
+        <input class="form-control" type="text" maxlength="20" name="CustCode" placeholder="Cust Code" value="@Model.CustCode" required id="CustCode">
+        <div class="text-red pull-left" style="display:none" id="CustCodeError">This field is required.</div>
+    </div>
+
+</div>
+<hr />
+<button type="button" class="btn btn-primary" id="Save" onclick="SaveBusinessUnit()"><i class="fa fa-save"></i> Save</button>
+<button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> Cancel</button>
