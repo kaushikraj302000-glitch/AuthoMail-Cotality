@@ -75,10 +75,7 @@ namespace AM.Services
         {
             get
             {
-                if (!ErrorDesc.IsNullOrWhiteSpace())
-                {
-                    return ErrorDesc.Replace("\r\n", string.Empty);
-                }
+                if (!ErrorDesc.IsNullOrWhiteSpace()) return ErrorDesc.Replace("\r", string.Empty).Replace("\n", string.Empty);
                 return ErrorDesc;
             }
         }
