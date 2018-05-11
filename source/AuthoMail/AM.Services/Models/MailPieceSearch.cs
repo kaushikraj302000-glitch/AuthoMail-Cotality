@@ -70,7 +70,8 @@ namespace AM.Services
         public int TotalPages { get; set; }
         public int TotalSheets { get; set; }
         public string ErrorCode { get; set; }
-        public string ErrorDesc
+        public string ErrorDesc { get; set; }
+        public string ErrorDescription
         {
             get
             {
@@ -80,7 +81,6 @@ namespace AM.Services
                 }
                 return ErrorDesc;
             }
-            set;
         }
         public string ErrorCodeDesc
         {
