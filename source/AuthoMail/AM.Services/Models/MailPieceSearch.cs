@@ -70,7 +70,18 @@ namespace AM.Services
         public int TotalPages { get; set; }
         public int TotalSheets { get; set; }
         public string ErrorCode { get; set; }
-        public string ErrorDesc { get; set; }
+        public string ErrorDesc
+        {
+            get
+            {
+                if (!ErrorDesc.IsNullOrWhiteSpace())
+                {
+                    return ErrorDesc.Replace("\r\n", string.Empty);
+                }
+                return ErrorDesc;
+            }
+            set;
+        }
         public string ErrorCodeDesc
         {
             get
