@@ -74,7 +74,7 @@ namespace AM.Monitor
                 }
                 if (batchData.Length > 0)
                 {
-                    SendEmail(sb, batchData, ConfigurationManager.AppSettings["MonitorSubmitHeading"].ToString()); 
+                    SendEmail(sb, batchData, ConfigurationManager.AppSettings["MonitorSubmitHeading"].ToString(), ConfigurationManager.AppSettings["Monitor_Submit_Email_To"].ToString(), ConfigurationManager.AppSettings["Monitor_Submit_Email_Cc"].ToString(), ConfigurationManager.AppSettings["Monitor_Submit_Email_Subject"].ToString()); 
                 }
             }
             catch (Exception ex)
@@ -121,7 +121,7 @@ namespace AM.Monitor
                 }
                 if (batchData.Length > 0)
                 {
-                    SendEmail(sb, batchData, ConfigurationManager.AppSettings["MonitorReportbackHeading"].ToString()); 
+                    SendEmail(sb, batchData, ConfigurationManager.AppSettings["MonitorReportbackHeading"].ToString(), ConfigurationManager.AppSettings["Monitor_ReportedBack_Email_To"].ToString(), ConfigurationManager.AppSettings["Monitor_ReportedBack_Email_Cc"].ToString(), ConfigurationManager.AppSettings["Monitor_ReportedBack_Email_Subject"].ToString()); 
                 }
             }
             catch (Exception ex)
@@ -130,16 +130,16 @@ namespace AM.Monitor
             }
         }
 
-        private static void SendEmail(StringBuilder templateBody, StringBuilder batchData,string heading)
+        private static void SendEmail(StringBuilder templateBody, StringBuilder batchData, string heading, string email_To, string email_Cc, string email_Subject)
         {
             using (SmtpClient smtpClient = new SmtpClient())
             {
                 using (MailMessage msg = new MailMessage())
                 {
                     msg.IsBodyHtml = true;
-                    msg.To.Add(ConfigurationManager.AppSettings["MonitorEmail_To"]);
-                    msg.CC.Add(ConfigurationManager.AppSettings["MonitorEmail_Cc"]);
-                    msg.Subject = ConfigurationManager.AppSettings["MonitorEmail_Subject"];
+                    msg.To.Add(email_To);
+                    msg.CC.Add(email_Cc);
+                    msg.Subject = email_Subject;
                     msg.Priority = MailPriority.High;
                     templateBody = templateBody.Replace("<%heading%>", heading);
                     templateBody = templateBody.Replace("<%trdata%>", batchData.ToString());
