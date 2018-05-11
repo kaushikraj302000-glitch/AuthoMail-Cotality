@@ -11,7 +11,7 @@ namespace AM.Services
 {
     public interface ISupportService : IDisposable
     {
-        List<ClientDomains> FindByClientId(int clientId);
+        List<ClientDomains> FindDomainByClientId(int clientId);
         ClientDomains FingByDomainName(string domainName);
         List<ClientDomains> GetClientDomains();
         bool HasClientDomain(int clientId, string domainName);
@@ -23,6 +23,7 @@ namespace AM.Services
         List<DocTypes> GetDocTypes();
         //Clients
         List<Clients> GetClients();
+        Clients FindByClientId(int Id);
         List<BusinessUnitModel> GetBusinessUnitActive();
         KeyValuePair<bool, string> CreateEditClient(Clients client, string userId);
         int MakeClientAMActiveOrInActive(int Id, bool isActive, string userId);
@@ -35,7 +36,7 @@ namespace AM.Services
     }
     public class SupportService : ServiceBase, ISupportService
     {
-        public List<ClientDomains> FindByClientId(int clientId)
+        public List<ClientDomains> FindDomainByClientId(int clientId)
         {
             string query = "SELECT cd.*,c.Name as [ClientName] FROM [Common].[ClientDomains] cd,[Common].[Clients] c WHERE cd.[ClientId] = @clientId AND cd.ClientId=c.Id";
             return db.Query<ClientDomains>(query, new { clientId = clientId }).ToList();
@@ -136,6 +137,11 @@ namespace AM.Services
                 }
                 ).ToList();
         }
+        public Clients FindByClientId(int Id)
+        {
+            string query = "SELECT * FROM [Common].[Clients] WHERE Id=@id";
+            return db.QuerySingleOrDefault<Clients>(query, new { id = Id });
+        }
         public List<BusinessUnitModel> GetBusinessUnitActive()
         {
             string query = "SELECT * FROM [Common].[BusinessUnit] WHERE IsActive=1";
@@ -176,7 +182,7 @@ namespace AM.Services
                     : GetKeyValue(false, "Invalid action performed.");
             }
         }
-        
+
         public int MakeClientAMActiveOrInActive(int Id, bool isActive, string userId)
         {
             string query = "UPDATE [Common].[Clients] SET IsAMActive=@isActive,ModifiedOn=@modifiedOn,ModifiedBy=@modifiedBy WHERE Id=@id";
