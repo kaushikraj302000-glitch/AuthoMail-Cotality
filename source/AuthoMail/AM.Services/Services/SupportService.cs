@@ -186,7 +186,7 @@ namespace AM.Services
 
         public int MakeClientPnSActiveOrInActive(int Id, bool isActive, string userId)
         {
-            string query = "UPDATE [Common].[Clients] SET IsAMActive=@isActive,ModifiedOn=@modifiedOn,ModifiedBy=@modifiedBy WHERE Id=@id";
+            string query = "UPDATE [Common].[Clients] SET IsPnSActive=@isActive,ModifiedOn=@modifiedOn,ModifiedBy=@modifiedBy WHERE Id=@id";
             return db.Execute(query, new { isActive = isActive, modifiedOn = DateTime.UtcNow, modifiedBy = userId, id = Id });
         }
 
