@@ -220,7 +220,7 @@ namespace AM.Web.Controllers
             {
                 if (isAM)
                 {
-                    var model = supportSvc.MakeClientAMActiveOrInActive(Id,isActive,User.Identity.GetUserId());
+                    var model = supportSvc.MakeClientAMActiveOrInActive(Id, isActive, User.Identity.GetUserId());
                     return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
                 }
                 else
@@ -241,7 +241,7 @@ namespace AM.Web.Controllers
         {
             try
             {
-                var model = supportSvc.CreateEditClient(client,User.Identity.GetUserId());
+                var model = supportSvc.CreateEditClient(client, User.Identity.GetUserId());
                 return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
@@ -253,9 +253,31 @@ namespace AM.Web.Controllers
         [HttpGet]
         public ActionResult GetClientById(int id)
         {
-            return id == 0 ? PartialView("_AddOrEditClient", new BusinessUnitModel()) : PartialView("_AddOrEditClient", supportSvc.FindByClientId(id));
+            //return id == 0 ? PartialView("_AddOrEditClient", new Clients()) : PartialView("_AddOrEditClient", supportSvc.FindByClientId(id));
+            Clients client = new Clients();// supportSvc.FindByClientId(id);
+            if (client.BusinessUnit.HasValue)
+            {
+                ViewBag.BusinessUnitList = new SelectList(supportSvc.GetBusinessUnitActive(), "Id", "BusinessUnit", client.BusinessUnit);
+                return PartialView(new Clients());
+            }
+            else
+            {
+                ViewBag.BusinessUnitList = new SelectList(supportSvc.GetBusinessUnitActive(), "Id", "BusinessUnit");
+                return PartialView(new Clients());
+            }
         }
-
+        public ActionResult _AddOrEditClient(Clients client)
+        {
+            if (client.BusinessUnit.HasValue)
+            {
+                ViewBag.BusinessUnitList = new SelectList(supportSvc.GetBusinessUnitActive(), "Id", "BusinessUnit", client.BusinessUnit);
+            }
+            else
+            {
+                ViewBag.BusinessUnitList = new SelectList(supportSvc.GetBusinessUnitActive(), "Id", "BusinessUnit");
+            }
+            return PartialView(client);
+        }
         #endregion
     }
 }

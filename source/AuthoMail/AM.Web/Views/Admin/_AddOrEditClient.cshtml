@@ -2,23 +2,76 @@
 
 <h2 id="myModalLabel">@(Model.Id == 0 ? Html.Raw("Add Client Details") : Html.Raw("Edit Client Details"))</h2>
 <hr />
-<input type="hidden" name="Id" id="Id" value="@Model.Id" />
-<div class="form-group">
-    <label for="Value">Client Name</label>
-    <div class="input-group">
-        <input class="form-control" type="text" maxlength="10" name="Name" placeholder="Client Name" value="@Model.Name" required id="Name">
-        <div class="text-red pull-left" style="display:none" id="NameError">This field is required.</div>
-    </div>
+@using (Html.BeginForm("CreateOrEditClient", "Admin", FormMethod.Post))
+{
 
-</div>
-<div class="form-group">
-    <label for="Description">Cust Code</label>
-    <div class="input-group">
-        <input class="form-control" type="text" maxlength="20" name="CustCode" placeholder="Cust Code" value="@Model.CustCode" required id="CustCode">
-        <div class="text-red pull-left" style="display:none" id="CustCodeError">This field is required.</div>
-    </div>
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(model => model.Id)
+    <div class="form-group">
+        <label for="Value">Client Name</label>
+        <div class="input-group">
+            <input class="form-control" type="text" maxlength="255" name="Name" placeholder="Client Name" value="@Model.Name" required id="Name">
+            @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+        </div>
 
-</div>
-<hr />
-<button type="button" class="btn btn-primary" id="Save" onclick="SaveBusinessUnit()"><i class="fa fa-save"></i> Save</button>
-<button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> Cancel</button>
+    </div>
+    <div class="form-group">
+        <label for="Description">App Code</label>
+        <div class="input-group">
+            @Html.EditorFor(model => model.Name, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+        </div>
+
+    </div>
+    <div class="form-group">
+        <label for="Description">Business Unit</label>
+        <div class="input-group">
+            @Html.DropDownListFor(model => model.BusinessUnit, ViewBag.BusinessUnitList as SelectList, new { @class = "form-control" })
+            @Html.ValidationMessageFor(model => model.BusinessUnit, "", new { @class = "text-danger" })
+        </div>
+
+    </div>
+    <div class="form-group">
+        <label for="Description">Timezone</label>
+        <div class="input-group">
+            @Html.EditorFor(model => model.TimeZone, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.TimeZone, "", new { @class = "text-danger" })
+        </div>
+
+    </div>
+    
+
+    <hr />
+    <button type="submit" class="btn btn-primary" id="Save" onclick="SaveBusinessUnit()"><i class="fa fa-save"></i> Save</button>
+    <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> Cancel</button>
+}
+
+
+
+
+@*<input type="hidden" name="Id" id="Id" value="@Model.Id" />
+    <div class="form-group">
+        <label for="Value">Client Name</label>
+        <div class="input-group">
+            <input class="form-control" type="text" maxlength="255" name="Name" placeholder="Client Name" value="@Model.Name" required id="Name">
+            <div class="text-red pull-left" style="display:none" id="NameError">This field is required.</div>
+        </div>
+
+    </div>
+    <div class="form-group">
+        <label for="Description">App Code</label>
+        <div class="input-group">
+            <input class="form-control" type="text" maxlength="128" name="AppCode" placeholder="App Code" value="@Model.AppCode" required id="CustCode">
+            <div class="text-red pull-left" style="display:none" id="CustCodeError">This field is required.</div>
+        </div>
+
+    </div>
+    <div class="form-group">
+        <label for="Description">Business Unit</label>
+        <div class="input-group">
+            <input class="form-control" type="text" maxlength="128" name="AppCode" placeholder="App Code" value="@Model.AppCode" required id="CustCode">
+            <div class="text-red pull-left" style="display:none" id="CustCodeError">This field is required.</div>
+        </div>
+
+    </div>*@
