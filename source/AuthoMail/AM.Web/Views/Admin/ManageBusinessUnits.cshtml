@@ -114,8 +114,26 @@
         $(document).ready(function () {
 
             GetBusinessUnits();
-
+            
         });
+        function ValidateForm() {
+            $('#businessform').validate({ // initialize the plugin
+                rules: {
+                    BusinessUnit: {
+                        required: true,
+                        maxlength: 10
+
+                    },
+                    CustCode: {
+                        required: true,
+                        maxlength: 20
+                    }
+                },
+                submitHandler: function (form) {
+                    SaveBusinessUnit();
+                }
+            });
+        }
         function BusinessUnitModel(Id, BusinessUnit, CustCode) {
             this.Id = Id;
             this.BusinessUnit = BusinessUnit;
@@ -123,20 +141,7 @@
             this.IsActive = false;
         }
         function SaveBusinessUnit() {
-            if ($("#BusinessUnit").val().trim() == "") {
-                $("#BusinessUnitError").show();
-                return;
-            }
-            else {
-                $("#BusinessUnitError").hide();
-            }
-            if ($("#CustCode").val().trim() == "") {
-                $("#CustCodeError").show();
-                return;
-            }
-            else {
-                $("#CustCodeError").hide();
-            }
+            
             var Id = $("#AddEditModal").find(".modal-header").find("#Id").val();
             var businessUnit = $("#AddEditModal").find(".modal-header").find("#BusinessUnit").val();
             var custCode = $("#AddEditModal").find(".modal-header").find("#CustCode").val();
@@ -228,6 +233,7 @@
                 success: function (response) {
                     el.html(response);
                     $("#AddEditModal").modal("show");
+                    ValidateForm();
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
 
@@ -346,9 +352,9 @@
 
                 ],
 
-                //"order": [
-                //    [2, 'asc']
-                //],
+                "order": [
+                    [2, 'asc']
+                ],
                 "lengthMenu": [
                     [5, 10, 25, 50, 100, -1],
                     [5, 10, 25, 50, 100, "All"] // change per page values here

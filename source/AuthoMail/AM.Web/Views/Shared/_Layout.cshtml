@@ -12,6 +12,10 @@
         #mainlink:hover {
             color: lightgray;
         }
+
+        .error {
+            color: red;
+        }
     </style>
 </head>
 <body>
@@ -46,7 +50,7 @@
                                 <ul class="dropdown-menu" id="clientmenu"></ul>
                             </li>
                         }
-                        
+
 
                         <li>@Html.ActionLink("Search", "Search", "Home")</li>
                         <li>@Html.ActionLink("Request Pullback ", "PullBack", "RequestPullBack")</li>
@@ -106,6 +110,7 @@
     }
 
     @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/jqueryval")
     @Scripts.Render("~/bundles/cljs")
     @Scripts.Render("~/bundles/clselect2")
     @Scripts.Render("~/bundles/clcomponetjs")
@@ -120,6 +125,13 @@
             if (roleCheck) {
                 GetClientMenu();
             }
+            jQuery.validator.addMethod("lettersonly", function(value, element) {
+                return this.optional(element) || /^[A-z\s]+$/i.test(value);
+            }, "Letters only please");
+            jQuery.validator.addMethod("domainonly", function(value, element) {
+                return this.optional(element) || /^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$/i.test(value);
+            }, "Please enter valid domain name.");
+            //""
 
         });
 
