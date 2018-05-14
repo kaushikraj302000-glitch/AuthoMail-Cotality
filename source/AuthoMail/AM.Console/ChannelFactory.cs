@@ -14,25 +14,23 @@ namespace AM.Console
             string channelCode;
 
             // Each channel is tied to one and ONLY one XML schema
+            channelCode = channelPrefix + "_" + Config.Common_Environment;
             switch (channelPrefix)
             {
                 case "AMC":
-                    channelCode = channelPrefix + "_" + Config.Common_Environment;
                     return new AMCChannel(channelCode);
 
                 case "ALASKA":
-                    channelCode = channelPrefix + "_" + Config.Common_Environment;
                     return new AlaskaChannel(channelCode);
 
                 case "HSBC":
-                    channelCode = channelPrefix + "_" + Config.Common_Environment;
                     return new HSBCChannel(channelCode);
 
                 //// AuthoMail XML schema
-                //case "AmeriHome_Staging":
-                //case "USAA_Staging":
-                //    // XML client code , get id
-                //    break;
+                case "AmeriHome":
+                case "USAA":
+                    // XML client code , get id
+                    return new GeneralChannel(channelCode);
 
                 //case "BatchReporting":
 

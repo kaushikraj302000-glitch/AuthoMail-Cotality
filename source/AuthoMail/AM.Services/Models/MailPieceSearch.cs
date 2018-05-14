@@ -71,6 +71,14 @@ namespace AM.Services
         public int TotalSheets { get; set; }
         public string ErrorCode { get; set; }
         public string ErrorDesc { get; set; }
+        public string ErrorDescription
+        {
+            get
+            {
+                if (!ErrorDesc.IsNullOrWhiteSpace()) return ErrorDesc.Replace("\r", string.Empty).Replace("\n", string.Empty);
+                return ErrorDesc;
+            }
+        }
         public string ErrorCodeDesc
         {
             get
