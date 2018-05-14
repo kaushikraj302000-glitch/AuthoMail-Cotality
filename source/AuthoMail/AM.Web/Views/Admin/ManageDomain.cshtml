@@ -12,23 +12,25 @@
                 </div>
             </div>
             <div class="panel-body panel-gray" style="padding:2% 2% 2% 2% !important;" id="todayBody">
-                <div class="form-group col-md-4">
-                    <label for="Clients">Clients</label>
-                    @Html.DropDownList("Clients", ViewBag.Clients as SelectList, "Select Client", htmlAttributes: new { @class = "selectpicker" })
-                    <div class="text-red" style="display:none" id="ClientsError">This field is required.</div>
-                </div>
-                <div class="form-group col-md-6">
-                    <label for="Clients">Domain Name</label>
-                    <input type="text" id="domain" class="form-control" name="domain" />
-                    <div class="text-red" style="display:none" id="domainError">This field is required.</div>
-                </div>
-                <div class="form-group col-md-2">
-                    <label for="GetData">  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-                    <button type="button" id="AddDomain" class="btn btn-primary">
-                        <span class="sr-only">Domian</span>
-                        Add @*<i class="fa fa-globe " style="font-size:1.5em;"></i>*@
-                    </button>
-                </div>
+                <form action="#" id="domainform">
+                    <div class="form-group col-md-4">
+                        <label for="Clients">Clients</label>
+                        @Html.DropDownList("Clients", ViewBag.Clients as SelectList, "Select Client", htmlAttributes: new { @class = "selectpicker" })
+                        <div class="text-red" style="display:none" id="ClientsError">This field is required.</div>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="Clients">Domain Name</label>
+                        <input type="text" id="domain" class="form-control" name="domain" />
+                        <div class="text-red" style="display:none" id="domainError">This field is required.</div>
+                    </div>
+                    <div class="form-group col-md-2">
+                        <label for="GetData">  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                        <button type="submit" id="AddDomain" class="btn btn-primary">
+                            <span class="sr-only">Domian</span>
+                            Add @*<i class="fa fa-globe " style="font-size:1.5em;"></i>*@
+                        </button>
+                    </div>
+                </form>
             </div>
 
         </div>
@@ -86,6 +88,7 @@
         $(document).ready(function () {
             window.clui.dateTimePickerInit();
             GetData();
+            ValidateForm();
             // JSON.useDateParser(false);
         });
         function FormatObject(Model) {
@@ -93,6 +96,26 @@
 
             //});
             return Model;
+        }
+        
+        function ValidateForm()
+        {
+            $('#domainform').validate({ // initialize the plugin
+                rules: {
+                    domain: {
+                        required: true,
+                        domainonly: true,
+                        maxlength: 255
+
+                    },
+                    Clients:{
+                        required: true
+                    }
+                },
+                submitHandler: function (form) {
+                    AddDomain();
+                }
+            });
         }
         function applyDataTable() { }
         function GetData() {
@@ -135,33 +158,8 @@
 
             });
         }
-        $("#AddDomain").click(function () {
-            AddDomain();
-            // GetData();
-        });
-        $("#Clients").on("change", function () {
-            if ($("#Clients").val() == "") {
-                $("#ClientsError").show();
-                return;
-            }
-            else {
-                $("#ClientsError").hide();
-            }
-        });
+       
         function AddDomain() {
-            if ($("#Clients").val() == "") {
-                $("#ClientsError").show();
-                return;
-            }
-
-            if ($("#domain").val() == "") {
-                $("#domainError").show();
-                return;
-            }
-            else {
-                $("#domainError").hide();
-            }
-
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Admin/AddDomain",
@@ -175,6 +173,7 @@
                             timeout: 5000
                         })
                         $("#domain").val("");
+                        $("#Clients").val("");
                         $('.selectpicker').selectpicker('refresh');
                         GetData();
                     }
