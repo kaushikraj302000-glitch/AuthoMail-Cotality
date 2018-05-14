@@ -1,26 +1,24 @@
 ﻿@model AM.Services.Clients
 
 <h2 id="myModalLabel">@(Model.Id == 0 ? Html.Raw("Add Client Details") : Html.Raw("Edit Client Details"))</h2>
-<hr />
-@using (Html.BeginForm("CreateOrEditClient", "Admin", FormMethod.Post))
-{
 
-    @Html.AntiForgeryToken()
-    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-    @Html.HiddenFor(model => model.Id)
+<hr />
+<form id="clientform" action="#">
+    <input type="hidden" name="Id" id="Id" value="@Model.Id" />
     <div class="form-group">
         <label for="Value">Client Name</label>
         <div class="input-group">
-            <input class="form-control" type="text" maxlength="255" name="Name" placeholder="Client Name" value="@Model.Name" required id="Name">
-            @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+            <input type="text" name="Name" value="@Model.Name" placeholder="Client Name" class="form-control" id="Name" maxlength="255" />
+            <div class="text-red pull-left" style="display:none" id="NameError">This field is required.</div>
+
         </div>
 
     </div>
     <div class="form-group">
         <label for="Description">App Code</label>
         <div class="input-group">
-            @Html.EditorFor(model => model.Name, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+            <input type="text" name="AppCode" value="@Model.AppCode" placeholder="App Code" class="form-control" id="AppCode" maxlength="255" />
+            <div class="text-red pull-left" style="display:none" id="AppCodeError">This field is required.</div>
         </div>
 
     </div>
@@ -28,24 +26,63 @@
         <label for="Description">Business Unit</label>
         <div class="input-group">
             @Html.DropDownListFor(model => model.BusinessUnit, ViewBag.BusinessUnitList as SelectList, new { @class = "form-control" })
-            @Html.ValidationMessageFor(model => model.BusinessUnit, "", new { @class = "text-danger" })
+            <div class="text-red pull-left" style="display:none" id="BusinessUnitError">This field is required.</div>
         </div>
 
     </div>
     <div class="form-group">
         <label for="Description">Timezone</label>
         <div class="input-group">
-            @Html.EditorFor(model => model.TimeZone, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.TimeZone, "", new { @class = "text-danger" })
+            <input type="text" name="TimeZone" value="@Model.TimeZone" placeholder="Time Zone" class="form-control" id="TimeZone" maxlength="255" />
+            <div class="text-red pull-left" style="display:none" id="TimeZoneError">This field is required.</div>
         </div>
 
     </div>
-    
+
 
     <hr />
-    <button type="submit" class="btn btn-primary" id="Save" onclick="SaveBusinessUnit()"><i class="fa fa-save"></i> Save</button>
+    <button type="submit" class="btn btn-primary" id="Save" ><i class="fa fa-save"></i> Save</button>
     <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> Cancel</button>
-}
+</form>
+@*<script src="~/Scripts/jquery-1.10.2.js"></script>
+<script src="~/Scripts/jquery.validate.js"></script>*@
+<script>
+    //$('#clientform').validate({ // initialize the plugin
+    //    rules: {
+    //        Name: {
+    //            required: true
+                
+    //        },
+    //        AppCode: {
+    //            required: true,
+    //            minlength: 5
+    //        }
+    //    },
+    //    submitHandler: function (form) { // for demo
+    //        alert('valid form submitted'); // for demo
+    //        return false; // for demo
+    //    }
+    //});
+    function SaveClient() {
+        if ($("#Client").val().trim() == "") {
+            $("#ClientError").show();
+            return;
+        }
+        else {
+            $("#ClientError").hide();
+        }
+        if ($("#CustCode").val().trim() == "") {
+            $("#CustCodeError").show();
+            return;
+        }
+        else {
+            $("#CustCodeError").hide();
+        }
+        
+
+    }
+</script>
+
 
 
 

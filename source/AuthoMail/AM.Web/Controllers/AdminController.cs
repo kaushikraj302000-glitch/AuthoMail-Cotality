@@ -253,31 +253,20 @@ namespace AM.Web.Controllers
         [HttpGet]
         public ActionResult GetClientById(int id)
         {
-            //return id == 0 ? PartialView("_AddOrEditClient", new Clients()) : PartialView("_AddOrEditClient", supportSvc.FindByClientId(id));
-            Clients client = new Clients();// supportSvc.FindByClientId(id);
-            if (client.BusinessUnit.HasValue)
+            
+            if (id!=0)
             {
+                Clients client = supportSvc.FindByClientId(id);
                 ViewBag.BusinessUnitList = new SelectList(supportSvc.GetBusinessUnitActive(), "Id", "BusinessUnit", client.BusinessUnit);
-                return PartialView(new Clients());
+                return PartialView("_AddOrEditClient",client);
             }
             else
             {
                 ViewBag.BusinessUnitList = new SelectList(supportSvc.GetBusinessUnitActive(), "Id", "BusinessUnit");
-                return PartialView(new Clients());
+                return PartialView("_AddOrEditClient",new Clients());
             }
         }
-        public ActionResult _AddOrEditClient(Clients client)
-        {
-            if (client.BusinessUnit.HasValue)
-            {
-                ViewBag.BusinessUnitList = new SelectList(supportSvc.GetBusinessUnitActive(), "Id", "BusinessUnit", client.BusinessUnit);
-            }
-            else
-            {
-                ViewBag.BusinessUnitList = new SelectList(supportSvc.GetBusinessUnitActive(), "Id", "BusinessUnit");
-            }
-            return PartialView(client);
-        }
+        
         #endregion
     }
 }
