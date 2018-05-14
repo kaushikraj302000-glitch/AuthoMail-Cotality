@@ -82,20 +82,20 @@
 </div>
 
 @*<div class="modal fade" id="IsActiveModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <div class="modal-header" style="margin-top:2%;margin-bottom:2%;">
-                <input type="hidden" id="isActive" name="isActive" />
-                <input type="hidden" id="Id" name="Id" />
-                <h2 id="IsActiveHeader"> Are you sure you want to reset setting?</h2>
-                <hr />
-                <button type="button" class="btn btn-primary" id="IsActiveYes"><i class="fa fa-check"></i> Yes</button>
-                <button type="button" class="btn btn-default" id="IsActiveNo" data-dismiss="modal"><i class="fa fa-close"></i> No</button>
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <div class="modal-header" style="margin-top:2%;margin-bottom:2%;">
+                    <input type="hidden" id="isActive" name="isActive" />
+                    <input type="hidden" id="Id" name="Id" />
+                    <h2 id="IsActiveHeader"> Are you sure you want to reset setting?</h2>
+                    <hr />
+                    <button type="button" class="btn btn-primary" id="IsActiveYes"><i class="fa fa-check"></i> Yes</button>
+                    <button type="button" class="btn btn-default" id="IsActiveNo" data-dismiss="modal"><i class="fa fa-close"></i> No</button>
+                </div>
             </div>
         </div>
-    </div>
-</div>*@
+    </div>*@
 
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
     <div class="modal-dialog" role="document">
@@ -116,73 +116,87 @@
 @section Scripts{
     @Styles.Render("~/bundles/datatablescss")
     @Scripts.Render("~/bundles/datatables")
+    
     <script type="text/javascript">
         $(document).ready(function () {
 
             GetClients();
-
+            
         });
-        function ClientModel(Id, Client, CustCode) {
-            this.Id = Id;
-            this.Client = Client;
-            this.CustCode = CustCode;
-            this.IsActive = false;
-        }
-        function SaveClient() {
-            if ($("#Client").val().trim() == "") {
-                $("#ClientError").show();
-                return;
-            }
-            else {
-                $("#ClientError").hide();
-            }
-            if ($("#CustCode").val().trim() == "") {
-                $("#CustCodeError").show();
-                return;
-            }
-            else {
-                $("#CustCodeError").hide();
-            }
-            var Id = $("#AddEditModal").find(".modal-header").find("#Id").val();
-            var Client = $("#AddEditModal").find(".modal-header").find("#Client").val();
-            var custCode = $("#AddEditModal").find(".modal-header").find("#CustCode").val();
-            var ClientObj = new ClientModel(Id, Client, custCode);
-            $("#AddEditModal").modal("hide");
-            var el = $("#myModal").find(".modal-body");
-            el.empty();
-            $.ajax({
-                type: "POST",
-                url: baseUrl + "Admin/CreateOrEditClient",
-                data: JSON.stringify({ Client: ClientObj }),
-                contentType: "application/json; charset=utf-8",
-                success: function (response) {
-                    if (response.Success) {
-                        if (response.Object != null) {
-                            if (response.Object == 1) {
-                                el.html("<div class='alert alert-green'>Client saved successfully.</div>");
+        function ValidateForm()
+        {
+            $('#clientform').validate({ // initialize the plugin
+                rules: {
+                    Name: {
+                        required: true,
+                        lettersonly: true, 
+                        maxlength:255
+
+                    },
+                    AppCode: {
+                        required: true,
+                        maxlength:128
+                    },
+                    TimeZone: {
+                        required: true,
+                        lettersonly: true,
+                        maxlength: 255
+                    }
+                },
+                submitHandler: function (form) { // for demo
+                    var Id = $("#AddEditModal").find(".modal-header").find("#Id").val();
+                    var name = $("#AddEditModal").find(".modal-header").find("#Name").val();
+                    var appCode = $("#AddEditModal").find(".modal-header").find("#AppCode").val();
+                    var businessUnit = $("#AddEditModal").find(".modal-header").find("#BusinessUnit").val();
+                    var timezone = $("#AddEditModal").find(".modal-header").find("#TimeZone").val();
+                    var ClientObj = new Clients(Id, name, appCode, businessUnit, timezone);
+                    //console.log(ClientObj);
+                    $("#AddEditModal").modal("hide");
+                    var el = $("#myModal").find(".modal-body");
+                    el.empty();
+                    $.ajax({
+                        type: "POST",
+                        url: baseUrl + "Admin/CreateOrEditClient",
+                        data: JSON.stringify({ client: ClientObj }),
+                        contentType: "application/json; charset=utf-8",
+                        success: function (response) {
+                            //console.log(response);
+                            if (response.Success) {
+                                if (response.Object != null) {
+                                    if (response.Object.Key) {
+                                        el.html("<div class='alert alert-green'>"+response.Object.Value+"</div>");
+                                    }
+                                    else {
+                                        el.html("<div class='alert alert-red'>" + response.Object.Value + "</div>");
+                                    }
+                                }
+                                GetClients();
                             }
                             else {
-                                el.html("<div class='alert alert-red'>Client can't save successfully.</div>");
+                                el.html("<div class='alert alert-red'>" + response.ErrorMessage + "</div>");
+
                             }
+                            $("#myModal").modal("show");
+                        },
+                        error: function (xhr, ajaxOptions, thrownError) {
+                            el.show();
+                            $("#loading").hide();
+                            var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
+                            el.html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
                         }
-                        GetClients();
-                    }
-                    else {
-                        el.html("<div class='alert alert-red'>" + response.ErrorMessage + "</div>");
 
-                    }
-                    $("#myModal").modal("show");
-                },
-                error: function (xhr, ajaxOptions, thrownError) {
-                    el.show();
-                    $("#loading").hide();
-                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
-                    el.html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
+                    });
                 }
-
             });
-
         }
+        function Clients(Id, Name, AppCode, BusinessUnit, TimeZone) {
+            this.Id = Id;
+            this.Name = Name;
+            this.AppCode = AppCode;
+            this.BusinessUnit=BusinessUnit;
+            this.TimeZone=TimeZone;
+        }
+
         var GetClients = function () {
             //$("#ClientList").hide();
             var el = $('#ClientList');
@@ -234,6 +248,7 @@
                 success: function (response) {
                     el.html(response);
                     $("#AddEditModal").modal("show");
+                    ValidateForm();
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
 
@@ -276,8 +291,8 @@
                     if (response.Success) {
                         if (response.Object != null) {
                             if (response.Object == 1 && isActive) {
-                                
-                                el.html("<div class='alert alert-green'>"+clientmsg+" activated successfully.</div>");
+
+                                el.html("<div class='alert alert-green'>" + clientmsg + " activated successfully.</div>");
                             }
                             if (response.Object == 1 && !isActive) {
                                 el.html("<div class='alert alert-green'>" + clientmsg + " deactivated successfully.</div>");

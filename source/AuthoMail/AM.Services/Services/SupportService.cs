@@ -176,7 +176,7 @@ namespace AM.Services
             }
             else
             {
-                string query = "UPDATE [Common].[Clients] SET Name=@name,AooCode=@appCode,BusinessUnit=@businessUnit,TimeZone=@timeZone,ModifiedBy=@modifiedBy,ModifiedOn=@modifiedOn WHERE Id=@id";
+                string query = "UPDATE [Common].[Clients] SET Name=@name,AppCode=@appCode,BusinessUnit=@businessUnit,TimeZone=@timeZone,ModifiedBy=@modifiedBy,ModifiedOn=@modifiedOn WHERE Id=@id";
                 int result = db.Execute(query, new { name = client.Name, appCode = client.AppCode, businessUnit = client.BusinessUnit, timeZone = client.TimeZone, modifiedBy = userId, modifiedOn = DateTime.UtcNow, id = client.Id });
                 return result > 0 ? GetKeyValue(true, "Client updated successfully.")
                     : GetKeyValue(false, "Invalid action performed.");
