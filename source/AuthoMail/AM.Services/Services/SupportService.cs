@@ -37,6 +37,9 @@ namespace AM.Services
         KeyValuePair<bool, string> CreateOrEditDocType(DocTypes docTypes, string userId);
         int MakeActivateOrDeactivateDocType(int Id, bool isActive, string userId);
         DocTypes FindByIdDocType(int Id);
+        //SFTChannel
+        KeyValuePair<bool, string> CreateOrEditSFTChannel(SFTChannel sftChannel);
+        int MakeActivateOrDeactivateSFTChannel(int Id, bool isActive);
     }
     public class SupportService : ServiceBase, ISupportService
     {
@@ -295,10 +298,7 @@ namespace AM.Services
                 return rows > 0 ? GetKeyValue(true, "DocType saved successfully.") : GetKeyValue(false, "Invalid action performed.");
             }
         }
-
-
-
-
+        
         public int MakeActivateOrDeactivateDocType(int Id, bool isActive, string userId)
         {
             string query = "UPDATE [AM].[DocTypes] SET [IsActive]=@isActive WHERE Id=@id";
@@ -310,6 +310,30 @@ namespace AM.Services
         {
             string query = "SELECT * FROM [AM].[DocTypes] WHERE Id=@id";
             return db.QuerySingleOrDefault<DocTypes>(query, new { id = Id });
+        }
+
+
+        public KeyValuePair<bool, string> CreateOrEditSFTChannel(SFTChannel sftChannel)
+        {
+            if (sftChannel.Id == 0)
+            {
+                string query = "INSERT INTO [Common].[SFTChannels] ([Code] ,[Description] ,[Title] ,[Protocol] ,[Host] ,[UserName] ,[Password] ,[ToADEDir] ,[FromADEDir] ,[ArchiveDir] ,[PostDownloadAction] ,[IsActive]) VALUES (@code ,@description ,@title ,@protocol ,@host ,@userName ,@password ,@toADEDir ,@fromADEDir ,@archiveDir ,@postDownloadAction ,@isActive)";
+                int rows = db.Execute(query, sftChannel);
+                return rows > 0 ? GetKeyValue(true, "SFTChannel saved successfully.") : GetKeyValue(false, "Invalid action performed.");
+            }
+            else
+            {
+                string query = "UPDATE [Common].[SFTChannels] SET [Code] = @code ,[Description] =@description ,[Title] = @title ,[Protocol] = @protocol ,[Host] = @host ,[UserName] = @userName ,[Password] = @password ,[ToADEDir] = @toADEDir ,[FromADEDir] = @fromADEDir ,[ArchiveDir] = @archiveDir ,[PostDownloadAction] = @postDownloadAction WHERE [Id]=@id";
+                int rows = db.Execute(query, sftChannel);
+                return rows > 0 ? GetKeyValue(true, "SFTChannel saved successfully.") : GetKeyValue(false, "Invalid action performed.");
+            }
+        }
+
+
+        public int MakeActivateOrDeactivateSFTChannel(int Id, bool isActive)
+        {
+            string query = "UPDATE [Common].[SFTChannels] SET [IsActive]=@isActive WHERE Id=@id";
+            return db.Execute(query, new { isActive = @isActive, @id = @Id });
         }
     }
 }

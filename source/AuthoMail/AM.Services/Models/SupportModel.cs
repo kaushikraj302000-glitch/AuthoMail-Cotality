@@ -24,5 +24,20 @@ namespace AM.Services
         public DateTime RequestedOn { get; set; }
         public string Status { get; set; }
     }
-
+    public class SFTChannel
+    {
+        public int Id { get; set; }
+        public string Code { get; set; }
+        public string Description { get; set; }
+        public string Title { get; set; }
+        public string Protocol { get; set; }
+        public string Host { get; set; }
+        public string UserName { get; set; }
+        public string Password { get; set; }
+        public string ToADEDir { get; set; }
+        public string FromADEDir { get; set; }
+        public string ArchiveDir { get; set; }
+        public string PostDownloadAction { get; set; }
+        public bool IsActive { get; set; }
+    }
 }
