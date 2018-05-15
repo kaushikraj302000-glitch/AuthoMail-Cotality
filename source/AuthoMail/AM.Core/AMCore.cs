@@ -207,6 +207,8 @@ namespace AM.Core
                                     }
                                     else
                                     {
+                                        mailPiece.TotalPages = 0;
+                                        mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                                         break;
                                     }
                                 }

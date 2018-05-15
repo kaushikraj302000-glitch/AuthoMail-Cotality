@@ -33,6 +33,13 @@ namespace AM.Services
         BusinessUnitModel FindByIdBusinessUnit(int Id);
         int CreateOrEditBusinessUnit(BusinessUnitModel businessUnit);
         int MakeActiveOrInActiveBusinessUnit(bool isActive, int Id);
+        //DocType
+        KeyValuePair<bool, string> CreateOrEditDocType(DocTypes docTypes, string userId);
+        int MakeActivateOrDeactivateDocType(int Id, bool isActive, string userId);
+        DocTypes FindByIdDocType(int Id);
+        //SFTChannel
+        KeyValuePair<bool, string> CreateOrEditSFTChannel(SFTChannels sftChannel);
+        int MakeActivateOrDeactivateSFTChannel(int Id, bool isActive);
     }
     public class SupportService : ServiceBase, ISupportService
     {
@@ -220,7 +227,7 @@ namespace AM.Services
             else
             {
                 string query = "UPDATE [Common].[BusinessUnit] SET [BusinessUnit] = @businessUnit, [CustCode] = @custCode WHERE Id=@id";
-                return db.Execute(query, new { businessUnit = businessUnit.BusinessUnit, custCode = businessUnit.CustCode, id = businessUnit.Id });
+                return db.Execute(query, businessUnit);
             }
         }
         public int MakeActiveOrInActiveBusinessUnit(bool isActive, int Id)
@@ -229,5 +236,104 @@ namespace AM.Services
             return db.Execute(query, new { isActive = isActive, id = Id });
         }
 
+
+
+        public KeyValuePair<bool, string> CreateOrEditDocType(DocTypes docTypes, string userId)
+        {
+            //Validation
+            if (docTypes.Id == 0)
+            {
+                string query = "INSERT INTO [AM].[DocTypes] ([DocTypeCode] ,[Description] ,[ClientId] ,[PrintSize] ,[ContentScalePercent] ,[PrintFormat] ,[QCPercent] ,[SLADays] ,[SLACutOffTime] ,[ShippingCarrier] ,[ShippingServiceType] ,[ShippingAccountCode] ,[IsReturnInfoSpecified] ,[RetRcptPrefix] ,[RetRcptFirstName] ,[RetRcptMiddleName] ,[RetRcptLastName] ,[RetRcptSuffix] ,[RetRcptPhone] ,[RetRcptOrganization] ,[RetRcptAddrOptionalLine1AboveStreet] ,[RetRcptAddrOptionalLine2AboveStreet] ,[RetRcptAddressStreet] ,[RetRcptAddressAptOrSuiteOrOther] ,[RetRcptAddrOptionalLine1BelowStreet] ,[RetRcptAddrOptionalLine2BelowStreet] ,[RetRcptAddressCity] ,[RetRcptAddressState] ,[RetRcptAddressZIP] ,[ClientEmails] ,[ClientContactNo] ,[SupportEmails] ,[SupportContactNo] ,[IsActive] ,[ModifiedOn] ,[CreatedOn] ,[CreatedBy] ,[ModifiedBy]) VALUES ('@docTypeCode','@description','@clientId','@printSize','@contentScalePercent','@printFormat','@qCPercent','@sLADays','@sLACutOffTime','@shippingCarrier','@shippingServiceType','@shippingAccountCode','@isReturnInfoSpecified','@retRcptPrefix','@retRcptFirstName','@retRcptMiddleName','@retRcptLastName','@retRcptSuffix','@retRcptPhone','@retRcptOrganization','@retRcptAddrOptionalLine1AboveStreet','@retRcptAddrOptionalLine2AboveStreet','@retRcptAddressStreet','@retRcptAddressAptOrSuiteOrOther','@retRcptAddrOptionalLine1BelowStreet','@retRcptAddrOptionalLine2BelowStreet','@retRcptAddressCity','@retRcptAddressState','@retRcptAddressZIP','@clientEmails','@clientContactNo','@supportEmails','@supportContactNo','@isActive','@modifiedOn','@createdOn','@createdBy','@modifiedBy')";
+                docTypes.CreatedOn = DateTime.UtcNow;
+                docTypes.CreatedBy = userId;
+                docTypes.ModifiedOn = DateTime.UtcNow;
+                docTypes.IsActive = false;
+                docTypes.ModifiedBy = userId;
+                int rows = db.Execute(query, docTypes);
+                return rows > 0 ? GetKeyValue(true, "DocType saved successfully.") : GetKeyValue(false, "Invalid action performed.");
+            }
+            else
+            {
+                string query = "UPDATE [AM].[DocTypes] SET [DocTypeCode]=@docTypeCode ,[Description]=@description ,[ClientId]=@clientId ,[PrintSize]=@printSize ,[ContentScalePercent]=@contentScalePercent ,[PrintFormat]=@printFormat ,[QCPercent]=@qCPercent ,[SLADays]=@sLADays ,[SLACutOffTime]=@sLACutOffTime ,[ShippingCarrier]=@shippingCarrier ,[ShippingServiceType]=@shippingServiceType ,[ShippingAccountCode]=@shippingAccountCode ,[IsReturnInfoSpecified]=@isReturnInfoSpecified ,[RetRcptPrefix]=@retRcptPrefix ,[RetRcptFirstName]=@retRcptFirstName ,[RetRcptMiddleName]=@retRcptMiddleName ,[RetRcptLastName]=@retRcptLastName ,[RetRcptSuffix]=@retRcptSuffix ,[RetRcptPhone]=@retRcptPhone ,[RetRcptOrganization]=@retRcptOrganization ,[RetRcptAddrOptionalLine1AboveStreet]=@retRcptAddrOptionalLine1AboveStreet ,[RetRcptAddrOptionalLine2AboveStreet]=@retRcptAddrOptionalLine2AboveStreet ,[RetRcptAddressStreet]=@retRcptAddressStreet ,[RetRcptAddressAptOrSuiteOrOther]=@retRcptAddressAptOrSuiteOrOther ,[RetRcptAddrOptionalLine1BelowStreet]=@retRcptAddrOptionalLine1BelowStreet ,[RetRcptAddrOptionalLine2BelowStreet]=@retRcptAddrOptionalLine2BelowStreet ,[RetRcptAddressCity]=@retRcptAddressCity ,[RetRcptAddressState]=@retRcptAddressState ,[RetRcptAddressZIP]=@retRcptAddressZIP ,[ClientEmails]=@clientEmails ,[ClientContactNo]=@clientContactNo ,[SupportEmails]=@supportEmails ,[SupportContactNo]=@supportContactNo ,[ModifiedOn]=@modifiedOn,[ModifiedBy]=@modifiedBy WHERE Id=@id";
+                //var p = new DynamicParameters();
+                //p.Add("@docTypeCode", docTypes.DocTypeCode);
+                //p.Add("@description", docTypes.Description);
+                //p.Add("@clientId", docTypes.ClientId);
+                //p.Add("@printSize", docTypes.PrintSize);
+                //p.Add("@contentScalePercent", docTypes.ContentScalePercent);
+                //p.Add("@printFormat", docTypes.PrintFormat);
+                //p.Add("@qCPercent", docTypes.QCPercent);
+                //p.Add("@sLADays", docTypes.SLADays);
+                //p.Add("@sLACutOffTime", docTypes.SLACutOffTime);
+                //p.Add("@shippingCarrier", docTypes.ShippingCarrier);
+                //p.Add("@shippingServiceType", docTypes.ShippingServiceType);
+                //p.Add("@shippingAccountCode", docTypes.ShippingAccountCode);
+                //p.Add("@isReturnInfoSpecified", docTypes.IsReturnInfoSpecified);
+                //p.Add("@retRcptPrefix", docTypes.RetRcptPrefix);
+                //p.Add("@retRcptFirstName", docTypes.RetRcptFirstName);
+                //p.Add("@retRcptMiddleName", docTypes.RetRcptMiddleName);
+                //p.Add("@retRcptLastName", docTypes.RetRcptLastName);
+                //p.Add("@retRcptSuffix", docTypes.RetRcptSuffix);
+                //p.Add("@retRcptPhone", docTypes.RetRcptPhone);
+                //p.Add("@retRcptOrganization", docTypes.RetRcptOrganization);
+                //p.Add("@retRcptAddrOptionalLine1AboveStreet", docTypes.RetRcptAddrOptionalLine1AboveStreet);
+                //p.Add("@retRcptAddrOptionalLine2AboveStreet", docTypes.RetRcptAddrOptionalLine2AboveStreet);
+                //p.Add("@retRcptAddressStreet", docTypes.RetRcptAddressStreet);
+                //p.Add("@retRcptAddressAptOrSuiteOrOther", docTypes.RetRcptAddressAptOrSuiteOrOther);
+                //p.Add("@retRcptAddrOptionalLine1BelowStreet", docTypes.RetRcptAddrOptionalLine1BelowStreet);
+                //p.Add("@retRcptAddrOptionalLine2BelowStreet", docTypes.RetRcptAddrOptionalLine2BelowStreet);
+                //p.Add("@retRcptAddressCity", docTypes.RetRcptAddressCity);
+                //p.Add("@retRcptAddressState", docTypes.RetRcptAddressState);
+                //p.Add("@retRcptAddressZIP", docTypes.RetRcptAddressZIP);
+                //p.Add("@clientEmails", docTypes.ClientEmails);
+                //p.Add("@clientContactNo", docTypes.ClientContactNo);
+                //p.Add("@supportEmails", docTypes.SupportEmails);
+                //p.Add("@supportContactNo", docTypes.SupportContactNo);
+                //p.Add("@modifiedOn", DateTime.UtcNow);
+                //p.Add("@modifiedBy", userId);
+                //p.Add("@id", docTypes.Id);
+                docTypes.ModifiedOn = DateTime.UtcNow;
+                docTypes.ModifiedBy = userId;
+                int rows = db.Execute(query, docTypes);
+                return rows > 0 ? GetKeyValue(true, "DocType saved successfully.") : GetKeyValue(false, "Invalid action performed.");
+            }
+        }
+        
+        public int MakeActivateOrDeactivateDocType(int Id, bool isActive, string userId)
+        {
+            string query = "UPDATE [AM].[DocTypes] SET [IsActive]=@isActive WHERE Id=@id";
+            return db.Execute(query, new { isActive = @isActive, @id = @Id });
+        }
+
+
+        public DocTypes FindByIdDocType(int Id)
+        {
+            string query = "SELECT * FROM [AM].[DocTypes] WHERE Id=@id";
+            return db.QuerySingleOrDefault<DocTypes>(query, new { id = Id });
+        }
+
+
+        public KeyValuePair<bool, string> CreateOrEditSFTChannel(SFTChannels sftChannel)
+        {
+            if (sftChannel.Id == 0)
+            {
+                string query = "INSERT INTO [Common].[SFTChannels] ([Code] ,[Description] ,[Title] ,[Protocol] ,[Host] ,[UserName] ,[Password] ,[ToADEDir] ,[FromADEDir] ,[ArchiveDir] ,[PostDownloadAction] ,[IsActive]) VALUES (@code ,@description ,@title ,@protocol ,@host ,@userName ,@password ,@toADEDir ,@fromADEDir ,@archiveDir ,@postDownloadAction ,@isActive)";
+                int rows = db.Execute(query, sftChannel);
+                return rows > 0 ? GetKeyValue(true, "SFTChannel saved successfully.") : GetKeyValue(false, "Invalid action performed.");
+            }
+            else
+            {
+                string query = "UPDATE [Common].[SFTChannels] SET [Code] = @code ,[Description] =@description ,[Title] = @title ,[Protocol] = @protocol ,[Host] = @host ,[UserName] = @userName ,[Password] = @password ,[ToADEDir] = @toADEDir ,[FromADEDir] = @fromADEDir ,[ArchiveDir] = @archiveDir ,[PostDownloadAction] = @postDownloadAction WHERE [Id]=@id";
+                int rows = db.Execute(query, sftChannel);
+                return rows > 0 ? GetKeyValue(true, "SFTChannel saved successfully.") : GetKeyValue(false, "Invalid action performed.");
+            }
+        }
+
+
+        public int MakeActivateOrDeactivateSFTChannel(int Id, bool isActive)
+        {
+            string query = "UPDATE [Common].[SFTChannels] SET [IsActive]=@isActive WHERE Id=@id";
+            return db.Execute(query, new { isActive = @isActive, @id = @Id });
+        }
     }
 }
