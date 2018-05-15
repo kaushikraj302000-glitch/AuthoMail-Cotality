@@ -297,11 +297,12 @@ namespace AM.Services
         }
 
 
+
+
         public int MakeActivateOrDeactivateDocType(int Id, bool isActive, string userId)
         {
             string query = "UPDATE [AM].[DocTypes] SET [IsActive]=@isActive WHERE Id=@id";
             return db.Execute(query, new { isActive = @isActive, @id = @Id });
-            throw new NotImplementedException();
         }
 
 
