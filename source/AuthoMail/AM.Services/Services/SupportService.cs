@@ -38,7 +38,7 @@ namespace AM.Services
         int MakeActivateOrDeactivateDocType(int Id, bool isActive, string userId);
         DocTypes FindByIdDocType(int Id);
         //SFTChannel
-        KeyValuePair<bool, string> CreateOrEditSFTChannel(SFTChannel sftChannel);
+        KeyValuePair<bool, string> CreateOrEditSFTChannel(SFTChannels sftChannel);
         int MakeActivateOrDeactivateSFTChannel(int Id, bool isActive);
     }
     public class SupportService : ServiceBase, ISupportService
@@ -313,7 +313,7 @@ namespace AM.Services
         }
 
 
-        public KeyValuePair<bool, string> CreateOrEditSFTChannel(SFTChannel sftChannel)
+        public KeyValuePair<bool, string> CreateOrEditSFTChannel(SFTChannels sftChannel)
         {
             if (sftChannel.Id == 0)
             {
