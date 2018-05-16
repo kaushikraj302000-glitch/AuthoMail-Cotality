@@ -268,5 +268,71 @@ namespace AM.Web.Controllers
         }
         
         #endregion
+
+        #region Manage SFTChannel
+
+        public ActionResult ManageSFTChannels()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public ActionResult GetSFTChannels()
+        {
+            try
+            {
+                var model = supportSvc.GetSFTChannels();
+                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpPost]
+        public ActionResult MakeActiveOrDeactiveSFTChannel(bool isActive, int Id)
+        {
+            try
+            {
+                var model = supportSvc.MakeActivateOrDeactivateSFTChannel(Id, isActive);
+                    return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpGet]
+        public ActionResult GetSFTChannelById(int id)
+        {
+
+            if (id != 0)
+            {
+                SFTChannels model = supportSvc.FindByIdSFTChannels(id);
+                return PartialView("_AddOrEditSFTChannel", model);
+            }
+            else
+            {
+                
+                return PartialView("_AddOrEditSFTChannel", new SFTChannels());
+            }
+        }
+        [HttpPost]
+        public ActionResult CreateOrEditSFTChannel(SFTChannels sftChannel)
+        {
+            try
+            {
+                var model = supportSvc.CreateOrEditSFTChannel(sftChannel);
+                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        #endregion
     }
 }

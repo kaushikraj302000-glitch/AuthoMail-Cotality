@@ -443,6 +443,8 @@
     <Content Include="Views\Admin\_AddOrEditBusinessUnit.cshtml" />
     <Content Include="Views\Admin\ManageClients.cshtml" />
     <Content Include="Views\Admin\_AddOrEditClient.cshtml" />
+    <Content Include="Views\Admin\ManageSFTChannels.cshtml" />
+    <Content Include="Views\Admin\_AddOrEditSFTChannel.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
