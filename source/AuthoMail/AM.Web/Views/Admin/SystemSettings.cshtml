@@ -145,6 +145,7 @@
         });
         function ValidateForm() {
             $('#systemsettingform').validate({ // initialize the plugin
+                errorElement: "span",
                 rules: {
                     Value: {
                         required: true,

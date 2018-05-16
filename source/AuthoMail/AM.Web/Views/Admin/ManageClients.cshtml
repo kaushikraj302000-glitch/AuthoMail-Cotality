@@ -126,6 +126,7 @@
         function ValidateForm()
         {
             $('#clientform').validate({ // initialize the plugin
+                errorElement: "span",
                 rules: {
                     Name: {
                         required: true,

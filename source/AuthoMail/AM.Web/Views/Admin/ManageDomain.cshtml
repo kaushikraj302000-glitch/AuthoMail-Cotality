@@ -101,6 +101,7 @@
         function ValidateForm()
         {
             $('#domainform').validate({ // initialize the plugin
+                errorElement:"span",
                 rules: {
                     domain: {
                         required: true,

@@ -118,6 +118,7 @@
         });
         function ValidateForm() {
             $('#businessform').validate({ // initialize the plugin
+                errorElement: "span",
                 rules: {
                     BusinessUnit: {
                         required: true,
