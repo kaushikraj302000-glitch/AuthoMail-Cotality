@@ -38,6 +38,8 @@ namespace AM.Services
         int MakeActivateOrDeactivateDocType(int Id, bool isActive, string userId);
         DocTypes FindByIdDocType(int Id);
         //SFTChannel
+        List<SFTChannels> GetSFTChannels();
+        SFTChannels FindByIdSFTChannels(int Id);
         KeyValuePair<bool, string> CreateOrEditSFTChannel(SFTChannels sftChannel);
         int MakeActivateOrDeactivateSFTChannel(int Id, bool isActive);
     }
@@ -298,7 +300,7 @@ namespace AM.Services
                 return rows > 0 ? GetKeyValue(true, "DocType saved successfully.") : GetKeyValue(false, "Invalid action performed.");
             }
         }
-        
+
         public int MakeActivateOrDeactivateDocType(int Id, bool isActive, string userId)
         {
             string query = "UPDATE [AM].[DocTypes] SET [IsActive]=@isActive WHERE Id=@id";
@@ -312,7 +314,16 @@ namespace AM.Services
             return db.QuerySingleOrDefault<DocTypes>(query, new { id = Id });
         }
 
-
+        public List<SFTChannels> GetSFTChannels()
+        {
+            string query = "SELECT * FROM [Common].[SFTChannels]";
+            return db.Query<SFTChannels>(query).ToList();
+        }
+        public SFTChannels FindByIdSFTChannels(int Id)
+        {
+            string query = "SELECT * FROM [Common].[SFTChannels] WHERE Id=@id";
+            return db.QuerySingleOrDefault<SFTChannels>(query, new { id = Id });
+        }
         public KeyValuePair<bool, string> CreateOrEditSFTChannel(SFTChannels sftChannel)
         {
             if (sftChannel.Id == 0)
@@ -329,11 +340,11 @@ namespace AM.Services
             }
         }
 
-
         public int MakeActivateOrDeactivateSFTChannel(int Id, bool isActive)
         {
             string query = "UPDATE [Common].[SFTChannels] SET [IsActive]=@isActive WHERE Id=@id";
             return db.Execute(query, new { isActive = @isActive, @id = @Id });
         }
+
     }
 }
