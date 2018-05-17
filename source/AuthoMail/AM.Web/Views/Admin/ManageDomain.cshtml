@@ -1,46 +1,34 @@
 ﻿@{
     ViewBag.Title = "ManageDomain";
 }
+<link href="~/clui/dist/css/datatablecustom.css" rel="stylesheet" />
 
+<style>
+    #dateFilter .bootstrap-select {
+        width: 100% !important;
+    }
+
+    .bootstrap-select {
+        width: 205px !important;
+    }
+
+    .dataTables_wrapper {
+        margin-top: -1.5% !important;
+    }
+
+    .popover-content {
+        word-wrap: break-word;
+        color: red;
+    }
+</style>
 <div class="row">
-    <div class="col-md-6">
-        <div class="panel panel-default ">
-            <div class="panel-heading">
-                <div class="panel-title">
-                    <i class="fa fa-globe"></i>
-                    Add New Domain
-                </div>
-            </div>
-            <div class="panel-body panel-gray" style="padding:2% 2% 2% 2% !important;" id="todayBody">
-                <form action="#" id="domainform">
-                    <div class="form-group col-md-4">
-                        <label for="Clients">Clients</label>
-                        @Html.DropDownList("Clients", ViewBag.Clients as SelectList, "Select Client", htmlAttributes: new { @class = "selectpicker" })
-                        <div class="text-red" style="display:none" id="ClientsError">This field is required.</div>
-                    </div>
-                    <div class="form-group col-md-6">
-                        <label for="Clients">Domain Name</label>
-                        <input type="text" id="domain" class="form-control" name="domain" />
-                        <div class="text-red" style="display:none" id="domainError">This field is required.</div>
-                    </div>
-                    <div class="form-group col-md-2">
-                        <label for="GetData">  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-                        <button type="submit" id="AddDomain" class="btn btn-primary">
-                            <span class="sr-only">Domian</span>
-                            Add @*<i class="fa fa-globe " style="font-size:1.5em;"></i>*@
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-        </div>
-    </div>
-
-    <div class="col-md-6">
-
         <div class="panel panel-default">
             <div class="panel-heading">
-                <div class="panel-title"><i class="fa fa-globe"></i> Domain Details</div>
+                <div class="panel-title">
+                    <i class="fa fa-globe"></i> Domain Details <span class="pull-right">
+                        <button type="button" data-alloweddomain="" class="btn btn-primary " onclick="AddEditDomain(this)"><i class="fa fa-plus"></i> Add Domain</button>
+                    </span>
+                </div>
             </div>
             <div class="panel-body panel-gray" style="padding:2% 2% 2% 2% !important;min-height: 107px;">
                 <div class='alert alert-blue text-center' id="loading" style="display:none"><span> Loading... </span></div>
@@ -48,10 +36,7 @@
 
             </div>
         </div>
-        <div class="clearfix"></div>
-
-
-    </div>
+       
 </div>
 
 <!--Domain table html template code -->
@@ -81,120 +66,243 @@
     </table>
 </div>
 <!-- end table template code -->
+
+<div class="modal fade" id="AddEditModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <div class="modal-header" style="margin-top:2%;margin-bottom:2%;">
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <div class="modal-header">
+                <h1 id="myModalLabel">Domain Details</h1>
+            </div>
+            <div class="modal-body">
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
 @section Scripts{
     @Styles.Render("~/bundles/datatablescss")
     @Scripts.Render("~/bundles/datatables")
 
     <script type="text/javascript">
-        $(document).ready(function () {
-            window.clui.dateTimePickerInit();
-            GetData();
-            ValidateForm();
-            // JSON.useDateParser(false);
+    $(document).ready(function () {
+        window.clui.dateTimePickerInit();
+        GetData();
+        ValidateForm();
+        // JSON.useDateParser(false);
+    });
+    function FormatObject(Model) {
+        $(Model).each(function () {
+            this.Action = '<span style="cursor: pointer;font-size:1.2em;" onclick="AddEditDomain(this)" data-alloweddomain="' + this.AllowedDomain + '" ><i class="padding-left-15 fa fa-edit text-blue" aria-hidden="true" title="Edit"><span class="sr-only">Edit</span></i></span>';
         });
-        function FormatObject(Model) {
-            $(Model).each(function () {
-                this.Action = '<span style="cursor: pointer;font-size:1.2em;" onclick="EditDomain(this)" data-id="' + this.Id + '" ><i class="padding-left-15 fa fa-edit text-blue" aria-hidden="true" title="Edit"><span class="sr-only">Edit</span></i></span>';
-            });
-            return Model;
-        }
-        
-        function ValidateForm()
-        {
-            $('#domainform').validate({ // initialize the plugin
-                errorElement:"span",
-                rules: {
-                    domain: {
-                        required: true,
-                        domainonly: true,
-                        maxlength: 255
+        return Model;
+    }
 
-                    },
-                    Clients:{
-                        required: true
-                    }
+    function ValidateForm() {
+        $('#domainform').validate({ // initialize the plugin
+            errorElement: "span",
+            rules: {
+                domain: {
+                    required: true,
+                    domainonly: true,
+                    maxlength: 255
+
                 },
-                submitHandler: function (form) {
-                    AddDomain();
+                ClientId: {
+                    required: true
                 }
-            });
-        }
-        function applyDataTable() { }
-        function GetData() {
+            },
+            submitHandler: function (form) {
+                $("#AddEditModal").modal("hide");
+                SaveDomain();
+            }
+        });
+    }
+    function applyDataTable() {
 
-            $("#DomainList").hide();
-            var el = $('#DomainList');
-            $("#loading").show();
-            $.ajax({
-                type: "GET",
-                url: baseUrl + "Admin/GetDomains",
-                //data: JSON.stringify({}),
-                contentType: "application/json; charset=utf-8",
-                success: function (response) {
-                    //console.log(response);
-                    $("#loading").hide();
-                    if (response.Success) {
-                        $("#DomainList").show();
-                        if (response.Object != null) {
-                            if (response.Object.model.length > 0) {
-                                $("#DomainList").html("");
-                                var data = FormatObject(response.Object.model);
-                                BindTemplate(data, "#DomainBody", "#DomainbodyContent", "#DomainTableContent", "#DomainList");
-                            }
-                            else {
-                                $("#DomainList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
-                            }
+        $('[data-toggle="popover"]').popover({
+            'trigger': 'hover',
+            'placement': 'auto left',
+            'container': 'body'
+        });
+        var table = $('#sample_2');
+        var filename = "Domain";
+        var title = "Domain Details";
+        var oTable = table.dataTable({
+
+            "language": {
+                "aria": {
+                    "sortAscending": ": activate to sort column ascending",
+                    "sortDescending": ": activate to sort column descending"
+                },
+                "emptyTable": "No data available in table",
+                "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+                "infoEmpty": "No entries found",
+                "infoFiltered": "(filtered1 from _MAX_ total entries)",
+                "lengthMenu": "_MENU_ entries",
+                "search": "<b>Search:</b>",
+                "zeroRecords": "No matching records found"
+            },
+            //"columnDefs": [
+            //        {
+            //            "targets": ["ErrorText", "BatchId"],
+            //            "visible": false,
+            //            "searchable": true
+
+            //        },
+            //],
+            //"scrollX": true,
+            buttons: [
+                //{
+                //    extend: 'colvis',
+                //    text: 'Select Fields',
+                //    className: 'btn purple pull-left',
+                //    columns: ':not(.noVis)'
+                //},
+            //{
+            //    extend: 'excel',
+            //    text: '<i class="fa fa-file-excel-o fa-2x"></i>',
+            //    className: 'btn btn-primary',
+            //    filename: filename,
+            //    title: title,
+            //    exportOptions: {
+            //        columns: ["thead th:not(.BatchId)", ".ErrorCode", ".ErrorText"],//0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 23]
+            //    }
+
+            //}
+
+
+
+            ],
+
+            //"order": [
+            //    [3, 'asc'],
+            //    [4, 'asc']
+            //],
+            "lengthMenu": [
+                [5, 10, 25, 50, 100, -1],
+                [5, 10, 25, 50, 100, "All"] // change per page values here
+            ],
+            // set the initial value
+            "pageLength": 5,
+
+            "dom": "<'row' <'col-md-12'B>><'row'<'col-md-6 col-sm-12'l><'col-md-6 col-sm-12'f>r><'table-scrollable't><'row'<'col-md-5 col-sm-12'i><'col-md-7 col-sm-12'p>>", // horizobtal scrollable datatable
+
+
+        });
+
+    }
+    function GetData() {
+
+        $("#DomainList").hide();
+        var el = $('#DomainList');
+        $("#loading").show();
+        $.ajax({
+            type: "GET",
+            url: baseUrl + "Admin/GetDomains",
+            //data: JSON.stringify({}),
+            contentType: "application/json; charset=utf-8",
+            success: function (response) {
+                //console.log(response);
+                $("#loading").hide();
+                if (response.Success) {
+                    $("#DomainList").show();
+                    if (response.Object != null) {
+                        if (response.Object.model.length > 0) {
+                            $("#DomainList").html("");
+                            var data = FormatObject(response.Object.model);
+                            BindTemplate(data, "#DomainBody", "#DomainbodyContent", "#DomainTableContent", "#DomainList");
                         }
-                    } else {
-
-                        $("#DomainList").show();
-                        $("#DomainList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + response.ErrorMessage + "</span></div>");
+                        else {
+                            $("#DomainList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                        }
                     }
-                },
-                error: function (xhr, ajaxOptions, thrownError) {
+                } else {
+
                     $("#DomainList").show();
-                    $("#loading").hide();
-                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
-                    $("#DomainList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
+                    $("#DomainList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + response.ErrorMessage + "</span></div>");
                 }
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                $("#DomainList").show();
+                $("#loading").hide();
+                var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
+                $("#DomainList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
+            }
 
-            });
-        }
-       
-        function AddDomain() {
-            $.ajax({
-                type: "POST",
-                url: baseUrl + "Admin/AddDomain",
-                data: JSON.stringify({ clientId: $("#Clients").val(), domainName: $("#domain").val().trim() }),
-                contentType: "application/json; charset=utf-8",
-                success: function (response) {
-                    if (response.Success) {
-                        window.clui.globalAlert({
-                            message: 'Domain added successfully.',
-                            alertType: 'green',
-                            timeout: 5000
-                        })
-                        $("#domain").val("");
-                        $("#Clients").val("");
-                        $('.selectpicker').selectpicker('refresh');
-                        GetData();
-                    }
-                    else {
+        });
+    }
+    function AddEditDomain(obj) {
+        var allowedDomain = $(obj).data("alloweddomain");
+        var el = $("#AddEditModal").find(".modal-header");
+        el.empty();
+        $.ajax({
+            type: "GET",
+            url: baseUrl + "Admin/GetDomainByName",
+            data: { domainName: allowedDomain },
+            success: function (response) {
+                el.html(response);
+                $("#AddEditModal").modal("show");
+                ValidateForm();
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
 
-                        window.clui.globalAlert({
-                            message: response.ErrorMessage,
-                            alertType: 'red',
-                            timeout: 5000
-                        })
+                //Spinners(".spinnericon", "faspinner");
+                var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
+                el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                $("#AddEditModal").modal("show");
+            }
+        });
+
+    }
+    function SaveDomain() {
+        
+        var el = $("#myModal").find(".modal-body");
+        el.empty();
+        $.ajax({
+            type: "POST",
+            url: baseUrl + "Admin/CreateOrEditDomain",
+            data: JSON.stringify({ clientId: $("#ClientId").val(), domainName: $("#domain").val().trim(), oldDomain: $("#OldDomain").val().trim() }),
+            contentType: "application/json; charset=utf-8",
+            success: function (response) {
+                if (response.Success) {
+                    if (response.Object != null) {
+                        if (response.Object == 1) {
+                            el.html("<div class='alert alert-green'>Domain saved successfully.</div>");
+                        }
+                        else {
+                            el.html("<div class='alert alert-red'>Domain can't be save.</div>");
+                        }
                     }
-                },
-                error: function (xhr, ajaxOptions, thrownError) {
-                    $("#DomainList").show();
-                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
-                    $("#DomainList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
+                    GetData();
                 }
-            });
-        }
+                else {
+
+                    el.html("<div class='alert alert-red'>" + response.ErrorMessage + "</div>");
+                }
+                $("#myModal").modal("show");
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
+                el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                $("#myModal").modal("show");
+            }
+        });
+    }
 
     </script>
 }

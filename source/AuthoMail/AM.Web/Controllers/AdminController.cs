@@ -63,30 +63,46 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
             }
         }
+        [HttpGet]
+        public ActionResult GetDomainByName(string domainName)
+        {
 
+            if (!string.IsNullOrWhiteSpace(domainName))
+            {
+                ClientDomains domain = supportSvc.FingByDomainName(domainName);
+                ViewBag.Clients = new SelectList(homeSvc.GetAllActiveClient(), "Id", "Name", domain.ClientId);
+                return PartialView("_AddOrEditDomain", domain);
+            }
+            else
+            {
+                ViewBag.Clients = new SelectList(homeSvc.GetAllActiveClient(), "Id", "Name");
+                return PartialView("_AddOrEditDomain", new ClientDomains());
+            }
+        }
 
         public ActionResult ManageDomain()
         {
             var model = homeSvc.GetAllActiveClient();
-            ViewBag.Clients = new SelectList(homeSvc.GetAllActiveClient(), "Id", "Name");
+
             return View();
         }
 
         [HttpPost]
-        public ActionResult AddDomain(int clientId, string domainName)
+        public ActionResult CreateOrEditDomain(int clientId, string domainName, string oldDomain)
         {
 
             try
             {
-                var model = supportSvc.CreateClientDomain(clientId, domainName);
-                if (model > 0)
+                int model = 0;
+                if (string.IsNullOrWhiteSpace(oldDomain))
                 {
-
-                    return Json(JsonResponseFactory.SuccessResponse(), JsonRequestBehavior.AllowGet);
+                    model = supportSvc.CreateClientDomain(clientId, domainName);
+                    return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
                 }
                 else
                 {
-                    return Json(JsonResponseFactory.ErrorResponse("Error while adding domain name."), JsonRequestBehavior.AllowGet);
+                    model = supportSvc.UpdateClientDomain(domainName, oldDomain);
+                    return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
                 }
             }
             catch (Exception e)
@@ -253,20 +269,20 @@ namespace AM.Web.Controllers
         [HttpGet]
         public ActionResult GetClientById(int id)
         {
-            
-            if (id!=0)
+
+            if (id != 0)
             {
                 Clients client = supportSvc.FindByClientId(id);
                 ViewBag.BusinessUnitList = new SelectList(supportSvc.GetBusinessUnitActive(), "Id", "BusinessUnit", client.BusinessUnit);
-                return PartialView("_AddOrEditClient",client);
+                return PartialView("_AddOrEditClient", client);
             }
             else
             {
                 ViewBag.BusinessUnitList = new SelectList(supportSvc.GetBusinessUnitActive(), "Id", "BusinessUnit");
-                return PartialView("_AddOrEditClient",new Clients());
+                return PartialView("_AddOrEditClient", new Clients());
             }
         }
-        
+
         #endregion
 
         #region Manage SFTChannel
@@ -296,7 +312,7 @@ namespace AM.Web.Controllers
             try
             {
                 var model = supportSvc.MakeActivateOrDeactivateSFTChannel(Id, isActive);
-                    return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
             {
@@ -315,7 +331,7 @@ namespace AM.Web.Controllers
             }
             else
             {
-                
+
                 return PartialView("_AddOrEditSFTChannel", new SFTChannels());
             }
         }

@@ -134,6 +134,9 @@
                         maxlength:255
 
                     },
+                    BusinessUnit: {
+                        required: true
+                    },
                     AppCode: {
                         required: true,
                         maxlength:128
@@ -326,8 +329,8 @@
                 'container': 'body'
             });
             var table = $('#sample_2');
-            var filename = "SummaryControlReport";
-            var title = "Summary Control Report";
+            var filename = "ClientDetails";
+            var title = "Client Details";
             var oTable = table.dataTable({
 
                 "language": {
@@ -343,14 +346,14 @@
                     "search": "<b>Search:</b>",
                     "zeroRecords": "No matching records found"
                 },
-                "columnDefs": [
-                        {
-                            "targets": ["ErrorText", "BatchId"],
-                            "visible": false,
-                            "searchable": true
+                //"columnDefs": [
+                //        {
+                //            "targets": ["ErrorText", "BatchId"],
+                //            "visible": false,
+                //            "searchable": true
 
-                        },
-                ],
+                //        },
+                //],
                 //"scrollX": true,
                 buttons: [
                     //{
@@ -390,18 +393,7 @@
 
 
             });
-            $('.selectpicker').selectpicker('refresh');
-            $('#BatchList').on('change', function () {
-                var oTable = $('#sample_2').dataTable();
-                var filterColumn = oTable.api().column(".BatchId").index();
-                var selected = $(this).find("option:selected").val();
-                if (!selected) {
-
-                    oTable.fnFilter('', filterColumn, true);
-                } else {
-                    oTable.fnFilter("^" + parseInt(selected) + "$", filterColumn, true); //Exact value, column, reg
-                }
-            });
+           
         }
 
     </script>
