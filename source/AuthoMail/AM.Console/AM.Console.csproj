@@ -87,6 +87,9 @@
     <None Include="log4net.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="Resources\AMMailPieceSchema.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Resources\HSBCRespaControlSchema.xsd">
       <SubType>Designer</SubType>
     </None>
