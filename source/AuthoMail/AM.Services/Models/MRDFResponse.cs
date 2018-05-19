@@ -20,5 +20,6 @@ namespace AM.Services
         public string DetailedErrorId { get; set; }
         public string Disposition { get; set; }
         public string Common { get; set; }
+        public string PackageTrackingNumber { get; set; }
     }
 }
