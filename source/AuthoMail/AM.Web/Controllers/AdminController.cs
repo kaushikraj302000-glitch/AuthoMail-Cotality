@@ -350,5 +350,43 @@ namespace AM.Web.Controllers
         }
 
         #endregion
+
+        #region Manage DocType
+
+        public ActionResult ManageDocumentTypes()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public ActionResult GetDocTypes()
+        {
+            try
+            {
+                var model = supportSvc.GetDocTypes();
+                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+        [HttpGet]
+        public ActionResult GetDocTypeById(int id)
+        {
+            if (id != 0)
+            {
+                DocTypes model = supportSvc.FindByIdDocType(id);
+                ViewBag.Clients = new SelectList(homeSvc.GetAllActiveClient(), "Id", "Name", model.ClientId);
+                return PartialView("_AddOrEditDocType", model);
+            }
+            else
+            {
+                ViewBag.Clients = new SelectList(homeSvc.GetAllActiveClient(), "Id", "Name");
+                return PartialView("_AddOrEditDocType", new DocTypes());
+            }
+        }
+
+        #endregion
     }
 }

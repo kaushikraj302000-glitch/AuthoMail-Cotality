@@ -446,6 +446,8 @@
     <Content Include="Views\Admin\ManageSFTChannels.cshtml" />
     <Content Include="Views\Admin\_AddOrEditSFTChannel.cshtml" />
     <Content Include="Views\Admin\_AddOrEditDomain.cshtml" />
+    <Content Include="Views\Admin\ManageDocumentTypes.cshtml" />
+    <Content Include="Views\Admin\_AddOrEditDocType.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
