@@ -27,6 +27,8 @@ namespace AM.Services
                 var responseLines = new List<string>();
                 string outFileFullPath = string.Empty;
                 string zipFileFullPath = string.Empty;
+                Random r = new Random();
+
                 foreach (var item in items)
                 {
                     outFileFullPath = string.Format("{0}.out", Path.Combine(outFilePath, item.PrintFileName.Replace(".zip", "-000043HYFC")));
@@ -42,11 +44,13 @@ namespace AM.Services
                     item.DetailedErrorId = String.Format("{0,-5}", "4691");
                     item.Disposition = String.Format("{0,-2}", "5");
                     item.Common = "000000.00 00000000Mailrun_Files            0.0000000 Mailrun_Files            ";
+                    //item.PackageTrackingNumber = String.Format("{0,-40}", "91149014964518079610" + r.Next(10, 99).ToString());
                     responseLine = string.Format("{0}{1}{2}", responseLine.Substring(0, 77), item.Date, responseLine.Substring(85));
                     responseLine = string.Format("{0}{1}{2}", responseLine.Substring(0, 85), item.JobId, responseLine.Substring(95));
                     responseLine = string.Format("{0}{1}{2}", responseLine.Substring(0, 95), item.PieceId, responseLine.Substring(99));
                     responseLine = string.Format("{0}{1}{2}", responseLine.Substring(0, 99), item.TotalSheets, responseLine.Substring(102));
                     responseLine = string.Format("{0}{1}{2}", responseLine.Substring(0, 117), item.PDFFileName, responseLine.Substring(277));
+                    //responseLine = string.Format("{0}{1}{2}", responseLine.Substring(0, 501), item.PackageTrackingNumber, responseLine.Substring(541));
                     responseLine = string.Format("{0}{1}{2}", responseLine.Substring(0, 800), item.OperatorId, responseLine.Substring(808));
                     responseLine = string.Format("{0}{1}{2}", responseLine.Substring(0, 808), item.MachineId, responseLine.Substring(816));
                     responseLine = string.Format("{0}{1}{2}", responseLine.Substring(0, 816), item.ProcessingTimeStamp, responseLine.Substring(830));
