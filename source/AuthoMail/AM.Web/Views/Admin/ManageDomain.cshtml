@@ -8,10 +8,7 @@
         width: 100% !important;
     }
 
-    .bootstrap-select {
-        width: 205px !important;
-    }
-
+  
     .dataTables_wrapper {
         margin-top: -1.5% !important;
     }
@@ -113,6 +110,7 @@
     }
 
     function ValidateForm() {
+        window.clui.selectInit();
         $('#domainform').validate({ // initialize the plugin
             errorElement: "span",
             rules: {

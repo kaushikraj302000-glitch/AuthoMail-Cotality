@@ -9,14 +9,14 @@
         {
             <div class="form-group">
                 <label for="Clients">Clients</label>
-                @Html.DropDownListFor(model => model.ClientId, ViewBag.Clients as SelectList, "Select Client", htmlAttributes: new { @class = "form-control" })
+                @Html.DropDownListFor(model => model.ClientId, ViewBag.Clients as SelectList, "Select Client", htmlAttributes: new { @class = " form-control selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Client" })
             </div>
         }
         else
         {
             <div class="form-group">
                 <label for="Clients">Clients</label>
-                @Html.DropDownListFor(model => model.ClientId, ViewBag.Clients as SelectList, "Select Client", htmlAttributes: new { @class = "form-control", @disabled="disabled" })
+                @Html.DropDownListFor(model => model.ClientId, ViewBag.Clients as SelectList, "Select Client", htmlAttributes: new { @class = " form-control selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Client", @disabled = "disabled" })
             </div>
         }
         

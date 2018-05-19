@@ -260,7 +260,7 @@
                     if (response.Success) {
                         if (response.Object != null) {
                             $("#loading").hide();
-                            var sel = '<select id="BatchList" class="selectpicker">';
+                            var sel = '<select id="BatchList" class="selectpicker" data-live-search="true" data-live-search-placeholder="Search by Time/Batch Name">';
                             sel = sel + "<option value=''>All (Time - Batch Name)</option>";
                             $(response.Object.BatchList).each(function () {
                                 sel = sel + "<option value='" + this.Key + "'>" + this.Value + "</option>";
