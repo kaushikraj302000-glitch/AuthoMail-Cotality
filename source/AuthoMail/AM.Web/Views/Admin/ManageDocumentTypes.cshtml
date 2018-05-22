@@ -362,11 +362,13 @@
                     $("#SupportContactNo").rules('add', {
                         required: true
                     });
+                    $("#IsReturnInfoSpecified").val(true);
                 }
                 else {
                     $(".returninfovalidate").each(function () {
                         $(this).rules("remove");
                     })
+                    $("#IsReturnInfoSpecified").val(false);
                 }
                 if ($("#doctypeform").valid()) {
 
