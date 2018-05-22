@@ -274,11 +274,13 @@ namespace AM.Web.Controllers
             {
                 Clients client = supportSvc.FindByClientId(id);
                 ViewBag.BusinessUnitList = new SelectList(supportSvc.GetBusinessUnitActive(), "Id", "BusinessUnit", client.BusinessUnit);
+                ViewBag.TimezoneList = new SelectList(TimeZoneInfo.GetSystemTimeZones().OrderBy(s => s.StandardName).ToList(), "StandardName", "StandardName",client.TimeZone);
                 return PartialView("_AddOrEditClient", client);
             }
             else
             {
                 ViewBag.BusinessUnitList = new SelectList(supportSvc.GetBusinessUnitActive(), "Id", "BusinessUnit");
+                ViewBag.TimezoneList = new SelectList(TimeZoneInfo.GetSystemTimeZones().OrderBy(s => s.StandardName).ToList(), "StandardName", "StandardName");
                 return PartialView("_AddOrEditClient", new Clients());
             }
         }
@@ -346,6 +348,44 @@ namespace AM.Web.Controllers
             catch (Exception e)
             {
                 return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        #endregion
+
+        #region Manage DocType
+
+        public ActionResult ManageDocumentTypes()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public ActionResult GetDocTypes()
+        {
+            try
+            {
+                var model = supportSvc.GetDocTypes();
+                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+        [HttpGet]
+        public ActionResult GetDocTypeById(int id)
+        {
+            if (id != 0)
+            {
+                DocTypes model = supportSvc.FindByIdDocType(id);
+                ViewBag.Clients = new SelectList(homeSvc.GetAllActiveClient(), "Id", "Name", model.ClientId);
+                return PartialView("_AddOrEditDocType", model);
+            }
+            else
+            {
+                ViewBag.Clients = new SelectList(homeSvc.GetAllActiveClient(), "Id", "Name");
+                return PartialView("_AddOrEditDocType", new DocTypes());
             }
         }
 

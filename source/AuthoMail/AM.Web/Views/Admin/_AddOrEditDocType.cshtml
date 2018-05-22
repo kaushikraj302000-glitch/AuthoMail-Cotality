@@ -1,0 +1,281 @@
+﻿@model AM.Services.DocTypes
+
+<h2 id="myModalLabel">@(Model.Id == 0 ? Html.Raw("Add Document Type Details") : Html.Raw("Edit Document Type Details"))</h2>
+<style>
+    hr {
+        margin-top: 2% !important;
+        margin-bottom: 2% !important;
+    }
+</style>
+<hr />
+<form id="doctypeform" action="#">
+    <input type="hidden" name="Id" id="Id" value="@Model.Id" />
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="Description">Document Type Code</label>
+                <div class="input-group">
+                    <input type="text" id="DocTypeCode" class="form-control" placeholder="Document Type Code" name="DocTypeCode" value="@Model.DocTypeCode" />
+                </div>
+
+            </div>
+            <div class="form-group">
+                <label for="Clients">Clients</label>
+                @Html.DropDownListFor(model => model.ClientId, ViewBag.Clients as SelectList, "Select Client", htmlAttributes: new { @class = " form-control selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Client" })
+            </div>
+            <div class="form-group">
+                <label for="Description">Print Size</label>
+                <div class="input-group">
+                    <input type="text" id="PrintSize" class="form-control" placeholder="Print Size" name="PrintSize" value="@Model.PrintSize" />
+                </div>
+
+            </div>
+            <div class="form-group">
+                <label for="Description">Content Scale Percent</label>
+                <div class="input-group">
+                    <input type="text" id="ContentScalePercent" class="form-control" placeholder="Content Scale Percent" name="ContentScalePercent" value="@Model.ContentScalePercent" />
+                </div>
+
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="Description">Print Format</label>
+                <div class="input-group">
+                    <input type="text" id="PrintFormat" class="form-control" placeholder="Print Format" name="PrintFormat" value="@Model.PrintFormat" />
+                </div>
+
+            </div>
+            <div class="form-group">
+                <label for="Description">QC Percent</label>
+                <div class="input-group">
+                    <input type="text" id="QCPercent" class="form-control" name="QCPercent" placeholder="QC Percent" value="@Model.QCPercent" />
+                </div>
+
+            </div>
+            <div class="form-group">
+                <label for="Description">SLA Days</label>
+                <div class="input-group">
+                    <input type="number" id="SLADays" class="form-control" name="SLADays" placeholder="SLA Days" value="@Model.SLADays" />
+                </div>
+
+            </div>
+            <div class="form-group">
+                <label for="Description">SLA Cut Off Time</label>
+                <div class="input-group">
+                    <input type="text" id="SLACutOffTime" class="form-control" placeholder="SLA Cut Off Time" name="SLACutOffTime" value="@Model.SLACutOffTime" />
+                </div>
+
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="Description">Shipping Carrier</label>
+                <div class="input-group">
+                    <input type="text" id="ShippingCarrier" class="form-control" placeholder="Shipping Carrier" name="ShippingCarrier" value="@Model.ShippingCarrier" />
+                </div>
+
+            </div>
+            <div class="form-group">
+                <label for="Description">Shipping Service Type</label>
+                <div class="input-group">
+                    <input type="text" id="ShippingServiceType" placeholder="Shipping Service Type" class="form-control" name="ShippingServiceType" value="@Model.ShippingServiceType" />
+                </div>
+
+            </div>
+            <div class="form-group">
+                <label for="Description">Shipping Account Code</label>
+                <div class="input-group">
+                    <input type="text" id="ShippingAccountCode" class="form-control" placeholder="Shipping Account Code" name="ShippingAccountCode" value="@Model.ShippingAccountCode" />
+                </div>
+
+            </div>
+            <div class="form-group">
+                <label for="Description">Description</label>
+                <div class="input-group">
+                    <textarea id="Description" name="Description" placeholder="Description" class="form-control">@Model.Description</textarea>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel-group">
+                <div class="panel panel-default">
+                    <div class="panel-heading" id="headingOne">
+                        <a role="button" data-toggle="collapse" class="@(Model.IsReturnInfoSpecified ? "collapse" : "collapsed")" data-parent="#accordion" href="#metaItem1">
+                            <div class="panel-title">
+                                Click here to fill return info.
+                                <div class="collapsed-icon pull-right">
+                                    <i class="fa fa-caret-left"></i>
+                                </div>
+                                <div class="expanded-icon pull-right">
+                                    <i class="fa fa-caret-down"></i>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div id="metaItem1" class="panel-collapse collapse @(Model.IsReturnInfoSpecified ? "in" : "")">
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="hidden" id="IsReturnInfoSpecified" value="@Model.IsReturnInfoSpecified" name=" IsReturnInfoSpecified" />
+                                    <div class="form-group">
+                                        <label for="Description">Prefix</label>
+                                        <div class="input-group">
+                                            <input type="text" id="RetRcptPrefix" class="form-control" placeholder="Prefix" name="RetRcptPrefix" value="@Model.RetRcptPrefix" />
+                                        </div>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Description">First Name</label>
+                                        <div class="input-group">
+                                            <input type="text" id="RetRcptFirstName" class="form-control" placeholder="First Name" name="RetRcptFirstName" value="@Model.RetRcptFirstName" />
+                                        </div>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Description">Middle Name</label>
+                                        <div class="input-group">
+                                            <input type="text" id="RetRcptMiddleName" placeholder="Middle Name" class="form-control" name="RetRcptMiddleName" value="@Model.RetRcptMiddleName" />
+                                        </div>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Description">Last Name</label>
+                                        <div class="input-group">
+                                            <input type="text" id="RetRcptLastName" placeholder="Last Name" class="form-control" name="RetRcptLastName" value="@Model.RetRcptLastName" />
+                                        </div>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Description">Suffix</label>
+                                        <div class="input-group">
+                                            <input type="text" id="RetRcptSuffix" class="form-control" placeholder="Suffix" name="RetRcptSuffix" value="@Model.RetRcptSuffix" />
+                                        </div>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Description">Phone</label>
+                                        <div class="input-group">
+                                            <input type="text" id="RetRcptPhone" placeholder="Phone" class="form-control" name="RetRcptPhone" value="@Model.RetRcptPhone" />
+                                        </div>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Description">Organization</label>
+                                        <div class="input-group">
+                                            <input type="text" id="RetRcptOrganization" placeholder="Organization" class="form-control" name="RetRcptOrganization" value="@Model.RetRcptOrganization" />
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    
+                                    <div class="form-group">
+                                        <label for="Description">Address Line1 Above Street</label>
+                                        <div class="input-group">
+                                            <input type="text" id="RetRcptAddrOptionalLine1AboveStreet" class="form-control" placeholder="Address Line1 Above Street" name="RetRcptAddrOptionalLine1AboveStreet" value="@Model.RetRcptAddrOptionalLine1AboveStreet" />
+                                        </div>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Description">Address Line2 Above Street</label>
+                                        <div class="input-group">
+                                            <input type="text" id="RetRcptAddrOptionalLine2AboveStreet" placeholder="Address Line2 Above Street" class="form-control" name="RetRcptAddrOptionalLine2AboveStreet" value="@Model.RetRcptAddrOptionalLine2AboveStreet" />
+                                        </div>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Description">Street</label>
+                                        <div class="input-group">
+                                            <input type="text" id="RetRcptAddressStreet" placeholder="Street Address" class="form-control" name="RetRcptAddressStreet" value="@Model.RetRcptAddressStreet" />
+                                        </div>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Description">APARTMENT OR SUITE</label>
+                                        <div class="input-group">
+                                            <input type="text" id="RetRcptAddressAptOrSuiteOrOther" class="form-control" placeholder="Apartment Or Suite" name="RetRcptAddressAptOrSuiteOrOther" value="@Model.RetRcptAddressAptOrSuiteOrOther" />
+                                        </div>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Description">Address Line1 Below Street</label>
+                                        <div class="input-group">
+                                            <input type="text" id="RetRcptAddrOptionalLine1BelowStreet" class="form-control" placeholder="Address Line1 Below Street" name="RetRcptAddrOptionalLine1BelowStreet" value="@Model.RetRcptAddrOptionalLine1BelowStreet" />
+                                        </div>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Description">Address Line2 Below Street</label>
+                                        <div class="input-group">
+                                            <input type="text" id="RetRcptAddrOptionalLine2BelowStreet" class="form-control" placeholder="Address Line2 Below Street" name="RetRcptAddrOptionalLine2BelowStreet" value="@Model.RetRcptAddrOptionalLine2BelowStreet" />
+                                        </div>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Description">City</label>
+                                        <div class="input-group">
+                                            <input type="text" id="RetRcptAddressCity" class="form-control" placeholder="City" name="RetRcptAddressCity" value="@Model.RetRcptAddressCity" />
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+
+                                   
+                                    <div class="form-group">
+                                        <label for="Description">State</label>
+                                        <div class="input-group">
+                                            <input type="text" id="RetRcptAddressState" placeholder="State" class="form-control" name="RetRcptAddressState" value="@Model.RetRcptAddressState" />
+                                        </div>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Description">Zip Code</label>
+                                        <div class="input-group">
+                                            <input type="text" id="RetRcptAddressZIP" class="form-control" placeholder="Zip code" name="RetRcptAddressZIP" value="@Model.RetRcptAddressZIP" />
+                                        </div>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Description">Client Emails</label>
+                                        <div class="input-group">
+                                            <input type="text" id="ClientEmails" class="form-control" placeholder="Client Emails" name="ClientEmails" value="@Model.ClientEmails" />
+                                        </div>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Description">Client Contact No.</label>
+                                        <div class="input-group">
+                                            <input type="text" id="ClientContactNo" placeholder="Client Contact No." class="form-control" name="ClientContactNo" value="@Model.ClientContactNo" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Description">Support Emails</label>
+                                        <div class="input-group">
+                                            <input type="text" id="SupportEmails" placeholder="Support Emails" class="form-control" name="SupportEmails" value="@Model.SupportEmails" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Description">Support Contact No.</label>
+                                        <div class="input-group">
+                                            <input type="text" id="SupportContactNo" placeholder="Support Contact No." class="form-control" name="SupportContactNo" value="@Model.SupportContactNo" />
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <hr />
+    <button type="submit" class="btn btn-primary" id="Save"><i class="fa fa-save"></i> Save</button>
+    <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> Cancel</button>
+</form>

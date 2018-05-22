@@ -22,14 +22,14 @@
     <div class="form-group">
         <label for="Description">Business Unit</label>
         <div class="input-group">
-            @Html.DropDownListFor(model => model.BusinessUnit, ViewBag.BusinessUnitList as SelectList,"Select Business Unit", new { @class = "form-control" })
+            @Html.DropDownListFor(model => model.BusinessUnit, ViewBag.BusinessUnitList as SelectList, "Select Business Unit", new { @class = " form-control selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Business Unit" })
         </div>
 
     </div>
     <div class="form-group">
         <label for="Description">Timezone</label>
         <div class="input-group">
-            <input type="text" name="TimeZone" value="@Model.TimeZone" placeholder="Time Zone" class="form-control" id="TimeZone" maxlength="255" />
+           @Html.DropDownListFor(model => model.TimeZone, ViewBag.TimeZoneList as SelectList, "Select Time Zone", new { @class = " form-control selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Time Zone" })
         </div>
 
     </div>

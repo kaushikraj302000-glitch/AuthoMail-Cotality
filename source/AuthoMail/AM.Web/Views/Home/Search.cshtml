@@ -56,7 +56,7 @@
                         <label for="BusinessFriendlyIdName">Select Business ID</label>
                         <div class="input-group">
 
-                            <select id="BusinessFriendlyIdName" class="selectpicker">
+                            <select id="BusinessFriendlyIdName" class="selectpicker" data-live-search="true" data-live-search-placeholder="Search Business ID">
                                 <option value="">Select BusinessId</option>
                                 @foreach (var item in ViewBag.BusinessId)
                                 {
@@ -76,15 +76,17 @@
                 <div class="col-md-@(ViewBag.BusinessId.Count > 1?"4":"3")">
                     <div class="form-group">
                         <label for="DocType">Document Type</label>
-                        @Html.DropDownList("DocType", ViewBag.DocType as SelectList, "Select Document Type", htmlAttributes: new { @class = "selectpicker" })
+                        @Html.DropDownList("DocType", ViewBag.DocType as SelectList, "Select Document Type", htmlAttributes: new { @class = "selectpicker", @data_live_search = "true", @data_live_search_placeholder="Search Document Type" })
                     </div>
 
                 </div>
                 <div class="col-md-@(ViewBag.BusinessId.Count > 1?"4":"3")">
                     <div class="form-group">
                         <label for="Status">Status</label>
-                        <select class="selectpicker" id="Status">
-                            <option value="">Select Status</option>
+                        <select class="selectpicker" id="Status" data-live-search="true" data-live-search-placeholder="Search Status">
+                            <option value=" ">
+                                Select Status
+                            </option>
                             <option value="InProgress">In Progress</option>
                             <option value="PulledBack">Pulledback</option>
                             <option value="Error">Error</option>
