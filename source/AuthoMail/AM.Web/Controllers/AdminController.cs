@@ -389,6 +389,34 @@ namespace AM.Web.Controllers
             }
         }
 
+        [HttpPost]
+        public ActionResult MakeActiveOrDeactiveDocType(bool isActive, int Id)
+        {
+            try
+            {
+                var model = supportSvc.MakeActivateOrDeactivateDocType(Id, isActive, User.Identity.GetUserId());
+                    return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+        [HttpPost]
+        public ActionResult CreateOrEditDocType(DocTypes docType)
+        {
+            try
+            {
+                var model = supportSvc.CreateOrEditDocType(docType, User.Identity.GetUserId());
+                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+
         #endregion
     }
 }

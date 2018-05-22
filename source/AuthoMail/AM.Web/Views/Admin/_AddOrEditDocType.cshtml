@@ -63,7 +63,7 @@
             <div class="form-group">
                 <label for="Description">SLA Cut Off Time</label>
                 <div class="input-group">
-                    <input type="text" id="SLACutOffTime" class="form-control" placeholder="SLA Cut Off Time" name="SLACutOffTime" value="@Model.SLACutOffTime" />
+                    <input type="time" id="SLACutOffTime" class="form-control" step="1"  placeholder="SLA Cut Off Time" name="SLACutOffTime" value="@Model.SLACutOffTime" />
                 </div>
 
             </div>
@@ -79,7 +79,7 @@
             <div class="form-group">
                 <label for="Description">Shipping Service Type</label>
                 <div class="input-group">
-                    <input type="text" id="ShippingServiceType" placeholder="Shipping Service Type" class="form-control" name="ShippingServiceType" value="@Model.ShippingServiceType" />
+                    <input type="text" id="ShippingServiceType" placeholder="Shipping Service Type" class="form-control" name="ShippingServiceType" value="@Model.ShippingCarrier" />
                 </div>
 
             </div>
@@ -104,7 +104,7 @@
             <div class="panel-group">
                 <div class="panel panel-default">
                     <div class="panel-heading" id="headingOne">
-                        <a role="button" data-toggle="collapse" class="@(Model.IsReturnInfoSpecified ? "collapse" : "collapsed")" data-parent="#accordion" href="#metaItem1">
+                        <a role="button" data-toggle="collapse" aria-expanded="false" id="isreturninfo" class="collapsed" @*onclick="ShowHideReturnInfo(this)" class="@(Model.IsReturnInfoSpecified ? "collapse" : "collapsed")"*@ data-parent="#accordion" href="#tabreturninfo">
                             <div class="panel-title">
                                 Click here to fill return info.
                                 <div class="collapsed-icon pull-right">
@@ -116,153 +116,153 @@
                             </div>
                         </a>
                     </div>
-                    <div id="metaItem1" class="panel-collapse collapse @(Model.IsReturnInfoSpecified ? "in" : "")">
+                    <div id="tabreturninfo" class="panel-collapse collapse">@*@(Model.IsReturnInfoSpecified ? "in" : "")*@
                         <div class="panel-body">
                             <div class="row">
                                 <div class="col-md-4">
-                                    <input type="hidden" id="IsReturnInfoSpecified" value="@Model.IsReturnInfoSpecified" name=" IsReturnInfoSpecified" />
+                                    <input type="hidden" id="IsReturnInfoSpecified" value="@(Model.IsReturnInfoSpecified ? "true" : "false")" name=" IsReturnInfoSpecified" />
                                     <div class="form-group">
                                         <label for="Description">Prefix</label>
                                         <div class="input-group">
-                                            <input type="text" id="RetRcptPrefix" class="form-control" placeholder="Prefix" name="RetRcptPrefix" value="@Model.RetRcptPrefix" />
+                                            <input type="text" id="RetRcptPrefix" class="form-control returninfovalidate" placeholder="Prefix" name="RetRcptPrefix" value="@Model.RetRcptPrefix" />
                                         </div>
 
                                     </div>
                                     <div class="form-group">
                                         <label for="Description">First Name</label>
                                         <div class="input-group">
-                                            <input type="text" id="RetRcptFirstName" class="form-control" placeholder="First Name" name="RetRcptFirstName" value="@Model.RetRcptFirstName" />
+                                            <input type="text" id="RetRcptFirstName" class="form-control returninfovalidate" placeholder="First Name" name="RetRcptFirstName" value="@Model.RetRcptFirstName" />
                                         </div>
 
                                     </div>
                                     <div class="form-group">
                                         <label for="Description">Middle Name</label>
                                         <div class="input-group">
-                                            <input type="text" id="RetRcptMiddleName" placeholder="Middle Name" class="form-control" name="RetRcptMiddleName" value="@Model.RetRcptMiddleName" />
+                                            <input type="text" id="RetRcptMiddleName" placeholder="Middle Name" class="form-control returninfovalidate" name="RetRcptMiddleName" value="@Model.RetRcptMiddleName" />
                                         </div>
 
                                     </div>
                                     <div class="form-group">
                                         <label for="Description">Last Name</label>
                                         <div class="input-group">
-                                            <input type="text" id="RetRcptLastName" placeholder="Last Name" class="form-control" name="RetRcptLastName" value="@Model.RetRcptLastName" />
+                                            <input type="text" id="RetRcptLastName" placeholder="Last Name" class="form-control returninfovalidate" name="RetRcptLastName" value="@Model.RetRcptLastName" />
                                         </div>
 
                                     </div>
                                     <div class="form-group">
                                         <label for="Description">Suffix</label>
                                         <div class="input-group">
-                                            <input type="text" id="RetRcptSuffix" class="form-control" placeholder="Suffix" name="RetRcptSuffix" value="@Model.RetRcptSuffix" />
+                                            <input type="text" id="RetRcptSuffix" class="form-control returninfovalidate" placeholder="Suffix" name="RetRcptSuffix" value="@Model.RetRcptSuffix" />
                                         </div>
 
                                     </div>
                                     <div class="form-group">
                                         <label for="Description">Phone</label>
                                         <div class="input-group">
-                                            <input type="text" id="RetRcptPhone" placeholder="Phone" class="form-control" name="RetRcptPhone" value="@Model.RetRcptPhone" />
+                                            <input type="text" id="RetRcptPhone" placeholder="Phone" class="form-control returninfovalidate" name="RetRcptPhone" value="@Model.RetRcptPhone" />
                                         </div>
 
                                     </div>
                                     <div class="form-group">
                                         <label for="Description">Organization</label>
                                         <div class="input-group">
-                                            <input type="text" id="RetRcptOrganization" placeholder="Organization" class="form-control" name="RetRcptOrganization" value="@Model.RetRcptOrganization" />
+                                            <input type="text" id="RetRcptOrganization" placeholder="Organization" class="form-control returninfovalidate" name="RetRcptOrganization" value="@Model.RetRcptOrganization" />
                                         </div>
 
                                     </div>
                                 </div>
                                 <div class="col-md-4">
-                                    
+
                                     <div class="form-group">
                                         <label for="Description">Address Line1 Above Street</label>
                                         <div class="input-group">
-                                            <input type="text" id="RetRcptAddrOptionalLine1AboveStreet" class="form-control" placeholder="Address Line1 Above Street" name="RetRcptAddrOptionalLine1AboveStreet" value="@Model.RetRcptAddrOptionalLine1AboveStreet" />
+                                            <input type="text" id="RetRcptAddrOptionalLine1AboveStreet" class="form-control returninfovalidate" placeholder="Address Line1 Above Street" name="RetRcptAddrOptionalLine1AboveStreet" value="@Model.RetRcptAddrOptionalLine1AboveStreet" />
                                         </div>
 
                                     </div>
                                     <div class="form-group">
                                         <label for="Description">Address Line2 Above Street</label>
                                         <div class="input-group">
-                                            <input type="text" id="RetRcptAddrOptionalLine2AboveStreet" placeholder="Address Line2 Above Street" class="form-control" name="RetRcptAddrOptionalLine2AboveStreet" value="@Model.RetRcptAddrOptionalLine2AboveStreet" />
+                                            <input type="text" id="RetRcptAddrOptionalLine2AboveStreet" placeholder="Address Line2 Above Street" class="form-control returninfovalidate" name="RetRcptAddrOptionalLine2AboveStreet" value="@Model.RetRcptAddrOptionalLine2AboveStreet" />
                                         </div>
 
                                     </div>
                                     <div class="form-group">
                                         <label for="Description">Street</label>
                                         <div class="input-group">
-                                            <input type="text" id="RetRcptAddressStreet" placeholder="Street Address" class="form-control" name="RetRcptAddressStreet" value="@Model.RetRcptAddressStreet" />
+                                            <input type="text" id="RetRcptAddressStreet" placeholder="Street Address" class="form-control returninfovalidate" name="RetRcptAddressStreet" value="@Model.RetRcptAddressStreet" />
                                         </div>
 
                                     </div>
                                     <div class="form-group">
                                         <label for="Description">APARTMENT OR SUITE</label>
                                         <div class="input-group">
-                                            <input type="text" id="RetRcptAddressAptOrSuiteOrOther" class="form-control" placeholder="Apartment Or Suite" name="RetRcptAddressAptOrSuiteOrOther" value="@Model.RetRcptAddressAptOrSuiteOrOther" />
+                                            <input type="text" id="RetRcptAddressAptOrSuiteOrOther" class="form-control returninfovalidate" placeholder="Apartment Or Suite" name="RetRcptAddressAptOrSuiteOrOther" value="@Model.RetRcptAddressAptOrSuiteOrOther" />
                                         </div>
 
                                     </div>
                                     <div class="form-group">
                                         <label for="Description">Address Line1 Below Street</label>
                                         <div class="input-group">
-                                            <input type="text" id="RetRcptAddrOptionalLine1BelowStreet" class="form-control" placeholder="Address Line1 Below Street" name="RetRcptAddrOptionalLine1BelowStreet" value="@Model.RetRcptAddrOptionalLine1BelowStreet" />
+                                            <input type="text" id="RetRcptAddrOptionalLine1BelowStreet" class="form-control returninfovalidate" placeholder="Address Line1 Below Street" name="RetRcptAddrOptionalLine1BelowStreet" value="@Model.RetRcptAddrOptionalLine1BelowStreet" />
                                         </div>
 
                                     </div>
                                     <div class="form-group">
                                         <label for="Description">Address Line2 Below Street</label>
                                         <div class="input-group">
-                                            <input type="text" id="RetRcptAddrOptionalLine2BelowStreet" class="form-control" placeholder="Address Line2 Below Street" name="RetRcptAddrOptionalLine2BelowStreet" value="@Model.RetRcptAddrOptionalLine2BelowStreet" />
+                                            <input type="text" id="RetRcptAddrOptionalLine2BelowStreet" class="form-control returninfovalidate" placeholder="Address Line2 Below Street" name="RetRcptAddrOptionalLine2BelowStreet" value="@Model.RetRcptAddrOptionalLine2BelowStreet" />
                                         </div>
 
                                     </div>
                                     <div class="form-group">
                                         <label for="Description">City</label>
                                         <div class="input-group">
-                                            <input type="text" id="RetRcptAddressCity" class="form-control" placeholder="City" name="RetRcptAddressCity" value="@Model.RetRcptAddressCity" />
+                                            <input type="text" id="RetRcptAddressCity" class="form-control returninfovalidate" placeholder="City" name="RetRcptAddressCity" value="@Model.RetRcptAddressCity" />
                                         </div>
 
                                     </div>
                                 </div>
                                 <div class="col-md-4">
 
-                                   
+
                                     <div class="form-group">
                                         <label for="Description">State</label>
                                         <div class="input-group">
-                                            <input type="text" id="RetRcptAddressState" placeholder="State" class="form-control" name="RetRcptAddressState" value="@Model.RetRcptAddressState" />
+                                            <input type="text" id="RetRcptAddressState" placeholder="State" class="form-control returninfovalidate" name="RetRcptAddressState" value="@Model.RetRcptAddressState" />
                                         </div>
 
                                     </div>
                                     <div class="form-group">
                                         <label for="Description">Zip Code</label>
                                         <div class="input-group">
-                                            <input type="text" id="RetRcptAddressZIP" class="form-control" placeholder="Zip code" name="RetRcptAddressZIP" value="@Model.RetRcptAddressZIP" />
+                                            <input type="text" id="RetRcptAddressZIP" class="form-control returninfovalidate" placeholder="Zip code" name="RetRcptAddressZIP" value="@Model.RetRcptAddressZIP" />
                                         </div>
 
                                     </div>
                                     <div class="form-group">
                                         <label for="Description">Client Emails</label>
                                         <div class="input-group">
-                                            <input type="text" id="ClientEmails" class="form-control" placeholder="Client Emails" name="ClientEmails" value="@Model.ClientEmails" />
+                                            <input type="text" id="ClientEmails" class="form-control returninfovalidate" placeholder="Client Emails" name="ClientEmails" value="@Model.ClientEmails" />
                                         </div>
 
                                     </div>
                                     <div class="form-group">
                                         <label for="Description">Client Contact No.</label>
                                         <div class="input-group">
-                                            <input type="text" id="ClientContactNo" placeholder="Client Contact No." class="form-control" name="ClientContactNo" value="@Model.ClientContactNo" />
+                                            <input type="text" id="ClientContactNo" placeholder="Client Contact No." class="form-control returninfovalidate" name="ClientContactNo" value="@Model.ClientContactNo" />
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <label for="Description">Support Emails</label>
                                         <div class="input-group">
-                                            <input type="text" id="SupportEmails" placeholder="Support Emails" class="form-control" name="SupportEmails" value="@Model.SupportEmails" />
+                                            <input type="text" id="SupportEmails" placeholder="Support Emails" class="form-control returninfovalidate" name="SupportEmails" value="@Model.SupportEmails" />
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <label for="Description">Support Contact No.</label>
                                         <div class="input-group">
-                                            <input type="text" id="SupportContactNo" placeholder="Support Contact No." class="form-control" name="SupportContactNo" value="@Model.SupportContactNo" />
+                                            <input type="text" id="SupportContactNo" placeholder="Support Contact No." class="form-control returninfovalidate" name="SupportContactNo" value="@Model.SupportContactNo" />
                                         </div>
                                     </div>
 
@@ -276,6 +276,6 @@
         </div>
     </div>
     <hr />
-    <button type="submit" class="btn btn-primary" id="Save"><i class="fa fa-save"></i> Save</button>
+    <button type="button" class="btn btn-primary" id="Save"><i class="fa fa-save"></i> Save</button>
     <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> Cancel</button>
 </form>
