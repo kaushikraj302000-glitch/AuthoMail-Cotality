@@ -243,6 +243,19 @@ namespace AM.Services
         public KeyValuePair<bool, string> CreateOrEditDocType(DocTypes docTypes, string userId)
         {
             //Validation
+            if (docTypes.DocTypeCode.IsNullOrWhiteSpace()) throw new Exception("DocTypeCode can't be null or empty.");
+            if (docTypes.Description.IsNullOrWhiteSpace()) throw new Exception("Description can't be null or empty.");
+            if (docTypes.PrintSize.IsNullOrWhiteSpace()) throw new Exception("PrintSize can't be null or empty.");
+            if (FindByClientId(docTypes.ClientId) == null) throw new Exception("Client not found.");
+            if (docTypes.IsReturnInfoSpecified)
+            {
+                if (docTypes.RetRcptFirstName.IsNullOrWhiteSpace()) throw new Exception("First name can't be null or empty.");
+                if (docTypes.RetRcptMiddleName.IsNullOrWhiteSpace()) throw new Exception("Middle name can't be null or empty.");
+                if (docTypes.RetRcptLastName.IsNullOrWhiteSpace()) throw new Exception("Last name can't be null or empty.");
+                if (docTypes.RetRcptAddressCity.IsNullOrWhiteSpace()) throw new Exception("City can't be null or empty.");
+                if (docTypes.RetRcptAddressState.IsNullOrWhiteSpace()) throw new Exception("State can't be null or empty.");
+                if (docTypes.RetRcptAddressZIP.IsNullOrWhiteSpace()) throw new Exception("zip can't be null or empty.");
+            }
             if (docTypes.Id == 0)
             {
                 string query = "INSERT INTO [AM].[DocTypes] ([DocTypeCode] ,[Description] ,[ClientId] ,[PrintSize] ,[ContentScalePercent] ,[PrintFormat] ,[QCPercent] ,[SLADays] ,[SLACutOffTime] ,[ShippingCarrier] ,[ShippingServiceType] ,[ShippingAccountCode] ,[IsReturnInfoSpecified] ,[RetRcptPrefix] ,[RetRcptFirstName] ,[RetRcptMiddleName] ,[RetRcptLastName] ,[RetRcptSuffix] ,[RetRcptPhone] ,[RetRcptOrganization] ,[RetRcptAddrOptionalLine1AboveStreet] ,[RetRcptAddrOptionalLine2AboveStreet] ,[RetRcptAddressStreet] ,[RetRcptAddressAptOrSuiteOrOther] ,[RetRcptAddrOptionalLine1BelowStreet] ,[RetRcptAddrOptionalLine2BelowStreet] ,[RetRcptAddressCity] ,[RetRcptAddressState] ,[RetRcptAddressZIP] ,[ClientEmails] ,[ClientContactNo] ,[SupportEmails] ,[SupportContactNo] ,[IsActive] ,[ModifiedOn] ,[CreatedOn] ,[CreatedBy] ,[ModifiedBy]) VALUES ('@docTypeCode','@description','@clientId','@printSize','@contentScalePercent','@printFormat','@qCPercent','@sLADays','@sLACutOffTime','@shippingCarrier','@shippingServiceType','@shippingAccountCode','@isReturnInfoSpecified','@retRcptPrefix','@retRcptFirstName','@retRcptMiddleName','@retRcptLastName','@retRcptSuffix','@retRcptPhone','@retRcptOrganization','@retRcptAddrOptionalLine1AboveStreet','@retRcptAddrOptionalLine2AboveStreet','@retRcptAddressStreet','@retRcptAddressAptOrSuiteOrOther','@retRcptAddrOptionalLine1BelowStreet','@retRcptAddrOptionalLine2BelowStreet','@retRcptAddressCity','@retRcptAddressState','@retRcptAddressZIP','@clientEmails','@clientContactNo','@supportEmails','@supportContactNo','@isActive','@modifiedOn','@createdOn','@createdBy','@modifiedBy')";
@@ -326,6 +339,11 @@ namespace AM.Services
         }
         public KeyValuePair<bool, string> CreateOrEditSFTChannel(SFTChannels sftChannel)
         {
+            if (sftChannel.Code.IsNullOrWhiteSpace()) throw new Exception("Code can't be null or empty.");
+            if (sftChannel.Title.IsNullOrWhiteSpace()) throw new Exception("Title can't be null or empty.");
+            if (sftChannel.Protocol.IsNullOrWhiteSpace()) throw new Exception("Protocol can't be null or empty.");
+            if (sftChannel.Host.IsNullOrWhiteSpace()) throw new Exception("Host can't be null or empty.");
+
             if (sftChannel.Id == 0)
             {
                 string query = "INSERT INTO [Common].[SFTChannels] ([Code] ,[Description] ,[Title] ,[Protocol] ,[Host] ,[UserName] ,[Password] ,[ToADEDir] ,[FromADEDir] ,[ArchiveDir] ,[PostDownloadAction] ,[IsActive]) VALUES (@code ,@description ,@title ,@protocol ,@host ,@userName ,@password ,@toADEDir ,@fromADEDir ,@archiveDir ,@postDownloadAction ,@isActive)";
