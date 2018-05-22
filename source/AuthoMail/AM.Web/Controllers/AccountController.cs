@@ -207,6 +207,29 @@ namespace AM.Web.Controllers
             return View();
         }
 
+        [AllowAnonymous]
+        public JsonResult ValidateEmail(string email)
+        {
+            EmailValidate emailValidate = new EmailValidate(email);
+            return Json(emailValidate, JsonRequestBehavior.AllowGet);
+        }
+        [AllowAnonymous, HttpPost]
+        public JsonResult CLAuth(string email, string password)
+        {
+            var ldap = CLAuthentication.LdapLogin(email, password);
+            if (!ldap.Key)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(ldap.Value), JsonRequestBehavior.AllowGet);
+            }
+            var nm = ldap.Value.Split('|');
+            var data = new
+            {
+                FName = nm[0],
+                LName = nm[1],
+                DisplayName = nm[2]
+            };
+            return Json(JsonResponseFactory.SuccessResponse(data), JsonRequestBehavior.AllowGet);
+        }
         //
         // POST: /Account/Register
         [HttpPost]
