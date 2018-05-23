@@ -211,6 +211,15 @@ namespace AM.Web.Controllers
         public JsonResult ValidateEmail(string email)
         {
             EmailValidate emailValidate = new EmailValidate(email);
+            if (emailValidate.IsValid)
+            {
+                var clientDomain = supSvc.FingByDomainName(emailValidate.Host);
+                if (clientDomain == null)
+                {
+                    emailValidate.Message = string.Format("Users of the specified domain name '{0}' are not allowed to register.", emailValidate.Host);
+                    emailValidate.IsValid = false;
+                }
+            }
             return Json(emailValidate, JsonRequestBehavior.AllowGet);
         }
         [AllowAnonymous, HttpPost]
