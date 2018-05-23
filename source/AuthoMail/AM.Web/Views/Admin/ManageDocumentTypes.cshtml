@@ -177,7 +177,7 @@
                 return str.length > 31 ? str.substring(0, 31) + '...' : str;
         }
 
-        function DocTypes(Id, DocTypeCode, Description, ClientId, PrintSize, ContentScalePercent, PrintFormat, QCPercent, SLADays, SLACutOffTime, ShippingCarrier, ShippingServiceType, ShippingAccountCode, IsReturnInfoSpecified, RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RetRcptSuffix, RetRcptPhone, RetRcptOrganization, RetRcptAddrOptionalLine1AboveStreet, RetRcptAddrOptionalLine2AboveStreet, RetRcptAddressStreet, RetRcptAddressAptOrSuiteOrOther, RetRcptAddrOptionalLine1BelowStreet, RetRcptAddrOptionalLine2BelowStreet, RetRcptAddressCity, RetRcptAddressState, RetRcptAddressZIP, ClientEmails, ClientContactNo, SupportEmails, SupportEmails) {
+        function DocTypes(Id, DocTypeCode, Description, ClientId, PrintSize, ContentScalePercent, PrintFormat, QCPercent, SLADays, SLACutOffTime, ShippingCarrier, ShippingServiceType, ShippingAccountCode, IsReturnInfoSpecified, RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RetRcptSuffix, RetRcptPhone, RetRcptOrganization, RetRcptAddrOptionalLine1AboveStreet, RetRcptAddrOptionalLine2AboveStreet, RetRcptAddressStreet, RetRcptAddressAptOrSuiteOrOther, RetRcptAddrOptionalLine1BelowStreet, RetRcptAddrOptionalLine2BelowStreet, RetRcptAddressCity, RetRcptAddressState, RetRcptAddressZIP, ClientEmails, ClientContactNo, SupportEmails, SupportContactNo) {
             this.Id = Id;
             this.DocTypeCode = DocTypeCode;
             this.Description = Description;
@@ -211,7 +211,7 @@
             this.ClientEmails = ClientEmails;
             this.ClientContactNo = ClientContactNo;
             this.SupportEmails = SupportEmails;
-            this.SupportContactNo = SupportEmails;
+            this.SupportContactNo = SupportContactNo;
         }
         //function ShowHideReturnInfo(obj) {
         //    if ($(obj).hasClass("collapsed"))
@@ -362,15 +362,17 @@
                     $("#SupportContactNo").rules('add', {
                         required: true
                     });
+                    $("#IsReturnInfoSpecified").val(true);
                 }
                 else {
                     $(".returninfovalidate").each(function () {
                         $(this).rules("remove");
                     })
+                    $("#IsReturnInfoSpecified").val(false);
                 }
                 if ($("#doctypeform").valid()) {
 
-                    var objDocType = new DocTypes($("#Id").val(), $("#DocTypeCode").val(), $("#Description").val(), parseInt($("#ClientId").val()), $("#PrintSize").val(), $("#ContentScalePercent").val(), $("#PrintFormat").val(), $("#QCPercent").val(), $("#SLADays").val(), $("#SLACutOffTime").val(), $("#ShippingCarrier").val(), $("#ShippingServiceType").val(), $("#ShippingAccountCode").val(), $("#IsReturnInfoSpecified").val(), $("#RetRcptPrefix").val(), $("#RetRcptFirstName").val(), $("#RetRcptMiddleName").val(), $("#RetRcptLastName").val(), $("#RetRcptSuffix").val(), $("#RetRcptPhone").val(), $("#RetRcptOrganization").val(), $("#RetRcptAddrOptionalLine1AboveStreet").val(), $("#RetRcptAddrOptionalLine2AboveStreet").val(), $("#RetRcptAddressStreet").val(), $("#RetRcptAddressAptOrSuiteOrOther").val(), $("#RetRcptAddrOptionalLine1BelowStreet").val(), $("#RetRcptAddrOptionalLine2BelowStreet").val(), $("#RetRcptAddressCity").val(), $("#RetRcptAddressState").val(), $("#RetRcptAddressZIP").val(), $("#ClientEmails").val(), $("#ClientContactNo").val(), $("#SupportEmails").val(), $("#SupportEmails").val());
+                    var objDocType = new DocTypes($("#Id").val(), $("#DocTypeCode").val(), $("#Description").val(), parseInt($("#ClientId").val()), $("#PrintSize").val(), $("#ContentScalePercent").val(), $("#PrintFormat").val(), $("#QCPercent").val(), $("#SLADays").val(), $("#SLACutOffTime").val(), $("#ShippingCarrier").val(), $("#ShippingServiceType").val(), $("#ShippingAccountCode").val(), $("#IsReturnInfoSpecified").val(), $("#RetRcptPrefix").val(), $("#RetRcptFirstName").val(), $("#RetRcptMiddleName").val(), $("#RetRcptLastName").val(), $("#RetRcptSuffix").val(), $("#RetRcptPhone").val(), $("#RetRcptOrganization").val(), $("#RetRcptAddrOptionalLine1AboveStreet").val(), $("#RetRcptAddrOptionalLine2AboveStreet").val(), $("#RetRcptAddressStreet").val(), $("#RetRcptAddressAptOrSuiteOrOther").val(), $("#RetRcptAddrOptionalLine1BelowStreet").val(), $("#RetRcptAddrOptionalLine2BelowStreet").val(), $("#RetRcptAddressCity").val(), $("#RetRcptAddressState").val(), $("#RetRcptAddressZIP").val(), $("#ClientEmails").val(), $("#ClientContactNo").val(), $("#SupportEmails").val(), $("#SupportContactNo").val());
 
                     $("#AddEditModal").modal("hide");
                     var el = $("#myModal").find(".modal-body");
