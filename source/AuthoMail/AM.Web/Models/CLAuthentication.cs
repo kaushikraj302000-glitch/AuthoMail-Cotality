@@ -84,6 +84,22 @@ namespace AM.Web.Models
         public bool IsCoreLogic { get; set; }
         public bool IsValid { get; set; }
         public string Message { get; set; }
-
+        public EmailValidate(string email)
+        {
+            try
+            {
+                MailAddress mailAddress = new MailAddress(email);
+                Email = mailAddress.Address;
+                Host = mailAddress.Host;
+                User = mailAddress.User;
+                IsCoreLogic = mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase);
+                IsValid = true;
+            }
+            catch (Exception)
+            {
+                IsValid = false;
+                Message = "Invalid email address.";
+            }
+        }
     }
 }

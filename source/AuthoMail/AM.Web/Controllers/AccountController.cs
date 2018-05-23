@@ -210,21 +210,7 @@ namespace AM.Web.Controllers
         [AllowAnonymous]
         public JsonResult ValidateEmail(string email)
         {
-            EmailValidate emailValidate = new EmailValidate();
-            try
-            {
-                MailAddress mailAddress = new MailAddress(email);
-                emailValidate.Email = mailAddress.Address;
-                emailValidate.Host = mailAddress.Host;
-                emailValidate.User = mailAddress.User;
-                emailValidate.IsCoreLogic = mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase);
-                emailValidate.IsValid = true;
-            }
-            catch (Exception)
-            {
-                emailValidate.IsValid = false;
-                emailValidate.Message = "Invalid email address.";
-            }
+            EmailValidate emailValidate = new EmailValidate(email);
             return Json(emailValidate, JsonRequestBehavior.AllowGet);
         }
         [AllowAnonymous, HttpPost]
