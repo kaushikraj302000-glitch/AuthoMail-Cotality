@@ -103,12 +103,14 @@ namespace AM.Services
                 if (email.IsNullOrWhiteSpace()) return GetKeyValue(false, "Email not found.");
 
                 MailAddress mAdd = new MailAddress(email);
-                var clientQuery = "SELECT ClientId,IsAMActive FROM [Common].[ClientDomains] WHERE AllowedDomain=@domain";
-
+                var clientQuery = "SELECT ClientId FROM [Common].[ClientDomains] WHERE AllowedDomain=@domain";
                 var client = db.QuerySingleOrDefault(clientQuery, new { domain = mAdd.Host });
                 int? clientId = client.ClientId;
+
                 if (clientId == null) return GetKeyValue(false, "Client not found.");
-                if (!client.IsAMActive) return GetKeyValue(false, "Client is not activated.");
+                bool IsAMActive = db.QuerySingle<bool>("SELECT IsAMActive FROM [Common].[Clients] WHERE Id=@clientId", new { clientId = clientId });
+                if (!IsAMActive) return GetKeyValue(false, "Client is not activated.");
+
                 string setClientToUser = "UPDATE [Profile].[Users] SET ClientId=@clientId,Status=@status,ClosedOn=@closedOn WHERE Id=@userId";
                 int result = db.Execute(setClientToUser, new { status = AMUserStatus.Approved, closedOn = DateTime.UtcNow, clientId = clientId, userId = Id });
                 return result > 0 ? GetKeyValue(true, "User request has been approved.") : GetKeyValue(false, "User request not yet processed.");

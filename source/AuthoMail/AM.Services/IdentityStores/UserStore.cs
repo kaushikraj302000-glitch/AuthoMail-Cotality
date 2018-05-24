@@ -34,7 +34,7 @@ namespace AM.Services
         {
             get
             {
-                throw new NotImplementedException();
+                return appUser.GetAllUsers() as IQueryable<TUser>;
             }
         }
         public UserStore()
@@ -161,7 +161,14 @@ namespace AM.Services
 
         public Task SetLockoutEndDateAsync(TUser user, DateTimeOffset lockoutEnd)
         {
-            user.LockoutEndDateUtc = lockoutEnd.UtcDateTime;
+            if (lockoutEnd.UtcDateTime <= DateTime.UtcNow)
+            {
+                user.LockoutEndDateUtc = null;
+            }
+            else
+            {
+                user.LockoutEndDateUtc = lockoutEnd.UtcDateTime;
+            }
             appUser.Update(user);
             return Task.FromResult(0);
         }

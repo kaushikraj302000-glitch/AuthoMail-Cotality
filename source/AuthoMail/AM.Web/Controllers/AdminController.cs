@@ -6,16 +6,21 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.Owin;
+using System.Text;
+using System.Threading.Tasks;
 namespace AM.Web.Controllers
 {
     [Authorize(Roles = AMRoles.Admin)]
     public class AdminController : Controller
     {
+        private AMUserManager _userManager;
         ISupportService supportSvc;
         IHomeService homeSvc;
         IConfigService confSvc;
-        public AdminController(ISupportService supportSvc, IHomeService homeSvc, IConfigService confSvc)
+        public AdminController(AMUserManager userManager, ISupportService supportSvc, IHomeService homeSvc, IConfigService confSvc)
         {
+            UserManager = userManager;
             this.supportSvc = supportSvc;
             this.homeSvc = homeSvc;
             this.confSvc = confSvc;
@@ -26,18 +31,35 @@ namespace AM.Web.Controllers
         {
             return View();
         }
-
+        public AMUserManager UserManager
+        {
+            get
+            {
+                return _userManager ?? HttpContext.GetOwinContext().GetUserManager<AMUserManager>();
+            }
+            private set
+            {
+                _userManager = value;
+            }
+        }
         public ActionResult GetSingUpRequestedList()
         {
             var model = supportSvc.GetUsersRequestSignUp();
             return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
         }
         [HttpPost]
-        public ActionResult UpdateUsersRequestSignUp(string userId, string status)
+        public async Task<ActionResult> UpdateUsersRequestSignUp(string userId, string status)
         {
             try
             {
                 var model = supportSvc.UpdateUsersRequestSignUp(userId, status);
+                var user = UserManager.FindById(userId);
+                string template = status.Equals(AMUserStatus.Approved) ? "ApproveRegistration.html" : "RejectRegistration.html";
+                StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\" + template)));
+                sb.Replace("{{name}}", user.FirstName);
+                sb.Replace("{{email}}", user.Email);
+                await UserManager.SendEmailAsync(user.Id, "AuthoMail.", sb.ToString());
+
                 return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
@@ -274,7 +296,7 @@ namespace AM.Web.Controllers
             {
                 Clients client = supportSvc.FindByClientId(id);
                 ViewBag.BusinessUnitList = new SelectList(supportSvc.GetBusinessUnitActive(), "Id", "BusinessUnit", client.BusinessUnit);
-                ViewBag.TimezoneList = new SelectList(TimeZoneInfo.GetSystemTimeZones().OrderBy(s => s.StandardName).ToList(), "StandardName", "StandardName",client.TimeZone);
+                ViewBag.TimezoneList = new SelectList(TimeZoneInfo.GetSystemTimeZones().OrderBy(s => s.StandardName).ToList(), "StandardName", "StandardName", client.TimeZone);
                 return PartialView("_AddOrEditClient", client);
             }
             else
@@ -395,7 +417,7 @@ namespace AM.Web.Controllers
             try
             {
                 var model = supportSvc.MakeActivateOrDeactivateDocType(Id, isActive, User.Identity.GetUserId());
-                    return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
 
             }
             catch (Exception e)
