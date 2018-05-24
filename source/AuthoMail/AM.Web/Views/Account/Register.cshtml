@@ -1,17 +1,443 @@
-﻿@model AM.Web.Models.RegisterViewModel
+﻿@*@model AM.Web.Models.RegisterViewModel*@
 @{
     ViewBag.Title = "Register";
     Layout = "~/Views/Shared/_LayoutRegister.cshtml";
 }
+<style>
+    .swipe:not(:first-of-type) {
+        display: none;
+    }
 
-<section class="cl-row">
-    <div class="cl-columns">
-        <div class="inner-block">
-            <div class="cl-row">
-                <div class="center-block cl-columns">
-                    <h1 class="app-logo text-center">AuthoMail </h1>
-                    
-                    @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { @class = "cl-form-login", role = "form" }))
+    #registerform section {
+        width: 80%;
+        margin: 0 10%;
+        /*stacking fieldsets above each other*/
+        position: absolute;
+    }
+
+    .marginfooter {
+        margin-top: 58%;
+    }
+</style>
+<form id="registerform" style="margin-top:-1%;">
+    <section class="single-column swipe">
+        <div class="cl-columns">
+            <div class="inner-block">
+                <div class="cl-row">
+                    <div class="center-block cl-columns">
+                        <h1 class="app-logo text-center">AuthoMail Registration</h1>
+
+                        <div class="col-md-12">
+                            <div class="summary"></div>
+                            <div class="form-group">
+                                <label for="login-email">Email</label>
+                                <input type="email" id="Email" name="Email" class="form-control" />
+
+                            </div>
+                            <div class="form-group">
+                                @*@Html.ActionLink("Login", "Login", "Account", routeValues: null, htmlAttributes: new { id = "registerLink", @class = "btn btn-default btn-block btn-lg", @style = "width:49%;float:left;margin-top:0px;" })*@
+                                <input type="button" id="emailnext" value="Next" class="btn btn-primary  btn-lg btn-block">
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+
+
+            </div>
+
+        </div>
+    </section>
+
+    <section class="single-column swipe">
+        <div class="cl-columns">
+            <div class="inner-block">
+                <div class="cl-row">
+                    <div class="center-block cl-columns">
+                        <h1 class="app-logo text-center">AuthoMail Registration</h1>
+                        <div class="col-md-12">
+                            <div id="CLsummary" class="summary"></div>
+                            <div class="summary"></div>
+                            <div class="form-group IsCorelogic">
+                                <label for="login-email">First Name</label>
+                                <input type="text" id="FirstName" name="FirstName" class="form-control" />
+                            </div>
+                            <div class="form-group IsCorelogic">
+                                <label for="login-email">Last Name</label>
+                                <input type="text" id="LastName" name="LastName" class="form-control" />
+                            </div>
+                            <div class="form-group IsCorelogic">
+                                <label for="login-email">Display Name</label>
+                                <input type="text" id="DisplayName" name="DisplayName" class="form-control" />
+                            </div>
+                            <div class="form-group">
+                                <label>Password</label>
+                                <input type="password" id="Password" name="Password" class="form-control" />
+                            </div>
+                            <div class="form-group">
+                                <label id="ConfirmPasswordLabel">Confirm Password</label>
+                                <input type="password" id="ConfirmPassword" name="ConfirmPassword" class="form-control" />
+                            </div>
+                            <div class="form-group">
+                                <input type="button" id="emailprevious" style="width:49%;float:left;" value="Previous" class="btn btn-default  btn-lg btn-block">
+                                <input type="button" id="passwordnext" style="width:49%;float:right;margin-top:0px;" value="Next" class="btn btn-primary   btn-lg btn-block IsNotCorelogic">
+                                <input type="button" id="register" style="width:49%;float:right;margin-top:0px;" value="Register" class="btn btn-primary submit IsCorelogic  btn-lg btn-block ">
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+
+
+            </div>
+
+        </div>
+    </section>
+    <section class="single-column swipe">
+        <div class="cl-columns">
+            <div class="inner-block">
+                <div class="cl-row">
+                    <div class="center-block cl-columns">
+                        <h1 class="app-logo text-center">AuthoMail Registration</h1>
+                        
+                        <div class="col-md-12 ">
+                            <div class="summary"></div>
+                            <div class="form-group">
+                                <label for="login-email">Display Name</label>
+                                <input type="text" id="DisplayNameCL" name="DisplayName" class="form-control" />
+                            </div>
+                            <div class="form-group">
+                                <label for="login-email">First Name</label>
+                                <input type="text" id="FirstNameCL" disabled="disabled" name="FirstName" class="form-control" />
+                            </div>
+                            <div class="form-group">
+                                <label for="login-email">Last Name</label>
+                                <input type="text" id="LastNameCL" disabled="disabled" name="LastName" class="form-control" />
+                            </div>
+                            <div class="form-group">
+                                <input type="button" style="width:49%;float:left;" value="Previous" id="passwordprevious" class="btn btn-default  btn-lg btn-block">
+                                <input type="button" id="registerCL" style="width:49%;float:right;margin-top:0px;" value="Register" class="btn btn-primary submit  btn-lg btn-block">
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+
+
+            </div>
+
+        </div>
+    </section>
+</form>
+<input id="IsCorelogicEmail" value="false" type="hidden"/>
+
+<div class="marginfooter"></div>
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    <script src="~/Scripts/jquery.easing.min.js"></script>
+    <script>
+        $(function () {
+            $(".IsCorelogic").hide();
+            //Validation
+            $("#summary").empty();
+            $('#registerform').validate({ // initialize the plugin
+                errorElement: "span",
+                rules: {
+                    Email: {
+                        required: true,
+                        email: true,
+                    }
+                }
+            });
+            //jQuery swipe
+            var current_fs, next_fs, previous_fs; //fieldsets
+            var left, opacity, scale; //fieldset properties which we will animate
+            var animating; //flag to prevent quick multi-click glitches
+
+            function ValidateEmail(email) {
+                console.log(email);
+                var cl = $("#CLsummary");
+                cl.empty();
+                var el=$(".summary")
+                $.ajax({
+                    type: "GET",
+                    url: baseUrl + "Account/ValidateEmail",
+                    data:{ email: email },
+                    contentType: "application/json; charset=utf-8",
+                    success: function (response) {
+                        console.log(response);
+                        if (response.IsValid) {
+
+                            $("#Password").rules('add', {
+                                //password: true,
+                                required: true
+                            });
+                            //$("#DisplayName").rules('add', {
+                            //    required: true,
+                            //    maxlength: 100
+                            //});
+                            $("#IsCorelogicEmail").val(response.IsCoreLogic);
+                            if (response.IsCoreLogic) {
+                                //hide confirm password and disable firstname and lastname 
+                                //$("#ConfirmPassword").rules('remove');
+                                $("#ConfirmPasswordLabel").hide();
+                                $("#ConfirmPassword").hide();
+                                $(".IsCorelogic").hide();
+                                $(".IsNotCorelogic").show();
+                                cl.html("<div class='alert alert-yellow' style='margin-bottom:2%;'>Please enter your CoreLogic password.</div>");
+                                //$("#DisplayName").val($("#FirstName").val() + ", " + $("#FirstName").val());
+                               
+                                
+                            }
+                            else {
+                                $(".IsNotCorelogic").hide();
+                                $(".IsCorelogic").show();
+                                //show confirm password and eanble firstname and lastname
+                                $("#ConfirmPassword").show();
+                                $("#ConfirmPasswordLabel").show();
+                                $("#ConfirmPassword").rules('add', {
+                                    password:true,
+                                    required: true,
+                                    equalTo: "#Password"
+                                });
+                                
+                                $("#FirstName").rules('add', {
+                                    required: true,
+                                    lettersonly: true,
+                                });
+                                $("#LastName").rules('add', {
+                                    required: true,
+                                    lettersonly: true,
+                                });
+                                $("#DisplayName").rules('add', {
+                                    required: true,
+                                    maxlength: 100
+                                });
+
+                            }
+                        }
+                        else {
+                            el.html("<div class='alert alert-red'>" + response.Message + "</div>");
+                            return false;
+                        }
+                        
+
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        el.show();
+
+                        var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
+                        el.html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
+                    }
+
+                });
+            }
+            function animationNext(obj) {
+                if (animating) return false;
+                animating = true;
+
+                current_fs = $(obj).parent().parent().parent().parent().parent().parent().parent();
+                next_fs = $(obj).parent().parent().parent().parent().parent().parent().parent().next();
+
+                next_fs.show();
+
+                current_fs.animate({ opacity: 0 }, {
+                    step: function (now, mx) {
+                        //as the opacity of current_fs reduces to 0 - stored in "now"
+                        //1. scale current_fs down to 80%
+                        scale = 1 - (1 - now) * 0.2;
+                        //2. bring next_fs from the right(50%)
+                        left = (now * 50) + "%";
+                        //3. increase opacity of next_fs to 1 as it moves in
+                        opacity = 1 - now;
+                        current_fs.css({ 'transform': 'scale(' + scale + ')' });
+                        next_fs.css({ 'left': left, 'opacity': opacity });
+                        //current_fs.hide();
+                        //animating = true;
+
+
+                    },
+                    duration: 600,
+                    complete: function () {
+                        current_fs.hide();
+                        //next_fs.show();
+                        //hide the current fieldset with style
+                        animating = false;
+                    },
+                    //this comes from the custom easing plugin
+                    easing: 'easeInOutBack'
+                });
+            }
+            function NextSection(obj) {
+                if ($('#registerform').valid()) {
+
+                    var isValid = ValidateEmail($("#Email").val());
+                    if (isValid) {
+                       
+                    }
+
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+            function NextPassword(obj) {
+                if ($('#registerform').valid()) {
+                    animationNext(obj);
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+            $("#LastName").blur(function () {
+                $("#DisplayName").val($("#LastName").val() + ", " + $("#FirstName").val());
+            });
+            function PreviousSection(obj) {
+                if ($('#registerform').valid()) {
+                    if (animating) return false;
+                    animating = true;
+
+                    current_fs = $(obj).parent().parent().parent().parent().parent().parent().parent();
+                    previous_fs = $(obj).parent().parent().parent().parent().parent().parent().parent().prev();
+
+                    //show the previous fieldset
+
+                    //hide the current fieldset with style
+                    current_fs.animate({ opacity: 0 }, {
+                        step: function (now, mx) {
+                            //as the opacity of current_fs reduces to 0 - stored in "now"
+                            //1. scale previous_fs from 80% to 100%
+                            scale = 0.8 + (1 - now) * 0.2;
+                            //2. take current_fs to the right(50%) - from 0%
+                            left = ((1 - now) * 50) + "%";
+                            //3. increase opacity of previous_fs to 1 as it moves in
+                            opacity = 1 - now;
+                            current_fs.css({ 'left': left });
+                            previous_fs.css({ 'transform': 'scale(' + scale + ')', 'opacity': opacity });
+                            //current_fs.hide();
+                            //animating = true;
+                            current_fs.hide();
+                            previous_fs.show();
+                        },
+                        duration: 600,
+                        complete: function () {
+
+                            animating = false;
+                        },
+                        //this comes from the custom easing plugin
+                        easing: 'easeInOutBack'
+                    });
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+
+
+            $("#emailnext").click(function () {
+                //show the next fieldset
+                var isValid = NextSection(this);
+                if (isValid) {
+                    animationNext(this);
+                }
+
+
+            });
+            $("#emailprevious").click(function () {
+                //show the next fieldset
+                $("#Password").rules('remove');
+                $("#ConfirmPassword").rules('remove');
+                $("#FirstName").rules('remove');
+                $("#LastName").rules('remove');
+                $("#DisplayName").rules('remove');
+                PreviousSection(this)
+
+            });
+            
+            $("#passwordnext").click(function () {
+                $("#ConfirmPassword").rules('remove');
+                $("#FirstName").rules('remove');
+                $("#LastName").rules('remove');
+                $("#DisplayName").rules('remove');
+                console.log($('#registerform').valid() +"next password");
+               // if ($('#registerform').valid()) {
+                  
+                NextPassword(this);
+                //}
+            });
+            $("#passwordprevious").click(function () {
+                $("#DisplayName").rules('remove');
+                PreviousSection(this);
+                
+            });
+            //$(".previousaction").click(function () {
+            //    PreviousSection(this);
+            //});
+
+            $(".submit").click(function () {
+                if ($("#IsCorelogicEmail").val() == "true")
+                {
+                    $("#DisplayName").rules('add', {
+                        required: true,
+                        maxlength: 100
+                    });
+                }
+                if ($("#IsCorelogicEmail").val() == "false")
+                {
+                    $("#FirstName").rules('add', {
+                        required: true,
+                        lettersonly: true,
+                    });
+                    $("#LastName").rules('add', {
+                        required: true,
+                        lettersonly: true,
+                    });
+                    $("#DisplayName").rules('add', {
+                        required: true,
+                        maxlength: 100
+                    });
+                }
+                
+                if ($('#registerform').valid()) {
+                   
+                    return true;
+                } else {
+                    return false;
+                }
+            })
+
+        });
+    </script>
+    @*<script type="text/javascript">
+
+            $("#Email").on("blur", function () {
+                var count = ($(this).val().match(/@@/g) || []).length;
+                var isCoreLoginEmail = $(this).val().substring($(this).val().lastIndexOf("@@") + 1);
+                console.log(isCoreLoginEmail);
+                if (count == 1) {
+                    if (isCoreLoginEmail == "corelogic.com") {
+                        $("#FirstName").attr("disabled", true);
+                        $("#LastName").attr("disabled", true);
+                        $("#DisplayName").attr("disabled", true);
+                    }
+                    else {
+                        $("#FirstName").removeAttr("disabled");
+                        $("#LastName").removeAttr("disabled");
+                        $("#DisplayName").removeAttr("disabled");
+                    }
+
+                }
+                console.log(count);
+            });
+        </script>*@
+}
+
+
+@*
+    @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { @class = "cl-form-login", role = "form" }))
                     {
                         @Html.AntiForgeryToken()
 
@@ -33,7 +459,7 @@
                                 @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control" })
                                 @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new { @class = "text-danger" })
                             </div>
-                           
+
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
@@ -51,14 +477,14 @@
                                 @Html.TextBoxFor(m => m.DisplayName, new { @class = "form-control" })
                                 @Html.ValidationMessageFor(m => m.DisplayName, "", new { @class = "text-danger" })
                             </div>
-                            
+
 
 
                         </div>
                         <div class="col-md-12">
                             <div class="form-group">
-                                <input type="submit" style="width:50%;float:left;" value="Register" class="btn btn-primary  btn-lg btn-block">
-                                @Html.ActionLink("Login", "Login", "Account", routeValues: null, htmlAttributes: new { id = "registerLink", @class = "btn btn-default btn-block btn-lg", @style = "width:50%;float:right;margin-top:0px;" })
+                                <input type="submit" style="width:49%;float:left;" value="C" class="btn btn-primary  btn-lg btn-block">
+                                @Html.ActionLink("Login", "Login", "Account", routeValues: null, htmlAttributes: new { id = "registerLink", @class = "btn btn-default btn-block btn-lg", @style = "width:49%;float:right;margin-top:0px;" })
                             </div>
                             <div class="cl-row hide-mobile">
                                 <div class="center-block cl-columns text-left" style="margin-top:1%">
@@ -70,40 +496,4 @@
                             </div>
                         </div>
                     }
-
-                </div>
-            </div>
-
-
-        </div>
-        @*<div class="cl-learnmore">
-                <span> <b>Customer?</b></span>
-                @Html.ActionLink("Login", "Login", "Account", routeValues: null, htmlAttributes: new { id = "registerLink", @class = "btn btn-default" })
-            </div>*@
-    </div>
-</section>
-@section Scripts {
-    @Scripts.Render("~/bundles/jqueryval")
-    <script type="text/javascript">
-
-        $("#Email").on("blur", function () {
-            var count = ($(this).val().match(/@@/g) || []).length;
-            var isCoreLoginEmail = $(this).val().substring($(this).val().lastIndexOf("@@") + 1);
-            console.log(isCoreLoginEmail);
-            if (count == 1) {
-                if (isCoreLoginEmail == "corelogic.com") {
-                    $("#FirstName").attr("disabled", true);
-                    $("#LastName").attr("disabled", true);
-                    $("#DisplayName").attr("disabled", true);
-                }
-                else {
-                    $("#FirstName").removeAttr("disabled");
-                    $("#LastName").removeAttr("disabled");
-                    $("#DisplayName").removeAttr("disabled");
-                }
-
-            }
-            console.log(count);
-        });
-    </script>
-}
+*@
