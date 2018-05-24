@@ -62,7 +62,6 @@ namespace AM.Web.Controllers
             }
         }
 
-
         //
         // GET: /Account/Login
         [AllowAnonymous]
@@ -479,6 +478,31 @@ namespace AM.Web.Controllers
             return View();
         }
 
+
+        [Authorize(Roles = AMRoles.Admin)]
+        public ActionResult AMUsers()
+        {
+            return View();
+        }
+        [Authorize(Roles = AMRoles.Admin)]
+        public JsonResult GetAllUsers()
+        {
+            var users = UserManager.Users;
+            if (users == null || users.Count() == 0) return Json(JsonResponseFactory.ErrorResponse("Users not found."), JsonRequestBehavior.AllowGet);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = users.ToList() }), JsonRequestBehavior.AllowGet);
+        }
+        [HttpPost, Authorize(Roles = AMRoles.Admin)]
+        public JsonResult UnlockUser(string userId)
+        {
+            var user = UserManager.FindById(userId);
+            if (user == null) return Json(JsonResponseFactory.ErrorResponse("User not found."), JsonRequestBehavior.AllowGet);
+            var result = UserManager.SetLockoutEndDate(userId, DateTime.UtcNow);
+            if (result.Succeeded)
+            {
+                return Json(JsonResponseFactory.SuccessResponse("User unlocked successfully."), JsonRequestBehavior.AllowGet);
+            }
+            return Json(JsonResponseFactory.ErrorResponse(null, null, result.Errors), JsonRequestBehavior.AllowGet);
+        }
         //
         // POST: /Account/ExternalLogin
         [HttpPost]

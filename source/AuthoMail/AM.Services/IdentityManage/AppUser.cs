@@ -114,6 +114,11 @@ namespace AM.Services
             Dictionary<string, object> parameters = new Dictionary<string, object>() { { "@email", email } };
             return db.QuerySingleOrDefault<TUser>(query, parameters);
         }
+        public IQueryable<TUser> GetAllUsers()
+        {
+            string query = "Select * from [Profile].[Users]";
+            return db.Query<TUser>(query).AsQueryable();
+        }
     }
 
 }
