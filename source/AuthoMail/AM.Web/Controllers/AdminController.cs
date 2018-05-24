@@ -6,6 +6,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using Microsoft.AspNet.Identity;
+using System.Text;
 namespace AM.Web.Controllers
 {
     [Authorize(Roles = AMRoles.Admin)]
@@ -38,6 +39,13 @@ namespace AM.Web.Controllers
             try
             {
                 var model = supportSvc.UpdateUsersRequestSignUp(userId, status);
+                var userManager = new UserManager<ProfileUser>(new UserStore<ProfileUser>());
+                var user = userManager.FindById(userId);
+                string template = status.Equals(AMUserStatus.Approved) ? "ApproveRegistration" : "RejectRegistration";
+                StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\" + template)));
+                sb.Replace("{{name}}", user.FirstName);
+                sb.Replace("{{email}}", user.Email);
+                userManager.SendEmailAsync(user.Id, "Welcome to AuthoMail.", sb.ToString());
                 return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
@@ -274,7 +282,7 @@ namespace AM.Web.Controllers
             {
                 Clients client = supportSvc.FindByClientId(id);
                 ViewBag.BusinessUnitList = new SelectList(supportSvc.GetBusinessUnitActive(), "Id", "BusinessUnit", client.BusinessUnit);
-                ViewBag.TimezoneList = new SelectList(TimeZoneInfo.GetSystemTimeZones().OrderBy(s => s.StandardName).ToList(), "StandardName", "StandardName",client.TimeZone);
+                ViewBag.TimezoneList = new SelectList(TimeZoneInfo.GetSystemTimeZones().OrderBy(s => s.StandardName).ToList(), "StandardName", "StandardName", client.TimeZone);
                 return PartialView("_AddOrEditClient", client);
             }
             else
@@ -395,7 +403,7 @@ namespace AM.Web.Controllers
             try
             {
                 var model = supportSvc.MakeActivateOrDeactivateDocType(Id, isActive, User.Identity.GetUserId());
-                    return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
 
             }
             catch (Exception e)

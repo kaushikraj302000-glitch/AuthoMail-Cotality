@@ -367,10 +367,12 @@
       <Generator>WCF Proxy Generator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>
     </None>
+    <Content Include="Template\ApproveRegistration.html" />
     <Content Include="Template\ForgotPassword.html" />
     <Content Include="Template\ChangePassword.html" />
     <Content Include="Template\CreateAccountCL.html" />
     <Content Include="Template\CreateAccount.html" />
+    <Content Include="Template\RejectRegistration.html" />
     <Content Include="Views\Report\MonthlyReconReport.cshtml" />
     <Content Include="Views\Shared\_LayoutCommon.cshtml" />
     <Content Include="Web.config">
