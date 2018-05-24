@@ -39,7 +39,7 @@ namespace AM.Web.Controllers
             try
             {
                 var model = supportSvc.UpdateUsersRequestSignUp(userId, status);
-                var userManager = new UserManager<ProfileUser>(new UserStore<ProfileUser>());
+                var userManager = new UserManager<ProfileUser>(new AMUserStore());
                 var user = userManager.FindById(userId);
                 string template = status.Equals(AMUserStatus.Approved) ? "ApproveRegistration" : "RejectRegistration";
                 StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\" + template)));
