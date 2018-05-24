@@ -45,7 +45,7 @@ namespace AM.Web.Controllers
                 StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\" + template)));
                 sb.Replace("{{name}}", user.FirstName);
                 sb.Replace("{{email}}", user.Email);
-                userManager.SendEmailAsync(user.Id, "Welcome to AuthoMail.", sb.ToString());
+                userManager.SendEmailAsync(user.Id, "AuthoMail.", sb.ToString());
                 return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
