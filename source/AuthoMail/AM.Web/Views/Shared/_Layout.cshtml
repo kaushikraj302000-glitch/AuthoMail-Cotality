@@ -133,6 +133,10 @@
             jQuery.validator.addMethod("domainonly", function(value, element) {
                 return this.optional(element) || /^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$/i.test(value);
             }, "Please enter valid domain name.");
+            jQuery.validator.addMethod("password",function(value,element){
+                return this.optional(element) || /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,20}$/i.test(value);
+            },"Passwords are 8-20 characters with uppercase letters, lowercase letters and at least one number.");
+
             //""
 
         });

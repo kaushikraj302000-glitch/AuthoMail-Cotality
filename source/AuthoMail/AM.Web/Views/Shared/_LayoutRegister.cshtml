@@ -261,7 +261,22 @@
     @Scripts.Render("~/bundles/cljs")
     @RenderSection("scripts", required: false)
     <script type="text/javascript">
-        var baseUrl = '@Url.Content("~/")';
+    var baseUrl = '@Url.Content("~/")';
+        $(document).ready(function () {
+            
+            jQuery.validator.addMethod("lettersonly", function(value, element) {
+                return this.optional(element) || /^[A-z\s]+$/i.test(value);
+            }, "Letters only please");
+            jQuery.validator.addMethod("domainonly", function(value, element) {
+                return this.optional(element) || /^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$/i.test(value);
+            }, "Please enter valid domain name.");
+            jQuery.validator.addMethod("checkpassword",function(value,element){
+                return this.optional(element) || /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,20}$/i.test(value);
+            },"Passwords are 8-20 characters with uppercase letters, lowercase letters and at least one number.");
+
+            //""
+
+        });
     </script>
 </body>
 </html>
