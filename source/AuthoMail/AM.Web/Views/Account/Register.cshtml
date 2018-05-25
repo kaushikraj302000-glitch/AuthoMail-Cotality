@@ -19,8 +19,10 @@
         margin-top: 58%;
     }
 </style>
-<form id="registerform" style="margin-top:-1%;">
+@using (Html.BeginForm("Register", "Account", FormMethod.Post, new { @id = "registerform", role = "form" }))
+{
 
+    @Html.AntiForgeryToken()
     <section class="single-column swipe">
         <div class="cl-columns">
             <div class="inner-block">
@@ -29,6 +31,7 @@
                         <h1 class="app-logo text-center">AuthoMail Registration</h1>
 
                         <div class="col-md-12">
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                             <div id="emailsummary"></div>
                             <div class="form-group">
                                 <label for="login-email">Email</label>
@@ -61,15 +64,15 @@
                             <div id="CLErrorsummary"></div>
                             <div class="form-group IsCorelogic">
                                 <label for="login-email">First Name</label>
-                                <input type="text" id="FirstName" name="FirstName" class="form-control name" />
+                                <input type="text" id="FirstName" class="form-control name" />
                             </div>
                             <div class="form-group IsCorelogic">
                                 <label for="login-email">Last Name</label>
-                                <input type="text" id="LastName" name="LastName" class="form-control name" />
+                                <input type="text" id="LastName" class="form-control name" />
                             </div>
                             <div class="form-group IsCorelogic">
                                 <label for="login-email">Display Name</label>
-                                <input type="text" id="DisplayName" name="DisplayName" class="form-control" />
+                                <input type="text" id="DisplayName" class="form-control" />
                             </div>
                             <div class="form-group">
                                 <label>Password</label>
@@ -82,7 +85,7 @@
                             <div class="form-group">
                                 <input type="button" id="emailprevious" style="width:49%;float:left;" value="Previous" class="btn btn-default  btn-lg btn-block">
                                 <input type="button" id="passwordnext" style="width:49%;float:right;margin-top:0px;" value="Next" class="btn btn-primary   btn-lg btn-block IsNotCorelogic">
-                                <input type="button" id="register" style="width:49%;float:right;margin-top:0px;" value="Register" class="btn btn-primary submit IsCorelogic  btn-lg btn-block ">
+                                <input type="submit" id="register" style="width:49%;float:right;margin-top:0px;" value="Register" class="btn btn-primary submit IsCorelogic  btn-lg btn-block ">
                             </div>
                         </div>
 
@@ -106,7 +109,7 @@
                             <div class="summary"></div>
                             <div class="form-group">
                                 <label for="login-email">Display Name</label>
-                                <input type="text" id="DisplayNameCL" name="DisplayName" class="form-control" />
+                                <input type="text" id="DisplayNameCL" class="form-control" />
                             </div>
                             <div class="form-group">
                                 <label for="login-email">First Name</label>
@@ -118,7 +121,7 @@
                             </div>
                             <div class="form-group">
                                 <input type="button" style="width:49%;float:left;" value="Previous" id="passwordprevious" class="btn btn-default  btn-lg btn-block">
-                                <input type="button" id="registerCL" style="width:49%;float:right;margin-top:0px;" value="Register" class="btn btn-primary submit  btn-lg btn-block">
+                                <input type="submit" id="registerCL" style="width:49%;float:right;margin-top:0px;" value="Register" class="btn btn-primary  btn-lg btn-block">
                             </div>
                         </div>
 
@@ -132,7 +135,12 @@
         </div>
     </section>
     <input id="IsCorelogicEmail" value="false" type="hidden" />
-</form>
+    <input name="FirstName" type="hidden" />
+    <input name="LastName" type="hidden" />
+    <input name="DisplayName" type="hidden" />
+
+    @*</form>*@
+}
 
 <div class="marginfooter"></div>
 @section Scripts {
@@ -203,6 +211,7 @@
                                 });
                                 $("#DisplayName").rules('add', {
                                     required: true,
+                                    lettersonly: false,
                                     maxlength: 100
                                 });
 
@@ -245,6 +254,10 @@
                             $("#FirstNameCL").text(response.Object.FName);
                             $("#LastNameCL").text(response.Object.LName);
                             $("#DisplayNameCL").val(response.Object.DisplayName);
+                            $("input[name='FirstName']").val(response.Object.FName);
+                            $("input[name='LastName']").val(response.Object.LName);
+                            $("input[name='DisplayName']").val(response.Object.DisplayName);
+
                             isValid = true;
                         }
                         else {
@@ -323,10 +336,13 @@
                     return false;
                 }
             }
-            
+
             $(".name").blur(function () {
                 if ($("#LastName").val().trim() != "" && $("#FirstName").val().trim() != "") {
                     $("#DisplayName").val($("#LastName").val().trim() + ", " + $("#FirstName").val().trim());
+                    $("input[name='FirstName']").val($("#FirstName").val().trim());
+                    $("input[name='LastName']").val($("#LastName").val().trim());
+                    $("input[name='DisplayName']").val($("#DisplayName").val().trim());
                 }
                 else {
                     $("#DisplayName").val("");
@@ -376,6 +392,16 @@
             $("#Email").blur(function () {
                 $("#emailsummary").empty();
             });
+            $("#DisplayNameCL").blur(function () {
+                if ($("#IsCorelogicEmail").val() == "true") {
+                    $("input[name='DisplayName']").val($("#DisplayNameCL").val().trim());
+                }
+            });
+            $('#Password').change(function () {
+                if ($("#IsCorelogicEmail").val() == "true") {
+                    $("#ConfirmPassword").val($(this).val());
+                }
+            });
             $("#emailnext").click(function () {
                 //show the next fieldset
                 var isValid = NextSection(this);
@@ -419,7 +445,28 @@
                 if ($('#registerform').valid()) {
                     var isCLAuth = CLAuth($("#Email").val().trim(), $("#Password").val().trim());
                     if (isCLAuth) {
-
+                        if ($("#IsCorelogicEmail").val() == "true") {
+                            $("#DisplayName").rules('add', {
+                                required: true,
+                                lettersonly: false,
+                                maxlength: 100
+                            });
+                        }
+                        if ($("#IsCorelogicEmail").val() == "false") {
+                            $("#FirstName").rules('add', {
+                                required: true,
+                                lettersonly: true,
+                            });
+                            $("#LastName").rules('add', {
+                                required: true,
+                                lettersonly: true,
+                            });
+                            $("#DisplayNameCL").rules('add', {
+                                required: true,
+                                lettersonly: false,
+                                maxlength: 100
+                            });
+                        }
                         NextPassword(this);
                     }
                 }
@@ -429,35 +476,35 @@
                 PreviousSection(this);
 
             });
-            $(".submit").click(function () {
-                if ($("#IsCorelogicEmail").val() == "true") {
-                    $("#DisplayName").rules('add', {
-                        required: true,
-                        maxlength: 100
-                    });
-                }
-                if ($("#IsCorelogicEmail").val() == "false") {
-                    $("#FirstName").rules('add', {
-                        required: true,
-                        lettersonly: true,
-                    });
-                    $("#LastName").rules('add', {
-                        required: true,
-                        lettersonly: true,
-                    });
-                    $("#DisplayName").rules('add', {
-                        required: true,
-                        maxlength: 100
-                    });
-                }
+            //$(".submit").click(function () {
+            //    if ($("#IsCorelogicEmail").val() == "true") {
+            //        $("#DisplayName").rules('add', {
+            //            required: true,
+            //            maxlength: 100
+            //        });
+            //    }
+            //    if ($("#IsCorelogicEmail").val() == "false") {
+            //        $("#FirstName").rules('add', {
+            //            required: true,
+            //            lettersonly: true,
+            //        });
+            //        $("#LastName").rules('add', {
+            //            required: true,
+            //            lettersonly: true,
+            //        });
+            //        $("#DisplayName").rules('add', {
+            //            required: true,
+            //            maxlength: 100
+            //        });
+            //    }
 
-                if ($('#registerform').valid()) {
+            //    if ($('#registerform').valid()) {
 
-                    return true;
-                } else {
-                    return false;
-                }
-            })
+            //        return true;
+            //    } else {
+            //        return false;
+            //    }
+            //})
 
         });
     </script>
