@@ -20,6 +20,7 @@
     }
 </style>
 <form id="registerform" style="margin-top:-1%;">
+
     <section class="single-column swipe">
         <div class="cl-columns">
             <div class="inner-block">
@@ -49,7 +50,6 @@
 
         </div>
     </section>
-
     <section class="single-column swipe">
         <div class="cl-columns">
             <div class="inner-block">
@@ -210,7 +210,7 @@
                             isValid = true;
                         }
                         else {
-                            el.html("<ul><li class='text-red'>" + response.ErrorMessage + "</li></ul>");
+                            el.html("<ul><li class='text-red'>" + response.Message + "</li></ul>");
                             isValid = false;
                         }
                     },
