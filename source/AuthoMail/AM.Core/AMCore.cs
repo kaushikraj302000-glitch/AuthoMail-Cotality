@@ -520,7 +520,6 @@ namespace AM.Core
                         foreach (var triggerFile in responseTriggerFiles)
                         {
                             string pnsResponseFilePath = Path.Combine(Config.Core_PnS_SFT_RootDir, client.AppCode, triggerFile.Key + "-res.xml");
-                            string pnsResponseTriggerFilePath = Path.Combine(Config.Core_PnS_SFT_RootDir, client.AppCode, triggerFile.Value);
                             if (File.Exists(pnsResponseFilePath))
                             {
                                 submittedPrintBatches.ForEach(row =>
@@ -528,7 +527,7 @@ namespace AM.Core
                                     if (row.SubmittedBatchName == triggerFile.Key)
                                     {
                                         row.ResponseFilePath = pnsResponseFilePath;
-                                        row.ResponseTriggerFilePath = pnsResponseTriggerFilePath;
+                                        row.ResponseTriggerFilePath = triggerFile.Value;
                                     }
                                 });
                             }
