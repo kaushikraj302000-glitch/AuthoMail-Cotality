@@ -103,12 +103,14 @@ namespace AM.Services
                 if (email.IsNullOrWhiteSpace()) return GetKeyValue(false, "Email not found.");
 
                 MailAddress mAdd = new MailAddress(email);
-                var clientQuery = "SELECT ClientId,IsAMActive FROM [Common].[ClientDomains] WHERE AllowedDomain=@domain";
-
+                var clientQuery = "SELECT ClientId FROM [Common].[ClientDomains] WHERE AllowedDomain=@domain";
                 var client = db.QuerySingleOrDefault(clientQuery, new { domain = mAdd.Host });
                 int? clientId = client.ClientId;
+
                 if (clientId == null) return GetKeyValue(false, "Client not found.");
-                if (!client.IsAMActive) return GetKeyValue(false, "Client is not activated.");
+                bool IsAMActive = db.QuerySingle<bool>("SELECT IsAMActive FROM [Common].[Clients] WHERE Id=@clientId", new { clientId = clientId });
+                if (!IsAMActive) return GetKeyValue(false, "Client is not activated.");
+
                 string setClientToUser = "UPDATE [Profile].[Users] SET ClientId=@clientId,Status=@status,ClosedOn=@closedOn WHERE Id=@userId";
                 int result = db.Execute(setClientToUser, new { status = AMUserStatus.Approved, closedOn = DateTime.UtcNow, clientId = clientId, userId = Id });
                 return result > 0 ? GetKeyValue(true, "User request has been approved.") : GetKeyValue(false, "User request not yet processed.");
@@ -243,9 +245,22 @@ namespace AM.Services
         public KeyValuePair<bool, string> CreateOrEditDocType(DocTypes docTypes, string userId)
         {
             //Validation
+            if (docTypes.DocTypeCode.IsNullOrWhiteSpace()) throw new Exception("DocTypeCode can't be null or empty.");
+            if (docTypes.Description.IsNullOrWhiteSpace()) throw new Exception("Description can't be null or empty.");
+            if (docTypes.PrintSize.IsNullOrWhiteSpace()) throw new Exception("PrintSize can't be null or empty.");
+            if (FindByClientId(docTypes.ClientId) == null) throw new Exception("Client not found.");
+            if (docTypes.IsReturnInfoSpecified)
+            {
+                if (docTypes.RetRcptFirstName.IsNullOrWhiteSpace()) throw new Exception("First name can't be null or empty.");
+                if (docTypes.RetRcptMiddleName.IsNullOrWhiteSpace()) throw new Exception("Middle name can't be null or empty.");
+                if (docTypes.RetRcptLastName.IsNullOrWhiteSpace()) throw new Exception("Last name can't be null or empty.");
+                if (docTypes.RetRcptAddressCity.IsNullOrWhiteSpace()) throw new Exception("City can't be null or empty.");
+                if (docTypes.RetRcptAddressState.IsNullOrWhiteSpace()) throw new Exception("State can't be null or empty.");
+                if (docTypes.RetRcptAddressZIP.IsNullOrWhiteSpace()) throw new Exception("zip can't be null or empty.");
+            }
             if (docTypes.Id == 0)
             {
-                string query = "INSERT INTO [AM].[DocTypes] ([DocTypeCode] ,[Description] ,[ClientId] ,[PrintSize] ,[ContentScalePercent] ,[PrintFormat] ,[QCPercent] ,[SLADays] ,[SLACutOffTime] ,[ShippingCarrier] ,[ShippingServiceType] ,[ShippingAccountCode] ,[IsReturnInfoSpecified] ,[RetRcptPrefix] ,[RetRcptFirstName] ,[RetRcptMiddleName] ,[RetRcptLastName] ,[RetRcptSuffix] ,[RetRcptPhone] ,[RetRcptOrganization] ,[RetRcptAddrOptionalLine1AboveStreet] ,[RetRcptAddrOptionalLine2AboveStreet] ,[RetRcptAddressStreet] ,[RetRcptAddressAptOrSuiteOrOther] ,[RetRcptAddrOptionalLine1BelowStreet] ,[RetRcptAddrOptionalLine2BelowStreet] ,[RetRcptAddressCity] ,[RetRcptAddressState] ,[RetRcptAddressZIP] ,[ClientEmails] ,[ClientContactNo] ,[SupportEmails] ,[SupportContactNo] ,[IsActive] ,[ModifiedOn] ,[CreatedOn] ,[CreatedBy] ,[ModifiedBy]) VALUES ('@docTypeCode','@description','@clientId','@printSize','@contentScalePercent','@printFormat','@qCPercent','@sLADays','@sLACutOffTime','@shippingCarrier','@shippingServiceType','@shippingAccountCode','@isReturnInfoSpecified','@retRcptPrefix','@retRcptFirstName','@retRcptMiddleName','@retRcptLastName','@retRcptSuffix','@retRcptPhone','@retRcptOrganization','@retRcptAddrOptionalLine1AboveStreet','@retRcptAddrOptionalLine2AboveStreet','@retRcptAddressStreet','@retRcptAddressAptOrSuiteOrOther','@retRcptAddrOptionalLine1BelowStreet','@retRcptAddrOptionalLine2BelowStreet','@retRcptAddressCity','@retRcptAddressState','@retRcptAddressZIP','@clientEmails','@clientContactNo','@supportEmails','@supportContactNo','@isActive','@modifiedOn','@createdOn','@createdBy','@modifiedBy')";
+                string query = "INSERT INTO [AM].[DocTypes] ([DocTypeCode] ,[Description] ,[ClientId] ,[PrintSize] ,[ContentScalePercent] ,[PrintFormat] ,[QCPercent] ,[SLADays] ,[SLACutOffTime] ,[ShippingCarrier] ,[ShippingServiceType] ,[ShippingAccountCode] ,[IsReturnInfoSpecified] ,[RetRcptPrefix] ,[RetRcptFirstName] ,[RetRcptMiddleName] ,[RetRcptLastName] ,[RetRcptSuffix] ,[RetRcptPhone] ,[RetRcptOrganization] ,[RetRcptAddrOptionalLine1AboveStreet] ,[RetRcptAddrOptionalLine2AboveStreet] ,[RetRcptAddressStreet] ,[RetRcptAddressAptOrSuiteOrOther] ,[RetRcptAddrOptionalLine1BelowStreet] ,[RetRcptAddrOptionalLine2BelowStreet] ,[RetRcptAddressCity] ,[RetRcptAddressState] ,[RetRcptAddressZIP] ,[ClientEmails] ,[ClientContactNo] ,[SupportEmails] ,[SupportContactNo] ,[IsActive] ,[ModifiedOn] ,[CreatedOn] ,[CreatedBy] ,[ModifiedBy]) VALUES (@docTypeCode,@description,@clientId,@printSize,@contentScalePercent,@printFormat,@qCPercent,@sLADays,@sLACutOffTime,@shippingCarrier,@shippingServiceType,@shippingAccountCode,@isReturnInfoSpecified,@retRcptPrefix,@retRcptFirstName,@retRcptMiddleName,@retRcptLastName,@retRcptSuffix,@retRcptPhone,@retRcptOrganization,@retRcptAddrOptionalLine1AboveStreet,@retRcptAddrOptionalLine2AboveStreet,@retRcptAddressStreet,@retRcptAddressAptOrSuiteOrOther,@retRcptAddrOptionalLine1BelowStreet,@retRcptAddrOptionalLine2BelowStreet,@retRcptAddressCity,@retRcptAddressState,@retRcptAddressZIP,@clientEmails,@clientContactNo,@supportEmails,@supportContactNo,@isActive,@modifiedOn,@createdOn,@createdBy,@modifiedBy)";
                 docTypes.CreatedOn = DateTime.UtcNow;
                 docTypes.CreatedBy = userId;
                 docTypes.ModifiedOn = DateTime.UtcNow;
@@ -257,43 +272,6 @@ namespace AM.Services
             else
             {
                 string query = "UPDATE [AM].[DocTypes] SET [DocTypeCode]=@docTypeCode ,[Description]=@description ,[ClientId]=@clientId ,[PrintSize]=@printSize ,[ContentScalePercent]=@contentScalePercent ,[PrintFormat]=@printFormat ,[QCPercent]=@qCPercent ,[SLADays]=@sLADays ,[SLACutOffTime]=@sLACutOffTime ,[ShippingCarrier]=@shippingCarrier ,[ShippingServiceType]=@shippingServiceType ,[ShippingAccountCode]=@shippingAccountCode ,[IsReturnInfoSpecified]=@isReturnInfoSpecified ,[RetRcptPrefix]=@retRcptPrefix ,[RetRcptFirstName]=@retRcptFirstName ,[RetRcptMiddleName]=@retRcptMiddleName ,[RetRcptLastName]=@retRcptLastName ,[RetRcptSuffix]=@retRcptSuffix ,[RetRcptPhone]=@retRcptPhone ,[RetRcptOrganization]=@retRcptOrganization ,[RetRcptAddrOptionalLine1AboveStreet]=@retRcptAddrOptionalLine1AboveStreet ,[RetRcptAddrOptionalLine2AboveStreet]=@retRcptAddrOptionalLine2AboveStreet ,[RetRcptAddressStreet]=@retRcptAddressStreet ,[RetRcptAddressAptOrSuiteOrOther]=@retRcptAddressAptOrSuiteOrOther ,[RetRcptAddrOptionalLine1BelowStreet]=@retRcptAddrOptionalLine1BelowStreet ,[RetRcptAddrOptionalLine2BelowStreet]=@retRcptAddrOptionalLine2BelowStreet ,[RetRcptAddressCity]=@retRcptAddressCity ,[RetRcptAddressState]=@retRcptAddressState ,[RetRcptAddressZIP]=@retRcptAddressZIP ,[ClientEmails]=@clientEmails ,[ClientContactNo]=@clientContactNo ,[SupportEmails]=@supportEmails ,[SupportContactNo]=@supportContactNo ,[ModifiedOn]=@modifiedOn,[ModifiedBy]=@modifiedBy WHERE Id=@id";
-                //var p = new DynamicParameters();
-                //p.Add("@docTypeCode", docTypes.DocTypeCode);
-                //p.Add("@description", docTypes.Description);
-                //p.Add("@clientId", docTypes.ClientId);
-                //p.Add("@printSize", docTypes.PrintSize);
-                //p.Add("@contentScalePercent", docTypes.ContentScalePercent);
-                //p.Add("@printFormat", docTypes.PrintFormat);
-                //p.Add("@qCPercent", docTypes.QCPercent);
-                //p.Add("@sLADays", docTypes.SLADays);
-                //p.Add("@sLACutOffTime", docTypes.SLACutOffTime);
-                //p.Add("@shippingCarrier", docTypes.ShippingCarrier);
-                //p.Add("@shippingServiceType", docTypes.ShippingServiceType);
-                //p.Add("@shippingAccountCode", docTypes.ShippingAccountCode);
-                //p.Add("@isReturnInfoSpecified", docTypes.IsReturnInfoSpecified);
-                //p.Add("@retRcptPrefix", docTypes.RetRcptPrefix);
-                //p.Add("@retRcptFirstName", docTypes.RetRcptFirstName);
-                //p.Add("@retRcptMiddleName", docTypes.RetRcptMiddleName);
-                //p.Add("@retRcptLastName", docTypes.RetRcptLastName);
-                //p.Add("@retRcptSuffix", docTypes.RetRcptSuffix);
-                //p.Add("@retRcptPhone", docTypes.RetRcptPhone);
-                //p.Add("@retRcptOrganization", docTypes.RetRcptOrganization);
-                //p.Add("@retRcptAddrOptionalLine1AboveStreet", docTypes.RetRcptAddrOptionalLine1AboveStreet);
-                //p.Add("@retRcptAddrOptionalLine2AboveStreet", docTypes.RetRcptAddrOptionalLine2AboveStreet);
-                //p.Add("@retRcptAddressStreet", docTypes.RetRcptAddressStreet);
-                //p.Add("@retRcptAddressAptOrSuiteOrOther", docTypes.RetRcptAddressAptOrSuiteOrOther);
-                //p.Add("@retRcptAddrOptionalLine1BelowStreet", docTypes.RetRcptAddrOptionalLine1BelowStreet);
-                //p.Add("@retRcptAddrOptionalLine2BelowStreet", docTypes.RetRcptAddrOptionalLine2BelowStreet);
-                //p.Add("@retRcptAddressCity", docTypes.RetRcptAddressCity);
-                //p.Add("@retRcptAddressState", docTypes.RetRcptAddressState);
-                //p.Add("@retRcptAddressZIP", docTypes.RetRcptAddressZIP);
-                //p.Add("@clientEmails", docTypes.ClientEmails);
-                //p.Add("@clientContactNo", docTypes.ClientContactNo);
-                //p.Add("@supportEmails", docTypes.SupportEmails);
-                //p.Add("@supportContactNo", docTypes.SupportContactNo);
-                //p.Add("@modifiedOn", DateTime.UtcNow);
-                //p.Add("@modifiedBy", userId);
-                //p.Add("@id", docTypes.Id);
                 docTypes.ModifiedOn = DateTime.UtcNow;
                 docTypes.ModifiedBy = userId;
                 int rows = db.Execute(query, docTypes);
@@ -326,6 +304,11 @@ namespace AM.Services
         }
         public KeyValuePair<bool, string> CreateOrEditSFTChannel(SFTChannels sftChannel)
         {
+            if (sftChannel.Code.IsNullOrWhiteSpace()) throw new Exception("Code can't be null or empty.");
+            if (sftChannel.Title.IsNullOrWhiteSpace()) throw new Exception("Title can't be null or empty.");
+            if (sftChannel.Protocol.IsNullOrWhiteSpace()) throw new Exception("Protocol can't be null or empty.");
+            if (sftChannel.Host.IsNullOrWhiteSpace()) throw new Exception("Host can't be null or empty.");
+
             if (sftChannel.Id == 0)
             {
                 string query = "INSERT INTO [Common].[SFTChannels] ([Code] ,[Description] ,[Title] ,[Protocol] ,[Host] ,[UserName] ,[Password] ,[ToADEDir] ,[FromADEDir] ,[ArchiveDir] ,[PostDownloadAction] ,[IsActive]) VALUES (@code ,@description ,@title ,@protocol ,@host ,@userName ,@password ,@toADEDir ,@fromADEDir ,@archiveDir ,@postDownloadAction ,@isActive)";

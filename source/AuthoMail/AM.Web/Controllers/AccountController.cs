@@ -62,7 +62,6 @@ namespace AM.Web.Controllers
             }
         }
 
-
         //
         // GET: /Account/Login
         [AllowAnonymous]
@@ -207,6 +206,38 @@ namespace AM.Web.Controllers
             return View();
         }
 
+        [AllowAnonymous]
+        public JsonResult ValidateEmail(string email)
+        {
+            EmailValidate emailValidate = new EmailValidate(email);
+            if (emailValidate.IsValid)
+            {
+                var clientDomain = supSvc.FingByDomainName(emailValidate.Host);
+                if (clientDomain == null)
+                {
+                    emailValidate.Message = string.Format("Users of the specified domain name '{0}' are not allowed to register.", emailValidate.Host);
+                    emailValidate.IsValid = false;
+                }
+            }
+            return Json(emailValidate, JsonRequestBehavior.AllowGet);
+        }
+        [AllowAnonymous, HttpPost]
+        public JsonResult CLAuth(string email, string password)
+        {
+            var ldap = CLAuthentication.LdapLogin(email, password);
+            if (!ldap.Key)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(ldap.Value), JsonRequestBehavior.AllowGet);
+            }
+            var nm = ldap.Value.Split('|');
+            var data = new
+            {
+                FName = nm[0],
+                LName = nm[1],
+                DisplayName = nm[2]
+            };
+            return Json(JsonResponseFactory.SuccessResponse(data), JsonRequestBehavior.AllowGet);
+        }
         //
         // POST: /Account/Register
         [HttpPost]
@@ -447,6 +478,31 @@ namespace AM.Web.Controllers
             return View();
         }
 
+
+        [Authorize(Roles = AMRoles.Admin)]
+        public ActionResult AMUsers()
+        {
+            return View();
+        }
+        [Authorize(Roles = AMRoles.Admin)]
+        public JsonResult GetAllUsers()
+        {
+            var users = UserManager.Users;
+            if (users == null || users.Count() == 0) return Json(JsonResponseFactory.ErrorResponse("Users not found."), JsonRequestBehavior.AllowGet);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = users.ToList() }), JsonRequestBehavior.AllowGet);
+        }
+        [HttpPost, Authorize(Roles = AMRoles.Admin)]
+        public JsonResult UnlockUser(string userId)
+        {
+            var user = UserManager.FindById(userId);
+            if (user == null) return Json(JsonResponseFactory.ErrorResponse("User not found."), JsonRequestBehavior.AllowGet);
+            var result = UserManager.SetLockoutEndDate(userId, DateTime.UtcNow);
+            if (result.Succeeded)
+            {
+                return Json(JsonResponseFactory.SuccessResponse("User unlocked successfully."), JsonRequestBehavior.AllowGet);
+            }
+            return Json(JsonResponseFactory.ErrorResponse(null, null, result.Errors), JsonRequestBehavior.AllowGet);
+        }
         //
         // POST: /Account/ExternalLogin
         [HttpPost]

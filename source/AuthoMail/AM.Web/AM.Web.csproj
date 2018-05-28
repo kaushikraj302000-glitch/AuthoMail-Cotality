@@ -191,6 +191,7 @@
     <Compile Include="Controllers\AdminController.cs" />
     <Compile Include="Controllers\ChartApiController.cs" />
     <Compile Include="Controllers\CommonController.cs" />
+    <Compile Include="Controllers\Task.cs" />
     <Compile Include="Models\ChartViewModel.cs" />
     <Compile Include="Models\CLAuthentication.cs" />
     <Compile Include="Models\DailyDetailReportViewModel.cs" />
@@ -346,6 +347,7 @@
     <Content Include="Scripts\jquery-1.10.2.js" />
     <Content Include="Scripts\jquery-1.10.2.min.js" />
     <None Include="Scripts\jquery.validate-vsdoc.js" />
+    <Content Include="Scripts\jquery.easing.min.js" />
     <Content Include="Scripts\jquery.validate.js" />
     <Content Include="Scripts\jquery.validate.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
@@ -367,10 +369,12 @@
       <Generator>WCF Proxy Generator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>
     </None>
+    <Content Include="Template\ApproveRegistration.html" />
     <Content Include="Template\ForgotPassword.html" />
     <Content Include="Template\ChangePassword.html" />
     <Content Include="Template\CreateAccountCL.html" />
     <Content Include="Template\CreateAccount.html" />
+    <Content Include="Template\RejectRegistration.html" />
     <Content Include="Views\Report\MonthlyReconReport.cshtml" />
     <Content Include="Views\Shared\_LayoutCommon.cshtml" />
     <Content Include="Web.config">
@@ -448,6 +452,7 @@
     <Content Include="Views\Admin\_AddOrEditDomain.cshtml" />
     <Content Include="Views\Admin\ManageDocumentTypes.cshtml" />
     <Content Include="Views\Admin\_AddOrEditDocType.cshtml" />
+    <Content Include="Views\Account\AMUsers.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

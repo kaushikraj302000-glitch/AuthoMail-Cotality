@@ -1,5 +1,4 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "ManageDocTypes";
 }
 
@@ -10,7 +9,7 @@
         width: 100% !important;
     }
 
-   
+
 
     .dataTables_wrapper {
         margin-top: -1.5% !important;
@@ -30,7 +29,7 @@
 
     <div class="panel-heading" id="clientHeader">
         <div class="panel-title">
-            <i class="fa fa-sitemap"></i> Document Type Details
+            <i class="fa fa-file"></i> Document Type Details
             <span class="pull-right" @*style=" margin-right: 11%;" *@>
                 <button type="button" data-id="0" class="btn btn-primary " onclick="AddEditDocType(this)"><i class="fa fa-plus"></i> Add Document Type</button>
             </span>
@@ -177,90 +176,211 @@
             if (typeof str != 'undefined' && str != null && str != "")
                 return str.length > 31 ? str.substring(0, 31) + '...' : str;
         }
-        function DocTypes(Id, Code, Description, Title, Protocol, Host, UserName, Password, ToADEDir, FromADEDir, ArchiveDir, PostDownloadAction) {
+
+        function DocTypes(Id, DocTypeCode, Description, ClientId, PrintSize, ContentScalePercent, PrintFormat, QCPercent, SLADays, SLACutOffTime, ShippingCarrier, ShippingServiceType, ShippingAccountCode, IsReturnInfoSpecified, RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RetRcptSuffix, RetRcptPhone, RetRcptOrganization, RetRcptAddrOptionalLine1AboveStreet, RetRcptAddrOptionalLine2AboveStreet, RetRcptAddressStreet, RetRcptAddressAptOrSuiteOrOther, RetRcptAddrOptionalLine1BelowStreet, RetRcptAddrOptionalLine2BelowStreet, RetRcptAddressCity, RetRcptAddressState, RetRcptAddressZIP, ClientEmails, ClientContactNo, SupportEmails, SupportContactNo) {
             this.Id = Id;
-            this.Code = Code;
+            this.DocTypeCode = DocTypeCode;
             this.Description = Description;
-            this.Title = Title;
-            this.Protocol = Protocol;
-            this.Host = Host;
-            this.UserName = UserName;
-            this.Password = Password;
-            this.ToADEDir = ToADEDir;
-            this.FromADEDir = FromADEDir;
-            this.ArchiveDir = ArchiveDir;
-            this.PostDownloadAction = PostDownloadAction;
+            this.ClientId = ClientId;
+            this.PrintSize = PrintSize;
+            this.ContentScalePercent = ContentScalePercent;
+            this.PrintFormat = PrintFormat;
+            this.QCPercent = QCPercent;
+            this.SLADays = SLADays;
+            this.SLACutOffTime = SLACutOffTime;
+            this.ShippingCarrier = ShippingCarrier;
+            this.ShippingServiceType = ShippingServiceType;
+            this.ShippingAccountCode = ShippingAccountCode;
+            this.IsReturnInfoSpecified = IsReturnInfoSpecified;
+            this.RetRcptPrefix = RetRcptPrefix;
+            this.RetRcptFirstName = RetRcptFirstName;
+            this.RetRcptMiddleName = RetRcptMiddleName;
+            this.RetRcptLastName = RetRcptLastName;
+            this.RetRcptSuffix = RetRcptSuffix;
+            this.RetRcptPhone = RetRcptPhone;
+            this.RetRcptOrganization = RetRcptOrganization;
+            this.RetRcptAddrOptionalLine1AboveStreet = RetRcptAddrOptionalLine1AboveStreet;
+            this.RetRcptAddrOptionalLine2AboveStreet = RetRcptAddrOptionalLine2AboveStreet;
+            this.RetRcptAddressStreet = RetRcptAddressStreet;
+            this.RetRcptAddressAptOrSuiteOrOther = RetRcptAddressAptOrSuiteOrOther;
+            this.RetRcptAddrOptionalLine1BelowStreet = RetRcptAddrOptionalLine1BelowStreet;
+            this.RetRcptAddrOptionalLine2BelowStreet = RetRcptAddrOptionalLine2BelowStreet;
+            this.RetRcptAddressCity = RetRcptAddressCity;
+            this.RetRcptAddressState = RetRcptAddressState;
+            this.RetRcptAddressZIP = RetRcptAddressZIP;
+            this.ClientEmails = ClientEmails;
+            this.ClientContactNo = ClientContactNo;
+            this.SupportEmails = SupportEmails;
+            this.SupportContactNo = SupportContactNo;
+        }
+        //function ShowHideReturnInfo(obj) {
+        //    if ($(obj).hasClass("collapsed"))
+        //    {
+        //        $(obj).addClass("collapse");
+        //        $(obj).addClass("collapsed");
+        //        $("#tabreturninfo").addClass("in");
+        //    }
+        //    else {
+        //        $(obj).addClass("collapsed");
+        //       // $(obj).removeClass("collapse");
+        //        $("#tabreturninfo").removeClass("in");
+        //    }
+
+        //}
+        function IsRequired() {
+            return $("#tabreturninfo").find("input").filter(function () {
+                return $.trim($(this).val()).length != 0
+            }).length > 1;
+
         }
 
-        function ValidateForm() {
-            window.clui.selectInit();
-            $('#doctypeform').validate({ // initialize the plugin
-                errorElement: "span",
-                rules: {
-                    DocTypeCode: {
-                        required: true,
-                        maxlength: 128
+        function DocReady() {
+            $(document).ready(function () {
 
-                    },
-                    ClientId: {
-                        required: true
-                    },
-                    Protocol: {
-                        required: true,
-                        maxlength: 255
-                    },
-                    Host: {
-                        required: true,
-                        maxlength: 255
-                    },
-                    UserName: {
-                        required: true,
-                        maxlength: 255
-                    },
-                    Password: {
-                        required: true,
-                        maxlength: 255
-                    },
-                    ToADEDir: {
-                        required: true,
-                        maxlength: 1024
-                    },
-                    ToADEDir: {
-                        required: true,
-                        maxlength: 1024
-                    },
-                    ArchiveDir: {
-                        required: true,
-                        maxlength: 1024
-                    },
-                    PostDownloadAction: {
-                        required: true,
-                        maxlength: 255
+                $('#doctypeform').validate({ // initialize the plugin
+                    errorElement: "span",
+                    rules: {
+                        DocTypeCode: {
+                            required: true,
+                            maxlength: 128
+
+                        },
+                        ClientId: {
+                            required: true
+                        },
+                        PrintSize: {
+                            required: true
+                        },
+                        ContentScalePercent: {
+                            required: true,
+                            min: 0,
+                            max: 100
+                        },
+                        PrintFormat: {
+                            required: true,
+                            lettersonly: true,
+                        },
+                        QCPercent: {
+                            required: true,
+                            min: 0,
+                            max: 100
+                        },
+                        SLADays: {
+                            required: true,
+                            min: 0,
+                            max: 50
+                        },
+                        SLACutOffTime: {
+                            //required: true,
+
+                        },
+                        ShippingCarrier: {
+                            //required: true
+                            lettersonly: true,
+                        },
+                        ShippingServiceType: {
+                            //required: true,
+                            lettersonly: true,
+                        },
+                        ShippingAccountCode: {
+                            //required: true
+                        },
+
                     }
-                },
-                submitHandler: function (form) { // for demo
-                    var Id = $("#AddEditModal").find(".modal-header").find("#Id").val();
-                    var Code = $("#AddEditModal").find(".modal-header").find("#Code").val();
-                    var Description = $("#AddEditModal").find(".modal-header").find("#Description").val();
-                    var Title = $("#AddEditModal").find(".modal-header").find("#Title").val();
-                    var Protocol = $("#AddEditModal").find(".modal-header").find("#Protocol").val();
-                    var Host = $("#AddEditModal").find(".modal-header").find("#Host").val();
-                    var UserName = $("#AddEditModal").find(".modal-header").find("#UserName").val();
-                    var Password = $("#AddEditModal").find(".modal-header").find("#Password").val();
-                    var ToADEDir = $("#AddEditModal").find(".modal-header").find("#ToADEDir").val();
-                    var FromADEDir = $("#AddEditModal").find(".modal-header").find("#FromADEDir").val();
-                    var ArchiveDir = $("#AddEditModal").find(".modal-header").find("#ArchiveDir").val();
-                    var PostDownloadAction = $("#AddEditModal").find(".modal-header").find("#PostDownloadAction").val();
+                });
 
-                    var DocTypeObj = new DocTypes(Id, Code, Description, Title, Protocol, Host, UserName, Password, ToADEDir, FromADEDir, ArchiveDir, PostDownloadAction);
-                    //console.log(DocTypeObj);
+
+            });
+        }
+        function ValidateDocType() {
+            $("#Save").click(function () {
+                if (IsRequired()) {
+                    $("#RetRcptPrefix").rules('add', {
+
+                        required: true
+                    });
+                    $("#RetRcptFirstName").rules('add', {
+                        lettersonly: true,
+                        required: true
+                    });
+                    $("#RetRcptMiddleName").rules('add', {
+                        lettersonly: true,
+                        required: true
+                    });
+                    $("#RetRcptLastName").rules('add', {
+                        lettersonly: true,
+                        required: true
+                    });
+                    $("#RetRcptSuffix").rules('add', {
+                        required: true
+                    });
+                    $("#RetRcptPhone").rules('add', {
+                        required: true,
+
+                    });
+                    $("#RetRcptOrganization").rules('add', {
+                        required: true
+                    });
+                    $("#RetRcptAddrOptionalLine1AboveStreet").rules('add', {
+                        required: true
+                    });
+                    $("#RetRcptAddrOptionalLine2AboveStreet").rules('add', {
+                        //required: true
+                    });
+                    $("#RetRcptAddressStreet").rules('add', {
+                        required: true
+                    });
+                    $("#RetRcptAddressAptOrSuiteOrOther").rules('add', {
+                        required: true
+                    });
+                    $("#RetRcptAddrOptionalLine1BelowStreet").rules('add', {
+                        required: true
+                    });
+                    $("#RetRcptAddrOptionalLine2BelowStreet").rules('add', {
+                        // required: true
+                    });
+                    $("#RetRcptAddressCity").rules('add', {
+                        required: true
+                    });
+                    $("#RetRcptAddressState").rules('add', {
+                        required: true
+                    });
+                    $("#RetRcptAddressZIP").rules('add', {
+                        required: true
+                    });
+                    $("#ClientEmails").rules('add', {
+                        required: true,
+                        email: true
+                    });
+                    $("#ClientContactNo").rules('add', {
+                        required: true
+                    });
+                    $("#SupportEmails").rules('add', {
+                        required: true,
+                        email: true
+                    });
+                    $("#SupportContactNo").rules('add', {
+                        required: true
+                    });
+                    $("#IsReturnInfoSpecified").val(true);
+                }
+                else {
+                    $(".returninfovalidate").each(function () {
+                        $(this).rules("remove");
+                    })
+                    $("#IsReturnInfoSpecified").val(false);
+                }
+                if ($("#doctypeform").valid()) {
+
+                    var objDocType = new DocTypes($("#Id").val(), $("#DocTypeCode").val(), $("#Description").val(), parseInt($("#ClientId").val()), $("#PrintSize").val(), $("#ContentScalePercent").val(), $("#PrintFormat").val(), $("#QCPercent").val(), $("#SLADays").val(), $("#SLACutOffTime").val(), $("#ShippingCarrier").val(), $("#ShippingServiceType").val(), $("#ShippingAccountCode").val(), $("#IsReturnInfoSpecified").val(), $("#RetRcptPrefix").val(), $("#RetRcptFirstName").val(), $("#RetRcptMiddleName").val(), $("#RetRcptLastName").val(), $("#RetRcptSuffix").val(), $("#RetRcptPhone").val(), $("#RetRcptOrganization").val(), $("#RetRcptAddrOptionalLine1AboveStreet").val(), $("#RetRcptAddrOptionalLine2AboveStreet").val(), $("#RetRcptAddressStreet").val(), $("#RetRcptAddressAptOrSuiteOrOther").val(), $("#RetRcptAddrOptionalLine1BelowStreet").val(), $("#RetRcptAddrOptionalLine2BelowStreet").val(), $("#RetRcptAddressCity").val(), $("#RetRcptAddressState").val(), $("#RetRcptAddressZIP").val(), $("#ClientEmails").val(), $("#ClientContactNo").val(), $("#SupportEmails").val(), $("#SupportContactNo").val());
+
                     $("#AddEditModal").modal("hide");
                     var el = $("#myModal").find(".modal-body");
                     el.empty();
                     $.ajax({
                         type: "POST",
                         url: baseUrl + "Admin/CreateOrEditDocType",
-                        data: JSON.stringify({ docType: DocTypeObj }),
+                        data: JSON.stringify({ docType: objDocType }),
                         contentType: "application/json; charset=utf-8",
                         success: function (response) {
                             //console.log(response);
@@ -290,9 +410,11 @@
 
                     });
                 }
+                else {
+                    return false;
+                }
             });
         }
-
         var GetDocTypes = function () {
             //$("#DocTypeList").hide();
             var el = $('#DocTypeList');
@@ -345,7 +467,9 @@
                 success: function (response) {
                     el.html(response);
                     $("#AddEditModal").modal("show");
-                    ValidateForm();
+                    window.clui.selectInit();
+                    DocReady();
+                    ValidateDocType();
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
 
@@ -365,7 +489,7 @@
                 this.CreatedOn = moment(this.CreatedOn).format("MM/DD/YY HH:mm:ss");
                 this.ModifiedOn = moment(this.ModifiedOn).format("MM/DD/YY HH:mm:ss");
                 this.Action = '<span style="cursor: pointer;font-size:1.2em;" onclick="AddEditDocType(this)" data-id="' + this.Id + '" ><i class="padding-left-15 fa fa-edit text-blue" aria-hidden="true" title="Edit"><span class="sr-only">Edit</span></i></span>';
-               
+
             });
             return Model;
         }
@@ -386,24 +510,24 @@
                     //Spinners("#pullback", "fa-reply");
                     if (response.Success) {
                         if (response.Object != null) {
-                            if (response.Object == 1 && isActive) {
+                            //if (response.Object == 1 && isActive) {
 
-                                el.html("<div class='alert alert-green'>Document Type activated successfully.</div>");
-                            }
-                            if (response.Object == 1 && !isActive) {
-                                el.html("<div class='alert alert-green'>Document Type deactivated successfully.</div>");
-                            }
+                            //    el.html("<div class='alert alert-green'>Document Type activated successfully.</div>");
+                            //}
+                            //if (response.Object == 1 && !isActive) {
+                            //    el.html("<div class='alert alert-green'>Document Type deactivated successfully.</div>");
+                            //}
                         }
                         GetDocTypes();
                     }
                     else {
+                        $(obj).prop('checked', !isActive);
                         el.html("<div class='alert alert-red'>" + response.ErrorMessage + "</div>");
-
+                        $("#myModal").modal("show");
                     }
-                    $("#myModal").modal("show");
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
-
+                    $(obj).prop('checked', !isActive);
                     //Spinners(".spinnericon", "faspinner");
                     var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
                     el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
