@@ -154,14 +154,14 @@
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     if (response.Success) {
-                        if (response.Object != null) {
-                            if (response.Object == 1) {
-                                el.html("<div class='alert alert-green'>Business unit saved successfully.</div>");
-                            }
-                            else {
-                                el.html("<div class='alert alert-red'>Business unit can't save successfully.</div>");
-                            }
-                        }
+                        //if (response.Object != null) {
+                        //    if (response.Object == 1) {
+                        //        el.html("<div class='alert alert-green'>Business unit saved successfully.</div>");
+                        //    }
+                        //    else {
+                        //        el.html("<div class='alert alert-red'>Business unit can't save successfully.</div>");
+                        //    }
+                        //}
                         GetBusinessUnits();
                     }
                     else {
