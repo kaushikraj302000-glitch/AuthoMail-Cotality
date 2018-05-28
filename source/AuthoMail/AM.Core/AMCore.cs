@@ -566,6 +566,9 @@ namespace AM.Core
 
                                 string amPnSResponsePath = Path.Combine(mbi.PnSResponsePath, responseFileName);
 
+                                if (File.Exists(amPnSResponsePath))
+                                    File.Delete(amPnSResponsePath);
+
                                 File.Move(amRootFilePath, amPnSResponsePath);
 
                                 commonSvc.UpdatePrintBatchPipeLineStatus(downloadableBatch.PrintBatchId, BatchPipelineStatus.ShippingResponseReceived, responseReceivedOn);
@@ -634,6 +637,10 @@ namespace AM.Core
                                         row.TotalSheets = mailPackage.TotalSheets;
                                         row.Weight = mailPackage.WeightMeasured;
                                         row.IsQCPerformed = mailPackage.IsQCPerformed;
+                                        if (!string.IsNullOrEmpty(mailPackage.TrackingNumber))
+                                        {
+                                            row.TrackingNo = mailPackage.TrackingNumber;
+                                        }
                                     }
                                     row.ShippingStatus = mailPackage.MailPieceStatus.ToString();
 
@@ -645,16 +652,6 @@ namespace AM.Core
                         //Updates PrintBatches Status values
                         commonSvc.UpdatePrintBatchStatus(printBatch.PrintBatchId, pnsResponse.BatchStatus.ToString(), pnsResponse.StatusDescription);
 
-                        //                InProgress,
-                        //PulledBack,
-                        //Error,
-                        //Shipped,
-
-                        //                 InProgress,
-                        //Failed,
-                        //ShippedPartial,
-                        //ShippedAll,
-                        //PulledBack
                         //Check is there any remaining data for response which is in progress then after update whole mail batch status
                         batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(printBatch.MailBatchId);
                         var pendingMailPieces = batchData.MailPieces.Count(data => data.ShippingStatus == ShippingStatus.InProgress.ToString());
