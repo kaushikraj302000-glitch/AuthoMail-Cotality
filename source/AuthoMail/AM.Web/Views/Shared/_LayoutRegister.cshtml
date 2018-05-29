@@ -277,6 +277,17 @@
             //""
 
         });
+        function Spinners(selector, className) {
+            if ($(selector).find("i").hasClass("fa-circle-o-notch fa-spin")) {
+                $(selector).find("i").removeClass("fa-circle-o-notch fa-spin");
+                $(selector).find("i").addClass(className);
+            }
+            else {
+                console.log("call has add" + selector + " " + className)
+                $(selector).find("i").removeClass(className);
+                $(selector).find("i").addClass("fa-circle-o-notch fa-spin");
+            }
+        }
     </script>
 </body>
 </html>

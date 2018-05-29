@@ -291,15 +291,15 @@
                 success: function (response) {
                     //Spinners("#pullback", "fa-reply");
                     if (response.Success) {
-                        if (response.Object != null) {
-                            if (response.Object == 1 && isActive) {
+                        //if (response.Object != null) {
+                        //    if (response.Object == 1 && isActive) {
 
-                                el.html("<div class='alert alert-green'>" + clientmsg + " activated successfully.</div>");
-                            }
-                            if (response.Object == 1 && !isActive) {
-                                el.html("<div class='alert alert-green'>" + clientmsg + " deactivated successfully.</div>");
-                            }
-                        }
+                        //        el.html("<div class='alert alert-green'>" + clientmsg + " activated successfully.</div>");
+                        //    }
+                        //    if (response.Object == 1 && !isActive) {
+                        //        el.html("<div class='alert alert-green'>" + clientmsg + " deactivated successfully.</div>");
+                        //    }
+                        //}
                         GetClients();
                     }
                     else {
