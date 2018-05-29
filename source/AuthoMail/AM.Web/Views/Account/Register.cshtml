@@ -125,7 +125,7 @@
                             </div>
                             <div class="form-group">
                                 <button type="button" id="passwordprevious" style="width:49%;float:left;" class="btn btn-default  btn-lg btn-block"><i class="fa fa-arrow-left"></i> Previous </button>
-                                <button type="submit" id="registerCL" style="width:49%;float:right;margin-top:0px;" class="btn btn-primary submit IsCorelogic  btn-lg btn-block ">Register <i class="fa fa-check"></i></button>
+                                <button type="submit" id="registerCL" style="width:49%;float:right;margin-top:0px;" class="btn btn-primary submit  btn-lg btn-block ">Register <i class="fa fa-check"></i></button>
                                 @*<input type="button" style="width:49%;float:left;" value="Previous" id="passwordprevious" class="btn btn-default  btn-lg btn-block">
                                 <input type="submit" id="registerCL" style="width:49%;float:right;margin-top:0px;" value="Register" class="btn btn-primary  btn-lg btn-block">*@
                             </div>
@@ -188,7 +188,7 @@
                     async: false,
                     contentType: "application/json; charset=utf-8",
                     success: function (response) {
-                        console.log(response);
+                        //console.log(response);
                         if (response.IsValid) {
                             if (response.IsCoreLogic) {
                                 $("#IsCorelogicEmail").val("true");
@@ -237,13 +237,13 @@
                     }
 
                 });
-                console.log($("#IsCorelogicEmail").val() + "after success" + isValid)
+                //console.log($("#IsCorelogicEmail").val() + "after success" + isValid)
                 return isValid;
             }
 
             function CLAuth(email, password) {
                 //Spinners("#passwordnext", "fa-arrow-right");
-                console.log(email + " " + password);
+                //console.log(email + " " + password);
                 var isValid = false;
                 var cl = $("#CLsummary");
                 cl.empty();
@@ -257,7 +257,7 @@
                     //contentType: "application/json; charset=utf-8",
                     success: function (response) {
                         //Spinners("#passwordnext", "fa-arrow-right");
-                        console.log(response);
+                       // console.log(response);
                         if (response.Success) {
 
                             $("#FirstNameCL").text(response.Object.FName);
