@@ -39,8 +39,8 @@
 
                             </div>
                             <div class="form-group">
-                                @*@Html.ActionLink("Login", "Login", "Account", routeValues: null, htmlAttributes: new { id = "registerLink", @class = "btn btn-default btn-block btn-lg", @style = "width:49%;float:left;margin-top:0px;" })*@
-                                <input type="button" id="emailnext" value="Next" class="btn btn-primary  btn-lg btn-block">
+                                <button type="button" id="emailnext" class="btn btn-primary  btn-lg btn-block">Next <i class="fa fa-arrow-right"></i></button>
+                                @*<input type="button" id="emailnext" value="Next" class="btn btn-primary  btn-lg btn-block">*@
                             </div>
                         </div>
 
@@ -83,9 +83,13 @@
                                 <input type="password" id="ConfirmPassword" name="ConfirmPassword" class="form-control" />
                             </div>
                             <div class="form-group">
-                                <input type="button" id="emailprevious" style="width:49%;float:left;" value="Previous" class="btn btn-default  btn-lg btn-block">
+                                <button type="button" id="emailprevious" style="width:49%;float:left;" class="btn btn-default  btn-lg btn-block"><i class="fa fa-arrow-left"></i> Previous </button>
+                                <button type="button" id="passwordnext" style="width:49%;float:right;margin-top:0px;" class="btn btn-primary   btn-lg btn-block IsNotCorelogic">Next <i class="fa fa-arrow-right"></i></button>
+                                <button type="submit" id="register" style="width:49%;float:right;margin-top:0px;" class="btn btn-primary submit IsCorelogic  btn-lg btn-block ">Register <i class="fa fa-check"></i></button>
+
+                                @*<input type="button" id="emailprevious" style="width:49%;float:left;" value="Previous" class="btn btn-default  btn-lg btn-block">
                                 <input type="button" id="passwordnext" style="width:49%;float:right;margin-top:0px;" value="Next" class="btn btn-primary   btn-lg btn-block IsNotCorelogic">
-                                <input type="submit" id="register" style="width:49%;float:right;margin-top:0px;" value="Register" class="btn btn-primary submit IsCorelogic  btn-lg btn-block ">
+                                <input type="submit" id="register" style="width:49%;float:right;margin-top:0px;" value="Register" class="btn btn-primary submit IsCorelogic  btn-lg btn-block ">*@
                             </div>
                         </div>
 
@@ -120,8 +124,10 @@
                                 <label id="LastNameCL" style=" background-color:#eee;text-transform: capitalize;" class="form-control"></label>
                             </div>
                             <div class="form-group">
-                                <input type="button" style="width:49%;float:left;" value="Previous" id="passwordprevious" class="btn btn-default  btn-lg btn-block">
-                                <input type="submit" id="registerCL" style="width:49%;float:right;margin-top:0px;" value="Register" class="btn btn-primary  btn-lg btn-block">
+                                <button type="button" id="passwordprevious" style="width:49%;float:left;" class="btn btn-default  btn-lg btn-block"><i class="fa fa-arrow-left"></i> Previous </button>
+                                <button type="submit" id="registerCL" style="width:49%;float:right;margin-top:0px;" class="btn btn-primary submit IsCorelogic  btn-lg btn-block ">Register <i class="fa fa-check"></i></button>
+                                @*<input type="button" style="width:49%;float:left;" value="Previous" id="passwordprevious" class="btn btn-default  btn-lg btn-block">
+                                <input type="submit" id="registerCL" style="width:49%;float:right;margin-top:0px;" value="Register" class="btn btn-primary  btn-lg btn-block">*@
                             </div>
                         </div>
 
@@ -148,6 +154,7 @@
     <script src="~/Scripts/jquery.easing.min.js"></script>
     <script>
         $(function () {
+            
             $(".IsCorelogic").hide();
             //Validation
             $("#summary").empty();
@@ -235,6 +242,7 @@
             }
 
             function CLAuth(email, password) {
+                //Spinners("#passwordnext", "fa-arrow-right");
                 console.log(email + " " + password);
                 var isValid = false;
                 var cl = $("#CLsummary");
@@ -248,6 +256,7 @@
                     async: false,
                     //contentType: "application/json; charset=utf-8",
                     success: function (response) {
+                        //Spinners("#passwordnext", "fa-arrow-right");
                         console.log(response);
                         if (response.Success) {
 
@@ -269,6 +278,7 @@
                         var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
                         el.html("<ul><li class='text-red'>" + msg + "</li></ul>");
                         isValid = false;
+                        //Spinners("#passwordnext", "fa-arrow-right");
                     }
 
                 });
@@ -277,6 +287,7 @@
             }
 
             function animationNext(obj) {
+                //Spinners("#"+$(obj).prop("id"), "fa-arrow-right");
                 if (animating) return false;
                 animating = true;
 
@@ -305,6 +316,7 @@
                     complete: function () {
                         current_fs.hide();
                         //next_fs.show();
+                        //Spinners("#" + $(obj).prop("id"), "fa-arrow-right");
                         //hide the current fieldset with style
                         animating = false;
                     },
@@ -404,9 +416,11 @@
             });
             $("#emailnext").click(function () {
                 //show the next fieldset
+                
                 var isValid = NextSection(this);
                 //console.log(isValid + "hide corelogic" + $("#IsCorelogicEmail").val());
                 if (isValid) {
+                    
                     if ($("#IsCorelogicEmail").val() == "false") {
                         $(".IsNotCorelogic").hide();
                         $(".IsCorelogic").show();
@@ -419,10 +433,11 @@
                         $("#ConfirmPassword").hide();
                         $("#ConfirmPasswordLabel").hide();
                     }
+                   
                     animationNext(this);
                     $("#CLErrorsummary").empty();
                 }
-
+                
 
             });
             $("#emailprevious").click(function () {
@@ -436,15 +451,18 @@
 
             });
             $("#passwordnext").click(function () {
-
+               
                 $("#ConfirmPassword").rules('remove');
                 $("#FirstName").rules('remove');
                 $("#LastName").rules('remove');
                 $("#DisplayName").rules('remove');
                 //console.log($('#registerform').valid() + "next password");
                 if ($('#registerform').valid()) {
+                   // Spinners("#passwordnext", "fa-arrow-right");
+
                     var isCLAuth = CLAuth($("#Email").val().trim(), $("#Password").val().trim());
                     if (isCLAuth) {
+                        
                         if ($("#IsCorelogicEmail").val() == "true") {
                             $("#DisplayName").rules('add', {
                                 required: true,
@@ -470,6 +488,7 @@
                         NextPassword(this);
                     }
                 }
+                
             });
             $("#passwordprevious").click(function () {
                 $("#DisplayName").rules('remove');
