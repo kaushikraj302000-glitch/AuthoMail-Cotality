@@ -350,21 +350,25 @@
                         required: true
                     });
                     $("#RetRcptAddressZIP").rules('add', {
-                        required: true
+                        required: true,
+                        zipcodeUS:true
+
                     });
                     $("#ClientEmails").rules('add', {
                         required: true,
                         email: true
                     });
                     $("#ClientContactNo").rules('add', {
-                        required: true
+                        required: true,
+                        phoneUS:true
                     });
                     $("#SupportEmails").rules('add', {
                         required: true,
                         email: true
                     });
                     $("#SupportContactNo").rules('add', {
-                        required: true
+                        required: true,
+                        phoneUS: true
                     });
                     $("#IsReturnInfoSpecified").val(true);
                 }
