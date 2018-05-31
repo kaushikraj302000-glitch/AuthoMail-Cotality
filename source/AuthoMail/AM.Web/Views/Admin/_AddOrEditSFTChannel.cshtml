@@ -23,9 +23,10 @@
             
             <div class="form-group">
                 <label for="Protocol">Protocol</label>
-                <div class="input-group">
+                @Html.DropDownListFor(model => model.Protocol, (IEnumerable<SelectListItem>)ViewBag.ProtocoldropDown, "Select Protocol", htmlAttributes: new { @class = " form-control selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Protocol" })
+                @*<div class="input-group">
                     <input type="text" name="Protocol" value="@Model.Protocol" placeholder="Protocol" class="form-control" id="Protocol" />
-                </div>
+                </div>*@
             </div>
            
             <div class="form-group">
@@ -37,7 +38,8 @@
             <div class="form-group">
                 <label for="Password">Password</label>
                 <div class="input-group">
-                    <input type="text" name="Password" value="@Model.Password" placeholder="Password" class="form-control" id="Password" />
+                    <i class="fa fa-eye right-icon" style="cursor:pointer;" onmouseover="if (Password.type == 'text') Password.type = 'password'; else Password.type = 'text';" onmouseout="    if (Password.type == 'password') Password.type = 'text'; else Password.type = 'password'"></i>
+                    <input type="password" name="Password" value="@Model.Password" placeholder="Password" class="form-control" id="Password" />
                 </div>
             </div>
             <div class="form-group">
@@ -68,9 +70,7 @@
             </div>
             <div class="form-group">
                 <label for="PostDownloadAction">Post Download Action</label>
-                <div class="input-group">
-                    <input type="text" name="PostDownloadAction" value="@Model.PostDownloadAction" placeholder="Post Download Action" class="form-control" id="PostDownloadAction" />
-                </div>
+                @Html.DropDownListFor(model => model.PostDownloadAction, (IEnumerable<SelectListItem>)ViewBag.PostDownloadActiondropDown , "Select Post Download Action", htmlAttributes: new { @class = " form-control selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Post Download Action" })
             </div>
             <div class="form-group">
                 <label for="Description">Description</label>

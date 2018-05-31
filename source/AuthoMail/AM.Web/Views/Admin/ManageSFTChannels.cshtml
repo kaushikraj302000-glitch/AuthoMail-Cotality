@@ -177,24 +177,17 @@
                         required: true,
                         maxlength: 255
                     },
-                    UserName: {
-                        required: true,
-                        maxlength: 255
-                    },
-                    Password: {
-                        required: true,
-                        maxlength: 255
-                    },
+                    
                     ToADEDir: {
                         required: true,
                         maxlength: 1024
                     },
                     ToADEDir: {
-                        required: true,
+                        //required: true,
                         maxlength: 1024
                     },
                     ArchiveDir: {
-                        required: true,
+                        //required: true,
                         maxlength: 1024
                     },
                     PostDownloadAction: {
@@ -256,7 +249,24 @@
                 }
             });
         }
+        function ProtocolOnChange() {
+            $("#Protocol").change(function () {
+                console.log($(this).val())
+                if ($(this).val() != "unc") {
+                    $("#UserName").rules('add', {
+                        required: true
+                    });
+                    $("#Password").rules('add', {
+                        required: true
+                    });
+                } else {
+                    $("#UserName").rules("remove");
+                    $("#Password").rules('remove');
+                }
 
+            });
+        }
+     
         var GetSFTChannels = function () {
             //$("#SFTChannelList").hide();
             var el = $('#SFTChannelList');
@@ -307,9 +317,12 @@
                 url: baseUrl + "Admin/GetSFTChannelById",
                 data: { Id: Id },
                 success: function (response) {
+
                     el.html(response);
                     $("#AddEditModal").modal("show");
                     ValidateForm();
+                    window.clui.selectInit();
+                    ProtocolOnChange();
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
 
@@ -349,22 +362,22 @@
                 success: function (response) {
                     //Spinners("#pullback", "fa-reply");
                     if (response.Success) {
-                        if (response.Object != null) {
-                            if (response.Object == 1 && isActive) {
+                        //if (response.Object != null) {
+                        //    if (response.Object == 1 && isActive) {
 
-                                el.html("<div class='alert alert-green'>SFT channel activated successfully.</div>");
-                            }
-                            if (response.Object == 1 && !isActive) {
-                                el.html("<div class='alert alert-green'>SFT channel deactivated successfully.</div>");
-                            }
-                        }
+                        //        el.html("<div class='alert alert-green'>SFT channel activated successfully.</div>");
+                        //    }
+                        //    if (response.Object == 1 && !isActive) {
+                        //        el.html("<div class='alert alert-green'>SFT channel deactivated successfully.</div>");
+                        //    }
+                        //}
                         GetSFTChannels();
                     }
                     else {
                         el.html("<div class='alert alert-red'>" + response.ErrorMessage + "</div>");
-
+                        $("#myModal").modal("show");
                     }
-                    $("#myModal").modal("show");
+                    
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
 

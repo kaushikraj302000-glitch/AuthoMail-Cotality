@@ -19,7 +19,8 @@ namespace AM.Services
         int UpdatePrintBatchStatus(int printBatchId, string batchStatus, string statusDescription = null);
         int UpdatePrintBatchPipeLineStatus(int printBatchId, string pipeLineStatus, DateTime timestamp);
         ClientBusinessIdentifier GetBusinessIdNameFromClientId(int clientId);
-        int InsertBusinessIdentifierName(ClientBusinessIdentifier clientBusinessId);
+        ClientBusinessIdentifier CheckBusinessIdNameAlreadyExist(int clientId, string businessIdName);
+        int InsertBusinessIdentifierName(int clientId, string businessIdName);
         List<Deliverable> GetDeliverablesByClientId(int clientId);
         Deliverable GetDeliverableByReportType(int clientId, string reportType);
     }
@@ -72,11 +73,18 @@ namespace AM.Services
             return db.QuerySingleOrDefault<ClientBusinessIdentifier>(query, new { clientId = clientId });
         }
 
-        public int InsertBusinessIdentifierName(ClientBusinessIdentifier clientBusinessId)
+        public ClientBusinessIdentifier CheckBusinessIdNameAlreadyExist(int clientId, string businessIdName)
+        {
+            string query = "SELECT * FROM [AM].[ClientBusinessIdentifiers] WHERE ClientId= @clientId AND [BusinessIdName]=@BusinessIdName";
+
+            return db.QuerySingleOrDefault<ClientBusinessIdentifier>(query, new { clientId = clientId, BusinessIdName = businessIdName });
+        }
+
+        public int InsertBusinessIdentifierName(int clientId, string businessIdName)
         {
             string query = "INSERT INTO [AM].[ClientBusinessIdentifiers] ( [ClientId], [BusinessIdName] ) VALUES (@ClientId, @BusinessIdName)";
 
-            return db.Execute(query, clientBusinessId);
+            return db.Execute(query, new { ClientId = clientId, BusinessIdName = businessIdName });
         }
 
         public List<Deliverable> GetDeliverablesByClientId(int clientId)

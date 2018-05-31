@@ -242,8 +242,12 @@
                     rules: {
                         DocTypeCode: {
                             required: true,
-                            maxlength: 128
+                            doctypecode:true,
+                            maxlength: 29
 
+                        },
+                        Description:{
+                            required:true
                         },
                         ClientId: {
                             required: true
@@ -254,11 +258,11 @@
                         ContentScalePercent: {
                             required: true,
                             min: 0,
-                            max: 100
+                            //max: 100
                         },
                         PrintFormat: {
                             required: true,
-                            lettersonly: true,
+                            //lettersonly: true,
                         },
                         QCPercent: {
                             required: true,
@@ -268,19 +272,19 @@
                         SLADays: {
                             required: true,
                             min: 0,
-                            max: 50
+                           // max: 50
                         },
                         SLACutOffTime: {
                             //required: true,
 
                         },
                         ShippingCarrier: {
-                            //required: true
-                            lettersonly: true,
+                            required: true
+                            //lettersonly: true,
                         },
                         ShippingServiceType: {
-                            //required: true,
-                            lettersonly: true,
+                            required: true,
+                            //lettersonly: true,
                         },
                         ShippingAccountCode: {
                             //required: true
@@ -346,21 +350,25 @@
                         required: true
                     });
                     $("#RetRcptAddressZIP").rules('add', {
-                        required: true
+                        required: true,
+                        zipcodeUS:true
+
                     });
                     $("#ClientEmails").rules('add', {
                         required: true,
                         email: true
                     });
                     $("#ClientContactNo").rules('add', {
-                        required: true
+                        required: true,
+                        phoneUS:true
                     });
                     $("#SupportEmails").rules('add', {
                         required: true,
                         email: true
                     });
                     $("#SupportContactNo").rules('add', {
-                        required: true
+                        required: true,
+                        phoneUS: true
                     });
                     $("#IsReturnInfoSpecified").val(true);
                 }

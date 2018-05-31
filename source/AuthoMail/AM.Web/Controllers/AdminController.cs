@@ -347,15 +347,20 @@ namespace AM.Web.Controllers
         [HttpGet]
         public ActionResult GetSFTChannelById(int id)
         {
+            var ProtocolList = new string[] { "ftp", "sftp", "unc" };
+            var PostDownloadActionList = new string[] { "Archive", "Delete" };
 
             if (id != 0)
             {
                 SFTChannels model = supportSvc.FindByIdSFTChannels(id);
+                ViewBag.ProtocoldropDown = ProtocolList.Select(s => new SelectListItem() { Text = s, Value = s, Selected = model.Protocol == s }).ToList();
+                ViewBag.PostDownloadActiondropDown = PostDownloadActionList.Select(s => new SelectListItem() { Text = s, Value = s, Selected = model.PostDownloadAction == s }).ToList();
                 return PartialView("_AddOrEditSFTChannel", model);
             }
             else
             {
-
+                ViewBag.ProtocoldropDown = ProtocolList.Select(s => new SelectListItem() { Text = s, Value = s }).ToList();
+                ViewBag.PostDownloadActiondropDown = PostDownloadActionList.Select(s => new SelectListItem() { Text = s, Value = s }).ToList();
                 return PartialView("_AddOrEditSFTChannel", new SFTChannels());
             }
         }
@@ -398,14 +403,28 @@ namespace AM.Web.Controllers
         [HttpGet]
         public ActionResult GetDocTypeById(int id)
         {
+            var PrintSizeList = new string[] { "MixMedia", "LETTER-IP", "GLT-20-DOP-17.5", "LEGAL-IP", "WC24#LTR-PERF", "LEGAL-PERF-IP" };
+            var PrintFormatList = new string[] { "Simplex", "Duplex" };
+            var ShippingCarrierList = new string[] { "USPS", "FedEx", "UPS" };
+            var ShippingServiceTypeList = new string[] { "USPS", "FEDEX_2_DAY", "FEDEX_EXPRESS_SAVER", "FEDEX_GROUND", "FIRST_OVERNIGHT", "GROUND_HOME_DELIVERY", "PRIORITY_OVERNIGHT", "STANDARD_OVERNIGHT" };
             if (id != 0)
             {
                 DocTypes model = supportSvc.FindByIdDocType(id);
                 ViewBag.Clients = new SelectList(homeSvc.GetAllActiveClient(), "Id", "Name", model.ClientId);
+                ViewBag.PrintSizedropDown = PrintSizeList.Select(s => new SelectListItem() { Text = s, Value = s, Selected = model.PrintSize == s }).ToList();
+
+                ViewBag.PrintFormatdropDown = PrintFormatList.Select(s => new SelectListItem() { Text = s, Value = s, Selected = model.PrintFormat == s }).ToList();
+
+                ViewBag.ShippingCarrierdropDown = ShippingCarrierList.Select(s => new SelectListItem() { Text = s, Value = s, Selected = model.ShippingCarrier == s }).ToList();
+                ViewBag.ShippingServiceTypedropDown = ShippingServiceTypeList.Select(s => new SelectListItem() { Text = s, Value = s, Selected = model.ShippingServiceType == s }).ToList();
                 return PartialView("_AddOrEditDocType", model);
             }
             else
             {
+                ViewBag.PrintFormatdropDown = PrintFormatList.Select(s => new SelectListItem() { Text = s, Value = s }).ToList();
+                ViewBag.PrintSizedropDown = PrintSizeList.Select(s => new SelectListItem() { Text = s, Value = s }).ToList();
+                ViewBag.ShippingCarrierdropDown = ShippingCarrierList.Select(s => new SelectListItem() { Text = s, Value = s }).ToList();
+                ViewBag.ShippingServiceTypedropDown = ShippingServiceTypeList.Select(s => new SelectListItem() { Text = s, Value = s }).ToList();
                 ViewBag.Clients = new SelectList(homeSvc.GetAllActiveClient(), "Id", "Name");
                 return PartialView("_AddOrEditDocType", new DocTypes());
             }
