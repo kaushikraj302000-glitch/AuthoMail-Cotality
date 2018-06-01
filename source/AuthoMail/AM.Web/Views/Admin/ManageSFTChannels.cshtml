@@ -375,9 +375,9 @@
                     }
                     else {
                         el.html("<div class='alert alert-red'>" + response.ErrorMessage + "</div>");
-
+                        $("#myModal").modal("show");
                     }
-                    $("#myModal").modal("show");
+                    
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
 
