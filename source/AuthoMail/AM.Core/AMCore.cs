@@ -129,7 +129,7 @@ namespace AM.Core
                                     if (!string.IsNullOrEmpty(docType.RetRcptAddressAptOrSuiteOrOther))
                                         fromAddress += docType.RetRcptAddressAptOrSuiteOrOther + "\n";
 
-                                    fromAddress += docType.RetRcptAddressCity + ", " + docType.RetRcptAddressState + " " + docType.RetRcptAddressZIP;
+                                    fromAddress += docType.RetRcptAddressCity + " " + docType.RetRcptAddressState + " " + docType.RetRcptAddressZIP;
                                 }
                                 else
                                 {
@@ -139,7 +139,7 @@ namespace AM.Core
                                 Dictionary<string, string> mailPieceData = new Dictionary<string, string>();
                                 mailPieceData.Add("FromAddress", fromAddress);
 
-                                mailPieceData.Add("ToAddress", mailPiece.RcptFirstName + " " + mailPiece.RcptLastName + "\n" + (string.IsNullOrEmpty(mailPiece.RcptAddressAptOrSuiteOrOther) ? mailPiece.RcptAddressStreet : string.Format("{0}\n{1}", mailPiece.RcptAddressStreet, mailPiece.RcptAddressAptOrSuiteOrOther)) + "\n" + mailPiece.RcptAddressCity + ", " + mailPiece.RcptAddressState + ", " + mailPiece.RcptAddressZIP);
+                                mailPieceData.Add("ToAddress", mailPiece.RcptFirstName + " " + mailPiece.RcptLastName + "\n" + (string.IsNullOrEmpty(mailPiece.RcptAddressAptOrSuiteOrOther) ? mailPiece.RcptAddressStreet : string.Format("{0}\n{1}", mailPiece.RcptAddressStreet, mailPiece.RcptAddressAptOrSuiteOrOther)) + "\n" + mailPiece.RcptAddressCity + " " + mailPiece.RcptAddressState + " " + mailPiece.RcptAddressZIP);
 
                                 mailPieceData.Add("MailPieceId", mailPiece.Id.ToString());
                                 mailPieceData.Add("Date", Common.Now.UtcToEst().ToString("MMMM dd, yyyy"));//USAA Specific
