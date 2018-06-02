@@ -742,7 +742,7 @@ namespace AM.Console
                 {
                     try
                     {
-                        string errorReportFileName = "Error-{0}.csv".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+                        //string errorReportFileName = "Error-{0}.csv".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
                         string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
                         string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 
