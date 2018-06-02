@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AM.Lib;
 using System.Threading;
+using System.Net.Mail;
 namespace AM.Core
 {
     static class AMCore
@@ -242,6 +243,9 @@ namespace AM.Core
                         catch (Exception ex)
                         {
                             log.Error("Error occured while processing mail pieces {0}".Fill(mailPiece.Id), ex);
+
+                            // Send email to support team
+                            SendUnexpectedExcelptionEmail(ex.ToString());
                             continue;
                         }
                     }
@@ -273,6 +277,30 @@ namespace AM.Core
                         }
                     }
                 }
+            }
+        }
+
+        public static void SendUnexpectedExcelptionEmail(string exception)
+        {
+            try
+            {
+                using (SmtpClient smtpClient = new SmtpClient())
+                {
+                    using (MailMessage msg = new MailMessage())
+                    {
+                        msg.IsBodyHtml = true;
+                        msg.To.Add(Config.Monitor_Exception_Email_To);
+                        msg.CC.Add(Config.Monitor_Exception_Email_Cc);
+                        msg.Subject = "{0} : {1}".Fill(Config.Common_Environment, Config.Monitor_ExceptionEmail_Subject);
+                        msg.Priority = MailPriority.High;
+                        msg.Body = "Unexpected exception occured during processing documents for print and ship." + Environment.NewLine + exception;
+                        smtpClient.Send(msg);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex);
             }
         }
 
