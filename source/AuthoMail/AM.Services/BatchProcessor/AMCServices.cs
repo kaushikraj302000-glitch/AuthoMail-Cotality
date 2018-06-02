@@ -17,7 +17,7 @@ namespace AM.Services
 
     public class AMCService : ServiceBase, IAMCService
     {
-        const string Separator = ",";
+        const string Separator = "\t";
 
         public StringBuilder AMCErrorReport(BatchData data)
         {
