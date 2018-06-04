@@ -218,6 +218,11 @@ namespace AM.Web.Controllers
                     emailValidate.Message = string.Format("Users of the specified domain name '{0}' are not allowed to register.", emailValidate.Host);
                     emailValidate.IsValid = false;
                 }
+                if (UserManager.FindByEmail(email) != null)
+                {
+                    emailValidate.Message = string.Format("Specified email {0} already exists.", email);
+                    emailValidate.IsValid = false;
+                }
             }
             return Json(emailValidate, JsonRequestBehavior.AllowGet);
         }

@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AM.Lib;
 using System.Threading;
+using System.Net.Mail;
 namespace AM.Core
 {
     static class AMCore
@@ -129,7 +130,7 @@ namespace AM.Core
                                     if (!string.IsNullOrEmpty(docType.RetRcptAddressAptOrSuiteOrOther))
                                         fromAddress += docType.RetRcptAddressAptOrSuiteOrOther + "\n";
 
-                                    fromAddress += docType.RetRcptAddressCity + ", " + docType.RetRcptAddressState + " " + docType.RetRcptAddressZIP;
+                                    fromAddress += docType.RetRcptAddressCity + " " + docType.RetRcptAddressState + " " + docType.RetRcptAddressZIP;
                                 }
                                 else
                                 {
@@ -139,7 +140,7 @@ namespace AM.Core
                                 Dictionary<string, string> mailPieceData = new Dictionary<string, string>();
                                 mailPieceData.Add("FromAddress", fromAddress);
 
-                                mailPieceData.Add("ToAddress", mailPiece.RcptFirstName + " " + mailPiece.RcptLastName + "\n" + (string.IsNullOrEmpty(mailPiece.RcptAddressAptOrSuiteOrOther) ? mailPiece.RcptAddressStreet : string.Format("{0}\n{1}", mailPiece.RcptAddressStreet, mailPiece.RcptAddressAptOrSuiteOrOther)) + "\n" + mailPiece.RcptAddressCity + ", " + mailPiece.RcptAddressState + ", " + mailPiece.RcptAddressZIP);
+                                mailPieceData.Add("ToAddress", mailPiece.RcptFirstName + " " + mailPiece.RcptLastName + "\n" + (string.IsNullOrEmpty(mailPiece.RcptAddressAptOrSuiteOrOther) ? mailPiece.RcptAddressStreet : string.Format("{0}\n{1}", mailPiece.RcptAddressStreet, mailPiece.RcptAddressAptOrSuiteOrOther)) + "\n" + mailPiece.RcptAddressCity + " " + mailPiece.RcptAddressState + " " + mailPiece.RcptAddressZIP);
 
                                 mailPieceData.Add("MailPieceId", mailPiece.Id.ToString());
                                 mailPieceData.Add("Date", Common.Now.UtcToEst().ToString("MMMM dd, yyyy"));//USAA Specific
@@ -242,6 +243,9 @@ namespace AM.Core
                         catch (Exception ex)
                         {
                             log.Error("Error occured while processing mail pieces {0}".Fill(mailPiece.Id), ex);
+
+                            // Send email to support team
+                            SendUnexpectedExcelptionEmail(ex.ToString());
                             continue;
                         }
                     }
@@ -276,6 +280,30 @@ namespace AM.Core
             }
         }
 
+        public static void SendUnexpectedExcelptionEmail(string exception)
+        {
+            try
+            {
+                using (SmtpClient smtpClient = new SmtpClient())
+                {
+                    using (MailMessage msg = new MailMessage())
+                    {
+                        msg.IsBodyHtml = true;
+                        msg.To.Add(Config.Monitor_Exception_Email_To);
+                        msg.CC.Add(Config.Monitor_Exception_Email_Cc);
+                        msg.Subject = "{0} : {1}".Fill(Config.Common_Environment, Config.Monitor_ExceptionEmail_Subject);
+                        msg.Priority = MailPriority.High;
+                        msg.Body = "Unexpected exception occured during processing documents for print and ship." + Environment.NewLine + exception;
+                        smtpClient.Send(msg);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex);
+            }
+        }
+
         private static void GenerateImmidiateReports(MailBatchInfo mbi, BatchData mailBatchData, Deliverable deliverable)
         {
             switch (mbi.Client.AppCode)
@@ -283,7 +311,10 @@ namespace AM.Core
                 case "USAA":
                     using (IAMCService amcSvc = new AMCService())
                     {
-                        string errorReportFileName = "Error-{0}.csv".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+                        //string errorReportFileName = "Error-{0}.csv".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+
+                        //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
+                        string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
                         string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
                         StringBuilder errorData = amcSvc.AMCErrorReport(mailBatchData);
                         if (errorData != null)
@@ -724,7 +755,7 @@ namespace AM.Core
                                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
 
                             //TODO: Remove after proper naming convention
-                            Thread.Sleep(1000);
+                            //Thread.Sleep(1000);
                         }
                         catch (Exception ex)
                         {
@@ -749,7 +780,10 @@ namespace AM.Core
 
                         if (deliveryReport != null)
                         {
-                            string deliveryReportFileName = "Delivery-{0}.csv".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+                            //string deliveryReportFileName = "Delivery-{0}.csv".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+
+                            //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
+                            string deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
                             string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
 
                             File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
@@ -760,7 +794,10 @@ namespace AM.Core
 
                         if (errorReport != null)
                         {
-                            string errorReportFileName = "Error-{0}.csv".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+                            //string errorReportFileName = "Error-{0}.csv".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+
+                            //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
+                            string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
                             string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 
                             File.WriteAllText(errorReportPath, errorReport.ToString());
