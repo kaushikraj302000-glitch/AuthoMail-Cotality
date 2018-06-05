@@ -311,10 +311,10 @@ namespace AM.Core
                 case "USAA":
                     using (IAMCService amcSvc = new AMCService())
                     {
-                        //string errorReportFileName = "Error-{0}.csv".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+                        string errorReportFileName = "Error-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
 
                         //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
-                        string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                        //string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
                         string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
                         StringBuilder errorData = amcSvc.AMCErrorReport(mailBatchData);
                         if (errorData != null)
@@ -755,7 +755,7 @@ namespace AM.Core
                                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
 
                             //TODO: Remove after proper naming convention
-                            //Thread.Sleep(1000);
+                            Thread.Sleep(1000);
                         }
                         catch (Exception ex)
                         {
@@ -780,10 +780,10 @@ namespace AM.Core
 
                         if (deliveryReport != null)
                         {
-                            //string deliveryReportFileName = "Delivery-{0}.csv".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+                            string deliveryReportFileName = "Delivery-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
 
                             //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
-                            string deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                            //string deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
                             string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
 
                             File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
@@ -794,10 +794,10 @@ namespace AM.Core
 
                         if (errorReport != null)
                         {
-                            //string errorReportFileName = "Error-{0}.csv".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+                            string errorReportFileName = "Error-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
 
                             //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
-                            string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                            //string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
                             string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 
                             File.WriteAllText(errorReportPath, errorReport.ToString());
