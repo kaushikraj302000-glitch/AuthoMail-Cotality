@@ -451,6 +451,13 @@
                     animationNext(this);
                     $("#CLErrorsummary").empty();
                 }
+                else {
+
+                    $('#registerform').submit(function (event) {
+                        event.preventDefault();
+                        return false;
+                    });
+                }
                 
 
             });
