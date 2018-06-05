@@ -1,0 +1,49 @@
+Pullback Algorithm
+========================================================
+Pullback only working - Current Scenario
+- if received batch is submitted to PCI
+- Cannot pullback in below scenario
+	-PullbackRequested, Aborted, PulledBack, Error, Shipped
+	-Batch Status(Received,Downloaded,Prepped)
+- Can not pullback whole batch
+- Generate Request form for PCI to Pullback
+- After generating form inserting data into PullbackRequested table
+========================================================
+AM.BatchGenerator
+- Sweep time wise generate PnS batch
+- As per mentioned in Change Request Document, Bundle sweep times (EST): 8:00 am, 12:00 pm, 4:00 pm, 4:45 pm, 7:45 pm
+
+Example : 
+
+USAA Batch-5 Records
+4PM- Prepped State
+
+4.15PM - 2 Pullback 
+
+4.45PM BatchGenerator App will take 5 records and generate PnSBatch for PCI
+
+5.PM - 1 Record Pullback
+- Generate Form and Submit to PCI
+
+=======================================================
+New scenario
+- Pullback should also work even if batch is not submitted to PCI 
+
+For AuthoMail Web Changes For those clients whose sweep time is not fixed (For now only for USAA)
+
+- When Batch is not submitted to PCI
+1) Check MailBatch PipelineStatus, should be in Prepped state, not in Received or Downloaded
+2) Check MailPiece (MailPieceStatus)ShippingStatus = InProgress, not in Error, Aborted, PulledBack, Shipped and PullbackRequested = false
+3) When ShippingStatus=InProgress and MailBatch Status = "Prepped"
+	- Update ShippingStatus=PulledBack, PullBackRequestedOn=Current UTC time, PulledBackOn= Current UTC time
+	- Insert entry in AM.PullBackRequests table
+4) After successfull PulledBack Show below Message
+	- "PulledBack recorded Successfully." 
+5) If Error occured while pulledback
+	- Show actual error/exception in UI
+	
+- When Batch is submitted to PCI
+1) As per current Scenario, No need to change flow
+
+Challanges - How to separate not fixed sweep client for pulledback logic?
+Possible Fixes - Add System settings for Not fixed sweep time clients which will be used for generating batches also for checking e.g. USAA,HSBC
