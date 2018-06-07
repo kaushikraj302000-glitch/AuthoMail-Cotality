@@ -189,3 +189,5 @@ _Pvt_Extensions/
 ModelManifest.xml
 /source/AuthoMail/packages
 /source/AuthoMail/.vs
+/source/AMRoot/HSBC
+/source/AuthoMail/AM.Monitor/Logs.txt
