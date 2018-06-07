@@ -149,7 +149,7 @@ namespace AM.Console
                     if (sftSite.IsDownloadDirectoryAvailable(uploadPath))
                     {
                         //TODO: Replace *.csv in place of *.txt if we don't move new naming convention and tab delimited reports to production environment
-                        var reportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.txt").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-") || Path.GetFileNameWithoutExtension(f).StartsWith("Error-")).ToList();
+                        var reportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.csv").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-") || Path.GetFileNameWithoutExtension(f).StartsWith("Error-")).ToList();
 
                         reportList.AddRange(Directory.EnumerateFiles(mbi.AMResponsePath, "*.err"));
 

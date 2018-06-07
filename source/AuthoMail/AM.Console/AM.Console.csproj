@@ -136,6 +136,7 @@
     <Content Include="HTMLTemplates\PLET.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Resources\DeploymentNotes.txt" />
     <Content Include="Resources\ValidStatesForUSAA.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
