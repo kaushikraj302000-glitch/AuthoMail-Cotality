@@ -1,0 +1,190 @@
+Smoke Test Reminder
+
+1) Added State Validation in Resource folder
+2) Removed State list from PackageInfo xsd
+3) Changes in system settings table - Update Seed Script Also
+	- Added 2 FexEx URLs in table and Keys added in Config class (Core_FedExTestService,Core_FedExProdService)
+	- Added Common_PrintLocation in Config and value ="Fort Mill, SC"
+	- Added Monitor_AMC_ReportDateFormat in Config - Value="M/d/yyyy h:mm:ss tt"
+	- Removed Keys from Config and need to update script -Core_PnS_SFT_HostURL-Core_PnS_SFT_UserName-Core_PnS_SFT_Password,Core_CustomerTransactionId
+	- Rename Monitor_Environment ==Common_Environment
+	- Remove Insert statements (seed) for removed system settings
+	
+		INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Core_FedExTestService', N'String', N'https://wsbeta.fedex.com:443/web-services/ship', NULL, 0, N'https://wsbeta.fedex.com:443/web-services/ship', NULL, GETUTCDATE())
+		GO
+		INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Core_FedExProdService', N'String', N'https://gateway.fedex.com:443/web-services', NULL, 0, N'https://gateway.fedex.com:443/web-services', NULL, GETUTCDATE())
+		GO
+		INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Common_PrintLocation', N'String', N'Fort Mill, SC', NULL, 0, N'Fort Mill, SC', NULL, GETUTCDATE())
+		GO
+		INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Monitor_AMC_ReportDateFormat', N'String', N'M/d/yyyy h:mm:ss tt', NULL, 0, N'M/d/yyyy h:mm:ss tt', NULL, GETUTCDATE())
+		GO
+		
+		DELETE FROM [Common].[SystemSettings] WHERE ID IN ('Core_PnS_SFT_HostURL','Core_PnS_SFT_UserName','Core_PnS_SFT_Password','Core_CustomerTransactionId')
+		
+4) DocTypeId FK and Nullable in class
+
+	ALTER TABLE [AM].[MailPieces]  WITH CHECK ADD  CONSTRAINT [FK_MailPiece_DocTypes] FOREIGN KEY([DocTypeId])
+	REFERENCES [AM].[DocTypes] ([Id])
+	GO
+
+	ALTER TABLE [AM].[MailPieces] CHECK CONSTRAINT [FK_MailPiece_DocTypes]
+	GO
+
+
+5) Move DocTypeId update into Validation
+6) Update Description=DocTypeCode in AM.DocTypes table and DocTypeId-52 and 53 with LoanCare_MN_U, LoanCare_MN_U of umpqua and LoanCare
+7) CREATE UNIQUE NONCLUSTERED INDEX IX_DocTypes_ClientId_Description ON [AM].[DocTypes]
+	(
+	 ClientId ,
+	 [Description]
+	) WITH( IGNORE_DUP_KEY = OFF)
+
+	CREATE UNIQUE NONCLUSTERED INDEX IX_DocTypes_ClientId_DocTypeCode ON [AM].[DocTypes]
+	(
+	 ClientId ,
+	 DocTypeCode
+	) WITH( IGNORE_DUP_KEY = OFF)
+
+8) Need to update PCI.Lib.dll in AM
+9) Add Mapping table
+	CREATE TABLE [AM].[ClientAMCCustIdMap](
+	[ClientId] [int] NOT NULL,
+	[AMCCustId] [varchar](128) NOT NULL,
+	CONSTRAINT [PK_ClientAMCCustIdMap] PRIMARY KEY CLUSTERED 
+	(
+	[ClientId] ASC,
+	[AMCCustId] ASC
+	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+	) ON [PRIMARY]
+
+	GO
+
+	SET ANSI_PADDING OFF
+	GO
+
+	ALTER TABLE [AM].[ClientAMCCustIdMap] WITH CHECK ADD CONSTRAINT [FK_ClientAMCCustIdMap_Clients] FOREIGN KEY([ClientId])
+	REFERENCES [Common].[Clients] ([Id])
+	GO
+
+	ALTER TABLE [AM].[ClientAMCCustIdMap] CHECK CONSTRAINT [FK_ClientAMCCustIdMap_Clients]
+	GO
+
+10) Do DocTypeId null in place of 0 in AM.Mailpieces table
+11) Update PnS Root Path in
+
+
+For Alaska
+
+1) Need to change Description of ChangeOfCircumstances to CoC in AM.DocTypes
+2) Need to ask for Cutoff time for Alaska
+3) Change Client Time Zone of Alaska - Pacific Standard Time
+4) Create SP usp_GetDeliverableByReportType
+5) Add CoverLetter mapping data for alaska
+6) Add Deliverables data for Alaska
+7) Add EmailChannels data for Alaska
+8) Rename 90days_Certified to 90days in AM.DocTypes 
+
+For HSBC
+
+1) Change Description of all doctypes
+2) Add deliverables and email channels
+3) enable client
+4) Add task schedular for it
+
+
+For PNS Service For PackageTrackingNumber
+1) Add response schema table entry
+	-	INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (29, N'PackageTrackingNumber', N'ASCII_Number', 501, 40, 1, N'The value in this field identifies the tracking information of USPS shipping for some clients which dont have IMBarcode value.', N'00000000000', N'varchar(50)', NULL)
+		GO
+2) Add column in MRDFResponse table
+	-	ALTER TABLE [PnS].[MRDFResponse] ADD PackageTrackingNumber VARCHAR(50) NULL
+3) Update View 
+	- /****** Object:  View [dbo].[view_MRDFResponseData]    Script Date: 5/9/2018 1:34:14 PM ******/
+		SET ANSI_NULLS ON
+		GO
+
+		SET QUOTED_IDENTIFIER ON
+		GO
+
+		ALTER VIEW [dbo].[view_MRDFResponseData] AS
+		SELECT REQ.JobId
+		,REQ.PieceId
+		,ISNULL(REQ.ErrId,0) AS ErrId 
+		,REQ.ErrDesc
+		,RES.ProcessingTimeStamp AS ShippedOn 
+		,REQ.UniqueId
+		,REQ.PDFFileName
+		,REQ.MailPieceStatus
+		,ISNULL(RES.TotalSheets,0) AS TotalSheets
+		,REQ.DivertVS3
+		,RES.Disposition 
+		,ISNULL(RES.WeightMeasured,0.00) AS WeightMeasured 
+		,ISNULL(RES.PostageMetered,0.00) AS PostageCost
+		,RES.PackageTrackingNumber 
+		FROM [PnS].MRDFRequest REQ
+		LEFT JOIN [PnS].MRDFResponse RES
+		ON  REQ.JobId =RES.JobId AND REQ.PieceId =RES.PieceId
+		GO
+4) Update Below SP
+	- 	ALTER PROCEDURE [dbo].[usp_GetMRDFResponseDataByJobId]
+		@jobId int
+		AS
+		BEGIN
+		 -- SET NOCOUNT ON added to prevent extra result sets from
+		 -- interfering with SELECT statements.
+		 SET NOCOUNT ON;
+		 
+		 SELECT JobId, PieceId, Date, Feeder2_Fed, OperatorId, MachineId, ProcessingTimeStamp, DetailedErrorId
+		 , Disposition, Input_Fed, Feeder3_Fed, Feeder4_Fed, Feeder5_Fed, ComputedWeight, MeterDate
+		 , StatusSource, PostageMetered, WeightMeasured, ExitLocation, TotalSheets, PDFFileName, PackageTrackingNumber 
+		 FROM [Pns].[MRDFResponse] MS 
+		 WHERE MS.JobId=@jobId
+		END
+		
+	-	ALTER PROCEDURE [dbo].[usp_GetFinalMRDFResponseDataByJobId]
+		@jobId int
+		AS
+		BEGIN
+		 -- SET NOCOUNT ON added to prevent extra result sets from
+		 -- interfering with SELECT statements.
+		 SET NOCOUNT ON;
+		 
+		 SELECT JobId, PostageCost, ErrId, ShippedOn, WeightMeasured, Disposition
+		 , PieceId, UniqueId, PDFFileName, ErrDesc, MailPieceStatus,TotalSheets,DivertVS3, PackageTrackingNumber 
+		 FROM view_MRDFResponseData V WHERE V.JobId=@jobId
+		END
+5) Update PCI.Lib.dll in all project
+
+For PNS Service Return PDFs
+
+1) Added two columns in BatchSummary and MRDFRequest
+	- 	ALTER TABLE PnS.BatchSummary
+		ADD [IsPDFsReceived]  AS (case when [PDFsReceivedOn] IS NULL then (0) else (1) end),[PDFsReceivedOn] [datetime] NULL
+
+		ALTER TABLE PnS.MRDFRequest
+		ADD [IsPDFReceived] [bit] NULL
+		ALTER TABLE [PnS].[MRDFRequest] ADD  CONSTRAINT [DF_MRDFRequest_IsPDFReceived]  DEFAULT ((0)) FOR [IsPDFReceived]
+		GO
+		
+2) Added new SP usp_GetMRDFReceivedBatches
+3) Updated sp [usp_GetMRDFRequestDataByJobId]
+4) Need to add two key in App.Config of PnS Service 
+	-PCI_SFT_ReturnPDFDir, PCIRootReturnPDFsZipFolder
+5)
+	
+		
+
+For AuthoMail Db	
+
+1) Added new SP usp_RevertAMPipelineStatus
+
+
+For Deployment in AuthoMail in Service By Sagar
+
+-Ask Brijesh to remove old USAA data from Production database of AuthoMail
+
+1) Console App
+	- exe,AM dlls
+	- log4net config file
+2) Core App
+	- exe,AM dlls, PCI.Lib.dll
