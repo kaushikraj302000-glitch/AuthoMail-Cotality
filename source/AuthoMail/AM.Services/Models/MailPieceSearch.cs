@@ -105,7 +105,16 @@ namespace AM.Services
         public Clients Clients { get; set; }
         public DocTypes DocTypes { get; set; }
         public Users Users { get; set; }
+        //public string PdfReceivedPath
+        //{
+        //    get
+        //    {
+        //        if (this.MRDFRequests == null) return null;
+        //        return string.Format("{0}-{1}-{2}_{3}", this.MRDFRequests.JobId, this.MRDFRequests.PieceId, this.Id, this.FileName);
+        //    }
+        //}
         public List<MailPieceCustomInfoTest> MailPieceCustomInfoTest { get; set; }
+        //public MRDFRequests MRDFRequests { get; set; }
 
     }
     public class MailBatches
@@ -270,5 +279,47 @@ namespace AM.Services
         public string BusinessUnit { get; set; }
         public string CustCode { get; set; }
         public bool IsActive { get; set; }
+    }
+    public class MRDFRequests
+    {
+        public int JobId { get; set; }
+        public int PieceId { get; set; }
+        public DateTime Date { get; set; }
+        public int TotalSheets { get; set; }
+        public int InputWeight { get; set; }
+        public int Feeder3_Sel { get; set; }
+        public int Feeder4_Sel { get; set; }
+        public int Feeder5_Sel { get; set; }
+        public int LowCap_Sel { get; set; }
+        public int NoSeal_Sel { get; set; }
+        public int Feeder2_Sel { get; set; }
+        public int ZipMark_Sel { get; set; }
+        public int Address1 { get; set; }
+        public int Address2 { get; set; }
+        public int Zip5 { get; set; }
+        public int Zip4 { get; set; }
+        public int Zip2 { get; set; }
+        public int DivertVS2 { get; set; }
+        public int DivertVS3 { get; set; }
+        public int DivertVS4 { get; set; }
+        public int ReturnLogoBitMap { get; set; }
+        public int ReturnLine1 { get; set; }
+        public int ReturnLine2 { get; set; }
+        public int ReturnLine3 { get; set; }
+        public int ReturnLine4 { get; set; }
+        public int ReturnLine5 { get; set; }
+        public int ReturnLine6 { get; set; }
+        public int GroupNumber { get; set; }
+        public int SocialSecNumber { get; set; }
+        public int CheckAmount { get; set; }
+        public int PassThru { get; set; }
+        public int Expansion { get; set; }
+        public int EndofRecord { get; set; }
+        public int UniqueId { get; set; }
+        public int PDFFileName { get; set; }
+        public int ErrId { get; set; }
+        public int ErrDesc { get; set; }
+        public int MailPieceStatus { get; set; }
+        public int IsPDFReceived { get; set; }
     }
 }

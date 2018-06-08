@@ -135,6 +135,7 @@ namespace AM.Services
                     m.MailBatches = b;
                     b.SFTChannels = s;
                     m.DocTypes = d;
+                    //m.MRDFRequests = r;
                     return m;
                 },
                 new
