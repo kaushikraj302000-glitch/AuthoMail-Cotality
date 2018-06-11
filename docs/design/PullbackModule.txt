@@ -1,13 +1,13 @@
 Pullback Algorithm
 ========================================================
 Current Scenario (When Batch submitted to PCI)
-- Pullback only can be requested when batch is submitted to PCI
+- Pullback only can be requested when batch is submitted to PCI(i.e Batch PipelineStatus = "Submitted")
 - Cannot pullback in below scenario/mailpiece status
 	-Pullback already Requested
 	-mailpiece status are "Aborted", "PulledBack", "Error", "Shipped"
 	-Batch pipeline Status are "Received","Downloaded"
 - Can not pullback whole batch (we have to select all mailpiece for the particular batch to pullback whole batch)
-- when BatchStatus = "Submitted" and MailPieceStatus = "InProgress" then generate pullback Request form and email to PCI.
+- when Batch PipelineStatus = "Submitted" and MailPieceStatus = "InProgress" then generate pullback Request form and email to PCI.
 - After generating form update "PullBackRequestedOn" in AM.MailPiece table and insert data into PullbackRequested table.
 ========================================================
 New scenario
@@ -38,13 +38,10 @@ Example :
 USAA Batch-5 Records
 4PM- Prepped State
 
-4.15PM - 2 Pullback 
+4.15PM - 2 PulledBack 
 
-4.45PM BatchGenerator App will take 5 records and generate PnSBatch for PCI
+4.45PM BatchGenerator App will take 3 records and generate PnSBatch for PCI
 
 5.PM - 1 Record Pullback
 - Generate Form and Submit to PCI
 
-
-Challanges - How to separate not fixed sweep client for pulledback logic?
-Possible Fixes - Add System settings for Not fixed sweep time clients which will be used for generating batches also for checking e.g. USAA,HSBC
