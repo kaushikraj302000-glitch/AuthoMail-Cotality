@@ -145,8 +145,7 @@ namespace AM.Services
                     endDate = endDate.ToEndDateTime().EstToUtc(),
                     channel = channel.IsNullOrWhiteSpace() ? null : channel,
                     shippingStatus = ShippingStatus.Shipped.ToString()
-                }
-                , splitOn: "Id,Id,Id,Id,Id,UniqueId").ToList();
+                }, splitOn: "Id,Id,Id,Id,Id,UniqueId").ToList();
             return data;
         }
 
