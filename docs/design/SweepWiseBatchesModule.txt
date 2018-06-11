@@ -7,7 +7,8 @@ Flow changes in AuthoMail :
 	1) Till Prepped State everything will remain as it is. (Print Ready)
 	2) Stop AMC batches to generate PCI batches in onwards states (Allow other clients(fixed sweep clients) to generate PCI batches)
 		- Need to take all clients' batches which is in Prepped State except "USAA" to generate PCI batches. So Add Condition for that in Query
-	3) After "SubmittedToShipping" status, process will remain same for getting response and processing response for all clients.(just need to remove references of Mailbatches tables from services / query)
+	3) After "SubmittedToShipping" status, process will remain same for getting response and processing response for all clients.(just need to remove references of Mailbatches tables from services / query, path change to pickup response for USAA)
+	4) Because of we are merging multiple batches' mailpieces, we need to keep PnSResponse into one folder and need to process that response from it.
 
 Flow in AM.BatchGenerator Application :
 
