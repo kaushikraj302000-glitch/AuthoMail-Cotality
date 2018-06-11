@@ -5,6 +5,16 @@
     Layout = "~/Views/Shared/_LayoutLogin.cshtml";
 }
 
-<h1 class="text-danger">Error.</h1>
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-red">
+        <ul>
+            @foreach (var item in ViewBag.ErrorMessage)
+            {
+                <li>@item</li>
+            }
+        </ul>
+    </div>
+}
 <h2 class="text-danger">@AM.Services.Config.Web_Msg_Error</h2>
 

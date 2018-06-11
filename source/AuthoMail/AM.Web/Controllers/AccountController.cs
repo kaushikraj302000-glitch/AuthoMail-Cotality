@@ -392,6 +392,7 @@ namespace AM.Web.Controllers
                 return View("Error");
             }
             var result = await UserManager.ConfirmEmailAsync(userId, code);
+            ViewBag.ErrorMessage = result.Errors;
             return View(result.Succeeded ? "ConfirmEmail" : "Error");
         }
 
@@ -437,7 +438,7 @@ namespace AM.Web.Controllers
 
                 // Send an email with this link
                 string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
-                
+
                 var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
                 if (Config.Common_Environment == Env.Prod)
                 {

@@ -282,6 +282,7 @@ namespace AM.Services
     }
     public class MRDFRequests
     {
+        public Guid UniqueId { get; set; }
         public int JobId { get; set; }
         public int PieceId { get; set; }
         public DateTime Date { get; set; }
@@ -315,7 +316,6 @@ namespace AM.Services
         public string PassThru { get; set; }
         public string Expansion { get; set; }
         public string EndofRecord { get; set; }
-        public Guid UniqueId { get; set; }
         public string PDFFileName { get; set; }
         public int? ErrId { get; set; }
         public string ErrDesc { get; set; }
