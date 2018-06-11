@@ -39,7 +39,7 @@
 
                             </div>
                             <div class="form-group">
-                                @Html.ActionLink("Login", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink", @class = "btn btn-block btn-default btn-lg", @tabindex="3", @style="width:49%;float:left;"})
+                                @Html.ActionLink("Login", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink", @class = "btn btn-block btn-default btn-lg", @tabindex = "3", @style = "width:49%;float:left;" })
                                 <button type="button" id="emailnext" tabindex="2" class="btn btn-primary  btn-lg btn-block" style="width:49%;float:right;margin-top:0px;">Next <i class="fa fa-arrow-right"></i></button>
                                 @*<input type="button" id="emailnext" value="Next" class="btn btn-primary  btn-lg btn-block">*@
                             </div>
@@ -89,8 +89,8 @@
                                 <button type="submit" tabindex="9" id="register" style="width:49%;float:right;margin-top:0px;" class="btn btn-primary submit IsCorelogic  btn-lg btn-block ">Register <i class="fa fa-check"></i></button>
 
                                 @*<input type="button" id="emailprevious" style="width:49%;float:left;" value="Previous" class="btn btn-default  btn-lg btn-block">
-                                <input type="button" id="passwordnext" style="width:49%;float:right;margin-top:0px;" value="Next" class="btn btn-primary   btn-lg btn-block IsNotCorelogic">
-                                <input type="submit" id="register" style="width:49%;float:right;margin-top:0px;" value="Register" class="btn btn-primary submit IsCorelogic  btn-lg btn-block ">*@
+                                    <input type="button" id="passwordnext" style="width:49%;float:right;margin-top:0px;" value="Next" class="btn btn-primary   btn-lg btn-block IsNotCorelogic">
+                                    <input type="submit" id="register" style="width:49%;float:right;margin-top:0px;" value="Register" class="btn btn-primary submit IsCorelogic  btn-lg btn-block ">*@
                             </div>
                         </div>
 
@@ -128,7 +128,7 @@
                                 <button type="button" tabindex="13" id="passwordprevious" style="width:49%;float:left;" class="btn btn-default  btn-lg btn-block"><i class="fa fa-arrow-left"></i> Previous </button>
                                 <button type="submit" tabindex="12" id="registerCL" style="width:49%;float:right;margin-top:0px;" class="btn btn-primary submit  btn-lg btn-block ">Register <i class="fa fa-check"></i></button>
                                 @*<input type="button" style="width:49%;float:left;" value="Previous" id="passwordprevious" class="btn btn-default  btn-lg btn-block">
-                                <input type="submit" id="registerCL" style="width:49%;float:right;margin-top:0px;" value="Register" class="btn btn-primary  btn-lg btn-block">*@
+                                    <input type="submit" id="registerCL" style="width:49%;float:right;margin-top:0px;" value="Register" class="btn btn-primary  btn-lg btn-block">*@
                             </div>
                         </div>
 
@@ -154,8 +154,39 @@
     @Scripts.Render("~/bundles/jqueryval")
     <script src="~/Scripts/jquery.easing.min.js"></script>
     <script>
+
+        function addRules() {
+            $("#Password").rules('add', {
+                required: true,
+                checkpassword: true
+            });
+            $("#ConfirmPassword").rules('add', {
+                equalTo: "#Password",
+            });
+            $("#FirstName").rules('add', {
+                required: true,
+                lettersonly: true,
+            });
+            $("#LastName").rules('add', {
+                required: true,
+                lettersonly: true,
+            });
+            $("#DisplayName").rules('add', {
+                required: true,
+                lettersonly: false,
+                maxlength: 100
+            });
+        }
+        function removeRules() {
+            $("#Password").rules('remove');
+            $("#ConfirmPassword").rules('remove');
+            $("#FirstName").rules('remove');
+            $("#LastName").rules('remove');
+            $("#DisplayName").rules('remove');
+        }
+
         $(function () {
-            
+
             $(".IsCorelogic").hide();
             //Validation
             $("#summary").empty();
@@ -201,28 +232,7 @@
                             }
                             else {
                                 $("#IsCorelogicEmail").val("false");
-                                $("#Password").rules('add', {
-                                    required: true,
-                                    checkpassword: true
-                                });
-                                $("#ConfirmPassword").rules('add', {
-                                    equalTo: "#Password",
-                                });
-
-                                $("#FirstName").rules('add', {
-                                    required: true,
-                                    lettersonly: true,
-                                });
-                                $("#LastName").rules('add', {
-                                    required: true,
-                                    lettersonly: true,
-                                });
-                                $("#DisplayName").rules('add', {
-                                    required: true,
-                                    lettersonly: false,
-                                    maxlength: 100
-                                });
-
+                                addRules();
                             }
                             isValid = true;
                         }
@@ -258,7 +268,7 @@
                     //contentType: "application/json; charset=utf-8",
                     success: function (response) {
                         //Spinners("#passwordnext", "fa-arrow-right");
-                       // console.log(response);
+                        // console.log(response);
                         if (response.Success) {
 
                             $("#FirstNameCL").text(response.Object.FName);
@@ -431,11 +441,11 @@
             });
             $("#emailnext").click(function () {
                 //show the next fieldset
-                
+
                 var isValid = NextSection(this);
                 //console.log(isValid + "hide corelogic" + $("#IsCorelogicEmail").val());
                 if (isValid) {
-                    
+
                     if ($("#IsCorelogicEmail").val() == "false") {
                         $(".IsNotCorelogic").hide();
                         $(".IsCorelogic").show();
@@ -448,10 +458,13 @@
                         $("#ConfirmPassword").hide();
                         $("#ConfirmPasswordLabel").hide();
                     }
-                   
+
                     animationNext(this);
                     $("#CLErrorsummary").empty();
                     $('#registerform').submit(function (event) {
+                        addRules();
+                        $(".form-control").blur();
+                        $("#FirstName").focus();
                         return true;
                     });
                 }
@@ -462,7 +475,7 @@
                         return false;
                     });
                 }
-                
+
 
             });
             $("#emailprevious").click(function () {
@@ -476,18 +489,18 @@
 
             });
             $("#passwordnext").click(function () {
-               
+
                 $("#ConfirmPassword").rules('remove');
                 $("#FirstName").rules('remove');
                 $("#LastName").rules('remove');
                 $("#DisplayName").rules('remove');
                 //console.log($('#registerform').valid() + "next password");
                 if ($('#registerform').valid()) {
-                   // Spinners("#passwordnext", "fa-arrow-right");
+                    // Spinners("#passwordnext", "fa-arrow-right");
 
                     var isCLAuth = CLAuth($("#Email").val().trim(), $("#Password").val().trim());
                     if (isCLAuth) {
-                        
+
                         if ($("#IsCorelogicEmail").val() == "true") {
                             $("#DisplayName").rules('add', {
                                 required: true,
@@ -495,25 +508,31 @@
                                 maxlength: 100
                             });
                         }
-                        if ($("#IsCorelogicEmail").val() == "false") {
-                            $("#FirstName").rules('add', {
-                                required: true,
-                                lettersonly: true,
-                            });
-                            $("#LastName").rules('add', {
-                                required: true,
-                                lettersonly: true,
-                            });
-                            $("#DisplayNameCL").rules('add', {
-                                required: true,
-                                lettersonly: false,
-                                maxlength: 100
-                            });
-                        }
+                        //else {
+                        //    $("#FirstName").rules('add', {
+                        //        required: true,
+                        //        lettersonly: true,
+                        //    });
+                        //    $("#LastName").rules('add', {
+                        //        required: true,
+                        //        lettersonly: true,
+                        //    });
+                        //    $("#DisplayNameCL").rules('add', {
+                        //        required: true,
+                        //        lettersonly: false,
+                        //        maxlength: 100
+                        //    });
+                        //}
                         NextPassword(this);
                     }
                 }
-                
+                else {
+                    $('#registerform').submit(function (event) {
+                        event.preventDefault();
+                        return false;
+                    });
+                }
+
             });
             $("#passwordprevious").click(function () {
                 $("#DisplayName").rules('remove');
