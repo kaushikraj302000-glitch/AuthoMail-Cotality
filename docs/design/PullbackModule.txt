@@ -14,11 +14,15 @@ New scenario
 - Pullback should also work even if batch is not submitted to PCI 
 
 - When Batch is not submitted to PCI
-1) Check MailBatch PipelineStatus,it should be in Prepped state, not in Received or Downloaded
+[RP] Check if the mailpiece is already pulled back, if yes, return info (when and by whom) in message.
+
+1) Check MailBatch PipelineStatus,it should be in Prepped state, not in Received or Downloaded (Validated???)
+[RP] if not validated, show message ("The requested mailpiece is yet to be received or validated.")
 2) Check MailPiece (MailPieceStatus)ShippingStatus = InProgress, not in Error, Aborted, PulledBack, Shipped and PullbackRequested = false
 3) When ShippingStatus=InProgress and MailBatch Status = "Prepped"
 	- Update ShippingStatus=PulledBack, PullBackRequestedOn=Current UTC time, PulledBackOn= Current UTC time
 	- Insert entry in AM.PullBackRequests table
+	[RP] Insert this before peforming actual pullback updates. (list all fields and tables here)
 4) After successfull PulledBack Show below Message
 	- "PulledBack recorded Successfully." 
 5) If Error occured while pulledback
