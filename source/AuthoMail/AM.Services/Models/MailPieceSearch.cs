@@ -109,8 +109,8 @@ namespace AM.Services
         {
             get
             {
-                if (this.MRDFRequests == null) return null;
-                return string.Format("{0}-{1}-{2}_{3}", this.MRDFRequests.JobId, this.MRDFRequests.PieceId, this.Id, this.FileName);
+                if (this.MRDFRequests == null || this.Clients == null) return null;
+                return string.Format(@"{0}\{1}-{2}\PCIResponse\ReturnPDFs\{3}-{4}-{5}_{6}", this.Clients.AppCode, this.MRDFRequests.JobId, this.Clients.AppCode, this.MRDFRequests.JobId, this.MRDFRequests.PieceId, this.Id, this.FileName);
             }
         }
         public List<MailPieceCustomInfoTest> MailPieceCustomInfoTest { get; set; }
