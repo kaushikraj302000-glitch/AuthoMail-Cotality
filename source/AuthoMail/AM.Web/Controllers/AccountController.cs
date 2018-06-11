@@ -16,6 +16,8 @@ using System.Text;
 using AM.Lib;
 using System.Text.RegularExpressions;
 using System.IO;
+using System.Configuration;
+using System.Net;
 
 namespace AM.Web.Controllers
 {
@@ -344,7 +346,21 @@ namespace AM.Web.Controllers
                             StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\CreateAccount.html")));
                             sb.Replace("{{name}}", user.FirstName);
                             sb.Replace("{{email}}", user.Email);
+
                             var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
+                            if (Config.Common_Environment == Env.Prod)
+                            {
+                                var u = new Uri(callbackUrl);
+                                string str = string.Format("{0}://{1}", u.Scheme, u.Host);
+                                callbackUrl = callbackUrl.Replace(str, "https://authomail.corelogic.com");
+                            }
+                            else if (Config.Common_Environment == Env.Staging)
+                            {
+                                var u = new Uri(callbackUrl);
+                                string str = string.Format("{0}://{1}", u.Scheme, u.Host);
+                                callbackUrl = callbackUrl.Replace(str, "https://authomailuat.corelogic.com");
+                            }
+
                             sb.Replace("{{action_url}}", callbackUrl);
                             UserManager.AddToRole(user.Id, AMRoles.Client);
                             await UserManager.SendEmailAsync(user.Id, "Confirm your account", sb.ToString());
@@ -421,7 +437,20 @@ namespace AM.Web.Controllers
 
                 // Send an email with this link
                 string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
+                
                 var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
+                if (Config.Common_Environment == Env.Prod)
+                {
+                    var u = new Uri(callbackUrl);
+                    string str = string.Format("{0}://{1}", u.Scheme, u.Host);
+                    callbackUrl = callbackUrl.Replace(str, "https://authomail.corelogic.com");
+                }
+                else if (Config.Common_Environment == Env.Staging)
+                {
+                    var u = new Uri(callbackUrl);
+                    string str = string.Format("{0}://{1}", u.Scheme, u.Host);
+                    callbackUrl = callbackUrl.Replace(str, "https://authomailuat.corelogic.com");
+                }
                 StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\ForgotPassword.html")));
                 sb.Replace("{{name}}", user.FirstName);
                 sb.Replace("{{action_url}}", callbackUrl);

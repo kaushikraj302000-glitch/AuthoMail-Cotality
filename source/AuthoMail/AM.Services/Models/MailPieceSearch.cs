@@ -105,16 +105,16 @@ namespace AM.Services
         public Clients Clients { get; set; }
         public DocTypes DocTypes { get; set; }
         public Users Users { get; set; }
-        //public string PdfReceivedPath
-        //{
-        //    get
-        //    {
-        //        if (this.MRDFRequests == null) return null;
-        //        return string.Format("{0}-{1}-{2}_{3}", this.MRDFRequests.JobId, this.MRDFRequests.PieceId, this.Id, this.FileName);
-        //    }
-        //}
+        public string PdfReceivedPath
+        {
+            get
+            {
+                if (this.MRDFRequests == null) return null;
+                return string.Format("{0}-{1}-{2}_{3}", this.MRDFRequests.JobId, this.MRDFRequests.PieceId, this.Id, this.FileName);
+            }
+        }
         public List<MailPieceCustomInfoTest> MailPieceCustomInfoTest { get; set; }
-        //public MRDFRequests MRDFRequests { get; set; }
+        public MRDFRequests MRDFRequests { get; set; }
 
     }
     public class MailBatches
