@@ -146,7 +146,7 @@ namespace AM.Services
                     channel = channel.IsNullOrWhiteSpace() ? null : channel,
                     shippingStatus = ShippingStatus.Shipped.ToString()
                 }
-                ).ToList();
+                , splitOn: "Id,Id,Id,Id,Id,UniqueId").ToList();
             return data;
         }
 
