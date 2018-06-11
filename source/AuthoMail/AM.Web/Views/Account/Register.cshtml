@@ -35,11 +35,12 @@
                             <div id="emailsummary"></div>
                             <div class="form-group">
                                 <label for="login-email">Email</label>
-                                <input type="email" id="Email" name="Email" class="form-control" />
+                                <input type="email" id="Email" name="Email" tabindex="1" class="form-control" />
 
                             </div>
                             <div class="form-group">
-                                <button type="button" id="emailnext" class="btn btn-primary  btn-lg btn-block">Next <i class="fa fa-arrow-right"></i></button>
+                                @Html.ActionLink("Login", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink", @class = "btn btn-block btn-default btn-lg", @tabindex="3", @style="width:49%;float:left;"})
+                                <button type="button" id="emailnext" tabindex="2" class="btn btn-primary  btn-lg btn-block" style="width:49%;float:right;margin-top:0px;">Next <i class="fa fa-arrow-right"></i></button>
                                 @*<input type="button" id="emailnext" value="Next" class="btn btn-primary  btn-lg btn-block">*@
                             </div>
                         </div>
@@ -64,28 +65,28 @@
                             <div id="CLErrorsummary"></div>
                             <div class="form-group IsCorelogic">
                                 <label for="login-email">First Name</label>
-                                <input type="text" id="FirstName" class="form-control name" />
+                                <input type="text" id="FirstName" tabindex="4" class="form-control name" />
                             </div>
                             <div class="form-group IsCorelogic">
                                 <label for="login-email">Last Name</label>
-                                <input type="text" id="LastName" class="form-control name" />
+                                <input type="text" id="LastName" tabindex="5" class="form-control name" />
                             </div>
                             <div class="form-group IsCorelogic">
                                 <label for="login-email">Display Name</label>
-                                <input type="text" id="DisplayName" class="form-control" />
+                                <input type="text" id="DisplayName" tabindex="6" class="form-control" />
                             </div>
                             <div class="form-group">
                                 <label>Password</label>
-                                <input type="password" id="Password" name="Password" class="form-control" />
+                                <input type="password" id="Password" tabindex="7" name="Password" class="form-control" />
                             </div>
                             <div class="form-group">
                                 <label id="ConfirmPasswordLabel">Confirm Password</label>
-                                <input type="password" id="ConfirmPassword" name="ConfirmPassword" class="form-control" />
+                                <input type="password" id="ConfirmPassword" tabindex="8" name="ConfirmPassword" class="form-control" />
                             </div>
                             <div class="form-group">
-                                <button type="button" id="emailprevious" style="width:49%;float:left;" class="btn btn-default  btn-lg btn-block"><i class="fa fa-arrow-left"></i> Previous </button>
-                                <button type="button" id="passwordnext" style="width:49%;float:right;margin-top:0px;" class="btn btn-primary   btn-lg btn-block IsNotCorelogic">Next <i class="fa fa-arrow-right"></i></button>
-                                <button type="submit" id="register" style="width:49%;float:right;margin-top:0px;" class="btn btn-primary submit IsCorelogic  btn-lg btn-block ">Register <i class="fa fa-check"></i></button>
+                                <button type="button" tabindex="10" id="emailprevious" style="width:49%;float:left;" class="btn btn-default  btn-lg btn-block"><i class="fa fa-arrow-left"></i> Previous </button>
+                                <button type="button" tabindex="9" id="passwordnext" style="width:49%;float:right;margin-top:0px;" class="btn btn-primary   btn-lg btn-block IsNotCorelogic">Next <i class="fa fa-arrow-right"></i></button>
+                                <button type="submit" tabindex="9" id="register" style="width:49%;float:right;margin-top:0px;" class="btn btn-primary submit IsCorelogic  btn-lg btn-block ">Register <i class="fa fa-check"></i></button>
 
                                 @*<input type="button" id="emailprevious" style="width:49%;float:left;" value="Previous" class="btn btn-default  btn-lg btn-block">
                                 <input type="button" id="passwordnext" style="width:49%;float:right;margin-top:0px;" value="Next" class="btn btn-primary   btn-lg btn-block IsNotCorelogic">
@@ -113,7 +114,7 @@
                             <div class="summary"></div>
                             <div class="form-group">
                                 <label for="login-email">Display Name</label>
-                                <input type="text" id="DisplayNameCL" class="form-control" />
+                                <input type="text" id="DisplayNameCL" tabindex="11" class="form-control" />
                             </div>
                             <div class="form-group">
                                 <label for="login-email">First Name</label>
@@ -124,8 +125,8 @@
                                 <label id="LastNameCL" style=" background-color:#eee;text-transform: capitalize;" class="form-control"></label>
                             </div>
                             <div class="form-group">
-                                <button type="button" id="passwordprevious" style="width:49%;float:left;" class="btn btn-default  btn-lg btn-block"><i class="fa fa-arrow-left"></i> Previous </button>
-                                <button type="submit" id="registerCL" style="width:49%;float:right;margin-top:0px;" class="btn btn-primary submit  btn-lg btn-block ">Register <i class="fa fa-check"></i></button>
+                                <button type="button" tabindex="13" id="passwordprevious" style="width:49%;float:left;" class="btn btn-default  btn-lg btn-block"><i class="fa fa-arrow-left"></i> Previous </button>
+                                <button type="submit" tabindex="12" id="registerCL" style="width:49%;float:right;margin-top:0px;" class="btn btn-primary submit  btn-lg btn-block ">Register <i class="fa fa-check"></i></button>
                                 @*<input type="button" style="width:49%;float:left;" value="Previous" id="passwordprevious" class="btn btn-default  btn-lg btn-block">
                                 <input type="submit" id="registerCL" style="width:49%;float:right;margin-top:0px;" value="Register" class="btn btn-primary  btn-lg btn-block">*@
                             </div>
@@ -450,6 +451,9 @@
                    
                     animationNext(this);
                     $("#CLErrorsummary").empty();
+                    $('#registerform').submit(function (event) {
+                        return true;
+                    });
                 }
                 else {
 
