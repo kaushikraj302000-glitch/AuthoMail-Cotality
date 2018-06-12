@@ -392,6 +392,7 @@ namespace AM.Web.Controllers
                 return View("Error");
             }
             var result = await UserManager.ConfirmEmailAsync(userId, code);
+            ViewBag.ErrorMessage = result.Errors;
             return View(result.Succeeded ? "ConfirmEmail" : "Error");
         }
 
@@ -437,7 +438,7 @@ namespace AM.Web.Controllers
 
                 // Send an email with this link
                 string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
-                
+
                 var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
                 if (Config.Common_Environment == Env.Prod)
                 {
@@ -493,7 +494,9 @@ namespace AM.Web.Controllers
             if (user == null)
             {
                 // Don't reveal that the user does not exist
-                return RedirectToAction("ResetPasswordConfirmation", "Account");
+                //return RedirectToAction("ResetPasswordConfirmation", "Account");
+                ModelState.AddModelError("", "Invalid email.");
+                return View(model);
             }
             var result = await UserManager.ResetPasswordAsync(user.Id, model.Code, model.Password);
             if (result.Succeeded)
@@ -501,7 +504,7 @@ namespace AM.Web.Controllers
                 return RedirectToAction("ResetPasswordConfirmation", "Account");
             }
             AddErrors(result);
-            return View();
+            return View(model);
         }
 
         //

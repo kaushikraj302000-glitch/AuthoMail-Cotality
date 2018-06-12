@@ -109,8 +109,8 @@ namespace AM.Services
         {
             get
             {
-                if (this.MRDFRequests == null) return null;
-                return string.Format("{0}-{1}-{2}_{3}", this.MRDFRequests.JobId, this.MRDFRequests.PieceId, this.Id, this.FileName);
+                if (this.MRDFRequests == null || this.Clients == null) return null;
+                return string.Format(@"{0}\{1}-{2}\PCIResponse\ReturnPDFs\{3}-{4}-{5}_{6}", this.Clients.AppCode, this.MRDFRequests.JobId, this.Clients.AppCode, this.MRDFRequests.JobId, this.MRDFRequests.PieceId, this.Id, this.FileName);
             }
         }
         public List<MailPieceCustomInfoTest> MailPieceCustomInfoTest { get; set; }
@@ -282,6 +282,7 @@ namespace AM.Services
     }
     public class MRDFRequests
     {
+        public Guid UniqueId { get; set; }
         public int JobId { get; set; }
         public int PieceId { get; set; }
         public DateTime Date { get; set; }
@@ -315,7 +316,6 @@ namespace AM.Services
         public string PassThru { get; set; }
         public string Expansion { get; set; }
         public string EndofRecord { get; set; }
-        public Guid UniqueId { get; set; }
         public string PDFFileName { get; set; }
         public int? ErrId { get; set; }
         public string ErrDesc { get; set; }
