@@ -1,4 +1,4 @@
-Pullback Algorithm
+ Pullback Algorithm
 ========================================================
 Current Scenario (When Batch submitted to PCI)
 - Pullback only can be requested when batch is submitted to PCI(i.e Batch PipelineStatus = "Submitted")
@@ -21,6 +21,14 @@ New scenario
 2) Check MailPiece (MailPieceStatus)ShippingStatus = InProgress, not in Error, Aborted, PulledBack, Shipped and PullbackRequested = false
 [RP] If mailpiece is in error, show message that it cannot be pulled back and also show the error message. Applies to PnS as well.
 [RP] Between AM SubmittedToShipping and PnS Submitted, show message ("The mailpiece is being processed for printing, you should be able to request pullback within 5 to 10 minutes.")
+
+[SG] AM SubmittedToShipping and PnS.LogBatchTimeLine PCIBatchPrepEnd = NULL - Direct Pullback 
+	 AM SubmittedToShipping and PnS.LogBatchTimeLine PCIBatchPrepEnd = NOT NULL - Check for PnS.BatchSummary PipelineStatus='Prepped' Send Form to PCI
+		If not Prepped
+			Thread.Sleep = 2Sec
+			Check Again if success then Send Form PCI
+		Check for max 30 Seconds
+		
 3) When ShippingStatus=InProgress and MailBatch Status = "Prepped"
 	- Update ShippingStatus=PulledBack, PullBackRequestedOn=Current UTC time, PulledBackOn= Current UTC time
 	- Insert entry in AM.PullBackRequests table
