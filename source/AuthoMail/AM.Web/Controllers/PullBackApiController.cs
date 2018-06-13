@@ -61,10 +61,10 @@ namespace AM.Web.Controllers
                     {
                         mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.MailPieceUniqueId.ToString(), Message = Config.Web_Msg_API_PB_PullBackAlreadyRequested, PullBackRequestedOn = item.PullBackRequestedOn, PulledBackRequestedBy = item.UserName,MailPieceStatus = item.AMMailPieceStatus, Success = false });
                     }
-                    //else if (item.AMBatchPipelineStatus.ToString() == "Received" || item.AMBatchPipelineStatus.ToString() == "Downloaded")
-                    //{
-                    //    mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.MailPieceUniqueId.ToString(), Message = Config.Web_Msg_API_PB_BatchNotValidated, Success = false });
-                    //}
+                    else if (item.AMBatchPipelineStatus.ToString() == "Received" || item.AMBatchPipelineStatus.ToString() == "Downloaded")
+                    {
+                        mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.MailPieceUniqueId.ToString(), Message = Config.Web_Msg_API_PB_BatchNotValidated, Success = false });
+                    }
                     //else if (item.PipelineStatus.ToString() == "Received" || item.PipelineStatus.ToString() == "Downloaded")
                     //{
                     //    mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.MailPieceUniqueId.ToString(), Message = Config.Web_Msg_API_PB_BatchStatusSubmitted, Success = false });
