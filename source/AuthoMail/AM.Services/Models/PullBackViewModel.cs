@@ -10,11 +10,16 @@ namespace AM.Services
     {
         public Guid MailPieceUniqueId { get; set; }
         public int PrintBatch { get; set; }
-        public string PipelineStatus { get; set; }
-        public string MailPieceStatus { get; set; }
+        public string AMBatchPipelineStatus { get; set; }
+        public string PnSBatchPipelineStatus { get; set; }
+        public string AMMailPieceStatus { get; set; }
+        public string PnSMailPieceStatus { get; set; }
+        public string AMErrorDescription { get; set; }
+        public string PnSErrorDescription { get; set; }
         public bool IsPullBackRequested { get; set; }
         public DateTime? PullBackRequestedOn { get; set; }
-        public string PulledBackRequestedBy { get; set; }
+        public bool IsPulledBack { get; set; }
+        public DateTime? PulledBackOn { get; set; }
         public string UserName { get; set; }
     }
 

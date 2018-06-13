@@ -91,6 +91,7 @@ namespace AM.Services
         public static string Web_Msg_API_PB_Aborted { get; private set; }
         [Description("If batchstatus is submitted then only mailpiece can be pullback.")]
         public static string Web_Msg_API_PB_BatchStatusSubmitted { get; private set; }
+        public static string Web_Msg_API_PB_BatchNotValidated { get; set; }
         [Description("When no data found for specified unique id.")]
         public static string Web_Msg_API_PB_DataNull { get; private set; }
         [Description("user have select atleast one mailpiece to request pullback.")]
