@@ -106,6 +106,7 @@ namespace AM.Services
         public static string Web_Msg_API_PB_PullBackAlreadyRequested { get; private set; }
         [Description("When mailpiece is pulledback.")]
         public static string Web_Msg_API_PB_PulledBack { get; private set; }
+        public static string Web_Msg_API_PB_PulledBackSuccess { get; private set; }
         [Description("When mailpiece statis is shipped then it can not be pullback.")]
         public static string Web_Msg_API_PB_Shipped { get; private set; }
         [Description("To whom need to send email.")]

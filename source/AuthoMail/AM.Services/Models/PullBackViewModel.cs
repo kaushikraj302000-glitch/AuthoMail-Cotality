@@ -16,6 +16,7 @@ namespace AM.Services
         public string PnSMailPieceStatus { get; set; }
         public string AMErrorDescription { get; set; }
         public string PnSErrorDescription { get; set; }
+        public DateTime? PCIBatchPrepEnd { get; set; }
         public bool IsPullBackRequested { get; set; }
         public DateTime? PullBackRequestedOn { get; set; }
         public bool IsPulledBack { get; set; }

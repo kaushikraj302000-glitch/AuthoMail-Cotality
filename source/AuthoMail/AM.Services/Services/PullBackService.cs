@@ -17,6 +17,7 @@ namespace AM.Services
         List<PullBackRequestForm> GetPullBackData(List<string> mpIds);
         int UpdatePullBackRequestedOn(string mpId, string userId, string status);
         int InsertPullBackRequestData(string mpId, int clientId, string status, string userId);
+        string GetPnSBatchPipelineStatusByPrintBatchId(int printBatchId);
         List<MailPieces> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, string docType, DateTime startDate, DateTime endDate, int clientId);
         List<QuickPullBackResponse> GetQuickPullBackResponseFromBusinessFriendlyValue(string businessFriendlyIdName, string businessFriendlyIdValue, int clientId);
         List<QuickPullBackResponse> GetQuickPullBackResponse(List<string> mailPieceIds, int clientId);
@@ -159,6 +160,14 @@ namespace AM.Services
             }
 
             return isEmailSent;
+        }
+
+
+        public string GetPnSBatchPipelineStatusByPrintBatchId(int printBatchId)
+        {
+            string qry = string.Format("SELECT PipelineStatus FROM PnS.BatchSummary WHERE PrintBatch = @PrintBatchId");
+            string data = db.QuerySingle<string>(qry, new { PrintBatchId = printBatchId });
+            return data;
         }
     }
 
