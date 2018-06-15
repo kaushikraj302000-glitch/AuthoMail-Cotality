@@ -92,7 +92,7 @@ namespace AM.Web.Controllers
                     }
                     else if (item.AMBatchPipelineStatus == "SubmittedToShipping" && item.PCIBatchPrepEnd.HasValue)
                     {
-                        if (item.PnSMailPieceStatus == "InProgress" && item.PnSBatchPipelineStatus == "Prepped")
+                        if (item.PnSMailPieceStatus == "InProgress" && (item.PnSBatchPipelineStatus == "Prepped" || item.PnSBatchPipelineStatus == "Submitted"))
                         {
                             mailPieceIdsToPullback.Add(item.MailPieceUniqueId.ToString());
                         }
@@ -104,7 +104,7 @@ namespace AM.Web.Controllers
                                 //wait for 2 seconds while batch is being prepped.
                                 Thread.Sleep(2000);
                                 string pnsBatchPipelineStatus = pullBackSvc.GetPnSBatchPipelineStatusByPrintBatchId(item.PrintBatch);
-                                if (item.PnSMailPieceStatus == "InProgress" && pnsBatchPipelineStatus == "Prepped")
+                                if (item.PnSMailPieceStatus == "InProgress" && (pnsBatchPipelineStatus == "Prepped" || pnsBatchPipelineStatus == "Submitted"))
                                 {
                                     mailPieceIdsToPullback.Add(item.MailPieceUniqueId.ToString());
                                     break;
@@ -112,10 +112,6 @@ namespace AM.Web.Controllers
                                 seconds++;
                             } while (seconds != 15);
                         }
-                    }
-                    else if (item.PnSMailPieceStatus == "InProgress" && item.PnSBatchPipelineStatus == "Submitted")
-                    {
-                        mailPieceIdsToPullback.Add(item.MailPieceUniqueId.ToString());
                     }
                 }
 
