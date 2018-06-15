@@ -14,6 +14,12 @@ namespace AM.Entities
         public const string Invalid = "Invalid";
     }
 
+    public static class ChannelType
+    {
+        public const string Sweep = "Sweep";
+        public const string Trigger = "Trigger";
+    }
+
     public enum BatchStatus
     {
         InProgress,

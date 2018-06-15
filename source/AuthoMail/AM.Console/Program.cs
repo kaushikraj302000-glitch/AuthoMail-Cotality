@@ -22,10 +22,15 @@ namespace AM.Console
             log = log4net.LogManager.GetLogger(type);
 
             log.InfoFormat("Command line arguments : {0}", String.Join(",", args));
-            
-            foreach (var arg in args)
+
+            //using (IMRDFResponseService svc = new MRDFResponseService())
+            //{
+            //    svc.GenerateMRDFResponse(@"C:\Users\sagar.g\Desktop\TestTemplate\MRDFResponse", @"C:\Users\sagar.g\Desktop\TestTemplate\MRDFResponse");
+            //}
+
+            if (args.Length > 0)
             {
-                if (arg == "config")
+                if (args[0] == "config")
                 {
                     System.Console.WriteLine("Seeding Start");
 
@@ -37,24 +42,25 @@ namespace AM.Console
                     System.Console.WriteLine("Seed Completed.");
                     return;
                 }
-                else if (arg == "BatchReporting")
+                else if (args[0] == "BatchReporting")
                 {
                     Channel.ReportBack();
                 }
                 else
                 {
-                    using (var channel = ChannelFactory.Create(arg))
+                    using (var channel = ChannelFactory.Create(args))
                     {
                         if (channel == null)
                         {
-                            log.Error("Channel prefix '{0}' is invalid.".Fill(arg));
-                            continue;
+                            log.Error("Channel prefix '{0}' is invalid.".Fill(args[0]));
+                            return;
                         }
 
                         channel.ProcessBatches();
                     }
                 }
             }
+
 
             //DownloadJob downloadJob = new DownloadJob();
             //downloadJob.DownloadNewBatch();

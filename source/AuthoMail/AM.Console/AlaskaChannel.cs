@@ -21,6 +21,8 @@ namespace AM.Console
 
         private static XmlSchemaSet schemas;
 
+        private string channelType;
+
         protected Client client;
 
         protected IAlaskaService alaskaSvc;
@@ -31,11 +33,12 @@ namespace AM.Console
             schemas.Add(string.Empty, XmlReader.Create(new StringReader(Resources.RespaControlSchema)));
         }
 
-        public AlaskaChannel(string channelCode)
+        public AlaskaChannel(string channelCode, string channelType)
             : base(channelCode)
         {
             alaskaSvc = GetService<AlaskaService>();
             client = clientSvc.GetClientByAppCode("ALASKA");
+            this.channelType = channelType;
         }
 
 
@@ -82,8 +85,14 @@ namespace AM.Console
                 //Insert New Batch Entry
                 mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
 
+                DateTime lastModifiedTime = Common.Now;
+                if (channelType == ChannelType.Trigger)
+                {
+                    lastModifiedTime = sftSite.LastModifiedTimeOfFile(xmlFilePath);
+                }
+
                 //Update Pipeline Status of Batch Received
-                commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, sftSite.LastModifiedTimeOfFile(xmlFilePath));
+                commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, lastModifiedTime);
 
                 commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.InProgress.ToString());
             }
