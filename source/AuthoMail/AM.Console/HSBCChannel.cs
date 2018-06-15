@@ -22,6 +22,8 @@ namespace AM.Console
 
         private static XmlSchemaSet schemas;
 
+        private string channelType;
+
         protected IHSBCService hsbcSvc;
         protected Client client;
 
@@ -31,11 +33,12 @@ namespace AM.Console
             schemas.Add(string.Empty, XmlReader.Create(new StringReader(Resources.HSBCRespaControlSchema)));
         }
 
-        public HSBCChannel(string channelCode)
+        public HSBCChannel(string channelCode, string channelType)
             : base(channelCode)
         {
             hsbcSvc = GetService<HSBCService>();
             client = clientSvc.GetClientByAppCode("HSBC");
+            this.channelType = channelType;
         }
 
         protected override void EnumerateBatches()
@@ -75,8 +78,14 @@ namespace AM.Console
                 //Insert New Batch Entry
                 mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
 
+                DateTime lastModifiedTime = Common.Now;
+                if (channelType == ChannelType.Trigger)
+                {
+                    lastModifiedTime = sftSite.LastModifiedTimeOfFile(xmlFilePath);
+                }
+
                 //Update Pipeline Status of Batch Received
-                commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, sftSite.LastModifiedTimeOfFile(xmlFilePath));
+                commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, lastModifiedTime);
 
                 commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.InProgress.ToString());
             }

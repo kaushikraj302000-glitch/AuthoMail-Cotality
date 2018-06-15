@@ -23,6 +23,8 @@ namespace AM.Console
 
         protected IAMCService amcSvc;
 
+        private string channelType;
+
         protected Client client;
 
         private static XmlSchemaSet schemas;
@@ -34,11 +36,12 @@ namespace AM.Console
         }
 
 
-        public AMCChannel(string channelCode)
+        public AMCChannel(string channelCode, string channelType)
             : base(channelCode)
         {
             amcSvc = GetService<AMCService>();
             client = clientSvc.GetClientByAppCode("USAA");
+            this.channelType = channelType;
         }
 
         #region EnumerateBatches
@@ -74,8 +77,14 @@ namespace AM.Console
                 //Insert New Batch Entry
                 mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
 
+                DateTime lastModifiedTime = Common.Now;
+                if (channelType == ChannelType.Trigger)
+                {
+                    lastModifiedTime = sftSite.LastModifiedTimeOfFile(triggerFilePath);
+                }
+
                 //Update Pipeline Status of Batch Received
-                commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, sftSite.LastModifiedTimeOfFile(triggerFilePath));
+                commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, lastModifiedTime);
                 commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.InProgress.ToString());
 
                 //Delete or move trigger file after status update as Received
