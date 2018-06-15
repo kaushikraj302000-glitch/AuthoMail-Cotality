@@ -389,7 +389,7 @@
                     status = '<span class="label medium label-success">' + this.Status + '</span>';
                     break;
                 case "InProgress":
-                    status = '<span class="label medium label-blue">' + this.Status + '</span>';
+                    status = '<span id="statusid_' + cnt + '"><span class="label medium label-blue">' + this.Status + '</span></span>';
                     break;
 
             }
@@ -493,6 +493,7 @@
                                 //console.log(msg);
                                 if (response.Object[i].Success) {
                                     $("#IsPullBackRequested_" + cnts[i]).html('<span class="label medium label-yellow">Yes</span>');
+                                    $("#statusid_" + cnts[i]).html('<span class="label medium label-yellow">PulledBack</span>');
                                     $("#resPullBack_" + cnts[i]).html('<i class="fa fa-check icon-green"></i>');
                                     $("#resPullBack_" + cnts[i]).css("margin-left", "-31%");
                                     $('#resPullBack_' + cnts[i]).attr('data-content', "<span class='text-green'>" + msg + "</span>");
