@@ -86,7 +86,7 @@
                             <label for="receivedOn">Received  On (EST) </label>
                             <div class="input-group daterange" id="datepicker4">
                                 <input type="text" class="form-control" id="receivedOn">
-                                <span class="input-group-addon">
+                                <span class="input-group-addon viewcalendar">
                                     <i class="fa fa-calendar"></i>
                                 </span>
                             </div>
@@ -221,7 +221,9 @@
 
             });
             FilterData();
-
+            $(".viewcalendar").click(function () {
+                $("#receivedOn").focus();
+            });
         });
 
         function CheckboxCheck() {
