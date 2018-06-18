@@ -17,6 +17,7 @@ namespace AM.Services
         List<PullBackRequestForm> GetPullBackData(List<string> mpIds);
         int UpdatePullBackRequestedOn(string mpId, string userId, string status);
         int InsertPullBackRequestData(string mpId, int clientId, string status, string userId);
+        int UpdateAMBatchStatus(string mpId);
         string GetPnSBatchPipelineStatusByPrintBatchId(int printBatchId);
         List<MailPieces> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, string docType, DateTime startDate, DateTime endDate, int clientId);
         List<QuickPullBackResponse> GetQuickPullBackResponseFromBusinessFriendlyValue(string businessFriendlyIdName, string businessFriendlyIdValue, int clientId);
@@ -58,6 +59,11 @@ namespace AM.Services
         public int InsertPullBackRequestData(string mpId, int clientId, string status, string userId)
         {
             return db.Execute("[dbo].[usp_InsertPullBackRequestsData]", new { @MailPieceUniqueId = mpId, @ClientId = clientId, @Status = status, @RequestedOn = DateTime.UtcNow, @RequestedBy = string.IsNullOrEmpty(userId) ? DBNull.Value.ToString() : userId }, commandType: CommandType.StoredProcedure);
+        }
+
+        public int UpdateAMBatchStatus(string mpId)
+        {
+            return db.Execute("usp_UpdateAMMailBatchesStatus", new { @MailPieceUniqueId = mpId }, commandType: CommandType.StoredProcedure);
         }
 
         public List<MailPieces> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, string docType, DateTime startDate, DateTime endDate, int clientId)
@@ -162,13 +168,13 @@ namespace AM.Services
             return isEmailSent;
         }
 
-
         public string GetPnSBatchPipelineStatusByPrintBatchId(int printBatchId)
         {
             string qry = string.Format("SELECT PipelineStatus FROM PnS.BatchSummary WHERE PrintBatch = @PrintBatchId");
             string data = db.QuerySingle<string>(qry, new { PrintBatchId = printBatchId });
             return data;
         }
+
     }
 
     public static class PullBackServiceQuery
