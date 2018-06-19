@@ -279,8 +279,8 @@
             $("#summaryList").hide();
             var el = $('#summaryList');
             $("#loading").show();
-            var startDate = moment($("#dp4").val() + ' @AM.Services.Config.Web_StartCutOffTime').subtract('days', 1).format("MM/DD/YY HH:mm:ss");
-            var endDate = moment($("#dp4").val() + ' @AM.Services.Config.Web_EndCutOffTime').format("MM/DD/YY HH:mm:ss");
+            var startDate = moment($("#dp4").val()).format("MM/DD/YY");
+            var endDate = moment($("#dp4").val()).format("MM/DD/YY");
             $("#headerdate").html(startDate + " to " + endDate + " EST");
             $.ajax({
                 type: "POST",
