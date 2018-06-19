@@ -117,6 +117,17 @@ namespace AM.Web.Controllers
                         return View(model);
                     }
                     await SignInManager.SignInAsync(user, false, model.RememberMe);
+                    if (!user.EmailConfirmed)
+                    {
+                        AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+                        ModelState.AddModelError("", Config.Web_Msg_Login_EmailConfirm);
+                        return View(model);
+                    }
+                    if ((user.Status.Equals(AMUserStatus.Open, StringComparison.CurrentCultureIgnoreCase) || user.Status.Equals(AMUserStatus.Rejected, StringComparison.CurrentCultureIgnoreCase)) || !user.ClientId.HasValue)
+                    {
+                        AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+                        return View("InActiveUser");
+                    }
                     return RedirectToLocal(returnUrl);
                 }
                 var result = await SignInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, shouldLockout: true);
