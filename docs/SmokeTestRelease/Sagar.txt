@@ -188,3 +188,11 @@ For Deployment in AuthoMail in Service By Sagar
 	- log4net config file
 2) Core App
 	- exe,AM dlls, PCI.Lib.dll
+	
+For Pullback in PCI Service
+
+1) Added new SP [usp_GetPullBackRequestDataByJobId]
+2) updated SP [usp_GetFinalMRDFResponseDataByJobId]
+
+For AM Console App
+1) Add parameter for Trigger or Sweep as extra parameter For Alaska and AMC

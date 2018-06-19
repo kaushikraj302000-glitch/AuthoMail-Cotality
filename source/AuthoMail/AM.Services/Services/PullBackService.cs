@@ -15,8 +15,10 @@ namespace AM.Services
     {
         List<PullBackViewModel> GetMailPieceData(List<string> mpIds);
         List<PullBackRequestForm> GetPullBackData(List<string> mpIds);
-        int UpdatePullBackRequestedOn(string mpId, string userId);
-        int InsertPullBackRequestData(string mpId, int clientId);
+        int UpdatePullBackRequestedOn(string mpId, string userId, string status);
+        int InsertPullBackRequestData(string mpId, int clientId, string status, string userId);
+        int UpdateAMBatchStatus(string mpId);
+        string GetPnSBatchPipelineStatusByPrintBatchId(int printBatchId);
         List<MailPieces> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, string docType, DateTime startDate, DateTime endDate, int clientId);
         List<QuickPullBackResponse> GetQuickPullBackResponseFromBusinessFriendlyValue(string businessFriendlyIdName, string businessFriendlyIdValue, int clientId);
         List<QuickPullBackResponse> GetQuickPullBackResponse(List<string> mailPieceIds, int clientId);
@@ -26,7 +28,7 @@ namespace AM.Services
     {
         public List<PullBackViewModel> GetMailPieceData(List<string> mpIds)
         {
-            string qry = string.Format("SELECT AMM.MailBatchId,PM.[UniqueId] as MailPieceUniqueId,PB.PrintBatch,PB.PipelineStatus,PM.MailPieceStatus,AMM.IsPullBackRequested,AMM.PullBackRequestedOn,AMM.PulledBackRequestedBy,PU.UserName FROM PnS.MRDFRequest PM INNER JOIN PnS.BatchSummary PB ON PM.JobId = PB.PrintBatch INNER JOIN AM.MailPieces AMM ON PM.[UniqueId] = AMM.UniqueId LEFT OUTER JOIN [Profile].Users PU ON PU.Id = AMM.PulledBackRequestedBy WHERE PM.[UniqueId] IN @mailPieceIds");
+            string qry = string.Format("SELECT AMMP.MailBatchId,AMMP.[UniqueId] as MailPieceUniqueId,PB.PrintBatch,AMMB.PipelineStatus AS AMBatchPipelineStatus,PB.PipelineStatus AS PnSBatchPipelineStatus,AMMP.ShippingStatus AS AMMailPieceStatus,PM.MailPieceStatus AS PnSMailPieceStatus,AMMP.ErrorDesc AS AMErrorDescription,PM.ErrDesc AS PnSErrorDescription,PLBT.PCIBatchPrepEnd,AMMP.IsPullBackRequested,AMMP.PullBackRequestedOn,AMMP.IsPulledBack,AMMP.PulledBackOn,PU.UserName FROM AM.MailPieces AMMP  LEFT OUTER JOIN PnS.MRDFRequest PM ON AMMP.[UniqueId] = PM.UniqueId  INNER JOIN AM.MailBatches AMMB ON AMMB.Id = AMMP.MailBatchId LEFT OUTER JOIN PnS.BatchSummary PB ON PB.PrintBatch = PM.JobId LEFT OUTER JOIN PnS.LogBatchTimeLine PLBT ON PLBT.BatchId = PB.PrintBatch LEFT OUTER JOIN [Profile].Users PU ON PU.Id = AMMP.PulledBackRequestedBy  WHERE AMMP.[UniqueId] IN @mailPieceIds");
             var data = db.Query<PullBackViewModel>(qry, new { mailPieceIds = mpIds }).ToList();
             return data;
         }
@@ -38,16 +40,30 @@ namespace AM.Services
             return data;
         }
 
-        public int UpdatePullBackRequestedOn(string mpId, string userId)
+        public int UpdatePullBackRequestedOn(string mpId, string userId, string status)
         {
-            string qry = string.Format(@"UPDATE AM.MailPieces SET PullBackRequestedOn = @utcDate,PulledBackRequestedBy = @UserId WHERE UniqueId = @id");
-            var data = db.Execute(qry, new { utcDate = DateTime.UtcNow, UserId = string.IsNullOrEmpty(userId) ? DBNull.Value.ToString() : userId, id = mpId });
+            var data = 0;
+            if (string.IsNullOrEmpty(status))
+            {
+                string qry = string.Format(@"UPDATE AM.MailPieces SET PullBackRequestedOn = @utcDate,PulledBackRequestedBy = @UserId WHERE UniqueId = @id");
+                data = db.Execute(qry, new { utcDate = DateTime.UtcNow, UserId = string.IsNullOrEmpty(userId) ? DBNull.Value.ToString() : userId, id = mpId });
+            }
+            if (status == "PulledBack")
+            {
+                string qry = string.Format(@"UPDATE AM.MailPieces SET ShippingStatus = @shippingStatus, PullBackRequestedOn = @utcDate, PulledBackOn = @pulledbackUtcDate,PulledBackRequestedBy = @UserId WHERE UniqueId = @id");
+                data = db.Execute(qry, new { shippingStatus = status, utcDate = DateTime.UtcNow, pulledbackUtcDate = DateTime.UtcNow, UserId = string.IsNullOrEmpty(userId) ? DBNull.Value.ToString() : userId, id = mpId });
+            }
             return data;
         }
 
-        public int InsertPullBackRequestData(string mpId, int clientId)
+        public int InsertPullBackRequestData(string mpId, int clientId, string status, string userId)
         {
-            return db.Execute("[dbo].[usp_InsertPullBackRequestsData]", new { @MailPieceUniqueId = mpId, @ClientId = clientId }, commandType: CommandType.StoredProcedure);
+            return db.Execute("[dbo].[usp_InsertPullBackRequestsData]", new { @MailPieceUniqueId = mpId, @ClientId = clientId, @Status = status, @RequestedOn = DateTime.UtcNow, @RequestedBy = string.IsNullOrEmpty(userId) ? DBNull.Value.ToString() : userId }, commandType: CommandType.StoredProcedure);
+        }
+
+        public int UpdateAMBatchStatus(string mpId)
+        {
+            return db.Execute("usp_UpdateAMMailBatchesStatus", new { @MailPieceUniqueId = mpId }, commandType: CommandType.StoredProcedure);
         }
 
         public List<MailPieces> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, string docType, DateTime startDate, DateTime endDate, int clientId)
@@ -151,6 +167,14 @@ namespace AM.Services
 
             return isEmailSent;
         }
+
+        public string GetPnSBatchPipelineStatusByPrintBatchId(int printBatchId)
+        {
+            string qry = string.Format("SELECT PipelineStatus FROM PnS.BatchSummary WHERE PrintBatch = @PrintBatchId");
+            string data = db.QuerySingle<string>(qry, new { PrintBatchId = printBatchId });
+            return data;
+        }
+
     }
 
     public static class PullBackServiceQuery

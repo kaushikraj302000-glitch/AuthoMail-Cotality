@@ -12,5 +12,7 @@ namespace AM.Web.Models
         public string Message { get; set; }
         public DateTime? PullBackRequestedOn { get; set; }
         public string PulledBackRequestedBy { get; set; }
+        public string MailPieceStatus { get; set; }
+        public string ErrorDescription { get; set; }
     }
 }
