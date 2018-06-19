@@ -281,7 +281,8 @@
             $("#loading").show();
             var startDate = moment($("#dp4").val()).format("MM/DD/YY");
             var endDate = moment($("#dp4").val()).format("MM/DD/YY");
-            $("#headerdate").html(startDate + " to " + endDate + " EST");
+            //$("#headerdate").html(startDate);//+ " to " + endDate + " EST");
+            $("#headerdate").html(startDate+ " EST");
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Report/_GetSummaryControlReport",
