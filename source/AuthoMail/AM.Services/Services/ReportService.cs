@@ -86,8 +86,8 @@ namespace AM.Services
                 new
                 {
                     clientId = clientId,
-                    startDate = startDate.EstToUtc(),
-                    endDate = endDate.EstToUtc(),
+                    startDate = startDate.ToStartDateTime().EstToUtc(),
+                    endDate = endDate.ToEndDateTime().EstToUtc(),
                     channel = channel.IsNullOrWhiteSpace() ? null : channel
                 }
                 ).ToList();
@@ -128,14 +128,14 @@ namespace AM.Services
         {
             string query = "[dbo].[uspweb_MonthlyReconReport] @clientId, @startDate, @endDate, @channel,@shippingStatus";
 
-            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, MRDFRequests, MailPieces>(query,
-                (b, s, c, m, d, r) =>
+            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, MailPieces>(query,
+                (b, s, c, m, d) =>
                 {
                     m.Clients = c;
                     m.MailBatches = b;
                     b.SFTChannels = s;
                     m.DocTypes = d;
-                    m.MRDFRequests = r;
+                    //m.MRDFRequests = r;
                     return m;
                 },
                 new
@@ -145,7 +145,7 @@ namespace AM.Services
                     endDate = endDate.ToEndDateTime().EstToUtc(),
                     channel = channel.IsNullOrWhiteSpace() ? null : channel,
                     shippingStatus = ShippingStatus.Shipped.ToString()
-                }, splitOn: "Id,Id,Id,Id,Id,UniqueId").ToList();
+                }, splitOn: "Id,Id,Id,Id,Id").ToList();
             return data;
         }
 

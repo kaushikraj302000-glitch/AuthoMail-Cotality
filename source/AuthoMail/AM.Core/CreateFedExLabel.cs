@@ -210,20 +210,20 @@ namespace AM.Core
                 LabelFileName = Path.Combine(mbi.PnSRequestPath, string.Format("{0}.pdf", packageDetail.TrackingIds[0].TrackingNumber));
                 LabelFile = new FileStream(LabelFileName, FileMode.Create);
 
-                using (Document doc = new Document())
+                using (Document doc = new Document(PageSize.LETTER))
                 {
                     PdfWriter writer1 = PdfWriter.GetInstance(doc, LabelFile);
                     doc.Open();
                     var logo1 = Image.GetInstance(packageDetail.Label.Parts[0].Image);
                     logo1.Alignment = Element.ALIGN_CENTER;
-                    logo1.ScaleToFit(410, 620);
+                    logo1.ScaleToFit(430, 600);
                     // logo1.SetDpi(600, 600);
                     logo1.Border = 0;
                     PdfPCell image1Cell = new PdfPCell();
                     image1Cell.AddElement(logo1);
                     image1Cell.Border = PdfPCell.NO_BORDER;
-                    image1Cell.PaddingLeft = Utilities.InchesToPoints(-2f);
-                    image1Cell.PaddingTop = Utilities.InchesToPoints(2f);
+                    image1Cell.PaddingLeft = Utilities.InchesToPoints(-0.5f);
+                    image1Cell.PaddingTop = Utilities.InchesToPoints(1.5f);
                     image1Cell.HorizontalAlignment = Element.ALIGN_LEFT;
                     PdfPTable table = new PdfPTable(1);
                     table.AddCell(image1Cell);
