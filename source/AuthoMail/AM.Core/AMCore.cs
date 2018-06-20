@@ -61,7 +61,7 @@ namespace AM.Core
                         {
                             DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value);
 
-                            mailPiece.DueDate = GetDueDate(docType.SLADays, docType.SLACutOffTime, mailBatch.ReceivedOn.Value);
+                            mailPiece.DueDate = GetDueDate(docType.SLADays, docType.SLACutOffTime, mailBatch.ReceivedOn.Value, docType.ShippingCarrier);
                             //mailPiece.DocTypeId = docType.Id;
 
                             int mailPieceId = mailPiece.Id;
@@ -352,12 +352,19 @@ namespace AM.Core
             }
         }
 
-        private static DateTime GetDueDate(int slaDays, TimeSpan estSLACutOffTime, DateTime utcReceivedOn)
+        private static DateTime GetDueDate(int slaDays, TimeSpan estSLACutOffTime, DateTime utcReceivedOn, string shippingCarrier)
         {
+
             //ReceivedOn Time of Batch
             var estReceivedOn = utcReceivedOn.UtcToEst();
 
             var estReceivedOnDate = estReceivedOn.Date;
+
+            //logic for FedEx Saturday Cut off timings
+            if (estReceivedOnDate.DayOfWeek.ToString() == "Saturday" && shippingCarrier == Carrier.FedEx.ToString())
+            {
+                estSLACutOffTime = Config.Core_FedExSaturdayCutOffTime;
+            }
 
             //Should be in cut off Date time
             var estSLACutOffDateTime = (estReceivedOnDate + estSLACutOffTime);
