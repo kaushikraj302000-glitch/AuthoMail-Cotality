@@ -14,7 +14,7 @@ namespace AM.Web.Models
     {
         public static bool HasCorelogicAccount(string Email)
         {
-            if (Email.IsNullOrWhiteSpace() == null) return false;
+            if (Email.IsNullOrWhiteSpace()) return false;
             var mailAddress = new MailAddress(Email);
             if (mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase)) return true;
             return false;
