@@ -31,7 +31,7 @@ namespace AM.Web.Controllers
         public AccountController()
         {
         }
-
+        
         public AccountController(AMUserManager userManager, AMSignInManager signInManager, ISupportService supSvc)
         {
             UserManager = userManager;
@@ -117,6 +117,17 @@ namespace AM.Web.Controllers
                         return View(model);
                     }
                     await SignInManager.SignInAsync(user, false, model.RememberMe);
+                    if (!user.EmailConfirmed)
+                    {
+                        AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+                        ModelState.AddModelError("", Config.Web_Msg_Login_EmailConfirm);
+                        return View(model);
+                    }
+                    if ((user.Status.Equals(AMUserStatus.Open, StringComparison.CurrentCultureIgnoreCase) || user.Status.Equals(AMUserStatus.Rejected, StringComparison.CurrentCultureIgnoreCase)) || !user.ClientId.HasValue)
+                    {
+                        AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+                        return View("InActiveUser");
+                    }
                     return RedirectToLocal(returnUrl);
                 }
                 var result = await SignInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, shouldLockout: true);
@@ -254,7 +265,6 @@ namespace AM.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-
                 try
                 {
                     bool isCoreLogicUser = CLAuthentication.HasCorelogicAccount(model.Email);
@@ -287,6 +297,23 @@ namespace AM.Web.Controllers
                             sb.Replace("{{name}}", user.FirstName);
                             UserManager.AddToRole(user.Id, AMRoles.BA);
                             await UserManager.SendEmailAsync(user.Id, "Welcome to AuthoMail.", sb.ToString());
+
+                            sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\RegistrationInAuthoMail.html")));
+                            if (Config.Common_Environment == Env.Prod)
+                            {
+                                sb.Replace("{{url}}", "https://authomail.corelogic.com");
+                            }
+                            else if (Config.Common_Environment == Env.Staging)
+                            {
+                                sb.Replace("{{url}}", "https://authomailuat.corelogic.com");
+                            }
+                            else
+                            {
+                                string url = Url.Action("Login", "Account");
+                                sb.Replace("{{url}}", "http://localhost:17005" + url);
+                            }
+                            sb.Replace("{{email}}", user.Email);
+                            await InternalEmail.SendMail(Config.Registration_ToEmail, null, Config.Registration_BCCEmail, "Registration in authomail.", sb.ToString());
                             return View("SuccessRegistration");
                         }
                         AddErrors(result);
@@ -393,6 +420,26 @@ namespace AM.Web.Controllers
             }
             var result = await UserManager.ConfirmEmailAsync(userId, code);
             ViewBag.ErrorMessage = result.Errors;
+            if (result.Succeeded)
+            {
+                var email = UserManager.FindById(userId).Email;
+                var sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\RegistrationInAuthoMail.html")));
+                if (Config.Common_Environment == Env.Prod)
+                {
+                    sb.Replace("{{url}}", "https://authomail.corelogic.com");
+                }
+                else if (Config.Common_Environment == Env.Staging)
+                {
+                    sb.Replace("{{url}}", "https://authomailuat.corelogic.com");
+                }
+                else
+                {
+                    string url = Url.Action("Login", "Account");
+                    sb.Replace("{{url}}", "http://localhost:17005" + url);
+                }
+                sb.Replace("{{email}}", email);
+                await InternalEmail.SendMail(Config.Registration_ToEmail, null, Config.Registration_BCCEmail, "Registration in authomail.", sb.ToString());
+            }
             return View(result.Succeeded ? "ConfirmEmail" : "Error");
         }
 

@@ -375,6 +375,7 @@
     <Content Include="Template\ChangePassword.html" />
     <Content Include="Template\CreateAccountCL.html" />
     <Content Include="Template\CreateAccount.html" />
+    <Content Include="Template\RegistrationInAuthoMail.html" />
     <Content Include="Template\RejectRegistration.html" />
     <Content Include="Views\Report\MonthlyReconReport.cshtml" />
     <Content Include="Views\Shared\_LayoutCommon.cshtml" />
