@@ -82,9 +82,14 @@ namespace AM.Services
         public int UpdateClientDomain(string domainName, string existingDomainName)
         {
             if (domainName.IsNullOrWhiteSpace()) throw new Exception("Domain name cannot be null.");
+            if (Uri.CheckHostName(domainName) != UriHostNameType.Dns) throw new Exception("Invalid domain name.");
             if (FingByDomainName(domainName) != null) throw new Exception("Domain name already exists.");
             if (FingByDomainName(existingDomainName) == null) throw new Exception("Existing domain name not found.");
-            if (Uri.CheckHostName(domainName) != UriHostNameType.Dns) throw new Exception("Invalid domain name.");
+
+            //var usersCountQ = "SELECT COUNT(Email) FROM [Profile].[Users] WHERE Email Like @email";
+            //int usersCount = db.Execute(usersCountQ, new { email = "%" + existingDomainName });
+            //if (usersCount > 0) throw new Exception("Domain name couldn't change because users.");
+            
             string query = "UPDATE [Common].[ClientDomains] SET AllowedDomain=@domainName WHERE AllowedDomain=@existingDomainName";
             return db.Execute(query, new { domainName = domainName, existingDomainName = existingDomainName });
         }
