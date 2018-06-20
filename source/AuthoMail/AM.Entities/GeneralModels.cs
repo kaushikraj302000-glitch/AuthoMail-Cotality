@@ -272,7 +272,8 @@ namespace AM.Entities
         FIRST_OVERNIGHT = 4,
         GROUND_HOME_DELIVERY = 5,
         PRIORITY_OVERNIGHT = 6,
-        STANDARD_OVERNIGHT = 7
+        STANDARD_OVERNIGHT = 7,
+        USPS_EXPRESSMAIL = 8
     }
 
     public class MailBatchInfo

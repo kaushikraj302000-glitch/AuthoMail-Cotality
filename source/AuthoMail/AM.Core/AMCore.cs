@@ -46,7 +46,7 @@ namespace AM.Core
 
                     var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
 
-                    List<MailPieceDTO> validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
+                    List<MailPieceDTO> validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
 
                     if (validMailPieces.Count == 0)
                     {
@@ -144,6 +144,7 @@ namespace AM.Core
 
                                 mailPieceData.Add("MailPieceId", mailPiece.Id.ToString());
                                 mailPieceData.Add("Date", Common.Now.UtcToEst().ToString("MMMM dd, yyyy"));//USAA Specific
+                                mailPieceData.Add("Free3OF9Barcode", mailPiece.Id.ToString());//Barcode for non-IMBarcode cover letter
                                 mailPieceData.Add("MailPieceZip", mailPiece.RcptAddressZIP);
                                 mailPieceData.Add("LoanNbr", mailPiece.BusinessFriendlyIdValue);
 
@@ -164,8 +165,16 @@ namespace AM.Core
                                 //Folder structure and file naming convention should be Root/AppCode/AppCode_DocTypeCode_SeqNo.pdf
                                 string coverLetterTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, client.AppCode, docTypeLetter.CoverLetterTemplatePath);
 
-                                // Create final document using SmartDocs library.
-                                coverLetterPdfPath = doc.GenerateUSPSCoverLetter(client.AppCode, coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
+                                if (docType.ShippingServiceType == ShippingServiceType.USPS_EXPRESSMAIL.ToString())
+                                {
+                                    //Create Cover letter without IMBarcode
+                                    coverLetterPdfPath = doc.GenerateUSPSCoverLetter(client.AppCode, coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
+                                }
+                                else
+                                {
+                                    //Create Cover letter with IMBarcode
+                                    coverLetterPdfPath = doc.GenerateUSPSIMBCoverLetter(client.AppCode, coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
+                                }
 
                                 if (string.IsNullOrEmpty(coverLetterPdfPath))
                                 {
@@ -405,7 +414,7 @@ namespace AM.Core
 
                     var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
 
-                    List<MailPieceDTO> validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
+                    List<MailPieceDTO> validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
 
                     //TODO : look into this logic
                     if (validMailPieces.Count == 0)

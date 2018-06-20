@@ -25,7 +25,7 @@ namespace AM.Core
         public string ExceptionDetail { get; private set; }
         public string TrackingCode { get; private set; }
 
-        public string GenerateUSPSCoverLetter(string appCode, string coverTemplatePDFPath, string outputDir, Dictionary<string, string> mailPieceData)
+        public string GenerateUSPSIMBCoverLetter(string appCode, string coverTemplatePDFPath, string outputDir, Dictionary<string, string> mailPieceData)
         {
             appCode = Config.Common_Environment == Env.Prod ? appCode : "TEST";
 
@@ -49,6 +49,62 @@ namespace AM.Core
                 ExceptionDetail = "Error occured while generating IMBarcode :" + IMBarcode.ErrorMessage;
                 return "";
             }
+
+            try
+            {
+                using (var existingFileStream = new FileStream(coverTemplatePDFPath, FileMode.Open))
+                using (var newFileStream = new FileStream(coverLetterPDFPath, FileMode.Create))
+                {
+                    // Open existing PDF
+                    var pdfReader = new PdfReader(existingFileStream);
+
+                    // PdfStamper, which will create
+                    var stamper = new PdfStamper(pdfReader, newFileStream);
+
+                    var form = stamper.AcroFields;
+                    foreach (var model in mailPieceData)
+                    {
+                        form.SetField(model.Key, model.Value);
+                    }
+
+                    // "Flatten" the form so it wont be editable/usable anymore
+                    stamper.FormFlattening = true;
+
+                    // You can also specify fields to be flattened, which
+                    // leaves the rest of the form still be editable/usable
+                    // stamper.PartialFormFlattening("Address");
+
+                    stamper.Close();
+                    pdfReader.Close();
+                }
+
+                if (!File.Exists(coverLetterPDFPath))
+                {
+                    ExceptionDetail = "Unable to generate cover letter.";
+                    return "";
+                }
+
+            }
+            catch (Exception ex)
+            {
+                var msg = "Error occured while generating cover letter for MailPiece-Id : {0}".Fill(mailPieceData["MailPieceId"]);
+                log.Error(msg, ex);
+                ExceptionDetail = msg;
+                return "";
+            }
+            return coverLetterPDFPath;
+
+            #endregion
+        }
+
+        public string GenerateUSPSCoverLetter(string appCode, string coverTemplatePDFPath, string outputDir, Dictionary<string, string> mailPieceData)
+        {
+            TrackingCode = string.Empty;
+            ExceptionDetail = string.Empty;
+
+            string coverLetterPDFPath = Path.Combine(outputDir, string.Format("CoverLetter_{0}.pdf", mailPieceData["MailPieceId"]));
+
+            #region Generate Cover Letter
 
             try
             {
