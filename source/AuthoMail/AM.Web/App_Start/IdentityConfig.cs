@@ -40,6 +40,23 @@ namespace AM.Web
             return Task.FromResult(0);
         }
     }
+    public class InternalEmail
+    {
+        public static async Task SendMail(string to, string cc, string bcc, string subject, string body)
+        {
+            using (MailMessage msg = new MailMessage())
+            {
+                msg.IsBodyHtml = true;
+                msg.To.Add(to);
+                if (cc != null) msg.CC.Add(cc);
+                if (bcc != null) msg.Bcc.Add(bcc);
+                msg.Subject = subject;
+                msg.Body = string.Format("{0}", body);
+                SmtpClient sc = new SmtpClient();
+                await sc.SendMailAsync(msg);
+            }
+        }
+    }
 
     public class AMUserStore : UserStore<ProfileUser>
     {

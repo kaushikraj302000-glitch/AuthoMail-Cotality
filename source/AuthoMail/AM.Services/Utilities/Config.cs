@@ -129,6 +129,8 @@ namespace AM.Services
         public static string Web_Msg_Lockout { get; private set; }
         public static string Web_Msg_Error { get; private set; }
         public static string Web_Msg_Inactive_Account { get; private set; }
+        public static string  Registration_ToEmail { get; private set; }
+        public static string Registration_BCCEmail { get; private set; }
         #endregion
 
         #region WEB Common Msg
