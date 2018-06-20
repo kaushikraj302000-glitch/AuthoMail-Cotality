@@ -6,12 +6,27 @@
 <div style="margin-top:2%">
 
 </div>
+@if(ViewBag.Success)
+{ 
 <div class="title col-md-12" style="margin-bottom:2%;">
     <h1>Email confirmed.</h1>
     <div class="alert alert-green">
         <div class="row">
             <i class="fa fa-check fa-2x"></i>
-            Thank you for confirming your email.
+            @ViewBag.Message
         </div>
     </div>
 </div>
+}
+else{
+    
+        <div class="alert alert-red">
+            <ul>
+                @foreach (var item in ViewBag.Message)
+                {
+                    <li>@item</li>
+                }
+            </ul>
+        </div>
+    
+}
