@@ -309,8 +309,8 @@ namespace AM.Web.Controllers
                             }
                             else
                             {
-                                string url = Url.Action("Login", "Account");
-                                sb.Replace("{{url}}", "http://localhost:17005" + url);
+                                string url = Request.Url.ToString().Replace(Request.RawUrl.ToString(), Url.Action("Login", "Account"));
+                                sb.Replace("{{url}}", url);
                             }
                             sb.Replace("{{email}}", user.Email);
                             await InternalEmail.SendMail(Config.Registration_ToEmail, null, Config.Registration_BCCEmail, "Registration in authomail.", sb.ToString());
@@ -434,8 +434,8 @@ namespace AM.Web.Controllers
                 }
                 else
                 {
-                    string url = Url.Action("Login", "Account");
-                    sb.Replace("{{url}}", "http://localhost:17005" + url);
+                    string url = Request.Url.ToString().Replace(Request.RawUrl.ToString(), Url.Action("Login", "Account"));
+                    sb.Replace("{{url}}", url);
                 }
                 sb.Replace("{{email}}", email);
                 await InternalEmail.SendMail(Config.Registration_ToEmail, null, Config.Registration_BCCEmail, "Registration in authomail.", sb.ToString());
