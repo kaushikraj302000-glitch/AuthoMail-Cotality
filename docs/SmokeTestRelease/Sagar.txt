@@ -196,3 +196,9 @@ For Pullback in PCI Service
 
 For AM Console App
 1) Add parameter for Trigger or Sweep as extra parameter For Alaska and AMC
+
+For AM Database Update
+1) Need to 4 new Doctypes for Express Mailing in AM.Doctypes
+2) Update cutoff timings of USPS and FedEx in AM.DocTypes
+3) add new Key in SystemSettings Core_FedExSaturdayCutOffTime, Monitor_ExpressMailingText
+4) Added new cover letter for express mailing for usaa
