@@ -63,7 +63,7 @@ namespace AM.Services
 
         public int UpdateAMBatchStatus(string mpId)
         {
-            return db.Execute("usp_UpdateAMMailBatchesStatus", new { @MailPieceUniqueId = mpId }, commandType: CommandType.StoredProcedure);
+            return db.Execute("usp_UpdateAMMailBatchesStatus", new { @MailPieceUniqueId = mpId, @shippingResponseReceievedOn = DateTime.UtcNow }, commandType: CommandType.StoredProcedure);
         }
 
         public List<MailPieces> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, string docType, DateTime startDate, DateTime endDate, int clientId)

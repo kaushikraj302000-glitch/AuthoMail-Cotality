@@ -31,7 +31,7 @@ namespace AM.Web.Controllers
         public AccountController()
         {
         }
-        
+
         public AccountController(AMUserManager userManager, AMSignInManager signInManager, ISupportService supSvc)
         {
             UserManager = userManager;
@@ -309,8 +309,8 @@ namespace AM.Web.Controllers
                             }
                             else
                             {
-                                string url = Url.Action("Login", "Account");
-                                sb.Replace("{{url}}", "http://localhost:17005" + url);
+                                string url = Request.Url.ToString().Replace(Request.RawUrl.ToString(), Url.Action("Login", "Account"));
+                                sb.Replace("{{url}}", url);
                             }
                             sb.Replace("{{email}}", user.Email);
                             await InternalEmail.SendMail(Config.Registration_ToEmail, null, Config.Registration_BCCEmail, "Registration in authomail.", sb.ToString());
@@ -434,11 +434,18 @@ namespace AM.Web.Controllers
                 }
                 else
                 {
-                    string url = Url.Action("Login", "Account");
-                    sb.Replace("{{url}}", "http://localhost:17005" + url);
+                    string url = Request.Url.ToString().Replace(Request.RawUrl.ToString(), Url.Action("Login", "Account"));
+                    sb.Replace("{{url}}", url);
                 }
                 sb.Replace("{{email}}", email);
                 await InternalEmail.SendMail(Config.Registration_ToEmail, null, Config.Registration_BCCEmail, "Registration in authomail.", sb.ToString());
+            }
+            else
+            {
+                var sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\ErrorInAM.html")));
+                sb.Replace("{{action}}", "Account/ConfirmEmail");
+                sb.Replace("{{error}}", string.Join(",", result.Errors));
+                await InternalEmail.SendMail(Config.Registration_BCCEmail, null, null, "Error in authomail.", sb.ToString());
             }
             return View(result.Succeeded ? "ConfirmEmail" : "Error");
         }
