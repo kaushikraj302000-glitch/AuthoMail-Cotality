@@ -416,13 +416,25 @@ namespace AM.Web.Controllers
         {
             if (userId == null || code == null)
             {
-                return View("Error");
+                var sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\ErrorInAM.html")));
+                sb.Replace("{{action}}", "Account/ConfirmEmail");
+                sb.Replace("{{error}}", string.Join(",", "UserId or Code not found."));
+                await InternalEmail.SendMail(Config.Registration_BCCEmail, null, null, "Error in authomail.", sb.ToString());
+                ViewBag.Success = false;
+                ViewBag.Message = "User or Code invalid";
+                return View();
+            }
+            var user = UserManager.FindById(userId);
+            if (user == null)
+            {
+                ViewBag.Success = false;
+                ViewBag.Message = "User not found.";
+                return View();
             }
             var result = await UserManager.ConfirmEmailAsync(userId, code);
-            ViewBag.ErrorMessage = result.Errors;
+            
             if (result.Succeeded)
             {
-                var email = UserManager.FindById(userId).Email;
                 var sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\RegistrationInAuthoMail.html")));
                 if (Config.Common_Environment == Env.Prod)
                 {
@@ -437,17 +449,22 @@ namespace AM.Web.Controllers
                     string url = Request.Url.ToString().Replace(Request.RawUrl.ToString(), Url.Action("Login", "Account"));
                     sb.Replace("{{url}}", url);
                 }
-                sb.Replace("{{email}}", email);
+                sb.Replace("{{email}}", user.Email);
                 await InternalEmail.SendMail(Config.Registration_ToEmail, null, Config.Registration_BCCEmail, "Registration in authomail.", sb.ToString());
+                ViewBag.Message = "Thank you for confirming your email.";
+                ViewBag.Success = true;
+                return View();
             }
             else
             {
+                ViewBag.Message = result.Errors;
                 var sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\ErrorInAM.html")));
                 sb.Replace("{{action}}", "Account/ConfirmEmail");
                 sb.Replace("{{error}}", string.Join(",", result.Errors));
                 await InternalEmail.SendMail(Config.Registration_BCCEmail, null, null, "Error in authomail.", sb.ToString());
+                ViewBag.Success = false;
+                return View();
             }
-            return View(result.Succeeded ? "ConfirmEmail" : "Error");
         }
 
         //
