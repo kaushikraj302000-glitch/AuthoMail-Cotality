@@ -443,7 +443,7 @@ namespace AM.Web.Controllers
             else
             {
                 var sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\ErrorInAM.html")));
-                sb.Replace("{{action}}", "AAccount/ConfirmEmail");
+                sb.Replace("{{action}}", "Account/ConfirmEmail");
                 sb.Replace("{{error}}", string.Join(",", result.Errors));
                 await InternalEmail.SendMail(Config.Registration_BCCEmail, null, null, "Error in authomail.", sb.ToString());
             }
