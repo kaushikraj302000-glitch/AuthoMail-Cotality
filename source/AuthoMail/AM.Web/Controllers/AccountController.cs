@@ -276,6 +276,16 @@ namespace AM.Web.Controllers
                             ModelState.AddModelError("", ldap.Value);
                             return View(model);
                         }
+                        if (model.DisplayName.IsNullOrWhiteSpace())
+                        {
+                            ModelState.AddModelError("", "Display Name is required.");
+                            return View(model);
+                        }
+                        if (model.DisplayName.Length > 254)
+                        {
+                            ModelState.AddModelError("", "Display name out of range.");
+                            return View(model);
+                        }
                         var nm = ldap.Value.Split('|');
                         var user = new ProfileUser
                         {
@@ -285,7 +295,7 @@ namespace AM.Web.Controllers
                             UserName = model.Email.Split('@').First(),
                             FirstName = nm[0],
                             LastName = nm[1],
-                            DisplayName = nm[2],
+                            DisplayName = model.DisplayName,
                             Status = AMUserStatus.Open,
                             RequestedOn = DateTime.UtcNow
                         };
@@ -431,8 +441,14 @@ namespace AM.Web.Controllers
                 ViewBag.Message = "User not found.";
                 return View();
             }
+            if (user.EmailConfirmed)
+            {
+                ViewBag.Success = false;
+                ViewBag.Message = "User's email already confirmed.";
+                return View();
+            }
             var result = await UserManager.ConfirmEmailAsync(userId, code);
-            
+
             if (result.Succeeded)
             {
                 var sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\RegistrationInAuthoMail.html")));
@@ -457,7 +473,7 @@ namespace AM.Web.Controllers
             }
             else
             {
-                ViewBag.Message = result.Errors;
+                ViewBag.Message = string.Join(",", result.Errors);
                 var sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\ErrorInAM.html")));
                 sb.Replace("{{action}}", "Account/ConfirmEmail");
                 sb.Replace("{{error}}", string.Join(",", result.Errors));
