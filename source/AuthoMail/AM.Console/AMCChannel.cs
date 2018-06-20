@@ -624,8 +624,15 @@ namespace AM.Console
                                 .Select(state => state.Trim())
                                 .ToList();
 
+                            string documentOrPackageType = mailPieceDTO.DocumentOrPackageType;
+
+                            if (mailPieceDTO.RcptAddressStreet.ToUpper().StartsWith("P.O. BOX") || mailPieceDTO.RcptAddressStreet.ToUpper().StartsWith("PO BOX") || mailPieceDTO.RcptAddressStreet.ToUpper().StartsWith("P O BOX") || mailPieceDTO.RcptAddressStreet.ToUpper().StartsWith("P. O. BOX"))
+                            {
+                                documentOrPackageType = documentOrPackageType + Config.Monitor_ExpressMailingText;
+                            }
+
                             //Document Or Package Type validation
-                            var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType);
+                            var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType);
 
                             if (docType != null)
                                 mailPieceDTO.DocTypeId = docType.Id;
