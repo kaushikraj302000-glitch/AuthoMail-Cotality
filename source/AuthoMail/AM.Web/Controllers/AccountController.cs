@@ -432,7 +432,7 @@ namespace AM.Web.Controllers
                 return View();
             }
             var result = await UserManager.ConfirmEmailAsync(userId, code);
-            
+
             if (result.Succeeded)
             {
                 var sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\RegistrationInAuthoMail.html")));
@@ -457,7 +457,7 @@ namespace AM.Web.Controllers
             }
             else
             {
-                ViewBag.Message = result.Errors;
+                ViewBag.Message = string.Join(",", result.Errors);
                 var sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\ErrorInAM.html")));
                 sb.Replace("{{action}}", "Account/ConfirmEmail");
                 sb.Replace("{{error}}", string.Join(",", result.Errors));
