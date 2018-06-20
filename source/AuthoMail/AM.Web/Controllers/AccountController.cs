@@ -434,7 +434,7 @@ namespace AM.Web.Controllers
             if (user.EmailConfirmed)
             {
                 ViewBag.Success = false;
-                ViewBag.Message = "User email already confirmed.";
+                ViewBag.Message = "User's email already confirmed.";
                 return View();
             }
             var result = await UserManager.ConfirmEmailAsync(userId, code);
