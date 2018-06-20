@@ -276,6 +276,16 @@ namespace AM.Web.Controllers
                             ModelState.AddModelError("", ldap.Value);
                             return View(model);
                         }
+                        if (model.DisplayName.IsNullOrWhiteSpace())
+                        {
+                            ModelState.AddModelError("", "Display Name is required.");
+                            return View(model);
+                        }
+                        if (model.DisplayName.Length > 254)
+                        {
+                            ModelState.AddModelError("", "Display name out of range.");
+                            return View(model);
+                        }
                         var nm = ldap.Value.Split('|');
                         var user = new ProfileUser
                         {
@@ -285,7 +295,7 @@ namespace AM.Web.Controllers
                             UserName = model.Email.Split('@').First(),
                             FirstName = nm[0],
                             LastName = nm[1],
-                            DisplayName = nm[2],
+                            DisplayName = model.DisplayName,
                             Status = AMUserStatus.Open,
                             RequestedOn = DateTime.UtcNow
                         };
