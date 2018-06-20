@@ -382,7 +382,7 @@ namespace AM.Web.Controllers
                             string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
                             StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\CreateAccount.html")));
                             sb.Replace("{{name}}", user.FirstName);
-                            sb.Replace("{{email}}", user.Email);
+                            //sb.Replace("{{email}}", user.Email);
 
                             var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
                             if (Config.Common_Environment == Env.Prod)
@@ -444,7 +444,7 @@ namespace AM.Web.Controllers
             if (user.EmailConfirmed)
             {
                 ViewBag.Success = false;
-                ViewBag.Message = "User's email already confirmed.";
+                ViewBag.Message = "Your email address is already confirmed.";
                 return View();
             }
             var result = await UserManager.ConfirmEmailAsync(userId, code);
@@ -467,7 +467,7 @@ namespace AM.Web.Controllers
                 }
                 sb.Replace("{{email}}", user.Email);
                 await InternalEmail.SendMail(Config.Registration_ToEmail, null, Config.Registration_BCCEmail, "Registration in authomail.", sb.ToString());
-                ViewBag.Message = "Thank you for confirming your email.";
+                ViewBag.Message = "Thank you for confirming your email. Your registration request is now awaiting approval. Please note that you may login only after your account is approved.";
                 ViewBag.Success = true;
                 return View();
             }
@@ -514,7 +514,7 @@ namespace AM.Web.Controllers
                 }
                 if (!(await UserManager.IsEmailConfirmedAsync(user.Id)) || user.Status.Equals(AMUserStatus.Open, StringComparison.CurrentCultureIgnoreCase))
                 {
-                    ModelState.AddModelError("", "Email not confirm or account not yet approved.");
+                    ModelState.AddModelError("", "Email is not confirmed or account is not yet approved.");
                     return View(model);
                 }
                 //if (user == null || !(await UserManager.IsEmailConfirmedAsync(user.Id)) || user.Status.Equals(AMUserStatus.Open, StringComparison.CurrentCultureIgnoreCase))
@@ -582,7 +582,7 @@ namespace AM.Web.Controllers
             {
                 // Don't reveal that the user does not exist
                 //return RedirectToAction("ResetPasswordConfirmation", "Account");
-                ModelState.AddModelError("", "Invalid email.");
+                ModelState.AddModelError("", "Couldn't find your AuthoMail Account.");
                 return View(model);
             }
             var result = await UserManager.ResetPasswordAsync(user.Id, model.Code, model.Password);

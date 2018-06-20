@@ -58,6 +58,21 @@ namespace AM.Web.Controllers
                 StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\" + template)));
                 sb.Replace("{{name}}", user.FirstName);
                 sb.Replace("{{email}}", user.Email);
+
+                string AuthoMailURL = "";
+                if (Config.Common_Environment == Env.Prod)
+                {
+                    AuthoMailURL = "https://authomail.corelogic.com";
+                }
+                else if (Config.Common_Environment == Env.Staging)
+                {
+                    AuthoMailURL = "https://authomailuat.corelogic.com";
+                }
+                else
+                {
+                    AuthoMailURL = Request.Url.ToString().Replace(Request.RawUrl.ToString(), Url.Action("Login", "Account"));
+                }
+                sb.Replace("{{AuthoMailURL}}", AuthoMailURL);
                 await UserManager.SendEmailAsync(user.Id, "AuthoMail.", sb.ToString());
 
                 return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
