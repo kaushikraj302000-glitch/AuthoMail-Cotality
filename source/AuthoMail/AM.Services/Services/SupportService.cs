@@ -86,10 +86,10 @@ namespace AM.Services
             if (FingByDomainName(domainName) != null) throw new Exception("Domain name already exists.");
             if (FingByDomainName(existingDomainName) == null) throw new Exception("Existing domain name not found.");
 
-            //var usersCountQ = "SELECT COUNT(Email) FROM [Profile].[Users] WHERE Email Like @email";
-            //int usersCount = db.Execute(usersCountQ, new { email = "%" + existingDomainName });
-            //if (usersCount > 0) throw new Exception("Domain name couldn't change because users.");
-            
+            var usersCountQ = "SELECT TOP 1 Email FROM [Profile].[Users] WHERE Email Like @domain";
+            string userEmail = db.QueryFirstOrDefault<string>(usersCountQ, new { domain = string.Format("%{0}", existingDomainName) });
+            if (userEmail != null) throw new Exception("Domain name couldn't change because users are registered with this domain.");
+
             string query = "UPDATE [Common].[ClientDomains] SET AllowedDomain=@domainName WHERE AllowedDomain=@existingDomainName";
             return db.Execute(query, new { domainName = domainName, existingDomainName = existingDomainName });
         }
