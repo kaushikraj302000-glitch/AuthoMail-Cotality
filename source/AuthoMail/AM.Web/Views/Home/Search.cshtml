@@ -243,7 +243,9 @@
                 }
                 this.ShippingStatusFormatted = status;
                 var trackingNo = "";
-                if (this.TrackingNo == null) {
+                console.log(this.TrackingNo + ":trackingNo");
+                if (this.TrackingNo == null || this.TrackingNo == "") {
+                    
                     trackingNo = "--";
                 }
                 else {
