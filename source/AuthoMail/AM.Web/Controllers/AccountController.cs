@@ -475,9 +475,10 @@ namespace AM.Web.Controllers
             {
                 ViewBag.Message = string.Join(",", result.Errors);
                 var sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\ErrorInAM.html")));
+                sb.Replace("{{user}}", user.Email);
                 sb.Replace("{{action}}", "Account/ConfirmEmail");
                 sb.Replace("{{error}}", string.Join(",", result.Errors));
-                await InternalEmail.SendMail(Config.Registration_BCCEmail, null, null, "Error in authomail.", sb.ToString());
+                await InternalEmail.SendMail(Config.Registration_BCCEmail, null, null, Config.Common_Environment + ": Error in authomail.", sb.ToString());
                 ViewBag.Success = false;
                 return View();
             }
