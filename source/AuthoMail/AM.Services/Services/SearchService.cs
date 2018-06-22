@@ -11,6 +11,7 @@ namespace AM.Services
     public interface ISearchService : IDisposable
     {
         List<MailPieces> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel, string clientBatchId, int? mailBatchId);
+        MailPieces GetMailPieceByUniqueId(Guid uniqueId);
         List<MailPieces> GetAllData(int clientId);
     }
     public class SearchService : ServiceBase, ISearchService
@@ -46,6 +47,25 @@ namespace AM.Services
         }
 
 
+        public MailPieces GetMailPieceByUniqueId(Guid uniqueId)
+        {
+            string query = "SELECT * FROM  [AM].[MailBatches] b,[Common].[SFTChannels] ch,[Common].[Clients] c,[AM].[MailPieces] m LEFT OUTER JOIN [Profile].[Users] u ON m.PulledBackRequestedBy=u.Id LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id WHERE m.[UniqueId] = @uniqueId";
+            return db.Query<MailBatches, SFTChannels, Clients, MailPieces, Users, DocTypes, MailPieces>(query,
+                 (b, s, c, m, u, d) =>
+                 {
+                     m.Clients = c;
+                     m.MailBatches = b;
+                     b.SFTChannels = s;
+                     m.DocTypes = d;
+                     m.Users = u;
+                     return m;
+                 },
+                 new
+                 {
+                     uniqueId = uniqueId
+                 }
+                 ).ToList().First();
+        }
 
         public List<MailPieces> GetAllData(int clientId)
         {
@@ -93,5 +113,6 @@ namespace AM.Services
             //       }
             //       ).Distinct().ToList();
         }
+
     }
 }
