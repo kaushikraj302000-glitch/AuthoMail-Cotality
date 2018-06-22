@@ -13,6 +13,7 @@ namespace AM.Web.Models
         public string LastName { get; set; }
         public string City { get; set; }
         public string ZIP { get; set; }
+        public string State { get; set; }
         public DateTime? ReceivedOn { get; set; }
         public DateTime? ShippedOn { get; set; }
         public string TrackingNo { get; set; }
