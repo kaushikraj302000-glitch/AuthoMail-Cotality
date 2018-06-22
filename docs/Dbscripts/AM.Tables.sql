@@ -4966,7 +4966,8 @@ ALTER PROCEDURE [dbo].[uspweb_MailPieceSearch]
 	@docType varchar(255),
 	@shippingStatus varchar(255),
 	@channel varchar(128),
-	@clientBatchId varchar(255)
+	@clientBatchId varchar(255),
+	@mailBatchId int
 AS
 BEGIN
 
@@ -4981,6 +4982,7 @@ BEGIN
 	 AND ISNULL(m.ShippingStatus, '') = ISNULL(@shippingStatus, ISNULL(m.ShippingStatus, ''))
 	 AND ISNULL(ch.Code, '') = ISNULL(@channel, ISNULL(ch.Code, ''))
 	 AND ISNULL(b.ClientBatchId, '') = ISNULL(@clientBatchId, ISNULL(b.ClientBatchId, ''))
+	 AND ISNULL(m.MailBatchId, '') = ISNULL(@mailBatchId, ISNULL(m.MailBatchId, ''))
 	 AND ISNULL(b.ReceivedOn,0) BETWEEN ISNULL(@startDate, ISNULL(b.ReceivedOn, 0)) AND ISNULL(@endDate, ISNULL(b.ReceivedOn, 0))
 END
 
