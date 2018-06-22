@@ -1,0 +1,5 @@
+-"Web_Msg_API_PB_BatchNotValidated" key added in SystemSettings table.
+-"Web_Msg_API_PB_PulledBackSuccess" key added in SystemSettings table.
+-"usp_InsertPullBackRequestsData" SP updated.
+-"usp_UpdateAMMailBatchesStatus" SP added.
+

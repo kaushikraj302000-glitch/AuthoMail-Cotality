@@ -115,6 +115,30 @@
                     </div>
 
                 </div>
+                @if (User.IsInRole(AM.Entities.AMRoles.Admin))
+                {
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="BatchId">Client Batch Id</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="ClientBatchId" placeholder="Client Batch Id" id="ClientBatchId">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="BatchName">Batch Id</label>
+                            <div class="input-group">
+                                <input class="form-control" name="BatchId" placeholder="Batch Id" id="BatchId">
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <input class="form-control" value="" type="hidden" name="ClientBatchId" id="ClientBatchId">
+                    <input class="form-control" value="" name="BatchId" type="hidden" id="BatchId">
+                }
 
                 <div class="col-md-1">
                     <div class="form-group ">
@@ -157,7 +181,7 @@
                 <th>Status</th>
                 <th>Borrower Name</th>
                 <th>City</th>
-                <th>Zip</th>
+                @*<th>Zip</th>*@
                 <th>Tracking Number</th>
                 <th>Received Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Shipped Date <span class="fontcapitalize">(Local)</span></th>
@@ -175,8 +199,8 @@
                 <td data-businessidvalue="{BusinessIdValue}"><span>{BusinessIdValue}</span></td>
                 <td><span>{ShippingStatusFormatted}</span></td>
                 <td><span>{RcptNameFormatted}</span></td>
-                <td><span>{City}</span></td>
-                <td><span>{ZIP}</span></td>
+                <td><span>{CityFormatted}</span></td>
+                @*<td><span>{ZIP}</span></td>*@
                 <td><span>{TrackingNoFormatted}</span></td>
                 <td><span>{ReceivedOnFormatted}</span></td>
                 <td><span>{ShippedOnFormatted}</span></td>
@@ -222,6 +246,7 @@
                 this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
                 this.RcptNameFormatted = this.FirstName + " " + this.LastName;
+                this.CityFormatted = this.City + " " + this.State + " " + this.ZIP;
                 var status = "";
                 this.ErrorDesc = this.ErrorDesc != null ? this.ErrorDesc.replace(/"/g, '\'') : "";
                 switch (this.Status) {
@@ -243,7 +268,9 @@
                 }
                 this.ShippingStatusFormatted = status;
                 var trackingNo = "";
-                if (this.TrackingNo == null) {
+                //console.log(this.TrackingNo + ":trackingNo");
+                if (this.TrackingNo == null || this.TrackingNo == "") {
+
                     trackingNo = "--";
                 }
                 else {
@@ -343,7 +370,9 @@
                     Status: $("#Status").val(),
                     Channel: $("#Channel").val(),
                     receivedOnStart: startDate,
-                    receivedOnEnd: endDate
+                    receivedOnEnd: endDate,
+                    clientBatchId: $("#ClientBatchId").val(),
+                    batchId: $("#BatchId").val()
 
                 }),
                 contentType: "application/json; charset=utf-8",

@@ -253,7 +253,7 @@
         function FormatObject(Model) {
             $(Model).each(function () {
                 var trackingNo = "";
-                if (this.TrackingNo == null) {
+                if (this.TrackingNo == null && this.TrackingNo =="") {
                     trackingNo = "--";
                 }
                 else {
