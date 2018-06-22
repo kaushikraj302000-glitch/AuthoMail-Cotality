@@ -78,6 +78,7 @@ namespace AM.Entities
         public DateTime RequestedOn { get; set; }
         public string Status { get; set; }
         public DateTime? ClosedOn { get; set; }
+        public string ClosedBy { get; set; }
     }
     public class IdentityRole : IRole
     {

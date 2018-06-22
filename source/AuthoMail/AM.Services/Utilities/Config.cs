@@ -131,8 +131,6 @@ namespace AM.Services
         public static string Web_Msg_Lockout { get; private set; }
         public static string Web_Msg_Error { get; private set; }
         public static string Web_Msg_Inactive_Account { get; private set; }
-        public static string  Registration_ToEmail { get; private set; }
-        public static string Registration_BCCEmail { get; private set; }
         #endregion
 
         #region WEB Common Msg
@@ -157,6 +155,12 @@ namespace AM.Services
         [Description("End cut off time for Mailpiece")]
         public static string Web_EndCutOffTime { get; private set; }
         #endregion
+
+        #region Support
+        [Description("Default emails for getting notification from registration request.")]
+        public static string Web_RegistrationDefaultEmails { get; private set; }
+
+        #endregion Support
 
         private static List<string> errors;
         static Config()
