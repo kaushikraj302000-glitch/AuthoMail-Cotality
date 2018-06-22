@@ -92,113 +92,317 @@ For HSBC
 4) Add task schedular for it
 
 
-For PNS Service For PackageTrackingNumber
-1) Add response schema table entry
-	-	INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (29, N'PackageTrackingNumber', N'ASCII_Number', 501, 40, 1, N'The value in this field identifies the tracking information of USPS shipping for some clients which dont have IMBarcode value.', N'00000000000', N'varchar(50)', NULL)
-		GO
-2) Add column in MRDFResponse table
-	-	ALTER TABLE [PnS].[MRDFResponse] ADD PackageTrackingNumber VARCHAR(50) NULL
-3) Update View 
-	- /****** Object:  View [dbo].[view_MRDFResponseData]    Script Date: 5/9/2018 1:34:14 PM ******/
-		SET ANSI_NULLS ON
-		GO
+=============================================================
+Deployment 06/21/2018 - AuthoMail and PnS Service
+=============================================================
+=================
+Database Changes
+=================
+	- For PnS
+		- For PackageTracking Deploy
+		1) INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (29, N'PackageTrackingNumber', N'ASCII_Number', 501, 40, 1, N'The value in this field identifies the tracking information of USPS shipping for some clients which dont have IMBarcode value.', N'00000000000', N'varchar(50)', NULL)
+		2) ALTER TABLE [PnS].[MRDFResponse] ADD PackageTrackingNumber VARCHAR(50) NULL
+		3) Update [view_MRDFResponseData]
+			USE [AuthoMail]
+			GO
 
-		SET QUOTED_IDENTIFIER ON
-		GO
+			/****** Object:  View [dbo].[view_MRDFResponseData]    Script Date: 6/21/2018 12:10:31 PM ******/
+			DROP VIEW [dbo].[view_MRDFResponseData]
+			GO
 
-		ALTER VIEW [dbo].[view_MRDFResponseData] AS
-		SELECT REQ.JobId
-		,REQ.PieceId
-		,ISNULL(REQ.ErrId,0) AS ErrId 
-		,REQ.ErrDesc
-		,RES.ProcessingTimeStamp AS ShippedOn 
-		,REQ.UniqueId
-		,REQ.PDFFileName
-		,REQ.MailPieceStatus
-		,ISNULL(RES.TotalSheets,0) AS TotalSheets
-		,REQ.DivertVS3
-		,RES.Disposition 
-		,ISNULL(RES.WeightMeasured,0.00) AS WeightMeasured 
-		,ISNULL(RES.PostageMetered,0.00) AS PostageCost
-		,RES.PackageTrackingNumber 
-		FROM [PnS].MRDFRequest REQ
-		LEFT JOIN [PnS].MRDFResponse RES
-		ON  REQ.JobId =RES.JobId AND REQ.PieceId =RES.PieceId
-		GO
-4) Update Below SP
-	- 	ALTER PROCEDURE [dbo].[usp_GetMRDFResponseDataByJobId]
-		@jobId int
-		AS
-		BEGIN
-		 -- SET NOCOUNT ON added to prevent extra result sets from
-		 -- interfering with SELECT statements.
-		 SET NOCOUNT ON;
-		 
-		 SELECT JobId, PieceId, Date, Feeder2_Fed, OperatorId, MachineId, ProcessingTimeStamp, DetailedErrorId
-		 , Disposition, Input_Fed, Feeder3_Fed, Feeder4_Fed, Feeder5_Fed, ComputedWeight, MeterDate
-		 , StatusSource, PostageMetered, WeightMeasured, ExitLocation, TotalSheets, PDFFileName, PackageTrackingNumber 
-		 FROM [Pns].[MRDFResponse] MS 
-		 WHERE MS.JobId=@jobId
-		END
-		
-	-	ALTER PROCEDURE [dbo].[usp_GetFinalMRDFResponseDataByJobId]
-		@jobId int
-		AS
-		BEGIN
-		 -- SET NOCOUNT ON added to prevent extra result sets from
-		 -- interfering with SELECT statements.
-		 SET NOCOUNT ON;
-		 
-		 SELECT JobId, PostageCost, ErrId, ShippedOn, WeightMeasured, Disposition
-		 , PieceId, UniqueId, PDFFileName, ErrDesc, MailPieceStatus,TotalSheets,DivertVS3, PackageTrackingNumber 
-		 FROM view_MRDFResponseData V WHERE V.JobId=@jobId
-		END
-5) Update PCI.Lib.dll in all project
+			/****** Object:  View [dbo].[view_MRDFResponseData]    Script Date: 6/21/2018 12:10:31 PM ******/
+			SET ANSI_NULLS ON
+			GO
 
-For PNS Service Return PDFs
+			SET QUOTED_IDENTIFIER ON
+			GO
 
-1) Added two columns in BatchSummary and MRDFRequest
-	- 	ALTER TABLE PnS.BatchSummary
-		ADD [IsPDFsReceived]  AS (case when [PDFsReceivedOn] IS NULL then (0) else (1) end),[PDFsReceivedOn] [datetime] NULL
 
-		ALTER TABLE PnS.MRDFRequest
-		ADD [IsPDFReceived] [bit] NULL
-		ALTER TABLE [PnS].[MRDFRequest] ADD  CONSTRAINT [DF_MRDFRequest_IsPDFReceived]  DEFAULT ((0)) FOR [IsPDFReceived]
-		GO
-		
-2) Added new SP usp_GetMRDFReceivedBatches
-3) Updated sp [usp_GetMRDFRequestDataByJobId]
-4) Need to add two key in App.Config of PnS Service 
-	-PCI_SFT_ReturnPDFDir, PCIRootReturnPDFsZipFolder
-5)
+			CREATE VIEW [dbo].[view_MRDFResponseData] AS
+			SELECT REQ.JobId
+			,REQ.PieceId
+			,ISNULL(REQ.ErrId,0) AS ErrId 
+			,REQ.ErrDesc
+			,RES.ProcessingTimeStamp AS ShippedOn 
+			,REQ.UniqueId
+			,REQ.PDFFileName
+			,REQ.MailPieceStatus
+			,ISNULL(RES.TotalSheets,0) AS TotalSheets
+			,REQ.DivertVS3
+			,RES.Disposition 
+			,ISNULL(RES.WeightMeasured,0.00) AS WeightMeasured 
+			,ISNULL(RES.PostageMetered,0.00) AS PostageCost 
+			,RES.PackageTrackingNumber 
+			FROM [PnS].MRDFRequest REQ
+			LEFT JOIN [PnS].MRDFResponse RES
+			ON  REQ.JobId =RES.JobId AND REQ.PieceId =RES.PieceId
+
+			GO
+		4) Update [usp_GetMRDFResponseDataByJobId]
+			USE [AuthoMail]
+			GO
+			/****** Object:  StoredProcedure [dbo].[usp_GetMRDFResponseDataByJobId]    Script Date: 6/21/2018 12:12:14 PM ******/
+			SET ANSI_NULLS ON
+			GO
+			SET QUOTED_IDENTIFIER ON
+			GO
+
+			ALTER PROCEDURE [dbo].[usp_GetMRDFResponseDataByJobId]
+			@jobId int
+			AS
+			BEGIN
+			 -- SET NOCOUNT ON added to prevent extra result sets from
+			 -- interfering with SELECT statements.
+			 SET NOCOUNT ON;
+			 
+			 SELECT JobId, PieceId, Date, Feeder2_Fed, OperatorId, MachineId, ProcessingTimeStamp, DetailedErrorId
+			 , Disposition, Input_Fed, Feeder3_Fed, Feeder4_Fed, Feeder5_Fed, ComputedWeight, MeterDate
+			 , StatusSource, PostageMetered, WeightMeasured, ExitLocation, TotalSheets, PDFFileName, PackageTrackingNumber 
+			 FROM [Pns].[MRDFResponse] MS 
+			 WHERE MS.JobId=@jobId
+			END
+		5) Update [usp_GetFinalMRDFResponseDataByJobId]
+			USE [AuthoMail]
+			GO
+			/****** Object:  StoredProcedure [dbo].[usp_GetFinalMRDFResponseDataByJobId]    Script Date: 6/21/2018 12:14:11 PM ******/
+			SET ANSI_NULLS ON
+			GO
+			SET QUOTED_IDENTIFIER ON
+			GO
+
+			ALTER PROCEDURE [dbo].[usp_GetFinalMRDFResponseDataByJobId]
+			@jobId int
+			AS
+			BEGIN
+			 -- SET NOCOUNT ON added to prevent extra result sets from
+			 -- interfering with SELECT statements.
+			 SET NOCOUNT ON;
+			 
+			 SELECT JobId, PostageCost, ErrId, ShippedOn, WeightMeasured, Disposition
+			 , PieceId, UniqueId, PDFFileName, ErrDesc, MailPieceStatus,TotalSheets,DivertVS3, PackageTrackingNumber 
+			 FROM view_MRDFResponseData V WHERE V.JobId=@jobId
+			END
+		- For Return PDFs 
+		1) Added two columns in BatchSummary and MRDFRequest
+			ALTER TABLE PnS.BatchSummary
+			ADD [IsPDFsReceived]  AS (case when [PDFsReceivedOn] IS NULL then (0) else (1) end),[PDFsReceivedOn] [datetime] NULL
+
+			ALTER TABLE PnS.MRDFRequest
+			ADD [IsPDFReceived] [bit] NULL
+			ALTER TABLE [PnS].[MRDFRequest] ADD  CONSTRAINT [DF_MRDFRequest_IsPDFReceived]  DEFAULT ((0)) FOR [IsPDFReceived]
+			GO
+		2) Added new SP [usp_GetMRDFReceivedBatches]
+			USE [AuthoMail]
+			GO
+
+			/****** Object:  StoredProcedure [dbo].[usp_GetMRDFReceivedBatches]    Script Date: 6/21/2018 12:16:05 PM ******/
+			SET ANSI_NULLS ON
+			GO
+
+			SET QUOTED_IDENTIFIER ON
+			GO
+
+
+
+			CREATE PROCEDURE [dbo].[usp_GetMRDFReceivedBatches]
+			AS
+			BEGIN
+
+			SELECT B.PrintBatch,DT.DocTypeCode,C.AppCode,BU.CustCode,CONVERT(VARCHAR(10),B.PrintBatch) as BatchCode 
+			FROM [PnS].BatchSummary B
+			INNER JOIN [AM].DocTypes DT ON DT.Id=B.DocTypeId 
+			INNER JOIN [Common].Clients C ON C.Id=B.ClientId
+			INNER JOIN [Common].BusinessUnit BU ON BU.Id=C.BusinessUnit
+			WHERE B.IsMRDFReceived=1 AND B.IsPDFsReceived=0
+			END
+
+			GO
+		3) Updated sp [usp_GetMRDFRequestDataByJobId]
+			USE [AuthoMail]
+			GO
+			/****** Object:  StoredProcedure [dbo].[usp_GetMRDFRequestDataByJobId]    Script Date: 6/21/2018 12:17:15 PM ******/
+			SET ANSI_NULLS ON
+			GO
+			SET QUOTED_IDENTIFIER ON
+			GO
+
+			ALTER PROCEDURE [dbo].[usp_GetMRDFRequestDataByJobId]
+			@jobId int,
+			@mailPieceStatus varchar(255)
+			AS
+			BEGIN
+				-- SET NOCOUNT ON added to prevent extra result sets from
+				-- interfering with SELECT statements.
+				SET NOCOUNT ON;
+				If(@mailPieceStatus='ALL')
+				BEGIN
+					SELECT JobId, PieceId, [Date], TotalSheets, InputWeight, Feeder3_Sel, Feeder4_Sel
+					, Feeder5_Sel, LowCap_Sel, NoSeal_Sel, Feeder2_Sel, ZipMark_Sel, Address1, Address2
+					, Zip5, Zip4, Zip2, DivertVS2, DivertVS3
+					, DivertVS4, ReturnLogoBitMap, ReturnLine1, ReturnLine2, ReturnLine3, ReturnLine4
+					, ReturnLine5, ReturnLine6, GroupNumber, SocialSecNumber, CheckAmount, PassThru
+					, Expansion, EndofRecord, UniqueId, PDFFileName,ErrId, ErrDesc, MailPieceStatus, IsPDFReceived 
+					FROM [PnS].[MRDFRequest] WHERE JobId = @jobId
+				END
+				ELSE If(@mailPieceStatus='INTERNAL')--This will be used for getting only submitted records to PCI
+				BEGIN
+					SELECT JobId, PieceId, [Date], TotalSheets, InputWeight, Feeder3_Sel, Feeder4_Sel
+					, Feeder5_Sel, LowCap_Sel, NoSeal_Sel, Feeder2_Sel, ZipMark_Sel, Address1, Address2
+					, Zip5, Zip4, Zip2, DivertVS2, DivertVS3
+					, DivertVS4, ReturnLogoBitMap, ReturnLine1, ReturnLine2, ReturnLine3, ReturnLine4
+					, ReturnLine5, ReturnLine6, GroupNumber, SocialSecNumber, CheckAmount, PassThru
+					, Expansion, EndofRecord, UniqueId, PDFFileName,ErrId, ErrDesc, MailPieceStatus, IsPDFReceived 
+					FROM [PnS].[MRDFRequest] WHERE JobId = @jobId AND ErrId NOT IN (-1,-2,-3)
+				END
+				ELSE
+				BEGIN
+					SELECT JobId, PieceId, [Date], TotalSheets, InputWeight, Feeder3_Sel, Feeder4_Sel
+					, Feeder5_Sel, LowCap_Sel, NoSeal_Sel, Feeder2_Sel, ZipMark_Sel, Address1, Address2
+					, Zip5, Zip4, Zip2, DivertVS2, DivertVS3
+					, DivertVS4, ReturnLogoBitMap, ReturnLine1, ReturnLine2, ReturnLine3, ReturnLine4
+					, ReturnLine5, ReturnLine6, GroupNumber, SocialSecNumber, CheckAmount, PassThru
+					, Expansion, EndofRecord, UniqueId, PDFFileName,ErrId, ErrDesc, MailPieceStatus, IsPDFReceived 
+					FROM [PnS].[MRDFRequest] WHERE JobId = @jobId AND ISNULL(MailPieceStatus,'')=@mailPieceStatus
+				END
+			END
+		- For Pullback in PCI Service
+		1) Added new SP [usp_GetPullBackRequestDataByJobId]
+			USE [AuthoMail]
+			GO
+
+			/****** Object:  StoredProcedure [dbo].[usp_GetPullBackRequestDataByJobId]    Script Date: 6/21/2018 12:18:49 PM ******/
+			SET ANSI_NULLS ON
+			GO
+
+			SET QUOTED_IDENTIFIER ON
+			GO
+
+
+
+			CREATE PROCEDURE [dbo].[usp_GetPullBackRequestDataByJobId]
+			@jobId int
+			AS
+			BEGIN
+				-- SET NOCOUNT ON added to prevent extra result sets from
+				-- interfering with SELECT statements.
+				SET NOCOUNT ON;
+				
+				BEGIN TRAN
+				--Pulled back logic
+				UPDATE [PnS].[LogBatchTimeLine]
+				SET
+				[PCIBatchPrepEnd]=CAST('1753-1-1' AS DATETIME)
+				WHERE BatchId=@jobId
+
+				DECLARE @PnSBatchUniqueId UNIQUEIDENTIFIER,@AMPrintBatchId INT
+
+				SET @PnSBatchUniqueId=(SELECT TOP 1 BatchIdentifier FROM PnS.BatchSummary WHERE PrintBatch=@jobId)
+
+				SET @AMPrintBatchId=(SELECT TOP 1 Id FROM AM.PrintBatches WHERE UniqueID=@PnSBatchUniqueId)
+
+				SELECT * FROM [AM].[PullBackRequests] 
+				WHERE MailPieceUniqueId IN (SELECT UniqueId FROM AM.MailPieces WHERE PrintBatchId=@AMPrintBatchId)
+
+				COMMIT TRAN
+
+			END
+		2)  updated SP [usp_GetFinalMRDFResponseDataByJobId]
+			USE [AuthoMail]
+			GO
+			/****** Object:  StoredProcedure [dbo].[usp_GetFinalMRDFResponseDataByJobId]    Script Date: 6/21/2018 12:14:11 PM ******/
+			SET ANSI_NULLS ON
+			GO
+			SET QUOTED_IDENTIFIER ON
+			GO
+
+			ALTER PROCEDURE [dbo].[usp_GetFinalMRDFResponseDataByJobId]
+			@jobId int
+			AS
+			BEGIN
+			 -- SET NOCOUNT ON added to prevent extra result sets from
+			 -- interfering with SELECT statements.
+			 SET NOCOUNT ON;
+			 
+			 SELECT JobId, PostageCost, ErrId, ShippedOn, WeightMeasured, Disposition
+			 , PieceId, UniqueId, PDFFileName, ErrDesc, MailPieceStatus,TotalSheets,DivertVS3, PackageTrackingNumber 
+			 FROM view_MRDFResponseData V WHERE V.JobId=@jobId AND ErrId <> -4
+			END
+	 - For AM
+		- Updated production URL of FedEx in SystemSettings
+			UPDATE Common.SystemSettings
+			SET
+			Value='https://ws.fedex.com:443/web-services'
+			WHERE Id='Core_FedExProdService'
+		- Add production account details of USAA FedEx
+			INSERT [AM].[ShippingAccounts] (AccountCode, [WebAuthenticationKey], [WebAuthenticationPassword], [AccountNumber], [MeterNumber]) VALUES (N'USAA_PROD', N'ML5BqFyJd0iZXoh5', N'797JRMsb5fOMkORxknR6nydUS', N'289444378', N'112833957')
+		- Added new DocTypes
+			SET IDENTITY_INSERT [AM].[DocTypes] ON
+			GO
+			INSERT [AM].[DocTypes] ([Id], [DocTypeCode], [Description], [ClientId], [PrintSize], [ContentScalePercent], [PrintFormat], [QCPercent], [SLADays], [SLACutOffTime], [ShippingCarrier], [ShippingServiceType], [ShippingAccountCode], [IsReturnInfoSpecified], [RetRcptPrefix], [RetRcptFirstName], [RetRcptMiddleName], [RetRcptLastName], [RetRcptSuffix], [RetRcptPhone], [RetRcptOrganization], [RetRcptAddrOptionalLine1AboveStreet], [RetRcptAddrOptionalLine2AboveStreet], [RetRcptAddressStreet], [RetRcptAddressAptOrSuiteOrOther], [RetRcptAddrOptionalLine1BelowStreet], [RetRcptAddrOptionalLine2BelowStreet], [RetRcptAddressCity], [RetRcptAddressState], [RetRcptAddressZIP], [ClientEmails], [ClientContactNo], [SupportEmails], [SupportContactNo], [IsActive], [ModifiedOn], [CreatedOn], [ModifiedBy], [CreatedBy]) VALUES (86, N'Generic_U', N'Generic_U', 109, N'MixMedia', 100, N'Simplex', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, CAST(N'2018-02-28 13:04:06.873' AS DateTime), CAST(N'2018-02-27 13:04:06.873' AS DateTime), (select Id FROM [Profile].[Users] where UserName='system@milestonetechnoconsulting.com'), (select Id FROM [Profile].[Users] where UserName='system@milestonetechnoconsulting.com'))
+			GO
+			INSERT [AM].[DocTypes] ([Id], [DocTypeCode], [Description], [ClientId], [PrintSize], [ContentScalePercent], [PrintFormat], [QCPercent], [SLADays], [SLACutOffTime], [ShippingCarrier], [ShippingServiceType], [ShippingAccountCode], [IsReturnInfoSpecified], [RetRcptPrefix], [RetRcptFirstName], [RetRcptMiddleName], [RetRcptLastName], [RetRcptSuffix], [RetRcptPhone], [RetRcptOrganization], [RetRcptAddrOptionalLine1AboveStreet], [RetRcptAddrOptionalLine2AboveStreet], [RetRcptAddressStreet], [RetRcptAddressAptOrSuiteOrOther], [RetRcptAddrOptionalLine1BelowStreet], [RetRcptAddrOptionalLine2BelowStreet], [RetRcptAddressCity], [RetRcptAddressState], [RetRcptAddressZIP], [ClientEmails], [ClientContactNo], [SupportEmails], [SupportContactNo], [IsActive], [ModifiedOn], [CreatedOn], [ModifiedBy], [CreatedBy]) VALUES (87, N'AppraisalReportWaiver_E', N'Appraisal Report Waiver-ExpressMailing', 101, N'LETTER-IP', 100, N'Simplex', 0, 0, CAST(N'20:00:00' AS Time), N'USPS', N'USPS_EXPRESSMAIL', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, CAST(N'2018-02-28 13:09:29.223' AS DateTime), CAST(N'2018-02-27 13:09:29.223' AS DateTime), (select Id FROM [Profile].[Users] where UserName='system@milestonetechnoconsulting.com'), (select Id FROM [Profile].[Users] where UserName='system@milestonetechnoconsulting.com'))
+			GO
+			INSERT [AM].[DocTypes] ([Id], [DocTypeCode], [Description], [ClientId], [PrintSize], [ContentScalePercent], [PrintFormat], [QCPercent], [SLADays], [SLACutOffTime], [ShippingCarrier], [ShippingServiceType], [ShippingAccountCode], [IsReturnInfoSpecified], [RetRcptPrefix], [RetRcptFirstName], [RetRcptMiddleName], [RetRcptLastName], [RetRcptSuffix], [RetRcptPhone], [RetRcptOrganization], [RetRcptAddrOptionalLine1AboveStreet], [RetRcptAddrOptionalLine2AboveStreet], [RetRcptAddressStreet], [RetRcptAddressAptOrSuiteOrOther], [RetRcptAddrOptionalLine1BelowStreet], [RetRcptAddrOptionalLine2BelowStreet], [RetRcptAddressCity], [RetRcptAddressState], [RetRcptAddressZIP], [ClientEmails], [ClientContactNo], [SupportEmails], [SupportContactNo], [IsActive], [ModifiedOn], [CreatedOn], [ModifiedBy], [CreatedBy]) VALUES (88, N'StandAloneClosingDisclosure_E', N'Stand Alone - Closing Disclosure-ExpressMailing', 101, N'LETTER-IP', 100, N'Simplex', 0, 0, CAST(N'20:00:00' AS Time), N'USPS', N'USPS_EXPRESSMAIL', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, CAST(N'2018-02-28 13:09:29.223' AS DateTime), CAST(N'2018-02-27 13:09:29.223' AS DateTime), (select Id FROM [Profile].[Users] where UserName='system@milestonetechnoconsulting.com'), (select Id FROM [Profile].[Users] where UserName='system@milestonetechnoconsulting.com'))
+			GO
+			INSERT [AM].[DocTypes] ([Id], [DocTypeCode], [Description], [ClientId], [PrintSize], [ContentScalePercent], [PrintFormat], [QCPercent], [SLADays], [SLACutOffTime], [ShippingCarrier], [ShippingServiceType], [ShippingAccountCode], [IsReturnInfoSpecified], [RetRcptPrefix], [RetRcptFirstName], [RetRcptMiddleName], [RetRcptLastName], [RetRcptSuffix], [RetRcptPhone], [RetRcptOrganization], [RetRcptAddrOptionalLine1AboveStreet], [RetRcptAddrOptionalLine2AboveStreet], [RetRcptAddressStreet], [RetRcptAddressAptOrSuiteOrOther], [RetRcptAddrOptionalLine1BelowStreet], [RetRcptAddrOptionalLine2BelowStreet], [RetRcptAddressCity], [RetRcptAddressState], [RetRcptAddressZIP], [ClientEmails], [ClientContactNo], [SupportEmails], [SupportContactNo], [IsActive], [ModifiedOn], [CreatedOn], [ModifiedBy], [CreatedBy]) VALUES (89, N'StandAloneLoanEstimate_E', N'Stand Alone - Loan Estimate-ExpressMailing', 101, N'LETTER-IP', 100, N'Simplex', 0, 0, CAST(N'20:00:00' AS Time), N'USPS', N'USPS_EXPRESSMAIL', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, CAST(N'2018-02-28 13:09:29.223' AS DateTime), CAST(N'2018-02-27 13:09:29.223' AS DateTime), (select Id FROM [Profile].[Users] where UserName='system@milestonetechnoconsulting.com'), (select Id FROM [Profile].[Users] where UserName='system@milestonetechnoconsulting.com'))
+			GO
+			INSERT [AM].[DocTypes] ([Id], [DocTypeCode], [Description], [ClientId], [PrintSize], [ContentScalePercent], [PrintFormat], [QCPercent], [SLADays], [SLACutOffTime], [ShippingCarrier], [ShippingServiceType], [ShippingAccountCode], [IsReturnInfoSpecified], [RetRcptPrefix], [RetRcptFirstName], [RetRcptMiddleName], [RetRcptLastName], [RetRcptSuffix], [RetRcptPhone], [RetRcptOrganization], [RetRcptAddrOptionalLine1AboveStreet], [RetRcptAddrOptionalLine2AboveStreet], [RetRcptAddressStreet], [RetRcptAddressAptOrSuiteOrOther], [RetRcptAddrOptionalLine1BelowStreet], [RetRcptAddrOptionalLine2BelowStreet], [RetRcptAddressCity], [RetRcptAddressState], [RetRcptAddressZIP], [ClientEmails], [ClientContactNo], [SupportEmails], [SupportContactNo], [IsActive], [ModifiedOn], [CreatedOn], [ModifiedBy], [CreatedBy]) VALUES (90, N'InitialDisclosures_E', N'Initial Disclosures-ExpressMailing', 101, N'LETTER-IP', 100, N'Simplex', 0, 0, CAST(N'20:00:00' AS Time), N'USPS', N'USPS_EXPRESSMAIL', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, CAST(N'2018-02-28 13:09:29.223' AS DateTime), CAST(N'2018-02-27 13:09:29.223' AS DateTime), (select Id FROM [Profile].[Users] where UserName='system@milestonetechnoconsulting.com'), (select Id FROM [Profile].[Users] where UserName='system@milestonetechnoconsulting.com'))
+			GO
+			SET IDENTITY_INSERT [AM].[DocTypes] OFF
+			GO
+		- Update SLACutOffTime
+			UPDATE AM.DocTypes
+			SET
+			SLACutOffTime='20:00:00.0000000'
+			WHERE SLACutOffTime IS NOT NULL AND ShippingCarrier='USPS'
+
+			UPDATE AM.DocTypes
+			SET
+			SLACutOffTime='19:00:00.0000000',
+			ShippingAccountCode='CL_STAGING'
+			WHERE SLACutOffTime IS NOT NULL AND ShippingCarrier='FedEx'
+		- Added new SystemSettings
+			INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Core_FedExSaturdayCutOffTime', N'TimeSpan', N'13:00:00', NULL, 0, N'12:00:00', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+			INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Monitor_ExpressMailingText', N'String', N'-ExpressMailing', NULL, 0, N'-ExpressMailing', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+		- Added new DocTypeCoverLetters mapping
+			INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(87,1,'USAA_USPSExpressMailing_Generic_1.pdf')
+			GO
+			INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(88,1,'USAA_USPSExpressMailing_Generic_1.pdf')
+			GO
+			INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(89,1,'USAA_USPSExpressMailing_Generic_1.pdf')
+			GO
+			INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])VALUES(90,1,'USAA_USPSExpressMailing_Generic_1.pdf')
+			GO
+=========================
+Application Deployment
+=========================
+	- For PnS Service
+		- Update PCI.Dll
+		- Update Exe
+		- Create Folder for Return PDFs in FagosFTP shared path - PCIReturnedPDFs
+		- Create folder for Return PDFs in PCIRoot folder - ReturnPDFs
+		- Add Two keys in App.Config
+			1) PCI_SFT_ReturnPDFDir - <add key="PCI_SFT_ReturnPDFDir" value="\\MTC-sagarg\c$\MSTC\PCI\ReturnPDFs" />
+			2) PCIRootReturnPDFsZipFolder - <add key="PCIRootReturnPDFsZipFolder" value="PCIRoot\ReturnPDFs" />
+			3) Remove_PDF_Of_PCI_SFT - <add key="Remove_PDF_Of_PCI_SFT" value="1" />
 	
-		
-
-For AuthoMail Db	
-
-1) Added new SP usp_RevertAMPipelineStatus
-
-
-For Deployment in AuthoMail in Service By Sagar
-
--Ask Brijesh to remove old USAA data from Production database of AuthoMail
-
-1) Console App
-	- exe,AM dlls
-	- log4net config file
-2) Core App
-	- exe,AM dlls, PCI.Lib.dll
-	
-For Pullback in PCI Service
-
-1) Added new SP [usp_GetPullBackRequestDataByJobId]
-2) updated SP [usp_GetFinalMRDFResponseDataByJobId]
-
-For AM Console App
-1) Add parameter for Trigger or Sweep as extra parameter For Alaska and AMC
-
-For AM Database Update
-1) Need to 4 new Doctypes for Express Mailing in AM.Doctypes
-2) Update cutoff timings of USPS and FedEx in AM.DocTypes
-3) add new Key in SystemSettings Core_FedExSaturdayCutOffTime, Monitor_ExpressMailingText
-4) Added new cover letter for express mailing for usaa
+	- For AM 
+		- Disable Task Schedular for Sunday in Console
+		- Updated log4net.Config file in Console app
+		- Update All AM dll and Console.Exe
+		- Update All AM dll and Core.Exe
+		- Update All AM dll and Reporting.Exe
+		- Add System.Net Config in Core App.Config
+			<system.net>
+			<mailSettings>
+			  <smtp deliveryMethod="Network" from="donotreply@corelogic.com">
+				<network host="smtp.corelogic.com" defaultCredentials="true" />
+			  </smtp>
+			</mailSettings>
+		  </system.net>
+		- Add Trigger/Sweep parameter in Task Schedular of USAA and Alaska
+		- Add ExpressMailing Cover letter in Core/CoverTemplate/USAA folder
+====================================================================================================================================================
+UAT Final Status : PnS Service Deployed with Database Changes, AM Deployed with Databas Changes at 6.30 PM IST
+PROD Final Status : PnS Service Deployed with Database Changes, AM Deployed with Databas Changes at 10.30 PM IST
+====================================================================================================================================================
