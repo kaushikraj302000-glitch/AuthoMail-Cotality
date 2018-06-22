@@ -144,7 +144,8 @@ namespace AM.Core
 
                                 mailPieceData.Add("MailPieceId", mailPiece.Id.ToString());
                                 mailPieceData.Add("Date", Common.Now.UtcToEst().ToString("MMMM dd, yyyy"));//USAA Specific
-                                mailPieceData.Add("Free3OF9Barcode", mailPiece.Id.ToString());//Barcode for non-IMBarcode cover letter
+                                mailPieceData.Add("Free3OF9Barcode", "*" + mailPiece.Id.ToString() + "*");//Barcode for non-IMBarcode cover letter
+                                mailPieceData.Add("UniqueId", "*" + mailPiece.Id.ToString() + "*");//Humanreadable code which is used for barcode
                                 mailPieceData.Add("MailPieceZip", mailPiece.RcptAddressZIP);
                                 mailPieceData.Add("LoanNbr", mailPiece.BusinessFriendlyIdValue);
 
