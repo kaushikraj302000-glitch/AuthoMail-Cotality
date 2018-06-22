@@ -626,16 +626,23 @@ namespace AM.Console
 
                             string documentOrPackageType = mailPieceDTO.DocumentOrPackageType;
 
-                            if (mailPieceDTO.RcptAddressStreet.ToUpper().StartsWith("P.O. BOX") || mailPieceDTO.RcptAddressStreet.ToUpper().StartsWith("PO BOX") || mailPieceDTO.RcptAddressStreet.ToUpper().StartsWith("P O BOX") || mailPieceDTO.RcptAddressStreet.ToUpper().StartsWith("P. O. BOX"))
-                            {
-                                documentOrPackageType = documentOrPackageType + Config.Monitor_ExpressMailingText;
-                            }
-
                             //Document Or Package Type validation
                             var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType);
 
                             if (docType != null)
+                            {
+                                if (docType.ShippingCarrier == Carrier.FedEx.ToString())
+                                {
+                                    if (mailPieceDTO.RcptAddressStreet.ToUpper().StartsWith("P.O. BOX") || mailPieceDTO.RcptAddressStreet.ToUpper().StartsWith("PO BOX") || mailPieceDTO.RcptAddressStreet.ToUpper().StartsWith("P O BOX") || mailPieceDTO.RcptAddressStreet.ToUpper().StartsWith("P. O. BOX"))
+                                    {
+                                        documentOrPackageType = documentOrPackageType + Config.Monitor_ExpressMailingText;
+
+                                        docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType);
+                                    }
+                                }
                                 mailPieceDTO.DocTypeId = docType.Id;
+                            }
+
 
                             if (docType == null)
                             {
