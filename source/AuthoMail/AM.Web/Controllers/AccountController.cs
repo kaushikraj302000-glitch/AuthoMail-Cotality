@@ -138,6 +138,7 @@ namespace AM.Web.Controllers
                         {
                             AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
                             ModelState.AddModelError("", Config.Web_Msg_Login_EmailConfirm);
+                            ViewBag.confirmationlink = user.Email;
                             return View(model);
                         }
                         if ((user.Status.Equals(AMUserStatus.Open, StringComparison.CurrentCultureIgnoreCase) || user.Status.Equals(AMUserStatus.Rejected, StringComparison.CurrentCultureIgnoreCase)) || !user.ClientId.HasValue)
@@ -419,7 +420,40 @@ namespace AM.Web.Controllers
             // If we got this far, something failed, redisplay form
             return View(model);
         }
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<JsonResult> ResendConfirmation(string email)
+        {
+            try
+            {
+                var user = UserManager.FindByEmail(email);
+                string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
+                StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\CreateAccount.html")));
+                sb.Replace("{{name}}", user.FirstName);
 
+                var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
+                if (Config.Common_Environment == Env.Prod)
+                {
+                    var u = new Uri(callbackUrl);
+                    string str = string.Format("{0}://{1}", u.Scheme, u.Host);
+                    callbackUrl = callbackUrl.Replace(str, "https://authomail.corelogic.com");
+                }
+                else if (Config.Common_Environment == Env.Staging)
+                {
+                    var u = new Uri(callbackUrl);
+                    string str = string.Format("{0}://{1}", u.Scheme, u.Host);
+                    callbackUrl = callbackUrl.Replace(str, "https://authomailuat.corelogic.com");
+                }
+
+                sb.Replace("{{action_url}}", callbackUrl);
+                await UserManager.SendEmailAsync(user.Id, "Confirm your account", sb.ToString());
+                return Json(true, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception)
+            {
+                return Json(false, JsonRequestBehavior.AllowGet);
+            }
+        }
         //
         // GET: /Account/ConfirmEmail
         [AllowAnonymous]
