@@ -1,7 +1,7 @@
 Due Date Logic
 
 Holiday Table Defination
-Id, Date,Reason
+Id, Date,Description
 
 
 Algorithm - 
@@ -9,7 +9,7 @@ Algorithm -
 	-First take cut off time as per doc type and for FedEx on Saturday cut off time will be 12PM EST
 	-take batch receivedon UTC datetime and convert to EST
 	-Generate batch cut off time  (estReceivedOnDate + estSLACutOffTime)
-	- If(batchReceivedonEST > batchCutOffTime) Then DocType SLADays+1 else DueDate
+	- If(batchReceivedonEST > batchCutOffTime) Then DocType DueDate=SLADays+1 else DueDate=Same Day
 	- After getting possible DueDate check for below conditions
 		bool isHoliday=true;
 		while (isHoliday)
