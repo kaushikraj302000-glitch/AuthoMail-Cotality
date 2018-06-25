@@ -26,17 +26,17 @@ namespace AM.Web.Controllers
     {
         private AMSignInManager _signInManager;
         private AMUserManager _userManager;
-        private ISupportService supSvc;
+        private ISupportService supportSvc;
 
         public AccountController()
         {
         }
 
-        public AccountController(AMUserManager userManager, AMSignInManager signInManager, ISupportService supSvc)
+        public AccountController(AMUserManager userManager, AMSignInManager signInManager, ISupportService supportSvc)
         {
             UserManager = userManager;
             SignInManager = signInManager;
-            this.supSvc = supSvc;
+            this.supportSvc = supportSvc;
         }
 
 
@@ -225,7 +225,7 @@ namespace AM.Web.Controllers
             EmailValidate emailValidate = new EmailValidate(email);
             if (emailValidate.IsValid)
             {
-                var clientDomain = supSvc.FingByDomainName(emailValidate.Host);
+                var clientDomain = supportSvc.FingByDomainName(emailValidate.Host);
                 if (clientDomain == null)
                 {
                     emailValidate.Message = string.Format("Users of the specified domain name '{0}' are not allowed to register.", emailValidate.Host);
@@ -323,7 +323,8 @@ namespace AM.Web.Controllers
                                 sb.Replace("{{url}}", url);
                             }
                             sb.Replace("{{email}}", user.Email);
-                            await InternalEmail.SendMail(Config.Registration_ToEmail, null, Config.Registration_BCCEmail, "Registration in authomail.", sb.ToString());
+                            string emails = supportSvc.GetEmailsFromClientDomain(user.Email);
+                            await InternalEmail.SendMail(emails, null, null, "Registration in authomail.", sb.ToString());
                             return View("SuccessRegistration");
                         }
                         AddErrors(result);
@@ -369,7 +370,7 @@ namespace AM.Web.Controllers
                             return View(model);
                         }
                         MailAddress mAdd = new MailAddress(model.Email);
-                        var clientdomain = supSvc.FingByDomainName(mAdd.Host);
+                        var clientdomain = supportSvc.FingByDomainName(mAdd.Host);
                         if (clientdomain == null)
                         {
                             ModelState.AddModelError("", string.Format("Users of the specified domain name '{0}' are not allowed to register.", mAdd.Host));
@@ -429,7 +430,7 @@ namespace AM.Web.Controllers
                 var sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\ErrorInAM.html")));
                 sb.Replace("{{action}}", "Account/ConfirmEmail");
                 sb.Replace("{{error}}", string.Join(",", "UserId or Code not found."));
-                await InternalEmail.SendMail(Config.Registration_BCCEmail, null, null, "Error in authomail.", sb.ToString());
+                await InternalEmail.SendMail(Config.Web_RegistrationDefaultEmails, null, null, "Error in authomail.", sb.ToString());
                 ViewBag.Success = false;
                 ViewBag.Message = "User or Code invalid";
                 return View();
@@ -466,7 +467,8 @@ namespace AM.Web.Controllers
                     sb.Replace("{{url}}", url);
                 }
                 sb.Replace("{{email}}", user.Email);
-                await InternalEmail.SendMail(Config.Registration_ToEmail, null, Config.Registration_BCCEmail, "Registration in authomail.", sb.ToString());
+                string emails = supportSvc.GetEmailsFromClientDomain(user.Email);
+                await InternalEmail.SendMail(emails, null, null, "Registration in authomail.", sb.ToString());
                 ViewBag.Message = "Thank you for confirming your email. Your registration request is now awaiting approval. Please note that you may login only after your account is approved.";
                 ViewBag.Success = true;
                 return View();
@@ -478,7 +480,7 @@ namespace AM.Web.Controllers
                 sb.Replace("{{user}}", user.Email);
                 sb.Replace("{{action}}", "Account/ConfirmEmail");
                 sb.Replace("{{error}}", string.Join(",", result.Errors));
-                await InternalEmail.SendMail(Config.Registration_BCCEmail, null, null, Config.Common_Environment + ": Error in authomail.", sb.ToString());
+                await InternalEmail.SendMail(Config.Web_RegistrationDefaultEmails, null, null, Config.Common_Environment + ": Error in authomail.", sb.ToString());
                 ViewBag.Success = false;
                 return View();
             }
