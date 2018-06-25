@@ -159,6 +159,7 @@ namespace AM.Services
         #region Support
         [Description("Default emails for getting notification from registration request.")]
         public static string Web_RegistrationDefaultEmails { get; private set; }
+        public static string Web_RegistrationDefaultEmailsCoreLogic { get; private set; }
 
         #endregion Support
 

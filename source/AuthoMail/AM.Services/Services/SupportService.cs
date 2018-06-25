@@ -397,6 +397,7 @@ namespace AM.Services
             var roleId = db.QuerySingle<string>("SELECT Id FROM [Profile].[Roles] WHERE NAME = @name", new { name = AMRoles.ClientAdmin });
             var mailAddress = new MailAddress(clientEmail);
             var emailList = new List<string>();
+
             var client = db.QuerySingle<ClientDomains>("SELECT * FROM [Common].[ClientDomains] WHERE AllowedDomain=@domain", new { domain = mailAddress.Host });
             if (client != null)
             {
@@ -404,9 +405,13 @@ namespace AM.Services
                 var emails = db.Query<string>(query, new { roleId = roleId, clientId = client.ClientId }).ToList();
                 emailList.AddRange(emails);
             }
+
             if (emailList == null || emailList.Count() == 0)
             {
-                return Config.Web_RegistrationDefaultEmails;
+                return (mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase)) ?
+                    Config.Web_RegistrationDefaultEmailsCoreLogic
+                : Config.Web_RegistrationDefaultEmails;
+
             }
             return string.Join(",", emailList);
         }
