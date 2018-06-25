@@ -133,8 +133,8 @@ namespace AM.Services
             }
             if (status.Equals(AMUserStatus.Rejected, StringComparison.CurrentCultureIgnoreCase))
             {
-                string setClientToUser = "UPDATE [Profile].[Users] SET Status=@status,ClosedOn=@closedOn WHERE Id=@userId";
-                int result = db.Execute(setClientToUser, new { status = AMUserStatus.Rejected, closedOn = DateTime.UtcNow, userId = Id });
+                string setClientToUser = "UPDATE [Profile].[Users] SET Status=@status,ClosedOn=@closedOn,ClosedBy=@closedBy WHERE Id=@userId";
+                int result = db.Execute(setClientToUser, new { status = AMUserStatus.Rejected, closedOn = DateTime.UtcNow, closedBy = closedBy, userId = Id });
                 return result > 0 ? GetKeyValue(true, "User request has been rejected") : GetKeyValue(false, "User request not yet processed");
             }
             return GetKeyValue(false, "Invalid action performed.");
