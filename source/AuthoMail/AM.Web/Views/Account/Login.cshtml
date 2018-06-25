@@ -17,12 +17,12 @@
                         @Html.AntiForgeryToken()
 
                         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-                        @*if (ViewBag.confirmationlink != null)
-                        {
-                            <div><span class="link resendemaillink" style="cursor:pointer;">Click here </span>to get email verification link.</div>
-                        }*@
-                        <div class="cl-form-login">
 
+                        <div class="cl-form-login">
+                            @if (ViewBag.confirmationlink != null)
+                            {
+                                <div><span class="link resendemaillink" style="cursor:pointer;">Click here </span>to get email verification link.</div>
+                            }
                             <div class="form-group">
                                 @Html.LabelFor(m => m.UserName)
                                 @Html.TextBoxFor(m => m.UserName, new { @class = "form-control", @tabindex = "1" })
@@ -72,7 +72,7 @@
 
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
-    @*<script type="text/javascript">
+    <script type="text/javascript">
         $(document).ready(function () {
             var email = '@ViewBag.confirmationlink';
             if (email != null || email != "") {
@@ -84,14 +84,15 @@
                         url: "/Account/ResendConfirmation",
                         data: { email: email },
                         dataType: "json",
-                        async: true,
                         success: function (response) {
                             context.removeClass('link');
+                        }, error: function (err) {
+                            console.log(JSON.stringify(err));
                         }
                     });
 
                 });
             }
         });
-    </script>*@
+    </script>
 }

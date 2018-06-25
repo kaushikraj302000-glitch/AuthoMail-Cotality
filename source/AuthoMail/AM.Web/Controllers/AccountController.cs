@@ -421,6 +421,7 @@ namespace AM.Web.Controllers
             return View(model);
         }
         [HttpPost]
+        [AllowAnonymous]
         public async Task<JsonResult> ResendConfirmation(string email)
         {
             try
