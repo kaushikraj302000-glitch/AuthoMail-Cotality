@@ -191,7 +191,6 @@
     <Compile Include="Controllers\AdminController.cs" />
     <Compile Include="Controllers\ChartApiController.cs" />
     <Compile Include="Controllers\CommonController.cs" />
-    <Compile Include="Controllers\Task.cs" />
     <Compile Include="Models\ChartViewModel.cs" />
     <Compile Include="Models\CLAuthentication.cs" />
     <Compile Include="Models\DailyDetailReportViewModel.cs" />
