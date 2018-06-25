@@ -592,6 +592,7 @@
                 this.IsPullBackRequested = MakeYesNoLabel(this.IsPullBackRequested);
                 this.IsPulledBack = MakeYesNoLabel(this.IsPulledBack);
                 this.IsRcptInfoSpecified = MakeYesNoLabel(this.IsRcptInfoSpecified);
+                this.SLADays = parseInt(this.SLADays / 86400);
                 this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
                 this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
