@@ -304,28 +304,35 @@ namespace AM.Web.Controllers
                         var result = await UserManager.CreateAsync(user);
                         if (result.Succeeded)
                         {
-                            StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\CreateAccountCL.html")));
-                            sb.Replace("{{name}}", user.FirstName);
+                            //StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\CreateAccountCL.html")));
+                            //sb.Replace("{{name}}", user.FirstName);
                             UserManager.AddToRole(user.Id, AMRoles.BA);
-                            await UserManager.SendEmailAsync(user.Id, "Welcome to AuthoMail.", sb.ToString());
+                            //await UserManager.SendEmailAsync(user.Id, "Welcome to AuthoMail.", sb.ToString());
 
-                            sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\RegistrationInAuthoMail.html")));
+                            StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\RegistrationInAuthoMail.html")));
                             if (Config.Common_Environment == Env.Prod)
                             {
-                                sb.Replace("{{url}}", "https://authomail.corelogic.com");
+                                sb.Replace("{{url}}", "https://authomail.corelogic.com/Admin/GetSingUpRequestedList");
                             }
                             else if (Config.Common_Environment == Env.Staging)
                             {
-                                sb.Replace("{{url}}", "https://authomailuat.corelogic.com");
+                                sb.Replace("{{url}}", "https://authomailuat.corelogic.com/Admin/GetSingUpRequestedList");
                             }
                             else
                             {
-                                string url = Request.Url.ToString().Replace(Request.RawUrl.ToString(), Url.Action("Login", "Account"));
+                                string url = Request.Url.ToString().Replace(Request.RawUrl.ToString(), Url.Action("GetSingUpRequestedList", "Admin"));
                                 sb.Replace("{{url}}", url);
                             }
                             sb.Replace("{{email}}", user.Email);
                             string emails = supportSvc.GetEmailsFromClientDomain(user.Email);
+                            //Send email to specified admin for new registration request
                             await InternalEmail.SendMail(emails, null, null, "Registration in authomail.", sb.ToString());
+                            //Send email to client to waiting for approval
+                            sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\WaitForApproval.html")));
+                            sb.Replace("{{name}}", user.FirstName);
+                            sb.Replace("{{email}}", user.Email);
+                            sb.Replace("{{defaultemails}}", string.Join(", ", emails.Split(',')));
+                            await InternalEmail.SendMail(emails, null, null, "Welcome to AuthoMail.", sb.ToString());
                             return View("SuccessRegistration");
                         }
                         AddErrors(result);
@@ -489,20 +496,27 @@ namespace AM.Web.Controllers
                 var sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\RegistrationInAuthoMail.html")));
                 if (Config.Common_Environment == Env.Prod)
                 {
-                    sb.Replace("{{url}}", "https://authomail.corelogic.com");
+                    sb.Replace("{{url}}", "https://authomail.corelogic.com/Admin/GetSingUpRequestedList");
                 }
                 else if (Config.Common_Environment == Env.Staging)
                 {
-                    sb.Replace("{{url}}", "https://authomailuat.corelogic.com");
+                    sb.Replace("{{url}}", "https://authomailuat.corelogic.com/Admin/GetSingUpRequestedList");
                 }
                 else
                 {
-                    string url = Request.Url.ToString().Replace(Request.RawUrl.ToString(), Url.Action("Login", "Account"));
+                    string url = Request.Url.ToString().Replace(Request.RawUrl.ToString(), Url.Action("GetSingUpRequestedList", "Admin"));
                     sb.Replace("{{url}}", url);
                 }
                 sb.Replace("{{email}}", user.Email);
                 string emails = supportSvc.GetEmailsFromClientDomain(user.Email);
+                //Send email to specified client admin for new registration request.
                 await InternalEmail.SendMail(emails, null, null, "Registration in authomail.", sb.ToString());
+                //Send email to client for waiting for approval of registration
+                sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\WaitForApproval.html")));
+                sb.Replace("{{name}}", user.FirstName);
+                sb.Replace("{{email}}", user.Email);
+                sb.Replace("{{defaultemails}}", string.Join(", ", emails.Split(',')));
+                await InternalEmail.SendMail(emails, null, null, "Welcome to AuthoMail.", sb.ToString());
                 ViewBag.Message = "Thank you for confirming your email. Your registration request is now awaiting approval. Please note that you may login only after your account is approved.";
                 ViewBag.Success = true;
                 return View();
