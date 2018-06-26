@@ -11,7 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 namespace AM.Web.Controllers
 {
-    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.ClientAdmin)]
+    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager)]
     public class AdminController : Controller
     {
         private AMUserManager _userManager;
@@ -77,7 +77,6 @@ namespace AM.Web.Controllers
                 sb.Replace("{{AuthoMailURL}}", AuthoMailURL);
                 string emails = supportSvc.GetEmailsFromClientDomain(user.Email);
                 await InternalEmail.SendMail(user.Email, null, emails, status.Equals(AMUserStatus.Approved) ? "AuthoMail registration request approved." : "AuthoMail registration request rejected.", sb.ToString());
-                //await UserManager.SendEmailAsync(user.Id, "AuthoMail.", sb.ToString());
 
                 return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
             }
@@ -479,5 +478,13 @@ namespace AM.Web.Controllers
         }
 
         #endregion
+
+        #region Manage ClientAdmin
+        [HttpGet]
+        public ActionResult GetClientAdmin()
+        {
+            return View();
+        }
+        #endregion Manage ClientAdmin
     }
 }
