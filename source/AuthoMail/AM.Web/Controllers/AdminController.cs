@@ -11,7 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 namespace AM.Web.Controllers
 {
-    [Authorize(Roles = AMRoles.Admin)]
+    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.ClientAdmin)]
     public class AdminController : Controller
     {
         private AMUserManager _userManager;
@@ -44,7 +44,8 @@ namespace AM.Web.Controllers
         }
         public ActionResult GetSingUpRequestedList()
         {
-            var model = supportSvc.GetUsersRequestSignUp();
+            string userId = User.IsInRole(AMRoles.Admin) ? null : User.Identity.GetUserId();
+            var model = supportSvc.GetUsersRequestSignUp(userId);
             return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
         }
         [HttpPost]
@@ -52,8 +53,9 @@ namespace AM.Web.Controllers
         {
             try
             {
-                var model = supportSvc.UpdateUsersRequestSignUp(userId, status);
+                var model = supportSvc.UpdateUsersRequestSignUp(userId, status, User.Identity.GetUserId());
                 var user = UserManager.FindById(userId);
+
                 string template = status.Equals(AMUserStatus.Approved) ? "ApproveRegistration.html" : "RejectRegistration.html";
                 StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\" + template)));
                 sb.Replace("{{name}}", user.FirstName);
@@ -73,7 +75,9 @@ namespace AM.Web.Controllers
                     AuthoMailURL = Request.Url.ToString().Replace(Request.RawUrl.ToString(), Url.Action("Login", "Account"));
                 }
                 sb.Replace("{{AuthoMailURL}}", AuthoMailURL);
-                await UserManager.SendEmailAsync(user.Id, "AuthoMail.", sb.ToString());
+                string emails = supportSvc.GetEmailsFromClientDomain(user.Email);
+                await InternalEmail.SendMail(user.Email, null, emails, status.Equals(AMUserStatus.Approved) ? "AuthoMail registration request approved." : "AuthoMail registration request rejected.", sb.ToString());
+                //await UserManager.SendEmailAsync(user.Id, "AuthoMail.", sb.ToString());
 
                 return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
             }
@@ -86,7 +90,7 @@ namespace AM.Web.Controllers
         #endregion
 
         #region Manage Domain
-        [HttpGet]
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
         public ActionResult GetDomains()
         {
             try
@@ -100,7 +104,7 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
             }
         }
-        [HttpGet]
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
         public ActionResult GetDomainByName(string domainName)
         {
 
@@ -116,7 +120,7 @@ namespace AM.Web.Controllers
                 return PartialView("_AddOrEditDomain", new ClientDomains());
             }
         }
-
+        [Authorize(Roles = AMRoles.Admin)]
         public ActionResult ManageDomain()
         {
             var model = homeSvc.GetAllActiveClient();
@@ -124,7 +128,7 @@ namespace AM.Web.Controllers
             return View();
         }
 
-        [HttpPost]
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
         public ActionResult CreateOrEditDomain(int clientId, string domainName, string oldDomain)
         {
 
@@ -151,17 +155,18 @@ namespace AM.Web.Controllers
         #endregion
 
         #region System Settings
-        [HttpGet]
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
         public ActionResult SystemSettings()
         {
             return View();
         }
+        [Authorize(Roles = AMRoles.Admin)]
         public ActionResult GetAllSystemSettings()
         {
             var model = confSvc.GetSystemSettings();
             return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
         }
-
+        [Authorize(Roles = AMRoles.Admin)]
         public ActionResult ResetSetting(string settingId)
         {
             try
@@ -174,7 +179,7 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
             }
         }
-        [HttpPost]
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
         public ActionResult UpdateValueOrDescription(string settingId, string value, string description)
         {
             try
@@ -191,13 +196,13 @@ namespace AM.Web.Controllers
         #endregion
 
         #region Manage Business Unit
-
+        [Authorize(Roles = AMRoles.Admin)]
         public ActionResult ManageBusinessUnits()
         {
             return View();
         }
 
-        [HttpGet]
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
         public ActionResult GetBusinessUnits()
         {
             try
@@ -211,7 +216,7 @@ namespace AM.Web.Controllers
             }
         }
 
-        [HttpPost]
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
         public ActionResult CreateOrEditBusinessUnit(BusinessUnitModel businessUnit)
         {
             try
@@ -225,13 +230,13 @@ namespace AM.Web.Controllers
             }
         }
 
-        [HttpGet]
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
         public ActionResult GetBusinessUnitById(int id)
         {
             return id == 0 ? PartialView("_AddOrEditBusinessUnit", new BusinessUnitModel()) : PartialView("_AddOrEditBusinessUnit", supportSvc.FindByIdBusinessUnit(id));
         }
 
-        [HttpPost]
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
         public ActionResult MakeActiveOrInActiveBusinessUnit(bool isActive, int Id)
         {
             try
@@ -247,13 +252,13 @@ namespace AM.Web.Controllers
         #endregion
 
         #region Manage Client
-
+        [Authorize(Roles = AMRoles.Admin)]
         public ActionResult ManageClients()
         {
             return View();
         }
 
-        [HttpGet]
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
         public ActionResult GetClients()
         {
             try
@@ -266,7 +271,7 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
             }
         }
-        [HttpPost]
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
         public ActionResult MakeActiveOrDeactiveClient(bool isActive, int Id, bool isAM)
         {
             try
@@ -289,7 +294,7 @@ namespace AM.Web.Controllers
             }
         }
 
-        [HttpPost]
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
         public ActionResult CreateOrEditClient(Clients client)
         {
             try
@@ -303,7 +308,7 @@ namespace AM.Web.Controllers
             }
         }
 
-        [HttpGet]
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
         public ActionResult GetClientById(int id)
         {
 
@@ -325,13 +330,13 @@ namespace AM.Web.Controllers
         #endregion
 
         #region Manage SFTChannel
-
+        [Authorize(Roles = AMRoles.Admin)]
         public ActionResult ManageSFTChannels()
         {
             return View();
         }
 
-        [HttpGet]
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
         public ActionResult GetSFTChannels()
         {
             try
@@ -345,7 +350,7 @@ namespace AM.Web.Controllers
             }
         }
 
-        [HttpPost]
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
         public ActionResult MakeActiveOrDeactiveSFTChannel(bool isActive, int Id)
         {
             try
@@ -359,7 +364,7 @@ namespace AM.Web.Controllers
             }
         }
 
-        [HttpGet]
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
         public ActionResult GetSFTChannelById(int id)
         {
             var ProtocolList = new string[] { "ftp", "sftp", "unc" };
@@ -379,7 +384,7 @@ namespace AM.Web.Controllers
                 return PartialView("_AddOrEditSFTChannel", new SFTChannels());
             }
         }
-        [HttpPost]
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
         public ActionResult CreateOrEditSFTChannel(SFTChannels sftChannel)
         {
             try
@@ -396,13 +401,13 @@ namespace AM.Web.Controllers
         #endregion
 
         #region Manage DocType
-
+        [Authorize(Roles = AMRoles.Admin)]
         public ActionResult ManageDocumentTypes()
         {
             return View();
         }
 
-        [HttpGet]
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
         public ActionResult GetDocTypes()
         {
             try
@@ -415,7 +420,7 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
             }
         }
-        [HttpGet]
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
         public ActionResult GetDocTypeById(int id)
         {
             var PrintSizeList = new string[] { "MixMedia", "LETTER-IP", "GLT-20-DOP-17.5", "LEGAL-IP", "WC24#LTR-PERF", "LEGAL-PERF-IP" };
@@ -445,7 +450,7 @@ namespace AM.Web.Controllers
             }
         }
 
-        [HttpPost]
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
         public ActionResult MakeActiveOrDeactiveDocType(bool isActive, int Id)
         {
             try
@@ -459,7 +464,7 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
             }
         }
-        [HttpPost]
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
         public ActionResult CreateOrEditDocType(DocTypes docType)
         {
             try

@@ -74,6 +74,13 @@ namespace AM.Web.Controllers
             ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
             return View();
         }
+        [HttpGet]
+        public ActionResult GetMailPieceByUniqueId(string mailPieceId)
+        {
+            var model = serSvc.GetMailPieceByUniqueId(new Guid(mailPieceId));
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
+        }
+
         [HttpPost]
         public ActionResult _GetSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string receivedOnStart, string receivedOnEnd, string status, string channel, string docType,string clientBatchId,string batchId)
         {

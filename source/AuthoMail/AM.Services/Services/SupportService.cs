@@ -17,8 +17,8 @@ namespace AM.Services
         bool HasClientDomain(int clientId, string domainName);
         int CreateClientDomain(int clientId, string domainName);
         int UpdateClientDomain(string domainName, string existingDomainName);
-        List<UserRequestSignUp> GetUsersRequestSignUp();
-        KeyValuePair<bool, string> UpdateUsersRequestSignUp(string Id, string status);
+        List<UserRequestSignUp> GetUsersRequestSignUp(string userId);
+        KeyValuePair<bool, string> UpdateUsersRequestSignUp(string Id, string status, string closedBy);
         //DocTypes
         List<DocTypes> GetDocTypes();
         //Clients
@@ -42,6 +42,10 @@ namespace AM.Services
         SFTChannels FindByIdSFTChannels(int Id);
         KeyValuePair<bool, string> CreateOrEditSFTChannel(SFTChannels sftChannel);
         int MakeActivateOrDeactivateSFTChannel(int Id, bool isActive);
+        //Assign Or Remove ClientAdmin role 
+        KeyValuePair<bool, string> AssignClientAdminRole(int userId);
+        KeyValuePair<bool, string> RemoveClientAdminRole(int userId);
+        string GetEmailsFromClientDomain(string clientEmail);
     }
     public class SupportService : ServiceBase, ISupportService
     {
@@ -93,13 +97,20 @@ namespace AM.Services
             string query = "UPDATE [Common].[ClientDomains] SET AllowedDomain=@domainName WHERE AllowedDomain=@existingDomainName";
             return db.Execute(query, new { domainName = domainName, existingDomainName = existingDomainName });
         }
-        public List<UserRequestSignUp> GetUsersRequestSignUp()
+        public List<UserRequestSignUp> GetUsersRequestSignUp(string userId)
         {
+            if (userId != null)
+            {
+                string email = db.QuerySingle<string>("SELECT Email FROM [Profile].[Users] WHERE Id= @userId", new { userId = userId });
+                var mailAddress = new MailAddress(email);
+                string sql = "SELECT Id,UserName,Email,EmailConfirmed,FirstName,LastName,DisplayName,RequestedOn,Status FROM [Profile].[Users] WHERE Status = @status AND EmailConfirmed=1 AND Email LIKE @email";
+                return db.Query<UserRequestSignUp>(sql, new { status = AMUserStatus.Open, email = string.Format("%{0}", mailAddress.Host) }).ToList();
+            }
             string query = "SELECT Id,UserName,Email,EmailConfirmed,FirstName,LastName,DisplayName,RequestedOn,Status FROM [Profile].[Users] WHERE Status = @status AND EmailConfirmed=1";
             return db.Query<UserRequestSignUp>(query, new { status = AMUserStatus.Open }).ToList();
         }
 
-        public KeyValuePair<bool, string> UpdateUsersRequestSignUp(string Id, string status)
+        public KeyValuePair<bool, string> UpdateUsersRequestSignUp(string Id, string status, string closedBy)
         {
             if (status.Equals(AMUserStatus.Approved, StringComparison.CurrentCultureIgnoreCase))
             {
@@ -116,14 +127,14 @@ namespace AM.Services
                 bool IsAMActive = db.QuerySingle<bool>("SELECT IsAMActive FROM [Common].[Clients] WHERE Id=@clientId", new { clientId = clientId });
                 if (!IsAMActive) return GetKeyValue(false, "Client is not activated.");
 
-                string setClientToUser = "UPDATE [Profile].[Users] SET ClientId=@clientId,Status=@status,ClosedOn=@closedOn WHERE Id=@userId";
-                int result = db.Execute(setClientToUser, new { status = AMUserStatus.Approved, closedOn = DateTime.UtcNow, clientId = clientId, userId = Id });
+                string setClientToUser = "UPDATE [Profile].[Users] SET ClientId=@clientId,Status=@status,ClosedOn=@closedOn,ClosedBy=@closedBy WHERE Id=@userId";
+                int result = db.Execute(setClientToUser, new { status = AMUserStatus.Approved, closedOn = DateTime.UtcNow, clientId = clientId, closedBy = closedBy, userId = Id });
                 return result > 0 ? GetKeyValue(true, "User request has been approved.") : GetKeyValue(false, "User request not yet processed.");
             }
             if (status.Equals(AMUserStatus.Rejected, StringComparison.CurrentCultureIgnoreCase))
             {
-                string setClientToUser = "UPDATE [Profile].[Users] SET Status=@status,ClosedOn=@closedOn WHERE Id=@userId";
-                int result = db.Execute(setClientToUser, new { status = AMUserStatus.Rejected, closedOn = DateTime.UtcNow, userId = Id });
+                string setClientToUser = "UPDATE [Profile].[Users] SET Status=@status,ClosedOn=@closedOn,ClosedBy=@closedBy WHERE Id=@userId";
+                int result = db.Execute(setClientToUser, new { status = AMUserStatus.Rejected, closedOn = DateTime.UtcNow, closedBy = closedBy, userId = Id });
                 return result > 0 ? GetKeyValue(true, "User request has been rejected") : GetKeyValue(false, "User request not yet processed");
             }
             return GetKeyValue(false, "Invalid action performed.");
@@ -334,5 +345,75 @@ namespace AM.Services
             return db.Execute(query, new { isActive = @isActive, @id = @Id });
         }
 
+
+
+        public KeyValuePair<bool, string> AssignClientAdminRole(int userId)
+        {
+            try
+            {
+                var roleId = db.QuerySingle<string>("SELECT Id FROM [Profile].[Roles] WHERE NAME = @name", new { name = AMRoles.ClientAdmin });
+                string existRole = db.QuerySingleOrDefault<string>("SELECT Id FROM [Profile].[UserRoles] WHERE UserId=@userId and RoleId=@roleId", new { userId = userId, roleId = roleId });
+                if (!existRole.IsNullOrWhiteSpace())
+                {
+                    return new KeyValuePair<bool, string>(false, "Role already assigned.");
+                }
+                int rows = db.Execute("INSERT INTO [Profile].[UserRoles] VALUES (@userId,@roleId)", new { userId = userId, roleId = roleId });
+                if (rows == 1)
+                    return new KeyValuePair<bool, string>(true, "Role assigned.");
+                else
+                    return new KeyValuePair<bool, string>(false, "Role not assigned.");
+            }
+            catch (Exception ex)
+            {
+                return new KeyValuePair<bool, string>(false, ex.Message);
+            }
+        }
+
+        public KeyValuePair<bool, string> RemoveClientAdminRole(int userId)
+        {
+            try
+            {
+                var roleId = db.QuerySingle<string>("SELECT Id FROM [Profile].[Roles] WHERE NAME = @name", new { name = @AMRoles.ClientAdmin });
+                string existRole = db.QuerySingleOrDefault<string>("SELECT Id FROM [Profile].[UserRoles] WHERE UserId=@userId and RoleId=@roleId", new { userId = userId, roleId = roleId });
+                if (existRole.IsNullOrWhiteSpace())
+                {
+                    return new KeyValuePair<bool, string>(false, "Role not assigned to this user.");
+                }
+                int rows = db.Execute("DELETE FROM [Profile].[UserRoles] WHERE UserId=@userId and RoleId=@roleId", new { userId = userId, roleId = roleId });
+                if (rows == 1)
+                    return new KeyValuePair<bool, string>(true, string.Format("User removed from {0} role.", AMRoles.ClientAdmin));
+                else
+                    return new KeyValuePair<bool, string>(false, string.Format("User not removed from {0} role.", AMRoles.ClientAdmin));
+            }
+            catch (Exception ex)
+            {
+                return new KeyValuePair<bool, string>(false, ex.Message);
+            }
+        }
+
+
+        public string GetEmailsFromClientDomain(string clientEmail)
+        {
+            var roleId = db.QuerySingle<string>("SELECT Id FROM [Profile].[Roles] WHERE NAME = @name", new { name = AMRoles.ClientAdmin });
+            var mailAddress = new MailAddress(clientEmail);
+            var emailList = new List<string>();
+
+            var client = db.QuerySingle<ClientDomains>("SELECT * FROM [Common].[ClientDomains] WHERE AllowedDomain=@domain", new { domain = mailAddress.Host });
+            if (client != null)
+            {
+                string query = "SELECT Email FROM [Profile].[Users] u,[Profile].[UserRoles] ur WHERE u.Id=ur.UserId AND ur.RoleId=@roleId AND u.ClientId = @clientId";
+                var emails = db.Query<string>(query, new { roleId = roleId, clientId = client.ClientId }).ToList();
+                emailList.AddRange(emails);
+            }
+
+            if (emailList == null || emailList.Count() == 0)
+            {
+                return (mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase)) ?
+                    Config.Web_RegistrationDefaultEmailsCoreLogic
+                : Config.Web_RegistrationDefaultEmails;
+
+            }
+            return string.Join(",", emailList);
+        }
     }
 }

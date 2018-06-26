@@ -9,6 +9,7 @@ namespace AM.Web.Models
     {
         public string BusinessIdValue { get; set; }
         public string Status { get; set; }
+        public Guid UniqueId { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string City { get; set; }
