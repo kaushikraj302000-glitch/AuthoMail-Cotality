@@ -42,9 +42,9 @@ namespace AM.Services
         SFTChannels FindByIdSFTChannels(int Id);
         KeyValuePair<bool, string> CreateOrEditSFTChannel(SFTChannels sftChannel);
         int MakeActivateOrDeactivateSFTChannel(int Id, bool isActive);
-        //Assign Or Remove ClientAdmin role 
+        //Assign Or Remove ClientUserManager,CoreLogicUserManager role 
         KeyValuePair<bool, string> AssignClientAdminRole(string email);
-        KeyValuePair<bool, string> RemoveClientAdminRole(string email);
+        KeyValuePair<bool, string> RemoveClientAdminRole(string userId, string roleId);
         string GetEmailsFromClientDomain(string clientEmail);
     }
     public class SupportService : ServiceBase, ISupportService
@@ -349,52 +349,55 @@ namespace AM.Services
 
         public KeyValuePair<bool, string> AssignClientAdminRole(string email)
         {
-            throw new Exception();
-            //try
-            //{
-            //    //Need to think again
-            //    var roles = db.Query<IdentityRole>("SELECT * FROM [Profile].[Roles] WHERE NAME IN @name", new { name = new List<string>() { AMRoles.ClientUserManager, AMRoles.Client } });
+            try
+            {
+                //Need to think again
+                var roles = db.Query<IdentityRole>("SELECT * FROM [Profile].[Roles] WHERE NAME IN @name", new { name = new List<string>() { AMRoles.ClientUserManager, AMRoles.Client } });
 
+                MailAddress mailAddress = new MailAddress(email);
+                var user = db.QuerySingle<ProfileUser>("SELECT * FROM [Profile].[Users] WHERE Email=@email", new { email = email });
+                string roleId =
+                (mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase))
+                ?
+                     roles.Single(r => r.Name == AMRoles.CoreLogicUserManager).Id
+                :
+                    roles.Single(r => r.Name == AMRoles.ClientUserManager).Id;
 
+                var userRole = db.Execute("select COUNT(UserId) from [Profile].[UserRoles] WHERE UserId=@userId AND RoleId=@roleId", new { userId = user.Id, roleId = roleId });
+                if (userRole > 0) return new KeyValuePair<bool, string>(false, "Role already assigned.");
 
-            //    string existRole = db.QuerySingleOrDefault<string>("SELECT Id FROM [Profile].[UserRoles] WHERE UserId=@userId and RoleId IN @roleId", new { userId = userId, roleId = roles.Select(r => r.Id) });
-            //    if (!existRole.IsNullOrWhiteSpace())
-            //    {
-            //        return new KeyValuePair<bool, string>(false, "Role already assigned.");
-            //    }
-            //    int rows = db.Execute("INSERT INTO [Profile].[UserRoles] VALUES (@userId,@roleId)", new { userId = userId, roleId = roles.Single(r => r.Name == AMRoles.ClientUserManager).Id });
-            //    if (rows == 1)
-            //        return new KeyValuePair<bool, string>(true, "Role assigned.");
-            //    else
-            //        return new KeyValuePair<bool, string>(false, "Role not assigned.");
-            //}
-            //catch (Exception ex)
-            //{
-            //    return new KeyValuePair<bool, string>(false, ex.Message);
-            //}
+                int rows = db.Execute("INSERT INTO [Profile].[UserRoles] VALUES (@userId,@roleId)", new { userId = user.Id, roleId = roleId });
+                if (rows == 1)
+                    return new KeyValuePair<bool, string>(true, "Role assigned.");
+                else
+                    return new KeyValuePair<bool, string>(false, "Role not assigned. Please try again.");
+            }
+            catch (Exception ex)
+            {
+                return new KeyValuePair<bool, string>(false, ex.Message);
+            }
         }
 
-        public KeyValuePair<bool, string> RemoveClientAdminRole(string email)
+        public KeyValuePair<bool, string> RemoveClientAdminRole(string userId, string roleId)
         {
-            throw new Exception();
-            //try
-            //{
-            //    var roleId = db.QuerySingle<string>("SELECT Id FROM [Profile].[Roles] WHERE NAME = @name", new { name = @AMRoles.ClientUserManager });
-            //    string existRole = db.QuerySingleOrDefault<string>("SELECT Id FROM [Profile].[UserRoles] WHERE UserId=@userId and RoleId=@roleId", new { userId = userId, roleId = roleId });
-            //    if (existRole.IsNullOrWhiteSpace())
-            //    {
-            //        return new KeyValuePair<bool, string>(false, "Role not assigned to this user.");
-            //    }
-            //    int rows = db.Execute("DELETE FROM [Profile].[UserRoles] WHERE UserId=@userId and RoleId=@roleId", new { userId = userId, roleId = roleId });
-            //    if (rows == 1)
-            //        return new KeyValuePair<bool, string>(true, string.Format("User removed from {0} role.", AMRoles.ClientUserManager));
-            //    else
-            //        return new KeyValuePair<bool, string>(false, string.Format("User not removed from {0} role.", AMRoles.ClientUserManager));
-            //}
-            //catch (Exception ex)
-            //{
-            //    return new KeyValuePair<bool, string>(false, ex.Message);
-            //}
+
+            try
+            {
+                string existRole = db.QuerySingleOrDefault<string>("SELECT Id FROM [Profile].[UserRoles] WHERE UserId=@userId and RoleId=@roleId", new { userId = userId, roleId = roleId });
+                if (existRole.IsNullOrWhiteSpace())
+                {
+                    return new KeyValuePair<bool, string>(false, "Role not assigned to this user.");
+                }
+                int rows = db.Execute("DELETE FROM [Profile].[UserRoles] WHERE UserId=@userId and RoleId=@roleId", new { userId = userId, roleId = roleId });
+                if (rows == 1)
+                    return new KeyValuePair<bool, string>(true, "User removed from role.");
+                else
+                    return new KeyValuePair<bool, string>(false, "User and assigned role not exist.");
+            }
+            catch (Exception ex)
+            {
+                return new KeyValuePair<bool, string>(false, ex.Message);
+            }
         }
 
 
