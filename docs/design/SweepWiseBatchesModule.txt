@@ -29,4 +29,5 @@ Tables Defs :
 
 Remove MailBatchId Field from AM.PrintBatches
 
-	
+
+Remark : Channel Comparison not client for sweep
