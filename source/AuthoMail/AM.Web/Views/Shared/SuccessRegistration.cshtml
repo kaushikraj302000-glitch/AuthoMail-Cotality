@@ -9,8 +9,17 @@
     <h1>Thank you for registration.</h1>
     <div class="alert alert-green">
         <div class="row">
-            <i class="fa fa-check fa-2x"></i>
-            We have sent you an email to your account please confirm it.
+
+            @if (ViewBag.IsCoreLogic != null && ViewBag.IsCoreLogic)
+            {
+                <div><i class="fa fa-check fa-2x"></i> Your registration request is now awaiting approval. Please note that you may login only after your account is approved.</div>
+                <br />
+                <div>If it is taking longer, you may escalate to rmcfarlane@corelogic.com, brpatel@corelogic.com or mlowenberg@corelogic.com.</div>
+            }
+            else
+            {
+                <span><i class="fa fa-check fa-2x"></i> We have sent you an email to your account please confirm it.</span>
+            }
         </div>
     </div>
 </div>

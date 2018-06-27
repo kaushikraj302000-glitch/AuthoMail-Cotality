@@ -256,7 +256,8 @@ namespace AM.Entities
         public const string BA = "BA";
         public const string Client = "Client";
         public const string PnSOperator = "PnSOperator";
-        public const string ClientAdmin = "ClientAdmin";
+        public const string ClientUserManager = "ClientUserManager";
+        public const string CoreLogicUserManager = "CoreLogicUserManager";
     }
     public static class AMUserStatus
     {
