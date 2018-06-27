@@ -352,11 +352,14 @@ namespace AM.Services
         {
             try
             {
-                //Need to think again
-                var roles = db.Query<IdentityRole>("SELECT * FROM [Profile].[Roles] WHERE NAME IN @name", new { name = new List<string>() { AMRoles.ClientUserManager, AMRoles.Client } });
-
                 MailAddress mailAddress = new MailAddress(email);
                 var user = db.QuerySingle<ProfileUser>("SELECT * FROM [Profile].[Users] WHERE Email=@email", new { email = email });
+                if (user == null) return new KeyValuePair<bool, string>(false, "Email not found.");
+                if (user.Status != AMUserStatus.Approved) return new KeyValuePair<bool, string>(false, "Registered email not yet approved.");
+                var roles = db.Query<IdentityRole>("SELECT * FROM [Profile].[Roles] WHERE NAME IN @name", new { name = new List<string>() { AMRoles.ClientUserManager, AMRoles.CoreLogicUserManager } });
+
+
+
                 string roleId =
                 (mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase))
                 ?
@@ -372,6 +375,10 @@ namespace AM.Services
                     return new KeyValuePair<bool, string>(true, "Role assigned.");
                 else
                     return new KeyValuePair<bool, string>(false, "Role not assigned. Please try again.");
+            }
+            catch (FormatException fex)
+            {
+                return new KeyValuePair<bool, string>(false, "Invalid email address.");
             }
             catch (Exception ex)
             {
@@ -409,11 +416,11 @@ namespace AM.Services
             {
                 list.AddRange(nonCLDomain);
             }
-            var CLDomain = db.Query<EmailAllowedDomain>("Select Email,u.Id as [UserId],r.Id as [RoleId] from [Profile].[Users] u,[Profile].[UserRoles] ur,[Profile].[Roles] r where u.Id=ur.UserId and ur.RoleId=r.Id and r.Name=@rolename", new { rolename = AMRoles.ClientUserManager }).ToList();
+            var CLDomain = db.Query<EmailAllowedDomain>("Select Email,u.Id as [UserId],r.Id as [RoleId] from [Profile].[Users] u,[Profile].[UserRoles] ur,[Profile].[Roles] r where u.Id=ur.UserId and ur.RoleId=r.Id and r.Name=@rolename", new { rolename = AMRoles.CoreLogicUserManager }).ToList();
 
             if (CLDomain != null && CLDomain.Count() > 0)
             {
-                CLDomain.ForEach(c => c.AllowedDomain = AMRoles.CoreLogicUserManager);
+                CLDomain.ForEach(c => c.AllowedDomain = "corelogic.com");
                 list.AddRange(CLDomain);
             }
             return list;

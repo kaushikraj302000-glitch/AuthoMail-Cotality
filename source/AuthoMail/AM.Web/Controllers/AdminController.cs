@@ -488,8 +488,21 @@ namespace AM.Web.Controllers
         [HttpGet]
         public ActionResult GetUserManager()
         {
-            var users = supportSvc.GetUserManagerList();
-            return View(users);
+            return View();
+        }
+        [HttpGet]
+        public JsonResult GetUserManagerList()
+        {
+            try
+            {
+                var users = supportSvc.GetUserManagerList();
+                return Json(JsonResponseFactory.SuccessResponse(users), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(ex.Message), JsonRequestBehavior.AllowGet);
+            }
+
         }
         [HttpPost]
         public JsonResult AssignUserManagerRole(string email)
