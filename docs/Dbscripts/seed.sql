@@ -642,9 +642,9 @@ GO
 -- Holiday List
 SET IDENTITY_INSERT [Common].[Holidays] ON
 GO
-INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (1, CAST(N'2018-01-01' AS Date), N'New Year Day', 1)
+INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (1, CAST(N'2018-01-01' AS Date), N'New Year Day')
 GO
-INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (2, CAST(N'2018-01-15' AS Date), N'Martin Luther King Jr. Day', 1)
+INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (2, CAST(N'2018-01-15' AS Date), N'Martin Luther King Jr. Day')
 GO
 INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (3, CAST(N'2018-02-19' AS Date), N'Presidents Day')
 GO
