@@ -43,8 +43,9 @@ namespace AM.Services
         KeyValuePair<bool, string> CreateOrEditSFTChannel(SFTChannels sftChannel);
         int MakeActivateOrDeactivateSFTChannel(int Id, bool isActive);
         //Assign Or Remove ClientUserManager,CoreLogicUserManager role 
-        KeyValuePair<bool, string> AssignClientAdminRole(string email);
-        KeyValuePair<bool, string> RemoveClientAdminRole(string userId, string roleId);
+        KeyValuePair<bool, string> AssignUserManagerRole(string email);
+        KeyValuePair<bool, string> RemoveUserManagerRole(string userId, string roleId);
+        List<EmailAllowedDomain> GetUserManagerList();
         string GetEmailsFromClientDomain(string clientEmail);
     }
     public class SupportService : ServiceBase, ISupportService
@@ -347,7 +348,7 @@ namespace AM.Services
 
 
 
-        public KeyValuePair<bool, string> AssignClientAdminRole(string email)
+        public KeyValuePair<bool, string> AssignUserManagerRole(string email)
         {
             try
             {
@@ -378,7 +379,7 @@ namespace AM.Services
             }
         }
 
-        public KeyValuePair<bool, string> RemoveClientAdminRole(string userId, string roleId)
+        public KeyValuePair<bool, string> RemoveUserManagerRole(string userId, string roleId)
         {
 
             try
@@ -399,7 +400,24 @@ namespace AM.Services
                 return new KeyValuePair<bool, string>(false, ex.Message);
             }
         }
+        public List<EmailAllowedDomain> GetUserManagerList()
+        {
+            var list = new List<EmailAllowedDomain>();
+            string query = "with users as ( select u.Email,u.ClientId,u.Id as [UserId],r.Id as [RoleId] from [Profile].[Users] u,[Profile].[UserRoles] ur,[Profile].[Roles] r where u.Id=ur.UserId AND r.Id=ur.RoleId and r.Name =@rolename ), client as ( select * from [Common].[ClientDomains] where ClientId in (select ClientId from users) ), userclient as ( select Email,AllowedDomain,UserId,RoleId from users u,client c where u.ClientId=c.ClientId ) SELECT Email,UserId,RoleId, AllowedDomain = STUFF((SELECT ', ' + AllowedDomain FROM userclient b WHERE b.email = a.email FOR XML PATH('')), 1, 2, '') FROM userclient a GROUP BY Email,UserId,RoleId";
+            var nonCLDomain = db.Query<EmailAllowedDomain>(query, new { rolename = AMRoles.ClientUserManager }).ToList();
+            if (nonCLDomain != null && nonCLDomain.Count() > 0)
+            {
+                list.AddRange(nonCLDomain);
+            }
+            var CLDomain = db.Query<EmailAllowedDomain>("Select Email,u.Id as [UserId],r.Id as [RoleId] from [Profile].[Users] u,[Profile].[UserRoles] ur,[Profile].[Roles] r where u.Id=ur.UserId and ur.RoleId=r.Id and r.Name=@rolename", new { rolename = AMRoles.ClientUserManager }).ToList();
 
+            if (CLDomain != null && CLDomain.Count() > 0)
+            {
+                CLDomain.ForEach(c => c.AllowedDomain = AMRoles.CoreLogicUserManager);
+                list.AddRange(CLDomain);
+            }
+            return list;
+        }
 
         public string GetEmailsFromClientDomain(string clientEmail)
         {
@@ -429,5 +447,6 @@ namespace AM.Services
             }
             return string.Join(",", emailList);
         }
+
     }
 }

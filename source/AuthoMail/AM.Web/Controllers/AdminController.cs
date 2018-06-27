@@ -485,6 +485,46 @@ namespace AM.Web.Controllers
         {
             return View();
         }
+        [HttpGet]
+        public ActionResult GetUserManager()
+        {
+            var users = supportSvc.GetUserManagerList();
+            return View(users);
+        }
+        [HttpPost]
+        public JsonResult AssignUserManagerRole(string email)
+        {
+            try
+            {
+                var result = supportSvc.AssignUserManagerRole(email);
+                if (result.Key)
+                {
+                    return Json(JsonResponseFactory.SuccessResponse(result.Value), JsonRequestBehavior.AllowGet);
+                }
+                return Json(JsonResponseFactory.ErrorResponse(result.Value), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(ex.Message), JsonRequestBehavior.AllowGet);
+            }
+        }
+        [HttpPost]
+        public JsonResult RemoveUserManagerRole(string userId, string roleId)
+        {
+            try
+            {
+                var result = supportSvc.RemoveUserManagerRole(userId, roleId);
+                if (result.Key)
+                {
+                    return Json(JsonResponseFactory.SuccessResponse(result.Value), JsonRequestBehavior.AllowGet);
+                }
+                return Json(JsonResponseFactory.ErrorResponse(result.Value), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(ex.Message), JsonRequestBehavior.AllowGet);
+            }
+        }
         #endregion Manage ClientAdmin
     }
 }
