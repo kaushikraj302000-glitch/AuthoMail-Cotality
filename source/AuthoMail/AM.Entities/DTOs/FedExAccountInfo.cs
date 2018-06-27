@@ -14,4 +14,11 @@ namespace AM.Entities
         public string AccountNumber { get; set; }
         public string MeterNumber { get; set; }
     }
+
+    public class Holiday
+    {
+        public int Id { get; set; }
+        public DateTime HolidayDate { get; set; }
+        public string Description { get; set; }
+    }
 }

@@ -77,7 +77,6 @@ namespace AM.Entities
     public class PrintBatch
     {
         public int Id { get; set; }
-        public int MailBatchId { get; set; }
         public Guid UniqueId { get; set; }
         public int DocTypeId { get; set; }
         public string AppCode { get; set; }
@@ -87,7 +86,6 @@ namespace AM.Entities
     public class SubmittedBatch
     {
         public int PrintBatchId { get; set; }
-        public int MailBatchId { get; set; }
         public Guid UniqueId { get; set; }
         public int DocTypeId { get; set; }
         public string AppCode { get; set; }

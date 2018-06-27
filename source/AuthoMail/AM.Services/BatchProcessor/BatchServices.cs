@@ -118,14 +118,14 @@ namespace AM.Services
         public int InsertPrintBatchDetails(PrintBatch printBatch)
         {
             //Sql Query
-            string query = "INSERT INTO [AM].[PrintBatches](UniqueId, MailBatchId, AppCode, DocTypeId) Output Inserted.Id VALUES (@UniqueId, @MailBatchId, @AppCode, @DocTypeId)";
+            string query = "INSERT INTO [AM].[PrintBatches](UniqueId, AppCode, DocTypeId) Output Inserted.Id VALUES (@UniqueId, @AppCode, @DocTypeId)";
 
             var printBatchId = db.ExecuteScalar<int>(query, printBatch);
             foreach (var mailPiece in printBatch.MailPieces)
             {
-                string updateQuery = "UPDATE [AM].[MailPieces] SET [PrintBatchId]=@PrintBatchId WHERE Id=@Id AND MailBatchId=@MailBatchId";
+                string updateQuery = "UPDATE [AM].[MailPieces] SET [PrintBatchId]=@PrintBatchId WHERE Id=@Id";
 
-                var data = db.Execute(updateQuery, new { PrintBatchId = printBatchId, Id = mailPiece.Id, MailBatchId = printBatch.MailBatchId });
+                var data = db.Execute(updateQuery, new { PrintBatchId = printBatchId, Id = mailPiece.Id });
             }
             return printBatchId;
 
@@ -134,7 +134,7 @@ namespace AM.Services
         public List<SubmittedBatch> GetSubmittedPrintBatchDetails()
         {
             //Sql Query
-            string query = @"SELECT PB.Id AS PrintBatchId, PB.MailBatchId, MB.BatchName,PB.AppCode +'_'+ CONVERT(VARCHAR(10),PB.Id) as SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode FROM [AM].[PrintBatches] PB INNER JOIN [AM].[MailBatches] MB ON MB.Id= PB.MailBatchId WHERE PB.IsSubmittedToShipping=1 AND PB.IsShippingResponseReceived=0";
+            string query = @"SELECT PB.Id AS PrintBatchId, PB.AppCode +'_'+ CONVERT(VARCHAR(10),PB.Id) as SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode FROM [AM].[PrintBatches] PB WHERE PB.IsSubmittedToShipping=1 AND PB.IsShippingResponseReceived=0";
 
             return db.Query<SubmittedBatch>(query).ToList();
         }
@@ -142,7 +142,7 @@ namespace AM.Services
         public List<SubmittedBatch> GetResponseReceivedPrintBatchDetails()
         {
             //Sql Query
-            string query = @"SELECT PB.Id AS PrintBatchId, PB.MailBatchId, MB.BatchName,PB.AppCode +'_'+ CONVERT(VARCHAR(10),PB.Id) as SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode FROM [AM].[PrintBatches] PB INNER JOIN [AM].[MailBatches] MB ON MB.Id= PB.MailBatchId WHERE PB.IsSubmittedToShipping=1 AND PB.IsShippingResponseReceived=1 AND  PB.BatchStatus=@BatchStatus";
+            string query = @"SELECT PB.Id AS PrintBatchId,PB.AppCode +'_'+ CONVERT(VARCHAR(10),PB.Id) as SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode FROM [AM].[PrintBatches] PB WHERE PB.IsSubmittedToShipping=1 AND PB.IsShippingResponseReceived=1 AND PB.BatchStatus=@BatchStatus";
 
             return db.Query<SubmittedBatch>(query, new { BatchStatus = BatchStatus.InProgress.ToString() }).ToList();
         }

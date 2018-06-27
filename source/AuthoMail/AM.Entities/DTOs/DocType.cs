@@ -38,7 +38,7 @@ namespace AM.Entities
         public string ClientContactNo { get; set; }
         public string SupportEmails { get; set; }
         public string SupportContactNo { get; set; }
-        public string ClientId { get; set; }
+        public int ClientId { get; set; }
         public float QCPercent { get; set; }
         public int SLADays { get; set; }
         public TimeSpan SLACutOffTime { get; set; }

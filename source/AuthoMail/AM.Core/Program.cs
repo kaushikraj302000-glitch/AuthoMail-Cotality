@@ -12,23 +12,38 @@ namespace AM.Core
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
-        static void Main()
+        static void Main(string[] args)
         {
             if (Environment.UserInteractive)
             {
-                AMCore.PrepPnSJobs();
-                AMCore.SubmitBatchesDocTypeWiseToPCI();
-                AMCore.GetSubmittedPnSResponses();
-                AMCore.ProcessPnSResponses();
-                AMCore.ReportPreppedProcess();
+                if (args.Length > 0)
+                {
+                    AMCore.SubmitBatchesDocTypeWiseToPCI(args[0]);
+                }
+                else
+                {
+                    AMCore.PrepPnSJobs();
+                    AMCore.SubmitBatchesDocTypeWiseToPCI("");
+                    AMCore.GetSubmittedPnSResponses();
+                    AMCore.ProcessPnSResponses();
+                    AMCore.ReportPreppedProcess();
+                }
             }
             else
             {
-                AMCore.PrepPnSJobs();
-                AMCore.SubmitBatchesDocTypeWiseToPCI();
-                AMCore.GetSubmittedPnSResponses();
-                AMCore.ProcessPnSResponses();
-                AMCore.ReportPreppedProcess();
+                if (args.Length > 0)
+                {
+                    AMCore.SubmitBatchesDocTypeWiseToPCI(args[0]);
+                }
+                else
+                {
+                    AMCore.PrepPnSJobs();
+                    AMCore.SubmitBatchesDocTypeWiseToPCI("");
+                    AMCore.GetSubmittedPnSResponses();
+                    AMCore.ProcessPnSResponses();
+                    AMCore.ReportPreppedProcess();
+                }
+
 
                 //ServiceBase[] ServicesToRun;
                 //ServicesToRun = new ServiceBase[] 
