@@ -20,6 +20,8 @@ INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsS
 
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Core_PnSEmail_Subject', N'String', N'Status Update', NULL, 0, N'Status Update', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
+INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Core_BundleSweepClientChannelIds', N'String', N'1', NULL, 0, N'1', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Monitor_AMCDirPath', N'String', N'\\MTC-sagarg\c$\MSTC\AM\AMC', NULL, 0, N'\\MTC-sagarg\c$\MSTC\AM\AMC', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Monitor_ExpressMailingText', N'String', N'-ExpressMailing', NULL, 0, N'-ExpressMailing', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())

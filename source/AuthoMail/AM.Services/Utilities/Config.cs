@@ -63,6 +63,7 @@ namespace AM.Services
         public static int Core_NoofTime_AttemptFedexService { get; private set; }
         public static int Core_FedexServiceAttemptInterval { get; private set; }
         public static TimeSpan Core_FedExSaturdayCutOffTime { get; private set; }
+        public static string Core_BundleSweepClientChannelIds { get; private set; }
 
         //FedEx URLs
         public static string Core_FedExTestService { get; private set; }
