@@ -23,6 +23,7 @@ namespace AM.Services
         int InsertBusinessIdentifierName(int clientId, string businessIdName);
         List<Deliverable> GetDeliverablesByClientId(int clientId);
         Deliverable GetDeliverableByReportType(int clientId, string reportType);
+        List<Holiday> GetHolidayList();
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -124,6 +125,13 @@ namespace AM.Services
                }
                );
             return data.SingleOrDefault();
+        }
+
+        public List<Holiday> GetHolidayList()
+        {
+            string query = "SELECT * FROM [Common].[Holidays]";
+
+            return db.Query<Holiday>(query, null).ToList();
         }
     }
 }
