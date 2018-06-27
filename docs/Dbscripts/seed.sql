@@ -637,3 +637,36 @@ INSERT INTO [Common].[Deliverables]([ClientId],[ReportName],[ReportType],[Delive
 GO
 INSERT INTO [Common].[Deliverables]([ClientId],[ReportName],[ReportType],[DeliveryType],[ReportQuery],[Delimeter],[FileNameExpression],[IsSFTUploadRequired],[UploadPath],[EmailChannelId],[ScheduleId])VALUES(104,'Consolidated Report','Consolidated','Schedule','',',','',1,'',8,NULL)
 GO
+
+
+-- Holiday List
+SET IDENTITY_INSERT [Common].[Holidays] ON
+GO
+INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description], [IsPCIHoliday]) VALUES (1, CAST(N'2018-01-01' AS Date), N'New Year Day', 1)
+GO
+INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description], [IsPCIHoliday]) VALUES (2, CAST(N'2018-01-15' AS Date), N'Martin Luther King Jr. Day', 1)
+GO
+INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description], [IsPCIHoliday]) VALUES (3, CAST(N'2018-02-19' AS Date), N'Presidents Day', 1)
+GO
+INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description], [IsPCIHoliday]) VALUES (4, CAST(N'2018-05-28' AS Date), N'Memorial Day', 1)
+GO
+INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description], [IsPCIHoliday]) VALUES (5, CAST(N'2018-07-04' AS Date), N'Independence Day', 1)
+GO
+INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description], [IsPCIHoliday]) VALUES (6, CAST(N'2018-03-09' AS Date), N'Labor Day', 1)
+GO
+INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description], [IsPCIHoliday]) VALUES (7, CAST(N'2018-08-10' AS Date), N'Columbus Day', 1)
+GO
+INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description], [IsPCIHoliday]) VALUES (8, CAST(N'2018-11-12' AS Date), N'Veterans Day', 1)
+GO
+INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description], [IsPCIHoliday]) VALUES (9, CAST(N'2018-11-22' AS Date), N'Thanks Giving Day', 1)
+GO
+INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description], [IsPCIHoliday]) VALUES (10, CAST(N'2018-11-23' AS Date), N'Day After Thanks Giving', 1)
+GO
+INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description], [IsPCIHoliday]) VALUES (11, CAST(N'2018-12-24' AS Date), N'Christmas Eve', 1)
+GO
+INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description], [IsPCIHoliday]) VALUES (12, CAST(N'2018-12-25' AS Date), N'Christmas', 1)
+GO
+INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description], [IsPCIHoliday]) VALUES (13, CAST(N'2019-01-01' AS Date), N'New Year Day', 1)
+GO
+SET IDENTITY_INSERT [Common].[Holidays] OFF
+GO
