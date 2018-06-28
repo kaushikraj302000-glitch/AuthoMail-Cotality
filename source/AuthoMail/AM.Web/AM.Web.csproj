@@ -67,6 +67,10 @@
       <HintPath>..\packages\AutoMapper.6.2.2\lib\net45\AutoMapper.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -455,6 +459,7 @@
     <Content Include="Views\Admin\ManageDocumentTypes.cshtml" />
     <Content Include="Views\Admin\_AddOrEditDocType.cshtml" />
     <Content Include="Views\Account\AMUsers.cshtml" />
+    <Content Include="Views\Admin\GetUserManager.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

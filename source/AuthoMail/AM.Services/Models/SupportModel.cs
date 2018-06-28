@@ -24,5 +24,11 @@ namespace AM.Services
         public DateTime RequestedOn { get; set; }
         public string Status { get; set; }
     }
-
+    public class EmailAllowedDomain
+    {
+        public string Email { get; set; }
+        public string AllowedDomain { get; set; }
+        public string UserId { get; set; }
+        public string RoleId { get; set; }
+    }
 }

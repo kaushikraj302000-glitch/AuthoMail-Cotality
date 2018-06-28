@@ -43,8 +43,9 @@ namespace AM.Services
         KeyValuePair<bool, string> CreateOrEditSFTChannel(SFTChannels sftChannel);
         int MakeActivateOrDeactivateSFTChannel(int Id, bool isActive);
         //Assign Or Remove ClientUserManager,CoreLogicUserManager role 
-        KeyValuePair<bool, string> AssignClientAdminRole(string email);
-        KeyValuePair<bool, string> RemoveClientAdminRole(string userId, string roleId);
+        KeyValuePair<bool, string> AssignUserManagerRole(string email);
+        KeyValuePair<bool, string> RemoveUserManagerRole(string userId, string roleId);
+        List<EmailAllowedDomain> GetUserManagerList();
         string GetEmailsFromClientDomain(string clientEmail);
     }
     public class SupportService : ServiceBase, ISupportService
@@ -101,10 +102,18 @@ namespace AM.Services
         {
             if (userId != null)
             {
-                string email = db.QuerySingle<string>("SELECT Email FROM [Profile].[Users] WHERE Id= @userId", new { userId = userId });
-                var mailAddress = new MailAddress(email);
-                string sql = "SELECT Id,UserName,Email,EmailConfirmed,FirstName,LastName,DisplayName,RequestedOn,Status FROM [Profile].[Users] WHERE Status = @status AND EmailConfirmed=1 AND Email LIKE @email";
-                return db.Query<UserRequestSignUp>(sql, new { status = AMUserStatus.Open, email = string.Format("%{0}", mailAddress.Host) }).ToList();
+                var emailClient = db.QuerySingle("SELECT Email,Client FROM [Profile].[Users] WHERE Id= @userId", new { userId = userId });
+                var mailAddress = new MailAddress(emailClient.Email);
+                if (mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    string sql = "SELECT Id,UserName,Email,EmailConfirmed,FirstName,LastName,DisplayName,RequestedOn,Status FROM [Profile].[Users] WHERE Status = @status AND EmailConfirmed=1 AND Email LIKE @email";
+                    return db.Query<UserRequestSignUp>(sql, new { status = AMUserStatus.Open, email = string.Format("%{0}", mailAddress.Host) }).ToList();
+                }
+                else
+                {
+                    string sql = "SELECT Id,UserName,Email,EmailConfirmed,FirstName,LastName,DisplayName,RequestedOn,Status FROM [Profile].[Users] WHERE Status = @status AND EmailConfirmed=1 AND ClientId = @clientId";
+                    return db.Query<UserRequestSignUp>(sql, new { status = AMUserStatus.Open, clientId = emailClient.ClientId }).ToList();
+                }
             }
             string query = "SELECT Id,UserName,Email,EmailConfirmed,FirstName,LastName,DisplayName,RequestedOn,Status FROM [Profile].[Users] WHERE Status = @status AND EmailConfirmed=1";
             return db.Query<UserRequestSignUp>(query, new { status = AMUserStatus.Open }).ToList();
@@ -347,15 +356,18 @@ namespace AM.Services
 
 
 
-        public KeyValuePair<bool, string> AssignClientAdminRole(string email)
+        public KeyValuePair<bool, string> AssignUserManagerRole(string email)
         {
             try
             {
-                //Need to think again
-                var roles = db.Query<IdentityRole>("SELECT * FROM [Profile].[Roles] WHERE NAME IN @name", new { name = new List<string>() { AMRoles.ClientUserManager, AMRoles.Client } });
-
                 MailAddress mailAddress = new MailAddress(email);
-                var user = db.QuerySingle<ProfileUser>("SELECT * FROM [Profile].[Users] WHERE Email=@email", new { email = email });
+                var user = db.QuerySingleOrDefault<ProfileUser>("SELECT * FROM [Profile].[Users] WHERE Email=@email", new { email = email });
+                if (user == null) return new KeyValuePair<bool, string>(false, "Email not found.");
+                if (user.Status != AMUserStatus.Approved) return new KeyValuePair<bool, string>(false, "Registered email not yet approved.");
+                var roles = db.Query<IdentityRole>("SELECT * FROM [Profile].[Roles] WHERE NAME IN @name", new { name = new List<string>() { AMRoles.ClientUserManager, AMRoles.CoreLogicUserManager } });
+
+
+
                 string roleId =
                 (mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase))
                 ?
@@ -372,18 +384,22 @@ namespace AM.Services
                 else
                     return new KeyValuePair<bool, string>(false, "Role not assigned. Please try again.");
             }
+            catch (FormatException)
+            {
+                return new KeyValuePair<bool, string>(false, "Invalid email address.");
+            }
             catch (Exception ex)
             {
                 return new KeyValuePair<bool, string>(false, ex.Message);
             }
         }
 
-        public KeyValuePair<bool, string> RemoveClientAdminRole(string userId, string roleId)
+        public KeyValuePair<bool, string> RemoveUserManagerRole(string userId, string roleId)
         {
 
             try
             {
-                string existRole = db.QuerySingleOrDefault<string>("SELECT Id FROM [Profile].[UserRoles] WHERE UserId=@userId and RoleId=@roleId", new { userId = userId, roleId = roleId });
+                string existRole = db.QuerySingleOrDefault<string>("SELECT UserId FROM [Profile].[UserRoles] WHERE UserId=@userId and RoleId=@roleId", new { userId = userId, roleId = roleId });
                 if (existRole.IsNullOrWhiteSpace())
                 {
                     return new KeyValuePair<bool, string>(false, "Role not assigned to this user.");
@@ -399,7 +415,24 @@ namespace AM.Services
                 return new KeyValuePair<bool, string>(false, ex.Message);
             }
         }
+        public List<EmailAllowedDomain> GetUserManagerList()
+        {
+            var list = new List<EmailAllowedDomain>();
+            string query = "with users as ( select u.Email,u.ClientId,u.Id as [UserId],r.Id as [RoleId] from [Profile].[Users] u,[Profile].[UserRoles] ur,[Profile].[Roles] r where u.Id=ur.UserId AND r.Id=ur.RoleId and r.Name =@rolename ), client as ( select * from [Common].[ClientDomains] where ClientId in (select ClientId from users) ), userclient as ( select Email,AllowedDomain,UserId,RoleId from users u,client c where u.ClientId=c.ClientId ) SELECT Email,UserId,RoleId, AllowedDomain = STUFF((SELECT ', ' + AllowedDomain FROM userclient b WHERE b.email = a.email FOR XML PATH('')), 1, 2, '') FROM userclient a GROUP BY Email,UserId,RoleId";
+            var nonCLDomain = db.Query<EmailAllowedDomain>(query, new { rolename = AMRoles.ClientUserManager }).ToList();
+            if (nonCLDomain != null && nonCLDomain.Count() > 0)
+            {
+                list.AddRange(nonCLDomain);
+            }
+            var CLDomain = db.Query<EmailAllowedDomain>("Select Email,u.Id as [UserId],r.Id as [RoleId] from [Profile].[Users] u,[Profile].[UserRoles] ur,[Profile].[Roles] r where u.Id=ur.UserId and ur.RoleId=r.Id and r.Name=@rolename", new { rolename = AMRoles.CoreLogicUserManager }).ToList();
 
+            if (CLDomain != null && CLDomain.Count() > 0)
+            {
+                CLDomain.ForEach(c => c.AllowedDomain = "corelogic.com");
+                list.AddRange(CLDomain);
+            }
+            return list;
+        }
 
         public string GetEmailsFromClientDomain(string clientEmail)
         {
@@ -429,5 +462,6 @@ namespace AM.Services
             }
             return string.Join(",", emailList);
         }
+
     }
 }

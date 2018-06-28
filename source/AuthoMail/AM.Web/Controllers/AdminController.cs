@@ -479,12 +479,60 @@ namespace AM.Web.Controllers
 
         #endregion
 
-        #region Manage ClientAdmin
+        #region Assige Role 
         [HttpGet]
-        public ActionResult GetClientAdmin()
+        public ActionResult GetUserManager()
         {
             return View();
         }
-        #endregion Manage ClientAdmin
+        [HttpGet]
+        public JsonResult GetUserManagerList()
+        {
+            try
+            {
+                var users = supportSvc.GetUserManagerList();
+                return Json(JsonResponseFactory.SuccessResponse(users), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(ex.Message), JsonRequestBehavior.AllowGet);
+            }
+
+        }
+        [HttpPost]
+        public JsonResult AssignUserManagerRole(string email)
+        {
+            try
+            {
+                var result = supportSvc.AssignUserManagerRole(email);
+                if (result.Key)
+                {
+                    return Json(JsonResponseFactory.SuccessResponse(result.Value), JsonRequestBehavior.AllowGet);
+                }
+                return Json(JsonResponseFactory.ErrorResponse(result.Value), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(ex.Message), JsonRequestBehavior.AllowGet);
+            }
+        }
+        [HttpPost]
+        public JsonResult RemoveUserManagerRole(string userId, string roleId)
+        {
+            try
+            {
+                var result = supportSvc.RemoveUserManagerRole(userId, roleId);
+                if (result.Key)
+                {
+                    return Json(JsonResponseFactory.SuccessResponse(result.Value), JsonRequestBehavior.AllowGet);
+                }
+                return Json(JsonResponseFactory.ErrorResponse(result.Value), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(ex.Message), JsonRequestBehavior.AllowGet);
+            }
+        }
+        #endregion 
     }
 }
