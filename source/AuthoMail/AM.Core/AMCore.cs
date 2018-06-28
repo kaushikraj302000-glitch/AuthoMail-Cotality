@@ -61,7 +61,7 @@ namespace AM.Core
                         {
                             DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value);
 
-                            mailPiece.DueDate = GetDueDate(docType.SLADays, docType.SLACutOffTime, mailBatch.ReceivedOn.Value, docType.ShippingCarrier);
+                            mailPiece.DueDate = GetDueDate(docType, mailBatch.ReceivedOn.Value);
                             //mailPiece.DocTypeId = docType.Id;
 
                             int mailPieceId = mailPiece.Id;
@@ -290,7 +290,7 @@ namespace AM.Core
             }
         }
 
-        public static void SendUnexpectedExcelptionEmail(string exception)
+        private static void SendUnexpectedExcelptionEmail(string exception)
         {
             try
             {
@@ -362,34 +362,100 @@ namespace AM.Core
             }
         }
 
-        private static DateTime GetDueDate(int slaDays, TimeSpan estSLACutOffTime, DateTime utcReceivedOn, string shippingCarrier)
+        private static DateTime GetDueDate(DocType docType, DateTime utcReceivedOn)
         {
-
             //ReceivedOn Time of Batch
             var estReceivedOn = utcReceivedOn.UtcToEst();
 
             var estReceivedOnDate = estReceivedOn.Date;
 
-            //logic for FedEx Saturday Cut off timings
-            if (estReceivedOnDate.DayOfWeek.ToString() == "Saturday" && shippingCarrier == Carrier.FedEx.ToString())
+            DayOfWeek dayOfWeek = estReceivedOnDate.DayOfWeek;
+
+            string slaTimeSpan = string.Empty;
+            string slaCutOff = string.Empty;
+            string slaType = string.Empty;
+            bool isSatWorkDay = false;
+            bool isSunWorkDay = false;
+
+            DateTime dueDate = new DateTime();
+
+            if (dayOfWeek == DayOfWeek.Saturday)
             {
-                estSLACutOffTime = Config.Core_FedExSaturdayCutOffTime;
+                slaTimeSpan = docType.SatTimeSpan;
+                slaCutOff = docType.SatCutOff;
+                slaType = docType.SatSLAType;
+                isSatWorkDay = true;
+                if (docType.SatSLAType == SLAType.NA)
+                {
+                    dayOfWeek = DayOfWeek.Sunday;
+                    isSatWorkDay = false;
+                }
             }
 
-            //Should be in cut off Date time
-            var estSLACutOffDateTime = (estReceivedOnDate + estSLACutOffTime);
-
-            if (estReceivedOn > estSLACutOffDateTime)
+            if (dayOfWeek == DayOfWeek.Sunday)
             {
-                //Here we have actual SLA days for DocType and added 1 because batch received after cut off time.
-                slaDays += 1;
+                slaTimeSpan = docType.SunTimeSpan;
+                slaCutOff = docType.SunCutOff;
+                slaType = docType.SunSLAType;
+                isSunWorkDay = true;
+                if (docType.SatSLAType == SLAType.NA)
+                {
+                    dayOfWeek = DayOfWeek.Monday;
+                    isSunWorkDay = false;
+                }
             }
 
-            //Here we just add actual SLA days because batch received before cut off time
-            return (estReceivedOnDate.AddDays(slaDays) + new TimeSpan(23, 59, 59)).EstToUtc();
+            if (dayOfWeek != DayOfWeek.Sunday && dayOfWeek != DayOfWeek.Saturday)
+            {
+                slaTimeSpan = docType.BizdayTimeSpan;
+                slaCutOff = docType.BizdayCutOff;
+                slaType = docType.BizdaySLAType;
+            }
+
+
+            if (slaType == SLAType.Duration)
+            {
+                dueDate = estReceivedOn + TimeSpan.Parse(slaTimeSpan);
+            }
+            else if (slaType == SLAType.FixedTime)
+            {
+                //Should be in cut off Date time
+                var estSLACutOffDateTime = (estReceivedOnDate + TimeSpan.Parse(slaCutOff));
+
+                if (estReceivedOn > estSLACutOffDateTime)
+                {
+                    dueDate = (estReceivedOnDate + TimeSpan.Parse(slaTimeSpan)).AddDays(1);
+                }
+                else
+                {
+                    dueDate = (estReceivedOnDate + TimeSpan.Parse(slaTimeSpan));
+                }
+            }
+
+            while (!IsBusinessDay(dueDate, Config.Common_Holidays, isSatWorkDay, isSunWorkDay))
+            {
+                dueDate = dueDate.AddDays(1);
+            }
+
+            return dueDate.EstToUtc();
+        }
+
+        private static bool IsBusinessDay(DateTime dueDate, List<Holiday> holidays, bool isSatWorkDay, bool isSunWorkDay)
+        {
+            if (holidays.Select(c => c.HolidayDate).Contains(dueDate.Date))
+                return false;
+
+            if (dueDate.DayOfWeek == DayOfWeek.Saturday)
+                return isSatWorkDay;
+
+            if (dueDate.DayOfWeek == DayOfWeek.Sunday)
+                return isSunWorkDay;
+
+            return true;
         }
         #endregion
 
+        #region SubmitBatchesDocTypeWise
         internal static void SubmitBatchesDocTypeWiseToPCI(string arg)
         {
             using (IMailBatchService mailBatchSvc = new MailBatchService())
@@ -576,6 +642,7 @@ namespace AM.Core
                 }
             }
         }
+        #endregion
 
         internal static void GetSubmittedPnSResponses()
         {
@@ -769,6 +836,7 @@ namespace AM.Core
             log.Debug("Process PnS response job is completed.");
         }
 
+        #region ReportPreppedProcess
         internal static void ReportPreppedProcess()
         {
             log.Debug("Report prepped job is started.");
@@ -909,5 +977,6 @@ namespace AM.Core
             }
             return isReportGenerated;
         }
+        #endregion
     }
 }

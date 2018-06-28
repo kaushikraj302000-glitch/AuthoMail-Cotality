@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Web.Hosting;
 using AM.Lib;
 using System.ComponentModel;
+using AM.Entities;
 
 namespace AM.Services
 {
@@ -19,6 +20,7 @@ namespace AM.Services
         public static string Common_Environment { get; private set; }
         public static string Common_AuthoMailRootFolder { get; private set; }
         public static string Common_PrintLocation { get; private set; }
+        public static List<Holiday> Common_Holidays { get; private set; }
 
         #endregion
 
@@ -168,6 +170,10 @@ namespace AM.Services
         {
             // Initialize config settings
             InitializeProperties<Config>();
+            using (ICommonService commonSvc = new CommonService())
+            {
+                Common_Holidays = commonSvc.GetHolidayList();
+            }
         }
 
         private static void InitializeProperties<T>()
