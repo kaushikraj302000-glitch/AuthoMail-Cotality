@@ -102,10 +102,19 @@ namespace AM.Services
         {
             if (userId != null)
             {
-                string email = db.QuerySingle<string>("SELECT Email FROM [Profile].[Users] WHERE Id= @userId", new { userId = userId });
-                var mailAddress = new MailAddress(email);
-                string sql = "SELECT Id,UserName,Email,EmailConfirmed,FirstName,LastName,DisplayName,RequestedOn,Status FROM [Profile].[Users] WHERE Status = @status AND EmailConfirmed=1 AND Email LIKE @email";
-                return db.Query<UserRequestSignUp>(sql, new { status = AMUserStatus.Open, email = string.Format("%{0}", mailAddress.Host) }).ToList();
+                var emailClient = db.QuerySingle("SELECT Email,Client FROM [Profile].[Users] WHERE Id= @userId", new { userId = userId });
+                var mailAddress = new MailAddress(emailClient.Email);
+                if (mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    string sql = "SELECT Id,UserName,Email,EmailConfirmed,FirstName,LastName,DisplayName,RequestedOn,Status FROM [Profile].[Users] WHERE Status = @status AND EmailConfirmed=1 AND Email LIKE @email";
+                    return db.Query<UserRequestSignUp>(sql, new { status = AMUserStatus.Open, email = string.Format("%{0}", mailAddress.Host) }).ToList();
+                }
+                else
+                {
+
+                    string sql = "SELECT Id,UserName,Email,EmailConfirmed,FirstName,LastName,DisplayName,RequestedOn,Status FROM [Profile].[Users] WHERE Status = @status AND EmailConfirmed=1 AND ClientId = @clientId";
+                    return db.Query<UserRequestSignUp>(sql, new { status = AMUserStatus.Open, clientId = emailClient.ClientId }).ToList();
+                }
             }
             string query = "SELECT Id,UserName,Email,EmailConfirmed,FirstName,LastName,DisplayName,RequestedOn,Status FROM [Profile].[Users] WHERE Status = @status AND EmailConfirmed=1";
             return db.Query<UserRequestSignUp>(query, new { status = AMUserStatus.Open }).ToList();
@@ -391,7 +400,7 @@ namespace AM.Services
 
             try
             {
-                string existRole = db.QuerySingleOrDefault<string>("SELECT Id FROM [Profile].[UserRoles] WHERE UserId=@userId and RoleId=@roleId", new { userId = userId, roleId = roleId });
+                string existRole = db.QuerySingleOrDefault<string>("SELECT UserId FROM [Profile].[UserRoles] WHERE UserId=@userId and RoleId=@roleId", new { userId = userId, roleId = roleId });
                 if (existRole.IsNullOrWhiteSpace())
                 {
                     return new KeyValuePair<bool, string>(false, "Role not assigned to this user.");
