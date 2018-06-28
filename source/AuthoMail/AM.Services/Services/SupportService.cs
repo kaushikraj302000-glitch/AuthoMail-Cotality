@@ -111,7 +111,6 @@ namespace AM.Services
                 }
                 else
                 {
-
                     string sql = "SELECT Id,UserName,Email,EmailConfirmed,FirstName,LastName,DisplayName,RequestedOn,Status FROM [Profile].[Users] WHERE Status = @status AND EmailConfirmed=1 AND ClientId = @clientId";
                     return db.Query<UserRequestSignUp>(sql, new { status = AMUserStatus.Open, clientId = emailClient.ClientId }).ToList();
                 }
