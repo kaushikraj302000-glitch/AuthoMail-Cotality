@@ -479,12 +479,7 @@ namespace AM.Web.Controllers
 
         #endregion
 
-        #region Manage ClientAdmin
-        [HttpGet]
-        public ActionResult GetClientAdmin()
-        {
-            return View();
-        }
+        #region Assige Role 
         [HttpGet]
         public ActionResult GetUserManager()
         {
@@ -538,6 +533,6 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse(ex.Message), JsonRequestBehavior.AllowGet);
             }
         }
-        #endregion Manage ClientAdmin
+        #endregion 
     }
 }
