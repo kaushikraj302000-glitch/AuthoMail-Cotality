@@ -353,7 +353,7 @@ namespace AM.Services
             try
             {
                 MailAddress mailAddress = new MailAddress(email);
-                var user = db.QuerySingle<ProfileUser>("SELECT * FROM [Profile].[Users] WHERE Email=@email", new { email = email });
+                var user = db.QuerySingleOrDefault<ProfileUser>("SELECT * FROM [Profile].[Users] WHERE Email=@email", new { email = email });
                 if (user == null) return new KeyValuePair<bool, string>(false, "Email not found.");
                 if (user.Status != AMUserStatus.Approved) return new KeyValuePair<bool, string>(false, "Registered email not yet approved.");
                 var roles = db.Query<IdentityRole>("SELECT * FROM [Profile].[Roles] WHERE NAME IN @name", new { name = new List<string>() { AMRoles.ClientUserManager, AMRoles.CoreLogicUserManager } });
@@ -376,7 +376,7 @@ namespace AM.Services
                 else
                     return new KeyValuePair<bool, string>(false, "Role not assigned. Please try again.");
             }
-            catch (FormatException fex)
+            catch (FormatException)
             {
                 return new KeyValuePair<bool, string>(false, "Invalid email address.");
             }
