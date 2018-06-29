@@ -16,7 +16,7 @@ using AutoMapper;
 namespace AM.Web.Controllers
 {
     [Authorize]
-    public class HomeController : Controller
+    public class HomeController : BaseController
     {
         IHomeService homeSvc;
         IPullBackService pullBackSvc;

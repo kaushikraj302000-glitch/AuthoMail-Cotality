@@ -14,7 +14,7 @@ using Microsoft.Owin.Security;
 namespace AM.Web.Controllers
 {
     [Authorize]
-    public class CommonController : Controller
+    public class CommonController : BaseController
     {
         IReportService repoSvc;
         IHomeService homeSvc;

@@ -14,7 +14,7 @@ using System.Text;
 namespace AM.Web.Controllers
 {
     [Authorize]
-    public class ManageController : Controller
+    public class ManageController : BaseController
     {
         private AMSignInManager _signInManager;
         private AMUserManager _userManager;

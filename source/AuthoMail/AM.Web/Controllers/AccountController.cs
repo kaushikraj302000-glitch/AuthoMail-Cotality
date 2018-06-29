@@ -22,7 +22,7 @@ using System.Net;
 namespace AM.Web.Controllers
 {
     [Authorize]
-    public class AccountController : Controller
+    public class AccountController : BaseController
     {
         private AMSignInManager _signInManager;
         private AMUserManager _userManager;

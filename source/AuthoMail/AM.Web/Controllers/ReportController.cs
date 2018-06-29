@@ -12,7 +12,7 @@ using AutoMapper;
 namespace AM.Web.Controllers
 {
     [Authorize]
-    public class ReportController : Controller
+    public class ReportController : BaseController
     {
         IHomeService homeSvc;
         IReportService repoSvc;
@@ -78,7 +78,8 @@ namespace AM.Web.Controllers
 
             var data = repoSvc.GetMonthlyReconReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate, channel);
             var model=Mapper.Map<List<MonthlyReconReportViewModel>>(data);
-            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+           return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+            
         }
 
 

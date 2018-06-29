@@ -16,5 +16,6 @@ namespace AM.Web.Models
         public int TotalPages { get; set; }
         public DateTime? PrintedOn { get; set; }
         public DateTime? ShippedOn { get; set; }
+        public string PdfReceivedPath { get; set; }
     }
 }

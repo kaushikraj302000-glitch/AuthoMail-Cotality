@@ -74,6 +74,7 @@
                 <th>File Name</th>
                 <th>Channel</th>
                 <th>Document Type</th>
+                <th>Return Pdf </th>
                 <th>First Name</th>
                 <th>Last Name</th>
                 <th>Recipient Street Address</th>
@@ -101,6 +102,7 @@
                 <td><span>{FileName}</span></td>
                 <td><span>{Channel}</span></td>
                 <td><span>{DocType}</span></td>
+                <td><span data-toggle="tooltip" data-placement="top" title="{message}">{ReturnPdf}</span></td>
                 <td><span>{FirstName}</span></td>
                 <td><span>{LastName}</span></td>
                 <td><span>{Address}</span></td>
@@ -126,6 +128,7 @@
     <script>
         $(document).ready(function () {
             window.clui.dateTimePickerInit();
+            window.clui.tooltipInit();
             FilterData();
         });
         function applyDataTable() {
@@ -133,6 +136,7 @@
             var table = $('#sample_2');
             var filename = "MonthlyReconReport";
             var title = "Monthly Recon Report";
+            window.clui.tooltipInit();
             var oTable = table.dataTable({
 
                 "language": {
@@ -196,6 +200,8 @@
                 this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
                 this.MailedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
+                this.message = this.PdfReceivedPath == null ? "File not received." : "View / Download";
+                this.ReturnPdf = this.PdfReceivedPath == null ? "<i class='fa fa-file-pdf-o' disabled='true' style='cursor:not-allowed;'></i>" : "<i class='fa fa-file-pdf-o' style='color:red'></i>";
             });
             return Model;
         }
@@ -229,6 +235,7 @@
                                 var data = FormatObject(response.Object.model);
                                 $("#monthlyList").html("");
                                 BindTemplate(data, "#monthlyBody", "#monthlybodyContent", "#monthlyTableContent", "#monthlyList");
+                                 window.clui.tooltipInit();
                             }
                             else {
                                 $("#monthlyList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")

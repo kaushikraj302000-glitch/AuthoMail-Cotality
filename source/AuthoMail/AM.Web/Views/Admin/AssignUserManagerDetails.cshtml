@@ -73,7 +73,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <form id="assignform">
+            <form id="assignform" action="#">
                 <div class="modal-header" style="margin-top:2%;margin-bottom:2%;">
                     <h3>Assign User Manager Role</h3>
                 </div>
@@ -156,7 +156,12 @@
         });
         return Model;
     }
-
+    $('#assignemail').on("keypress", function (e) {
+        if (e.keyCode == 13) {
+            e.preventDefault();
+            $('#SaveAssignRoleBtn').click(); // prevent the button click from happening
+        }
+    });
     function GetData() {
         $("#UserManagerList").hide();
         var el = $('#UserManagerList');
