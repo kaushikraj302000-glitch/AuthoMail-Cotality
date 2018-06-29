@@ -531,7 +531,7 @@
         function ViewDetails(obj) {
             //alert("call");
             var mailPieceId = $(obj).data("mailpieceid");
-            console.log(mailPieceId);
+            //console.log(mailPieceId);
             $.ajax({
                 type: "GET",
                 url: baseUrl + "Home/GetMailPieceByUniqueId",
@@ -540,7 +540,7 @@
                 },
                 //contentType: "application/json; charset=utf-8",
                 success: function (response) {
-                    console.log(response);
+                    //console.log(response);
                     if (response.Success) {
                         if (response.Object != null) {
                             if (response.Object.model != null) {
@@ -655,7 +655,7 @@
                 var eddDesc = '<span id="popoverError" data-toggle="popover" data-original-title="Error Code: <ErrorCode>" data-html="true" data-content="<dataContent>" data-placement="left"><a> <ErrorCode> </a></span>'.replace(/<ErrorCode>/g, this.ErrorCode).replace("<dataContent>", this.ErrorDesc == null ? "--" : this.ErrorDesc);
                 this.ErrorDescPopover = this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>' : eddDesc;
             });
-            console.log(Model);
+            //console.log(Model);
             return Model;
         }
         function FormatObject(Model) {

@@ -74,9 +74,9 @@
                 <td><span>{Host}</span></td>
                 <td><span>{UserName}</span></td>
                 <td><span>{Password}</span></td>
-                <td><span data-toggle="tooltip" data-placement="top" title="{ToADEDir}">{ToADEDirShort}</span></td>
-                <td><span data-toggle="tooltip" data-placement="top" title="{FromADEDir}">{FromADEDirShort}</span></td>
-                <td><span data-toggle="tooltip" data-placement="top" title="{ArchiveDir}">{ArchiveDirShort}</span></td>
+                <td><span data-toggle="tooltip" data-placement="top" data-container="body" title="{ToADEDir}">{ToADEDirShort}</span></td>
+                <td><span data-toggle="tooltip" data-placement="top" data-container="body" title="{FromADEDir}">{FromADEDirShort}</span></td>
+                <td><span data-toggle="tooltip" data-placement="top" data-container="body" title="{ArchiveDir}">{ArchiveDirShort}</span></td>
                 <td><span>{PostDownloadAction}</span></td>
             </tr>
         </tbody>
@@ -251,7 +251,7 @@
         }
         function ProtocolOnChange() {
             $("#Protocol").change(function () {
-                console.log($(this).val())
+                //console.log($(this).val())
                 if ($(this).val() != "unc") {
                     $("#UserName").rules('add', {
                         required: true

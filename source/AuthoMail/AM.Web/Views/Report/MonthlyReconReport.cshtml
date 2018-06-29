@@ -102,7 +102,7 @@
                 <td><span>{FileName}</span></td>
                 <td><span>{Channel}</span></td>
                 <td><span>{DocType}</span></td>
-                <td><span data-toggle="tooltip" data-placement="top" title="{message}">{ReturnPdf}</span></td>
+                <td><span data-toggle="tooltip" data-container="body" data-placement="top" title="{message}">{ReturnPdf}</span></td>
                 <td><span>{FirstName}</span></td>
                 <td><span>{LastName}</span></td>
                 <td><span>{Address}</span></td>
@@ -201,7 +201,7 @@
                 this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
                 this.MailedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
                 this.message = this.PdfReceivedPath == null ? "File not received." : "View / Download";
-                this.ReturnPdf = this.PdfReceivedPath == null ? "<i class='fa fa-file-pdf-o' disabled='true' style='cursor:not-allowed;'></i>" : "<i class='fa fa-file-pdf-o' style='color:red'></i>";
+                this.ReturnPdf = this.PdfReceivedPath == null ? "<i class='fa fa-file-pdf-o' disabled='true' style='cursor:not-allowed;'></i>" : "<a href='" + this.PdfReceivedPath + "'  target='_blank'><i class='fa fa-file-pdf-o' style='color:red'></i></a>";
             });
             return Model;
         }

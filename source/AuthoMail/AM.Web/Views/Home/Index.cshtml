@@ -260,7 +260,7 @@
                 <td><span>{TotalPages}</span></td>
                 <td><span>{DocType}</span></td>
                 <td><span>{TrackingNo}</span></td>
-                <td><span data-toggle="tooltip" data-placement="top" title="{FileName}">{FileNameFormatted}</span></td>
+                <td><span data-toggle="tooltip" data-container="body" data-placement="top" title="{FileName}">{FileNameFormatted}</span></td>
             </tr>
         </tbody>
     </table>
@@ -291,7 +291,7 @@
         <tbody id="ChartMailPieceBody">
             <tr class="row-small">
                 <td><span>{BusinessIdValue}</span></td>
-                <td><span data-toggle="tooltip" data-placement="top" title="{FileName}">{FileNameFormatted}</span></td>
+                <td><span data-toggle="tooltip" data-container="body" data-placement="top" title="{FileName}">{FileNameFormatted}</span></td>
                 <td><span>{Name}</span></td>
                 <td><span>{Address}</span></td>
                 <td class="receivedon"><span>{MailPieceReceivedOn}</span></td>
@@ -330,7 +330,7 @@
         <tbody id="WeeklyChartMailPieceBody">
             <tr class="row-small">
                 <td><span>{BusinessIdValue}</span></td>
-                <td><span data-toggle="tooltip" data-placement="top" title="{FileName}">{FileNameFormatted}</span></td>
+                <td><span data-toggle="tooltip" data-container="body" data-placement="top" title="{FileName}">{FileNameFormatted}</span></td>
                 <td><span>{Name}</span></td>
                 <td><span>{Address}</span></td>
                 <td><span>{MailPieceReceivedOn}</span></td>
@@ -364,8 +364,8 @@
     <table>
         <tbody id="WeeklyChartBody">
             <tr class="row-small">
-                <td><span data-toggle="tooltip" data-placement="top" title="{ClientBatchId}">{ClientBatchIdFormatted}</span></td>
-                <td><span data-toggle="tooltip" data-placement="top" title="{BatchName}">{BatchNameFormatted}</span></td>
+                <td><span data-toggle="tooltip" data-container="body" data-placement="top" title="{ClientBatchId}">{ClientBatchIdFormatted}</span></td>
+                <td><span data-toggle="tooltip" data-container="body" data-placement="top" title="{BatchName}">{BatchNameFormatted}</span></td>
                 <td><span>{BatchStatusFormatted}</span></td>
                 <td><span>{MailPieceCount}</span></td>
                 <td><span>{ReceivedOnFormatted}</span></td>
@@ -1012,12 +1012,12 @@
             //console.log(Model);
         }
         function shortName(str) {
-            console.log(str);
+            //console.log(str);
             if(typeof str != 'undefined' && str!=null && str!="")
             return str.length > 31 ? str.substring(0, 31) + '...' : str;
         }
         function FormatObject(Model) {
-            console.log(Model);
+            //console.log(Model);
             $(Model).each(function () {
                 var requestedPullback = this.IsPullBackRequested ? '<span class="label medium label-yellow">Yes</span>' : '<span class="label medium label-success">No</span>';
                 var status = "";

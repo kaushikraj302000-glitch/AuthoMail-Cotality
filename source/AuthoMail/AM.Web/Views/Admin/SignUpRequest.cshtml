@@ -287,7 +287,7 @@
         });
 
         function UpdateUserStatus(userId, status) {
-            console.log(userId+" "+status)
+            //console.log(userId+" "+status)
             var el = $("#myModal").find(".modal-body");
             el.empty();
             $.ajax({
@@ -297,7 +297,7 @@
                 contentType: "application/json; charset=utf-8",
                 dataType: "JSON",
                 success: function (response) {
-                    console.log(response);
+                    //console.log(response);
                     //Spinners("#pullback", "fa-reply");
                     if (response.Success) {
                         if (response.Object != null) {
@@ -311,7 +311,7 @@
                         FilterData();
                     }
                     else {
-                        console.log(response.ErrorMessage);
+                        //console.log(response.ErrorMessage);
                         el.html("<div class='alert alert-red'>" + response.ErrorMessage + "</div>");
 
                     }

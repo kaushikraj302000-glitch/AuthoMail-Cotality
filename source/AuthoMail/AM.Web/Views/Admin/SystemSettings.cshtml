@@ -251,7 +251,7 @@
                 contentType: "application/json; charset=utf-8",
                 dataType: "JSON",
                 success: function (response) {
-                    console.log(response);
+                    //console.log(response);
                     //Spinners("#pullback", "fa-reply");
                     if (response.Success) {
                         if (response.Object != null) {
@@ -284,7 +284,7 @@
 
 
         function UpdateUserStatus(userId, status) {
-            console.log(userId);
+            //console.log(userId);
             return;
             var el = $("#myModal").find(".modal-body");
             el.empty();
@@ -295,7 +295,7 @@
                 contentType: "application/json; charset=utf-8",
                 dataType: "JSON",
                 success: function (response) {
-                    console.log(response);
+                    //console.log(response);
                     //Spinners("#pullback", "fa-reply");
                     if (response.Success) {
                         if (response.Object != null) {

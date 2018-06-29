@@ -141,7 +141,7 @@
                 return this.optional(element) || /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,20}$/i.test(value);
             },"Passwords are 8-20 characters with uppercase letters, lowercase letters and at least one number.");
             jQuery.validator.addMethod("doctypecode",function(value,element){
-                console.log(!(/^[-]+[\s]+$/i.test(value)));
+                //console.log(!(/^[-]+[\s]+$/i.test(value)));
                 return this.optional(element) || !(/[-\s]+/i.test(value));
             },"space and dash not allow.");
             //""
