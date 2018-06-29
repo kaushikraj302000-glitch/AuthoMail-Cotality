@@ -12,7 +12,7 @@ using AM.Web.Models;
 namespace AM.Web.Controllers
 {
     [Authorize]
-    public class RequestPullBackController : Controller
+    public class RequestPullBackController : BaseController
     {
         // GET: PullBackRequest
         IHomeService homeSvc;

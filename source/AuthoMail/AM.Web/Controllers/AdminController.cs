@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace AM.Web.Controllers
 {
     [Authorize(Roles = AMRoles.Admin + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager)]
-    public class AdminController : Controller
+    public class AdminController : BaseController
     {
         private AMUserManager _userManager;
         ISupportService supportSvc;
@@ -481,7 +481,7 @@ namespace AM.Web.Controllers
 
         #region Assige Role 
         [HttpGet]
-        public ActionResult GetUserManager()
+        public ActionResult AssignUserManagerDetails()
         {
             return View();
         }

@@ -135,6 +135,7 @@ namespace AM.Services
         #endregion
 
         #region WEB Common Msg
+        public static int Web_MaxJsonLength { get; private set; }
         public static string Web_Msg_Ajax_CommonError { get; private set; }
         public static string Web_Msg_NoRecordFound { get; private set; }
         public static string Web_Msg_PullBackConfirmation { get; private set; }
