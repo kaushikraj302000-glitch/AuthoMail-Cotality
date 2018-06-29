@@ -40,8 +40,15 @@ namespace AM.Entities
         public string SupportContactNo { get; set; }
         public int ClientId { get; set; }
         public float QCPercent { get; set; }
-        public int SLADays { get; set; }
-        public TimeSpan SLACutOffTime { get; set; }
+        public string BizdayCutOff { get; set; }
+        public string BizdaySLAType { get; set; }
+        public string BizdayTimeSpan { get; set; }
+        public string SatCutOff { get; set; }
+        public string SatSLAType { get; set; }
+        public string SatTimeSpan { get; set; }
+        public string SunCutOff { get; set; }
+        public string SunSLAType { get; set; }
+        public string SunTimeSpan { get; set; }
         public DateTime ModifiedOn { get; set; }
         public DateTime CreatedOn { get; set; }
         public string ModifiedBy { get; set; }

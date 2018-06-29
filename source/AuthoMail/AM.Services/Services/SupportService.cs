@@ -102,7 +102,7 @@ namespace AM.Services
         {
             if (userId != null)
             {
-                var emailClient = db.QuerySingle("SELECT Email,Client FROM [Profile].[Users] WHERE Id= @userId", new { userId = userId });
+                var emailClient = db.QuerySingle("SELECT Email,ClientId FROM [Profile].[Users] WHERE Id= @userId", new { userId = userId });
                 var mailAddress = new MailAddress(emailClient.Email);
                 if (mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase))
                 {
@@ -111,8 +111,19 @@ namespace AM.Services
                 }
                 else
                 {
-                    string sql = "SELECT Id,UserName,Email,EmailConfirmed,FirstName,LastName,DisplayName,RequestedOn,Status FROM [Profile].[Users] WHERE Status = @status AND EmailConfirmed=1 AND ClientId = @clientId";
-                    return db.Query<UserRequestSignUp>(sql, new { status = AMUserStatus.Open, clientId = emailClient.ClientId }).ToList();
+                    var domains = db.Query<string>("SELECT AllowedDomain FROM [Common].[ClientDomains] WHERE ClientId=@clientId", new { clientId = emailClient.ClientId }).ToList();
+
+                    string emailQuery = "";
+                    int i = 0;
+                    foreach (var item in domains)
+                    {
+                        i++;
+                        emailQuery = domains.Count() == i ? string.Format("{0} Email LIKE '%{1}'", emailQuery, item) :
+                            string.Format("{0} Email LIKE '%{1}' OR", emailQuery, item);
+
+                    }
+                    string sql = string.Format("SELECT Id,UserName,Email,EmailConfirmed,FirstName,LastName,DisplayName,RequestedOn,Status FROM [Profile].[Users] WHERE Status = @status AND EmailConfirmed=1 AND ({0})", emailQuery);
+                    return db.Query<UserRequestSignUp>(sql, new { status = AMUserStatus.Open }).ToList();
                 }
             }
             string query = "SELECT Id,UserName,Email,EmailConfirmed,FirstName,LastName,DisplayName,RequestedOn,Status FROM [Profile].[Users] WHERE Status = @status AND EmailConfirmed=1";

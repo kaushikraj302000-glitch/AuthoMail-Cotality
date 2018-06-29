@@ -278,6 +278,13 @@ namespace AM.Entities
         USPS_EXPRESSMAIL = 8
     }
 
+    public static class SLAType
+    {
+        public const string FixedTime = "FixedTime";
+        public const string Duration = "Duration";
+        public const string NA = "NA";
+    }
+
     public class MailBatchInfo
     {
         public string BatchRepo { get; private set; }
