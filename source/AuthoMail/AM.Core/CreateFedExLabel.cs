@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.ServiceModel;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -21,7 +22,12 @@ namespace AM.Core
 
         public bool Create(MailPieceDTO mailPiece, FedExAccountInfo fedExAccInfo, DocType docType, MailBatchInfo mbi)
         {
+            //Here we are assigning No_Error because if we have any general failure or end point exception then we are trying again.
+            mailPiece.ErrorCode = OutComeCodes.No_Error;
+            mailPiece.ErrorDesc = null;
+
             bool isLabelGenerated = false;
+            
             ProcessShipmentRequest request = CreateShipmentRequest(mailPiece, fedExAccInfo, docType);
             // Initialize the service
             ShipPortTypeClient service = new ShipPortTypeClient();
@@ -36,24 +42,34 @@ namespace AM.Core
                 service.Endpoint.Address = new System.ServiceModel.EndpointAddress(Config.Core_FedExTestService);
             }
 
-            // Call the ship web service passing in a shipment request and returning a shipment reply
-            ProcessShipmentReply reply = service.processShipment(request);
-            // check if the call was successful
-            if ((reply.HighestSeverity != NotificationSeverityType.ERROR) && (reply.HighestSeverity != NotificationSeverityType.FAILURE))
+            try
             {
-                GenerateShipmentLabel(reply, mbi, ref isLabelGenerated);
+                // Call the ship web service passing in a shipment request and returning a shipment reply
+                ProcessShipmentReply reply = service.processShipment(request);
+                // check if the call was successful
+                if ((reply.HighestSeverity != NotificationSeverityType.ERROR) && (reply.HighestSeverity != NotificationSeverityType.FAILURE))
+                {
+                    GenerateShipmentLabel(reply, mbi, ref isLabelGenerated);
+                }
+                else
+                {
+                    List<Notification> notificaitons = new List<Notification>(reply.Notifications);
+                    StringBuilder sbMessages = new StringBuilder(string.Format("Error occurred while generating FedEx label for client {0} and {1} : {2}<br/>", mbi.Client.AppCode, mailPiece.BusinessFriendlyIdName, mailPiece.BusinessFriendlyIdValue));
+                    notificaitons.ForEach(n => sbMessages = sbMessages.AppendLine(n.Message));
+                    log.Error(sbMessages.ToString());
+
+                    mailPiece.ErrorCode = OutComeCodes.Invalid_ShippingDetail;
+
+                    // TODO: Check other props of notification. Sometimes rarely in error message FedEx exception also comes. So, we have to replace all new lines in message with space.
+                    mailPiece.ErrorDesc = string.Format("{0}|{1}", OutComeCodes.Invalid_ShippingDetail, reply.Notifications[0].Message);
+                    isLabelGenerated = false;
+                }
             }
-            else
+            catch (EndpointNotFoundException ex)
             {
-                List<Notification> notificaitons = new List<Notification>(reply.Notifications);
-                StringBuilder sbMessages = new StringBuilder(string.Format("Error occurred while generating FedEx label for client {0} and {1} : {2}<br/>", mbi.Client.AppCode, mailPiece.BusinessFriendlyIdName, mailPiece.BusinessFriendlyIdValue));
-                notificaitons.ForEach(n => sbMessages = sbMessages.AppendLine(n.Message));
-                log.Error(sbMessages.ToString());
-
-                mailPiece.ErrorCode = OutComeCodes.Invalid_ShippingDetail;
-
-                // TODO: Check other props of notification. Sometimes rarely in error message FedEx exception also comes. So, we have to replace all new lines in message with space.
-                mailPiece.ErrorDesc = string.Format("{0}|{1}", OutComeCodes.Invalid_ShippingDetail, reply.Notifications[0].Message);
+                log.Error("Error occured while connecting to End Points : ", ex);
+                mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
+                mailPiece.ErrorDesc = string.Format("{0}|{1}", OutComeCodes.Unknown_Error, "EndPoint_Error");
                 isLabelGenerated = false;
             }
 
