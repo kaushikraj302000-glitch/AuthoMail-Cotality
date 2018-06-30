@@ -74,7 +74,7 @@
                 <th>File Name</th>
                 <th>Channel</th>
                 <th>Document Type</th>
-                <th>Return Pdf </th>
+                <th class="notprint">Return Pdf </th>
                 <th>First Name</th>
                 <th>Last Name</th>
                 <th>Recipient Street Address</th>
@@ -167,9 +167,9 @@
                     className: 'btn btn-primary',
                     filename: filename,
                     title: title,
-                    //exportOptions: {
-                    //    columns: [0, 1, 2, 3, 4, 5, 6, 7]
-                    //}
+                    exportOptions: {
+                        columns: "thead th:not(.notprint)",//[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+                    }
 
                 },
 
