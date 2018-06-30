@@ -201,7 +201,7 @@
                 this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
                 this.MailedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
                 this.message = this.PdfReceivedPath == null ? "File not received." : "View / Download";
-                this.ReturnPdf = this.PdfReceivedPath == null ? "<i class='fa fa-file-pdf-o' disabled='true' style='cursor:not-allowed;'></i>" : "<a href='" + this.PdfReceivedPath + "'  target='_blank'><i class='fa fa-file-pdf-o' style='color:red'></i></a>";
+                this.ReturnPdf = this.PdfReceivedPath == null ? "<i class='fa fa-file-pdf-o' disabled='true' style='cursor:not-allowed;'></i>" : "<a href='/" + this.PdfReceivedPath + "'  target='_blank'><i class='fa fa-file-pdf-o' style='color:red'></i></a>";
             });
             return Model;
         }
