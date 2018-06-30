@@ -41,14 +41,9 @@ namespace AM.Services
         public static string Monitor_PSNoDataEmailSubject { get; private set; }
         public static string Monitor_PSNoDataEmailTemplate { get; private set; }
 
-        public static string Monitor_NoBatchReceivedNotification_Subject { get; set; }
-        public static string Monitor_NoBatch_Email_To { get; private set; }
-        public static string Monitor_NoBatch_Email_Cc { get; private set; }
-
         public static string Monitor_ExceptionEmail_Subject { get; private set; }
         public static string Monitor_Exception_Email_To { get; private set; }
         public static string Monitor_Exception_Email_Cc { get; private set; }
-        public static string Monitor_ReportSFTUploadingPathAMC { get; private set; }
         [Description("This is unique customer identifier")]
         public static string Monitor_USAACustIdentifier { get; set; }
         public static string Monitor_AMCDirPath { get; set; }
@@ -56,15 +51,10 @@ namespace AM.Services
         //Core
         public static string Core_PnS_SFT_RootDir { get; private set; }
 
-        public static string Core_PnSEmail_Subject { get; private set; }
-        public static string Core_PnS_Email_To { get; private set; }
-        public static string Core_PnS_Email_Cc { get; private set; }
-
         public static string Core_CoverTemplateFolder { get; private set; }
         public static string Core_CountryCode { get; private set; }
         public static int Core_NoofTime_AttemptFedexService { get; private set; }
         public static int Core_FedexServiceAttemptInterval { get; private set; }
-        public static TimeSpan Core_FedExSaturdayCutOffTime { get; private set; }
         public static string Core_BundleSweepClientChannelIds { get; private set; }
 
         //FedEx URLs
