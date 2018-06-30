@@ -18,6 +18,7 @@ namespace AM.Core
             {
                 if (args.Length > 0)
                 {
+                    //Here we need to execute only this method for generating pnsbatch for PCI
                     AMCore.SubmitBatchesDocTypeWiseToPCI(args[0]);
                 }
                 else
@@ -33,6 +34,7 @@ namespace AM.Core
             {
                 if (args.Length > 0)
                 {
+                    //Here we need to execute only this method for generating pnsbatch for PCI
                     AMCore.SubmitBatchesDocTypeWiseToPCI(args[0]);
                 }
                 else
