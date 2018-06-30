@@ -65,6 +65,10 @@ namespace AM.Services
                     mrdfoutZip.AddFile(outFileFullPath, "");
                     mrdfoutZip.Save(zipFileFullPath);
                 }
+                if (File.Exists(outFileFullPath))
+                {
+                    File.Delete(outFileFullPath);
+                }
             }
         }
     }

@@ -211,7 +211,7 @@ namespace AM.Core
                                     {
                                         break;
                                     }
-                                    else if (!result && mailPiece.ErrorDesc.Contains("General Failure"))
+                                    else if (!result && mailPiece.ErrorDesc.Contains("General Failure") || mailPiece.ErrorDesc.Contains("EndPoint_Error"))
                                     {
                                         System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
                                         attemptCount++;
