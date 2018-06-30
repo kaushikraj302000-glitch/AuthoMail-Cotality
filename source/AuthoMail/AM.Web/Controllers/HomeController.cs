@@ -84,14 +84,22 @@ namespace AM.Web.Controllers
         [HttpPost]
         public ActionResult _GetSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string receivedOnStart, string receivedOnEnd, string status, string channel, string docType,string clientBatchId,string batchId)
         {
-            int? mailBatchId = batchId.IsNullOrWhiteSpace() ? (int?)null : Convert.ToInt32(batchId);
-            var exactStartDate = DateTime.ParseExact(receivedOnStart, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-            var exactEndDate = DateTime.ParseExact(receivedOnEnd, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-            var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, exactStartDate, exactEndDate, docType, status, channel, clientBatchId, mailBatchId);
+            try
+            {
 
-            var model = Mapper.Map<List<SearchViewModel>>(data);
+                int? mailBatchId = batchId.IsNullOrWhiteSpace() ? (int?)null : Convert.ToInt32(batchId);
+                var exactStartDate = DateTime.ParseExact(receivedOnStart, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+                var exactEndDate = DateTime.ParseExact(receivedOnEnd, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+                var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, exactStartDate, exactEndDate, docType, status, channel, clientBatchId, mailBatchId);
 
-            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+                var model = Mapper.Map<List<SearchViewModel>>(data);
+
+                return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.ToString()), JsonRequestBehavior.AllowGet);
+            }
         }
         [HttpPost]
         public ActionResult TodayChartDetails(string status, int batchId)
