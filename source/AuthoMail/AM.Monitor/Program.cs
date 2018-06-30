@@ -94,7 +94,7 @@ namespace AM.Monitor
                     if (isPrintBatchExist > 0)
                     {
                         int lastEmailSentHours = monitorSvc.CheckLastEmailSentTime(int.Parse(pendingBatch.PrintBatch.ToString()), false);
-                        if (lastEmailSentHours > 5)
+                        if (lastEmailSentHours > 9)
                         {
                             batchData.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", monitor_PrintBatch, pendingBatch.PrintBatch.ToString()));
                             batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", monitor_AppCode, pendingBatch.AppCode.ToString()));
