@@ -398,7 +398,7 @@ namespace AM.Core
                 slaCutOff = docType.SunCutOff;
                 slaType = docType.SunSLAType;
                 isSunWorkDay = true;
-                if (docType.SatSLAType == SLAType.NA)
+                if (docType.SunSLAType == SLAType.NA)
                 {
                     dayOfWeek = DayOfWeek.Monday;
                     isSunWorkDay = false;
