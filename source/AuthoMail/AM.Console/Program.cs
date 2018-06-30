@@ -25,7 +25,7 @@ namespace AM.Console
 
             //using (IMRDFResponseService svc = new MRDFResponseService())
             //{
-            //    svc.GenerateMRDFResponse(@"C:\Users\sagar.g\Desktop\TestTemplate\MRDFResponse", @"C:\Users\sagar.g\Desktop\TestTemplate\MRDFResponse");
+            //    svc.GenerateMRDFResponse(@"\\MTC-sagarg\c$\MSTC\PCI\Response", @"\\MTC-sagarg\c$\MSTC\PCI\Response");
             //}
 
             if (args.Length > 0)
