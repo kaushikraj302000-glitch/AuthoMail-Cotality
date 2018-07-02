@@ -123,9 +123,9 @@ namespace AM.Services
             var printBatchId = db.ExecuteScalar<int>(query, printBatch);
             foreach (var mailPiece in printBatch.MailPieces)
             {
-                string updateQuery = "UPDATE [AM].[MailPieces] SET [PrintBatchId]=@PrintBatchId WHERE Id=@Id";
+                string updateQuery = "UPDATE [AM].[MailPieces] SET [PrintBatchId]=@PrintBatchId,IsQCRequested=@IsQCRequested WHERE Id=@Id";
 
-                var data = db.Execute(updateQuery, new { PrintBatchId = printBatchId, Id = mailPiece.Id });
+                var data = db.Execute(updateQuery, new { PrintBatchId = printBatchId, Id = mailPiece.Id, IsQCRequested = mailPiece.IsQCRequested });
             }
             return printBatchId;
 
