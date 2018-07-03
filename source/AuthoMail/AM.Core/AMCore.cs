@@ -211,7 +211,7 @@ namespace AM.Core
                                     {
                                         break;
                                     }
-                                    else if (!result && mailPiece.ErrorDesc.Contains("General Failure") || mailPiece.ErrorDesc.Contains("EndPoint_Error"))
+                                    else if (!result && (mailPiece.ErrorDesc.Contains("General Failure") || mailPiece.ErrorDesc.Contains("Unknown_Error")))
                                     {
                                         System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
                                         attemptCount++;
@@ -219,7 +219,6 @@ namespace AM.Core
                                     else
                                     {
                                         mailPiece.TotalPages = 0;
-                                        mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                                         break;
                                     }
                                 }
