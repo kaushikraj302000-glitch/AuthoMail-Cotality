@@ -72,6 +72,7 @@ namespace AM.Core
             {
                 var error = "Error occured while generating FedEx label for MailPieceId : {0} And Exception : {1}".Fill(mailPiece.Id, ex);
                 log.Error(error);
+                mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                 mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
                 mailPiece.ErrorDesc = string.Format("{0}|{1}", OutComeCodes.Unknown_Error, ex.Message);
                 SendUnexpectedExcelptionEmail(error);
