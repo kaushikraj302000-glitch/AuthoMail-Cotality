@@ -40,6 +40,10 @@ INSERT [AM].[ShippingAccounts] (AccountCode, [WebAuthenticationKey], [WebAuthent
 GO		
 --INSERT [AM].[ShippingAccounts] (AccountCode, [WebAuthenticationKey], [WebAuthenticationPassword], [AccountNumber], [MeterNumber]) VALUES (N'USAA_PROD', N'ML5BqFyJd0iZXoh5', N'797JRMsb5fOMkORxknR6nydUS', N'289444378', N'112833957')
 --GO
+--INSERT [AM].[ShippingAccounts] (AccountCode, [WebAuthenticationKey], [WebAuthenticationPassword], [AccountNumber], [MeterNumber]) VALUES (N'MC_PROD', N'h39J4BbKKGGPRwnd', N'MMwyiHvoXCYU5RCEOA0c4XYWk', N'864852874', N'111794325')
+--GO
+--INSERT [AM].[ShippingAccounts] (AccountCode, [WebAuthenticationKey], [WebAuthenticationPassword], [AccountNumber], [MeterNumber]) VALUES (N'CL_PROD', N'cKA0KpTDX0nP18rW', N'wMZ5hlc4GdvIt8AS4rNyehf24', N'478949642', N'101623923')
+--GO
 
 
 SET IDENTITY_INSERT [AM].[DocTypes] ON 
