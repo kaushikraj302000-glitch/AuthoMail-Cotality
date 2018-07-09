@@ -1,0 +1,42 @@
+﻿@{
+    ViewBag.Title = "Tracking Info";
+    Layout = "~/Views/Shared/_LayoutTracking.cshtml";
+}
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <div class="panel-title text-center">Tracking Details</div>
+    </div>
+    <div class="panel-body panel-gray">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="table-responsive">
+                    @Html.Partial("~/Views/Common/_TrackingInfo.cshtml", new AM.Web.USPSIMService.USPSTrackingInfo
+           {
+               TrackingCode = "00310901599685103830",
+               RoutingCode = "59106",
+               MailRoute = new AM.Web.USPSIMService.USPSTrackingItem[]
+               {
+                   new AM.Web.USPSIMService.USPSTrackingItem{
+                       City="HOLTSVILLE",
+                       FacilityID="00501",
+                       FacilityName="HOLTSVILLE",
+                       OperationCode="438",
+                       ScanDate=DateTime.Now,
+                State="PR"
+                },
+                new AM.Web.USPSIMService.USPSTrackingItem{
+                       City="ADJUNTAS",
+                       FacilityID="00544",
+                       FacilityName="ADJUNTAS",
+                       OperationCode="481",
+                       ScanDate=DateTime.Now,
+                State="NY"
+                }
+                }
+           })
+                </div>
+            </div>
+        </div>
+        <div class="margin-bottom-30"></div>
+    </div>
+</div>
