@@ -31,4 +31,10 @@ namespace AM.Services
         public string UserId { get; set; }
         public string RoleId { get; set; }
     }
+    public class TrackingDetailViewModel
+    {
+        public string TrackingNo { get; set; }
+        public string ShippingCarrier { get; set; }
+        public string ShippingServiceType { get; set; }
+    }
 }

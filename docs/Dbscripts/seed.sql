@@ -40,6 +40,10 @@ INSERT [AM].[ShippingAccounts] (AccountCode, [WebAuthenticationKey], [WebAuthent
 GO		
 --INSERT [AM].[ShippingAccounts] (AccountCode, [WebAuthenticationKey], [WebAuthenticationPassword], [AccountNumber], [MeterNumber]) VALUES (N'USAA_PROD', N'ML5BqFyJd0iZXoh5', N'797JRMsb5fOMkORxknR6nydUS', N'289444378', N'112833957')
 --GO
+--INSERT [AM].[ShippingAccounts] (AccountCode, [WebAuthenticationKey], [WebAuthenticationPassword], [AccountNumber], [MeterNumber]) VALUES (N'MC_PROD', N'h39J4BbKKGGPRwnd', N'MMwyiHvoXCYU5RCEOA0c4XYWk', N'864852874', N'111794325')
+--GO
+--INSERT [AM].[ShippingAccounts] (AccountCode, [WebAuthenticationKey], [WebAuthenticationPassword], [AccountNumber], [MeterNumber]) VALUES (N'CL_PROD', N'cKA0KpTDX0nP18rW', N'wMZ5hlc4GdvIt8AS4rNyehf24', N'478949642', N'101623923')
+--GO
 
 
 SET IDENTITY_INSERT [AM].[DocTypes] ON 
@@ -413,68 +417,68 @@ INSERT [PnS].[Schema_MRDFRequest] ([Id], [FieldName], [Type], [StartPosition], [
 GO
 INSERT [PnS].[Schema_MRDFRequest] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [Comments], [SampleValue], [DataType], [DataFormatTemplate], [DefaultValue]) VALUES (185, N'EndofRecord', N'ASCII_Alpha', 799, 1, 1, N'End of Record Indica tor. Ins ures FTP Client does not trunca te tra iling spa ce s .', N'Always ', N'', N'varchar(255)', N'{0,-<len>}', N'')
 GO
-INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (5, N'Date', N'ASCII_Alpha', 77, 8, 1, N'Date MRDF was created', N'20170628', N'date', N'yyyyMMdd')
+INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (5, N'Date', N'ASCII_Alpha', 77, 8, 1, N'Date MRDF was created', N'20170628', N'date', N'{0:yyyyMMdd}')
 GO
 INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (10, N'JobId', N'ASCII_Alpha', 85, 10, 1, N'The va lue in this field mus t ma tch the ba rcoded Job Id tha t is printed on the input
-documents , so tha t there is no doubt tha t the phys ica l ma teria l loa ded for the job should be run us ing the Input file tha t wa s opened. It is highly recommended tha t this va lue is unique for a given ma iling cycle.', N'0001234567', N'varchar(10)', NULL)
+documents , so tha t there is no doubt tha t the phys ica l ma teria l loa ded for the job should be run us ing the Input file tha t wa s opened. It is highly recommended tha t this va lue is unique for a given ma iling cycle.', N'0001234567', N'int', N'{0:d<len>}')
 GO
 INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (15, N'PieceId', N'ASCII_Number', 95, 4, 1, N'The va lue in this field mus t ma tch the ba rcoded Piece Id tha t is printed on the input
-documents . It is the link between the sca n code and the ma ilpiece record within the Input file tha t conta ins the as s embly ins tructions for tha t ma ilpiece. This va lue mus t be unique for ea ch ma ilpiece, and mus t increment by 1 for ea ch record within the file.', N'', N'int', NULL)
+documents . It is the link between the sca n code and the ma ilpiece record within the Input file tha t conta ins the as s embly ins tructions for tha t ma ilpiece. This va lue mus t be unique for ea ch ma ilpiece, and mus t increment by 1 for ea ch record within the file.', N'', N'int', N'{0:d<len>}')
 GO
-INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (16, N'TotalSheets', N'ASCII_Number', 99, 3, 1, N'pick up total sheets from the ‘Expansion’ field in the data.  Same location you populated it in the Input MRDF.', N'', N'int', NULL)
+INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (16, N'TotalSheets', N'ASCII_Number', 99, 3, 1, N'pick up total sheets from the ‘Expansion’ field in the data.  Same location you populated it in the Input MRDF.', N'', N'int', N'{0:d<len>}')
 GO
-INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (17, N'PDFFileName', N'ASCII_Alpha', 117, 160, 1, N'PDF file name', N'*.PDF', N'varchar(255)', NULL)
+INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (17, N'PDFFileName', N'ASCII_Alpha', 117, 160, 1, N'PDF file name', N'*.PDF', N'varchar(255)', N'{0,-<len>}')
 GO
-INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (18, N'Expansion', N'ASCII_Alpha', 771, 28, 1, N'', N'0021                        ', N'varchar(28)', NULL)
+INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (18, N'Expansion', N'ASCII_Alpha', 771, 28, 1, N'', N'0021                        ', N'varchar(28)', N'{0,-<len>}')
 GO
 INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (20, N'InputRecFill', N'ASCII_Alpha', 23, 777, 0, N'Starts at position 23 in Input file Total Pages Field and goes to
 Expansion field', N'', N'N/A', N'Don’t create this column in table')
 GO
-INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (25, N'Feeder2_Fed', N'ASCII_Number', 291, 1, 1, N'Over Writes input field position 291 due to no room in output file for expansion.', N'0', N'int', NULL)
+INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (25, N'Feeder2_Fed', N'ASCII_Number', 291, 1, 1, N'Over Writes input field position 291 due to no room in output file for expansion.', N'0', N'int', N'{0,-<len>}')
 GO
-INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (29, N'PackageTrackingNumber', N'ASCII_Number', 501, 40, 1, N'The value in this field identifies the tracking information of USPS shipping for some clients which dont have IMBarcode value.', N'00000000000', N'varchar(50)', NULL)
+INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (29, N'PackageTrackingNumber', N'ASCII_Number', 501, 40, 1, N'The value in this field identifies the tracking information of USPS shipping for some clients which dont have IMBarcode value.', N'00000000000', N'varchar(50)', N'{0,-<len>}')
 GO
 INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (30, N'OperatorId', N'ASCII_Alpha', 800, 8, 1, N'The va lue in this field Identifies the ma chine on which the ma ilpiece wa s proces s ed. This
-informa tion is collected by Direct Connect during the ins erting proces s .', N'RichardP', N'varchar(50)', NULL)
+informa tion is collected by Direct Connect during the ins erting proces s .', N'RichardP', N'varchar(50)', N'{0,-<len>}')
 GO
 INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (35, N'MachineId', N'ASCII_Alpha', 808, 8, 1, N'The va lue in this field Identifies the opera tor who proces s ed the ma ilpiece. This
-informa tion is collected by Direct Connect during the ins erting proces s .', N'PCI09   ', N'varchar(50)', NULL)
+informa tion is collected by Direct Connect during the ins erting proces s .', N'PCI09   ', N'varchar(50)', N'{0,-<len>}')
 GO
-INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (40, N'ProcessingTimeStamp', N'ASCII_Alpha', 816, 14, 1, N'The va lue in this field s pecifies the da te and time the ma ilpiece wa s proces s ed. This informa tion is collected by Direct Connect during the ins erting proces s . Us e the forma t MM/DD/YYYY HH:MM:SS. (Note tha t there is one space between the da te and time).', N'20170727165042', N'datetime', N'yyyyMMddHHmmss')
+INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (40, N'ProcessingTimeStamp', N'ASCII_Alpha', 816, 14, 1, N'The va lue in this field s pecifies the da te and time the ma ilpiece wa s proces s ed. This informa tion is collected by Direct Connect during the ins erting proces s . Us e the forma t MM/DD/YYYY HH:MM:SS. (Note tha t there is one space between the da te and time).', N'20170727165042', N'datetime', N'{0:yyyyMMddHHmmss}')
 GO
 INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (45, N'DetailedErrorId', N'ASCII_Alpha', 830, 5, 1, N'The va lue in this field s pecifies the ma ilpiece dis pos ition. This informa tion is collected by
 Direct Connect during the ins erting proces s . Pos s ible va lues are: 0 = Unknown, 1 = On
-Ins erter, 2 = Removed due to Ja m, 3 = Removed by Opera tor, 4 = Outs orted, 5 = Succes s fully Rendered, 6 = Never Proces s ed, 7 = Ma nua lly Rejected, 8 = Ma nua lly Repa ired, 9 = Deferred', N'0', N'varchar(50)', NULL)
+Ins erter, 2 = Removed due to Ja m, 3 = Removed by Opera tor, 4 = Outs orted, 5 = Succes s fully Rendered, 6 = Never Proces s ed, 7 = Ma nua lly Rejected, 8 = Ma nua lly Repa ired, 9 = Deferred', N'0', N'varchar(50)', N'{0,-<len>}')
 GO
 INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (50, N'Disposition', N'ASCII_Alpha', 835, 2, 1, N'The va lue in this field s pecifies the text des cription of the ma ilpiece dis pos ition. This
-informa tion is collected by Direct Connect during the ins erting proces s .', N'5', N'varchar(50)', NULL)
+informa tion is collected by Direct Connect during the ins erting proces s .', N'5', N'varchar(50)', N'{0,-<len>}')
 GO
 INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (55, N'Input_Fed', N'ASCII_Alpha', 837, 2, 1, N'The va lue in this field is the tota l number of sheets actually fed from the input feeder 1 for this ma ilpiece. This informa tion is collected by Direct Connect during the ins erting proces s . There are two of thes e fields ava ila ble to a ccommoda te as ma ny as two input
-feeders on the ins erter.', N'00', N'varchar(50)', NULL)
+feeders on the ins erter.', N'00', N'varchar(50)', N'{0,-<len>}')
 GO
 INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (60, N'Feeder3_Fed', N'ASCII_Alpha', 839, 1, 1, N'The va lue in this field s pecifies whether an ins ert wa s actually fed or not fed from this ins ert feeder for this ma ilpiece. This informa tion is collected by Direct Connect during the ins erting proces s . There are 16 of thes e fields availa ble to a ccommoda te as ma ny as 
-16 ins ert feeders on the ins erter. Pos s ible va lues include: 0 = Not fed, 1 = Fed.', N'0', N'varchar(50)', NULL)
+16 ins ert feeders on the ins erter. Pos s ible va lues include: 0 = Not fed, 1 = Fed.', N'0', N'varchar(50)', N'{0,-<len>}')
 GO
-INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (65, N'Feeder4_Fed', N'ASCII_Alpha', 840, 1, 1, N'See Ins ertFeeder03Ack des cription.', N'0', N'varchar(50)', NULL)
+INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (65, N'Feeder4_Fed', N'ASCII_Alpha', 840, 1, 1, N'See Ins ertFeeder03Ack des cription.', N'0', N'varchar(50)', N'{0,-<len>}')
 GO
-INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (70, N'Feeder5_Fed', N'ASCII_Alpha', 841, 1, 1, N'See Ins ertFeeder03Ack des cription.', N'0', N'varchar(50)', NULL)
+INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (70, N'Feeder5_Fed', N'ASCII_Alpha', 841, 1, 1, N'See Ins ertFeeder03Ack des cription.', N'0', N'varchar(50)', N'{0,-<len>}')
 GO
 INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (75, N'ComputedWeight', N'ASCII_Alpha', 842, 5, 1, N'The va lue in this field s pecifies the actual computed weight of the finis hed ma ilpiece in ounces . This informa tion is collected by Direct Connect during the ins erting proces s . This field mus t be a decima l number with one digit to the left of the decima l point, and three
-digits to the right (e.g., 1.320).', N'0.00 ', N'decimal(4,3)', NULL)
+digits to the right (e.g., 1.320).', N'0.00 ', N'decimal(4,3)', N'{0,-<len>}')
 GO
-INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (80, N'MeterDate', N'ASCII_Alpha', 847, 8, 1, N'Da te ma il piece wa s pos ted with meter sta mp', N'', N'varchar(50)', NULL)
+INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (80, N'MeterDate', N'ASCII_Alpha', 847, 8, 1, N'Da te ma il piece wa s pos ted with meter sta mp', N'', N'varchar(50)', N'{0,-<len>}')
 GO
 INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (85, N'StatusSource', N'ASCII_Alpha', 855, 25, 1, N'The va lue in this field s pecifies the na me of ma chine element tha t set the ma ilpiece
-dis pos ition. This informa tion is collected by Direct Connect during the ins erting proces s .', N'Mailpiece Manager        ', N'varchar(50)', NULL)
+dis pos ition. This informa tion is collected by Direct Connect during the ins erting proces s .', N'Mailpiece Manager        ', N'varchar(50)', N'{0,-<len>}')
 GO
 INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (90, N'PostageMetered', N'ASCII_Alpha', 880, 5, 1, N'When the ins erter ha s meter links on ea ch meter, a va lue will be pres ent in this field. The va lue in this field s pecifies the actual pos ta ge a pplied to the finis hed ma ilpiece. This informa tion is collected by Direct Connect during the ins erting proces s . This field mus t be a decima l number with one digit to the left of the decima l point, and three digits to the
-right (e.g., 0.370).', N'', N'decimal(4,3)', NULL)
+right (e.g., 0.370).', N'', N'decimal(4,3)', N'{0,-<len>}')
 GO
 INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (95, N'WeightMeasured', N'ASCII_Alpha', 885, 5, 1, N'When a Weigh on the Fly sca le is pa rt of the ins erter, a va lue will be pres ent in this field. The va lue in this field s pecifies the actual mea s ured weight of the finis hed ma ilpiece in ounces . This informa tion is collected by Direct Connect during the ins erting proces s . This field mus t be a decima l number with one digit to the left of the decima l point, and three
-digits to the right (e.g., 1.320).', N'', N'decimal(4,3)', NULL)
+digits to the right (e.g., 1.320).', N'', N'decimal(4,3)', N'{0,-<len>}')
 GO
 INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (100, N'ExitLocation', N'ASCII_Alpha', 890, 25, 1, N'The va lue in this field s pecifies the phys ica l loca tion where the ma ilpiece left the
-ins erter. This informa tion is collected by Direct Connect during the ins erting process. ', N'', N'varchar(50)', NULL)
+ins erter. This informa tion is collected by Direct Connect during the ins erting process. ', N'', N'varchar(50)', N'{0,-<len>}')
 GO
 
 SET IDENTITY_INSERT [Common].[SFTChannels] ON 

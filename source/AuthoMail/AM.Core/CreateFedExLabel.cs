@@ -1,6 +1,7 @@
 ﻿using AM.Core.ShipWebServiceRef;
 using AM.Entities;
 using AM.Services;
+using AM.Lib;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
 using log4net;
@@ -8,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Mail;
 using System.ServiceModel;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,9 +27,10 @@ namespace AM.Core
             //Here we are assigning No_Error because if we have any general failure or end point exception then we are trying again.
             mailPiece.ErrorCode = OutComeCodes.No_Error;
             mailPiece.ErrorDesc = null;
+            mailPiece.ShippingStatus = ShippingStatus.InProgress.ToString();
 
             bool isLabelGenerated = false;
-            
+
             ProcessShipmentRequest request = CreateShipmentRequest(mailPiece, fedExAccInfo, docType);
             // Initialize the service
             ShipPortTypeClient service = new ShipPortTypeClient();
@@ -57,7 +60,7 @@ namespace AM.Core
                     StringBuilder sbMessages = new StringBuilder(string.Format("Error occurred while generating FedEx label for client {0} and {1} : {2}<br/>", mbi.Client.AppCode, mailPiece.BusinessFriendlyIdName, mailPiece.BusinessFriendlyIdValue));
                     notificaitons.ForEach(n => sbMessages = sbMessages.AppendLine(n.Message));
                     log.Error(sbMessages.ToString());
-
+                    mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                     mailPiece.ErrorCode = OutComeCodes.Invalid_ShippingDetail;
 
                     // TODO: Check other props of notification. Sometimes rarely in error message FedEx exception also comes. So, we have to replace all new lines in message with space.
@@ -65,15 +68,42 @@ namespace AM.Core
                     isLabelGenerated = false;
                 }
             }
-            catch (EndpointNotFoundException ex)
+            catch (Exception ex)
             {
-                log.Error("Error occured while connecting to End Points : ", ex);
+                var error = "Error occured while generating FedEx label for MailPieceId : {0} And Exception : {1}".Fill(mailPiece.Id, ex);
+                log.Error(error);
+                mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                 mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
-                mailPiece.ErrorDesc = string.Format("{0}|{1}", OutComeCodes.Unknown_Error, "EndPoint_Error");
+                mailPiece.ErrorDesc = string.Format("{0}|{1}", OutComeCodes.Unknown_Error, ex.Message);
+                SendUnexpectedExcelptionEmail(error);
                 isLabelGenerated = false;
             }
 
             return isLabelGenerated;
+        }
+
+        private void SendUnexpectedExcelptionEmail(string exception)
+        {
+            try
+            {
+                using (SmtpClient smtpClient = new SmtpClient())
+                {
+                    using (MailMessage msg = new MailMessage())
+                    {
+                        msg.IsBodyHtml = true;
+                        msg.To.Add(Config.Monitor_Exception_Email_To);
+                        msg.CC.Add(Config.Monitor_Exception_Email_Cc);
+                        msg.Subject = "{0} : {1}".Fill(Config.Common_Environment, Config.Monitor_ExceptionEmail_Subject);
+                        msg.Priority = MailPriority.High;
+                        msg.Body = "Unexpected exception occured during generating FedEx label :" + Environment.NewLine + exception;
+                        smtpClient.Send(msg);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex);
+            }
         }
 
         private ProcessShipmentRequest CreateShipmentRequest(MailPieceDTO mailPiece, FedExAccountInfo fedExAccInfo, DocType docType)
