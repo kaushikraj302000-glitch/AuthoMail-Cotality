@@ -18,7 +18,7 @@ namespace AM.Services
     {
         public void GenerateMRDFResponse(string outFilePath, string zipFilePath)
         {
-            string query = "SELECT PB.PrintFileName,PM.JobId,PM.PieceId,PM.[Date],PM.TotalSheets,PM.PDFFileName FROM PnS.BatchSummary PB INNER JOIN PnS.MRDFRequest PM ON PB.PrintBatch = PM.JobId";
+            string query = "SELECT PB.PrintFileName,PM.JobId,PM.PieceId,PM.[Date],PM.TotalSheets,PM.PDFFileName FROM PnS.BatchSummary PB INNER JOIN PnS.MRDFRequest PM ON PB.PrintBatch = PM.JobId WHERE PB.IsMRDFReceived = 0";
             var mrdfData = db.Query<MRDFResponse>(query).ToList();
 
             foreach (var items in mrdfData.GroupBy(m => m.JobId))
