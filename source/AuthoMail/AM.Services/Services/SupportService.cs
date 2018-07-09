@@ -47,6 +47,7 @@ namespace AM.Services
         KeyValuePair<bool, string> RemoveUserManagerRole(string userId, string roleId);
         List<EmailAllowedDomain> GetUserManagerList();
         string GetEmailsFromClientDomain(string clientEmail);
+        TrackingDetailViewModel GetTrackingDetailByTrackingNo(string trackingNo);
     }
     public class SupportService : ServiceBase, ISupportService
     {
@@ -474,5 +475,24 @@ namespace AM.Services
             return string.Join(",", emailList);
         }
 
+
+
+        public TrackingDetailViewModel GetTrackingDetailByTrackingNo(string trackingNo)
+        {
+            try
+            {
+                if (trackingNo.IsNullOrWhiteSpace()) throw new Exception("Tracking No can't be null.");
+                string query = "SELECT m.[TrackingNo],d.ShippingCarrier,d.ShippingServiceType FROM [AM].[MailPieces] m INNER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id WHERE m.TrackingNo=@trackingNo";
+                return db.QuerySingle<TrackingDetailViewModel>(query, new { trackingNo = trackingNo });
+            }
+            catch (System.InvalidOperationException)
+            {
+                throw new Exception("Tracking Number contain more then one element.");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }
