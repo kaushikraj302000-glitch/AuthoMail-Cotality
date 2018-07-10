@@ -36,5 +36,7 @@ namespace AM.Services
         public string TrackingNo { get; set; }
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
+        public bool IsError { get; set; }
+        public string Message { get; set; }
     }
 }

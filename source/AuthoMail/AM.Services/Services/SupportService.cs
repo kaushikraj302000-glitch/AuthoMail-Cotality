@@ -479,20 +479,25 @@ namespace AM.Services
 
         public TrackingDetailViewModel GetTrackingDetailByTrackingNo(string trackingNo)
         {
+            TrackingDetailViewModel model = new TrackingDetailViewModel();
+            model.TrackingNo = trackingNo;
             try
             {
                 if (trackingNo.IsNullOrWhiteSpace()) throw new Exception("Tracking No can't be null.");
                 string query = "SELECT m.[TrackingNo],d.ShippingCarrier,d.ShippingServiceType FROM [AM].[MailPieces] m INNER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id WHERE m.TrackingNo=@trackingNo";
-                return db.QuerySingle<TrackingDetailViewModel>(query, new { trackingNo = trackingNo });
+                model = db.QuerySingle<TrackingDetailViewModel>(query, new { trackingNo = trackingNo });
             }
             catch (System.InvalidOperationException)
             {
-                throw new Exception("Tracking Number contain more then one element.");
+                model.IsError = true;
+                model.Message = "Tracking Number contain more then one element.";
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                model.IsError = true;
+                model.Message = ex.Message;
             }
+            return model;
         }
     }
 }
