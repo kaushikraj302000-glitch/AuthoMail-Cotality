@@ -409,6 +409,9 @@ namespace AM.Core
                 slaTimeSpan = docType.BizdayTimeSpan;
                 slaCutOff = docType.BizdayCutOff;
                 slaType = docType.BizdaySLAType;
+
+                isSatWorkDay = docType.SatSLAType == SLAType.NA ? false : true;
+                isSunWorkDay = docType.SunSLAType == SLAType.NA ? false : true;
             }
 
 
