@@ -268,7 +268,7 @@
             <div class="form-group margin-bottom-2">
                 <div class="input-group">
                     <label for="BusinessFriendlyIdValue">Batch Name:&nbsp; </label>
-                    <span class="form-control-static">{MailBatches.BatchName}</span>
+                    <span class="form-control-static">{BatchName}</span>
                 </div>
             </div>
             <div class="form-group margin-bottom-2">
@@ -281,7 +281,7 @@
 
                 <div class="input-group">
                     <label for="BusinessFriendlyIdValue">Client Code:&nbsp; </label>
-                    <span class="form-control-static">{Clients.AppCode}</span>
+                    <span class="form-control-static">{AppCode}</span>
                 </div>
             </div>
             <div class="form-group margin-bottom-2">
@@ -356,7 +356,7 @@
             <div class="form-group margin-bottom-2">
                 <div class="input-group">
                     <label for="BusinessFriendlyIdValue">SFT Channel:&nbsp; </label>
-                    <span class="form-control-static">{MailBatches.SFTChannels.Title}</span>
+                    <span class="form-control-static">{SFTChannels}</span>
                 </div>
             </div>
             <div class="form-group margin-bottom-2">
@@ -416,7 +416,7 @@
             <div class="form-group margin-bottom-2">
                 <div class="input-group">
                     <label for="BusinessFriendlyIdValue">PulledBack Requested By:&nbsp; </label>
-                    <span class="form-control-static">{User.UserName}</span>
+                    <span class="form-control-static">{PulledBackRequestedBy}</span>
                 </div>
             </div>
 
@@ -499,7 +499,7 @@
             <div class="form-group margin-bottom-2">
                 <div class="input-group">
                     <label for="BusinessFriendlyIdValue">Return Recipient Name:&nbsp; </label>
-                    <span class="form-control-static">{ReturnRcptName}</span>
+                    <span class="form-control-static">{RetRcptName}</span>
                 </div>
             </div>
             <div class="form-group margin-bottom-2">
@@ -589,7 +589,7 @@
         function FormatMailPieceObject(Model) {
 
             $(Model).each(function () {
-                this.ReceivedOnFormatted = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.IsPrinted = MakeYesNoLabel(this.IsPrinted);
                 this.IsShipped = MakeYesNoLabel(this.IsShipped);
                 this.IsQCRequested = MakeYesNoLabel(this.IsQCRequested);
@@ -602,17 +602,17 @@
                 this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
                 this.PulledBackOnFormatted = this.PulledBackOn == null ? "--" : moment(this.PulledBackOn).format("MM/DD/YY HH:mm:ss");
-                this.RcptName = this.RcptFirstName + " " + this.RcptMiddleName + " " + this.RcptLastName;
+                //this.RcptName = this.RcptFirstName + " " + this.RcptMiddleName + " " + this.RcptLastName;
                 this.RcptName = this.RcptName.replace(/null/g, "").trim();
-                this.RcptAddress = this.RcptAddrOptionalLine1AboveStreet + " " + this.RcptAddrOptionalLine2AboveStreet + " " + this.RcptAddressStreet + " " + this.RcptAddressAptOrSuiteOrOther + " " + this.RcptAddrOptionalLine1BelowStreet + " " + this.RcptAddrOptionalLine2BelowStreet + " " + this.RcptAddressCity + " " + this.RcptAddressState + " " + this.RcptAddressZIP;
+                //this.RcptAddress = this.RcptAddrOptionalLine1AboveStreet + " " + this.RcptAddrOptionalLine2AboveStreet + " " + this.RcptAddressStreet + " " + this.RcptAddressAptOrSuiteOrOther + " " + this.RcptAddrOptionalLine1BelowStreet + " " + this.RcptAddrOptionalLine2BelowStreet + " " + this.RcptAddressCity + " " + this.RcptAddressState + " " + this.RcptAddressZIP;
                 this.RcptAddress = this.RcptAddress.replace(/null/g, "").trim();
-                this.CoRcptName = this.CoRcptPrefix + " " + this.CoRcptFirstName + " " + this.CoRcptMiddleName + " " + this.CoRcptLastName + " " + this.CoRcptSuffix;
-                this.CoRcptName = this.CoRcptName.replace(/null/g, "").trim();
-                this.CoRcptName = this.CoRcptName == "" ? "--" : this.CoRcptName;
-                this.ReturnRcptName = this.RetRcptPrefix + " " + this.RetRcptFirstName + " " + this.RetRcptMiddleName + " " + this.RetRcptLastName + " " + this.RetRcptSuffix
-                this.ReturnRcptName = this.ReturnRcptName.replace(/null/g, "").trim();
-                this.ReturnRcptAddress = this.RetRcptAddrOptionalLine1AboveStreet + " " + this.RetRcptAddrOptionalLine2AboveStreet + " " + this.RetRcptAddressStreet + " " + this.RetRcptAddressAptOrSuiteOrOther + " " + this.RetRcptAddrOptionalLine1BelowStreet + " " + this.RetRcptAddrOptionalLine2BelowStreet + " " + this.RetRcptAddressCity + " " + this.RetRcptAddressState + " " + this.RetRcptAddressZIP;
-                this.ReturnRcptAddress = this.ReturnRcptAddress.replace(/null/g, "").trim();
+                //this.CoRcptName = this.CoRcptPrefix + " " + this.CoRcptFirstName + " " + this.CoRcptMiddleName + " " + this.CoRcptLastName + " " + this.CoRcptSuffix;
+                //this.CoRcptName = this.CoRcptName.replace(/null/g, "").trim();
+                //this.CoRcptName = this.CoRcptName == "" ? "--" : this.CoRcptName;
+                //this.ReturnRcptName = this.RetRcptPrefix + " " + this.RetRcptFirstName + " " + this.RetRcptMiddleName + " " + this.RetRcptLastName + " " + this.RetRcptSuffix
+                this.RetRcptName = this.RetRcptName.replace(/null/g, "").trim();
+                //this.ReturnRcptAddress = this.RetRcptAddrOptionalLine1AboveStreet + " " + this.RetRcptAddrOptionalLine2AboveStreet + " " + this.RetRcptAddressStreet + " " + this.RetRcptAddressAptOrSuiteOrOther + " " + this.RetRcptAddrOptionalLine1BelowStreet + " " + this.RetRcptAddrOptionalLine2BelowStreet + " " + this.RetRcptAddressCity + " " + this.RetRcptAddressState + " " + this.RetRcptAddressZIP;
+                this.RetRcptAddress = this.RetRcptAddress.replace(/null/g, "").trim();
                 switch (this.ShippingStatus) {
 
                     case "PulledBack":

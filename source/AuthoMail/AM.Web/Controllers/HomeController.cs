@@ -77,7 +77,8 @@ namespace AM.Web.Controllers
         [HttpGet]
         public ActionResult GetMailPieceByUniqueId(string mailPieceId)
         {
-            var model = serSvc.GetMailPieceByUniqueId(new Guid(mailPieceId));
+            var data = serSvc.GetMailPieceByUniqueId(new Guid(mailPieceId));
+            var model = Mapper.Map<MailPieceDetailsViewModel>(data);
             return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
         }
 
