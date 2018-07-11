@@ -485,7 +485,13 @@ namespace AM.Services
             {
                 if (trackingNo.IsNullOrWhiteSpace()) throw new Exception("Tracking No can't be null.");
                 string query = "SELECT m.[TrackingNo],d.ShippingCarrier,d.ShippingServiceType FROM [AM].[MailPieces] m INNER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id WHERE m.TrackingNo=@trackingNo";
-                model = db.QuerySingle<TrackingDetailViewModel>(query, new { trackingNo = trackingNo });
+                model = db.QuerySingleOrDefault<TrackingDetailViewModel>(query, new { trackingNo = trackingNo });
+                if (model == null)
+                {
+                    model = new TrackingDetailViewModel();
+                    model.IsError = true;
+                    model.Message = "NotFound";
+                }
             }
             catch (System.InvalidOperationException)
             {
