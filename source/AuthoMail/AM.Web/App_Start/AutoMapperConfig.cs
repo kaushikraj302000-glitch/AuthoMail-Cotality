@@ -118,6 +118,13 @@ namespace AM.Web
                   .ForMember(d => d.ShippingMethod, o => o.MapFrom(s => s.DocTypes != null ? (s.DocTypes.ShippingServiceType != null ? s.DocTypes.ShippingServiceType : "") : null))
                   .ForMember(d => d.BusinessIdValue, o => o.MapFrom(s => s.BusinessFriendlyIdValue))
                   .ForMember(d => d.DocType, o => o.MapFrom(s => s.DocumentOrPackageType));
+
+               cfg.CreateMap<MailPieces, MailPieceDetailsViewModel>()
+                   .ForMember(d => d.BatchName, o => o.MapFrom(s => s.MailBatches == null ? null : s.MailBatches.BatchName))
+                   .ForMember(d => d.AppCode, o => o.MapFrom(s => s.Clients == null ? null : s.Clients.AppCode))
+                   .ForMember(d => d.ReceivedOn, o => o.MapFrom(s => s.MailBatches == null ? null : s.MailBatches.ReceivedOn))
+                   .ForMember(d => d.SFTChannels, o => o.MapFrom(s => s.MailBatches != null ? (s.MailBatches.SFTChannels.Title != null ? s.MailBatches.SFTChannels.Title : "") : null))
+                   .ForMember(d => d.DocTypeCode, o => o.MapFrom(s => s.DocTypes == null ? null : s.DocTypes.DocTypeCode));
            });
         }
     }
