@@ -21,6 +21,7 @@ namespace AM.Web.Models
         public string DocType { get; set; }
         public string Channel { get; set; }
         public string ShippingMethod { get; set; }
+        public string ShippingCarrier { get; set; }
         public string ErrorCode { get; set; }
         public string ErrorDesc { get; set; }
 

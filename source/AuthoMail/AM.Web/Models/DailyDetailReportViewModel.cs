@@ -18,6 +18,7 @@ namespace AM.Web.Models
         public DateTime? ShippedOn { get; set; }
         public string ClientCode { get; set; }//Client Code
         public string ShippingMethod { get; set; }
+        public string ShippingCarrier { get; set; }
         public string PrintLocation { get; set; }
         public string Status { get; set; }
 
