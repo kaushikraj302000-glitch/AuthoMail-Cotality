@@ -406,3 +406,269 @@ Application Deployment
 UAT Final Status : PnS Service Deployed with Database Changes, AM Deployed with Databas Changes at 6.30 PM IST
 PROD Final Status : PnS Service Deployed with Database Changes, AM Deployed with Databas Changes at 10.30 PM IST
 ====================================================================================================================================================
+
+====================================================
+Deployment 07/12/2018
+====================================================
+=================
+Database Changes
+=================
+	- For PnS
+		- For By Passing PCI 
+			1) Added new SP [usp_GetMRDFResponseDummyDataByJobId] for generating dummy response
+				/****** Object:  StoredProcedure [dbo].[usp_GetMRDFResponseDummyDataByJobId]    Script Date: 7/11/2018 1:58:01 PM ******/
+				SET ANSI_NULLS ON
+				GO
+				SET QUOTED_IDENTIFIER ON
+				GO
+
+
+				CREATE PROCEDURE [dbo].[usp_GetMRDFResponseDummyDataByJobId]
+				@jobId int
+				AS
+				BEGIN
+					-- SET NOCOUNT ON added to prevent extra result sets from
+					-- interfering with SELECT statements.
+					SET NOCOUNT ON;
+
+					SELECT Req.JobId, Req.PieceId, Req.[Date], Req.TotalSheets, Req.InputWeight, Req.Feeder3_Sel, Req.Feeder4_Sel
+						, Req.Feeder5_Sel, Req.LowCap_Sel, Req.NoSeal_Sel, Req.Feeder2_Sel, Req.ZipMark_Sel, Req.Address1, Req.Address2
+						, Req.Zip5, Req.Zip4, Req.Zip2, Req.DivertVS2, Req.DivertVS3
+						, Req.DivertVS4, Req.ReturnLogoBitMap, Req.ReturnLine1, Req.ReturnLine2, Req.ReturnLine3, Req.ReturnLine4
+						, Req.ReturnLine5, Req.ReturnLine6, Req.GroupNumber, Req.SocialSecNumber, Req.CheckAmount, Req.PassThru
+						, Req.Expansion, Req.EndofRecord, Req.UniqueId, Req.PDFFileName, Req.ErrId, Req.ErrDesc, Req.MailPieceStatus, Req.IsPDFReceived 
+						, Req.Feeder2_Sel as Feeder2_Fed
+						,CASE WHEN P.DocTypeId IN (SELECT Id FROM AM.DocTypes WHERE ShippingServiceType='USPS_EXPRESSMAIL') THEN '1234567890123456789012' ELSE '' END AS PackageTrackingNumber
+						,'RichardP' as OperatorId,'PCI09   ' as MachineId
+						,(CONVERT(VARCHAR(8), GETDATE(), 112)+REPLACE(CONVERT(VARCHAR(8), GETDATE(), 108),':','')) as ProcessingTimeStamp
+						,'4691 ' as DetailedErrorId,'00' as Input_Fed,'0' as Feeder3_Fed,'0' as Feeder4_Fed,'0' as Feeder5_Fed
+						,CASE WHEN P.IsPullBackRequested=1 AND P.PulledBackOn IS NULL THEN '4 ' WHEN P.IsQCRequested=1 THEN '8 ' ELSE '5 ' END as Disposition
+						,'0.00 ' as ComputedWeight, '00000000' as MeterDate,'Mailrun_Files            ' as StatusSource
+						,'0.0000' as PostageMetered,'000 ' as WeightMeasured,'Mailrun_Files            ' as ExitLocation
+						FROM [PnS].[MRDFRequest] Req
+						INNER JOIN [AM].[MailPieces] P ON P.UniqueId=Req.UniqueId
+						WHERE Req.JobId = @jobId AND Req.MailPieceStatus='InProgress'
+				END
+				
+			2) Update PnS.Schema_MRDFResponse table data for DataFormatTemplate
+				
+				DELETE FROM [PnS].[Schema_MRDFResponse]
+				INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (5, N'Date', N'ASCII_Alpha', 77, 8, 1, N'Date MRDF was created', N'20170628', N'date', N'{0:yyyyMMdd}')
+				GO
+				INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (10, N'JobId', N'ASCII_Alpha', 85, 10, 1, N'The va lue in this field mus t ma tch the ba rcoded Job Id tha t is printed on the input
+				documents , so tha t there is no doubt tha t the phys ica l ma teria l loa ded for the job should be run us ing the Input file tha t wa s opened. It is highly recommended tha t this va lue is unique for a given ma iling cycle.', N'0001234567', N'int', N'{0:d<len>}')
+				GO
+				INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (15, N'PieceId', N'ASCII_Number', 95, 4, 1, N'The va lue in this field mus t ma tch the ba rcoded Piece Id tha t is printed on the input
+				documents . It is the link between the sca n code and the ma ilpiece record within the Input file tha t conta ins the as s embly ins tructions for tha t ma ilpiece. This va lue mus t be unique for ea ch ma ilpiece, and mus t increment by 1 for ea ch record within the file.', N'', N'int', N'{0:d<len>}')
+				GO
+				INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (16, N'TotalSheets', N'ASCII_Number', 99, 3, 1, N'pick up total sheets from the ‘Expansion’ field in the data.  Same location you populated it in the Input MRDF.', N'', N'int', N'{0:d<len>}')
+				GO
+				INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (17, N'PDFFileName', N'ASCII_Alpha', 117, 160, 1, N'PDF file name', N'*.PDF', N'varchar(255)', N'{0,-<len>}')
+				GO
+				INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (18, N'Expansion', N'ASCII_Alpha', 771, 28, 1, N'', N'0021                        ', N'varchar(28)', N'{0,-<len>}')
+				GO
+				INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (20, N'InputRecFill', N'ASCII_Alpha', 23, 777, 0, N'Starts at position 23 in Input file Total Pages Field and goes to
+				Expansion field', N'', N'N/A', N'Don’t create this column in table')
+				GO
+				INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (25, N'Feeder2_Fed', N'ASCII_Number', 291, 1, 1, N'Over Writes input field position 291 due to no room in output file for expansion.', N'0', N'int', N'{0,-<len>}')
+				GO
+				INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (29, N'PackageTrackingNumber', N'ASCII_Number', 501, 40, 1, N'The value in this field identifies the tracking information of USPS shipping for some clients which dont have IMBarcode value.', N'00000000000', N'varchar(50)', N'{0,-<len>}')
+				GO
+				INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (30, N'OperatorId', N'ASCII_Alpha', 800, 8, 1, N'The va lue in this field Identifies the ma chine on which the ma ilpiece wa s proces s ed. This
+				informa tion is collected by Direct Connect during the ins erting proces s .', N'RichardP', N'varchar(50)', N'{0,-<len>}')
+				GO
+				INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (35, N'MachineId', N'ASCII_Alpha', 808, 8, 1, N'The va lue in this field Identifies the opera tor who proces s ed the ma ilpiece. This
+				informa tion is collected by Direct Connect during the ins erting proces s .', N'PCI09   ', N'varchar(50)', N'{0,-<len>}')
+				GO
+				INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (40, N'ProcessingTimeStamp', N'ASCII_Alpha', 816, 14, 1, N'The va lue in this field s pecifies the da te and time the ma ilpiece wa s proces s ed. This informa tion is collected by Direct Connect during the ins erting proces s . Us e the forma t MM/DD/YYYY HH:MM:SS. (Note tha t there is one space between the da te and time).', N'20170727165042', N'datetime', N'{0:yyyyMMddHHmmss}')
+				GO
+				INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (45, N'DetailedErrorId', N'ASCII_Alpha', 830, 5, 1, N'The va lue in this field s pecifies the ma ilpiece dis pos ition. This informa tion is collected by
+				Direct Connect during the ins erting proces s . Pos s ible va lues are: 0 = Unknown, 1 = On
+				Ins erter, 2 = Removed due to Ja m, 3 = Removed by Opera tor, 4 = Outs orted, 5 = Succes s fully Rendered, 6 = Never Proces s ed, 7 = Ma nua lly Rejected, 8 = Ma nua lly Repa ired, 9 = Deferred', N'0', N'varchar(50)', N'{0,-<len>}')
+				GO
+				INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (50, N'Disposition', N'ASCII_Alpha', 835, 2, 1, N'The va lue in this field s pecifies the text des cription of the ma ilpiece dis pos ition. This
+				informa tion is collected by Direct Connect during the ins erting proces s .', N'5', N'varchar(50)', N'{0,-<len>}')
+				GO
+				INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (55, N'Input_Fed', N'ASCII_Alpha', 837, 2, 1, N'The va lue in this field is the tota l number of sheets actually fed from the input feeder 1 for this ma ilpiece. This informa tion is collected by Direct Connect during the ins erting proces s . There are two of thes e fields ava ila ble to a ccommoda te as ma ny as two input
+				feeders on the ins erter.', N'00', N'varchar(50)', N'{0,-<len>}')
+				GO
+				INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (60, N'Feeder3_Fed', N'ASCII_Alpha', 839, 1, 1, N'The va lue in this field s pecifies whether an ins ert wa s actually fed or not fed from this ins ert feeder for this ma ilpiece. This informa tion is collected by Direct Connect during the ins erting proces s . There are 16 of thes e fields availa ble to a ccommoda te as ma ny as 
+				16 ins ert feeders on the ins erter. Pos s ible va lues include: 0 = Not fed, 1 = Fed.', N'0', N'varchar(50)', N'{0,-<len>}')
+				GO
+				INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (65, N'Feeder4_Fed', N'ASCII_Alpha', 840, 1, 1, N'See Ins ertFeeder03Ack des cription.', N'0', N'varchar(50)', N'{0,-<len>}')
+				GO
+				INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (70, N'Feeder5_Fed', N'ASCII_Alpha', 841, 1, 1, N'See Ins ertFeeder03Ack des cription.', N'0', N'varchar(50)', N'{0,-<len>}')
+				GO
+				INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (75, N'ComputedWeight', N'ASCII_Alpha', 842, 5, 1, N'The va lue in this field s pecifies the actual computed weight of the finis hed ma ilpiece in ounces . This informa tion is collected by Direct Connect during the ins erting proces s . This field mus t be a decima l number with one digit to the left of the decima l point, and three
+				digits to the right (e.g., 1.320).', N'0.00 ', N'decimal(4,3)', N'{0,-<len>}')
+				GO
+				INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (80, N'MeterDate', N'ASCII_Alpha', 847, 8, 1, N'Da te ma il piece wa s pos ted with meter sta mp', N'', N'varchar(50)', N'{0,-<len>}')
+				GO
+				INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (85, N'StatusSource', N'ASCII_Alpha', 855, 25, 1, N'The va lue in this field s pecifies the na me of ma chine element tha t set the ma ilpiece
+				dis pos ition. This informa tion is collected by Direct Connect during the ins erting proces s .', N'Mailpiece Manager        ', N'varchar(50)', N'{0,-<len>}')
+				GO
+				INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (90, N'PostageMetered', N'ASCII_Alpha', 880, 5, 1, N'When the ins erter ha s meter links on ea ch meter, a va lue will be pres ent in this field. The va lue in this field s pecifies the actual pos ta ge a pplied to the finis hed ma ilpiece. This informa tion is collected by Direct Connect during the ins erting proces s . This field mus t be a decima l number with one digit to the left of the decima l point, and three digits to the
+				right (e.g., 0.370).', N'', N'decimal(4,3)', N'{0,-<len>}')
+				GO
+				INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (95, N'WeightMeasured', N'ASCII_Alpha', 885, 5, 1, N'When a Weigh on the Fly sca le is pa rt of the ins erter, a va lue will be pres ent in this field. The va lue in this field s pecifies the actual mea s ured weight of the finis hed ma ilpiece in ounces . This informa tion is collected by Direct Connect during the ins erting proces s . This field mus t be a decima l number with one digit to the left of the decima l point, and three
+				digits to the right (e.g., 1.320).', N'', N'decimal(4,3)', N'{0,-<len>}')
+				GO
+				INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (100, N'ExitLocation', N'ASCII_Alpha', 890, 25, 1, N'The va lue in this field s pecifies the phys ica l loca tion where the ma ilpiece left the
+				ins erter. This informa tion is collected by Direct Connect during the ins erting process. ', N'', N'varchar(50)', N'{0,-<len>}')
+				GO
+	- For AuthoMail
+		- For DueDate logic changes
+			1) Added Holiday list table
+				/****** Object:  Table [dbo].[Holidays]    Script Date: 6/26/2018 1:52:02 PM ******/
+				SET ANSI_NULLS ON
+				GO
+
+				SET QUOTED_IDENTIFIER ON
+				GO
+
+				SET ANSI_PADDING ON
+				GO
+
+				CREATE TABLE [Common].[Holidays](
+					[Id] [int] IDENTITY(1,1) NOT NULL,
+					[HolidayDate] [date] NULL,
+					[Description] [varchar](200) NULL,			
+				 CONSTRAINT [PK_Holidays] PRIMARY KEY CLUSTERED 
+				(
+					[Id] ASC
+				)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+				) ON [PRIMARY]
+
+				GO
+
+				SET ANSI_PADDING OFF
+				GO
+				
+				-- Holiday List
+				SET IDENTITY_INSERT [Common].[Holidays] ON
+				GO
+				INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (1, CAST(N'2018-01-01' AS Date), N'New Year Day')
+				GO
+				INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (2, CAST(N'2018-01-15' AS Date), N'Martin Luther King Jr. Day')
+				GO
+				INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (3, CAST(N'2018-02-19' AS Date), N'Presidents Day')
+				GO
+				INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (4, CAST(N'2018-05-28' AS Date), N'Memorial Day')
+				GO
+				INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (5, CAST(N'2018-07-04' AS Date), N'Independence Day')
+				GO
+				INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (6, CAST(N'2018-03-09' AS Date), N'Labor Day')
+				GO
+				INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (7, CAST(N'2018-08-10' AS Date), N'Columbus Day')
+				GO
+				INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (8, CAST(N'2018-11-12' AS Date), N'Veterans Day')
+				GO
+				INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (9, CAST(N'2018-11-22' AS Date), N'Thanks Giving Day')
+				GO
+				INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (10, CAST(N'2018-11-23' AS Date), N'Day After Thanks Giving')
+				GO
+				INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (11, CAST(N'2018-12-24' AS Date), N'Christmas Eve')
+				GO
+				INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (12, CAST(N'2018-12-25' AS Date), N'Christmas')
+				GO
+				INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (13, CAST(N'2019-01-01' AS Date), N'New Year Day')
+				GO
+				SET IDENTITY_INSERT [Common].[Holidays] OFF
+				GO
+			2) Dropped two column from AM.DocTypes table	
+				ALTER TABLE [AM].[DocTypes] DROP COLUMN [SLADays],[SLACutOffTime]
+			3) Added 9 new columns in AM.DocTypes table	
+				ALTER TABLE [AM].[DocTypes]
+				ADD [BizdayCutOff] [varchar](255) NULL,[BizdaySLAType][varchar](255) NULL,[BizdayTimeSpan][varchar](255) NULL,[SatCutOff] [varchar](255) NULL,[SatSLAType][varchar](255) NULL,[SatTimeSpan][varchar](255) NULL,
+					[SunCutOff] [varchar](255) NULL,[SunSLAType][varchar](255) NULL,[SunTimeSpan][varchar](255) NULL
+			4) UPDATE shipping type of one doctype which is not in use
+				UPDATE AM.DocTypes
+				SET
+				ShippingCarrier='FedEx',
+				ShippingServiceType='PRIORITY_OVERNIGHT',
+				ShippingAccountCode='CL_STAGING'
+				WHERE Id=77
+			5) Update Timing and CutOff Values for DocTypes
+				UPDATE AM.DocTypes
+				SET
+				BizdayCutOff='00:00:00',
+				BizdaySLAType='Duration',
+				BizdayTimeSpan='01:00:00:00',
+				SatCutOff='00:00:00',
+				SatSLAType='Duration',
+				SatTimeSpan='01:00:00:00',
+				SunCutOff=NULL,
+				SunSLAType='NA',
+				SunTimeSpan=NULL
+				WHERE Id in (SELECT Id FROM am.DocTypes WHERE ClientId=101 AND ShippingServiceType='USPS')
+				
+				UPDATE AM.DocTypes
+				SET
+				BizdayCutOff='15:00:00',
+				BizdaySLAType='FixedTime',
+				BizdayTimeSpan='00:23:59:59',
+				SatCutOff='15:00:00',
+				SatSLAType='FixedTime',
+				SatTimeSpan='00:23:59:59',
+				SunCutOff=NULL,
+				SunSLAType='NA',
+				SunTimeSpan=NULL
+				WHERE Id in (SELECT Id FROM am.DocTypes WHERE ClientId=101 AND ShippingServiceType='USPS_EXPRESSMAIL')
+				
+				UPDATE AM.DocTypes
+				SET
+				BizdayCutOff='19:00:00',
+				BizdaySLAType='FixedTime',
+				BizdayTimeSpan='00:23:59:59',
+				SatCutOff='12:00:00',
+				SatSLAType='FixedTime',
+				SatTimeSpan='00:23:59:59',
+				SunCutOff=NULL,
+				SunSLAType='NA',
+				SunTimeSpan=NULL
+				WHERE Id in (SELECT Id FROM am.DocTypes WHERE ClientId=101 AND ShippingServiceType='PRIORITY_OVERNIGHT')
+				
+				UPDATE AM.DocTypes
+				SET
+				BizdayCutOff='20:00:00',
+				BizdaySLAType='FixedTime',
+				BizdayTimeSpan='00:23:59:59',
+				SatCutOff='20:00:00',
+				SatSLAType='FixedTime',
+				SatTimeSpan='00:23:59:59',
+				SunCutOff=NULL,
+				SunSLAType='NA',
+				SunTimeSpan=NULL
+				WHERE Id in (SELECT Id FROM am.DocTypes WHERE ClientId=102 AND ShippingServiceType='USPS')
+		- For Bundle Sweep Programming
+			1) Dropped column MailBatchId from AM.PrintBatches
+				
+				/****** Object:  Index [IX_PrintBatches_MailBatchId]    Script Date: 6/26/2018 2:05:04 PM ******/
+				DROP INDEX [IX_PrintBatches_MailBatchId] ON [AM].[PrintBatches]
+				GO
+				ALTER TABLE [AM].[PrintBatches] DROP CONSTRAINT [FK_PrintBatches_MailBatches]
+				GO
+				ALTER TABLE AM.PrintBatches
+				DROP COLUMN [MailBatchId]
+				GO
+			2) Added new Key in SystemSettings "Core_BundleSweepClientChannelIds" (NOTE : Give Deployed Channel Ids in below key)
+				INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Core_BundleSweepClientChannelIds', N'String', N'1', NULL, 0, N'1', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+				INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_MaxJsonLength', N'Int32', N'16000000', NULL, 0, N'16000000', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), CAST(N'2018-06-29 06:00:10.533' AS DateTime))
+			3) Remove unused SystemSettings Key
+				DELETE FROM Common.SystemSettings WHERE Id IN('Monitor_NoBatchReceivedNotification_Subject','Monitor_NoBatch_Email_To','Monitor_NoBatch_Email_Cc','Monitor_ReportSFTUploadingPathAMC','Core_PnSEmail_Subject','Core_PnS_Email_To','Core_PnS_Email_Cc','Core_FedExSaturdayCutOffTime')
+=========================
+Application Deployment
+=========================
+	- For PnS
+		1) Added new key in PnS Service config file
+			<add key="ByPassPCI" value="0" />
+		2) Update PnS Service.exe and PCI.Lib.dll for Bug fixed for Attachments
+	- For AuthoMail
+		1) Update Core.exe with AM dlls
+		2) Create new task schedular with total 5 triggers and in Action give Core.exe path and Commandline arguement as "BUNDLE"
+			- Bundle sweep times (EST): 8:00 am, 12:00 pm, 4:00 pm, 4:45 pm, 7:45 pm
+
+====================================================================================================================================================
+UAT Final Status : AM Deployed with Databas Changes at on 2nd July 2.30 PM IST / PnS Service Deployment is remaining for ByPassPCI 
+PROD Final Status : 
+====================================================================================================================================================
