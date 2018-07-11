@@ -28,14 +28,31 @@ namespace AM.Services
         public string RcptMiddleName { get; set; }
         public string RcptLastName { get; set; }
         public string RcptSuffix { get; set; }
-
         public string RcptPhone { get; set; }
         public string RcptOrganization { get; set; }
+
+        public string RcptName
+        {
+            get
+            {
+                string nm = string.Format("{0} {1} {2}", this.RcptFirstName, this.RcptMiddleName, this.RcptLastName);
+                return nm.IsNullOrWhiteSpace() ? null : nm.Replace("  ", " ");
+            }
+        }
+
         public string CoRcptPrefix { get; set; }
         public string CoRcptFirstName { get; set; }
         public string CoRcptMiddleName { get; set; }
         public string CoRcptLastName { get; set; }
         public string CoRcptSuffix { get; set; }
+        public string CoRcptName
+        {
+            get
+            {
+                string nm = string.Format("{0} {1} {2}", this.CoRcptFirstName, this.CoRcptMiddleName, this.CoRcptLastName);
+                return nm.IsNullOrWhiteSpace() ? null : nm.Replace("  ", " ");
+            }
+        }
         public string CoRcptPhone { get; set; }
         public string CoRcptOrganization { get; set; }
         public string RcptAddrOptionalLine1AboveStreet { get; set; }
@@ -48,12 +65,30 @@ namespace AM.Services
         public string RcptAddressState { get; set; }
         public string RcptAddressZIP { get; set; }
 
+        public string RcptAddress
+        {
+            get
+            {
+                string add = string.Format("{0} {1} {2} {3} {4} {5}", this.RcptAddrOptionalLine1AboveStreet, this.RcptAddrOptionalLine2AboveStreet, this.RcptAddressStreet, this.RcptAddressAptOrSuiteOrOther, this.RcptAddrOptionalLine1BelowStreet, this.RcptAddrOptionalLine2BelowStreet);
+                return add;
+            }
+        }
+
         public bool IsReturnInfoSpecified { get; set; }
         public string RetRcptPrefix { get; set; }
         public string RetRcptFirstName { get; set; }
         public string RetRcptMiddleName { get; set; }
         public string RetRcptLastName { get; set; }
         public string RetRcptSuffix { get; set; }
+
+        public string RetRcptName
+        {
+            get
+            {
+                string nm = string.Format("{0} {1} {2}", this.RetRcptFirstName, this.RetRcptMiddleName, this.RetRcptLastName);
+                return nm.IsNullOrWhiteSpace() ? null : nm.Replace("  ", " ");
+            }
+        }
 
         public string RetRcptPhone { get; set; }
         public string RetRcptOrganization { get; set; }
@@ -66,6 +101,15 @@ namespace AM.Services
         public string RetRcptAddressCity { get; set; }
         public string RetRcptAddressState { get; set; }
         public string RetRcptAddressZIP { get; set; }
+
+        public string RetRcptAddress
+        {
+            get
+            {
+                string add = string.Format("{0} {1} {2} {3} {4} {5}", this.RetRcptAddrOptionalLine1AboveStreet, this.RetRcptAddrOptionalLine2AboveStreet, this.RetRcptAddressStreet, this.RetRcptAddressAptOrSuiteOrOther, this.RetRcptAddrOptionalLine1BelowStreet, this.RetRcptAddrOptionalLine2BelowStreet);
+                return add;
+            }
+        }
 
         public int TotalPages { get; set; }
         public int TotalSheets { get; set; }
