@@ -677,9 +677,9 @@ INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (4, CAST(
 GO
 INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (5, CAST(N'2018-07-04' AS Date), N'Independence Day')
 GO
-INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (6, CAST(N'2018-03-09' AS Date), N'Labor Day')
+INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (6, CAST(N'2018-09-03' AS Date), N'Labor Day')
 GO
-INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (7, CAST(N'2018-08-10' AS Date), N'Columbus Day')
+INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (7, CAST(N'2018-10-08' AS Date), N'Columbus Day')
 GO
 INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (8, CAST(N'2018-11-12' AS Date), N'Veterans Day')
 GO
