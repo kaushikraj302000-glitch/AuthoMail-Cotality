@@ -15,7 +15,6 @@ namespace AM.Web.Models
         public string FileName { get; set; }
         public string DocumentOrPackageType { get; set; }
         public int? SLADays { get; set; }
-        public string BusinessIdValue { get; set; }
         public DateTime? DueDate { get; set; }
         public string ShippingStatus { get; set; }
         public DateTime? ReceivedOn { get; set; }
@@ -35,7 +34,6 @@ namespace AM.Web.Models
         public bool IsQCPerformed { get; set; }
         public string SFTChannels { get; set; }
         public string DocTypeCode { get; set; }
-        public string UserName { get; set; }
         public int TotalPages { get; set; }
         public int TotalSheets { get; set; }
         public string ErrorCode { get; set; }
@@ -48,8 +46,8 @@ namespace AM.Web.Models
         public string CoRcptName { get; set; }
         public string CoRcptPhone { get; set; }
         public string CoRcptOrganization { get; set; }
-        public string ReturnRcptName { get; set; }
-        public string ReturnRcptAddress { get; set; }
+        public string RetRcptName { get; set; }
+        public string RetRcptAddress { get; set; }
 
     }
 }
