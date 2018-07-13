@@ -254,7 +254,7 @@ namespace AM.Core
                             log.Error("Error occured while processing mail pieces {0}".Fill(mailPiece.Id), ex);
 
                             // Send email to support team
-                            SendUnexpectedExcelptionEmail(ex.ToString());
+                            SendUnexpectedExceptionEmail(ex.ToString());
                             continue;
                         }
                     }
@@ -264,7 +264,7 @@ namespace AM.Core
                     var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
                     if (data != null)
                     {
-                        var validMailPiecesList = data.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
+                        var validMailPiecesList = data.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
 
                         if (validMailPiecesList.Count == 0)
                         {
@@ -289,7 +289,7 @@ namespace AM.Core
             }
         }
 
-        private static void SendUnexpectedExcelptionEmail(string exception)
+        private static void SendUnexpectedExceptionEmail(string exception)
         {
             try
             {
@@ -373,8 +373,9 @@ namespace AM.Core
             string slaTimeSpan = string.Empty;
             string slaCutOff = string.Empty;
             string slaType = string.Empty;
-            bool isSatWorkDay = false;
-            bool isSunWorkDay = false;
+
+            bool isSatWorkDay = docType.SatSLAType == SLAType.NA ? false : true;
+            bool isSunWorkDay = docType.SunSLAType == SLAType.NA ? false : true;
 
             DateTime dueDate = new DateTime();
 
@@ -383,11 +384,10 @@ namespace AM.Core
                 slaTimeSpan = docType.SatTimeSpan;
                 slaCutOff = docType.SatCutOff;
                 slaType = docType.SatSLAType;
-                isSatWorkDay = true;
+
                 if (docType.SatSLAType == SLAType.NA)
                 {
                     dayOfWeek = DayOfWeek.Sunday;
-                    isSatWorkDay = false;
                 }
             }
 
@@ -396,11 +396,10 @@ namespace AM.Core
                 slaTimeSpan = docType.SunTimeSpan;
                 slaCutOff = docType.SunCutOff;
                 slaType = docType.SunSLAType;
-                isSunWorkDay = true;
+
                 if (docType.SunSLAType == SLAType.NA)
                 {
                     dayOfWeek = DayOfWeek.Monday;
-                    isSunWorkDay = false;
                 }
             }
 
@@ -409,9 +408,6 @@ namespace AM.Core
                 slaTimeSpan = docType.BizdayTimeSpan;
                 slaCutOff = docType.BizdayCutOff;
                 slaType = docType.BizdaySLAType;
-
-                isSatWorkDay = docType.SatSLAType == SLAType.NA ? false : true;
-                isSunWorkDay = docType.SunSLAType == SLAType.NA ? false : true;
             }
 
 

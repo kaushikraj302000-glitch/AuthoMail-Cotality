@@ -75,14 +75,14 @@ namespace AM.Core
                 mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                 mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
                 mailPiece.ErrorDesc = string.Format("{0}|{1}", OutComeCodes.Unknown_Error, ex.Message);
-                SendUnexpectedExcelptionEmail(error);
+                SendUnexpectedExceptionEmail(error);
                 isLabelGenerated = false;
             }
 
             return isLabelGenerated;
         }
 
-        private void SendUnexpectedExcelptionEmail(string exception)
+        private void SendUnexpectedExceptionEmail(string exception)
         {
             try
             {
