@@ -249,6 +249,7 @@
             </div>
             <div class="modal-body">
                 <div id="showerror" style="display:none"></div>
+                <div class='alert alert-blue text-center' id="loadingModal" style="display:none"><span> Loading... </span></div>
                 <div class="row" id="databind">
 
                 </div>
@@ -532,6 +533,8 @@
             //alert("call");
             var mailPieceId = $(obj).data("mailpieceid");
             //console.log(mailPieceId);
+            $("#ViewInfo").modal("show");
+            $("#loadingModal").show();
             $.ajax({
                 type: "GET",
                 url: baseUrl + "Home/GetMailPieceByUniqueId",
@@ -544,6 +547,7 @@
                     if (response.Success) {
                         if (response.Object != null) {
                             if (response.Object.model != null) {
+                                $("#loadingModal").hide();
                                 var data = FormatMailPieceObject(response.Object.model);
                                 var bodyHtml = $("#templatemodal").html();
                                 $("#databind").html("");
@@ -554,25 +558,28 @@
                                     'placement': 'auto left',
                                     'container': 'body'
                                 });
-                                $("#ViewInfo").modal("show");
+                                
                             }
                             else {
+                                $("#loadingModal").hide();
                                 $("#databind").html("");
                                 $("#showerror").show();
                                 $("#showerror").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>");
-                                $("#ViewInfo").modal("show");
+                                
                             }
                         }
                     } else {
+                        $("#loadingModal").hide();
                         $("#databind").html("");
                         $("#showerror").show();
                         $("#searchMailPieceList").show();
                         $("#showerror").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + response.ErrorMessage + "</span></div>");
-                        $("#ViewInfo").modal("show");
+                       // $("#ViewInfo").modal("show");
                     }
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     $("#showerror").show();
+                    $("#loadingModal").hide();
                     var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
                     $("#showerror").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
                     $("#ViewInfo").modal("show");
