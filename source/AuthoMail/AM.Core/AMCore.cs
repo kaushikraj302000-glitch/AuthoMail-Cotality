@@ -347,7 +347,7 @@ namespace AM.Core
                 case "HSBC":
                     using (IHSBCService hsbcSvc = new HSBCService())
                     {
-                        string errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName, mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
+                        string errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
                         string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
                         StringBuilder errorData = hsbcSvc.HSBCErrorReport(mailBatchData, mbi.Client.TimeZone, deliverable.Delimeter);
                         if (errorData != null)
@@ -953,7 +953,7 @@ namespace AM.Core
                     {
                         StringBuilder deliveryReport = hsbcSvc.HSBCDeliveryReport(mailBatchData, mbi.Client.TimeZone, deliverable.Delimeter);
 
-                        string deliveryReportFileName = "{0}.DeliveryReport_{1}.csv".Fill(mbi.BatchName, mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
+                        string deliveryReportFileName = "{0}.DeliveryReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
                         string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
 
                         File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
@@ -961,7 +961,7 @@ namespace AM.Core
 
                         StringBuilder errorReport = hsbcSvc.HSBCErrorReport(mailBatchData, mbi.Client.TimeZone, deliverable.Delimeter);
 
-                        string errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName, mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
+                        string errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
                         string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 
                         File.WriteAllText(errorReportPath, errorReport.ToString());

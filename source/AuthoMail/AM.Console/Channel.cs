@@ -230,7 +230,7 @@ namespace AM.Console
                     {
                         if (deliverable.ReportType == ReportTypes.Delivery)
                         {
-                            var deliveryReportName = "{0}.DeliveryReport_{1}.csv".Fill(mbi.BatchName, mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
+                            var deliveryReportName = "{0}.DeliveryReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
                             string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportName);
                             if (File.Exists(deliveryReportPath))
                             {
@@ -241,7 +241,7 @@ namespace AM.Console
                         }
                         else if (deliverable.ReportType == ReportTypes.Error)
                         {
-                            var errorReportName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName, mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
+                            var errorReportName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
                             string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportName);
                             if (File.Exists(errorReportPath))
                             {

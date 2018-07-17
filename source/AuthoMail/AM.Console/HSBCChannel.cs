@@ -454,7 +454,28 @@ namespace AM.Console
 
         private void ReportInvalidBatch(MailBatchInfo mbi, string msg, Deliverable deliverable)
         {
-            MailUtility.SendNoDataNotificationEmail(mbi, deliverable.EmailChannel, msg);
+            string mailMsg = "No records available in the batch file {0}".Fill(mbi.MailBatch.BatchName);
+            string errorReportFileName = string.Empty;
+
+            StringBuilder errorReport = new StringBuilder(string.Format("No matching PDFs available in the batch file {0}.", mbi.MailBatch.BatchName));
+
+            errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.MailBatch.BatchName.Split('[')[0], Common.Now.ToString("htt"));
+
+            string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+            File.WriteAllText(errorReportPath, errorReport.ToString());
+
+            SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
+            sftSite.Connect();
+
+            var ftpUploadPath = Path.Combine(deliverable.UploadPath, errorReportFileName);
+
+            sftSite.UploadFile(errorReportPath, ftpUploadPath);
+
+            if (sftSite.IsConnected)
+                sftSite.Disconnect();
+
+            MailUtility.SendNoDataNotificationEmail(mbi, deliverable.EmailChannel, mailMsg, errorReportPath);
+
             //For Invalid Batch, we will generate error File
             mailBatchSvc.MarkMailBatchAsInvalid(mbi.MailBatch.Id, msg);
 
@@ -486,11 +507,11 @@ namespace AM.Console
                 {
                     try
                     {
-                        string errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName, mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(client.TimeZone).ToString("htt"));
+                        string errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(client.TimeZone).ToString("htt"));
 
                         string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 
-                        //Here we are generating error report eventhough it does not have any errored records
+                        //Here we are generating error report even though it does not have any errored records
                         StringBuilder errorData = hsbcSvc.HSBCErrorReport(mailBatchData, mbi.Client.TimeZone, reportDeliverable.Delimeter);
                         if (errorData != null)
                         {

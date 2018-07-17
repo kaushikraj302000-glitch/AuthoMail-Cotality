@@ -393,5 +393,48 @@ namespace AM.Console
 
             return isEmailSent;
         }
+        public static bool SendNoDataNotificationEmail(MailBatchInfo mbi, EmailChannel emailChannel, string errorMsg, string reportFilePath)
+        {
+            bool isEmailSent = false;
+
+            try
+            {
+                using (SmtpClient smtpClient = new SmtpClient())
+                {
+                    using (MailMessage msg = new MailMessage())
+                    {
+                        msg.IsBodyHtml = true;
+                        msg.To.Add(emailChannel.To);
+                        msg.CC.Add(emailChannel.Cc);
+                        msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, mbi.Client.AppCode, Config.Monitor_PSNoDataEmailSubject);
+                        msg.Priority = MailPriority.Normal;
+
+                        StringBuilder sb = new StringBuilder(File.ReadAllText(Config.Monitor_PSNoDataEmailTemplate));
+                        sb = sb.Replace("<%FileName%>", mbi.MailBatch.BatchName);
+                        sb = sb.Replace("<%yyyymmdd%>", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("MM/dd/yyyy"));
+                        sb = sb.Replace("<%hhmm%>", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("hh:mm tt"));
+                        sb = sb.Replace("<%Description%>", errorMsg);
+                        msg.Body = sb.ToString();
+
+                        if (File.Exists(reportFilePath))
+                        {
+                            msg.Attachments.Add(new Attachment(reportFilePath));
+                        }
+
+                        if (msg.Body.Length > 0)
+                        {
+                            smtpClient.Send(msg);
+                            isEmailSent = true;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex);
+            }
+
+            return isEmailSent;
+        }
     }
 }
