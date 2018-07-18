@@ -33,7 +33,7 @@ namespace AM.Reporting
 
                     if (deliverable != null)
                     {
-                        var startDate = DateTime.UtcNow.UtcToEst().Date;
+                        var startDate = DateTime.UtcNow.AddDays(-1).Date;
                         var endDate = startDate.AddDays(1).Date;
 
                         var consolidatedReportData = hsbcSvc.ConsolidatedReport(client.Id, startDate, endDate);
@@ -47,7 +47,7 @@ namespace AM.Reporting
                         foreach (var mailPiece in consolidatedReportData)
                         {
                             var line = String.Join(deliverable.Delimeter,
-                                mailPiece.BatchName,
+                                mailPiece.BatchName + ".xml",
                                 mailPiece.StatusID,
                                 mailPiece.BusinessFriendlyIdValue,
                                 mailPiece.FileName,
@@ -62,7 +62,8 @@ namespace AM.Reporting
                                 mailPiece.RcptAddressState,
                                 mailPiece.RcptAddressZIP,
                                 mailPiece.TotalPages,
-                                mailPiece.ShippingCost);
+                                mailPiece.TotalPages);
+                            summaryReport.AppendLine(line);
                         }
 
                         string consolidateReportName = "Delivery-{0}.csv".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
@@ -71,19 +72,6 @@ namespace AM.Reporting
                         try
                         {
                             File.WriteAllText(consolidateReportPath, summaryReport.ToString());
-
-                            if (!string.IsNullOrEmpty(deliverable.UploadPath))
-                            {
-                                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannel.Protocol), sftChannel.Host, sftChannel.UserName, sftChannel.Password, 300000);
-                                sftSite.Connect();
-
-                                var ftpUploadPath = Path.Combine(deliverable.UploadPath, consolidateReportName);
-
-                                sftSite.UploadFile(consolidateReportPath, ftpUploadPath);
-
-                                if (sftSite.IsConnected)
-                                    sftSite.Disconnect();
-                            }
 
                             if (deliverable.EmailChannel != null)
                             {
