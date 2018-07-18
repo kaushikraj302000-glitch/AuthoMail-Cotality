@@ -249,6 +249,8 @@ INSERT [AM].[DocTypes] ([Id], [DocTypeCode], [Description], [ClientId], [PrintSi
 GO
 INSERT [AM].[DocTypes] ([Id], [DocTypeCode], [Description], [ClientId], [PrintSize], [ContentScalePercent], [PrintFormat], [QCPercent], [ShippingCarrier], [ShippingServiceType], [ShippingAccountCode], [IsReturnInfoSpecified], [RetRcptPrefix], [RetRcptFirstName], [RetRcptMiddleName], [RetRcptLastName], [RetRcptSuffix], [RetRcptPhone], [RetRcptOrganization], [RetRcptAddrOptionalLine1AboveStreet], [RetRcptAddrOptionalLine2AboveStreet], [RetRcptAddressStreet], [RetRcptAddressAptOrSuiteOrOther], [RetRcptAddrOptionalLine1BelowStreet], [RetRcptAddrOptionalLine2BelowStreet], [RetRcptAddressCity], [RetRcptAddressState], [RetRcptAddressZIP], [ClientEmails], [ClientContactNo], [SupportEmails], [SupportContactNo], [IsActive], [ModifiedOn], [CreatedOn], [CreatedBy], [ModifiedBy], [BizdayCutOff], [BizdaySLAType], [BizdayTimeSpan], [SatCutOff], [SatSLAType], [SatTimeSpan], [SunCutOff], [SunSLAType], [SunTimeSpan]) VALUES (100, N'AppraisalPaymentConfirmationReceipt', N'Appraisal Payment Confirmation Receipt', 101, N'LETTER-IP', 100, N'Simplex', 0, N'USPS', N'USPS', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, CAST(N'2018-02-28 13:09:29.223' AS DateTime), CAST(N'2018-02-27 13:09:29.223' AS DateTime), N'66f8d3e7-b66a-48d9-911f-d3914f1b3a11', N'66f8d3e7-b66a-48d9-911f-d3914f1b3a11', N'00:00:00', N'Duration', N'01:00:00:00', N'00:00:00', N'Duration', N'01:00:00:00', NULL, N'NA', NULL)
 GO
+INSERT [AM].[DocTypes] ([Id], [DocTypeCode], [Description], [ClientId], [PrintSize], [ContentScalePercent], [PrintFormat], [QCPercent], [ShippingCarrier], [ShippingServiceType], [ShippingAccountCode], [IsReturnInfoSpecified], [RetRcptPrefix], [RetRcptFirstName], [RetRcptMiddleName], [RetRcptLastName], [RetRcptSuffix], [RetRcptPhone], [RetRcptOrganization], [RetRcptAddrOptionalLine1AboveStreet], [RetRcptAddrOptionalLine2AboveStreet], [RetRcptAddressStreet], [RetRcptAddressAptOrSuiteOrOther], [RetRcptAddrOptionalLine1BelowStreet], [RetRcptAddrOptionalLine2BelowStreet], [RetRcptAddressCity], [RetRcptAddressState], [RetRcptAddressZIP], [ClientEmails], [ClientContactNo], [SupportEmails], [SupportContactNo], [IsActive], [ModifiedOn], [CreatedOn], [CreatedBy], [ModifiedBy], [BizdayCutOff], [BizdaySLAType], [BizdayTimeSpan], [SatCutOff], [SatSLAType], [SatTimeSpan], [SunCutOff], [SunSLAType], [SunTimeSpan]) VALUES (101,N'FloodAdvisory', N'Flood Advisory', 104, N'MixMedia', 100, N'Simplex', 0, N'USPS', N'USPS', NULL, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, N'HSBC Bank USA, N.A.', NULL, N'100 Bailey Ave', NULL, NULL, NULL, N'Buffalo', N'NY', N'14220', NULL, NULL, NULL, NULL, 1, CAST(N'2018-02-28 13:04:00.200' AS DateTime), CAST(N'2018-02-27 13:04:00.200' AS DateTime), N'66f8d3e7-b66a-48d9-911f-d3914f1b3a11', N'66f8d3e7-b66a-48d9-911f-d3914f1b3a11', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+GO
 SET IDENTITY_INSERT [AM].[DocTypes] OFF
 GO
 
@@ -591,6 +593,17 @@ GO
 --UPDATE HSBC RETURN ADDRESS FOR FROM ADDRESS ON COVER LETTER
 UPDATE [AM].[DocTypes]
 SET
+ShippingCarrier='USPS',
+ShippingServiceType='USPS',
+BizdayCutOff='20:00:00',
+BizdaySLAType='FixedTime',
+BizdayTimeSpan='00:23:59:59',
+SatCutOff='20:00:00',
+SatSLAType='FixedTime',
+SatTimeSpan='00:23:59:59',
+SunCutOff=NULL,
+SunSLAType='NA',
+SunTimeSpan=NULL,
 [IsReturnInfoSpecified]=1,
 [RetRcptAddrOptionalLine1AboveStreet]='HSBC Bank USA, N.A.',
 [RetRcptAddressStreet]='100 Bailey Ave',
