@@ -150,7 +150,7 @@ namespace AM.Console
                     var error = "Error occured while downloading {0} batch from SFT site for Batch-Id : {1}".Fill(mbi.BatchName, mbi.MailBatch.Id) + Environment.NewLine + ex.ToString();
 
                     log.Error(error);
-
+                    MailUtility.SendUnexpectedExcelptionEmail(error);
                     continue;
                 }
             }
