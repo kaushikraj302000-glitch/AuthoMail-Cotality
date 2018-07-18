@@ -540,7 +540,7 @@ namespace AM.Console
                         {
                             if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.Invalid)
                             {
-                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
+                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
                             }
                             else if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.PartiallyValid)
                             {
