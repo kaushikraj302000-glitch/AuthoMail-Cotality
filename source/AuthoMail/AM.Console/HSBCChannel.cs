@@ -362,10 +362,8 @@ namespace AM.Console
 
                             log.Error(msg, ex);
                             mailPieceDTO.UniqueId = Guid.NewGuid();
-                            mailPieceDTO.ErrorCode = OutComeCodes.Invalid_DuplicateKey;
-                            mailPieceDTO.ErrorDesc = msg + Environment.NewLine + ex.Message;
-                            mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                             mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfoList);
+                            MailUtility.SendUnexpectedExcelptionEmail(msg);
                         }
                     }
                 }
@@ -518,38 +516,34 @@ namespace AM.Console
                             File.WriteAllText(errorReportPath, errorData.ToString());
                         }
 
-                        //Uploading error report to client's SFT site even blank report also
-                        SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
-                        sftSite.Connect();
-
-                        var ftpUploadPath = Path.Combine(reportDeliverable.UploadPath, errorReportFileName);
-
-                        sftSite.UploadFile(errorReportPath, ftpUploadPath);
-
-                        if (sftSite.IsConnected)
-                            sftSite.Disconnect();
-
                         //This logic added because if we get any error while sending notification to client it will update status and process batch without any error notification. So if we get true in return then only we can process further
-                        bool isMailSent = false;
                         if (reportDeliverable.EmailChannel != null)
                         {
-                            isMailSent = MailUtility.SendDownloadNotificationEmail(mbi, mailBatchData, errorReportPath, reportDeliverable.EmailChannel);
+                            MailUtility.SendDownloadNotificationEmail(mbi, mailBatchData, errorReportPath, reportDeliverable.EmailChannel);
                         }
 
-                        if (isMailSent)
+                        if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.Invalid)
                         {
-                            if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.Invalid)
-                            {
-                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
-                            }
-                            else if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.PartiallyValid)
-                            {
-                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
-                            }
-                            else
-                            {
-                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
-                            }
+                            //Uploading error report to client's SFT site even blank report also
+                            SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
+                            sftSite.Connect();
+
+                            var ftpUploadPath = Path.Combine(reportDeliverable.UploadPath, errorReportFileName);
+
+                            sftSite.UploadFile(errorReportPath, ftpUploadPath);
+
+                            if (sftSite.IsConnected)
+                                sftSite.Disconnect();
+
+                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
+                        }
+                        else if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.PartiallyValid)
+                        {
+                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
+                        }
+                        else
+                        {
+                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
                         }
                     }
                     catch (Exception ex)
