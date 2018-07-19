@@ -505,7 +505,7 @@ namespace AM.Web.Controllers
                 }
                 else
                 {
-                    string url = Request.Url.ToString().Replace(Request.RawUrl.ToString(), Url.Action("GetSingUpRequestedList", "Admin"));
+                    string url = Request.Url.ToString().Replace(Request.RawUrl.ToString(), Url.Action("GetSignUpRequestedList", "Admin"));
                     sb.Replace("{{url}}", url);
                 }
                 sb.Replace("{{email}}", user.Email);
