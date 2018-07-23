@@ -17,7 +17,10 @@
         word-wrap: break-word;
         color: red;
     }
-
+    .tooltip-inner {
+        /*max-width: 453px !important;*/
+        word-wrap: break-word !important;
+    }
     .show-calendar {
         width: 484px !important;
     }
@@ -269,7 +272,7 @@
             <div class="form-group margin-bottom-2">
                 <div class="input-group">
                     <label for="BusinessFriendlyIdValue">Batch Name:&nbsp; </label>
-                    <span class="form-control-static">{BatchName}</span>
+                    <span class="form-control-static" data-toggle="tooltip" data-container="body" data-placement="bottom" title='{BatchName}'>{ShortBatchName}</span>
                 </div>
             </div>
             <div class="form-group margin-bottom-2">
@@ -533,6 +536,7 @@
             //alert("call");
             var mailPieceId = $(obj).data("mailpieceid");
             //console.log(mailPieceId);
+            $("#databind").html("");
             $("#ViewInfo").modal("show");
             $("#loadingModal").show();
             $.ajax({
@@ -558,7 +562,7 @@
                                     'placement': 'auto left',
                                     'container': 'body'
                                 });
-                                
+                                window.clui.tooltipInit();
                             }
                             else {
                                 $("#loadingModal").hide();
@@ -589,6 +593,11 @@
             //$("#ViewInfo").find(".modal-body").text(mailPieceId);
 
         }
+        function shortName(str) {
+            //console.log(str);
+            if (typeof str != 'undefined' && str != null && str != "")
+                return str.length > 31 ? str.substring(0, 31) + '...' : str;
+        }
         function MakeYesNoLabel(isbool) {
             var val = (isbool == true || isbool == 1) ? '<span  class="label medium label-yellow">Yes</span>' : '<span class="label medium label-success">No</span>';
             return val;
@@ -596,6 +605,7 @@
         function FormatMailPieceObject(Model) {
 
             $(Model).each(function () {
+                console.log(Model)
                 this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.IsPrinted = MakeYesNoLabel(this.IsPrinted);
                 this.IsShipped = MakeYesNoLabel(this.IsShipped);
@@ -605,21 +615,22 @@
                 this.IsPulledBack = MakeYesNoLabel(this.IsPulledBack);
                 this.IsRcptInfoSpecified = MakeYesNoLabel(this.IsRcptInfoSpecified);
                 this.SLADays = parseInt(this.SLADays / 86400);
+                this.ShortBatchName=shortName(this.BatchName)
                 this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
                 this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
                 this.PulledBackOnFormatted = this.PulledBackOn == null ? "--" : moment(this.PulledBackOn).format("MM/DD/YY HH:mm:ss");
                 //this.RcptName = this.RcptFirstName + " " + this.RcptMiddleName + " " + this.RcptLastName;
-                this.RcptName = this.RcptName.replace(/null/g, "").trim();
+                this.RcptName =this.RcptName==null?"": this.RcptName.trim();
                 //this.RcptAddress = this.RcptAddrOptionalLine1AboveStreet + " " + this.RcptAddrOptionalLine2AboveStreet + " " + this.RcptAddressStreet + " " + this.RcptAddressAptOrSuiteOrOther + " " + this.RcptAddrOptionalLine1BelowStreet + " " + this.RcptAddrOptionalLine2BelowStreet + " " + this.RcptAddressCity + " " + this.RcptAddressState + " " + this.RcptAddressZIP;
-                this.RcptAddress = this.RcptAddress.replace(/null/g, "").trim();
+                this.RcptAddress = this.RcptAddress==null?"": this.RcptAddress.trim();
                 //this.CoRcptName = this.CoRcptPrefix + " " + this.CoRcptFirstName + " " + this.CoRcptMiddleName + " " + this.CoRcptLastName + " " + this.CoRcptSuffix;
                 //this.CoRcptName = this.CoRcptName.replace(/null/g, "").trim();
                 //this.CoRcptName = this.CoRcptName == "" ? "--" : this.CoRcptName;
                 //this.ReturnRcptName = this.RetRcptPrefix + " " + this.RetRcptFirstName + " " + this.RetRcptMiddleName + " " + this.RetRcptLastName + " " + this.RetRcptSuffix
-                this.RetRcptName = this.RetRcptName.replace(/null/g, "").trim();
+                this.RetRcptName = this.RetRcptName==null?"": this.RetRcptName.replace(/null/g, "").trim();
                 //this.ReturnRcptAddress = this.RetRcptAddrOptionalLine1AboveStreet + " " + this.RetRcptAddrOptionalLine2AboveStreet + " " + this.RetRcptAddressStreet + " " + this.RetRcptAddressAptOrSuiteOrOther + " " + this.RetRcptAddrOptionalLine1BelowStreet + " " + this.RetRcptAddrOptionalLine2BelowStreet + " " + this.RetRcptAddressCity + " " + this.RetRcptAddressState + " " + this.RetRcptAddressZIP;
-                this.RetRcptAddress = this.RetRcptAddress.replace(/null/g, "").trim();
+                this.RetRcptAddress = this.RetRcptAddress == null ? "" : this.RetRcptAddress.replace(/null/g, "").trim();
                 switch (this.ShippingStatus) {
 
                     case "PulledBack":
