@@ -605,7 +605,7 @@
         function FormatMailPieceObject(Model) {
 
             $(Model).each(function () {
-                console.log(Model)
+                //console.log(Model)
                 this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.IsPrinted = MakeYesNoLabel(this.IsPrinted);
                 this.IsShipped = MakeYesNoLabel(this.IsShipped);
