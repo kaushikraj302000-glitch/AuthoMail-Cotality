@@ -516,6 +516,14 @@ Database Changes
 				INSERT [PnS].[Schema_MRDFResponse] ([Id], [FieldName], [Type], [StartPosition], [Length], [IsActive], [Description], [SampleValue], [DataType], [DataFormatTemplate]) VALUES (100, N'ExitLocation', N'ASCII_Alpha', 890, 25, 1, N'The va lue in this field s pecifies the phys ica l loca tion where the ma ilpiece left the
 				ins erter. This informa tion is collected by Direct Connect during the ins erting process. ', N'', N'varchar(50)', N'{0,-<len>}')
 				GO
+			3) Added new column in client table
+				ALTER TABLE [Common].[Clients]
+				ADD SimulatePCI [Bit] DEFAULT(0)
+
+				UPDATE [Common].[Clients]
+				SET
+				SimulatePCI=0
+			4) Updated SP [usp_GetAllClientAppDetail] & [usp_GetClientAppDetailsById] for after adding new column [SimulatePCI]
 	- For AuthoMail
 		- For DueDate logic changes
 			1) Added Holiday list table
@@ -557,9 +565,9 @@ Database Changes
 				GO
 				INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (5, CAST(N'2018-07-04' AS Date), N'Independence Day')
 				GO
-				INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (6, CAST(N'2018-03-09' AS Date), N'Labor Day')
+				INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (6, CAST(N'2018-09-03' AS Date), N'Labor Day')
 				GO
-				INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (7, CAST(N'2018-08-10' AS Date), N'Columbus Day')
+				INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (7, CAST(N'2018-10-08' AS Date), N'Columbus Day')
 				GO
 				INSERT [Common].[Holidays] ([Id], [HolidayDate], [Description]) VALUES (8, CAST(N'2018-11-12' AS Date), N'Veterans Day')
 				GO
@@ -652,23 +660,97 @@ Database Changes
 				DROP COLUMN [MailBatchId]
 				GO
 			2) Added new Key in SystemSettings "Core_BundleSweepClientChannelIds" (NOTE : Give Deployed Channel Ids in below key)
-				INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Core_BundleSweepClientChannelIds', N'String', N'1', NULL, 0, N'1', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+				INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Core_BundleSweepClientChannelIds', N'String', N'0', NULL, 0, N'1', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 				INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_MaxJsonLength', N'Int32', N'16000000', NULL, 0, N'16000000', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), CAST(N'2018-06-29 06:00:10.533' AS DateTime))
 			3) Remove unused SystemSettings Key
 				DELETE FROM Common.SystemSettings WHERE Id IN('Monitor_NoBatchReceivedNotification_Subject','Monitor_NoBatch_Email_To','Monitor_NoBatch_Email_Cc','Monitor_ReportSFTUploadingPathAMC','Core_PnSEmail_Subject','Core_PnS_Email_To','Core_PnS_Email_Cc','Core_FedExSaturdayCutOffTime')
+	- For On boarding HSBC Precautions for Database
+		- Database
+			- Update DocType details of HSBC	
+				UPDATE AM.DocTypes
+				SET
+				ShippingCarrier='USPS',
+				ShippingServiceType='USPS',
+				BizdayCutOff='20:00:00',
+				BizdaySLAType='FixedTime',
+				BizdayTimeSpan='00:23:59:59',
+				SatCutOff='20:00:00',
+				SatSLAType='FixedTime',
+				SatTimeSpan='00:23:59:59',
+				SunCutOff=NULL,
+				SunSLAType='NA',
+				SunTimeSpan=NULL,
+				IsReturnInfoSpecified=1,
+				RetRcptAddrOptionalLine1AboveStreet='HSBC Bank USA  N.A.',
+				RetRcptAddressStreet='100 Bailey Ave',
+				RetRcptAddressCity='Buffalo',
+				RetRcptAddressState='NY',
+				RetRcptAddressZIP='14220'
+				WHERE ClientId=104
+	
+
+			1) Enable client for AM and PCI
+				Update Common.Clients SET IsAMActive=1, IsPnSActive=1 WHERE Id=104
+			2) Insert ClientSFTChannel mapping
+				INSERT INTO [Common].[ClientSFTChannels]([ClientId],[SFTChannelId])VALUES(104,4)
+			3) Update / Validate SFTChannel Details for HSBC
+			4) Insert not configured DocTypes
+				SET IDENTITY_INSERT [AM].[DocTypes] ON
+				GO
+				INSERT [AM].[DocTypes] ([Id], [DocTypeCode], [Description], [ClientId], [PrintSize], [ContentScalePercent], [PrintFormat], [QCPercent], [ShippingCarrier], [ShippingServiceType], [ShippingAccountCode], [IsReturnInfoSpecified], [RetRcptPrefix], [RetRcptFirstName], [RetRcptMiddleName], [RetRcptLastName], [RetRcptSuffix], [RetRcptPhone], [RetRcptOrganization], [RetRcptAddrOptionalLine1AboveStreet], [RetRcptAddrOptionalLine2AboveStreet], [RetRcptAddressStreet], [RetRcptAddressAptOrSuiteOrOther], [RetRcptAddrOptionalLine1BelowStreet], [RetRcptAddrOptionalLine2BelowStreet], [RetRcptAddressCity], [RetRcptAddressState], [RetRcptAddressZIP], [ClientEmails], [ClientContactNo], [SupportEmails], [SupportContactNo], [IsActive], [ModifiedOn], [CreatedOn], [CreatedBy], [ModifiedBy], [BizdayCutOff], [BizdaySLAType], [BizdayTimeSpan], [SatCutOff], [SatSLAType], [SatTimeSpan], [SunCutOff], [SunSLAType], [SunTimeSpan]) VALUES (101,N'FloodAdvisory', N'Flood Advisory', 104, N'MixMedia', 100, N'Simplex', 0, N'USPS', N'USPS', NULL, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, N'HSBC Bank USA, N.A.', NULL, N'100 Bailey Ave', NULL, NULL, NULL, N'Buffalo', N'NY', N'14220', NULL, NULL, NULL, NULL, 1, CAST(N'2018-02-28 13:04:00.200' AS DateTime), CAST(N'2018-02-27 13:04:00.200' AS DateTime), N'66f8d3e7-b66a-48d9-911f-d3914f1b3a11', N'66f8d3e7-b66a-48d9-911f-d3914f1b3a11', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+				GO
+				SET IDENTITY_INSERT [AM].[DocTypes] OFF
+				GO
+			5) Insert client domains
+			6) Insert EmailChannels and Deliverables for HSBC
+
+				-- EmailChannels
+				
+				INSERT INTO [Common].[EmailChannels]([Title],[To],[Cc],[Bcc],[Subject],[BodyTemplate],[IsBodyHTML])VALUES('HSBC Reporting','mortgage.origination.vendor.oversight@us.hsbc.com,PrintingServicesFTL@corelogic.com,hsbcprint&ship.slx@corelogic.com,mortgage.business.system.analysts@us.hsbc.com,shaley@corelogic.com,chawilson@corelogic.com,brapayne@corelogic.com','vmungara@corelogic.com,sgolvelkar@corelogic.com,avala@corelogic.com',NULL,'Download Summary','HTML',0)
+				GO
+				INSERT INTO [Common].[EmailChannels]([Title],[To],[Cc],[Bcc],[Subject],[BodyTemplate],[IsBodyHTML])VALUES('HSBC Reporting','mortgage.business.system.analysts@us.hsbc.com,mortgage.origination.vendor.oversight@us.hsbc.com,hsbcprint&ship.slx@corelogic.com,shaley@corelogic.com,chawilson@corelogic.com,brapayne@corelogic.com','vmungara@corelogic.com,sgolvelkar@corelogic.com,avala@corelogic.com',NULL,'Production Summary','HTML',0)
+				GO
+				INSERT INTO [Common].[EmailChannels]([Title],[To],[Cc],[Bcc],[Subject],[BodyTemplate],[IsBodyHTML])VALUES('HSBC Reporting','mortgage.business.system.analysts@us.hsbc.com,mortgage.origination.vendor.oversight@us.hsbc.com,shaley@corelogic.com,chawilson@corelogic.com,brapayne@corelogic.com,hsbcprint&ship.slx@corelogic.com','vmungara@corelogic.com,sgolvelkar@corelogic.com,avala@corelogic.com',NULL,'No Batch Available To Download',NULL,1)
+				GO
+				INSERT INTO [Common].[EmailChannels]([Title],[To],[Cc],[Bcc],[Subject],[BodyTemplate],[IsBodyHTML])VALUES('HSBC Reporting','hsbcprint&ship.slx@corelogic.com,mortgage.business.system.analysts@us.hsbc.com,mortgage.origination.vendor.oversight@us.hsbc.com,shaley@corelogic.com,chawilson@corelogic.com,brapayne@corelogic.com','vmungara@corelogic.com,sgolvelkar@corelogic.com,avala@corelogic.com',NULL,'Consolidated HSBC Report Summary','Consolidated Reports of todays batches.',0)
+				GO
+				
+				-- Deliverables
+				
+				INSERT INTO [Common].[Deliverables]([ClientId],[ReportName],[ReportType],[DeliveryType],[ReportQuery],[Delimeter],[FileNameExpression],[IsSFTUploadRequired],[UploadPath],[EmailChannelId],[ScheduleId])VALUES(104,'Error Report','Error','Batch','',',','{BatchName}.ErrorReport_{SweepTime}.csv',1,'/Exceptions',5,NULL)
+				GO
+				INSERT INTO [Common].[Deliverables]([ClientId],[ReportName],[ReportType],[DeliveryType],[ReportQuery],[Delimeter],[FileNameExpression],[IsSFTUploadRequired],[UploadPath],[EmailChannelId],[ScheduleId])VALUES(104,'Delivery Report','Delivery','Batch','',',','{BatchName}.DeliveryReport_{SweepTime}.csv',1,'/Imports',6,NULL)
+				GO
+				INSERT INTO [Common].[Deliverables]([ClientId],[ReportName],[ReportType],[DeliveryType],[ReportQuery],[Delimeter],[FileNameExpression],[IsSFTUploadRequired],[UploadPath],[EmailChannelId],[ScheduleId])VALUES(104,'No Batch','NoBatch','Batch','',',','',0,'',7,NULL)
+				GO
+				INSERT INTO [Common].[Deliverables]([ClientId],[ReportName],[ReportType],[DeliveryType],[ReportQuery],[Delimeter],[FileNameExpression],[IsSFTUploadRequired],[UploadPath],[EmailChannelId],[ScheduleId])VALUES(104,'Consolidated Report','Consolidated','Schedule','',',','',0,'',8,NULL)
+				GO
+				
+			7) Insert DocTypeCoverLetters for HSBC
+
+				INSERT INTO [AM].[DocTypeCoverLetters]([DocTypeId],[SeqId],[CoverLetterTemplatePath])
+				SELECT Id,1,'HSBC_USPS_Generic_1.pdf' FROM [AM].[DocTypes] WHERE ClientId=104
+				GO
+			8) Insert ClientBusinessIdentifiers in AM.ClientBusinessIdentifiers
+				INSERT INTO AM.ClientBusinessIdentifiers(ClientId,BusinessIdName) VALUES (104,'Loan Number')
 =========================
 Application Deployment
 =========================
 	- For PnS
-		1) Added new key in PnS Service config file
-			<add key="ByPassPCI" value="0" />
-		2) Update PnS Service.exe and PCI.Lib.dll for Bug fixed for Attachments
+		1) Update PnS Service.exe and PCI.Lib.dll for Bug fixed for Attachments
 	- For AuthoMail
 		1) Update Core.exe with AM dlls
 		2) Create new task schedular with total 5 triggers and in Action give Core.exe path and Commandline arguement as "BUNDLE"
 			- Bundle sweep times (EST): 8:00 am, 12:00 pm, 4:00 pm, 4:45 pm, 7:45 pm
+	- For HSBC On Boarding - (PENDING)
+		1) Disable previous HSBC application / Reporting Application
+			- HSBC , ALKHSBReportingApp
+		2) Create new task schedular for HSBC with 4 triggers and Command line arguments HSBC Sweep
+			Timings 8am, 12pm, 4pm and 8pm EST (5AM,9AM,1PM,5PM PST)
+		3) Create Reporting task schedular for HSBC with Commandline arguments HSBC and Timing 3AM PST /6AM EST
+		4) Check SFTP credentials are working or not
 
 ====================================================================================================================================================
-UAT Final Status : AM Deployed with Databas Changes at on 2nd July 2.30 PM IST / PnS Service Deployment is remaining for ByPassPCI 
-PROD Final Status : 
+UAT Final Status : AM Deployed with Databas Changes at on 2nd July 2.30 PM IST / PnS Service Deployment is completed for ByPassPCI at 07/18/2018 3.30PM
+PROD Final Status : AM Deployed with Databas Changes at on 24nd July 1.00 PM IST / PnS Service Deployment is completed for ByPassPCI at 07/24/2018 1.00PM
 ====================================================================================================================================================
