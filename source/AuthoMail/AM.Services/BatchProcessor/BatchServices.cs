@@ -35,8 +35,7 @@ namespace AM.Services
         {
             //Sql Query
             string query = @"DELETE FROM [AM].[MailPieceCustomInfo] WHERE MailPieceId IN (SELECT Id FROM [AM].[MailPieces] WHERE MailBatchId=@Id)
-                            DELETE FROM [AM].[MailPieces] WHERE MailBatchId=@Id              
-                            DELETE FROM [AM].[PrintBatches] WHERE MailBatchId=@Id
+                            DELETE FROM [AM].[MailPieces] WHERE MailBatchId=@Id 
                             DELETE FROM [AM].[LogBatchTimeLine] WHERE MailBatchId=@Id
                             DELETE FROM [AM].[MailBatchCustomInfo] WHERE MailBatchId=@Id
                             DELETE FROM [AM].[MailBatches] WHERE Id=@Id;";

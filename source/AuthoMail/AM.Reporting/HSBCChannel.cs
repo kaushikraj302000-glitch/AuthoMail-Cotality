@@ -25,6 +25,9 @@ namespace AM.Reporting
                 {
                     Client client = clientSvc.GetClientByAppCode("HSBC");
 
+                    string clientReportFolderPath = Path.Combine(Config.Common_AuthoMailRootFolder, client.AppCode);
+                    clientReportFolderPath.CreateDirectoryIfNotExist();
+
                     string channelCode = client.AppCode + "_" + Config.Common_Environment;
 
                     SFTChannel sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelCode(channelCode);
@@ -68,7 +71,7 @@ namespace AM.Reporting
 
                         string consolidateReportName = "Delivery-{0}.csv".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
 
-                        string consolidateReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, consolidateReportName);
+                        string consolidateReportPath = Path.Combine(clientReportFolderPath, consolidateReportName);
                         try
                         {
                             File.WriteAllText(consolidateReportPath, summaryReport.ToString());

@@ -604,7 +604,7 @@ namespace AM.Core
                         request.BatchIdentifier = printBatchData.UniqueId;
                         request.BatchName = batchName;
                         request.DocTypeId = printBatchData.DocTypeId;
-                        request.SLADays = 0;
+                        request.DueDate = printBatchData.MailPieces.OrderBy(x => x.DueDate).Select(x => x.DueDate).Distinct().First().Value.Date;
                         request.OnValidationErrors = OnValidationErrors.ProcessValidFiles;
 
                         List<MailPieceData> mailPackage = new List<MailPieceData>();
