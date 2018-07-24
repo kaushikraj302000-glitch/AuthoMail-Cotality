@@ -83,7 +83,7 @@ namespace AM.Web.Controllers
         }
 
         [HttpPost]
-        public ActionResult _GetSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string receivedOnStart, string receivedOnEnd, string status, string channel, string docType,string clientBatchId,string batchId)
+        public ActionResult _GetSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string receivedOnStart, string receivedOnEnd, string status, string channel, string docType,string trackingNumber,string clientBatchId,string batchId)
         {
             try
             {
@@ -91,7 +91,7 @@ namespace AM.Web.Controllers
                 int? mailBatchId = batchId.IsNullOrWhiteSpace() ? (int?)null : Convert.ToInt32(batchId);
                 var exactStartDate = DateTime.ParseExact(receivedOnStart, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
                 var exactEndDate = DateTime.ParseExact(receivedOnEnd, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-                var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, exactStartDate, exactEndDate, docType, status, channel, clientBatchId, mailBatchId);
+                var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, exactStartDate, exactEndDate, docType, status, channel, clientBatchId, mailBatchId, trackingNumber);
 
                 var model = Mapper.Map<List<SearchViewModel>>(data);
 

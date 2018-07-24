@@ -17,7 +17,7 @@
         word-wrap: break-word;
         color: red;
     }
-    .tooltip-inner {
+.tooltip-inner {
         /*max-width: 453px !important;*/
         word-wrap: break-word !important;
     }
@@ -54,121 +54,136 @@
         </div>
         <div id="collapseThree" class="panel-collapse collapse in">
             <div class="panel-body">
-                <div class="col-md-@(ViewBag.BusinessId.Count > 1?"4":"3")" id="businessIddiv">
-                    @if (ViewBag.BusinessId.Count == 1)
-                    {
-                        <label for="BusinessFriendlyIdValue">@ViewBag.BusinessId[0]</label>
-                        <div class="input-group">
-                            <i class="fa fa-search left-icon"></i>
-                            <input class="form-control" name="BusinessFriendlyIdValue" value="@ViewBag.BusinessFriendlyIdValue" placeholder="@ViewBag.BusinessId[0]" required id="BusinessFriendlyIdValue">
-                            <input type="hidden" value="@ViewBag.BusinessId[0]" name="BusinessFriendlyIdName" id="BusinessFriendlyIdName" />
+                <form action="#" id="searchform">
+                    <div class="row">
+                        <div class="col-md-@(ViewBag.BusinessId.Count > 1?"4":"3")" id="businessIddiv">
+                            @if (ViewBag.BusinessId.Count == 1)
+                            {
+                                <label for="BusinessFriendlyIdValue">@ViewBag.BusinessId[0]</label>
+                                <div class="input-group">
+                                    <i class="fa fa-search left-icon"></i>
+                                    <input class="form-control" name="BusinessFriendlyIdValue" value="@ViewBag.BusinessFriendlyIdValue" placeholder="@ViewBag.BusinessId[0]"  id="BusinessFriendlyIdValue">
+                                    <input type="hidden" value="@ViewBag.BusinessId[0]" name="BusinessFriendlyIdName" id="BusinessFriendlyIdName" />
+                                </div>
+                                <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
+                            }
+                            else if (ViewBag.BusinessId.Count > 1)
+                            {
+                                <label for="BusinessFriendlyIdName">Select Business ID</label>
+                                <div class="input-group">
+
+                                    <select id="BusinessFriendlyIdName" class="selectpicker" data-live-search="true" data-live-search-placeholder="Search Business ID">
+                                        <option value="">Select BusinessId</option>
+                                        @foreach (var item in ViewBag.BusinessId)
+                                        {
+                                            <option value="@item.ToString()">@item.ToString()</option>
+                                        }
+                                    </select>
+                                    <input class="form-control" name="BusinessFriendlyIdValue" placeholder="" id="BusinessFriendlyIdValue">
+
+                                </div>
+                            }
+                            else
+                            {
+                                <br />
+                                <div class='alert alert-yellow'><div>No business friendly id found!</div></div>
+                            }
                         </div>
-                        <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
-                    }
-                    else if (ViewBag.BusinessId.Count > 1)
-                    {
-                        <label for="BusinessFriendlyIdName">Select Business ID</label>
-                        <div class="input-group">
-
-                            <select id="BusinessFriendlyIdName" class="selectpicker" data-live-search="true" data-live-search-placeholder="Search Business ID">
-                                <option value="">Select BusinessId</option>
-                                @foreach (var item in ViewBag.BusinessId)
-                                {
-                                    <option value="@item.ToString()">@item.ToString()</option>
-                                }
-                            </select>
-                            <input class="form-control" name="BusinessFriendlyIdValue" placeholder="" required id="BusinessFriendlyIdValue">
+                        <div class="col-md-@(ViewBag.BusinessId.Count > 1?"4":"3")">
+                            <div class="form-group">
+                                <label for="DocType">Document Type</label>
+                                @Html.DropDownList("DocType", ViewBag.DocType as SelectList, "Select Document Type", htmlAttributes: new { @class = "selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Document Type" })
+                            </div>
 
                         </div>
-                    }
-                    else
-                    {
-                        <br />
-                        <div class='alert alert-yellow'><div>No business friendly id found!</div></div>
-                    }
-                </div>
-                <div class="col-md-@(ViewBag.BusinessId.Count > 1?"4":"3")">
-                    <div class="form-group">
-                        <label for="DocType">Document Type</label>
-                        @Html.DropDownList("DocType", ViewBag.DocType as SelectList, "Select Document Type", htmlAttributes: new { @class = "selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Document Type" })
-                    </div>
+                        <div class="col-md-@(ViewBag.BusinessId.Count > 1?"4":"3")">
+                            <div class="form-group">
+                                <label for="Status">Status</label>
+                                <select class="selectpicker" id="Status" data-live-search="true" data-live-search-placeholder="Search Status">
+                                    <option value=" ">
+                                        Select Status
+                                    </option>
+                                    <option value="InProgress">In Progress</option>
+                                    <option value="PulledBack">Pulledback</option>
+                                    <option value="Error">Error</option>
+                                    <option value="Shipped">Shipped</option>
+                                </select>
+                            </div>
 
-                </div>
-                <div class="col-md-@(ViewBag.BusinessId.Count > 1?"4":"3")">
-                    <div class="form-group">
-                        <label for="Status">Status</label>
-                        <select class="selectpicker" id="Status" data-live-search="true" data-live-search-placeholder="Search Status">
-                            <option value=" ">
-                                Select Status
-                            </option>
-                            <option value="InProgress">In Progress</option>
-                            <option value="PulledBack">Pulledback</option>
-                            <option value="Error">Error</option>
-                            <option value="Shipped">Shipped</option>
-                        </select>
-                    </div>
-
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="Channel">Channel</label>
-                        @Html.Action("_Channel", "Common")
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="receivedOn">Received  On (EST)</label>
-                        <div class="input-group daterange" id="datepicker4">
-                            <input type="text" class="form-control" id="receivedOn">
-                            <span class="input-group-addon">
-                                <i class="fa fa-calendar"></i>
-                            </span>
                         </div>
-                    </div>
-
-                </div>
-                @if (User.IsInRole(AM.Entities.AMRoles.Admin))
-                {
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label for="BatchId">Client Batch Id</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" name="ClientBatchId" placeholder="Client Batch Id" id="ClientBatchId">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="Channel">Channel</label>
+                                @Html.Action("_Channel", "Common")
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label for="BatchName">Batch Id</label>
-                            <div class="input-group">
-                                <input class="form-control" name="BatchId" placeholder="Batch Id" id="BatchId">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="receivedOn">Received  On (EST)</label>
+                                <div class="input-group daterange" id="datepicker4">
+                                    <input type="text" class="form-control" id="receivedOn">
+                                    <span class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </span>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="TrackingNumber">Tracking Number</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="TrackingNumber" placeholder="Tracking Number" id="TrackingNumber">
+                                </div>
+                            </div>
+                        </div>
+                        @if (User.IsInRole(AM.Entities.AMRoles.Admin))
+                        {
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="BatchId">Client Batch Id</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" name="ClientBatchId" placeholder="Client Batch Id" id="ClientBatchId">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class=" col-md-1" style="width:10%">
+                                <div class="form-group">
+                                    <label for="BatchName">Batch Id</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control batchidnumber" name="BatchId" placeholder="Batch Id" id="BatchId">
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <input class="form-control" value="" type="hidden" name="ClientBatchId" id="ClientBatchId">
+                            <input class="form-control" value="" name="BatchId" type="hidden" id="BatchId">
+                        }
+
+                        <div class="col-md-1">
+                            <div class="form-group ">
+                                <label for="filterData">  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                                <button type="button" id="filterData" class="btn btn-primary" title="Search">
+                                    <span class="sr-only">Filter</span>
+                                    <i class="fa fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-1" style=" margin-left: -2%;">
+                            <div class="form-group ">
+                                <label for="filterData"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                                <button type="button" id="resetFilter" title="Reset" class="btn btn-transparent-blue">
+                                    <i class="fa fa-undo"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
-                }
-                else
-                {
-                    <input class="form-control" value="" type="hidden" name="ClientBatchId" id="ClientBatchId">
-                    <input class="form-control" value="" name="BatchId" type="hidden" id="BatchId">
-                }
+                </form>
 
-                <div class="col-md-1">
-                    <div class="form-group ">
-                        <label for="filterData">  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-                        <button type="button" id="filterData" class="btn btn-primary">
-                            <span class="sr-only">Filter</span>
-                            <i class="fa fa-search"></i> Search
-                        </button>
-                    </div>
-                </div>
-                <div class="col-md-1" style=" margin-left: 1%;">
-                    <div class="form-group ">
-                        <label for="filterData"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-                        <button type="button" id="resetFilter" class="btn btn-transparent-blue">
-                            Reset
-                        </button>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -298,7 +313,7 @@
             <div class="form-group margin-bottom-2">
                 <div class="input-group">
                     <label for="BusinessFriendlyIdValue">File Name:&nbsp; </label>
-                    <span class="form-control-static">{FileName}</span>
+                    <span class="form-control-static" data-toggle="tooltip" data-container="body" data-placement="bottom" title='{FileName}'>{ShortFileName}</span>
                 </div>
             </div>
             <div class="form-group margin-bottom-2">
@@ -438,8 +453,8 @@
             </div>
         </div>
         <div class="col-md-4">
-            
-            
+
+
             <div class="form-group margin-bottom-2">
                 <div class="input-group">
                     <label for="BusinessFriendlyIdValue">Recipient Info Specified:&nbsp; </label>
@@ -528,6 +543,16 @@
         $(document).ready(function () {
             window.clui.dateTimePickerInit();
             FilterData();
+            $('#searchform').validate({ // initialize the plugin
+                errorElement: "span",
+                rules: {
+                    BatchId: {
+                        number: true,
+                        min: 1,
+                        maxlength: 8
+                    }
+                }
+            });
             // JSON.useDateParser(false);
         });
 
@@ -569,7 +594,7 @@
                                 $("#databind").html("");
                                 $("#showerror").show();
                                 $("#showerror").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>");
-                                
+
                             }
                         }
                     } else {
@@ -578,7 +603,7 @@
                         $("#showerror").show();
                         $("#searchMailPieceList").show();
                         $("#showerror").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + response.ErrorMessage + "</span></div>");
-                       // $("#ViewInfo").modal("show");
+                        // $("#ViewInfo").modal("show");
                     }
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
@@ -615,20 +640,21 @@
                 this.IsPulledBack = MakeYesNoLabel(this.IsPulledBack);
                 this.IsRcptInfoSpecified = MakeYesNoLabel(this.IsRcptInfoSpecified);
                 this.SLADays = parseInt(this.SLADays / 86400);
-                this.ShortBatchName=shortName(this.BatchName)
+                this.ShortBatchName = shortName(this.BatchName);
+                this.ShortFileName = shortName(this.FileName);
                 this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
                 this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
                 this.PulledBackOnFormatted = this.PulledBackOn == null ? "--" : moment(this.PulledBackOn).format("MM/DD/YY HH:mm:ss");
                 //this.RcptName = this.RcptFirstName + " " + this.RcptMiddleName + " " + this.RcptLastName;
-                this.RcptName =this.RcptName==null?"": this.RcptName.trim();
+                this.RcptName = this.RcptName == null ? "" : this.RcptName.trim();
                 //this.RcptAddress = this.RcptAddrOptionalLine1AboveStreet + " " + this.RcptAddrOptionalLine2AboveStreet + " " + this.RcptAddressStreet + " " + this.RcptAddressAptOrSuiteOrOther + " " + this.RcptAddrOptionalLine1BelowStreet + " " + this.RcptAddrOptionalLine2BelowStreet + " " + this.RcptAddressCity + " " + this.RcptAddressState + " " + this.RcptAddressZIP;
-                this.RcptAddress = this.RcptAddress==null?"": this.RcptAddress.trim();
+                this.RcptAddress = this.RcptAddress == null ? "" : this.RcptAddress.trim();
                 //this.CoRcptName = this.CoRcptPrefix + " " + this.CoRcptFirstName + " " + this.CoRcptMiddleName + " " + this.CoRcptLastName + " " + this.CoRcptSuffix;
                 //this.CoRcptName = this.CoRcptName.replace(/null/g, "").trim();
                 //this.CoRcptName = this.CoRcptName == "" ? "--" : this.CoRcptName;
                 //this.ReturnRcptName = this.RetRcptPrefix + " " + this.RetRcptFirstName + " " + this.RetRcptMiddleName + " " + this.RetRcptLastName + " " + this.RetRcptSuffix
-                this.RetRcptName = this.RetRcptName==null?"": this.RetRcptName.replace(/null/g, "").trim();
+                this.RetRcptName = this.RetRcptName == null ? "" : this.RetRcptName.replace(/null/g, "").trim();
                 //this.ReturnRcptAddress = this.RetRcptAddrOptionalLine1AboveStreet + " " + this.RetRcptAddrOptionalLine2AboveStreet + " " + this.RetRcptAddressStreet + " " + this.RetRcptAddressAptOrSuiteOrOther + " " + this.RetRcptAddrOptionalLine1BelowStreet + " " + this.RetRcptAddrOptionalLine2BelowStreet + " " + this.RetRcptAddressCity + " " + this.RetRcptAddressState + " " + this.RetRcptAddressZIP;
                 this.RetRcptAddress = this.RetRcptAddress == null ? "" : this.RetRcptAddress.replace(/null/g, "").trim();
                 switch (this.ShippingStatus) {
@@ -813,6 +839,7 @@
                     Channel: $("#Channel").val(),
                     receivedOnStart: startDate,
                     receivedOnEnd: endDate,
+                    trackingNumber: $("#TrackingNumber").val(),
                     clientBatchId: $("#ClientBatchId").val(),
                     batchId: $("#BatchId").val()
 
@@ -836,6 +863,7 @@
                             }
                         }
                     } else {
+                        $("#loading").hide();
                         $("#searchHeader").show();
                         $("#searchMailPieceList").show();
                         $("#searchMailPieceList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + response.ErrorMessage + "</span></div>");
@@ -853,7 +881,19 @@
         }
 
         $("#filterData").click(function () {
-            FilterData();
+            if ($("#BatchId").val().trim() != "") {
+                if ($("#searchform").valid()) {
+                    FilterData();
+                }
+                else {
+                    return false;
+                }
+
+            }
+            else {
+                FilterData();
+
+            }
         });
         $("#resetFilter").click(function () {
             $("#Status").val("");
