@@ -10,15 +10,15 @@ namespace AM.Services
 {
     public interface ISearchService : IDisposable
     {
-        List<MailPieces> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel, string clientBatchId, int? mailBatchId);
+        List<MailPieces> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo);
         MailPieces GetMailPieceByUniqueId(Guid uniqueId);
         List<MailPieces> GetAllData(int clientId);
     }
     public class SearchService : ServiceBase, ISearchService
     {
-        public List<MailPieces> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel, string clientBatchId, int? mailBatchId)
+        public List<MailPieces> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo)
         {
-            string query = "[dbo].[uspweb_MailPieceSearch] @clientId, @businessFriendlyIdName, @businessFriendlyIdValue, @startDate, @endDate, @docType, @shippingStatus, @channel,@clientBatchId,@mailBatchId";
+            string query = "[dbo].[uspweb_MailPieceSearch] @clientId, @businessFriendlyIdName, @businessFriendlyIdValue, @startDate, @endDate, @docType, @shippingStatus, @channel,@clientBatchId,@mailBatchId,@trackingNo";
             var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, Users, DocTypes, MailPieces>(query,
                  (b, s, c, m, u, d) =>
                  {
@@ -40,6 +40,7 @@ namespace AM.Services
                      shippingStatus = status.IsNullOrWhiteSpace() ? null : status,
                      channel = channel.IsNullOrWhiteSpace() ? null : channel,
                      clientBatchId = clientBatchId.IsNullOrWhiteSpace() ? null : clientBatchId,
+                     trackingNo = trackingNo.IsNullOrWhiteSpace() ? null : trackingNo,
                      mailBatchId = mailBatchId
                  }
                  ).ToList();
