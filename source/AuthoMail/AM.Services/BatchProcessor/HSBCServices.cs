@@ -104,7 +104,7 @@ namespace AM.Services
 	            FROM AM.MailBatches b
 	            INNER JOIN AM.MailPieces p on p.MailBatchId=b.Id
 	            LEFT JOIN AM.DocTypes d on d.Id=p.DocTypeId
-	            WHERE p.ErrorCode = 'No_Error' AND b.ReceivedOn >= @StartReceivedOnDate AND b.ReceivedOn < @EndReceivedOnDate AND b.ClientId=@ClientId
+	            WHERE p.ErrorCode = 'No_Error' AND p.ShippingStatus='Shipped' AND b.ReceivedOn >= @StartReceivedOnDate AND b.ReceivedOn < @EndReceivedOnDate AND b.ClientId=@ClientId
             )a
             INNER JOIN 
             (
