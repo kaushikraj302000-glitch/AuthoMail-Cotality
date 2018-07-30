@@ -272,13 +272,13 @@ namespace AM.Services
         public Clients Client { get; set; }
         public string BizdayCutOff { get; set; }
         public string BizdaySLAType { get; set; }
-        public TimeSpan BizdayTimeSpan { get; set; }
-        public TimeSpan SatCutOff { get; set; }
+        public string BizdayTimeSpan { get; set; }
+        public string SatCutOff { get; set; }
         public string SatSLAType { get; set; }
-        public TimeSpan SatTimeSpan { get; set; }
-        public TimeSpan SunCutOff { get; set; }
+        public string SatTimeSpan { get; set; }
+        public string SunCutOff { get; set; }
         public string SunSLAType { get; set; }
-        public TimeSpan SunTimeSpan { get; set; }
+        public string SunTimeSpan { get; set; }
 
     }
     public class SFTChannels
