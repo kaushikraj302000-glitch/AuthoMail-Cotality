@@ -296,6 +296,12 @@ namespace AM.Services
                 if (docTypes.RetRcptAddressState.IsNullOrWhiteSpace()) throw new Exception("State can't be null or empty.");
                 if (docTypes.RetRcptAddressZIP.IsNullOrWhiteSpace()) throw new Exception("zip can't be null or empty.");
             }
+
+            if (!docTypes.BizdayTimeSpan.IsNullOrWhiteSpace() && !IsTimeSpan(docTypes.BizdayTimeSpan)) throw new Exception("Invalid value BizdayTimeSpan.");
+            if (!docTypes.SatTimeSpan.IsNullOrWhiteSpace() && !IsTimeSpan(docTypes.SatTimeSpan)) throw new Exception("Invalid value SatTimeSpan.");
+            if (!docTypes.SunTimeSpan.IsNullOrWhiteSpace() && !IsTimeSpan(docTypes.SunTimeSpan)) throw new Exception("Invalid value SunTimeSpan.");
+
+
             if (docTypes.Id == 0)
             {
                 string query = "INSERT INTO [AM].[DocTypes] ([DocTypeCode] ,[Description] ,[ClientId] ,[PrintSize] ,[ContentScalePercent] ,[PrintFormat] ,[QCPercent] ,[SLADays] ,[SLACutOffTime] ,[ShippingCarrier] ,[ShippingServiceType] ,[ShippingAccountCode] ,[IsReturnInfoSpecified] ,[RetRcptPrefix] ,[RetRcptFirstName] ,[RetRcptMiddleName] ,[RetRcptLastName] ,[RetRcptSuffix] ,[RetRcptPhone] ,[RetRcptOrganization] ,[RetRcptAddrOptionalLine1AboveStreet] ,[RetRcptAddrOptionalLine2AboveStreet] ,[RetRcptAddressStreet] ,[RetRcptAddressAptOrSuiteOrOther] ,[RetRcptAddrOptionalLine1BelowStreet] ,[RetRcptAddrOptionalLine2BelowStreet] ,[RetRcptAddressCity] ,[RetRcptAddressState] ,[RetRcptAddressZIP] ,[ClientEmails] ,[ClientContactNo] ,[SupportEmails] ,[SupportContactNo] ,[IsActive] ,[ModifiedOn] ,[CreatedOn] ,[CreatedBy] ,[ModifiedBy]) VALUES (@docTypeCode,@description,@clientId,@printSize,@contentScalePercent,@printFormat,@qCPercent,@shippingCarrier,@shippingServiceType,@shippingAccountCode,@isReturnInfoSpecified,@retRcptPrefix,@retRcptFirstName,@retRcptMiddleName,@retRcptLastName,@retRcptSuffix,@retRcptPhone,@retRcptOrganization,@retRcptAddrOptionalLine1AboveStreet,@retRcptAddrOptionalLine2AboveStreet,@retRcptAddressStreet,@retRcptAddressAptOrSuiteOrOther,@retRcptAddrOptionalLine1BelowStreet,@retRcptAddrOptionalLine2BelowStreet,@retRcptAddressCity,@retRcptAddressState,@retRcptAddressZIP,@clientEmails,@clientContactNo,@supportEmails,@supportContactNo,@isActive,@modifiedOn,@createdOn,@createdBy,@modifiedBy,@bizdayCutOff,@bizdaySLAType,@bizdayTimeSpan,@satCutOff,@satSLAType,@satTimeSpan,@sunCutOff,@sunSLAType,@sunTimeSpan)";
@@ -343,6 +349,18 @@ namespace AM.Services
             }
         }
 
+        public bool IsTimeSpan(string v)
+        {
+            try
+            {
+                TimeSpan.Parse(v);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
         public int MakeActivateOrDeactivateDocType(int Id, bool isActive, string userId)
         {
             string query = "UPDATE [AM].[DocTypes] SET [IsActive]=@isActive WHERE Id=@id";
