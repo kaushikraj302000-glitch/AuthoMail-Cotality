@@ -54,8 +54,17 @@
                 <th>Content Scale Percent</th>
                 <th>Print Format</th>
                 <th>QC Percent</th>
-                <th>SLA Days</th>
-                <th>SLA Cut Off Time</th>
+                <th>Bizday SLA Type</th>
+                <th>Bizday Cut Off</th>
+                <th>Bizday Timespan</th>
+                <th>Sat SLA Type</th>
+                <th>Sat Cut Off</th>
+                <th>Sat Timespan</th>
+                <th>Sun SLA Type</th>
+                <th>Sun Cut Off</th>
+                <th>Sun Timespan</th>
+                @*<th>SLA Days</th>
+                <th>SLA Cut Off Time</th>*@
                 <th>Shipping Carrier</th>
                 <th>Shipping ServiceType</th>
                 <th>Shipping Account Code</th>
@@ -100,8 +109,17 @@
                 <td><span>{ContentScalePercent}</span></td>
                 <td><span>{PrintFormat}</span></td>
                 <td><span>{QCPercent}</span></td>
-                <td><span>{SLADays}</span></td>
-                <td><span>{SLACutOffTime}</span></td>
+                <td><span>{BizdaySLAType}</span></td>
+                <td><span>{BizdayCutOff}</span></td>
+                <td><span>{BizdayTimeSpan}</span></td>
+                <td><span>{SatSLAType}</span></td>
+                <td><span>{SatCutOff}</span></td>
+                <td><span>{SatTimeSpan}</span></td>
+                <td><span>{SunSLAType}</span></td>
+                <td><span>{SunCutOff}</span></td>
+                <td><span>{SunTimeSpan}</span></td>
+                @*<td><span>{SLADays}</span></td>
+                <td><span>{SLACutOffTime}</span></td>*@
                 <td><span>{ShippingCarrier}</span></td>
                 <td><span>{ShippingServiceType}</span></td>
                 <td><span>{ShippingAccountCode}</span></td>
@@ -165,7 +183,9 @@
 @section Scripts{
     @Styles.Render("~/bundles/datatablescss")
     @Scripts.Render("~/bundles/datatables")
-
+    <script src="~/Scripts/jquery.inputmask.js"></script>
+    <script src="~/Scripts/jquery.inputmask.date.extensions.js"></script>
+    <script src="~/Scripts/jquery.inputmask.extensions.js"></script>
     <script type="text/javascript">
         $(document).ready(function () {
 
@@ -177,7 +197,7 @@
                 return str.length > 31 ? str.substring(0, 31) + '...' : str;
         }
 
-        function DocTypes(Id, DocTypeCode, Description, ClientId, PrintSize, ContentScalePercent, PrintFormat, QCPercent, SLADays, SLACutOffTime, ShippingCarrier, ShippingServiceType, ShippingAccountCode, IsReturnInfoSpecified, RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RetRcptSuffix, RetRcptPhone, RetRcptOrganization, RetRcptAddrOptionalLine1AboveStreet, RetRcptAddrOptionalLine2AboveStreet, RetRcptAddressStreet, RetRcptAddressAptOrSuiteOrOther, RetRcptAddrOptionalLine1BelowStreet, RetRcptAddrOptionalLine2BelowStreet, RetRcptAddressCity, RetRcptAddressState, RetRcptAddressZIP, ClientEmails, ClientContactNo, SupportEmails, SupportContactNo) {
+        function DocTypes(Id, DocTypeCode, Description, ClientId, PrintSize, ContentScalePercent, PrintFormat, QCPercent, BizdaySLAType, BizdayCutOff, BizdayTimeSpan, SatSLAType, SatCutOff, SatTimeSpan, SunSLAType, SunCutOff, SunTimeSpan, ShippingCarrier, ShippingServiceType, ShippingAccountCode, IsReturnInfoSpecified, RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RetRcptSuffix, RetRcptPhone, RetRcptOrganization, RetRcptAddrOptionalLine1AboveStreet, RetRcptAddrOptionalLine2AboveStreet, RetRcptAddressStreet, RetRcptAddressAptOrSuiteOrOther, RetRcptAddrOptionalLine1BelowStreet, RetRcptAddrOptionalLine2BelowStreet, RetRcptAddressCity, RetRcptAddressState, RetRcptAddressZIP, ClientEmails, ClientContactNo, SupportEmails, SupportContactNo) {
             this.Id = Id;
             this.DocTypeCode = DocTypeCode;
             this.Description = Description;
@@ -186,8 +206,17 @@
             this.ContentScalePercent = ContentScalePercent;
             this.PrintFormat = PrintFormat;
             this.QCPercent = QCPercent;
-            this.SLADays = SLADays;
-            this.SLACutOffTime = SLACutOffTime;
+            this.BizdaySLAType = BizdaySLAType;
+            this.BizdayCutOff = BizdayCutOff;
+            this.BizdayTimeSpan = BizdayTimeSpan;
+            this.SatSLAType = SatSLAType;
+            this.SatCutOff = SatCutOff;
+            this.SatTimeSpan = SatTimeSpan;
+            this.SunSLAType = SunSLAType;
+            this.SunCutOff = SunCutOff;
+            this.SunTimeSpan = SunTimeSpan;
+            //            this.SLADays = SLADays;
+            //          this.SLACutOffTime = SLACutOffTime;
             this.ShippingCarrier = ShippingCarrier;
             this.ShippingServiceType = ShippingServiceType;
             this.ShippingAccountCode = ShippingAccountCode;
@@ -242,12 +271,12 @@
                     rules: {
                         DocTypeCode: {
                             required: true,
-                            doctypecode:true,
+                            doctypecode: true,
                             maxlength: 29
 
                         },
-                        Description:{
-                            required:true
+                        Description: {
+                            required: true
                         },
                         ClientId: {
                             required: true
@@ -269,14 +298,23 @@
                             min: 0,
                             max: 100
                         },
-                        SLADays: {
+                        BizdayCutOff: {
                             required: true,
-                            min: 0,
-                           // max: 50
                         },
-                        SLACutOffTime: {
-                            //required: true,
-
+                        BizdayTimeSpan: {
+                            required: true,
+                        },
+                        SatCutOff: {
+                            required: true,
+                        },
+                        SatTimeSpan: {
+                            required: true,
+                        },
+                        SunCutOff: {
+                            required: true,
+                        },
+                        SunTimeSpan: {
+                            required: true,
                         },
                         ShippingCarrier: {
                             required: true
@@ -351,7 +389,7 @@
                     });
                     $("#RetRcptAddressZIP").rules('add', {
                         required: true,
-                        zipcodeUS:true
+                        zipcodeUS: true
 
                     });
                     $("#ClientEmails").rules('add', {
@@ -360,7 +398,7 @@
                     });
                     $("#ClientContactNo").rules('add', {
                         required: true,
-                        phoneUS:true
+                        phoneUS: true
                     });
                     $("#SupportEmails").rules('add', {
                         required: true,
@@ -380,7 +418,7 @@
                 }
                 if ($("#doctypeform").valid()) {
 
-                    var objDocType = new DocTypes($("#Id").val(), $("#DocTypeCode").val(), $("#Description").val(), parseInt($("#ClientId").val()), $("#PrintSize").val(), $("#ContentScalePercent").val(), $("#PrintFormat").val(), $("#QCPercent").val(), $("#SLADays").val(), $("#SLACutOffTime").val(), $("#ShippingCarrier").val(), $("#ShippingServiceType").val(), $("#ShippingAccountCode").val(), $("#IsReturnInfoSpecified").val(), $("#RetRcptPrefix").val(), $("#RetRcptFirstName").val(), $("#RetRcptMiddleName").val(), $("#RetRcptLastName").val(), $("#RetRcptSuffix").val(), $("#RetRcptPhone").val(), $("#RetRcptOrganization").val(), $("#RetRcptAddrOptionalLine1AboveStreet").val(), $("#RetRcptAddrOptionalLine2AboveStreet").val(), $("#RetRcptAddressStreet").val(), $("#RetRcptAddressAptOrSuiteOrOther").val(), $("#RetRcptAddrOptionalLine1BelowStreet").val(), $("#RetRcptAddrOptionalLine2BelowStreet").val(), $("#RetRcptAddressCity").val(), $("#RetRcptAddressState").val(), $("#RetRcptAddressZIP").val(), $("#ClientEmails").val(), $("#ClientContactNo").val(), $("#SupportEmails").val(), $("#SupportContactNo").val());
+                    var objDocType = new DocTypes($("#Id").val(), $("#DocTypeCode").val(), $("#Description").val(), parseInt($("#ClientId").val()), $("#PrintSize").val(), $("#ContentScalePercent").val(), $("#PrintFormat").val(), $("#QCPercent").val(), $("#BizdaySLAType").val(), $("#BizdayCutOff").val(), $("#BizdayTimeSpan").val(), $("#SatSLAType").val(), $("#SatCutOff").val(), $("#SatTimeSpan").val(), $("#SunSLAType").val(), $("#SunCutOff").val(), $("#SunTimeSpan").val(), $("#ShippingCarrier").val(), $("#ShippingServiceType").val(), $("#ShippingAccountCode").val(), $("#IsReturnInfoSpecified").val(), $("#RetRcptPrefix").val(), $("#RetRcptFirstName").val(), $("#RetRcptMiddleName").val(), $("#RetRcptLastName").val(), $("#RetRcptSuffix").val(), $("#RetRcptPhone").val(), $("#RetRcptOrganization").val(), $("#RetRcptAddrOptionalLine1AboveStreet").val(), $("#RetRcptAddrOptionalLine2AboveStreet").val(), $("#RetRcptAddressStreet").val(), $("#RetRcptAddressAptOrSuiteOrOther").val(), $("#RetRcptAddrOptionalLine1BelowStreet").val(), $("#RetRcptAddrOptionalLine2BelowStreet").val(), $("#RetRcptAddressCity").val(), $("#RetRcptAddressState").val(), $("#RetRcptAddressZIP").val(), $("#ClientEmails").val(), $("#ClientContactNo").val(), $("#SupportEmails").val(), $("#SupportContactNo").val());
 
                     $("#AddEditModal").modal("hide");
                     var el = $("#myModal").find(".modal-body");
