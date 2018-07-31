@@ -10,6 +10,11 @@ Optional extensions on the jquery.inputmask base
 (function ($) {
     //date & time aliases
     $.extend($.inputmask.defaults.definitions, {
+        'X': { //0 to 5 days only
+            validator: "[00][0-5]",
+            cardinality: 2,
+            prevalidator: [{ validator: "[0]", cardinality: 1 }]
+        },
         'h': { //hours
             validator: "[01][0-9]|2[0-3]",
             cardinality: 2,
@@ -21,7 +26,7 @@ Optional extensions on the jquery.inputmask base
             prevalidator: [{ validator: "[0-5]", cardinality: 1 }]
         },
         'd': { //basic day
-            validator: "0[0-9]|[12][0-9]|3[01]",
+            validator: "0[1-9]|[12][0-9]|3[01]",
             cardinality: 2,
             prevalidator: [{ validator: "[0-3]", cardinality: 1 }]
         },
