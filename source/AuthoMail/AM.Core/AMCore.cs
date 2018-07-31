@@ -159,6 +159,7 @@ namespace AM.Core
                                     mailPiece.ErrorDesc = "Cover letter does not exist for DocumentType : {0}".Fill(mailPiece.DocumentOrPackageType);
                                     mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                                     mailPiece.TotalPages = 0;
+                                    mailPiece.DueDate = null;
                                     mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                                     continue;
                                 }
@@ -183,6 +184,7 @@ namespace AM.Core
                                     mailPiece.TotalPages = 0;
                                     mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                                     mailPiece.ErrorDesc = doc.ExceptionDetail;
+                                    mailPiece.DueDate = null;
                                     mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                                     continue;
                                 }
@@ -219,6 +221,7 @@ namespace AM.Core
                                     else
                                     {
                                         mailPiece.TotalPages = 0;
+                                        mailPiece.DueDate = null;
                                         break;
                                     }
                                 }
@@ -243,6 +246,7 @@ namespace AM.Core
                                 {
                                     mailPiece.ErrorCode = OutComeCodes.Invalid_PDF_File;
                                     mailPiece.TotalPages = 0;
+                                    mailPiece.DueDate = null;
                                     mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                                     mailPiece.ErrorDesc = doc.ExceptionDetail;
                                 }
