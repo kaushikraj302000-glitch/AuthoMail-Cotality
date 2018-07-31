@@ -6,8 +6,6 @@
     {
         Model.ContentScalePercent = 100;
         Model.QCPercent = 0;
-        Model.SLADays = 0;
-        Model.SLACutOffTime = new TimeSpan(23, 59, 59);
     }
 
 }
@@ -21,7 +19,7 @@
     }
 </style>
 <hr />
-<form id="doctypeform" action="#">
+<form id="doctypeform" action="#" enctype="multipart/form-data">
     <input type="hidden" name="Id" id="Id" value="@Model.Id" />
     <div class="row">
         <div class="col-md-4">
@@ -39,7 +37,7 @@
             <div class="form-group">
                 <label for="Description">Print Size</label>
                 @Html.DropDownListFor(model => model.PrintSize, (IEnumerable<SelectListItem>)ViewBag.PrintSizedropDown, "Select Print Size", htmlAttributes: new { @class = " form-control selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Print Size" })
-                
+
 
             </div>
             <div class="form-group">
@@ -49,41 +47,10 @@
                 </div>
 
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="form-group">
-                <label for="Description">Print Format</label>
-                @Html.DropDownListFor(model => model.PrintFormat, (IEnumerable<SelectListItem>)ViewBag.PrintFormatdropDown, "Select Print Format", htmlAttributes: new { @class = " form-control selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Print Format" })
-                
-
-            </div>
-            <div class="form-group">
-                <label for="Description">QC Percent</label>
-                <div class="input-group">
-                    <input type="text" id="QCPercent" class="form-control" name="QCPercent" placeholder="QC Percent" value="@Model.QCPercent" />
-                </div>
-
-            </div>
-            <div class="form-group">
-                <label for="Description">SLA Days</label>
-                <div class="input-group">
-                    <input type="number" id="SLADays" class="form-control" name="SLADays" placeholder="SLA Days" value="@Model.SLADays" />
-                </div>
-
-            </div>
-            <div class="form-group">
-                <label for="Description">SLA Cut Off Time</label>
-                <div class="input-group">
-                    <input type="time" id="SLACutOffTime" class="form-control" step="1" placeholder="SLA Cut Off Time" name="SLACutOffTime" value="@Model.SLACutOffTime" />
-                </div>
-
-            </div>
-        </div>
-        <div class="col-md-4">
             <div class="form-group">
                 <label for="Description">Shipping Carrier</label>
-                
-                   @Html.DropDownListFor(model => model.ShippingCarrier, (IEnumerable<SelectListItem>)ViewBag.ShippingCarrierdropDown, "Select Shipping Carrier", htmlAttributes: new { @class = " form-control selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Shipping Carrier" })
+
+                @Html.DropDownListFor(model => model.ShippingCarrier, (IEnumerable<SelectListItem>)ViewBag.ShippingCarrierdropDown, "Select Shipping Carrier", htmlAttributes: new { @class = " form-control selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Shipping Carrier" })
 
             </div>
             <div class="form-group">
@@ -98,15 +65,135 @@
                 </div>
 
             </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="Description">Print Format</label>
+                @Html.DropDownListFor(model => model.PrintFormat, (IEnumerable<SelectListItem>)ViewBag.PrintFormatdropDown, "Select Print Format", htmlAttributes: new { @class = " form-control selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Print Format" })
+
+
+            </div>
+            <div class="form-group">
+                <label for="Description">QC Percent</label>
+                <div class="input-group">
+                    <input type="text" id="QCPercent" class="form-control" name="QCPercent" placeholder="QC Percent" value="@Model.QCPercent" />
+                </div>
+
+            </div>
+            <div class="form-group">
+                <label for="Description">Bizday SLA Type</label>
+                <div class="input-group">
+                    <select id="BizdaySLAType" class="form-control" name="BizdaySLAType">
+                        <option @(Model.BizdaySLAType == AM.Entities.SLAType.NA ? "selected='selected'" : "") value="@AM.Entities.SLAType.NA">@AM.Entities.SLAType.NA</option>
+                        <option @(Model.BizdaySLAType == AM.Entities.SLAType.Duration ? "selected='selected'" : "") @Model value="@AM.Entities.SLAType.Duration">@AM.Entities.SLAType.Duration</option>
+                        <option @(Model.BizdaySLAType == AM.Entities.SLAType.FixedTime ? "selected='selected'" : "") @Model value="@AM.Entities.SLAType.FixedTime">@AM.Entities.SLAType.FixedTime</option>
+                    </select>
+                </div>
+
+            </div>
+            <div class="form-group">
+                <label for="Description">Bizday Cut Off</label>
+                <div class="input-group">
+                    <input type="text" id="BizdayCutOff" value="@Model.BizdayCutOff" class="form-control timespan" placeholder="Bizday Cut Off" name="BizdayCutOff" />
+                </div>
+
+            </div>
+            <div class="form-group">
+                <label for="Description">Bizday Timespan</label>
+                <div class="input-group">
+                    <input type="text" id="BizdayTimeSpan" value="@Model.BizdayTimeSpan" class="form-control daytimespan" placeholder="Bizday Timespan" name="BizdayTimeSpan" />
+                </div>
+
+            </div>
+
             <div class="form-group">
                 <label for="Description">Description</label>
                 <div class="input-group">
-                    <textarea id="Description" name="Description" placeholder="Description" class="form-control">@Model.Description</textarea>
+                    <textarea id="Description" rows="1" name="Description" placeholder="Description" class="form-control">@Model.Description</textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="Description">Is Cover Letter required?</label>
+                <div class="input-group">
+                    <input type="radio" id="Yes" value="Yes" name="IsCoverLetter" class="cl-radio radio-orange" />
+                    <label for="Yes">Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <input type="radio" id="No" value="No" name="IsCoverLetter" class="cl-radio radio-salmon" />
+                    <label for="No">No</label>
+                </div>
+                <span for="IsCoverLetter" class="error" style="display:none;">* Please pick an option above</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="Description">Sat SLA Type</label>
+                <div class="input-group">
+                    <select id="SatSLAType" class="form-control" name="SatSLAType">
+                        <option @(Model.SatSLAType == AM.Entities.SLAType.NA ? "selected='selected'" : "") value="@AM.Entities.SLAType.NA">@AM.Entities.SLAType.NA</option>
+                        <option @(Model.SatSLAType == AM.Entities.SLAType.Duration ? "selected='selected'" : "") @Model value="@AM.Entities.SLAType.Duration">@AM.Entities.SLAType.Duration</option>
+                        <option @(Model.SatSLAType == AM.Entities.SLAType.FixedTime ? "selected='selected'" : "") @Model value="@AM.Entities.SLAType.FixedTime">@AM.Entities.SLAType.FixedTime</option>
+                    </select>
+                </div>
+
+            </div>
+            <div class="form-group">
+                <label for="Description">Sat Cut Off</label>
+                <div class="input-group">
+                    <input type="text" id="SatCutOff" value="@Model.SatCutOff" class="form-control timespan" placeholder="Sat Cut Off" name="SatCutOff" />
+                </div>
+
+            </div>
+            <div class="form-group">
+                <label for="Description">Sat Timespan</label>
+                <div class="input-group">
+                    <input type="text" id="SatTimeSpan" value="@Model.SatTimeSpan" class="form-control daytimespan" placeholder="Sat Timespan" name="SatTimeSpan" />
+                </div>
+
+            </div>
+            <div class="form-group">
+                <label for="Description">Sun SLA Type</label>
+                <div class="input-group">
+                    <select id="SunLAType" class="form-control" name="SunSLAType">
+                        <option @(Model.SunSLAType == AM.Entities.SLAType.NA ? "selected='selected'" : "") value="@AM.Entities.SLAType.NA">@AM.Entities.SLAType.NA</option>
+                        <option @(Model.SunSLAType == AM.Entities.SLAType.Duration ? "selected='selected'" : "") @Model value="@AM.Entities.SLAType.Duration">@AM.Entities.SLAType.Duration</option>
+                        <option @(Model.SunSLAType == AM.Entities.SLAType.FixedTime ? "selected='selected'" : "") @Model value="@AM.Entities.SLAType.FixedTime">@AM.Entities.SLAType.FixedTime</option>
+                    </select>
+                </div>
+
+            </div>
+            <div class="form-group">
+                <label for="Description">Sun Cut Off</label>
+                <div class="input-group">
+                    <input type="text" id="SunCutOff" value="@Model.SunCutOff" class="form-control timespan" placeholder="Sun Cut Off" name="SunCutOff" />
+                </div>
+
+            </div>
+
+            <div class="form-group">
+                <label for="Description">Sun Timespan</label>
+                <div class="input-group">
+                    <input type="text" id="SunTimeSpan" value="@Model.SunTimeSpan" class="form-control daytimespan" placeholder="Sun Timespan" name="SunTimeSpan" />
+                </div>
+
+            </div>
+            <div class="from-group">
+                <label for="Description">Select Files(pdf only)</label>
+                <div class="input-group">
+                    <input type="file" multiple="multiple" class="uploadInput" style="display:none;" accept="application/pdf">
+                    <button type="button" id="uploadBtn" class="btn btn-default"><i class="fa fa-upload"> </i> Upload File</button>
                 </div>
             </div>
         </div>
 
     </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h3>Selected File List</h3>
+            <div class="upload-container" style="padding:0;text-align:left;">
+                <ul id="fileList"></ul>
+            </div>
+        </div>
+    </div>
+    <hr />
     <div class="row">
         <div class="col-md-12">
             <div class="panel-group">
@@ -288,3 +375,59 @@
     <button type="button" class="btn btn-primary" id="Save"><i class="fa fa-save"></i> Save</button>
     <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> Cancel</button>
 </form>
+
+<script>
+    $(document).ready(function () {
+        if ($("#Id").val() == "0") {
+            $(".daytimespan").val("00:00:00:00");
+            $(".timespan").val("00:00:00");
+        }
+        $(".daytimespan").inputmask('datetime', {
+            mask: "X:h:s:s",
+            placeholder: "dd:hh:mm:ss",
+            separator: ':',
+            hourFormat: "24"
+        });
+        $(".timespan").inputmask('datetime', {
+            mask: "h:s:s",
+            placeholder: "hh:mm:ss",
+            separator: ':',
+            hourFormat: "24"
+        });
+
+      
+    });
+    var fileArray = new Array();
+
+    function RemoveFile(index) {
+        fileArray.splice(index, 1);
+        MadeFileList(fileArray);
+    }
+
+    function MadeFileList() {
+        var fileList = $("#fileList");
+        fileList.empty();
+        var li = "";
+        for (var i = 0; i < fileArray.length; i++) {
+            li = li + "<li>" + fileArray[i].name + " <span style='cursor: pointer;' onclick='RemoveFile(" + i + ")'><i class='fa fa-times'></i></span></li>";
+        }
+        fileList.html(li);
+
+    }
+    $('#uploadBtn').click(function () {
+
+        $('.uploadInput').click();
+        $('.uploadInput').on('change', function (e) {
+            //isPdf = e.target.files
+            console.log(e.target.files);
+            var files = e.target.files;
+            for (var i = 0; i < files.length; i++) {
+                fileArray.push(files[i]);
+            }
+            //files.split('.').pop().toLowerCase()=="pdf"
+            MadeFileList(fileArray);
+            console.log(fileArray);
+        });
+    });
+    
+</script>
