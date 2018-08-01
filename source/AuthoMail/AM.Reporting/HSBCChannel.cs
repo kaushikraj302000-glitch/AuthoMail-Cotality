@@ -26,11 +26,6 @@ namespace AM.Reporting
                     Client client = clientSvc.GetClientByAppCode("HSBC");
 
                     string clientReportFolderPath = Path.Combine(Config.Common_AuthoMailRootFolder, client.AppCode);
-                    clientReportFolderPath.CreateDirectoryIfNotExist();
-
-                    string channelCode = client.AppCode + "_" + Config.Common_Environment;
-
-                    SFTChannel sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelCode(channelCode);
 
                     Deliverable deliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Consolidated);
 
