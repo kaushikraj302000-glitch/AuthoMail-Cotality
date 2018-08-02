@@ -48,6 +48,10 @@ namespace AM.Services
         public static string Monitor_USAACustIdentifier { get; set; }
         public static string Monitor_AMCDirPath { get; set; }
 
+        public static TimeSpan Monitor_InternalPrintAndShipStartTime { get; private set; }
+        public static TimeSpan Monitor_InternalPrintAndShipEndTime { get; private set; }
+        public static string Monitor_InternalPrintShippingMethods { get; private set; }
+
         //Core
         public static string Core_PnS_SFT_RootDir { get; private set; }
 
