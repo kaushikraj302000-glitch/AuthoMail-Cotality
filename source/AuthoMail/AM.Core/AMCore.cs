@@ -202,13 +202,16 @@ namespace AM.Core
 
                                 #region  Call FedEx web service and get create shipping label
 
+                                //This shiptimestamp date will be used while generating FedEx label. This date can be future date in ShipTimeStamp after cut off time for FedEx
+                                DateTime fedExShipTimeStamp = GetFedExShipTimeStamp(docType, mailBatch.ReceivedOn.Value);
+
                                 FedExAccountInfo fedExAccInfo = fedExSvc.GetFedExAccountDetailsByAccountCode(docType.ShippingAccountCode);
 
                                 CreateFedExLabel createFedExLabel = new CreateFedExLabel();
                                 bool result = false;
                                 while (attemptCount < Config.Core_NoofTime_AttemptFedexService)
                                 {
-                                    result = createFedExLabel.Create(mailPiece, fedExAccInfo, docType, mbi);
+                                    result = createFedExLabel.Create(mailPiece, fedExAccInfo, docType, mbi, fedExShipTimeStamp);
                                     if (result)
                                     {
                                         break;
@@ -440,6 +443,70 @@ namespace AM.Core
             }
 
             return dueDate.EstToUtc();
+        }
+
+        private static DateTime GetFedExShipTimeStamp(DocType docType, DateTime utcReceivedOn)
+        {
+            //ReceivedOn Time of Batch
+            var estReceivedOn = utcReceivedOn.UtcToEst();
+
+            DayOfWeek dayOfWeek = estReceivedOn.DayOfWeek;
+
+            string slaTimeSpan = string.Empty;
+            string slaCutOff = string.Empty;
+            string slaType = string.Empty;
+
+            bool isSatWorkDay = docType.SatSLAType == SLAType.NA ? false : true;
+            bool isSunWorkDay = docType.SunSLAType == SLAType.NA ? false : true;
+
+            DateTime shipTimeStampDate = estReceivedOn;
+
+            if (dayOfWeek == DayOfWeek.Saturday)
+            {
+                slaCutOff = docType.SatCutOff;
+                slaType = docType.SatSLAType;
+
+                if (docType.SatSLAType == SLAType.NA)
+                {
+                    dayOfWeek = DayOfWeek.Sunday;
+                }
+            }
+
+            if (dayOfWeek == DayOfWeek.Sunday)
+            {
+                slaCutOff = docType.SunCutOff;
+                slaType = docType.SunSLAType;
+
+                if (docType.SunSLAType == SLAType.NA)
+                {
+                    dayOfWeek = DayOfWeek.Monday;
+                }
+            }
+
+            if (dayOfWeek != DayOfWeek.Sunday && dayOfWeek != DayOfWeek.Saturday)
+            {
+                slaCutOff = docType.BizdayCutOff;
+                slaType = docType.BizdaySLAType;
+            }
+
+
+            if (slaType == SLAType.FixedTime)
+            {
+                //Should be in cut off Date time
+                var estSLACutOffDateTime = (estReceivedOn.Date + TimeSpan.Parse(slaCutOff));
+
+                if (estReceivedOn > estSLACutOffDateTime)
+                {
+                    shipTimeStampDate = estReceivedOn.AddDays(1);
+                }
+            }
+
+            while (!IsBusinessDay(shipTimeStampDate, Config.Common_Holidays, isSatWorkDay, isSunWorkDay))
+            {
+                shipTimeStampDate = shipTimeStampDate.AddDays(1);
+            }
+
+            return shipTimeStampDate;
         }
 
         private static bool IsBusinessDay(DateTime dueDate, List<Holiday> holidays, bool isSatWorkDay, bool isSunWorkDay)
