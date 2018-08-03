@@ -285,6 +285,12 @@ namespace AM.Entities
         public const string NA = "NA";
     }
 
+    public static class PrintingLocation
+    {
+        public const string FortMill = "Fort Mill, SC";
+        public const string DallasCL = "Dallas CL";
+    }
+
     public class MailBatchInfo
     {
         public string BatchRepo { get; private set; }
