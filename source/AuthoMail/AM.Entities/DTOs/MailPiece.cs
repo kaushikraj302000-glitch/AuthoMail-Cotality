@@ -80,6 +80,7 @@ namespace AM.Entities
         public bool IsQCRequested { get; set; }
         public bool IsQCPerformed { get; set; }
         public int? DocTypeId { get; set; }
+        public string PrintLocation { get; set; }
     }
 
     public class MailPieceCustomInfo

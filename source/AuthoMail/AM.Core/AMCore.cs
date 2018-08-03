@@ -202,13 +202,16 @@ namespace AM.Core
 
                                 #region  Call FedEx web service and get create shipping label
 
+                                //This shiptimestamp date will be used while generating FedEx label. This date can be future date in ShipTimeStamp after cut off time for FedEx
+                                DateTime fedExShipTimeStamp = GetFedExShipTimeStamp(docType, mailBatch.ReceivedOn.Value);
+
                                 FedExAccountInfo fedExAccInfo = fedExSvc.GetFedExAccountDetailsByAccountCode(docType.ShippingAccountCode);
 
                                 CreateFedExLabel createFedExLabel = new CreateFedExLabel();
                                 bool result = false;
                                 while (attemptCount < Config.Core_NoofTime_AttemptFedexService)
                                 {
-                                    result = createFedExLabel.Create(mailPiece, fedExAccInfo, docType, mbi);
+                                    result = createFedExLabel.Create(mailPiece, fedExAccInfo, docType, mbi, fedExShipTimeStamp);
                                     if (result)
                                     {
                                         break;
@@ -442,6 +445,70 @@ namespace AM.Core
             return dueDate.EstToUtc();
         }
 
+        private static DateTime GetFedExShipTimeStamp(DocType docType, DateTime utcReceivedOn)
+        {
+            //ReceivedOn Time of Batch
+            var estReceivedOn = utcReceivedOn.UtcToEst();
+
+            DayOfWeek dayOfWeek = estReceivedOn.DayOfWeek;
+
+            string slaTimeSpan = string.Empty;
+            string slaCutOff = string.Empty;
+            string slaType = string.Empty;
+
+            bool isSatWorkDay = docType.SatSLAType == SLAType.NA ? false : true;
+            bool isSunWorkDay = docType.SunSLAType == SLAType.NA ? false : true;
+
+            DateTime shipTimeStampDate = estReceivedOn;
+
+            if (dayOfWeek == DayOfWeek.Saturday)
+            {
+                slaCutOff = docType.SatCutOff;
+                slaType = docType.SatSLAType;
+
+                if (docType.SatSLAType == SLAType.NA)
+                {
+                    dayOfWeek = DayOfWeek.Sunday;
+                }
+            }
+
+            if (dayOfWeek == DayOfWeek.Sunday)
+            {
+                slaCutOff = docType.SunCutOff;
+                slaType = docType.SunSLAType;
+
+                if (docType.SunSLAType == SLAType.NA)
+                {
+                    dayOfWeek = DayOfWeek.Monday;
+                }
+            }
+
+            if (dayOfWeek != DayOfWeek.Sunday && dayOfWeek != DayOfWeek.Saturday)
+            {
+                slaCutOff = docType.BizdayCutOff;
+                slaType = docType.BizdaySLAType;
+            }
+
+
+            if (slaType == SLAType.FixedTime)
+            {
+                //Should be in cut off Date time
+                var estSLACutOffDateTime = (estReceivedOn.Date + TimeSpan.Parse(slaCutOff));
+
+                if (estReceivedOn > estSLACutOffDateTime)
+                {
+                    shipTimeStampDate = estReceivedOn.AddDays(1);
+                }
+            }
+
+            while (!IsBusinessDay(shipTimeStampDate, Config.Common_Holidays, isSatWorkDay, isSunWorkDay))
+            {
+                shipTimeStampDate = shipTimeStampDate.AddDays(1);
+            }
+
+            return shipTimeStampDate;
+        }
+
         private static bool IsBusinessDay(DateTime dueDate, List<Holiday> holidays, bool isSatWorkDay, bool isSunWorkDay)
         {
             if (holidays.Select(c => c.HolidayDate).Contains(dueDate.Date))
@@ -546,41 +613,47 @@ namespace AM.Core
                 foreach (var docTypeId in docTypes)
                 {
                     DocType docType = docTypeSvc.GetDocTypeById(docTypeId);
+                    var filteredMailPiecesDocTypeWise = validMailPieces.Where(c => c.DocTypeId == docTypeId).ToList();
 
-                    PrintBatch printBatch = new PrintBatch();
-                    printBatch.AppCode = clientSvc.GetClientById(docType.ClientId).AppCode;
-                    printBatch.UniqueId = Guid.NewGuid();
-                    printBatch.DocTypeId = docType.Id;
+                    var printLocations = filteredMailPiecesDocTypeWise.Select(c => c.PrintLocation).Distinct();
 
-                    var filteredMailPieces = validMailPieces.Where(c => c.DocTypeId == docTypeId).ToList();
-
-                    #region QC Request Logic
-                    if (docType.QCPercent > 0)
+                    foreach (var printLocation in printLocations)
                     {
-                        double qcCount = 0;
-                        float qcPercentage = docType.QCPercent / 100;
-                        qcCount = Math.Ceiling(filteredMailPieces.Count * qcPercentage);
+                        PrintBatch printBatch = new PrintBatch();
+                        printBatch.AppCode = clientSvc.GetClientById(docType.ClientId).AppCode;
+                        printBatch.UniqueId = Guid.NewGuid();
+                        printBatch.DocTypeId = docType.Id;
+                        printBatch.PrintLocation = printLocation;
+                        var filteredMailPiecesPrintLocationWise = filteredMailPiecesDocTypeWise.Where(c => c.PrintLocation == printLocation).ToList();
 
-                        var randomIndexes = new List<int>();
-                        while (randomIndexes.Count < qcCount)
+                        #region QC Request Logic
+                        if (docType.QCPercent > 0)
                         {
-                            var index = random.Next(0, filteredMailPieces.Count - 1);
-                            if (!randomIndexes.Contains(index))
+                            double qcCount = 0;
+                            float qcPercentage = docType.QCPercent / 100;
+                            qcCount = Math.Ceiling(filteredMailPiecesPrintLocationWise.Count * qcPercentage);
+
+                            var randomIndexes = new List<int>();
+                            while (randomIndexes.Count < qcCount)
                             {
-                                randomIndexes.Add(index);
+                                var index = random.Next(0, filteredMailPiecesPrintLocationWise.Count - 1);
+                                if (!randomIndexes.Contains(index))
+                                {
+                                    randomIndexes.Add(index);
+                                }
                             }
+
+                            randomIndexes.ForEach(index =>
+                            {
+                                filteredMailPiecesPrintLocationWise[index].IsQCRequested = true;
+                            });
                         }
+                        #endregion
 
-                        randomIndexes.ForEach(index =>
-                        {
-                            filteredMailPieces[index].IsQCRequested = true;
-                        });
+                        printBatch.MailPieces = filteredMailPiecesPrintLocationWise;
+
+                        printBatches.Add(printBatch);
                     }
-                    #endregion
-
-                    printBatch.MailPieces = filteredMailPieces;
-
-                    printBatches.Add(printBatch);
                 }
 
                 string pnsRootFolder = Config.Core_PnS_SFT_RootDir;
@@ -609,6 +682,7 @@ namespace AM.Core
                         request.BatchName = batchName;
                         request.DocTypeId = printBatchData.DocTypeId;
                         request.DueDate = printBatchData.MailPieces.OrderBy(x => x.DueDate).Select(x => x.DueDate).Distinct().First().Value.Date;
+                        request.PrintLocation = printBatchData.PrintLocation;
                         request.OnValidationErrors = OnValidationErrors.ProcessValidFiles;
 
                         List<MailPieceData> mailPackage = new List<MailPieceData>();

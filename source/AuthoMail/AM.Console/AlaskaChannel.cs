@@ -79,7 +79,6 @@ namespace AM.Console
                 mailBatch.ClientBatchId = batchName;
                 mailBatch.UniqueId = Guid.NewGuid();
                 mailBatch.Priority = Priority.Medium.ToString();
-                mailBatch.PrintLocation = Config.Common_PrintLocationPCI;
                 mailBatch.DocumentOrPackageType = documentOrPackageType;
 
                 //Insert New Batch Entry
@@ -261,7 +260,6 @@ namespace AM.Console
                         mailPieceDTO.MailBatchId = mbi.MailBatch.Id;
                         mailPieceDTO.ShippingStatus = ShippingStatus.InProgress.ToString();
 
-
                         ALKRespaControl node = XmlUtil.Deserialize<ALKRespaControl>(mailPieceNode.OuterXml);
 
                         mailPieceDTO.BusinessFriendlyIdName = clientBusinessIdDetails.BusinessIdName;
@@ -315,18 +313,27 @@ namespace AM.Console
 
                             if (docType == null)
                             {
+                                mailPieceDTO.PrintLocation = null;
                                 mailPieceDTO.ErrorCode = OutComeCodes.Invalid_PackageType;
                                 mailPieceDTO.ErrorDesc = "The specified document or package type '{0}' is not configured.".Fill(mailPieceDTO.DocumentOrPackageType);
                                 mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                             }
                             else if (!sftSite.IsFileAvailable(sftFilePath))
                             {
+                                mailPieceDTO.PrintLocation = null;
                                 mailPieceDTO.ErrorCode = OutComeCodes.Missing_PDF_File;
                                 mailPieceDTO.ErrorDesc = "Pdf attachment is not available.";
                                 mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                             }
                             else
                             {
+                                //Here we are setting print location because mailpiece will have doc types after some validations and based on that we can check that what is the shipping method for this mail piece and based on that we can set what is the location to set for printing
+
+                                if ((mailBatch.DownloadedOn.Value.UtcToEst().TimeOfDay >= Config.Monitor_InternalPrintAndShipStartTime && mailBatch.DownloadedOn.Value.UtcToEst().TimeOfDay < Config.Monitor_InternalPrintAndShipEndTime) && Config.Monitor_InternalPrintShippingMethods.Contains(docType.ShippingCarrier))
+                                    mailPieceDTO.PrintLocation = Config.Common_PrintLocationCL;
+                                else
+                                    mailPieceDTO.PrintLocation = Config.Common_PrintLocationPCI;
+
                                 if (!File.Exists(localFilePath))
                                 {
                                     //Downloading matching file name from client SFT
@@ -341,6 +348,7 @@ namespace AM.Console
                         }
                         else
                         {
+                            mailPieceDTO.PrintLocation = null;
                             mailPieceDTO.ErrorCode = validationResult.Code;
                             mailPieceDTO.ErrorDesc = validationResult.ErrorMessage;
                             mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
@@ -355,6 +363,7 @@ namespace AM.Console
                         mailPieceDTO.ErrorCode = OutComeCodes.Unknown_Error;
                         mailPieceDTO.ErrorDesc = msg + Environment.NewLine + ex.Message;
                         mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
+                        mailPieceDTO.PrintLocation = null;
                     }
 
 
@@ -371,9 +380,6 @@ namespace AM.Console
 
                             log.Error(msg, ex);
                             mailPieceDTO.UniqueId = Guid.NewGuid();
-                            mailPieceDTO.ErrorCode = OutComeCodes.Invalid_DuplicateKey;
-                            mailPieceDTO.ErrorDesc = msg + Environment.NewLine + ex.Message;
-                            mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                             mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfoList);
                         }
                     }
