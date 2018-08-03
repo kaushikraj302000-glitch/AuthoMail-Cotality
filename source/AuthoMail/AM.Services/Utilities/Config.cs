@@ -19,7 +19,8 @@ namespace AM.Services
         [Description("To indicate on which environment job is running.")]
         public static string Common_Environment { get; private set; }
         public static string Common_AuthoMailRootFolder { get; private set; }
-        public static string Common_PrintLocation { get; private set; }
+        public static string Common_PrintLocationPCI { get; private set; }
+        public static string Common_PrintLocationCL { get; private set; }
         public static List<Holiday> Common_Holidays { get; private set; }
 
         #endregion
