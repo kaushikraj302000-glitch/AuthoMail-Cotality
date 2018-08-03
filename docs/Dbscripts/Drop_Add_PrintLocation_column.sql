@@ -18,3 +18,6 @@ GO
 
 ALTER TABLE [AM].[MailBatches] DROP Column PrintLocation
 GO
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_MailPieces_TrackingNo ON [AM].[MailPieces] (TrackingNo) WHERE TrackingNo IS NOT NULL
+GO
