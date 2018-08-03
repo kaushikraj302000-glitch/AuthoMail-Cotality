@@ -72,7 +72,7 @@ namespace AM.Console
                 mailBatch.ClientBatchId = batchName;
                 mailBatch.UniqueId = Guid.NewGuid();
                 mailBatch.Priority = Priority.Medium.ToString();
-                mailBatch.PrintLocation = Config.Common_PrintLocation;
+                mailBatch.PrintLocation = Config.Common_PrintLocationPCI;
 
                 //Insert New Batch Entry
                 mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);

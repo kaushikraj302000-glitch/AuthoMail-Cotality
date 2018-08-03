@@ -14,6 +14,7 @@ namespace AM.Services
         public string PnSBatchPipelineStatus { get; set; }
         public string AMMailPieceStatus { get; set; }
         public string PnSMailPieceStatus { get; set; }
+        public string PrintLocation { get; set; }
         public string AMErrorDescription { get; set; }
         public string PnSErrorDescription { get; set; }
         public DateTime? PCIBatchPrepEnd { get; set; }
@@ -31,6 +32,7 @@ namespace AM.Services
         public int PrintBatch { get; set; }
         public string PieceId { get; set; }
         public string Name { get; set; }
+        public string PrintLocation { get; set; }
         public string DocTypeCode { get; set; }
     }
 }
