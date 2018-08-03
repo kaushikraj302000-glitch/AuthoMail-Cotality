@@ -682,6 +682,7 @@ namespace AM.Console
                             mailPieceDTO.ErrorCode = validationResult.Code;
                             mailPieceDTO.ErrorDesc = validationResult.ErrorMessage;
                             mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
+                            mailPieceDTO.PrintLocation = null;
                         }
                     }
                     catch (Exception ex)
@@ -693,6 +694,7 @@ namespace AM.Console
                         mailPieceDTO.ErrorCode = OutComeCodes.Unknown_Error;
                         mailPieceDTO.ErrorDesc = msg + Environment.NewLine + ex.Message;
                         mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
+                        mailPieceDTO.PrintLocation = null;
                     }
 
                     try
