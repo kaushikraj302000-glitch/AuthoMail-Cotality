@@ -613,41 +613,47 @@ namespace AM.Core
                 foreach (var docTypeId in docTypes)
                 {
                     DocType docType = docTypeSvc.GetDocTypeById(docTypeId);
+                    var filteredMailPiecesDocTypeWise = validMailPieces.Where(c => c.DocTypeId == docTypeId).ToList();
 
-                    PrintBatch printBatch = new PrintBatch();
-                    printBatch.AppCode = clientSvc.GetClientById(docType.ClientId).AppCode;
-                    printBatch.UniqueId = Guid.NewGuid();
-                    printBatch.DocTypeId = docType.Id;
+                    var printLocations = filteredMailPiecesDocTypeWise.Select(c => c.PrintLocation).Distinct();
 
-                    var filteredMailPieces = validMailPieces.Where(c => c.DocTypeId == docTypeId).ToList();
-
-                    #region QC Request Logic
-                    if (docType.QCPercent > 0)
+                    foreach (var printLocation in printLocations)
                     {
-                        double qcCount = 0;
-                        float qcPercentage = docType.QCPercent / 100;
-                        qcCount = Math.Ceiling(filteredMailPieces.Count * qcPercentage);
+                        PrintBatch printBatch = new PrintBatch();
+                        printBatch.AppCode = clientSvc.GetClientById(docType.ClientId).AppCode;
+                        printBatch.UniqueId = Guid.NewGuid();
+                        printBatch.DocTypeId = docType.Id;
+                        printBatch.PrintLocation = printLocation;
+                        var filteredMailPiecesPrintLocationWise = filteredMailPiecesDocTypeWise.Where(c => c.PrintLocation == printLocation).ToList();
 
-                        var randomIndexes = new List<int>();
-                        while (randomIndexes.Count < qcCount)
+                        #region QC Request Logic
+                        if (docType.QCPercent > 0)
                         {
-                            var index = random.Next(0, filteredMailPieces.Count - 1);
-                            if (!randomIndexes.Contains(index))
+                            double qcCount = 0;
+                            float qcPercentage = docType.QCPercent / 100;
+                            qcCount = Math.Ceiling(filteredMailPiecesPrintLocationWise.Count * qcPercentage);
+
+                            var randomIndexes = new List<int>();
+                            while (randomIndexes.Count < qcCount)
                             {
-                                randomIndexes.Add(index);
+                                var index = random.Next(0, filteredMailPiecesPrintLocationWise.Count - 1);
+                                if (!randomIndexes.Contains(index))
+                                {
+                                    randomIndexes.Add(index);
+                                }
                             }
+
+                            randomIndexes.ForEach(index =>
+                            {
+                                filteredMailPiecesPrintLocationWise[index].IsQCRequested = true;
+                            });
                         }
+                        #endregion
 
-                        randomIndexes.ForEach(index =>
-                        {
-                            filteredMailPieces[index].IsQCRequested = true;
-                        });
+                        printBatch.MailPieces = filteredMailPiecesPrintLocationWise;
+
+                        printBatches.Add(printBatch);
                     }
-                    #endregion
-
-                    printBatch.MailPieces = filteredMailPieces;
-
-                    printBatches.Add(printBatch);
                 }
 
                 string pnsRootFolder = Config.Core_PnS_SFT_RootDir;
@@ -676,6 +682,7 @@ namespace AM.Core
                         request.BatchName = batchName;
                         request.DocTypeId = printBatchData.DocTypeId;
                         request.DueDate = printBatchData.MailPieces.OrderBy(x => x.DueDate).Select(x => x.DueDate).Distinct().First().Value.Date;
+                        request.PrintLocation = printBatchData.PrintLocation;
                         request.OnValidationErrors = OnValidationErrors.ProcessValidFiles;
 
                         List<MailPieceData> mailPackage = new List<MailPieceData>();

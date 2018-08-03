@@ -72,7 +72,6 @@ namespace AM.Console
                 mailBatch.ClientBatchId = batchName;
                 mailBatch.UniqueId = Guid.NewGuid();
                 mailBatch.Priority = Priority.Medium.ToString();
-                mailBatch.PrintLocation = Config.Common_PrintLocation;
 
                 //Insert New Batch Entry
                 mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
@@ -428,9 +427,9 @@ namespace AM.Console
                 return;
             }
 
-            foreach (var batch in downloadBatches)
+            foreach (var mailBatch in downloadBatches)
             {
-                MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
+                MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
 
                 //TODO: Can we have multiple business identifier in client business?
                 ClientBusinessIdentifier clientBusinessIdDetails = commonSvc.GetBusinessIdNameFromClientId(client.Id);
@@ -670,6 +669,11 @@ namespace AM.Console
                             }
                             else
                             {
+                                if ((mailBatch.DownloadedOn.Value.UtcToEst().TimeOfDay >= Config.Monitor_InternalPrintAndShipStartTime && mailBatch.DownloadedOn.Value.UtcToEst().TimeOfDay < Config.Monitor_InternalPrintAndShipEndTime) && Config.Monitor_InternalPrintShippingMethods.Contains(docType.ShippingCarrier))
+                                    mailPieceDTO.PrintLocation = Config.Common_PrintLocationCL;
+                                else
+                                    mailPieceDTO.PrintLocation = Config.Common_PrintLocationPCI;
+
                                 mailPieceDTO.ErrorCode = OutComeCodes.No_Error;
                             }
                         }
