@@ -19,7 +19,8 @@ namespace AM.Services
         [Description("To indicate on which environment job is running.")]
         public static string Common_Environment { get; private set; }
         public static string Common_AuthoMailRootFolder { get; private set; }
-        public static string Common_PrintLocation { get; private set; }
+        public static string Common_PrintLocationPCI { get; private set; }
+        public static string Common_PrintLocationCL { get; private set; }
         public static List<Holiday> Common_Holidays { get; private set; }
 
         #endregion
@@ -47,6 +48,10 @@ namespace AM.Services
         [Description("This is unique customer identifier")]
         public static string Monitor_USAACustIdentifier { get; set; }
         public static string Monitor_AMCDirPath { get; set; }
+
+        public static TimeSpan Monitor_InternalPrintAndShipStartTime { get; private set; }
+        public static TimeSpan Monitor_InternalPrintAndShipEndTime { get; private set; }
+        public static string Monitor_InternalPrintShippingMethods { get; private set; }
 
         //Core
         public static string Core_PnS_SFT_RootDir { get; private set; }
