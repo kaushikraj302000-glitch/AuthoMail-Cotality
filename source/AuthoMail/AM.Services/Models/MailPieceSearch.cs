@@ -212,7 +212,6 @@ namespace AM.Services
         public string RetRcptAddressCity { get; set; }
         public string RetRcptAddressState { get; set; }
         public string RetRcptAddressZIP { get; set; }
-        public string PrintLocation { get; set; }
         public SFTChannels SFTChannels { get; set; }
         public Clients Clients { get; set; }
     }
