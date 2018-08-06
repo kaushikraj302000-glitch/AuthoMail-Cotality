@@ -21,6 +21,7 @@ namespace AM.Services
         public static string Common_AuthoMailRootFolder { get; private set; }
         public static string Common_PrintLocationPCI { get; private set; }
         public static string Common_PrintLocationCL { get; private set; }
+        public static string Common_ScannerAppCode { get; private set; }
         public static List<Holiday> Common_Holidays { get; private set; }
 
         #endregion
@@ -61,6 +62,8 @@ namespace AM.Services
         public static int Core_NoofTime_AttemptFedexService { get; private set; }
         public static int Core_FedexServiceAttemptInterval { get; private set; }
         public static string Core_BundleSweepClientChannelIds { get; private set; }
+        public static string Core_EndPageTemplatePath { get; private set; }
+
 
         //FedEx URLs
         public static string Core_FedExTestService { get; private set; }

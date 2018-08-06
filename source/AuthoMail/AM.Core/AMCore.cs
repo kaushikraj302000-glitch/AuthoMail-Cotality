@@ -69,6 +69,8 @@ namespace AM.Core
                             string pdfFilePath = Path.Combine(mbi.AMRequestPath, mailPiece.FileName);
                             string outputFilePath = Path.Combine(mbi.PnSRequestPath, "{0}_{1}".Fill(mailPieceId, mailPiece.FileName));
                             string coverLetterPdfPath = string.Empty;
+                            string endPagePdfPath = string.Empty;
+                            string endPageTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, Config.Core_EndPageTemplatePath);
 
                             if (docType.ShippingCarrier == Carrier.USPS.ToString())
                             {
@@ -233,6 +235,15 @@ namespace AM.Core
                                 {
                                     coverLetterPdfPath = createFedExLabel.GeneratedFedExLabelPath;
                                     mailPiece.TrackingNo = Path.GetFileNameWithoutExtension(coverLetterPdfPath);
+
+                                    if (mailPiece.PrintLocation == Config.Common_PrintLocationCL)
+                                    {
+                                        Dictionary<string, string> mailPieceData = new Dictionary<string, string>();
+                                        mailPieceData.Add("MailPieceId", mailPiece.Id.ToString());
+                                        mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((Config.Common_ScannerAppCode + mbi.Client.AppCode + mailPiece.TrackingNo).Reverse().ToArray()) + "*");
+
+                                        endPagePdfPath = doc.GenerateLastPageWithBarcode(endPageTemplatePath, mbi.PnSRequestPath, mailPieceData);
+                                    }
                                 }
 
                                 #endregion
@@ -240,7 +251,7 @@ namespace AM.Core
 
                             if (File.Exists(coverLetterPdfPath))
                             {
-                                int pageCount = doc.GenerateDoc(coverLetterPdfPath, pdfFilePath, outputFilePath, docType.ContentScalePercent);
+                                int pageCount = doc.GenerateDoc(coverLetterPdfPath, pdfFilePath, outputFilePath, docType.ContentScalePercent, endPagePdfPath);
                                 if (pageCount > 0)
                                 {
                                     mailPiece.TotalPages = pageCount;
