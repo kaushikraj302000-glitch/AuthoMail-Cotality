@@ -79,7 +79,7 @@ namespace AM.Reporting
                                             mailPiece.RcptAddressCity,
                                             mailPiece.RcptAddressState,
                                             mailPiece.RcptAddressZIP,
-                                            mailPiece.MailBatches.PrintLocation.ToCsvString(),
+                                            mailPiece.PrintLocation.ToCsvString(),
                                             mailPiece.TotalPages,
                                             mailPiece.ShippingStatus,
                                             mailPiece.ErrorCode,

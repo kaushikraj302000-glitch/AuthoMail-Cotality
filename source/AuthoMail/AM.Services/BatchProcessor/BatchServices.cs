@@ -26,7 +26,7 @@ namespace AM.Services
     {
         public int InsertBatchDetails(MailBatchDTO mailBatch)
         {
-            string query = @"INSERT INTO [AM].[MailBatches](UniqueId, ClientId, DocumentOrPackageType, SFTChannelId, ClientBatchId, BatchName, [Priority], PrintLocation) Output Inserted.Id VALUES (@UniqueId, @ClientId, @DocumentOrPackageType, @SFTChannelId, @ClientBatchId, @BatchName, @Priority, @PrintLocation)";
+            string query = @"INSERT INTO [AM].[MailBatches](UniqueId, ClientId, DocumentOrPackageType, SFTChannelId, ClientBatchId, BatchName, [Priority]) Output Inserted.Id VALUES (@UniqueId, @ClientId, @DocumentOrPackageType, @SFTChannelId, @ClientBatchId, @BatchName, @Priority)";
 
             return db.ExecuteScalar<int>(query, mailBatch);
         }
@@ -52,7 +52,7 @@ namespace AM.Services
 
         public int MarkMailBatchAsInvalid(int id, string errorDesc)
         {
-            string query = "UPDATE [AM].[MailBatches] SET [ValidationStatus] = @ValidationStatus, [ValidationErrors] = @ValidationErrors, [PrintLocation] = NULL WHERE Id=@Id";
+            string query = "UPDATE [AM].[MailBatches] SET [ValidationStatus] = @ValidationStatus, [ValidationErrors] = @ValidationErrors WHERE Id=@Id";
 
             return db.Execute(query, new { ValidationStatus = BatchValidationStatus.Invalid, ValidationErrors = errorDesc, Id = id });
         }

@@ -52,31 +52,7 @@ namespace AM.Core
 
             try
             {
-                using (var existingFileStream = new FileStream(coverTemplatePDFPath, FileMode.Open))
-                using (var newFileStream = new FileStream(coverLetterPDFPath, FileMode.Create))
-                {
-                    // Open existing PDF
-                    var pdfReader = new PdfReader(existingFileStream);
-
-                    // PdfStamper, which will create
-                    var stamper = new PdfStamper(pdfReader, newFileStream);
-
-                    var form = stamper.AcroFields;
-                    foreach (var model in mailPieceData)
-                    {
-                        form.SetField(model.Key, model.Value);
-                    }
-
-                    // "Flatten" the form so it wont be editable/usable anymore
-                    stamper.FormFlattening = true;
-
-                    // You can also specify fields to be flattened, which
-                    // leaves the rest of the form still be editable/usable
-                    // stamper.PartialFormFlattening("Address");
-
-                    stamper.Close();
-                    pdfReader.Close();
-                }
+                PdfFormFiller(coverTemplatePDFPath, coverLetterPDFPath, mailPieceData);
 
                 if (!File.Exists(coverLetterPDFPath))
                 {
@@ -95,6 +71,35 @@ namespace AM.Core
             return coverLetterPDFPath;
 
             #endregion
+        }
+
+        private void PdfFormFiller(string templatePDFPath, string filledPDFPath, Dictionary<string, string> mailPieceData)
+        {
+            using (var existingFileStream = new FileStream(templatePDFPath, FileMode.Open))
+            using (var newFileStream = new FileStream(filledPDFPath, FileMode.Create))
+            {
+                // Open existing PDF
+                var pdfReader = new PdfReader(existingFileStream);
+
+                // PdfStamper, which will create
+                var stamper = new PdfStamper(pdfReader, newFileStream);
+
+                var form = stamper.AcroFields;
+                foreach (var model in mailPieceData)
+                {
+                    form.SetField(model.Key, model.Value);
+                }
+
+                // "Flatten" the form so it wont be editable/usable anymore
+                stamper.FormFlattening = true;
+
+                // You can also specify fields to be flattened, which
+                // leaves the rest of the form still be editable/usable
+                // stamper.PartialFormFlattening("Address");
+
+                stamper.Close();
+                pdfReader.Close();
+            }
         }
 
         public string GenerateUSPSCoverLetter(string appCode, string coverTemplatePDFPath, string outputDir, Dictionary<string, string> mailPieceData)
@@ -108,31 +113,7 @@ namespace AM.Core
 
             try
             {
-                using (var existingFileStream = new FileStream(coverTemplatePDFPath, FileMode.Open))
-                using (var newFileStream = new FileStream(coverLetterPDFPath, FileMode.Create))
-                {
-                    // Open existing PDF
-                    var pdfReader = new PdfReader(existingFileStream);
-
-                    // PdfStamper, which will create
-                    var stamper = new PdfStamper(pdfReader, newFileStream);
-
-                    var form = stamper.AcroFields;
-                    foreach (var model in mailPieceData)
-                    {
-                        form.SetField(model.Key, model.Value);
-                    }
-
-                    // "Flatten" the form so it wont be editable/usable anymore
-                    stamper.FormFlattening = true;
-
-                    // You can also specify fields to be flattened, which
-                    // leaves the rest of the form still be editable/usable
-                    // stamper.PartialFormFlattening("Address");
-
-                    stamper.Close();
-                    pdfReader.Close();
-                }
+                PdfFormFiller(coverTemplatePDFPath, coverLetterPDFPath, mailPieceData);
 
                 if (!File.Exists(coverLetterPDFPath))
                 {
@@ -153,7 +134,7 @@ namespace AM.Core
             #endregion
         }
 
-        public int GenerateDoc(string coverLetterPDFPath, string pdfAttachmentPath, string outputDocumentPath, float contentScalePercent)
+        public int GenerateDoc(string coverLetterPDFPath, string pdfAttachmentPath, string outputDocumentPath, float contentScalePercent, string endPagePDFPath = "")
         {
             string outputDirPath = Path.GetDirectoryName(outputDocumentPath);
             string flattenPDFPath = Path.Combine(outputDirPath, "Flatten_" + Path.GetFileName(pdfAttachmentPath));
@@ -179,9 +160,17 @@ namespace AM.Core
                 #endregion
 
                 #region Merge Final Document
-                string[] mergePDFArray = { coverLetterPDFPath, mergeReadyFilePath };
 
-                PdfUtil.MergePDFs(coverLetterPDFPath, mergeReadyFilePath, outputDocumentPath);
+                if (!string.IsNullOrEmpty(endPagePDFPath))
+                {
+                    PdfUtil.MergePDFs(coverLetterPDFPath, mergeReadyFilePath, endPagePDFPath, outputDocumentPath);
+                }
+                else
+                {
+                    PdfUtil.MergePDFs(coverLetterPDFPath, mergeReadyFilePath, outputDocumentPath);
+                }
+
+
 
                 //PdfUtil.BookmarkedPdfFilesMerge(outputDocumentPath, mergePDFArray);
                 #endregion
@@ -201,6 +190,11 @@ namespace AM.Core
                 {
                     File.Delete(shrinkPDFPath);
                 }
+
+                if (File.Exists(endPagePDFPath))
+                {
+                    File.Delete(endPagePDFPath);
+                }
                 #endregion
 
                 totalPage = PdfUtil.GetPageCount(outputDocumentPath);
@@ -214,6 +208,27 @@ namespace AM.Core
             }
 
             return totalPage;
+        }
+
+        public string GenerateLastPageWithBarcode(string endPageTemplatePath, string outputDocumentPath, Dictionary<string, string> mailPieceData)
+        {
+            ExceptionDetail = string.Empty;
+
+            string endPagePDFPath = Path.Combine(outputDocumentPath, string.Format("EndPage_{0}.pdf", mailPieceData["MailPieceId"]));
+            try
+            {
+                PdfFormFiller(endPageTemplatePath, endPagePDFPath, mailPieceData);
+            }
+            catch (Exception ex)
+            {
+                var msg = "Error occured while generating end page document '{0}.pdf'".Fill(Path.GetFileNameWithoutExtension(outputDocumentPath));
+
+                log.Error(msg, ex);
+                ExceptionDetail = msg;
+                endPagePDFPath = string.Empty;
+            }
+
+            return endPagePDFPath;
         }
     }
 }

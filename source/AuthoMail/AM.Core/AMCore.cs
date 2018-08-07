@@ -69,6 +69,8 @@ namespace AM.Core
                             string pdfFilePath = Path.Combine(mbi.AMRequestPath, mailPiece.FileName);
                             string outputFilePath = Path.Combine(mbi.PnSRequestPath, "{0}_{1}".Fill(mailPieceId, mailPiece.FileName));
                             string coverLetterPdfPath = string.Empty;
+                            string endPagePdfPath = string.Empty;
+                            string endPageTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, Config.Core_EndPageTemplatePath);
 
                             if (docType.ShippingCarrier == Carrier.USPS.ToString())
                             {
@@ -159,6 +161,7 @@ namespace AM.Core
                                     mailPiece.ErrorDesc = "Cover letter does not exist for DocumentType : {0}".Fill(mailPiece.DocumentOrPackageType);
                                     mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                                     mailPiece.TotalPages = 0;
+                                    mailPiece.DueDate = null;
                                     mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                                     continue;
                                 }
@@ -183,6 +186,7 @@ namespace AM.Core
                                     mailPiece.TotalPages = 0;
                                     mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                                     mailPiece.ErrorDesc = doc.ExceptionDetail;
+                                    mailPiece.DueDate = null;
                                     mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                                     continue;
                                 }
@@ -200,13 +204,16 @@ namespace AM.Core
 
                                 #region  Call FedEx web service and get create shipping label
 
+                                //This shiptimestamp date will be used while generating FedEx label. This date can be future date in ShipTimeStamp after cut off time for FedEx
+                                DateTime fedExShipTimeStamp = GetFedExShipTimeStamp(docType, mailBatch.ReceivedOn.Value);
+
                                 FedExAccountInfo fedExAccInfo = fedExSvc.GetFedExAccountDetailsByAccountCode(docType.ShippingAccountCode);
 
                                 CreateFedExLabel createFedExLabel = new CreateFedExLabel();
                                 bool result = false;
                                 while (attemptCount < Config.Core_NoofTime_AttemptFedexService)
                                 {
-                                    result = createFedExLabel.Create(mailPiece, fedExAccInfo, docType, mbi);
+                                    result = createFedExLabel.Create(mailPiece, fedExAccInfo, docType, mbi, fedExShipTimeStamp);
                                     if (result)
                                     {
                                         break;
@@ -219,6 +226,7 @@ namespace AM.Core
                                     else
                                     {
                                         mailPiece.TotalPages = 0;
+                                        mailPiece.DueDate = null;
                                         break;
                                     }
                                 }
@@ -227,6 +235,15 @@ namespace AM.Core
                                 {
                                     coverLetterPdfPath = createFedExLabel.GeneratedFedExLabelPath;
                                     mailPiece.TrackingNo = Path.GetFileNameWithoutExtension(coverLetterPdfPath);
+
+                                    if (mailPiece.PrintLocation == Config.Common_PrintLocationCL)
+                                    {
+                                        Dictionary<string, string> mailPieceData = new Dictionary<string, string>();
+                                        mailPieceData.Add("MailPieceId", mailPiece.Id.ToString());
+                                        mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((Config.Common_ScannerAppCode + mbi.Client.AppCode + mailPiece.TrackingNo).Reverse().ToArray()) + "*");
+
+                                        endPagePdfPath = doc.GenerateLastPageWithBarcode(endPageTemplatePath, mbi.PnSRequestPath, mailPieceData);
+                                    }
                                 }
 
                                 #endregion
@@ -234,7 +251,7 @@ namespace AM.Core
 
                             if (File.Exists(coverLetterPdfPath))
                             {
-                                int pageCount = doc.GenerateDoc(coverLetterPdfPath, pdfFilePath, outputFilePath, docType.ContentScalePercent);
+                                int pageCount = doc.GenerateDoc(coverLetterPdfPath, pdfFilePath, outputFilePath, docType.ContentScalePercent, endPagePdfPath);
                                 if (pageCount > 0)
                                 {
                                     mailPiece.TotalPages = pageCount;
@@ -243,6 +260,7 @@ namespace AM.Core
                                 {
                                     mailPiece.ErrorCode = OutComeCodes.Invalid_PDF_File;
                                     mailPiece.TotalPages = 0;
+                                    mailPiece.DueDate = null;
                                     mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                                     mailPiece.ErrorDesc = doc.ExceptionDetail;
                                 }
@@ -438,6 +456,70 @@ namespace AM.Core
             return dueDate.EstToUtc();
         }
 
+        private static DateTime GetFedExShipTimeStamp(DocType docType, DateTime utcReceivedOn)
+        {
+            //ReceivedOn Time of Batch
+            var estReceivedOn = utcReceivedOn.UtcToEst();
+
+            DayOfWeek dayOfWeek = estReceivedOn.DayOfWeek;
+
+            string slaTimeSpan = string.Empty;
+            string slaCutOff = string.Empty;
+            string slaType = string.Empty;
+
+            bool isSatWorkDay = docType.SatSLAType == SLAType.NA ? false : true;
+            bool isSunWorkDay = docType.SunSLAType == SLAType.NA ? false : true;
+
+            DateTime shipTimeStampDate = estReceivedOn;
+
+            if (dayOfWeek == DayOfWeek.Saturday)
+            {
+                slaCutOff = docType.SatCutOff;
+                slaType = docType.SatSLAType;
+
+                if (docType.SatSLAType == SLAType.NA)
+                {
+                    dayOfWeek = DayOfWeek.Sunday;
+                }
+            }
+
+            if (dayOfWeek == DayOfWeek.Sunday)
+            {
+                slaCutOff = docType.SunCutOff;
+                slaType = docType.SunSLAType;
+
+                if (docType.SunSLAType == SLAType.NA)
+                {
+                    dayOfWeek = DayOfWeek.Monday;
+                }
+            }
+
+            if (dayOfWeek != DayOfWeek.Sunday && dayOfWeek != DayOfWeek.Saturday)
+            {
+                slaCutOff = docType.BizdayCutOff;
+                slaType = docType.BizdaySLAType;
+            }
+
+
+            if (slaType == SLAType.FixedTime)
+            {
+                //Should be in cut off Date time
+                var estSLACutOffDateTime = (estReceivedOn.Date + TimeSpan.Parse(slaCutOff));
+
+                if (estReceivedOn > estSLACutOffDateTime)
+                {
+                    shipTimeStampDate = estReceivedOn.AddDays(1);
+                }
+            }
+
+            while (!IsBusinessDay(shipTimeStampDate, Config.Common_Holidays, isSatWorkDay, isSunWorkDay))
+            {
+                shipTimeStampDate = shipTimeStampDate.AddDays(1);
+            }
+
+            return shipTimeStampDate;
+        }
+
         private static bool IsBusinessDay(DateTime dueDate, List<Holiday> holidays, bool isSatWorkDay, bool isSunWorkDay)
         {
             if (holidays.Select(c => c.HolidayDate).Contains(dueDate.Date))
@@ -542,41 +624,47 @@ namespace AM.Core
                 foreach (var docTypeId in docTypes)
                 {
                     DocType docType = docTypeSvc.GetDocTypeById(docTypeId);
+                    var filteredMailPiecesDocTypeWise = validMailPieces.Where(c => c.DocTypeId == docTypeId).ToList();
 
-                    PrintBatch printBatch = new PrintBatch();
-                    printBatch.AppCode = clientSvc.GetClientById(docType.ClientId).AppCode;
-                    printBatch.UniqueId = Guid.NewGuid();
-                    printBatch.DocTypeId = docType.Id;
+                    var printLocations = filteredMailPiecesDocTypeWise.Select(c => c.PrintLocation).Distinct();
 
-                    var filteredMailPieces = validMailPieces.Where(c => c.DocTypeId == docTypeId).ToList();
-
-                    #region QC Request Logic
-                    if (docType.QCPercent > 0)
+                    foreach (var printLocation in printLocations)
                     {
-                        double qcCount = 0;
-                        float qcPercentage = docType.QCPercent / 100;
-                        qcCount = Math.Ceiling(filteredMailPieces.Count * qcPercentage);
+                        PrintBatch printBatch = new PrintBatch();
+                        printBatch.AppCode = clientSvc.GetClientById(docType.ClientId).AppCode;
+                        printBatch.UniqueId = Guid.NewGuid();
+                        printBatch.DocTypeId = docType.Id;
+                        printBatch.PrintLocation = printLocation;
+                        var filteredMailPiecesPrintLocationWise = filteredMailPiecesDocTypeWise.Where(c => c.PrintLocation == printLocation).ToList();
 
-                        var randomIndexes = new List<int>();
-                        while (randomIndexes.Count < qcCount)
+                        #region QC Request Logic
+                        if (docType.QCPercent > 0)
                         {
-                            var index = random.Next(0, filteredMailPieces.Count - 1);
-                            if (!randomIndexes.Contains(index))
+                            double qcCount = 0;
+                            float qcPercentage = docType.QCPercent / 100;
+                            qcCount = Math.Ceiling(filteredMailPiecesPrintLocationWise.Count * qcPercentage);
+
+                            var randomIndexes = new List<int>();
+                            while (randomIndexes.Count < qcCount)
                             {
-                                randomIndexes.Add(index);
+                                var index = random.Next(0, filteredMailPiecesPrintLocationWise.Count - 1);
+                                if (!randomIndexes.Contains(index))
+                                {
+                                    randomIndexes.Add(index);
+                                }
                             }
+
+                            randomIndexes.ForEach(index =>
+                            {
+                                filteredMailPiecesPrintLocationWise[index].IsQCRequested = true;
+                            });
                         }
+                        #endregion
 
-                        randomIndexes.ForEach(index =>
-                        {
-                            filteredMailPieces[index].IsQCRequested = true;
-                        });
+                        printBatch.MailPieces = filteredMailPiecesPrintLocationWise;
+
+                        printBatches.Add(printBatch);
                     }
-                    #endregion
-
-                    printBatch.MailPieces = filteredMailPieces;
-
-                    printBatches.Add(printBatch);
                 }
 
                 string pnsRootFolder = Config.Core_PnS_SFT_RootDir;
@@ -605,6 +693,7 @@ namespace AM.Core
                         request.BatchName = batchName;
                         request.DocTypeId = printBatchData.DocTypeId;
                         request.DueDate = printBatchData.MailPieces.OrderBy(x => x.DueDate).Select(x => x.DueDate).Distinct().First().Value.Date;
+                        request.PrintLocation = printBatchData.PrintLocation;
                         request.OnValidationErrors = OnValidationErrors.ProcessValidFiles;
 
                         List<MailPieceData> mailPackage = new List<MailPieceData>();

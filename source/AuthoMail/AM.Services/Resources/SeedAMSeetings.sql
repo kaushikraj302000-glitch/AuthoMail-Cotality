@@ -14,6 +14,12 @@ INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsS
 
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Core_BundleSweepClientChannelIds', N'String', N'1', NULL, 0, N'1', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
+INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Monitor_InternalPrintAndShipStartTime', N'TimeSpan', N'16:30', NULL, 0, N'16:30', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Monitor_InternalPrintAndShipEndTime', N'TimeSpan', N'20:00', NULL, 0, N'20:00', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Monitor_InternalPrintShippingMethods', N'String', N'FedEx', NULL, 0, N'FedEx', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Monitor_AMCDirPath', N'String', N'\\MTC-sagarg\c$\MSTC\AM\AMC', NULL, 0, N'\\MTC-sagarg\c$\MSTC\AM\AMC', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Monitor_ExpressMailingText', N'String', N'-ExpressMailing', NULL, 0, N'-ExpressMailing', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
@@ -114,7 +120,9 @@ INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsS
 
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Core_FedExProdService', N'String', N'https://gateway.fedex.com:443/web-services', NULL, 0, N'https://gateway.fedex.com:443/web-services', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
-INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Common_PrintLocation', N'String', N'Fort Mill, SC', NULL, 0, N'Fort Mill, SC', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Common_PrintLocationPCI', N'String', N'Fort Mill, SC', NULL, 0, N'Fort Mill, SC', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Common_PrintLocationCL', N'String', N'Dallas CL', NULL, 0, N'Dallas CL', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Monitor_AMC_ReportDateFormat', N'String', N'M/d/yyyy h:mm:ss tt', NULL, 0, N'M/d/yyyy h:mm:ss tt', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
@@ -130,3 +138,7 @@ INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsS
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_RegistrationDefaultEmails', N'String', 'milan.patel@milestonetechnoconsulting.com,satish.rabari@milestonetechnoconsulting.com,akshar.vala@milestonetechnoconsulting.com,nirav.barot@milestonetechnoconsulting.com,sagar.golvelkar@milestonetechnoconsulting.com', 'Notification email for registration', 0, 'milan.patel@milestonetechnoconsulting.com,satish.rabari@milestonetechnoconsulting.com,akshar.vala@milestonetechnoconsulting.com,nirav.barot@milestonetechnoconsulting.com,sagar.golvelkar@milestonetechnoconsulting.com', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_MaxJsonLength', N'Int32', N'16000000', NULL, 0, N'16000000', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), CAST(N'2018-06-29 06:00:10.533' AS DateTime))
+
+INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Common_ScannerAppCode', N'String', N'AUT', NULL, 0, N'AUT', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+	
+INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Core_EndPageTemplatePath', N'String', N'BarcodedEndPageTemplate.pdf', NULL, 0, N'BarcodedEndPageTemplate.pdf', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())

@@ -28,13 +28,13 @@ namespace AM.Services
     {
         public List<PullBackViewModel> GetMailPieceData(List<string> mpIds)
         {
-            string qry = string.Format("SELECT AMMP.MailBatchId,AMMP.[UniqueId] as MailPieceUniqueId,PB.PrintBatch,AMMB.PipelineStatus AS AMBatchPipelineStatus,PB.PipelineStatus AS PnSBatchPipelineStatus,AMMP.ShippingStatus AS AMMailPieceStatus,PM.MailPieceStatus AS PnSMailPieceStatus,AMMP.ErrorDesc AS AMErrorDescription,PM.ErrDesc AS PnSErrorDescription,PLBT.PCIBatchPrepEnd,AMMP.IsPullBackRequested,AMMP.PullBackRequestedOn,AMMP.IsPulledBack,AMMP.PulledBackOn,PU.UserName FROM AM.MailPieces AMMP  LEFT OUTER JOIN PnS.MRDFRequest PM ON AMMP.[UniqueId] = PM.UniqueId  INNER JOIN AM.MailBatches AMMB ON AMMB.Id = AMMP.MailBatchId LEFT OUTER JOIN PnS.BatchSummary PB ON PB.PrintBatch = PM.JobId LEFT OUTER JOIN PnS.LogBatchTimeLine PLBT ON PLBT.BatchId = PB.PrintBatch LEFT OUTER JOIN [Profile].Users PU ON PU.Id = AMMP.PulledBackRequestedBy  WHERE AMMP.[UniqueId] IN @mailPieceIds");
+            string qry = string.Format("SELECT AMMP.MailBatchId,AMMP.[UniqueId] as MailPieceUniqueId,PB.PrintBatch,AMMB.PipelineStatus AS AMBatchPipelineStatus,PB.PipelineStatus AS PnSBatchPipelineStatus,AMMP.ShippingStatus AS AMMailPieceStatus,PM.MailPieceStatus AS PnSMailPieceStatus,AMMP.PrintLocation,AMMP.ErrorDesc AS AMErrorDescription,PM.ErrDesc AS PnSErrorDescription,PLBT.PCIBatchPrepEnd,AMMP.IsPullBackRequested,AMMP.PullBackRequestedOn,AMMP.IsPulledBack,AMMP.PulledBackOn,PU.UserName FROM AM.MailPieces AMMP  LEFT OUTER JOIN PnS.MRDFRequest PM ON AMMP.[UniqueId] = PM.UniqueId  INNER JOIN AM.MailBatches AMMB ON AMMB.Id = AMMP.MailBatchId LEFT OUTER JOIN PnS.BatchSummary PB ON PB.PrintBatch = PM.JobId LEFT OUTER JOIN PnS.LogBatchTimeLine PLBT ON PLBT.BatchId = PB.PrintBatch LEFT OUTER JOIN [Profile].Users PU ON PU.Id = AMMP.PulledBackRequestedBy  WHERE AMMP.[UniqueId] IN @mailPieceIds");
             var data = db.Query<PullBackViewModel>(qry, new { mailPieceIds = mpIds }).ToList();
             return data;
         }
         public List<PullBackRequestForm> GetPullBackData(List<string> mpIds)
         {
-            string qry = string.Format(";WITH batchSummary AS (SELECT PrintFileName,SubmittedOn,ClientId,PrintBatch,DocTypeId  FROM PnS.BatchSummary),docTypes AS (SELECT Id,DocTypeCode FROM AM.DocTypes WHERE IsActive = 1),mrdfReq AS(SELECT JobId,PieceId,[UniqueId] FROM PnS.MRDFRequest),Client AS(SELECT Id,Name FROM Common.Clients),RESULT AS(SELECT PBS.PrintFileName,PBS.SubmittedOn,PMR.JobId,PMR.PieceId,CC.Name,AD.DocTypeCode FROM batchSummary PBS	INNER JOIN AM.DocTypes AD ON AD.Id = PBS.DocTypeId	INNER JOIN mrdfReq PMR ON PBS.PrintBatch = PMR.JobId INNER JOIN Client CC ON PBS.ClientId = CC.Id WHERE PMR.[UniqueId] IN @mailPieceIds)(SELECT PrintFileName,SubmittedOn,JobId AS PrintBatch,PieceId = STUFF((SELECT DISTINCT ','+ CAST(pRES.PieceId AS VARCHAR(255)) FROM RESULT pRES WHERE pRES.JobId = RES.JobId FOR XML PATH('')),1,1,''),Name,DocTypeCode FROM RESULT RES GROUP BY RES.JobId,PrintFileName,SubmittedOn,Name,DocTypeCode)");
+            string qry = string.Format(";WITH batchSummary AS (SELECT PrintFileName,SubmittedOn,ClientId,PrintBatch,PrintLocation,DocTypeId  FROM PnS.BatchSummary),docTypes AS (SELECT Id,DocTypeCode FROM AM.DocTypes WHERE IsActive = 1),mrdfReq AS(SELECT JobId,PieceId,[UniqueId] FROM PnS.MRDFRequest),Client AS(SELECT Id,Name FROM Common.Clients),RESULT AS(SELECT PBS.PrintFileName,PBS.SubmittedOn,PMR.JobId,PMR.PieceId,CC.Name,PBS.PrintLocation,AD.DocTypeCode FROM batchSummary PBS	INNER JOIN AM.DocTypes AD ON AD.Id = PBS.DocTypeId	INNER JOIN mrdfReq PMR ON PBS.PrintBatch = PMR.JobId INNER JOIN Client CC ON PBS.ClientId = CC.Id WHERE PMR.[UniqueId] IN @mailPieceIds)(SELECT PrintFileName,SubmittedOn,JobId AS PrintBatch,PieceId = STUFF((SELECT DISTINCT ','+ CAST(pRES.PieceId AS VARCHAR(255)) FROM RESULT pRES WHERE pRES.JobId = RES.JobId FOR XML PATH('')),1,1,''),Name,PrintLocation,DocTypeCode FROM RESULT RES GROUP BY RES.JobId,PrintFileName,SubmittedOn,Name,PrintLocation,DocTypeCode)");
 
             var data = db.Query<PullBackRequestForm>(qry, new { mailPieceIds = mpIds }).ToList();
             return data;
@@ -127,7 +127,11 @@ namespace AM.Services
                     //string outputPdfPath = Path.Combine(Config.API_PB_OutputDir, string.Format("{0}_{1}.pdf", item.PrintBatch.ToString(), DateTime.Now.ToString("ddMMyyyyhhmmss")));
                     //Helper.MailMerge(Config.API_PB_PullBackFormTemplatePath, dataForPullBackForm, outputPdfPath);
                     Helper.MailMerge(System.Web.Hosting.HostingEnvironment.MapPath(Config.Web_API_PB_PullBackFormTemplatePath), dataForPullBackForm, ref output);
-                    bool isEmailSent = SendEmailWithPullBackForm(output, attachmentPdfName);
+
+                    if (item.PrintLocation == Config.Common_PrintLocationPCI)
+                    {
+                        bool isEmailSent = SendEmailWithPullBackForm(output, attachmentPdfName); 
+                    }
 
                 }
             }

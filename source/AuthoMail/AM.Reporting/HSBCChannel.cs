@@ -26,18 +26,13 @@ namespace AM.Reporting
                     Client client = clientSvc.GetClientByAppCode("HSBC");
 
                     string clientReportFolderPath = Path.Combine(Config.Common_AuthoMailRootFolder, client.AppCode);
-                    clientReportFolderPath.CreateDirectoryIfNotExist();
-
-                    string channelCode = client.AppCode + "_" + Config.Common_Environment;
-
-                    SFTChannel sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelCode(channelCode);
 
                     Deliverable deliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Consolidated);
 
                     if (deliverable != null)
                     {
-                        var startDate = DateTime.UtcNow.AddDays(-1).Date;
-                        var endDate = startDate.AddDays(1).Date;
+                        var startDate = DateTime.UtcNow.AddDays(-1).Date.EstToUtc();
+                        var endDate = startDate.AddDays(1).Date.EstToUtc();
 
                         var consolidatedReportData = hsbcSvc.ConsolidatedReport(client.Id, startDate, endDate);
 
@@ -78,7 +73,7 @@ namespace AM.Reporting
 
                             if (deliverable.EmailChannel != null)
                             {
-                                SendConsolidatedNotificationEmail(consolidateReportPath, client.TimeZone, deliverable);
+                                SendConsolidatedNotificationEmail(consolidateReportPath, client.TimeZone, deliverable,startDate);
                             }
                         }
                         catch (Exception ex)
@@ -94,7 +89,7 @@ namespace AM.Reporting
             }
         }
 
-        private static bool SendConsolidatedNotificationEmail(string consolidateReportPath, string clientTimeZone, Deliverable deliverable)
+        private static bool SendConsolidatedNotificationEmail(string consolidateReportPath, string clientTimeZone, Deliverable deliverable, DateTime startDate)
         {
             bool isEmailSent = false;
 
@@ -109,8 +104,8 @@ namespace AM.Reporting
                         msg.CC.Add(deliverable.EmailChannel.Cc);
                         msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, "HSBC", deliverable.EmailChannel.Subject); ;
                         msg.Priority = MailPriority.Normal;
-                        msg.Body = deliverable.EmailChannel.BodyTemplate;
-
+                        //msg.Body = deliverable.EmailChannel.BodyTemplate;
+                        msg.Body = "Consolidated Reports of {0} batches".Fill(startDate.Date.ToString("MM/dd/yyyy"));
                         if (File.Exists(consolidateReportPath))
                             msg.Attachments.Add(new Attachment(consolidateReportPath));
 

@@ -145,6 +145,7 @@ namespace AM.Services
         public bool IsQCRequested { get; set; }
         public bool IsQCPerformed { get; set; }
         public int? DocTypeId { get; set; }
+        public string PrintLocation { get; set; }
         public MailBatches MailBatches { get; set; }
         public Clients Clients { get; set; }
         public DocTypes DocTypes { get; set; }
@@ -211,7 +212,6 @@ namespace AM.Services
         public string RetRcptAddressCity { get; set; }
         public string RetRcptAddressState { get; set; }
         public string RetRcptAddressZIP { get; set; }
-        public string PrintLocation { get; set; }
         public SFTChannels SFTChannels { get; set; }
         public Clients Clients { get; set; }
     }
@@ -240,8 +240,6 @@ namespace AM.Services
         public decimal ContentScalePercent { get; set; }
         public string PrintFormat { get; set; }
         public decimal QCPercent { get; set; }
-        public int? SLADays { get; set; }
-        public TimeSpan SLACutOffTime { get; set; }
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
         public string ShippingAccountCode { get; set; }
@@ -272,6 +270,16 @@ namespace AM.Services
         public string ModifiedBy { get; set; }
         public string CreatedBy { get; set; }
         public Clients Client { get; set; }
+        public string BizdayCutOff { get; set; }
+        public string BizdaySLAType { get; set; }
+        public string BizdayTimeSpan { get; set; }
+        public string SatCutOff { get; set; }
+        public string SatSLAType { get; set; }
+        public string SatTimeSpan { get; set; }
+        public string SunCutOff { get; set; }
+        public string SunSLAType { get; set; }
+        public string SunTimeSpan { get; set; }
+
     }
     public class SFTChannels
     {
