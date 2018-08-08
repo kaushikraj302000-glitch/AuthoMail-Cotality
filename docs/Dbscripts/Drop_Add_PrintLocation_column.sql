@@ -10,7 +10,7 @@ GO
 CREATE NONCLUSTERED INDEX IX_BatchSummary_PrintLocation ON [PnS].[BatchSummary] (PrintLocation)
 GO
 
-UPDATE [AM].[MailPieces] SET PrintLocation='Fort Mill, SC' WHERE ShippingStatus IN ('Shipped','PulledBack')
+UPDATE [AM].[MailPieces] SET PrintLocation='Fort Mill, SC' WHERE ShippingStatus IN ('InProgress','Shipped','PulledBack')
 GO
 
 UPDATE [PnS].[BatchSummary] SET PrintLocation='Fort Mill, SC' WHERE ValidationStatus IN ('Valid','PartiallyValid')
