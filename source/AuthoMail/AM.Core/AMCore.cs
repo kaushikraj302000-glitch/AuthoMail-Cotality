@@ -78,6 +78,8 @@ namespace AM.Core
                                 string fromAddress = string.Empty;
                                 if (mailPiece.IsReturnInfoSpecified)
                                 {
+                                    if (!string.IsNullOrEmpty(mailPiece.RetRcptOrganization))
+                                        fromAddress += mailPiece.RetRcptOrganization + "\n";
                                     if (!string.IsNullOrEmpty(mailPiece.RetRcptAddrOptionalLine1AboveStreet))
                                         fromAddress += mailPiece.RetRcptAddrOptionalLine1AboveStreet + "\n";
                                     if (!string.IsNullOrEmpty(mailPiece.RetRcptAddrOptionalLine2AboveStreet))
