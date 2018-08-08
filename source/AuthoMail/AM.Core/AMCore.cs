@@ -1038,6 +1038,7 @@ namespace AM.Core
                     }
                     break;
                 case "HSBC":
+                case "AMTEST":
                     using (IHSBCService hsbcSvc = new HSBCService())
                     {
                         StringBuilder deliveryReport = hsbcSvc.HSBCDeliveryReport(mailBatchData, mbi.Client.TimeZone, deliverable.Delimeter);

@@ -37,7 +37,8 @@ namespace AM.Console
             : base(channelCode)
         {
             hsbcSvc = GetService<HSBCService>();
-            client = clientSvc.GetClientByAppCode("HSBC");
+            string appCode = channelCode.Split('_')[0];
+            client = clientSvc.GetClientByAppCode(appCode);
             this.channelType = channelType;
         }
 
@@ -254,6 +255,7 @@ namespace AM.Console
 
                         mailPieceDTO.IsReturnInfoSpecified = false;
 
+
                         if (node.StatusID != null)
                         {
                             mailPieceCustomInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "StatusID", DataType = DataType.String, Value = node.StatusID };
@@ -317,6 +319,16 @@ namespace AM.Console
                                 }
                                 else
                                 {
+                                    //If we don't have any return address at mail piece or batch level  then it should be in Doc Type level and we are storing that value in mail piece from it.
+                                    if (docType.IsReturnInfoSpecified)
+                                    {
+                                        mailPieceDTO.RetRcptAddrOptionalLine1AboveStreet = docType.RetRcptAddrOptionalLine1AboveStreet;
+                                        mailPieceDTO.RetRcptAddressStreet = docType.RetRcptAddressStreet;
+                                        mailPieceDTO.RetRcptAddressCity = docType.RetRcptAddressCity;
+                                        mailPieceDTO.RetRcptAddressState = docType.RetRcptAddressState;
+                                        mailPieceDTO.RetRcptAddressZIP = docType.RetRcptAddressZIP;
+                                    }
+
                                     //Here we are setting print location because mailpiece will have doc types after some validations and based on that we can check that what is the shipping method for this mail piece and based on that we can set what is the location to set for printing
 
                                     if ((mailBatch.DownloadedOn.Value.UtcToEst().TimeOfDay >= Config.Monitor_InternalPrintAndShipStartTime && mailBatch.DownloadedOn.Value.UtcToEst().TimeOfDay < Config.Monitor_InternalPrintAndShipEndTime) && Config.Monitor_InternalPrintShippingMethods.Contains(docType.ShippingCarrier))

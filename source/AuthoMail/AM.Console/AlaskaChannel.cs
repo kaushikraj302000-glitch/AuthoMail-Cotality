@@ -37,7 +37,8 @@ namespace AM.Console
             : base(channelCode)
         {
             alaskaSvc = GetService<AlaskaService>();
-            client = clientSvc.GetClientByAppCode("ALASKA");
+            string appCode = channelCode.Split('_')[0];
+            client = clientSvc.GetClientByAppCode(appCode);
             this.channelType = channelType;
         }
 

@@ -216,7 +216,7 @@ namespace AM.Core
             request.RequestedShipment.Shipper = new Party(); // Sender information
             request.RequestedShipment.Shipper.Contact = new Contact();
             request.RequestedShipment.Shipper.Contact.PersonName = string.Format("{0} {1}", mailPiece.RetRcptFirstName, mailPiece.RetRcptLastName);
-            //request.RequestedShipment.Shipper.Contact.CompanyName = loan.SenderCompanyName;
+            request.RequestedShipment.Shipper.Contact.CompanyName = mailPiece.RetRcptOrganization;
             request.RequestedShipment.Shipper.Contact.PhoneNumber = string.IsNullOrEmpty(mailPiece.RcptPhone) ? "0000000000" : mailPiece.RcptPhone;
             request.RequestedShipment.Shipper.Address = new ShipWebServiceRef.Address();
             request.RequestedShipment.Shipper.Address.StreetLines = new string[] { mailPiece.RetRcptAddressStreet, mailPiece.RetRcptAddressAptOrSuiteOrOther };

@@ -72,6 +72,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Schema.cs" />
+    <Compile Include="TestHSBCChannel.cs" />
     <Compile Include="Utilities\Common.cs" />
     <Compile Include="Utilities\MailUtility.cs" />
     <Compile Include="Utilities\PdfUtil.cs" />

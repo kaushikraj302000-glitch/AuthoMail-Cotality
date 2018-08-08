@@ -26,6 +26,9 @@ namespace AM.Console
                 case "ALASKA":
                     return new AlaskaChannel(channelCode, channelType);
 
+                case "AMTEST":
+                    return new TestHSBCChannel(channelCode, channelType);
+
                 case "HSBC":
                     return new HSBCChannel(channelCode, channelType);
 
