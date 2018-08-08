@@ -304,37 +304,37 @@ namespace AM.Services
 
             if (docTypes.Id == 0)
             {
-                string query = "INSERT INTO [AM].[DocTypes] ([DocTypeCode] ,[Description] ,[ClientId] ,[PrintSize] ,[ContentScalePercent] ,[PrintFormat] ,[QCPercent] ,[SLADays] ,[SLACutOffTime] ,[ShippingCarrier] ,[ShippingServiceType] ,[ShippingAccountCode] ,[IsReturnInfoSpecified] ,[RetRcptPrefix] ,[RetRcptFirstName] ,[RetRcptMiddleName] ,[RetRcptLastName] ,[RetRcptSuffix] ,[RetRcptPhone] ,[RetRcptOrganization] ,[RetRcptAddrOptionalLine1AboveStreet] ,[RetRcptAddrOptionalLine2AboveStreet] ,[RetRcptAddressStreet] ,[RetRcptAddressAptOrSuiteOrOther] ,[RetRcptAddrOptionalLine1BelowStreet] ,[RetRcptAddrOptionalLine2BelowStreet] ,[RetRcptAddressCity] ,[RetRcptAddressState] ,[RetRcptAddressZIP] ,[ClientEmails] ,[ClientContactNo] ,[SupportEmails] ,[SupportContactNo] ,[IsActive] ,[ModifiedOn] ,[CreatedOn] ,[CreatedBy] ,[ModifiedBy]) VALUES (@docTypeCode,@description,@clientId,@printSize,@contentScalePercent,@printFormat,@qCPercent,@shippingCarrier,@shippingServiceType,@shippingAccountCode,@isReturnInfoSpecified,@retRcptPrefix,@retRcptFirstName,@retRcptMiddleName,@retRcptLastName,@retRcptSuffix,@retRcptPhone,@retRcptOrganization,@retRcptAddrOptionalLine1AboveStreet,@retRcptAddrOptionalLine2AboveStreet,@retRcptAddressStreet,@retRcptAddressAptOrSuiteOrOther,@retRcptAddrOptionalLine1BelowStreet,@retRcptAddrOptionalLine2BelowStreet,@retRcptAddressCity,@retRcptAddressState,@retRcptAddressZIP,@clientEmails,@clientContactNo,@supportEmails,@supportContactNo,@isActive,@modifiedOn,@createdOn,@createdBy,@modifiedBy,@bizdayCutOff,@bizdaySLAType,@bizdayTimeSpan,@satCutOff,@satSLAType,@satTimeSpan,@sunCutOff,@sunSLAType,@sunTimeSpan)";
+                string query = "INSERT INTO [AM].[DocTypes] ([DocTypeCode],[Description],[ClientId],[PrintSize],[ContentScalePercent],[PrintFormat],[QCPercent],[ShippingCarrier],[ShippingServiceType],[ShippingAccountCode],[IsReturnInfoSpecified],[RetRcptPrefix],[RetRcptFirstName],[RetRcptMiddleName],[RetRcptLastName],[RetRcptSuffix],[RetRcptPhone],[RetRcptOrganization],[RetRcptAddrOptionalLine1AboveStreet],[RetRcptAddrOptionalLine2AboveStreet],[RetRcptAddressStreet],[RetRcptAddressAptOrSuiteOrOther],[RetRcptAddrOptionalLine1BelowStreet],[RetRcptAddrOptionalLine2BelowStreet],[RetRcptAddressCity],[RetRcptAddressState],[RetRcptAddressZIP],[ClientEmails],[ClientContactNo],[SupportEmails],[SupportContactNo],[IsActive],[ModifiedOn],[CreatedOn],[CreatedBy],[ModifiedBy],[BizdayCutOff],[BizdaySLAType],[BizdayTimeSpan],[SatCutOff],[SatSLAType],[SatTimeSpan],[SunCutOff],[SunSLAType],[SunTimeSpan]) VALUES (@docTypeCode,@description,@clientId,@printSize,@contentScalePercent,@printFormat,@qCPercent,@shippingCarrier,@shippingServiceType,@shippingAccountCode,@isReturnInfoSpecified,@retRcptPrefix,@retRcptFirstName,@retRcptMiddleName,@retRcptLastName,@retRcptSuffix,@retRcptPhone,@retRcptOrganization,@retRcptAddrOptionalLine1AboveStreet,@retRcptAddrOptionalLine2AboveStreet,@retRcptAddressStreet,@retRcptAddressAptOrSuiteOrOther,@retRcptAddrOptionalLine1BelowStreet,@retRcptAddrOptionalLine2BelowStreet,@retRcptAddressCity,@retRcptAddressState,@retRcptAddressZIP,@clientEmails,@clientContactNo,@supportEmails,@supportContactNo,@isActive,@modifiedOn,@createdOn,@createdBy,@modifiedBy,@bizdayCutOff,@bizdaySLAType,@bizdayTimeSpan,@satCutOff,@satSLAType,@satTimeSpan,@sunCutOff,@sunSLAType,@sunTimeSpan)";
                 docTypes.CreatedOn = DateTime.UtcNow;
                 docTypes.CreatedBy = userId;
                 docTypes.ModifiedOn = DateTime.UtcNow;
                 docTypes.IsActive = false;
                 docTypes.ModifiedBy = userId;
 
-                if (docTypes.ShippingServiceType.Equals(ShippingServiceType.USPS.ToString(), StringComparison.CurrentCultureIgnoreCase))
-                {
-                    db.Open();
-                    using (var t = db.BeginTransaction())
-                    {
-                        try
-                        {
-                            int dId = db.ExecuteScalar<int>(query, docTypes, transaction: t);
-                            string q = "INSERT INTO [AM].[DocTypeCoverLetters] ([DocTypeId],[SeqId],[CoverLetterTemplatePath]) VALUES (@docTypeId,@seqId,@coverLetterTemplatePath)";
-                            db.Execute(q, new { docTypeId = dId, seqId = 1, coverLetterTemplatePath = "" }, transaction: t);
-                            t.Commit();
-                            GetKeyValue(true, "DocType saved successfully.");
-                        }
-                        catch (Exception ex)
-                        {
-                            t.Rollback();
-                            return GetKeyValue(false, ex.Message);
-                        }
-                    }
-                }
-                else
-                {
+                //if (docTypes.ShippingServiceType.Equals(ShippingServiceType.USPS.ToString(), StringComparison.CurrentCultureIgnoreCase))
+                //{
+                //    db.Open();
+                //    using (var t = db.BeginTransaction())
+                //    {
+                //        try
+                //        {
+                //            int dId = db.ExecuteScalar<int>(query, docTypes, transaction: t);
+                //            string q = "INSERT INTO [AM].[DocTypeCoverLetters] ([DocTypeId],[SeqId],[CoverLetterTemplatePath]) VALUES (@docTypeId,@seqId,@coverLetterTemplatePath)";
+                //            db.Execute(q, new { docTypeId = dId, seqId = 1, coverLetterTemplatePath = "" }, transaction: t);
+                //            t.Commit();
+                //            GetKeyValue(true, "DocType saved successfully.");
+                //        }
+                //        catch (Exception ex)
+                //        {
+                //            t.Rollback();
+                //            return GetKeyValue(false, ex.Message);
+                //        }
+                //    }
+                //}
+                //else
+                //{
 
-                }
+                //}
 
                 int rows = db.Execute(query, docTypes);
                 return rows > 0 ? GetKeyValue(true, "DocType saved successfully.") : GetKeyValue(false, "Invalid action performed.");
