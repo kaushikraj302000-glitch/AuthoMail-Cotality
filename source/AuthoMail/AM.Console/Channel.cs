@@ -222,7 +222,7 @@ namespace AM.Console
                     MailUtility.SendProductionNotificationEmail(mbi, mailBatchData, reportToMail, emailChannel);
                     break;
                 case "HSBC":
-
+                case "AMTEST":
                     var reportToMailHSBC = new List<string>();
                     //TODO: handle multiple channel code implementation
                     var emailChannelHSBC = deliverables.SingleOrDefault(x => x.ReportType == ReportTypes.Delivery).EmailChannel;
