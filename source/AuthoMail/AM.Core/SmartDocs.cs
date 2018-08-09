@@ -104,7 +104,7 @@ namespace AM.Core
 
         public string GenerateUSPSCoverLetter(string appCode, string coverTemplatePDFPath, string outputDir, Dictionary<string, string> mailPieceData)
         {
-            TrackingCode = string.Empty;
+            TrackingCode = null;
             ExceptionDetail = string.Empty;
 
             string coverLetterPDFPath = Path.Combine(outputDir, string.Format("CoverLetter_{0}.pdf", mailPieceData["MailPieceId"]));
