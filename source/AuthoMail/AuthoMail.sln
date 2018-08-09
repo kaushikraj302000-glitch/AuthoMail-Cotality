@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AM.Monitor", "AM.Monitor\AM
 		{A60D6E77-74FC-419C-BF13-A7684012D0A5} = {A60D6E77-74FC-419C-BF13-A7684012D0A5}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AM.Scanner", "AM.Scanner\AM.Scanner.csproj", "{1113C7AA-06D1-47C3-A761-F93E9A48AC05}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -61,6 +63,10 @@ Global
 		{E475E6E1-1E7F-4E0E-8590-832D9119E14A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E475E6E1-1E7F-4E0E-8590-832D9119E14A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E475E6E1-1E7F-4E0E-8590-832D9119E14A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1113C7AA-06D1-47C3-A761-F93E9A48AC05}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1113C7AA-06D1-47C3-A761-F93E9A48AC05}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1113C7AA-06D1-47C3-A761-F93E9A48AC05}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1113C7AA-06D1-47C3-A761-F93E9A48AC05}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
