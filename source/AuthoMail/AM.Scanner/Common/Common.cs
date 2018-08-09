@@ -1,0 +1,56 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Linq;
+using System.Web;
+
+namespace AM.Scanner.Common
+{
+    public static class Common
+    {
+
+
+        static Common()
+        {
+            SP_GetScanStats = ConfigurationManager.AppSettings["GetScanStats"].Trim();
+            SP_RegisterScan = ConfigurationManager.AppSettings["RegisterScan"].Trim();
+            SP_GetScanReportData = ConfigurationManager.AppSettings["GetScanReportData"].Trim();
+            SP_GetRecentBatchesStats = ConfigurationManager.AppSettings["GetRecentBatchesStats"].Trim();
+            SP_GetPendingScanning = ConfigurationManager.AppSettings["GetPendingScanning"].Trim();
+            Environment = ConfigurationManager.AppSettings["Environment"].Trim();
+
+        }
+        public static string Environment { get; set; }
+
+        public static string SP_GetScanStats { get; set; }
+
+        public static string SP_RegisterScan { get; set; }
+
+        public static string SP_GetScanReportData { get; set; }
+        public static string SP_GetRecentBatchesStats { get; set; }
+        public static string SP_GetPendingScanning { get; set; }
+
+        public static DateTime ClientTimeZoneToUtc(this DateTime dt, string clientTimeZone)
+        {
+            dt = DateTime.SpecifyKind(dt, DateTimeKind.Unspecified);
+            return TimeZoneInfo.ConvertTime(dt, TimeZoneInfo.FindSystemTimeZoneById(clientTimeZone), TimeZoneInfo.FindSystemTimeZoneById("UTC"));
+        }
+        public static DateTime UtcToClientTimeZone(this DateTime dt, string clientTimeZone)
+        {
+            dt = DateTime.SpecifyKind(dt, DateTimeKind.Unspecified);
+            return TimeZoneInfo.ConvertTime(dt, TimeZoneInfo.FindSystemTimeZoneById("UTC"), TimeZoneInfo.FindSystemTimeZoneById(clientTimeZone));
+        }
+
+        public static DateTime UtcToEst(this DateTime dt)
+        {
+            return dt.UtcToClientTimeZone("Eastern Standard Time");
+        }
+
+        public static DateTime EstToUtc(this DateTime dt)
+        {
+            return dt.ClientTimeZoneToUtc("Eastern Standard Time");
+        }
+
+
+    }
+}

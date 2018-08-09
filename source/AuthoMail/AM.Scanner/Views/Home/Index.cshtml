@@ -1,0 +1,287 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+<style>
+    .clientCode {
+        font-size: 12px;
+    }
+
+    a:hover {
+        color: none;
+    }
+
+    .preclass {
+        padding: 8.5px;
+        display: block;
+        margin: 0 0 10px;
+        font-size: 13px;
+        line-height: 1.428571429;
+        color: #333333;
+        word-break: break-all;
+        word-wrap: break-word;
+        background-color: #f5f5f5;
+        border: 1px solid #cccccc;
+        border-radius: 4px;
+        min-width: 42%;
+        max-height: 43%;
+    }
+
+    .report {
+        border: 1px solid #72af46;
+        color: #72af46;
+    }
+
+        .report:hover {
+            color: #FFF;
+            background: #72af46;
+        }
+
+    .reportLink {
+        padding: 5px;
+    }
+</style>
+<link href="~/Content/module.admin.page.index.min.css" rel="stylesheet" />
+
+<div class="innerAll spacing-x2">
+    <div class="row">
+        @{
+            string[] colorcode = { "primary", "info", "success", "inverse" };
+
+            string[] ClientListWithName = System.Web.Configuration.WebConfigurationManager.AppSettings["ClientList"].Split('|');
+            List<AM.Scanner.Models.ClientDetails> clientdetailsList = new List<AM.Scanner.Models.ClientDetails>();
+            for (int i = 0; i < ClientListWithName.Length; i++)
+            {
+                AM.Scanner.Models.ClientDetails clientdetail = new AM.Scanner.Models.ClientDetails();
+                clientdetail.ClientName = ClientListWithName[i].Split(',')[0].ToString();
+                clientdetail.ClientCode = ClientListWithName[i].Split(',')[1].ToString();
+                clientdetailsList.Add(clientdetail);
+            }
+            string[] clientCodeList = new string[ClientListWithName.Length];
+            int cnt = ClientListWithName.Length;
+            string usecls = "";
+            string color = "";
+            if (cnt == 1)
+            {
+                usecls = "col-md-12";
+            }
+            if (cnt == 2)
+            {
+                usecls = "col-md-6";
+            }
+            if (cnt == 3)
+            {
+                usecls = "col-md-4";
+            }
+            if (cnt > 3)
+            {
+                usecls = "col-md-3";
+            }
+            int cntbox = 0, x = 0, c = 0;
+            bool Iscodestartend = true;
+
+            foreach (var item in clientdetailsList)
+            {
+                clientCodeList[cntbox] = item.ClientCode.Trim();
+                cntbox++;
+
+        <div class="@usecls">
+            <div class="panel-3d">
+
+                <div class="front">
+
+                    <div class="widget text-center">
+                        <div class="widget-body padding-none">
+                            <div>
+                                <a href="/Scan/Index?clientCode=@item.ClientCode">
+                                    <div class="innerAll bg-@colorcode[x]">
+                                        <p id="box@(cntbox)" class="lead text-white strong margin-none">
+                                            @item.ClientName
+                                        </p>
+                                        <p><strong id="@(item.ClientCode.Trim())scanCount" class="text-large text-white">--/--</strong></p>
+                                        <div class="text-center" id="displaycount@(item.ClientCode.Trim())">
+                                        </div>
+                                    </div>
+                                </a>
+                                <div class="reportLink">
+                                    <a href="Reports.aspx?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">View Report</a>
+                                    <a href="/Scan/Index?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">Start Scan</a>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        
+
+                if (c < 3)
+                {
+                    x++;
+                    c++;
+                }
+                else
+                {
+                    if (c == 3)
+                    {
+                        x = 3;
+                        c++;
+                    }
+                    else
+                    {
+                        x--;
+                    }
+                    if (x == 0)
+                    {
+                        c = 0;
+                    }
+                }
+
+
+
+            }
+
+        <input type="hidden" name="ClientCodeList" id="ClientCodeList" value="@string.Join(" ,",clientCodeList)" />
+
+        <div class="clearfix"></div>
+                <!-- // Sidebar menu & content wrapper END -->
+                <!-- // Main Container Fluid END -->
+        }
+    </div>
+</div>
+<!-- Global -->
+<script src="~/Scripts/jquery-1.10.2.js"></script>
+<script src="~/Scripts/modernizr.js"></script>
+<script src="~/Scripts/animations.init.js"></script>
+<script src="~/Scripts/moment.js"></script>
+<script>
+    var basePath = '',
+        commonPath = '../assets/',
+        rootPath = '../',
+        DEV = false,
+        componentsPath = '../assets/components/';
+
+    var primaryColor = '#cb4040',
+        dangerColor = '#b55151',
+        infoColor = '#466baf',
+        successColor = '#8baf46',
+        warningColor = '#ab7a4b',
+        inverseColor = '#45484d';
+
+    var themerPrimaryColor = primaryColor;
+    function getScanCount(clientCode) {
+        $.ajax({
+            type: "POST",
+            url: '/Home/GetScanCount',
+            data: { clientCode: clientCode.trim() },
+            async: false,
+            success: function (response) {
+                console.log(clientCode + " " + response.ScanCount + "/" + response.TotalCount);
+                //var totalcount = response.split('$');
+                $("#" + clientCode + "scanCount").empty();
+                $("#" + clientCode + "scanCount").append(response.ScanCount + "/" + response.TotalCount);
+
+            },
+            error: function (response) {
+
+            }
+        });
+        /*  End Ajax  */
+    }
+
+    function GetAllBatchForScan(clientCode,i) {
+
+        $.ajax({
+            type: "POST",
+            url: '/Home/GetAllBatchForScan',
+            dataType: 'json',
+            async: false,
+            data: { clientCode: clientCode.trim() },
+            success: function (data) {
+                // alert(JSON.stringify(data[0].ReceivedOn) + JSON.stringify(data[0].TotalLoans));
+                //debugger;
+                console.log(data);
+                $("#displaycount" + clientCode).empty();
+
+                for (var j = 0; j < data.length; j++) {
+                    // alert(JSON.stringify(data[j].ReceivedOn) + " " + JSON.stringify(data[j].ScannedLoans) + " " + JSON.stringify(data[j].TotalLoans));
+                    // alert(clientCode);
+                    var localTime = moment.utc(data[j].ReceivedOn).toDate();
+                    var localDate = moment.utc(data[j].ReceivedOn).toDate();
+                    localTime = moment(localTime).format('DD-MM hh:mm A');
+                    if (moment(localDate).format('DD-MM-yyyy') == moment().format('DD-MM-yyyy')) {
+                        localTime = moment(localDate).format('hh:mm A');
+                        // alert(localTime+"localtime");
+                    }
+                    console.log()
+                    // alert(localTime);
+                    if (j % 2 == 0) {
+
+                        $("#displaycount" + clientCode).append("<pre class='pull-left preclass'><strong  id='dispaly" + clientCode + i + "' class='text-larger'>" + localTime + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre>");
+
+
+                    }
+                    else {
+                        $("#displaycount" + clientCode).append("<pre class='pull-right preclass'><strong id='dispaly" + clientCode + i + "' class='text-larger'>" + localTime + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre>");
+
+
+                    }
+                }
+
+                $("#displaycount" + clientCode).append("<div class='clearfix'></div>");
+
+            },
+            error: function (data) {
+                // alert(data);
+            }
+        });
+    }
+
+
+    $(document).ready(function () {
+        var clientCodeList = $("#ClientCodeList").val().split(',');
+        var clientCode = "";
+        for (var i = 0; i < clientCodeList.length; i++) {
+            clientCode = clientCodeList[i];
+            //alert(clientCode);
+            getScanCount(clientCodeList[i].trim());
+            GetAllBatchForScan(clientCodeList[i],i);
+            /*  End Ajax  */
+        }
+        /*  Updating Batch Count on every 12 Second using Ajax */
+        window.setInterval(function () {
+            for (var i = 0; i < clientCodeList.length; i++) {
+                clientCode = clientCodeList[i];
+                //alert(clientCode);
+                getScanCount(clientCode);
+                GetAllBatchForScan(clientCodeList[i],i);
+                /*  End Ajax  */
+            }
+        }, 12000);
+
+
+
+        //getScanCount('AMC');
+        //getScanCount('HTL');
+        var boxCount = $('.front .lead').length;
+        for (var i = 1; i <= boxCount; i++) {
+            var clientText = $('#box' + i).text().trim();
+
+            if (clientText.length < 10 && clientText.length > 0) {
+
+                $('#box' + i).css('font-size', '50px');
+            }
+            else {
+                var fontSize = parseInt((50 / clientText.length) * 10);
+                //alert(fontSize+"font");
+                //alert(clientText.length);
+                $('#box' + i).css('font-size', fontSize + 'px');
+            }
+        }
+
+    });
+
+</script>
+

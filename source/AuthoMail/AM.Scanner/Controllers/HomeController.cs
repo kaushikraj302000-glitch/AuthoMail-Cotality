@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AM.Scanner.Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -6,11 +7,25 @@ using System.Web.Mvc;
 
 namespace AM.Scanner.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
         public ActionResult Index()
         {
             return View();
+        }
+
+        [HttpPost]
+        public ActionResult GetAllBatchForScan(string clientCode)
+        {
+            var model = DBHelper.GetRecentBatchesStats(clientCode.Trim());
+            return Json(model, JsonRequestBehavior.AllowGet);
+        }
+        [HttpPost]
+        public ActionResult GetScanCount(string clientCode)
+        {
+            var model = DBHelper.GetScanStats(clientCode.Trim());
+            return Json(model, JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult About()
