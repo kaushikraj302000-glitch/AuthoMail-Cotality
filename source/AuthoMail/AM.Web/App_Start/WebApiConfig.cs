@@ -14,10 +14,10 @@ namespace AM.Web
         public static void Register(HttpConfiguration config)
         {
             // Web API configuration and services
-            //config.SuppressDefaultHostAuthentication();
-            //config.Filters.Add(new HostAuthenticationFilter(OAuthDefaults.AuthenticationType));
+            config.SuppressDefaultHostAuthentication();
+            config.Filters.Add(new HostAuthenticationFilter(OAuthDefaults.AuthenticationType));
             config.Formatters.JsonFormatter.SupportedMediaTypes
-    .Add(new MediaTypeHeaderValue("text/html"));
+    .Add(new MediaTypeHeaderValue("application/json"));
             // Web API routes
             config.MapHttpAttributeRoutes();
 

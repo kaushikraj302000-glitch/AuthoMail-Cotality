@@ -41,7 +41,6 @@ namespace AM.Scanner.Controllers
         {
             if (ModelState.IsValid)
             {
-
                 string environment = ConfigurationManager.AppSettings["Environment"];
                 if (!String.IsNullOrWhiteSpace(environment) && environment.Equals("UAT", StringComparison.CurrentCultureIgnoreCase))
                 {

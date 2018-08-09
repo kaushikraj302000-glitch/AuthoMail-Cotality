@@ -10,7 +10,7 @@ using AM.Web.Models;
 using AM.Lib;
 namespace AM.Web.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager + "," + AMRoles.PnSOperator)]//Todo: For Role "API"
     [RoutePrefix("api/chart")]
     public class ChartApiController : ApiController
     {
@@ -19,7 +19,7 @@ namespace AM.Web.Controllers
         {
             this.chartDataSvc = chartDataSvc;
         }
-       
+
         [Route("GetWeeklyChartData")]
         [HttpGet]
         public object GetWeeklyChartData()

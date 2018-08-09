@@ -15,7 +15,7 @@ using System.Threading;
 
 namespace AM.Web.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager + "," + AMRoles.PnSOperator + "," + AMRoles.API)]
     [RoutePrefix("api/pullback")]
     public class PullBackApiController : ApiController
     {
@@ -148,6 +148,40 @@ namespace AM.Web.Controllers
             }
 
         }
+        //Test Methods
+        //[AllowAnonymous]
+        [Route("testpostusps")]
+        public string TestPostUSPS([FromBody] cls p)
+        {
+            if (p == null && string.IsNullOrWhiteSpace(p.p)) return "String is Null";
+            return "USPS_Value of P is:" + p.p;
+        }
+        [Route("testpostapi")]
+        public string TestPostAPI([FromBody] cls p)
+        {
+            if (p == null && string.IsNullOrWhiteSpace(p.p)) return "String is Null";
+            return "API_Value of P is:" + p.p;
+        }
+    }
+    //[Authorize(Roles = AMRoles.APIUSPSeVS + "," + AMRoles.API), RoutePrefix("api/pullback")]
+    //public class TestController : ApiController
+    //{
+    //    [Authorize(Roles = AMRoles.APIUSPSeVS), Route("testpostuspstest")]
+    //    public string TestPostUSPS([FromBody] cls p)
+    //    {
+    //        if (p == null && string.IsNullOrWhiteSpace(p.p)) return "String is Null";
+    //        return "TEST_USPS_Value of P is:" + p.p;
+    //    }
+    //    [Authorize(Roles = AMRoles.API), Route("testpostapitest")]
+    //    public string TestPostAPI([FromBody] cls p)
+    //    {
+    //        if (p == null && string.IsNullOrWhiteSpace(p.p)) return "String is Null";
+    //        return "TEST_API_Value of P is:" + p.p;
+    //    }
+    //}
 
+    public class cls
+    {
+        public string p { get; set; }
     }
 }

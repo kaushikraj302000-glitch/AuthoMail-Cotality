@@ -11,7 +11,7 @@ using AutoMapper;
 using AM.Web.Models;
 namespace AM.Web.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager + "," + AMRoles.PnSOperator)]
     public class RequestPullBackController : BaseController
     {
         // GET: PullBackRequest

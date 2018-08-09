@@ -15,7 +15,7 @@ using AutoMapper;
 
 namespace AM.Web.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager + "," + AMRoles.PnSOperator)]
     public class HomeController : BaseController
     {
         IHomeService homeSvc;
