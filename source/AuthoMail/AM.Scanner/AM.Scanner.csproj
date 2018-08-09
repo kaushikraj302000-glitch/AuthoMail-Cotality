@@ -47,6 +47,7 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.DirectoryServices" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
@@ -176,6 +177,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\AccountViewModels.cs" />
+    <Compile Include="Models\CLAuthentication.cs" />
     <Compile Include="Models\ClientDetails.cs" />
     <Compile Include="Models\ScanDetails.cs">
       <SubType>Code</SubType>

@@ -10,18 +10,19 @@ using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using AM.Scanner.Models;
 using System.Web.Security;
+using System.Configuration;
 
 namespace AM.Scanner.Controllers
 {
     [Authorize]
     public class AccountController : BaseController
     {
-      
+
         public AccountController()
         {
         }
 
-        
+
         //
         // GET: /Account/Login
         [AllowAnonymous]
@@ -36,14 +37,43 @@ namespace AM.Scanner.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Login(LoginViewModel model, string returnUrl)
+        public ActionResult Login(LoginViewModel model, string returnUrl)
         {
-            if (model.Username.Equals("Admin",StringComparison.CurrentCultureIgnoreCase) && model.Password=="Admin@123")
+            if (ModelState.IsValid)
             {
+
+                string environment = ConfigurationManager.AppSettings["Environment"];
+                if (!String.IsNullOrWhiteSpace(environment) && environment.Equals("UAT", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if (model.Username.Equals("Admin", StringComparison.CurrentCultureIgnoreCase) && model.Password == "Admin@123")
+                    {
+                        FormsAuthentication.SetAuthCookie("Admin", false);
+                        Session["DisplayName"] = "Admin";
+                        return RedirectToLocal(returnUrl);
+                    }
+                }
+
+                model.Username = model.Username.IndexOf('@') != -1 ? model.Username.Split('@').First() : model.Username;
+                var result = CLAuthentication.LdapLogin(model.Username, model.Password);
+                if (!result.Key)
+                {
+                    ModelState.AddModelError("", result.Value);
+                    return View(model);
+                }
+                var nm = result.Value.Split('|');
+                Session["DisplayName"] = nm[0];
                 FormsAuthentication.SetAuthCookie(model.Username, false);
-                return RedirectToAction("Index", "Home");
+                return RedirectToLocal(returnUrl);
             }
-            return View();           
+            return View(model);
+        }
+        private ActionResult RedirectToLocal(string returnUrl)
+        {
+            if (Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+            return RedirectToAction("Index", "Home");
         }
         [HttpPost]
         public ActionResult LogOff()
@@ -51,6 +81,6 @@ namespace AM.Scanner.Controllers
             FormsAuthentication.SignOut();
             return RedirectToAction("Login", "Account");
         }
-        
+
     }
 }
