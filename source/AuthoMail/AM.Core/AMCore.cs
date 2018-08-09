@@ -207,7 +207,7 @@ namespace AM.Core
                                 #region  Call FedEx web service and get create shipping label
 
                                 //This shiptimestamp date will be used while generating FedEx label. This date can be future date in ShipTimeStamp after cut off time for FedEx
-                                DateTime fedExShipTimeStamp = GetFedExShipTimeStamp(docType, mailBatch.DownloadedOn.Value);
+                                DateTime fedExShipTimeStamp = GetFedExShipTimeStamp(docType, mailBatch.ReceivedOn.Value);
 
                                 FedExAccountInfo fedExAccInfo = fedExSvc.GetFedExAccountDetailsByAccountCode(docType.ShippingAccountCode);
 
@@ -458,12 +458,12 @@ namespace AM.Core
             return dueDate.EstToUtc();
         }
 
-        private static DateTime GetFedExShipTimeStamp(DocType docType, DateTime utcDownloadedOn)
+        private static DateTime GetFedExShipTimeStamp(DocType docType, DateTime utcReceivedOn)
         {
             //ReceivedOn Time of Batch
-            var estDownloadedOn = utcDownloadedOn.UtcToEst();
+            var estReceivedOn = utcReceivedOn.UtcToEst();
 
-            DayOfWeek dayOfWeek = estDownloadedOn.DayOfWeek;
+            DayOfWeek dayOfWeek = estReceivedOn.DayOfWeek;
 
             string slaCutOff = string.Empty;
             string slaType = string.Empty;
@@ -471,7 +471,7 @@ namespace AM.Core
             bool isSatWorkDay = docType.SatSLAType == SLAType.NA ? false : true;
             bool isSunWorkDay = docType.SunSLAType == SLAType.NA ? false : true;
 
-            DateTime shipTimeStampDate = estDownloadedOn;
+            DateTime shipTimeStampDate = estReceivedOn;
 
             if (dayOfWeek == DayOfWeek.Saturday)
             {
@@ -505,11 +505,11 @@ namespace AM.Core
             if (slaType == SLAType.FixedTime)
             {
                 //Should be in cut off Date time
-                var estSLACutOffDateTime = (estDownloadedOn.Date + TimeSpan.Parse(slaCutOff));
+                var estSLACutOffDateTime = (estReceivedOn.Date + TimeSpan.Parse(slaCutOff));
 
-                if (estDownloadedOn > estSLACutOffDateTime)
+                if (estReceivedOn > estSLACutOffDateTime)
                 {
-                    shipTimeStampDate = estDownloadedOn.AddDays(1);
+                    shipTimeStampDate = estReceivedOn.AddDays(1);
                 }
             }
 
