@@ -322,7 +322,8 @@ namespace AM.Console
                                     //If we don't have any return address at mail piece or batch level  then it should be in Doc Type level and we are storing that value in mail piece from it.
                                     if (docType.IsReturnInfoSpecified)
                                     {
-                                        mailPieceDTO.RetRcptOrganization = docType.RetRcptOrganization;                            mailPieceDTO.RetRcptAddressStreet = docType.RetRcptAddressStreet;
+                                        mailPieceDTO.RetRcptOrganization = docType.RetRcptOrganization;
+                                        mailPieceDTO.RetRcptAddressStreet = docType.RetRcptAddressStreet;
                                         mailPieceDTO.RetRcptAddressCity = docType.RetRcptAddressCity;
                                         mailPieceDTO.RetRcptAddressState = docType.RetRcptAddressState;
                                         mailPieceDTO.RetRcptAddressZIP = docType.RetRcptAddressZIP;
