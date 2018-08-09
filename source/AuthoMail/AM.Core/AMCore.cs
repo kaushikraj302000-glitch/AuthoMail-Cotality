@@ -725,7 +725,9 @@ namespace AM.Core
                     }
                     catch (Exception ex)
                     {
-                        log.Error("Error occured while generationg PnS Batch - PrintBatchId-{0}".Fill(printBatchData.Id), ex);
+                        var errorMsg = "Error occured while generationg PnS Batch - PrintBatchId-{0} and Error : {1}".Fill(printBatchData.Id, ex);
+                        log.Error(errorMsg, ex);
+                        SendUnexpectedExceptionEmail(errorMsg);
                     }
                 }
             }
@@ -817,7 +819,9 @@ namespace AM.Core
                 }
                 catch (Exception ex)
                 {
-                    log.Error("Error occured while downloading response from PnS Service :", ex);
+                    var errorMsg = "Error occured while downloading response from PnS Service : {0) ".Fill(ex);
+                    log.Error(errorMsg, ex);
+                    SendUnexpectedExceptionEmail(errorMsg);
                 }
             }
         }
@@ -918,7 +922,9 @@ namespace AM.Core
                 }
                 catch (Exception ex)
                 {
-                    log.Error("Error occured while processing PnS response.", ex);
+                    var errorMsg = "Error occured while processing PnS response : {0} ".Fill(ex);
+                    log.Error(errorMsg, ex);
+                    SendUnexpectedExceptionEmail(errorMsg);
                 }
             }
             log.Debug("Process PnS response job is completed.");
@@ -966,7 +972,9 @@ namespace AM.Core
                         }
                         catch (Exception ex)
                         {
-                            log.Error("Error occured while generating reports : {0}".Fill(ex.ToString()));
+                            var errorMsg = "Error occured while generating reports : {0}".Fill(ex);
+                            log.Error(errorMsg, ex);
+                            SendUnexpectedExceptionEmail(errorMsg);
                         }
                     }
                 }
