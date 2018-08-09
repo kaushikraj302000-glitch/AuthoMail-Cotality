@@ -177,7 +177,9 @@
     </Compile>
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\ClientDetails.cs" />
-    <Compile Include="Models\ScanDetails.cs" />
+    <Compile Include="Models\ScanDetails.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
