@@ -19,6 +19,7 @@ namespace AM.Web.Models
         public DateTime? ShippedOn { get; set; }
         public string TrackingNo { get; set; }
         public string DocType { get; set; }
+        public DateTime? DueDate { get; set; }
         public string Channel { get; set; }
         public string ShippingMethod { get; set; }
         public string ShippingCarrier { get; set; }
