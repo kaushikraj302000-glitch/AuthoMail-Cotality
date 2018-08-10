@@ -3101,7 +3101,7 @@ html.csstransitions.csstransforms3d .panel-3d.panel-flip .back {
     border-radius: 0 5px 5px 0;
     border-right: 1px solid #e5e5e5
 }
-.tooltip .tooltip-inner {
+/*.tooltip .tooltip-inner {
     background-color: #cb4040;
     color: #fff;
     -webkit-border-radius: 0 0 0 0;
@@ -3122,7 +3122,7 @@ html.csstransitions.csstransforms3d .panel-3d.panel-flip .back {
 }
 .tooltip.bottom .tooltip-arrow {
     border-bottom-color: #cb4040
-}
+}*/
 .rating {
     unicode-bidi: bidi-override;
     direction: rtl

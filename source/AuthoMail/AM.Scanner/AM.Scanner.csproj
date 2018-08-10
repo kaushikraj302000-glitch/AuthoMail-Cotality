@@ -250,6 +250,7 @@
     <Content Include="Scripts\respond.min.js" />
     <Content Include="Scripts\sprintf.js" />
     <Content Include="Scripts\tableExport.js" />
+    <Content Include="Scripts\tooltip.js" />
     <Content Include="Scripts\_references.js" />
     <Content Include="Views\Home\Index.cshtml">
       <SubType>Code</SubType>

@@ -246,13 +246,14 @@
     <!--End No more Scan Modal-->
     <input type="hidden" id="Environment" value="@AM.Scanner.Common.Common.Environment" />
     @section Scripts {
-    @Scripts.Render("~/bundles/jqueryval")
+        @Scripts.Render("~/bundles/jqueryval")
         <script src="~/Scripts/rainbow.min.js"></script>
         <script src="~/Scripts/jquery-asPieProgress.js"></script>
         <script src="~/Scripts/jquery.ui.core.js"></script>
         <script src="~/Scripts/jquery.ui.widget.js"></script>
         <script src="~/Scripts/jquery.ui.mouse.js"></script>
         <script src="~/Scripts/jquery.ui.draggable.js"></script>
+        <script src="~/Scripts/tooltip.js"></script>
         <script type="text/javascript">
             /*---- Global Messages ----*/
 
@@ -305,43 +306,43 @@
                     success: function (response) {
                         if (response == "ScanDocumentEmpty") {
                             for (var i = 1; i < 51; i++) {
-                                $("#SuccessscannedCode").prepend("<label class='lblAMC lbl-default' for='default" + i + "' >" + codespace + "</label>");
+                                $("#SuccessscannedCode").prepend("<label  class='lblAMC lbl-default' for='default" + i + "' >" + codespace + "</label>");
                             }
                         } else {
-                            console.log(response);
-                            return;
-                            if (response.modal.length > 1) {
-                                var scannedDocument = totalcount[1].split('|');
-                                $("#countsuccess").text(scannedDocument.length - 1);
-                                $('#pie_todaycount').asPieProgress('go', parseInt(scannedDocument.length - 1));
-                                for (var i = 1; i < 51 - (scannedDocument.length - 1) ; i++) {
-                                    $("#SuccessscannedCode").prepend("<label class='lblAMC lbl-default' for='default" + i + "'  >" + codespace + " </label>");
+
+                            if (response.model.length > 1) {
+                                console.log(response.model);
+                                $("#countsuccess").text(response.model.length);
+                                $('#pie_todaycount').asPieProgress('go', parseInt(response.model.length));
+                                for (var i = 1; i < 51 - (response.model.length) ; i++) {
+                                    $("#SuccessscannedCode").prepend("<label class='tooltip' data-toggle='tooltip' title='Hooray!' class='lblAMC lbl-default' for='default" + i + "'  >" + codespace + " </label>");
                                 }
-                                for (var i = 0; i < scannedDocument.length - 1; i++) {
-                                    var scannedArray = scannedDocument[i].split(',');
-                                    if (scannedArray[1] == "0") {
-                                        $("#SuccessscannedCode").prepend("<label class='lblAMC lbl-success' for='success" + i + "' > " + scannedArray[0] + " </label>");
+                                for (var i = 0; i < response.model.length; i++) {
+
+                                    if (response.model[i].Code == "Valid") {
+                                        $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + response.model[i].BatchName + "<br>  Code: " + response.model[i].Code + "' class='lblAMC lbl-success' for='success" + i + "' > " + response.model[i].TrackingNo + " </label>");
                                     }
-                                    if (scannedArray[1] == "1") {
-                                        $("#SuccessscannedCode").prepend("<label class='lblAMC lbl-warning' for='success" + i + "' > " + scannedArray[0] + " </label>");
+                                    if (response.model[i].Code == "QC") {
+                                        $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + response.model[i].BatchName + "<br>  Code: " + response.model[i].Code + "'  class='lblAMC lbl-warning' for='success" + i + "' > " + response.model[i].TrackingNo + " </label>");
 
                                     }
-                                    if (scannedArray[1] == "2") {
-                                        $("#SuccessscannedCode").prepend("<label class='lblAMC lbl-danger' for='success" + i + "' > " + scannedArray[0] + " </label>");
+                                    if (response.model[i].Code == "Pulledback") {
+                                        $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + response.model[i].BatchName + "<br>  Code: " + response.model[i].Code + "'  class='lblAMC lbl-danger' for='success" + i + "' > " + response.model[i].TrackingNo + " </label>");
                                     }
                                 }
                             }
                         }
-                       
-                       // var totalcount = response.split('$');
-                       
-                        
+
+                        // var totalcount = response.split('$');
+
+
                         var totalScanValues = $("#todayscount").text().split('/');
                         var totalfiles = totalScanValues[1];
-                        $("#todayscount").text(totalcount[0]);
-                        var piePreInt = parseInt((parseInt(totalcount[0]) / parseInt(totalfiles)) * 100);
+                        $("#todayscount").text(response.model.length);
+                        var piePreInt = parseInt((parseInt(response.model[response.model.length - 1].ScanCount) / parseInt(response.model[response.model.length - 1].TotalCount)) * 100);
 
                         UpdateProgressCount(piePreInt);
+                        $('[data-toggle="tooltip"]').tooltip();
                     },
                     error: function (response) {
                         $("#message").empty();
@@ -352,6 +353,7 @@
                         $("#code1").focus();
                     }
                 });
+                
             }
             //debugger;
             var clientCode = "";// "AMC";// "HTL"; //
@@ -369,27 +371,16 @@
             var modalInfo = "Please start a new batch..!";
             var codespace = "AMC000000000";// "HTL00000000000";//
             var environment = $("#Environment").val();
-            
+
             /*---- Scanned Batch Count using Ajax  ----*/
             /*---- Parameter:{ operationcode , clientCode }  ----*/
             jQuery(document).ready(function ($) {
-                //var clientId = getParameterByName('clientId');
-                // alert(clientId)
                 $('.modal-dialog').draggable({ handle: ".modal-header" });
                 $('.modal-dialog').find(".modal-header").css('cursor', 'move');
-                //$('.modal-dialog').removeAttr("style");
+                
                 clientCode = getParameterByName('clientCode');
                 notStartWithClientCode = " Wrong document not starting with " + clientCode + ". please scan again.!";
-                // alert(clientCode);
-                //alert(notStartWithClientCode);
-                /* if (clientCode=="AMC") {
-                     codespace = "AMC00000";
-                     clientCode = "AMC";
-                 }
-                 if (clientCode=="HTL") {
-                     codespace = "HTL0000000";
-                     clientCode = "HTL";
-                 }*/
+               
                 var cnt = 0;
                 GetScanCount(clientCode);
                 $('#pie_todaycount').asPieProgress({
@@ -400,13 +391,13 @@
                 $('#pie_totalscancount').asPieProgress({
                     namespace: 'pie_progress',
                     min: 0,
-                   
+
                 });
             });
             /*---- End of Scanned Batch Count Ajax ----*/
 
             GetScanDocumentFromCookies(clientCode);
-            
+
             var isIE11 = !!navigator.userAgent.match(/Trident.*rv\:11\./);
             // debugger;
 
@@ -706,11 +697,11 @@
             });
             /*---- on Load Get Active Batch Count ----*/
             $(document).ready(function () {
-               
+
 
                 /*  Updating Batch Count on every 12 Second using Ajax */
                 //window.setInterval(function () {
-
+                
                 //    $.ajax({
                 //        type: "POST",
                 //        url: '<%= ResolveUrl("JsonResult.aspx") %>',

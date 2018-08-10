@@ -156,6 +156,7 @@
 <script src="~/Scripts/modernizr.js"></script>
 <script src="~/Scripts/animations.init.js"></script>
 <script src="~/Scripts/moment.js"></script>
+<script src="~/Scripts/tooltip.js"></script>
 <script>
     var basePath = '',
         commonPath = '../assets/',
@@ -219,18 +220,19 @@
                     // alert(localTime);
                     if (j % 2 == 0) {
 
-                        $("#displaycount" + clientCode).append("<pre class='pull-left preclass'><strong  id='dispaly" + clientCode + i + "' class='text-larger'>" + localTime + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre>");
+                        $("#displaycount" + clientCode).append("<pre data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + data[j].BatchName + "' class='pull-left preclass'><strong  id='dispaly" + clientCode + i + "' class='text-larger'>" + localTime + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre>");
 
 
                     }
                     else {
-                        $("#displaycount" + clientCode).append("<pre class='pull-right preclass'><strong id='dispaly" + clientCode + i + "' class='text-larger'>" + localTime + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre>");
+                        $("#displaycount" + clientCode).append("<pre data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + data[j].BatchName + "'  class='pull-right preclass'><strong id='dispaly" + clientCode + i + "' class='text-larger'>" + localTime + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre>");
 
 
                     }
                 }
 
                 $("#displaycount" + clientCode).append("<div class='clearfix'></div>");
+                $('[data-toggle="tooltip"]').tooltip();
 
             },
             error: function (data) {

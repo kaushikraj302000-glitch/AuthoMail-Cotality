@@ -61,16 +61,16 @@ namespace AM.Scanner.Controllers
                     }
                     if (Request.Cookies["scannedDocument"] != null && !string.IsNullOrEmpty(Request.Cookies["scannedDocument"].Value))
                     {
-                        var scanList = JsonConvert.DeserializeObject<ScanDetails[]>(Request.Cookies["scannedDocument"].Value);
-                        scanList.ToList().Add(scanDetails);
+                        var scanList = JsonConvert.DeserializeObject<List<ScanDetails>>(Request.Cookies["scannedDocument"].Value);
+                        scanList.Add(scanDetails);
                         scanDocument.Value = JsonConvert.SerializeObject(scanList);
                         // Request.Form[0].ToString() + "|";
                     }
                     else
                     {
-                        
-
-                        scanDocument.Value = JsonConvert.SerializeObject(scanDetails);
+                        var scanList = new List<ScanDetails>();
+                        scanList.Add(scanDetails);
+                        scanDocument.Value = JsonConvert.SerializeObject(scanList);
                         // Request.Form[0].ToString() + "|";
                     }
                     Response.Cookies.Add(scanDocument);
@@ -84,7 +84,7 @@ namespace AM.Scanner.Controllers
         {
             if (Request.Cookies["scannedDocument"] != null && !string.IsNullOrEmpty(Request.Cookies["scannedDocument"].Value))
             {
-                var model = Request.Cookies["scannedDocument"].Value;
+                var model = JsonConvert.DeserializeObject<List<ScanDetails>>(Request.Cookies["scannedDocument"].Value);
                 return Json(new { model = model }, JsonRequestBehavior.AllowGet);
             }
             return Json("ScanDocumentEmpty", JsonRequestBehavior.AllowGet);
