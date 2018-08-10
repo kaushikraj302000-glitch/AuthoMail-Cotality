@@ -211,7 +211,9 @@
                 @*<th>Zip</th>*@
                 <th>Tracking Number</th>
                 <th>Received Date <span class="fontcapitalize">(Local)</span></th>
+                <th>Due Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Shipped Date <span class="fontcapitalize">(Local)</span></th>
+                <th>Shipping Carrier / Service type</th>
                 <th>Document Type</th>
                 <th>Channel</th>
             </tr>
@@ -230,7 +232,9 @@
                 @*<td><span>{ZIP}</span></td>*@
                 <td><span>{TrackingNoFormatted}</span></td>
                 <td><span>{ReceivedOnFormatted}</span></td>
+                <td><span>{DueDateFormatted}</span></td>
                 <td><span>{ShippedOnFormatted}</span></td>
+                <td>{ShippingCarrier} / {ShippingMethod}</td>
                 <td><span>{DocType}</span></td>
                 <td><span>{Channel}</span></td>
             </tr>
@@ -710,6 +714,7 @@
                 //this.ReceivedOnFormatted = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
+                this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
                 this.RcptNameFormatted = this.FirstName + " " + this.LastName;
                 this.CityFormatted = this.City + " " + this.State + " " + this.ZIP;
                 var status = "";

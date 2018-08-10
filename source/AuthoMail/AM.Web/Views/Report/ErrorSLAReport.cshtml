@@ -97,6 +97,8 @@
                 <th>File Name</th>
                 <th>Received Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Due Date <span class="fontcapitalize">(Local)</span></th>
+                <th>Shipped Date <span class="fontcapitalize">(Local)</span></th>
+                <th>Shipping Carrier / Service type</th>
                 <th>First Name</th>
                 <th>Last Name</th>
                 <th>Recipient Street Address</th>
@@ -118,6 +120,8 @@
                 <td><span>{FileName}</span></td>
                 <td><span>{ReceivedOnFormatted}</span></td>
                 <td><span>{DueDateFormatted}</span></td>
+                <td><span>{ShippedOnFormatted}</span></td>
+                <td>{ShippingCarrier} / {ShippingMethod}</td>
                 <td><span>{FirstName}</span></td>
                 <td><span>{LastName}</span></td>
                 <td><span>{Address}</span></td>
@@ -295,7 +299,7 @@
             $(Model).each(function () {
                 this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
-
+                this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
             });
             return Model;
         }
