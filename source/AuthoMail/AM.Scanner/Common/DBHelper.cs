@@ -40,6 +40,7 @@ namespace AM.Scanner.Common
                 scanCountData.BatchName = registerScanData.BatchName;
                 scanCountData.Code = registerScanData.Code;
                 scanCountData.Message = registerScanData.Message;
+                scanCountData.AppCode = clientCode;
                 scanCountData.TrackingNo = registerScanData.TrackingNo;
                 return scanCountData;
 

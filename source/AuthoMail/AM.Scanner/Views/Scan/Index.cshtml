@@ -255,44 +255,13 @@
         <script src="~/Scripts/jquery.ui.draggable.js"></script>
         <script type="text/javascript">
             /*---- Global Messages ----*/
-            //debugger;
-            var clientCode = "";// "AMC";// "HTL"; //
-            var successmsg = "Document scanned successfully!";
-            var notStartWithClientCode = " Wrong document not starting with " + clientCode + ". please scan again.!";
-            var emptymsg = "Please scan a document..!";
-            var duplicatemsg = "Document already scanned.";
-            var notInDatabase = "Wrong barcode; please scan again.";
-            var mismatch = "Barcode value does not match with ";
-            var databaseError = "Please try after some time.";
-            var ActiveBatchCount = 1;
-            var nomoreBatch = "There is no more document for Scan.!";
-            var modalsuccess = "Your batch is completed, start a new batch..!";
-            //var modalsuccess = "Your task is completed..!";
-            var modalInfo = "Please start a new batch..!";
-            var codespace = "AMC000000000";// "HTL00000000000";//
-            var environment = $("#Environment").val();
 
-            /*---- Scanned Batch Count using Ajax  ----*/
-            /*---- Parameter:{ operationcode , clientCode }  ----*/
-            jQuery(document).ready(function ($) {
-                //var clientId = getParameterByName('clientId');
-                // alert(clientId)
-                $('.modal-dialog').draggable({ handle: ".modal-header" });
-                $('.modal-dialog').find(".modal-header").css('cursor', 'move');
-                //$('.modal-dialog').removeAttr("style");
-                clientCode = getParameterByName('clientCode');
-                notStartWithClientCode = " Wrong document not starting with " + clientCode + ". please scan again.!";
-                // alert(clientCode);
-                //alert(notStartWithClientCode);
-                /* if (clientCode=="AMC") {
-                     codespace = "AMC00000";
-                     clientCode = "AMC";
-                 }
-                 if (clientCode=="HTL") {
-                     codespace = "HTL0000000";
-                     clientCode = "HTL";
-                 }*/
-                var cnt = 0;
+            $("#okModal").click(function () {
+                $("#code1").blur();
+            });
+
+
+            function GetScanCount(clientCode) {
                 $.ajax({
                     type: "POST",
                     url: '/Home/GetScanCount',
@@ -319,6 +288,108 @@
                         $("#code1").focus();
                     }
                 });
+            }
+            /*---- asPieProgress  ----*/
+            function UpdateProgressCount(count) {
+                console.log(String(count + "%"));
+                //$('#pie_totalscancount').attr('aria-valuenow', count);
+                $('#pie_totalscancount').asPieProgress('go', count);// String(count + "%"));
+            }
+            /*---- asPieProgress End ----*/
+
+            function GetScanDocumentFromCookies(clientCode) {
+                $.ajax({
+                    type: "POST",
+                    url: '/Scan/GetScanDocumentFromCookies',
+                    //data: { clientCode: clientCode },
+                    success: function (response) {
+                        if (response == "ScanDocumentEmpty") {
+                            for (var i = 1; i < 51; i++) {
+                                $("#SuccessscannedCode").prepend("<label class='lblAMC lbl-default' for='default" + i + "' >" + codespace + "</label>");
+                            }
+                        } else {
+                            console.log(response);
+                        }
+                        return;
+                        var totalcount = response.split('$');
+                        if (totalcount.length > 1) {
+                            var scannedDocument = totalcount[1].split('|');
+                            $("#countsuccess").text(scannedDocument.length - 1);
+                            $('#pie_todaycount').asPieProgress('go', parseInt(scannedDocument.length - 1));
+                            for (var i = 1; i < 51 - (scannedDocument.length - 1) ; i++) {
+                                $("#SuccessscannedCode").prepend("<label class='lblAMC lbl-default' for='default" + i + "'  >" + codespace + " </label>");
+                            }
+                            for (var i = 0; i < scannedDocument.length - 1; i++) {
+                                var scannedArray = scannedDocument[i].split(',');
+                                if (scannedArray[1] == "0") {
+                                    $("#SuccessscannedCode").prepend("<label class='lblAMC lbl-success' for='success" + i + "' > " + scannedArray[0] + " </label>");
+                                }
+                                if (scannedArray[1] == "1") {
+                                    $("#SuccessscannedCode").prepend("<label class='lblAMC lbl-warning' for='success" + i + "' > " + scannedArray[0] + " </label>");
+
+                                }
+                                if (scannedArray[1] == "2") {
+                                    $("#SuccessscannedCode").prepend("<label class='lblAMC lbl-danger' for='success" + i + "' > " + scannedArray[0] + " </label>");
+                                }
+                            }
+                        }
+                        
+                        var totalScanValues = $("#todayscount").text().split('/');
+                        var totalfiles = totalScanValues[1];
+                        $("#todayscount").text(totalcount[0]);
+                        var piePreInt = parseInt((parseInt(totalcount[0]) / parseInt(totalfiles)) * 100);
+
+                        UpdateProgressCount(piePreInt);
+                    },
+                    error: function (response) {
+                        $("#message").empty();
+                        $("#message").show();
+                        $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>" + databaseError + "</div>");
+                        $("#code1").val("");
+                        $("#code2").val("");
+                        $("#code1").focus();
+                    }
+                });
+            }
+            //debugger;
+            var clientCode = "";// "AMC";// "HTL"; //
+            var successmsg = "Document scanned successfully!";
+            var notStartWithClientCode = " Wrong document not starting with " + clientCode + ". please scan again.!";
+            var emptymsg = "Please scan a document..!";
+            var duplicatemsg = "Document already scanned.";
+            var notInDatabase = "Wrong barcode; please scan again.";
+            var mismatch = "Barcode value does not match with ";
+            var databaseError = "Please try after some time.";
+            var ActiveBatchCount = 1;
+            var nomoreBatch = "There is no more document for Scan.!";
+            var modalsuccess = "Your batch is completed, start a new batch..!";
+            //var modalsuccess = "Your task is completed..!";
+            var modalInfo = "Please start a new batch..!";
+            var codespace = "AMC000000000";// "HTL00000000000";//
+            var environment = $("#Environment").val();
+            
+            /*---- Scanned Batch Count using Ajax  ----*/
+            /*---- Parameter:{ operationcode , clientCode }  ----*/
+            jQuery(document).ready(function ($) {
+                //var clientId = getParameterByName('clientId');
+                // alert(clientId)
+                $('.modal-dialog').draggable({ handle: ".modal-header" });
+                $('.modal-dialog').find(".modal-header").css('cursor', 'move');
+                //$('.modal-dialog').removeAttr("style");
+                clientCode = getParameterByName('clientCode');
+                notStartWithClientCode = " Wrong document not starting with " + clientCode + ". please scan again.!";
+                // alert(clientCode);
+                //alert(notStartWithClientCode);
+                /* if (clientCode=="AMC") {
+                     codespace = "AMC00000";
+                     clientCode = "AMC";
+                 }
+                 if (clientCode=="HTL") {
+                     codespace = "HTL0000000";
+                     clientCode = "HTL";
+                 }*/
+                var cnt = 0;
+                GetScanCount(clientCode);
                 $('#pie_todaycount').asPieProgress({
                     namespace: 'pie_progress',
                     min: 0
@@ -327,25 +398,24 @@
                 $('#pie_totalscancount').asPieProgress({
                     namespace: 'pie_progress',
                     min: 0,
-                    //max: parseInt(ActiveBatchCount),
-                    //size: 200,
-
-
+                   
                 });
-                //$('.pie_progress').asPieProgress({
-                //    'namespace': 'pie_progress'
-                //});
-
             });
             /*---- End of Scanned Batch Count Ajax ----*/
 
-            /*---- asPieProgress  ----*/
-            function UpdateProgressCount(count) {
-                console.log(String(count + "%"));
-                //$('#pie_totalscancount').attr('aria-valuenow', count);
-                $('#pie_totalscancount').asPieProgress('go', count);// String(count + "%"));
+            GetScanDocumentFromCookies(clientCode);
+            
+            var isIE11 = !!navigator.userAgent.match(/Trident.*rv\:11\./);
+            // debugger;
+
+            if (isIE11) {
+                $("#countsuccess").addClass("counterIe10");
+                $("#todayscount").addClass("counterTotalIe10");
             }
-            /*---- asPieProgress End ----*/
+            else {
+                $("#countsuccess").removeClass("counterIe10");
+                $("#todayscount").removeClass("counterTotalIe10");
+            }
 
             /*---- Validate for New Batch  ----*/
             function startNewBatch() {
@@ -455,8 +525,8 @@
                                 var totalfiles = totalScanValues[1];
                                 $.ajax({
                                     type: "POST",
-                                    url: '<%= ResolveUrl("JsonResult.aspx") %>',
-                                    data: { code: code1Value, totalScanned: totalScanned, clientCode: clientCode },
+                                    url: '/Scan/RegisterScan',
+                                    data: { barcode: code1Value, totalScanned: totalScanned, clientCode: clientCode },
                                     success: function (response) {
                                         var object = JSON.parse(response);
                                         //console.log(object)
@@ -593,8 +663,8 @@
             $("#submitModal").click(function () {
                 $.ajax({
                     type: "POST",
-                    url: '<%= ResolveUrl("JsonResult.aspx") %>',
-                    data: { submitData: "NextBatch" },
+                    url: '/Scan/NextBatch',
+                    //data: { submitData: "NextBatch" },
                     success: function (response) {
                         if (response == "ReloadPage") {
 
@@ -634,97 +704,7 @@
             });
             /*---- on Load Get Active Batch Count ----*/
             $(document).ready(function () {
-                var isIE11 = !!navigator.userAgent.match(/Trident.*rv\:11\./);
-                // debugger;
-
-                if (isIE11) {
-                    $("#countsuccess").addClass("counterIe10");
-                    $("#todayscount").addClass("counterTotalIe10");
-                }
-                else {
-                    $("#countsuccess").removeClass("counterIe10");
-                    $("#todayscount").removeClass("counterTotalIe10");
-                }
-
-                /* Start 1 Ajax call for Batch Count  */
-                $.ajax({
-                    type: "POST",
-                    url: '<%= ResolveUrl("JsonResult.aspx") %>',
-                    data: { clientCode: clientCode },
-                    success: function (response) {
-                        var totalcount = response.split('$');
-
-                        /* if (reloadPage > 1) {
-                             var totalScanValues = $("#todayscount").text().split('/');
-                             var totalfiles = totalScanValues[1];
-                             $("#todayscount").text(totalcount[0] + "/" + totalfiles);
-                             alert(totalcount[0]+"totalcount[0]");
-                             $('.pie_progressdata').asPieProgress('go', totalcount[0]);
-                             $('.pie_progressdata').attr("aria-valuenow", totalcount[0]);
-                         }
-                         else {*/
-                        if (totalcount.length > 1) {
-
-                            var scannedDocument = totalcount[1].split('|');
-                            $("#countsuccess").text(scannedDocument.length - 1);
-                            $('#pie_todaycount').asPieProgress('go', parseInt(scannedDocument.length - 1));
-                            for (var i = 1; i < 51 - (scannedDocument.length - 1) ; i++) {
-
-                                $("#SuccessscannedCode").prepend("<label class='lblAMC lbl-default' for='default" + i + "'  >" + codespace + " </label>");
-                            }
-                            for (var i = 0; i < scannedDocument.length - 1; i++) {
-                                var scannedArray = scannedDocument[i].split(',');
-
-                                if (scannedArray[1] == "0") {
-                                    $("#SuccessscannedCode").prepend("<label class='lblAMC lbl-success' for='success" + i + "' > " + scannedArray[0] + " </label>");
-
-                                }
-                                if (scannedArray[1] == "1") {
-                                    $("#SuccessscannedCode").prepend("<label class='lblAMC lbl-warning' for='success" + i + "' > " + scannedArray[0] + " </label>");
-
-                                }
-                                if (scannedArray[1] == "2") {
-                                    $("#SuccessscannedCode").prepend("<label class='lblAMC lbl-danger' for='success" + i + "' > " + scannedArray[0] + " </label>");
-
-                                }
-                            }
-                        }
-                        else {
-                            for (var i = 1; i < 51; i++) {
-
-                                $("#SuccessscannedCode").prepend("<label class='lblAMC lbl-default' for='default" + i + "' >" + codespace + "</label>");
-
-                            }
-                        }
-                        var totalScanValues = $("#todayscount").text().split('/');
-                        var totalfiles = totalScanValues[1];
-                        $("#todayscount").text(totalcount[0]);
-                        // alert(parseInt(totalcount[0]));
-                        // $('.pie_progressdata').asPieProgress('go', totalcount[0]);
-                        //  $('#pie_totalscancount').attr("aria-valuenow", totalcount[0]);
-                        var piePreInt = parseInt((parseInt(totalcount[0]) / parseInt(totalfiles)) * 100);
-                        // var perPie = "'" + piePreInt + "%'";
-
-                        UpdateProgressCount(piePreInt);
-                        //check//$('#pie_totalscancount').asPieProgress('go', String(piePreInt + "%"));
-                        // alert("'" + piePreInt + "%'");
-                        //$('#pie_totalscancount').asPieProgress('start');
-                        //$('#pie_totalscancount').asPieProgress('go', parseInt(totalcount[0]));
-
-                        //$('#pie_totalscancount').asPieProgress('stop');
-                        //}
-
-                    },
-                    error: function (response) {
-                        $("#message").empty();
-                        $("#message").show();
-                        $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>" + databaseError + "</div>");
-                        $("#code1").val("");
-                        $("#code2").val("");
-                        $("#code1").focus();
-                    }
-                });
-                /*  End Ajax  */
+               
 
                 /*  Updating Batch Count on every 12 Second using Ajax */
                 //window.setInterval(function () {
