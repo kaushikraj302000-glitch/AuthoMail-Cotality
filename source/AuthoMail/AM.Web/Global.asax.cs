@@ -20,5 +20,18 @@ namespace AM.Web
             BundleConfig.RegisterBundles(BundleTable.Bundles);
             AutoMapperConfig.ConfigureMappings();
         }
+
+        protected void Application_Error()
+        {
+            Exception exception = Server.GetLastError();
+            Response.Clear();
+
+            HttpException httpException = exception as HttpException;
+            if (httpException.GetHttpCode()==400)
+            {
+                Server.ClearError();
+                Response.TrySkipIisCustomErrors = true;
+            }
+        }
     }
 }
