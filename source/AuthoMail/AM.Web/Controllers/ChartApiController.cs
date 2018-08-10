@@ -24,7 +24,6 @@ namespace AM.Web.Controllers
         [HttpGet]
         public object GetWeeklyChartData()
         {
-
             var model = chartDataSvc.GetWeeklyChartData(User.Identity.GetClientId().Value);
             return model.OrderByDescending(s => s.Date).ToList();
         }
