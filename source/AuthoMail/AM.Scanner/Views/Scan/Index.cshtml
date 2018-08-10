@@ -309,30 +309,32 @@
                             }
                         } else {
                             console.log(response);
-                        }
-                        return;
-                        var totalcount = response.split('$');
-                        if (totalcount.length > 1) {
-                            var scannedDocument = totalcount[1].split('|');
-                            $("#countsuccess").text(scannedDocument.length - 1);
-                            $('#pie_todaycount').asPieProgress('go', parseInt(scannedDocument.length - 1));
-                            for (var i = 1; i < 51 - (scannedDocument.length - 1) ; i++) {
-                                $("#SuccessscannedCode").prepend("<label class='lblAMC lbl-default' for='default" + i + "'  >" + codespace + " </label>");
-                            }
-                            for (var i = 0; i < scannedDocument.length - 1; i++) {
-                                var scannedArray = scannedDocument[i].split(',');
-                                if (scannedArray[1] == "0") {
-                                    $("#SuccessscannedCode").prepend("<label class='lblAMC lbl-success' for='success" + i + "' > " + scannedArray[0] + " </label>");
+                            return;
+                            if (response.modal.length > 1) {
+                                var scannedDocument = totalcount[1].split('|');
+                                $("#countsuccess").text(scannedDocument.length - 1);
+                                $('#pie_todaycount').asPieProgress('go', parseInt(scannedDocument.length - 1));
+                                for (var i = 1; i < 51 - (scannedDocument.length - 1) ; i++) {
+                                    $("#SuccessscannedCode").prepend("<label class='lblAMC lbl-default' for='default" + i + "'  >" + codespace + " </label>");
                                 }
-                                if (scannedArray[1] == "1") {
-                                    $("#SuccessscannedCode").prepend("<label class='lblAMC lbl-warning' for='success" + i + "' > " + scannedArray[0] + " </label>");
+                                for (var i = 0; i < scannedDocument.length - 1; i++) {
+                                    var scannedArray = scannedDocument[i].split(',');
+                                    if (scannedArray[1] == "0") {
+                                        $("#SuccessscannedCode").prepend("<label class='lblAMC lbl-success' for='success" + i + "' > " + scannedArray[0] + " </label>");
+                                    }
+                                    if (scannedArray[1] == "1") {
+                                        $("#SuccessscannedCode").prepend("<label class='lblAMC lbl-warning' for='success" + i + "' > " + scannedArray[0] + " </label>");
 
-                                }
-                                if (scannedArray[1] == "2") {
-                                    $("#SuccessscannedCode").prepend("<label class='lblAMC lbl-danger' for='success" + i + "' > " + scannedArray[0] + " </label>");
+                                    }
+                                    if (scannedArray[1] == "2") {
+                                        $("#SuccessscannedCode").prepend("<label class='lblAMC lbl-danger' for='success" + i + "' > " + scannedArray[0] + " </label>");
+                                    }
                                 }
                             }
                         }
+                       
+                       // var totalcount = response.split('$');
+                       
                         
                         var totalScanValues = $("#todayscount").text().split('/');
                         var totalfiles = totalScanValues[1];
@@ -528,8 +530,8 @@
                                     url: '/Scan/RegisterScan',
                                     data: { barcode: code1Value, totalScanned: totalScanned, clientCode: clientCode },
                                     success: function (response) {
-                                        var object = JSON.parse(response);
-                                        //console.log(object)
+                                        var object = response;
+                                        console.log(object)
                                         var piePreInt = parseInt((parseInt(object.model.ScanCount) / parseInt(totalfiles)) * 100);
                                         var code = object.model.Code;
                                         var trackingNo = object.model.TrackingNo;

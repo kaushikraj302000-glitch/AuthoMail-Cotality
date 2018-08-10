@@ -35,12 +35,13 @@ namespace AM.Scanner.Controllers
             }
             return ip;
         }
-        
+
         [HttpPost]
         public ActionResult RegisterScan(string barcode, int totalScanned, string clientCode)
         {
             string machineName = GetIPAddress();
             ScanDetails scanDetails = DBHelper.RegisterScan(barcode, totalScanned, clientCode, User.Identity.Name, machineName);
+            
             if (scanDetails != null)
             {
                 if (scanDetails.Code == "Valid" || scanDetails.Code == "QC" || scanDetails.Code == "Pulledback")
@@ -60,19 +61,22 @@ namespace AM.Scanner.Controllers
                     }
                     if (Request.Cookies["scannedDocument"] != null && !string.IsNullOrEmpty(Request.Cookies["scannedDocument"].Value))
                     {
-
-                        scanDocument.Value += JsonConvert.SerializeObject(scanDetails);
+                        var scanList = JsonConvert.DeserializeObject<ScanDetails[]>(Request.Cookies["scannedDocument"].Value);
+                        scanList.ToList().Add(scanDetails);
+                        scanDocument.Value = JsonConvert.SerializeObject(scanList);
                         // Request.Form[0].ToString() + "|";
                     }
                     else
                     {
+                        
+
                         scanDocument.Value = JsonConvert.SerializeObject(scanDetails);
                         // Request.Form[0].ToString() + "|";
                     }
                     Response.Cookies.Add(scanDocument);
                 }
             }
-            return Json(scanDetails, JsonRequestBehavior.AllowGet);
+            return Json(new { model = scanDetails }, JsonRequestBehavior.AllowGet);
         }
 
         [HttpPost]
@@ -80,7 +84,8 @@ namespace AM.Scanner.Controllers
         {
             if (Request.Cookies["scannedDocument"] != null && !string.IsNullOrEmpty(Request.Cookies["scannedDocument"].Value))
             {
-                return Json(Request.Cookies["scannedDocument"].Value, JsonRequestBehavior.AllowGet);
+                var model = Request.Cookies["scannedDocument"].Value;
+                return Json(new { model = model }, JsonRequestBehavior.AllowGet);
             }
             return Json("ScanDocumentEmpty", JsonRequestBehavior.AllowGet);
         }
