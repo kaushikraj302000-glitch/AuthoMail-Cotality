@@ -258,6 +258,8 @@ namespace AM.Entities
         public const string PnSOperator = "PnSOperator";
         public const string ClientUserManager = "ClientUserManager";
         public const string CoreLogicUserManager = "CoreLogicUserManager";
+        public const string API = "API";
+        public const string APIUSPSeVS = "API-USPS-eVS";
     }
     public static class AMUserStatus
     {
