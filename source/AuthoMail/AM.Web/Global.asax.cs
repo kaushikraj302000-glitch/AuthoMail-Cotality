@@ -25,13 +25,16 @@ namespace AM.Web
         {
             Exception exception = Server.GetLastError();
             Response.Clear();
-
             HttpException httpException = exception as HttpException;
-            if (httpException.GetHttpCode()==400)
+            if (exception != null)
             {
-                Server.ClearError();
-                Response.TrySkipIisCustomErrors = true;
+                if (httpException.GetHttpCode() == 400)
+                {
+                    Server.ClearError();
+                    Response.TrySkipIisCustomErrors = true;
+                }
             }
+            
         }
     }
 }
