@@ -66,7 +66,9 @@ namespace AM.Web
                   .ForMember(d => d.ZIP, o => o.MapFrom(s => s.RcptAddressZIP))
                   .ForMember(d => d.BatchId, o => o.MapFrom(s => s.MailBatches != null ? s.MailBatches.Id : 0))
                   .ForMember(d => d.BusinessIdValue, o => o.MapFrom(s => s.BusinessFriendlyIdValue))
-                  .ForMember(d => d.DocType, o => o.MapFrom(s => s.DocumentOrPackageType));
+                  .ForMember(d => d.DocType, o => o.MapFrom(s => s.DocumentOrPackageType))
+                  .ForMember(d => d.ShippingCarrier, o => o.MapFrom(s => s.DocTypes != null ? (s.DocTypes.ShippingCarrier != null ? s.DocTypes.ShippingCarrier : "") : null))
+                  .ForMember(d => d.ShippingMethod, o => o.MapFrom(s => s.DocTypes != null ? (s.DocTypes.ShippingServiceType != null ? s.DocTypes.ShippingServiceType : "") : null));
 
                cfg.CreateMap<MailPieces, MonthlyReconReportViewModel>()
                   .ForMember(d => d.ReceivedOn, o => o.MapFrom(s => s.MailBatches != null ? (s.MailBatches.ReceivedOn != null ? s.MailBatches.ReceivedOn : null) : null))
