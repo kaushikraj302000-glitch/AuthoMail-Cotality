@@ -19,6 +19,12 @@ namespace AM.Scanner.Models
 
     public class PendingScanning
     {
+        public string BatchName { get; set; }
+        public string LoanNumber { get; set; }
+        public string TrackingNo { get; set; }
+        public string FileName { get; set; }
+        public DateTime SubmittedOn { get; set; }
+        public string MailPieceStatus { get; set; }
 
     }
 }

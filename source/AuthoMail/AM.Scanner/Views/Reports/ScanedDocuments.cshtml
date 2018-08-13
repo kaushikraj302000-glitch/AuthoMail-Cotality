@@ -6,7 +6,7 @@
 <link href="~/Content/dataTables.bootstrap.css" rel="stylesheet" />
 <link href="~/assets/css/font-awesome.css" rel="stylesheet" />
 
-<link href="~/assets/bootstrap.css" rel="stylesheet" />
+
 <style>
     fieldset.scheduler-border {
         padding: 0 1.4em 1.4em 1.4em !important;
@@ -361,12 +361,10 @@
 
                 },
                 error: function (response) {
-                    $("#message").empty();
-                    $("#message").show();
-                    $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong> Communication error.</div>");
-                    $("#code1").val("");
-                    $("#code2").val("");
-                    $("#code1").focus();
+                    $("#scanList").empty();
+                    $("#scanList").show();
+                    $("#scanList").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong> Communication error.</div>");
+                    
                 }
             });
 

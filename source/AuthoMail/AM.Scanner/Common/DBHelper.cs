@@ -127,5 +127,22 @@ namespace AM.Scanner.Common
                 return null;
             }
         }
+
+        public static List<PendingScanning> GetPendingScanning(string clientCode)
+        {
+            try
+            {
+                DbConnection db = Create(clientCode);
+                string query = string.Format("{0} @appcode", Common.SP_GetPendingScanning);
+                var batchList = db.Query<PendingScanning>(query, new { appcode = clientCode }).ToList();
+                db.Dispose();
+                return batchList;
+                
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
     }
 }

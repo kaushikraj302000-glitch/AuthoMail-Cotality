@@ -22,9 +22,11 @@ namespace AM.Scanner.Controllers
             return model;
         }
 
+        [HttpGet]
+        [Route("PendingScanningList")]
         public List<PendingScanning> PendingScanningList(string clientCode)
         {
-            List<PendingScanning> model = new List<PendingScanning>();
+            var model = DBHelper.GetPendingScanning(clientCode);
             return model;
         }
     }
