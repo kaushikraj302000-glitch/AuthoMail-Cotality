@@ -258,20 +258,20 @@
                     trackingNo = "--";
                 }
                 else {
-                    //trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/Track/' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
+                    trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/Track/' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
 
-                    if (this.ShippingCarrier == "USPS" && this.ShippingMethod == "USPS_EXPRESSMAIL") {
+                    //if (this.ShippingCarrier == "USPS" && this.ShippingMethod == "USPS_EXPRESSMAIL") {
 
-                        trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="https://m.usps.com/m/TrackConfirmAction_detail?tLabels=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
-                    } else if (this.ShippingCarrier == "USPS" && this.ShippingMethod == "USPS") {
-                        trackingNo = '<button id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
+                    //    trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="https://m.usps.com/m/TrackConfirmAction_detail?tLabels=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
+                    //} else if (this.ShippingCarrier == "USPS" && this.ShippingMethod == "USPS") {
+                    //    trackingNo = '<button id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
 
-                    }
-                    else if (this.ShippingCarrier == "FedEx") {
-                        trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="http://www.fedex.com/Tracking?cntry_code=us&action=1&track=y&tracknumbers=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
-                    } else {
-                        trackingNo = "--";
-                    }
+                    //}
+                    //else if (this.ShippingCarrier == "FedEx") {
+                    //    trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="http://www.fedex.com/Tracking?cntry_code=us&action=1&track=y&tracknumbers=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
+                    //} else {
+                    //    trackingNo = "--";
+                    //}
                 }
                 this.TotalPages = this.Status == "Shipped" ? this.TotalPages : 0;
                 this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
