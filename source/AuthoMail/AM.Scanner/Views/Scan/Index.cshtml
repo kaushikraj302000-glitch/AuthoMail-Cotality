@@ -270,8 +270,7 @@
                     success: function (response) {
                         if (response != null) {
                             $("#todayscount").text(response.ScanCount + "/" + response.TotalCount);
-                            var totalBatch = $("#todayscount").text().split('/');
-                            $("#todayscount").text(totalBatch[0] + "/" + totalBatch[1]);
+                            UpdateProgressCount(response.ScanCount, response.TotalCount)
                         }
                         //else {
                         //    $("#todayscount").text(response.ScanCount + "/" + response.TotalCount);
@@ -291,10 +290,12 @@
                 });
             }
             /*---- asPieProgress  ----*/
-            function UpdateProgressCount(count) {
-                // console.log(String(count + "%"));
+            function UpdateProgressCount(ScanCount, TotalCount) {
+                console.log(ScanCount + " " + TotalCount);
+                var piePreInt = parseFloat((parseInt(ScanCount) / parseInt(TotalCount)) * 100);
+                console.log(String(piePreInt + "%"));
                 //$('#pie_totalscancount').attr('aria-valuenow', count);
-                $('#pie_totalscancount').asPieProgress('go', count);// String(count + "%"));
+                $('#pie_totalscancount').asPieProgress('go', piePreInt);// String(count + "%"));
             }
             /*---- asPieProgress End ----*/
 
@@ -304,13 +305,14 @@
                     url: '/Scan/GetScanDocumentFromCookies',
                     //data: { clientCode: clientCode },
                     success: function (response) {
+                       // console.log(response.model.length);
                         if (response == "ScanDocumentEmpty") {
                             for (var i = 1; i < 51; i++) {
                                 $("#SuccessscannedCode").prepend("<label  class='lblAMC lbl-default' for='default" + i + "' >" + codespace + "</label>");
                             }
                         } else {
 
-                            if (response.model.length > 1) {
+                            if (response.model.length > 0) {
                                 console.log(response.model);
                                 $("#countsuccess").text(response.model.length);
                                 $('#pie_todaycount').asPieProgress('go', parseInt(response.model.length));
@@ -323,25 +325,21 @@
                                         $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + response.model[i].BatchName + "<br>  Code: " + response.model[i].Code + "' class='lblAMC lbl-success' for='success" + i + "' > " + response.model[i].TrackingNo + " </label>");
                                     }
                                     if (response.model[i].Code == "QC") {
-                                        $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + response.model[i].BatchName + "<br>  Code: " + response.model[i].Code + "'  class='lblAMC lbl-warning' for='success" + i + "' > " + response.model[i].TrackingNo + " </label>");
+                                        $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + response.model[i].BatchName + "<br>  Code: " + response.model[i].Code + "'  class='lblAMC lbl-warning' for='warning" + i + "' > " + response.model[i].TrackingNo + " </label>");
 
                                     }
                                     if (response.model[i].Code == "Pulledback") {
-                                        $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + response.model[i].BatchName + "<br>  Code: " + response.model[i].Code + "'  class='lblAMC lbl-danger' for='success" + i + "' > " + response.model[i].TrackingNo + " </label>");
+                                        $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + response.model[i].BatchName + "<br>  Code: " + response.model[i].Code + "'  class='lblAMC lbl-danger' for='danger" + i + "' > " + response.model[i].TrackingNo + " </label>");
                                     }
                                 }
                             }
+                            
                         }
 
                         // var totalcount = response.split('$');
 
 
-                        var totalScanValues = $("#todayscount").text().split('/');
-                        var totalfiles = totalScanValues[1];
-                        $("#todayscount").text((parseInt(response.model[response.model.length - 1].ScanCount) + "/" + parseInt(response.model[response.model.length - 1].TotalCount)));
-                        var piePreInt = parseInt((parseInt(response.model[response.model.length - 1].ScanCount) / parseInt(response.model[response.model.length - 1].TotalCount)) * 100);
-
-                        UpdateProgressCount(piePreInt);
+                        GetScanCount(clientCode);
                         $('[data-toggle="tooltip"]').tooltip();
                     },
                     error: function (response) {
@@ -408,6 +406,9 @@
                 });
                 GetScanCount(clientCode);
                 GetScanDocumentFromCookies(clientCode);
+                //var totalBatch = $("#todayscount").text().split('/');
+                //console.log(totalBatch);
+                ////UpdateProgressCount(parseInt(totalBatch[0].trim()), parseInt(totalBatch[1].trim()));
                 /*  Updating Batch Count on every 12 Second using Ajax */
                 window.setInterval(function () {
                     GetScanCount(clientCode);
@@ -535,7 +536,7 @@
                                     success: function (response) {
                                         var object = response;
                                         console.log(object)
-                                        var piePreInt = parseInt((parseInt(object.model.ScanCount) / parseInt(totalfiles)) * 100);
+                                        
                                         var code = object.model.Code;
                                         var trackingNo = object.model.TrackingNo;
                                         var message = object.model.Message;
@@ -545,7 +546,7 @@
                                             if (message == null || message == "") {
                                                 message = successmsg;
                                             }
-                                            UpdateProgressCount(piePreInt);
+                                            UpdateProgressCount(object.model.ScanCount, totalfiles);
                                             //check//$('#pie_totalscancount').asPieProgress('go', String(piePreInt + "%"));
 
                                             $("#message").empty();
