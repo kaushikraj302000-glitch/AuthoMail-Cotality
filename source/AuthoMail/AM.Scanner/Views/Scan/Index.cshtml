@@ -292,7 +292,7 @@
             }
             /*---- asPieProgress  ----*/
             function UpdateProgressCount(count) {
-                console.log(String(count + "%"));
+                // console.log(String(count + "%"));
                 //$('#pie_totalscancount').attr('aria-valuenow', count);
                 $('#pie_totalscancount').asPieProgress('go', count);// String(count + "%"));
             }
@@ -315,7 +315,7 @@
                                 $("#countsuccess").text(response.model.length);
                                 $('#pie_todaycount').asPieProgress('go', parseInt(response.model.length));
                                 for (var i = 1; i < 51 - (response.model.length) ; i++) {
-                                    $("#SuccessscannedCode").prepend("<label class='tooltip' data-toggle='tooltip' title='Hooray!' class='lblAMC lbl-default' for='default" + i + "'  >" + codespace + " </label>");
+                                    $("#SuccessscannedCode").prepend("<label  class='lblAMC lbl-default' for='default" + i + "'  >" + codespace + " </label>");
                                 }
                                 for (var i = 0; i < response.model.length; i++) {
 
@@ -338,7 +338,7 @@
 
                         var totalScanValues = $("#todayscount").text().split('/');
                         var totalfiles = totalScanValues[1];
-                        $("#todayscount").text(response.model.length);
+                        $("#todayscount").text((parseInt(response.model[response.model.length - 1].ScanCount) + "/" + parseInt(response.model[response.model.length - 1].TotalCount)));
                         var piePreInt = parseInt((parseInt(response.model[response.model.length - 1].ScanCount) / parseInt(response.model[response.model.length - 1].TotalCount)) * 100);
 
                         UpdateProgressCount(piePreInt);
@@ -353,8 +353,9 @@
                         $("#code1").focus();
                     }
                 });
-                
+
             }
+
             //debugger;
             var clientCode = "";// "AMC";// "HTL"; //
             var successmsg = "Document scanned successfully!";
@@ -369,20 +370,32 @@
             var modalsuccess = "Your batch is completed, start a new batch..!";
             //var modalsuccess = "Your task is completed..!";
             var modalInfo = "Please start a new batch..!";
-            var codespace = "AMC000000000";// "HTL00000000000";//
+            var codespace = "123456789012";// "HTL00000000000";//
             var environment = $("#Environment").val();
 
             /*---- Scanned Batch Count using Ajax  ----*/
             /*---- Parameter:{ operationcode , clientCode }  ----*/
             jQuery(document).ready(function ($) {
+
+                var isIE11 = !!navigator.userAgent.match(/Trident.*rv\:11\./);
+                // debugger;
+
+                if (isIE11) {
+                    $("#countsuccess").addClass("counterIe10");
+                    $("#todayscount").addClass("counterTotalIe10");
+                }
+                else {
+                    $("#countsuccess").removeClass("counterIe10");
+                    $("#todayscount").removeClass("counterTotalIe10");
+                }
                 $('.modal-dialog').draggable({ handle: ".modal-header" });
                 $('.modal-dialog').find(".modal-header").css('cursor', 'move');
-                
+
                 clientCode = getParameterByName('clientCode');
                 notStartWithClientCode = " Wrong document not starting with " + clientCode + ". please scan again.!";
-               
+
                 var cnt = 0;
-                GetScanCount(clientCode);
+
                 $('#pie_todaycount').asPieProgress({
                     namespace: 'pie_progress',
                     min: 0
@@ -393,22 +406,21 @@
                     min: 0,
 
                 });
+                GetScanCount(clientCode);
+                GetScanDocumentFromCookies(clientCode);
+                /*  Updating Batch Count on every 12 Second using Ajax */
+                window.setInterval(function () {
+                    GetScanCount(clientCode);
+                }, 12000);
+                /*  Updating Batch Count on every 12 Second using Ajax */
+
             });
             /*---- End of Scanned Batch Count Ajax ----*/
 
-            GetScanDocumentFromCookies(clientCode);
 
-            var isIE11 = !!navigator.userAgent.match(/Trident.*rv\:11\./);
-            // debugger;
 
-            if (isIE11) {
-                $("#countsuccess").addClass("counterIe10");
-                $("#todayscount").addClass("counterTotalIe10");
-            }
-            else {
-                $("#countsuccess").removeClass("counterIe10");
-                $("#todayscount").removeClass("counterTotalIe10");
-            }
+
+
 
             /*---- Validate for New Batch  ----*/
             function startNewBatch() {
@@ -682,11 +694,6 @@
                 });
             });
             /*----End Clear Cookies on Client side of Barcode scan ----*/
-            //$("#code2").on("blur", function (e) {
-            //
-            //        alert("DO SOMETHING");
-            //    }
-            //});
 
             $("#clearData").on("mousedown", function (e) {
                 $("#clearData").data("mouseDown", true);
@@ -695,55 +702,55 @@
             $("#clearData").on("mouseup", function (e) {
                 $("#clearData").data("mouseDown", false);
             });
-            /*---- on Load Get Active Batch Count ----*/
-            $(document).ready(function () {
+            ///*---- on Load Get Active Batch Count ----*/
+            //$(document).ready(function () {
 
 
-                /*  Updating Batch Count on every 12 Second using Ajax */
-                //window.setInterval(function () {
-                
-                //    $.ajax({
-                //        type: "POST",
-                //        url: '<%= ResolveUrl("JsonResult.aspx") %>',
-                //        data: { clientCode: clientCode },
-                //        success: function (response) {
-                //            // alert(response);
-                //            var totalcount = response.split('$');
-                //            $("#todayscount").text(totalcount[0]);
-                //            var totalScanValues = $("#todayscount").text().split('/');
-                //            // var totalfiles = totalScanValues[1];
-                //            $("#todayscount").text(totalScanValues[0] + "/" + totalScanValues[1]);
-                //            if ($("#todayscount").text() == "0/0") {
-                //                $('#pie_totalscancount').asPieProgress('reset');
-                //            }
-                //            // alert(totalScanValues[0] + "12 second");
-                //            //$('#pie_totalscancount').attr("aria-valuenow", totalcount[0]);
-                //            //$('#pie_totalscancount').asPieProgress('start');
-                //            //$('#pie_totalscancount').asPieProgress('go', parseInt(totalScanValues[0]));
-                //            //$('#pie_totalscancount').asPieProgress('stop');
-                //            var piePreInt = parseInt((parseInt(totalScanValues[0]) / parseInt(totalScanValues[1])) * 100);
-                //            // var perPie = "'" + piePreInt + "%'";
+            //    /*  Updating Batch Count on every 12 Second using Ajax */
+            //    //window.setInterval(function () {
 
-                //            UpdateProgressCount(piePreInt);
-                //            //check//$('#pie_totalscancount').asPieProgress('go', String(piePreInt + "%"));
-                //            //alert("'" + piePreInt + "%'");
-                //            //$('#pie_totalscancount').asPieProgress('go', '"' + perPie + '"%');
+            //    //    $.ajax({
+            //    //        type: "POST",
+            //    //        url: '<%= ResolveUrl("JsonResult.aspx") %>',
+            //    //        data: { clientCode: clientCode },
+            //    //        success: function (response) {
+            //    //            // alert(response);
+            //    //            var totalcount = response.split('$');
+            //    //            $("#todayscount").text(totalcount[0]);
+            //    //            var totalScanValues = $("#todayscount").text().split('/');
+            //    //            // var totalfiles = totalScanValues[1];
+            //    //            $("#todayscount").text(totalScanValues[0] + "/" + totalScanValues[1]);
+            //    //            if ($("#todayscount").text() == "0/0") {
+            //    //                $('#pie_totalscancount').asPieProgress('reset');
+            //    //            }
+            //    //            // alert(totalScanValues[0] + "12 second");
+            //    //            //$('#pie_totalscancount').attr("aria-valuenow", totalcount[0]);
+            //    //            //$('#pie_totalscancount').asPieProgress('start');
+            //    //            //$('#pie_totalscancount').asPieProgress('go', parseInt(totalScanValues[0]));
+            //    //            //$('#pie_totalscancount').asPieProgress('stop');
+            //    //            var piePreInt = parseInt((parseInt(totalScanValues[0]) / parseInt(totalScanValues[1])) * 100);
+            //    //            // var perPie = "'" + piePreInt + "%'";
 
-                //        },
-                //        error: function (response) {
-                //            $("#message").empty();
-                //            $("#message").show();
-                //            $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>" + databaseError + "</div>");
-                //            $("#code1").val("");
-                //            $("#code2").val("");
-                //            $("#code1").focus();
-                //        }
-                //    });
-                //}, 12000);
-                /*  Updating Batch Count on every 12 Second using Ajax */
+            //    //            UpdateProgressCount(piePreInt);
+            //    //            //check//$('#pie_totalscancount').asPieProgress('go', String(piePreInt + "%"));
+            //    //            //alert("'" + piePreInt + "%'");
+            //    //            //$('#pie_totalscancount').asPieProgress('go', '"' + perPie + '"%');
 
-            });
-            /* End Active Batch Count */
+            //    //        },
+            //    //        error: function (response) {
+            //    //            $("#message").empty();
+            //    //            $("#message").show();
+            //    //            $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>" + databaseError + "</div>");
+            //    //            $("#code1").val("");
+            //    //            $("#code2").val("");
+            //    //            $("#code1").focus();
+            //    //        }
+            //    //    });
+            //    //}, 12000);
+            //    /*  Updating Batch Count on every 12 Second using Ajax */
+
+            //});
+            ///* End Active Batch Count */
 
         </script>
     }

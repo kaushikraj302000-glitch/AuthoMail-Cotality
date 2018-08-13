@@ -1,6 +1,7 @@
 ﻿@{
     ViewBag.Title = "Home Page";
 }
+<link href="~/Content/module.admin.page.index.min.css" rel="stylesheet" />
 
 <style>
     .clientCode {
@@ -41,7 +42,6 @@
         padding: 5px;
     }
 </style>
-<link href="~/Content/module.admin.page.index.min.css" rel="stylesheet" />
 
 <div class="innerAll spacing-x2">
     <div class="row">
@@ -179,7 +179,7 @@
             data: { clientCode: clientCode.trim() },
             async: false,
             success: function (response) {
-                console.log(clientCode + " " + response.ScanCount + "/" + response.TotalCount);
+                //console.log(clientCode + " " + response.ScanCount + "/" + response.TotalCount);
                 //var totalcount = response.split('$');
                 $("#" + clientCode + "scanCount").empty();
                 $("#" + clientCode + "scanCount").append(response.ScanCount + "/" + response.TotalCount);
@@ -203,7 +203,7 @@
             success: function (data) {
                 // alert(JSON.stringify(data[0].ReceivedOn) + JSON.stringify(data[0].TotalLoans));
                 //debugger;
-                console.log(data);
+       //         console.log(data);
                 $("#displaycount" + clientCode).empty();
 
                 for (var j = 0; j < data.length; j++) {
@@ -216,7 +216,7 @@
                         localTime = moment(localDate).format('hh:mm A');
                         // alert(localTime+"localtime");
                     }
-                    console.log()
+                    
                     // alert(localTime);
                     if (j % 2 == 0) {
 
@@ -239,6 +239,8 @@
                 // alert(data);
             }
         });
+
+        $(".tooltip.fade.top.in").remove();
     }
 
 
