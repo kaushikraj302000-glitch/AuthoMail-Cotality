@@ -185,8 +185,6 @@
         });
         $(document).ready(function () {
             clientCode = getParameterByName('clientCode');
-            bindReportData(clientCode, $("#BarcodeValue").val().trim(), $("#LoanNumber").val().trim(), $("#printedOnFrom").val().trim(), $("#printedOnTo").val().trim(), $("#shippedOnFrom").val().trim(), $("#shippedOnTo").val().trim());
-
             ReportDate("reportrange");
             ReportDate("reportrange1");
             var shippedOnDates = $("#shippedOn").text().split('-');
@@ -195,6 +193,8 @@
             $("#shippedOnFrom").val(shippedOnDates[0]);
             $("#printedOnTo").val(printedOnDates[1]);
             $("#shippedOnTo").val(shippedOnDates[1]);
+
+            bindReportData(clientCode, $("#BarcodeValue").val().trim(), $("#LoanNumber").val().trim(), $("#printedOnFrom").val().trim(), $("#printedOnTo").val().trim(), $("#shippedOnFrom").val().trim(), $("#shippedOnTo").val().trim());
 
         });
         function applyDataTable() {
@@ -344,7 +344,6 @@
         }
 
         function bindReportData(clientCode, loanNumber, barcodeValue, printOnFrom, printOnTo, shippedOnFrom, shippedOnTo) {
-            $("#bindReportData").empty();
             $.ajax({
                 type: "GET",
                 url: '/api/report/ScanedDocumentList',
@@ -352,6 +351,7 @@
                 success: function (response) {
                     console.log(response);
                     if (response != null) {
+                        $("#scanList").empty();
                         var data = FormatObject(response);
                         BindTemplate(data, "#scanBody", "#scanbodyContent", "#scanTableContent", "#scanList");
                     }

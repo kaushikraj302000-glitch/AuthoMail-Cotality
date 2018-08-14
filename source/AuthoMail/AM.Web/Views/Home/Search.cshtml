@@ -17,10 +17,12 @@
         word-wrap: break-word;
         color: red;
     }
-.tooltip-inner {
+
+    .tooltip-inner {
         /*max-width: 453px !important;*/
         word-wrap: break-word !important;
     }
+
     .show-calendar {
         width: 484px !important;
     }
@@ -62,7 +64,7 @@
                                 <label for="BusinessFriendlyIdValue">@ViewBag.BusinessId[0]</label>
                                 <div class="input-group">
                                     <i class="fa fa-search left-icon"></i>
-                                    <input class="form-control" name="BusinessFriendlyIdValue" value="@ViewBag.BusinessFriendlyIdValue" placeholder="@ViewBag.BusinessId[0]"  id="BusinessFriendlyIdValue">
+                                    <input class="form-control" name="BusinessFriendlyIdValue" value="@ViewBag.BusinessFriendlyIdValue" placeholder="@ViewBag.BusinessId[0]" id="BusinessFriendlyIdValue">
                                     <input type="hidden" value="@ViewBag.BusinessId[0]" name="BusinessFriendlyIdName" id="BusinessFriendlyIdName" />
                                 </div>
                                 <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
@@ -209,13 +211,16 @@
                 <th>Borrower Name</th>
                 <th>City</th>
                 @*<th>Zip</th>*@
-                <th>Tracking Number</th>
+                <th class="TrackingNoHide">Tracking Number</th>
+                <th class="TrackingNo">Tracking Number</th>
                 <th>Received Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Due Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Shipped Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Document Type</th>
                 <th>Channel</th>
                 <th>Shipping Carrier / Service type</th>
+                <th class="ErrorCode">Error Code</th>
+                <th class="ErrorText">Error Text</th>
             </tr>
         </thead>
         <tbody id="SearchbodyContent"></tbody>
@@ -229,14 +234,17 @@
                 <td><span>{ShippingStatusFormatted}</span></td>
                 <td><span>{RcptNameFormatted}</span></td>
                 <td><span>{CityFormatted}</span></td>
-                @*<td><span>{ZIP}</span></td>*@
+                <td><span>{TrackingNo}</span></td>
                 <td><span>{TrackingNoFormatted}</span></td>
+                @*<td><span>{ZIP}</span></td>*@
                 <td><span>{ReceivedOnFormatted}</span></td>
                 <td><span>{DueDateFormatted}</span></td>
                 <td><span>{ShippedOnFormatted}</span></td>
                 <td><span>{DocType}</span></td>
                 <td><span>{Channel}</span></td>
                 <td>{ShippingCarrier} / {ShippingMethod}</td>
+                <td>{ErrorCode}</td>
+                <td>{ErrorDesc}</td>
             </tr>
         </tbody>
     </table>
@@ -746,19 +754,19 @@
                 }
                 else {
                     //trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/Track/' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
+                    trackingNo = '<a id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" href="/Track/' + this.TrackingNo + '" target="_blank"><i style="margin-top: 2px;" class="fa fa-map-marker fa-2x"></i> </a>';
+                    //if (this.ShippingCarrier == "USPS" && this.ShippingMethod == "USPS_EXPRESSMAIL") {
 
-                    if (this.ShippingCarrier == "USPS" && this.ShippingMethod == "USPS_EXPRESSMAIL") {
+                    //    trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="https://m.usps.com/m/TrackConfirmAction_detail?tLabels=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
+                    //} else if (this.ShippingCarrier == "USPS" && this.ShippingMethod == "USPS") {
+                    //    trackingNo = '<button id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
 
-                        trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="https://m.usps.com/m/TrackConfirmAction_detail?tLabels=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
-                    } else if (this.ShippingCarrier == "USPS" && this.ShippingMethod == "USPS") {
-                        trackingNo = '<button id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
-
-                    }
-                    else if (this.ShippingCarrier == "FedEx") {
-                        trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="http://www.fedex.com/Tracking?cntry_code=us&action=1&track=y&tracknumbers=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
-                    } else {
-                        trackingNo = "--";
-                    }
+                    //}
+                    //else if (this.ShippingCarrier == "FedEx") {
+                    //    trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="http://www.fedex.com/Tracking?cntry_code=us&action=1&track=y&tracknumbers=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
+                    //} else {
+                    //    trackingNo = "--";
+                    //}
                 }
                 this.TrackingNoFormatted = trackingNo;
                 //this.TrackingNo == null ? "--" : '<button id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
@@ -789,7 +797,13 @@
                     "search": "<b>Search:</b>",
                     "zeroRecords": "No matching records found"
                 },
-
+                "columnDefs": [
+                       {
+                           "targets": ["TrackingNoHide", "ErrorCode", "ErrorText", "BatchId"],
+                           "visible": false,
+                           "searchable": true
+                       },
+                ],
                 buttons: [
                   {
                       extend: 'excel',
@@ -797,16 +811,16 @@
                       className: 'btn btn-primary',
                       filename: filename,
                       title: title,
-                      //exportOptions: {
-                      //    columns: "thead th:not(.BatchId)",//[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
-                      //}
+                      exportOptions: {
+                          columns: ["thead th:not(.TrackingNo)", ".TrackingNoHide", ".ErrorCode", ".ErrorText"],
+                      }
 
                   }
 
                 ],
 
                 "scrollX": true,
-
+               
                 "order": [
                     [1, 'asc']
                 ],

@@ -11,6 +11,7 @@ namespace AM.Web.Models
         public int BatchId { get; set; }
         public Guid UniqueId { get; set; }
         public DateTime? DueDate { get; set; }
+        public DateTime? ShippedOn { get; set; }
         public string ShippingMethod { get; set; }
         public string ShippingCarrier { get; set; }
     }
