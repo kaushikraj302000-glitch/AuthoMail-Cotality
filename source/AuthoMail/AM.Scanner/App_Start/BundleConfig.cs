@@ -27,6 +27,18 @@ namespace AM.Scanner
             bundles.Add(new ScriptBundle("~/bundles/bootstrap").Include(
                       "~/Scripts/bootstrap.js",
                       "~/Scripts/respond.js"));
+            bundles.Add(new ScriptBundle("~/bundles/datatables").Include(
+              "~/Content/datatables/datatable.js",
+              "~/Content/datatables/datatables.min.js",
+              "~/Content/datatables/plugins/bootstrap/datatables.bootstrap.js"//,
+                //"~/Content/datatables/table-datatables-managed.js"
+              ));
+
+            bundles.Add(new StyleBundle("~/bundles/datatablescss").Include(
+                //"~/Content/datatables/datatables.min.css",
+               "~/Content/datatables/datatables.css",
+              "~/Content/datatables/plugins/bootstrap/datatables.bootstrap.css"
+              ));
 
             bundles.Add(new StyleBundle("~/Content/css").Include(
                       "~/Content/bootstrap.css",

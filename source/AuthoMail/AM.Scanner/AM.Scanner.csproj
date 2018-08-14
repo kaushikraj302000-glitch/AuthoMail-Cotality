@@ -172,6 +172,8 @@
     </Compile>
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\BaseAPIController.cs" />
+    <Compile Include="Controllers\ReportsController.cs" />
     <Compile Include="Controllers\ScanController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -179,6 +181,7 @@
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\CLAuthentication.cs" />
     <Compile Include="Models\ClientDetails.cs" />
+    <Compile Include="Models\ReportViewModel.cs" />
     <Compile Include="Models\ScanDetails.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -192,6 +195,25 @@
     <Content Include="Content\bootstrap-progressbar-3.2.0.css" />
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\dataTables.bootstrap.css" />
+    <Content Include="Content\datatables\datatable.js" />
+    <Content Include="Content\datatables\datatables.all.min.js" />
+    <Content Include="Content\datatables\datatables.css" />
+    <Content Include="Content\datatables\datatables.min.css" />
+    <Content Include="Content\datatables\datatables.min.js" />
+    <Content Include="Content\datatables\images\back_disabled.png" />
+    <Content Include="Content\datatables\images\back_enabled.png" />
+    <Content Include="Content\datatables\images\back_enabled_hover.png" />
+    <Content Include="Content\datatables\images\forward_disabled.png" />
+    <Content Include="Content\datatables\images\forward_enabled.png" />
+    <Content Include="Content\datatables\images\forward_enabled_hover.png" />
+    <Content Include="Content\datatables\images\sort_asc.png" />
+    <Content Include="Content\datatables\images\sort_asc_disabled.png" />
+    <Content Include="Content\datatables\images\sort_both.png" />
+    <Content Include="Content\datatables\images\sort_desc.png" />
+    <Content Include="Content\datatables\images\sort_desc_disabled.png" />
+    <Content Include="Content\datatables\plugins\bootstrap\datatables.bootstrap.css" />
+    <Content Include="Content\datatables\plugins\bootstrap\datatables.bootstrap.js" />
+    <Content Include="Content\datatables\table-datatables-managed.js" />
     <Content Include="Content\daterangepicker-bs3.css" />
     <Content Include="Content\font-awesome.min.css" />
     <Content Include="Content\module.admin.page.index.min.css" />
@@ -221,6 +243,7 @@
     <Content Include="assets\fonts\fontawesome-webfont.woff" />
     <Content Include="assets\fonts\FontAwesome.otf" />
     <Content Include="assets\ReportTemplate.xlsx" />
+    <Content Include="Content\datatables\images\Sorting icons.psd" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\dataTables.bootstrap.js" />
     <Content Include="Scripts\daterangepicker.js" />
@@ -284,6 +307,8 @@
     <Content Include="Views\Shared\Lockout.cshtml" />
     <Content Include="Views\Shared\_LoginPartial.cshtml" />
     <Content Include="Views\Scan\Index.cshtml" />
+    <Content Include="Views\Reports\ScanedDocuments.cshtml" />
+    <Content Include="Views\Reports\PendingScanning.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

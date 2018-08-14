@@ -14,7 +14,7 @@ namespace AM.Scanner.Models
     }
     public class GetAllBatchCountDetails
     {
-        public string ReceivedOn { get; set; }
+        public DateTime ReceivedOn { get; set; }
         public string ScannedLoans { get; set; }
         public string TotalLoans { get; set; }
         public string BatchName { get; set; }
