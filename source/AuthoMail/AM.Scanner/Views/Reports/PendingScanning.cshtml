@@ -175,18 +175,19 @@
             $(Model).each(function () {
                 this.SubmittedDate = this.SubmittedOn == null ? "--" : moment(this.SubmittedOn).format("MM/DD/YY HH:mm:ss");
             });
-            console.log(Model);
+            //console.log(Model);
             return Model;
         }
         function bindReportData(clientCode) {
-            $("#bindReportData").empty();
             $.ajax({
                 type: "GET",
                 url: '/api/report/PendingScanningList',
                 data: { clientCode: clientCode },
                 success: function (response) {
                     if (response != null) {
+                        $("#scanList").empty();
                         var data = FormatObject(response);
+                        //console.log(response);
                         BindTemplate(data, "#scanBody", "#scanbodyContent", "#scanTableContent", "#scanList");
                     }
                     else {
