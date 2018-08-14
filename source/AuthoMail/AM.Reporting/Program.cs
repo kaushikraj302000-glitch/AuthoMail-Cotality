@@ -25,6 +25,9 @@ namespace AM.Reporting
                     case "AMC":
                         AMCChannel.GenerateSummaryReport();
                         break;
+                    case "FedExPickUp":
+                        FedExPickUp.CheckPickedUpPackages();
+                        break;
                     default:
                         break;
                 }
