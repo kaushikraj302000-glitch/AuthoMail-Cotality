@@ -238,14 +238,14 @@ namespace AM.Core
                                     coverLetterPdfPath = createFedExLabel.GeneratedFedExLabelPath;
                                     mailPiece.TrackingNo = Path.GetFileNameWithoutExtension(coverLetterPdfPath);
 
-                                    //if (mailPiece.PrintLocation == Config.Common_PrintLocationCL)
-                                    //{
-                                    //    Dictionary<string, string> mailPieceData = new Dictionary<string, string>();
-                                    //    mailPieceData.Add("MailPieceId", mailPiece.Id.ToString());
-                                    //    mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((Config.Common_ScannerAppCode + mbi.Client.AppCode + mailPiece.TrackingNo).Reverse().ToArray()) + "*");
+                                    if (mailPiece.PrintLocation == Config.Common_PrintLocationCL)
+                                    {
+                                        Dictionary<string, string> mailPieceData = new Dictionary<string, string>();
+                                        mailPieceData.Add("MailPieceId", mailPiece.Id.ToString());
+                                        mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((Config.Common_ScannerAppCode + mbi.Client.AppCode + mailPiece.TrackingNo).Reverse().ToArray()) + "*");
 
-                                    //    endPagePdfPath = doc.GenerateLastPageWithBarcode(endPageTemplatePath, mbi.PnSRequestPath, mailPieceData);
-                                    //}
+                                        endPagePdfPath = doc.GenerateLastPageWithBarcode(endPageTemplatePath, mbi.PnSRequestPath, mailPieceData);
+                                    }
                                 }
 
                                 #endregion
@@ -694,7 +694,7 @@ namespace AM.Core
                         request.BatchName = batchName;
                         request.DocTypeId = printBatchData.DocTypeId;
                         request.DueDate = printBatchData.MailPieces.OrderBy(x => x.DueDate).Select(x => x.DueDate).Distinct().First().Value.Date;
-                        //request.PrintLocation = printBatchData.PrintLocation;
+                        request.PrintLocation = printBatchData.PrintLocation;
                         request.OnValidationErrors = OnValidationErrors.ProcessValidFiles;
 
                         List<MailPieceData> mailPackage = new List<MailPieceData>();
