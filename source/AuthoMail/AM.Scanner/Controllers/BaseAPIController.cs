@@ -12,6 +12,7 @@ namespace AM.Scanner.Controllers
 {
     
     [RoutePrefix("api/report")]
+    [Authorize]
     public class BaseAPIController : ApiController
     {
         [HttpGet]

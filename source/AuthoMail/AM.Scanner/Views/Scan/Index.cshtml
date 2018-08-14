@@ -239,7 +239,7 @@
 
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3 class="alert alert-info" id="modalInfo">There are no more Document(s) for scan..!</h3>
+                    <h3 class="alert alert-info" id="modalInfo">There are no more document(s) for scan.</h3>
                 </div>
                 <div class="modal-body" style="text-align: center;">
                     <button type="button" id="okModal" tabindex="10" data-dismiss="modal" class=" btn btn-success">OK</button>
@@ -362,18 +362,18 @@
 
             //debugger;
             var clientCode = "";// "AMC";// "HTL"; //
-            var successmsg = "Document scanned successfully!";
-            var notStartWithClientCode = " Wrong document not starting with " + clientCode + ". please scan again.!";
-            var emptymsg = "Please scan a document..!";
+            var successmsg = "Document scanned.";
+            var notStartWithClientCode = "";
+            var emptymsg = "Please scan a document.";
             var duplicatemsg = "Document already scanned.";
-            var notInDatabase = "Wrong barcode; please scan again.";
+           // var notInDatabase = "";
             var mismatch = "Barcode value does not match with ";
-            var databaseError = "Please try after some time.";
+            var databaseError = "Communication error. Please try to scan after some time.";
             var ActiveBatchCount = 1;
-            var nomoreBatch = "There is no more document for Scan.!";
+            var nomoreBatch = "There are no more document(s) for scan.";
             var modalsuccess = "Your batch is completed, start a new batch..!";
-            //var modalsuccess = "Your task is completed..!";
-            var modalInfo = "Please start a new batch..!";
+            //var modalsuccess = "All documents has been scanned.";
+            var modalInfo = "Please start a new batch.";
             var codespace = "123456789012";// "HTL00000000000";//
             var environment = $("#Environment").val();
 
@@ -396,7 +396,7 @@
                 $('.modal-dialog').find(".modal-header").css('cursor', 'move');
 
                 clientCode = getParameterByName('clientCode');
-                notStartWithClientCode = " Wrong document not starting with " + clientCode + ". please scan again.!";
+                notStartWithClientCode = "Barcode must be start with " + clientCode + ". Please scan again.";
 
                 var cnt = 0;
                 
@@ -621,7 +621,7 @@
                                         else if (code == "Invalid") {
                                             $("#message").empty();
                                             $("#message").show();
-                                            $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>" + code2Value + " " + notInDatabase + "</div>");
+                                            $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>Document with barcode "+ code2Value + " could not be found.</div>");
                                             $("#code1").val("");
                                             $("#code2").val("");
                                             $("#code1").focus();
