@@ -20,7 +20,7 @@ namespace AM.Services
         public static string Common_Environment { get; private set; }
         public static string Common_AuthoMailRootFolder { get; private set; }
         public static string Common_PrintLocationPCI { get; private set; }
-        //public static string Common_PrintLocationCL { get; private set; }
+        public static string Common_PrintLocationCL { get; private set; }
         //public static string Common_ScannerAppCode { get; private set; }
         public static List<Holiday> Common_Holidays { get; private set; }
 
