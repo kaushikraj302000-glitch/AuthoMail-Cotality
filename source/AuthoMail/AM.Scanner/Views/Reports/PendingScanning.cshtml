@@ -173,7 +173,7 @@
         function FormatObject(Model) {
 
             $(Model).each(function () {
-                this.SubmittedDate = this.SubmittedOn == null ? "--" : moment(this.SubmittedOn).format("MM/DD/YY HH:mm:ss");
+                this.SubmittedDate = this.SubmittedOn == null ? "--" : moment(this.SubmittedOn).format("MM/DD/YY hh:mm:ss A");
             });
             //console.log(Model);
             return Model;

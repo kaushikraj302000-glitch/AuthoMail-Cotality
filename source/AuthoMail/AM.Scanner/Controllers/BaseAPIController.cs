@@ -30,5 +30,13 @@ namespace AM.Scanner.Controllers
             var model = DBHelper.GetPendingScanning(clientCode);
             return model;
         }
+
+        [HttpGet]
+        [Route("GetAllBatchForScan")]
+        public List<GetAllBatchCountDetails> GetAllBatchForScan(string clientCode)
+        {
+            var model = DBHelper.GetRecentBatchesStats(clientCode.Trim());
+            return model;
+        }
     }
 }

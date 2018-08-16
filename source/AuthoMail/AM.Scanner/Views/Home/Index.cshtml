@@ -195,15 +195,15 @@
     function GetAllBatchForScan(clientCode,i) {
 
         $.ajax({
-            type: "POST",
-            url: '/Home/GetAllBatchForScan',
+            type: "GET",
+            url: '/api/report/GetAllBatchForScan',
             dataType: 'json',
             async: false,
             data: { clientCode: clientCode.trim() },
             success: function (data) {
                 // alert(JSON.stringify(data[0].ReceivedOn) + JSON.stringify(data[0].TotalLoans));
                 //debugger;
-       //         console.log(data);
+               console.log(data);
                 $("#displaycount" + clientCode).empty();
 
                 for (var j = 0; j < data.length; j++) {

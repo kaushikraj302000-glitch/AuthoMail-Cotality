@@ -208,7 +208,7 @@
 
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3 id="modalTitle" class="alert alert-danger">Are you sure you want to start new batch.?</h3>
+                    <h3 id="modalTitle" class="alert alert-danger">Are you sure you want to start new batch?</h3>
                 </div>
                 <div class="modal-body" style="text-align: center;">
                     <button type="submit" id="submitModal" tabindex="10" class=" btn btn-success">Yes</button>
@@ -309,42 +309,38 @@
                 $.ajax({
                     type: "POST",
                     url: '/Scan/GetScanDocumentFromCookies',
-                    //data: { clientCode: clientCode },
                     success: function (response) {
-                        // console.log(response.model.length);
+                         console.log(response);
                         if (response == "ScanDocumentEmpty") {
                             for (var i = 1; i < 51; i++) {
                                 $("#SuccessscannedCode").prepend("<label  class='lblAMC lbl-default' for='default" + i + "' >" + codespace + "</label>");
                             }
                         } else {
-
-                            if (response.model.length > 0) {
-                               // console.log(response.model);
-                                $("#countsuccess").text(response.model.length);
-                                $('#pie_todaycount').asPieProgress('go', parseInt(response.model.length));
-                                for (var i = 1; i < 51 - (response.model.length) ; i++) {
+                            var totalMailPieces = response.model.split('|');
+                            if (totalMailPieces.length > 0) {
+                                $("#countsuccess").text(totalMailPieces.length-1);
+                                $('#pie_todaycount').asPieProgress('go', parseInt(totalMailPieces.length-1));
+                                for (var i = 1; i < 51 - (totalMailPieces.length - 1) ; i++) {
                                     $("#SuccessscannedCode").prepend("<label  class='lblAMC lbl-default' for='default" + i + "'  >" + codespace + " </label>");
                                 }
-                                for (var i = 0; i < response.model.length; i++) {
-
-                                    if (response.model[i].Code == "Valid") {
-                                        $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + response.model[i].BatchName + "<br>  Code: " + response.model[i].Code + "' class='lblAMC lbl-success' for='success" + i + "' > " + response.model[i].TrackingNo + " </label>");
+                                for (var i = 0; i < totalMailPieces.length-1; i++) {
+                                    var dataObj = totalMailPieces[i].split(',');
+                                    var trackingNo = dataObj[0];
+                                    var code = dataObj[1];
+                                    var batchName = dataObj[2];
+                                    if (parseInt(code) == 0) {//Valid
+                                        $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + batchName + "<br>  Code: Valid' class='lblAMC lbl-success' for='success" + i + "' > " + trackingNo+ " </label>");
                                     }
-                                    if (response.model[i].Code == "QC") {
-                                        $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + response.model[i].BatchName + "<br>  Code: " + response.model[i].Code + "'  class='lblAMC lbl-warning' for='warning" + i + "' > " + response.model[i].TrackingNo + " </label>");
+                                    if (parseInt(code) == 1) {//QC
+                                        $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + batchName + "<br>  Code: QC'  class='lblAMC lbl-warning' for='warning" + i + "' > " + trackingNo + " </label>");
 
                                     }
-                                    if (response.model[i].Code == "Pulledback") {
-                                        $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + response.model[i].BatchName + "<br>  Code: " + response.model[i].Code + "'  class='lblAMC lbl-danger' for='danger" + i + "' > " + response.model[i].TrackingNo + " </label>");
+                                    if (parseInt(code) == 2) {//Pulledback
+                                        $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + batchName + "<br>  Code: Pulledback'  class='lblAMC lbl-danger' for='danger" + i + "' > " +trackingNo+ " </label>");
                                     }
                                 }
                             }
-
                         }
-
-                        // var totalcount = response.split('$');
-
-
                         GetScanCount(clientCode);
                         $('[data-toggle="tooltip"]').tooltip();
                     },
@@ -459,6 +455,13 @@
                 var totalScanValues = $("#todayscount").text().split('/');
                 var totalfiles = totalScanValues[1];
                 var totalscannedValue = totalScanValues[0];
+                if (parseInt($("#countsuccess").text().trim()) == 50) {
+                    $("#modalTitle").removeClass("alert alert-danger");
+                    $("#modalTitle").text(modalsuccess);
+                    $("#modalTitle").addClass("alert alert-success");
+                    $("#nextBatch").click();
+                    return;
+                }
                 if ($("#code1").val().trim().length > 13) {
                     if ($("#code1").val().trim().indexOf("AUT") == -1) {
                         var changeCode1 = $("#code1").val().trim();
