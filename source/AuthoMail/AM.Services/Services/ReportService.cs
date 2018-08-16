@@ -18,7 +18,7 @@ namespace AM.Services
         List<MailPieces> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel);
         List<ChannelCodeTitle> GetChannelTitle(int clientId);
         List<PullBackRequests> GetPullbackRequestReport(int clientId, DateTime startDate, DateTime endDate);
-        List<MailPieces> GetFedExPickedUpReport(DateTime deploymentDate, DateTime lastReceivedOnDate, bool isPickedUp = false);
+        List<MailPieces> GetFedExPickedUpReport(DateTime deploymentDate, DateTime lastReceivedOnDate, int isPickedUp = -1);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -150,8 +150,9 @@ namespace AM.Services
             return data;
         }
 
-        public List<MailPieces> GetFedExPickedUpReport(DateTime deploymentDate, DateTime lastReceivedOnDate, bool isPickedUp)
+        public List<MailPieces> GetFedExPickedUpReport(DateTime deploymentDate, DateTime lastReceivedOnDate, int isPickedUp)
         {
+            //Possible values are for isPickedUp parameter is : 1-for pickedup records, 0-for not pickedup records and default -1 for get all records
             string query = "[dbo].[uspweb_FedExPickedUpReport] @deploymentDate, @lastReceivedOnDate, @shippingType, @isPickedUp";
 
             var data = db.Query<MailPieces, MailBatches, DocTypes, MailPieces>(query,
