@@ -48,7 +48,7 @@ namespace AM.Scanner.Controllers
                     {
                         FormsAuthentication.SetAuthCookie("Admin", false);
                         Session["DisplayName"] = "Admin";
-                        return RedirectToLocal(returnUrl);
+                        return RedirectToAction("Index", "Home");
                     }
                 }
 
@@ -62,18 +62,18 @@ namespace AM.Scanner.Controllers
                 var nm = result.Value.Split('|');
                 Session["DisplayName"] = nm[0];
                 FormsAuthentication.SetAuthCookie(model.Username, false);
-                return RedirectToLocal(returnUrl);
+                return RedirectToAction("Index", "Home");
             }
             return View(model);
         }
-        private ActionResult RedirectToLocal(string returnUrl)
-        {
-            //if (Url.IsLocalUrl(returnUrl))
-            //{
-            //    return Redirect(returnUrl);
-            //}
-            return RedirectToAction("Index", "Home");
-        }
+        //private ActionResult RedirectToLocal(string returnUrl)
+        //{
+        //    //if (Url.IsLocalUrl(returnUrl))
+        //    //{
+        //    //    return Redirect(returnUrl);
+        //    //}
+        //    return RedirectToAction("Index", "Home");
+        //}
         [HttpPost]
         public ActionResult LogOff()
         {
