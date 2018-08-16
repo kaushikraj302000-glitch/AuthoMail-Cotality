@@ -26,9 +26,8 @@ namespace AM.Scanner.Controllers
         //
         // GET: /Account/Login
         [AllowAnonymous]
-        public ActionResult Login(string returnUrl)
+        public ActionResult Login()
         {
-            ViewBag.ReturnUrl = returnUrl;
             return View();
         }
 
@@ -37,7 +36,7 @@ namespace AM.Scanner.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public ActionResult Login(LoginViewModel model, string returnUrl)
+        public ActionResult Login(LoginViewModel model)
         {
             if (ModelState.IsValid)
             {
@@ -48,7 +47,7 @@ namespace AM.Scanner.Controllers
                     {
                         FormsAuthentication.SetAuthCookie("Admin", false);
                         Session["DisplayName"] = "Admin";
-                        return RedirectToLocal(returnUrl);
+                        return RedirectToAction("Index", "Home");
                     }
                 }
 
@@ -62,18 +61,18 @@ namespace AM.Scanner.Controllers
                 var nm = result.Value.Split('|');
                 Session["DisplayName"] = nm[0];
                 FormsAuthentication.SetAuthCookie(model.Username, false);
-                return RedirectToLocal(returnUrl);
+                return RedirectToAction("Index", "Home");
             }
             return View(model);
         }
-        private ActionResult RedirectToLocal(string returnUrl)
-        {
-            //if (Url.IsLocalUrl(returnUrl))
-            //{
-            //    return Redirect(returnUrl);
-            //}
-            return RedirectToAction("Index", "Home");
-        }
+        //private ActionResult RedirectToLocal(string returnUrl)
+        //{
+        //    //if (Url.IsLocalUrl(returnUrl))
+        //    //{
+        //    //    return Redirect(returnUrl);
+        //    //}
+        //    return RedirectToAction("Index", "Home");
+        //}
         [HttpPost]
         public ActionResult LogOff()
         {
