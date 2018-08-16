@@ -158,6 +158,18 @@ namespace AM.Services
         public static string Web_EndCutOffTime { get; private set; }
         #endregion
 
+        #region USPSIntegration
+
+        public static bool USPS_IsDbLoggingEnabled { get; private set; }
+        public static string USPS_UserId { get; private set; }
+        public static string USPS_URL { get; private set; }
+        public static string USPS_VerifyAPIName { get; private set; }
+        public static string USPS_MilitaryStates { get; private set; }
+        public static string USPS_MilitaryCities { get; private set; }
+        public static string USPS_Territory { get; private set; }
+
+        #endregion
+
         #region Support
         [Description("Default emails for getting notification from registration request.")]
         public static string Web_RegistrationDefaultEmails { get; private set; }
