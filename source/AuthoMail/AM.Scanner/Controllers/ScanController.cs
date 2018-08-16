@@ -41,22 +41,31 @@ namespace AM.Scanner.Controllers
         {
             string machineName = GetIPAddress();
             ScanDetails scanDetails = DBHelper.RegisterScan(barcode, totalScanned, clientCode, User.Identity.Name, machineName);
-            
+
             if (scanDetails != null)
             {
                 if (scanDetails.Code == "Valid" || scanDetails.Code == "QC" || scanDetails.Code == "Pulledback")
                 {
+                    string code = string.Empty;
+                    if (scanDetails.Code == "Valid")
+                    {
+                        code = "0";
+                    }
+                    if (scanDetails.Code == "QC")
+                    {
+                        code = "1";
+                    }
+                    if (scanDetails.Code == "Pulledback")
+                    {
+                        code = "2";
+                    }
                     if (Request.Cookies["scannedDocument"] != null && !string.IsNullOrEmpty(Request.Cookies["scannedDocument"].Value))
                     {
-                        var scanList = JsonConvert.DeserializeObject<List<ScanDetails>>(Request.Cookies["scannedDocument"].Value);
-                        scanList.Add(scanDetails);
-                        scanDocument.Value = JsonConvert.SerializeObject(scanList);
+                        scanDocument.Value = string.Format("{0}{1},{2},{3}|", Request.Cookies["scannedDocument"].Value, scanDetails.TrackingNo, code, scanDetails.BatchName);
                     }
                     else
                     {
-                        var scanList = new List<ScanDetails>();
-                        scanList.Add(scanDetails);
-                        scanDocument.Value = JsonConvert.SerializeObject(scanList);
+                        scanDocument.Value = string.Format("{0},{1},{2}|", scanDetails.TrackingNo, code, scanDetails.BatchName);
                     }
                     Response.Cookies.Add(scanDocument);
                 }
@@ -69,8 +78,7 @@ namespace AM.Scanner.Controllers
         {
             if (Request.Cookies["scannedDocument"] != null && !string.IsNullOrEmpty(Request.Cookies["scannedDocument"].Value))
             {
-                var model = JsonConvert.DeserializeObject<List<ScanDetails>>(Request.Cookies["scannedDocument"].Value);
-                return Json(new { model = model }, JsonRequestBehavior.AllowGet);
+                return Json(new { model = Request.Cookies["scannedDocument"].Value }, JsonRequestBehavior.AllowGet);
             }
             return Json("ScanDocumentEmpty", JsonRequestBehavior.AllowGet);
         }

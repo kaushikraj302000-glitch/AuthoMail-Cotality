@@ -15,12 +15,12 @@ namespace AM.Scanner.Controllers
             return View();
         }
 
-        [HttpPost]
-        public ActionResult GetAllBatchForScan(string clientCode)
-        {
-            var model = DBHelper.GetRecentBatchesStats(clientCode.Trim());
-            return Json(model, JsonRequestBehavior.AllowGet);
-        }
+        //[HttpPost]
+        //public ActionResult GetAllBatchForScan(string clientCode)
+        //{
+        //    var model = DBHelper.GetRecentBatchesStats(clientCode.Trim());
+        //    return Json(model, JsonRequestBehavior.AllowGet);
+        //}
         [HttpPost]
         public ActionResult GetScanCount(string clientCode)
         {

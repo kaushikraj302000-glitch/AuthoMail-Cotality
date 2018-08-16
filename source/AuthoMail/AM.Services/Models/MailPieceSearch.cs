@@ -140,6 +140,8 @@ namespace AM.Services
         public DateTime? PrintedOn { get; set; }
         public int IsShipped { get; set; }
         public DateTime? ShippedOn { get; set; }
+        public int IsPickedUp { get; set; }
+        public DateTime? PickedUpOn { get; set; }
         public decimal ShippingCost { get; set; }
         public decimal? Weight { get; set; }
         public bool IsQCRequested { get; set; }

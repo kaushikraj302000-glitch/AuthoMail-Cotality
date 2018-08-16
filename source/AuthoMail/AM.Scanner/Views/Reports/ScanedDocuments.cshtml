@@ -336,8 +336,8 @@
         function FormatObject(Model) {
 
             $(Model).each(function () {
-                this.ReceivedDate = this.ReceivedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
-                this.ShippedDate = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
+                this.ReceivedDate = this.ReceivedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY hh:mm:ss A");
+                this.ShippedDate = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY hh:mm:ss A");
             });
             console.log(Model);
             return Model;

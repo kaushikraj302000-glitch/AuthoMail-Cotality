@@ -15,6 +15,8 @@ namespace AM.Services
         int InsertBatchMailPieceCustomDetails(List<MailPieceCustomInfo> mailPieceCustomInfos);
         int UpdateBatchMailPieceDetails(MailPieceDTO mailPiece);
         int UpdateBatchMailPieceShippingStatusDetails(MailPieceDTO mailPiece);
+        int UpdateMailPiecePickedUpDetailsFromTrackingNo(FedExPickedPackagesDetail pickedUpDetail);
+        MailPieceDTO GetMailPieceDataFromTrackingNo(string trackingNo);
     }
     public class MailPieceService : ServiceBase, IMailPieceService //It implements Interfaces 
     {
@@ -81,6 +83,20 @@ namespace AM.Services
             string query = @"UPDATE [AM].[PullBackRequests] SET [Status] = @shippingStatus WHERE MailBatchId=@mailBatchId AND MailPieceId=@mailPieceId";
 
             return db.Execute(query, new { mailBatchId = mailBatchId, mailPieceId = mailPieceId, shippingStatus = shippingStatus });
+        }
+
+        public int UpdateMailPiecePickedUpDetailsFromTrackingNo(FedExPickedPackagesDetail pickedUpDetail)
+        {
+            string query = @"UPDATE [AM].[MailPieces] SET [PickedUpOn] = @PickedTimeStamp WHERE [TrackingNo] = @TrackingNo";
+
+            return db.ExecuteScalar<int>(query, pickedUpDetail);
+        }
+
+        public MailPieceDTO GetMailPieceDataFromTrackingNo(string trackingNo)
+        {
+            string query = @"SELECT TOP 1 * FROM [AM].[MailPieces] WHERE [TrackingNo] = @TrackingNo";
+
+            return db.ExecuteScalar<MailPieceDTO>(query, trackingNo);
         }
     }
 }
