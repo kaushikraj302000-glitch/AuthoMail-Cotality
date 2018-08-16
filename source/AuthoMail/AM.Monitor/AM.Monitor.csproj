@@ -50,7 +50,8 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="HTMLTemplates\MonitorEmailTemp.html" />
+    <Content Include="HTMLTemplates\MonitorEmailSubmitTemp.html" />
+    <Content Include="HTMLTemplates\MonitorEmailReportedBackTemp.html" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AM.Lib\AM.Lib.csproj">

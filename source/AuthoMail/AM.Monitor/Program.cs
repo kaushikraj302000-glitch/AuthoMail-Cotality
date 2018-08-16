@@ -22,13 +22,13 @@ namespace AM.Monitor
             var pendingSweepBatchesToSubmit = monitorSvc.GetPendingBatchesToSubmit();
             var pendingBundleSweepBatchesToSubmit = monitorSvc.GetPendingSweepBatchesToSubmit();
 
-            var sweepBatchesList = checkSFTChannels.Where(c => bundleIds.Any(b => b != c.SFTChannelId) && pendingSweepBatchesToSubmit.Any(p => p.SFTChannelId == c.SFTChannelId)).ToList();
+            var sweepBatchesList = checkSFTChannels.Where(c => bundleIds.Any(b => b != c.SFTChannelId) && pendingSweepBatchesToSubmit.Any(p => p.SFTChannelId != c.SFTChannelId)).ToList();
             pendingBatchesToSubmit.AddRange(sweepBatchesList);
             foreach (var bundleSweepTime in bundleSweepTimes)
             {
                 if (TimeSpan.Parse(DateTime.Now.ToString("HH:mm")) > TimeSpan.Parse(bundleSweepTime.ToString()))
                 {
-                    var bundleBatchesList = checkSFTChannels.Where(c => bundleIds.Any(b => b == c.SFTChannelId) && pendingBundleSweepBatchesToSubmit.Any(p => p.SFTChannelId != c.SFTChannelId)).ToList();
+                    var bundleBatchesList = checkSFTChannels.Where(c => bundleIds.Any(b => b == c.SFTChannelId) && pendingBundleSweepBatchesToSubmit.Any(p => p.SFTChannelId == c.SFTChannelId)).ToList();
                     var list = bundleBatchesList.Where(p => !pendingBatchesToSubmit.Any(pb => pb.PrintBatchId == p.PrintBatchId)).ToList();
                     pendingBatchesToSubmit.AddRange(list);
                 }
@@ -36,8 +36,9 @@ namespace AM.Monitor
 
             var pendingBatchesToReportBack = monitorSvc.GetPendingBatchesToReportBack();
             string monitor_PrintBatch = "style='width:10%;border:solid windowtext 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
-            string monitor_AppCode = "style='width:10%;border:solid windowtext 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
+            string monitor_AppCode = "style='width:10%;border:solid windowtext 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";            
             string monitor_JobName = "style='width:10%;border:solid windowtext 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
+            string monitor_PrintLocation = "style='width:10%;border:solid windowtext 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
             string monitor_Pipelinestatus = "style='width:10%;border:solid windowtext 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
             string monitor_ReceivedOn = "style='width:10%;border:solid windowtext 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
             string monitor_DownloadedOn = "style='width:10%;border:solid windowtext 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
@@ -45,18 +46,18 @@ namespace AM.Monitor
 
             if (pendingBatchesToSubmit.Count > 0)
             {
-                PrepEmailBody_PendingBatchesToSubmit(monitorSvc, pendingBatchesToSubmit, monitor_PrintBatch, monitor_AppCode, monitor_JobName, monitor_Pipelinestatus, monitor_ReceivedOn, monitor_DownloadedOn, monitor_PreppedOn, new StringBuilder(File.ReadAllText(Path.GetFullPath(ConfigurationManager.AppSettings["MonitorEmailTemplate"]))));
+                PrepEmailBody_PendingBatchesToSubmit(monitorSvc, pendingBatchesToSubmit, monitor_PrintBatch, monitor_AppCode,monitor_PrintLocation, monitor_JobName, monitor_Pipelinestatus, monitor_ReceivedOn, monitor_DownloadedOn, monitor_PreppedOn, new StringBuilder(File.ReadAllText(Path.GetFullPath(ConfigurationManager.AppSettings["MonitorEmailSubmitTemplate"]))));
             }
 
             if (pendingBatchesToReportBack.Count > 0)
             {
-                PrepEmailBody_PendingBatchesToReportBack(monitorSvc, pendingBatchesToReportBack.Where(p => p.PrintLocation == Config.Common_PrintLocationPCI).ToList(), monitor_PrintBatch, monitor_AppCode, monitor_JobName, monitor_Pipelinestatus, monitor_ReceivedOn, monitor_DownloadedOn, monitor_PreppedOn, new StringBuilder(File.ReadAllText(Path.GetFullPath(ConfigurationManager.AppSettings["MonitorEmailTemplate"]))), ConfigurationManager.AppSettings["Monitor_ReportedBack_Email_ToPCI"]);
+                PrepEmailBody_PendingBatchesToReportBack(monitorSvc, pendingBatchesToReportBack.Where(p => p.PrintLocation == Config.Common_PrintLocationPCI).ToList(), monitor_PrintBatch, monitor_AppCode, monitor_JobName, monitor_Pipelinestatus, monitor_ReceivedOn, monitor_DownloadedOn, monitor_PreppedOn, new StringBuilder(File.ReadAllText(Path.GetFullPath(ConfigurationManager.AppSettings["MonitorEmailReportedBackTemplate"]))), ConfigurationManager.AppSettings["Monitor_ReportedBack_Email_ToPCI"], ConfigurationManager.AppSettings["Monitor_ReportedBack_Email_SubjectPCI"]);
 
-                PrepEmailBody_PendingBatchesToReportBack(monitorSvc, pendingBatchesToReportBack.Where(p => p.PrintLocation == Config.Common_PrintLocationCL).ToList(), monitor_PrintBatch, monitor_AppCode, monitor_JobName, monitor_Pipelinestatus, monitor_ReceivedOn, monitor_DownloadedOn, monitor_PreppedOn, new StringBuilder(File.ReadAllText(Path.GetFullPath(ConfigurationManager.AppSettings["MonitorEmailTemplate"]))), ConfigurationManager.AppSettings["Monitor_ReportedBack_Email_ToDallas"]);
+                PrepEmailBody_PendingBatchesToReportBack(monitorSvc, pendingBatchesToReportBack.Where(p => p.PrintLocation == Config.Common_PrintLocationCL).ToList(), monitor_PrintBatch, monitor_AppCode, monitor_JobName, monitor_Pipelinestatus, monitor_ReceivedOn, monitor_DownloadedOn, monitor_PreppedOn, new StringBuilder(File.ReadAllText(Path.GetFullPath(ConfigurationManager.AppSettings["MonitorEmailReportedBackTemplate"]))), ConfigurationManager.AppSettings["Monitor_ReportedBack_Email_ToDallas"], ConfigurationManager.AppSettings["Monitor_ReportedBack_Email_SubjectDALLAS"]);
             }
         }
 
-        private static void PrepEmailBody_PendingBatchesToSubmit(MonitorBatchesService monitorSvc, List<dynamic> pendingBatchesToSubmit, string monitor_PrintBatch, string monitor_AppCode, string monitor_JobName, string monitor_Pipelinestatus, string monitor_ReceivedOn, string monitor_DownloadedOn, string monitor_PreppedOn, StringBuilder sb)
+        private static void PrepEmailBody_PendingBatchesToSubmit(MonitorBatchesService monitorSvc, List<dynamic> pendingBatchesToSubmit, string monitor_PrintBatch, string monitor_AppCode,string monitor_PrintLocation, string monitor_JobName, string monitor_Pipelinestatus, string monitor_ReceivedOn, string monitor_DownloadedOn, string monitor_PreppedOn, StringBuilder sb)
         {
             try
             {
@@ -73,6 +74,7 @@ namespace AM.Monitor
                             batchData.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", monitor_PrintBatch, pendingBatch.PrintBatchId.ToString()));
                             batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", monitor_AppCode, pendingBatch.AppCode.ToString()));
                             batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", monitor_JobName, pendingBatch.PrintFileName != null ? pendingBatch.PrintFileName.ToString() : string.Empty));
+                            batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", monitor_PrintLocation, pendingBatch.PrintLocation != null ? pendingBatch.PrintLocation.ToString() : string.Empty));
                             batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", monitor_Pipelinestatus, pendingBatch.PipelineStatus != null ? pendingBatch.PipelineStatus.ToString() : string.Empty));
                             batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", monitor_ReceivedOn, pendingBatch.ReceivedOn.ToString()));
                             batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", monitor_DownloadedOn, pendingBatch.DownloadedOn != null ? pendingBatch.DownloadedOn : string.Empty));
@@ -85,7 +87,8 @@ namespace AM.Monitor
                         batchData.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", monitor_PrintBatch, pendingBatch.PrintBatchId.ToString()));
                         batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", monitor_AppCode, pendingBatch.AppCode.ToString()));
                         batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", monitor_JobName, pendingBatch.PrintFileName != null ? pendingBatch.PrintFileName.ToString() : string.Empty));
-                        batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", monitor_Pipelinestatus,pendingBatch.PipelineStatus != null ? pendingBatch.PipelineStatus.ToString() : string.Empty));
+                        batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", monitor_PrintLocation, pendingBatch.PrintLocation != null ? pendingBatch.PrintLocation.ToString() : string.Empty));
+                        batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", monitor_Pipelinestatus, pendingBatch.PipelineStatus != null ? pendingBatch.PipelineStatus.ToString() : string.Empty));
                         batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", monitor_ReceivedOn, pendingBatch.ReceivedOn.ToString()));
                         batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", monitor_DownloadedOn, pendingBatch.DownloadedOn != null ? pendingBatch.DownloadedOn : string.Empty));
                         batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td> </tr>", monitor_PreppedOn, pendingBatch.PreppedOn != null ? pendingBatch.PreppedOn : string.Empty));
@@ -103,7 +106,7 @@ namespace AM.Monitor
             }
         }
 
-        private static void PrepEmailBody_PendingBatchesToReportBack(MonitorBatchesService monitorSvc, List<dynamic> pendingBatchesToReportBack, string monitor_PrintBatch, string monitor_AppCode, string monitor_JobName, string monitor_Pipelinestatus, string monitor_ReceivedOn, string monitor_DownloadedOn, string monitor_PreppedOn, StringBuilder sb,string emailTo)
+        private static void PrepEmailBody_PendingBatchesToReportBack(MonitorBatchesService monitorSvc, List<dynamic> pendingBatchesToReportBack, string monitor_PrintBatch, string monitor_AppCode, string monitor_JobName, string monitor_Pipelinestatus, string monitor_ReceivedOn, string monitor_DownloadedOn, string monitor_PreppedOn, StringBuilder sb, string emailTo, string emailSubject)
         {
             try
             {
@@ -141,7 +144,7 @@ namespace AM.Monitor
                 }
                 if (batchData.Length > 0)
                 {
-                    SendEmail(sb, batchData, ConfigurationManager.AppSettings["MonitorReportbackHeading"].ToString(), emailTo, ConfigurationManager.AppSettings["Monitor_ReportedBack_Email_Cc"].ToString(), ConfigurationManager.AppSettings["Monitor_ReportedBack_Email_Subject"].ToString());
+                    SendEmail(sb, batchData, ConfigurationManager.AppSettings["MonitorReportbackHeading"].ToString(), emailTo, ConfigurationManager.AppSettings["Monitor_ReportedBack_Email_Cc"].ToString(), emailSubject);
                 }
             }
             catch (Exception ex)

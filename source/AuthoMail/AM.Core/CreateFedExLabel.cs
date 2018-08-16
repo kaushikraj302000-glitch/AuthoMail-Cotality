@@ -115,7 +115,7 @@ namespace AM.Core
 
             if (!string.IsNullOrEmpty(docType.ShippingSpecialService))
             {
-                SetSpecialServiceRequestLineItems(shipRequest, docType.ShippingSpecialService);
+                SetSpecialServiceRequestLineItems(shipRequest, docType.ShippingSpecialService, fedExShipTimeStamp);
             }
             return shipRequest;
         }
@@ -248,14 +248,25 @@ namespace AM.Core
 
         }
 
-        private void SetSpecialServiceRequestLineItems(ProcessShipmentRequest request, string shipmentSpecialService)
+        private void SetSpecialServiceRequestLineItems(ProcessShipmentRequest request, string shipmentSpecialService, DateTime fedexShipTimeStamp)
         {
             string[] specialServices = shipmentSpecialService.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             request.RequestedShipment.SpecialServicesRequested = new ShipmentSpecialServicesRequested();
             List<ShipmentSpecialServiceType> specialServiceList = new List<ShipmentSpecialServiceType>();
             for (int i = 0; i < specialServices.Length; i++)
             {
-                specialServiceList.Add((ShipmentSpecialServiceType)Enum.Parse(typeof(ShipmentSpecialServiceType), specialServices[i]));
+                //Here we have to check that If SATURDAY_DELIVERY option is enabled then ShipTimeStamp day should be Friday, otherwise it will considered as an error for that mail piece.
+                if (specialServices[i] == ShipmentSpecialServiceType.SATURDAY_DELIVERY.ToString())
+                {
+                    if (fedexShipTimeStamp.DayOfWeek == DayOfWeek.Friday)
+                    {
+                        specialServiceList.Add((ShipmentSpecialServiceType)Enum.Parse(typeof(ShipmentSpecialServiceType), specialServices[i]));
+                    }
+                }
+                else
+                {
+                    specialServiceList.Add((ShipmentSpecialServiceType)Enum.Parse(typeof(ShipmentSpecialServiceType), specialServices[i]));
+                }
             }
             request.RequestedShipment.SpecialServicesRequested.SpecialServiceTypes = new ShipmentSpecialServiceType[1];
             request.RequestedShipment.SpecialServicesRequested.SpecialServiceTypes = specialServiceList.ToArray();

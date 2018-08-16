@@ -105,9 +105,6 @@ namespace AM.Reporting
                         int retVal = mailPieceSvc.UpdateMailPiecePickedUpDetailsFromTrackingNo(pickedUpDetail);
                     }
                 }
-
-                //send report to internal team for not picked fedex packages
-
             }
             catch (Exception ex)
             {
