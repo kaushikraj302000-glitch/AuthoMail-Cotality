@@ -48,7 +48,6 @@ namespace AM.Reporting
 
 
                 TrackRequest request = CreateTrackRequest(takenMailPieces);
-                //
                 TrackPortTypeClient service = new TrackPortTypeClient();
                 try
                 {
@@ -56,7 +55,7 @@ namespace AM.Reporting
                     TrackReply reply = service.track(request);
                     if (reply.HighestSeverity == NotificationSeverityType.SUCCESS || reply.HighestSeverity == NotificationSeverityType.NOTE || reply.HighestSeverity == NotificationSeverityType.WARNING)
                     {
-                        ShowTrackReply(reply);
+                        GetTrackReplyAndUpdateValue(reply);
                     }
                 }
                 catch (SoapException e)
@@ -74,39 +73,45 @@ namespace AM.Reporting
             return false;
         }
 
-        private void ShowTrackReply(TrackReply reply)
+        private void GetTrackReplyAndUpdateValue(TrackReply reply)
         {
+            List<FedExPickedPackagesDetail> fedExPickedPackageDetails = new List<FedExPickedPackagesDetail>();
+            List<FedExNotPickedPackagesDetail> fedExNotPickedPackageDetails = new List<FedExNotPickedPackagesDetail>();
             // Track details for each package
             foreach (CompletedTrackDetail completedTrackDetail in reply.CompletedTrackDetails)
             {
                 foreach (TrackDetail trackDetail in completedTrackDetail.TrackDetails)
                 {
-                    Console.WriteLine("Tracking details:");
-                    Console.WriteLine("**************************************");
-
-                    Console.WriteLine("Tracking number: {0}", trackDetail.TrackingNumber);
-                    Console.WriteLine("Tracking number unique identifier: {0}", trackDetail.TrackingNumberUniqueIdentifier);
-                    Console.WriteLine("Track Status: {0} ({1})", trackDetail.StatusDetail.Description, trackDetail.StatusDetail.Code);
-                    Console.WriteLine("Carrier code: {0}", trackDetail.CarrierCode);
-
-                    //Events
-                    Console.WriteLine();
                     if (trackDetail.Events != null)
                     {
-                        Console.WriteLine("Track Events:");
-                        foreach (TrackEvent trackevent in trackDetail.Events)
+                        var trackEvent = trackDetail.Events.Where(c => c.EventType == "PU").Single();
+                        if (trackEvent != null)
                         {
-                            if (trackevent.TimestampSpecified)
-                            {
-                                Console.WriteLine("Timestamp: {0}", trackevent.Timestamp.ToUniversalTime());
-                            }
-                            Console.WriteLine("Event: {0} ({1})", trackevent.EventDescription, trackevent.EventType);
-                            Console.WriteLine("***");
+                            FedExPickedPackagesDetail pickupDetail = new FedExPickedPackagesDetail();
+                            pickupDetail.TrackingNo = trackDetail.TrackingNumber;
+                            pickupDetail.PickedTimeStamp = trackEvent.Timestamp.ToUniversalTime();
+                            fedExPickedPackageDetails.Add(pickupDetail);
                         }
-                        Console.WriteLine();
                     }
-                    Console.WriteLine("**************************************");
                 }
+            }
+
+            try
+            {
+                using (IMailPieceService mailPieceSvc = new MailPieceService())
+                {
+                    foreach (var pickedUpDetail in fedExPickedPackageDetails)
+                    {
+                        int retVal = mailPieceSvc.UpdateMailPiecePickedUpDetailsFromTrackingNo(pickedUpDetail);
+                    }
+                }
+
+                //send report to internal team for not picked fedex packages
+
+            }
+            catch (Exception ex)
+            {
+                log.Error("Error occured while updating picked up details", ex);
             }
         }
 
@@ -143,18 +148,5 @@ namespace AM.Reporting
             request.ProcessingOptions[0] = TrackRequestProcessingOptionType.INCLUDE_DETAILED_SCANS;
             return request;
         }
-    }
-
-    class FedExPickedPackagesDetails
-    {
-        public DateTime PickedTimeStamp { get; set; }
-        public string TrackingNo { get; set; }
-        public int mailPieceId { get; set; }
-    }
-
-    class FedExNotPickedPackagesDetails
-    {
-        public string TrackingNo { get; set; }
-        public int mailPieceId { get; set; }
     }
 }

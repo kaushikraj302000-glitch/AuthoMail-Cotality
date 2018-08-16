@@ -73,6 +73,8 @@ namespace AM.Entities
         public DateTime? PulledBackOn { get; set; }
         public bool IsPrinted { get; set; }
         public DateTime? PrintedOn { get; set; }
+        public bool IsPickedUp { get; set; }
+        public DateTime? PickedUpOn { get; set; }
         public bool IsShipped { get; set; }
         public DateTime? ShippedOn { get; set; }
         public decimal ShippingCost { get; set; }

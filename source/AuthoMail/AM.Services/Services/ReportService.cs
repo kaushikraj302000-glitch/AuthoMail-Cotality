@@ -18,6 +18,7 @@ namespace AM.Services
         List<MailPieces> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel);
         List<ChannelCodeTitle> GetChannelTitle(int clientId);
         List<PullBackRequests> GetPullbackRequestReport(int clientId, DateTime startDate, DateTime endDate);
+        List<MailPieces> GetFedExPickedUpReport(DateTime deploymentDate, DateTime lastReceivedOnDate, bool isPickedUp = false);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -146,6 +147,27 @@ namespace AM.Services
                     channel = channel.IsNullOrWhiteSpace() ? null : channel,
                     shippingStatus = ShippingStatus.Shipped.ToString()
                 }, splitOn: "Id,Id,Id,Id,Id,UniqueId").ToList();
+            return data;
+        }
+
+        public List<MailPieces> GetFedExPickedUpReport(DateTime deploymentDate, DateTime lastReceivedOnDate, bool isPickedUp)
+        {
+            string query = "[dbo].[uspweb_FedExPickedUpReport] @deploymentDate, @lastReceivedOnDate, @shippingType, @isPickedUp";
+
+            var data = db.Query<MailPieces, MailBatches, DocTypes, MailPieces>(query,
+                (m, b, d) =>
+                {
+                    m.MailBatches = b;
+                    m.DocTypes = d;
+                    return m;
+                },
+                new
+                {
+                    isPickedUp = isPickedUp,
+                    deploymentDate = deploymentDate,
+                    lastReceivedOnDate = lastReceivedOnDate,
+                    shippingType = Carrier.FedEx.ToString()
+                }).ToList();
             return data;
         }
 

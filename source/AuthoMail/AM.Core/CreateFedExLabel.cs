@@ -113,6 +113,10 @@ namespace AM.Core
             SetShipmentDetails(shipRequest, mailPiece, fedExAccInfo, docType, fedExShipTimeStamp);
             SetPackageLineItems(shipRequest);
 
+            if (!string.IsNullOrEmpty(docType.ShippingSpecialService))
+            {
+                SetSpecialServiceRequestLineItems(shipRequest, docType.ShippingSpecialService);
+            }
             return shipRequest;
         }
 
@@ -242,6 +246,19 @@ namespace AM.Core
             request.RequestedShipment.RequestedPackageLineItems[0].SpecialServicesRequested.SignatureOptionDetail = new SignatureOptionDetail();
             request.RequestedShipment.RequestedPackageLineItems[0].SpecialServicesRequested.SignatureOptionDetail.OptionType = SignatureOptionType.INDIRECT;
 
+        }
+
+        private void SetSpecialServiceRequestLineItems(ProcessShipmentRequest request, string shipmentSpecialService)
+        {
+            string[] specialServices = shipmentSpecialService.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            request.RequestedShipment.SpecialServicesRequested = new ShipmentSpecialServicesRequested();
+            List<ShipmentSpecialServiceType> specialServiceList = new List<ShipmentSpecialServiceType>();
+            for (int i = 0; i < specialServices.Length; i++)
+            {
+                specialServiceList.Add((ShipmentSpecialServiceType)Enum.Parse(typeof(ShipmentSpecialServiceType), specialServices[i]));
+            }
+            request.RequestedShipment.SpecialServicesRequested.SpecialServiceTypes = new ShipmentSpecialServiceType[1];
+            request.RequestedShipment.SpecialServicesRequested.SpecialServiceTypes = specialServiceList.ToArray();
         }
 
         // FedEx shipping service will return the label in landscape orientation and with different margins etc.; so we will create PDF having content in center area from the image returned by FedEx shipping service.

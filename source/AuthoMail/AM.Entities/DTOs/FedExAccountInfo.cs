@@ -21,4 +21,16 @@ namespace AM.Entities
         public DateTime HolidayDate { get; set; }
         public string Description { get; set; }
     }
+
+    public class FedExPickedPackagesDetail
+    {
+        public DateTime PickedTimeStamp { get; set; }
+        public string TrackingNo { get; set; }
+    }
+
+    public class FedExNotPickedPackagesDetail
+    {
+        public string TrackingNo { get; set; }
+        public MailPieceDTO mailPiece { get; set; }
+    }
 }
