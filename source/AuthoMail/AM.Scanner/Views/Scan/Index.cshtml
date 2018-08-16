@@ -309,14 +309,16 @@
                 $.ajax({
                     type: "POST",
                     url: '/Scan/GetScanDocumentFromCookies',
+                    data:{clientCode:clientCode},
                     success: function (response) {
-                         console.log(response);
+                         //console.log(response);
                         if (response == "ScanDocumentEmpty") {
                             for (var i = 1; i < 51; i++) {
                                 $("#SuccessscannedCode").prepend("<label  class='lblAMC lbl-default' for='default" + i + "' >" + codespace + "</label>");
                             }
                         } else {
-                            var totalMailPieces = response.model.split('|');
+                            var getDataFromCookies = response.model.split('$');
+                            var totalMailPieces = getDataFromCookies[1].split('|');
                             if (totalMailPieces.length > 0) {
                                 $("#countsuccess").text(totalMailPieces.length-1);
                                 $('#pie_todaycount').asPieProgress('go', parseInt(totalMailPieces.length-1));
@@ -367,7 +369,7 @@
             var databaseError = "Communication error. Please try to scan after some time.";
             var ActiveBatchCount = 1;
             var nomoreBatch = "There are no more document(s) for scan.";
-            var modalsuccess = "Your batch is completed, start a new batch..!";
+            var modalsuccess = "Your batch is completed, start a new batch.";
             //var modalsuccess = "All documents has been scanned.";
             var modalInfo = "Please start a new batch.";
             var codespace = "123456789012";// "HTL00000000000";//
@@ -515,7 +517,6 @@
                     if (environment.toUpperCase() == "UAT") {
                         //console.log(environment);
                         $('#code1').val($('#code2').val().split("").reverse().join(""));
-
                     }
 
                     $("#message").empty();
@@ -525,6 +526,7 @@
                         $("#message").empty();
                         $("#message").show();
                         $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>" + nomoreBatch + "</div>");
+                        GetScanCount(clientCode);
                         $("#code1").val("");
                         $("#code1").focus();
 
@@ -538,10 +540,11 @@
                                 var totalScanValues = $("#todayscount").text().split('/');
                                 var totalScanned = totalScanValues[0];
                                 var totalfiles = totalScanValues[1];
+                                var scanCount = parseInt($("#countsuccess").text());
                                 $.ajax({
                                     type: "POST",
                                     url: '/Scan/RegisterScan',
-                                    data: { barcode: code1Value, totalScanned: totalScanned, clientCode: clientCode },
+                                    data: { barcode: code1Value, scanCount: scanCount, clientCode: clientCode },
                                     success: function (response) {
                                         var object = response;
                                        // console.log(object)
@@ -639,7 +642,7 @@
                                             $("#code2").focus();
                                             $("#WrongCode").prepend("<div style='margin:2px;' class='form-group'><label class='lblAMC lbl-danger' disabled>" + code2Value + "</label></div>");
                                         }
-                                        $("#todayscount").text(object.model.ScanCount + "/" + totalfiles);
+                                        GetScanCount(clientCode);
 
                                     },
                                     error: function (response) {
@@ -689,6 +692,7 @@
                             $("#code2").val("");
                             $("#scannedCode").empty();
                             $("#code1").focus();
+                            GetScanCount(clientCode);
                             $("#todayscount").text("0/0");
                             location.reload();
                         }

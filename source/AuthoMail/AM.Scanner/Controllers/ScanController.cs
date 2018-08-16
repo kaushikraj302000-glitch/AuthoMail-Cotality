@@ -37,10 +37,10 @@ namespace AM.Scanner.Controllers
         }
 
         [HttpPost]
-        public ActionResult RegisterScan(string barcode, int totalScanned, string clientCode)
+        public ActionResult RegisterScan(string barcode, int scanCount, string clientCode)
         {
             string machineName = GetIPAddress();
-            ScanDetails scanDetails = DBHelper.RegisterScan(barcode, totalScanned, clientCode, User.Identity.Name, machineName);
+            ScanDetails scanDetails = DBHelper.RegisterScan(barcode, scanCount, clientCode, User.Identity.Name, machineName);
 
             if (scanDetails != null)
             {
@@ -60,12 +60,21 @@ namespace AM.Scanner.Controllers
                         code = "2";
                     }
                     if (Request.Cookies["scannedDocument"] != null && !string.IsNullOrEmpty(Request.Cookies["scannedDocument"].Value))
-                    {
-                        scanDocument.Value = string.Format("{0}{1},{2},{3}|", Request.Cookies["scannedDocument"].Value, scanDetails.TrackingNo, code, scanDetails.BatchName);
+                        {
+                        string getClientCode = Request.Cookies["scannedDocument"].Value.Split('$')[0].ToString().Trim();
+                        if (getClientCode == clientCode)
+                        {
+                            scanDocument.Value = string.Format("{0}{1},{2},{3}|", Request.Cookies["scannedDocument"].Value, scanDetails.TrackingNo, code, scanDetails.BatchName);
+
+                        }
+                        else
+                        {
+                            scanDocument.Value = string.Format("{3}${0},{1},{2}|", scanDetails.TrackingNo, code, scanDetails.BatchName, clientCode);
+                        }
                     }
                     else
                     {
-                        scanDocument.Value = string.Format("{0},{1},{2}|", scanDetails.TrackingNo, code, scanDetails.BatchName);
+                        scanDocument.Value = string.Format("{3}${0},{1},{2}|", scanDetails.TrackingNo, code, scanDetails.BatchName, clientCode);
                     }
                     Response.Cookies.Add(scanDocument);
                 }
@@ -74,11 +83,19 @@ namespace AM.Scanner.Controllers
         }
 
         [HttpPost]
-        public ActionResult GetScanDocumentFromCookies()
+        public ActionResult GetScanDocumentFromCookies(string clientCode)
         {
             if (Request.Cookies["scannedDocument"] != null && !string.IsNullOrEmpty(Request.Cookies["scannedDocument"].Value))
             {
-                return Json(new { model = Request.Cookies["scannedDocument"].Value }, JsonRequestBehavior.AllowGet);
+                string getClientCode = Request.Cookies["scannedDocument"].Value.Split('$')[0].ToString().Trim();
+                if (getClientCode == clientCode)
+                {
+                    return Json(new { model = Request.Cookies["scannedDocument"].Value }, JsonRequestBehavior.AllowGet);
+                }
+                else
+                {
+                    return Json("ScanDocumentEmpty", JsonRequestBehavior.AllowGet);
+                }
             }
             return Json("ScanDocumentEmpty", JsonRequestBehavior.AllowGet);
         }
@@ -94,6 +111,5 @@ namespace AM.Scanner.Controllers
             Response.SetCookie(scanDocument);
             return Json("ReloadPage", JsonRequestBehavior.AllowGet);
         }
-
     }
 }
