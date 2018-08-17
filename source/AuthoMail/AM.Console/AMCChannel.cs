@@ -669,7 +669,7 @@ namespace AM.Console
                             }
                             else
                             {
-                                if ((mailBatch.DownloadedOn.Value.UtcToEst().TimeOfDay >= Config.Monitor_InternalPrintAndShipStartTime && mailBatch.DownloadedOn.Value.UtcToEst().TimeOfDay < Config.Monitor_InternalPrintAndShipEndTime) && Config.Monitor_InternalPrintShippingMethods.Contains(docType.ShippingCarrier))
+                                if (((mailBatch.DownloadedOn.Value.UtcToEst().TimeOfDay >= Config.Monitor_InternalPrintAndShipStartTime && mailBatch.DownloadedOn.Value.UtcToEst().TimeOfDay < Config.Monitor_InternalPrintAndShipEndTime) && docType.ShippingCarrier == Carrier.FedEx.ToString()) || docType.ShippingServiceType == ShippingServiceType.USPS_EXPRESSMAIL.ToString())
                                     mailPieceDTO.PrintLocation = Config.Common_PrintLocationCL;
                                 else
                                     mailPieceDTO.PrintLocation = Config.Common_PrintLocationPCI;

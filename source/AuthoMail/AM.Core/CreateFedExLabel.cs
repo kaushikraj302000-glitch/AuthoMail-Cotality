@@ -263,9 +263,12 @@ namespace AM.Core
                         specialServiceList.Add((ShipmentSpecialServiceType)Enum.Parse(typeof(ShipmentSpecialServiceType), specialServices[i]));
                     }
                 }
-                else
+                else if (specialServices[i] == ShipmentSpecialServiceType.SATURDAY_PICKUP.ToString())
                 {
-                    specialServiceList.Add((ShipmentSpecialServiceType)Enum.Parse(typeof(ShipmentSpecialServiceType), specialServices[i]));
+                    if (fedexShipTimeStamp.DayOfWeek == DayOfWeek.Saturday)
+                    {
+                        specialServiceList.Add((ShipmentSpecialServiceType)Enum.Parse(typeof(ShipmentSpecialServiceType), specialServices[i]));
+                    }
                 }
             }
             request.RequestedShipment.SpecialServicesRequested.SpecialServiceTypes = new ShipmentSpecialServiceType[1];
