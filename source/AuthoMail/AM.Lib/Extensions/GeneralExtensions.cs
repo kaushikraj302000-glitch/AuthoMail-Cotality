@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Serialization;
 
 namespace AM.Lib
@@ -66,7 +67,8 @@ namespace AM.Lib
             return (T)Enum.Parse(typeof(T), value, ignoreCase);
         }
 
-        public static T Deserialize<T>(string xml) where T : new()
+
+        public static T Deserialize<T>(this string xml) where T : new()
         {
             T entity;
             var xmlSerializer = new XmlSerializer(typeof(T));
@@ -85,18 +87,21 @@ namespace AM.Lib
             return entity;
         }
 
-        public static string Serialize<T>(T entity) where T : new()
+        public static string Serialize<T>(this T obj) where T : new()
         {
-            var xmlSerializer = new XmlSerializer(typeof(T));
-            var sb = new StringBuilder();
+            return obj.Serialize(null);
+        }
 
-            using (var sw = new StringWriter(sb))
+        public static string Serialize<T>(this T obj, XmlSerializerNamespaces namespaces) where T : new()
+        {
+            var serializer = new XmlSerializer(typeof(T));
+            string xml = null;
+            using (var stringWriter = new StringWriter())
             {
-                xmlSerializer.Serialize(sw, entity);
-                sw.Close();
+                serializer.Serialize(stringWriter, obj, namespaces);
+                xml = stringWriter.ToString();
             }
-
-            return sb.ToString();
+            return xml;
         }
 
         public static string GetValidFileName(this string value)
