@@ -167,6 +167,7 @@ namespace AM.Services
         public static string USPS_MilitaryStates { get; private set; }
         public static string USPS_MilitaryCities { get; private set; }
         public static string USPS_Territory { get; private set; }
+        public static int USPS_AddressCount { get; private set; }
 
         #endregion
 
