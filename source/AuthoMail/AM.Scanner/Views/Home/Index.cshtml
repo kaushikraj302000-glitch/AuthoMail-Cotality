@@ -172,17 +172,17 @@
         inverseColor = '#45484d';
 
     var themerPrimaryColor = primaryColor;
-    function getScanCount(clientCode) {
+    function GetScanCount(clientCode) {
         $.ajax({
             type: "POST",
             url: '/Home/GetScanCount',
             data: { clientCode: clientCode.trim() },
             async: false,
             success: function (response) {
-                //console.log(clientCode + " " + response.ScanCount + "/" + response.TotalCount);
+                //console.log("#" + clientCode.trim() + "scanCount" + "test " + response.ScanCount + "/" + response.TotalCount);
                 //var totalcount = response.split('$');
-                $("#" + clientCode + "scanCount").empty();
-                $("#" + clientCode + "scanCount").append(response.ScanCount + "/" + response.TotalCount);
+                $("#" + clientCode.trim() + "scanCount").empty();
+                $("#" + clientCode.trim() + "scanCount").text(response.ScanCount + "/" + response.TotalCount);
 
             },
             error: function (response) {
@@ -203,7 +203,7 @@
             success: function (data) {
                 // alert(JSON.stringify(data[0].ReceivedOn) + JSON.stringify(data[0].TotalLoans));
                 //debugger;
-               console.log(data);
+               //console.log(data);
                 $("#displaycount" + clientCode).empty();
 
                 for (var j = 0; j < data.length; j++) {
@@ -250,17 +250,17 @@
         for (var i = 0; i < clientCodeList.length; i++) {
             clientCode = clientCodeList[i];
             //alert(clientCode);
-            getScanCount(clientCodeList[i].trim());
-            GetAllBatchForScan(clientCodeList[i],i);
+            GetScanCount(clientCode.trim());
+            GetAllBatchForScan(clientCode.trim(), i);
             /*  End Ajax  */
         }
         /*  Updating Batch Count on every 12 Second using Ajax */
         window.setInterval(function () {
             for (var i = 0; i < clientCodeList.length; i++) {
                 clientCode = clientCodeList[i];
-                //alert(clientCode);
-                getScanCount(clientCode);
-                GetAllBatchForScan(clientCodeList[i],i);
+                //console.log(clientCode);
+                GetScanCount(clientCode);
+                GetAllBatchForScan(clientCode.trim(), i);
                 /*  End Ajax  */
             }
         }, 12000);
