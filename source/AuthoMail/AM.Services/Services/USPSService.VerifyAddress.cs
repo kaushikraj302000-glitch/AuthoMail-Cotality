@@ -47,7 +47,6 @@ namespace AM.Services
         {
             try
             {
-
                 int insertedID = 0;
                 Task<int> recordRequestId = null;
                 //check flag and call to db
@@ -161,15 +160,12 @@ namespace AM.Services
                     SetResponseValues(addressResponses, idRegex, addresses, ex);
                 }
 
-
-
                 if (Config.Web_API_USPS_IsDbLoggingEnabled)
                 {
                     var addressResponseXML = addressResponses.Serialize();
                     var responseLog = db.ExecuteAsync("Update [API].[USPS] set APIResponse = @APIResponse ,  APIResponseOn = @APIResponseOn Where Id = @Id", new { APIResponse = addressResponseXML, APIResponseOn = DateTime.Now, Id = insertedID });
                     await responseLog;
                 }
-
 
                 return await Task.Run(() => addressResponses);
             }
