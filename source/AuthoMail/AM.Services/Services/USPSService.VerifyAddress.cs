@@ -226,12 +226,12 @@ namespace AM.Services
         private static List<string> CheckAddressType(Address address)
         {
             var addressTypes = new List<string>();
-            //var militarystates = Config.USPS_MilitaryStates.Split(',');
-            var militarystates = new string[] { "AA", "AE", "AP" };
-            //var militaryCities = Config.USPS_MilitaryCities.Split(',');
-            var militaryCities = new string[] { "APO", "DPO", "FPO" };
-            //var territory = Config.USPS_Territory.Split(',');
-            var territory = new string[] { "AS", "FM", "GU", "MH", "MP", "PR", "PW", "VI" };
+            var militarystates = Config.Web_API_USPS_MilitaryStates.Split(',');
+            //var militarystates = new string[] { "AA", "AE", "AP" };
+            var militaryCities = Config.Web_API_USPS_MilitaryCities.Split(',');
+            //var militaryCities = new string[] { "APO", "DPO", "FPO" };
+            var territory = Config.Web_API_USPS_Territory.Split(',');
+            //var territory = new string[] { "AS", "FM", "GU", "MH", "MP", "PR", "PW", "VI" };
 
             if (address.Address2.ToLower().Contains("po box") || address.Address2.ToLower().Contains("pobox"))
                 addressTypes.Add(AddressTypes.POBOX);
