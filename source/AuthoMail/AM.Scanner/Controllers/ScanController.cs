@@ -82,7 +82,7 @@ namespace AM.Scanner.Controllers
             return Json(new { model = scanDetails }, JsonRequestBehavior.AllowGet);
         }
 
-        [HttpPost]
+        [HttpGet]
         public ActionResult GetScanDocumentFromCookies(string clientCode)
         {
             if (Request.Cookies["scannedDocument"] != null && !string.IsNullOrEmpty(Request.Cookies["scannedDocument"].Value))
@@ -100,7 +100,7 @@ namespace AM.Scanner.Controllers
             return Json("ScanDocumentEmpty", JsonRequestBehavior.AllowGet);
         }
 
-        [HttpPost]
+        [HttpGet]
         public ActionResult NextBatch()
         {
             Response.Cookies.Remove("scannedDocument");
@@ -110,6 +110,11 @@ namespace AM.Scanner.Controllers
             scanDocument.Value = null;
             Response.SetCookie(scanDocument);
             return Json("ReloadPage", JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        public ActionResult USPSScan(string clientCode){
+            return View();
         }
     }
 }

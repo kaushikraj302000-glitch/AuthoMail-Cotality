@@ -106,6 +106,7 @@
                                 <div class="reportLink">
                                     <a href="/Reports/ScanedDocuments?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">View Report</a>
                                     <a href="/Scan/Index?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">Start Scan</a>
+                                    <a href="/Scan/USPSScan?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">USPS Scan</a>
                                 </div>
 
                             </div>
@@ -174,7 +175,7 @@
     var themerPrimaryColor = primaryColor;
     function GetScanCount(clientCode) {
         $.ajax({
-            type: "POST",
+            type: "GET",
             url: '/Home/GetScanCount',
             data: { clientCode: clientCode.trim() },
             async: false,
