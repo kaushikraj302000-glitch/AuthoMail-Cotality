@@ -18,6 +18,7 @@ namespace AM.Scanner.Common
             SP_GetRecentBatchesStats = ConfigurationManager.AppSettings["GetRecentBatchesStats"].Trim();
             SP_GetPendingScanning = ConfigurationManager.AppSettings["GetPendingScanning"].Trim();
             Environment = ConfigurationManager.AppSettings["Environment"].Trim();
+            SP_RegisterUSPSScan = ConfigurationManager.AppSettings["RegisterUSPSScan"].Trim();
 
         }
         public static string Environment { get; set; }
@@ -25,6 +26,7 @@ namespace AM.Scanner.Common
         public static string SP_GetScanStats { get; set; }
 
         public static string SP_RegisterScan { get; set; }
+        public static string SP_RegisterUSPSScan { get; set; }
 
         public static string SP_GetScanReportData { get; set; }
         public static string SP_GetRecentBatchesStats { get; set; }

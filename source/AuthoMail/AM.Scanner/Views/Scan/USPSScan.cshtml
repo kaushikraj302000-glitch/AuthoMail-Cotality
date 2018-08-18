@@ -1,5 +1,4 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "USPS Scan";
 }
 
@@ -139,20 +138,21 @@
         }*/
     </style>
     <!--<![endif]-->
-    <div style="margin-top: 5%;">
+    <div style="margin-top: 4%;">
+        <h2 class="text-center alert alert-info">USPS Express Mail Tracking Number Scanning Page</h2>
     </div>
     <div class="col-md-6">
         <div class="form-inline">
             <div class="form-group">
-                <label class="sr-only" for="exampleInputEmail3">Front Barcode</label>
-                <input type="text" class="form-control" id="code1" placeholder="Front Barcode" tabindex="1">
+                <label class="sr-only" for="exampleInputEmail3">Document Barcode</label>
+                <input type="text" class="form-control" id="code1" placeholder="Document Barcode" tabindex="1">
             </div>
             <div class="form-group">
-                <label class="sr-only" for="exampleInputPassword3">Rear Barcode</label>
-                <input type="text" class="form-control" id="code2" placeholder="Rear Barcode" tabindex="2">
+                <label class="sr-only" for="exampleInputPassword3">USPS Tracking Number</label>
+                <input type="text" class="form-control" id="code2" placeholder="USPS Tracking Number" tabindex="2">
             </div>
 
-            <button type="button" id="nextBatch" class="btn btn-primary" tabindex="3" data-toggle="modal" data-target="#smallModal">Scan Next Batch</button>
+            <button type="button" id="nextBatch" class="btn btn-info" tabindex="3" data-toggle="modal" data-target="#smallModal">Scan Next Batch</button>
             <button type="reset" id="clearData" class="btn btn-warning" tabindex="4">Clear</button>
             <div id="Messagedata" style="height: 35px; margin-top: 8px; margin-left: -1px;">
                 <div id="message" class="form-group">
@@ -168,11 +168,11 @@
                 <div class="pie_progress__content" id="countsuccess" style="font-size: 50px;">0</div>
             </div>
         </div>
-        <div class="pull-left">
-            <div class="form-inline pie_progress" style="font-size: 13px; text-align: center;" role="progressbar" id="pie_totalscancount" data-goal="-100" data-barcolor="#3a87ad" data-barsize="10" aria-valuemin="0" aria-valuemax="100">
-                <div class="pie_progress__content" id="todayscount" style="font-size: 17px;color: #456C7F;">0/0</div>
-            </div>
-        </div>@*margin-left: 33%;*@
+        @*<div class="pull-left">
+                <div class="form-inline pie_progress" style="font-size: 13px; text-align: center;" role="progressbar" id="pie_totalscancount" data-goal="-100" data-barcolor="#3a87ad" data-barsize="10" aria-valuemin="0" aria-valuemax="100">
+                    <div class="pie_progress__content" id="todayscount" style="font-size: 17px;color: #456C7F;">0/0</div>
+                </div>
+            </div>*@
 
     </div>
 
@@ -269,103 +269,13 @@
             });
 
 
-            function GetScanCount(clientCode) {
-                $.ajax({
-                    type: "POST",
-                    url: '/Home/GetScanCount',
-                    data: { clientCode: clientCode },
-                    success: function (response) {
-                        if (response != null) {
-                            $("#todayscount").text(response.ScanCount + "/" + response.TotalCount);
-                            UpdateProgressCount(response.ScanCount, response.TotalCount);
-                        }
-                        //else {
-                        //    $("#todayscount").text(response.ScanCount + "/" + response.TotalCount);
-                        //    var totalBatch = $("#todayscount").text().split('/');
-                        //   // ActiveBatchCount = totalBatch[0];;
-                        //    $("#todayscount").text(totalBatch[0] + "/" + totalBatch[1]);
-                        //}
-                    },
-                    error: function (response) {
-                        $("#message").empty();
-                        $("#message").show();
-                        $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>" + databaseError + "</div>");
-                        $("#code1").val("");
-                        $("#code2").val("");
-                        $("#code1").focus();
-                    }
-                });
-            }
-            /*---- asPieProgress  ----*/
-            function UpdateProgressCount(ScanCount, TotalCount) {
-               // console.log(ScanCount + " " + TotalCount);
-                var piePreInt = parseFloat((parseInt(ScanCount) / parseInt(TotalCount)) * 100);
-               // console.log(String(piePreInt + "%"));
-                //$('#pie_totalscancount').attr('aria-valuenow', count);
-                $('#pie_totalscancount').asPieProgress('go', piePreInt);// String(count + "%"));
-            }
-            /*---- asPieProgress End ----*/
-
-            function GetScanDocumentFromCookies(clientCode) {
-                $.ajax({
-                    type: "GET",
-                    url: '/Scan/GetScanDocumentFromCookies',
-                    data:{clientCode:clientCode},
-                    success: function (response) {
-                         //console.log(response);
-                        if (response == "ScanDocumentEmpty") {
-                            for (var i = 1; i < 51; i++) {
-                                $("#SuccessscannedCode").prepend("<label  class='lblAMC lbl-default' for='default" + i + "' >" + codespace + "</label>");
-                            }
-                        } else {
-                            var getDataFromCookies = response.model.split('$');
-                            var totalMailPieces = getDataFromCookies[1].split('|');
-                            if (totalMailPieces.length > 0) {
-                                $("#countsuccess").text(totalMailPieces.length-1);
-                                $('#pie_todaycount').asPieProgress('go', parseInt(totalMailPieces.length-1));
-                                for (var i = 1; i < 51 - (totalMailPieces.length - 1) ; i++) {
-                                    $("#SuccessscannedCode").prepend("<label  class='lblAMC lbl-default' for='default" + i + "'  >" + codespace + " </label>");
-                                }
-                                for (var i = 0; i < totalMailPieces.length-1; i++) {
-                                    var dataObj = totalMailPieces[i].split(',');
-                                    var trackingNo = dataObj[0];
-                                    var code = dataObj[1];
-                                    var batchName = dataObj[2];
-                                    if (parseInt(code) == 0) {//Valid
-                                        $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + batchName + "<br>  Code: Valid' class='lblAMC lbl-success' for='success" + i + "' > " + trackingNo+ " </label>");
-                                    }
-                                    if (parseInt(code) == 1) {//QC
-                                        $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + batchName + "<br>  Code: QC'  class='lblAMC lbl-warning' for='warning" + i + "' > " + trackingNo + " </label>");
-
-                                    }
-                                    if (parseInt(code) == 2) {//Pulledback
-                                        $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + batchName + "<br>  Code: Pulledback'  class='lblAMC lbl-danger' for='danger" + i + "' > " +trackingNo+ " </label>");
-                                    }
-                                }
-                            }
-                        }
-                        GetScanCount(clientCode);
-                        $('[data-toggle="tooltip"]').tooltip();
-                    },
-                    error: function (response) {
-                        $("#message").empty();
-                        $("#message").show();
-                        $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>" + databaseError + "</div>");
-                        $("#code1").val("");
-                        $("#code2").val("");
-                        $("#code1").focus();
-                    }
-                });
-
-            }
-
             //debugger;
             var clientCode = "";// "AMC";// "HTL"; //
             var successmsg = "Document scanned.";
             var notStartWithClientCode = "";
             var emptymsg = "Please scan a document.";
             var duplicatemsg = "Document already scanned.";
-           // var notInDatabase = "";
+            // var notInDatabase = "";
             var mismatch = "Barcode value does not match with ";
             var databaseError = "Communication error. Please try to scan after some time.";
             var ActiveBatchCount = 1;
@@ -385,11 +295,11 @@
 
                 if (isIE11) {
                     $("#countsuccess").addClass("counterIe10");
-                    $("#todayscount").addClass("counterTotalIe10");
+                    //$("#todayscount").addClass("counterTotalIe10");
                 }
                 else {
                     $("#countsuccess").removeClass("counterIe10");
-                    $("#todayscount").removeClass("counterTotalIe10");
+                    //$("#todayscount").removeClass("counterTotalIe10");
                 }
                 $('.modal-dialog').draggable({ handle: ".modal-header" });
                 $('.modal-dialog').find(".modal-header").css('cursor', 'move');
@@ -409,16 +319,7 @@
                     min: 0,
 
                 });
-                GetScanCount(clientCode);
-                GetScanDocumentFromCookies(clientCode);
-                //var totalBatch = $("#todayscount").text().split('/');
-                //console.log(totalBatch);
-                ////UpdateProgressCount(parseInt(totalBatch[0].trim()), parseInt(totalBatch[1].trim()));
-                /*  Updating Batch Count on every 12 Second using Ajax */
-                window.setInterval(function () {
-                    GetScanCount(clientCode);
-                }, 12000);
-                /*  Updating Batch Count on every 12 Second using Ajax */
+
 
             });
             /*---- End of Scanned Batch Count Ajax ----*/
@@ -430,15 +331,15 @@
 
             /*---- Validate for New Batch  ----*/
             function startNewBatch() {
-                var batchtotalCount = $("#todayscount").text();
-                var totalScanValues = $("#todayscount").text().split('/');
-                var totalfiles = totalScanValues[1];
-                var totalscannedValue = totalScanValues[0];
+                //var batchtotalCount = $("#todayscount").text();
+                //var totalScanValues = $("#todayscount").text().split('/');
+                //var totalfiles = totalScanValues[1];
+                //var totalscannedValue = totalScanValues[0];
 
                 var batchCountTotal = $("#countsuccess").text();
                 // alert(totalfiles + " / " + totalscannedValue + "batch count"+batchCountTotal);
                 $("#message").empty();
-                if (totalfiles > 0 && batchCountTotal > 0 && totalscannedValue == 0) {
+                if (batchCountTotal > 0) {
 
                     $("#modalTitle").removeClass("alert alert-danger");
                     $("#submitModal").text("OK");
@@ -454,10 +355,6 @@
             /*---- Code1 validate Barcode  ----*/
             $("#code1").blur(function () {
                 startNewBatch(); // calling startNewBatch() Method
-                var batchtotalCount = $("#todayscount").text();
-                var totalScanValues = $("#todayscount").text().split('/');
-                var totalfiles = totalScanValues[1];
-                var totalscannedValue = totalScanValues[0];
                 if (parseInt($("#countsuccess").text().trim()) == 50) {
                     $("#modalTitle").removeClass("alert alert-danger");
                     $("#modalTitle").text(modalsuccess);
@@ -465,46 +362,22 @@
                     $("#nextBatch").click();
                     return;
                 }
-                if ($("#code1").val().trim().length > 13) {
-                    if ($("#code1").val().trim().indexOf("AUT") == -1) {
-                        var changeCode1 = $("#code1").val().trim();
-                        changeCode1 = changeCode1.slice(0, -4);
-                        changeCode1 = changeCode1.slice(-12);
-                        $("#code1").val(clientCode + changeCode1);
-                    }
-                }
-                if (batchtotalCount == "0/0") {
-                    $('#pie_totalscancount').asPieProgress('reset');
-                    $("#noBatch").click();
+
+                var code1Value = $("#code1").val();
+                if (code1Value != "") {
+                    //var code1Value = $('#code1').val().split("").reverse().join("");
+                    //if (code1Value.indexOf(clientCode) != -1) {
+                    //    code1Value = code1Value.replace(clientCode, '');
+                    //    console.log(code1Value);
+                    //}
+                    $("#code2").focus();
+                } else {
+                    $("#message").empty();
+                    $("#message").show();
+                    $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>" + emptymsg + "</div>");
                     $("#code1").val("");
                     $("#code1").focus();
 
-                }
-                else {
-                    var code1Value = $("#code1").val();
-                    if (code1Value != "") {
-
-                        if (code1Value.startsWith(clientCode)) {
-                            //debugger;
-                            //$('#code1').val($('#code2').val().split("").reverse().join(""));
-                            $("#code2").focus();
-                        }
-                        else {
-                            $("#message").empty();
-                            $("#message").show();
-                            $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>" + code1Value + " " + notStartWithClientCode + "</div>");
-                            $("#code1").val("");
-                            $("#code1").focus();
-
-                        }
-                    } else {
-                        $("#message").empty();
-                        $("#message").show();
-                        $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>" + emptymsg + "</div>");
-                        $("#code1").val("");
-                        $("#code1").focus();
-
-                    }
                 }
 
             });
@@ -514,167 +387,145 @@
             $("#code2").blur(function () {
                 if ($("#clearData").data("mouseDown") != true) {
                     startNewBatch();// calling startNewBatch() Method
-                    var batchtotalCount = $("#todayscount").text();
-                    if (environment.toUpperCase() == "UAT") {
-                        //console.log(environment);
-                        $('#code1').val($('#code2').val().split("").reverse().join(""));
-                    }
-
+                    //    var batchtotalCount = $("#todayscount").text();
                     $("#message").empty();
                     //if (batchtotalCount.split('/')[0] == batchtotalCount.split('/')[1]) {
-                    if (batchtotalCount == "0/0") {
+                    //if (batchtotalCount == "0/0") {
 
-                        $("#message").empty();
-                        $("#message").show();
-                        $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>" + nomoreBatch + "</div>");
-                        GetScanCount(clientCode);
-                        $("#code1").val("");
-                        $("#code1").focus();
+                    //    $("#message").empty();
+                    //    $("#message").show();
+                    //    $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>" + nomoreBatch + "</div>");
+                    //    $("#code1").val("");
+                    //    $("#code1").focus();
+
+                    //}
+                    //else {
+
+                    var code1Value = $("#code1").val().trim().toUpperCase();
+                    var code1ValueReverse = code1Value.split("").reverse().join("");
+                    if (code1ValueReverse.indexOf(clientCode) != -1) {
+                        code1Value = code1ValueReverse.replace(clientCode, '');
+                        console.log(code1Value);
+                    }
+                    var code2Value = $("#code2").val().trim().toUpperCase();
+                    if (code2Value != "") {
+                        //var totalScanValues = $("#todayscount").text().split('/');
+                        //var totalScanned = totalScanValues[0];
+                        //var totalfiles = totalScanValues[1];
+                        var scanCount = parseInt($("#countsuccess").text());
+                        $.ajax({
+                            type: "POST",
+                            url: '/Scan/RegisterUSPSScan',
+                            data: { mailPieceId: parseInt(code1Value), trackingNo: code2Value, clientCode: clientCode },
+                            success: function (response) {
+                                var object = response;
+                                var code = object.model.Code;
+                                var trackingNo = object.model.TrackingNo;
+                                var message = object.model.Message;
+                                var mailPieceId = object.model.MailPieceId;
+                                if (code == "Valid") {
+                                    //totalfiles = object.model.TotalCount;
+                                    //$("#todayscount").text(object.model.ScanCount + "/" + totalfiles);
+                                    if (message == null || message == "") {
+                                        message = successmsg;
+                                    }
+                                    //UpdateProgressCount(object.model.ScanCount, totalfiles);
+                                    //check//$('#pie_totalscancount').asPieProgress('go', String(piePreInt + "%"));
+                                    //console.log(object.model);
+                                    $("#message").empty();
+                                    $("#message").show();
+                                    $("#message").append("<div class='alert alert-success' style=' font-family:Copperplate Gothic;'><strong>" + message + "</strong></div>");
+                                    $('#message').delay(2000).fadeOut('slow');
+                                    //if (code == "QC") {
+
+                                    //    $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + object.model.BatchName + "<br>  Code: " + code + "'  class='lblAMC lbl-warning' for='success'>" + trackingNo + "</lable>");
+                                    //    $("#genmodalTitle").removeClass("alert alert-danger");
+                                    //    $("#genmodalTitle").text("QC is requested for this mailpiece, please perform quality check before mailing.");
+                                    //    $("#genmodalTitle").addClass("alert alert-info");
+                                    //    $("#generalmodal").modal("show");
+                                    //}
+                                    //if (code == "Pulledback") {
+                                    //    $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + object.model.BatchName + "<br>  Code: " + code + "'  class='lblAMC lbl-danger' for='success'>" + trackingNo + "</lable>");
+                                    //    $("#genmodalTitle").removeClass("alert alert-info");
+                                    //    $("#genmodalTitle").text("Pullback is requested for this mailpiece, please DO NOT mail.");
+                                    //    $("#genmodalTitle").addClass("alert alert-danger");
+                                    //    $("#generalmodal").modal("show");
+                                    //}
+                                    if (code == "Valid") {
+                                        $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='MailPiece Id: " + mailPieceId + "<br>  Code: " + code + "'  class='lblAMC lbl-success' for='success'>" + trackingNo + "</lable>");
+
+                                    }
+                                    $('[data-toggle="tooltip"]').tooltip();
+                                    var successcnt = $("#countsuccess").text();
+                                    successcnt++;
+                                    $('label[for="default' + successcnt + '"]').closest('label').remove();
+                                    //$('#pie_todaycount').asPieProgress('stop');
+                                    $('#pie_todaycount').asPieProgress('go', parseInt(successcnt));
+                                    $("#countsuccess").text(successcnt);
+                                    if (successcnt > 51) {
+                                        $("#modalTitle").removeClass("alert alert-danger");
+                                        $("#modalTitle").text(modalsuccess);
+                                        $("#modalTitle").addClass("alert alert-success");
+                                        $("#nextBatch").click();
+                                    }
+                                    $("#code1").val("");
+                                    $("#code2").val("");
+                                    $("#code1").focus();
+
+                                }
+                                else if (code == "Rescan") {
+                                    $("#message").empty();
+                                    $("#message").show();
+                                    if (message == null || message == "") {
+                                        message = duplicatemsg;
+                                    }
+                                    $("#message").append("<div class='alert alert-warning' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>" + message + "</div>");
+                                    $("#RescannedCode").prepend("<div style='margin:2px;' class='form-group'><button class='lblAMC lbl-warning' disabled >" + trackingNo + "</button></div>");
+                                    $("#code1").val("");
+                                    $("#code2").val("");
+                                    $("#code1").focus();
+                                }
+                                else if (code == "Invalid") {
+                                    $("#message").empty();
+                                    $("#message").show();
+                                    $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>Document with barcode " + code2Value + " could not be found.</div>");
+                                    $("#code1").val("");
+                                    $("#code2").val("");
+                                    $("#code1").focus();
+                                    $("#WrongCode").prepend("<div style='margin:2px;' class='form-group'><label class='lblAMC lbl-danger' disabled>" + code2Value + "</label></div>");
+                                }
+                                else {
+                                    $("#message").empty();
+                                    $("#message").show();
+                                    $("#wrongRow").show();
+                                    $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong> Not found.</div>");
+                                    $("#code2").val("");
+                                    $("#code2").focus();
+                                    $("#WrongCode").prepend("<div style='margin:2px;' class='form-group'><label class='lblAMC lbl-danger' disabled>" + code2Value + "</label></div>");
+                                }
+
+                            },
+                            error: function (response) {
+                                $("#message").empty();
+                                $("#message").show();
+                                $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>" + databaseError + "</div>");
+                                $("#code1").val("");
+                                $("#code2").val("");
+                                $("#code1").focus();
+
+                            }
+                        });
+
 
                     }
                     else {
+                        $("#message").empty();
+                        $("#message").show();
+                        $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>" + emptymsg + "</div>");
+                        $("#code2").val("");
 
-                        var code1Value = $("#code1").val().trim().toUpperCase();
-                        var code2Value = $("#code2").val().split('').reverse().join('').trim().toUpperCase();
-                        if (code2Value != "") {
-                            if (code1Value == code2Value) {
-                                var totalScanValues = $("#todayscount").text().split('/');
-                                var totalScanned = totalScanValues[0];
-                                var totalfiles = totalScanValues[1];
-                                var scanCount = parseInt($("#countsuccess").text());
-                                $.ajax({
-                                    type: "POST",
-                                    url: '/Scan/RegisterScan',
-                                    data: { barcode: code1Value, scanCount: scanCount, clientCode: clientCode },
-                                    success: function (response) {
-                                        var object = response;
-                                       // console.log(object)
-
-                                        var code = object.model.Code;
-                                        var trackingNo = object.model.TrackingNo;
-                                        var message = object.model.Message;
-                                        if (code == "Valid" || code == "QC" || code == "Pulledback") {
-                                            totalfiles = object.model.TotalCount;
-                                            $("#todayscount").text(object.model.ScanCount + "/" + totalfiles);
-                                            if (message == null || message == "") {
-                                                message = successmsg;
-                                            }
-                                            UpdateProgressCount(object.model.ScanCount, totalfiles);
-                                            //check//$('#pie_totalscancount').asPieProgress('go', String(piePreInt + "%"));
-                                            //console.log(object.model);
-                                            $("#message").empty();
-                                            $("#message").show();
-                                            $("#message").append("<div class='alert alert-success' style=' font-family:Copperplate Gothic;'><strong>" + message + "</strong></div>");
-                                            $('#message').delay(2000).fadeOut('slow');
-                                            if (code == "QC") {
-
-                                                $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + object.model.BatchName + "<br>  Code: " + code + "'  class='lblAMC lbl-warning' for='success'>" + trackingNo + "</lable>");
-                                                $("#genmodalTitle").removeClass("alert alert-danger");
-                                                $("#genmodalTitle").text("QC is requested for this mailpiece, please perform quality check before mailing.");
-                                                $("#genmodalTitle").addClass("alert alert-info");
-                                                $("#generalmodal").modal("show");
-                                            }
-                                            if (code == "Pulledback") {
-                                                $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + object.model.BatchName + "<br>  Code: " + code + "'  class='lblAMC lbl-danger' for='success'>" + trackingNo + "</lable>");
-                                                $("#genmodalTitle").removeClass("alert alert-info");
-                                                $("#genmodalTitle").text("Pullback is requested for this mailpiece, please DO NOT mail.");
-                                                $("#genmodalTitle").addClass("alert alert-danger");
-                                                $("#generalmodal").modal("show");
-                                            }
-                                            if (code == "Valid") {
-                                                $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + object.model.BatchName + "<br>  Code: " + code + "'  class='lblAMC lbl-success' for='success'>" + trackingNo + "</lable>");
-
-                                            }
-                                            $('[data-toggle="tooltip"]').tooltip();
-                                            var successcnt = $("#countsuccess").text();
-                                            successcnt++;
-                                            $('label[for="default' + successcnt + '"]').closest('label').remove();
-                                            //$('#pie_todaycount').asPieProgress('stop');
-                                            $('#pie_todaycount').asPieProgress('go', parseInt(successcnt));
-                                            $("#countsuccess").text(successcnt);
-                                            if (successcnt > 51) {
-                                                $("#modalTitle").removeClass("alert alert-danger");
-                                                $("#modalTitle").text(modalsuccess);
-                                                $("#modalTitle").addClass("alert alert-success");
-                                                $("#nextBatch").click();
-                                            }
-                                            else if (totalfiles == object.model.ScanCount) {
-                                                $("#modalTitle").removeClass("alert alert-danger");
-                                                $("#modalTitle").text(modalsuccess);
-                                                $("#modalTitle").addClass("alert alert-success");
-                                                $("#nextBatch").click();
-
-                                            }
-                                            else {
-                                                //nothing
-                                            }
-                                            $("#code1").val("");
-                                            $("#code2").val("");
-                                            $("#code1").focus();
-
-                                        }
-                                        else if (code == "Rescan") {
-                                            $("#message").empty();
-                                            $("#message").show();
-                                            if (message == null || message == "") {
-                                                message = duplicatemsg;
-                                            }
-                                            $("#message").append("<div class='alert alert-warning' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>" + message + "</div>");
-                                            $("#RescannedCode").prepend("<div style='margin:2px;' class='form-group'><button class='lblAMC lbl-warning' disabled >" + trackingNo + "</button></div>");
-                                            $("#code1").val("");
-                                            $("#code2").val("");
-                                            $("#code1").focus();
-                                        }
-                                        else if (code == "Invalid") {
-                                            $("#message").empty();
-                                            $("#message").show();
-                                            $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>Document with barcode "+ code2Value + " could not be found.</div>");
-                                            $("#code1").val("");
-                                            $("#code2").val("");
-                                            $("#code1").focus();
-                                            $("#WrongCode").prepend("<div style='margin:2px;' class='form-group'><label class='lblAMC lbl-danger' disabled>" + code2Value + "</label></div>");
-                                        }
-                                        else {
-                                            $("#message").empty();
-                                            $("#message").show();
-                                            $("#wrongRow").show();
-                                            $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>" + code1Value + " " + mismatch + "" + code2Value + "</div>");
-                                            $("#code2").val("");
-                                            $("#code2").focus();
-                                            $("#WrongCode").prepend("<div style='margin:2px;' class='form-group'><label class='lblAMC lbl-danger' disabled>" + code2Value + "</label></div>");
-                                        }
-                                        GetScanCount(clientCode);
-
-                                    },
-                                    error: function (response) {
-                                        $("#message").empty();
-                                        $("#message").show();
-                                        $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>" + databaseError + "</div>");
-                                        $("#code1").val("");
-                                        $("#code2").val("");
-                                        $("#code1").focus();
-
-                                    }
-                                });
-
-                            }
-                            else {
-                                $("#message").empty();
-                                $("#message").show();
-                                $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>" + code1Value + " " + mismatch + "" + code2Value + "</div>");
-                                $("#code2").val("");
-                                $("#code2").focus();
-
-                            }
-                        }
-                        else {
-                            $("#message").empty();
-                            $("#message").show();
-                            $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>" + emptymsg + "</div>");
-                            $("#code2").val("");
-
-                        }
                     }
+                    //}
                 }
             });
             /*---- End Code2 validate Barcode  ----*/
@@ -693,8 +544,7 @@
                             $("#code2").val("");
                             $("#scannedCode").empty();
                             $("#code1").focus();
-                            GetScanCount(clientCode);
-                            $("#todayscount").text("0/0");
+                           // $("#todayscount").text("0/0");
                             location.reload();
                         }
 
@@ -718,56 +568,6 @@
             $("#clearData").on("mouseup", function (e) {
                 $("#clearData").data("mouseDown", false);
             });
-            ///*---- on Load Get Active Batch Count ----*/
-            //$(document).ready(function () {
-
-
-            //    /*  Updating Batch Count on every 12 Second using Ajax */
-            //    //window.setInterval(function () {
-
-            //    //    $.ajax({
-            //    //        type: "POST",
-            //    //        url: '<%= ResolveUrl("JsonResult.aspx") %>',
-            //    //        data: { clientCode: clientCode },
-            //    //        success: function (response) {
-            //    //            // alert(response);
-            //    //            var totalcount = response.split('$');
-            //    //            $("#todayscount").text(totalcount[0]);
-            //    //            var totalScanValues = $("#todayscount").text().split('/');
-            //    //            // var totalfiles = totalScanValues[1];
-            //    //            $("#todayscount").text(totalScanValues[0] + "/" + totalScanValues[1]);
-            //    //            if ($("#todayscount").text() == "0/0") {
-            //    //                $('#pie_totalscancount').asPieProgress('reset');
-            //    //            }
-            //    //            // alert(totalScanValues[0] + "12 second");
-            //    //            //$('#pie_totalscancount').attr("aria-valuenow", totalcount[0]);
-            //    //            //$('#pie_totalscancount').asPieProgress('start');
-            //    //            //$('#pie_totalscancount').asPieProgress('go', parseInt(totalScanValues[0]));
-            //    //            //$('#pie_totalscancount').asPieProgress('stop');
-            //    //            var piePreInt = parseInt((parseInt(totalScanValues[0]) / parseInt(totalScanValues[1])) * 100);
-            //    //            // var perPie = "'" + piePreInt + "%'";
-
-            //    //            UpdateProgressCount(piePreInt);
-            //    //            //check//$('#pie_totalscancount').asPieProgress('go', String(piePreInt + "%"));
-            //    //            //alert("'" + piePreInt + "%'");
-            //    //            //$('#pie_totalscancount').asPieProgress('go', '"' + perPie + '"%');
-
-            //    //        },
-            //    //        error: function (response) {
-            //    //            $("#message").empty();
-            //    //            $("#message").show();
-            //    //            $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>" + databaseError + "</div>");
-            //    //            $("#code1").val("");
-            //    //            $("#code2").val("");
-            //    //            $("#code1").focus();
-            //    //        }
-            //    //    });
-            //    //}, 12000);
-            //    /*  Updating Batch Count on every 12 Second using Ajax */
-
-            //});
-            ///* End Active Batch Count */
-
         </script>
     }
 </div>
