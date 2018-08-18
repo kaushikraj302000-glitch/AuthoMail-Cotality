@@ -151,7 +151,7 @@ namespace AM.Services
             }
             catch (Exception ex)
             {
-                SetResponseValues(addressResponses, idRegex, addresses);
+                SetResponseValues(addressResponses, idRegex, addresses, ex);
             }
 
             var addressResponseXML = addressResponses.Serialize();
@@ -163,6 +163,11 @@ namespace AM.Services
         }
 
         private static void SetResponseValues(List<AddressResponse> addressResponses, Regex idRegex, List<Address> addresses)
+        {
+            SetResponseValues(addressResponses, idRegex, addresses, null);
+        }
+
+        private static void SetResponseValues(List<AddressResponse> addressResponses, Regex idRegex, List<Address> addresses, Exception ex)
         {
             foreach (Address address in addresses)
             {
@@ -207,7 +212,7 @@ namespace AM.Services
                 else
                 {
                     responseAdd.Verifier = ResponseSource.CLSVC;
-                    responseAdd.VerifierDesc = "USPS Failure : {0}".Fill(verifiedAddress.Error.Description);
+                    responseAdd.VerifierDesc = "USPS Failure : {0}".Fill(ex.ToString());
                 }
             }
         }
