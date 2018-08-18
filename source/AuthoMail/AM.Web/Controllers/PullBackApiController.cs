@@ -165,25 +165,25 @@ namespace AM.Web.Controllers
         //    return "API_Value of P is:" + p.p;
         //}
     }
-    //[Authorize(Roles = AMRoles.APIUSPSeVS + "," + AMRoles.API), RoutePrefix("api/pullback")]
-    //public class TestController : ApiController
-    //{
-    //    [Authorize(Roles = AMRoles.APIUSPSeVS), Route("testpostuspstest")]
-    //    public string TestPostUSPS([FromBody] cls p)
-    //    {
-    //        if (p == null && string.IsNullOrWhiteSpace(p.p)) return "String is Null";
-    //        return "TEST_USPS_Value of P is:" + p.p;
-    //    }
-    //    [Authorize(Roles = AMRoles.API), Route("testpostapitest")]
-    //    public string TestPostAPI([FromBody] cls p)
-    //    {
-    //        if (p == null && string.IsNullOrWhiteSpace(p.p)) return "String is Null";
-    //        return "TEST_API_Value of P is:" + p.p;
-    //    }
-    //}
+    [Authorize(Roles = AMRoles.APIUSPSeVS + "," + AMRoles.API), RoutePrefix("api/pullback")]
+    public class TestController : ApiController
+    {
+        [Authorize(Roles = AMRoles.APIUSPSeVS), Route("testpostuspstest")]
+        public string TestPostUSPS([FromBody] cls p)
+        {
+            if (p == null && string.IsNullOrWhiteSpace(p.p)) return "String is Null";
+            return "TEST_USPS_Value of P is:" + p.p;
+        }
+        [Authorize(Roles = AMRoles.API), Route("testpostapitest")]
+        public string TestPostAPI([FromBody] cls p)
+        {
+            if (p == null && string.IsNullOrWhiteSpace(p.p)) return "String is Null";
+            return "TEST_API_Value of P is:" + p.p;
+        }
+    }
 
-    //public class cls
-    //{
-    //    public string p { get; set; }
-    //}
+    public class cls
+    {
+        public string p { get; set; }
+    }
 }
