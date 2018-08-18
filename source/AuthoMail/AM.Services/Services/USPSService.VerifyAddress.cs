@@ -47,12 +47,14 @@ namespace AM.Services
         {
             try
             {
-                var addressRequestsXML = addressRequests.Serialize();
+
                 int insertedID = 0;
                 Task<int> recordRequestId = null;
                 //check flag and call to db
                 if (Config.Web_API_USPS_IsDbLoggingEnabled)
                 {
+                    var addressRequestsXML = addressRequests.Serialize();
+
                     recordRequestId = db.ExecuteScalarAsync<int>("Insert into [API].[USPS] ([APIName], [UserId], [APIRequest], [APIRequestedOn]) OUTPUT INSERTED.Id VALUES(@APIName, @UserId, @APIRequest, @APIRequestDateTime);", new { APIName = Config.Web_API_USPS_VerifyAPIName, UserId = userId, APIRequest = addressRequestsXML, APIRequestDateTime = DateTime.Now });
                 }
 
@@ -116,9 +118,12 @@ namespace AM.Services
 
                         var uspsInpurXML = request.Serialize();
 
-                        insertedID = await recordRequestId;
 
-                        var uspsRequestLog = db.ExecuteAsync("Update [API].[USPS] set USPSRequest = @USPSRequest ,USPSRequestedOn = @USPSRequestedOn where Id = @Id", new { USPSRequest = uspsInpurXML, USPSRequestedOn = DateTime.Now, Id = insertedID });
+                        if (Config.Web_API_USPS_IsDbLoggingEnabled)
+                        {
+                            insertedID = await recordRequestId;
+                            var uspsRequestLog = db.ExecuteAsync("Update [API].[USPS] set USPSRequest = @USPSRequest ,USPSRequestedOn = @USPSRequestedOn where Id = @Id", new { USPSRequest = uspsInpurXML, USPSRequestedOn = DateTime.Now, Id = insertedID });
+                        }
 
                         payload = new FormUrlEncodedContent(new[] 
                         {
@@ -131,9 +136,10 @@ namespace AM.Services
                         uspsReq = httpClient.GetStringAsync("{0}?{1}".Fill(url, payloadResult));
 
                         var uspsResponseString = await uspsReq;
-
-                        var uspsResponseLog = db.ExecuteAsync("Update [API].[USPS] set USPSResponse = @USPSResponse ,  USPSResponseOn = @USPSResponseOn where Id = @Id", new { USPSResponse = uspsResponseString, USPSResponseOn = DateTime.Now, Id = insertedID });
-
+                        if (Config.Web_API_USPS_IsDbLoggingEnabled)
+                        {
+                            var uspsResponseLog = db.ExecuteAsync("Update [API].[USPS] set USPSResponse = @USPSResponse ,  USPSResponseOn = @USPSResponseOn where Id = @Id", new { USPSResponse = uspsResponseString, USPSResponseOn = DateTime.Now, Id = insertedID });
+                        }
                         if (uspsResponseString.Contains("AddressValidateResponse"))
                         {
                             var response = uspsResponseString.Deserialize<AddressValidateResponse>();
@@ -155,10 +161,15 @@ namespace AM.Services
                     SetResponseValues(addressResponses, idRegex, addresses, ex);
                 }
 
-                var addressResponseXML = addressResponses.Serialize();
-                var responseLog = db.ExecuteAsync("Update [API].[USPS] set APIResponse = @APIResponse ,  APIResponseOn = @APIResponseOn Where Id = @Id", new { APIResponse = addressResponseXML, APIResponseOn = DateTime.Now, Id = insertedID });
 
-                await responseLog;
+
+                if (Config.Web_API_USPS_IsDbLoggingEnabled)
+                {
+                    var addressResponseXML = addressResponses.Serialize();
+                    var responseLog = db.ExecuteAsync("Update [API].[USPS] set APIResponse = @APIResponse ,  APIResponseOn = @APIResponseOn Where Id = @Id", new { APIResponse = addressResponseXML, APIResponseOn = DateTime.Now, Id = insertedID });
+                    await responseLog;
+                }
+
 
                 return await Task.Run(() => addressResponses);
             }
