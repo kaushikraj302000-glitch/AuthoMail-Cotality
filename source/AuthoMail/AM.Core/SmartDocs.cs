@@ -120,7 +120,8 @@ namespace AM.Core
                     ExceptionDetail = "Unable to generate cover letter.";
                     return "";
                 }
-
+                //For now barcode scanning will work on MailPiece id on both side
+                TrackingCode = mailPieceData["MailPieceId"];
             }
             catch (Exception ex)
             {
@@ -170,9 +171,6 @@ namespace AM.Core
                     PdfUtil.MergePDFs(coverLetterPDFPath, mergeReadyFilePath, outputDocumentPath);
                 }
 
-
-
-                //PdfUtil.BookmarkedPdfFilesMerge(outputDocumentPath, mergePDFArray);
                 #endregion
 
                 #region Remove Extra Document After Merging
