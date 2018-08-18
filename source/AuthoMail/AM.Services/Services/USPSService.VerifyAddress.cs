@@ -91,10 +91,10 @@ namespace AM.Services
                             ID = response.Id,
                             FirmName = request.FirmName,
                             Address2 = add2.IsNullOrWhiteSpace() ? string.Empty : add2,
-                            City = request.City.IsNullOrWhiteSpace() ? string.Empty : request.City,
-                            State = request.State.IsNullOrWhiteSpace() ? string.Empty : request.State,
-                            Zip5 = request.Zip5.IsNullOrWhiteSpace() ? string.Empty : request.Zip5,
-                            Zip4 = request.Zip4.IsNullOrWhiteSpace() ? string.Empty : request.Zip4
+                            City = request.City.IsNullOrWhiteSpace() ? string.Empty : request.City.Trim(),
+                            State = request.State.IsNullOrWhiteSpace() ? string.Empty : request.State.Trim(),
+                            Zip5 = request.Zip5.IsNullOrWhiteSpace() ? string.Empty : request.Zip5.Trim(),
+                            Zip4 = request.Zip4.IsNullOrWhiteSpace() ? string.Empty : request.Zip4.Trim()
                         });
                     }
                     addressResponses.Add(response);
@@ -191,9 +191,9 @@ namespace AM.Services
                 //if error by USPS then assign requested add to respond with source CLSVC
                 if (verifiedAddress.HasError)
                 {
+                    var add2 = "{0} {1}".Fill(responseAdd.AddressRequest.Line1, responseAdd.AddressRequest.Line2).Trim();
                     verifiedAddress.FirmName = responseAdd.AddressRequest.FirmName;
-                    verifiedAddress.Address1 = responseAdd.AddressRequest.Line1;
-                    verifiedAddress.Address2 = responseAdd.AddressRequest.Line2;
+                    verifiedAddress.Address2 = add2;
                     verifiedAddress.City = responseAdd.AddressRequest.City;
                     verifiedAddress.State = responseAdd.AddressRequest.State;
                     verifiedAddress.Zip5 = responseAdd.AddressRequest.Zip5;
@@ -243,11 +243,11 @@ namespace AM.Services
             if (address.Address2.ToLower().Contains("po box") || address.Address2.ToLower().Contains("pobox"))
                 addressTypes.Add(AddressTypes.POBOX);
 
-            if (militarystates.Contains(address.State) && militaryCities.Contains(address.City))
+            if (militarystates.Contains(address.State.ToUpper()) && militaryCities.Contains(address.City.ToUpper()))
                 addressTypes.Add(AddressTypes.Military);
             else
             {
-                if (territory.Contains(address.State))
+                if (territory.Contains(address.State.ToUpper()))
                     addressTypes.Add(AddressTypes.Territory);
                 else
                     addressTypes.Add(AddressTypes.DHAM);
