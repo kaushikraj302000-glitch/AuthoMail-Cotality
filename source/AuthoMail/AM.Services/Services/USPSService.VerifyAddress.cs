@@ -45,121 +45,127 @@ namespace AM.Services
 
         private async Task<List<AddressResponse>> VerifyAddressAsync(string userId, List<AddressRequest> addressRequests)
         {
-            var addressRequestsXML = addressRequests.Serialize();
-            int insertedID = 0;
-            Task<int> recordRequestId = null;
-            //check flag and call to db
-            if (Config.Web_API_USPS_IsDbLoggingEnabled)
-            {
-                recordRequestId = db.ExecuteScalarAsync<int>("Insert into [API].[USPS] ([APIName], [UserId], [APIRequest], [APIRequestedOn]) OUTPUT INSERTED.Id VALUES(@APIName, @UserId, @APIRequest, @APIRequestDateTime);", new { APIName = Config.Web_API_USPS_VerifyAPIName, UserId = userId, APIRequest = addressRequestsXML, APIRequestDateTime = DateTime.Now });
-            }
-
-            var maxAddressCount = Config.Web_API_USPS_AddressCount;
-
-            // Validate list length
-            if (addressRequests == null || addressRequests.Count < 1 || addressRequests.Count > maxAddressCount)
-                throw new ArgumentException("addressRequests", "At least one and at most 5 addresses must be specified.");
-
-            List<AddressResponse> addressResponses = new List<AddressResponse>(maxAddressCount);
-            List<Address> addresses = new List<Address>(maxAddressCount);
-
-            for (int i = 0; i < addressRequests.Count; i++)
-            {
-                var request = addressRequests[i];
-                var validationErrors = ValidateAddress(request);
-
-                var response = new AddressResponse(request, i + 1);
-
-                if (validationErrors.Any())
-                {
-                    response.Error = new Error
-                    {
-                        Source = ResponseSource.CLSVC,
-                        Description = String.Join(Environment.NewLine, validationErrors)
-                    };
-                }
-                else
-                {
-                    var add2 = "{0} {1}".Fill(request.Line1, request.Line2).Trim();
-
-                    addresses.Add(new Address
-                    {
-                        //index 1 base
-                        ID = response.Id,
-                        FirmName = request.FirmName,
-                        Address2 = add2.IsNullOrWhiteSpace() ? string.Empty : add2,
-                        City = request.City.IsNullOrWhiteSpace() ? string.Empty : request.City,
-                        State = request.State.IsNullOrWhiteSpace() ? string.Empty : request.State,
-                        Zip5 = request.Zip5.IsNullOrWhiteSpace() ? string.Empty : request.Zip5,
-                        Zip4 = request.Zip4.IsNullOrWhiteSpace() ? string.Empty : request.Zip4
-                    });
-                }
-                addressResponses.Add(response);
-            }
-
-            FormUrlEncodedContent payload = null;
-            Task<string> uspsReq = null;
-            var idRegex = new Regex(@"(\d+{0})(.*)".Fill(ResponseSource.CLSVC));
-
             try
             {
-                using (HttpClient httpClient = new HttpClient())
+                var addressRequestsXML = addressRequests.Serialize();
+                int insertedID = 0;
+                Task<int> recordRequestId = null;
+                //check flag and call to db
+                if (Config.Web_API_USPS_IsDbLoggingEnabled)
                 {
-                    var request = new AddressValidateRequest(Config.Web_API_USPS_UserId, "1");
-                    //var request = new AddressValidateRequest("719MSTC04390", "1");//"719MSTC04390", "1");
-                    request.AddressList.AddRange(addresses);
+                    recordRequestId = db.ExecuteScalarAsync<int>("Insert into [API].[USPS] ([APIName], [UserId], [APIRequest], [APIRequestedOn]) OUTPUT INSERTED.Id VALUES(@APIName, @UserId, @APIRequest, @APIRequestDateTime);", new { APIName = Config.Web_API_USPS_VerifyAPIName, UserId = userId, APIRequest = addressRequestsXML, APIRequestDateTime = DateTime.Now });
+                }
 
-                    string url = Config.Web_API_USPS_URL;
-                    //string url = @"https://secure.shippingapis.com/ShippingAPI.dll";//["USPSAPI"];
+                var maxAddressCount = Config.Web_API_USPS_AddressCount;
 
-                    var uspsInpurXML = request.Serialize();
+                // Validate list length
+                if (addressRequests == null || addressRequests.Count < 1 || addressRequests.Count > maxAddressCount)
+                    throw new ArgumentException("addressRequests", "At least one and at most 5 addresses must be specified.");
 
-                    insertedID = await recordRequestId;
+                List<AddressResponse> addressResponses = new List<AddressResponse>(maxAddressCount);
+                List<Address> addresses = new List<Address>(maxAddressCount);
 
-                    var uspsRequestLog = db.ExecuteAsync("Update [API].[USPS] set USPSRequest = @USPSRequest ,USPSRequestedOn = @USPSRequestedOn where Id = @Id", new { USPSRequest = uspsInpurXML, USPSRequestedOn = DateTime.Now, Id = insertedID });
+                for (int i = 0; i < addressRequests.Count; i++)
+                {
+                    var request = addressRequests[i];
+                    var validationErrors = ValidateAddress(request);
 
-                    payload = new FormUrlEncodedContent(new[] 
+                    var response = new AddressResponse(request, i + 1);
+
+                    if (validationErrors.Any())
+                    {
+                        response.Error = new Error
+                        {
+                            Source = ResponseSource.CLSVC,
+                            Description = String.Join(Environment.NewLine, validationErrors)
+                        };
+                    }
+                    else
+                    {
+                        var add2 = "{0} {1}".Fill(request.Line1, request.Line2).Trim();
+
+                        addresses.Add(new Address
+                        {
+                            //index 1 base
+                            ID = response.Id,
+                            FirmName = request.FirmName,
+                            Address2 = add2.IsNullOrWhiteSpace() ? string.Empty : add2,
+                            City = request.City.IsNullOrWhiteSpace() ? string.Empty : request.City,
+                            State = request.State.IsNullOrWhiteSpace() ? string.Empty : request.State,
+                            Zip5 = request.Zip5.IsNullOrWhiteSpace() ? string.Empty : request.Zip5,
+                            Zip4 = request.Zip4.IsNullOrWhiteSpace() ? string.Empty : request.Zip4
+                        });
+                    }
+                    addressResponses.Add(response);
+                }
+
+                FormUrlEncodedContent payload = null;
+                Task<string> uspsReq = null;
+                var idRegex = new Regex(@"(\d+{0})(.*)".Fill(ResponseSource.CLSVC));
+
+                try
+                {
+                    using (HttpClient httpClient = new HttpClient())
+                    {
+                        var request = new AddressValidateRequest(Config.Web_API_USPS_UserId, "1");
+                        //var request = new AddressValidateRequest("719MSTC04390", "1");//"719MSTC04390", "1");
+                        request.AddressList.AddRange(addresses);
+
+                        string url = Config.Web_API_USPS_URL;
+                        //string url = @"https://secure.shippingapis.com/ShippingAPI.dll";//["USPSAPI"];
+
+                        var uspsInpurXML = request.Serialize();
+
+                        insertedID = await recordRequestId;
+
+                        var uspsRequestLog = db.ExecuteAsync("Update [API].[USPS] set USPSRequest = @USPSRequest ,USPSRequestedOn = @USPSRequestedOn where Id = @Id", new { USPSRequest = uspsInpurXML, USPSRequestedOn = DateTime.Now, Id = insertedID });
+
+                        payload = new FormUrlEncodedContent(new[] 
                         {
                             new KeyValuePair<string, string>("API",Config.Web_API_USPS_VerifyAPIName),
                             //new KeyValuePair<string, string>("API","Verify"),
                             new KeyValuePair<string, string>("XML",uspsInpurXML)
                         });
 
-                    var payloadResult = await payload.ReadAsStringAsync();
-                    uspsReq = httpClient.GetStringAsync("{0}?{1}".Fill(url, payloadResult));
+                        var payloadResult = await payload.ReadAsStringAsync();
+                        uspsReq = httpClient.GetStringAsync("{0}?{1}".Fill(url, payloadResult));
 
-                    //TODO Record this output xml to db
-                    var uspsResponseString = await uspsReq;
+                        var uspsResponseString = await uspsReq;
 
-                    var uspsResponseLog = db.ExecuteAsync("Update [API].[USPS] set USPSResponse = @USPSResponse ,  USPSResponseOn = @USPSResponseOn where Id = @Id", new { USPSResponse = uspsResponseString, USPSResponseOn = DateTime.Now, Id = insertedID });
+                        var uspsResponseLog = db.ExecuteAsync("Update [API].[USPS] set USPSResponse = @USPSResponse ,  USPSResponseOn = @USPSResponseOn where Id = @Id", new { USPSResponse = uspsResponseString, USPSResponseOn = DateTime.Now, Id = insertedID });
 
-                    if (uspsResponseString.Contains("AddressValidateResponse"))
-                    {
-                        var response = uspsResponseString.Deserialize<AddressValidateResponse>();
+                        if (uspsResponseString.Contains("AddressValidateResponse"))
+                        {
+                            var response = uspsResponseString.Deserialize<AddressValidateResponse>();
 
-                        SetResponseValues(addressResponses, idRegex, response.AddressList);
-                    }
-                    else
-                    {
-                        var error = uspsResponseString.Deserialize<Error>();
-                        //var verifiedaddress = new address();
-                        //verifiedAddress.Error = error;
-                        //to do when this called
-                        throw new Exception(error.Description);
+                            SetResponseValues(addressResponses, idRegex, response.AddressList);
+                        }
+                        else
+                        {
+                            var error = uspsResponseString.Deserialize<Error>();
+                            //var verifiedaddress = new address();
+                            //verifiedAddress.Error = error;
+                            //to do when this called
+                            throw new InvalidOperationException(error.Description);
+                        }
                     }
                 }
+                catch (HttpRequestException ex)
+                {
+                    SetResponseValues(addressResponses, idRegex, addresses, ex);
+                }
+
+                var addressResponseXML = addressResponses.Serialize();
+                var responseLog = db.ExecuteAsync("Update [API].[USPS] set APIResponse = @APIResponse ,  APIResponseOn = @APIResponseOn Where Id = @Id", new { APIResponse = addressResponseXML, APIResponseOn = DateTime.Now, Id = insertedID });
+
+                await responseLog;
+
+                return await Task.Run(() => addressResponses);
             }
             catch (Exception ex)
             {
-                SetResponseValues(addressResponses, idRegex, addresses, ex);
+                throw ex;
             }
-
-            var addressResponseXML = addressResponses.Serialize();
-            var responseLog = db.ExecuteAsync("Update [API].[USPS] set APIResponse = @APIResponse ,  APIResponseOn = @APIResponseOn Where Id = @Id", new { APIResponse = addressResponseXML, APIResponseOn = DateTime.Now, Id = insertedID });
-
-            await responseLog;
-
-            return await Task.Run(() => addressResponses);
         }
 
         private static void SetResponseValues(List<AddressResponse> addressResponses, Regex idRegex, List<Address> addresses)
