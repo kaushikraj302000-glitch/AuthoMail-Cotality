@@ -47,12 +47,13 @@ namespace AM.Services
         {
             try
             {
-                var addressRequestsXML = addressRequests.Serialize();
                 int insertedID = 0;
                 Task<int> recordRequestId = null;
                 //check flag and call to db
                 if (Config.Web_API_USPS_IsDbLoggingEnabled)
                 {
+                    var addressRequestsXML = addressRequests.Serialize();
+
                     recordRequestId = db.ExecuteScalarAsync<int>("Insert into [API].[USPS] ([APIName], [UserId], [APIRequest], [APIRequestedOn]) OUTPUT INSERTED.Id VALUES(@APIName, @UserId, @APIRequest, @APIRequestDateTime);", new { APIName = Config.Web_API_USPS_VerifyAPIName, UserId = userId, APIRequest = addressRequestsXML, APIRequestDateTime = DateTime.Now });
                 }
 
@@ -90,10 +91,10 @@ namespace AM.Services
                             ID = response.Id,
                             FirmName = request.FirmName,
                             Address2 = add2.IsNullOrWhiteSpace() ? string.Empty : add2,
-                            City = request.City.IsNullOrWhiteSpace() ? string.Empty : request.City,
-                            State = request.State.IsNullOrWhiteSpace() ? string.Empty : request.State,
-                            Zip5 = request.Zip5.IsNullOrWhiteSpace() ? string.Empty : request.Zip5,
-                            Zip4 = request.Zip4.IsNullOrWhiteSpace() ? string.Empty : request.Zip4
+                            City = request.City.IsNullOrWhiteSpace() ? string.Empty : request.City.Trim(),
+                            State = request.State.IsNullOrWhiteSpace() ? string.Empty : request.State.Trim(),
+                            Zip5 = request.Zip5.IsNullOrWhiteSpace() ? string.Empty : request.Zip5.Trim(),
+                            Zip4 = request.Zip4.IsNullOrWhiteSpace() ? string.Empty : request.Zip4.Trim()
                         });
                     }
                     addressResponses.Add(response);
@@ -116,9 +117,12 @@ namespace AM.Services
 
                         var uspsInpurXML = request.Serialize();
 
-                        insertedID = await recordRequestId;
 
-                        var uspsRequestLog = db.ExecuteAsync("Update [API].[USPS] set USPSRequest = @USPSRequest ,USPSRequestedOn = @USPSRequestedOn where Id = @Id", new { USPSRequest = uspsInpurXML, USPSRequestedOn = DateTime.Now, Id = insertedID });
+                        if (Config.Web_API_USPS_IsDbLoggingEnabled)
+                        {
+                            insertedID = await recordRequestId;
+                            var uspsRequestLog = db.ExecuteAsync("Update [API].[USPS] set USPSRequest = @USPSRequest ,USPSRequestedOn = @USPSRequestedOn where Id = @Id", new { USPSRequest = uspsInpurXML, USPSRequestedOn = DateTime.Now, Id = insertedID });
+                        }
 
                         payload = new FormUrlEncodedContent(new[] 
                         {
@@ -131,9 +135,10 @@ namespace AM.Services
                         uspsReq = httpClient.GetStringAsync("{0}?{1}".Fill(url, payloadResult));
 
                         var uspsResponseString = await uspsReq;
-
-                        var uspsResponseLog = db.ExecuteAsync("Update [API].[USPS] set USPSResponse = @USPSResponse ,  USPSResponseOn = @USPSResponseOn where Id = @Id", new { USPSResponse = uspsResponseString, USPSResponseOn = DateTime.Now, Id = insertedID });
-
+                        if (Config.Web_API_USPS_IsDbLoggingEnabled)
+                        {
+                            var uspsResponseLog = db.ExecuteAsync("Update [API].[USPS] set USPSResponse = @USPSResponse ,  USPSResponseOn = @USPSResponseOn where Id = @Id", new { USPSResponse = uspsResponseString, USPSResponseOn = DateTime.Now, Id = insertedID });
+                        }
                         if (uspsResponseString.Contains("AddressValidateResponse"))
                         {
                             var response = uspsResponseString.Deserialize<AddressValidateResponse>();
@@ -155,10 +160,12 @@ namespace AM.Services
                     SetResponseValues(addressResponses, idRegex, addresses, ex);
                 }
 
-                var addressResponseXML = addressResponses.Serialize();
-                var responseLog = db.ExecuteAsync("Update [API].[USPS] set APIResponse = @APIResponse ,  APIResponseOn = @APIResponseOn Where Id = @Id", new { APIResponse = addressResponseXML, APIResponseOn = DateTime.Now, Id = insertedID });
-
-                await responseLog;
+                if (Config.Web_API_USPS_IsDbLoggingEnabled)
+                {
+                    var addressResponseXML = addressResponses.Serialize();
+                    var responseLog = db.ExecuteAsync("Update [API].[USPS] set APIResponse = @APIResponse ,  APIResponseOn = @APIResponseOn Where Id = @Id", new { APIResponse = addressResponseXML, APIResponseOn = DateTime.Now, Id = insertedID });
+                    await responseLog;
+                }
 
                 return await Task.Run(() => addressResponses);
             }
@@ -184,9 +191,9 @@ namespace AM.Services
                 //if error by USPS then assign requested add to respond with source CLSVC
                 if (verifiedAddress.HasError)
                 {
+                    var add2 = "{0} {1}".Fill(responseAdd.AddressRequest.Line1, responseAdd.AddressRequest.Line2).Trim();
                     verifiedAddress.FirmName = responseAdd.AddressRequest.FirmName;
-                    verifiedAddress.Address1 = responseAdd.AddressRequest.Line1;
-                    verifiedAddress.Address2 = responseAdd.AddressRequest.Line2;
+                    verifiedAddress.Address2 = add2;
                     verifiedAddress.City = responseAdd.AddressRequest.City;
                     verifiedAddress.State = responseAdd.AddressRequest.State;
                     verifiedAddress.Zip5 = responseAdd.AddressRequest.Zip5;
@@ -218,7 +225,7 @@ namespace AM.Services
                 else
                 {
                     responseAdd.Verifier = ResponseSource.CLSVC;
-                    responseAdd.VerifierDesc = "USPS Failure : {0}".Fill(ex.ToString());
+                    responseAdd.VerifierDesc = "USPS Failure : {0}".Fill(ex != null ? ex.ToString() : verifiedAddress.Error.Description);
                 }
             }
         }
@@ -226,21 +233,21 @@ namespace AM.Services
         private static List<string> CheckAddressType(Address address)
         {
             var addressTypes = new List<string>();
-            //var militarystates = Config.USPS_MilitaryStates.Split(',');
-            var militarystates = new string[] { "AA", "AE", "AP" };
-            //var militaryCities = Config.USPS_MilitaryCities.Split(',');
-            var militaryCities = new string[] { "APO", "DPO", "FPO" };
-            //var territory = Config.USPS_Territory.Split(',');
-            var territory = new string[] { "AS", "FM", "GU", "MH", "MP", "PR", "PW", "VI" };
+            var militarystates = Config.Web_API_USPS_MilitaryStates.Split(',').Select(ms => ms.Trim()); ;
+            //var militarystates = new string[] { "AA", "AE", "AP" };
+            var militaryCities = Config.Web_API_USPS_MilitaryCities.Split(',').Select(mc => mc.Trim()); ;
+            //var militaryCities = new string[] { "APO", "DPO", "FPO" };
+            var territory = Config.Web_API_USPS_Territory.Split(',').Select(t => t.Trim());
+            //var territory = new string[] { "AS", "FM", "GU", "MH", "MP", "PR", "PW", "VI" };
 
             if (address.Address2.ToLower().Contains("po box") || address.Address2.ToLower().Contains("pobox"))
                 addressTypes.Add(AddressTypes.POBOX);
 
-            if (militarystates.Contains(address.State) && militaryCities.Contains(address.City))
+            if (militarystates.Contains(address.State.ToUpper()) && militaryCities.Contains(address.City.ToUpper()))
                 addressTypes.Add(AddressTypes.Military);
             else
             {
-                if (territory.Contains(address.State))
+                if (territory.Contains(address.State.ToUpper()))
                     addressTypes.Add(AddressTypes.Territory);
                 else
                     addressTypes.Add(AddressTypes.DHAM);

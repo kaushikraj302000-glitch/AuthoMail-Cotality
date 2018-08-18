@@ -164,6 +164,7 @@ namespace AM.Core
                                     mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                                     mailPiece.TotalPages = 0;
                                     mailPiece.DueDate = null;
+                                    mailPiece.PrintLocation = null;
                                     mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                                     continue;
                                 }
@@ -189,11 +190,20 @@ namespace AM.Core
                                     mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                                     mailPiece.ErrorDesc = doc.ExceptionDetail;
                                     mailPiece.DueDate = null;
+                                    mailPiece.PrintLocation = null;
                                     mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                                     continue;
                                 }
 
                                 mailPiece.TrackingNo = doc.TrackingCode;
+
+                                //For now reverse barcoding will be mail piece id
+                                if (mailPiece.PrintLocation == Config.Common_PrintLocationCL)
+                                {
+                                    mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((Config.Common_ScannerAppCode + mbi.Client.AppCode + mailPiece.TrackingNo).Reverse().ToArray()) + "*");
+
+                                    endPagePdfPath = doc.GenerateLastPageWithBarcode(endPageTemplatePath, mbi.PnSRequestPath, mailPieceData);
+                                }
                             }
                             else if (docType.ShippingCarrier == Carrier.FedEx.ToString())
                             {
@@ -228,6 +238,7 @@ namespace AM.Core
                                     else
                                     {
                                         mailPiece.TotalPages = 0;
+                                        mailPiece.PrintLocation = null;
                                         mailPiece.DueDate = null;
                                         break;
                                     }
