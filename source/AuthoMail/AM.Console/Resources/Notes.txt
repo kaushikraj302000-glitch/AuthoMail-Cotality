@@ -1,0 +1,10 @@
+﻿--------------Logic Imformation-------------------
+
+1) Send Batches to Dallas Printing Team :
+	- USPS Express Mail - throughout the day
+	- FedEx - from 4.30PM EST to 8.00PM EST
+
+-------------- General Information----------------
+1) HSBC via AMC (Mail Subject : HSBC Testing Via Cadence Platform)
+	- Both the Customer Identifier and Client Code for HSBC = 185
+	- the Customer naming convention will be the naming convention conveyed in the XML sent to CL.
