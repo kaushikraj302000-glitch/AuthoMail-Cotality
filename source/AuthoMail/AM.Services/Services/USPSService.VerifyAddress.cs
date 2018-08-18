@@ -218,7 +218,7 @@ namespace AM.Services
                 else
                 {
                     responseAdd.Verifier = ResponseSource.CLSVC;
-                    responseAdd.VerifierDesc = "USPS Failure : {0}".Fill(ex.ToString());
+                    responseAdd.VerifierDesc = "USPS Failure : {0}".Fill(ex != null ? ex.ToString() : verifiedAddress.Error.Description);
                 }
             }
         }
