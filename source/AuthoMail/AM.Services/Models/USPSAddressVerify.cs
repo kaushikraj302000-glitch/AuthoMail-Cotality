@@ -304,7 +304,7 @@ namespace AM.Services
         public const string Military = "Military";
         public const string Territory = "Territory";
 
-        //All Mainlands, DC , Hawaii and Alaska
+        //DC,Hawaii,Alaska and All Mainlands
         public const string DHAM = "DHAM";
     }
 
