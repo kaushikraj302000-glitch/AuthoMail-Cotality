@@ -160,14 +160,14 @@ namespace AM.Services
 
         #region USPSIntegration
 
-        public static bool USPS_IsDbLoggingEnabled { get; private set; }
-        public static string USPS_UserId { get; private set; }
-        public static string USPS_URL { get; private set; }
-        public static string USPS_VerifyAPIName { get; private set; }
-        public static string USPS_MilitaryStates { get; private set; }
-        public static string USPS_MilitaryCities { get; private set; }
-        public static string USPS_Territory { get; private set; }
-        public static int USPS_AddressCount { get; private set; }
+        public static bool Web_API_USPS_IsDbLoggingEnabled { get; private set; }
+        public static string Web_API_USPS_UserId { get; private set; }
+        public static string Web_API_USPS_URL { get; private set; }
+        public static string Web_API_USPS_VerifyAPIName { get; private set; }
+        public static string Web_API_USPS_MilitaryStates { get; private set; }
+        public static string Web_API_USPS_MilitaryCities { get; private set; }
+        public static string Web_API_USPS_Territory { get; private set; }
+        public static int Web_API_USPS_AddressCount { get; private set; }
 
         #endregion
 
