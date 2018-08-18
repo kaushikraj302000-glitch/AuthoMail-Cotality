@@ -61,7 +61,7 @@ namespace AM.Services
 
         public string Line2 { get; set; }
 
-        public string Line2Abbr { get; set; }
+        public string Line1Abbr { get; set; }
 
         public string City { get; set; }
 
@@ -102,13 +102,18 @@ namespace AM.Services
                          String.IsNullOrWhiteSpace(this.Error.Description));
             }
         }
-
+        
+        [XmlIgnore]
         public AddressRequest AddressRequest { get; private set; }
 
         public AddressResponse(AddressRequest request, int order)
         {
             this.AddressRequest = request;
             this.Id = "{0}{1}{2}".Fill(order, ResponseSource.CLSVC, request == null ? "" : request.Id);
+        }
+        private AddressResponse()
+        {
+
         }
     }
 
