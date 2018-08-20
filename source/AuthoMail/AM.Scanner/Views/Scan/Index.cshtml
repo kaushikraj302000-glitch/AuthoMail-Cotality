@@ -418,7 +418,8 @@
                     GetScanCount(clientCode);
                 }, 12000);
                 /*  Updating Batch Count on every 12 Second using Ajax */
-
+                $("#code1").val("");
+                $("#code1").focus();
             });
             /*---- End of Scanned Batch Count Ajax ----*/
 
@@ -533,10 +534,10 @@
                 if ($("#clearData").data("mouseDown") != true) {
                     startNewBatch();// calling startNewBatch() Method
                     var batchtotalCount = $("#todayscount").text();
-                    //if (environment.toUpperCase() == "UAT") {
-                    //   //console.log(environment);
-                    //    $('#code1').val($('#code2').val().split("").reverse().join(""));
-                    //}
+                    if (environment.toUpperCase() == "UAT") {
+                       //console.log(environment);
+                        $('#code1').val($('#code2').val().split("").reverse().join(""));
+                    }
 
                     $("#message").empty();
                     //if (batchtotalCount.split('/')[0] == batchtotalCount.split('/')[1]) {
