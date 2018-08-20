@@ -426,6 +426,8 @@ namespace AM.Web.Controllers
             var PrintFormatList = new string[] { "Simplex", "Duplex" };
             var ShippingCarrierList = new string[] { "USPS", "FedEx", "UPS" };
             var ShippingServiceTypeList = new string[] { "USPS", "FEDEX_2_DAY", "FEDEX_EXPRESS_SAVER", "FEDEX_GROUND", "FIRST_OVERNIGHT", "GROUND_HOME_DELIVERY", "PRIORITY_OVERNIGHT", "STANDARD_OVERNIGHT" };
+            var ShippingSpecialServiceList = new string[] { "SATURDAY_DELIVERY", "SATURDAY_PICKUP" };
+            ViewBag.ShippingSpecialService = ShippingSpecialServiceList.Select(s => new SelectListItem() { Text = s, Value = s }).ToList();
             if (id != 0)
             {
                 DocTypes model = supportSvc.FindByIdDocType(id);
@@ -479,7 +481,7 @@ namespace AM.Web.Controllers
 
         #endregion
 
-        #region Assige Role 
+        #region Assige Role
         [HttpGet]
         public ActionResult AssignUserManagerDetails()
         {
@@ -533,6 +535,6 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse(ex.Message), JsonRequestBehavior.AllowGet);
             }
         }
-        #endregion 
+        #endregion
     }
 }
