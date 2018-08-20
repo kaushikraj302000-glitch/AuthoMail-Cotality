@@ -479,6 +479,50 @@ namespace AM.Console
                     continue;
                 }
 
+                #region Address Validation Logic
+                //Get validate Addresses for each records
+                List<AddressResponse> addressResponses = new List<AddressResponse>();
+                List<AddressRequest> addressRequestes = new List<AddressRequest>();
+                foreach (XmlNode mailPieceNode in mailPieceNodes)
+                {
+                    PackageInfo xmlMailPiece = XmlUtil.Deserialize<PackageInfo>(mailPieceNode.OuterXml);
+
+                    AddressRequest addressRequest = new AddressRequest() { Id = xmlMailPiece.Id.ToString(), Line1 = xmlMailPiece.RecipientInfo.RecipientAddress.Line1.IsNullOrEmpty() ? string.Empty : xmlMailPiece.RecipientInfo.RecipientAddress.Line1, Line2 = xmlMailPiece.RecipientInfo.RecipientAddress.Line2.IsNullOrEmpty() ? string.Empty : xmlMailPiece.RecipientInfo.RecipientAddress.Line2, City = xmlMailPiece.RecipientInfo.RecipientAddress.City.IsNullOrEmpty() ? string.Empty : xmlMailPiece.RecipientInfo.RecipientAddress.City, State = xmlMailPiece.RecipientInfo.RecipientAddress.State.IsNullOrEmpty() ? string.Empty : xmlMailPiece.RecipientInfo.RecipientAddress.State, Zip5 = xmlMailPiece.RecipientInfo.RecipientAddress.Zip.IsNullOrEmpty() ? string.Empty : xmlMailPiece.RecipientInfo.RecipientAddress.Zip };
+
+                    addressRequestes.Add(addressRequest);
+                }
+
+                int requestAddressCount = addressRequestes.Count;
+                int maxAddressVerification = 5;
+                int verifiedAddressCount = 0;
+                double loopCount = Math.Ceiling(requestAddressCount / (float)maxAddressVerification);
+
+                for (double i = 0; i < loopCount; i++)
+                {
+                    var takenAddressesList = addressRequestes.Skip(verifiedAddressCount).Take(maxAddressVerification).ToList();
+                    VerifierAddressRequest verifierAddRequest = new VerifierAddressRequest() { UserId = commonSvc.GetSystemUserId(), AddressRequests = takenAddressesList };
+                    verifiedAddressCount += maxAddressVerification;
+                    VerifierAddressResponse verifierAddResponse;
+
+                    using (IUSPSService uspsSvc = new USPSService())
+                    {
+                        verifierAddResponse = uspsSvc.VerifyAddress(verifierAddRequest);
+                    }
+
+                    if (verifierAddResponse != null)
+                    {
+                        //if any error at VerifierAddressResponse level then throw unexpected error and exit from loop
+                        if (verifierAddResponse.HasError)
+                        {
+                            throw new Exception("Error occured while validating Addresses : {0}".Fill(verifierAddResponse.Error));
+                        }
+
+                        addressResponses.AddRange(verifierAddResponse.AddressResponses);
+                    }
+                }
+                #endregion
+
+
                 foreach (XmlNode mailPieceNode in mailPieceNodes)
                 {
                     MailPieceDTO mailPieceDTO = new MailPieceDTO();
@@ -618,11 +662,6 @@ namespace AM.Console
                         {
                             string filePath = Path.Combine(mbi.AMRequestPath, mailPieceDTO.FileName);
 
-                            var validStateList = Resources.ValidStatesForUSAA
-                                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                                .Select(state => state.Trim())
-                                .ToList();
-
                             string documentOrPackageType = mailPieceDTO.DocumentOrPackageType;
 
                             //Document Or Package Type validation
@@ -632,7 +671,7 @@ namespace AM.Console
                             {
                                 if (docType.ShippingCarrier == Carrier.FedEx.ToString())
                                 {
-                                    if (mailPieceDTO.RcptAddressStreet.ToUpper().StartsWith("P.O. BOX") || mailPieceDTO.RcptAddressStreet.ToUpper().StartsWith("PO BOX") || mailPieceDTO.RcptAddressStreet.ToUpper().StartsWith("P O BOX") || mailPieceDTO.RcptAddressStreet.ToUpper().StartsWith("P. O. BOX"))
+                                    if (!(addressResponses.Single(c => c.Id == mailPieceDTO.UniqueId.ToString()).AddressTypes.All(c => c == AddressTypes.DHAM)))
                                     {
                                         documentOrPackageType = documentOrPackageType + Config.Monitor_ExpressMailingText;
 
@@ -647,18 +686,6 @@ namespace AM.Console
                             {
                                 mailPieceDTO.ErrorCode = OutComeCodes.Invalid_PackageType;
                                 mailPieceDTO.ErrorDesc = "The specified document or package type '{0}' is not configured.".Fill(mailPieceDTO.DocumentOrPackageType);
-                                mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
-                            }
-                            else if (!validStateList.Contains(mailPieceDTO.RcptAddressState))
-                            {
-                                mailPieceDTO.ErrorCode = OutComeCodes.Mailing_Address_Missing_Or_Invalid;
-                                mailPieceDTO.ErrorDesc = "State '{0}' is not amongst the valid states in receipient mailing address.".Fill(mailPieceDTO.RcptAddressState);
-                                mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
-                            }
-                            else if (!validStateList.Contains(mailPieceDTO.RetRcptAddressState))
-                            {
-                                mailPieceDTO.ErrorCode = OutComeCodes.Mailing_Address_Missing_Or_Invalid;
-                                mailPieceDTO.ErrorDesc = "State '{0}' is not amongst the valid states in return mailing address.".Fill(mailPieceDTO.RetRcptAddressState);
                                 mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                             }
                             else if (!File.Exists(filePath))
