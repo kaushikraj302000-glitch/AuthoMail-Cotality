@@ -283,6 +283,7 @@
             var modalsuccess = "Your batch is completed, start a new batch.";
             //var modalsuccess = "All documents has been scanned.";
             var modalInfo = "Please start a new batch.";
+            var validScanMsg = "Please scan valid a doument.";
             var codespace = "123456789012";// "HTL00000000000";//
             var environment = $("#Environment").val();
 
@@ -365,12 +366,15 @@
 
                 var code1Value = $("#code1").val();
                 if (code1Value != "") {
-                    //var code1Value = $('#code1').val().split("").reverse().join("");
-                    //if (code1Value.indexOf(clientCode) != -1) {
-                    //    code1Value = code1Value.replace(clientCode, '');
-                    //    console.log(code1Value);
-                    //}
-                    $("#code2").focus();
+                    if (isNaN(code1Value)) {
+                        $("#message").empty();
+                        $("#message").show();
+                        $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>" + validScanMsg + "</div>");
+                        $("#code1").val("");
+                        $("#code1").focus();
+                    } else {
+                        $("#code2").focus();
+                    }
                 } else {
                     $("#message").empty();
                     $("#message").show();
@@ -494,6 +498,15 @@
                                     $("#code1").focus();
                                     $("#WrongCode").prepend("<div style='margin:2px;' class='form-group'><label class='lblAMC lbl-danger' disabled>" + code2Value + "</label></div>");
                                 }
+                                else if (code == "RESNotFound") {
+                                    $("#message").empty();
+                                    $("#message").show();
+                                    $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>Please scan front and rear barcode first.Please <a href='/Scan/Index?clientCode=" + clientCode + "' target='_blank'>click here</a> to scan </div>");
+                                    $("#code1").val("");
+                                    $("#code2").val("");
+                                    //$("#code1").focus();
+                                    $("#WrongCode").prepend("<div style='margin:2px;' class='form-group'><label class='lblAMC lbl-danger' disabled>" + code2Value + "</label></div>");
+                                }
                                 else {
                                     $("#message").empty();
                                     $("#message").show();
@@ -544,7 +557,7 @@
                             $("#code2").val("");
                             $("#scannedCode").empty();
                             $("#code1").focus();
-                           // $("#todayscount").text("0/0");
+                            // $("#todayscount").text("0/0");
                             location.reload();
                         }
 
@@ -568,7 +581,11 @@
             $("#clearData").on("mouseup", function (e) {
                 $("#clearData").data("mouseDown", false);
             });
+            $("#clearData").click(function () {
+                $("#code1").val("");
+                $("#code2").val("");
+                $("#code1").focus();
+            });
         </script>
     }
 </div>
-

@@ -152,7 +152,7 @@
             </div>
 
             <button type="button" id="nextBatch" class="btn btn-primary" tabindex="3" data-toggle="modal" data-target="#smallModal">Scan Next Batch</button>
-            <button type="reset" id="clearData" class="btn btn-warning" tabindex="4">Clear</button>
+            <button type="button" id="clearData"  class="btn btn-warning" tabindex="4">Clear</button>
             <div id="Messagedata" style="height: 35px; margin-top: 8px; margin-left: -1px;">
                 <div id="message" class="form-group">
                 </div>
@@ -465,11 +465,20 @@
                     return;
                 }
 
-                if ($("#code1").val().trim().indexOf("AUT") == -1) {
-                    var changeCode1 = $("#code1").val().trim();
-                    //changeCode1 = changeCode1.slice(0, -4);
-                    //changeCode1 = changeCode1.slice(-12);
-                    $("#code1").val(clientCode + changeCode1);
+                if ($("#code1").val().trim() != "") {
+                    if ($("#code1").val().trim().indexOf("AUT") == -1) {
+                        var changeCode1 = $("#code1").val().trim();
+                        //changeCode1 = changeCode1.slice(0, -4);
+                        //changeCode1 = changeCode1.slice(-12);
+                        $("#code1").val(clientCode + changeCode1);
+                    }
+                }
+                else {
+                    $("#message").empty();
+                    $("#message").show();
+                    $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>" + emptymsg + "</div>");
+                    $("#code1").val("");
+                    $("#code1").focus();
                 }
 
                 if (batchtotalCount == "0/0") {
@@ -511,6 +520,16 @@
 
             /*---- Code2 validate Barcode  ----*/
             $("#code2").blur(function () {
+                if ($("#code1").val().trim()=="" ) {
+                    $("#message").empty();
+                    $("#message").show();
+                    $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>Please scan the front barcode first.</div>");
+                    $("#code1").val("");
+                    $("#code2").val("");
+                    $("#code1").focus();
+                    return;
+
+                }
                 if ($("#clearData").data("mouseDown") != true) {
                     startNewBatch();// calling startNewBatch() Method
                     var batchtotalCount = $("#todayscount").text();
@@ -718,6 +737,12 @@
 
             $("#clearData").on("mouseup", function (e) {
                 $("#clearData").data("mouseDown", false);
+            });
+
+            $("#clearData").click(function () {
+                $("#code1").val("");
+                $("#code2").val("");
+                $("#code1").focus();
             });
             ///*---- on Load Get Active Batch Count ----*/
             //$(document).ready(function () {
