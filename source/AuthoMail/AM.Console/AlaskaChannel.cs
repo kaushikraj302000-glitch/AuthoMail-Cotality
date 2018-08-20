@@ -271,7 +271,7 @@ namespace AM.Console
                         mailPieceDTO.FileName = node.File;
 
                         mailPieceDTO.RcptAddressStreet = node.Address;
-                        mailPieceDTO.RcptAddressAptOrSuiteOrOther = node.Address2;
+                        mailPieceDTO.RcptAddrOptionalLine1BelowStreet = node.Address2;
                         mailPieceDTO.RcptAddressCity = node.City;
                         mailPieceDTO.RcptAddressState = node.State;
                         mailPieceDTO.RcptAddressZIP = node.Zip;

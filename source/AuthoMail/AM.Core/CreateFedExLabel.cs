@@ -200,7 +200,7 @@ namespace AM.Core
             //request.RequestedShipment.Recipient.Contact.CompanyName = loan.RecipientCompanyName;
             request.RequestedShipment.Recipient.Contact.PhoneNumber = string.IsNullOrEmpty(mailPiece.RcptPhone) ? "0000000000" : mailPiece.RcptPhone;
             request.RequestedShipment.Recipient.Address = new ShipWebServiceRef.Address();
-            request.RequestedShipment.Recipient.Address.StreetLines = new string[] { mailPiece.RcptAddressStreet, mailPiece.RcptAddressAptOrSuiteOrOther };
+            request.RequestedShipment.Recipient.Address.StreetLines = new string[] { mailPiece.RcptAddressStreet, mailPiece.RcptAddrOptionalLine1BelowStreet, mailPiece.RcptAddrOptionalLine2BelowStreet };
             request.RequestedShipment.Recipient.Address.City = mailPiece.RcptAddressCity;
             request.RequestedShipment.Recipient.Address.StateOrProvinceCode = mailPiece.RcptAddressState;// This always has to be a 2 letter code.
             request.RequestedShipment.Recipient.Address.PostalCode = mailPiece.RcptAddressZIP;
@@ -223,7 +223,7 @@ namespace AM.Core
             request.RequestedShipment.Shipper.Contact.CompanyName = mailPiece.RetRcptOrganization;
             request.RequestedShipment.Shipper.Contact.PhoneNumber = string.IsNullOrEmpty(mailPiece.RcptPhone) ? "0000000000" : mailPiece.RcptPhone;
             request.RequestedShipment.Shipper.Address = new ShipWebServiceRef.Address();
-            request.RequestedShipment.Shipper.Address.StreetLines = new string[] { mailPiece.RetRcptAddressStreet, mailPiece.RetRcptAddressAptOrSuiteOrOther };
+            request.RequestedShipment.Shipper.Address.StreetLines = new string[] { mailPiece.RetRcptAddressStreet, mailPiece.RetRcptAddrOptionalLine1BelowStreet, mailPiece.RetRcptAddrOptionalLine2BelowStreet };
 
             request.RequestedShipment.Shipper.Address.City = mailPiece.RetRcptAddressCity;
             request.RequestedShipment.Shipper.Address.StateOrProvinceCode = mailPiece.RetRcptAddressState;
