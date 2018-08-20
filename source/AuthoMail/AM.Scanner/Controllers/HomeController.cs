@@ -21,7 +21,7 @@ namespace AM.Scanner.Controllers
         //    var model = DBHelper.GetRecentBatchesStats(clientCode.Trim());
         //    return Json(model, JsonRequestBehavior.AllowGet);
         //}
-        [HttpPost]
+        [HttpGet]
         public ActionResult GetScanCount(string clientCode)
         {
             var model = DBHelper.GetScanStats(clientCode.Trim());

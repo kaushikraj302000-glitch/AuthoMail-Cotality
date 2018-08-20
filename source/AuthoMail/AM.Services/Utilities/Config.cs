@@ -168,7 +168,7 @@ namespace AM.Services
         public static string Web_API_USPS_MilitaryCities { get; private set; }
         public static string Web_API_USPS_Territory { get; private set; }
         public static int Web_API_USPS_AddressCount { get; private set; }
-
+        public static string Web_API_USPS_MainlandStates { get; private set; }
         #endregion
 
         #region Support
