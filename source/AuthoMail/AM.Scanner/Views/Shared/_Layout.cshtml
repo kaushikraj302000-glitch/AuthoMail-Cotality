@@ -128,23 +128,23 @@
             applyDataTable();
         }
 
-        //$(document).ajaxSuccess(function (event, xhr, settings) {
-        //    //console.log("Server Result:" + cnt++);
-        //    //console.log(xhr.responseText);
-        //    if (xhr.responseText == "") {
-        //        window.location.reload();
-        //    }
-        //});
+        $(document).ajaxSuccess(function (event, xhr, settings) {
+            //console.log("Server Result:" + cnt++);
+            //console.log(xhr.responseText);
+            if (xhr.responseText == "") {
+                window.location.reload();
+            }
+        });
 
 
-        //$(document).ajaxError(function (event, jqxhr, settings, thrownError) {
-        //    //console.log("error:" + JSON.stringify(thrownError));
-        //    //console.log("Status:" + jqxhr.status);
-        //    if (jqxhr.status == 200) {
-        //        window.location.reload();
-        //    }
+        $(document).ajaxError(function (event, jqxhr, settings, thrownError) {
+            //console.log("error:" + JSON.stringify(thrownError));
+            //console.log("Status:" + jqxhr.status);
+            if (jqxhr.status == 200) {
+                window.location.reload();
+            }
 
-        //});
+        });
     </script>
 </body>
 </html>
