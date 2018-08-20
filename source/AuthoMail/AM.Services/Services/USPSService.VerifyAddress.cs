@@ -60,6 +60,13 @@ namespace AM.Services
                     isAPIError = true;
                     apiErrorMSG = "In addressRequests At least one and at most 5 addresses must be specified.";
                 }
+
+                if (userId.IsNullOrWhiteSpace())
+                {
+                    isAPIError = true;
+                    apiErrorMSG = "For addressRequests UserId must be specified.";
+                }
+
                 //check flag and call to db
                 if (Config.Web_API_USPS_IsDbLoggingEnabled)
                 {
