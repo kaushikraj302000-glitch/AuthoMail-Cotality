@@ -144,5 +144,26 @@ namespace AM.Scanner.Common
                 return null;
             }
         }
+
+        public static USPSScanDetails RegisterUSPSScan(int mailPieceId,string trackingNo, string clientCode)
+        {
+            
+            try
+            {
+                DbConnection db = Create(clientCode);
+                //DbCommand cmd = db.GetStoredProcCommand(Common.SP_RegisterScan, barcode);
+                // DbCommand cmd = db.GetStoredProcCommand(Common.SP_RegisterScan, barcode, username, machineName);
+                string query = string.Format("{0} @mailPieceId,@trackingNo", Common.SP_RegisterUSPSScan);
+                var registerScanData = db.QuerySingleOrDefault<USPSScanDetails>(query, new { mailPieceId = mailPieceId, trackingNo = trackingNo });
+                registerScanData.AppCode = clientCode;
+                db.Dispose();
+                return registerScanData;
+
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
     }
 }

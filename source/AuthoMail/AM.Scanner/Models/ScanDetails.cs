@@ -27,4 +27,15 @@ namespace AM.Scanner.Models
         public string BatchName { get; set; }
         public string AppCode { get; set; }
     }
+
+    public class USPSScanDetails
+    {
+        public string TrackingNo { get; set; }
+        public string Code { get; set; }
+        public string Message { get; set; }
+        public string MailPieceId { get; set; }
+        public string AppCode { get; set; }
+
+
+    }
 }
