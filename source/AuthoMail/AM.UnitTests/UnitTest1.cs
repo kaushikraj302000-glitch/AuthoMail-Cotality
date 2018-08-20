@@ -24,8 +24,7 @@ namespace AM.UnitTests
         [TestMethod]
         public void TestMethod1()
         {
-            List<TestModel> mp = new List<TestModel>();
-            //mp = serSvc.TestMP();
+            List<TestModel> mp = serSvc.TestMp();
 
             string slaType = null;
             TimeSpan? cutOff = null;
