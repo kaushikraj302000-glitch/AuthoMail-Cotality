@@ -187,7 +187,8 @@
 
             },
             error: function (response) {
-
+                $("#" + clientCode.trim() + "scanCount").empty();
+                $("#" + clientCode.trim() + "scanCount").text("--/--");
             }
         });
         /*  End Ajax  */
