@@ -45,8 +45,8 @@ namespace AM.Scanner.Controllers
                 {
                     if (model.Username.Equals("Admin", StringComparison.CurrentCultureIgnoreCase) && model.Password == "Admin@123")
                     {
-                        FormsAuthentication.SetAuthCookie("Admin", false);
                         Session["DisplayName"] = "Admin";
+                        FormsAuthentication.SetAuthCookie("Admin", false);
                         return RedirectToAction("Index", "Home");
                     }
                 }
