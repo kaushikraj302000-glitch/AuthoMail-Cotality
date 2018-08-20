@@ -13,14 +13,9 @@ namespace AM.Services
 {
     public partial class USPSService : ServiceBase, IUSPSService
     {
-        public AddressResponse VerifyAddress(string userId, AddressRequest addressRequest)
+        public VerifierAddressResponse VerifyAddress(VerifierAddressRequest addressRequest)
         {
-            return this.VerifyAddress(userId, new List<AddressRequest>() { addressRequest }).Single();
-        }
-
-        public List<AddressResponse> VerifyAddress(string userId, List<AddressRequest> requests)
-        {
-            return VerifyAddressAsync(userId, requests).Result;
+            return this.VerifyAddressAsync(addressRequest.UserId, addressRequest.AddressRequests).Result;
         }
 
         private IEnumerable<string> ValidateAddress(AddressRequest address)
@@ -43,7 +38,7 @@ namespace AM.Services
             }
         }
 
-        private async Task<List<AddressResponse>> VerifyAddressAsync(string userId, List<AddressRequest> addressRequests)
+        private async Task<VerifierAddressResponse> VerifyAddressAsync(string userId, List<AddressRequest> addressRequests)
         {
             try
             {
@@ -64,7 +59,7 @@ namespace AM.Services
                 if (userId.IsNullOrWhiteSpace())
                 {
                     isAPIError = true;
-                    apiErrorMSG = "For addressRequests UserId must be specified.";
+                    apiErrorMSG = string.Join("\r\n", new string[] { apiErrorMSG, "For addressRequests UserId must be specified." });
                 }
 
                 //check flag and call to db
@@ -78,7 +73,7 @@ namespace AM.Services
                 if (isAPIError)
                 {
                     var dbLogawait = await dbLog;
-                    return new List<AddressResponse> { new AddressResponse(null, 1) { Error = new Error() { Source = ResponseSource.CLSVC, Description = apiErrorMSG } } };
+                    throw new ArgumentException(apiErrorMSG);
                 }
 
                 List<AddressResponse> addressResponses = new List<AddressResponse>(maxAddressCount);
@@ -226,11 +221,17 @@ namespace AM.Services
                     }
                 }
 
-                return await Task.Run(() => addressResponses);
+                return await Task.Run(() => new VerifierAddressResponse(addressResponses)
+                {
+                    Error = string.Join("\r\n", addressResponses.Select(e => e.Error.Description))
+                });
             }
             catch (Exception ex)
             {
-                throw ex;
+                return new VerifierAddressResponse(null)
+                  {
+                      Error = ex.ToString()
+                  };
             }
         }
 
