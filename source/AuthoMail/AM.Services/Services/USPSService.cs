@@ -8,7 +8,6 @@ namespace AM.Services
 {
     public interface IUSPSService : IDisposable
     {
-        List<AddressResponse> VerifyAddress(string userId, List<AddressRequest> requests);
-        AddressResponse VerifyAddress(string userId, AddressRequest request);
+        VerifierAddressResponse VerifyAddress(VerifierAddressRequest request);
     }
 }
