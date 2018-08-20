@@ -271,7 +271,7 @@ namespace AM.Console
                         mailPieceDTO.FileName = node.File;
 
                         mailPieceDTO.RcptAddressStreet = node.Address;
-                        mailPieceDTO.RcptAddressAptOrSuiteOrOther = node.Address2;
+                        mailPieceDTO.RcptAddrOptionalLine1BelowStreet = node.Address2;
                         mailPieceDTO.RcptAddressCity = node.City;
                         mailPieceDTO.RcptAddressState = node.State;
                         mailPieceDTO.RcptAddressZIP = node.Zip;
@@ -284,9 +284,9 @@ namespace AM.Console
                         else
                         {
                             mailPieceDTO.IsReturnInfoSpecified = true;
-                            mailPieceDTO.RetRcptAddrOptionalLine1AboveStreet = node.ReturnInfo.Address.Line1;
-                            mailPieceDTO.RetRcptAddrOptionalLine2AboveStreet = node.ReturnInfo.Address.Line2;
-                            mailPieceDTO.RetRcptAddressStreet = node.ReturnInfo.Address.Line3;
+                            mailPieceDTO.RetRcptAddressStreet = node.ReturnInfo.Address.Line1;
+                            mailPieceDTO.RetRcptAddrOptionalLine1BelowStreet = node.ReturnInfo.Address.Line2;
+                            mailPieceDTO.RetRcptAddrOptionalLine2BelowStreet = node.ReturnInfo.Address.Line3;
                             mailPieceDTO.RetRcptAddressCity = node.ReturnInfo.Address.City;
                             mailPieceDTO.RetRcptAddressState = node.ReturnInfo.Address.State;
                             mailPieceDTO.RetRcptAddressZIP = node.ReturnInfo.Address.Zip;

@@ -61,8 +61,11 @@ namespace AM.Core
                         {
                             DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value);
 
-                            mailPiece.DueDate = GetDueDate(docType, mailBatch.ReceivedOn.Value);
-                            //mailPiece.DocTypeId = docType.Id;
+                            //Here first we will calculate effective received on date and based on that we will calculate due date for that
+                            DateTime effectiveEstReceivedOn = GetEffectiveEstReceivedOn(docType, mailBatch.ReceivedOn.Value);
+
+                            //Calculate Due Date for Mail Pieces doc type wise
+                            mailPiece.DueDate = GetDueDate(docType, effectiveEstReceivedOn);
 
                             int mailPieceId = mailPiece.Id;
 
@@ -72,89 +75,93 @@ namespace AM.Core
                             string endPagePdfPath = string.Empty;
                             string endPageTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, Config.Core_EndPageTemplatePath);
 
+                            #region Prepare dictionary of placeholders/tags to fill the PDF template.
+                            string fromAddress = string.Empty;
+                            if (mailPiece.IsReturnInfoSpecified)
+                            {
+                                if (!string.IsNullOrEmpty(mailPiece.RetRcptOrganization))
+                                    fromAddress += mailPiece.RetRcptOrganization + "\n";
+                                if (!string.IsNullOrEmpty(mailPiece.RetRcptAddrOptionalLine1AboveStreet))
+                                    fromAddress += mailPiece.RetRcptAddrOptionalLine1AboveStreet + "\n";
+                                if (!string.IsNullOrEmpty(mailPiece.RetRcptAddrOptionalLine2AboveStreet))
+                                    fromAddress += mailPiece.RetRcptAddrOptionalLine2AboveStreet + "\n";
+
+                                //Because Street address is must field
+                                fromAddress += mailPiece.RetRcptAddressStreet + "\n";
+
+                                if (!string.IsNullOrEmpty(mailPiece.RetRcptAddrOptionalLine1BelowStreet))
+                                    fromAddress += mailPiece.RetRcptAddrOptionalLine1BelowStreet + "\n";
+                                if (!string.IsNullOrEmpty(mailPiece.RetRcptAddrOptionalLine2BelowStreet))
+                                    fromAddress += mailPiece.RetRcptAddrOptionalLine2BelowStreet + "\n";
+                                if (!string.IsNullOrEmpty(mailPiece.RetRcptAddressAptOrSuiteOrOther))
+                                    fromAddress += mailPiece.RetRcptAddressAptOrSuiteOrOther + "\n";
+
+                                //Because City,state,zip are must field for all client
+                                fromAddress += mailPiece.RetRcptAddressCity + " " + mailPiece.RetRcptAddressState + " " + mailPiece.RetRcptAddressZIP;
+                            }
+                            else if (mbi.MailBatch.IsReturnInfoSpecified)
+                            {
+                                if (!string.IsNullOrEmpty(mbi.MailBatch.RetRcptOrganization))
+                                    fromAddress += mbi.MailBatch.RetRcptOrganization + "\n";
+                                if (!string.IsNullOrEmpty(mbi.MailBatch.RetRcptAddrOptionalLine1AboveStreet))
+                                    fromAddress += mbi.MailBatch.RetRcptAddrOptionalLine1AboveStreet + "\n";
+                                if (!string.IsNullOrEmpty(mailPiece.RetRcptAddrOptionalLine2AboveStreet))
+                                    fromAddress += mbi.MailBatch.RetRcptAddrOptionalLine2AboveStreet + "\n";
+
+                                //Because Street address is must field
+                                fromAddress += mbi.MailBatch.RetRcptAddressStreet + "\n";
+
+                                if (!string.IsNullOrEmpty(mbi.MailBatch.RetRcptAddrOptionalLine1BelowStreet))
+                                    fromAddress += mbi.MailBatch.RetRcptAddrOptionalLine1BelowStreet + "\n";
+                                if (!string.IsNullOrEmpty(mbi.MailBatch.RetRcptAddrOptionalLine2BelowStreet))
+                                    fromAddress += mbi.MailBatch.RetRcptAddrOptionalLine2BelowStreet + "\n";
+                                if (!string.IsNullOrEmpty(mbi.MailBatch.RetRcptAddressAptOrSuiteOrOther))
+                                    fromAddress += mbi.MailBatch.RetRcptAddressAptOrSuiteOrOther + "\n";
+
+                                fromAddress += mbi.MailBatch.RetRcptAddressCity + " " + mbi.MailBatch.RetRcptAddressState + " " + mbi.MailBatch.RetRcptAddressZIP;
+                            }
+                            else if (docType.IsReturnInfoSpecified)
+                            {
+                                if (!string.IsNullOrEmpty(docType.RetRcptOrganization))
+                                    fromAddress += docType.RetRcptOrganization + "\n";
+                                if (!string.IsNullOrEmpty(docType.RetRcptAddrOptionalLine1AboveStreet))
+                                    fromAddress += docType.RetRcptAddrOptionalLine1AboveStreet + "\n";
+                                if (!string.IsNullOrEmpty(docType.RetRcptAddrOptionalLine2AboveStreet))
+                                    fromAddress += docType.RetRcptAddrOptionalLine2AboveStreet + "\n";
+
+                                //Because Street address is must field
+                                fromAddress += docType.RetRcptAddressStreet + "\n";
+
+                                if (!string.IsNullOrEmpty(docType.RetRcptAddrOptionalLine1BelowStreet))
+                                    fromAddress += docType.RetRcptAddrOptionalLine1BelowStreet + "\n";
+                                if (!string.IsNullOrEmpty(docType.RetRcptAddrOptionalLine2BelowStreet))
+                                    fromAddress += docType.RetRcptAddrOptionalLine2BelowStreet + "\n";
+                                if (!string.IsNullOrEmpty(docType.RetRcptAddressAptOrSuiteOrOther))
+                                    fromAddress += docType.RetRcptAddressAptOrSuiteOrOther + "\n";
+
+                                fromAddress += docType.RetRcptAddressCity + " " + docType.RetRcptAddressState + " " + docType.RetRcptAddressZIP;
+                            }
+                            else
+                            {
+                                //TODO: Generate error
+                            }
+
+                            Dictionary<string, string> mailPieceData = new Dictionary<string, string>();
+                            mailPieceData.Add("FromAddress", fromAddress);
+
+                            mailPieceData.Add("ToAddress", mailPiece.RcptFirstName + " " + mailPiece.RcptLastName + "\n" + (string.IsNullOrEmpty(mailPiece.RcptAddressAptOrSuiteOrOther) ? mailPiece.RcptAddressStreet : string.Format("{0}\n{1}", mailPiece.RcptAddressStreet, mailPiece.RcptAddressAptOrSuiteOrOther)) + "\n" + mailPiece.RcptAddressCity + " " + mailPiece.RcptAddressState + " " + mailPiece.RcptAddressZIP);
+
+                            mailPieceData.Add("MailPieceId", mailPiece.Id.ToString());
+                            mailPieceData.Add("Date", Common.Now.UtcToEst().ToString("MMMM dd, yyyy"));//USAA Specific
+                            mailPieceData.Add("Free3OF9Barcode", "*" + mailPiece.Id.ToString() + "*");//Barcode for non-IMBarcode cover letter
+                            mailPieceData.Add("UniqueId", "*" + mailPiece.Id.ToString() + "*");//Humanreadable code which is used for barcode
+                            mailPieceData.Add("MailPieceZip", mailPiece.RcptAddressZIP);
+                            mailPieceData.Add("LoanNbr", mailPiece.BusinessFriendlyIdValue);
+
+                            #endregion
+
                             if (docType.ShippingCarrier == Carrier.USPS.ToString())
                             {
-                                #region Prepare dictionary of placeholders/tags to fill the PDF template.
-                                string fromAddress = string.Empty;
-                                if (mailPiece.IsReturnInfoSpecified)
-                                {
-                                    if (!string.IsNullOrEmpty(mailPiece.RetRcptOrganization))
-                                        fromAddress += mailPiece.RetRcptOrganization + "\n";
-                                    if (!string.IsNullOrEmpty(mailPiece.RetRcptAddrOptionalLine1AboveStreet))
-                                        fromAddress += mailPiece.RetRcptAddrOptionalLine1AboveStreet + "\n";
-                                    if (!string.IsNullOrEmpty(mailPiece.RetRcptAddrOptionalLine2AboveStreet))
-                                        fromAddress += mailPiece.RetRcptAddrOptionalLine2AboveStreet + "\n";
-
-                                    //Because Street address is must field
-                                    fromAddress += mailPiece.RetRcptAddressStreet + "\n";
-
-                                    if (!string.IsNullOrEmpty(mailPiece.RetRcptAddrOptionalLine1BelowStreet))
-                                        fromAddress += mailPiece.RetRcptAddrOptionalLine1BelowStreet + "\n";
-                                    if (!string.IsNullOrEmpty(mailPiece.RetRcptAddrOptionalLine2BelowStreet))
-                                        fromAddress += mailPiece.RetRcptAddrOptionalLine2BelowStreet + "\n";
-                                    if (!string.IsNullOrEmpty(mailPiece.RetRcptAddressAptOrSuiteOrOther))
-                                        fromAddress += mailPiece.RetRcptAddressAptOrSuiteOrOther + "\n";
-
-                                    //Because City,state,zip are must field for all client
-                                    fromAddress += mailPiece.RetRcptAddressCity + " " + mailPiece.RetRcptAddressState + " " + mailPiece.RetRcptAddressZIP;
-                                }
-                                else if (mbi.MailBatch.IsReturnInfoSpecified)
-                                {
-                                    if (!string.IsNullOrEmpty(mbi.MailBatch.RetRcptAddrOptionalLine1AboveStreet))
-                                        fromAddress += mbi.MailBatch.RetRcptAddrOptionalLine1AboveStreet + "\n";
-                                    if (!string.IsNullOrEmpty(mailPiece.RetRcptAddrOptionalLine2AboveStreet))
-                                        fromAddress += mbi.MailBatch.RetRcptAddrOptionalLine2AboveStreet + "\n";
-
-                                    //Because Street address is must field
-                                    fromAddress += mbi.MailBatch.RetRcptAddressStreet + "\n";
-
-                                    if (!string.IsNullOrEmpty(mbi.MailBatch.RetRcptAddrOptionalLine1BelowStreet))
-                                        fromAddress += mbi.MailBatch.RetRcptAddrOptionalLine1BelowStreet + "\n";
-                                    if (!string.IsNullOrEmpty(mbi.MailBatch.RetRcptAddrOptionalLine2BelowStreet))
-                                        fromAddress += mbi.MailBatch.RetRcptAddrOptionalLine2BelowStreet + "\n";
-                                    if (!string.IsNullOrEmpty(mbi.MailBatch.RetRcptAddressAptOrSuiteOrOther))
-                                        fromAddress += mbi.MailBatch.RetRcptAddressAptOrSuiteOrOther + "\n";
-
-                                    fromAddress += mbi.MailBatch.RetRcptAddressCity + " " + mbi.MailBatch.RetRcptAddressState + " " + mbi.MailBatch.RetRcptAddressZIP;
-                                }
-                                else if (docType.IsReturnInfoSpecified)
-                                {
-                                    if (!string.IsNullOrEmpty(docType.RetRcptAddrOptionalLine1AboveStreet))
-                                        fromAddress += docType.RetRcptAddrOptionalLine1AboveStreet + "\n";
-                                    if (!string.IsNullOrEmpty(docType.RetRcptAddrOptionalLine2AboveStreet))
-                                        fromAddress += docType.RetRcptAddrOptionalLine2AboveStreet + "\n";
-
-                                    //Because Street address is must field
-                                    fromAddress += docType.RetRcptAddressStreet + "\n";
-
-                                    if (!string.IsNullOrEmpty(docType.RetRcptAddrOptionalLine1BelowStreet))
-                                        fromAddress += docType.RetRcptAddrOptionalLine1BelowStreet + "\n";
-                                    if (!string.IsNullOrEmpty(docType.RetRcptAddrOptionalLine2BelowStreet))
-                                        fromAddress += docType.RetRcptAddrOptionalLine2BelowStreet + "\n";
-                                    if (!string.IsNullOrEmpty(docType.RetRcptAddressAptOrSuiteOrOther))
-                                        fromAddress += docType.RetRcptAddressAptOrSuiteOrOther + "\n";
-
-                                    fromAddress += docType.RetRcptAddressCity + " " + docType.RetRcptAddressState + " " + docType.RetRcptAddressZIP;
-                                }
-                                else
-                                {
-                                    //TODO: Generate error
-                                }
-
-                                Dictionary<string, string> mailPieceData = new Dictionary<string, string>();
-                                mailPieceData.Add("FromAddress", fromAddress);
-
-                                mailPieceData.Add("ToAddress", mailPiece.RcptFirstName + " " + mailPiece.RcptLastName + "\n" + (string.IsNullOrEmpty(mailPiece.RcptAddressAptOrSuiteOrOther) ? mailPiece.RcptAddressStreet : string.Format("{0}\n{1}", mailPiece.RcptAddressStreet, mailPiece.RcptAddressAptOrSuiteOrOther)) + "\n" + mailPiece.RcptAddressCity + " " + mailPiece.RcptAddressState + " " + mailPiece.RcptAddressZIP);
-
-                                mailPieceData.Add("MailPieceId", mailPiece.Id.ToString());
-                                mailPieceData.Add("Date", Common.Now.UtcToEst().ToString("MMMM dd, yyyy"));//USAA Specific
-                                mailPieceData.Add("Free3OF9Barcode", "*" + mailPiece.Id.ToString() + "*");//Barcode for non-IMBarcode cover letter
-                                mailPieceData.Add("UniqueId", "*" + mailPiece.Id.ToString() + "*");//Humanreadable code which is used for barcode
-                                mailPieceData.Add("MailPieceZip", mailPiece.RcptAddressZIP);
-                                mailPieceData.Add("LoanNbr", mailPiece.BusinessFriendlyIdValue);
-
-                                #endregion
-
                                 DocTypeCoverLetter docTypeLetter = docTypeSvc.GetDocumentCoverLetterTemplates(docType.Id).SingleOrDefault();
 
                                 if (docTypeLetter == null)
@@ -174,12 +181,12 @@ namespace AM.Core
 
                                 if (docType.ShippingServiceType == ShippingServiceType.USPS_EXPRESSMAIL.ToString())
                                 {
-                                    //Create Cover letter without IMBarcode
+                                    //Create Cover letter without IMBarcode - USPS Express Mailing
                                     coverLetterPdfPath = doc.GenerateUSPSCoverLetter(client.AppCode, coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
                                 }
                                 else
                                 {
-                                    //Create Cover letter with IMBarcode
+                                    //Create Cover letter with IMBarcode - USPS First Class
                                     coverLetterPdfPath = doc.GenerateUSPSIMBCoverLetter(client.AppCode, coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
                                 }
 
@@ -216,16 +223,13 @@ namespace AM.Core
 
                                 #region  Call FedEx web service and get create shipping label
 
-                                //This shiptimestamp date will be used while generating FedEx label. This date can be future date in ShipTimeStamp after cut off time for FedEx
-                                DateTime fedExShipTimeStamp = GetFedExShipTimeStamp(docType, mailBatch.ReceivedOn.Value);
-
                                 FedExAccountInfo fedExAccInfo = fedExSvc.GetFedExAccountDetailsByAccountCode(docType.ShippingAccountCode);
 
                                 CreateFedExLabel createFedExLabel = new CreateFedExLabel();
                                 bool result = false;
                                 while (attemptCount < Config.Core_NoofTime_AttemptFedexService)
                                 {
-                                    result = createFedExLabel.Create(mailPiece, fedExAccInfo, docType, mbi, fedExShipTimeStamp);
+                                    result = createFedExLabel.Create(mailPiece, fedExAccInfo, docType, mbi, effectiveEstReceivedOn);
                                     if (result)
                                     {
                                         break;
@@ -251,8 +255,6 @@ namespace AM.Core
 
                                     if (mailPiece.PrintLocation == Config.Common_PrintLocationCL)
                                     {
-                                        Dictionary<string, string> mailPieceData = new Dictionary<string, string>();
-                                        mailPieceData.Add("MailPieceId", mailPiece.Id.ToString());
                                         mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((Config.Common_ScannerAppCode + mbi.Client.AppCode + mailPiece.TrackingNo).Reverse().ToArray()) + "*");
 
                                         endPagePdfPath = doc.GenerateLastPageWithBarcode(endPageTemplatePath, mbi.PnSRequestPath, mailPieceData);
@@ -392,10 +394,66 @@ namespace AM.Core
             }
         }
 
-        private static DateTime GetDueDate(DocType docType, DateTime utcReceivedOn)
+        private static DateTime GetEffectiveEstReceivedOn(DocType docType, DateTime utcReceivedOn)
         {
-            //ReceivedOn Time of Batch
             var estReceivedOn = utcReceivedOn.UtcToEst();
+
+            var effectiveEstReceivedOn = estReceivedOn;
+
+            bool isSatWorkDay = docType.SatSLAType == SLAType.NA ? false : true;
+            bool isSunWorkDay = docType.SunSLAType == SLAType.NA ? false : true;
+
+            var estReceivedOnDate = estReceivedOn.Date;
+
+            DayOfWeek dayOfWeek = estReceivedOnDate.DayOfWeek;
+
+            string slaCutOff = string.Empty;
+            if (dayOfWeek == DayOfWeek.Saturday)
+            {
+                slaCutOff = docType.SatCutOff;
+
+                if (docType.SatSLAType == SLAType.NA)
+                {
+                    dayOfWeek = DayOfWeek.Sunday;
+                }
+            }
+
+            if (dayOfWeek == DayOfWeek.Sunday)
+            {
+                slaCutOff = docType.SunCutOff;
+
+                if (docType.SunSLAType == SLAType.NA)
+                {
+                    dayOfWeek = DayOfWeek.Monday;
+                }
+            }
+
+            if (dayOfWeek != DayOfWeek.Sunday && dayOfWeek != DayOfWeek.Saturday)
+            {
+                slaCutOff = docType.BizdayCutOff;
+            }
+
+            //Should be in cut off Date time
+            var estSLACutOffDateTime = (estReceivedOnDate + TimeSpan.Parse(slaCutOff));
+
+            if (estReceivedOn > estSLACutOffDateTime)
+            {
+                effectiveEstReceivedOn = (estReceivedOnDate + TimeSpan.Parse("00:00:00")).AddDays(1);
+            }
+
+            while (!IsBusinessDay(effectiveEstReceivedOn, Config.Common_Holidays, isSatWorkDay, isSunWorkDay))
+            {
+                effectiveEstReceivedOn = effectiveEstReceivedOn.AddDays(1);
+            }
+
+            return effectiveEstReceivedOn;
+        }
+
+        private static DateTime GetDueDate(DocType docType, DateTime estReceivedOn)
+        {
+
+            bool isSatWorkDay = docType.SatSLAType == SLAType.NA ? false : true;
+            bool isSunWorkDay = docType.SunSLAType == SLAType.NA ? false : true;
 
             var estReceivedOnDate = estReceivedOn.Date;
 
@@ -404,9 +462,6 @@ namespace AM.Core
             string slaTimeSpan = string.Empty;
             string slaCutOff = string.Empty;
             string slaType = string.Empty;
-
-            bool isSatWorkDay = docType.SatSLAType == SLAType.NA ? false : true;
-            bool isSunWorkDay = docType.SunSLAType == SLAType.NA ? false : true;
 
             DateTime dueDate = new DateTime();
 
@@ -467,69 +522,6 @@ namespace AM.Core
             }
 
             return dueDate.EstToUtc();
-        }
-
-        private static DateTime GetFedExShipTimeStamp(DocType docType, DateTime utcReceivedOn)
-        {
-            //ReceivedOn Time of Batch
-            var estReceivedOn = utcReceivedOn.UtcToEst();
-
-            DayOfWeek dayOfWeek = estReceivedOn.DayOfWeek;
-
-            string slaCutOff = string.Empty;
-            string slaType = string.Empty;
-
-            bool isSatWorkDay = docType.SatSLAType == SLAType.NA ? false : true;
-            bool isSunWorkDay = docType.SunSLAType == SLAType.NA ? false : true;
-
-            DateTime shipTimeStampDate = estReceivedOn;
-
-            if (dayOfWeek == DayOfWeek.Saturday)
-            {
-                slaCutOff = docType.SatCutOff;
-                slaType = docType.SatSLAType;
-
-                if (docType.SatSLAType == SLAType.NA)
-                {
-                    dayOfWeek = DayOfWeek.Sunday;
-                }
-            }
-
-            if (dayOfWeek == DayOfWeek.Sunday)
-            {
-                slaCutOff = docType.SunCutOff;
-                slaType = docType.SunSLAType;
-
-                if (docType.SunSLAType == SLAType.NA)
-                {
-                    dayOfWeek = DayOfWeek.Monday;
-                }
-            }
-
-            if (dayOfWeek != DayOfWeek.Sunday && dayOfWeek != DayOfWeek.Saturday)
-            {
-                slaCutOff = docType.BizdayCutOff;
-                slaType = docType.BizdaySLAType;
-            }
-
-
-            if (slaType == SLAType.FixedTime)
-            {
-                //Should be in cut off Date time
-                var estSLACutOffDateTime = (estReceivedOn.Date + TimeSpan.Parse(slaCutOff));
-
-                if (estReceivedOn > estSLACutOffDateTime)
-                {
-                    shipTimeStampDate = estReceivedOn.AddDays(1);
-                }
-            }
-
-            while (!IsBusinessDay(shipTimeStampDate, Config.Common_Holidays, isSatWorkDay, isSunWorkDay))
-            {
-                shipTimeStampDate = shipTimeStampDate.AddDays(1);
-            }
-
-            return shipTimeStampDate;
         }
 
         private static bool IsBusinessDay(DateTime dueDate, List<Holiday> holidays, bool isSatWorkDay, bool isSunWorkDay)
