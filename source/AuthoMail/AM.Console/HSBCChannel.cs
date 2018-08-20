@@ -247,7 +247,7 @@ namespace AM.Console
                         mailPieceDTO.DocumentOrPackageType = param.Groups[1].Value.Trim();
 
                         mailPieceDTO.RcptAddressStreet = node.Address;
-                        mailPieceDTO.RcptAddressAptOrSuiteOrOther = node.Address2;
+                        mailPieceDTO.RcptAddrOptionalLine1BelowStreet = node.Address2;
                         mailPieceDTO.RcptAddressCity = node.City;
                         mailPieceDTO.RcptAddressState = node.State;
                         mailPieceDTO.RcptAddressZIP = node.Zip;
@@ -322,7 +322,7 @@ namespace AM.Console
                                     //If we don't have any return address at mail piece or batch level  then it should be in Doc Type level and we are storing that value in mail piece from it.
                                     if (docType.IsReturnInfoSpecified)
                                     {
-                                        mailPieceDTO.RetRcptOrganization = docType.RetRcptOrganization;
+                                        mailPieceDTO.RetRcptAddrOptionalLine1AboveStreet = docType.RetRcptOrganization;
                                         mailPieceDTO.RetRcptAddressStreet = docType.RetRcptAddressStreet;
                                         mailPieceDTO.RetRcptAddressCity = docType.RetRcptAddressCity;
                                         mailPieceDTO.RetRcptAddressState = docType.RetRcptAddressState;

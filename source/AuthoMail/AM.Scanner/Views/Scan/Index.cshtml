@@ -534,7 +534,7 @@
                     startNewBatch();// calling startNewBatch() Method
                     var batchtotalCount = $("#todayscount").text();
                     if (environment.toUpperCase() == "UAT") {
-                        //console.log(environment);
+                       //console.log(environment);
                         $('#code1').val($('#code2').val().split("").reverse().join(""));
                     }
 
@@ -557,7 +557,7 @@
                         if (code2Value != "") {
                             var withoutClientCode = code2Value.replace(clientCode, '');
 
-                            if (code1Value.indexOf(code2Value,clientCode.length)!=-1) {
+                            if (code1Value.indexOf(withoutClientCode, clientCode.length) != -1) {
                                 var totalScanValues = $("#todayscount").text().split('/');
                                 var totalScanned = totalScanValues[0];
                                 var totalfiles = totalScanValues[1];

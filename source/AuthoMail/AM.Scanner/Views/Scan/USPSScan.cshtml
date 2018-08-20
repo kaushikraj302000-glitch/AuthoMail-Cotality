@@ -355,7 +355,7 @@
 
             /*---- Code1 validate Barcode  ----*/
             $("#code1").blur(function () {
-                startNewBatch(); // calling startNewBatch() Method
+                //startNewBatch(); // calling startNewBatch() Method
                 if (parseInt($("#countsuccess").text().trim()) == 50) {
                     $("#modalTitle").removeClass("alert alert-danger");
                     $("#modalTitle").text(modalsuccess);
@@ -390,7 +390,7 @@
             /*---- Code2 validate Barcode  ----*/
             $("#code2").blur(function () {
                 if ($("#clearData").data("mouseDown") != true) {
-                    startNewBatch();// calling startNewBatch() Method
+                   // startNewBatch();// calling startNewBatch() Method
                     //    var batchtotalCount = $("#todayscount").text();
                     $("#message").empty();
                     //if (batchtotalCount.split('/')[0] == batchtotalCount.split('/')[1]) {
@@ -545,32 +545,7 @@
 
             /*---- Start next batch and clear cookies on client side ----*/
             $("#submitModal").click(function () {
-                $.ajax({
-                    type: "GET",
-                    url: '/Scan/NextBatch',
-                    //data: { submitData: "NextBatch" },
-                    success: function (response) {
-                        if (response == "ReloadPage") {
-
-                            $("#countsuccess").text(0);
-                            $("#code1").val("");
-                            $("#code2").val("");
-                            $("#scannedCode").empty();
-                            $("#code1").focus();
-                            // $("#todayscount").text("0/0");
-                            location.reload();
-                        }
-
-                    },
-                    error: function (response) {
-                        $("#message").empty();
-                        $("#message").show();
-                        $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>" + databaseError + "</div>");
-                        $("#code1").val("");
-                        $("#code2").val("");
-                        $("#code1").focus();
-                    }
-                });
+                startNewBatch();
             });
             /*----End Clear Cookies on Client side of Barcode scan ----*/
 

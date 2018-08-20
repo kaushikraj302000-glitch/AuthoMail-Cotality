@@ -10,6 +10,24 @@ using AM.Lib;
 
 namespace AM.Services
 {
+    public class VerifierAddressRequest
+    {
+        public string UserId { get; set; }
+        public List<AddressRequest> AddressRequests { get; set; }
+    }
+
+    public class VerifierAddressResponse
+    {
+        public List<AddressResponse> AddressResponses { get; private set; }
+        public string Error { get; set; }
+        public bool HasError { get { return !this.Error.IsNullOrWhiteSpace(); } }
+
+        public VerifierAddressResponse(List<AddressResponse> responseList)
+        {
+            this.AddressResponses = responseList;
+        }
+    }
+
     public class AddressRequest
     {
         public string Id { get; set; }
@@ -75,6 +93,8 @@ namespace AM.Services
 
         public string Zip4 { get; set; }
 
+        public string Zip { get { return string.Join("-", new string[] { Zip5, Zip4 }); } }
+
         public string DeliveryPoint { get; set; }
 
         public string CarrierRoute { get; set; }
@@ -102,7 +122,7 @@ namespace AM.Services
                          String.IsNullOrWhiteSpace(this.Error.Description));
             }
         }
-        
+
         [XmlIgnore]
         public AddressRequest AddressRequest { get; private set; }
 
@@ -144,7 +164,7 @@ namespace AM.Services
 
     [DataContract]
     [Serializable]
-    public class Address
+    internal class Address
     {
         [DataMember]
         [XmlAttribute(AttributeName = "ID")]
@@ -255,7 +275,7 @@ namespace AM.Services
 
     [Serializable]
     [XmlRoot(ElementName = "AddressValidateRequest")]
-    public class AddressValidateRequest
+    internal class AddressValidateRequest
     {
         [XmlAttribute(AttributeName = "USERID")]
         public string USERID { get; set; }
@@ -291,7 +311,7 @@ namespace AM.Services
 
     [Serializable]
     [XmlRoot(ElementName = "AddressValidateResponse")]
-    public class AddressValidateResponse
+    internal class AddressValidateResponse
     {
         [XmlElement(ElementName = "Address")]
         public List<Address> AddressList { get; set; }
