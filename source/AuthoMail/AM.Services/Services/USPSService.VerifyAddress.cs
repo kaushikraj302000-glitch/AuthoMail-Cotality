@@ -59,7 +59,7 @@ namespace AM.Services
                 if (userId.IsNullOrWhiteSpace())
                 {
                     isAPIError = true;
-                    apiErrorMSG = string.Join("\r\n", new string[] { apiErrorMSG, "For addressRequests UserId must be specified." });
+                    apiErrorMSG = string.Join("\r\n", new string[] { apiErrorMSG, "For addressRequests UserId must be specified." }.Where(msg => !msg.IsNullOrWhiteSpace()));
                 }
 
                 //check flag and call to db
@@ -72,7 +72,11 @@ namespace AM.Services
 
                 if (isAPIError)
                 {
-                    var dbLogawait = await dbLog;
+                    if (Config.Web_API_USPS_IsDbLoggingEnabled)
+                    {
+                        var dbLogawait = await dbLog;
+                    }
+
                     throw new ArgumentException(apiErrorMSG);
                 }
 
@@ -223,7 +227,7 @@ namespace AM.Services
 
                 return await Task.Run(() => new VerifierAddressResponse(addressResponses)
                 {
-                    Error = string.Join("\r\n", addressResponses.Select(e => e.Error.Description))
+                    Error = string.Join("\r\n", addressResponses.Where(e => e.Error != null).Select(e => e.Error.Description))
                 });
             }
             catch (Exception ex)

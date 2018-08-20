@@ -93,7 +93,7 @@ namespace AM.Services
 
         public string Zip4 { get; set; }
 
-        public string Zip { get { return string.Join("-", new string[] { Zip5, Zip4 }); } }
+        public string Zip { get { return string.Join("-", new string[] { Zip5, Zip4 }.Where(s => !s.IsNullOrWhiteSpace())); } }
 
         public string DeliveryPoint { get; set; }
 
@@ -164,7 +164,7 @@ namespace AM.Services
 
     [DataContract]
     [Serializable]
-    internal class Address
+    public class Address
     {
         [DataMember]
         [XmlAttribute(AttributeName = "ID")]
@@ -275,7 +275,7 @@ namespace AM.Services
 
     [Serializable]
     [XmlRoot(ElementName = "AddressValidateRequest")]
-    internal class AddressValidateRequest
+    public class AddressValidateRequest
     {
         [XmlAttribute(AttributeName = "USERID")]
         public string USERID { get; set; }
@@ -311,7 +311,7 @@ namespace AM.Services
 
     [Serializable]
     [XmlRoot(ElementName = "AddressValidateResponse")]
-    internal class AddressValidateResponse
+    public class AddressValidateResponse
     {
         [XmlElement(ElementName = "Address")]
         public List<Address> AddressList { get; set; }
