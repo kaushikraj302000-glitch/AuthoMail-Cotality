@@ -112,16 +112,32 @@
                     <textarea id="Description" rows="1" name="Description" placeholder="Description" class="form-control">@Model.Description</textarea>
                 </div>
             </div>
-            @*<div class="form-group">
-                <label for="Description">Is Cover Letter required?</label>
+            <div class="form-group">
+                <label for="Description">Shipping Special Service</label>
                 <div class="input-group">
-                    <input type="radio" id="Yes" value="Yes" name="IsCoverLetter" class="cl-radio radio-orange" />
-                    <label for="Yes">Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                    <input type="radio" id="No" value="No" name="IsCoverLetter" class="cl-radio radio-salmon" />
-                    <label for="No">No</label>
+
+                    <select id="ShippingSpecialService" data-live-search="true" data-live-search-placeholder="Select Shipping Special Service" multiple="multiple" class="form-control selectpicker" name="ShippingSpecialService">
+                        @foreach (var item in ViewBag.ShippingSpecialService as List<SelectListItem>)
+                        {
+                            var lst = Model.ShippingSpecialService == null ? new List<string>() : Model.ShippingSpecialService.Split(',').ToList();
+                            string sel = lst.Any(l => l == item.Value) ? "selected" : "";
+                            <option value="@item.Value" @sel>@item.Text</option>
+                        }
+
+                    </select>
+
                 </div>
-                <span for="IsCoverLetter" class="error" style="display:none;">* Please pick an option above</span>
-            </div>*@
+            </div>
+            @*<div class="form-group">
+                    <label for="Description">Is Cover Letter required?</label>
+                    <div class="input-group">
+                        <input type="radio" id="Yes" value="Yes" name="IsCoverLetter" class="cl-radio radio-orange" />
+                        <label for="Yes">Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <input type="radio" id="No" value="No" name="IsCoverLetter" class="cl-radio radio-salmon" />
+                        <label for="No">No</label>
+                    </div>
+                    <span for="IsCoverLetter" class="error" style="display:none;">* Please pick an option above</span>
+                </div>*@
         </div>
         <div class="col-md-4">
             <div class="form-group">
@@ -176,34 +192,34 @@
 
             </div>
             @*<div class="from-group">
-                <label for="Description">Select Files(pdf only)</label>
-                <div class="input-group">
-                    <input type="file" multiple="multiple" class="uploadInput" style="display:none;" accept="application/pdf">
-                    <button type="button" id="uploadBtn" class="btn btn-default"><i class="fa fa-upload"> </i> Upload File</button>
-                </div>
-            </div>*@
+                    <label for="Description">Select Files(pdf only)</label>
+                    <div class="input-group">
+                        <input type="file" multiple="multiple" class="uploadInput" style="display:none;" accept="application/pdf">
+                        <button type="button" id="uploadBtn" class="btn btn-default"><i class="fa fa-upload"> </i> Upload File</button>
+                    </div>
+                </div>*@
         </div>
 
     </div>
     @*<div class="row" style="margin-bottom:10px;">
-        <div class="col-md-12">
-            <h3>Selected File List</h3>
-            <table class="table table-responsive">
-                <thead>
-                    <tr>
-                        <th width="70%">File Name</th>
-                        <th width="20%">Sequence</th>
-                        <th width="10%">Action</th>
-                    </tr>
-                </thead>
-                <tbody id="fileList">
-                    <tr>
-                        <td colspan="3">No files selected</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>*@
+            <div class="col-md-12">
+                <h3>Selected File List</h3>
+                <table class="table table-responsive">
+                    <thead>
+                        <tr>
+                            <th width="70%">File Name</th>
+                            <th width="20%">Sequence</th>
+                            <th width="10%">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fileList">
+                        <tr>
+                            <td colspan="3">No files selected</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>*@
 
     <div class="row">
         <div class="col-md-12">
@@ -434,7 +450,7 @@
         $('.uploadInput').click();
         $('.uploadInput').on('change', function (e) {
             //isPdf = e.target.files
-            var cnt=0;
+            var cnt = 0;
 
             console.log(e.target.files);
             var files = e.target.files;
@@ -447,7 +463,7 @@
                     cnt++;
                 }
             }
-            if (cnt>0) {
+            if (cnt > 0) {
                 fileArray = new Array();
                 window.clui.globalAlert({
                     message: "Please select pdf files.",
