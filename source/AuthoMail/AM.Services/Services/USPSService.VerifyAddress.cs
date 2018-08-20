@@ -225,10 +225,7 @@ namespace AM.Services
                     }
                 }
 
-                return await Task.Run(() => new VerifierAddressResponse(addressResponses)
-                {
-                    Error = string.Join("\r\n", addressResponses.Where(e => e.Error != null).Select(e => e.Error.Description))
-                });
+                return await Task.Run(() => new VerifierAddressResponse(addressResponses));
             }
             catch (Exception ex)
             {
