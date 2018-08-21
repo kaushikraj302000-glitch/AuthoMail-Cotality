@@ -397,129 +397,122 @@ namespace AM.Core
         private static DateTime GetEffectiveEstReceivedOn(DocType docType, DateTime utcReceivedOn)
         {
             var estReceivedOn = utcReceivedOn.UtcToEst();
-
+            var estReceivedOnDate = estReceivedOn.Date;
             var effectiveEstReceivedOn = estReceivedOn;
 
             bool isSatWorkDay = docType.SatSLAType == SLAType.NA ? false : true;
             bool isSunWorkDay = docType.SunSLAType == SLAType.NA ? false : true;
 
-            var estReceivedOnDate = estReceivedOn.Date;
-
-            DayOfWeek dayOfWeek = estReceivedOnDate.DayOfWeek;
-
-            string slaCutOff = string.Empty;
-            if (dayOfWeek == DayOfWeek.Saturday)
+            if (IsBusinessDay(estReceivedOn, Config.Common_Holidays, isSatWorkDay, isSunWorkDay))
             {
-                slaCutOff = docType.SatCutOff;
+                DayOfWeek dayOfWeek = estReceivedOn.DayOfWeek;
 
-                if (docType.SatSLAType == SLAType.NA)
+                string slaCutOff = string.Empty;
+                string slaType = string.Empty;
+
+                if (dayOfWeek == DayOfWeek.Saturday)
                 {
-                    dayOfWeek = DayOfWeek.Sunday;
+                    slaCutOff = docType.SatCutOff;
+                    slaType = docType.SatSLAType;
+                }
+
+                if (dayOfWeek == DayOfWeek.Sunday)
+                {
+                    slaCutOff = docType.SunCutOff;
+                    slaType = docType.SunSLAType;
+                }
+
+                if (dayOfWeek != DayOfWeek.Sunday && dayOfWeek != DayOfWeek.Saturday)
+                {
+                    slaCutOff = docType.BizdayCutOff;
+                    slaType = docType.BizdaySLAType;
+                }
+
+                if (slaType == SLAType.FixedTime)
+                {
+                    var estSLACutOffDateTime = (estReceivedOnDate + TimeSpan.Parse(slaCutOff));
+
+                    if (estReceivedOn > estSLACutOffDateTime)
+                    {
+                        effectiveEstReceivedOn = GetNextWorkingDay(estReceivedOnDate, Config.Common_Holidays, isSatWorkDay, isSunWorkDay);
+                    }
+                }
+                else
+                {
+                    effectiveEstReceivedOn = estReceivedOn;
                 }
             }
-
-            if (dayOfWeek == DayOfWeek.Sunday)
+            else
             {
-                slaCutOff = docType.SunCutOff;
-
-                if (docType.SunSLAType == SLAType.NA)
-                {
-                    dayOfWeek = DayOfWeek.Monday;
-                }
-            }
-
-            if (dayOfWeek != DayOfWeek.Sunday && dayOfWeek != DayOfWeek.Saturday)
-            {
-                slaCutOff = docType.BizdayCutOff;
-            }
-
-            //Should be in cut off Date time
-            var estSLACutOffDateTime = (estReceivedOnDate + TimeSpan.Parse(slaCutOff));
-
-            if (estReceivedOn > estSLACutOffDateTime)
-            {
-                effectiveEstReceivedOn = (estReceivedOnDate + TimeSpan.Parse("00:00:00")).AddDays(1);
-            }
-
-            while (!IsBusinessDay(effectiveEstReceivedOn, Config.Common_Holidays, isSatWorkDay, isSunWorkDay))
-            {
-                effectiveEstReceivedOn = effectiveEstReceivedOn.AddDays(1);
+                effectiveEstReceivedOn = GetNextWorkingDay(estReceivedOnDate, Config.Common_Holidays, isSatWorkDay, isSunWorkDay);
             }
 
             return effectiveEstReceivedOn;
         }
 
-        private static DateTime GetDueDate(DocType docType, DateTime estReceivedOn)
+        private static DateTime GetNextWorkingDay(DateTime estDateTime, List<Holiday> HolidayList, bool isSatWorkDay, bool isSunWorkDay)
         {
+            do
+            {
+                estDateTime = estDateTime.AddDays(1);
+            }
+            while (!IsBusinessDay(estDateTime, HolidayList, isSatWorkDay, isSunWorkDay));
 
+            return estDateTime;
+        }
+
+        private static DateTime GetDueDate(DocType docType, DateTime estEffectiveReceivedOn)
+        {
             bool isSatWorkDay = docType.SatSLAType == SLAType.NA ? false : true;
             bool isSunWorkDay = docType.SunSLAType == SLAType.NA ? false : true;
 
-            var estReceivedOnDate = estReceivedOn.Date;
+            var estEffectiveReceivedOnDate = estEffectiveReceivedOn.Date;
 
-            DayOfWeek dayOfWeek = estReceivedOnDate.DayOfWeek;
+            DayOfWeek dayOfWeek = estEffectiveReceivedOnDate.DayOfWeek;
 
             string slaTimeSpan = string.Empty;
-            string slaCutOff = string.Empty;
             string slaType = string.Empty;
 
-            DateTime dueDate = new DateTime();
+            DateTime dueDate = estEffectiveReceivedOn;
 
             if (dayOfWeek == DayOfWeek.Saturday)
             {
                 slaTimeSpan = docType.SatTimeSpan;
-                slaCutOff = docType.SatCutOff;
                 slaType = docType.SatSLAType;
-
-                if (docType.SatSLAType == SLAType.NA)
-                {
-                    dayOfWeek = DayOfWeek.Sunday;
-                }
             }
 
             if (dayOfWeek == DayOfWeek.Sunday)
             {
                 slaTimeSpan = docType.SunTimeSpan;
-                slaCutOff = docType.SunCutOff;
                 slaType = docType.SunSLAType;
-
-                if (docType.SunSLAType == SLAType.NA)
-                {
-                    dayOfWeek = DayOfWeek.Monday;
-                }
             }
 
             if (dayOfWeek != DayOfWeek.Sunday && dayOfWeek != DayOfWeek.Saturday)
             {
                 slaTimeSpan = docType.BizdayTimeSpan;
-                slaCutOff = docType.BizdayCutOff;
                 slaType = docType.BizdaySLAType;
             }
 
-
-            if (slaType == SLAType.Duration)
+            TimeSpan timeSpan = TimeSpan.Parse(slaTimeSpan);
+            if (slaType == SLAType.FixedTime)
             {
-                dueDate = estReceivedOnDate + TimeSpan.Parse(slaTimeSpan);
-            }
-            else if (slaType == SLAType.FixedTime)
-            {
-                //Should be in cut off Date time
-                var estSLACutOffDateTime = (estReceivedOnDate + TimeSpan.Parse(slaCutOff));
+                //Here we are taking only time from full time span which includes dates
+                dueDate = estEffectiveReceivedOnDate + TimeSpan.Parse(string.Format("{0:hh\\:mm\\:ss}", timeSpan));
 
-                if (estReceivedOn > estSLACutOffDateTime)
+                for (int i = 0; i < timeSpan.Days; i++)
                 {
-                    dueDate = (estReceivedOnDate + TimeSpan.Parse(slaTimeSpan)).AddDays(1);
-                }
-                else
-                {
-                    dueDate = (estReceivedOnDate + TimeSpan.Parse(slaTimeSpan));
+                    dueDate = GetNextWorkingDay(dueDate, Config.Common_Holidays, isSatWorkDay, isSunWorkDay);
                 }
             }
-
-            while (!IsBusinessDay(dueDate, Config.Common_Holidays, isSatWorkDay, isSunWorkDay))
+            else
             {
-                dueDate = dueDate.AddDays(1);
+                dueDate = estEffectiveReceivedOn + TimeSpan.Parse(string.Format("{0:hh\\:mm\\:ss}", timeSpan));
+                for (int i = 0; i < timeSpan.Days; i++)
+                {
+                    dueDate = GetNextWorkingDay(dueDate, Config.Common_Holidays, isSatWorkDay, isSunWorkDay);
+                }
             }
+
 
             return dueDate.EstToUtc();
         }
