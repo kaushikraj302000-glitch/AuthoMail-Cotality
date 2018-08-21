@@ -499,7 +499,7 @@ namespace AM.Core
 
             if (slaType == SLAType.Duration)
             {
-                dueDate = estReceivedOn + TimeSpan.Parse(slaTimeSpan);
+                dueDate = estReceivedOnDate + TimeSpan.Parse(slaTimeSpan);
             }
             else if (slaType == SLAType.FixedTime)
             {
