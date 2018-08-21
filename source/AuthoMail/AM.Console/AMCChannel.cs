@@ -485,9 +485,49 @@ namespace AM.Console
                 List<AddressRequest> addressRequestes = new List<AddressRequest>();
                 foreach (XmlNode mailPieceNode in mailPieceNodes)
                 {
-                    PackageInfo xmlMailPiece = XmlUtil.Deserialize<PackageInfo>(mailPieceNode.OuterXml);
+                    string uniqueId = mailPieceNode.SelectSingleNode("./x:Id/text()", nsManager) == null ? string.Empty : mailPieceNode.SelectSingleNode("./x:Id/text()", nsManager).Value;
 
-                    AddressRequest addressRequest = new AddressRequest() { Id = xmlMailPiece.Id.ToString(), Line1 = xmlMailPiece.RecipientInfo.RecipientAddress.Line1.IsNullOrEmpty() ? string.Empty : xmlMailPiece.RecipientInfo.RecipientAddress.Line1, Line2 = xmlMailPiece.RecipientInfo.RecipientAddress.Line2.IsNullOrEmpty() ? string.Empty : xmlMailPiece.RecipientInfo.RecipientAddress.Line2, City = xmlMailPiece.RecipientInfo.RecipientAddress.City.IsNullOrEmpty() ? string.Empty : xmlMailPiece.RecipientInfo.RecipientAddress.City, State = xmlMailPiece.RecipientInfo.RecipientAddress.State.IsNullOrEmpty() ? string.Empty : xmlMailPiece.RecipientInfo.RecipientAddress.State, Zip5 = xmlMailPiece.RecipientInfo.RecipientAddress.Zip.IsNullOrEmpty() ? string.Empty : xmlMailPiece.RecipientInfo.RecipientAddress.Zip };
+                    string strRcptAddressStreet = string.Empty;
+                    string strRcptAddrOptionalLine1BelowStreet = string.Empty;
+                    string strRcptAddressCity = string.Empty;
+                    string strRcptAddressState = string.Empty;
+                    string strRcptAddressZIP = string.Empty;
+                    string addressZip5 = string.Empty;
+                    string addressZip4 = string.Empty;
+
+                    var recipientElement = mailPieceNode.SelectSingleNode("./x:RecipientInfo", nsManager);
+                    if (recipientElement != null)
+                    {
+                        var recipeintAddressElement = recipientElement.SelectSingleNode("./x:Address", nsManager);
+
+                        if (recipeintAddressElement != null)
+                        {
+                            strRcptAddressStreet = recipeintAddressElement.SelectSingleNode("./x:Line1/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:Line1/text()", nsManager).Value;
+
+                            strRcptAddrOptionalLine1BelowStreet = recipeintAddressElement.SelectSingleNode("./x:Line2/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:Line2/text()", nsManager).Value;
+
+                            strRcptAddressCity = recipeintAddressElement.SelectSingleNode("./x:City/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:City/text()", nsManager).Value;
+
+                            strRcptAddressState = recipeintAddressElement.SelectSingleNode("./x:State/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:State/text()", nsManager).Value;
+
+                            strRcptAddressZIP = recipeintAddressElement.SelectSingleNode("./x:Zip/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:Zip/text()", nsManager).Value;
+                        }
+                    }
+
+                    string[] zipCode = strRcptAddressZIP.Split(new[] { '-' }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (string zip in zipCode)
+                    {
+                        if (zip.Length == 4)
+                        {
+                            addressZip4 = zip;
+                        }
+                        else if (zip.Length == 5)
+                        {
+                            addressZip5 = zip;
+                        }
+                    }
+
+                    AddressRequest addressRequest = new AddressRequest() { Id = uniqueId, Line1 = strRcptAddressStreet, Line2 = strRcptAddrOptionalLine1BelowStreet, City = strRcptAddressCity, State = strRcptAddressState, Zip4 = addressZip4, Zip5 = addressZip5 };
 
                     addressRequestes.Add(addressRequest);
                 }
