@@ -23,6 +23,7 @@ namespace AM.Services
         List<DocTypes> GetDocTypes();
         List<DocTypeVM> GetDocTypesByClientId(int ClientId);
         List<DocTypeCoverLetterVM> GetDocTypeCoverLetterByDocTypeId(int Id);
+        KeyValuePair<bool, string> SaveDocTypeCoverLetter(DocTypeCoverLetter dtcl);
         //Clients
         List<Clients> GetClients();
         Clients FindByClientId(int Id);
