@@ -123,6 +123,12 @@ namespace AM.Services
                     addressResponses.Add(response);
                 }
 
+                //If ALL address requests are invalid then error occur.
+                if (addresses.Count == 0)
+                {
+                    throw new ArgumentException("Common-XmlParse : The element 'AddressValidateRequest' has incomplete content. List of possible elements expected: 'Address'.");
+                }
+
                 FormUrlEncodedContent payload = null;
                 string uspsInputXML = null;
                 Task<int> uspsRequestLog = null;
