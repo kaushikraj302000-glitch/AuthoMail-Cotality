@@ -540,8 +540,23 @@ namespace AM.Services
         }
         public KeyValuePair<bool, string> SaveDocTypeCoverLetter(DocTypeCoverLetter dtcl)
         {
-
-            return GetKeyValue(true, "");
+            try
+            {
+                if (dtcl.CoverLetterTemplatePath.IsNullOrWhiteSpace())
+                    return GetKeyValue(false, "CoverLetterTemplatePath can't be empty.");
+                var isExists = db.QueryFirstOrDefault<string>("select CoverLetterTemplatePath from AM.DocTypeCoverLetters where CoverLetterTemplatePath=@filePath", new { filePath = dtcl.CoverLetterTemplatePath });
+                if (isExists != null)
+                    return GetKeyValue(false, "CoverLetterTemplatePath already exists.");
+                int rows = db.Execute("insert into AM.DocTypeCoverLetters (DocTypeId,SeqId,CoverLetterTemplatePath) values (@docTypeId,@seqId,@coverLetterTemplatePath)", dtcl);
+                if (rows == 1)
+                    return GetKeyValue(true, "Saved Successfully.");
+                else
+                    return GetKeyValue(false, "Data can't be inserted.");
+            }
+            catch (Exception ex)
+            {
+                return GetKeyValue(false, ex.Message);
+            }
         }
 
     }
