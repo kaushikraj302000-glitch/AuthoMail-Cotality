@@ -21,6 +21,8 @@ namespace AM.Services
         KeyValuePair<bool, string> UpdateUsersRequestSignUp(string Id, string status, string closedBy);
         //DocTypes
         List<DocTypes> GetDocTypes();
+        List<DocTypeVM> GetDocTypesByClientId(int ClientId);
+        List<DocTypeCoverLetterVM> GetDocTypeCoverLetterByDocTypeId(int Id);
         //Clients
         List<Clients> GetClients();
         Clients FindByClientId(int Id);
@@ -276,7 +278,7 @@ namespace AM.Services
             string query = "UPDATE [Common].[BusinessUnit] SET IsActive=@isActive WHERE Id=@id";
             return db.Execute(query, new { isActive = isActive, id = Id });
         }
-        
+
 
         public KeyValuePair<bool, string> CreateOrEditDocType(DocTypes docTypes, string userId)
         {
@@ -524,5 +526,38 @@ namespace AM.Services
             }
             return model;
         }
+
+
+        public List<DocTypeVM> GetDocTypesByClientId(int ClientId)
+        {
+            string q = "select d.Id,d.ClientId,d.DocTypeCode,c.Name as ClientName from AM.DocTypes d,Common.Clients c where d.ClientId=c.Id and ClientId=@clientId";
+            return db.Query<DocTypeVM>(q, new { clientId = ClientId }).ToList();
+        }
+        public List<DocTypeCoverLetterVM> GetDocTypeCoverLetterByDocTypeId(int Id)
+        {
+            string q = "select * from AM.DocTypeCoverLetters where DocTypeId=@id";
+            return db.Query<DocTypeCoverLetterVM>(q, new { id = Id }).ToList();
+        }
+        public KeyValuePair<bool, string> SaveDocTypeCoverLetter(DocTypeCoverLetter dtcl)
+        {
+            try
+            {
+                if (dtcl.CoverLetterTemplatePath.IsNullOrWhiteSpace())
+                    return GetKeyValue(false, "CoverLetterTemplatePath can't be empty.");
+                var isExists = db.QueryFirstOrDefault<string>("select CoverLetterTemplatePath from AM.DocTypeCoverLetters where CoverLetterTemplatePath=@filePath", new { filePath = dtcl.CoverLetterTemplatePath });
+                if (isExists != null)
+                    return GetKeyValue(false, "CoverLetterTemplatePath already exists.");
+                int rows = db.Execute("insert into AM.DocTypeCoverLetters (DocTypeId,SeqId,CoverLetterTemplatePath) values (@docTypeId,@seqId,@coverLetterTemplatePath)", dtcl);
+                if (rows == 1)
+                    return GetKeyValue(true, "Saved Successfully.");
+                else
+                    return GetKeyValue(false, "Data can't be inserted.");
+            }
+            catch (Exception ex)
+            {
+                return GetKeyValue(false, ex.Message);
+            }
+        }
+
     }
 }

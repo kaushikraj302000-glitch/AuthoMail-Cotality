@@ -39,4 +39,18 @@ namespace AM.Services
         public bool IsError { get; set; }
         public string Message { get; set; }
     }
+
+    public class DocTypeVM
+    {
+        public int Id { get; set; }
+        public int ClientId { get; set; }
+        public string DocTypeCode { get; set; }
+        public string ClientName { get; set; }
+    }
+    public class DocTypeCoverLetterVM
+    {
+        public int DocTypeId { get; set; }
+        public int SeqId { get; set; }
+        public string CoverLetterTemplatePath { get; set; }
+    }
 }
