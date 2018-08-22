@@ -15,7 +15,7 @@
         </div>
         <div class="row" style="margin-bottom:10px;">
             <div class="col-md-12">
-                <h3>Cover Letter File List</h3>
+                <h3>Cover Letter Files</h3>
                 <table class="table table-responsive">
                     <thead>
                         <tr>
@@ -45,28 +45,7 @@
         <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> Cancel</button>
     </form>
 
-    @*<div id="CoverLetterTableContent" style="display:none">
-            <table class="table table-responsive" style="overflow-x:scroll">
-                <thead>
-                    <tr>
-                        <th>Sequence Id</th>
-                        <th>File Name</th>
-                    </tr>
-                </thead>
-                <tbody id="CoverLetterbodyContent"></tbody>
-            </table>
-        </div>
-        <div style="display:none">
-            <table>
-                <tbody id="CoverLetterBody">
-                    <tr class="row-small">
-                        <td><span data-id="{Id}">{SeqId}</span></td>
-                        <td><span>{CoverLetterTemplatePath}</span></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>*@
-
+   
 }
 else
 {
@@ -83,7 +62,6 @@ else
     var fileArray = new Array();
     function RemoveFile(name) {
         $.each(coverletterList, function (i) {
-            console.log(coverletterList[i].fileName);
             if (coverletterList[i].fileName === name) {
                 coverletterList.splice(i, 1);
                 $("#file").val("");
@@ -124,7 +102,7 @@ else
         //isPdf = e.target.files
         e.preventDefault();
         var cnt = 0;
-        console.log(e.target.files);
+        //console.log(e.target.files);
         var files = e.target.files;
         for (var i = 0; i < files.length; i++) {
             if (files[i].name.split('.').pop().toLowerCase() == "pdf") {
@@ -147,7 +125,6 @@ else
         }
         //files.split('.').pop().toLowerCase()=="pdf"
         MadeFileList();
-        console.log();
     });
     $("#DocTypeId").change(function () {
         var Id = parseInt($(this).val());

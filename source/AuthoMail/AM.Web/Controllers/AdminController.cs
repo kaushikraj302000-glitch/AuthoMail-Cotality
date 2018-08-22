@@ -443,6 +443,26 @@ namespace AM.Web.Controllers
         #endregion
 
         #region Manage DocType
+
+        [Authorize(Roles = AMRoles.Admin)]
+        public ActionResult _GetCoverLetterFiles(int id)
+        {
+            var model = supportSvc.GetDocTypeCoverLetterByDocTypeId(id);
+            return PartialView(model);
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult RemoveCoverLetter(int docTypeId,int seqId,string fileName)
+        {
+            try
+            {
+                var model = supportSvc.RemoveCoverletter(docTypeId,seqId,fileName);
+                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
         [Authorize(Roles = AMRoles.Admin)]
         public ActionResult ManageDocumentTypes()
         {

@@ -162,8 +162,6 @@
                     var file = $("#AddCoverLetterModal").find(".modal-header").find("#file").prop('files')[0];
                     $("#AddCoverLetterModal").modal("hide");
                     var el = $("#myModal").find(".modal-body");
-                    console.log(docTypeId + " " + fileName + " " + seqId);
-                    console.log(file);
                     el.empty();
                     var formData = new FormData();
                     formData.append("file", file);
@@ -180,7 +178,7 @@
                         contentType: false,
                         data:formData,
                         success: function (response) {
-                            console.log(response);
+                            //console.log(response);
                             if (response.Success) {
                                 if (response.Object != null) {
                                     if (response.Object.Key) {
@@ -385,7 +383,7 @@
 
                 this.Action = '<span style="cursor: pointer;font-size:1.2em;" onclick="AddEditClient(this)" data-id="' + this.Id + '" ><i class="padding-left-15 fa fa-edit text-blue" aria-hidden="true" title="Edit"><span class="sr-only">Edit</span></i></span>';
 
-                this.CoverLetter = '<span style="cursor: pointer;font-size:1.2em;margin-left: 10px;" onclick="AddCoverLetter(this)" data-id="' + this.Id + '" ><i class=" fa fa-plus text-yellow" aria-hidden="true" title="Add Cover Letter"><span class="sr-only">Cover Letter</span></i></span>';
+                this.CoverLetter = '<span style="cursor: pointer;font-size:1.2em;margin-left: 10px;" onclick="AddCoverLetter(this)" data-id="' + this.Id + '" ><i class=" fa fa-file-pdf-o text-red" aria-hidden="true" title="Add Cover Letter"><span class="sr-only">Cover Letter</span></i></span>';
 
             });
             return Model;
