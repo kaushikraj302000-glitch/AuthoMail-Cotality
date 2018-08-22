@@ -40,12 +40,15 @@ namespace AM.Services
 
         private async Task<VerifierAddressResponse> VerifyAddressAsync(string userId, List<AddressRequest> addressRequests)
         {
+            List<AddressResponse> addressResponses = new List<AddressResponse>();
+
             try
             {
                 int logId = 0;
 
                 Task<int> dbLog = null;
                 var maxAddressCount = Config.Web_API_USPS_AddressCount;
+                addressResponses.Capacity = maxAddressCount;
                 var isAPIError = false;
                 string apiErrorMSG = null;
 
@@ -77,10 +80,11 @@ namespace AM.Services
                         var dbLogawait = await dbLog;
                     }
 
-                    throw new ArgumentException(apiErrorMSG);
+                    //throw new ArgumentException(apiErrorMSG);
+
+                    return new VerifierAddressResponse(addressResponses) { Error = apiErrorMSG };
                 }
 
-                List<AddressResponse> addressResponses = new List<AddressResponse>(maxAddressCount);
                 List<Address> addresses = new List<Address>(maxAddressCount);
 
                 for (int i = 0; i < addressRequests.Count; i++)
@@ -123,10 +127,13 @@ namespace AM.Services
                     addressResponses.Add(response);
                 }
 
-                //If ALL address requests are invalid then error occur.
+                //If ALL AddressRequest elements are invalid then error occur and address list is empty.
                 if (addresses.Count == 0)
                 {
-                    return new VerifierAddressResponse(addressResponses) { Error = "Common-XmlParse : The element 'AddressValidateRequest' has incomplete content. List of possible elements expected: 'Address'." };
+                    return new VerifierAddressResponse(addressResponses);
+                    //{
+                    //    Error = "Common-XmlParse : The element 'AddressValidateRequest' has incomplete content. List of possible elements expected: 'Address'."
+                    //};
                 }
 
                 FormUrlEncodedContent payload = null;
@@ -230,17 +237,37 @@ namespace AM.Services
                     await responseLog;
                 }
 
-                return await Task.Run(() => new VerifierAddressResponse(addressResponses)
-                {
-                    Error = isGenericUSPSError ? addressResponses.First().Error.Description : null
-                });
+                return await Task.Run(() => new VerifierAddressResponse(addressResponses));
             }
             catch (Exception ex)
             {
-                return new VerifierAddressResponse(null)
-                  {
-                      Error = ex.ToString()
-                  };
+                //if (addressRequests != null && addressResponses.Count == 0)
+                //{
+                //    var idRegex = new Regex(@"(\d+{0})(.*)".Fill(ResponseSource.CLSVC));
+
+                //    for (int i = 0; i < addressRequests.Count; i++)
+                //    {
+                //        var request = addressRequests[i];
+                //        var add = "{0} {1}".Fill(request.Line1, request.Line2).Trim();
+                //        //Id index 1 base
+                //        var response = new AddressResponse(request, i + 1)
+                //        {
+                //            Id = idRegex.Match(request.Id).Groups[2].Value,
+                //            FirmName = request.FirmName,
+                //            Line1 = add,
+                //            City = request.City,
+                //            State = request.State,
+                //            Zip5 = request.Zip5,
+                //            Zip4 = request.Zip4,
+                //            Urbanization = request.Urbanization
+                //        };
+                //        addressResponses.Add(response);
+                //    }
+                //}
+                return new VerifierAddressResponse(addressResponses)
+                {
+                    Error = "Unexpected Error"//ex.ToString()
+                };
             }
         }
 
@@ -275,7 +302,7 @@ namespace AM.Services
 
                     if (responseAdd.AddressTypes.Count == 0)
                     {
-                        responseAdd.VerifierDesc = "{0}\r\n* AddressType Not Found : '{1}' state is not in USA mainland or territory list*".Fill(responseAdd.VerifierDesc, responseAdd.State);
+                        responseAdd.VerifierDesc = "{0}\r\n* Invalid state code '{1}', AddressType could not be determined.*".Fill(responseAdd.VerifierDesc, responseAdd.State);
                     }
                 }
                 else
@@ -291,7 +318,7 @@ namespace AM.Services
                     responseAdd.Urbanization = address.Urbanization;
                     responseAdd.CarrierRoute = address.CarrierRoute;
                     responseAdd.DeliveryPoint = address.DeliveryPoint;
-                    responseAdd.ReturnText = address.ReturnText;
+                    responseAdd.Warning = address.ReturnText;
                     responseAdd.Error = address.Error;
                     responseAdd.AddressTypes = CheckAddressType(address);
 

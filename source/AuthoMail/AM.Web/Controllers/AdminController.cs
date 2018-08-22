@@ -251,6 +251,49 @@ namespace AM.Web.Controllers
         #endregion
 
         #region Manage Client
+
+        [Authorize(Roles = AMRoles.Admin)]
+        public ActionResult _AddCoverLetter(int id)
+        {
+            var model=supportSvc.GetDocTypesByClientId(id);
+            ViewBag.IsModelEmpty = true;
+            if (model!=null)
+            {
+                ViewBag.IsModelEmpty = false;
+                ViewBag.ClientId = id;
+                ViewBag.ClientName = model.FirstOrDefault().ClientName;
+                ViewBag.DocType = new SelectList(model, "Id", "DocTypeCode");
+            }
+            return PartialView();
+        }
+
+
+        [Authorize(Roles = AMRoles.Admin)]
+        [HttpPost]
+        public ActionResult _AddCoverLetter(int docTypeId, int seqId, string fileName, IEnumerable<HttpPostedFileBase> file)
+        {
+            try
+            {
+                DocTypeCoverLetter coverLetter = new DocTypeCoverLetter();
+                coverLetter.DocTypeId = docTypeId;
+                coverLetter.SeqId = seqId;
+                coverLetter.CoverLetterTemplatePath = fileName;
+                var model = supportSvc.SaveDocTypeCoverLetter(coverLetter);
+                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+        
+        [Authorize(Roles = AMRoles.Admin)]
+        public ActionResult GetCoverLetterByDocTypeId(int id)
+        {
+            var model = supportSvc.GetDocTypeCoverLetterByDocTypeId(id);
+            return Json(model, JsonRequestBehavior.AllowGet);
+        }
+
         [Authorize(Roles = AMRoles.Admin)]
         public ActionResult ManageClients()
         {

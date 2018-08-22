@@ -191,35 +191,11 @@
                 </div>
 
             </div>
-            @*<div class="from-group">
-                    <label for="Description">Select Files(pdf only)</label>
-                    <div class="input-group">
-                        <input type="file" multiple="multiple" class="uploadInput" style="display:none;" accept="application/pdf">
-                        <button type="button" id="uploadBtn" class="btn btn-default"><i class="fa fa-upload"> </i> Upload File</button>
-                    </div>
-                </div>*@
+           
         </div>
 
     </div>
-    @*<div class="row" style="margin-bottom:10px;">
-            <div class="col-md-12">
-                <h3>Selected File List</h3>
-                <table class="table table-responsive">
-                    <thead>
-                        <tr>
-                            <th width="70%">File Name</th>
-                            <th width="20%">Sequence</th>
-                            <th width="10%">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="fileList">
-                        <tr>
-                            <td colspan="3">No files selected</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>*@
+ 
 
     <div class="row">
         <div class="col-md-12">
@@ -424,57 +400,5 @@
 
 
     });
-    var fileArray = new Array();
-
-    function RemoveFile(index) {
-        fileArray.splice(index, 1);
-        MadeFileList(fileArray);
-    }
-
-    function MadeFileList() {
-        var fileList = $("#fileList");
-        fileList.empty();
-        var tr = "";
-        if (fileArray.length == 0) {
-            tr = '<tr><td colspan="3">No files selected</td></tr>';
-        } else {
-            for (var i = 0; i < fileArray.length; i++) {
-                tr = tr + "<tr><td>" + fileArray[i].name + "</td><td>1</td><td><span style='cursor: pointer;' onclick='RemoveFile(" + i + ")'>  <i class='fa fa-times'></i></span></td></tr>";
-            }
-        }
-        fileList.html(tr);
-
-    }
-    $('#uploadBtn').click(function () {
-
-        $('.uploadInput').click();
-        $('.uploadInput').on('change', function (e) {
-            //isPdf = e.target.files
-            var cnt = 0;
-
-            console.log(e.target.files);
-            var files = e.target.files;
-            for (var i = 0; i < files.length; i++) {
-                if (files[i].name.split('.').pop().toLowerCase() == "pdf") {
-
-                    fileArray.push(files[i]);
-                }
-                else {
-                    cnt++;
-                }
-            }
-            if (cnt > 0) {
-                fileArray = new Array();
-                window.clui.globalAlert({
-                    message: "Please select pdf files.",
-                    alertType: 'red',
-                    timeout: 5000
-                });
-            }
-            //files.split('.').pop().toLowerCase()=="pdf"
-            MadeFileList(fileArray);
-            console.log(fileArray);
-        });
-    });
-
+    
 </script>
