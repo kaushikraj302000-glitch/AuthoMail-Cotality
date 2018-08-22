@@ -544,10 +544,10 @@ namespace AM.Services
             try
             {
                 if (dtcl.CoverLetterTemplatePath.IsNullOrWhiteSpace())
-                    return GetKeyValue(false, "CoverLetterTemplatePath can't be empty.");
+                    return GetKeyValue(false, "Cover Letter Template Path can't be empty.");
                 var isExists = db.QueryFirstOrDefault<string>("select CoverLetterTemplatePath from AM.DocTypeCoverLetters where CoverLetterTemplatePath=@filePath", new { filePath = dtcl.CoverLetterTemplatePath });
                 if (isExists != null)
-                    return GetKeyValue(false, "CoverLetterTemplatePath already exists.");
+                    return GetKeyValue(false, "Cover Letter Template Path already exists.");
                 int rows = db.Execute("insert into AM.DocTypeCoverLetters (DocTypeId,SeqId,CoverLetterTemplatePath) values (@docTypeId,@seqId,@coverLetterTemplatePath)", dtcl);
                 if (rows == 1)
                     return GetKeyValue(true, "Saved Successfully.");
@@ -558,6 +558,16 @@ namespace AM.Services
             {
                 return GetKeyValue(false, ex.Message);
             }
+        }
+        public KeyValuePair<bool, string> RemoveCoverletter(int docId, string filePath)
+        {
+            if (filePath.IsNullOrWhiteSpace())
+                return GetKeyValue(false, "Cover Letter Template Path can't be empty.");
+            int rows = db.Execute("delete from AM.DocTypeCoverLetters where DocTypeId = @docTypeId and CoverLetterTemplatePath = @coverLetterTemplatePath)");
+            if (rows == 1)
+                return GetKeyValue(true, "Removed Successfully.");
+            else
+                return GetKeyValue(false, "Data can't be removed.");
         }
 
     }
