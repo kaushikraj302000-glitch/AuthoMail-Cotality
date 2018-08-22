@@ -564,7 +564,7 @@ namespace AM.Services
         {
             if (filePath.IsNullOrWhiteSpace())
                 return GetKeyValue(false, "Cover Letter Template Path can't be empty.");
-            int rows = db.Execute("delete from AM.DocTypeCoverLetters where DocTypeId = @docTypeId and SeqId=@seqId and CoverLetterTemplatePath = @coverLetterTemplatePath)", new { docTypeId = docTypeId, seqId = seqId, coverLetterTemplatePath = filePath });
+            int rows = db.Execute("delete from AM.DocTypeCoverLetters where DocTypeId = @docTypeId and SeqId=@seqId and CoverLetterTemplatePath = @coverLetterTemplatePath", new { docTypeId = docTypeId, seqId = seqId, coverLetterTemplatePath = filePath });
             if (rows == 1)
                 return GetKeyValue(true, "Removed Successfully.");
             else
