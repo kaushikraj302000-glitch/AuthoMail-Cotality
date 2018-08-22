@@ -99,7 +99,7 @@ namespace AM.Services
 
         public string CarrierRoute { get; set; }
 
-        public string ReturnText { get; set; }
+        public string Warning { get; set; }
 
         public Error Error { get; set; }
 
