@@ -1,8 +1,9 @@
 ﻿--------------Logic Imformation-------------------
 
 1) Send Batches to Dallas Printing Team :
-	- USPS Express Mail - throughout the day
-	- FedEx - from 4.30PM EST to 8.00PM EST
+	- For USPS Express, Monday to Friday - till 8 PM EST Batch should go to Dallas Team
+	- For FedEx, Monday-Friday(Between 4.30PM EST Till 8 PM EST) Batch should go to Dallas Team
+
 
 -------------- General Information----------------
 1) HSBC via AMC (Mail Subject : HSBC Testing Via Cadence Platform)
