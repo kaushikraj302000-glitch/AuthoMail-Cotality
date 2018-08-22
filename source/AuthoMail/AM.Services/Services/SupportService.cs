@@ -559,11 +559,11 @@ namespace AM.Services
                 return GetKeyValue(false, ex.Message);
             }
         }
-        public KeyValuePair<bool, string> RemoveCoverletter(int docId, string filePath)
+        public KeyValuePair<bool, string> RemoveCoverletter(int docTypeId, int seqId, string filePath)
         {
             if (filePath.IsNullOrWhiteSpace())
                 return GetKeyValue(false, "Cover Letter Template Path can't be empty.");
-            int rows = db.Execute("delete from AM.DocTypeCoverLetters where DocTypeId = @docTypeId and CoverLetterTemplatePath = @coverLetterTemplatePath)");
+            int rows = db.Execute("delete from AM.DocTypeCoverLetters where DocTypeId = @docTypeId and SeqId=@seqId and CoverLetterTemplatePath = @coverLetterTemplatePath)", new { docTypeId = docTypeId, seqId = seqId, coverLetterTemplatePath = filePath });
             if (rows == 1)
                 return GetKeyValue(true, "Removed Successfully.");
             else
