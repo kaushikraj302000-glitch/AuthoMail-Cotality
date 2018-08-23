@@ -34,8 +34,8 @@ namespace AM.Scanner.Common
                 DbConnection db = Create(clientCode);
                 //DbCommand cmd = db.GetStoredProcCommand(Common.SP_RegisterScan, barcode);
                 // DbCommand cmd = db.GetStoredProcCommand(Common.SP_RegisterScan, barcode, username, machineName);
-                string query = string.Format("{0} @barcode, @operatorid, @machineid", Common.SP_RegisterScan);
-                var registerScanData = db.QuerySingleOrDefault<RegisterScanDetails>(query, new { barcode = barcode, operatorid = username, machineid = machineName });
+                string query = string.Format("{0} @barcode, @clientCode, @operatorid, @machineid", Common.SP_RegisterScan);
+                var registerScanData = db.QuerySingleOrDefault<RegisterScanDetails>(query, new { barcode = barcode,clientCode=clientCode, operatorid = username, machineid = machineName });
                 db.Dispose();
                 var scanCountData = GetScanStats(clientCode);
                 scanCountData.BatchName = registerScanData.BatchName;
@@ -142,6 +142,27 @@ namespace AM.Scanner.Common
             catch (Exception)
             {
                 return null;
+            }
+        }
+
+        public static USPSScanDetails RegisterUSPSScan(int mailPieceId,string trackingNo, string clientCode)
+        {
+            
+            try
+            {
+                DbConnection db = Create(clientCode);
+                //DbCommand cmd = db.GetStoredProcCommand(Common.SP_RegisterScan, barcode);
+                // DbCommand cmd = db.GetStoredProcCommand(Common.SP_RegisterScan, barcode, username, machineName);
+                string query = string.Format("{0} @mailPieceId,@trackingNo", Common.SP_RegisterUSPSScan);
+                var registerScanData = db.QuerySingleOrDefault<USPSScanDetails>(query, new { mailPieceId = mailPieceId, trackingNo = trackingNo });
+                registerScanData.AppCode = clientCode;
+                db.Dispose();
+                return registerScanData;
+
+            }
+            catch (Exception e)
+            {
+                throw e;
             }
         }
     }

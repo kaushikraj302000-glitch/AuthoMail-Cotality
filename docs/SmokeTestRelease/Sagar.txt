@@ -754,3 +754,123 @@ Application Deployment
 UAT Final Status : AM Deployed with Databas Changes at on 2nd July 2.30 PM IST / PnS Service Deployment is completed for ByPassPCI at 07/18/2018 3.30PM
 PROD Final Status : AM Deployed with Databas Changes at on 24nd July 1.00 PM IST / PnS Service Deployment is completed for ByPassPCI at 07/24/2018 1.00PM
 ====================================================================================================================================================
+
+====================================================
+Deployment 23/08/2018
+====================================================
+=========================
+Database Changes
+=========================
+	- For AuthoMail
+		1) Added two new columns in AM.MailPieces table
+			- ALTER TABLE [AM].[MailPieces] ADD PickedUpOn DATETIME NULL,[IsPickedUp]  AS (case when [PickedUpOn] IS NULL then (0) else (1) end)
+		2) Added one new column in AM.Doctypes table
+			- ALTER TABLE [AM].[DocTypes] ADD [ShippingSpecialService] VARCHAR(255) NULL
+			- UPDATE  [AM].[DocTypes] SET [ShippingSpecialService]='SATURDAY_DELIVERY' WHERE ClientId=101 AND ShippingCarrier='FedEx'
+		3) Added new Store Procedure [uspweb_FedExPickedUpReport]
+			-  	-- =============================================
+				-- Author:		 Sagar Golvelkar
+				-- Create date:  13-Aug-2018
+				-- Modifiy date: 13-Aug-2018
+				-- Exec: [dbo].[uspweb_FedExPickedUpReport] '2018-03-19 04:00:00','2018-03-20 03:59:59','FedEx',1
+				-- Description:	 Get mail pieces list which are not yet picked up
+				-- =============================================
+				CREATE PROCEDURE [dbo].[uspweb_FedExPickedUpReport]
+					@deploymentDate datetime,
+					@lastReceivedOnDate datetime,
+					@shippingType varchar(128),
+					@isPickedUp int--Possible values : 1/0/-1'
+				AS
+					if(@isPickedUp=0)
+					BEGIN
+						SELECT * FROM AM.MailPieces MP
+						INNER JOIN AM.MailBatches MB ON MB.ID=MP.MailBatchId
+						INNER JOIN AM.DocTypes D ON D.Id=MP.DocTypeId
+						WHERE MB.ReceivedOn >= @deploymentDate AND MB.ReceivedOn < @lastReceivedOnDate
+						AND MP.ShippingStatus <> 'Error' AND MP.IsPickedUp=0
+						AND D.ShippingCarrier=@shippingType
+					END
+					ELSE IF(@isPickedUp=1)
+					BEGIN
+						SELECT * FROM AM.MailPieces MP
+						INNER JOIN AM.MailBatches MB ON MB.ID=MP.MailBatchId
+						INNER JOIN AM.DocTypes D ON D.Id=MP.DocTypeId
+						WHERE MB.ReceivedOn >= @deploymentDate AND MB.ReceivedOn < @lastReceivedOnDate
+						AND MP.ShippingStatus <> 'Error' AND MP.IsPickedUp=1
+						AND D.ShippingCarrier=@shippingType
+					END
+					ELSE
+					BEGIN
+						SELECT * FROM AM.MailPieces MP
+						INNER JOIN AM.MailBatches MB ON MB.ID=MP.MailBatchId
+						INNER JOIN AM.DocTypes D ON D.Id=MP.DocTypeId
+						WHERE MB.ReceivedOn >= @deploymentDate AND MB.ReceivedOn < @lastReceivedOnDate
+						AND MP.ShippingStatus <> 'Error'
+						AND D.ShippingCarrier=@shippingType
+					END
+				GO
+		4) Added two columns in StoredProcedure [usp_GetDocTypeDetailsByAppId] [ShippingCarrier],[ShippingServiceType]
+		5) Added schema [API]
+			- CREATE SCHEMA [API] GO
+		6) Created new table [API].[USPS]
+			- 	CREATE TABLE [API].[USPS](
+				[Id] [int] IDENTITY(1,1) NOT NULL,
+				[APIName] [nvarchar](255) NOT NULL,
+				[UserId] [nvarchar](255) NOT NULL,
+				[IsAPIError] [bit] NOT NULL,
+				[IsUSPSError] [bit] NOT NULL,
+				[APIRequest] [nvarchar](max) NOT NULL,
+				[APIRequestedOn] [datetime] NOT NULL,
+				[USPSRequest] [nvarchar](max) NULL,
+				[USPSRequestedOn] [datetime] NULL,
+				[USPSResponse] [nvarchar](max) NULL,
+				[USPSResponseOn] [datetime] NULL,
+				[APIResponse] [nvarchar](max) NULL,
+				[APIResponseOn] [datetime] NULL,
+				CONSTRAINT [PK_USPS.AddressRequest] PRIMARY KEY CLUSTERED 
+				(
+				[Id] ASC
+				)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+				) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+				GO
+		7) Added new system settings in Common.SystemSettings table
+			- INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_IsDbLoggingEnabled', N'Boolean', N'false', NULL, 0, N'false', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+			- INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_MilitaryCities', N'String', N'APO,DPO,FPO', NULL, 0, N'APO,DPO,FPO', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+			- INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_MilitaryStates', N'String', N'AA,AE,AP', NULL, 0, N'AA,AE,AP', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+			- INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_Territory', N'String', N'AS,FM,GU,MH,MP,PR,PW,VI', NULL, 0, N'AS,FM,GU,MH,MP,PR,PW,VI', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+			- INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_URL', N'String', N'http://production.shippingapis.com/ShippingAPI.dll', NULL, 0, N'http://production.shippingapis.com/ShippingAPI.dll', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+			- INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_UserId', N'String', N'819MILES3278', NULL, 0, N'819MILES3278', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+			- INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_VerifyAPIName', N'String', N'Verify', NULL, 0, N'Verify', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+			- INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_AddressCount', N'Int32', N'5', NULL, 0, N'5', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+			
+			- INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_MainlandStates', N'String', N'AK,AL,AR,AZ,CA,CO,CT,DC,DE,FL,GA,HI,IA,ID,IL,IN,KS,KY,LA,MA,MD,ME,MI,MN,MO,MS,MT,NC,ND,NE,NH,NJ,NM,NV,NY,OH,OK,OR,PA,RI,SC,SD,TN,TX,UT,VA,VT,WA,WI,WV,WY', NULL, 0, N'AK,AL,AR,AZ,CA,CO,CT,DC,DE,FL,GA,HI,IA,ID,IL,IN,KS,KY,LA,MA,MD,ME,MI,MN,MO,MS,MT,NC,ND,NE,NH,NJ,NM,NV,NY,OH,OK,OR,PA,RI,SC,SD,TN,TX,UT,VA,VT,WA,WI,WV,WY', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+		8) Replace Data in AM.MailPieces 
+			- UPDATE AM.MailPieces SET [RcptAddrOptionalLine1BelowStreet]=[RcptAddressAptOrSuiteOrOther]
+			- UPDATE AM.MailPieces SET [RcptAddressAptOrSuiteOrOther]=NULL
+		9) Updated CutOff timings of USAA doctypes
+			- UPDATE AM.DOCTYPES SET BizDayCutOff='17:00:00',BizdayTimeSpan='00:23:59:59',BIZDAYSLATYPE='FixedTime',SatCutOff='12:00:00',SatTimeSpan='00:23:59:59',SatSLATYPE='FixedTime' WHERE CLIENTID=101 AND ShippingServiceType='USPS_EXPRESSMAIL'
+			- UPDATE AM.DOCTYPES SET BizDayCutOff='20:00:00',BizdayTimeSpan='01:23:59:59',BIZDAYSLATYPE='FixedTime',SatCutOff='20:00:00',SatTimeSpan='01:23:59:59',SatSLATYPE='FixedTime' WHERE CLIENTID=101 AND (BIZDAYSLATYPE='Duration' OR SatSLATYPE='Duration')
+
+		
+=========================
+Application Changes
+=========================
+	- For AuthoMail
+		1) AM.Console - Exe,dlls
+		2) AM.Core - Exe,dlls
+		3) AM.Reporting - Exe,dlls, Create new task schedular for FedEx Report at 10PM EST
+	- For PnS Service
+		1) PnS.Service - Exe
+		2) PnS.Service.Config - Added new key <add key="DallasSweepTimings" value="18:00,19:00,20:00" />
+
+====================================================================================================================================================
+UAT Final Status : PnS Service Application changes and Database changes Deployment is completed at 08/22/2018 12.30PM
+PROD Final Status : AM Process Updated with FedEx Saturday delivery option enabled at 08/23/2018 01.00 PM
+====================================================================================================================================================

@@ -106,7 +106,7 @@
                                 <div class="reportLink">
                                     <a href="/Reports/ScanedDocuments?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">View Report</a>
                                     <a href="/Scan/Index?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">Start Scan</a>
-                                    <a href="/Scan/USPSScan?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">USPS Scan</a>
+                                    @*<a href="/Scan/USPSScan?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">USPS Scan</a>*@
                                 </div>
 
                             </div>
@@ -147,8 +147,6 @@
         <input type="hidden" name="ClientCodeList" id="ClientCodeList" value="@string.Join(" ,",clientCodeList)" />
 
         <div class="clearfix"></div>
-                <!-- // Sidebar menu & content wrapper END -->
-                <!-- // Main Container Fluid END -->
         }
     </div>
 </div>
@@ -182,12 +180,20 @@
             success: function (response) {
                 //console.log("#" + clientCode.trim() + "scanCount" + "test " + response.ScanCount + "/" + response.TotalCount);
                 //var totalcount = response.split('$');
+                if (typeof response.ScanCount === "undefined" || typeof response.TotalCount === "undefined") {
+                    $("#" + clientCode.trim() + "scanCount").empty();
+                    $("#" + clientCode.trim() + "scanCount").text("--/--");
+                    window.location.reload();
+                    return;
+                }
+
                 $("#" + clientCode.trim() + "scanCount").empty();
                 $("#" + clientCode.trim() + "scanCount").text(response.ScanCount + "/" + response.TotalCount);
 
             },
             error: function (response) {
-
+                $("#" + clientCode.trim() + "scanCount").empty();
+                $("#" + clientCode.trim() + "scanCount").text("--/--");
             }
         });
         /*  End Ajax  */

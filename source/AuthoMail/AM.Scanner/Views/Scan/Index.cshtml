@@ -152,7 +152,7 @@
             </div>
 
             <button type="button" id="nextBatch" class="btn btn-primary" tabindex="3" data-toggle="modal" data-target="#smallModal">Scan Next Batch</button>
-            <button type="reset" id="clearData" class="btn btn-warning" tabindex="4">Clear</button>
+            <button type="button" id="clearData"  class="btn btn-warning" tabindex="4">Clear</button>
             <div id="Messagedata" style="height: 35px; margin-top: 8px; margin-left: -1px;">
                 <div id="message" class="form-group">
                 </div>
@@ -227,7 +227,7 @@
                     <h3 id="genmodalTitle"></h3>
                 </div>
                 <div class="modal-body" style="text-align: center;">
-                    <button type="button" tabindex="11" class="btn btn-danger" data-dismiss="modal">Ok</button>
+                    <button type="button" id="generalmodalOk" tabindex="11" class="btn btn-danger" data-dismiss="modal">Ok</button>
                 </div>
             </div>
         </div>
@@ -266,7 +266,13 @@
             $("#okModal").click(function () {
                 $("#code1").blur();
             });
+            //$(document).keypress(function (e) {
+            //    if (e.which == 13) {
+            //        if (true) {
 
+            //        }
+            //    }
+            //});
 
             function GetScanCount(clientCode) {
                 $.ajax({
@@ -274,6 +280,12 @@
                     url: '/Home/GetScanCount',
                     data: { clientCode: clientCode },
                     success: function (response) {
+                        if (typeof response.ScanCount === "undefined" || typeof response.TotalCount === "undefined") {
+                            $("#todayscount").text("--/--");
+                            window.location.reload();
+                            return;
+                        }
+
                         if (response != null) {
                             $("#todayscount").text(response.ScanCount + "/" + response.TotalCount);
                             UpdateProgressCount(response.ScanCount, response.TotalCount);
@@ -418,7 +430,8 @@
                     GetScanCount(clientCode);
                 }, 12000);
                 /*  Updating Batch Count on every 12 Second using Ajax */
-
+                $("#code1").val("");
+                $("#code1").focus();
             });
             /*---- End of Scanned Batch Count Ajax ----*/
 
@@ -445,6 +458,7 @@
                     $("#modalTitle").text(modalInfo);
                     $("#modalTitle").addClass("alert alert-info");
                     $("#nextBatch").click();
+                    //$("#okModal").focus();
 
                 }
             }
@@ -462,16 +476,9 @@
                     $("#modalTitle").text(modalsuccess);
                     $("#modalTitle").addClass("alert alert-success");
                     $("#nextBatch").click();
+                    //$("#okModal").focus();
                     return;
                 }
-
-                if ($("#code1").val().trim().indexOf("AUT") == -1) {
-                    var changeCode1 = $("#code1").val().trim();
-                    //changeCode1 = changeCode1.slice(0, -4);
-                    //changeCode1 = changeCode1.slice(-12);
-                    $("#code1").val(clientCode + changeCode1);
-                }
-
                 if (batchtotalCount == "0/0") {
                     $('#pie_totalscancount').asPieProgress('reset');
                     $("#noBatch").click();
@@ -482,20 +489,7 @@
                 else {
                     var code1Value = $("#code1").val();
                     if (code1Value != "") {
-
-                        if (code1Value.startsWith(clientCode)) {
-                            //debugger;
-                            //$('#code1').val($('#code2').val().split("").reverse().join(""));
                             $("#code2").focus();
-                        }
-                        else {
-                            $("#message").empty();
-                            $("#message").show();
-                            $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>" + code1Value + " " + notStartWithClientCode + "</div>");
-                            $("#code1").val("");
-                            $("#code1").focus();
-
-                        }
                     } else {
                         $("#message").empty();
                         $("#message").show();
@@ -511,11 +505,21 @@
 
             /*---- Code2 validate Barcode  ----*/
             $("#code2").blur(function () {
+                if ($("#code1").val().trim()=="" ) {
+                    $("#message").empty();
+                    $("#message").show();
+                    $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>Please scan the front barcode first.</div>");
+                    $("#code1").val("");
+                    $("#code2").val("");
+                    $("#code1").focus();
+                    return;
+
+                }
                 if ($("#clearData").data("mouseDown") != true) {
                     startNewBatch();// calling startNewBatch() Method
                     var batchtotalCount = $("#todayscount").text();
                     if (environment.toUpperCase() == "UAT") {
-                        //console.log(environment);
+                       //console.log(environment);
                         $('#code1').val($('#code2').val().split("").reverse().join(""));
                     }
 
@@ -536,9 +540,9 @@
                         var code1Value = $("#code1").val().trim().toUpperCase();
                         var code2Value = $("#code2").val().split('').reverse().join('').trim().toUpperCase();
                         if (code2Value != "") {
-                            var withoutClientCode = code2Value.replace(clientCode, '');
-
-                            if (code1Value.indexOf(code2Value,clientCode.length)!=-1) {
+                           // var withoutClientCode = code2Value.replace(clientCode, '');
+                           // console.log(code1Value.indexOf(code2Value));
+                            if (code1Value.indexOf(code2Value) != -1) {
                                 var totalScanValues = $("#todayscount").text().split('/');
                                 var totalScanned = totalScanValues[0];
                                 var totalfiles = totalScanValues[1];
@@ -574,6 +578,7 @@
                                                 $("#genmodalTitle").text("QC is requested for this mailpiece, please perform quality check before mailing.");
                                                 $("#genmodalTitle").addClass("alert alert-info");
                                                 $("#generalmodal").modal("show");
+                                                //$("#generalmodalOk").focus();
                                             }
                                             if (code == "Pulledback") {
                                                 $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + object.model.BatchName + "<br>  Code: " + code + "'  class='lblAMC lbl-danger' for='success'>" + trackingNo + "</lable>");
@@ -581,6 +586,7 @@
                                                 $("#genmodalTitle").text("Pullback is requested for this mailpiece, please DO NOT mail.");
                                                 $("#genmodalTitle").addClass("alert alert-danger");
                                                 $("#generalmodal").modal("show");
+                                                //$("#generalmodalOk").focus();
                                             }
                                             if (code == "Valid") {
                                                 $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + object.model.BatchName + "<br>  Code: " + code + "'  class='lblAMC lbl-success' for='success'>" + trackingNo + "</lable>");
@@ -598,12 +604,14 @@
                                                 $("#modalTitle").text(modalsuccess);
                                                 $("#modalTitle").addClass("alert alert-success");
                                                 $("#nextBatch").click();
+                                                //$("#okModal").focus();
                                             }
                                             else if (totalfiles == object.model.ScanCount) {
                                                 $("#modalTitle").removeClass("alert alert-danger");
                                                 $("#modalTitle").text(modalsuccess);
                                                 $("#modalTitle").addClass("alert alert-success");
                                                 $("#nextBatch").click();
+                                                //$("#okModal").focus();
 
                                             }
                                             else {
@@ -719,55 +727,13 @@
             $("#clearData").on("mouseup", function (e) {
                 $("#clearData").data("mouseDown", false);
             });
-            ///*---- on Load Get Active Batch Count ----*/
-            //$(document).ready(function () {
 
+            $("#clearData").click(function () {
+                $("#code1").val("");
+                $("#code2").val("");
+                $("#code1").focus();
+            });
 
-            //    /*  Updating Batch Count on every 12 Second using Ajax */
-            //    //window.setInterval(function () {
-
-            //    //    $.ajax({
-            //    //        type: "POST",
-            //    //        url: '<%= ResolveUrl("JsonResult.aspx") %>',
-            //    //        data: { clientCode: clientCode },
-            //    //        success: function (response) {
-            //    //            // alert(response);
-            //    //            var totalcount = response.split('$');
-            //    //            $("#todayscount").text(totalcount[0]);
-            //    //            var totalScanValues = $("#todayscount").text().split('/');
-            //    //            // var totalfiles = totalScanValues[1];
-            //    //            $("#todayscount").text(totalScanValues[0] + "/" + totalScanValues[1]);
-            //    //            if ($("#todayscount").text() == "0/0") {
-            //    //                $('#pie_totalscancount').asPieProgress('reset');
-            //    //            }
-            //    //            // alert(totalScanValues[0] + "12 second");
-            //    //            //$('#pie_totalscancount').attr("aria-valuenow", totalcount[0]);
-            //    //            //$('#pie_totalscancount').asPieProgress('start');
-            //    //            //$('#pie_totalscancount').asPieProgress('go', parseInt(totalScanValues[0]));
-            //    //            //$('#pie_totalscancount').asPieProgress('stop');
-            //    //            var piePreInt = parseInt((parseInt(totalScanValues[0]) / parseInt(totalScanValues[1])) * 100);
-            //    //            // var perPie = "'" + piePreInt + "%'";
-
-            //    //            UpdateProgressCount(piePreInt);
-            //    //            //check//$('#pie_totalscancount').asPieProgress('go', String(piePreInt + "%"));
-            //    //            //alert("'" + piePreInt + "%'");
-            //    //            //$('#pie_totalscancount').asPieProgress('go', '"' + perPie + '"%');
-
-            //    //        },
-            //    //        error: function (response) {
-            //    //            $("#message").empty();
-            //    //            $("#message").show();
-            //    //            $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>" + databaseError + "</div>");
-            //    //            $("#code1").val("");
-            //    //            $("#code2").val("");
-            //    //            $("#code1").focus();
-            //    //        }
-            //    //    });
-            //    //}, 12000);
-            //    /*  Updating Batch Count on every 12 Second using Ajax */
-
-            //});
-            ///* End Active Batch Count */
 
         </script>
     }

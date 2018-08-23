@@ -10,6 +10,24 @@ using AM.Lib;
 
 namespace AM.Services
 {
+    public class VerifierAddressRequest
+    {
+        public string UserId { get; set; }
+        public List<AddressRequest> AddressRequests { get; set; }
+    }
+
+    public class VerifierAddressResponse
+    {
+        public List<AddressResponse> AddressResponses { get; private set; }
+        public string Error { get; set; }
+        public bool HasError { get { return !this.Error.IsNullOrWhiteSpace(); } }
+
+        public VerifierAddressResponse(List<AddressResponse> responseList)
+        {
+            this.AddressResponses = responseList;
+        }
+    }
+
     public class AddressRequest
     {
         public string Id { get; set; }
@@ -75,11 +93,13 @@ namespace AM.Services
 
         public string Zip4 { get; set; }
 
+        public string Zip { get { return string.Join("-", new string[] { Zip5, Zip4 }.Where(s => !s.IsNullOrWhiteSpace())); } }
+
         public string DeliveryPoint { get; set; }
 
         public string CarrierRoute { get; set; }
 
-        public string ReturnText { get; set; }
+        public string Warning { get; set; }
 
         public Error Error { get; set; }
 
@@ -102,7 +122,7 @@ namespace AM.Services
                          String.IsNullOrWhiteSpace(this.Error.Description));
             }
         }
-        
+
         [XmlIgnore]
         public AddressRequest AddressRequest { get; private set; }
 

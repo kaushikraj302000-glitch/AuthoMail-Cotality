@@ -121,7 +121,7 @@ namespace AM.Core
                     return "";
                 }
                 //For now barcode scanning will work on MailPiece id on both side
-                TrackingCode = mailPieceData["MailPieceId"];
+                //TrackingCode = mailPieceData["MailPieceId"];
             }
             catch (Exception ex)
             {

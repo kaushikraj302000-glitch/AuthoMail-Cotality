@@ -21,6 +21,10 @@ namespace AM.Services
         KeyValuePair<bool, string> UpdateUsersRequestSignUp(string Id, string status, string closedBy);
         //DocTypes
         List<DocTypes> GetDocTypes();
+        List<DocTypeVM> GetDocTypesByClientId(int ClientId);
+        List<DocTypeCoverLetterVM> GetDocTypeCoverLetterByDocTypeId(int Id);
+        KeyValuePair<bool, string> SaveDocTypeCoverLetter(DocTypeCoverLetter dtcl);
+        KeyValuePair<bool, string> RemoveCoverletter(int docTypeId, int seqId, string filePath);
         //Clients
         List<Clients> GetClients();
         Clients FindByClientId(int Id);
@@ -278,7 +282,6 @@ namespace AM.Services
         }
 
 
-
         public KeyValuePair<bool, string> CreateOrEditDocType(DocTypes docTypes, string userId)
         {
             //Validation
@@ -304,44 +307,19 @@ namespace AM.Services
 
             if (docTypes.Id == 0)
             {
-                string query = "INSERT INTO [AM].[DocTypes] ([DocTypeCode],[Description],[ClientId],[PrintSize],[ContentScalePercent],[PrintFormat],[QCPercent],[ShippingCarrier],[ShippingServiceType],[ShippingAccountCode],[IsReturnInfoSpecified],[RetRcptPrefix],[RetRcptFirstName],[RetRcptMiddleName],[RetRcptLastName],[RetRcptSuffix],[RetRcptPhone],[RetRcptOrganization],[RetRcptAddrOptionalLine1AboveStreet],[RetRcptAddrOptionalLine2AboveStreet],[RetRcptAddressStreet],[RetRcptAddressAptOrSuiteOrOther],[RetRcptAddrOptionalLine1BelowStreet],[RetRcptAddrOptionalLine2BelowStreet],[RetRcptAddressCity],[RetRcptAddressState],[RetRcptAddressZIP],[ClientEmails],[ClientContactNo],[SupportEmails],[SupportContactNo],[IsActive],[ModifiedOn],[CreatedOn],[CreatedBy],[ModifiedBy],[BizdayCutOff],[BizdaySLAType],[BizdayTimeSpan],[SatCutOff],[SatSLAType],[SatTimeSpan],[SunCutOff],[SunSLAType],[SunTimeSpan]) VALUES (@docTypeCode,@description,@clientId,@printSize,@contentScalePercent,@printFormat,@qCPercent,@shippingCarrier,@shippingServiceType,@shippingAccountCode,@isReturnInfoSpecified,@retRcptPrefix,@retRcptFirstName,@retRcptMiddleName,@retRcptLastName,@retRcptSuffix,@retRcptPhone,@retRcptOrganization,@retRcptAddrOptionalLine1AboveStreet,@retRcptAddrOptionalLine2AboveStreet,@retRcptAddressStreet,@retRcptAddressAptOrSuiteOrOther,@retRcptAddrOptionalLine1BelowStreet,@retRcptAddrOptionalLine2BelowStreet,@retRcptAddressCity,@retRcptAddressState,@retRcptAddressZIP,@clientEmails,@clientContactNo,@supportEmails,@supportContactNo,@isActive,@modifiedOn,@createdOn,@createdBy,@modifiedBy,@bizdayCutOff,@bizdaySLAType,@bizdayTimeSpan,@satCutOff,@satSLAType,@satTimeSpan,@sunCutOff,@sunSLAType,@sunTimeSpan)";
+                string query = "INSERT INTO [AM].[DocTypes] ([DocTypeCode],[Description],[ClientId],[PrintSize],[ContentScalePercent],[PrintFormat],[QCPercent],[ShippingCarrier],[ShippingServiceType],[ShippingAccountCode],[IsReturnInfoSpecified],[RetRcptPrefix],[RetRcptFirstName],[RetRcptMiddleName],[RetRcptLastName],[RetRcptSuffix],[RetRcptPhone],[RetRcptOrganization],[RetRcptAddrOptionalLine1AboveStreet],[RetRcptAddrOptionalLine2AboveStreet],[RetRcptAddressStreet],[RetRcptAddressAptOrSuiteOrOther],[RetRcptAddrOptionalLine1BelowStreet],[RetRcptAddrOptionalLine2BelowStreet],[RetRcptAddressCity],[RetRcptAddressState],[RetRcptAddressZIP],[ClientEmails],[ClientContactNo],[SupportEmails],[SupportContactNo],[IsActive],[ModifiedOn],[CreatedOn],[CreatedBy],[ModifiedBy],[BizdayCutOff],[BizdaySLAType],[BizdayTimeSpan],[SatCutOff],[SatSLAType],[SatTimeSpan],[SunCutOff],[SunSLAType],[SunTimeSpan],[ShippingSpecialService]) VALUES (@docTypeCode,@description,@clientId,@printSize,@contentScalePercent,@printFormat,@qCPercent,@shippingCarrier,@shippingServiceType,@shippingAccountCode,@isReturnInfoSpecified,@retRcptPrefix,@retRcptFirstName,@retRcptMiddleName,@retRcptLastName,@retRcptSuffix,@retRcptPhone,@retRcptOrganization,@retRcptAddrOptionalLine1AboveStreet,@retRcptAddrOptionalLine2AboveStreet,@retRcptAddressStreet,@retRcptAddressAptOrSuiteOrOther,@retRcptAddrOptionalLine1BelowStreet,@retRcptAddrOptionalLine2BelowStreet,@retRcptAddressCity,@retRcptAddressState,@retRcptAddressZIP,@clientEmails,@clientContactNo,@supportEmails,@supportContactNo,@isActive,@modifiedOn,@createdOn,@createdBy,@modifiedBy,@bizdayCutOff,@bizdaySLAType,@bizdayTimeSpan,@satCutOff,@satSLAType,@satTimeSpan,@sunCutOff,@sunSLAType,@sunTimeSpan,@shippingSpecialService)";
                 docTypes.CreatedOn = DateTime.UtcNow;
                 docTypes.CreatedBy = userId;
                 docTypes.ModifiedOn = DateTime.UtcNow;
                 docTypes.IsActive = false;
                 docTypes.ModifiedBy = userId;
 
-                //if (docTypes.ShippingServiceType.Equals(ShippingServiceType.USPS.ToString(), StringComparison.CurrentCultureIgnoreCase))
-                //{
-                //    db.Open();
-                //    using (var t = db.BeginTransaction())
-                //    {
-                //        try
-                //        {
-                //            int dId = db.ExecuteScalar<int>(query, docTypes, transaction: t);
-                //            string q = "INSERT INTO [AM].[DocTypeCoverLetters] ([DocTypeId],[SeqId],[CoverLetterTemplatePath]) VALUES (@docTypeId,@seqId,@coverLetterTemplatePath)";
-                //            db.Execute(q, new { docTypeId = dId, seqId = 1, coverLetterTemplatePath = "" }, transaction: t);
-                //            t.Commit();
-                //            GetKeyValue(true, "DocType saved successfully.");
-                //        }
-                //        catch (Exception ex)
-                //        {
-                //            t.Rollback();
-                //            return GetKeyValue(false, ex.Message);
-                //        }
-                //    }
-                //}
-                //else
-                //{
-
-                //}
-
                 int rows = db.Execute(query, docTypes);
                 return rows > 0 ? GetKeyValue(true, "DocType saved successfully.") : GetKeyValue(false, "Invalid action performed.");
             }
             else
             {
-                string query = "UPDATE [AM].[DocTypes] SET [DocTypeCode]=@docTypeCode ,[Description]=@description ,[ClientId]=@clientId ,[PrintSize]=@printSize ,[ContentScalePercent]=@contentScalePercent ,[PrintFormat]=@printFormat ,[QCPercent]=@qCPercent ,[ShippingCarrier]=@shippingCarrier ,[ShippingServiceType]=@shippingServiceType ,[ShippingAccountCode]=@shippingAccountCode ,[IsReturnInfoSpecified]=@isReturnInfoSpecified ,[RetRcptPrefix]=@retRcptPrefix ,[RetRcptFirstName]=@retRcptFirstName ,[RetRcptMiddleName]=@retRcptMiddleName ,[RetRcptLastName]=@retRcptLastName ,[RetRcptSuffix]=@retRcptSuffix ,[RetRcptPhone]=@retRcptPhone ,[RetRcptOrganization]=@retRcptOrganization ,[RetRcptAddrOptionalLine1AboveStreet]=@retRcptAddrOptionalLine1AboveStreet ,[RetRcptAddrOptionalLine2AboveStreet]=@retRcptAddrOptionalLine2AboveStreet ,[RetRcptAddressStreet]=@retRcptAddressStreet ,[RetRcptAddressAptOrSuiteOrOther]=@retRcptAddressAptOrSuiteOrOther ,[RetRcptAddrOptionalLine1BelowStreet]=@retRcptAddrOptionalLine1BelowStreet ,[RetRcptAddrOptionalLine2BelowStreet]=@retRcptAddrOptionalLine2BelowStreet ,[RetRcptAddressCity]=@retRcptAddressCity ,[RetRcptAddressState]=@retRcptAddressState ,[RetRcptAddressZIP]=@retRcptAddressZIP ,[ClientEmails]=@clientEmails ,[ClientContactNo]=@clientContactNo ,[SupportEmails]=@supportEmails ,[SupportContactNo]=@supportContactNo ,[ModifiedOn]=@modifiedOn,[ModifiedBy]=@modifiedBy,[BizdayCutOff]=@bizdayCutOff,[BizdaySLAType]=@bizdaySLAType,[BizdayTimeSpan]=@bizdayTimeSpan,[SatCutOff]=@satCutOff,[SatSLAType]=@satSLAType,[SatTimeSpan]=@satTimeSpan,[SunCutOff]=@sunCutOff, [SunSLAType]=@sunSLAType,[SunTimeSpan]=@sunTimeSpan WHERE Id=@id";
+                string query = "UPDATE [AM].[DocTypes] SET [DocTypeCode]=@docTypeCode ,[Description]=@description ,[ClientId]=@clientId ,[PrintSize]=@printSize ,[ContentScalePercent]=@contentScalePercent ,[PrintFormat]=@printFormat ,[QCPercent]=@qCPercent ,[ShippingCarrier]=@shippingCarrier ,[ShippingServiceType]=@shippingServiceType ,[ShippingAccountCode]=@shippingAccountCode ,[IsReturnInfoSpecified]=@isReturnInfoSpecified ,[RetRcptPrefix]=@retRcptPrefix ,[RetRcptFirstName]=@retRcptFirstName ,[RetRcptMiddleName]=@retRcptMiddleName ,[RetRcptLastName]=@retRcptLastName ,[RetRcptSuffix]=@retRcptSuffix ,[RetRcptPhone]=@retRcptPhone ,[RetRcptOrganization]=@retRcptOrganization ,[RetRcptAddrOptionalLine1AboveStreet]=@retRcptAddrOptionalLine1AboveStreet ,[RetRcptAddrOptionalLine2AboveStreet]=@retRcptAddrOptionalLine2AboveStreet ,[RetRcptAddressStreet]=@retRcptAddressStreet ,[RetRcptAddressAptOrSuiteOrOther]=@retRcptAddressAptOrSuiteOrOther ,[RetRcptAddrOptionalLine1BelowStreet]=@retRcptAddrOptionalLine1BelowStreet ,[RetRcptAddrOptionalLine2BelowStreet]=@retRcptAddrOptionalLine2BelowStreet ,[RetRcptAddressCity]=@retRcptAddressCity ,[RetRcptAddressState]=@retRcptAddressState ,[RetRcptAddressZIP]=@retRcptAddressZIP ,[ClientEmails]=@clientEmails ,[ClientContactNo]=@clientContactNo ,[SupportEmails]=@supportEmails ,[SupportContactNo]=@supportContactNo ,[ModifiedOn]=@modifiedOn,[ModifiedBy]=@modifiedBy,[BizdayCutOff]=@bizdayCutOff,[BizdaySLAType]=@bizdaySLAType,[BizdayTimeSpan]=@bizdayTimeSpan,[SatCutOff]=@satCutOff,[SatSLAType]=@satSLAType,[SatTimeSpan]=@satTimeSpan,[SunCutOff]=@sunCutOff, [SunSLAType]=@sunSLAType,[SunTimeSpan]=@sunTimeSpan,[ShippingSpecialService]=@shippingSpecialService WHERE Id=@id";
                 docTypes.ModifiedOn = DateTime.UtcNow;
                 docTypes.ModifiedBy = userId;
                 int rows = db.Execute(query, docTypes);
@@ -550,5 +528,48 @@ namespace AM.Services
             }
             return model;
         }
+
+
+        public List<DocTypeVM> GetDocTypesByClientId(int ClientId)
+        {
+            string q = "select d.Id,d.ClientId,d.DocTypeCode,c.Name as ClientName from AM.DocTypes d,Common.Clients c where d.ClientId=c.Id and ClientId=@clientId";
+            return db.Query<DocTypeVM>(q, new { clientId = ClientId }).ToList();
+        }
+        public List<DocTypeCoverLetterVM> GetDocTypeCoverLetterByDocTypeId(int Id)
+        {
+            string q = "select * from AM.DocTypeCoverLetters where DocTypeId=@id";
+            return db.Query<DocTypeCoverLetterVM>(q, new { id = Id }).ToList();
+        }
+        public KeyValuePair<bool, string> SaveDocTypeCoverLetter(DocTypeCoverLetter dtcl)
+        {
+            try
+            {
+                if (dtcl.CoverLetterTemplatePath.IsNullOrWhiteSpace())
+                    return GetKeyValue(false, "Cover Letter Template Path can't be empty.");
+                var isExists = db.QueryFirstOrDefault<string>("select CoverLetterTemplatePath from AM.DocTypeCoverLetters where CoverLetterTemplatePath=@filePath", new { filePath = dtcl.CoverLetterTemplatePath });
+                if (isExists != null)
+                    return GetKeyValue(false, "Cover Letter Template Path already exists.");
+                int rows = db.Execute("insert into AM.DocTypeCoverLetters (DocTypeId,SeqId,CoverLetterTemplatePath) values (@docTypeId,@seqId,@coverLetterTemplatePath)", dtcl);
+                if (rows == 1)
+                    return GetKeyValue(true, "Saved Successfully.");
+                else
+                    return GetKeyValue(false, "Data can't be inserted.");
+            }
+            catch (Exception ex)
+            {
+                return GetKeyValue(false, ex.Message);
+            }
+        }
+        public KeyValuePair<bool, string> RemoveCoverletter(int docTypeId, int seqId, string filePath)
+        {
+            if (filePath.IsNullOrWhiteSpace())
+                return GetKeyValue(false, "Cover Letter Template Path can't be empty.");
+            int rows = db.Execute("delete from AM.DocTypeCoverLetters where DocTypeId = @docTypeId and SeqId=@seqId and CoverLetterTemplatePath = @coverLetterTemplatePath", new { docTypeId = docTypeId, seqId = seqId, coverLetterTemplatePath = filePath });
+            if (rows == 1)
+                return GetKeyValue(true, "Removed Successfully.");
+            else
+                return GetKeyValue(false, "Data can't be removed.");
+        }
+
     }
 }

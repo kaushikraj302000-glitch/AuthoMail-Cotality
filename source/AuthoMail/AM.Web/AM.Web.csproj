@@ -479,6 +479,8 @@
     <Content Include="Views\Admin\AssignUserManagerDetails.cshtml" />
     <Content Include="Views\Track\Index.cshtml" />
     <Content Include="Views\Shared\_LayoutTracking.cshtml" />
+    <Content Include="Views\Admin\_AddCoverLetter.cshtml" />
+    <Content Include="Views\Admin\_GetCoverLetterFiles.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

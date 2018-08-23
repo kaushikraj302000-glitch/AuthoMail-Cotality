@@ -64,7 +64,7 @@
                 <th>Sun Cut Off</th>
                 <th>Sun Timespan</th>
                 @*<th>SLA Days</th>
-                <th>SLA Cut Off Time</th>*@
+                    <th>SLA Cut Off Time</th>*@
                 <th>Shipping Carrier</th>
                 <th>Shipping ServiceType</th>
                 <th>Shipping Account Code</th>
@@ -91,6 +91,7 @@
                 <th>Support Contact No.</th>
                 <th>Modified On</th>
                 <th>Created On</th>
+                <th>Shipping Special Service</th>
             </tr>
         </thead>
         <tbody id="DocTypebodyContent"></tbody>
@@ -100,7 +101,7 @@
     <table>
         <tbody id="DocTypeBody">
             <tr class="row-small">
-                <td>{Action}</td>
+                <td>{CoverLetter}{Action}</td>
                 <td><span data-id="{Id}">{DocTypeCode}</span></td>
                 <td><span>{Description}</span></td>
                 <td><span>{Client.Name}</span></td>
@@ -119,7 +120,7 @@
                 <td><span>{SunCutOff}</span></td>
                 <td><span>{SunTimeSpan}</span></td>
                 @*<td><span>{SLADays}</span></td>
-                <td><span>{SLACutOffTime}</span></td>*@
+                    <td><span>{SLACutOffTime}</span></td>*@
                 <td><span>{ShippingCarrier}</span></td>
                 <td><span>{ShippingServiceType}</span></td>
                 <td><span>{ShippingAccountCode}</span></td>
@@ -146,6 +147,7 @@
                 <td><span>{SupportContactNo}</span></td>
                 <td><span>{ModifiedOn}</span></td>
                 <td><span>{CreatedOn}</span></td>
+                <td><span>{ShippingSpecialService}</span></td>
             </tr>
         </tbody>
     </table>
@@ -163,6 +165,33 @@
     </div>
 </div>
 
+<div class="modal fade" id="RemoveCoverLetterModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <div class="modal-header" style="margin-top:2%;margin-bottom:2%;">
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <div class="modal-header" style="margin-top:2%;margin-bottom:2%;">
+                <h2 id="myModalLabel">Are you sure you want to delete this file?</h2>
+                <input type="hidden" id="docTypeId" />
+                <input type="hidden" id="seqId" />
+                <input type="hidden" id="fileName" />
+                <hr />
+                <button type="button" class="btn btn-default" id="yesRemove"><i class="fa fa-check"></i> Yes</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal"><i class="fa fa-close"></i> No</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
     <div class="modal-dialog" role="document">
@@ -197,7 +226,7 @@
                 return str.length > 31 ? str.substring(0, 31) + '...' : str;
         }
 
-        function DocTypes(Id, DocTypeCode, Description, ClientId, PrintSize, ContentScalePercent, PrintFormat, QCPercent, BizdaySLAType, BizdayCutOff, BizdayTimeSpan, SatSLAType, SatCutOff, SatTimeSpan, SunSLAType, SunCutOff, SunTimeSpan, ShippingCarrier, ShippingServiceType, ShippingAccountCode, IsReturnInfoSpecified, RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RetRcptSuffix, RetRcptPhone, RetRcptOrganization, RetRcptAddrOptionalLine1AboveStreet, RetRcptAddrOptionalLine2AboveStreet, RetRcptAddressStreet, RetRcptAddressAptOrSuiteOrOther, RetRcptAddrOptionalLine1BelowStreet, RetRcptAddrOptionalLine2BelowStreet, RetRcptAddressCity, RetRcptAddressState, RetRcptAddressZIP, ClientEmails, ClientContactNo, SupportEmails, SupportContactNo) {
+        function DocTypes(Id, DocTypeCode, Description, ClientId, PrintSize, ContentScalePercent, PrintFormat, QCPercent, BizdaySLAType, BizdayCutOff, BizdayTimeSpan, SatSLAType, SatCutOff, SatTimeSpan, SunSLAType, SunCutOff, SunTimeSpan, ShippingCarrier, ShippingServiceType, ShippingAccountCode, IsReturnInfoSpecified, RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RetRcptSuffix, RetRcptPhone, RetRcptOrganization, RetRcptAddrOptionalLine1AboveStreet, RetRcptAddrOptionalLine2AboveStreet, RetRcptAddressStreet, RetRcptAddressAptOrSuiteOrOther, RetRcptAddrOptionalLine1BelowStreet, RetRcptAddrOptionalLine2BelowStreet, RetRcptAddressCity, RetRcptAddressState, RetRcptAddressZIP, ClientEmails, ClientContactNo, SupportEmails, SupportContactNo, ShippingSpecialService) {
             this.Id = Id;
             this.DocTypeCode = DocTypeCode;
             this.Description = Description;
@@ -241,6 +270,7 @@
             this.ClientContactNo = ClientContactNo;
             this.SupportEmails = SupportEmails;
             this.SupportContactNo = SupportContactNo;
+            this.ShippingSpecialService = ShippingSpecialService;
         }
         //function ShowHideReturnInfo(obj) {
         //    if ($(obj).hasClass("collapsed"))
@@ -421,7 +451,7 @@
                 }
                 if ($("#doctypeform").valid()) {
 
-                    var objDocType = new DocTypes($("#Id").val(), $("#DocTypeCode").val(), $("#Description").val(), parseInt($("#ClientId").val()), $("#PrintSize").val(), $("#ContentScalePercent").val(), $("#PrintFormat").val(), $("#QCPercent").val(), $("#BizdaySLAType").val(), $("#BizdayCutOff").val(), $("#BizdayTimeSpan").val(), $("#SatSLAType").val(), $("#SatCutOff").val(), $("#SatTimeSpan").val(), $("#SunSLAType").val(), $("#SunCutOff").val(), $("#SunTimeSpan").val(), $("#ShippingCarrier").val(), $("#ShippingServiceType").val(), $("#ShippingAccountCode").val(), $("#IsReturnInfoSpecified").val(), $("#RetRcptPrefix").val(), $("#RetRcptFirstName").val(), $("#RetRcptMiddleName").val(), $("#RetRcptLastName").val(), $("#RetRcptSuffix").val(), $("#RetRcptPhone").val(), $("#RetRcptOrganization").val(), $("#RetRcptAddrOptionalLine1AboveStreet").val(), $("#RetRcptAddrOptionalLine2AboveStreet").val(), $("#RetRcptAddressStreet").val(), $("#RetRcptAddressAptOrSuiteOrOther").val(), $("#RetRcptAddrOptionalLine1BelowStreet").val(), $("#RetRcptAddrOptionalLine2BelowStreet").val(), $("#RetRcptAddressCity").val(), $("#RetRcptAddressState").val(), $("#RetRcptAddressZIP").val(), $("#ClientEmails").val(), $("#ClientContactNo").val(), $("#SupportEmails").val(), $("#SupportContactNo").val());
+                    var objDocType = new DocTypes($("#Id").val(), $("#DocTypeCode").val(), $("#Description").val(), parseInt($("#ClientId").val()), $("#PrintSize").val(), $("#ContentScalePercent").val(), $("#PrintFormat").val(), $("#QCPercent").val(), $("#BizdaySLAType").val(), $("#BizdayCutOff").val(), $("#BizdayTimeSpan").val(), $("#SatSLAType").val(), $("#SatCutOff").val(), $("#SatTimeSpan").val(), $("#SunSLAType").val(), $("#SunCutOff").val(), $("#SunTimeSpan").val(), $("#ShippingCarrier").val(), $("#ShippingServiceType").val(), $("#ShippingAccountCode").val(), $("#IsReturnInfoSpecified").val(), $("#RetRcptPrefix").val(), $("#RetRcptFirstName").val(), $("#RetRcptMiddleName").val(), $("#RetRcptLastName").val(), $("#RetRcptSuffix").val(), $("#RetRcptPhone").val(), $("#RetRcptOrganization").val(), $("#RetRcptAddrOptionalLine1AboveStreet").val(), $("#RetRcptAddrOptionalLine2AboveStreet").val(), $("#RetRcptAddressStreet").val(), $("#RetRcptAddressAptOrSuiteOrOther").val(), $("#RetRcptAddrOptionalLine1BelowStreet").val(), $("#RetRcptAddrOptionalLine2BelowStreet").val(), $("#RetRcptAddressCity").val(), $("#RetRcptAddressState").val(), $("#RetRcptAddressZIP").val(), $("#ClientEmails").val(), $("#ClientContactNo").val(), $("#SupportEmails").val(), $("#SupportContactNo").val(), $("#ShippingSpecialService").val().toString());
 
                     $("#AddEditModal").modal("hide");
                     var el = $("#myModal").find(".modal-body");
@@ -505,6 +535,82 @@
             });
         }
 
+        function RemoveCoverLetter(docTypeId, seqId, fileName)
+        {
+            //$("#RemoveCoverLetterModal").modal("hide");
+            $("#confirmModal").modal("show");
+            $("#confirmModal").find("#docTypeId").val(docTypeId);
+            $("#confirmModal").find("#seqId").val(seqId);
+            $("#confirmModal").find("#fileName").val(fileName);
+        }
+        $("#yesRemove").click(function () {
+            $("#RemoveCoverLetterModal").modal("hide");
+            $("#confirmModal").modal("hide");
+           var docTypeId= $("#confirmModal").find("#docTypeId").val();
+           var seqId= $("#confirmModal").find("#seqId").val();
+           var fileName = $("#confirmModal").find("#fileName").val();
+           var el = $("#myModal").find(".modal-body");
+           //console.log(docTypeId + " " + fileName + " " + seqId);
+           el.empty();
+           $.ajax({
+               type: "POST",
+               url: baseUrl + "Admin/RemoveCoverLetter",
+               dataType: 'json',
+               data: JSON.stringify({ docTypeId: docTypeId, seqId: seqId, fileName: fileName}),
+               contentType: "application/json; charset=utf-8",
+               success: function (response) {
+                   if (response.Success) {
+                       if (response.Object != null) {
+                           if (response.Object.Key) {
+                               el.html("<div class='alert alert-green'>" + response.Object.Value + "</div>");
+                           }
+                           else {
+                               el.html("<div class='alert alert-red'>" + response.Object.Value + "</div>");
+                           }
+                       }
+
+                   }
+                   else {
+                       el.html("<div class='alert alert-red'>" + response.ErrorMessage + "</div>");
+
+                   }
+                   $("#myModal").modal("show");
+               },
+               error: function (xhr, ajaxOptions, thrownError) {
+                   el.show();
+                   $("#loading").hide();
+                   var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
+                   el.html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
+                   $("#myModal").modal("show");
+               }
+
+           });
+        });
+        function GetCoverLetterFiles(obj) {
+            var Id = $(obj).data("id");
+            var docTypeCode = $(obj).data("doctypecode");
+            var el = $("#RemoveCoverLetterModal").find(".modal-header");
+            el.empty();
+            $.ajax({
+                type: "GET",
+                url: baseUrl + "Admin/_GetCoverLetterFiles",
+                data: { Id: Id },
+                success: function (response) {
+                    el.html(response);
+                    $("#docTypeCodeModal").text(docTypeCode);
+                    $("#RemoveCoverLetterModal").modal("show");
+
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+
+                    //Spinners(".spinnericon", "faspinner");
+                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
+                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    $("#RemoveCoverLetterModal").modal("show");
+                }
+            });
+
+        }
         function AddEditDocType(obj) {
             var Id = $(obj).data("id");
             var el = $("#AddEditModal").find(".modal-header");
@@ -538,6 +644,8 @@
                 this.CreatedOn = moment(this.CreatedOn).format("MM/DD/YY HH:mm:ss");
                 this.ModifiedOn = moment(this.ModifiedOn).format("MM/DD/YY HH:mm:ss");
                 this.Action = '<span style="cursor: pointer;font-size:1.2em;" onclick="AddEditDocType(this)" data-id="' + this.Id + '" ><i class="padding-left-15 fa fa-edit text-blue" aria-hidden="true" title="Edit"><span class="sr-only">Edit</span></i></span>';
+
+                this.CoverLetter = '<span style="cursor: pointer;font-size:1.2em;" onclick="GetCoverLetterFiles(this)" data-id="' + this.Id + '" data-doctypecode="' + this.DocTypeCode + '" ><i class=" fa fa-file-pdf-o text-red" aria-hidden="true" title="Remove Cover Letter"><span class="sr-only">Cover Letter</span></i></span>';
 
             });
             return Model;

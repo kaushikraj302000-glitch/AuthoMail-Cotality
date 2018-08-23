@@ -24,7 +24,7 @@ namespace AM.Scanner
             {
                 AuthenticationType = DefaultAuthenticationTypes.ApplicationCookie,
                 LoginPath = new PathString("/Account/Login"),
-                
+                ExpireTimeSpan=TimeSpan.FromMinutes(50)
             });            
             app.UseExternalSignInCookie(DefaultAuthenticationTypes.ExternalCookie);
 

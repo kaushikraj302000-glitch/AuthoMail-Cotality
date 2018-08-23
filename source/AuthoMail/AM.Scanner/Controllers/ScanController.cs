@@ -116,5 +116,12 @@ namespace AM.Scanner.Controllers
         public ActionResult USPSScan(string clientCode){
             return View();
         }
+
+        [HttpPost]
+        public ActionResult RegisterUSPSScan(int mailPieceId, string trackingNo, string clientCode)
+        {
+            USPSScanDetails scanDetails = DBHelper.RegisterUSPSScan(mailPieceId, trackingNo, clientCode);
+            return Json(new { model = scanDetails }, JsonRequestBehavior.AllowGet);
+        }
     }
 }

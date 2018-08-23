@@ -24,6 +24,7 @@ namespace AM.Services
         List<Deliverable> GetDeliverablesByClientId(int clientId);
         Deliverable GetDeliverableByReportType(int clientId, string reportType);
         List<Holiday> GetHolidayList();
+        string GetSystemUserId();
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -132,6 +133,12 @@ namespace AM.Services
             string query = "SELECT * FROM [Common].[Holidays]";
 
             return db.Query<Holiday>(query, null).ToList();
+        }
+
+        public string GetSystemUserId()
+        {
+            string q = "select Id from [Profile].[Users] where email = @email";
+            return db.QuerySingle<string>(q, new { email = "system@milestonetechnoconsulting.com" });
         }
     }
 }

@@ -60,7 +60,7 @@
                 <td><span>{IsAMActiveFormatted}</span></td>
                 <td><span>{IsPnSActiveFormatted}</span></td>
                 <td><span>{TimeZone}</span></td>
-                <td>{Action}</td>
+                <td>{Action}{CoverLetter}</td>
             </tr>
         </tbody>
     </table>
@@ -69,6 +69,18 @@
 
 <div class="modal fade" id="AddEditModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
     <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <div class="modal-header" style="margin-top:2%;margin-bottom:2%;">
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="AddCoverLetterModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal-header" style="margin-top:2%;margin-bottom:2%;">
@@ -90,7 +102,7 @@
                     <button type="button" class="btn btn-primary" id="IsActiveYes"><i class="fa fa-check"></i> Yes</button>
                     <button type="button" class="btn btn-default" id="IsActiveNo" data-dismiss="modal"><i class="fa fa-close"></i> No</button>
                 </div>
-            </div>
+            </div>1
         </div>
     </div>*@
 
@@ -113,23 +125,100 @@
 @section Scripts{
     @Styles.Render("~/bundles/datatablescss")
     @Scripts.Render("~/bundles/datatables")
-    
+
     <script type="text/javascript">
         $(document).ready(function () {
 
             GetClients();
-            
+           
+
         });
-        function ValidateForm()
-        {
+
+        function ValidateCoverLetter() {
+            window.clui.selectInit();
+            if ($("#file").val().trim() == "") {
+                $("#Save").attr("disabled", "disabled");
+            }
+            $('#coverletterform').validate({ // initialize the plugin
+                errorElement: "span",
+                rules: {
+                    FileName: {
+                        required: true,
+                        maxlength: 255
+
+                    },
+                    DocTypeId: {
+                        required: true
+                    },
+                    SeqId: {
+                        required: true,
+                        digits: true
+                    }
+                },
+                submitHandler: function (form) { // for demo
+                    var docTypeId = parseInt($("#AddCoverLetterModal").find(".modal-header").find("#DocTypeId").val());
+                    var fileName = $("#AddCoverLetterModal").find(".modal-header").find("#FileName").val();
+                    var seqId = parseInt($("#AddCoverLetterModal").find(".modal-header").find("#SeqId").val());
+                    var file = $("#AddCoverLetterModal").find(".modal-header").find("#file").prop('files')[0];
+                    $("#AddCoverLetterModal").modal("hide");
+                    var el = $("#myModal").find(".modal-body");
+                    el.empty();
+                    var formData = new FormData();
+                    formData.append("file", file);
+                    formData.append("docTypeId", docTypeId);
+                    formData.append("seqId", seqId);
+                    formData.append("fileName", fileName);
+                    $.ajax({
+                        //dataType: 'json',
+                        //data: JSON.stringify({ docTypeId: docTypeId, seqId: seqId, fileName: fileName, file: file[0].files }),
+                        // contentType: "application/json; charset=utf-8",
+                        type: "POST",
+                        url: baseUrl + "Admin/_AddCoverLetter",
+                        processData: false,  // tell jQuery not to process the data
+                        contentType: false,
+                        data:formData,
+                        success: function (response) {
+                            //console.log(response);
+                            if (response.Success) {
+                                if (response.Object != null) {
+                                    if (response.Object.Key) {
+                                        el.html("<div class='alert alert-green'>" + response.Object.Value + "</div>");
+                                    }
+                                    else {
+                                        el.html("<div class='alert alert-red'>" + response.Object.Value + "</div>");
+                                    }
+                                }
+
+                            }
+                            else {
+                                el.html("<div class='alert alert-red'>" + response.ErrorMessage + "</div>");
+
+                            }
+                            $("#myModal").modal("show");
+                        },
+                        error: function (xhr, ajaxOptions, thrownError) {
+                            el.show();
+                            $("#loading").hide();
+                            var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
+                            el.html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
+                            $("#myModal").modal("show");
+                        }
+
+                    });
+                }
+            });
+        }
+
+
+        function ValidateForm() {
             window.clui.selectInit();
             $('#clientform').validate({ // initialize the plugin
                 errorElement: "span",
                 rules: {
                     Name: {
                         required: true,
-                        lettersonly: true, 
-                        maxlength:255
+                        lettersonly: true,
+                        maxlength: 255
 
                     },
                     BusinessUnit: {
@@ -137,7 +226,7 @@
                     },
                     AppCode: {
                         required: true,
-                        maxlength:128
+                        maxlength: 128
                     },
                     TimeZone: {
                         required: true,
@@ -166,7 +255,7 @@
                             if (response.Success) {
                                 if (response.Object != null) {
                                     if (response.Object.Key) {
-                                        el.html("<div class='alert alert-green'>"+response.Object.Value+"</div>");
+                                        el.html("<div class='alert alert-green'>" + response.Object.Value + "</div>");
                                     }
                                     else {
                                         el.html("<div class='alert alert-red'>" + response.Object.Value + "</div>");
@@ -196,8 +285,8 @@
             this.Id = Id;
             this.Name = Name;
             this.AppCode = AppCode;
-            this.BusinessUnit=BusinessUnit;
-            this.TimeZone=TimeZone;
+            this.BusinessUnit = BusinessUnit;
+            this.TimeZone = TimeZone;
         }
 
         var GetClients = function () {
@@ -240,6 +329,29 @@
             });
         }
 
+        function AddCoverLetter(obj) {
+            var Id = $(obj).data("id");
+            var el = $("#AddCoverLetterModal").find(".modal-header");
+            el.empty();
+            $.ajax({
+                type: "GET",
+                url: baseUrl + "Admin/_AddCoverLetter",
+                data: { Id: Id },
+                success: function (response) {
+                    el.html(response);
+                    $("#AddCoverLetterModal").modal("show");
+                    ValidateCoverLetter();
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+
+                    //Spinners(".spinnericon", "faspinner");
+                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
+                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    $("#AddCoverLetterModal").modal("show");
+                }
+            });
+        }
+
         function AddEditClient(obj) {
             var Id = $(obj).data("id");
             var el = $("#AddEditModal").find(".modal-header");
@@ -270,6 +382,8 @@
                 this.IsPnSActiveFormatted = this.IsPnSActive ? '<div class="toggle-container"><input id="ispnsactive' + this.Id + '" onclick="MakeActiveOrDeactive(this)" data-isam="0"  data-id="' + this.Id + '"  data-currentvalue="' + this.IsPnSActive + '" class="cl-toggle toggle-orange" type="checkbox" checked="checked" name="toggle-demo"/><label for="ispnsactive' + this.Id + '">Is Active</label></div>' : '<div class="toggle-container"><input id="ispnsactive' + this.Id + '" onclick="MakeActiveOrDeactive(this)" data-isam="0"  data-currentvalue="' + this.IsPnSActive + '" data-id="' + this.Id + '" class="cl-toggle toggle-orange" type="checkbox" name="toggle-demo"/><label for="ispnsactive' + this.Id + '">Is Pns Active</label></div>';
 
                 this.Action = '<span style="cursor: pointer;font-size:1.2em;" onclick="AddEditClient(this)" data-id="' + this.Id + '" ><i class="padding-left-15 fa fa-edit text-blue" aria-hidden="true" title="Edit"><span class="sr-only">Edit</span></i></span>';
+
+                this.CoverLetter = '<span style="cursor: pointer;font-size:1.2em;margin-left: 10px;" onclick="AddCoverLetter(this)" data-id="' + this.Id + '" ><i class=" fa fa-file-pdf-o text-red" aria-hidden="true" title="Add Cover Letter"><span class="sr-only">Cover Letter</span></i></span>';
 
             });
             return Model;
@@ -307,7 +421,7 @@
                         el.html("<div class='alert alert-red'>" + response.ErrorMessage + "</div>");
                         $("#myModal").modal("show");
                     }
-                    
+
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
 
@@ -392,7 +506,7 @@
 
 
             });
-           
+
         }
 
     </script>

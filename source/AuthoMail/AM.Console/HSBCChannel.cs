@@ -247,7 +247,7 @@ namespace AM.Console
                         mailPieceDTO.DocumentOrPackageType = param.Groups[1].Value.Trim();
 
                         mailPieceDTO.RcptAddressStreet = node.Address;
-                        mailPieceDTO.RcptAddressAptOrSuiteOrOther = node.Address2;
+                        mailPieceDTO.RcptAddrOptionalLine1BelowStreet = node.Address2;
                         mailPieceDTO.RcptAddressCity = node.City;
                         mailPieceDTO.RcptAddressState = node.State;
                         mailPieceDTO.RcptAddressZIP = node.Zip;
@@ -322,19 +322,12 @@ namespace AM.Console
                                     //If we don't have any return address at mail piece or batch level  then it should be in Doc Type level and we are storing that value in mail piece from it.
                                     if (docType.IsReturnInfoSpecified)
                                     {
-                                        mailPieceDTO.RetRcptOrganization = docType.RetRcptOrganization;
+                                        mailPieceDTO.RetRcptAddrOptionalLine1AboveStreet = docType.RetRcptOrganization;
                                         mailPieceDTO.RetRcptAddressStreet = docType.RetRcptAddressStreet;
                                         mailPieceDTO.RetRcptAddressCity = docType.RetRcptAddressCity;
                                         mailPieceDTO.RetRcptAddressState = docType.RetRcptAddressState;
                                         mailPieceDTO.RetRcptAddressZIP = docType.RetRcptAddressZIP;
                                     }
-
-                                    //Here we are setting print location because mailpiece will have doc types after some validations and based on that we can check that what is the shipping method for this mail piece and based on that we can set what is the location to set for printing
-
-                                    if (((mailBatch.DownloadedOn.Value.UtcToEst().TimeOfDay >= Config.Monitor_InternalPrintAndShipStartTime && mailBatch.DownloadedOn.Value.UtcToEst().TimeOfDay < Config.Monitor_InternalPrintAndShipEndTime) && docType.ShippingCarrier == Carrier.FedEx.ToString()) || docType.ShippingServiceType == ShippingServiceType.USPS_EXPRESSMAIL.ToString())
-                                        mailPieceDTO.PrintLocation = Config.Common_PrintLocationCL;
-                                    else
-                                        mailPieceDTO.PrintLocation = Config.Common_PrintLocationPCI;
 
                                     mailPieceDTO.FileName = sftPdfFileName;
                                     if (!File.Exists(localFilePath))

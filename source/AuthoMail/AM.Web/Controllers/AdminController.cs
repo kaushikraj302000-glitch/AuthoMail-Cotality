@@ -251,6 +251,49 @@ namespace AM.Web.Controllers
         #endregion
 
         #region Manage Client
+
+        [Authorize(Roles = AMRoles.Admin)]
+        public ActionResult _AddCoverLetter(int id)
+        {
+            var model=supportSvc.GetDocTypesByClientId(id);
+            ViewBag.IsModelEmpty = true;
+            if (model!=null)
+            {
+                ViewBag.IsModelEmpty = false;
+                ViewBag.ClientId = id;
+                ViewBag.ClientName = model.FirstOrDefault().ClientName;
+                ViewBag.DocType = new SelectList(model, "Id", "DocTypeCode");
+            }
+            return PartialView();
+        }
+
+
+        [Authorize(Roles = AMRoles.Admin)]
+        [HttpPost]
+        public ActionResult _AddCoverLetter(int docTypeId, int seqId, string fileName, IEnumerable<HttpPostedFileBase> file)
+        {
+            try
+            {
+                DocTypeCoverLetter coverLetter = new DocTypeCoverLetter();
+                coverLetter.DocTypeId = docTypeId;
+                coverLetter.SeqId = seqId;
+                coverLetter.CoverLetterTemplatePath = fileName;
+                var model = supportSvc.SaveDocTypeCoverLetter(coverLetter);
+                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+        
+        [Authorize(Roles = AMRoles.Admin)]
+        public ActionResult GetCoverLetterByDocTypeId(int id)
+        {
+            var model = supportSvc.GetDocTypeCoverLetterByDocTypeId(id);
+            return Json(model, JsonRequestBehavior.AllowGet);
+        }
+
         [Authorize(Roles = AMRoles.Admin)]
         public ActionResult ManageClients()
         {
@@ -400,6 +443,26 @@ namespace AM.Web.Controllers
         #endregion
 
         #region Manage DocType
+
+        [Authorize(Roles = AMRoles.Admin)]
+        public ActionResult _GetCoverLetterFiles(int id)
+        {
+            var model = supportSvc.GetDocTypeCoverLetterByDocTypeId(id);
+            return PartialView(model);
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult RemoveCoverLetter(int docTypeId,int seqId,string fileName)
+        {
+            try
+            {
+                var model = supportSvc.RemoveCoverletter(docTypeId,seqId,fileName);
+                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
         [Authorize(Roles = AMRoles.Admin)]
         public ActionResult ManageDocumentTypes()
         {
@@ -426,6 +489,8 @@ namespace AM.Web.Controllers
             var PrintFormatList = new string[] { "Simplex", "Duplex" };
             var ShippingCarrierList = new string[] { "USPS", "FedEx", "UPS" };
             var ShippingServiceTypeList = new string[] { "USPS", "FEDEX_2_DAY", "FEDEX_EXPRESS_SAVER", "FEDEX_GROUND", "FIRST_OVERNIGHT", "GROUND_HOME_DELIVERY", "PRIORITY_OVERNIGHT", "STANDARD_OVERNIGHT" };
+            var ShippingSpecialServiceList = new string[] { "SATURDAY_DELIVERY", "SATURDAY_PICKUP" };
+            ViewBag.ShippingSpecialService = ShippingSpecialServiceList.Select(s => new SelectListItem() { Text = s, Value = s }).ToList();
             if (id != 0)
             {
                 DocTypes model = supportSvc.FindByIdDocType(id);
@@ -479,7 +544,7 @@ namespace AM.Web.Controllers
 
         #endregion
 
-        #region Assige Role 
+        #region Assige Role
         [HttpGet]
         public ActionResult AssignUserManagerDetails()
         {
@@ -533,6 +598,6 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse(ex.Message), JsonRequestBehavior.AllowGet);
             }
         }
-        #endregion 
+        #endregion
     }
 }

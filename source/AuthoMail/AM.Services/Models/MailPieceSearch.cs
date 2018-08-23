@@ -281,6 +281,7 @@ namespace AM.Services
         public string SunCutOff { get; set; }
         public string SunSLAType { get; set; }
         public string SunTimeSpan { get; set; }
+        public string ShippingSpecialService { get; set; }
 
     }
     public class SFTChannels

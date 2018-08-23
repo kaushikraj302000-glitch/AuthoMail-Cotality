@@ -13,14 +13,9 @@ namespace AM.Services
 {
     public partial class USPSService : ServiceBase, IUSPSService
     {
-        public AddressResponse VerifyAddress(string userId, AddressRequest addressRequest)
+        public VerifierAddressResponse VerifyAddress(VerifierAddressRequest addressRequest)
         {
-            return this.VerifyAddress(userId, new List<AddressRequest>() { addressRequest }).Single();
-        }
-
-        public List<AddressResponse> VerifyAddress(string userId, List<AddressRequest> requests)
-        {
-            return VerifyAddressAsync(userId, requests).Result;
+            return this.VerifyAddressAsync(addressRequest.UserId, addressRequest.AddressRequests).Result;
         }
 
         private IEnumerable<string> ValidateAddress(AddressRequest address)
@@ -43,27 +38,53 @@ namespace AM.Services
             }
         }
 
-        private async Task<List<AddressResponse>> VerifyAddressAsync(string userId, List<AddressRequest> addressRequests)
+        private async Task<VerifierAddressResponse> VerifyAddressAsync(string userId, List<AddressRequest> addressRequests)
         {
+            List<AddressResponse> addressResponses = new List<AddressResponse>();
+
             try
             {
-                int insertedID = 0;
-                Task<int> recordRequestId = null;
+                int logId = 0;
+
+                Task<int> dbLog = null;
+                var maxAddressCount = Config.Web_API_USPS_AddressCount;
+                addressResponses.Capacity = maxAddressCount;
+                var isAPIError = false;
+                string apiErrorMSG = null;
+
+                //response field and api flag , Validate list length
+                if (addressRequests == null || addressRequests.Count < 1 || addressRequests.Count > maxAddressCount)
+                {
+                    isAPIError = true;
+                    apiErrorMSG = "In addressRequests At least one and at most 5 addresses must be specified.";
+                }
+
+                if (userId.IsNullOrWhiteSpace())
+                {
+                    isAPIError = true;
+                    apiErrorMSG = string.Join("\r\n", new string[] { apiErrorMSG, "For addressRequests UserId must be specified." }.Where(msg => !msg.IsNullOrWhiteSpace()));
+                }
+
                 //check flag and call to db
                 if (Config.Web_API_USPS_IsDbLoggingEnabled)
                 {
                     var addressRequestsXML = addressRequests.Serialize();
 
-                    recordRequestId = db.ExecuteScalarAsync<int>("Insert into [API].[USPS] ([APIName], [UserId], [APIRequest], [APIRequestedOn]) OUTPUT INSERTED.Id VALUES(@APIName, @UserId, @APIRequest, @APIRequestDateTime);", new { APIName = Config.Web_API_USPS_VerifyAPIName, UserId = userId, APIRequest = addressRequestsXML, APIRequestDateTime = DateTime.Now });
+                    dbLog = db.ExecuteScalarAsync<int>("Insert into [API].[USPS] ([APIName], [UserId], [APIRequest], [APIRequestedOn],[IsAPIError],[IsUSPSError],[APIResponse], [APIResponseOn]) OUTPUT INSERTED.Id VALUES(@APIName, @UserId, @APIRequest, @APIRequestedOn, @IsAPIError, @IsUSPSError, @APIResponse, @APIResponseOn);", new { APIName = Config.Web_API_USPS_VerifyAPIName, UserId = userId, APIRequest = addressRequestsXML, APIRequestedOn = Common.Now, IsAPIError = isAPIError, IsUSPSError = false, APIResponse = apiErrorMSG, APIResponseOn = isAPIError ? Common.Now : (DateTime?)null });
                 }
 
-                var maxAddressCount = Config.Web_API_USPS_AddressCount;
+                if (isAPIError)
+                {
+                    if (Config.Web_API_USPS_IsDbLoggingEnabled)
+                    {
+                        var dbLogawait = await dbLog;
+                    }
 
-                // Validate list length
-                if (addressRequests == null || addressRequests.Count < 1 || addressRequests.Count > maxAddressCount)
-                    throw new ArgumentException("addressRequests", "At least one and at most 5 addresses must be specified.");
+                    //throw new ArgumentException(apiErrorMSG);
 
-                List<AddressResponse> addressResponses = new List<AddressResponse>(maxAddressCount);
+                    return new VerifierAddressResponse(addressResponses) { Error = apiErrorMSG };
+                }
+
                 List<Address> addresses = new List<Address>(maxAddressCount);
 
                 for (int i = 0; i < addressRequests.Count; i++)
@@ -71,6 +92,7 @@ namespace AM.Services
                     var request = addressRequests[i];
                     var validationErrors = ValidateAddress(request);
 
+                    //Id index 1 base
                     var response = new AddressResponse(request, i + 1);
 
                     if (validationErrors.Any())
@@ -90,142 +112,218 @@ namespace AM.Services
                             //index 1 base
                             ID = response.Id,
                             FirmName = request.FirmName,
-                            Address2 = add2.IsNullOrWhiteSpace() ? string.Empty : add2,
+                            Address1 = string.Empty,
+                            Address2 = add2,
                             City = request.City.IsNullOrWhiteSpace() ? string.Empty : request.City.Trim(),
                             State = request.State.IsNullOrWhiteSpace() ? string.Empty : request.State.Trim(),
                             Zip5 = request.Zip5.IsNullOrWhiteSpace() ? string.Empty : request.Zip5.Trim(),
-                            Zip4 = request.Zip4.IsNullOrWhiteSpace() ? string.Empty : request.Zip4.Trim()
+                            Zip4 = request.Zip4.IsNullOrWhiteSpace() ? string.Empty : request.Zip4.Trim(),
+                            Urbanization = request.Urbanization.IsNullOrWhiteSpace() ? string.Empty : request.Urbanization.Trim()
                         });
                     }
+
+                    response.AddressTypes = new List<string>();
+
                     addressResponses.Add(response);
                 }
 
-                FormUrlEncodedContent payload = null;
-                Task<string> uspsReq = null;
-                var idRegex = new Regex(@"(\d+{0})(.*)".Fill(ResponseSource.CLSVC));
-
-                try
+                //If ALL AddressRequest elements are invalid then error occur and address list is empty.
+                if (addresses.Count == 0)
                 {
-                    using (HttpClient httpClient = new HttpClient())
-                    {
-                        var request = new AddressValidateRequest(Config.Web_API_USPS_UserId, "1");
-                        //var request = new AddressValidateRequest("719MSTC04390", "1");//"719MSTC04390", "1");
-                        request.AddressList.AddRange(addresses);
+                    return new VerifierAddressResponse(addressResponses);
+                    //{
+                    //    Error = "Common-XmlParse : The element 'AddressValidateRequest' has incomplete content. List of possible elements expected: 'Address'."
+                    //};
+                }
 
-                        string url = Config.Web_API_USPS_URL;
-                        //string url = @"https://secure.shippingapis.com/ShippingAPI.dll";//["USPSAPI"];
+                FormUrlEncodedContent payload = null;
+                string uspsInputXML = null;
+                Task<int> uspsRequestLog = null;
+                Task<string> uspsReq = null;
+                string uspsResponseString = null;
+                bool isGenericUSPSError = false;
 
-                        var uspsInpurXML = request.Serialize();
+                using (HttpClient httpClient = new HttpClient())
+                {
+                    var request = new AddressValidateRequest(Config.Web_API_USPS_UserId, "1");
+                    //var request = new AddressValidateRequest("719MSTC04390", "1");//"719MSTC04390", "1");
+                    request.AddressList.AddRange(addresses);
 
+                    string url = Config.Web_API_USPS_URL;
+                    //string url = @"https://secure.shippingapis.com/ShippingAPI.dll";//["USPSAPI"];
 
-                        if (Config.Web_API_USPS_IsDbLoggingEnabled)
-                        {
-                            insertedID = await recordRequestId;
-                            var uspsRequestLog = db.ExecuteAsync("Update [API].[USPS] set USPSRequest = @USPSRequest ,USPSRequestedOn = @USPSRequestedOn where Id = @Id", new { USPSRequest = uspsInpurXML, USPSRequestedOn = DateTime.Now, Id = insertedID });
-                        }
+                    uspsInputXML = request.Serialize();
 
-                        payload = new FormUrlEncodedContent(new[] 
+                    payload = new FormUrlEncodedContent(new[] 
                         {
                             new KeyValuePair<string, string>("API",Config.Web_API_USPS_VerifyAPIName),
                             //new KeyValuePair<string, string>("API","Verify"),
-                            new KeyValuePair<string, string>("XML",uspsInpurXML)
+                            new KeyValuePair<string, string>("XML",uspsInputXML)
                         });
 
-                        var payloadResult = await payload.ReadAsStringAsync();
-                        uspsReq = httpClient.GetStringAsync("{0}?{1}".Fill(url, payloadResult));
+                    var payloadResult = await payload.ReadAsStringAsync();
+                    uspsReq = httpClient.GetStringAsync("{0}?{1}".Fill(url, payloadResult));
 
-                        var uspsResponseString = await uspsReq;
-                        if (Config.Web_API_USPS_IsDbLoggingEnabled)
-                        {
-                            var uspsResponseLog = db.ExecuteAsync("Update [API].[USPS] set USPSResponse = @USPSResponse ,  USPSResponseOn = @USPSResponseOn where Id = @Id", new { USPSResponse = uspsResponseString, USPSResponseOn = DateTime.Now, Id = insertedID });
-                        }
-                        if (uspsResponseString.Contains("AddressValidateResponse"))
-                        {
-                            var response = uspsResponseString.Deserialize<AddressValidateResponse>();
 
-                            SetResponseValues(addressResponses, idRegex, response.AddressList);
-                        }
-                        else
+                    if (Config.Web_API_USPS_IsDbLoggingEnabled)
+                    {
+                        logId = await dbLog;
+                        uspsRequestLog = db.ExecuteAsync("Update [API].[USPS] set USPSRequest = @USPSRequest, USPSRequestedOn = @USPSRequestedOn where Id = @Id", new { USPSRequest = uspsInputXML, USPSRequestedOn = Common.Now, Id = logId });
+                    }
+
+                    try
+                    {
+                        uspsResponseString = await uspsReq;
+                        isGenericUSPSError = !uspsResponseString.Contains("AddressValidateResponse");
+
+                        if (isGenericUSPSError)
                         {
-                            var error = uspsResponseString.Deserialize<Error>();
-                            //var verifiedaddress = new address();
-                            //verifiedAddress.Error = error;
-                            //to do when this called
-                            throw new InvalidOperationException(error.Description);
+                            var uspsError = uspsResponseString.Deserialize<Error>();
+
+                            addresses.ForEach(add =>
+                            {
+                                add.Error = uspsError;
+                            });
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        isGenericUSPSError = true;
+
+                        // Store exception details received while accessing USPS API in addresses collection
+                        addresses.ForEach(add =>
+                        {
+                            add.Error = new Error
+                            {
+                                Source = ResponseSource.USPS,
+                                Description = ex.ToString()
+                            };
+                        });
+
+                        uspsResponseString = ex.ToString();
+
+                        //SetResponseValues(addressResponses, idRegex, addresses, ex);
+                    }
                 }
-                catch (HttpRequestException ex)
+
+                Task<int> uspsResponseLog = null;
+
+                if (Config.Web_API_USPS_IsDbLoggingEnabled)
                 {
-                    SetResponseValues(addressResponses, idRegex, addresses, ex);
+                    var uspsRequestLogAwait = await uspsRequestLog;
+
+                    uspsResponseLog = db.ExecuteAsync("Update [API].[USPS] set USPSResponse = @USPSResponse ,  USPSResponseOn = @USPSResponseOn, IsUSPSError = @IsUSPSError, IsAPIError = @IsAPIError where Id = @Id", new { USPSResponse = uspsResponseString, USPSResponseOn = Common.Now, IsUSPSError = isGenericUSPSError ? true : false, IsAPIError = false, Id = logId });
+                }
+
+                if (isGenericUSPSError)
+                {
+                    SetResponseValues(addressResponses, addresses);
+                }
+                else
+                {
+                    var response = uspsResponseString.Deserialize<AddressValidateResponse>();
+
+                    SetResponseValues(addressResponses, response.AddressList);
                 }
 
                 if (Config.Web_API_USPS_IsDbLoggingEnabled)
                 {
                     var addressResponseXML = addressResponses.Serialize();
-                    var responseLog = db.ExecuteAsync("Update [API].[USPS] set APIResponse = @APIResponse ,  APIResponseOn = @APIResponseOn Where Id = @Id", new { APIResponse = addressResponseXML, APIResponseOn = DateTime.Now, Id = insertedID });
+
+                    var uspsResponseLogAwait = await uspsResponseLog;
+
+                    var responseLog = db.ExecuteAsync("Update [API].[USPS] set APIResponse = @APIResponse ,  APIResponseOn = @APIResponseOn, IsAPIError = @IsAPIError Where Id = @Id", new { APIResponse = addressResponseXML, APIResponseOn = Common.Now, IsAPIError = addressResponses.Any(a => a.AddressTypes.Count == 0), Id = logId });
+
                     await responseLog;
                 }
 
-                return await Task.Run(() => addressResponses);
+                return await Task.Run(() => new VerifierAddressResponse(addressResponses));
             }
             catch (Exception ex)
             {
-                throw ex;
+                //if (addressRequests != null && addressResponses.Count == 0)
+                //{
+                //    var idRegex = new Regex(@"(\d+{0})(.*)".Fill(ResponseSource.CLSVC));
+
+                //    for (int i = 0; i < addressRequests.Count; i++)
+                //    {
+                //        var request = addressRequests[i];
+                //        var add = "{0} {1}".Fill(request.Line1, request.Line2).Trim();
+                //        //Id index 1 base
+                //        var response = new AddressResponse(request, i + 1)
+                //        {
+                //            Id = idRegex.Match(request.Id).Groups[2].Value,
+                //            FirmName = request.FirmName,
+                //            Line1 = add,
+                //            City = request.City,
+                //            State = request.State,
+                //            Zip5 = request.Zip5,
+                //            Zip4 = request.Zip4,
+                //            Urbanization = request.Urbanization
+                //        };
+                //        addressResponses.Add(response);
+                //    }
+                //}
+                return new VerifierAddressResponse(addressResponses)
+                {
+                    Error = "Unexpected Error"//ex.ToString()
+                };
             }
         }
 
-        private static void SetResponseValues(List<AddressResponse> addressResponses, Regex idRegex, List<Address> addresses)
+        private static void SetResponseValues(List<AddressResponse> addressResponses, List<Address> addresses)
         {
-            SetResponseValues(addressResponses, idRegex, addresses, null);
-        }
+            var idRegex = new Regex(@"(\d+{0})(.*)".Fill(ResponseSource.CLSVC));
 
-        private static void SetResponseValues(List<AddressResponse> addressResponses, Regex idRegex, List<Address> addresses, Exception ex)
-        {
             foreach (Address address in addresses)
             {
-                var verifiedAddress = address;
-
-                var responseAdd = addressResponses.Single(res => res.Id == verifiedAddress.ID);
-
-                //if error by USPS then assign requested add to respond with source CLSVC
-                if (verifiedAddress.HasError)
-                {
-                    var add2 = "{0} {1}".Fill(responseAdd.AddressRequest.Line1, responseAdd.AddressRequest.Line2).Trim();
-                    verifiedAddress.FirmName = responseAdd.AddressRequest.FirmName;
-                    verifiedAddress.Address2 = add2;
-                    verifiedAddress.City = responseAdd.AddressRequest.City;
-                    verifiedAddress.State = responseAdd.AddressRequest.State;
-                    verifiedAddress.Zip5 = responseAdd.AddressRequest.Zip5;
-                    verifiedAddress.Zip4 = responseAdd.AddressRequest.Zip4;
-                    verifiedAddress.Urbanization = responseAdd.AddressRequest.Urbanization;
-                }
+                var responseAdd = addressResponses.Single(res => res.Id == address.ID);
 
                 responseAdd.Id = idRegex.Match(responseAdd.Id).Groups[2].Value;
-                responseAdd.FirmName = verifiedAddress.FirmName;
-                responseAdd.Line1 = verifiedAddress.Address2;
-                //responseAdd.Line2 = verifiedAddress.Address2;
-                responseAdd.Line1Abbr = verifiedAddress.AddressLine2Abbreviation;
-                responseAdd.City = verifiedAddress.City;
-                responseAdd.CityAbbr = verifiedAddress.CityAbbreviation;
-                responseAdd.State = verifiedAddress.State;
-                responseAdd.Zip5 = verifiedAddress.Zip5;
-                responseAdd.Zip4 = verifiedAddress.Zip4;
-                responseAdd.Urbanization = verifiedAddress.Urbanization;
-                responseAdd.CarrierRoute = verifiedAddress.CarrierRoute;
-                responseAdd.DeliveryPoint = verifiedAddress.DeliveryPoint;
-                responseAdd.ReturnText = verifiedAddress.ReturnText;
-                responseAdd.Error = verifiedAddress.Error;
-                responseAdd.AddressTypes = CheckAddressType(verifiedAddress);
 
-                if (!verifiedAddress.HasError)
+                //if error by USPS then assign requested add to respond with source CLSVC
+                if (address.HasError)
                 {
-                    responseAdd.Verifier = ResponseSource.USPS;
+                    var add2 = "{0} {1}".Fill(responseAdd.AddressRequest.Line1, responseAdd.AddressRequest.Line2).Trim();
+
+                    responseAdd.FirmName = responseAdd.AddressRequest.FirmName;
+                    responseAdd.Line1 = add2;
+                    responseAdd.City = responseAdd.AddressRequest.City;
+                    responseAdd.State = responseAdd.AddressRequest.State;
+                    responseAdd.Zip5 = responseAdd.AddressRequest.Zip5;
+                    responseAdd.Zip4 = responseAdd.AddressRequest.Zip4;
+                    responseAdd.Urbanization = responseAdd.AddressRequest.Urbanization;
+                    responseAdd.City = responseAdd.AddressRequest.City;
+                    responseAdd.AddressTypes = CheckAddressType(new Address { Address2 = add2, State = responseAdd.State, City = responseAdd.City });
+
+                    responseAdd.Error = address.Error;
+                    responseAdd.Verifier = ResponseSource.CLSVC;
+                    responseAdd.VerifierDesc = "USPS Failure : {0}".Fill(address.Error.Description);
+
+                    if (responseAdd.AddressTypes.Count == 0)
+                    {
+                        responseAdd.VerifierDesc = "{0}\r\n* Invalid state code '{1}', AddressType could not be determined.*".Fill(responseAdd.VerifierDesc, responseAdd.State);
+                    }
                 }
                 else
                 {
-                    responseAdd.Verifier = ResponseSource.CLSVC;
-                    responseAdd.VerifierDesc = "USPS Failure : {0}".Fill(ex != null ? ex.ToString() : verifiedAddress.Error.Description);
+                    responseAdd.FirmName = address.FirmName;
+                    responseAdd.Line1 = address.Address2;
+                    responseAdd.Line1Abbr = address.AddressLine2Abbreviation;
+                    responseAdd.City = address.City;
+                    responseAdd.CityAbbr = address.CityAbbreviation;
+                    responseAdd.State = address.State;
+                    responseAdd.Zip5 = address.Zip5;
+                    responseAdd.Zip4 = address.Zip4;
+                    responseAdd.Urbanization = address.Urbanization;
+                    responseAdd.CarrierRoute = address.CarrierRoute;
+                    responseAdd.DeliveryPoint = address.DeliveryPoint;
+                    responseAdd.Warning = address.ReturnText;
+                    responseAdd.Error = address.Error;
+                    responseAdd.AddressTypes = CheckAddressType(address);
+
+                    responseAdd.Verifier = ResponseSource.USPS;
+                    responseAdd.VerifierDesc = address.ReturnText.IsNullOrWhiteSpace() ? string.Empty : address.ReturnText;
                 }
             }
         }
@@ -233,6 +331,9 @@ namespace AM.Services
         private static List<string> CheckAddressType(Address address)
         {
             var addressTypes = new List<string>();
+            //var dhamStates = new string[] { "AK", "AL", "AR", "AZ", "CA", "CO", "CT", "DC", "DE", "FL", "GA", "HI", "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA", "MD", "ME", "MI", "MN", "MO", "MS", "MT", "NC", "ND", "NE", "NH", "NJ", "NM", "NV", "NY", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VA", "VT", "WA", "WI", "WV", "WY" };
+            var dhamStates = Config.Web_API_USPS_MainlandStates.Split(',').Select(ms => ms.Trim());
+
             var militarystates = Config.Web_API_USPS_MilitaryStates.Split(',').Select(ms => ms.Trim()); ;
             //var militarystates = new string[] { "AA", "AE", "AP" };
             var militaryCities = Config.Web_API_USPS_MilitaryCities.Split(',').Select(mc => mc.Trim()); ;
@@ -245,13 +346,12 @@ namespace AM.Services
 
             if (militarystates.Contains(address.State.ToUpper()) && militaryCities.Contains(address.City.ToUpper()))
                 addressTypes.Add(AddressTypes.Military);
-            else
-            {
-                if (territory.Contains(address.State.ToUpper()))
-                    addressTypes.Add(AddressTypes.Territory);
-                else
-                    addressTypes.Add(AddressTypes.DHAM);
-            }
+
+            if (territory.Contains(address.State.ToUpper()))
+                addressTypes.Add(AddressTypes.Territory);
+
+            if (dhamStates.Contains(address.State.ToUpper()))
+                addressTypes.Add(AddressTypes.DHAM);
 
             return addressTypes;
         }
