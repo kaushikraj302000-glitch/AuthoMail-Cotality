@@ -67,6 +67,8 @@ namespace AM.Core
                             //Calculate Due Date for Mail Pieces doc type wise
                             mailPiece.DueDate = GetDueDate(docType, effectiveEstReceivedOn);
 
+                            mailPiece.PrintLocation = GetPrintLocation(docType, effectiveEstReceivedOn);
+
                             int mailPieceId = mailPiece.Id;
 
                             string pdfFilePath = Path.Combine(mbi.AMRequestPath, mailPiece.FileName);
@@ -77,6 +79,7 @@ namespace AM.Core
 
                             #region Prepare dictionary of placeholders/tags to fill the PDF template.
                             string fromAddress = string.Empty;
+                            #region From Address
                             if (mailPiece.IsReturnInfoSpecified)
                             {
                                 if (!string.IsNullOrEmpty(mailPiece.RetRcptOrganization))
@@ -145,11 +148,41 @@ namespace AM.Core
                             {
                                 //TODO: Generate error
                             }
+                            #endregion
+
+                            string toAddress = string.Empty;
+                            #region To Address
+                            if (mailPiece.IsRcptInfoSpecified)
+                            {
+                                //This is compulsary
+                                toAddress = mailPiece.RcptFirstName + " " + mailPiece.RcptLastName + "\n";
+
+                                if (!string.IsNullOrEmpty(mailPiece.RcptOrganization))
+                                    toAddress += mailPiece.RcptOrganization + "\n";
+                                if (!string.IsNullOrEmpty(mailPiece.RcptAddrOptionalLine1AboveStreet))
+                                    toAddress += mailPiece.RcptAddrOptionalLine1AboveStreet + "\n";
+                                if (!string.IsNullOrEmpty(mailPiece.RcptAddrOptionalLine2AboveStreet))
+                                    toAddress += mailPiece.RcptAddrOptionalLine2AboveStreet + "\n";
+
+                                //Because Street address is must field
+                                toAddress += mailPiece.RcptAddressStreet + "\n";
+
+                                if (!string.IsNullOrEmpty(mailPiece.RcptAddrOptionalLine1BelowStreet))
+                                    toAddress += mailPiece.RcptAddrOptionalLine1BelowStreet + "\n";
+                                if (!string.IsNullOrEmpty(mailPiece.RcptAddrOptionalLine2BelowStreet))
+                                    toAddress += mailPiece.RcptAddrOptionalLine2BelowStreet + "\n";
+                                if (!string.IsNullOrEmpty(mailPiece.RcptAddressAptOrSuiteOrOther))
+                                    toAddress += mailPiece.RcptAddressAptOrSuiteOrOther + "\n";
+
+                                //Because City,state,zip are must field for all client
+                                toAddress += mailPiece.RcptAddressCity + " " + mailPiece.RcptAddressState + " " + mailPiece.RcptAddressZIP;
+                            }
+                            #endregion
 
                             Dictionary<string, string> mailPieceData = new Dictionary<string, string>();
                             mailPieceData.Add("FromAddress", fromAddress);
 
-                            mailPieceData.Add("ToAddress", mailPiece.RcptFirstName + " " + mailPiece.RcptLastName + "\n" + (string.IsNullOrEmpty(mailPiece.RcptAddrOptionalLine1BelowStreet) ? mailPiece.RcptAddressStreet : string.Format("{0}\n{1}", mailPiece.RcptAddressStreet, mailPiece.RcptAddrOptionalLine1BelowStreet)) + "\n" + mailPiece.RcptAddressCity + " " + mailPiece.RcptAddressState + " " + mailPiece.RcptAddressZIP);
+                            mailPieceData.Add("ToAddress", toAddress);
 
                             mailPieceData.Add("MailPieceId", mailPiece.Id.ToString());
                             mailPieceData.Add("Date", Common.Now.UtcToEst().ToString("MMMM dd, yyyy"));//USAA Specific
@@ -253,12 +286,12 @@ namespace AM.Core
                                     coverLetterPdfPath = createFedExLabel.GeneratedFedExLabelPath;
                                     mailPiece.TrackingNo = Path.GetFileNameWithoutExtension(coverLetterPdfPath);
 
-                                    //if (mailPiece.PrintLocation == Config.Common_PrintLocationCL)
-                                    //{
-                                    //    mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((Config.Common_ScannerAppCode + mbi.Client.AppCode + mailPiece.TrackingNo).Reverse().ToArray()) + "*");
+                                    if (mailPiece.PrintLocation == Config.Common_PrintLocationCL)
+                                    {
+                                        mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((Config.Common_ScannerAppCode + mbi.Client.AppCode + mailPiece.TrackingNo).Reverse().ToArray()) + "*");
 
-                                    //    endPagePdfPath = doc.GenerateLastPageWithBarcode(endPageTemplatePath, mbi.PnSRequestPath, mailPieceData);
-                                    //}
+                                        endPagePdfPath = doc.GenerateLastPageWithBarcode(endPageTemplatePath, mbi.PnSRequestPath, mailPieceData);
+                                    }
                                 }
 
                                 #endregion
@@ -517,6 +550,20 @@ namespace AM.Core
             return dueDate.EstToUtc();
         }
 
+        private static string GetPrintLocation(DocType docType, DateTime estEffectiveReceivedOn)
+        {
+            if (estEffectiveReceivedOn.DayOfWeek == DayOfWeek.Saturday)
+                return Config.Common_PrintLocationPCI;
+
+            //if (docType.ShippingCarrier == Carrier.USPS.ToString() && docType.ShippingServiceType == ShippingServiceType.USPS_EXPRESSMAIL.ToString())
+            //    return Config.Common_PrintLocationCL;
+
+            if (docType.ShippingCarrier == Carrier.FedEx.ToString() && (estEffectiveReceivedOn.TimeOfDay >= Config.Monitor_InternalPrintAndShipStartTime && estEffectiveReceivedOn.TimeOfDay < Config.Monitor_InternalPrintAndShipEndTime))
+                return Config.Common_PrintLocationCL;
+
+            return Config.Common_PrintLocationPCI;
+        }
+
         private static bool IsBusinessDay(DateTime dueDate, List<Holiday> holidays, bool isSatWorkDay, bool isSunWorkDay)
         {
             if (holidays.Select(c => c.HolidayDate).Contains(dueDate.Date))
@@ -690,7 +737,7 @@ namespace AM.Core
                         request.BatchName = batchName;
                         request.DocTypeId = printBatchData.DocTypeId;
                         request.DueDate = printBatchData.MailPieces.OrderBy(x => x.DueDate).Select(x => x.DueDate).Distinct().First().Value.Date;
-                        //request.PrintLocation = printBatchData.PrintLocation;
+                        request.PrintLocation = printBatchData.PrintLocation;
                         request.OnValidationErrors = OnValidationErrors.ProcessValidFiles;
 
                         List<MailPieceData> mailPackage = new List<MailPieceData>();
