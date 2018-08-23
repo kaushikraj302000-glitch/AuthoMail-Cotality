@@ -753,11 +753,6 @@ namespace AM.Console
                             }
                             else
                             {
-                                //if (((mailBatch.DownloadedOn.Value.UtcToEst().TimeOfDay >= Config.Monitor_InternalPrintAndShipStartTime && mailBatch.DownloadedOn.Value.UtcToEst().TimeOfDay < Config.Monitor_InternalPrintAndShipEndTime) && docType.ShippingCarrier == Carrier.FedEx.ToString()) || docType.ShippingServiceType == ShippingServiceType.USPS_EXPRESSMAIL.ToString())
-                                //    mailPieceDTO.PrintLocation = Config.Common_PrintLocationCL;
-                                //else
-                                    mailPieceDTO.PrintLocation = Config.Common_PrintLocationPCI;
-
                                 mailPieceDTO.ErrorCode = OutComeCodes.No_Error;
                             }
                         }

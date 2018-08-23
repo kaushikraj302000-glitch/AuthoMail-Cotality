@@ -329,13 +329,6 @@ namespace AM.Console
                                         mailPieceDTO.RetRcptAddressZIP = docType.RetRcptAddressZIP;
                                     }
 
-                                    //Here we are setting print location because mailpiece will have doc types after some validations and based on that we can check that what is the shipping method for this mail piece and based on that we can set what is the location to set for printing
-
-                                    //if (((mailBatch.DownloadedOn.Value.UtcToEst().TimeOfDay >= Config.Monitor_InternalPrintAndShipStartTime && mailBatch.DownloadedOn.Value.UtcToEst().TimeOfDay < Config.Monitor_InternalPrintAndShipEndTime) && docType.ShippingCarrier == Carrier.FedEx.ToString()) || docType.ShippingServiceType == ShippingServiceType.USPS_EXPRESSMAIL.ToString())
-                                    //    mailPieceDTO.PrintLocation = Config.Common_PrintLocationCL;
-                                    //else
-                                        mailPieceDTO.PrintLocation = Config.Common_PrintLocationPCI;
-
                                     mailPieceDTO.FileName = sftPdfFileName;
                                     if (!File.Exists(localFilePath))
                                     {
