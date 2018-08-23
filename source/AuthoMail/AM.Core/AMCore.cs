@@ -240,7 +240,7 @@ namespace AM.Core
                                 //For now reverse barcoding will be mail piece id
                                 //if (mailPiece.PrintLocation == Config.Common_PrintLocationCL)
                                 //{
-                                //    mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((Config.Common_ScannerAppCode + mbi.Client.AppCode + mailPiece.TrackingNo).Reverse().ToArray()) + "*");
+                                //    mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((mailPiece.TrackingNo).Reverse().ToArray()) + "*");
 
                                 //    endPagePdfPath = doc.GenerateLastPageWithBarcode(endPageTemplatePath, mbi.PnSRequestPath, mailPieceData);
                                 //}
@@ -288,7 +288,7 @@ namespace AM.Core
 
                                     if (mailPiece.PrintLocation == Config.Common_PrintLocationCL)
                                     {
-                                        mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((Config.Common_ScannerAppCode + mbi.Client.AppCode + mailPiece.TrackingNo).Reverse().ToArray()) + "*");
+                                        mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((mailPiece.TrackingNo).Reverse().ToArray()) + "*");
 
                                         endPagePdfPath = doc.GenerateLastPageWithBarcode(endPageTemplatePath, mbi.PnSRequestPath, mailPieceData);
                                     }

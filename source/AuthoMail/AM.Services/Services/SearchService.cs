@@ -13,6 +13,10 @@ namespace AM.Services
         List<MailPieces> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo);
         MailPieces GetMailPieceByUniqueId(Guid uniqueId);
         List<MailPieces> GetAllData(int clientId);
+
+        List<TestModel> TestMp();
+
+        List<DateTime> GetHolidays();
     }
     public class SearchService : ServiceBase, ISearchService
     {
@@ -115,5 +119,90 @@ namespace AM.Services
             //       ).Distinct().ToList();
         }
 
+
+
+        public List<TestModel> TestMp()
+        {
+            string query = "select m.id,m.shippingstatus,m.SLADays,mb.receivedon,m.duedate,m.DocTypeId,m.Documentorpackagetype,mb.validationstatus,m.duedate,m.ErrorCode,m.errordesc,d.bizdaycutoff,d.bizdayslatype,d.bizdaytimespan,d.satcutoff,d.satslatype,d.sattimespan,d.suncutoff,d.sunslatype,d.suntimespan from [AM].[MailBatches] mb, [AM].[MailPieces] m left outer join [AM].[DocTypes] d ON m.DocTypeId=d.Id where m.[MailBatchId] = mb.Id";
+
+            return db.Query<TestModel>(query).ToList();
+        }
+
+
+        public List<DateTime> GetHolidays()
+        {
+            string q = "select HolidayDate from Common.Holidays";
+            return db.Query<DateTime>(q).ToList();
+        }
     }
+
+    public class TestModel
+    {
+        public int Id { get; set; }
+        public DateTime ReceivedOn { get; set; }
+        public int? DocTypeId { get; set; }
+        public DateTime? DueDate { get; set; }
+        public string BizdayCutOff { get; set; }
+
+        public TimeSpan? BizCutOffTimeSpan
+        {
+            get
+            {
+                if (this.BizdayCutOff.IsNullOrWhiteSpace()) return null;
+                return TimeSpan.Parse(this.BizdayCutOff);
+            }
+        }
+        public string BizdaySLAType { get; set; }
+        public string bizdaytimespan { get; set; }
+        public TimeSpan? ActualBizdayTimeSpan
+        {
+            get
+            {
+                if (this.bizdaytimespan.IsNullOrWhiteSpace()) return null;
+                return TimeSpan.Parse(this.bizdaytimespan);
+            }
+        }
+        public string satcutoff { get; set; }
+        public TimeSpan? satcutoffTimeSpan
+        {
+            get
+            {
+                if (this.satcutoff.IsNullOrWhiteSpace()) return null;
+                return TimeSpan.Parse(this.satcutoff);
+            }
+        }
+        public string SatSLAType { get; set; }
+        public string sattimespan { get; set; }
+        public TimeSpan? ActualSatTimeSpan
+        {
+            get
+            {
+
+                if (this.sattimespan.IsNullOrWhiteSpace()) return null;
+                return TimeSpan.Parse(this.sattimespan);
+            }
+        }
+        public string suncutoff { get; set; }
+        public TimeSpan? suncutoffTimeSpan
+        {
+            get
+            {
+                if (this.suncutoff.IsNullOrWhiteSpace()) return null;
+                return TimeSpan.Parse(this.suncutoff);
+            }
+        }
+        public string SunSLAType { get; set; }
+        public string suntimespan { get; set; }
+        public TimeSpan? ActualSunTimeSpan
+        {
+            get
+            {
+                if (this.suntimespan.IsNullOrWhiteSpace()) return null;
+                return TimeSpan.Parse(this.suntimespan);
+            }
+        }
+        public string ErrorCode { get; set; }
+        
+    }
+
 }
