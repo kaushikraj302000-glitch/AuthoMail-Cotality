@@ -274,6 +274,10 @@
                     url: '/Home/GetScanCount',
                     data: { clientCode: clientCode },
                     success: function (response) {
+                        if (typeof response.ScanCount === "undefined" || typeof response.TotalCount === "undefined") {
+                            window.location.reload();
+                        }
+
                         if (response != null) {
                             $("#todayscount").text(response.ScanCount + "/" + response.TotalCount);
                             UpdateProgressCount(response.ScanCount, response.TotalCount);

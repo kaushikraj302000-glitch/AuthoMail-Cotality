@@ -182,6 +182,10 @@
             success: function (response) {
                 //console.log("#" + clientCode.trim() + "scanCount" + "test " + response.ScanCount + "/" + response.TotalCount);
                 //var totalcount = response.split('$');
+                if (typeof response.ScanCount === "undefined" || typeof response.TotalCount === "undefined") {
+                    window.location.reload();
+                }
+
                 $("#" + clientCode.trim() + "scanCount").empty();
                 $("#" + clientCode.trim() + "scanCount").text(response.ScanCount + "/" + response.TotalCount);
 
