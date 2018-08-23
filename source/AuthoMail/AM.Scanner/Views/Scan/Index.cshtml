@@ -266,7 +266,13 @@
             $("#okModal").click(function () {
                 $("#code1").blur();
             });
+            //$(document).keypress(function (e) {
+            //    if (e.which == 13) {
+            //        if (true) {
 
+            //        }
+            //    }
+            //});
 
             function GetScanCount(clientCode) {
                 $.ajax({
@@ -452,7 +458,7 @@
                     $("#modalTitle").text(modalInfo);
                     $("#modalTitle").addClass("alert alert-info");
                     $("#nextBatch").click();
-                    $("#okModal").focus();
+                    //$("#okModal").focus();
 
                 }
             }
@@ -470,7 +476,7 @@
                     $("#modalTitle").text(modalsuccess);
                     $("#modalTitle").addClass("alert alert-success");
                     $("#nextBatch").click();
-                    $("#okModal").focus();
+                    //$("#okModal").focus();
                     return;
                 }
 
@@ -602,7 +608,7 @@
                                                 $("#genmodalTitle").text("QC is requested for this mailpiece, please perform quality check before mailing.");
                                                 $("#genmodalTitle").addClass("alert alert-info");
                                                 $("#generalmodal").modal("show");
-                                                $("#generalmodalOk").focus();
+                                                //$("#generalmodalOk").focus();
                                             }
                                             if (code == "Pulledback") {
                                                 $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + object.model.BatchName + "<br>  Code: " + code + "'  class='lblAMC lbl-danger' for='success'>" + trackingNo + "</lable>");
@@ -610,7 +616,7 @@
                                                 $("#genmodalTitle").text("Pullback is requested for this mailpiece, please DO NOT mail.");
                                                 $("#genmodalTitle").addClass("alert alert-danger");
                                                 $("#generalmodal").modal("show");
-                                                $("#generalmodalOk").focus();
+                                                //$("#generalmodalOk").focus();
                                             }
                                             if (code == "Valid") {
                                                 $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + object.model.BatchName + "<br>  Code: " + code + "'  class='lblAMC lbl-success' for='success'>" + trackingNo + "</lable>");
@@ -628,14 +634,14 @@
                                                 $("#modalTitle").text(modalsuccess);
                                                 $("#modalTitle").addClass("alert alert-success");
                                                 $("#nextBatch").click();
-                                                $("#okModal").focus();
+                                                //$("#okModal").focus();
                                             }
                                             else if (totalfiles == object.model.ScanCount) {
                                                 $("#modalTitle").removeClass("alert alert-danger");
                                                 $("#modalTitle").text(modalsuccess);
                                                 $("#modalTitle").addClass("alert alert-success");
                                                 $("#nextBatch").click();
-                                                $("#okModal").focus();
+                                                //$("#okModal").focus();
 
                                             }
                                             else {
