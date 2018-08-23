@@ -183,7 +183,10 @@
                 //console.log("#" + clientCode.trim() + "scanCount" + "test " + response.ScanCount + "/" + response.TotalCount);
                 //var totalcount = response.split('$');
                 if (typeof response.ScanCount === "undefined" || typeof response.TotalCount === "undefined") {
+                    $("#" + clientCode.trim() + "scanCount").empty();
+                    $("#" + clientCode.trim() + "scanCount").text("--/--");
                     window.location.reload();
+                    return;
                 }
 
                 $("#" + clientCode.trim() + "scanCount").empty();

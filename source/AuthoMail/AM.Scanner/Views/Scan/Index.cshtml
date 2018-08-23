@@ -275,7 +275,9 @@
                     data: { clientCode: clientCode },
                     success: function (response) {
                         if (typeof response.ScanCount === "undefined" || typeof response.TotalCount === "undefined") {
+                            $("#todayscount").text("--/--");
                             window.location.reload();
+                            return;
                         }
 
                         if (response != null) {
