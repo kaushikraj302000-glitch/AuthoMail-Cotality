@@ -28,6 +28,9 @@ namespace AM.Reporting
                     case "FedExPickUp":
                         FedExPickUp.CheckPickedUpPackages();
                         break;
+                    case "DallasNotification":
+                        DallasNotification.SendEmailNotification();
+                        break;
                     default:
                         break;
                 }
