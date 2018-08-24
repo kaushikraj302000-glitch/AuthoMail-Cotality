@@ -9,5 +9,7 @@ namespace AM.Services
     public interface IUSPSService : IDisposable
     {
         VerifierAddressResponse VerifyAddress(VerifierAddressRequest request);
+
+        eVSResponse CreateeVSLabel(eVSRequest request);
     }
 }

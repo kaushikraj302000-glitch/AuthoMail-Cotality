@@ -97,7 +97,7 @@ namespace AM.Services
 
                     if (validationErrors.Any())
                     {
-                        response.Error = new Error
+                        response.Error = new USPSError
                         {
                             Source = ResponseSource.CLSVC,
                             Description = String.Join(Environment.NewLine, validationErrors)
@@ -178,7 +178,7 @@ namespace AM.Services
 
                         if (isGenericUSPSError)
                         {
-                            var uspsError = uspsResponseString.Deserialize<Error>();
+                            var uspsError = uspsResponseString.Deserialize<USPSError>();
 
                             addresses.ForEach(add =>
                             {
@@ -193,7 +193,7 @@ namespace AM.Services
                         // Store exception details received while accessing USPS API in addresses collection
                         addresses.ForEach(add =>
                         {
-                            add.Error = new Error
+                            add.Error = new USPSError
                             {
                                 Source = ResponseSource.USPS,
                                 Description = ex.ToString()
