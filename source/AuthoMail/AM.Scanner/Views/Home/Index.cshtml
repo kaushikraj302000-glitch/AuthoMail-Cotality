@@ -93,7 +93,7 @@
                     <div class="widget text-center">
                         <div class="widget-body padding-none">
                             <div>
-                                <a href="/Scan/Index?clientCode=@item.ClientCode">
+                                <a href="~/Scan/Index?clientCode=@item.ClientCode">
                                     <div class="innerAll bg-@colorcode[x]">
                                         <p id="box@(cntbox)" class="lead text-white strong margin-none">
                                             @item.ClientName
@@ -104,9 +104,9 @@
                                     </div>
                                 </a>
                                 <div class="reportLink">
-                                    <a href="/Reports/ScanedDocuments?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">View Report</a>
-                                    <a href="/Scan/Index?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">Start Scan</a>
-                                    @*<a href="/Scan/USPSScan?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">USPS Scan</a>*@
+                                    <a href="~/Reports/ScanedDocuments?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">View Report</a>
+                                    <a href="~/Scan/Index?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">Start Scan</a>
+                                    @*<a href="~/Scan/USPSScan?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">USPS Scan</a>*@
                                 </div>
 
                             </div>
@@ -174,7 +174,7 @@
     function GetScanCount(clientCode) {
         $.ajax({
             type: "GET",
-            url: '/Home/GetScanCount',
+            url: '@Url.Content("~/Home/GetScanCount")',
             data: { clientCode: clientCode.trim() },
             async: false,
             success: function (response) {
@@ -203,7 +203,7 @@
 
         $.ajax({
             type: "GET",
-            url: '/api/report/GetAllBatchForScan',
+            url: '@Url.Content("~/api/report/GetAllBatchForScan")',
             dataType: 'json',
             async: false,
             data: { clientCode: clientCode.trim() },

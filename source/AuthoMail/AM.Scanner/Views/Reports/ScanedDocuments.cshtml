@@ -346,7 +346,7 @@
         function bindReportData(clientCode, loanNumber, barcodeValue, printOnFrom, printOnTo, shippedOnFrom, shippedOnTo) {
             $.ajax({
                 type: "GET",
-                url: '/api/report/ScanedDocumentList',
+                url: '@Url.Content("~/api/report/ScanedDocumentList")',
                 data: { clientCode: clientCode, loanNumber: loanNumber, barcodeValue: barcodeValue, printOnFrom: printOnFrom, printOnTo: printOnTo, shippedOnFrom: shippedOnFrom, shippedOnTo: shippedOnTo },
                 success: function (response) {
                     console.log(response);

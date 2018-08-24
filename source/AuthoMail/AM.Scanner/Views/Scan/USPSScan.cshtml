@@ -368,7 +368,7 @@
                 var code1Value = $("#code1").val().trim().toUpperCase();
 
                 if (code1Value != "") {
-                   
+
                     var code1ValueReverse = code1Value.split("").reverse().join("");
                     if (code1ValueReverse.indexOf(clientCode) != -1) {
                         code1Value = code1ValueReverse.replace(clientCode, '');
@@ -418,7 +418,7 @@
                     var code1ValueReverse = code1Value.split("").reverse().join("");
                     if (code1ValueReverse.indexOf(clientCode) != -1) {
                         code1Value = code1ValueReverse.replace(clientCode, '');
-                        
+
                     }
                     var code2Value = $("#code2").val().trim().toUpperCase();
                     if (code2Value != "") {
@@ -428,7 +428,7 @@
                         var scanCount = parseInt($("#countsuccess").text());
                         $.ajax({
                             type: "POST",
-                            url: '/Scan/RegisterUSPSScan',
+                            url:  '@Url.Content("~/Scan/RegisterUSPSScan")',
                             data: { mailPieceId: parseInt(code1Value), trackingNo: code2Value, clientCode: clientCode },
                             success: function (response) {
                                 var object = response;
