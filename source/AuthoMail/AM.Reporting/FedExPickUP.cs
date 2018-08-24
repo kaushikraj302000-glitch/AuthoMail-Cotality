@@ -95,9 +95,9 @@ namespace AM.Reporting
                     using (MailMessage msg = new MailMessage())
                     {
                         msg.IsBodyHtml = false;
-                        msg.To.Add(ConfigurationManager.AppSettings["FedExReport_Email_To"]);
-                        msg.CC.Add(ConfigurationManager.AppSettings["FedExReport_Email_Cc"]);
-                        msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, "USAA", ConfigurationManager.AppSettings["FedExReportSubject"]); ;
+                        msg.To.Add(AppConfig.FedExReport_Email_To);
+                        msg.CC.Add(AppConfig.FedExReport_Email_Cc);
+                        msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, "USAA", AppConfig.FedExReportSubject);
                         msg.Priority = MailPriority.Normal;
                         msg.Body = "FedEx Status Report From : {0} To {1}".Fill(previousDateCutOffTime.ToString("MM/dd/yyyy hh:mm tt"), todayCutOffTime.ToString("MM/dd/yyyy hh:mm tt"));
 

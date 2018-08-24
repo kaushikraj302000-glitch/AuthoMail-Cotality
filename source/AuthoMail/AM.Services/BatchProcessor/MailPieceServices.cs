@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Dapper;
+using AM.Lib;
+
 namespace AM.Services
 {
     public interface IMailPieceService : IDisposable
@@ -17,6 +19,7 @@ namespace AM.Services
         int UpdateBatchMailPieceShippingStatusDetails(MailPieceDTO mailPiece);
         int UpdateMailPiecePickedUpDetailsFromTrackingNo(FedExPickedPackagesDetail pickedUpDetail);
         MailPieceDTO GetMailPieceDataFromTrackingNo(string trackingNo);
+        List<MailPieces> GetDallasMailPiecesByTimingsAndClient(DateTime startTime, DateTime endTime);
     }
     public class MailPieceService : ServiceBase, IMailPieceService //It implements Interfaces 
     {
@@ -97,6 +100,29 @@ namespace AM.Services
             string query = @"SELECT TOP 1 * FROM [AM].[MailPieces] WHERE [TrackingNo] = @TrackingNo";
 
             return db.ExecuteScalar<MailPieceDTO>(query, trackingNo);
+        }
+
+        public List<MailPieces> GetDallasMailPiecesByTimingsAndClient(DateTime startDateTime, DateTime endDateTime)
+        {
+
+            string query = @"SELECT * FROM [AM].[MailPieces] P 
+            INNER JOIN [Common].[Clients] C ON P.ClientId=C.Id
+            INNER JOIN [AM].[DocTypes] D ON P.DocTypeID=D.Id
+            WHERE P.PrintLocation='{0}' AND ( P.EffectiveReceivedOn >= @StartTime AND P.EffectiveReceivedOn < @EndTime ) AND P.ShippingStatus= @Status".Fill(Config.Common_PrintLocationCL);
+
+
+            return db.Query<MailPieces, Clients, DocTypes, MailPieces>(query,
+                (p, c, d) =>
+                {
+                    p.Clients = c;
+                    p.DocTypes = d;
+                    return p;
+                },
+                new
+                {
+                    startDate = startDateTime,
+                    endDate = endDateTime
+                }).ToList();
         }
     }
 }

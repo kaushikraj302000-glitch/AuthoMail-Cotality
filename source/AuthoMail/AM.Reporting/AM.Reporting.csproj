@@ -56,6 +56,8 @@
   <ItemGroup>
     <Compile Include="AMCChannel.cs" />
     <Compile Include="CheckFedExTrackingInfo.cs" />
+    <Compile Include="AppConfig.cs" />
+    <Compile Include="DallasNotification.cs" />
     <Compile Include="FedExPickUP.cs" />
     <Compile Include="HSBCChannel.cs" />
     <Compile Include="Program.cs" />
@@ -123,6 +125,11 @@
       <Generator>WCF Proxy Generator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="EmailTemplates\DallasNotification.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
