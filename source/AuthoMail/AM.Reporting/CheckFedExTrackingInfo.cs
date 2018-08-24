@@ -24,7 +24,7 @@ namespace AM.Reporting
         {
             using (IFedExService fedExSvc = new FedExService())
             {
-                FedExAccountInfo fedExAccountDetails = fedExSvc.GetFedExAccountDetailsByAccountCode(ConfigurationManager.AppSettings["FedExAccountCode"]);
+                FedExAccountInfo fedExAccountDetails = fedExSvc.GetFedExAccountDetailsByAccountCode(AppConfig.FedExAccountCode);
                 if (fedExAccountDetails != null)
                 {
                     WebAuthenticationKey = fedExAccountDetails.WebAuthenticationKey;
@@ -84,7 +84,7 @@ namespace AM.Reporting
                 {
                     if (trackDetail.Events != null)
                     {
-                        var trackEvent = trackDetail.Events.Where(c => c.EventType == "PU").Single();
+                        var trackEvent = trackDetail.Events.Where(c => c.EventType == "PU").SingleOrDefault();
                         if (trackEvent != null)
                         {
                             FedExPickedPackagesDetail pickupDetail = new FedExPickedPackagesDetail();
@@ -126,7 +126,7 @@ namespace AM.Reporting
             request.ClientDetail.MeterNumber = WebMeterNumber;
 
             request.TransactionDetail = new TransactionDetail();
-            request.TransactionDetail.CustomerTransactionId = ConfigurationManager.AppSettings["FedExAccountCode"];
+            request.TransactionDetail.CustomerTransactionId = AppConfig.FedExAccountCode;
 
             request.Version = new VersionId();
             List<TrackSelectionDetail> trackSelections = new List<TrackSelectionDetail>();
