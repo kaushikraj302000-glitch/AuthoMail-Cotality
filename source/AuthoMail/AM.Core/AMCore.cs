@@ -553,6 +553,9 @@ namespace AM.Core
 
         private static string GetPrintLocation(DocType docType, DateTime estEffectiveReceivedOn)
         {
+            if (estEffectiveReceivedOn.DayOfWeek == DayOfWeek.Saturday && docType.ShippingCarrier == Carrier.FedEx.ToString())
+                return Config.Common_PrintLocationCL;
+
             if (estEffectiveReceivedOn.DayOfWeek == DayOfWeek.Saturday)
                 return Config.Common_PrintLocationPCI;
 
