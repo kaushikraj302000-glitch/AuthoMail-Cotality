@@ -181,7 +181,7 @@
         function bindReportData(clientCode) {
             $.ajax({
                 type: "GET",
-                url: '/api/report/PendingScanningList',
+                url: '@Url.Content("~/api/report/PendingScanningList")',
                 data: { clientCode: clientCode },
                 success: function (response) {
                     if (response != null) {

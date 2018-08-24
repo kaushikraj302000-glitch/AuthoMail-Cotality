@@ -50,7 +50,7 @@
                             <ul class="dropdown-menu">
                                 @foreach (var client in clientdetailsList)
                                 {
-                                    <li><a href="\Reports\ScanedDocuments?clientCode=@client.ClientCode">@client.ClientName</a></li>
+                                    <li><a href="~/Reports/ScanedDocuments?clientCode=@client.ClientCode">@client.ClientName</a></li>
                                 }
                                 
                             </ul>
@@ -61,7 +61,7 @@
                             <ul class="dropdown-menu">
                                 @foreach (var client in clientdetailsList)
                                 {
-                                    <li><a href="\Reports\PendingScanning?clientCode=@client.ClientCode">@client.ClientName</a></li>
+                                    <li><a href="~/Reports/PendingScanning?clientCode=@client.ClientCode">@client.ClientName</a></li>
                                 }
 
                             </ul>
