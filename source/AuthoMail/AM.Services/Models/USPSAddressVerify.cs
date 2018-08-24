@@ -101,7 +101,7 @@ namespace AM.Services
 
         public string Warning { get; set; }
 
-        public Error Error { get; set; }
+        public USPSError Error { get; set; }
 
         //public bool IsAddressVerified { get; set; }
 
@@ -139,7 +139,8 @@ namespace AM.Services
 
     [DataContract]
     [Serializable]
-    public class Error
+    [XmlRoot(ElementName = "Error")]
+    public class USPSError
     {
         [DataMember]
         [XmlElement(ElementName = "Number")]
@@ -224,7 +225,7 @@ namespace AM.Services
 
         [DataMember]
         [XmlElement(ElementName = "Error")]
-        public Error Error { get; set; }
+        public USPSError Error { get; set; }
 
         [DataMember]
         public bool HasError
@@ -327,6 +328,20 @@ namespace AM.Services
         //DC,Hawaii,Alaska and All Mainlands
         public const string DHAM = "DHAM";
     }
+
+    //public enum AddressTypes
+    //{
+    //    [XmlEnum(Name = "POBOX")]
+    //    POBOX,
+    //    [XmlEnum(Name = "Military")]
+    //    Military,
+    //    [XmlEnum(Name = "Territory")]
+    //    Territory,
+
+    //    //DC,Hawaii,Alaska and All Mainlands
+    //    [XmlEnum(Name = "DHAM")]
+    //    DHAM,
+    //}
 
     public static class ResponseSource
     {
