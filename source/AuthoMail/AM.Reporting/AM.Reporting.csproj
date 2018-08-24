@@ -56,6 +56,7 @@
   <ItemGroup>
     <Compile Include="AMCChannel.cs" />
     <Compile Include="CheckFedExTrackingInfo.cs" />
+    <Compile Include="DallasNotification.cs" />
     <Compile Include="FedExPickUP.cs" />
     <Compile Include="HSBCChannel.cs" />
     <Compile Include="Program.cs" />
