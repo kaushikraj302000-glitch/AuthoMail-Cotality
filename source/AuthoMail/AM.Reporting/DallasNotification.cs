@@ -17,7 +17,7 @@ namespace AM.Reporting
         internal static void GenerateEmailNotification()
         {
             var dallasCstTimeSpan = Array.ConvertAll(AppConfig.DallasNotificationTimings.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries), s => TimeSpan.Parse(s));
-            var currentCstDateTime = DateTime.UtcNow.UtcToClientTimeZone(AppConfig.DallasTimeZone);
+            var currentCstDateTime = Common.Now.UtcToClientTimeZone(AppConfig.DallasTimeZone);
             var currentCstDate = currentCstDateTime.Date;
             var _05PMSweep = currentCstDate + dallasCstTimeSpan[0];
             var _06PMSweep = currentCstDate + dallasCstTimeSpan[1];
