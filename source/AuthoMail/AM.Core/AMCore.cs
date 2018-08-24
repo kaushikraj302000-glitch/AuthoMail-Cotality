@@ -63,7 +63,8 @@ namespace AM.Core
 
                             //Here first we will calculate effective received on date and based on that we will calculate due date for that
                             DateTime effectiveEstReceivedOn = GetEffectiveEstReceivedOn(docType, mailBatch.ReceivedOn.Value);
-
+                            //Here storing effective receivedon in UTC format as per rule
+                            mailPiece.EffectiveReceivedOn = effectiveEstReceivedOn.EstToUtc();
                             //Calculate Due Date for Mail Pieces doc type wise
                             mailPiece.DueDate = GetDueDate(docType, effectiveEstReceivedOn);
 
