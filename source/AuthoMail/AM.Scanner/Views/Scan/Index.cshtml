@@ -152,7 +152,7 @@
             </div>
 
             <button type="button" id="nextBatch" class="btn btn-primary" tabindex="3" data-toggle="modal" data-target="#smallModal">Scan Next Batch</button>
-            <button type="button" id="clearData"  class="btn btn-warning" tabindex="4">Clear</button>
+            <button type="button" id="clearData" class="btn btn-warning" tabindex="4">Clear</button>
             <div id="Messagedata" style="height: 35px; margin-top: 8px; margin-left: -1px;">
                 <div id="message" class="form-group">
                 </div>
@@ -489,7 +489,7 @@
                 else {
                     var code1Value = $("#code1").val();
                     if (code1Value != "") {
-                            $("#code2").focus();
+                        $("#code2").focus();
                     } else {
                         $("#message").empty();
                         $("#message").show();
@@ -505,7 +505,7 @@
 
             /*---- Code2 validate Barcode  ----*/
             $("#code2").blur(function () {
-                if ($("#code1").val().trim()=="" ) {
+                if ($("#code1").val().trim() == "") {
                     $("#message").empty();
                     $("#message").show();
                     $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>Please scan the front barcode first.</div>");
@@ -519,7 +519,7 @@
                     startNewBatch();// calling startNewBatch() Method
                     var batchtotalCount = $("#todayscount").text();
                     if (environment.toUpperCase() == "UAT") {
-                       //console.log(environment);
+                        //console.log(environment);
                         $('#code1').val($('#code2').val().split("").reverse().join(""));
                     }
 
@@ -540,8 +540,8 @@
                         var code1Value = $("#code1").val().trim().toUpperCase();
                         var code2Value = $("#code2").val().split('').reverse().join('').trim().toUpperCase();
                         if (code2Value != "") {
-                           // var withoutClientCode = code2Value.replace(clientCode, '');
-                           // console.log(code1Value.indexOf(code2Value));
+                            // var withoutClientCode = code2Value.replace(clientCode, '');
+                            // console.log(code1Value.indexOf(code2Value));
                             if (code1Value.indexOf(code2Value) != -1) {
                                 var totalScanValues = $("#todayscount").text().split('/');
                                 var totalScanned = totalScanValues[0];
@@ -637,7 +637,12 @@
                                         else if (code == "Invalid") {
                                             $("#message").empty();
                                             $("#message").show();
-                                            $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>Document with barcode " + code2Value + " could not be found.</div>");
+                                            if (message == null || message == "") {
+                                                $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>Document with barcode " + code2Value + " could not be found.</div>");
+                                            }
+                                            else {
+                                                $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><b>" + message + "</b></div>");
+                                            }
                                             $("#code1").val("");
                                             $("#code2").val("");
                                             $("#code1").focus();
