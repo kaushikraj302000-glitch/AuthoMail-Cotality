@@ -428,7 +428,7 @@
                         var scanCount = parseInt($("#countsuccess").text());
                         $.ajax({
                             type: "POST",
-                            url:  '@Url.Content("Scan/RegisterUSPSScan")',
+                            url:  '@Url.Content("~/Scan/RegisterUSPSScan")',
                             data: { mailPieceId: parseInt(code1Value), trackingNo: code2Value, clientCode: clientCode },
                             success: function (response) {
                                 var object = response;

@@ -174,7 +174,7 @@
     function GetScanCount(clientCode) {
         $.ajax({
             type: "GET",
-            url: '@Url.Content("Home/GetScanCount")',
+            url: '@Url.Content("~/Home/GetScanCount")',
             data: { clientCode: clientCode.trim() },
             async: false,
             success: function (response) {
@@ -203,7 +203,7 @@
 
         $.ajax({
             type: "GET",
-            url: '@Url.Content("api/report/GetAllBatchForScan")',
+            url: '@Url.Content("~/api/report/GetAllBatchForScan")',
             dataType: 'json',
             async: false,
             data: { clientCode: clientCode.trim() },

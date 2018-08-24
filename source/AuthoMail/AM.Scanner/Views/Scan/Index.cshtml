@@ -277,7 +277,7 @@
     function GetScanCount(clientCode) {
         $.ajax({
             type: "GET",
-            url: '@Url.Content("Home/GetScanCount")',
+            url: '@Url.Content("~/Home/GetScanCount")',
             data: { clientCode: clientCode },
             success: function (response) {
                 if (typeof response.ScanCount === "undefined" || typeof response.TotalCount === "undefined") {
@@ -320,7 +320,7 @@
     function GetScanDocumentFromCookies(clientCode) {
         $.ajax({
             type: "GET",
-            url: '@Url.Content("Scan/GetScanDocumentFromCookies")',
+            url: '@Url.Content("~/Scan/GetScanDocumentFromCookies")',
             data: { clientCode: clientCode },
             success: function (response) {
                 //console.log(response);
@@ -549,7 +549,7 @@
                         var scanCount = parseInt($("#countsuccess").text());
                         $.ajax({
                             type: "POST",
-                            url: '@Url.Content("Scan/RegisterScan")',
+                            url: '@Url.Content("~/Scan/RegisterScan")',
                             data: { barcode: code2Value, scanCount: scanCount, clientCode: clientCode },
                             success: function (response) {
                                 var object = response;
