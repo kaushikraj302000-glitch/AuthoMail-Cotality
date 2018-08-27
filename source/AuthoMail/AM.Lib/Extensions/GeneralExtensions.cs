@@ -159,6 +159,11 @@ namespace AM.Lib
             return descAttr == null ? null : descAttr.Description;
         }
 
+        public static string RemoveFormatting(this string value)
+        {
+            return value.Replace("(", "").Replace(")", "").Replace("-", "").Replace(" ", "").Replace(",", "");
+        }
+
         public static MethodInfo GetConversionMethod(this Type t)
         {
             MethodInfo Convert;
