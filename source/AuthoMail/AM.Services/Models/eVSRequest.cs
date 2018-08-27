@@ -145,7 +145,43 @@ namespace AM.Services
 
         public DestinationEntryFacilityType? DestinationEntryFacilityType { get; set; }
 
-        public eVSCustomsFormsData eVSCustomsFormsData { get; set; }
+        public List<ItemDetail> ShippingContents { get; set; }
+        public CustomsContentType? CustomsContentType { get; set; }
+        public string ContentComments { get; set; }
+        public RestrictionType? RestrictionType { get; set; }
+        public string RestrictionComments { get; set; }
+        public string AESITN { get; set; }
+        public string ImportersReference { get; set; }
+        public string ImportersContact { get; set; }
+        public string ExportersReference { get; set; }
+        public string ExportersContact { get; set; }
+        public string InvoiceNumber { get; set; }
+        public string LicenseNumber { get; set; }
+        public string CertificateNumber { get; set; }
+        public NonDeliveryOption? NonDeliveryOption { get; set; }
+        public string AltReturnAddress1 { get; set; }
+        public string AltReturnAddress2 { get; set; }
+        public string AltReturnAddress3 { get; set; }
+        public string AltReturnAddress4 { get; set; }
+        public string AltReturnAddress5 { get; set; }
+        public string AltReturnAddress6 { get; set; }
+        public string AltReturnCountry { get; set; }
+        public string LabelImportType { get; set; }
+        public ePostageMailerReporting? ePostageMailerReporting { get; set; }
+        public string SenderFirstName { get; set; }
+        public string SenderLastName { get; set; }
+        public string SenderBusinessName { get; set; }
+        public string SenderAddress1 { get; set; }
+        public string SenderCity { get; set; }
+        public string SenderState { get; set; }
+        public string SenderZip5 { get; set; }
+        public string SenderPhone { get; set; }
+        public string SenderEmail { get; set; }
+
+        public bool ShouldSerializeCustomsContentType() { return this.CustomsContentType.HasValue; }
+        public bool ShouldSerializeRestrictionType() { return this.RestrictionType.HasValue; }
+        public bool ShouldSerializeNonDeliveryOption() { return this.NonDeliveryOption.HasValue; }
+        public bool ShouldSerializeePostageMailerReporting() { return this.ePostageMailerReporting.HasValue; }
 
         public eVSRequest(eVSLabelRequest request)
         {
@@ -214,7 +250,42 @@ namespace AM.Services
             this.OptOutOfSPE = request.OptOutOfSPE;
             this.SortationLevel = request.SortationLevel;
             this.DestinationEntryFacilityType = request.DestinationEntryFacilityType;
-            this.eVSCustomsFormsData = request.eVSCustomsFormsData;
+            
+            if (request.eVSCustomsFormsData != null)
+            {
+                this.ShippingContents = request.eVSCustomsFormsData.ShippingContents;
+                this.CustomsContentType = request.eVSCustomsFormsData.CustomsContentType;
+                this.ContentComments = request.eVSCustomsFormsData.ContentComments;
+                this.RestrictionType = request.eVSCustomsFormsData.RestrictionType;
+                this.RestrictionComments = request.eVSCustomsFormsData.RestrictionComments;
+                this.AESITN = request.eVSCustomsFormsData.AESITN;
+                this.ImportersReference = request.eVSCustomsFormsData.ImportersReference;
+                this.ImportersContact = request.eVSCustomsFormsData.ImportersContact;
+                this.ExportersReference = request.eVSCustomsFormsData.ExportersReference;
+                this.ExportersContact = request.eVSCustomsFormsData.ExportersContact;
+                this.InvoiceNumber = request.eVSCustomsFormsData.InvoiceNumber;
+                this.LicenseNumber = request.eVSCustomsFormsData.LicenseNumber;
+                this.CertificateNumber = request.eVSCustomsFormsData.CertificateNumber;
+                this.NonDeliveryOption = request.eVSCustomsFormsData.NonDeliveryOption;
+                this.AltReturnAddress1 = request.eVSCustomsFormsData.AltReturnAddress1;
+                this.AltReturnAddress2 = request.eVSCustomsFormsData.AltReturnAddress2;
+                this.AltReturnAddress3 = request.eVSCustomsFormsData.AltReturnAddress3;
+                this.AltReturnAddress4 = request.eVSCustomsFormsData.AltReturnAddress4;
+                this.AltReturnAddress5 = request.eVSCustomsFormsData.AltReturnAddress5;
+                this.AltReturnAddress6 = request.eVSCustomsFormsData.AltReturnAddress6;
+                this.AltReturnCountry = request.eVSCustomsFormsData.AltReturnCountry;
+                this.LabelImportType = request.eVSCustomsFormsData.LabelImportType;
+                this.ePostageMailerReporting = request.eVSCustomsFormsData.ePostageMailerReporting;
+                this.SenderFirstName = request.eVSCustomsFormsData.SenderFirstName;
+                this.SenderLastName = request.eVSCustomsFormsData.SenderLastName;
+                this.SenderBusinessName = request.eVSCustomsFormsData.SenderBusinessName;
+                this.SenderAddress1 = request.eVSCustomsFormsData.SenderAddress1;
+                this.SenderCity = request.eVSCustomsFormsData.SenderCity;
+                this.SenderState = request.eVSCustomsFormsData.SenderState;
+                this.SenderZip5 = request.eVSCustomsFormsData.SenderZip5;
+                this.SenderPhone = request.eVSCustomsFormsData.SenderPhone;
+                this.SenderEmail = request.eVSCustomsFormsData.SenderEmail;
+            }
         }
 
         public eVSRequest()
