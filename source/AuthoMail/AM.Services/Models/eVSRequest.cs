@@ -212,5 +212,14 @@ namespace AM.Services
 
         [XmlElement(ElementName = "ShippingContents")]
         public List<ItemDetail> ShippingContents { get; set; }
+
+        public eVSRequest(eVSLabelRequest request)
+        {
+            //set everything
+        }
+        public eVSRequest()
+        {
+
+        }
     }
 }
