@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using AM.Lib;
 using AM.USPSLib;
 
 namespace AM.Services
@@ -186,7 +187,7 @@ namespace AM.Services
             this.InsuredAmount = request.InsuredAmount;
             this.AddressServiceRequested = request.AddressServiceRequested;
             this.ExpressMailOptions = request.ExpressMailOptions;
-            this.ShipDate = request.ShipDate.ToString("dd-MMM-yyyy");
+            this.ShipDate = request.ShipDate.HasValue ? request.ShipDate.Value.ToString("dd-MMM-yyyy") : null;
             this.CustomerRefNo = request.CustomerRefNo;
             this.CustomerRefNo2 = request.CustomerRefNo2;
             this.ExtraServices = request.ExtraServices;
@@ -205,7 +206,7 @@ namespace AM.Services
             this.NineDigitRoutingZip = request.NineDigitRoutingZip;
             this.ShipInfo = request.ShipInfo;
             this.CarrierRelease = request.CarrierRelease;
-            this.DropOffTime = request.DropOffTime;
+            this.DropOffTime = request.DropOffTime.HasValue ? request.DropOffTime.Value.ToString("HH:mm") : null;
             this.ReturnCommitments = request.ReturnCommitments;
             this.PrintCustomerRefNo = request.PrintCustomerRefNo;
             this.Content = request.Content;
@@ -213,6 +214,7 @@ namespace AM.Services
             this.OptOutOfSPE = request.OptOutOfSPE;
             this.SortationLevel = request.SortationLevel;
             this.DestinationEntryFacilityType = request.DestinationEntryFacilityType;
+            this.eVSCustomsFormsData = request.eVSCustomsFormsData;
         }
 
         public eVSRequest()
@@ -234,5 +236,7 @@ namespace AM.Services
         public bool ShouldSerializeHoldForManifest() { return this.HoldForManifest.HasValue; }
         public bool ShouldSerializeActionCode() { return this.ActionCode.HasValue; }
         public bool ShouldSerializeDestinationEntryFacilityType() { return this.DestinationEntryFacilityType.HasValue; }
+        public bool ShouldSerializeShipDate() { return !this.ShipDate.IsNullOrWhiteSpace(); }
+        public bool ShouldSerializeDropOffTime() { return !this.DropOffTime.IsNullOrWhiteSpace(); }
     }
 }

@@ -12,5 +12,6 @@ namespace AM.Services
         string USERID { get; set; }
         string PASSWORD { get; set; }
         string ShipDate { get; set; }
+        string DropOffTime { get; set; }
     }
 }

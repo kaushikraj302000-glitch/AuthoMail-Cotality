@@ -834,28 +834,29 @@ Database Changes
 				) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 				GO
 		7) Added new system settings in Common.SystemSettings table
-			- INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_IsDbLoggingEnabled', N'Boolean', N'false', NULL, 0, N'false', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+			 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_IsDbLoggingEnabled', N'Boolean', N'false', NULL, 0, N'false', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
-			- INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_MilitaryCities', N'String', N'APO,DPO,FPO', NULL, 0, N'APO,DPO,FPO', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+			 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_MilitaryCities', N'String', N'APO,DPO,FPO', NULL, 0, N'APO,DPO,FPO', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
-			- INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_MilitaryStates', N'String', N'AA,AE,AP', NULL, 0, N'AA,AE,AP', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+			 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_MilitaryStates', N'String', N'AA,AE,AP', NULL, 0, N'AA,AE,AP', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
-			- INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_Territory', N'String', N'AS,FM,GU,MH,MP,PR,PW,VI', NULL, 0, N'AS,FM,GU,MH,MP,PR,PW,VI', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+			 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_Territory', N'String', N'AS,FM,GU,MH,MP,PR,PW,VI', NULL, 0, N'AS,FM,GU,MH,MP,PR,PW,VI', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
-			- INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_URL', N'String', N'http://production.shippingapis.com/ShippingAPI.dll', NULL, 0, N'http://production.shippingapis.com/ShippingAPI.dll', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+			 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_URL', N'String', N'http://production.shippingapis.com/ShippingAPI.dll', NULL, 0, N'http://production.shippingapis.com/ShippingAPI.dll', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
-			- INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_UserId', N'String', N'819MILES3278', NULL, 0, N'819MILES3278', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+			 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_UserId', N'String', N'819MILES3278', NULL, 0, N'819MILES3278', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
-			- INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_VerifyAPIName', N'String', N'Verify', NULL, 0, N'Verify', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+			 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_VerifyAPIName', N'String', N'Verify', NULL, 0, N'Verify', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
-			- INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_AddressCount', N'Int32', N'5', NULL, 0, N'5', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+			 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_AddressCount', N'Int32', N'5', NULL, 0, N'5', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 			
-			- INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_MainlandStates', N'String', N'AK,AL,AR,AZ,CA,CO,CT,DC,DE,FL,GA,HI,IA,ID,IL,IN,KS,KY,LA,MA,MD,ME,MI,MN,MO,MS,MT,NC,ND,NE,NH,NJ,NM,NV,NY,OH,OK,OR,PA,RI,SC,SD,TN,TX,UT,VA,VT,WA,WI,WV,WY', NULL, 0, N'AK,AL,AR,AZ,CA,CO,CT,DC,DE,FL,GA,HI,IA,ID,IL,IN,KS,KY,LA,MA,MD,ME,MI,MN,MO,MS,MT,NC,ND,NE,NH,NJ,NM,NV,NY,OH,OK,OR,PA,RI,SC,SD,TN,TX,UT,VA,VT,WA,WI,WV,WY', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+			 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_MainlandStates', N'String', N'AK,AL,AR,AZ,CA,CO,CT,DC,DE,FL,GA,HI,IA,ID,IL,IN,KS,KY,LA,MA,MD,ME,MI,MN,MO,MS,MT,NC,ND,NE,NH,NJ,NM,NV,NY,OH,OK,OR,PA,RI,SC,SD,TN,TX,UT,VA,VT,WA,WI,WV,WY', NULL, 0, N'AK,AL,AR,AZ,CA,CO,CT,DC,DE,FL,GA,HI,IA,ID,IL,IN,KS,KY,LA,MA,MD,ME,MI,MN,MO,MS,MT,NC,ND,NE,NH,NJ,NM,NV,NY,OH,OK,OR,PA,RI,SC,SD,TN,TX,UT,VA,VT,WA,WI,WV,WY', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 		8) Replace Data in AM.MailPieces 
 			- UPDATE AM.MailPieces SET [RcptAddrOptionalLine1BelowStreet]=[RcptAddressAptOrSuiteOrOther]
 			- UPDATE AM.MailPieces SET [RcptAddressAptOrSuiteOrOther]=NULL
 		9) Updated CutOff timings of USAA doctypes
 			- UPDATE AM.DOCTYPES SET BizDayCutOff='17:00:00',BizdayTimeSpan='00:23:59:59',BIZDAYSLATYPE='FixedTime',SatCutOff='12:00:00',SatTimeSpan='00:23:59:59',SatSLATYPE='FixedTime' WHERE CLIENTID=101 AND ShippingServiceType='USPS_EXPRESSMAIL'
+			-  UPDATE [AM].[DocTypes]SET BizdayCutOff='20:00:00',SatCutOff='20:00:00' WHERE ShippingCarrier='FedEx' AND ClientId=101
 			- UPDATE AM.DOCTYPES SET BizDayCutOff='20:00:00',BizdayTimeSpan='01:23:59:59',BIZDAYSLATYPE='FixedTime',SatCutOff='20:00:00',SatTimeSpan='01:23:59:59',SatSLATYPE='FixedTime' WHERE CLIENTID=101 AND (BIZDAYSLATYPE='Duration' OR SatSLATYPE='Duration')
 
 		

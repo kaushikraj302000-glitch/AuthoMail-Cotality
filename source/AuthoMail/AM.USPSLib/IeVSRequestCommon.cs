@@ -117,7 +117,6 @@ namespace AM.USPSLib
         bool ShipInfo { get; set; }
 
         bool CarrierRelease { get; set; }
-        string DropOffTime { get; set; }
 
         bool ReturnCommitments { get; set; }
 
