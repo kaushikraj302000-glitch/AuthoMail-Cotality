@@ -8,6 +8,7 @@ namespace AM.USPSLib
 {
     public interface IeVSLabelRequest : IeVSRequestCommon
     {
-        DateTime ShipDate { get; set; }
+        DateTime? ShipDate { get; set; }
+        TimeSpan? DropOffTime { get; set; }
     }
 }

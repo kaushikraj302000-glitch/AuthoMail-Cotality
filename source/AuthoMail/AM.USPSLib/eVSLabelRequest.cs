@@ -82,7 +82,7 @@ namespace AM.USPSLib
 
         public ExpressMailOptions ExpressMailOptions { get; set; }
 
-        public DateTime ShipDate { get; set; }
+        public DateTime? ShipDate { get; set; }
 
         public string CustomerRefNo { get; set; }
 
@@ -120,7 +120,7 @@ namespace AM.USPSLib
 
         public bool CarrierRelease { get; set; }
 
-        public string DropOffTime { get; set; }
+        public TimeSpan? DropOffTime { get; set; }
 
         public bool ReturnCommitments { get; set; }
 
