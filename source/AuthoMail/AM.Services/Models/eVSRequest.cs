@@ -213,6 +213,7 @@ namespace AM.Services
             this.OptOutOfSPE = request.OptOutOfSPE;
             this.SortationLevel = request.SortationLevel;
             this.DestinationEntryFacilityType = request.DestinationEntryFacilityType;
+            this.eVSCustomsFormsData = request.eVSCustomsFormsData;
         }
 
         public eVSRequest()
