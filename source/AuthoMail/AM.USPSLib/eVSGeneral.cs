@@ -13,24 +13,29 @@ namespace AM.USPSLib
         public LabelSize? Size { get; set; }
 
         [XmlElement(ElementName = "XCoordinate")]
-        public int XCoordinate { get; set; }
+        public int? XCoordinate { get; set; }
 
         [XmlElement(ElementName = "YCoordinate")]
-        public int YCoordinate { get; set; }
+        public int? YCoordinate { get; set; }
 
         [XmlElement(ElementName = "LabelSequence")]
         public LabelSequence Sequence { get; set; }
 
         public bool ShouldSerializeSize() { return this.Size.HasValue; }
+        public bool ShouldSerializeXCoordinate() { return this.XCoordinate.HasValue; }
+        public bool ShouldSerializeYCoordinate() { return this.YCoordinate.HasValue; }
     }
 
     public class LabelSequence
     {
         [XmlElement(ElementName = "PackageNumber")]
-        public int PackageNumber { get; set; }
+        public int? PackageNumber { get; set; }
 
         [XmlElement(ElementName = "TotalPackages")]
-        public int TotalPackages { get; set; }
+        public int? TotalPackages { get; set; }
+
+        public bool ShouldSerializePackageNumber() { return this.PackageNumber.HasValue; }
+        public bool ShouldSerializeTotalPackages() { return this.TotalPackages.HasValue; }
     }
 
     public class ExpressMailOptions
@@ -58,12 +63,17 @@ namespace AM.USPSLib
     public class ItemDetail
     {
         public string Description { get; set; }
-        public int Quantity { get; set; }
-        public Decimal Value { get; set; }
-        public int NetPounds { get; set; }
-        public Decimal NetOunces { get; set; }
+        public int? Quantity { get; set; }
+        public decimal? Value { get; set; }
+        public int? NetPounds { get; set; }
+        public decimal? NetOunces { get; set; }
         public string HSTariffNumber { get; set; }
         public string CountryofOrigin { get; set; }
+
+        public bool ShouldSerializeQuantity() { return this.Quantity.HasValue; }
+        public bool ShouldSerializeValue() { return this.Value.HasValue; }
+        public bool ShouldSerializeNetPounds() { return this.NetPounds.HasValue; }
+        public bool ShouldSerializeNetOunces() { return this.NetOunces.HasValue; }
     }
 
     public class Commitment

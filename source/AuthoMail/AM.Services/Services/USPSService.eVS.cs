@@ -37,7 +37,7 @@ namespace AM.Services
 
                 if (Config.Web_API_USPS_IsDbLoggingEnabled)
                 {
-                    dbLog = db.ExecuteScalarAsync<int>("Insert into [API].[USPSeVS] ([APIName], [UserId], [APIRequest], [APIRequestedOn],[IsAPIError],[IsUSPSError],[APIResponse], [APIResponseOn]) OUTPUT INSERTED.Id VALUES(@APIName, @UserId, @APIRequest, @APIRequestedOn, @IsAPIError, @IsUSPSError, @APIResponse, @APIResponseOn);", new { APIName = Config.Web_API_USPS_eVSAPIName, UserId = userId, APIRequest = labelInputXML, APIRequestedOn = Common.Now, IsAPIError = isAPIError, IsUSPSError = false, APIResponse = apiErrorMSG, APIResponseOn = isAPIError ? Common.Now : (DateTime?)null });
+                    dbLog = db.ExecuteScalarAsync<int>("Insert into [API].[USPSeVS] ([APIName], [UserId], [APIRequest], [APIRequestedOn],[IsAPIError],[IsUSPSError],[APIResponse], [APIResponseOn],[Postage]) OUTPUT INSERTED.Id VALUES(@APIName, @UserId, @APIRequest, @APIRequestedOn, @IsAPIError, @IsUSPSError, @APIResponse, @APIResponseOn,@Postage);", new { APIName = Config.Web_API_USPS_eVSAPIName, UserId = userId, APIRequest = labelInputXML, APIRequestedOn = Common.Now, IsAPIError = isAPIError, IsUSPSError = false, APIResponse = apiErrorMSG, APIResponseOn = isAPIError ? Common.Now : (DateTime?)null, Postage = 0 });
                 }
 
                 if (isAPIError)
@@ -87,7 +87,7 @@ namespace AM.Services
                     if (Config.Web_API_USPS_IsDbLoggingEnabled)
                     {
                         logId = await dbLog;
-                        uspsReqLog = db.ExecuteScalarAsync<int>("Update [API].[USPSeVS] ([USPSRequest], [USPSRequestedOn]) VALUES(@USPSRequest, @USPSRequestedOn);", new { USPSRequest = eVSrequestXML, USPSRequestedOn = Common.Now });
+                        uspsReqLog = db.ExecuteScalarAsync<int>("Update [API].[USPSeVS] set [USPSRequest] = @USPSRequest, [USPSRequestedOn]= @USPSRequestedOn;", new { USPSRequest = eVSrequestXML, USPSRequestedOn = Common.Now });
                     }
 
                     string responseXML = null;
@@ -125,7 +125,7 @@ namespace AM.Services
                     if (Config.Web_API_USPS_IsDbLoggingEnabled)
                     {
                         uspsReqLogAwait = await uspsReqLog;
-                        uspsResXMLLog = db.ExecuteScalarAsync<int>("Update [API].[USPSeVS] ([USPSResponse], [USPSResponseOn]) VALUES(@USPSResponse, @USPSResponseOn);", new { IsUSPSError = isUSPSError, USPSResponse = responseXML, USPSResponseOn = Common.Now });
+                        uspsResXMLLog = db.ExecuteScalarAsync<int>("Update [API].[USPSeVS] set IsUSPSError = @IsUSPSError, [USPSResponse] = @USPSResponse, [USPSResponseOn] = @USPSResponseOn;", new { IsUSPSError = isUSPSError, USPSResponse = responseXML, USPSResponseOn = Common.Now });
                     }
 
                     if (!isUSPSError)

@@ -74,17 +74,17 @@ namespace AM.Services
 
         public Container? Container { get; set; }
 
-        public decimal Width { get; set; }
+        public decimal? Width { get; set; }
 
-        public decimal Length { get; set; }
+        public decimal? Length { get; set; }
 
-        public decimal Height { get; set; }
+        public decimal? Height { get; set; }
 
         public Machinable? Machinable { get; set; }
 
         public PriceOption? PriceOptions { get; set; }
 
-        public decimal InsuredAmount { get; set; }
+        public decimal? InsuredAmount { get; set; }
 
         public bool AddressServiceRequested { get; set; }
 
@@ -128,7 +128,7 @@ namespace AM.Services
 
         public bool CarrierRelease { get; set; }
 
-        public bool DropOffTime { get; set; }
+        public string DropOffTime { get; set; }
 
         public bool ReturnCommitments { get; set; }
 
@@ -220,6 +220,10 @@ namespace AM.Services
 
         }
 
+        public bool ShouldSerializeWidth() { return this.Width.HasValue; }
+        public bool ShouldSerializeLength() { return this.Length.HasValue; }
+        public bool ShouldSerializeHeight() { return this.Height.HasValue; }
+        public bool ShouldSerializeInsuredAmount() { return this.InsuredAmount.HasValue; }
         public bool ShouldSerializeToContactPreference() { return this.ToContactPreference.HasValue; }
         public bool ShouldSerializeServiceType() { return this.ServiceType.HasValue; }
         public bool ShouldSerializeContainer() { return this.Container.HasValue; }
@@ -229,6 +233,6 @@ namespace AM.Services
         public bool ShouldSerializeImageType() { return this.ImageType.HasValue; }
         public bool ShouldSerializeHoldForManifest() { return this.HoldForManifest.HasValue; }
         public bool ShouldSerializeActionCode() { return this.ActionCode.HasValue; }
-        public bool ShouldSerializeDestinationEntryFacilityType() { return this.DestinationEntryFacilityType.HasValue; }    
+        public bool ShouldSerializeDestinationEntryFacilityType() { return this.DestinationEntryFacilityType.HasValue; }
     }
 }

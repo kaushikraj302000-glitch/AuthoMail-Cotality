@@ -57,7 +57,7 @@ namespace AM.USPSLib
         string ToContactMessaging { get; set; }
 
         string ToContactEmail { get; set; }
-        
+
         bool AllowNonCleansedDestAddr { get; set; }
 
         string WeightInOunces { get; set; }
@@ -66,17 +66,17 @@ namespace AM.USPSLib
 
         Container? Container { get; set; }
 
-        decimal Width { get; set; }
+        decimal? Width { get; set; }
 
-        decimal Length { get; set; }
+        decimal? Length { get; set; }
 
-        decimal Height { get; set; }
+        decimal? Height { get; set; }
 
         Machinable? Machinable { get; set; }
 
         PriceOption? PriceOptions { get; set; }
 
-        decimal InsuredAmount { get; set; }
+        decimal? InsuredAmount { get; set; }
 
         bool AddressServiceRequested { get; set; }
 
@@ -117,8 +117,7 @@ namespace AM.USPSLib
         bool ShipInfo { get; set; }
 
         bool CarrierRelease { get; set; }
-
-        bool DropOffTime { get; set; }
+        string DropOffTime { get; set; }
 
         bool ReturnCommitments { get; set; }
 

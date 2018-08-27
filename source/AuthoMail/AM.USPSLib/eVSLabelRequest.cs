@@ -66,17 +66,17 @@ namespace AM.USPSLib
 
         public Container? Container { get; set; }
 
-        public decimal Width { get; set; }
+        public decimal? Width { get; set; }
 
-        public decimal Length { get; set; }
+        public decimal? Length { get; set; }
 
-        public decimal Height { get; set; }
+        public decimal? Height { get; set; }
 
         public Machinable? Machinable { get; set; }
 
         public PriceOption? PriceOptions { get; set; }
 
-        public decimal InsuredAmount { get; set; }
+        public decimal? InsuredAmount { get; set; }
 
         public bool AddressServiceRequested { get; set; }
 
@@ -120,7 +120,7 @@ namespace AM.USPSLib
 
         public bool CarrierRelease { get; set; }
 
-        public bool DropOffTime { get; set; }
+        public string DropOffTime { get; set; }
 
         public bool ReturnCommitments { get; set; }
 
