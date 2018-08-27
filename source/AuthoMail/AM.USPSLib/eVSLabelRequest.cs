@@ -52,7 +52,7 @@ namespace AM.USPSLib
 
         public bool POBox { get; set; }
 
-        public ToContactPreference ToContactPreference { get; set; }
+        public ToContactPreference? ToContactPreference { get; set; }
 
         public string ToContactMessaging { get; set; }
 
@@ -62,9 +62,9 @@ namespace AM.USPSLib
 
         public string WeightInOunces { get; set; }
 
-        public ServiceType ServiceType { get; set; }
+        public ServiceType? ServiceType { get; set; }
 
-        public Container Container { get; set; }
+        public Container? Container { get; set; }
 
         public decimal Width { get; set; }
 
@@ -72,9 +72,9 @@ namespace AM.USPSLib
 
         public decimal Height { get; set; }
 
-        public Machinable Machinable { get; set; }
+        public Machinable? Machinable { get; set; }
 
-        public PriceOption PriceOptions { get; set; }
+        public PriceOption? PriceOptions { get; set; }
 
         public decimal InsuredAmount { get; set; }
 
@@ -108,11 +108,11 @@ namespace AM.USPSLib
 
         public string RecipientEMail { get; set; }
 
-        public ReceiptOption ReceiptOption { get; set; }
+        public ReceiptOption? ReceiptOption { get; set; }
 
-        public ImageType ImageType { get; set; }
+        public ImageType? ImageType { get; set; }
 
-        public HoldForManifest HoldForManifest { get; set; }
+        public HoldForManifest? HoldForManifest { get; set; }
 
         public bool NineDigitRoutingZip { get; set; }
 
@@ -128,14 +128,13 @@ namespace AM.USPSLib
 
         public Content Content { get; set; }
 
-        public ActionCode ActionCode { get; set; }
+        public ActionCode? ActionCode { get; set; }
 
         public bool OptOutOfSPE { get; set; }
 
         public string SortationLevel { get; set; }
 
-        public DestinationEntryFacilityType DestinationEntryFacilityType { get; set; }
-        public List<ItemDetail> ShippingContents { get; set; }
+        public DestinationEntryFacilityType? DestinationEntryFacilityType { get; set; }
         public eVSCustomsFormsData eVSCustomsFormsData { get; set; }
     }
 }

@@ -10,8 +10,9 @@ namespace AM.Services
 {
     public class eVSRequest : IeVSRequest
     {
+        [XmlAttribute(AttributeName = "USERID")]
         public string USERID { get; set; }
-
+        [XmlAttribute(AttributeName = "PASSWORD")]
         public string PASSWORD { get; set; }
 
         [XmlElement(ElementName = "ImageParameters")]
@@ -59,7 +60,7 @@ namespace AM.Services
 
         public bool POBox { get; set; }
 
-        public ToContactPreference ToContactPreference { get; set; }
+        public ToContactPreference? ToContactPreference { get; set; }
 
         public string ToContactMessaging { get; set; }
 
@@ -69,9 +70,9 @@ namespace AM.Services
 
         public string WeightInOunces { get; set; }
 
-        public ServiceType ServiceType { get; set; }
+        public ServiceType? ServiceType { get; set; }
 
-        public Container Container { get; set; }
+        public Container? Container { get; set; }
 
         public decimal Width { get; set; }
 
@@ -79,9 +80,9 @@ namespace AM.Services
 
         public decimal Height { get; set; }
 
-        public Machinable Machinable { get; set; }
+        public Machinable? Machinable { get; set; }
 
-        public PriceOption PriceOptions { get; set; }
+        public PriceOption? PriceOptions { get; set; }
 
         public decimal InsuredAmount { get; set; }
 
@@ -115,11 +116,11 @@ namespace AM.Services
 
         public string RecipientEMail { get; set; }
 
-        public ReceiptOption ReceiptOption { get; set; }
+        public ReceiptOption? ReceiptOption { get; set; }
 
-        public ImageType ImageType { get; set; }
+        public ImageType? ImageType { get; set; }
 
-        public HoldForManifest HoldForManifest { get; set; }
+        public HoldForManifest? HoldForManifest { get; set; }
 
         public bool NineDigitRoutingZip { get; set; }
 
@@ -135,13 +136,13 @@ namespace AM.Services
 
         public Content Content { get; set; }
 
-        public ActionCode ActionCode { get; set; }
+        public ActionCode? ActionCode { get; set; }
 
         public bool OptOutOfSPE { get; set; }
 
         public string SortationLevel { get; set; }
 
-        public DestinationEntryFacilityType DestinationEntryFacilityType { get; set; }
+        public DestinationEntryFacilityType? DestinationEntryFacilityType { get; set; }
 
         public eVSCustomsFormsData eVSCustomsFormsData { get; set; }
 
@@ -218,5 +219,16 @@ namespace AM.Services
         {
 
         }
+
+        public bool ShouldSerializeToContactPreference() { return this.ToContactPreference.HasValue; }
+        public bool ShouldSerializeServiceType() { return this.ServiceType.HasValue; }
+        public bool ShouldSerializeContainer() { return this.Container.HasValue; }
+        public bool ShouldSerializeMachinable() { return this.Machinable.HasValue; }
+        public bool ShouldSerializePriceOptions() { return this.PriceOptions.HasValue; }
+        public bool ShouldSerializeReceiptOption() { return this.ReceiptOption.HasValue; }
+        public bool ShouldSerializeImageType() { return this.ImageType.HasValue; }
+        public bool ShouldSerializeHoldForManifest() { return this.HoldForManifest.HasValue; }
+        public bool ShouldSerializeActionCode() { return this.ActionCode.HasValue; }
+        public bool ShouldSerializeDestinationEntryFacilityType() { return this.DestinationEntryFacilityType.HasValue; }    
     }
 }
