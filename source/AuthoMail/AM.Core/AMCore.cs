@@ -405,9 +405,9 @@ namespace AM.Core
 
             if (mailPiece.RcptAddressTypes.Contains(AddressTypes.Military) || mailPiece.RcptAddressTypes.Contains(AddressTypes.Territory))
             {
-                eVSCustomsFormsData shippingContent = new eVSCustomsFormsData() { ShippingContents = new List<ItemDetail>() { new ItemDetail() { HSTariffNumber = "490110", CountryofOrigin = "United States", Description = "Loan Document", Quantity = 1, NetPounds = 2, NetOunces = 0, Value = 50 } }, CustomsContentType = CustomsContentType.DOCUMENTS };
+                eVSCustomsFormsData customesData = new eVSCustomsFormsData() { ShippingContents = new List<ItemDetail>() { new ItemDetail() { HSTariffNumber = "490110", CountryOfOrigin = "United States", Description = "Loan Document", Quantity = 1, NetPounds = 2, NetOunces = 0, Value = 50 } }, CustomsContentType = CustomsContentType.DOCUMENTS };
 
-                eVSReq.eVSCustomsFormsData = shippingContent;
+                eVSReq.eVSCustomsFormsData = customesData;
             }
 
             return eVSReq;
