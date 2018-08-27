@@ -16,115 +16,193 @@ namespace AM.Services
     {
         public eVSLabelResponse RequesteVSLabel(string userId, eVSLabelRequest request)
         {
-            return new eVSLabelResponse();//this.RequesteVSLabelAsync(request).Result;
+            return this.RequesteVSLabelAsync(userId, request).Result;
         }
-        //private async Task<eVSResponse> RequesteVSLabelAsync(eVSRequest request)
-        //{
-        //    try
-        //    {
-        //        string userId = null;
-        //        bool isAPIError = false;
-        //        string apiErrorMSG = null;
-        //        Task<int> dbLog = null;
-        //        int logId = 0;
+        private async Task<eVSLabelResponse> RequesteVSLabelAsync(string userId, eVSLabelRequest request)
+        {
+            try
+            {
+                bool isAPIError = false;
+                string apiErrorMSG = null;
+                Task<int> dbLog = null;
+                int logId = 0;
 
-        //        //Todo remove this line
-        //        //request = File.ReadAllText(@"E:\PriorityExp\PRIORITY EXPRESS_4X6LABEL.XML").Deserialize<eVSRequest>();
+                if (request == null || userId.IsNullOrWhiteSpace())
+                {
+                    isAPIError = true;
+                    apiErrorMSG = "For create eVS Label, UserId must be specified and Request At least one.";
+                }
 
-        //        if (request == null || request.UserId.IsNullOrWhiteSpace())
-        //        {
-        //            isAPIError = true;
-        //            apiErrorMSG = "For create eVS Label, UserId must be specified or Request At least one.";
-        //        }
-        //        else
-        //        {
-        //            userId = request.UserId;
-        //            //Todo for production used Dallas id
-        //            if (request.USPSUSERID.IsNullOrWhiteSpace())
-        //                request.USPSUSERID = Config.Web_API_USPS_UserId;
-        //        }
+                var labelInputXML = request.Serialize();
 
-        //        var uspsInputXML = request.Serialize();
+                if (Config.Web_API_USPS_IsDbLoggingEnabled)
+                {
+                    dbLog = db.ExecuteScalarAsync<int>("Insert into [API].[USPSeVS] ([APIName], [UserId], [APIRequest], [APIRequestedOn],[IsAPIError],[IsUSPSError],[APIResponse], [APIResponseOn]) OUTPUT INSERTED.Id VALUES(@APIName, @UserId, @APIRequest, @APIRequestedOn, @IsAPIError, @IsUSPSError, @APIResponse, @APIResponseOn);", new { APIName = Config.Web_API_USPS_eVSAPIName, UserId = userId, APIRequest = labelInputXML, APIRequestedOn = Common.Now, IsAPIError = isAPIError, IsUSPSError = false, APIResponse = apiErrorMSG, APIResponseOn = isAPIError ? Common.Now : (DateTime?)null });
+                }
 
-        //        if (Config.Web_API_USPS_IsDbLoggingEnabled)
-        //        {
-        //            //Todo take name from db
-        //            dbLog = db.ExecuteScalarAsync<int>("Insert into [API].[USPSeVS] ([APIName], [UserId], [USPSRequest], [USPSRequestedOn],[IsAPIError],[IsUSPSError],[USPSResponse], [USPSResponseOn]) OUTPUT INSERTED.Id VALUES(@APIName, @UserId, @USPSRequest, @USPSRequestedOn, @IsAPIError, @IsUSPSError, @USPSResponse, @USPSResponseOn);", new { APIName = Config.Web_API_USPS_eVSAPIName, UserId = userId, USPSRequest = uspsInputXML, USPSRequestedOn = Common.Now, IsAPIError = isAPIError, IsUSPSError = false, USPSResponse = apiErrorMSG, USPSResponseOn = isAPIError ? Common.Now : (DateTime?)null });
-        //        }
+                if (isAPIError)
+                {
+                    if (Config.Web_API_USPS_IsDbLoggingEnabled)
+                    {
+                        logId = await dbLog;
+                    }
 
-        //        if (isAPIError)
-        //        {
-        //            if (Config.Web_API_USPS_IsDbLoggingEnabled)
-        //            {
-        //                logId = await dbLog;
-        //            }
+                    return new eVSLabelResponse()
+                    {
+                        Error = new USPSError()
+                        {
+                            Source = ResponseSource.CLSVC,
+                            Description = apiErrorMSG
+                        }
+                    };
+                }
 
-        //            return new eVSResponse()
-        //            {
-        //                Error = new USPSError()
-        //                {
-        //                    Source = ResponseSource.CLSVC,
-        //                    Description = apiErrorMSG
-        //                }
-        //            };
-        //        }
+                FormUrlEncodedContent payload = null;
+                Task<int> uspsReqLog = null;
+                int uspsReqLogAwait = 0;
+                Task<string> uspsReq = null;
+                eVSResponse eVSresponse = null;
+                eVSLabelResponse eVSLabelresponse = null;
 
-        //        FormUrlEncodedContent payload = null;
-        //        Task<string> uspsReq = null;
-        //        eVSResponse responseLabel = null;
+                var eVSrequest = new eVSRequest(request);
+                eVSrequest.USERID = Config.Web_API_USPS_UserId;
 
-        //        using (HttpClient httpClient = new HttpClient())
-        //        {
-        //            //string url = Config.Web_API_USPS_eVSURL;
-        //            string url = @"https://stg-secure.shippingapis.com/ShippingAPI.dll";
+                var eVSrequestXML = eVSrequest.Serialize();
 
-        //            payload = new FormUrlEncodedContent(new[] 
-        //                {
-        //                    //Todo get from db api name
-        //                    new KeyValuePair<string, string>("API",Config.Web_API_USPS_eVSAPIName),
-        //                    //new KeyValuePair<string, string>("API","Verify"),
-        //                    new KeyValuePair<string, string>("XML",uspsInputXML)
-        //                });
+                using (HttpClient httpClient = new HttpClient())
+                {
+                    string url = Config.Web_API_USPS_eVSURL;
+                    //string url = @"https://stg-secure.shippingapis.com/ShippingAPI.dll";
 
-        //            var payloadResult = await payload.ReadAsStringAsync();
-        //            uspsReq = httpClient.GetStringAsync("{0}?{1}".Fill(url, payloadResult));
+                    payload = new FormUrlEncodedContent(new[] 
+                        {
+                            new KeyValuePair<string, string>("API",Config.Web_API_USPS_eVSAPIName),
+                            //new KeyValuePair<string, string>("API","Verify"),
+                            new KeyValuePair<string, string>("XML",eVSrequestXML)
+                        });
 
-        //            var responseXML = await uspsReq;
+                    var payloadResult = await payload.ReadAsStringAsync();
+                    uspsReq = httpClient.GetStringAsync("{0}?{1}".Fill(url, payloadResult));
 
-        //            Task<int> uspsResponseLog = null;
+                    if (Config.Web_API_USPS_IsDbLoggingEnabled)
+                    {
+                        logId = await dbLog;
+                        uspsReqLog = db.ExecuteScalarAsync<int>("Update [API].[USPSeVS] ([USPSRequest], [USPSRequestedOn]) VALUES(@USPSRequest, @USPSRequestedOn);", new { USPSRequest = eVSrequestXML, USPSRequestedOn = Common.Now });
+                    }
 
-        //            if (responseXML.Contains("eVSResponse"))
-        //            {
-        //                responseLabel = responseXML.Deserialize<eVSResponse>();
-        //            }
-        //            else
-        //            {
-        //                var err = responseXML.Deserialize<USPSError>();
-        //                responseLabel = new eVSResponse { Error = err };
-        //            }
+                    string responseXML = null;
+                    bool isUSPSError = false;
 
-        //            if (Config.Web_API_USPS_IsDbLoggingEnabled)
-        //            {
-        //                logId = await dbLog;
-        //                uspsResponseLog = db.ExecuteAsync("Update [API].[USPSeVS] set USPSResponse = @USPSResponse, USPSResponseOn = @USPSResponseOn, BarcodeNumber = @BarcodeNumber, Postage = @Postage Where Id = @Id", new { USPSResponse = responseXML, USPSResponseOn = Common.Now, BarcodeNumber = responseLabel.BarcodeNumber, Postage = responseLabel.Postage, Id = logId });
-        //            }
+                    try
+                    {
+                        responseXML = await uspsReq;
+                        isUSPSError = !responseXML.Contains("eVSResponse");
 
-        //            var uspsResponseLogAwait = await uspsResponseLog;
-        //        }
+                        if (isUSPSError)
+                        {
+                            var err = responseXML.Deserialize<USPSError>();
+                            eVSresponse = new eVSResponse { Error = err };
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        isUSPSError = true;
+                        eVSresponse = new eVSResponse
+                        {
+                            Error = new USPSError
+                            {
+                                Source = ResponseSource.USPS,
+                                Description = ex.ToString()
+                            }
+                        };
+                    }
 
-        //        return await Task.Run(() => responseLabel);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return new eVSResponse()
-        //        {
-        //            Error = new USPSError()
-        //            {
-        //                Source = ResponseSource.CLSVC,
-        //                Description = ex.ToString()
-        //            }
-        //        };
-        //    }
-        //}
+                    Task<int> uspsResXMLLog = null;
+                    int uspsResXMLLogAwait = 0;
+                    Task<int> apiResponseLog = null;
+                    int apiResponseLogAwait = 0;
+
+                    if (Config.Web_API_USPS_IsDbLoggingEnabled)
+                    {
+                        uspsReqLogAwait = await uspsReqLog;
+                        uspsResXMLLog = db.ExecuteScalarAsync<int>("Update [API].[USPSeVS] ([USPSResponse], [USPSResponseOn]) VALUES(@USPSResponse, @USPSResponseOn);", new { IsUSPSError = isUSPSError, USPSResponse = responseXML, USPSResponseOn = Common.Now });
+                    }
+
+                    if (!isUSPSError)
+                    {
+                        eVSresponse = responseXML.Deserialize<eVSResponse>();
+                    }
+
+                    string commitmentName = null;
+                    DateTime? scheduledDeliveryDate = null;
+
+                    if (eVSresponse.Commitment != null)
+                    {
+                        commitmentName = eVSresponse.Commitment.CommitmentName;
+                        scheduledDeliveryDate = DateTime.Parse(eVSresponse.Commitment.ScheduledDeliveryDate);
+                    }
+
+                    if (Config.Web_API_USPS_IsDbLoggingEnabled)
+                    {
+                        uspsResXMLLogAwait = await uspsResXMLLog;
+                        apiResponseLog = db.ExecuteAsync("Update [API].[USPSeVS] set APIResponse = @APIResponse, APIResponseOn = @APIResponseOn, BarcodeNumber = @BarcodeNumber, Postage = @Postage Where Id = @Id", new { APIResponse = responseXML, APIResponseOn = Common.Now, BarcodeNumber = eVSresponse.BarcodeNumber, Postage = eVSresponse.Postage, CommitmentName = commitmentName, ScheduledDeliveryDate = scheduledDeliveryDate, Id = logId });
+                    }
+
+                    apiResponseLogAwait = await apiResponseLog;
+                }
+
+                //Todo convert response to label
+                eVSLabelresponse = eVSLabelResponse(eVSresponse);
+
+                return await Task.Run(() => eVSLabelresponse);
+            }
+            catch (Exception ex)
+            {
+                return new eVSLabelResponse()
+                {
+                    Error = new USPSError()
+                    {
+                        Source = ResponseSource.CLSVC,
+                        Description = "Unexpected error"
+                    }
+                };
+            }
+        }
+        private eVSLabelResponse eVSLabelResponse(eVSResponse response)
+        {
+            var labelResponse = new eVSLabelResponse();
+
+            labelResponse.BarcodeNumber = response.BarcodeNumber;
+            labelResponse.LabelImageString = response.LabelImageString;
+            labelResponse.ReceiptImageString = response.ReceiptImageString;
+            labelResponse.ToName = response.ToName;
+            labelResponse.ToFirm = response.ToFirm;
+            labelResponse.ToAddress1 = response.ToAddress1;
+            labelResponse.ToAddress2 = response.ToAddress2;
+            labelResponse.ToCity = response.ToCity;
+            labelResponse.ToState = response.ToState;
+            labelResponse.ToZip5 = response.ToZip5;
+            labelResponse.ToZip4 = response.ToZip4;
+            labelResponse.Postnet = response.Postnet;
+            labelResponse.RDC = response.RDC;
+            labelResponse.Postage = response.Postage;
+            labelResponse.Extraservices = response.Extraservices;
+            labelResponse.Zone = response.Zone;
+            labelResponse.DimensionalWeight = response.DimensionalWeight;
+            labelResponse.CarrierRoute = response.CarrierRoute;
+            labelResponse.PermitHolderName = response.PermitHolderName;
+            labelResponse.InductionType = response.InductionType;
+            labelResponse.LogMessage = response.LogMessage;
+
+            labelResponse.Commitment = response.Commitment != null ? new CommitmentDetail()
+            {
+                CommitmentName = response.Commitment.CommitmentName,
+                ScheduledDeliveryDate = DateTime.ParseExact(response.Commitment.ScheduledDeliveryDate, "yyyy-MM-dd", null)
+            } : null;
+
+            labelResponse.Error = response.Error;
+
+            return labelResponse;
+        }
     }
 }

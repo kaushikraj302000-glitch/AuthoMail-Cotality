@@ -8,6 +8,6 @@ namespace AM.USPSLib
 {
     public interface IeVSLabelResponse : IeVSResponseCommon
     {
-        CommitmentDetail Commitment { get; set; }       
+        CommitmentDetail Commitment { get; set; }
     }
 }
