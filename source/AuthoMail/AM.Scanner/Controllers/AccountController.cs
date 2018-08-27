@@ -28,6 +28,10 @@ namespace AM.Scanner.Controllers
         [AllowAnonymous]
         public ActionResult Login()
         {
+            if (Request.IsAuthenticated)
+            {
+                return RedirectToAction("Index", "Home");
+            }
             return View();
         }
 
