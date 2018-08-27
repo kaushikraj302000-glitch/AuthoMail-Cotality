@@ -51,7 +51,12 @@ namespace AM.USPSLib
 
     public class ItemDetail
     {
-        public int MyProperty { get; set; }
+        public string Description { get; set; }
+        public Decimal Value { get; set; }
+        public int NetPounds { get; set; }
+        public Decimal NetOunces { get; set; }
+        public string HSTariffNumber { get; set; }
+        public string CountryofOrigin { get; set; }
     }
 
     public class Commitment
