@@ -24,6 +24,7 @@ namespace AM.Scanner.Models
         public string TrackingNo { get; set; }
         public string FileName { get; set; }
         public DateTime SubmittedOn { get; set; }
+        public DateTime DueDate { get; set; }
         public string MailPieceStatus { get; set; }
 
     }

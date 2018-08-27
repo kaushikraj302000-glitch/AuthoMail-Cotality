@@ -11,9 +11,9 @@ namespace AM.USPSLib
     public interface IeVSCustomsFormsData
     {
         List<ItemDetail> ShippingContents { get; set; }
-        CustomsContentType CustomsContentType { get; set; }
+        CustomsContentType? CustomsContentType { get; set; }
         string ContentComments { get; set; }
-        RestrictionType RestrictionType { get; set; }
+        RestrictionType? RestrictionType { get; set; }
         string RestrictionComments { get; set; }
         string AESITN { get; set; }
         string ImportersReference { get; set; }
@@ -23,7 +23,7 @@ namespace AM.USPSLib
         string InvoiceNumber { get; set; }
         string LicenseNumber { get; set; }
         string CertificateNumber { get; set; }
-        NonDeliveryOption NonDeliveryOption { get; set; }
+        NonDeliveryOption? NonDeliveryOption { get; set; }
         string AltReturnAddress1 { get; set; }
         string AltReturnAddress2 { get; set; }
         string AltReturnAddress3 { get; set; }
@@ -32,7 +32,7 @@ namespace AM.USPSLib
         string AltReturnAddress6 { get; set; }
         string AltReturnCountry { get; set; }
         string LabelImportType { get; set; }
-        ePostageMailerReporting ePostageMailerReporting { get; set; }
+        ePostageMailerReporting? ePostageMailerReporting { get; set; }
         string SenderFirstName { get; set; }
         string SenderLastName { get; set; }
         string SenderBusinessName { get; set; }

@@ -10,7 +10,7 @@ namespace AM.USPSLib
     public class LabelParameters
     {
         [XmlElement(ElementName = "ImageParameter")]
-        public LabelSize Size { get; set; }
+        public LabelSize? Size { get; set; }
 
         [XmlElement(ElementName = "XCoordinate")]
         public int XCoordinate { get; set; }
@@ -20,6 +20,8 @@ namespace AM.USPSLib
 
         [XmlElement(ElementName = "LabelSequence")]
         public LabelSequence Sequence { get; set; }
+
+        public bool ShouldSerializeSize() { return this.Size.HasValue; }
     }
 
     public class LabelSequence
@@ -34,23 +36,29 @@ namespace AM.USPSLib
     public class ExpressMailOptions
     {
         [XmlElement(ElementName = "DeliveryOption")]
-        public DeliveryOption DeliveryOption { get; set; }
+        public DeliveryOption? DeliveryOption { get; set; }
 
         [XmlElement(ElementName = "WaiverOfSignature")]
         public bool WaiverOfSignature { get; set; }
+
+        public bool ShouldSerializeDeliveryOption() { return this.DeliveryOption.HasValue; }
     }
 
     public class Content
     {
         [XmlElement(ElementName = "ContentType")]
-        public ContentType ContentType { get; set; }
+        public ContentType? ContentType { get; set; }
 
-        public ContentDescription ContentDescription { get; set; }
+        public ContentDescription? ContentDescription { get; set; }
+
+        public bool ShouldSerializeContentType() { return this.ContentType.HasValue; }
+        public bool ShouldSerializeContentDescription() { return this.ContentDescription.HasValue; }
     }
 
     public class ItemDetail
     {
         public string Description { get; set; }
+        public int Quantity { get; set; }
         public Decimal Value { get; set; }
         public int NetPounds { get; set; }
         public Decimal NetOunces { get; set; }

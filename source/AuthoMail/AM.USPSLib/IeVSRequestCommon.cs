@@ -52,7 +52,7 @@ namespace AM.USPSLib
 
         bool POBox { get; set; }
 
-        ToContactPreference ToContactPreference { get; set; }
+        ToContactPreference? ToContactPreference { get; set; }
 
         string ToContactMessaging { get; set; }
 
@@ -62,9 +62,9 @@ namespace AM.USPSLib
 
         string WeightInOunces { get; set; }
 
-        ServiceType ServiceType { get; set; }
+        ServiceType? ServiceType { get; set; }
 
-        Container Container { get; set; }
+        Container? Container { get; set; }
 
         decimal Width { get; set; }
 
@@ -72,9 +72,9 @@ namespace AM.USPSLib
 
         decimal Height { get; set; }
 
-        Machinable Machinable { get; set; }
+        Machinable? Machinable { get; set; }
 
-        PriceOption PriceOptions { get; set; }
+        PriceOption? PriceOptions { get; set; }
 
         decimal InsuredAmount { get; set; }
 
@@ -106,11 +106,11 @@ namespace AM.USPSLib
 
         string RecipientEMail { get; set; }
 
-        ReceiptOption ReceiptOption { get; set; }
+        ReceiptOption? ReceiptOption { get; set; }
 
-        ImageType ImageType { get; set; }
+        ImageType? ImageType { get; set; }
 
-        HoldForManifest HoldForManifest { get; set; }
+        HoldForManifest? HoldForManifest { get; set; }
 
         bool NineDigitRoutingZip { get; set; }
 
@@ -126,12 +126,12 @@ namespace AM.USPSLib
 
         Content Content { get; set; }
 
-        ActionCode ActionCode { get; set; }
+        ActionCode? ActionCode { get; set; }
 
         bool OptOutOfSPE { get; set; }
 
         string SortationLevel { get; set; }
 
-        DestinationEntryFacilityType DestinationEntryFacilityType { get; set; }
+        DestinationEntryFacilityType? DestinationEntryFacilityType { get; set; }
     }
 }
