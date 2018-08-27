@@ -481,85 +481,85 @@ namespace AM.Console
 
                 #region Address Validation Logic
                 //Get validate Addresses for each records
-                //List<AddressResponse> addressResponses = new List<AddressResponse>();
-                //List<AddressRequest> addressRequestes = new List<AddressRequest>();
-                //foreach (XmlNode mailPieceNode in mailPieceNodes)
-                //{
-                //    string uniqueId = mailPieceNode.SelectSingleNode("./x:Id/text()", nsManager) == null ? string.Empty : mailPieceNode.SelectSingleNode("./x:Id/text()", nsManager).Value;
+                List<AddressResponse> addressResponses = new List<AddressResponse>();
+                List<AddressRequest> addressRequestes = new List<AddressRequest>();
+                foreach (XmlNode mailPieceNode in mailPieceNodes)
+                {
+                    string uniqueId = mailPieceNode.SelectSingleNode("./x:Id/text()", nsManager) == null ? string.Empty : mailPieceNode.SelectSingleNode("./x:Id/text()", nsManager).Value;
 
-                //    string strRcptAddressStreet = string.Empty;
-                //    string strRcptAddrOptionalLine1BelowStreet = string.Empty;
-                //    string strRcptAddressCity = string.Empty;
-                //    string strRcptAddressState = string.Empty;
-                //    string strRcptAddressZIP = string.Empty;
-                //    string addressZip5 = string.Empty;
-                //    string addressZip4 = string.Empty;
+                    string strRcptAddressStreet = string.Empty;
+                    string strRcptAddrOptionalLine1BelowStreet = string.Empty;
+                    string strRcptAddressCity = string.Empty;
+                    string strRcptAddressState = string.Empty;
+                    string strRcptAddressZIP = string.Empty;
+                    string addressZip5 = string.Empty;
+                    string addressZip4 = string.Empty;
 
-                //    var recipientElement = mailPieceNode.SelectSingleNode("./x:RecipientInfo", nsManager);
-                //    if (recipientElement != null)
-                //    {
-                //        var recipeintAddressElement = recipientElement.SelectSingleNode("./x:Address", nsManager);
+                    var recipientElement = mailPieceNode.SelectSingleNode("./x:RecipientInfo", nsManager);
+                    if (recipientElement != null)
+                    {
+                        var recipeintAddressElement = recipientElement.SelectSingleNode("./x:Address", nsManager);
 
-                //        if (recipeintAddressElement != null)
-                //        {
-                //            strRcptAddressStreet = recipeintAddressElement.SelectSingleNode("./x:Line1/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:Line1/text()", nsManager).Value;
+                        if (recipeintAddressElement != null)
+                        {
+                            strRcptAddressStreet = recipeintAddressElement.SelectSingleNode("./x:Line1/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:Line1/text()", nsManager).Value;
 
-                //            strRcptAddrOptionalLine1BelowStreet = recipeintAddressElement.SelectSingleNode("./x:Line2/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:Line2/text()", nsManager).Value;
+                            strRcptAddrOptionalLine1BelowStreet = recipeintAddressElement.SelectSingleNode("./x:Line2/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:Line2/text()", nsManager).Value;
 
-                //            strRcptAddressCity = recipeintAddressElement.SelectSingleNode("./x:City/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:City/text()", nsManager).Value;
+                            strRcptAddressCity = recipeintAddressElement.SelectSingleNode("./x:City/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:City/text()", nsManager).Value;
 
-                //            strRcptAddressState = recipeintAddressElement.SelectSingleNode("./x:State/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:State/text()", nsManager).Value;
+                            strRcptAddressState = recipeintAddressElement.SelectSingleNode("./x:State/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:State/text()", nsManager).Value;
 
-                //            strRcptAddressZIP = recipeintAddressElement.SelectSingleNode("./x:Zip/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:Zip/text()", nsManager).Value;
-                //        }
-                //    }
+                            strRcptAddressZIP = recipeintAddressElement.SelectSingleNode("./x:Zip/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:Zip/text()", nsManager).Value;
+                        }
+                    }
 
-                //    string[] zipCode = strRcptAddressZIP.Split(new[] { '-' }, StringSplitOptions.RemoveEmptyEntries);
-                //    foreach (string zip in zipCode)
-                //    {
-                //        if (zip.Length == 4)
-                //        {
-                //            addressZip4 = zip;
-                //        }
-                //        else if (zip.Length == 5)
-                //        {
-                //            addressZip5 = zip;
-                //        }
-                //    }
+                    string[] zipCode = strRcptAddressZIP.Split(new[] { '-' }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (string zip in zipCode)
+                    {
+                        if (zip.Length == 4)
+                        {
+                            addressZip4 = zip;
+                        }
+                        else if (zip.Length == 5)
+                        {
+                            addressZip5 = zip;
+                        }
+                    }
 
-                //    AddressRequest addressRequest = new AddressRequest() { Id = uniqueId, Line1 = strRcptAddressStreet, Line2 = strRcptAddrOptionalLine1BelowStreet, City = strRcptAddressCity, State = strRcptAddressState, Zip4 = addressZip4, Zip5 = addressZip5 };
+                    AddressRequest addressRequest = new AddressRequest() { Id = uniqueId, Line1 = strRcptAddressStreet, Line2 = strRcptAddrOptionalLine1BelowStreet, City = strRcptAddressCity, State = strRcptAddressState, Zip4 = addressZip4, Zip5 = addressZip5 };
 
-                //    addressRequestes.Add(addressRequest);
-                //}
+                    addressRequestes.Add(addressRequest);
+                }
 
-                //int requestAddressCount = addressRequestes.Count;
-                //int maxAddressVerification = 5;
-                //int verifiedAddressCount = 0;
-                //double loopCount = Math.Ceiling(requestAddressCount / (float)maxAddressVerification);
+                int requestAddressCount = addressRequestes.Count;
+                int maxAddressVerification = 5;
+                int verifiedAddressCount = 0;
+                double loopCount = Math.Ceiling(requestAddressCount / (float)maxAddressVerification);
 
-                //for (double i = 0; i < loopCount; i++)
-                //{
-                //    var takenAddressesList = addressRequestes.Skip(verifiedAddressCount).Take(maxAddressVerification).ToList();
-                //    VerifierAddressRequest verifierAddRequest = new VerifierAddressRequest() { UserId = commonSvc.GetSystemUserId(), AddressRequests = takenAddressesList };
-                //    verifiedAddressCount += maxAddressVerification;
-                //    VerifierAddressResponse verifierAddResponse;
+                for (double i = 0; i < loopCount; i++)
+                {
+                    var takenAddressesList = addressRequestes.Skip(verifiedAddressCount).Take(maxAddressVerification).ToList();
+                    VerifierAddressRequest verifierAddRequest = new VerifierAddressRequest() { AddressRequests = takenAddressesList };
+                    verifiedAddressCount += maxAddressVerification;
+                    VerifierAddressResponse verifierAddResponse;
 
-                //    using (IUSPSService uspsSvc = new USPSService())
-                //    {
-                //        verifierAddResponse = uspsSvc.VerifyAddress(verifierAddRequest);
-                //    }
+                    using (IUSPSService uspsSvc = new USPSService())
+                    {
+                        verifierAddResponse = uspsSvc.VerifyAddress(commonSvc.GetSystemUserId(), verifierAddRequest);
+                    }
 
-                //    if (verifierAddResponse != null)
-                //    {
-                //        //if any error at VerifierAddressResponse level then throw unexpected error and exit from loop
-                //        if (verifierAddResponse.HasError)
-                //        {
-                //            throw new Exception("Error occured while validating Addresses : {0}".Fill(verifierAddResponse.Error));
-                //        }
+                    if (verifierAddResponse != null)
+                    {
+                        //if any error at VerifierAddressResponse level then throw unexpected error and exit from loop
+                        if (verifierAddResponse.HasError)
+                        {
+                            throw new Exception("Error occured while validating Addresses : {0}".Fill(verifierAddResponse.Error));
+                        }
 
-                //        addressResponses.AddRange(verifierAddResponse.AddressResponses);
-                //    }
-                //}
+                        addressResponses.AddRange(verifierAddResponse.AddressResponses);
+                    }
+                }
                 #endregion
 
 
@@ -716,7 +716,7 @@ namespace AM.Console
                             {
                                 if (docType.ShippingCarrier == Carrier.FedEx.ToString())
                                 {
-                                    if (mailPieceDTO.RcptAddressStreet.ToUpper().StartsWith("P.O. BOX") || mailPieceDTO.RcptAddressStreet.ToUpper().StartsWith("PO BOX") || mailPieceDTO.RcptAddressStreet.ToUpper().StartsWith("P O BOX") || mailPieceDTO.RcptAddressStreet.ToUpper().StartsWith("P. O. BOX"))
+                                    if (!(addressResponses.Single(c => c.Id == mailPieceDTO.UniqueId.ToString()).AddressTypes.All(c => c == AddressTypes.DHAM)))
                                     {
                                         documentOrPackageType = documentOrPackageType + Config.Monitor_ExpressMailingText;
 
