@@ -22,7 +22,6 @@ namespace AM.USPSLib
         public LabelSequence Sequence { get; set; }
     }
 
-
     public class LabelSequence
     {
         [XmlElement(ElementName = "PackageNumber")]
@@ -51,7 +50,12 @@ namespace AM.USPSLib
 
     public class ItemDetail
     {
-        public int MyProperty { get; set; }
+        public string Description { get; set; }
+        public Decimal Value { get; set; }
+        public int NetPounds { get; set; }
+        public Decimal NetOunces { get; set; }
+        public string HSTariffNumber { get; set; }
+        public string CountryofOrigin { get; set; }
     }
 
     public class Commitment
@@ -61,5 +65,30 @@ namespace AM.USPSLib
 
         [XmlElement(ElementName = "ScheduledDeliveryDate")]
         public string ScheduledDeliveryDate { get; set; }
+    }
+
+    public class CommitmentDetail
+    {
+        public string CommitmentName { get; set; }
+
+        public DateTime ScheduledDeliveryDate { get; set; }
+    }
+
+    public static class AddressTypes
+    {
+        public const string POBOX = "POBOX";
+        public const string Military = "Military";
+        public const string Territory = "Territory";
+
+        //DC,Hawaii,Alaska and All Mainlands
+        public const string DHAM = "DHAM";
+    }
+
+    public static class ResponseSource
+    {
+        //Response by USPS
+        public const string USPS = "USPS";
+        //Response by This Service
+        public const string CLSVC = "CLSVC";
     }
 }

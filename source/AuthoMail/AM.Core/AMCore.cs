@@ -239,12 +239,12 @@ namespace AM.Core
                                 mailPiece.TrackingNo = doc.TrackingCode;
 
                                 //For now reverse barcoding will be mail piece id
-                                //if (mailPiece.PrintLocation == Config.Common_PrintLocationCL)
-                                //{
-                                //    mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((mailPiece.TrackingNo).Reverse().ToArray()) + "*");
+                                if (mailPiece.PrintLocation == Config.Common_PrintLocationCL)
+                                {
+                                    mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((mailPiece.TrackingNo).Reverse().ToArray()) + "*");
 
-                                //    endPagePdfPath = doc.GenerateLastPageWithBarcode(endPageTemplatePath, mbi.PnSRequestPath, mailPieceData);
-                                //}
+                                    endPagePdfPath = doc.GenerateLastPageWithBarcode(endPageTemplatePath, mbi.PnSRequestPath, mailPieceData);
+                                }
                             }
                             else if (docType.ShippingCarrier == Carrier.FedEx.ToString())
                             {
@@ -559,8 +559,8 @@ namespace AM.Core
             if (estEffectiveReceivedOn.DayOfWeek == DayOfWeek.Saturday)
                 return Config.Common_PrintLocationPCI;
 
-            //if (docType.ShippingCarrier == Carrier.USPS.ToString() && docType.ShippingServiceType == ShippingServiceType.USPS_EXPRESSMAIL.ToString())
-            //    return Config.Common_PrintLocationCL;
+            if (docType.ShippingCarrier == Carrier.USPS.ToString() && docType.ShippingServiceType == ShippingServiceType.USPS_EXPRESSMAIL.ToString())
+                return Config.Common_PrintLocationCL;
 
             if (docType.ShippingCarrier == Carrier.FedEx.ToString() && (estEffectiveReceivedOn.TimeOfDay >= Config.Monitor_InternalPrintAndShipStartTime && estEffectiveReceivedOn.TimeOfDay < Config.Monitor_InternalPrintAndShipEndTime))
                 return Config.Common_PrintLocationCL;

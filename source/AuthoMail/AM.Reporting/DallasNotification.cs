@@ -18,28 +18,28 @@ namespace AM.Reporting
         {
             try
             {
-                var dallasCstTimeSpan = Array.ConvertAll(AppConfig.DallasNotificationTimings.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries), s => TimeSpan.Parse(s));
-                var currentCstDateTime = Common.Now.UtcToClientTimeZone(AppConfig.DallasTimeZone);
-                var currentCstDate = currentCstDateTime.Date;
-                var _05PMSweep = currentCstDate + dallasCstTimeSpan[0];
-                var _06PMSweep = currentCstDate + dallasCstTimeSpan[1];
-                var _07PMSweep = currentCstDate + dallasCstTimeSpan[2];
+                var dallasEstTimeSpan = Array.ConvertAll(AppConfig.DallasNotificationTimings.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries), s => TimeSpan.Parse(s));
+                var currentEstDateTime = Common.Now.UtcToEst();
+                var currentEstDate = currentEstDateTime.Date;
+                var _05PMSweep = currentEstDate + dallasEstTimeSpan[0];
+                var _06PMSweep = currentEstDate + dallasEstTimeSpan[1];
+                var _07PMSweep = currentEstDate + dallasEstTimeSpan[2];
                 DateTime startTime = new DateTime();
                 DateTime endTime = new DateTime();
                 DateTime effectiveDateTime = new DateTime();
-                if (currentCstDateTime < _05PMSweep)
+                if (currentEstDateTime < _05PMSweep)
                 {
-                    startTime = currentCstDate.ClientTimeZoneToUtc(AppConfig.DallasTimeZone);
+                    startTime = currentEstDate.ClientTimeZoneToUtc(AppConfig.DallasTimeZone);
                     endTime = _05PMSweep.ClientTimeZoneToUtc(AppConfig.DallasTimeZone);
                     effectiveDateTime = _05PMSweep;
                 }
-                else if (currentCstDateTime >= _05PMSweep && currentCstDateTime < _06PMSweep)
+                else if (currentEstDateTime >= _05PMSweep && currentEstDateTime < _06PMSweep)
                 {
                     startTime = _05PMSweep.ClientTimeZoneToUtc(AppConfig.DallasTimeZone);
                     endTime = _06PMSweep.ClientTimeZoneToUtc(AppConfig.DallasTimeZone);
                     effectiveDateTime = _06PMSweep;
                 }
-                else if (currentCstDateTime >= _06PMSweep && currentCstDateTime < _07PMSweep)
+                else if (currentEstDateTime >= _06PMSweep && currentEstDateTime < _07PMSweep)
                 {
                     startTime = _06PMSweep.ClientTimeZoneToUtc(AppConfig.DallasTimeZone);
                     endTime = _07PMSweep.ClientTimeZoneToUtc(AppConfig.DallasTimeZone);
@@ -85,7 +85,7 @@ namespace AM.Reporting
             }
         }
 
-        private static void SendEmailNotification(List<Notification> notificationList, DateTime currentCstDate)
+        private static void SendEmailNotification(List<Notification> notificationList, DateTime currentEstDate)
         {
             try
             {
@@ -96,7 +96,7 @@ namespace AM.Reporting
                         msg.IsBodyHtml = true;
                         msg.To.Add(AppConfig.DallasEMailTo);
                         msg.CC.Add(AppConfig.DallasEMailCc);
-                        msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, "Dallas", AppConfig.DallasEMailSubject);
+                        msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, AppConfig.DallasEMailSubject, currentEstDate.AddHours(-1).ToString("hhtt"));
                         msg.Priority = MailPriority.Normal;
 
                         var clientList = notificationList.Select(c => c.ClientCode).Distinct();
@@ -107,7 +107,7 @@ namespace AM.Reporting
                             fullContent.AppendLine(@"<tr><td colspan='3' style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt' valign='top' width='638'><p style='text-align:center' align='center'><span style='font-size:20.0pt'>
                                     {0} / {1} / {2}
                                     <u></u><u></u>
-                                </span></p></td></tr>".Fill(client, currentCstDate.ToString("MMddyyyy"), currentCstDate.ToString("hhtt")));
+                                </span></p></td></tr>".Fill(client, currentEstDate.ToString("MMddyyyy"), currentEstDate.AddHours(-1).ToString("hhtt")));
                             fullContent.AppendLine(@"<tr><td style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 6pt 0in 6pt;text-align:center;font-size:14.0pt' valign='top' width='638'>Shipping Method</td><td style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 6pt 0in 6pt;text-align:center;font-size:14.0pt' valign='top' width='638'>Total Packages Count</td></tr>");
 
                             foreach (var filterd in notificationList.Where(f => f.ClientCode == client))
@@ -119,6 +119,8 @@ namespace AM.Reporting
 
                         StringBuilder sb = new StringBuilder(File.ReadAllText(AppConfig.DallasEMailTemplate));
                         sb = sb.Replace("<%REPLACE%>", fullContent.ToString());
+
+                        msg.Body = sb.ToString();
 
                         smtpClient.Send(msg);
                     }

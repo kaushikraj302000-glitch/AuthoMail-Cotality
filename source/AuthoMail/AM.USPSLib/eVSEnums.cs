@@ -449,7 +449,6 @@ namespace AM.USPSLib
         [EnumMember(Value = "S0")]
         [XmlEnum(Name = "S0")]
         ServiceProvider
-
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
@@ -470,6 +469,93 @@ namespace AM.USPSLib
         [EnumMember(Value = "Other")]
         [XmlEnum(Name = "Other")]
         Other
+    }
 
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum RestrictionType
+    {
+        [EnumMember(Value = "Quarantine")]
+        [XmlEnum(Name = "Quarantine")]
+        Quarantine,
+
+        [EnumMember(Value = "Sanitary Inspection")]
+        [XmlEnum(Name = "Sanitary Inspection")]
+        Sanitary_Inspection,
+
+        [EnumMember(Value = "Phytosanitary Inspection")]
+        [XmlEnum(Name = "Phytosanitary Inspection")]
+        Phytosanitary_Inspection,
+
+        [EnumMember(Value = "Other")]
+        [XmlEnum(Name = "Other")]
+        Other
+    }
+
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum CustomsContentType
+    {
+        [EnumMember(Value = "MERCHANDISE")]
+        [XmlEnum(Name = "MERCHANDISE")]
+        MERCHANDISE,
+
+        [EnumMember(Value = "GIFT")]
+        [XmlEnum(Name = "GIFT")]
+        GIFT,
+
+        [EnumMember(Value = "DOCUMENTS")]
+        [XmlEnum(Name = "DOCUMENTS")]
+        DOCUMENTS,
+
+        [EnumMember(Value = "SAMPLE")]
+        [XmlEnum(Name = "SAMPLE")]
+        SAMPLE,
+
+        [EnumMember(Value = "RETURN")]
+        [XmlEnum(Name = "RETURN")]
+        RETURN,
+
+        [EnumMember(Value = "OTHER")]
+        [XmlEnum(Name = "OTHER")]
+        OTHER,
+
+        [EnumMember(Value = "HUMANITARIAN")]
+        [XmlEnum(Name = "HUMANITARIAN")]
+        HUMANITARIAN,
+
+        [EnumMember(Value = "DANGEROUSGOODS")]
+        [XmlEnum(Name = "DANGEROUSGOODS")]
+        DANGEROUSGOODS
+    }
+
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum NonDeliveryOption
+    {
+        [EnumMember(Value = "RETURN")]
+        [XmlEnum(Name = "RETURN")]
+        RETURN,
+
+        [EnumMember(Value = "REDIRECT")]
+        [XmlEnum(Name = "REDIRECT")]
+        REDIRECT,
+
+        [EnumMember(Value = "ABANDON")]
+        [XmlEnum(Name = "ABANDON")]
+        ABANDON
+    }
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum ePostageMailerReporting
+    {
+        [EnumMember(Value = "1")]
+        [XmlEnum(Name = "1")]
+        ePostage_sender_information_in_SSF = 1,
+
+        [EnumMember(Value = "2")]
+        [XmlEnum(Name = "2")]
+        ePostage_sender_information_through_DES = 2,
+
+
+        [EnumMember(Value = "3")]
+        [XmlEnum(Name = "3")]
+        ePostage_sender_information_using_child_MID = 3
     }
 }

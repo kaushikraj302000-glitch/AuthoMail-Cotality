@@ -8,7 +8,7 @@ namespace AM.USPSLib
 {
     public interface IUSPS
     {
-        //VerifierAddressResponse VerifyAddress(VerifierAddressRequest request);
+        VerifierAddressResponse VerifyAddress(VerifierAddressRequest request);
 
         eVSLabelResponse RequesteVSLabel(eVSLabelRequest request);
     }
