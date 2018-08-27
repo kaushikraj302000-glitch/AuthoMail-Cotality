@@ -15,16 +15,24 @@ namespace AM.USPSLib
         {
             get
             {
-                if (BarcodeNumber.Length >= 30)
+                if (!string.IsNullOrEmpty(this.BarcodeNumber))
                 {
-                    return this.BarcodeNumber.Substring(8);
+                    if (BarcodeNumber.Length >= 30)
+                    {
+                        return this.BarcodeNumber.Substring(8);
+                    }
+                    else
+                    {
+                        return null;
+                    } 
                 }
                 else
                 {
-                    return string.Empty;
-                }
+                    return null;
+                }               
             }
         }
+
         public string LabelImageString { get; set; }
 
         public string ReceiptImageString { get; set; }
