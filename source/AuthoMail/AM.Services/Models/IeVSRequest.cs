@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace AM.Services
 {
-    public interface IeVSRequest : IeVSRequestCommon, IeVSCustomsFormsData
+    public interface IeVSRequest : IeVSRequestCommon
     {
         string USERID { get; set; }
         string PASSWORD { get; set; }

@@ -143,7 +143,7 @@ namespace AM.Services
 
         public DestinationEntryFacilityType DestinationEntryFacilityType { get; set; }
 
-        public List<ItemDetail> ShippingContents { get; set; }
+        public eVSCustomsFormsData eVSCustomsFormsData { get; set; }
 
         public eVSRequest(eVSLabelRequest request)
         {
