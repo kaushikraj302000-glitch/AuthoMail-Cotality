@@ -83,7 +83,8 @@ namespace AM.Entities
         public bool IsQCPerformed { get; set; }
         public int? DocTypeId { get; set; }
         public string PrintLocation { get; set; }
-        public DateTime? EffectiveReceivedOn { get; set; }
+        public DateTime? EffectiveReceivedOnEst { get; set; }
+        public string RcptAddressTypes { get; set; }
     }
 
     public class MailPieceCustomInfo

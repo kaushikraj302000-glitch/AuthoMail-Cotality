@@ -515,20 +515,7 @@ namespace AM.Console
                         }
                     }
 
-                    string[] zipCode = strRcptAddressZIP.Split(new[] { '-' }, StringSplitOptions.RemoveEmptyEntries);
-                    foreach (string zip in zipCode)
-                    {
-                        if (zip.Length == 4)
-                        {
-                            addressZip4 = zip;
-                        }
-                        else if (zip.Length == 5)
-                        {
-                            addressZip5 = zip;
-                        }
-                    }
-
-                    AddressRequest addressRequest = new AddressRequest() { Id = uniqueId, Line1 = strRcptAddressStreet, Line2 = strRcptAddrOptionalLine1BelowStreet, City = strRcptAddressCity, State = strRcptAddressState, Zip4 = addressZip4, Zip5 = addressZip5 };
+                    AddressRequest addressRequest = new AddressRequest() { Id = uniqueId, Line1 = strRcptAddressStreet, Line2 = strRcptAddrOptionalLine1BelowStreet, City = strRcptAddressCity, State = strRcptAddressState, Zip4 = strRcptAddressZIP.SeparateZip4And5(4), Zip5 = strRcptAddressZIP.SeparateZip4And5(5) };
 
                     addressRequestes.Add(addressRequest);
                 }
@@ -715,15 +702,17 @@ namespace AM.Console
 
                             if (docType != null)
                             {
+                                List<string> addressTypes = addressResponses.Single(c => c.Id == mailPieceDTO.UniqueId.ToString()).AddressTypes;
                                 if (docType.ShippingCarrier == Carrier.FedEx.ToString())
                                 {
-                                    if (!(addressResponses.Single(c => c.Id == mailPieceDTO.UniqueId.ToString()).AddressTypes.All(c => c == AddressTypes.DHAM)))
+                                    if (!(addressTypes.All(c => c == AddressTypes.DHAM)))
                                     {
                                         documentOrPackageType = documentOrPackageType + Config.Monitor_ExpressMailingText;
 
                                         docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType);
                                     }
                                 }
+                                mailPieceDTO.RcptAddressTypes = string.Join(",", addressTypes);
                                 mailPieceDTO.DocTypeId = docType.Id;
                             }
 

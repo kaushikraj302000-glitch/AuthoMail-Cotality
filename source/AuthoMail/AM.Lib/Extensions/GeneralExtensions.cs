@@ -180,5 +180,37 @@ namespace AM.Lib
         {
             return (object)cls.GetType().GetProperty(propertyName).GetValue(cls, null);
         }
+
+        public static string SeparateZip4And5(this string value, int number)
+        {
+            string[] zipCode = value.Split(new[] { '-' }, StringSplitOptions.RemoveEmptyEntries);
+            if (zipCode.Length > 0)
+            {
+                foreach (string zip in zipCode)
+                {
+                    if (zip.Length == number)
+                    {
+                        return zip;
+                    }
+                    else if (zip.Length == number)
+                    {
+                        return zip;
+                    }
+                }
+            }
+            else
+            {
+                if (zipCode[0].Length == number)
+                {
+                    return zipCode[0];
+                }
+                else if (zipCode[0].Length == number)
+                {
+                    return zipCode[0];
+                }
+            }
+
+            return "";
+        }
     }
 }
