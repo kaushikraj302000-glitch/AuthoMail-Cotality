@@ -11,6 +11,20 @@ namespace AM.USPSLib
     {
         public string BarcodeNumber { get; set; }
 
+        public string TrackingNumber
+        {
+            get
+            {
+                if (BarcodeNumber.Length >= 30)
+                {
+                    return this.BarcodeNumber.Substring(8);
+                }
+                else
+                {
+                    return string.Empty;
+                }
+            }
+        }
         public string LabelImageString { get; set; }
 
         public string ReceiptImageString { get; set; }
