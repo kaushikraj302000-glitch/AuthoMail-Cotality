@@ -7,7 +7,7 @@ using System.Xml.Serialization;
 
 namespace AM.USPSLib
 {
-    public class eVSLabelResponse
+    public class eVSLabelResponse : IeVSLabelResponse
     {
         public string BarcodeNumber { get; set; }
 
@@ -51,7 +51,7 @@ namespace AM.USPSLib
 
         public string LogMessage { get; set; }
 
-        public Commitment Commitment { get; set; }
+        public CommitmentDetail Commitment { get; set; }
 
         public USPSError Error { get; set; }
 

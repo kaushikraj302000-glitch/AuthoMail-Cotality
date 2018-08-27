@@ -47,8 +47,10 @@
     <Compile Include="eVSGeneral.cs" />
     <Compile Include="eVSLabelResponse.cs" />
     <Compile Include="IeVSCustomsFormsData.cs" />
+    <Compile Include="IeVSLabelResponse.cs" />
     <Compile Include="IeVSRequestCommon.cs" />
     <Compile Include="IeVSLabelRequest.cs" />
+    <Compile Include="IeVSResponseCommon.cs" />
     <Compile Include="IUSPS.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="USPSError.cs" />

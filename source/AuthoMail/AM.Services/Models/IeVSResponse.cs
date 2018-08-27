@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace AM.Services
 {
-    public interface IeVSResponse
+    public interface IeVSResponse  :IeVSResponseCommon
     {
-
+        Commitment Commitment { get; set; }
     }
 }

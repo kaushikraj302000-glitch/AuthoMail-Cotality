@@ -62,4 +62,11 @@ namespace AM.USPSLib
         [XmlElement(ElementName = "ScheduledDeliveryDate")]
         public string ScheduledDeliveryDate { get; set; }
     }
+
+    public class CommitmentDetail
+    {
+        public string CommitmentName { get; set; }
+
+        public DateTime ScheduledDeliveryDate { get; set; }
+    }
 }
