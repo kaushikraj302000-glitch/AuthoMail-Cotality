@@ -14,6 +14,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Schema;
 using System.Data.SqlClient;
+using AM.USPSLib;
 
 namespace AM.Console
 {

@@ -171,6 +171,10 @@
       <Project>{a60d6e77-74fc-419c-bf13-a7684012d0a5}</Project>
       <Name>AM.Services</Name>
     </ProjectReference>
+    <ProjectReference Include="..\AM.USPSLib\AM.USPSLib.csproj">
+      <Project>{c221d27e-c501-4838-b58f-d06c97e07923}</Project>
+      <Name>AM.USPSLib</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Dlls\PCI.Lib.dll" />
