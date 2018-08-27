@@ -7,12 +7,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using AM.Lib;
+using AM.USPSLib;
 
 namespace AM.Services
 {
     public class VerifierAddressRequest
     {
-        public string UserId { get; set; }
         public List<AddressRequest> AddressRequests { get; set; }
     }
 
@@ -135,32 +135,6 @@ namespace AM.Services
         {
 
         }
-    }
-
-    [DataContract]
-    [Serializable]
-    [XmlRoot(ElementName = "Error")]
-    public class USPSError
-    {
-        [DataMember]
-        [XmlElement(ElementName = "Number")]
-        public string Number { get; set; }
-
-        [DataMember]
-        [XmlElement(ElementName = "Source")]
-        public string Source { get; set; }
-
-        [DataMember]
-        [XmlElement(ElementName = "Description")]
-        public string Description { get; set; }
-
-        [DataMember]
-        [XmlElement(ElementName = "HelpFile")]
-        public string HelpFile { get; set; }
-
-        [DataMember]
-        [XmlElement(ElementName = "HelpContext")]
-        public string HelpContext { get; set; }
     }
 
     [DataContract]

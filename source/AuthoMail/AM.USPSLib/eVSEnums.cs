@@ -8,46 +8,46 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
-namespace AM.Services
+namespace AM.USPSLib
 {
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum LabelType
+    public enum LabelSize
     {
         [EnumMember(Value = "BARCODE ONLY")]
         [XmlEnum(Name = "BARCODE ONLY")]
-        Barcodeonly,
+        BARCODE_ONLY,
 
         [EnumMember(Value = "CROP")]
         [XmlEnum(Name = "CROP")]
-        Crop,
+        CROP,
 
         [EnumMember(Value = "4X6LABEL")]
         [XmlEnum(Name = "4X6LABEL")]
-        FourXSixLabel,
+        LABEL4X6,
 
         [EnumMember(Value = "4X6LABELL")]
         [XmlEnum(Name = "4X6LABELL")]
-        FourXSixLabelLandscape,
+        LABEL4X6L,
 
         [EnumMember(Value = "6X4LABEL")]
         [XmlEnum(Name = "6X4LABEL")]
-        SixXFourLabel,
+        LABEL6X4,
 
         [EnumMember(Value = "4X6LABELP")]
         [XmlEnum(Name = "4X6LABELP")]
-        FourXSixLabelPortrait,
+        LABEL4X6P,
 
         [EnumMember(Value = "4X6LABELP PAGE")]
         [XmlEnum(Name = "4X6LABELP PAGE")]
-        FourXSixLabelPortraitPPAGE,
+        LABEL4X6P_PAGE,
 
         [EnumMember(Value = "SEPARATECONTINUEPAGE")]
         [XmlEnum(Name = "SEPARATECONTINUEPAGE")]
-        Separatecontinuepage,
+        SEPARATECONTINUEPAGE,
 
         [EnumMember(Value = "4X6LABELZPL")]
         [XmlEnum(Name = "4X6LABELZPL")]
-        FourXSixLabelZPL
+        LABEL4X6ZPL
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
@@ -59,11 +59,11 @@ namespace AM.Services
 
         [EnumMember(Value = "SAME PAGE")]
         [XmlEnum(Name = "SAME PAGE")]
-        Samepage,
+        SAME_PAGE,
 
         [EnumMember(Value = "SEPARATE PAGE")]
         [XmlEnum(Name = "SEPARATE PAGE")]
-        Separatepage
+        SEPARATE_PAGE
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
@@ -71,35 +71,35 @@ namespace AM.Services
     {
         [EnumMember(Value = "PRIORITY EXPRESS")]
         [XmlEnum(Name = "PRIORITY EXPRESS")]
-        Priorityexpress,
+        PRIORITY_EXPRESS,
 
         [EnumMember(Value = "PRIORITY")]
         [XmlEnum(Name = "PRIORITY")]
-        Priority,
+        PRIORITY,
 
         [EnumMember(Value = "FIRST CLASS")]
         [XmlEnum(Name = "FIRST CLASS")]
-        Firstclass,
+        FIRST_CLASS,
 
         [EnumMember(Value = "PARCEL SELECT GROUND")]
         [XmlEnum(Name = "PARCEL SELECT GROUND")]
-        Parcelselectground,
+        PARCEL_SELECT_GROUND,
 
         [EnumMember(Value = "LIBRARY")]
         [XmlEnum(Name = "LIBRARY")]
-        Library,
+        LIBRARY,
 
         [EnumMember(Value = "MEDIA")]
         [XmlEnum(Name = "MEDIA")]
-        Media,
+        MEDIA,
 
         [EnumMember(Value = "BPM")]
         [XmlEnum(Name = "BPM")]
-        Bpm,
+        BPM,
 
         [EnumMember(Value = "PRIORITY MAIL CUBIC")]
         [XmlEnum(Name = "PRIORITY MAIL CUBIC")]
-        Prioritymailcubic
+        PRIORITY_MAIL_CUBIC
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
@@ -291,39 +291,39 @@ namespace AM.Services
 
         [EnumMember(Value = "FLAT RATE ENVELOPE")]
         [XmlEnum(Name = "FLAT RATE ENVELOPE")]
-        FLATRATEENVELOPE,
+        FLAT_RATE_ENVELOPE,
 
         [EnumMember(Value = "LEGAL FLAT RATE ENVELOPE")]
         [XmlEnum(Name = "LEGAL FLAT RATE ENVELOPE")]
-        LEGALFLATRATEENVELOPE,
+        LEGAL_FLAT_RATE_ENVELOPE,
 
         [EnumMember(Value = "PADDED FLAT RATE ENVELOPE")]
         [XmlEnum(Name = "PADDED FLAT RATE ENVELOPE")]
-        PADDEDFLATRATEENVELOPE,
+        PADDED_FLAT_RATE_ENVELOPE,
 
         [EnumMember(Value = "GIFT CARD FLAT RATE ENVELOPE")]
         [XmlEnum(Name = "GIFT CARD FLAT RATE ENVELOPE")]
-        GIFTCARDFLATRATEENVELOPE,
+        GIFT_CARD_FLAT_RATE_ENVELOPE,
 
         [EnumMember(Value = "SM FLAT RATE ENVELOPE")]
         [XmlEnum(Name = "SM FLAT RATE ENVELOPE")]
-        SMFLATRATEENVELOPE,
+        SM_FLAT_RATE_ENVELOPE,
 
         [EnumMember(Value = "WINDOW FLAT RATE ENVELOPE")]
         [XmlEnum(Name = "WINDOW FLAT RATE ENVELOPE")]
-        WINDOWFLATRATEENVELOPE,
+        WINDOW_FLAT_RATE_ENVELOPE,
 
         [EnumMember(Value = "SM FLAT RATE BOX")]
         [XmlEnum(Name = "SM FLAT RATE BOX")]
-        SMFLATRATEBOX,
+        SM_FLAT_RATE_BOX,
 
         [EnumMember(Value = "MD FLAT RATE BOX")]
         [XmlEnum(Name = "MD FLAT RATE BOX")]
-        MDFLATRATEBOX,
+        MD_FLAT_RATE_BOX,
 
         [EnumMember(Value = "LG FLAT RATE BOX")]
         [XmlEnum(Name = "LG FLAT RATE BOX")]
-        LGFLATRATEBOX,
+        LG_FLAT_RATE_BOX,
 
         [EnumMember(Value = "REGIONALRATEBOXA")]
         [XmlEnum(Name = "REGIONALRATEBOXA")]
@@ -343,15 +343,15 @@ namespace AM.Services
 
         [EnumMember(Value = "PACKAGE SERVICE")]
         [XmlEnum(Name = "PACKAGE SERVICE")]
-        PACKAGESERVICE,
+        PACKAGE_SERVICE,
 
         [EnumMember(Value = "CUBIC PARCELS")]
         [XmlEnum(Name = "CUBIC PARCELS")]
-        CUBICPARCELS,
+        CUBIC_PARCELS,
 
         [EnumMember(Value = "CUBIC SOFT PACK")]
         [XmlEnum(Name = "CUBIC SOFT PACK")]
-        CUBICSOFTPACK
+        CUBIC_SOFT_PACK
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
@@ -368,5 +368,108 @@ namespace AM.Services
         [EnumMember(Value = "Commercial Base")]
         [XmlEnum(Name = "Commercial Base")]
         CommercialBase
+    }
+
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum ToContactPreference
+    {
+        [EnumMember(Value = "EMAIL")]
+        [XmlEnum(Name = "EMAIL")]
+        EMAIL,
+
+        [EnumMember(Value = "EMAILSMS")]
+        [XmlEnum(Name = "EMAILSMS")]
+        EMAILSMS,
+
+        [EnumMember(Value = "SMS")]
+        [XmlEnum(Name = "SMS")]
+        SMS,
+
+        [EnumMember(Value = "WAIVED")]
+        [XmlEnum(Name = "WAIVED")]
+        WAIVED
+    }
+
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum ContentType
+    {
+        [EnumMember(Value = "HAZMAT")]
+        [XmlEnum(Name = "HAZMAT")]
+        HAZMAT,
+
+        [EnumMember(Value = "CrematedRemains")]
+        [XmlEnum(Name = "CrematedRemains")]
+        CrematedRemains,
+
+        [EnumMember(Value = "Lives")]
+        [XmlEnum(Name = "Lives")]
+        Lives,
+
+        [EnumMember(Value = "Perishable")]
+        [XmlEnum(Name = "Perishable")]
+        Perishable,
+
+        [EnumMember(Value = "Pharmaceuticals")]
+        [XmlEnum(Name = "Pharmaceuticals")]
+        Pharmaceuticals,
+
+        [EnumMember(Value = "MedicalSupplies")]
+        [XmlEnum(Name = "MedicalSupplies")]
+        MedicalSupplies
+    }
+
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum DestinationEntryFacilityType
+    {
+        [EnumMember(Value = "None (default)")]
+        [XmlEnum(Name = "None (default)")]
+        None,
+
+        [EnumMember(Value = "DNDC")]
+        [XmlEnum(Name = "DNDC")]
+        DNDC,
+
+        [EnumMember(Value = "DSCF")]
+        [XmlEnum(Name = "DSCF")]
+        DSCF,
+
+        [EnumMember(Value = "DDU")]
+        [XmlEnum(Name = "DDU")]
+        DDU
+    }
+
+
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum ActionCode
+    {
+        [EnumMember(Value = "M0")]
+        [XmlEnum(Name = "M0")]
+        MailerOwner,
+
+        [EnumMember(Value = "S0")]
+        [XmlEnum(Name = "S0")]
+        ServiceProvider
+
+    }
+
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum ContentDescription
+    {
+        [EnumMember(Value = "Bees")]
+        [XmlEnum(Name = "Bees")]
+        Bees,
+
+        [EnumMember(Value = "DayOldPoultry")]
+        [XmlEnum(Name = "DayOldPoultry")]
+        DayOldPoultry,
+
+        [EnumMember(Value = "AdultBirds")]
+        [XmlEnum(Name = "AdultBirds")]
+        AdultBirds,
+
+        [EnumMember(Value = "Other")]
+        [XmlEnum(Name = "Other")]
+        Other
+
     }
 }

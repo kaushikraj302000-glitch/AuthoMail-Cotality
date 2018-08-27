@@ -89,6 +89,10 @@
     <Compile Include="Models\AccountAPI.cs" />
     <Compile Include="Models\BatchReportInfo.cs" />
     <Compile Include="Models\ChartModels.cs" />
+    <Compile Include="Models\eVSRequest.cs" />
+    <Compile Include="Models\eVSResponse.cs" />
+    <Compile Include="Models\IeVSResponse.cs" />
+    <Compile Include="Models\IeVSRequest.cs" />
     <Compile Include="Models\SupportModel.cs" />
     <Compile Include="Models\CustomModels.cs" />
     <Compile Include="Models\MailPieceSearch.cs" />
@@ -96,9 +100,7 @@
     <Compile Include="Models\PullBackViewModel.cs" />
     <Compile Include="Models\Report.cs" />
     <Compile Include="Models\AuthoMailSettings.cs" />
-    <Compile Include="Models\USPSAddresseVS.cs" />
     <Compile Include="Models\USPSAddressVerify.cs" />
-    <Compile Include="Models\USPSEVSEnums.cs" />
     <Compile Include="Models\WeeklyChartDTO.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Models\PullBackInfo.cs" />
@@ -138,6 +140,10 @@
     <ProjectReference Include="..\AM.Lib\AM.Lib.csproj">
       <Project>{75996573-6449-4675-a5ff-f1c39c84d685}</Project>
       <Name>AM.Lib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\AM.USPSLib\AM.USPSLib.csproj">
+      <Project>{c221d27e-c501-4838-b58f-d06c97e07923}</Project>
+      <Name>AM.USPSLib</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

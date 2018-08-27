@@ -8,14 +8,15 @@ using System.Net;
 using Dapper;
 using System.Net.Http;
 using System.Text.RegularExpressions;
+using AM.USPSLib;
 
 namespace AM.Services
 {
     public partial class USPSService : ServiceBase, IUSPSService
     {
-        public VerifierAddressResponse VerifyAddress(VerifierAddressRequest addressRequest)
+        public VerifierAddressResponse VerifyAddress(string userId, VerifierAddressRequest addressRequest)
         {
-            return this.VerifyAddressAsync(addressRequest.UserId, addressRequest.AddressRequests).Result;
+            return this.VerifyAddressAsync(userId, addressRequest.AddressRequests).Result;
         }
 
         private IEnumerable<string> ValidateAddress(AddressRequest address)
