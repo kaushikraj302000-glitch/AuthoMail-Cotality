@@ -67,8 +67,8 @@ namespace AM.USPSLib
         public int? NetPounds { get; set; }
         public decimal? NetOunces { get; set; }
         public string HSTariffNumber { get; set; }
-        public string CountryofOrigin { get; set; }
-
+        public string CountryOfOrigin { get; set; }
+                        
         public bool ShouldSerializeQuantity() { return this.Quantity.HasValue; }
         public bool ShouldSerializeValue() { return this.Value.HasValue; }
         public bool ShouldSerializeNetPounds() { return this.NetPounds.HasValue; }
