@@ -542,6 +542,7 @@ namespace AM.USPSLib
         [XmlEnum(Name = "ABANDON")]
         ABANDON
     }
+
     [JsonConverter(typeof(StringEnumConverter))]
     public enum ePostageMailerReporting
     {
@@ -557,5 +558,26 @@ namespace AM.USPSLib
         [EnumMember(Value = "3")]
         [XmlEnum(Name = "3")]
         ePostage_sender_information_using_child_MID = 3
+    }
+
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum AddressType
+    {
+        [EnumMember(Value = "POBOX")]
+        [XmlEnum(Name = "POBOX")]
+        POBOX,
+
+        [EnumMember(Value = "Military")]
+        [XmlEnum(Name = "Military")]
+        Military,
+        
+        [EnumMember(Value = "Territory")]
+        [XmlEnum(Name = "Territory")]
+        Territory,
+
+        //DC,Hawaii,Alaska and All Mainlands
+        [EnumMember(Value = "DHAM")]
+        [XmlEnum(Name = "DHAM")]
+        DHAM
     }
 }

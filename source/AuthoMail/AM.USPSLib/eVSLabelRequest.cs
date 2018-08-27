@@ -136,5 +136,11 @@ namespace AM.USPSLib
 
         public DestinationEntryFacilityType? DestinationEntryFacilityType { get; set; }
         public eVSCustomsFormsData eVSCustomsFormsData { get; set; }
+
+        public eVSLabelRequest()
+        {
+            //default value as per API documentation
+            this.OptOutOfSPE = true;
+        }
     }
 }

@@ -12,10 +12,8 @@ namespace AM.USPSLib
         [XmlElement(ElementName = "ImageParameter")]
         public LabelSize? Size { get; set; }
 
-        [XmlElement(ElementName = "XCoordinate")]
         public int? XCoordinate { get; set; }
 
-        [XmlElement(ElementName = "YCoordinate")]
         public int? YCoordinate { get; set; }
 
         [XmlElement(ElementName = "LabelSequence")]
@@ -28,10 +26,8 @@ namespace AM.USPSLib
 
     public class LabelSequence
     {
-        [XmlElement(ElementName = "PackageNumber")]
         public int? PackageNumber { get; set; }
 
-        [XmlElement(ElementName = "TotalPackages")]
         public int? TotalPackages { get; set; }
 
         public bool ShouldSerializePackageNumber() { return this.PackageNumber.HasValue; }
@@ -40,18 +36,21 @@ namespace AM.USPSLib
 
     public class ExpressMailOptions
     {
-        [XmlElement(ElementName = "DeliveryOption")]
         public DeliveryOption? DeliveryOption { get; set; }
 
-        [XmlElement(ElementName = "WaiverOfSignature")]
         public bool WaiverOfSignature { get; set; }
 
         public bool ShouldSerializeDeliveryOption() { return this.DeliveryOption.HasValue; }
+
+        public ExpressMailOptions()
+        {
+            //default value as per API documentation
+            this.WaiverOfSignature = true;
+        }
     }
 
     public class Content
     {
-        [XmlElement(ElementName = "ContentType")]
         public ContentType? ContentType { get; set; }
 
         public ContentDescription? ContentDescription { get; set; }
