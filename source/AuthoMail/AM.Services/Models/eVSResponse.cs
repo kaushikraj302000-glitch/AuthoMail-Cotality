@@ -10,7 +10,7 @@ namespace AM.Services
 {
     [Serializable]
     [XmlRoot(ElementName = "eVSResponse")]
-    public class eVSResponse
+    public class eVSResponse : IeVSResponse
     {
         [XmlElement(ElementName = "BarcodeNumber")]
         public string BarcodeNumber { get; set; }
