@@ -60,8 +60,9 @@
                 <th>Batch Name</th>
                 <th>Loan Number</th>
                 <th>Tracking Number</th>
-                <th>Submitted Date</th>
                 <th>FileName</th>
+                <th>Due Date</th>
+                <th>Submitted Date</th>
                 <th>Status</th>
             </tr>
         </thead>
@@ -75,8 +76,9 @@
                 <td><span>{BatchName}</span></td>
                 <td><span>{LoanNumber}</span></td>
                 <td><span>{TrackingNo}</span></td>
-                <td><span>{SubmittedDate}</span></td>
                 <td><span>{FileName}</span></td>
+                <td><span>{DueDate}</span></td>
+                <td><span>{SubmittedDate}</span></td>
                 <td><span>{MailPieceStatus}</span></td>
             </tr>
         </tbody>
@@ -174,6 +176,7 @@
 
             $(Model).each(function () {
                 this.SubmittedDate = this.SubmittedOn == null ? "--" : moment(moment.utc(this.SubmittedOn).toDate()).format("MM/DD/YY hh:mm:ss A");
+                this.DueDate = this.DueDate == null ? "--" : moment(moment.utc(this.DueDate).toDate()).format("MM/DD/YY hh:mm:ss A");
             });
             //console.log(Model);
             return Model;
