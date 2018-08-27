@@ -449,7 +449,6 @@ namespace AM.USPSLib
         [EnumMember(Value = "S0")]
         [XmlEnum(Name = "S0")]
         ServiceProvider
-
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
@@ -470,7 +469,6 @@ namespace AM.USPSLib
         [EnumMember(Value = "Other")]
         [XmlEnum(Name = "Other")]
         Other
-
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
