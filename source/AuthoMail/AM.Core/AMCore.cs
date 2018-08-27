@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using AM.Lib;
 using System.Threading;
 using System.Net.Mail;
+using AM.USPSLib;
 namespace AM.Core
 {
     static class AMCore
@@ -64,7 +65,7 @@ namespace AM.Core
                             //Here first we will calculate effective received on date and based on that we will calculate due date for that
                             DateTime effectiveEstReceivedOn = GetEffectiveEstReceivedOn(docType, mailBatch.ReceivedOn.Value);
                             //Here storing effective receivedon in UTC format as per rule
-                            mailPiece.EffectiveReceivedOn = effectiveEstReceivedOn.EstToUtc();
+                            mailPiece.EffectiveReceivedOnEst = effectiveEstReceivedOn;
                             //Calculate Due Date for Mail Pieces doc type wise
                             mailPiece.DueDate = GetDueDate(docType, effectiveEstReceivedOn);
 
@@ -215,8 +216,8 @@ namespace AM.Core
 
                                 if (docType.ShippingServiceType == ShippingServiceType.USPS_EXPRESSMAIL.ToString())
                                 {
-                                    //Create Cover letter without IMBarcode - USPS Express Mailing
-                                    coverLetterPdfPath = doc.GenerateUSPSCoverLetter(client.AppCode, coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
+                                    eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.AppCode);
+                                    coverLetterPdfPath = doc.GenerateEVSCoverLetter(client.AppCode, commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq);
                                 }
                                 else
                                 {
@@ -237,6 +238,7 @@ namespace AM.Core
                                 }
 
                                 mailPiece.TrackingNo = doc.TrackingCode;
+                                mailPiece.ShippingCost = doc.PostageCost;
 
                                 //For now reverse barcoding will be mail piece id
                                 if (mailPiece.PrintLocation == Config.Common_PrintLocationCL)
@@ -354,6 +356,61 @@ namespace AM.Core
                     }
                 }
             }
+        }
+
+        private static eVSLabelRequest GenerateEVSLabelRequest(MailPieceDTO mailPiece, string appCode)
+        {
+            eVSLabelRequest eVSReq = new eVSLabelRequest();
+            //General settings
+            eVSReq.AllowNonCleansedDestAddr = true;
+            eVSReq.AllowNonCleansedOriginAddr = true;
+            eVSReq.ServiceType = AM.USPSLib.ServiceType.PRIORITY_EXPRESS;
+            eVSReq.Container = Container.FLAT_RATE_ENVELOPE;
+            eVSReq.ShipDate = mailPiece.EffectiveReceivedOnEst.Value;
+            eVSReq.ReceiptOption = ReceiptOption.SEPARATE_PAGE;
+            eVSReq.WeightInOunces = "32";
+            eVSReq.SenderName = appCode;
+            eVSReq.ImageType = ImageType.PDF;
+
+            eVSReq.LabelParameters = new LabelParameters() { Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.LABEL4X6P_PAGE, XCoordinate = 50, YCoordinate = 50 };
+
+            // From Address
+            eVSReq.FromName = "Corelogic Inc";
+            eVSReq.FromFirm = "Corelogic Inc";
+            eVSReq.FromAddress1 = string.Empty;
+            eVSReq.FromAddress2 = mailPiece.RetRcptAddressStreet + " " + mailPiece.RetRcptAddrOptionalLine1BelowStreet;
+            eVSReq.FromCity = mailPiece.RetRcptAddressCity;
+            eVSReq.FromState = mailPiece.RetRcptAddressState;
+            eVSReq.FromZip4 = mailPiece.RetRcptAddressZIP.SeparateZip4And5(4);
+            eVSReq.FromZip5 = mailPiece.RetRcptAddressZIP.SeparateZip4And5(5);
+            eVSReq.FromPhone = string.IsNullOrWhiteSpace(mailPiece.RetRcptPhone) ? new string('0', 10) : mailPiece.RcptPhone.RemoveFormatting();
+
+            // To Address
+            eVSReq.ToFirm = string.IsNullOrEmpty(mailPiece.RcptOrganization) ? string.Empty : mailPiece.RcptOrganization;
+            eVSReq.ToName = mailPiece.RcptFirstName + " " + mailPiece.RcptLastName;
+            eVSReq.ToAddress1 = string.Empty;
+            eVSReq.ToAddress2 = mailPiece.RcptAddressStreet + " " + mailPiece.RcptAddrOptionalLine1BelowStreet;
+            eVSReq.ToCity = mailPiece.RcptAddressCity;
+            eVSReq.ToState = mailPiece.RcptAddressState;
+            eVSReq.ToZip4 = mailPiece.RcptAddressZIP.SeparateZip4And5(4);
+            eVSReq.ToZip5 = mailPiece.RcptAddressZIP.SeparateZip4And5(5);
+            eVSReq.ToPhone = string.IsNullOrWhiteSpace(mailPiece.RcptPhone) ? new string('0', 10) : mailPiece.RcptPhone.RemoveFormatting();
+
+
+            //Based on address types needs to specify some custom changes in request
+            if (mailPiece.RcptAddressTypes.Contains(AddressTypes.POBOX))
+            {
+                eVSReq.POBox = true;
+            }
+
+            if (mailPiece.RcptAddressTypes.Contains(AddressTypes.Military) || mailPiece.RcptAddressTypes.Contains(AddressTypes.Territory))
+            {
+                eVSCustomsFormsData shippingContent = new eVSCustomsFormsData() { ShippingContents = new List<ItemDetail>() { new ItemDetail() { HSTariffNumber = "490110", CountryofOrigin = "United States", Description = "Loan Document", Quantity = 1, NetPounds = 2, NetOunces = 0, Value = 50 } }, CustomsContentType = CustomsContentType.DOCUMENTS };
+
+                eVSReq.eVSCustomsFormsData = shippingContent;
+            }
+
+            return eVSReq;
         }
 
         private static void SendUnexpectedExceptionEmail(string exception)

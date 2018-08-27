@@ -690,11 +690,6 @@ namespace AM.Console
                         {
                             string filePath = Path.Combine(mbi.AMRequestPath, mailPieceDTO.FileName);
 
-                            var validStateList = Resources.ValidStatesForUSAA
-                                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                                .Select(state => state.Trim())
-                                .ToList();
-
                             string documentOrPackageType = mailPieceDTO.DocumentOrPackageType;
 
                             //Document Or Package Type validation
@@ -702,7 +697,7 @@ namespace AM.Console
 
                             if (docType != null)
                             {
-                                List<string> addressTypes = addressResponses.Single(c => c.Id == mailPieceDTO.UniqueId.ToString()).AddressTypes;
+                                List<string> addressTypes = addressResponses.Single(c => c.Id.ToLower() == mailPieceDTO.UniqueId.ToString().ToLower()).AddressTypes;
                                 if (docType.ShippingCarrier == Carrier.FedEx.ToString())
                                 {
                                     if (!(addressTypes.All(c => c == AddressTypes.DHAM)))
@@ -721,18 +716,6 @@ namespace AM.Console
                             {
                                 mailPieceDTO.ErrorCode = OutComeCodes.Invalid_PackageType;
                                 mailPieceDTO.ErrorDesc = "The specified document or package type '{0}' is not configured.".Fill(mailPieceDTO.DocumentOrPackageType);
-                                mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
-                            }
-                            else if (!validStateList.Contains(mailPieceDTO.RcptAddressState))
-                            {
-                                mailPieceDTO.ErrorCode = OutComeCodes.Mailing_Address_Missing_Or_Invalid;
-                                mailPieceDTO.ErrorDesc = "State '{0}' is not amongst the valid states in receipient mailing address.".Fill(mailPieceDTO.RcptAddressState);
-                                mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
-                            }
-                            else if (!validStateList.Contains(mailPieceDTO.RetRcptAddressState))
-                            {
-                                mailPieceDTO.ErrorCode = OutComeCodes.Mailing_Address_Missing_Or_Invalid;
-                                mailPieceDTO.ErrorDesc = "State '{0}' is not amongst the valid states in return mailing address.".Fill(mailPieceDTO.RetRcptAddressState);
                                 mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                             }
                             else if (!File.Exists(filePath))
