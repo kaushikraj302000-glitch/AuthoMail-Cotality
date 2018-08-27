@@ -7,51 +7,50 @@ using System.Xml.Serialization;
 
 namespace AM.USPSLib
 {
-    public  interface IeVSResponseCommon
+    public interface IeVSResponseCommon
     {
-         string BarcodeNumber { get; set; }
+        string BarcodeNumber { get; set; }
 
-         string LabelImageString { get; set; }
+        string LabelImageString { get; set; }
 
-         string ReceiptImageString { get; set; }
+        string ReceiptImageString { get; set; }
 
-         string ToName { get; set; }
+        string ToName { get; set; }
 
-         string ToFirm { get; set; }
+        string ToFirm { get; set; }
 
-         string ToAddress1 { get; set; }
+        string ToAddress1 { get; set; }
 
-         string ToAddress2 { get; set; }
+        string ToAddress2 { get; set; }
 
-         string ToCity { get; set; }
+        string ToCity { get; set; }
 
-         string ToState { get; set; }
+        string ToState { get; set; }
 
-         string ToZip5 { get; set; }
+        string ToZip5 { get; set; }
 
-         string ToZip4 { get; set; }
+        string ToZip4 { get; set; }
 
-         string Postnet { get; set; }
+        string Postnet { get; set; }
 
-         string RDC { get; set; }
+        string RDC { get; set; }
 
-         decimal Postage { get; set; }
+        decimal Postage { get; set; }
 
-         List<ExtraService> Extraservices { get; set; }
+        List<ExtraService> Extraservices { get; set; }
 
-         string Zone { get; set; }
+        string Zone { get; set; }
 
-         string DimensionalWeight { get; set; }
+        string DimensionalWeight { get; set; }
 
-         string CarrierRoute { get; set; }
+        string CarrierRoute { get; set; }
 
-         string PermitHolderName { get; set; }
+        string PermitHolderName { get; set; }
 
-         string InductionType { get; set; }
+        string InductionType { get; set; }
 
-         string LogMessage { get; set; }
+        string LogMessage { get; set; }
 
-         USPSError Error { get; set; }
-
+        USPSError Error { get; set; }
     }
 }

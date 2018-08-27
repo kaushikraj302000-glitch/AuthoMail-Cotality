@@ -54,6 +54,8 @@
     <Compile Include="IUSPS.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="USPSError.cs" />
+    <Compile Include="VerifierAddressRequest.cs" />
+    <Compile Include="VerifierAddressResponse.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AM.Lib\AM.Lib.csproj">
