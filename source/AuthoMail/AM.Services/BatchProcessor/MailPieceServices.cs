@@ -120,8 +120,9 @@ namespace AM.Services
                 },
                 new
                 {
-                    startDate = startDateTime,
-                    endDate = endDateTime
+                    StartTime = startDateTime,
+                    EndTime = endDateTime,
+                    Status = ShippingStatus.InProgress.ToString()
                 }).ToList();
         }
     }
