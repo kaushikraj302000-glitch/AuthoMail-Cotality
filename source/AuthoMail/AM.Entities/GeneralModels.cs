@@ -260,6 +260,7 @@ namespace AM.Entities
         public const string CoreLogicUserManager = "CoreLogicUserManager";
         public const string API = "API";
         public const string APIUSPSeVS = "API-USPS-eVS";
+        public const string APIUSPSVerify = "API-USPS-Verify";
     }
     public static class AMUserStatus
     {
