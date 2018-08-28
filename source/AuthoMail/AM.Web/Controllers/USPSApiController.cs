@@ -12,7 +12,7 @@ using AM.USPSLib;
 namespace AM.Web.Controllers
 {
     [EnableCors(origins: "*", headers: "*", methods: "*")]
-    [Authorize(Roles = AMRoles.API)]
+    //[Authorize(Roles = AMRoles.API)]
     [RoutePrefix("api/usps")]
     public class USPSApiController : ApiController
     {
@@ -24,14 +24,14 @@ namespace AM.Web.Controllers
 
         [Route("verify")]
         [HttpPost]
-        public VerifierAddressResponse VerifyAddress(string userId, VerifierAddressRequest addressRequest)
+        public VerifierAddressResponse VerifyAddress([FromBody]string userId, [FromBody]VerifierAddressRequest addressRequest)
         {
             return uspsSvc.VerifyAddress(userId, addressRequest);
         }
 
         [Route("eVS")]
         [HttpPost]
-        public eVSLabelResponse RequesteVSLabel(string userId, eVSLabelRequest request)
+        public eVSLabelResponse RequesteVSLabel([FromBody]string userId, [FromBody]eVSLabelRequest request)
         {
             return uspsSvc.RequesteVSLabel(userId, request);
         }
