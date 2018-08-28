@@ -108,7 +108,7 @@ namespace AM.Services
             string query = @"SELECT * FROM [AM].[MailPieces] P 
             INNER JOIN [Common].[Clients] C ON P.ClientId=C.Id
             INNER JOIN [AM].[DocTypes] D ON P.DocTypeID=D.Id
-            WHERE P.PrintLocation='{0}' AND ( P.EffectiveReceivedOn >= @StartTime AND P.EffectiveReceivedOn < @EndTime ) AND P.ShippingStatus= @Status".Fill(Config.Common_PrintLocationCL);
+            WHERE P.PrintLocation='{0}' AND ( P.EffectiveReceivedOn >= @StartTime AND P.EffectiveReceivedOn < @EndTime ) AND P.ShippingStatus <> @Status".Fill(Config.Common_PrintLocationCL);
 
 
             return db.Query<MailPieces, Clients, DocTypes, MailPieces>(query,
@@ -122,7 +122,7 @@ namespace AM.Services
                 {
                     StartTime = startDateTime,
                     EndTime = endDateTime,
-                    Status = ShippingStatus.InProgress.ToString()
+                    Status = ShippingStatus.Error.ToString()
                 }).ToList();
         }
     }
