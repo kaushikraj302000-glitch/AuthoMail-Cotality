@@ -129,6 +129,7 @@
     <Compile Include="Utilities\JsonResponseFactory.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
     <Compile Include="Services\USPSService.VerifyAddress.cs" />
   </ItemGroup>

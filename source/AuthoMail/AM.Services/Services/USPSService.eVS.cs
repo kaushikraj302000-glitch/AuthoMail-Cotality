@@ -44,7 +44,7 @@ namespace AM.Services
                 {
                     if (Config.Web_API_USPS_IsDbLoggingEnabled)
                     {
-                        logId = await dbLog;
+                        logId = await dbLog.ConfigureAwait(false);
                     }
 
                     return new eVSLabelResponse()
@@ -81,12 +81,12 @@ namespace AM.Services
                             new KeyValuePair<string, string>("XML",eVSrequestXML)
                         });
 
-                    var payloadResult = await payload.ReadAsStringAsync();
+                    var payloadResult = await payload.ReadAsStringAsync().ConfigureAwait(false);
                     uspsReq = httpClient.GetStringAsync("{0}?{1}".Fill(url, payloadResult));
 
                     if (Config.Web_API_USPS_IsDbLoggingEnabled)
                     {
-                        logId = await dbLog;
+                        logId = await dbLog.ConfigureAwait(false);
                         uspsReqLog = db.ExecuteScalarAsync<int>("Update [API].[USPSeVS] set [USPSRequest] = @USPSRequest, [USPSRequestedOn]= @USPSRequestedOn;", new { USPSRequest = eVSrequestXML, USPSRequestedOn = Common.Now });
                     }
 
@@ -95,7 +95,7 @@ namespace AM.Services
 
                     try
                     {
-                        responseXML = await uspsReq;
+                        responseXML = await uspsReq.ConfigureAwait(false);
                         isUSPSError = !responseXML.Contains("eVSResponse");
 
                         if (isUSPSError)
@@ -124,7 +124,7 @@ namespace AM.Services
 
                     if (Config.Web_API_USPS_IsDbLoggingEnabled)
                     {
-                        uspsReqLogAwait = await uspsReqLog;
+                        uspsReqLogAwait = await uspsReqLog.ConfigureAwait(false);
                         uspsResXMLLog = db.ExecuteScalarAsync<int>("Update [API].[USPSeVS] set IsUSPSError = @IsUSPSError, [USPSResponse] = @USPSResponse, [USPSResponseOn] = @USPSResponseOn;", new { IsUSPSError = isUSPSError, USPSResponse = responseXML, USPSResponseOn = Common.Now });
                     }
 
@@ -144,17 +144,17 @@ namespace AM.Services
 
                     if (Config.Web_API_USPS_IsDbLoggingEnabled)
                     {
-                        uspsResXMLLogAwait = await uspsResXMLLog;
+                        uspsResXMLLogAwait = await uspsResXMLLog.ConfigureAwait(false);
                         apiResponseLog = db.ExecuteAsync("Update [API].[USPSeVS] set APIResponse = @APIResponse, APIResponseOn = @APIResponseOn, BarcodeNumber = @BarcodeNumber, Postage = @Postage Where Id = @Id", new { APIResponse = responseXML, APIResponseOn = Common.Now, BarcodeNumber = eVSresponse.BarcodeNumber, Postage = eVSresponse.Postage, CommitmentName = commitmentName, ScheduledDeliveryDate = scheduledDeliveryDate, Id = logId });
                     }
 
-                    apiResponseLogAwait = await apiResponseLog;
+                    apiResponseLogAwait = await apiResponseLog.ConfigureAwait(false);
                 }
 
                 //Todo convert response to label
                 eVSLabelresponse = eVSLabelResponse(eVSresponse);
 
-                return await Task.Run(() => eVSLabelresponse);
+                return await Task.Run(() => eVSLabelresponse).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
