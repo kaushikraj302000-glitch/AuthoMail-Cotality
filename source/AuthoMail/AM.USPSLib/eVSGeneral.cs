@@ -91,15 +91,15 @@ namespace AM.USPSLib
         public DateTime ScheduledDeliveryDate { get; set; }
     }
 
-    public static class AddressTypes
-    {
-        public const string POBOX = "POBOX";
-        public const string Military = "Military";
-        public const string Territory = "Territory";
+    //public static class AddressTypes
+    //{
+    //    public const string POBOX = "POBOX";
+    //    public const string Military = "Military";
+    //    public const string Territory = "Territory";
 
-        //DC,Hawaii,Alaska and All Mainlands
-        public const string DHAM = "DHAM";
-    }
+    //    //DC,Hawaii,Alaska and All Mainlands
+    //    public const string DHAM = "DHAM";
+    //}
 
     public static class ResponseSource
     {

@@ -55,7 +55,7 @@ namespace AM.USPSLib
 
         //public bool IsAddressVerified { get; set; }
 
-        public List<string> AddressTypes { get; set; }
+        public List<AddressType> AddressTypes { get; set; }
 
         //public string StateType { get; set; }
 

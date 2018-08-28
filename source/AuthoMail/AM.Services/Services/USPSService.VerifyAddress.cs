@@ -123,7 +123,7 @@ namespace AM.Services
                         });
                     }
 
-                    response.AddressTypes = new List<string>();
+                    response.AddressTypes = new List<AddressType>();
 
                     addressResponses.Add(response);
                 }
@@ -329,9 +329,9 @@ namespace AM.Services
             }
         }
 
-        private static List<string> CheckAddressType(Address address)
+        private static List<AddressType> CheckAddressType(Address address)
         {
-            var addressTypes = new List<string>();
+            var addressTypes = new List<AddressType>();
             //var dhamStates = new string[] { "AK", "AL", "AR", "AZ", "CA", "CO", "CT", "DC", "DE", "FL", "GA", "HI", "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA", "MD", "ME", "MI", "MN", "MO", "MS", "MT", "NC", "ND", "NE", "NH", "NJ", "NM", "NV", "NY", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VA", "VT", "WA", "WI", "WV", "WY" };
             var dhamStates = Config.Web_API_USPS_MainlandStates.Split(',').Select(ms => ms.Trim());
 
@@ -343,16 +343,16 @@ namespace AM.Services
             //var territory = new string[] { "AS", "FM", "GU", "MH", "MP", "PR", "PW", "VI" };
 
             if (address.Address2.ToLower().Contains("po box") || address.Address2.ToLower().Contains("pobox"))
-                addressTypes.Add(AddressTypes.POBOX);
+                addressTypes.Add(AddressType.POBOX);
 
             if (militarystates.Contains(address.State.ToUpper()) && militaryCities.Contains(address.City.ToUpper()))
-                addressTypes.Add(AddressTypes.Military);
+                addressTypes.Add(AddressType.Military);
 
             if (territory.Contains(address.State.ToUpper()))
-                addressTypes.Add(AddressTypes.Territory);
+                addressTypes.Add(AddressType.Territory);
 
             if (dhamStates.Contains(address.State.ToUpper()))
-                addressTypes.Add(AddressTypes.DHAM);
+                addressTypes.Add(AddressType.DHAM);
 
             return addressTypes;
         }
