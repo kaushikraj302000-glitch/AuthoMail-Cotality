@@ -8,6 +8,7 @@ using System.Web.Http.Cors;
 using AM.Entities;
 using AM.Services;
 using AM.USPSLib;
+using Microsoft.AspNet.Identity;
 
 namespace AM.Web.Controllers
 {
@@ -24,16 +25,16 @@ namespace AM.Web.Controllers
 
         [Route("verify")]
         [HttpPost]
-        public VerifierAddressResponse VerifyAddress([FromBody]string userId, [FromBody]VerifierAddressRequest addressRequest)
+        public VerifierAddressResponse VerifyAddress([FromBody]VerifierAddressRequest addressRequest)
         {
-            return uspsSvc.VerifyAddress(userId, addressRequest);
+            return uspsSvc.VerifyAddress(User.Identity.GetUserId(), addressRequest);
         }
 
         [Route("eVS")]
         [HttpPost]
-        public eVSLabelResponse RequesteVSLabel([FromBody]string userId, [FromBody]eVSLabelRequest request)
+        public eVSLabelResponse RequesteVSLabel([FromBody]eVSLabelRequest request)
         {
-            return uspsSvc.RequesteVSLabel(userId, request);
+            return uspsSvc.RequesteVSLabel(User.Identity.GetUserId(), request);
         }
     }
 }
