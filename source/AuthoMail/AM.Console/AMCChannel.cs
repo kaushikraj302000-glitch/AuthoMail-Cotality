@@ -697,10 +697,10 @@ namespace AM.Console
 
                             if (docType != null)
                             {
-                                List<string> addressTypes = addressResponses.Single(c => c.Id.ToLower() == mailPieceDTO.UniqueId.ToString().ToLower()).AddressTypes;
+                                List<AddressType> addressTypes = addressResponses.Single(c => c.Id.ToLower() == mailPieceDTO.UniqueId.ToString().ToLower()).AddressTypes;
                                 if (docType.ShippingCarrier == Carrier.FedEx.ToString())
                                 {
-                                    if (!(addressTypes.All(c => c == AddressTypes.DHAM)))
+                                    if (!(addressTypes.All(c => c == AddressType.DHAM)))
                                     {
                                         documentOrPackageType = documentOrPackageType + Config.Monitor_ExpressMailingText;
 

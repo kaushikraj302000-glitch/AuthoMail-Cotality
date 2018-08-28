@@ -398,12 +398,12 @@ namespace AM.Core
 
 
             //Based on address types needs to specify some custom changes in request
-            if (mailPiece.RcptAddressTypes.Contains(AddressTypes.POBOX))
+            if (mailPiece.RcptAddressTypes.Contains(AddressType.POBOX.ToString()))
             {
                 eVSReq.POBox = true;
             }
 
-            if (mailPiece.RcptAddressTypes.Contains(AddressTypes.Military) || mailPiece.RcptAddressTypes.Contains(AddressTypes.Territory))
+            if (mailPiece.RcptAddressTypes.Contains(AddressType.Military.ToString()) || mailPiece.RcptAddressTypes.Contains(AddressType.Territory.ToString()))
             {
                 eVSCustomsFormsData customesData = new eVSCustomsFormsData() { ShippingContents = new List<ItemDetail>() { new ItemDetail() { HSTariffNumber = "490110", CountryOfOrigin = "United States", Description = "Loan Document", Quantity = 1, NetPounds = 2, NetOunces = 0, Value = 50 } }, CustomsContentType = CustomsContentType.DOCUMENTS };
 
