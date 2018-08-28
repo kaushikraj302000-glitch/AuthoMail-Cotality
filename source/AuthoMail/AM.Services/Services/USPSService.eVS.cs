@@ -71,7 +71,7 @@ namespace AM.Services
 
                 using (HttpClient httpClient = new HttpClient())
                 {
-                    string url = Config.Web_API_USPS_eVSURL;
+                    string url = Config.Web_API_USPS_URL;
                     //string url = @"https://stg-secure.shippingapis.com/ShippingAPI.dll";
 
                     payload = new FormUrlEncodedContent(new[] 
