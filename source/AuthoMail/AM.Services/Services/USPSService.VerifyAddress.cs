@@ -78,7 +78,7 @@ namespace AM.Services
                 {
                     if (Config.Web_API_USPS_IsDbLoggingEnabled)
                     {
-                        var dbLogawait = await dbLog;
+                        var dbLogawait = await dbLog.ConfigureAwait(false);
                     }
 
                     //throw new ArgumentException(apiErrorMSG);
@@ -162,19 +162,19 @@ namespace AM.Services
                             new KeyValuePair<string, string>("XML",uspsInputXML)
                         });
 
-                    var payloadResult = await payload.ReadAsStringAsync();
+                    var payloadResult = await payload.ReadAsStringAsync().ConfigureAwait(false);
                     uspsReq = httpClient.GetStringAsync("{0}?{1}".Fill(url, payloadResult));
 
 
                     if (Config.Web_API_USPS_IsDbLoggingEnabled)
                     {
-                        logId = await dbLog;
+                        logId = await dbLog.ConfigureAwait(false);
                         uspsRequestLog = db.ExecuteAsync("Update [API].[USPS] set USPSRequest = @USPSRequest, USPSRequestedOn = @USPSRequestedOn where Id = @Id", new { USPSRequest = uspsInputXML, USPSRequestedOn = Common.Now, Id = logId });
                     }
 
                     try
                     {
-                        uspsResponseString = await uspsReq;
+                        uspsResponseString = await uspsReq.ConfigureAwait(false);
                         isGenericUSPSError = !uspsResponseString.Contains("AddressValidateResponse");
 
                         if (isGenericUSPSError)
@@ -211,7 +211,7 @@ namespace AM.Services
 
                 if (Config.Web_API_USPS_IsDbLoggingEnabled)
                 {
-                    var uspsRequestLogAwait = await uspsRequestLog;
+                    var uspsRequestLogAwait = await uspsRequestLog.ConfigureAwait(false);
 
                     uspsResponseLog = db.ExecuteAsync("Update [API].[USPS] set USPSResponse = @USPSResponse , USPSResponseOn = @USPSResponseOn, IsUSPSError = @IsUSPSError, IsAPIError = @IsAPIError where Id = @Id", new { USPSResponse = uspsResponseString, USPSResponseOn = Common.Now, IsUSPSError = isGenericUSPSError ? true : false, IsAPIError = false, Id = logId });
                 }
@@ -231,14 +231,14 @@ namespace AM.Services
                 {
                     var addressResponseXML = addressResponses.Serialize();
 
-                    var uspsResponseLogAwait = await uspsResponseLog;
+                    var uspsResponseLogAwait = await uspsResponseLog.ConfigureAwait(false);
 
                     var responseLog = db.ExecuteAsync("Update [API].[USPS] set APIResponse = @APIResponse ,  APIResponseOn = @APIResponseOn, IsAPIError = @IsAPIError Where Id = @Id", new { APIResponse = addressResponseXML, APIResponseOn = Common.Now, IsAPIError = addressResponses.Any(a => a.AddressTypes.Count == 0), Id = logId });
 
-                    await responseLog;
+                    await responseLog.ConfigureAwait(false);
                 }
 
-                return await Task.Run(() => new VerifierAddressResponse(addressResponses));
+                return await Task.Run(() => new VerifierAddressResponse(addressResponses)).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

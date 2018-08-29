@@ -8,11 +8,12 @@ using System.Web.Http.Cors;
 using AM.Entities;
 using AM.Services;
 using AM.USPSLib;
+using Microsoft.AspNet.Identity;
 
 namespace AM.Web.Controllers
 {
     [EnableCors(origins: "*", headers: "*", methods: "*")]
-    [Authorize(Roles = AMRoles.API)]
+    //[Authorize(Roles = AMRoles.API)]
     [RoutePrefix("api/usps")]
     public class USPSApiController : ApiController
     {
@@ -24,16 +25,16 @@ namespace AM.Web.Controllers
 
         [Route("verify")]
         [HttpPost]
-        public VerifierAddressResponse VerifyAddress(string userId, VerifierAddressRequest addressRequest)
+        public VerifierAddressResponse VerifyAddress([FromBody]VerifierAddressRequest addressRequest)
         {
-            return uspsSvc.VerifyAddress(userId, addressRequest);
+            return uspsSvc.VerifyAddress(User.Identity.GetUserId(), addressRequest);
         }
 
         [Route("eVS")]
         [HttpPost]
-        public eVSLabelResponse RequesteVSLabel(string userId, eVSLabelRequest request)
+        public eVSLabelResponse RequesteVSLabel([FromBody]eVSLabelRequest request)
         {
-            return uspsSvc.RequesteVSLabel(userId, request);
+            return uspsSvc.RequesteVSLabel(User.Identity.GetUserId(), request);
         }
     }
 }

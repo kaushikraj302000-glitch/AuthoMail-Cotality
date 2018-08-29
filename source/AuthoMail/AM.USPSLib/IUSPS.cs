@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Refit;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,8 +9,12 @@ namespace AM.USPSLib
 {
     public interface IUSPS
     {
-        VerifierAddressResponse VerifyAddress(VerifierAddressRequest request);
+        [Post("/api/usps/verify")]
+        [Headers("Authorization: Bearer")]
+        Task<VerifierAddressResponse> VerifyAddress([Body(BodySerializationMethod.Json)] VerifierAddressRequest request);
 
-        eVSLabelResponse RequesteVSLabel(eVSLabelRequest request);
+        [Post("/api/usps/eVS")]
+        [Headers("Authorization: Bearer")]
+        Task<eVSLabelResponse> RequesteVSLabel([Body(BodySerializationMethod.Json)] eVSLabelRequest request);
     }
 }
