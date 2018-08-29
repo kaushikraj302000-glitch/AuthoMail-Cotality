@@ -8,6 +8,7 @@ using AM.Services;
 using AM.Entities;
 using System.Net.Mail;
 using System.IO;
+using System.Threading;
 
 namespace AM.Reporting
 {
@@ -18,65 +19,79 @@ namespace AM.Reporting
         {
             try
             {
-                var dallasEstTimeSpan = Array.ConvertAll(AppConfig.DallasNotificationTimings.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries), s => TimeSpan.Parse(s));
-                var currentEstDateTime = Common.Now.UtcToEst();
-                var currentEstDate = currentEstDateTime.Date;
-                var _05PMSweep = currentEstDate + dallasEstTimeSpan[0];
-                var _06PMSweep = currentEstDate + dallasEstTimeSpan[1];
-                var _07PMSweep = currentEstDate + dallasEstTimeSpan[2];
-                DateTime startTime = new DateTime();
-                DateTime endTime = new DateTime();
-                DateTime effectiveDateTime = new DateTime();
-                if (currentEstDateTime < _05PMSweep)
+                List<DallasBatchTimings> batchesTimings;
+                using (ICommonService commonSvc = new CommonService())
                 {
-                    startTime = currentEstDate.ClientTimeZoneToUtc(AppConfig.DallasTimeZone);
-                    endTime = _05PMSweep.ClientTimeZoneToUtc(AppConfig.DallasTimeZone);
-                    effectiveDateTime = _05PMSweep;
-                }
-                else if (currentEstDateTime >= _05PMSweep && currentEstDateTime < _06PMSweep)
-                {
-                    startTime = _05PMSweep.ClientTimeZoneToUtc(AppConfig.DallasTimeZone);
-                    endTime = _06PMSweep.ClientTimeZoneToUtc(AppConfig.DallasTimeZone);
-                    effectiveDateTime = _06PMSweep;
-                }
-                else if (currentEstDateTime >= _06PMSweep && currentEstDateTime < _07PMSweep)
-                {
-                    startTime = _06PMSweep.ClientTimeZoneToUtc(AppConfig.DallasTimeZone);
-                    endTime = _07PMSweep.ClientTimeZoneToUtc(AppConfig.DallasTimeZone);
-                    effectiveDateTime = _07PMSweep;
-                }
-                else
-                {
-                    throw new Exception("Unexpected Error Occured While sending an Email");
+                    batchesTimings = commonSvc.GetDallasBatchTimings();
                 }
 
-                List<MailPieces> dallasMailPieces;
+                var currentEstDateTime = Common.Now.UtcToEst();
+
+                var _05PMCutOff = batchesTimings.Where(c => c.BatchName == "05PM").Select(date => date.EndDate).Single();
+                var _06PMCutOff = batchesTimings.Where(c => c.BatchName == "06PM").Select(date => date.EndDate).Single();
+                var _07PMCutOff = batchesTimings.Where(c => c.BatchName == "07PM").Select(date => date.EndDate).Single();
+
+                DateTime startDateTime = new DateTime();
+                DateTime endDateTime = new DateTime();
+                string sweepName = string.Empty;
+
+                if (currentEstDateTime > _05PMCutOff && currentEstDateTime <= _06PMCutOff)
+                {
+                    startDateTime = batchesTimings.Where(c => c.BatchName == "05PM").Select(date => date.StartDate).Single().EstToUtc();
+                    endDateTime = batchesTimings.Where(c => c.BatchName == "05PM").Select(date => date.EndDate).Single().EstToUtc();
+                    sweepName = batchesTimings.Where(c => c.BatchName == "05PM").Select(folder => folder.BatchName).Single();
+                }
+                else if (currentEstDateTime > _06PMCutOff && currentEstDateTime <= _07PMCutOff)
+                {
+                    startDateTime = batchesTimings.Where(c => c.BatchName == "06PM").Select(date => date.StartDate).Single().EstToUtc();
+                    endDateTime = batchesTimings.Where(c => c.BatchName == "06PM").Select(date => date.EndDate).Single().EstToUtc();
+                    sweepName = batchesTimings.Where(c => c.BatchName == "06PM").Select(folder => folder.BatchName).Single();
+                }
+                else if (currentEstDateTime > _07PMCutOff)
+                {
+                    startDateTime = batchesTimings.Where(c => c.BatchName == "07PM").Select(date => date.StartDate).Single().EstToUtc();
+                    endDateTime = batchesTimings.Where(c => c.BatchName == "07PM").Select(date => date.EndDate).Single().EstToUtc();
+                    sweepName = batchesTimings.Where(c => c.BatchName == "07PM").Select(folder => folder.BatchName).Single();
+                }
+
+                bool isCompleted = CheckAllBatchStatusCompleted(startDateTime, endDateTime);
+                while (!isCompleted)
+                {
+                    Thread.Sleep(6000);
+                    isCompleted = CheckAllBatchStatusCompleted(startDateTime, endDateTime);
+                }
+
+                List<DallasMailPieceData> dallasMailPieces;
                 using (IMailPieceService mailPieceSvc = new MailPieceService())
                 {
-                    dallasMailPieces = mailPieceSvc.GetDallasMailPiecesByTimingsAndClient(startTime, endTime);
+                    dallasMailPieces = mailPieceSvc.GetDallasMailPiecesByTimingsAndClient(startDateTime.UtcToEst(), endDateTime.UtcToEst());
                 }
 
                 if (dallasMailPieces != null)
                 {
-                    var clients = dallasMailPieces.Select(c => c.Clients.AppCode).Distinct();
+                    var clients = dallasMailPieces.Select(c => c.AppCode).Distinct();
                     List<Notification> notificationList = new List<Notification>();
                     foreach (string clientCode in clients)
                     {
-                        var mailPiecesByClient = dallasMailPieces.Where(f => f.Clients.AppCode == clientCode).ToList();
+                        var mailPiecesByClient = dallasMailPieces.Where(f => f.AppCode == clientCode).ToList();
 
-                        var shippingServiceTypes = mailPiecesByClient.Select(c => c.DocTypes.ShippingServiceType).Distinct();
+                        var shippingServiceTypes = mailPiecesByClient.Select(c => c.ShippingServiceType).Distinct();
 
                         foreach (string shippingServiceType in shippingServiceTypes)
                         {
                             string shippingCarrier = shippingServiceType;
                             if (shippingServiceType == "PRIORITY_OVERNIGHT")
                                 shippingCarrier = "FedEx";
-                            var mailPiecesByShippingServiceType = mailPiecesByClient.Where(f => f.DocTypes.ShippingServiceType == shippingServiceType).ToList();
-                            notificationList.Add(new Notification() { ClientCode = clientCode, ShippingType = shippingCarrier, MailPieceCount = mailPiecesByShippingServiceType.Count });
+
+                            var mailPiecesByShippingServiceType = mailPiecesByClient.Where(f => f.ShippingServiceType == shippingServiceType).ToList();
+
+                            var totalPages = mailPiecesByClient.Where(f => f.ShippingServiceType == shippingServiceType).Sum(c => c.TotalPages);
+
+                            notificationList.Add(new Notification() { ClientCode = clientCode, ShippingType = shippingCarrier, MailPieceCount = mailPiecesByShippingServiceType.Count, TotalPagesCount = totalPages });
                         }
                     }
 
-                    SendEmailNotification(notificationList, effectiveDateTime);
+                    SendEmailNotification(notificationList, endDateTime.UtcToEst(), sweepName);
                 }
             }
             catch (Exception ex)
@@ -85,7 +100,28 @@ namespace AM.Reporting
             }
         }
 
-        private static void SendEmailNotification(List<Notification> notificationList, DateTime currentEstDate)
+        private static bool CheckAllBatchStatusCompleted(DateTime startDateTime, DateTime endDateTime)
+        {
+            List<MailBatches> mailBatches;
+            int receivedCount = 0;
+            int completedCount = 0;
+
+
+            using (IMailBatchService mailBatchSvc = new MailBatchService())
+            {
+                mailBatches = mailBatchSvc.GetMailBatchesDataByDallasCutOff(startDateTime, endDateTime);
+            }
+
+            receivedCount = mailBatches.Where(f => f.IsReceived == 1).ToList().Count;
+            completedCount = mailBatches.Where(f => f.IsAcknowledged == 1 || f.IsReportPrepped == 1 || f.IsReportedBack == 1).ToList().Count;
+
+            if (receivedCount != completedCount)
+                return false;
+
+            return true;
+        }
+
+        private static void SendEmailNotification(List<Notification> notificationList, DateTime currentEstDate, string sweepName)
         {
             try
             {
@@ -99,29 +135,36 @@ namespace AM.Reporting
                         msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, AppConfig.DallasEMailSubject, currentEstDate.AddHours(-1).ToString("hhtt"));
                         msg.Priority = MailPriority.Normal;
 
-                        var clientList = notificationList.Select(c => c.ClientCode).Distinct();
-
-                        StringBuilder fullContent = new StringBuilder();
-                        foreach (var client in clientList)
+                        StringBuilder sb = new StringBuilder(File.ReadAllText(AppConfig.DallasEMailTemplate));
+                        if (notificationList.Count > 0)
                         {
-                            fullContent.AppendLine(@"<tr><td colspan='3' style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt' valign='top' width='638'><p style='text-align:center' align='center'><span style='font-size:20.0pt'>
+                            var clientList = notificationList.Select(c => c.ClientCode).Distinct();
+
+                            StringBuilder fullContent = new StringBuilder();
+                            fullContent.AppendLine(@"<tr><td colspan='3' style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt' valign='top' width='638'><p style='text-align:center' align='center'><span style='font-size:20.0pt'>Below Folder should have count of packages to be printed and shipped<u></u><u></u></span></p></td></tr>");
+                            foreach (var client in clientList)
+                            {
+                                fullContent.AppendLine(@"<tr><td colspan='3' style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt' valign='top' width='638'><p style='text-align:center' align='center'><span style='font-size:20.0pt'>
                                     {0} / {1} / {2}
                                     <u></u><u></u>
-                                </span></p></td></tr>".Fill(client, currentEstDate.ToString("MMddyyyy"), currentEstDate.AddHours(-1).ToString("hhtt")));
-                            fullContent.AppendLine(@"<tr><td style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 6pt 0in 6pt;text-align:center;font-size:14.0pt' valign='top' width='638'>Shipping Method</td><td style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 6pt 0in 6pt;text-align:center;font-size:14.0pt' valign='top' width='638'>Total Packages Count</td></tr>");
+                                </span></p></td></tr>".Fill(client, currentEstDate.ToString("MMddyyyy"), sweepName));
+                                fullContent.AppendLine(@"<tr><td style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 6pt 0in 6pt;text-align:center;font-size:14.0pt' valign='top' width='638'>Shipping Method</td><td style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 6pt 0in 6pt;text-align:center;font-size:14.0pt' valign='top' width='638'>Total Packages</td><td style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 6pt 0in 6pt;text-align:center;font-size:14.0pt' valign='top' width='638'>Total Pages</td></tr>");
 
-                            foreach (var filterd in notificationList.Where(f => f.ClientCode == client))
-                            {
-                                fullContent.AppendLine(@"<tr><td><p style='text-align:center' align='center'><span style='font-size:14.0pt'>{0}</span></p></td><td><p style='text-align:center' align='center'>
-                                <span style='font-size:14.0pt'>{1}</span></p></td></tr>".Fill(filterd.ShippingType, filterd.MailPieceCount));
+                                foreach (var filterd in notificationList.Where(f => f.ClientCode == client))
+                                {
+                                    fullContent.AppendLine(@"<tr><td><p style='text-align:center' align='center'><span style='font-size:14.0pt'>{0}</span></p></td><td><p style='text-align:center' align='center'>
+                                <span style='font-size:14.0pt'>{1}</span></p></td><td><p style='text-align:center' align='center'>
+                                <span style='font-size:14.0pt'>{2}</span></p></td></tr>".Fill(filterd.ShippingType, filterd.MailPieceCount, filterd.TotalPagesCount));
+                                }
                             }
+
+                            sb = sb.Replace("<%REPLACE%>", fullContent.ToString());
                         }
-
-                        StringBuilder sb = new StringBuilder(File.ReadAllText(AppConfig.DallasEMailTemplate));
-                        sb = sb.Replace("<%REPLACE%>", fullContent.ToString());
-
+                        else
+                        {
+                            sb = sb.Replace("<%REPLACE%>", @"<tr><td colspan='3' style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt' valign='top' width='638'><p style='text-align:center' align='center'><span style='font-size:20.0pt'>{0} sweep does not contain any package to print and ship<u></u><u></u></span></p></td></tr>".Fill(sweepName));
+                        }
                         msg.Body = sb.ToString();
-
                         smtpClient.Send(msg);
                     }
                 }
@@ -138,5 +181,6 @@ namespace AM.Reporting
         public string ClientCode { get; set; }
         public string ShippingType { get; set; }
         public int MailPieceCount { get; set; }
+        public int TotalPagesCount { get; set; }
     }
 }

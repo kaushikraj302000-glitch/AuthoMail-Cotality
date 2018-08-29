@@ -19,7 +19,7 @@ namespace AM.Services
         int UpdateBatchMailPieceShippingStatusDetails(MailPieceDTO mailPiece);
         int UpdateMailPiecePickedUpDetailsFromTrackingNo(FedExPickedPackagesDetail pickedUpDetail);
         MailPieceDTO GetMailPieceDataFromTrackingNo(string trackingNo);
-        List<MailPieces> GetDallasMailPiecesByTimingsAndClient(DateTime startTime, DateTime endTime);
+        List<DallasMailPieceData> GetDallasMailPiecesByTimingsAndClient(DateTime startTime, DateTime endTime);
     }
     public class MailPieceService : ServiceBase, IMailPieceService //It implements Interfaces 
     {
@@ -102,27 +102,11 @@ namespace AM.Services
             return db.ExecuteScalar<MailPieceDTO>(query, trackingNo);
         }
 
-        public List<MailPieces> GetDallasMailPiecesByTimingsAndClient(DateTime startDateTime, DateTime endDateTime)
+        public List<DallasMailPieceData> GetDallasMailPiecesByTimingsAndClient(DateTime startDateTime, DateTime endDateTime)
         {
+            string query = @"SELECT * FROM [dbo].[vw_DallasBatches] WHERE EffectiveReceivedOnEst BETWEEN @StartDate AND @EndDate";
 
-            string query = @"SELECT * FROM [AM].[MailPieces] P 
-            INNER JOIN [Common].[Clients] C ON P.ClientId=C.Id
-            INNER JOIN [AM].[DocTypes] D ON P.DocTypeID=D.Id
-            WHERE P.PrintLocation='{0}' AND ( P.EffectiveReceivedOnEst >= @StartTime AND P.EffectiveReceivedOnEst <= @EndTime ) AND P.ShippingStatus <> '{1}'".Fill(Config.Common_PrintLocationCL, ShippingStatus.Error.ToString());
-
-
-            return db.Query<MailPieces, Clients, DocTypes, MailPieces>(query,
-                (p, c, d) =>
-                {
-                    p.Clients = c;
-                    p.DocTypes = d;
-                    return p;
-                },
-                new
-                {
-                    StartTime = startDateTime,
-                    EndTime = endDateTime
-                }).ToList();
+            return db.Query<DallasMailPieceData>(query, new { StartDate = startDateTime, EndDate = endDateTime }).ToList();
         }
     }
 }

@@ -21,6 +21,7 @@ namespace AM.Services
         int InsertPrintBatchDetails(PrintBatch printBatch);
         List<SubmittedBatch> GetSubmittedPrintBatchDetails();
         List<SubmittedBatch> GetResponseReceivedPrintBatchDetails();
+        List<MailBatches> GetMailBatchesDataByDallasCutOff(DateTime startTime, DateTime endTime);
     }
     public class MailBatchService : ServiceBase, IMailBatchService //It implements Interfaces 
     {
@@ -144,6 +145,13 @@ namespace AM.Services
             string query = @"SELECT PB.Id AS PrintBatchId,PB.AppCode +'_'+ CONVERT(VARCHAR(10),PB.Id) as SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode FROM [AM].[PrintBatches] PB WHERE PB.IsSubmittedToShipping=1 AND PB.IsShippingResponseReceived=1 AND PB.BatchStatus=@BatchStatus";
 
             return db.Query<SubmittedBatch>(query, new { BatchStatus = BatchStatus.InProgress.ToString() }).ToList();
+        }
+
+        public List<MailBatches> GetMailBatchesDataByDallasCutOff(DateTime startDateTime, DateTime endDateTime)
+        {
+            string query = @"SELECT * FROM [AM].[MailBatches] WHERE ReceivedOn >=@StartDate AND ReceivedOn <=@EndDate";
+
+            return db.Query<MailBatches>(query, new { StartDate = startDateTime, EndDate = endDateTime }).ToList();
         }
     }
 }

@@ -13,8 +13,6 @@ namespace AM.Reporting
         public static string DallasEMailCc { get; private set; }
         public static string DallasEMailSubject { get; private set; }
         public static string DallasEMailTemplate { get; private set; }
-        public static string DallasNotificationTimings { get; private set; }
-        public static string DallasTimeZone { get; private set; }
 
         public static string FedExReport_Email_To { get; private set; }
         public static string FedExReport_Email_Cc { get; private set; }
@@ -27,8 +25,6 @@ namespace AM.Reporting
             DallasEMailCc = ConfigurationManager.AppSettings["DallasEMailCc"].Trim();
             DallasEMailSubject = ConfigurationManager.AppSettings["DallasEMailSubject"].Trim();
             DallasEMailTemplate = ConfigurationManager.AppSettings["DallasEMailTemplate"].Trim();
-            DallasNotificationTimings = ConfigurationManager.AppSettings["DallasNotificationTimings"].Trim();
-            DallasTimeZone = ConfigurationManager.AppSettings["DallasTimeZone"].Trim();
 
             FedExReport_Email_To = ConfigurationManager.AppSettings["FedExReport_Email_To"].Trim();
             FedExReport_Email_Cc = ConfigurationManager.AppSettings["FedExReport_Email_Cc"].Trim();

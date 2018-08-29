@@ -25,6 +25,7 @@ namespace AM.Services
         Deliverable GetDeliverableByReportType(int clientId, string reportType);
         List<Holiday> GetHolidayList();
         string GetSystemUserId();
+        List<DallasBatchTimings> GetDallasBatchTimings();
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -139,6 +140,13 @@ namespace AM.Services
         {
             string q = "select Id from [Profile].[Users] where email = @email";
             return db.QuerySingle<string>(q, new { email = "system@milestonetechnoconsulting.com" });
+        }
+
+        public List<DallasBatchTimings> GetDallasBatchTimings()
+        {
+            string query = "select * from [dbo].[ufn_GetDallasBatches]()";
+
+            return db.Query<DallasBatchTimings>(query, null).ToList();
         }
     }
 }
