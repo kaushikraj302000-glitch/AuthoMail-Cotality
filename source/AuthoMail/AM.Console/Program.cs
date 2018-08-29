@@ -23,11 +23,6 @@ namespace AM.Console
 
             log.InfoFormat("Command line arguments : {0}", String.Join(",", args));
 
-            //using (IMRDFResponseService svc = new MRDFResponseService())
-            //{
-            //    svc.GenerateMRDFResponse(@"\\MTC-sagarg\c$\MSTC\PCI\Response", @"\\MTC-sagarg\c$\MSTC\PCI\Response");
-            //}
-
             if (args.Length > 0)
             {
                 if (args[0] == "config")
@@ -60,15 +55,6 @@ namespace AM.Console
                     }
                 }
             }
-
-
-            //DownloadJob downloadJob = new DownloadJob();
-            //downloadJob.DownloadNewBatch();
-            //downloadJob.SeparateUSAABatches();
-            //downloadJob.ValidateBatches();
-            //downloadJob.AcknowledgeBatches();
-            //downloadJob.ReportPreppedProcess();
-            //downloadJob.ReportBackProcess();
         }
     }
 }
