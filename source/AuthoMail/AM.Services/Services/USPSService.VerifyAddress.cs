@@ -9,6 +9,7 @@ using Dapper;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using AM.USPSLib;
+using System.IO;
 
 namespace AM.Services
 {
@@ -262,6 +263,15 @@ namespace AM.Services
                 //        addressResponses.Add(response);
                 //    }
                 //}
+                string path = @"logs\USPS_Verify.txt";
+                string fullpath = Path.GetFullPath(path);
+                if (!Directory.Exists(Path.GetDirectoryName(fullpath)))
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(fullpath));
+                }
+
+                File.AppendAllText(path, "\r\nError in Address Verify - {0} : {1}".Fill(DateTime.Now, ex.ToString()));
+
                 return new VerifierAddressResponse(addressResponses)
                 {
                     Error = "Unexpected Error"//ex.ToString()

@@ -22,7 +22,7 @@ namespace AM.Core
 
         public string GeneratedFedExLabelPath { get; private set; }
 
-        public bool Create(MailPieceDTO mailPiece, FedExAccountInfo fedExAccInfo, DocType docType, MailBatchInfo mbi, DateTime fedExShipTimeStamp)
+        public bool Create(MailPieceDTO mailPiece, FedExAccountInfo fedExAccInfo, DocType docType, MailBatchInfo mbi)
         {
             //Here we are assigning No_Error because if we have any general failure or end point exception then we are trying again.
             mailPiece.ErrorCode = OutComeCodes.No_Error;
@@ -31,7 +31,7 @@ namespace AM.Core
 
             bool isLabelGenerated = false;
 
-            ProcessShipmentRequest request = CreateShipmentRequest(mailPiece, fedExAccInfo, docType, fedExShipTimeStamp);
+            ProcessShipmentRequest request = CreateShipmentRequest(mailPiece, fedExAccInfo, docType);
             // Initialize the service
             ShipPortTypeClient service = new ShipPortTypeClient();
 
@@ -106,21 +106,21 @@ namespace AM.Core
             }
         }
 
-        private ProcessShipmentRequest CreateShipmentRequest(MailPieceDTO mailPiece, FedExAccountInfo fedExAccInfo, DocType docType, DateTime fedExShipTimeStamp)
+        private ProcessShipmentRequest CreateShipmentRequest(MailPieceDTO mailPiece, FedExAccountInfo fedExAccInfo, DocType docType)
         {
             // Build the ShipmentRequest
             ProcessShipmentRequest shipRequest = new ProcessShipmentRequest();
-            SetShipmentDetails(shipRequest, mailPiece, fedExAccInfo, docType, fedExShipTimeStamp);
+            SetShipmentDetails(shipRequest, mailPiece, fedExAccInfo, docType);
             SetPackageLineItems(shipRequest);
 
             if (!string.IsNullOrEmpty(docType.ShippingSpecialService))
             {
-                SetSpecialServiceRequestLineItems(shipRequest, docType.ShippingSpecialService, fedExShipTimeStamp);
+                SetSpecialServiceRequestLineItems(shipRequest, docType.ShippingSpecialService, mailPiece.EffectiveReceivedOnEst.Value);
             }
             return shipRequest;
         }
 
-        private void SetShipmentDetails(ProcessShipmentRequest request, MailPieceDTO mailPiece, FedExAccountInfo fedExAccInfo, DocType docType, DateTime fedExShipTimeStamp)
+        private void SetShipmentDetails(ProcessShipmentRequest request, MailPieceDTO mailPiece, FedExAccountInfo fedExAccInfo, DocType docType)
         {
             request.WebAuthenticationDetail = new WebAuthenticationDetail();
             request.WebAuthenticationDetail.UserCredential = new WebAuthenticationCredential();
@@ -137,7 +137,7 @@ namespace AM.Core
             request.Version = new VersionId(); // WSDL version information, value is automatically set from wsdl
             //          
             request.RequestedShipment = new RequestedShipment();
-            request.RequestedShipment.ShipTimestamp = fedExShipTimeStamp; // Ship date and time
+            request.RequestedShipment.ShipTimestamp = mailPiece.EffectiveReceivedOnEst.Value; // Ship date and time
             request.RequestedShipment.DropoffType = DropoffType.REGULAR_PICKUP;
 
             request.RequestedShipment.ServiceType = (AM.Core.ShipWebServiceRef.ServiceType)Enum.Parse(typeof(AM.Core.ShipWebServiceRef.ServiceType), docType.ShippingServiceType.ToString());

@@ -534,7 +534,7 @@ namespace AM.Console
 
                     using (IUSPSService uspsSvc = new USPSService())
                     {
-                        verifierAddResponse = uspsSvc.VerifyAddress(commonSvc.GetSystemUserId(), verifierAddRequest);
+                        verifierAddResponse = uspsSvc.VerifyAddressAsync(commonSvc.GetSystemUserId(), verifierAddRequest).Result;
                     }
 
                     if (verifierAddResponse != null)
@@ -798,6 +798,48 @@ namespace AM.Console
                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
             }
             log.Debug("Validate job queue is completed.");
+        }
+
+        protected override void CalculateDueDateAndPrintLocation()
+        {
+            log.Debug("Calculation of Due Date and Print location job is started.");
+
+            List<MailBatchDTO> validatedBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Validated, client.Id);
+            if (validatedBatches.Count == 0)
+            {
+                log.Debug("Calculation of Due Date and Print location job queue is empty.");
+                return;
+            }
+
+            foreach (var mailBatch in validatedBatches)
+            {
+                var mailPieceData = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatch.Id);
+
+                List<MailPieceDTO> validMailPieces = mailPieceData.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
+
+                if (validMailPieces.Count == 0)
+                {
+                    continue;
+                }
+
+                foreach (MailPieceDTO mailPiece in validMailPieces)
+                {
+                    DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value);
+
+                    //Here first we will calculate effective received on date and based on that we will calculate due date for that
+                    DateTime effectiveEstReceivedOn = Channel.GetEffectiveEstReceivedOn(docType, mailBatch.ReceivedOn.Value);
+                    //Here storing effective receivedon in UTC format as per rule
+                    mailPiece.EffectiveReceivedOnEst = effectiveEstReceivedOn;
+                    //Calculate Due Date for Mail Pieces doc type wise
+                    mailPiece.DueDate = Channel.GetDueDate(docType, effectiveEstReceivedOn);
+                    //Set print location where mail piece will go for print and ship
+                    mailPiece.PrintLocation = Channel.GetPrintLocation(docType, effectiveEstReceivedOn);
+
+                    mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                }
+            }
+
+            log.Debug("Calculation of Due Date and Print location Job is ended.");
         }
 
         protected override void AcknowledgeBatches()

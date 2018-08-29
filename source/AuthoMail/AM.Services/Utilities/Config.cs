@@ -51,11 +51,9 @@ namespace AM.Services
 
         public static TimeSpan Monitor_InternalPrintAndShipStartTime { get; private set; }
         public static TimeSpan Monitor_InternalPrintAndShipEndTime { get; private set; }
-        public static string Monitor_InternalPrintShippingMethods { get; private set; }
 
         //Core
         public static string Core_PnS_SFT_RootDir { get; private set; }
-
         public static string Core_CoverTemplateFolder { get; private set; }
         public static string Core_CountryCode { get; private set; }
         public static int Core_NoofTime_AttemptFedexService { get; private set; }
