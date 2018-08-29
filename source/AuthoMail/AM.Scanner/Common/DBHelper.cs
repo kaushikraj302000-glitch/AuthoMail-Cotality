@@ -26,7 +26,7 @@ namespace AM.Scanner.Common
             return connection;
         }
 
-        public static ScanDetails RegisterScan(string barcode, int totalScanned, string clientCode, string username, string machineName)
+        public static ScanDetails RegisterScan(string barcode, string clientCode, string username, string machineName, string batchTime)
         {
             barcode = barcode.Replace(clientCode, "");
             try
@@ -34,11 +34,11 @@ namespace AM.Scanner.Common
                 DbConnection db = Create(clientCode);
                 //DbCommand cmd = db.GetStoredProcCommand(Common.SP_RegisterScan, barcode);
                 // DbCommand cmd = db.GetStoredProcCommand(Common.SP_RegisterScan, barcode, username, machineName);
-                string query = string.Format("{0} @barcode, @clientCode, @operatorid, @machineid", Common.SP_RegisterScan);
-                var registerScanData = db.QuerySingleOrDefault<RegisterScanDetails>(query, new { barcode = barcode,clientCode=clientCode, operatorid = username, machineid = machineName });
+                string query = string.Format("{0} @barcode, @clientCode, @operatorid, @machineid, @batchTime", Common.SP_RegisterScan);
+                var registerScanData = db.QuerySingleOrDefault<RegisterScanDetails>(query, new { barcode = barcode, clientCode = clientCode, operatorid = username, machineid = machineName, batchTime = batchTime });
                 db.Dispose();
                 var scanCountData = GetScanStats(clientCode);
-                scanCountData.BatchName = registerScanData.BatchName;
+                scanCountData.JobName = registerScanData.JobName;
                 scanCountData.Code = registerScanData.Code;
                 scanCountData.Message = registerScanData.Message;
                 scanCountData.AppCode = clientCode;
@@ -72,7 +72,26 @@ namespace AM.Scanner.Common
                 throw e;
             }
         }
+        public static List<RegisterScanDetails> GetScannedMailPieces(string clientCode,string batchName)
+        {
+            try
+            {
+                DbConnection db = Create(clientCode);
+                string scanCountQuery = string.Format("{0} @appcode, @batchName, @startdate, @enddate", Common.SP_GetScannedMailPieces);
+                var estToday = DateTime.UtcNow.UtcToEst().Date;
+                // EST Week
+                var startDate = (estToday + new TimeSpan(0, 0, 0)).EstToUtc();
+                var endDate = (estToday + new TimeSpan(23, 59, 59)).EstToUtc();
+                var scannedMailPieceList = db.Query<RegisterScanDetails>(scanCountQuery, new { appcode = clientCode, batchName = batchName, startDate = startDate, endDate = endDate }).ToList();
+                db.Dispose();
+                return scannedMailPieceList;
 
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
 
         public static List<GetAllBatchCountDetails> GetRecentBatchesStats(string clientCode)
         {
