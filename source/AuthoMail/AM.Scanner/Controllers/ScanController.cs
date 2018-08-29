@@ -37,10 +37,10 @@ namespace AM.Scanner.Controllers
         }
 
         [HttpPost]
-        public ActionResult RegisterScan(string barcode, string clientCode, string batchTime)
+        public ActionResult RegisterScan(string barcode, string clientCode, string batchName)
         {
             string machineName = GetIPAddress();
-            ScanDetails scanDetails = DBHelper.RegisterScan(barcode, clientCode, User.Identity.Name, machineName, batchTime);
+            ScanDetails scanDetails = DBHelper.RegisterScan(barcode, clientCode, User.Identity.Name, machineName, batchName);
             return Json(new { model = scanDetails }, JsonRequestBehavior.AllowGet);
         }
 

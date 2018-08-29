@@ -12,8 +12,8 @@ namespace AM.Scanner.Models
         public string LoanNumber { get; set; }
         public string BarcodeValue { get; set; }
         public string TotalPages { get; set; }
-        public string ReceivedOn { get; set; }
-        public string ShippedOn { get; set; }
+        public DateTime ReceivedOn { get; set; }
+        public DateTime ShippedOn { get; set; }
         public string MailPieceStatus { get; set; }
 
     }

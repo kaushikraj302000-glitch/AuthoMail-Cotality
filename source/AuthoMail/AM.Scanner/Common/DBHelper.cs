@@ -26,7 +26,7 @@ namespace AM.Scanner.Common
             return connection;
         }
 
-        public static ScanDetails RegisterScan(string barcode, string clientCode, string username, string machineName, string batchTime)
+        public static ScanDetails RegisterScan(string barcode, string clientCode, string username, string machineName, string batchName)
         {
             barcode = barcode.Replace(clientCode, "");
             try
@@ -34,8 +34,8 @@ namespace AM.Scanner.Common
                 DbConnection db = Create(clientCode);
                 //DbCommand cmd = db.GetStoredProcCommand(Common.SP_RegisterScan, barcode);
                 // DbCommand cmd = db.GetStoredProcCommand(Common.SP_RegisterScan, barcode, username, machineName);
-                string query = string.Format("{0} @barcode, @clientCode, @operatorid, @machineid, @batchTime", Common.SP_RegisterScan);
-                var registerScanData = db.QuerySingleOrDefault<RegisterScanDetails>(query, new { barcode = barcode, clientCode = clientCode, operatorid = username, machineid = machineName, batchTime = batchTime });
+                string query = string.Format("{0} @barcode, @clientCode, @operatorid, @machineid, @batchName", Common.SP_RegisterScan);
+                var registerScanData = db.QuerySingleOrDefault<RegisterScanDetails>(query, new { barcode = barcode, clientCode = clientCode, operatorid = username, machineid = machineName, batchName = batchName });
                 db.Dispose();
                 var scanCountData = GetScanStats(clientCode);
                 scanCountData.JobName = registerScanData.JobName;
