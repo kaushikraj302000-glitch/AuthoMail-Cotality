@@ -51,11 +51,9 @@ namespace AM.Services
 
         public static TimeSpan Monitor_InternalPrintAndShipStartTime { get; private set; }
         public static TimeSpan Monitor_InternalPrintAndShipEndTime { get; private set; }
-        public static string Monitor_InternalPrintShippingMethods { get; private set; }
 
         //Core
         public static string Core_PnS_SFT_RootDir { get; private set; }
-
         public static string Core_CoverTemplateFolder { get; private set; }
         public static string Core_CountryCode { get; private set; }
         public static int Core_NoofTime_AttemptFedexService { get; private set; }
@@ -91,8 +89,6 @@ namespace AM.Services
         #region PullBackRequestProps
         [Description("When mailpiece is aborted by client or for unknown reason.")]
         public static string Web_Msg_API_PB_Aborted { get; private set; }
-        [Description("If batchstatus is submitted then only mailpiece can be pullback.")]
-        public static string Web_Msg_API_PB_BatchStatusSubmitted { get; private set; }
         public static string Web_Msg_API_PB_BatchNotValidated { get; set; }
         [Description("When no data found for specified unique id.")]
         public static string Web_Msg_API_PB_DataNull { get; private set; }

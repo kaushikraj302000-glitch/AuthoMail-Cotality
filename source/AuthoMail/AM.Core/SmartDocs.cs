@@ -152,7 +152,7 @@ namespace AM.Core
 
                 using (IUSPSService uspsSvc = new USPSService())
                 {
-                    eVSRes = uspsSvc.RequesteVSLabel(sysUserId, eVSReq);
+                    eVSRes = uspsSvc.RequesteVSLabelAsync(sysUserId, eVSReq).Result;
                 }
 
                 if (eVSRes != null)
