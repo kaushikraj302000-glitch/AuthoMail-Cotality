@@ -24,7 +24,7 @@ namespace AM.Scanner.Models
         public string TrackingNo { get; set; }
         public string Code { get; set; }
         public string Message { get; set; }
-        public string BatchName { get; set; }
+        public string JobName { get; set; }
         public string AppCode { get; set; }
     }
 

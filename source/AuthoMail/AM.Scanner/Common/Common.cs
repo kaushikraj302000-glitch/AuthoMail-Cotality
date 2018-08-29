@@ -19,7 +19,7 @@ namespace AM.Scanner.Common
             SP_GetPendingScanning = ConfigurationManager.AppSettings["GetPendingScanning"].Trim();
             Environment = ConfigurationManager.AppSettings["Environment"].Trim();
             SP_RegisterUSPSScan = ConfigurationManager.AppSettings["RegisterUSPSScan"].Trim();
-
+            SP_GetScannedMailPieces = ConfigurationManager.AppSettings["GetScannedMailPieces"].Trim();
         }
         public static string Environment { get; set; }
 
@@ -31,6 +31,8 @@ namespace AM.Scanner.Common
         public static string SP_GetScanReportData { get; set; }
         public static string SP_GetRecentBatchesStats { get; set; }
         public static string SP_GetPendingScanning { get; set; }
+        public static string SP_GetScannedMailPieces { get; set; }
+        
 
         public static DateTime ClientTimeZoneToUtc(this DateTime dt, string clientTimeZone)
         {
