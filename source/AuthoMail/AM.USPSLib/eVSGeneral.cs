@@ -68,11 +68,17 @@ namespace AM.USPSLib
         public decimal? NetOunces { get; set; }
         public string HSTariffNumber { get; set; }
         public string CountryOfOrigin { get; set; }
-                        
+
         public bool ShouldSerializeQuantity() { return this.Quantity.HasValue; }
         public bool ShouldSerializeValue() { return this.Value.HasValue; }
         public bool ShouldSerializeNetPounds() { return this.NetPounds.HasValue; }
         public bool ShouldSerializeNetOunces() { return this.NetOunces.HasValue; }
+
+        public ItemDetail()
+        {
+            //default value as per API documentation for get only tag
+            this.HSTariffNumber = string.Empty;
+        }
     }
 
     public class Commitment
