@@ -921,7 +921,8 @@ Database Changes
 
 			GO
 	3) Stored Procedures
-		- Added SP [dbo].[usp_GetMailBatchReceivedOnDataBasedFromPrintBatchId]
+		- Added SPs : [dbo].[usp_GetMailBatchReceivedOnDataBasedFromPrintBatchId],[dbo].[SP_GetPendingScanning],[dbo].[SP_GetScannedMailPieces],[dbo].[SP_GetScanReportData]
+		
 			CREATE PROCEDURE [dbo].[usp_GetMailBatchReceivedOnDataBasedFromPrintBatchId]
 			@pnsPrintBatchId int
 			AS
@@ -935,6 +936,290 @@ Database Changes
 			 WHERE M.JobId=@pnsPrintBatchId AND M.MailPieceStatus='InProgress'
 			 
 			END
+			
+			CREATE PROCEDURE [dbo].[SP_GetPendingScanning]
+			@appcode varchar(128)
+			AS
+			BEGIN
+				declare @clientid int
+				set @appcode = replace(@appcode, 'AUT','')
+				select @clientid=Id from Common.Clients where AppCode=@appcode;
+
+				select TrackingNo,LoanNumber,SubmittedOn,PDFFileName as [FileName],JobName,MailPieceStatus,BatchName,DueDate 
+				from dbo.vw_DallasBatches
+				where ClientId=@clientid and PrintLocation=(select Value from [Common].[SystemSettings] where Id		='Common_PrintLocationCL') and MailPieceStatus='InProgress' and ProcessingTimeStamp is null
+			END
+			GO
+			
+			CREATE PROCEDURE [dbo].[SP_GetScannedMailPieces]
+			@appcode varchar(128),
+			@batchName varchar(255),
+			@startDate datetime,
+			@endDate datetime
+			
+			AS
+			BEGIN
+				declare @printlocationcl varchar(1024), @clientid int
+				set @appcode=REPLACE(@appcode,'AUT','')
+				-- Get ClientId
+				select @clientid=Id from Common.Clients where AppCode=@appcode;
+				-- Get PrintLocation
+				select @printlocationcl=Value from [Common].[SystemSettings] where Id ='Common_PrintLocationCL';
+
+				select TrackingNo,
+				(case when IsPullBackRequested = 1 then 'Pulledback' when IsQCRequested = 1 then 'QC' else 'Valid' end) as [Code],JobName
+				from dbo.vw_DallasBatches
+				where Printlocation=@printlocationcl and ClientId=@clientId and SweepName=@batchName and MailPieceStatus <> 'InProgress'	and ProcessingTimeStamp between @startDate and @endDate 
+
+			END
+			GO
+			
+			CREATE PROCEDURE [dbo].[SP_GetScanReportData]
+			@loanNumber varchar(255),
+			@trackingNo varchar(255),
+			@appcode varchar(128),
+			@substartdate datetime,
+			@subenddate datetime,
+			@scanstartDate datetime,
+			@scanendDate datetime
+			AS
+			BEGIN
+				declare @printlocationcl varchar(255),@clientid int
+				-- Get Print location 
+				select @printlocationcl = Value from [Common].[SystemSettings] where Id ='Common_PrintLocationCL'
+				-- Assign Client id value
+				set @appcode = replace(@appcode, 'AUT','')
+				select @clientid=Id from Common.Clients where AppCode=@appcode;
+				
+				select JobName,BatchName,TrackingNo as BarcodeValue,TotalPages,ProcessingTimeStamp as ShippedOn,LoanNumber,MailPieceStatus,SubmittedOn as ReceivedOn from dbo.vw_DallasBatches
+				where ClientId=@clientId and PrintLocation=@printlocationcl
+				and SubmittedOn between ISNULL(@substartdate,SubmittedOn) and ISNULL(@subenddate,SubmittedOn)
+				and ProcessingTimeStamp between ISNULL(@scanstartDate,ProcessingTimeStamp) and ISNULL(@scanendDate,ProcessingTimeStamp)
+				and TrackingNo = ISNULL(@trackingNo,TrackingNo)
+				and LoanNumber = ISNULL(@loanNumber,LoanNumber)
+				order by SubmittedOn asc
+
+			END
+			
+		- Updated SP [dbo].[SP_GetRecentBatchesStats],[dbo].[SP_GetScanStats],[dbo].[SP_RegisterScan]
+		
+			ALTER PROCEDURE [dbo].[SP_GetRecentBatchesStats] 
+			@appcode varchar(128),
+			@startdate datetime,
+			@enddate datetime
+			 AS
+			BEGIN
+				
+				declare @bn nvarchar(max),@st time, @et time,
+				@printlocationcl varchar(1024),  @clientid int,
+				@sd datetime, @ed datetime, @mindt datetime=null
+
+				--Get Client Id, and remove AUT from client appcode
+				set @appcode=REPLACE(@appcode,'AUT','')
+				select @clientid=Id from Common.Clients where AppCode=@appcode;
+				-- Get PrintLocation
+				select @printlocationcl=Value from [Common].[SystemSettings] where Id ='Common_PrintLocationCL';
+				-- Get Pending count batch(sweep) wise
+				with pc as
+				(
+					select distinct SweepName,count(Id) as PendingCount from dbo.vw_DallasBatches
+					where Printlocation=@printlocationcl and ClientId=@clientId
+					and MailPieceStatus = 'InProgress'
+					group by SweepName
+				),
+				-- Get Scanned count batch(sweep) wise
+				sc as
+				(
+					select distinct SweepName,count(Id) as ScannedCount from dbo.vw_DallasBatches
+					where Printlocation=@printlocationcl and ClientId=@clientId
+					and MailPieceStatus <> 'InProgress' and ProcessingTimeStamp between @startdate and @enddate
+					group by SweepName
+				),
+				sw as
+				(
+					select BatchName from dbo.ufn_GetDallasBatches()
+				),
+
+				t as
+				(	
+					select	ISNULL(sc.SweepName,pc.SweepName) as BatchName,
+							ISNULL(pc.PendingCount,0) as PendingCount,
+							ISNULL(sc.ScannedCount,0) as ScannedCount
+					from sc full outer join pc on sc.SweepName=pc.SweepName
+				)
+				
+				select	ISNULL(t.BatchName,sw.BatchName) as BatchName,
+						IsNULL(t.ScannedCount,0) as ScannedLoans,
+						(ISNULL(t.PendingCount,0) + ISNULL(t.ScannedCount,0)) as TotalLoans 
+						from t
+						full outer join sw on t.BatchName = sw.BatchName
+			END
+			
+			ALTER PROCEDURE [dbo].[SP_GetScanStats]
+			@appcode varchar(128),
+			@startdate datetime,
+			@enddate datetime
+			AS
+			BEGIN
+			declare @printlocationcl varchar(1024), @totalPending int, @scannedCount int, @clientid int
+
+			-- Set PrintLocation value
+			select @printlocationcl = Value from [Common].[SystemSettings] where Id ='Common_PrintLocationCL'
+
+			-- Remove AUT from app code
+			set @appcode = replace(@appcode, 'AUT','')
+
+			-- Get client id
+			select @clientid=Id from Common.Clients where AppCode=@appcode
+
+			-- Calculate Total Pending Scanned
+				select @totalPending=count(Id) from dbo.vw_DallasBatches
+				where Printlocation=@printlocationcl and ClientId=@clientId
+				and MailPieceStatus = 'InProgress'
+				
+
+			-- Calculate Total Scanned count
+				select @scannedCount=count(Id) from dbo.vw_DallasBatches
+				where Printlocation=@printlocationcl and ClientId=@clientId
+				and MailPieceStatus <> 'InProgress' and (ProcessingTimeStamp between @startdate and @enddate)
+
+				-- Return result
+			select @scannedCount as [ScanCount],@totalPending + @scannedCount as [TotalCount]
+
+			END		
+			
+			ALTER PROCEDURE [dbo].[SP_RegisterScan]
+			-- Add the parameters for the stored procedure here
+			@trackno varchar(255),
+			@clientCode varchar(128),
+			@operatorid varchar(50),
+			@machineid varchar(255),
+			@sweepName varchar(255)-- 05PM, 06PM, 07PM, Backlog
+			--@todayESTDate date
+			AS
+			BEGIN
+			declare	@jobid int,
+				@pieceid int,
+				@mrdfreqdate date,
+				@ispullbackrequested bit,
+				@isqcrequested bit,
+				@disposition varchar(50),
+				@mailpiecestatus varchar(255),
+				@totalsheet int = null,
+				@pdffilename varchar(255),
+				@printlocationcl varchar(1024),
+				@inprogresscnt int,
+				@mailpieceid int,
+				@code varchar(50),
+				@existjobid int,
+				@jobName varchar(512),
+				@serviceType varchar(255),
+				@isMPSUpdate bit,
+				@clientAppCode varchar(128),
+				@clientName varchar(255),
+				@swp varchar(255)
+
+			BEGIN TRY
+
+				set @trackno = replace(@trackno, 'AUT','')
+				set @clientCode = replace(@clientCode, 'AUT','')
+				--Get Print Location name
+				SET @printlocationcl=(select Value from [Common].[SystemSettings] where Id ='Common_PrintLocationCL')
+				-- Get mailpiece, MRDFRequest data filter by trackingno & printlocation
+
+				if(@sweepName is null)
+				begin 
+					select 'Invalid' as Code, NULL as TrackingNo, 'Batch name can not be null' as [Message], NULL as [JobName]
+					return
+				end
+				select @mailpieceid= Id,@pieceid=PieceId,@jobid=JobId,@mrdfreqdate=MRDFReqDate,@ispullbackrequested =IsPullBackRequested,@isqcrequested=IsQCRequested,@totalsheet=TotalSheets,@pdffilename=PDFFileName,@jobName=JobName,@serviceType=ShippingServiceType,@clientAppCode=AppCode,@clientName=ClientName,@swp=SweepName
+				from dbo.vw_DallasBatches		
+				where TrackingNo=@trackno and PrintLocation=@printlocationcl --and b.IsSubmitted=1
+
+				if(@mailpieceid IS NULL) 
+				begin
+					select 'Invalid' as Code, NULL as TrackingNo, NULL as [Message], NULL as [JobName]
+					return
+				end
+
+				--Validate tracking no is assign to this client
+				if(@clientCode <> @clientAppCode)
+				begin
+					select 'Invalid' as Code, @trackno as TrackingNo, REPLACE('This tracking number belongs to @clientName client. Please check your document.','@clientName',@clientName) as [Message], NULL as [JobName]
+					return
+				end
+				-- Validate this mailpiece is assign to this batch or not.
+				if(@swp<>@sweepName)
+				begin
+					select 'Invalid' as Code, @trackno as TrackingNo, REPLACE('This document belongs to <span style="color:#000"> @swp </span> batch.','@swp',@swp) as [Message], NULL as [JobName]
+					return
+				end
+				
+				if exists(select 1 from PnS.MRDFResponse where JobId = @jobid and PieceId = @pieceid) 
+				begin
+					select 'Rescan' as Code, @trackno as TrackingNo, NULL as [Message], @jobName as [JobName]
+					return
+				end
+				-- set mailpiece status if ispullbackrequested then update otherwise not
+				SET @mailpiecestatus='Shipped'
+
+				if(@ispullbackrequested = 1) 
+				begin
+					SET @code = 'Pulledback'
+					SET @disposition='4' 
+					SET @mailpiecestatus='PulledBack'
+				end
+				else if(@isqcrequested=1)
+				begin
+					SET @disposition='8'
+					SET @code = 'QC'
+				end
+				else
+				begin
+					SET @disposition='5'
+					SET @code = 'Valid'
+				end
+
+				-- Validate if trackno is same as MailPiece and service type is same as USPS_EXPRESSMAIL. 
+				-- Then do not update MailPieceStatus
+				set @isMPSUpdate=1;
+				if(@trackno = cast(@mailpieceid as varchar) and @serviceType = 'USPS_EXPRESSMAIL') set @isMPSUpdate=0;
+				
+				-- Start Transaction
+				BEGIN TRANSACTION	
+					-- insert data into MRDFResponse table
+					INSERT INTO [PnS].[MRDFResponse] ([JobId],[PieceId],[Date],[Feeder2_Fed],[OperatorId],[MachineId],									[ProcessingTimeStamp],[DetailedErrorId],[Disposition],[Input_Fed],[Feeder3_Fed],[Feeder4_Fed],[Feeder5_Fed],						[ComputedWeight],[MeterDate],[StatusSource],[PostageMetered]
+					,[WeightMeasured],[ExitLocation],[TotalSheets],[PDFFileName],[PackageTrackingNumber])
+					VALUES(@jobid,@pieceid,@mrdfreqdate,0,@operatorid,@machineid,GETUTCDATE(),'4691'
+					,@disposition,'00','0','0','0','0.000','00000000', @printlocationcl,'0.000','0.000',@printlocationcl
+					,@totalsheet,@pdffilename,NULL)
+						
+					-- update mailepiecestatus depend on [Disposition] value
+					if(@isMPSUpdate = 1)
+					begin
+						Update [PnS].[MRDFRequest] SET MailPieceStatus = @mailpiecestatus
+						where JobId=@jobid and PieceId = @pieceid
+
+						-- Check if we are yet to received response for any mail pieces
+						select @inprogresscnt= count(*) from [PnS].[MRDFRequest] where MailPieceStatus='InProgress' and JobId=@jobid
+					
+						-- If responses are received for entire batch, then update batch status to received
+						if(@inprogresscnt = 0)
+						begin
+							update PnS.BatchSummary set PipelineStatus = 'MRDFReceived', MRDFReceivedOn = GETUTCDATE() where PrintBatch = @jobid
+						end
+					end
+				--End Transaction
+				COMMIT
+				
+				select @code as Code, @trackno as TrackingNo, NULL as [Message], @jobName as [JobName]
+			END TRY
+			BEGIN CATCH
+				IF @@TRANCOUNT > 0
+					ROLLBACK
+			END CATCH
+			END
+			
 	4) Functions
 		- Added Functions [dbo].[ufn_GetDallasBatches],[dbo].[ufn_GetEstToday]
 			CREATE FUNCTION [dbo].[ufn_GetDallasBatches]
@@ -1015,9 +1300,9 @@ Database Changes
 Application Changes
 =========================
 	- For AuthoMail
-		1) AM.Console - Exe,dlls, add newtonsoft.dll
-		2) AM.Core - Exe,dlls, add newtonsoft.dll
-		3) AM.Reporting - Exe,dlls, add newtonsoft.dll
+		1) AM.Console - Exe,dlls, add newtonsoft.dll,Refit.dll
+		2) AM.Core - Exe,dlls, add newtonsoft.dll,Refit.dll
+		3) AM.Reporting - Exe,dlls, add newtonsoft.dll,Refit.dll
 			- Create new task schedular for FedEx Report at 10PM EST
 			- Update task schedular for DallasNotification app which will execute on 03:00:30 PM,04:00:30 PM,05:00:30 PM
 	- For PnS Service
