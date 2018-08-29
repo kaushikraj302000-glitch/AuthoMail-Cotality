@@ -27,14 +27,14 @@ namespace AM.Web.Controllers
         [HttpPost]
         public VerifierAddressResponse VerifyAddress([FromBody]VerifierAddressRequest addressRequest)
         {
-            return uspsSvc.VerifyAddress(User.Identity.GetUserId(), addressRequest);
+            return uspsSvc.VerifyAddressAsync(User.Identity.GetUserId(), addressRequest).Result;
         }
 
         [Route("eVS")]
         [HttpPost]
         public eVSLabelResponse RequesteVSLabel([FromBody]eVSLabelRequest request)
         {
-            return uspsSvc.RequesteVSLabel(User.Identity.GetUserId(), request);
+            return uspsSvc.RequesteVSLabelAsync(User.Identity.GetUserId(), request).Result;
         }
     }
 }
