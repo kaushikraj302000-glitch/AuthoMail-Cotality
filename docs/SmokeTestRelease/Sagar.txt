@@ -844,7 +844,7 @@ Database Changes
 
 			 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_URL', N'String', N'http://production.shippingapis.com/ShippingAPI.dll', NULL, 0, N'http://production.shippingapis.com/ShippingAPI.dll', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
-			 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_UserId', N'String', N'819MILES3278', NULL, 0, N'819MILES3278', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+			 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_UserId', N'String', N'228COREL3398', NULL, 0, N'416COREL2218', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
 			 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_VerifyAPIName', N'String', N'Verify', NULL, 0, N'Verify', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
@@ -875,3 +875,157 @@ Application Changes
 UAT Final Status : PnS Service Application changes and Database changes Deployment is completed at 08/22/2018 12.30PM
 PROD Final Status : AM Process Updated with FedEx Saturday delivery option enabled at 08/23/2018 01.00 PM
 ====================================================================================================================================================
+
+====================================================
+Deployment 30/08/2018
+====================================================
+=========================
+Database Changes
+=========================
+	1) Common.SystemSettings table Changes
+		- Added Keys
+			INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_eVSAPIName', N'String', N'eVS', NULL, 0, N'eVS', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+		- Removed Keys
+			DELETE FROM Common.SystemSettings WHERE Id IN ('Web_API_USPS_URL','Web_Msg_API_PB_BatchStatusSubmitted','Monitor_InternalPrintShippingMethods')
+		- Updated Keys
+			UPDATE Common.SystemSettings SET Id = 'Web_API_USPS_URL' WHERE id = 'Web_API_USPS_eVSURL'
+			UPDATE Common.SystemSettings SET Value = 'https://stg-secure.shippingapis.com/ShippingAPI.dll' WHERE id = 'Web_API_USPS_URL' - For Staging Deployment
+			--UPDATE Common.SystemSettings SET Value = 'http://10.215.112.64/usps' WHERE id = 'Web_API_USPS_URL' - For Production Deployment With USPS Express Label
+	2) Tables
+		- Added Tables
+			CREATE TYPE [dbo].[Amount] FROM [decimal](14, 2) NULL
+
+			CREATE TABLE [API].[USPSeVS](
+			 [Id] [int] IDENTITY(1,1) NOT NULL,
+			 [APIName] [nvarchar](255) NOT NULL,
+			 [UserId] [nvarchar](255) NULL,
+			 [IsAPIError] [bit] NOT NULL,
+			 [IsUSPSError] [bit] NOT NULL,
+			 [APIRequest] [nvarchar](max) NOT NULL,
+			 [APIRequestedOn] [datetime] NOT NULL,
+			 [USPSRequest] [nvarchar](max)  NULL,
+			 [USPSRequestedOn] [datetime] NULL,
+			 [USPSResponse] [nvarchar](max) NULL,
+			 [USPSResponseOn] [datetime] NULL,
+			 [APIResponse] [nvarchar](max) NULL,
+			 [APIResponseOn] [datetime] NULL,
+			 [BarcodeNumber] [nvarchar](255) NULL,
+			 [Postage] [Amount] NOT NULL,
+			 [CommitmentName] [nvarchar](255) NULL,
+			 [ScheduledDeliveryDate] [date] NULL
+			 CONSTRAINT [PK_USPSEVS.Id] PRIMARY KEY CLUSTERED 
+			(
+			 [Id] ASC
+			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+			) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+			GO
+	3) Stored Procedures
+		- Added SP [dbo].[usp_GetMailBatchReceivedOnDataBasedFromPrintBatchId]
+			CREATE PROCEDURE [dbo].[usp_GetMailBatchReceivedOnDataBasedFromPrintBatchId]
+			@pnsPrintBatchId int
+			AS
+			BEGIN
+			 -- SET NOCOUNT ON added to prevent extra result sets from
+			 -- interfering with SELECT statements.
+			 SET NOCOUNT ON;
+			 
+			 SELECT P.Id AS MailPieceId,P.EffectiveReceivedOnEst AS MailPieceReceivedOn,P.UniqueId as UniqueId,CAST(P.Id AS VARCHAR(20))+'_'+P.[FileName] as MailPieceFileName FROM AM.MailPieces P
+			 INNER JOIN [PnS].MRDFRequest M ON P.UniqueId=M.UniqueId
+			 WHERE M.JobId=@pnsPrintBatchId AND M.MailPieceStatus='InProgress'
+			 
+			END
+	4) Functions
+		- Added Functions [dbo].[ufn_GetDallasBatches],[dbo].[ufn_GetEstToday]
+			CREATE FUNCTION [dbo].[ufn_GetDallasBatches]
+			()
+			RETURNS @sweep TABLE 
+			(
+			BatchName varchar(255),
+			StartDate datetime,
+			EndDate datetime
+			)
+			AS
+			BEGIN
+			DECLARE @todayDate date
+			SELECT @todayDate=dbo.ufn_GetEstToday()
+
+			INSERT INTO @sweep (BatchName,StartDate,EndDate) 
+			VALUES ('05PM',cast(@todayDate as datetime)+cast('00:00:00' as datetime),cast(@todayDate as datetime)+cast('18:00:00' as datetime))
+
+			INSERT INTO @sweep (BatchName,StartDate,EndDate) 
+			VALUES ('06PM',cast(@todayDate as datetime)+cast('18:00:01' as datetime),cast(@todayDate as datetime)+cast('19:00:00' as datetime))
+
+			INSERT INTO @sweep (BatchName,StartDate,EndDate) 
+			VALUES ('07PM',cast(@todayDate as datetime)+cast('19:00:01' as datetime),cast(@todayDate as datetime)+cast('20:00:00' as datetime))
+
+			INSERT INTO @sweep (BatchName,StartDate,EndDate) VALUES ('Backlog',DateAdd(day,-7, cast(@todayDate as datetime)),DateAdd(second,-1, cast(@todayDate as datetime)))
+			RETURN
+			END
+			GO
+			
+			CREATE FUNCTION [dbo].[ufn_GetEstToday]
+			()
+
+			RETURNS date
+			AS
+			BEGIN
+
+			DECLARE @TimeZone VARCHAR(50),@temp int
+
+			EXEC MASTER.dbo.xp_regread 'HKEY_LOCAL_MACHINE','SYSTEM\CurrentControlSet\Control \TimeZoneInformation','TimeZoneKeyName',@TimeZone OUT
+			set @TimeZone='Pacific Standard Time'
+			if(@TimeZone is null or @TimeZone<>'Pacific Standard Time')
+			BEGIN
+			select @temp= cast('Time must be Pacific Standard Time' as int)
+			END
+
+			return DATEADD(HOUR,3,GETDATE());
+
+			END
+	5) Views
+		- Added Views [dbo].[vw_DallasBatches]
+			CREATE VIEW [dbo].[vw_DallasBatches] AS
+			SELECT * FROM 
+			(
+			SELECT m.Id,m.ClientId,m.PrintLocation,m.EffectiveReceivedOnEst,m.TrackingNo,m.IsPullBackRequested,m.IsQCRequested,m.TotalSheets,
+			b.PrintBatch,b.IsSubmitted,b.PipelineStatus,b.JobName,
+			req.PieceId,req.JobId,req.[Date] as MRDFReqDate,req.PDFFileName, req.UniqueId,req.MailPieceStatus, res.ProcessingTimeStamp,
+			d.ShippingServiceType,
+			c.AppCode,c.Name as ClientName,
+			CASE WHEN m.EffectiveReceivedOnEst <=(CAST([dbo].ufn_GetEstToday() AS DATETIME) + CAST('18:00:00' AS DATETIME)) THEN '05PM'
+			WHEN m.EffectiveReceivedOnEst >= (CAST([dbo].ufn_GetEstToday() AS DATETIME) + CAST('18:00:01' AS DATETIME)) AND m.EffectiveReceivedOnEst <= (CAST([dbo].ufn_GetEstToday() AS DATETIME) + CAST('19:00:00' AS DATETIME)) THEN '06PM'
+			WHEN m.EffectiveReceivedOnEst >= (CAST([dbo].ufn_GetEstToday() AS DATETIME) + CAST('19:00:01' AS DATETIME)) AND m.EffectiveReceivedOnEst <= (CAST([dbo].ufn_GetEstToday() AS DATETIME) + CAST('20:00:00' AS DATETIME)) THEN '07PM' ELSE 'Backlog' END SweepName
+			FROM [AM].[MailPieces] m
+			INNER JOIN PnS.MRDFRequest req ON m.UniqueId = req.UniqueId
+			INNER JOIN PnS.BatchSummary b ON req.JobId = b.PrintBatch
+			LEFT OUTER JOIN PnS.MRDFResponse res ON req.JobId = res.JobId AND req.PieceId=res.PieceId
+			INNER JOIN AM.DocTypes d ON m.DocTypeId=d.Id
+			INNER JOIN Common.Clients c ON m.ClientId=c.Id
+			WHERE b.IsSubmitted=1 
+			AND m.PrintLocation=(SELECT Value FROM Common.SystemSettings WHERE Id='Common_PrintLocationCL') 
+			AND CAST(m.EffectiveReceivedOnEst AS DATE)=dbo.ufn_GetEstToday()
+			)X
+			INNER JOIN 
+			(
+			select BatchName,StartDate,EndDate from dbo.ufn_GetDallasBatches()
+			)Y ON X.SweepName=Y.BatchName
+			GO
+=========================
+Application Changes
+=========================
+	- For AuthoMail
+		1) AM.Console - Exe,dlls, add newtonsoft.dll
+		2) AM.Core - Exe,dlls, add newtonsoft.dll
+		3) AM.Reporting - Exe,dlls, add newtonsoft.dll
+			- Create new task schedular for FedEx Report at 10PM EST
+			- Update task schedular for DallasNotification app which will execute on 03:00:30 PM,04:00:30 PM,05:00:30 PM
+	- For PnS Service
+		1) PnS.Service
+
+====================================================================================================================================================
+UAT Final Status : 
+PROD Final Status : 
+====================================================================================================================================================
+		
+	
