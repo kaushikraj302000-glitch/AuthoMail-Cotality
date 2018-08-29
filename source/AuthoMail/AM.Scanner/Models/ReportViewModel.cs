@@ -7,6 +7,7 @@ namespace AM.Scanner.Models
 {
     public class ScanedDocument
     {
+        public string JobName { get; set; }
         public string BatchName { get; set; }
         public string LoanNumber { get; set; }
         public string BarcodeValue { get; set; }
