@@ -172,7 +172,7 @@
                 <div class="pie_progress__content" id="todayscount" style="font-size: 17px;color: #456C7F;">0/0</div>
             </div>
         </div>@*margin-left: 33%;*@
-        <div class="pull-left " style="margin-top:-3%">
+        <div class="pull-left " style="margin-top:-3%;margin-left:10%;">
             <h2 class="text-center alert alert-info">Batch Name:<span id="batchNameDisplay">--</span></h2>
         </div>
         <div class="clearfix">
@@ -186,24 +186,27 @@
             </div>
         </fieldset>
     </div>
-
-    <div class="col-md-4 pull-right" style="margin-top: 20px;">
-        <fieldset class="rows scheduler-border" style="border: 1px solid #eea236; margin-bottom: 8px;" id="rescanRow">
-            <legend class="scheduler-border" style="color: rgba(238,162,54,1);">Duplicate Scan Attempts </legend>
-            <div id="RescannedCode" class="form-inline" style="padding: 2px;">
-            </div>
-        </fieldset>
-    </div>
-
-    <div class="col-sm-offset-8 col-md-4 pull-right">
-        <fieldset class="rows scheduler-border" style="border: 1px solid #ff0000; margin-bottom: 5px;" id="wrongRow">
-            <legend class="scheduler-border" style="color: rgba(212,63,58,1);">Failed Scan Attempts</legend>
-            <div id="WrongCode" class="form-inline" style="padding: 2px;">
+    <div class="col-md-4" style="margin-top:1.65%;">
+        <div class="rows">
+            <div class="col-md-12 pull-right">
+                <fieldset class="rows scheduler-border" style="border: 1px solid #eea236; margin-bottom: 8px;" id="rescanRow">
+                    <legend class="scheduler-border" style="color: rgba(238,162,54,1);">Duplicate Scan Attempts </legend>
+                    <div id="RescannedCode" class="form-inline" style="padding: 2px;">
+                    </div>
+                </fieldset>
             </div>
 
-        </fieldset>
-    </div>
+            <div class="col-md-12">
+                <fieldset class="rows scheduler-border" style="border: 1px solid #ff0000; margin-bottom: 5px;" id="wrongRow">
+                    <legend class="scheduler-border" style="color: rgba(212,63,58,1);">Failed Scan Attempts</legend>
+                    <div id="WrongCode" class="form-inline" style="padding: 2px;">
+                    </div>
 
+                </fieldset>
+            </div>
+        </div>
+    </div>
+    
     <!--ScanComplete Modal-->
     <div class="modal fade" id="smallModal" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-dialog modalMarginTop">
