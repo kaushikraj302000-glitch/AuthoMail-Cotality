@@ -19,6 +19,11 @@ namespace AM.Services
             get { return DateTime.UtcNow.Date; }
         }
 
+        public static DateTime EstToday
+        {
+            get { return DateTime.UtcNow.UtcToEst().Date; }
+        }
+
         public static SFT_ProtocolType GetProtocolType(string protocolType)
         {
             SFT_ProtocolType SFT_Protocol;

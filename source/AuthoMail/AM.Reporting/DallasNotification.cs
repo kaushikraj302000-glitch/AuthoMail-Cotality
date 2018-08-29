@@ -20,6 +20,7 @@ namespace AM.Reporting
             try
             {
                 List<DallasBatchTimings> batchesTimings;
+
                 using (ICommonService commonSvc = new CommonService())
                 {
                     batchesTimings = commonSvc.GetDallasBatchTimings();
@@ -27,44 +28,27 @@ namespace AM.Reporting
 
                 var currentEstDateTime = Common.Now.UtcToEst();
 
-                var _05PMCutOff = batchesTimings.Where(c => c.BatchName == "05PM").Select(date => date.EndDate).Single();
-                var _06PMCutOff = batchesTimings.Where(c => c.BatchName == "06PM").Select(date => date.EndDate).Single();
-                var _07PMCutOff = batchesTimings.Where(c => c.BatchName == "07PM").Select(date => date.EndDate).Single();
-
                 DateTime startDateTime = new DateTime();
                 DateTime endDateTime = new DateTime();
                 string sweepName = string.Empty;
 
-                if (currentEstDateTime > _05PMCutOff && currentEstDateTime <= _06PMCutOff)
-                {
-                    startDateTime = batchesTimings.Where(c => c.BatchName == "05PM").Select(date => date.StartDate).Single().EstToUtc();
-                    endDateTime = batchesTimings.Where(c => c.BatchName == "05PM").Select(date => date.EndDate).Single().EstToUtc();
-                    sweepName = batchesTimings.Where(c => c.BatchName == "05PM").Select(folder => folder.BatchName).Single();
-                }
-                else if (currentEstDateTime > _06PMCutOff && currentEstDateTime <= _07PMCutOff)
-                {
-                    startDateTime = batchesTimings.Where(c => c.BatchName == "06PM").Select(date => date.StartDate).Single().EstToUtc();
-                    endDateTime = batchesTimings.Where(c => c.BatchName == "06PM").Select(date => date.EndDate).Single().EstToUtc();
-                    sweepName = batchesTimings.Where(c => c.BatchName == "06PM").Select(folder => folder.BatchName).Single();
-                }
-                else if (currentEstDateTime > _07PMCutOff)
-                {
-                    startDateTime = batchesTimings.Where(c => c.BatchName == "07PM").Select(date => date.StartDate).Single().EstToUtc();
-                    endDateTime = batchesTimings.Where(c => c.BatchName == "07PM").Select(date => date.EndDate).Single().EstToUtc();
-                    sweepName = batchesTimings.Where(c => c.BatchName == "07PM").Select(folder => folder.BatchName).Single();
-                }
+                var currentBatch = batchesTimings.OrderByDescending(b => b.EndDate).FirstOrDefault(b => b.BatchName != "Backlog" && currentEstDateTime > b.EndDate);
 
-                bool isCompleted = CheckAllBatchStatusCompleted(startDateTime, endDateTime);
-                while (!isCompleted)
+                if (currentBatch == null) return;
+
+
+                startDateTime = currentBatch.StartDate.EstToUtc();
+                endDateTime = currentBatch.EndDate.EstToUtc();
+
+                while (!CheckAllBatchStatusCompleted(startDateTime, endDateTime))
                 {
                     Thread.Sleep(6000);
-                    isCompleted = CheckAllBatchStatusCompleted(startDateTime, endDateTime);
                 }
 
                 List<DallasMailPieceData> dallasMailPieces;
                 using (IMailPieceService mailPieceSvc = new MailPieceService())
                 {
-                    dallasMailPieces = mailPieceSvc.GetDallasMailPiecesByTimingsAndClient(startDateTime.UtcToEst(), endDateTime.UtcToEst());
+                    dallasMailPieces = mailPieceSvc.GetDallasMailPiecesByTimingsAndClient(currentBatch.BatchName);
                 }
 
                 if (dallasMailPieces != null)
@@ -115,10 +99,7 @@ namespace AM.Reporting
             receivedCount = mailBatches.Where(f => f.IsReceived == 1).ToList().Count;
             completedCount = mailBatches.Where(f => f.IsAcknowledged == 1 || f.IsReportPrepped == 1 || f.IsReportedBack == 1).ToList().Count;
 
-            if (receivedCount != completedCount)
-                return false;
-
-            return true;
+            return receivedCount == completedCount;
         }
 
         private static void SendEmailNotification(List<Notification> notificationList, DateTime currentEstDate, string sweepName)

@@ -19,7 +19,7 @@ namespace AM.Services
         int UpdateBatchMailPieceShippingStatusDetails(MailPieceDTO mailPiece);
         int UpdateMailPiecePickedUpDetailsFromTrackingNo(FedExPickedPackagesDetail pickedUpDetail);
         MailPieceDTO GetMailPieceDataFromTrackingNo(string trackingNo);
-        List<DallasMailPieceData> GetDallasMailPiecesByTimingsAndClient(DateTime startTime, DateTime endTime);
+        List<DallasMailPieceData> GetDallasMailPiecesByTimingsAndClient(string sweepName);
     }
     public class MailPieceService : ServiceBase, IMailPieceService //It implements Interfaces 
     {
@@ -102,11 +102,11 @@ namespace AM.Services
             return db.ExecuteScalar<MailPieceDTO>(query, trackingNo);
         }
 
-        public List<DallasMailPieceData> GetDallasMailPiecesByTimingsAndClient(DateTime startDateTime, DateTime endDateTime)
+        public List<DallasMailPieceData> GetDallasMailPiecesByTimingsAndClient(string sweepName)
         {
-            string query = @"SELECT * FROM [dbo].[vw_DallasBatches] WHERE EffectiveReceivedOnEst BETWEEN @StartDate AND @EndDate";
+            string query = @"SELECT * FROM [dbo].[ufn_DallasBatches](@EstDate) WHERE SweepName=@SweepName";
 
-            return db.Query<DallasMailPieceData>(query, new { StartDate = startDateTime, EndDate = endDateTime }).ToList();
+            return db.Query<DallasMailPieceData>(query, new { SweepName = sweepName, EstDate = Common.EstToday }).ToList();
         }
     }
 }
