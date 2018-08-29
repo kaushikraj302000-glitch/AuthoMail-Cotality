@@ -172,11 +172,13 @@
                 <div class="pie_progress__content" id="todayscount" style="font-size: 17px;color: #456C7F;">0/0</div>
             </div>
         </div>@*margin-left: 33%;*@
-
+        <div class="pull-left " style="margin-top:-3%">
+            <h2 class="text-center alert alert-info">Batch Name:<span id="batchNameDisplay">--</span></h2>
+        </div>
+        <div class="clearfix">
+        </div>
     </div>
-
-    <div class="clearfix">
-    </div>
+    <div class="clearfix"></div>
     <div class="col-md-8 pull-left" style="margin-top: 20px;">
         <fieldset class="rows scheduler-border" style="border: 1px solid #59ba4a; margin-bottom: 8px;" id="successRow">
             <legend class="scheduler-border" style="color: rgba(76,174,76,1);">Successful Scan Attempts </legend>
@@ -239,7 +241,7 @@
 
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3 class="alert alert-info" id="modalInfo">There are no more document(s) for scan.</h3>
+                    <h3 class="alert alert-info" id="modalInfo">There are no document(s) for scan.</h3>
                 </div>
                 <div class="modal-body" style="text-align: center;">
                     <button type="button" id="okModal" tabindex="10" data-dismiss="modal" class=" btn btn-success">OK</button>
@@ -278,7 +280,7 @@
                 $.ajax({
                     type: "GET",
                     url: '@Url.Content("~/Scan/GetScanCountByBatchName")',
-                    data: { clientCode: clientCode,batchName:batchName },
+                    data: { clientCode: clientCode, batchName: batchName },
                     success: function (response) {
                         if (typeof response.ScanCount === "undefined" || typeof response.TotalCount === "undefined") {
                             $("#todayscount").text("--/--");
@@ -300,7 +302,7 @@
                     error: function (xhr, response) {
                         $("#message").empty();
                         $("#message").show();
-                        $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>" + xhr.status + ":</strong> " + databaseError + "</div>");
+                        $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Error Code" + xhr.status + ":</strong> " + databaseError + "</div>");
                         $("#code1").val("");
                         $("#code2").val("");
                         $("#code1").focus();
@@ -321,28 +323,28 @@
                     data: { clientCode: clientCode, batchName: batchName },
                     success: function (response) {
                         var totalMailPieces = response.model;
-                            if (totalMailPieces.length > 0) {
-                                for (var i = 0; i < totalMailPieces.length; i++) {
-                                    if (totalMailPieces[i].Code == "Valid") {//Valid
-                                        $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + totalMailPieces[i].JobName + "<br>  Code: Valid' class='lblAMC lbl-success' for='success" + i + "' > " + totalMailPieces[i].TrackingNo + " </label>");
-                                    }
-                                    if (totalMailPieces[i].Code == "QC") {//QC
-                                        $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + totalMailPieces[i].JobName + "<br>  Code: QC'  class='lblAMC lbl-warning' for='warning" + i + "' > " + totalMailPieces[i].TrackingNo + " </label>");
+                        if (totalMailPieces.length > 0) {
+                            for (var i = 0; i < totalMailPieces.length; i++) {
+                                if (totalMailPieces[i].Code == "Valid") {//Valid
+                                    $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + totalMailPieces[i].JobName + "<br>  Code: Valid' class='lblAMC lbl-success' for='success" + i + "' > " + totalMailPieces[i].TrackingNo + " </label>");
+                                }
+                                if (totalMailPieces[i].Code == "QC") {//QC
+                                    $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + totalMailPieces[i].JobName + "<br>  Code: QC'  class='lblAMC lbl-warning' for='warning" + i + "' > " + totalMailPieces[i].TrackingNo + " </label>");
 
-                                    }
-                                    if (totalMailPieces[i].Code=="Pulledback") {//Pulledback
-                                        $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + totalMailPieces[i].JobName + "<br>  Code: Pulledback'  class='lblAMC lbl-danger' for='danger" + i + "' > " + totalMailPieces[i].TrackingNo + " </label>");
-                                    }
+                                }
+                                if (totalMailPieces[i].Code == "Pulledback") {//Pulledback
+                                    $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + totalMailPieces[i].JobName + "<br>  Code: Pulledback'  class='lblAMC lbl-danger' for='danger" + i + "' > " + totalMailPieces[i].TrackingNo + " </label>");
                                 }
                             }
-                        
-                        GetScanCountByBatchName(clientCode,batchName);
+                        }
+
+                        GetScanCountByBatchName(clientCode, batchName);
                         $('[data-toggle="tooltip"]').tooltip();
                     },
                     error: function (xhr, response) {
                         $("#message").empty();
                         $("#message").show();
-                        $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>" + xhr.status + ":</strong> " + databaseError + "</div>");
+                        $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Error Code" + xhr.status + ":</strong> " + databaseError + "</div>");
                         $("#code1").val("");
                         $("#code2").val("");
                         $("#code1").focus();
@@ -388,6 +390,7 @@
 
                 clientCode = getParameterByName('clientCode');
                 batchName = getParameterByName('batchName');
+                $("#batchNameDisplay").text(batchName);
                 notStartWithClientCode = "Barcode must be start with " + clientCode + ". Please scan again.";
 
                 var cnt = 0;
@@ -593,7 +596,7 @@
                                             //$("#okModal").focus();
 
                                         }
-                                        
+
                                         $("#code1").val("");
                                         $("#code2").val("");
                                         $("#code1").focus();
@@ -640,7 +643,7 @@
                                 error: function (xhr, response) {
                                     $("#message").empty();
                                     $("#message").show();
-                                    $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>" +xhr.status + ":</strong>" + databaseError + "</div>");
+                                    $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Error Code:" + xhr.status + ":</strong>" + databaseError + "</div>");
                                     $("#code1").val("");
                                     $("#code2").val("");
                                     $("#code1").focus();
@@ -690,10 +693,10 @@
                         }
 
                     },
-                    error: function (response) {
+                    error: function (xhr,response) {
                         $("#message").empty();
                         $("#message").show();
-                        $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'>" + databaseError + "</div>");
+                        $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Error Code:" + xhr.status + ":</strong>" + databaseError + "</div>");
                         $("#code1").val("");
                         $("#code2").val("");
                         $("#code1").focus();
