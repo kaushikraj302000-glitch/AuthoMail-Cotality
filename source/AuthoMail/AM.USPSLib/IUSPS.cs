@@ -11,10 +11,10 @@ namespace AM.USPSLib
     {
         [Post("/api/usps/verify")]
         [Headers("Authorization: Bearer")]
-        Task<VerifierAddressResponse> VerifyAddress([Body(BodySerializationMethod.Json)] VerifierAddressRequest request);
+        Task<VerifierAddressResponse> VerifyAddressAsync([Body(BodySerializationMethod.Json)] VerifierAddressRequest request);
 
         [Post("/api/usps/eVS")]
         [Headers("Authorization: Bearer")]
-        Task<eVSLabelResponse> RequesteVSLabel([Body(BodySerializationMethod.Json)] eVSLabelRequest request);
+        Task<eVSLabelResponse> RequesteVSLabelAsync([Body(BodySerializationMethod.Json)] eVSLabelRequest request);
     }
 }

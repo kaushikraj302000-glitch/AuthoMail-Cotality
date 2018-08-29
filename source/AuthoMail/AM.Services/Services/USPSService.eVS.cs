@@ -14,11 +14,7 @@ namespace AM.Services
 {
     public partial class USPSService
     {
-        public eVSLabelResponse RequesteVSLabel(string userId, eVSLabelRequest request)
-        {
-            return this.RequesteVSLabelAsync(userId, request).Result;
-        }
-        private async Task<eVSLabelResponse> RequesteVSLabelAsync(string userId, eVSLabelRequest request)
+        public async Task<eVSLabelResponse> RequesteVSLabelAsync(string userId, eVSLabelRequest request)
         {
             try
             {
@@ -60,13 +56,12 @@ namespace AM.Services
                 FormUrlEncodedContent payload = null;
                 Task<int> uspsReqLog = null;
                 int uspsReqLogAwait = 0;
-                Task<string> uspsReq = null;
                 eVSResponse eVSresponse = null;
                 eVSLabelResponse eVSLabelresponse = null;
 
                 var eVSrequest = new eVSRequest(request);
                 eVSrequest.USERID = Config.Web_API_USPS_UserId;
-                                                          
+
                 var eVSrequestXML = eVSrequest.Serialize();
 
                 using (HttpClient httpClient = new HttpClient())
@@ -81,8 +76,8 @@ namespace AM.Services
                             new KeyValuePair<string, string>("XML",eVSrequestXML)
                         });
 
-                    var payloadResult = await payload.ReadAsStringAsync().ConfigureAwait(false);
-                    uspsReq = httpClient.GetStringAsync("{0}?{1}".Fill(url, payloadResult));
+                    //var payloadResult = await payload.ReadAsStringAsync().ConfigureAwait(false);
+                    var uspsReq = httpClient.PostAsync(url, payload);
 
                     if (Config.Web_API_USPS_IsDbLoggingEnabled)
                     {
@@ -95,7 +90,8 @@ namespace AM.Services
 
                     try
                     {
-                        responseXML = await uspsReq.ConfigureAwait(false);
+                        var response = await uspsReq.ConfigureAwait(false);
+                        responseXML = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                         isUSPSError = !responseXML.Contains("eVSResponse");
 
                         if (isUSPSError)

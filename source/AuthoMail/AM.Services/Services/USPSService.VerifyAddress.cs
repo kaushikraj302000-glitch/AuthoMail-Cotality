@@ -14,11 +14,6 @@ namespace AM.Services
 {
     public partial class USPSService : ServiceBase, IUSPSService
     {
-        public VerifierAddressResponse VerifyAddress(string userId, VerifierAddressRequest addressRequest)
-        {
-            return this.VerifyAddressAsync(userId, addressRequest.AddressRequests).Result;
-        }
-
         private IEnumerable<string> ValidateAddress(AddressRequest address)
         {
             // Validate if address is null
@@ -39,8 +34,10 @@ namespace AM.Services
             }
         }
 
-        private async Task<VerifierAddressResponse> VerifyAddressAsync(string userId, List<AddressRequest> addressRequests)
+        public async Task<VerifierAddressResponse> VerifyAddressAsync(string userId, VerifierAddressRequest verifyRequest)
         {
+            var addressRequests = verifyRequest.AddressRequests;
+
             List<AddressResponse> addressResponses = new List<AddressResponse>();
 
             try
@@ -140,7 +137,6 @@ namespace AM.Services
                 FormUrlEncodedContent payload = null;
                 string uspsInputXML = null;
                 Task<int> uspsRequestLog = null;
-                Task<string> uspsReq = null;
                 string uspsResponseString = null;
                 bool isGenericUSPSError = false;
 
@@ -162,8 +158,8 @@ namespace AM.Services
                             new KeyValuePair<string, string>("XML",uspsInputXML)
                         });
 
-                    var payloadResult = await payload.ReadAsStringAsync().ConfigureAwait(false);
-                    uspsReq = httpClient.GetStringAsync("{0}?{1}".Fill(url, payloadResult));
+                    //var payloadResult = await payload.ReadAsStringAsync().ConfigureAwait(false);
+                    var uspsReq = httpClient.PostAsync(url, payload);
 
 
                     if (Config.Web_API_USPS_IsDbLoggingEnabled)
@@ -174,7 +170,8 @@ namespace AM.Services
 
                     try
                     {
-                        uspsResponseString = await uspsReq.ConfigureAwait(false);
+                        var response = await uspsReq.ConfigureAwait(false);
+                        uspsResponseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                         isGenericUSPSError = !uspsResponseString.Contains("AddressValidateResponse");
 
                         if (isGenericUSPSError)

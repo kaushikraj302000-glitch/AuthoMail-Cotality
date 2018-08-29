@@ -9,8 +9,8 @@ namespace AM.Services
 {
     public interface IUSPSService : IDisposable
     {
-        VerifierAddressResponse VerifyAddress(string userId, VerifierAddressRequest request);
+        Task<VerifierAddressResponse> VerifyAddressAsync(string userId, VerifierAddressRequest request);
 
-        eVSLabelResponse RequesteVSLabel(string userId, eVSLabelRequest request);
+        Task<eVSLabelResponse> RequesteVSLabelAsync(string userId, eVSLabelRequest request);
     }
 }
