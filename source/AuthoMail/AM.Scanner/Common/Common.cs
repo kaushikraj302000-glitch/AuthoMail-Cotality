@@ -32,29 +32,6 @@ namespace AM.Scanner.Common
         public static string SP_GetRecentBatchesStats { get; set; }
         public static string SP_GetPendingScanning { get; set; }
         public static string SP_GetScannedMailPieces { get; set; }
-        
-
-        public static DateTime ClientTimeZoneToUtc(this DateTime dt, string clientTimeZone)
-        {
-            dt = DateTime.SpecifyKind(dt, DateTimeKind.Unspecified);
-            return TimeZoneInfo.ConvertTime(dt, TimeZoneInfo.FindSystemTimeZoneById(clientTimeZone), TimeZoneInfo.FindSystemTimeZoneById("UTC"));
-        }
-        public static DateTime UtcToClientTimeZone(this DateTime dt, string clientTimeZone)
-        {
-            dt = DateTime.SpecifyKind(dt, DateTimeKind.Unspecified);
-            return TimeZoneInfo.ConvertTime(dt, TimeZoneInfo.FindSystemTimeZoneById("UTC"), TimeZoneInfo.FindSystemTimeZoneById(clientTimeZone));
-        }
-
-        public static DateTime UtcToEst(this DateTime dt)
-        {
-            return dt.UtcToClientTimeZone("Eastern Standard Time");
-        }
-
-        public static DateTime EstToUtc(this DateTime dt)
-        {
-            return dt.ClientTimeZoneToUtc("Eastern Standard Time");
-        }
-
 
     }
 }

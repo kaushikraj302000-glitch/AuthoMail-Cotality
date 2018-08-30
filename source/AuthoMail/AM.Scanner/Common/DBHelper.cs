@@ -7,6 +7,7 @@ using System.Linq;
 using System.Web;
 using Dapper;
 using System.Globalization;
+using AM.Lib;
 namespace AM.Scanner.Common
 {
     public class DBHelper
