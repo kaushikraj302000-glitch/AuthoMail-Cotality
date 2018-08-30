@@ -9,15 +9,22 @@ namespace AM.Services
 {
     public interface IReCalculateDueDateService : IDisposable
     {
-        object GetDetDocTypeTest();
+        List<Recal> GetDocTypeTest();
     }
     public class ReCalculateDueDateService : ServiceBase, IReCalculateDueDateService
     {
 
-        public object GetDetDocTypeTest()
+        public List<Recal> GetDocTypeTest()
         {
             string q = "select m.Id,m.DocTypeId,m.DueDate,b.ReceivedOn from AM.MailPieces m inner join AM.MailBatches b on m.MailBatchId = b.Id where m.DocTypeId is not null";
-            return db.Query(q);
+            return db.Query<Recal>(q).ToList();
         }
+    }
+    public class Recal
+    {
+        public int Id { get; set; }
+        public int DocTypeId { get; set; }
+        public DateTime? DueDate { get; set; }
+        public DateTime? ReceivedOn { get; set; }
     }
 }
