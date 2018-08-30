@@ -359,7 +359,7 @@ namespace AM.Core
             eVSReq.Container = Container.FLAT_RATE_ENVELOPE;
             eVSReq.ShipDate = mailPiece.EffectiveReceivedOnEst.Value;
             eVSReq.ReceiptOption = ReceiptOption.SEPARATE_PAGE;
-            eVSReq.WeightInOunces = "32";
+            eVSReq.WeightInOunces = "48";
             eVSReq.SenderName = appCode;
             eVSReq.ImageType = ImageType.PDF;
 
@@ -368,8 +368,8 @@ namespace AM.Core
             // From Address
             eVSReq.FromName = "Corelogic Inc";
             eVSReq.FromFirm = "Corelogic Inc";
-            eVSReq.FromAddress1 = string.Empty;
-            eVSReq.FromAddress2 = mailPiece.RetRcptAddressStreet + " " + mailPiece.RetRcptAddrOptionalLine1BelowStreet;
+            eVSReq.FromAptOrSuiteorOther = mailPiece.RetRcptAddressAptOrSuiteOrOther ?? string.Empty;
+            eVSReq.FromStreetAddress = mailPiece.RetRcptAddressStreet + " " + mailPiece.RetRcptAddrOptionalLine1BelowStreet;
             eVSReq.FromCity = mailPiece.RetRcptAddressCity;
             eVSReq.FromState = mailPiece.RetRcptAddressState;
             eVSReq.FromZip4 = mailPiece.RetRcptAddressZIP.SeparateZip4And5(4);
@@ -379,8 +379,8 @@ namespace AM.Core
             // To Address
             eVSReq.ToFirm = string.IsNullOrEmpty(mailPiece.RcptOrganization) ? string.Empty : mailPiece.RcptOrganization;
             eVSReq.ToName = mailPiece.RcptFirstName + " " + mailPiece.RcptLastName;
-            eVSReq.ToAddress1 = string.Empty;
-            eVSReq.ToAddress2 = mailPiece.RcptAddressStreet + " " + mailPiece.RcptAddrOptionalLine1BelowStreet;
+            eVSReq.ToAptOrSuiteorOther = mailPiece.RcptAddressAptOrSuiteOrOther ?? string.Empty;
+            eVSReq.ToStreetAddress = mailPiece.RcptAddressStreet + " " + mailPiece.RcptAddrOptionalLine1BelowStreet;
             eVSReq.ToCity = mailPiece.RcptAddressCity;
             eVSReq.ToState = mailPiece.RcptAddressState;
             eVSReq.ToZip4 = mailPiece.RcptAddressZIP.SeparateZip4And5(4);
@@ -389,14 +389,11 @@ namespace AM.Core
 
 
             //Based on address types needs to specify some custom changes in request
-            if (mailPiece.RcptAddressTypes.Contains(AddressType.POBOX.ToString()))
-            {
-                eVSReq.POBox = true;
-            }
+            eVSReq.POBox = mailPiece.RcptAddressTypes.Contains(AddressType.POBOX.ToString());
 
             if (mailPiece.RcptAddressTypes.Contains(AddressType.Military.ToString()) || mailPiece.RcptAddressTypes.Contains(AddressType.Territory.ToString()))
             {
-                eVSCustomsFormsData customesData = new eVSCustomsFormsData() { ShippingContents = new List<ItemDetail>() { new ItemDetail() { CountryOfOrigin = "United States", Description = "Loan Document", Quantity = 1, NetPounds = 2, NetOunces = 0, Value = 10 } }, CustomsContentType = CustomsContentType.DOCUMENTS };
+                eVSCustomsFormsData customesData = new eVSCustomsFormsData() { ShippingContents = new List<ItemDetail>() { new ItemDetail() { CountryOfOrigin = "United States", Description = "Loan Document", Quantity = 1, NetPounds = 3, NetOunces = 0, Value = 10 } }, CustomsContentType = CustomsContentType.DOCUMENTS };
 
                 eVSReq.eVSCustomsFormsData = customesData;
             }

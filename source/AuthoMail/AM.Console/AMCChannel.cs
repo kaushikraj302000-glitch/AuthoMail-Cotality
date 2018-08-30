@@ -515,7 +515,7 @@ namespace AM.Console
                         }
                     }
 
-                    AddressRequest addressRequest = new AddressRequest() { Id = uniqueId, Line1 = strRcptAddressStreet, Line2 = strRcptAddrOptionalLine1BelowStreet, City = strRcptAddressCity, State = strRcptAddressState, Zip4 = strRcptAddressZIP.SeparateZip4And5(4), Zip5 = strRcptAddressZIP.SeparateZip4And5(5) };
+                    AddressRequest addressRequest = new AddressRequest() { Id = uniqueId, StreetAddress = strRcptAddressStreet + " " + strRcptAddrOptionalLine1BelowStreet, City = strRcptAddressCity, State = strRcptAddressState, Zip4 = strRcptAddressZIP.SeparateZip4And5(4), Zip5 = strRcptAddressZIP.SeparateZip4And5(5) };
 
                     addressRequestes.Add(addressRequest);
                 }
