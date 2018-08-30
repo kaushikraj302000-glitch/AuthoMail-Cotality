@@ -206,7 +206,7 @@
             </div>
         </div>
     </div>
-    
+
     <!--ScanComplete Modal-->
     <div class="modal fade" id="smallModal" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-dialog modalMarginTop">
@@ -216,7 +216,7 @@
                     <h3 id="modalTitle" class="alert alert-danger">Are you sure you want to start new batch?</h3>
                 </div>
                 <div class="modal-body" style="text-align: center;">
-                    <button type="submit" id="submitModal" tabindex="10" class=" btn btn-success">Yes</button>
+                    <button type="submit" id="submitModal" tabindex="10" class=" btn btn-success okclick">Yes</button>
                     <button type="button" id="cancelModal" tabindex="11" class="btn btn-danger" data-dismiss="modal">No</button>
                 </div>
             </div>
@@ -232,7 +232,7 @@
                     <h3 id="genmodalTitle"></h3>
                 </div>
                 <div class="modal-body" style="text-align: center;">
-                    <button type="button" id="generalmodalOk" tabindex="11" class="btn btn-danger" data-dismiss="modal">Ok</button>
+                    <button type="button" id="generalmodalOk" tabindex="11" class="btn btn-danger okclick" data-dismiss="modal">Ok</button>
                 </div>
             </div>
         </div>
@@ -271,13 +271,17 @@
             $("#okModal").click(function () {
                 $("#code1").blur();
             });
-            //$(document).keypress(function (e) {
-            //    if (e.which == 13) {
-            //        if (true) {
-
-            //        }
-            //    }
-            //});
+            $(".okclick").click(function () {
+                $("#code1").focus();
+            });
+            $(document).keypress(function (e) {
+                if (e.which == 13) {
+                    if ($('.modal,.fade,.in').hasClass('in')) {
+                        $(".okclick").click();
+                        $("#smallModal").modal("hide");
+                    }
+                }
+            });
 
             function GetScanCountByBatchName(clientCode, batchName) {
                 $.ajax({
@@ -367,7 +371,7 @@
             var databaseError = "Communication error. Please try to scan after some time.";
             var ActiveBatchCount = 1;
             var nomoreBatch = "There are no more document(s) for scan.";
-            var modalsuccess = "Your batch is completed";//, start a new batch.";
+            var modalsuccess = "Your batch is completed, start a new batch.";
             //var modalsuccess = "All documents has been scanned.";
             var modalInfo = "Please start a new batch.";
             var codespace = "123456789012";// "HTL00000000000";//
@@ -443,7 +447,7 @@
                     $("#cancelModal").text("CANCEL");
                     $("#modalTitle").text(modalInfo);
                     $("#modalTitle").addClass("alert alert-info");
-                    $("#nextBatch").click();
+                    $("#smallModal").modal("show");
                     //$("#okModal").focus();
 
                 }
@@ -595,7 +599,9 @@
                                             $("#modalTitle").removeClass("alert alert-danger");
                                             $("#modalTitle").text(modalsuccess);
                                             $("#modalTitle").addClass("alert alert-success");
-                                            $("#nextBatch").click();
+                                            $("#submitModal").text("OK");
+                                            $("#cancelModal").hide();
+                                            $("#smallModal").modal("show");
                                             //$("#okModal").focus();
 
                                         }
@@ -677,7 +683,12 @@
             /*---- End Code2 validate Barcode  ----*/
 
             /*---- Start next batch and clear cookies on client side ----*/
-            $("#submitModal").click(function () {
+            $("#submitModalOld").click(function () {
+                $("#code1").val("");
+                $("#code2").val("");
+                $("#code1").focus();
+            });
+            $("#submitModalOld").click(function () {
                 $.ajax({
                     type: "GET",
                     url: '@Url.Content("Scan/NextBatch")',
@@ -696,7 +707,7 @@
                         }
 
                     },
-                    error: function (xhr,response) {
+                    error: function (xhr, response) {
                         $("#message").empty();
                         $("#message").show();
                         $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Error Code " + xhr.status + ":</strong>" + databaseError + "</div>");

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Web;
 using Dapper;
 using System.Globalization;
+using AM.Lib;
 namespace AM.Scanner.Common
 {
     public class DBHelper
@@ -34,8 +35,9 @@ namespace AM.Scanner.Common
                 DbConnection db = Create(clientCode);
                 //DbCommand cmd = db.GetStoredProcCommand(Common.SP_RegisterScan, barcode);
                 // DbCommand cmd = db.GetStoredProcCommand(Common.SP_RegisterScan, barcode, username, machineName);
-                string query = string.Format("{0} @barcode, @clientCode, @operatorid, @machineid, @batchName", Common.SP_RegisterScan);
-                var registerScanData = db.QuerySingleOrDefault<RegisterScanDetails>(query, new { barcode = barcode, clientCode = clientCode, operatorid = username, machineid = machineName, batchName = batchName });
+                var estToday = DateTime.UtcNow.UtcToEst().Date;
+                string query = string.Format("{0} @barcode, @clientCode, @operatorid, @machineid, @batchName, @estDate", Common.SP_RegisterScan);
+                var registerScanData = db.QuerySingleOrDefault<RegisterScanDetails>(query, new { barcode = barcode, clientCode = clientCode, operatorid = username, machineid = machineName, batchName = batchName, estDate = estToday});
                 db.Dispose();
                 var scanCountData = GetScanStats(clientCode);
                 scanCountData.JobName = registerScanData.JobName;
@@ -57,12 +59,12 @@ namespace AM.Scanner.Common
             try
             {
                 DbConnection db = Create(clientCode);
-                string scanCountQuery = string.Format("{0} @appcode, @startdate, @enddate", Common.SP_GetScanStats);
+                string scanCountQuery = string.Format("{0} @appcode, @estDate, @startdate, @enddate", Common.SP_GetScanStats);
                 var estToday = DateTime.UtcNow.UtcToEst().Date;
                 // EST Week
                 var startDate = (estToday + new TimeSpan(0, 0, 0)).EstToUtc();
                 var endDate = (estToday + new TimeSpan(23, 59, 59)).EstToUtc();
-                var scanCountData = db.QuerySingleOrDefault<ScanDetails>(scanCountQuery, new { appcode = clientCode, startDate = startDate, endDate = endDate });
+                var scanCountData = db.QuerySingleOrDefault<ScanDetails>(scanCountQuery, new { appcode = clientCode, estDate = estToday, startDate = startDate, endDate = endDate });
                 db.Dispose();
                 return scanCountData;
 
@@ -77,12 +79,12 @@ namespace AM.Scanner.Common
             try
             {
                 DbConnection db = Create(clientCode);
-                string scanCountQuery = string.Format("{0} @appcode, @batchName, @startdate, @enddate", Common.SP_GetScannedMailPieces);
+                string scanCountQuery = string.Format("{0} @appcode, @batchName, @startdate, @enddate, @estDate", Common.SP_GetScannedMailPieces);
                 var estToday = DateTime.UtcNow.UtcToEst().Date;
                 // EST Week
                 var startDate = (estToday + new TimeSpan(0, 0, 0)).EstToUtc();
                 var endDate = (estToday + new TimeSpan(23, 59, 59)).EstToUtc();
-                var scannedMailPieceList = db.Query<RegisterScanDetails>(scanCountQuery, new { appcode = clientCode, batchName = batchName, startDate = startDate, endDate = endDate }).ToList();
+                var scannedMailPieceList = db.Query<RegisterScanDetails>(scanCountQuery, new { appcode = clientCode, batchName = batchName, startDate = startDate, endDate = endDate, estDate=estToday}).ToList();
                 db.Dispose();
                 return scannedMailPieceList;
 
@@ -98,12 +100,12 @@ namespace AM.Scanner.Common
             try
             {
                 DbConnection db = Create(clientCode);
-                string scanCountQuery = string.Format("{0} @appcode, @startdate, @enddate", Common.SP_GetRecentBatchesStats);
+                string scanCountQuery = string.Format("{0} @appcode, @estDate, @startdate, @enddate", Common.SP_GetRecentBatchesStats);
                 var estToday = DateTime.UtcNow.UtcToEst().Date;
                 // EST Week
                 var startDate = (estToday + new TimeSpan(0, 0, 0)).EstToUtc();
                 var endDate = (estToday + new TimeSpan(23, 59, 59)).EstToUtc();
-                var batchList = db.Query<GetAllBatchCountDetails>(scanCountQuery, new { appcode = clientCode, startDate = startDate, endDate = endDate }).ToList();
+                var batchList = db.Query<GetAllBatchCountDetails>(scanCountQuery, new { appcode = clientCode, estDate=estToday, startDate = startDate, endDate = endDate }).ToList();
                 db.Dispose();
                 return batchList;
 
@@ -134,9 +136,10 @@ namespace AM.Scanner.Common
                 DateTime shippedOnEnd = (DateTime.ParseExact(shippedOnTo.Trim(), "MMMM d,yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).Date + new TimeSpan(23, 59, 59)).EstToUtc();
 
                 DbConnection db = Create(clientCode);
-                string query = string.Format("{0} @loanNumber, @trackingNo, @appcode, @substartdate, @subenddate, @scanstartDate,@scanendDate", Common.SP_GetScanReportData);
+                var estToday = DateTime.UtcNow.UtcToEst().Date;
+                string query = string.Format("{0} @loanNumber, @trackingNo, @appcode, @estDate, @substartdate, @subenddate, @scanstartDate,@scanendDate", Common.SP_GetScanReportData);
 
-                var batchList = db.Query<ScanedDocument>(query, new { loanNumber = loanNumber, trackingNo = barcodeValue, appcode = clientCode, substartdate = shippedOnStart, subenddate = shippedOnEnd, scanstartDate = printOnStart, scanendDate = printOnEnd }).ToList();
+                var batchList = db.Query<ScanedDocument>(query, new { loanNumber = loanNumber, trackingNo = barcodeValue, appcode = clientCode, estDate = estToday, substartdate = shippedOnStart, subenddate = shippedOnEnd, scanstartDate = printOnStart, scanendDate = printOnEnd }).ToList();
                 db.Dispose();
                 return batchList;
 
@@ -152,8 +155,9 @@ namespace AM.Scanner.Common
             try
             {
                 DbConnection db = Create(clientCode);
-                string query = string.Format("{0} @appcode", Common.SP_GetPendingScanning);
-                var batchList = db.Query<PendingScanning>(query, new { appcode = clientCode }).ToList();
+                var estToday = DateTime.UtcNow.UtcToEst().Date;
+                string query = string.Format("{0} @appcode, @estDate", Common.SP_GetPendingScanning);
+                var batchList = db.Query<PendingScanning>(query, new { appcode = clientCode, estDate = estToday }).ToList();
                 db.Dispose();
                 return batchList;
                 

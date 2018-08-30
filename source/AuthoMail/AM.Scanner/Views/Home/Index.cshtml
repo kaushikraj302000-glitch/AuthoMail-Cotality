@@ -196,7 +196,7 @@
 
             },
             error: function (xhr,data) {
-                console.log(xhr.status + " :" + xhr.responseText);
+               // console.log(xhr.status + " :" + xhr.responseText);
                 $("#" + clientCode.trim() + "scanCount").empty();
                 $("#" + clientCode.trim() + "scanCount").text("--/--");
             }
@@ -249,7 +249,7 @@
 
             },
             error: function (xhr,data) {
-                console.log(xhr.status+" :"+xhr.responseText);
+                //console.log(xhr.status+" :"+xhr.responseText);
             }
         });
 
