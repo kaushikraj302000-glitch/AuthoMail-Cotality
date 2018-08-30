@@ -24,7 +24,7 @@ namespace AM.Services
             }
 
             // Validate address line
-            if ("{0} {1}".Fill(address.Line1, address.Line2).IsNullOrWhiteSpace())
+            if ("{0} {1}".Fill(address.AptOrSuiteorOther, address.StreetAddress).Trim().IsNullOrWhiteSpace())
             {
                 yield return "Either address line 1 or line 2 must be specified.";
             }
@@ -104,15 +104,13 @@ namespace AM.Services
                     }
                     else
                     {
-                        var add2 = "{0} {1}".Fill(request.Line1, request.Line2).Trim();
-
                         addresses.Add(new Address
                         {
                             //index 1 base
                             ID = response.Id,
                             FirmName = request.FirmName,
-                            Address1 = string.Empty,
-                            Address2 = add2,
+                            Address1 = request.AptOrSuiteorOther,
+                            Address2 = request.StreetAddress,
                             City = request.City.IsNullOrWhiteSpace() ? string.Empty : request.City.Trim(),
                             State = request.State.IsNullOrWhiteSpace() ? string.Empty : request.State.Trim(),
                             Zip5 = request.Zip5.IsNullOrWhiteSpace() ? string.Empty : request.Zip5.Trim(),
@@ -285,24 +283,23 @@ namespace AM.Services
 
             foreach (Address address in addresses)
             {
-                var responseAdd = addressResponses.Single(res => res.Id == address.ID);
+                AddressResponse responseAdd = addressResponses.Single(res => res.Id == address.ID);
 
                 responseAdd.Id = idRegex.Match(responseAdd.Id).Groups[2].Value;
-
+                
                 //if error by USPS then assign requested add to respond with source CLSVC
                 if (address.HasError)
                 {
-                    var add2 = "{0} {1}".Fill(responseAdd.AddressRequest.Line1, responseAdd.AddressRequest.Line2).Trim();
-
                     responseAdd.FirmName = responseAdd.AddressRequest.FirmName;
-                    responseAdd.Line1 = add2;
+                    responseAdd.AptOrSuiteorOther = responseAdd.AddressRequest.AptOrSuiteorOther;
+                    responseAdd.StreetAddress = responseAdd.AddressRequest.StreetAddress;
                     responseAdd.City = responseAdd.AddressRequest.City;
                     responseAdd.State = responseAdd.AddressRequest.State;
                     responseAdd.Zip5 = responseAdd.AddressRequest.Zip5;
                     responseAdd.Zip4 = responseAdd.AddressRequest.Zip4;
                     responseAdd.Urbanization = responseAdd.AddressRequest.Urbanization;
                     responseAdd.City = responseAdd.AddressRequest.City;
-                    responseAdd.AddressTypes = CheckAddressType(new Address { Address2 = add2, State = responseAdd.State, City = responseAdd.City });
+                    responseAdd.AddressTypes = CheckAddressType(new Address { Address1 = responseAdd.AptOrSuiteorOther, Address2 = responseAdd.StreetAddress, State = responseAdd.State, City = responseAdd.City });
 
                     responseAdd.Error = address.Error;
                     responseAdd.Verifier = ResponseSource.CLSVC;
@@ -316,8 +313,9 @@ namespace AM.Services
                 else
                 {
                     responseAdd.FirmName = address.FirmName;
-                    responseAdd.Line1 = address.Address2;
-                    responseAdd.Line1Abbr = address.AddressLine2Abbreviation;
+                    responseAdd.AptOrSuiteorOther = address.Address1;
+                    responseAdd.StreetAddress = address.Address2;
+                    responseAdd.StreetAddressAbbr = address.AddressLine2Abbreviation;
                     responseAdd.City = address.City;
                     responseAdd.CityAbbr = address.CityAbbreviation;
                     responseAdd.State = address.State;
@@ -349,7 +347,9 @@ namespace AM.Services
             var territory = Config.Web_API_USPS_Territory.Split(',').Select(t => t.Trim());
             //var territory = new string[] { "AS", "FM", "GU", "MH", "MP", "PR", "PW", "VI" };
 
-            if (address.Address2.ToLower().Contains("po box") || address.Address2.ToLower().Contains("pobox"))
+            var fullAddress = "{0} {1}".Fill(address.Address1, address.Address2).ToLower().Trim();
+
+            if (fullAddress.Contains("po box") || fullAddress.Contains("pobox"))
                 addressTypes.Add(AddressType.POBOX);
 
             if (militarystates.Contains(address.State.ToUpper()) && militaryCities.Contains(address.City.ToUpper()))

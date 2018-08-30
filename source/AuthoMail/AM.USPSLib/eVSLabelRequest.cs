@@ -14,9 +14,9 @@ namespace AM.USPSLib
 
         public string FromFirm { get; set; }
 
-        public string FromAddress1 { get; set; }
+        public string FromAptOrSuiteorOther { get; set; }
 
-        public string FromAddress2 { get; set; }
+        public string FromStreetAddress { get; set; }
 
         public string FromCity { get; set; }
 
@@ -36,9 +36,9 @@ namespace AM.USPSLib
 
         public string ToFirm { get; set; }
 
-        public string ToAddress1 { get; set; }
+        public string ToAptOrSuiteorOther { get; set; }
 
-        public string ToAddress2 { get; set; }
+        public string ToStreetAddress { get; set; }
 
         public string ToCity { get; set; }
 

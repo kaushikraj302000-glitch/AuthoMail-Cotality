@@ -22,10 +22,12 @@ namespace AM.Services
         public string FromName { get; set; }
 
         public string FromFirm { get; set; }
-
-        public string FromAddress1 { get; set; }
-
-        public string FromAddress2 { get; set; }
+        
+        [XmlElement(ElementName = "FromAddress1")]
+        public string FromAptOrSuiteorOther { get; set; }
+        
+        [XmlElement(ElementName = "FromAddress2")]
+        public string FromStreetAddress { get; set; }
 
         public string FromCity { get; set; }
 
@@ -44,10 +46,12 @@ namespace AM.Services
         public string ToName { get; set; }
 
         public string ToFirm { get; set; }
+        
+        [XmlElement(ElementName = "ToAddress1")]
+        public string ToAptOrSuiteorOther { get; set; }
 
-        public string ToAddress1 { get; set; }
-
-        public string ToAddress2 { get; set; }
+        [XmlElement(ElementName = "ToAddress2")]
+        public string ToStreetAddress { get; set; }
 
         public string ToCity { get; set; }
 
@@ -189,8 +193,8 @@ namespace AM.Services
             this.LabelParameters = request.LabelParameters;
             this.FromName = request.FromName;
             this.FromFirm = request.FromFirm;
-            this.FromAddress1 = request.FromAddress1;
-            this.FromAddress2 = request.FromAddress2;
+            this.FromAptOrSuiteorOther = request.FromAptOrSuiteorOther;
+            this.FromStreetAddress = request.FromStreetAddress;
             this.FromCity = request.FromCity;
             this.FromState = request.FromState;
             this.FromZip5 = request.FromZip5;
@@ -200,8 +204,8 @@ namespace AM.Services
             this.AllowNonCleansedOriginAddr = request.AllowNonCleansedOriginAddr;
             this.ToName = request.ToName;
             this.ToFirm = request.ToFirm;
-            this.ToAddress1 = request.ToAddress1;
-            this.ToAddress2 = request.ToAddress2;
+            this.ToAptOrSuiteorOther = request.ToAptOrSuiteorOther;
+            this.ToStreetAddress = request.ToStreetAddress;
             this.ToCity = request.ToCity;
             this.ToState = request.ToState;
             this.ToZip5 = request.ToZip5;

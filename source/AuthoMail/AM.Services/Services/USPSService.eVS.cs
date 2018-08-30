@@ -182,8 +182,8 @@ namespace AM.Services
             labelResponse.ReceiptImageString = response.ReceiptImageString;
             labelResponse.ToName = response.ToName;
             labelResponse.ToFirm = response.ToFirm;
-            labelResponse.ToAddress1 = response.ToAddress1;
-            labelResponse.ToAddress2 = response.ToAddress2;
+            labelResponse.ToAptOrSuiteorOther = response.ToAptOrSuiteorOther;
+            labelResponse.ToStreetAddress = response.ToStreetAddress;
             labelResponse.ToCity = response.ToCity;
             labelResponse.ToState = response.ToState;
             labelResponse.ToZip5 = response.ToZip5;
