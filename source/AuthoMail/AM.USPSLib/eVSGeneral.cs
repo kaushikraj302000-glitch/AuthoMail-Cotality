@@ -94,7 +94,7 @@ namespace AM.USPSLib
     {
         public string CommitmentName { get; set; }
 
-        public DateTime ScheduledDeliveryDate { get; set; }
+        public DateTime? ScheduledDeliveryDate { get; set; }
     }
 
     //public static class AddressTypes
