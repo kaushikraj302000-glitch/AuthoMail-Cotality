@@ -17,7 +17,7 @@ namespace AM.Services
 
         public List<Recal> GetDocTypeTest()
         {
-            string q = "select m.Id,m.DocTypeId,m.DueDate,b.ReceivedOn from AM.MailPieces m inner join AM.MailBatches b on m.MailBatchId = b.Id where m.DocTypeId is not null";
+            string q = "select m.Id,m.DocTypeId,m.DueDate,b.ReceivedOn from AM.MailPieces m inner join AM.MailBatches b on m.MailBatchId = b.Id where m.DocTypeId is not null and b.clientid = 101";
             return db.Query<Recal>(q).ToList();
         }
 
