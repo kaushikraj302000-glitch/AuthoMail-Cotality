@@ -362,7 +362,7 @@ namespace AM.Core
             eVSReq.ReceiptOption = ReceiptOption.SEPARATE_PAGE;
             eVSReq.WeightInOunces = "48";
             eVSReq.ImageType = ImageType.PDF;
-            //eVSReq.POZipCode = "75099";
+            eVSReq.POZipCode = "75099";
             eVSReq.LabelParameters = new LabelParameters() { Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.CROP };//TODO : Change if required 50
 
             // From Address
