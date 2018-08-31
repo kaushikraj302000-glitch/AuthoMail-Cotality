@@ -17,14 +17,14 @@ namespace AM.Services
 
         public List<Recal> GetDocTypeTest()
         {
-            string q = "select m.Id,m.DocTypeId,m.DueDate,b.ReceivedOn from AM.MailPieces m inner join AM.MailBatches b on m.MailBatchId = b.Id where m.DocTypeId is not null and b.clientid = 101";
+            string q = "select m.Id,m.DocTypeId,m.DueDate,b.ReceivedOn from AM.MailPieces m inner join AM.MailBatches b on m.MailBatchId = b.Id where m.DocTypeId is not null and m.ShippingStatus <> 'Error' and b.clientid = 101 order by m.id";            
             return db.Query<Recal>(q).ToList();
         }
 
 
         public int UpdateDueDateAndEftRecOnEST(int Id, DateTime dueDate, DateTime effectiveReceivedOnEst)
         {
-            string q = "update AM.MailPieces set DueDate=@dueDate,EffectiveReceivedOnEst=@effectiveReceivedOnEst where Id=@id";
+            string q = "update AM.MailPieces set DueDate=@dueDate,EffectiveReceivedOn=@effectiveReceivedOnEst where Id=@id";
             return db.Execute(q, new { id = Id, dueDate = dueDate, effectiveReceivedOnEst = effectiveReceivedOnEst });
         }
     }

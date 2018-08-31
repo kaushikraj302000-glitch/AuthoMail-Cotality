@@ -135,7 +135,12 @@ namespace AM.Services
                     if (eVSresponse.Commitment != null)
                     {
                         commitmentName = eVSresponse.Commitment.CommitmentName;
-                        scheduledDeliveryDate = DateTime.Parse(eVSresponse.Commitment.ScheduledDeliveryDate);
+
+                        if (!eVSresponse.Commitment.ScheduledDeliveryDate.IsNullOrWhiteSpace())
+                        {
+                            scheduledDeliveryDate =
+                                DateTime.ParseExact(eVSresponse.Commitment.ScheduledDeliveryDate, "yyyy-MM-dd", null);
+                        }
                     }
 
                     if (Config.Web_API_USPS_IsDbLoggingEnabled)
@@ -144,13 +149,12 @@ namespace AM.Services
                         apiResponseLog = db.ExecuteAsync("Update [API].[USPSeVS] set APIResponse = @APIResponse, APIResponseOn = @APIResponseOn, BarcodeNumber = @BarcodeNumber, Postage = @Postage,CommitmentName = @CommitmentName,ScheduledDeliveryDate = @ScheduledDeliveryDate Where Id = @Id", new { APIResponse = responseXML, APIResponseOn = Common.Now, BarcodeNumber = eVSresponse.BarcodeNumber, Postage = eVSresponse.Postage, CommitmentName = commitmentName, ScheduledDeliveryDate = scheduledDeliveryDate, Id = logId });
                     }
 
+                    eVSLabelresponse = eVSLabelResponse(eVSresponse);
+
                     apiResponseLogAwait = await apiResponseLog.ConfigureAwait(false);
+
+                    return await Task.Run(() => eVSLabelresponse).ConfigureAwait(false);
                 }
-
-                //Todo convert response to label
-                eVSLabelresponse = eVSLabelResponse(eVSresponse);
-
-                return await Task.Run(() => eVSLabelresponse).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -202,7 +206,9 @@ namespace AM.Services
             labelResponse.Commitment = response.Commitment != null ? new CommitmentDetail()
             {
                 CommitmentName = response.Commitment.CommitmentName,
-                ScheduledDeliveryDate = DateTime.ParseExact(response.Commitment.ScheduledDeliveryDate, "yyyy-MM-dd", null)
+                
+                ScheduledDeliveryDate = !response.Commitment.ScheduledDeliveryDate.IsNullOrWhiteSpace() ?
+                DateTime.ParseExact(response.Commitment.ScheduledDeliveryDate, "yyyy-MM-dd", null) : (DateTime?)null
             } : null;
 
             labelResponse.Error = response.Error;
