@@ -517,6 +517,19 @@ namespace AM.Core
                     try
                     {
                         GeneratePrintBatches(validMailPieces);
+
+                        //After processing all mail batches for PrintBatches we will check for each and every mailpieces are having printbatchid in it or not then update SubmittedToShipping status in MailBatches table
+                        foreach (MailBatchDTO mailBatch in mailBatches)
+                        {
+                            var mailPiecesList = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatch.Id);
+                            var validPieces = mailPiecesList.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.PrintBatchId != null).ToList().Count;
+                            var errorPieces = mailPiecesList.Where(c => c.ErrorCode != OutComeCodes.No_Error && c.PrintBatchId == null).ToList().Count;
+
+                            if (mailPiecesList.Count == (validPieces + errorPieces))
+                            {
+                                commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
+                            }
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -524,18 +537,6 @@ namespace AM.Core
                         log.Error(errorMsg, ex);
 
                         SendUnexpectedExceptionEmail(errorMsg);
-                    }
-                    //After processing all mail batches for PrintBatches we will check for each and every mailpieces are having printbatchid in it or not then update SubmittedToShipping status in MailBatches table
-                    foreach (MailBatchDTO mailBatch in mailBatches)
-                    {
-                        var mailPiecesList = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatch.Id);
-                        var validPieces = mailPiecesList.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.PrintBatchId != null).ToList().Count;
-                        var errorPieces = mailPiecesList.Where(c => c.ErrorCode != OutComeCodes.No_Error && c.PrintBatchId == null).ToList().Count;
-
-                        if (mailPiecesList.Count == (validPieces + errorPieces))
-                        {
-                            commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
-                        }
                     }
                 }
                 else
@@ -553,6 +554,16 @@ namespace AM.Core
                         try
                         {
                             GeneratePrintBatches(validMailPieces);
+
+                            //After processing mail batch for PrintBatches we will check for each and every mailpieces are having printbatchid in it or not then update SubmittedToShipping status in MailBatches table
+                            var mailPiecesList = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatch.Id);
+                            var validPieces = mailPiecesList.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.PrintBatchId != null).ToList().Count;
+                            var errorPieces = mailPiecesList.Where(c => c.ErrorCode != OutComeCodes.No_Error && c.PrintBatchId == null).ToList().Count;
+
+                            if (mailPiecesList.Count == (validPieces + errorPieces))
+                            {
+                                commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -560,15 +571,6 @@ namespace AM.Core
                             log.Error(errorMsg, ex);
                             SendUnexpectedExceptionEmail(errorMsg);
                             commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Suspended, Common.Now);
-                        }
-                        //After processing mail batch for PrintBatches we will check for each and every mailpieces are having printbatchid in it or not then update SubmittedToShipping status in MailBatches table
-                        var mailPiecesList = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatch.Id);
-                        var validPieces = mailPiecesList.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.PrintBatchId != null).ToList().Count;
-                        var errorPieces = mailPiecesList.Where(c => c.ErrorCode != OutComeCodes.No_Error && c.PrintBatchId == null).ToList().Count;
-
-                        if (mailPiecesList.Count == (validPieces + errorPieces))
-                        {
-                            commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
                         }
                     }
                 }
