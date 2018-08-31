@@ -25,7 +25,7 @@ namespace AM.Services
         Deliverable GetDeliverableByReportType(int clientId, string reportType);
         List<Holiday> GetHolidayList();
         string GetSystemUserId();
-        List<DallasBatchTimings> GetDallasBatchTimings();
+        List<DallasBatch> GetDallasBatches(DateTime estToday);
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -142,11 +142,11 @@ namespace AM.Services
             return db.QuerySingle<string>(q, new { email = "system@milestonetechnoconsulting.com" });
         }
 
-        public List<DallasBatchTimings> GetDallasBatchTimings()
+        public List<DallasBatch> GetDallasBatches(DateTime estToday)
         {
-            string query = "select * from [dbo].[ufn_GetDallasBatches]()";
+            string query = "Select * from [dbo].[ufn_GetDallasBatches](@EstToday)";
 
-            return db.Query<DallasBatchTimings>(query, null).ToList();
+            return db.Query<DallasBatch>(query, new { EstToday = estToday }).ToList();
         }
     }
 }

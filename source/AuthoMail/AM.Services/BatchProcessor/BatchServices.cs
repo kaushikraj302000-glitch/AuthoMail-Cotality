@@ -21,7 +21,7 @@ namespace AM.Services
         int InsertPrintBatchDetails(PrintBatch printBatch);
         List<SubmittedBatch> GetSubmittedPrintBatchDetails();
         List<SubmittedBatch> GetResponseReceivedPrintBatchDetails();
-        List<MailBatches> GetMailBatchesDataByDallasCutOff(DateTime startTime, DateTime endTime);
+        int GetMailBatchesReceivedCount(DateTime startTime, DateTime endTime, string status);
     }
     public class MailBatchService : ServiceBase, IMailBatchService //It implements Interfaces 
     {
@@ -147,11 +147,16 @@ namespace AM.Services
             return db.Query<SubmittedBatch>(query, new { BatchStatus = BatchStatus.InProgress.ToString() }).ToList();
         }
 
-        public List<MailBatches> GetMailBatchesDataByDallasCutOff(DateTime startDateTime, DateTime endDateTime)
+        public int GetMailBatchesReceivedCount(DateTime startDateTime, DateTime endDateTime, string status)
         {
-            string query = @"SELECT * FROM [AM].[MailBatches] WHERE ReceivedOn >=@StartDate AND ReceivedOn <=@EndDate";
+            string query = @"SELECT COUNT(*) FROM [AM].[MailBatches] WHERE ReceivedOn >=@StartDate AND ReceivedOn <=@EndDate";
 
-            return db.Query<MailBatches>(query, new { StartDate = startDateTime, EndDate = endDateTime }).ToList();
+            if (status == "Received")
+                query += " AND IsReceived=1";
+            else
+                query += " AND (IsAcknowledged = 1 OR IsReportPrepped = 1 OR IsReportedBack = 1)";
+
+            return db.ExecuteScalar<int>(query, new { StartDate = startDateTime, EndDate = endDateTime });
         }
     }
 }

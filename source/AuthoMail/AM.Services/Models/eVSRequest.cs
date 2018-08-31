@@ -22,10 +22,12 @@ namespace AM.Services
         public string FromName { get; set; }
 
         public string FromFirm { get; set; }
-
-        public string FromAddress1 { get; set; }
-
-        public string FromAddress2 { get; set; }
+        
+        [XmlElement(ElementName = "FromAddress1")]
+        public string FromAptOrSuiteorOther { get; set; }
+        
+        [XmlElement(ElementName = "FromAddress2")]
+        public string FromStreetAddress { get; set; }
 
         public string FromCity { get; set; }
 
@@ -44,10 +46,12 @@ namespace AM.Services
         public string ToName { get; set; }
 
         public string ToFirm { get; set; }
+        
+        [XmlElement(ElementName = "ToAddress1")]
+        public string ToAptOrSuiteorOther { get; set; }
 
-        public string ToAddress1 { get; set; }
-
-        public string ToAddress2 { get; set; }
+        [XmlElement(ElementName = "ToAddress2")]
+        public string ToStreetAddress { get; set; }
 
         public string ToCity { get; set; }
 
@@ -187,26 +191,26 @@ namespace AM.Services
         {
             //set everything
             this.LabelParameters = request.LabelParameters;
-            this.FromName = request.FromName;
-            this.FromFirm = request.FromFirm;
-            this.FromAddress1 = request.FromAddress1;
-            this.FromAddress2 = request.FromAddress2;
-            this.FromCity = request.FromCity;
-            this.FromState = request.FromState;
-            this.FromZip5 = request.FromZip5;
-            this.FromZip4 = request.FromZip4;
-            this.FromPhone = request.FromPhone;
+            this.FromName = request.FromName ?? string.Empty;
+            this.FromFirm = request.FromFirm ?? string.Empty;
+            this.FromAptOrSuiteorOther = request.FromAptOrSuiteorOther ?? string.Empty;
+            this.FromStreetAddress = request.FromStreetAddress ?? string.Empty;
+            this.FromCity = request.FromCity ?? string.Empty;
+            this.FromState = request.FromState ?? string.Empty;
+            this.FromZip5 = request.FromZip5 ?? string.Empty;
+            this.FromZip4 = request.FromZip4 ?? string.Empty;
+            this.FromPhone = request.FromPhone ?? string.Empty;
             this.POZipCode = request.POZipCode;
             this.AllowNonCleansedOriginAddr = request.AllowNonCleansedOriginAddr;
-            this.ToName = request.ToName;
-            this.ToFirm = request.ToFirm;
-            this.ToAddress1 = request.ToAddress1;
-            this.ToAddress2 = request.ToAddress2;
-            this.ToCity = request.ToCity;
-            this.ToState = request.ToState;
-            this.ToZip5 = request.ToZip5;
-            this.ToZip4 = request.ToZip4;
-            this.ToPhone = request.ToPhone;
+            this.ToName = request.ToName ?? string.Empty;
+            this.ToFirm = request.ToFirm ?? string.Empty;
+            this.ToAptOrSuiteorOther = request.ToAptOrSuiteorOther ?? string.Empty;
+            this.ToStreetAddress = request.ToStreetAddress ?? string.Empty;
+            this.ToCity = request.ToCity ?? string.Empty;
+            this.ToState = request.ToState ?? string.Empty;
+            this.ToZip5 = request.ToZip5 ?? string.Empty;
+            this.ToZip4 = request.ToZip4 ?? string.Empty;
+            this.ToPhone = request.ToPhone ?? string.Empty;
             this.POBox = request.POBox;
             this.ToContactPreference = request.ToContactPreference;
             this.ToContactMessaging = request.ToContactMessaging;

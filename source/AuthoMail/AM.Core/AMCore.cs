@@ -205,10 +205,11 @@ namespace AM.Core
                                 //Folder structure and file naming convention should be Root/AppCode/AppCode_DocTypeCode_SeqNo.pdf
                                 string coverLetterTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, client.AppCode, docTypeLetter.CoverLetterTemplatePath);
 
-                                if (docType.ShippingServiceType == ShippingServiceType.USPS_EXPRESSMAIL.ToString())
+                                if (docType.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS.ToString())
                                 {
-                                    eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.AppCode);
+                                    eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name);
                                     coverLetterPdfPath = doc.GenerateEVSCoverLetter(client.AppCode, commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq);
+                                    //coverLetterPdfPath = doc.GenerateUSPSCoverLetter(client.AppCode, coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
                                 }
                                 else
                                 {
@@ -349,7 +350,7 @@ namespace AM.Core
             }
         }
 
-        private static eVSLabelRequest GenerateEVSLabelRequest(MailPieceDTO mailPiece, string appCode)
+        private static eVSLabelRequest GenerateEVSLabelRequest(MailPieceDTO mailPiece, string clientName)
         {
             eVSLabelRequest eVSReq = new eVSLabelRequest();
             //General settings
@@ -359,17 +360,16 @@ namespace AM.Core
             eVSReq.Container = Container.FLAT_RATE_ENVELOPE;
             eVSReq.ShipDate = mailPiece.EffectiveReceivedOnEst.Value;
             eVSReq.ReceiptOption = ReceiptOption.SEPARATE_PAGE;
-            eVSReq.WeightInOunces = "32";
-            eVSReq.SenderName = appCode;
+            eVSReq.WeightInOunces = "48";
             eVSReq.ImageType = ImageType.PDF;
 
-            eVSReq.LabelParameters = new LabelParameters() { Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.LABEL4X6P_PAGE, XCoordinate = 50, YCoordinate = 50 };
+            eVSReq.LabelParameters = new LabelParameters() { Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.LABEL4X6P_PAGE, XCoordinate = 50, YCoordinate = 25 };//TODO : Change if required 50
 
             // From Address
-            eVSReq.FromName = "Corelogic Inc";
-            eVSReq.FromFirm = "Corelogic Inc";
-            eVSReq.FromAddress1 = string.Empty;
-            eVSReq.FromAddress2 = mailPiece.RetRcptAddressStreet + " " + mailPiece.RetRcptAddrOptionalLine1BelowStreet;
+            eVSReq.FromName = (mailPiece.RetRcptFirstName + " " + mailPiece.RetRcptLastName).Trim();
+            eVSReq.FromFirm = mailPiece.RetRcptOrganization ?? clientName;
+            eVSReq.FromAptOrSuiteorOther = mailPiece.RetRcptAddressAptOrSuiteOrOther ?? string.Empty;
+            eVSReq.FromStreetAddress = (mailPiece.RetRcptAddressStreet + " " + mailPiece.RetRcptAddrOptionalLine1BelowStreet).Trim();
             eVSReq.FromCity = mailPiece.RetRcptAddressCity;
             eVSReq.FromState = mailPiece.RetRcptAddressState;
             eVSReq.FromZip4 = mailPiece.RetRcptAddressZIP.SeparateZip4And5(4);
@@ -379,24 +379,30 @@ namespace AM.Core
             // To Address
             eVSReq.ToFirm = string.IsNullOrEmpty(mailPiece.RcptOrganization) ? string.Empty : mailPiece.RcptOrganization;
             eVSReq.ToName = mailPiece.RcptFirstName + " " + mailPiece.RcptLastName;
-            eVSReq.ToAddress1 = string.Empty;
-            eVSReq.ToAddress2 = mailPiece.RcptAddressStreet + " " + mailPiece.RcptAddrOptionalLine1BelowStreet;
+            eVSReq.ToAptOrSuiteorOther = mailPiece.RcptAddressAptOrSuiteOrOther ?? string.Empty;
+            eVSReq.ToStreetAddress = (mailPiece.RcptAddressStreet + " " + mailPiece.RcptAddrOptionalLine1BelowStreet).Trim();
             eVSReq.ToCity = mailPiece.RcptAddressCity;
             eVSReq.ToState = mailPiece.RcptAddressState;
             eVSReq.ToZip4 = mailPiece.RcptAddressZIP.SeparateZip4And5(4);
             eVSReq.ToZip5 = mailPiece.RcptAddressZIP.SeparateZip4And5(5);
             eVSReq.ToPhone = string.IsNullOrWhiteSpace(mailPiece.RcptPhone) ? new string('0', 10) : mailPiece.RcptPhone.RemoveFormatting();
 
-
             //Based on address types needs to specify some custom changes in request
-            if (mailPiece.RcptAddressTypes.Contains(AddressType.POBOX.ToString()))
-            {
-                eVSReq.POBox = true;
-            }
+            eVSReq.POBox = mailPiece.RcptAddressTypes.Contains(AddressType.POBOX.ToString());
 
             if (mailPiece.RcptAddressTypes.Contains(AddressType.Military.ToString()) || mailPiece.RcptAddressTypes.Contains(AddressType.Territory.ToString()))
             {
-                eVSCustomsFormsData customesData = new eVSCustomsFormsData() { ShippingContents = new List<ItemDetail>() { new ItemDetail() { CountryOfOrigin = "United States", Description = "Loan Document", Quantity = 1, NetPounds = 2, NetOunces = 0, Value = 10 } }, CustomsContentType = CustomsContentType.DOCUMENTS };
+                eVSCustomsFormsData customesData = new eVSCustomsFormsData()
+                {
+                    ShippingContents = new List<ItemDetail>()
+                    { 
+                        new ItemDetail()
+                        {
+                            CountryOfOrigin = "United States", Description = "Loan Document", Quantity = 1, NetPounds = 3, NetOunces = 0, Value = 10
+                        }
+                    },
+                    CustomsContentType = CustomsContentType.DOCUMENTS
+                };
 
                 eVSReq.eVSCustomsFormsData = customesData;
             }
@@ -508,20 +514,29 @@ namespace AM.Core
                         var mailPieces = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatch.Id);
                         validMailPieces.AddRange(mailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList());
                     }
-
-                    GeneratePrintBatches(validMailPieces, mailBatches);
-
-                    //After processing all mail batches for PrintBatches we will check for each and every mailpieces are having printbatchid in it or not then update SubmittedToShipping status in MailBatches table
-                    foreach (MailBatchDTO mailBatch in mailBatches)
+                    try
                     {
-                        var mailPiecesList = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatch.Id);
-                        var validPieces = mailPiecesList.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.PrintBatchId != null).ToList().Count;
-                        var errorPieces = mailPiecesList.Where(c => c.ErrorCode != OutComeCodes.No_Error && c.PrintBatchId == null).ToList().Count;
+                        GeneratePrintBatches(validMailPieces);
 
-                        if (mailPiecesList.Count == (validPieces + errorPieces))
+                        //After processing all mail batches for PrintBatches we will check for each and every mailpieces are having printbatchid in it or not then update SubmittedToShipping status in MailBatches table
+                        foreach (MailBatchDTO mailBatch in mailBatches)
                         {
-                            commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
+                            var mailPiecesList = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatch.Id);
+                            var validPieces = mailPiecesList.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.PrintBatchId != null).ToList().Count;
+                            var errorPieces = mailPiecesList.Where(c => c.ErrorCode != OutComeCodes.No_Error && c.PrintBatchId == null).ToList().Count;
+
+                            if (mailPiecesList.Count == (validPieces + errorPieces))
+                            {
+                                commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
+                            }
                         }
+                    }
+                    catch (Exception ex)
+                    {
+                        var errorMsg = "Error occured while generationg Bundle Batches IDs : {0} and Error : {1}".Fill(string.Join(",", mailBatches.Select(b => b.Id)), ex);
+                        log.Error(errorMsg, ex);
+
+                        SendUnexpectedExceptionEmail(errorMsg);
                     }
                 }
                 else
@@ -536,24 +551,33 @@ namespace AM.Core
                         var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
 
                         validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
-
-                        GeneratePrintBatches(validMailPieces, mailBatches);
-
-                        //After processing mail batch for PrintBatches we will check for each and every mailpieces are having printbatchid in it or not then update SubmittedToShipping status in MailBatches table
-                        var mailPiecesList = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatch.Id);
-                        var validPieces = mailPiecesList.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.PrintBatchId != null).ToList().Count;
-                        var errorPieces = mailPiecesList.Where(c => c.ErrorCode != OutComeCodes.No_Error && c.PrintBatchId == null).ToList().Count;
-
-                        if (mailPiecesList.Count == (validPieces + errorPieces))
+                        try
                         {
-                            commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
+                            GeneratePrintBatches(validMailPieces);
+
+                            //After processing mail batch for PrintBatches we will check for each and every mailpieces are having printbatchid in it or not then update SubmittedToShipping status in MailBatches table
+                            var mailPiecesList = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatch.Id);
+                            var validPieces = mailPiecesList.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.PrintBatchId != null).ToList().Count;
+                            var errorPieces = mailPiecesList.Where(c => c.ErrorCode != OutComeCodes.No_Error && c.PrintBatchId == null).ToList().Count;
+
+                            if (mailPiecesList.Count == (validPieces + errorPieces))
+                            {
+                                commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            var errorMsg = "Error occured while generationg PnS Batch - MailBatchId-{0} and Error : {1}".Fill(mailBatch.Id, ex);
+                            log.Error(errorMsg, ex);
+                            SendUnexpectedExceptionEmail(errorMsg);
+                            commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Suspended, Common.Now);
                         }
                     }
                 }
             }
         }
 
-        private static void GeneratePrintBatches(List<MailPieceDTO> validMailPieces, List<MailBatchDTO> mailBatches)
+        private static void GeneratePrintBatches(List<MailPieceDTO> validMailPieces)
         {
             using (IMailBatchService mailBatchSvc = new MailBatchService())
             using (IClientService clientSvc = new ClientService())
@@ -614,63 +638,55 @@ namespace AM.Core
 
                 foreach (var printBatchData in printBatches)
                 {
-                    try
+                    //Insert data into PrintBatches table and update PrintBatchId in MailPieces table
+                    printBatchData.Id = mailBatchSvc.InsertPrintBatchDetails(printBatchData);
+
+                    //Batch naming convention will be AppCode_PrintBatchId for Batch folder, XML and Go file
+                    string batchName = "{0}_{1}".Fill(printBatchData.AppCode, printBatchData.Id);
+                    string xmlFileName = batchName + ".xml";
+                    string goFileName = batchName + ".go";
+
+                    string remoteXMLPath = Path.Combine(pnsRootFolder, printBatchData.AppCode, xmlFileName);
+                    string remoteGOPath = Path.Combine(pnsRootFolder, printBatchData.AppCode, goFileName);
+                    string remoteBatchPath = Path.Combine(pnsRootFolder, printBatchData.AppCode, batchName);
+
+                    remoteBatchPath.CleanDirectory();
+
+                    PnSRequest request = new PnSRequest();
+                    request.AppCode = printBatchData.AppCode;
+                    request.BatchIdentifier = printBatchData.UniqueId;
+                    request.BatchName = batchName;
+                    request.DocTypeId = printBatchData.DocTypeId;
+                    request.DueDate = printBatchData.MailPieces.OrderBy(x => x.DueDate).Select(x => x.DueDate).Distinct().First().Value.Date;
+                    request.PrintLocation = printBatchData.PrintLocation;
+                    request.OnValidationErrors = OnValidationErrors.ProcessValidFiles;
+
+                    List<MailPieceData> mailPackage = new List<MailPieceData>();
+                    foreach (var piece in printBatchData.MailPieces)
                     {
-                        //Insert data into PrintBatches table and update PrintBatchId in MailPieces table
-                        printBatchData.Id = mailBatchSvc.InsertPrintBatchDetails(printBatchData);
+                        string batchPnSRequestPath = Path.Combine(Config.Common_AuthoMailRootFolder, printBatchData.AppCode, piece.MailBatchId.ToString(), "PnSRequest");
+                        string fileName = "{0}_{1}".Fill(piece.Id, piece.FileName);
+                        string localFilePath = Path.Combine(batchPnSRequestPath, fileName);
+                        string remoteFilePath = Path.Combine(remoteBatchPath, fileName);
 
-                        //Batch naming convention will be AppCode_PrintBatchId for Batch folder, XML and Go file
-                        string batchName = "{0}_{1}".Fill(printBatchData.AppCode, printBatchData.Id);
-                        string xmlFileName = batchName + ".xml";
-                        string goFileName = batchName + ".go";
+                        File.Copy(localFilePath, remoteFilePath, true);
 
-                        string remoteXMLPath = Path.Combine(pnsRootFolder, printBatchData.AppCode, xmlFileName);
-                        string remoteGOPath = Path.Combine(pnsRootFolder, printBatchData.AppCode, goFileName);
-                        string remoteBatchPath = Path.Combine(pnsRootFolder, printBatchData.AppCode, batchName);
+                        MailPieceData mailPieceData = new MailPieceData();
+                        mailPieceData.UniqueId = piece.UniqueId;
+                        mailPieceData.TotalPages = piece.TotalPages;
+                        mailPieceData.PerformQC = piece.IsQCRequested;
+                        mailPieceData.PDFFileName = fileName;
 
-                        remoteBatchPath.CleanDirectory();
-
-                        PnSRequest request = new PnSRequest();
-                        request.AppCode = printBatchData.AppCode;
-                        request.BatchIdentifier = printBatchData.UniqueId;
-                        request.BatchName = batchName;
-                        request.DocTypeId = printBatchData.DocTypeId;
-                        request.DueDate = printBatchData.MailPieces.OrderBy(x => x.DueDate).Select(x => x.DueDate).Distinct().First().Value.Date;
-                        request.PrintLocation = printBatchData.PrintLocation;
-                        request.OnValidationErrors = OnValidationErrors.ProcessValidFiles;
-
-                        List<MailPieceData> mailPackage = new List<MailPieceData>();
-                        foreach (var piece in printBatchData.MailPieces)
-                        {
-                            string batchPnSRequestPath = Path.Combine(Config.Common_AuthoMailRootFolder, printBatchData.AppCode, piece.MailBatchId.ToString(), "PnSRequest");
-                            string fileName = "{0}_{1}".Fill(piece.Id, piece.FileName);
-                            string localFilePath = Path.Combine(batchPnSRequestPath, fileName);
-                            string remoteFilePath = Path.Combine(remoteBatchPath, fileName);
-
-                            File.Copy(localFilePath, remoteFilePath, true);
-
-                            MailPieceData mailPieceData = new MailPieceData();
-                            mailPieceData.UniqueId = piece.UniqueId;
-                            mailPieceData.TotalPages = piece.TotalPages;
-                            mailPieceData.PerformQC = piece.IsQCRequested;
-                            mailPieceData.PDFFileName = fileName;
-
-                            mailPackage.Add(mailPieceData);
-                        }
-                        request.MailPackageData = mailPackage;
-
-                        File.WriteAllText(remoteXMLPath, request.ToXml());
-                        File.WriteAllText(remoteGOPath, "");
-
-                        commonSvc.UpdatePrintBatchStatus(printBatchData.Id, AM.Entities.BatchStatus.InProgress.ToString());
-                        commonSvc.UpdatePrintBatchPipeLineStatus(printBatchData.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
+                        mailPackage.Add(mailPieceData);
                     }
-                    catch (Exception ex)
-                    {
-                        var errorMsg = "Error occured while generationg PnS Batch - PrintBatchId-{0} and Error : {1}".Fill(printBatchData.Id, ex);
-                        log.Error(errorMsg, ex);
-                        SendUnexpectedExceptionEmail(errorMsg);
-                    }
+                    request.MailPackageData = mailPackage;
+
+                    File.WriteAllText(remoteXMLPath, request.ToXml());
+                    File.WriteAllText(remoteGOPath, "");
+
+                    commonSvc.UpdatePrintBatchStatus(printBatchData.Id, AM.Entities.BatchStatus.InProgress.ToString());
+                    commonSvc.UpdatePrintBatchPipeLineStatus(printBatchData.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
+
                 }
             }
         }

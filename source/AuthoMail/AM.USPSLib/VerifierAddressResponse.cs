@@ -25,11 +25,11 @@ namespace AM.USPSLib
         public string Id { get; set; }
         public string FirmName { get; set; }
 
-        public string Line1 { get; set; }
+        public string AptOrSuiteorOther { get; set; }
 
-        public string Line2 { get; set; }
+        public string StreetAddress { get; set; }
 
-        public string Line1Abbr { get; set; }
+        public string StreetAddressAbbr { get; set; }
 
         public string City { get; set; }
 

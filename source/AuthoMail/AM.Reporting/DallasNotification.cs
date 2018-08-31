@@ -19,63 +19,56 @@ namespace AM.Reporting
         {
             try
             {
-                List<DallasBatchTimings> batchesTimings;
+                List<DallasBatch> dallasBatches;
 
                 using (ICommonService commonSvc = new CommonService())
                 {
-                    batchesTimings = commonSvc.GetDallasBatchTimings();
+                    dallasBatches = commonSvc.GetDallasBatches(Common.EstToday);
                 }
 
                 var currentEstDateTime = Common.Now.UtcToEst();
 
-                DateTime startDateTime = new DateTime();
-                DateTime endDateTime = new DateTime();
-                string sweepName = string.Empty;
+                var query = dallasBatches.Where(b => b.BatchName != "Backlog").GroupBy(b => new { b.ShippingCarrier, b.ShippingServiceType });
 
-                var currentBatch = batchesTimings.OrderByDescending(b => b.EndDate).FirstOrDefault(b => b.BatchName != "Backlog" && currentEstDateTime > b.EndDate);
+                var currentBatches = new List<DallasBatch>();
 
-                if (currentBatch == null) return;
+                foreach (var g in query)
+                {
+                    // Here we are checking time limit for sending dallas notification for 30 Minutes
+                    var batch = g.OrderBy(b => b.EndDate).FirstOrDefault(b => currentEstDateTime >= b.EndDate && currentEstDateTime <= b.EndDate.AddMinutes(30));
+
+                    if (batch != null)
+                        currentBatches.Add(batch);
+                }
+
+                if (currentBatches == null || currentBatches.Count == 0) return;
 
 
-                startDateTime = currentBatch.StartDate.EstToUtc();
-                endDateTime = currentBatch.EndDate.EstToUtc();
-
-                while (!CheckAllBatchStatusCompleted(startDateTime, endDateTime))
+                while (!CheckAllBatchStatusCompleted(currentBatches.Min(b => b.StartDate), currentBatches.Max(b => b.EndDate)))
                 {
                     Thread.Sleep(6000);
                 }
 
-                List<DallasMailPieceData> dallasMailPieces;
-                using (IMailPieceService mailPieceSvc = new MailPieceService())
+                foreach (var batch in currentBatches.GroupBy(b => b.BatchName))
                 {
-                    dallasMailPieces = mailPieceSvc.GetDallasMailPiecesByTimingsAndClient(currentBatch.BatchName);
-                }
-
-                if (dallasMailPieces != null)
-                {
-                    var clients = dallasMailPieces.Select(c => c.AppCode).Distinct();
-                    List<Notification> notificationList = new List<Notification>();
-                    foreach (string clientCode in clients)
+                    List<DallasMailPieceData> dallasMailPieces;
+                    using (IMailPieceService mailPieceSvc = new MailPieceService())
                     {
-                        var mailPiecesByClient = dallasMailPieces.Where(f => f.AppCode == clientCode).ToList();
-
-                        var shippingServiceTypes = mailPiecesByClient.Select(c => c.ShippingServiceType).Distinct();
-
-                        foreach (string shippingServiceType in shippingServiceTypes)
-                        {
-                            string shippingCarrier = shippingServiceType;
-                            if (shippingServiceType == "PRIORITY_OVERNIGHT")
-                                shippingCarrier = "FedEx";
-
-                            var mailPiecesByShippingServiceType = mailPiecesByClient.Where(f => f.ShippingServiceType == shippingServiceType).ToList();
-
-                            var totalPages = mailPiecesByClient.Where(f => f.ShippingServiceType == shippingServiceType).Sum(c => c.TotalPages);
-
-                            notificationList.Add(new Notification() { ClientCode = clientCode, ShippingType = shippingCarrier, MailPieceCount = mailPiecesByShippingServiceType.Count, TotalPagesCount = totalPages });
-                        }
+                        dallasMailPieces = mailPieceSvc.GetDallasMailPiecesByTimingsAndClient(batch.Key);
                     }
 
-                    SendEmailNotification(notificationList, endDateTime.UtcToEst(), sweepName);
+                    if (dallasMailPieces != null)
+                    {
+                        var batchSummary = dallasMailPieces.GroupBy(b => new { b.AppCode, b.ShippingCarrier, b.ShippingServiceType });
+                        List<Notification> notificationList = new List<Notification>();
+                        foreach (var g in batchSummary)
+                        {
+
+                            notificationList.Add(new Notification() { ClientCode = g.Key.AppCode, ShippingType = g.Key.ShippingCarrier, MailPieceCount = g.Count(), TotalPagesCount = g.Sum(b => b.TotalPages) });
+                        }
+
+                        SendEmailNotification(notificationList, Common.EstToday, batch.Key);
+                    }
                 }
             }
             catch (Exception ex)
@@ -86,18 +79,15 @@ namespace AM.Reporting
 
         private static bool CheckAllBatchStatusCompleted(DateTime startDateTime, DateTime endDateTime)
         {
-            List<MailBatches> mailBatches;
             int receivedCount = 0;
             int completedCount = 0;
 
 
             using (IMailBatchService mailBatchSvc = new MailBatchService())
             {
-                mailBatches = mailBatchSvc.GetMailBatchesDataByDallasCutOff(startDateTime, endDateTime);
+                receivedCount = mailBatchSvc.GetMailBatchesReceivedCount(startDateTime, endDateTime, "Received");
+                completedCount = mailBatchSvc.GetMailBatchesReceivedCount(startDateTime, endDateTime, "Completed");
             }
-
-            receivedCount = mailBatches.Where(f => f.IsReceived == 1).ToList().Count;
-            completedCount = mailBatches.Where(f => f.IsAcknowledged == 1 || f.IsReportPrepped == 1 || f.IsReportedBack == 1).ToList().Count;
 
             return receivedCount == completedCount;
         }

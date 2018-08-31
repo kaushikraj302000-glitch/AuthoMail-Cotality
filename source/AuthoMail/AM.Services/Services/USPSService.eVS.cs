@@ -141,7 +141,7 @@ namespace AM.Services
                     if (Config.Web_API_USPS_IsDbLoggingEnabled)
                     {
                         uspsResXMLLogAwait = await uspsResXMLLog.ConfigureAwait(false);
-                        apiResponseLog = db.ExecuteAsync("Update [API].[USPSeVS] set APIResponse = @APIResponse, APIResponseOn = @APIResponseOn, BarcodeNumber = @BarcodeNumber, Postage = @Postage Where Id = @Id", new { APIResponse = responseXML, APIResponseOn = Common.Now, BarcodeNumber = eVSresponse.BarcodeNumber, Postage = eVSresponse.Postage, CommitmentName = commitmentName, ScheduledDeliveryDate = scheduledDeliveryDate, Id = logId });
+                        apiResponseLog = db.ExecuteAsync("Update [API].[USPSeVS] set APIResponse = @APIResponse, APIResponseOn = @APIResponseOn, BarcodeNumber = @BarcodeNumber, Postage = @Postage,CommitmentName = @CommitmentName,ScheduledDeliveryDate = @ScheduledDeliveryDate Where Id = @Id", new { APIResponse = responseXML, APIResponseOn = Common.Now, BarcodeNumber = eVSresponse.BarcodeNumber, Postage = eVSresponse.Postage, CommitmentName = commitmentName, ScheduledDeliveryDate = scheduledDeliveryDate, Id = logId });
                     }
 
                     apiResponseLogAwait = await apiResponseLog.ConfigureAwait(false);
@@ -182,8 +182,8 @@ namespace AM.Services
             labelResponse.ReceiptImageString = response.ReceiptImageString;
             labelResponse.ToName = response.ToName;
             labelResponse.ToFirm = response.ToFirm;
-            labelResponse.ToAddress1 = response.ToAddress1;
-            labelResponse.ToAddress2 = response.ToAddress2;
+            labelResponse.ToAptOrSuiteorOther = response.ToAptOrSuiteorOther;
+            labelResponse.ToStreetAddress = response.ToStreetAddress;
             labelResponse.ToCity = response.ToCity;
             labelResponse.ToState = response.ToState;
             labelResponse.ToZip5 = response.ToZip5;

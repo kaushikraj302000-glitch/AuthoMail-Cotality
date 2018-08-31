@@ -102,11 +102,11 @@ namespace AM.Services
             return db.ExecuteScalar<MailPieceDTO>(query, trackingNo);
         }
 
-        public List<DallasMailPieceData> GetDallasMailPiecesByTimingsAndClient(string sweepName)
+        public List<DallasMailPieceData> GetDallasMailPiecesByTimingsAndClient(string batchName)
         {
-            string query = @"SELECT * FROM [dbo].[ufn_DallasBatches](@EstDate) WHERE SweepName=@SweepName";
+            string query = @"SELECT * FROM [dbo].[ufn_GetDallasBatchDetails](@EstDate) WHERE BatchName=@BatchName";
 
-            return db.Query<DallasMailPieceData>(query, new { SweepName = sweepName, EstDate = Common.EstToday }).ToList();
+            return db.Query<DallasMailPieceData>(query, new { BatchName = batchName, EstDate = Common.EstToday }).ToList();
         }
     }
 }

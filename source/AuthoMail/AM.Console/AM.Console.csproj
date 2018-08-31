@@ -71,6 +71,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="ReCalculateDueDate.cs" />
     <Compile Include="Schema.cs" />
     <Compile Include="TestHSBCChannel.cs" />
     <Compile Include="Utilities\Common.cs" />

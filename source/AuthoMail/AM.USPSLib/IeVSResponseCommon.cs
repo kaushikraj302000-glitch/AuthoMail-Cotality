@@ -19,9 +19,9 @@ namespace AM.USPSLib
 
         string ToFirm { get; set; }
 
-        string ToAddress1 { get; set; }
+        string ToAptOrSuiteorOther { get; set; }
 
-        string ToAddress2 { get; set; }
+        string ToStreetAddress { get; set; }
 
         string ToCity { get; set; }
 

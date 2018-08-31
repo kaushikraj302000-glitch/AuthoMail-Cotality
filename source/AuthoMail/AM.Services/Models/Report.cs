@@ -23,11 +23,22 @@ namespace AM.Services
         public string Name { get; set; }
     }
 
-    public class DallasBatchTimings
+    public class DallasBatch
     {
         public string BatchName { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
+        public string ShippingCarrier { get; set; }
+        public string ShippingServiceType { get; set; }
+    }
+
+    public class DallasBatchTiming
+    {
+        public string BatchName { get; set; }
+        public TimeSpan StartTime { get; set; }
+        public TimeSpan EndTime { get; set; }
+        public string ShippingCarrier { get; set; }
+        public string ShippingServiceType { get; set; }
     }
 
     public class DallasMailPieceData
@@ -35,7 +46,7 @@ namespace AM.Services
         public int ClientId { get; set; }
         public string AppCode { get; set; }
         public string ClientName { get; set; }
-        public string LoanNumber { get; set; }        
+        public string LoanNumber { get; set; }
         public string PrintLocation { get; set; }
         public DateTime EffectiveReceivedOnEst { get; set; }
         public string TrackingNo { get; set; }
@@ -55,6 +66,7 @@ namespace AM.Services
         public Guid UniqueId { get; set; }
         public string MailPieceStatus { get; set; }
         public DateTime ProcessingTimeStamp { get; set; }
+        public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
     }
 }

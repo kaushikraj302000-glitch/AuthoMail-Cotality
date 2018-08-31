@@ -14,9 +14,9 @@ namespace AM.USPSLib
 
         public string FromFirm { get; set; }
 
-        public string FromAddress1 { get; set; }
+        public string FromAptOrSuiteorOther { get; set; }
 
-        public string FromAddress2 { get; set; }
+        public string FromStreetAddress { get; set; }
 
         public string FromCity { get; set; }
 
@@ -36,9 +36,9 @@ namespace AM.USPSLib
 
         public string ToFirm { get; set; }
 
-        public string ToAddress1 { get; set; }
+        public string ToAptOrSuiteorOther { get; set; }
 
-        public string ToAddress2 { get; set; }
+        public string ToStreetAddress { get; set; }
 
         public string ToCity { get; set; }
 
@@ -141,6 +141,25 @@ namespace AM.USPSLib
         {
             //default value as per API documentation
             this.OptOutOfSPE = true;
+            this.FromName = string.Empty;
+            this.FromFirm = string.Empty;
+            this.FromAptOrSuiteorOther = string.Empty;
+            this.FromStreetAddress = string.Empty;
+            this.FromCity = string.Empty;
+            this.FromState = string.Empty;
+            this.FromZip5 = string.Empty;
+            this.FromZip4 = string.Empty;
+            this.FromPhone = string.Empty;
+
+            this.ToName = string.Empty;
+            this.ToFirm = string.Empty;
+            this.ToAptOrSuiteorOther = string.Empty;
+            this.ToStreetAddress = string.Empty;
+            this.ToCity = string.Empty;
+            this.ToState = string.Empty;
+            this.ToZip5 = string.Empty;
+            this.ToZip4 = string.Empty;
+            this.ToPhone = string.Empty;
         }
     }
 }

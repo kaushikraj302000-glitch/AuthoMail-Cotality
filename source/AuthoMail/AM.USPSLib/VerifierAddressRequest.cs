@@ -21,12 +21,12 @@ namespace AM.USPSLib
         /// <summary>
         /// Address Line 1 is used to provide an apartment or suite number, if applicable
         /// </summary>
-        public string Line1 { get; set; }
+        public string AptOrSuiteorOther { get; set; }
 
         /// <summary>
         /// Street address
         /// </summary>
-        public string Line2 { get; set; }
+        public string StreetAddress { get; set; }
 
         public string City { get; set; }
 
