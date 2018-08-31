@@ -362,14 +362,13 @@ namespace AM.Core
             eVSReq.ReceiptOption = ReceiptOption.SEPARATE_PAGE;
             eVSReq.WeightInOunces = "48";
             eVSReq.ImageType = ImageType.PDF;
-
-            eVSReq.LabelParameters = new LabelParameters() { Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.LABEL4X6P_PAGE, XCoordinate = 50, YCoordinate = 25 };//TODO : Change if required 50
+            eVSReq.POZipCode = "75099";
+            eVSReq.LabelParameters = new LabelParameters() { Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.CROP };//TODO : Change if required 50
 
             // From Address
             eVSReq.FromName = (mailPiece.RetRcptFirstName + " " + mailPiece.RetRcptLastName).Trim();
             eVSReq.FromFirm = mailPiece.RetRcptOrganization ?? clientName;
-            eVSReq.FromAptOrSuiteorOther = mailPiece.RetRcptAddressAptOrSuiteOrOther ?? string.Empty;
-            eVSReq.FromStreetAddress = (mailPiece.RetRcptAddressStreet + " " + mailPiece.RetRcptAddrOptionalLine1BelowStreet).Trim();
+            eVSReq.FromStreetAddress = (mailPiece.RetRcptAddressStreet + " " + mailPiece.RetRcptAddressAptOrSuiteOrOther + " " + mailPiece.RetRcptAddrOptionalLine1BelowStreet).Trim();
             eVSReq.FromCity = mailPiece.RetRcptAddressCity;
             eVSReq.FromState = mailPiece.RetRcptAddressState;
             eVSReq.FromZip4 = mailPiece.RetRcptAddressZIP.SeparateZip4And5(4);
@@ -379,8 +378,7 @@ namespace AM.Core
             // To Address
             eVSReq.ToFirm = string.IsNullOrEmpty(mailPiece.RcptOrganization) ? string.Empty : mailPiece.RcptOrganization;
             eVSReq.ToName = mailPiece.RcptFirstName + " " + mailPiece.RcptLastName;
-            eVSReq.ToAptOrSuiteorOther = mailPiece.RcptAddressAptOrSuiteOrOther ?? string.Empty;
-            eVSReq.ToStreetAddress = (mailPiece.RcptAddressStreet + " " + mailPiece.RcptAddrOptionalLine1BelowStreet).Trim();
+            eVSReq.ToStreetAddress = (mailPiece.RcptAddressStreet + " " + mailPiece.RcptAddressAptOrSuiteOrOther + " " + mailPiece.RcptAddrOptionalLine1BelowStreet).Trim();
             eVSReq.ToCity = mailPiece.RcptAddressCity;
             eVSReq.ToState = mailPiece.RcptAddressState;
             eVSReq.ToZip4 = mailPiece.RcptAddressZIP.SeparateZip4And5(4);
@@ -517,6 +515,19 @@ namespace AM.Core
                     try
                     {
                         GeneratePrintBatches(validMailPieces);
+
+                        //After processing all mail batches for PrintBatches we will check for each and every mailpieces are having printbatchid in it or not then update SubmittedToShipping status in MailBatches table
+                        foreach (MailBatchDTO mailBatch in mailBatches)
+                        {
+                            var mailPiecesList = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatch.Id);
+                            var validPieces = mailPiecesList.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.PrintBatchId != null).ToList().Count;
+                            var errorPieces = mailPiecesList.Where(c => c.ErrorCode != OutComeCodes.No_Error && c.PrintBatchId == null).ToList().Count;
+
+                            if (mailPiecesList.Count == (validPieces + errorPieces))
+                            {
+                                commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
+                            }
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -524,18 +535,6 @@ namespace AM.Core
                         log.Error(errorMsg, ex);
 
                         SendUnexpectedExceptionEmail(errorMsg);
-                    }
-                    //After processing all mail batches for PrintBatches we will check for each and every mailpieces are having printbatchid in it or not then update SubmittedToShipping status in MailBatches table
-                    foreach (MailBatchDTO mailBatch in mailBatches)
-                    {
-                        var mailPiecesList = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatch.Id);
-                        var validPieces = mailPiecesList.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.PrintBatchId != null).ToList().Count;
-                        var errorPieces = mailPiecesList.Where(c => c.ErrorCode != OutComeCodes.No_Error && c.PrintBatchId == null).ToList().Count;
-
-                        if (mailPiecesList.Count == (validPieces + errorPieces))
-                        {
-                            commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
-                        }
                     }
                 }
                 else
@@ -553,6 +552,16 @@ namespace AM.Core
                         try
                         {
                             GeneratePrintBatches(validMailPieces);
+
+                            //After processing mail batch for PrintBatches we will check for each and every mailpieces are having printbatchid in it or not then update SubmittedToShipping status in MailBatches table
+                            var mailPiecesList = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatch.Id);
+                            var validPieces = mailPiecesList.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.PrintBatchId != null).ToList().Count;
+                            var errorPieces = mailPiecesList.Where(c => c.ErrorCode != OutComeCodes.No_Error && c.PrintBatchId == null).ToList().Count;
+
+                            if (mailPiecesList.Count == (validPieces + errorPieces))
+                            {
+                                commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -560,15 +569,6 @@ namespace AM.Core
                             log.Error(errorMsg, ex);
                             SendUnexpectedExceptionEmail(errorMsg);
                             commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Suspended, Common.Now);
-                        }
-                        //After processing mail batch for PrintBatches we will check for each and every mailpieces are having printbatchid in it or not then update SubmittedToShipping status in MailBatches table
-                        var mailPiecesList = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatch.Id);
-                        var validPieces = mailPiecesList.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.PrintBatchId != null).ToList().Count;
-                        var errorPieces = mailPiecesList.Where(c => c.ErrorCode != OutComeCodes.No_Error && c.PrintBatchId == null).ToList().Count;
-
-                        if (mailPiecesList.Count == (validPieces + errorPieces))
-                        {
-                            commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
                         }
                     }
                 }
