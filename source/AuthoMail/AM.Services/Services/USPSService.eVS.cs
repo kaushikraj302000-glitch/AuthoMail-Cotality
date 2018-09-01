@@ -82,7 +82,7 @@ namespace AM.Services
                     if (Config.Web_API_USPS_IsDbLoggingEnabled)
                     {
                         logId = await dbLog.ConfigureAwait(false);
-                        uspsReqLog = db.ExecuteScalarAsync<int>("Update [API].[USPSeVS] set [USPSRequest] = @USPSRequest, [USPSRequestedOn]= @USPSRequestedOn;", new { USPSRequest = eVSrequestXML, USPSRequestedOn = Common.Now });
+                        uspsReqLog = db.ExecuteScalarAsync<int>("Update [API].[USPSeVS] set [USPSRequest] = @USPSRequest, [USPSRequestedOn]= @USPSRequestedOn Where Id =@Id;", new { USPSRequest = eVSrequestXML, USPSRequestedOn = Common.Now, Id = logId });
                     }
 
                     string responseXML = null;
@@ -121,7 +121,7 @@ namespace AM.Services
                     if (Config.Web_API_USPS_IsDbLoggingEnabled)
                     {
                         uspsReqLogAwait = await uspsReqLog.ConfigureAwait(false);
-                        uspsResXMLLog = db.ExecuteScalarAsync<int>("Update [API].[USPSeVS] set IsUSPSError = @IsUSPSError, [USPSResponse] = @USPSResponse, [USPSResponseOn] = @USPSResponseOn;", new { IsUSPSError = isUSPSError, USPSResponse = responseXML, USPSResponseOn = Common.Now });
+                        uspsResXMLLog = db.ExecuteScalarAsync<int>("Update [API].[USPSeVS] set IsUSPSError = @IsUSPSError, [USPSResponse] = @USPSResponse, [USPSResponseOn] = @USPSResponseOn Where Id = @Id;", new { IsUSPSError = isUSPSError, USPSResponse = responseXML, USPSResponseOn = Common.Now, Id = logId });
                     }
 
                     if (!isUSPSError)
@@ -206,7 +206,7 @@ namespace AM.Services
             labelResponse.Commitment = response.Commitment != null ? new CommitmentDetail()
             {
                 CommitmentName = response.Commitment.CommitmentName,
-                
+
                 ScheduledDeliveryDate = !response.Commitment.ScheduledDeliveryDate.IsNullOrWhiteSpace() ?
                 DateTime.ParseExact(response.Commitment.ScheduledDeliveryDate, "yyyy-MM-dd", null) : (DateTime?)null
             } : null;
