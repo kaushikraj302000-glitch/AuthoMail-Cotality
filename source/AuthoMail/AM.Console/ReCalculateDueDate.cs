@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AM.Lib;
 
 namespace AM.Console
 {
@@ -18,10 +19,9 @@ namespace AM.Console
                 foreach (var item in docTypeList)
                 {
                     var docType = docTypeSvc.GetDocTypeById(item.DocTypeId);
-                    DateTime estEffectiveReceivedOn = Channel.GetEffectiveEstReceivedOn(docType, Convert.ToDateTime(item.ReceivedOn));
-                    var dueDate = Channel.GetDueDate(docType, estEffectiveReceivedOn);
-                    DateTime d = dueDate;
-                    rSvc.UpdateDueDateAndEftRecOnEST(item.Id, dueDate,estEffectiveReceivedOn);
+                    DateTime estEffectiveReceivedOn = Channel.GetEffectiveEstReceivedOn(docType, item.ReceivedOn.Value);
+                    var dueDate = Channel.GetDueDate(docType, estEffectiveReceivedOn);                    
+                    rSvc.UpdateDueDateAndEftRecOnEST(item.Id, dueDate,estEffectiveReceivedOn.EstToUtc());
                 }
             }
         }

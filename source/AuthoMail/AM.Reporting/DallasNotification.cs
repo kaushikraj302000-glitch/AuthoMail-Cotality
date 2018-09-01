@@ -64,7 +64,7 @@ namespace AM.Reporting
                         foreach (var g in batchSummary)
                         {
 
-                            notificationList.Add(new Notification() { ClientCode = g.Key.AppCode, ShippingType = g.Key.ShippingCarrier, MailPieceCount = g.Count(), TotalPagesCount = g.Sum(b => b.TotalPages) });
+                            notificationList.Add(new Notification() { ClientCode = g.Key.AppCode, ShippingCarrier = g.Key.ShippingCarrier, ShippingServiceType = g.Key.ShippingServiceType, MailPieceCount = g.Count(), TotalPagesCount = g.Sum(b => b.TotalPages) });
                         }
 
                         SendEmailNotification(notificationList, Common.EstToday, batch.Key);
@@ -103,7 +103,7 @@ namespace AM.Reporting
                         msg.IsBodyHtml = true;
                         msg.To.Add(AppConfig.DallasEMailTo);
                         msg.CC.Add(AppConfig.DallasEMailCc);
-                        msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, AppConfig.DallasEMailSubject, currentEstDate.AddHours(-1).ToString("hhtt"));
+                        msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, AppConfig.DallasEMailSubject, sweepName);
                         msg.Priority = MailPriority.Normal;
 
                         StringBuilder sb = new StringBuilder(File.ReadAllText(AppConfig.DallasEMailTemplate));
@@ -113,19 +113,20 @@ namespace AM.Reporting
 
                             StringBuilder fullContent = new StringBuilder();
                             fullContent.AppendLine(@"<tr><td colspan='3' style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt' valign='top' width='638'><p style='text-align:center' align='center'><span style='font-size:20.0pt'>Below Folder should have count of packages to be printed and shipped<u></u><u></u></span></p></td></tr>");
+
                             foreach (var client in clientList)
                             {
                                 fullContent.AppendLine(@"<tr><td colspan='3' style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt' valign='top' width='638'><p style='text-align:center' align='center'><span style='font-size:20.0pt'>
                                     {0} / {1} / {2}
                                     <u></u><u></u>
                                 </span></p></td></tr>".Fill(client, currentEstDate.ToString("MMddyyyy"), sweepName));
-                                fullContent.AppendLine(@"<tr><td style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 6pt 0in 6pt;text-align:center;font-size:14.0pt' valign='top' width='638'>Shipping Method</td><td style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 6pt 0in 6pt;text-align:center;font-size:14.0pt' valign='top' width='638'>Total Packages</td><td style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 6pt 0in 6pt;text-align:center;font-size:14.0pt' valign='top' width='638'>Total Pages</td></tr>");
+                                fullContent.AppendLine(@"<tr><td style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 6pt 0in 6pt;text-align:center;font-size:14.0pt' valign='top' width='638'>Shipping Method</td><td style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 6pt 0in 6pt;text-align:center;font-size:14.0pt' valign='top' width='638'>Shipping Service</td><td style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 6pt 0in 6pt;text-align:center;font-size:14.0pt' valign='top' width='638'>Total Packages</td><td style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 6pt 0in 6pt;text-align:center;font-size:14.0pt' valign='top' width='638'>Total Pages</td></tr>");
 
                                 foreach (var filterd in notificationList.Where(f => f.ClientCode == client))
                                 {
-                                    fullContent.AppendLine(@"<tr><td><p style='text-align:center' align='center'><span style='font-size:14.0pt'>{0}</span></p></td><td><p style='text-align:center' align='center'>
-                                <span style='font-size:14.0pt'>{1}</span></p></td><td><p style='text-align:center' align='center'>
-                                <span style='font-size:14.0pt'>{2}</span></p></td></tr>".Fill(filterd.ShippingType, filterd.MailPieceCount, filterd.TotalPagesCount));
+                                    fullContent.AppendLine(@"<tr><td><p style='text-align:center' align='center'><span style='font-size:14.0pt'>{0}</span></p></td><p style='text-align:center' align='center'><span style='font-size:14.0pt'>{1}</span></p></td><td><p style='text-align:center' align='center'>
+                                <span style='font-size:14.0pt'>{2}</span></p></td><td><p style='text-align:center' align='center'>
+                                <span style='font-size:14.0pt'>{3}</span></p></td></tr>".Fill(filterd.ShippingCarrier, filterd.ShippingServiceType, filterd.MailPieceCount, filterd.TotalPagesCount));
                                 }
                             }
 
@@ -150,7 +151,8 @@ namespace AM.Reporting
     class Notification
     {
         public string ClientCode { get; set; }
-        public string ShippingType { get; set; }
+        public string ShippingCarrier { get; set; }
+        public string ShippingServiceType { get; set; }
         public int MailPieceCount { get; set; }
         public int TotalPagesCount { get; set; }
     }
