@@ -754,7 +754,7 @@
                 }
                 else {
                     //trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/Track/' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
-                    trackingNo = '<a id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" href="/Track/' + this.TrackingNo + '" target="_blank"><i style="margin-top: 2px;" class="fa fa-map-marker fa-2x"></i> </a>';
+                    trackingNo = '<a id="' + this.TrackingNo + '" data-toggle="tooltip" data-container="body" data-placement="top" title="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" href="/Track/' + this.TrackingNo + '" target="_blank"><i style="margin-top: 2px;" class="fa fa-map-marker fa-2x"></i> </a>';
                     //if (this.ShippingCarrier == "USPS" && this.ShippingMethod == "USPS_EXPRESSMAIL") {
 
                     //    trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="https://m.usps.com/m/TrackConfirmAction_detail?tLabels=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
@@ -876,6 +876,7 @@
                                 $("#searchMailPieceList").html("");
                                 var data = FormatObject(response.Object.model);
                                 BindTemplate(data, "#SearchBody", "#SearchbodyContent", "#SearchTableContent", "#searchMailPieceList");
+                                window.clui.tooltipInit();
                             }
                             else {
                                 $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
