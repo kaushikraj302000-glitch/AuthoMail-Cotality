@@ -22,13 +22,13 @@ namespace AM.Monitor
             var pendingSweepBatchesToSubmit = monitorSvc.GetPendingBatchesToSubmit();
             var pendingBundleSweepBatchesToSubmit = monitorSvc.GetPendingSweepBatchesToSubmit();
 
-            var sweepBatchesList = checkSFTChannels.Where(c => bundleIds.Any(b => b != c.SFTChannelId) && pendingSweepBatchesToSubmit.Any(p => p.SFTChannelId != c.SFTChannelId)).ToList();
+            var sweepBatchesList = checkSFTChannels.Where(c => bundleIds.Any(b => b != c.SFTChannelId) && pendingSweepBatchesToSubmit.Any(p => p.SFTChannelId == c.SFTChannelId)).ToList();
             pendingBatchesToSubmit.AddRange(sweepBatchesList);
             foreach (var bundleSweepTime in bundleSweepTimes)
             {
                 if (TimeSpan.Parse(DateTime.Now.ToString("HH:mm")) > TimeSpan.Parse(bundleSweepTime.ToString()))
                 {
-                    var bundleBatchesList = checkSFTChannels.Where(c => bundleIds.Any(b => b == c.SFTChannelId) && pendingBundleSweepBatchesToSubmit.Any(p => p.SFTChannelId == c.SFTChannelId)).ToList();
+                    var bundleBatchesList = checkSFTChannels.Where(c => bundleIds.Any(b => b == c.SFTChannelId) && pendingBundleSweepBatchesToSubmit.Any(p => p.SFTChannelId != c.SFTChannelId)).ToList();
                     var list = bundleBatchesList.Where(p => !pendingBatchesToSubmit.Any(pb => pb.PrintBatchId == p.PrintBatchId)).ToList();
                     pendingBatchesToSubmit.AddRange(list);
                 }
