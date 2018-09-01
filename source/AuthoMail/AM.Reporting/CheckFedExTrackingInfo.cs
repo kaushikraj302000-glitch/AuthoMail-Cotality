@@ -58,16 +58,14 @@ namespace AM.Reporting
                         GetTrackReplyAndUpdateValue(reply);
                     }
                 }
-                catch (SoapException e)
+                catch (SoapException ex)
                 {
-                    Console.WriteLine(e.Detail.InnerText);
+                    log.Error("SOAP Error occured while requesting FedEx Tracking Details : ", ex);
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    Console.WriteLine(e.Message);
+                    log.Error("Error occured while requesting FedEx Tracking Details : ", ex);
                 }
-                Console.WriteLine("Press any key to quit!");
-                Console.ReadKey();
             }
 
             return false;
