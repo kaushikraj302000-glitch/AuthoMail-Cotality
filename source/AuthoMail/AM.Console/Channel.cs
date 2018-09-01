@@ -435,7 +435,7 @@ namespace AM.Console
 
         public static string GetPrintLocation(DocType docType, DateTime estEffectiveReceivedOn)
         {
-            if (estEffectiveReceivedOn.DayOfWeek == DayOfWeek.Saturday && docType.ShippingCarrier == Carrier.FedEx.ToString())
+            if (estEffectiveReceivedOn.DayOfWeek == DayOfWeek.Saturday && (docType.ShippingCarrier == Carrier.FedEx.ToString() || (docType.ShippingCarrier == Carrier.USPS.ToString() && docType.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS.ToString())))
                 return Config.Common_PrintLocationCL;
 
             if (estEffectiveReceivedOn.DayOfWeek == DayOfWeek.Saturday)
