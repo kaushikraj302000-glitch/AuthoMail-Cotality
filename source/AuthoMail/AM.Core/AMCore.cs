@@ -363,7 +363,8 @@ namespace AM.Core
             eVSReq.WeightInOunces = "48";
             eVSReq.ImageType = ImageType.PDF;
             eVSReq.POZipCode = "75099";
-            eVSReq.LabelParameters = new LabelParameters() { Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.CROP };//TODO : Change if required 50
+            eVSReq.SenderName = clientName;
+            eVSReq.LabelParameters = new LabelParameters() { Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.SEPARATECONTINUEPAGE };//TODO : Change if required 50
 
             // From Address
             eVSReq.FromName = (mailPiece.RetRcptFirstName + " " + mailPiece.RetRcptLastName).Trim();
@@ -377,7 +378,7 @@ namespace AM.Core
 
             // To Address
             eVSReq.ToFirm = string.IsNullOrEmpty(mailPiece.RcptOrganization) ? string.Empty : mailPiece.RcptOrganization;
-            eVSReq.ToName = mailPiece.RcptFirstName + " " + mailPiece.RcptLastName;
+            eVSReq.ToName = (mailPiece.RcptFirstName + " " + mailPiece.RcptLastName).Trim();
             eVSReq.ToStreetAddress = (mailPiece.RcptAddressStreet + " " + mailPiece.RcptAddressAptOrSuiteOrOther + " " + mailPiece.RcptAddrOptionalLine1BelowStreet).Trim();
             eVSReq.ToCity = mailPiece.RcptAddressCity;
             eVSReq.ToState = mailPiece.RcptAddressState;
