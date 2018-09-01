@@ -37,7 +37,7 @@ namespace AM.Monitor
 
             var pendingBatchesToReportBack = monitorSvc.GetPendingBatchesToReportBack();
             string monitor_PrintBatch = "style='width:10%;border:solid windowtext 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
-            string monitor_AppCode = "style='width:10%;border:solid windowtext 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";            
+            string monitor_AppCode = "style='width:10%;border:solid windowtext 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
             string monitor_JobName = "style='width:10%;border:solid windowtext 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
             string monitor_PrintLocation = "style='width:10%;border:solid windowtext 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
             string monitor_Pipelinestatus = "style='width:10%;border:solid windowtext 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
@@ -47,7 +47,7 @@ namespace AM.Monitor
 
             if (pendingBatchesToSubmit.Count > 0)
             {
-                PrepEmailBody_PendingBatchesToSubmit(monitorSvc, pendingBatchesToSubmit, monitor_PrintBatch, monitor_AppCode,monitor_PrintLocation, monitor_JobName, monitor_Pipelinestatus, monitor_ReceivedOn, monitor_DownloadedOn, monitor_PreppedOn, new StringBuilder(File.ReadAllText(Path.GetFullPath(ConfigurationManager.AppSettings["MonitorEmailSubmitTemplate"]))));
+                PrepEmailBody_PendingBatchesToSubmit(monitorSvc, pendingBatchesToSubmit, monitor_PrintBatch, monitor_AppCode, monitor_PrintLocation, monitor_JobName, monitor_Pipelinestatus, monitor_ReceivedOn, monitor_DownloadedOn, monitor_PreppedOn, new StringBuilder(File.ReadAllText(Path.GetFullPath(ConfigurationManager.AppSettings["MonitorEmailSubmitTemplate"]))));
             }
 
             if (pendingBatchesToReportBack.Count > 0)
@@ -58,14 +58,16 @@ namespace AM.Monitor
             }
         }
 
-        private static void PrepEmailBody_PendingBatchesToSubmit(MonitorBatchesService monitorSvc, List<dynamic> pendingBatchesToSubmit, string monitor_PrintBatch, string monitor_AppCode,string monitor_PrintLocation, string monitor_JobName, string monitor_Pipelinestatus, string monitor_ReceivedOn, string monitor_DownloadedOn, string monitor_PreppedOn, StringBuilder sb)
+        private static void PrepEmailBody_PendingBatchesToSubmit(MonitorBatchesService monitorSvc, List<dynamic> pendingBatchesToSubmit, string monitor_PrintBatch, string monitor_AppCode, string monitor_PrintLocation, string monitor_JobName, string monitor_Pipelinestatus, string monitor_ReceivedOn, string monitor_DownloadedOn, string monitor_PreppedOn, StringBuilder sb)
         {
             try
             {
                 StringBuilder batchData = new StringBuilder();
                 foreach (var pendingBatch in pendingBatchesToSubmit)
                 {
-
+                    DateTime receivedOn = pendingBatch.ReceivedOn;
+                    DateTime downloadedOn = pendingBatch.DownloadedOn != null ? pendingBatch.DownloadedOn : DateTime.Now;
+                    DateTime preppedOn = pendingBatch.PreppedOn != null ? pendingBatch.PreppedOn : DateTime.Now;
                     int isPrintBatchExist = monitorSvc.CheckPrintBatchIdExist(int.Parse(pendingBatch.PrintBatchId.ToString()), true);
                     if (isPrintBatchExist > 0)
                     {
@@ -77,9 +79,9 @@ namespace AM.Monitor
                             batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", monitor_JobName, pendingBatch.PrintFileName != null ? pendingBatch.PrintFileName.ToString() : string.Empty));
                             batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", monitor_PrintLocation, pendingBatch.PrintLocation != null ? pendingBatch.PrintLocation.ToString() : string.Empty));
                             batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", monitor_Pipelinestatus, pendingBatch.PipelineStatus != null ? pendingBatch.PipelineStatus.ToString() : string.Empty));
-                            batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", monitor_ReceivedOn, pendingBatch.ReceivedOn.UtcToEst()));
-                            batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", monitor_DownloadedOn, pendingBatch.DownloadedOn != null ? pendingBatch.DownloadedOn.UtcToEst() : string.Empty));
-                            batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td> </tr>", monitor_PreppedOn, pendingBatch.PreppedOn != null ? pendingBatch.PreppedOn.UtcToEst() : string.Empty));
+                            batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", monitor_ReceivedOn, receivedOn.UtcToEst().ToString()));
+                            batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", monitor_DownloadedOn, pendingBatch.DownloadedOn != null ? downloadedOn.UtcToEst().ToString() : string.Empty));
+                            batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td> </tr>", monitor_PreppedOn, pendingBatch.PreppedOn != null ? preppedOn.UtcToEst().ToString() : string.Empty));
                             monitorSvc.UpdateEmailTimeStamp(int.Parse(pendingBatch.PrintBatchId.ToString()), true);
                         }
                     }
@@ -90,9 +92,9 @@ namespace AM.Monitor
                         batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", monitor_JobName, pendingBatch.PrintFileName != null ? pendingBatch.PrintFileName.ToString() : string.Empty));
                         batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", monitor_PrintLocation, pendingBatch.PrintLocation != null ? pendingBatch.PrintLocation.ToString() : string.Empty));
                         batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", monitor_Pipelinestatus, pendingBatch.PipelineStatus != null ? pendingBatch.PipelineStatus.ToString() : string.Empty));
-                        batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", monitor_ReceivedOn, pendingBatch.ReceivedOn.UtcToEst()));
-                        batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", monitor_DownloadedOn, pendingBatch.DownloadedOn != null ? pendingBatch.DownloadedOn.UtcToEst() : string.Empty));
-                        batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td> </tr>", monitor_PreppedOn, pendingBatch.PreppedOn != null ? pendingBatch.PreppedOn.UtcToEst() : string.Empty));
+                        batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", monitor_ReceivedOn, receivedOn.UtcToEst().ToString()));
+                        batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", monitor_DownloadedOn, pendingBatch.DownloadedOn != null ? downloadedOn.UtcToEst().ToString() : string.Empty));
+                        batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td> </tr>", monitor_PreppedOn, pendingBatch.PreppedOn != null ? preppedOn.UtcToEst().ToString() : string.Empty));
                         monitorSvc.SaveEmailSentTimeStamp(int.Parse(pendingBatch.PrintBatchId.ToString()), true);
                     }
                 }
@@ -114,6 +116,9 @@ namespace AM.Monitor
                 StringBuilder batchData = new StringBuilder();
                 foreach (var pendingBatch in pendingBatchesToReportBack)
                 {
+                    DateTime receivedOn = pendingBatch.ReceivedOn;
+                    DateTime downloadedOn = pendingBatch.DownloadedOn != null ? pendingBatch.DownloadedOn : DateTime.Now;
+                    DateTime preppedOn = pendingBatch.PreppedOn != null ? pendingBatch.PreppedOn : DateTime.Now;
                     int isPrintBatchExist = monitorSvc.CheckPrintBatchIdExist(int.Parse(pendingBatch.PrintBatchId.ToString()), false);
                     if (isPrintBatchExist > 0)
                     {
@@ -124,9 +129,9 @@ namespace AM.Monitor
                             batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", monitor_AppCode, pendingBatch.AppCode.ToString()));
                             batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", monitor_JobName, pendingBatch.PrintFileName != null ? pendingBatch.PrintFileName.ToString() : string.Empty));
                             batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", monitor_Pipelinestatus, pendingBatch.PipelineStatus != null ? pendingBatch.PipelineStatus.ToString() : string.Empty));
-                            batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", monitor_ReceivedOn, pendingBatch.ReceivedOn.UtcToEst()));
-                            batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", monitor_DownloadedOn, pendingBatch.DownloadedOn != null ? pendingBatch.DownloadedOn.UtcToEst() : string.Empty));
-                            batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td> </tr>", monitor_PreppedOn, pendingBatch.PreppedOn != null ? pendingBatch.PreppedOn.UtcToEst() : string.Empty));
+                            batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", monitor_ReceivedOn, receivedOn.UtcToEst().ToString()));
+                            batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", monitor_DownloadedOn, pendingBatch.DownloadedOn != null ? downloadedOn.UtcToEst().ToString() : string.Empty));
+                            batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td> </tr>", monitor_PreppedOn, pendingBatch.PreppedOn != null ? preppedOn.UtcToEst().ToString() : string.Empty));
                             monitorSvc.UpdateEmailTimeStamp(int.Parse(pendingBatch.PrintBatchId.ToString()), false);
                         }
                     }
@@ -136,9 +141,9 @@ namespace AM.Monitor
                         batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", monitor_AppCode, pendingBatch.AppCode.ToString()));
                         batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", monitor_JobName, pendingBatch.PrintFileName != null ? pendingBatch.PrintFileName.ToString() : string.Empty));
                         batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", monitor_Pipelinestatus, pendingBatch.PipelineStatus != null ? pendingBatch.PipelineStatus.ToString() : string.Empty));
-                        batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", monitor_ReceivedOn, pendingBatch.ReceivedOn.UtcToEst()));
-                        batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", monitor_DownloadedOn, pendingBatch.DownloadedOn != null ? pendingBatch.DownloadedOn.UtcToEst() : string.Empty));
-                        batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td> </tr>", monitor_PreppedOn, pendingBatch.PreppedOn != null ? pendingBatch.PreppedOn.UtcToEst() : string.Empty));
+                        batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", monitor_ReceivedOn, receivedOn.UtcToEst().ToString()));
+                        batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", monitor_DownloadedOn, pendingBatch.DownloadedOn != null ? downloadedOn.UtcToEst().ToString() : string.Empty));
+                        batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td> </tr>", monitor_PreppedOn, pendingBatch.PreppedOn != null ? preppedOn.UtcToEst().ToString() : string.Empty));
                         monitorSvc.SaveEmailSentTimeStamp(int.Parse(pendingBatch.PrintBatchId.ToString()), false);
                     }
 
