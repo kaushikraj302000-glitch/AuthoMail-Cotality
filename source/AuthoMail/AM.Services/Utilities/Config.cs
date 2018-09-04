@@ -153,6 +153,25 @@ namespace AM.Services
         public static string Web_EndCutOffTime { get; private set; }
         #endregion
 
+        #region Web Dropdown For DocType
+
+        [Description("Print size dropdown values")]
+        public static string Web_DD_PrintSizeList { get; private set; }
+
+        [Description("Print format dropdown values")]
+        public static string Web_DD_PrintFormatList { get; private set; }
+
+        [Description("Shipping Carrier dropdown values")]
+        public static string Web_DD_ShippingCarrierList { get; private set; }
+
+        [Description("Shipping Service Type dropdown values")]
+        public static string Web_DD_ShippingServiceTypeList { get; private set; }
+
+        [Description("Shipping Special Service dropdown values")]
+        public static string Web_DD_ShippingSpecialServiceList { get; private set; }
+
+        #endregion
+
         #region USPSIntegration
 
         public static bool Web_API_USPS_IsDbLoggingEnabled { get; private set; }
