@@ -123,14 +123,14 @@ namespace AM.Services
 
         public List<TestModel> TestMp()
         {
-            string query = "select m.id,m.shippingstatus,m.SLADays,mb.receivedon,m.duedate,m.DocTypeId,m.Documentorpackagetype,mb.validationstatus,m.duedate,m.ErrorCode,m.errordesc,d.bizdaycutoff,d.bizdayslatype,d.bizdaytimespan,d.satcutoff,d.satslatype,d.sattimespan,d.suncutoff,d.sunslatype,d.suntimespan from [AM].[MailBatches] mb, [AM].[MailPieces] m left outer join [AM].[DocTypes] d ON m.DocTypeId=d.Id where m.[MailBatchId] = mb.Id";
+            string query = "select m.id,m.shippingstatus,m.SLADays,mb.receivedon,m.duedate,m.DocTypeId,m.Documentorpackagetype,mb.validationstatus,m.duedate,m.ErrorCode,m.errordesc,d.bizdaycutoff,d.bizdayslatype,d.bizdaytimespan,d.satcutoff,d.satslatype,d.sattimespan,d.suncutoff,d.sunslatype,d.suntimespan from [AM].[MailBatches] mb, [AM].[MailPieces] m left outer join [AM].[DocTypes] d ON m.DocTypeId=d.Id where m.[MailBatchId] = mb.Id";//and mb.receivedon > '2018-08-27 04:01:00.000'"; //'2018-07-02 04:01:00.000'";
 
             return db.Query<TestModel>(query).ToList();
         }
 
 
         public List<DateTime> GetHolidays()
-        {
+         {
             string q = "select HolidayDate from Common.Holidays";
             return db.Query<DateTime>(q).ToList();
         }

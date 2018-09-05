@@ -25,17 +25,18 @@ namespace AM.UnitTests
     public class UnitTest1
     {
         ISearchService serSvc = new SearchService();
+        TimeSpan? cutOff = null;
+        TimeSpan? slaTimeSpan = null;
+
         [TestMethod]
         public void TestMethod1()
         {
-            //List<TestModel> mp = serSvc.TestMp();
-            List<TestModel> mp = conect();
+            List<TestModel> mp = serSvc.TestMp();
+            //List<TestModel> mp = conect();
 
             var holidayList = serSvc.GetHolidays();
 
             //string slaType = null;
-            TimeSpan? cutOff = null;
-            TimeSpan? slaTimeSpan = null;
             DateTime dueDate = new DateTime();
 
             // convert received on from utc to est
@@ -45,10 +46,10 @@ namespace AM.UnitTests
             foreach (var item in mp)
             {
                 #region TEST - ONLY FOR PIECE MAIL PIELCE ID TESTING
-                //if (item.Id == 1036)
-                //{
-                //    string s = "let me Check";
-                //}
+                if (item.Id == 76442)
+                {
+                             //string s = "let me Check";
+                }
                 #endregion
 
                 item.ReceivedOn = item.ReceivedOn.UtcToEst();
@@ -67,29 +68,14 @@ namespace AM.UnitTests
                 }
 
                 #region LATEST CHANGES FOR DUE DATE
-                var dow = item.ReceivedOn.DayOfWeek;
-
-                if (dow == DayOfWeek.Saturday)
-                {
-                    cutOff = item.satcutoffTimeSpan;
-                    slaTimeSpan = item.ActualSatTimeSpan;
-                }
-                if (dow == DayOfWeek.Sunday)
-                {
-                    cutOff = item.suncutoffTimeSpan;
-                    slaTimeSpan = item.ActualSunTimeSpan;
-                }
-                if (dow == DayOfWeek.Monday || dow == DayOfWeek.Tuesday || dow == DayOfWeek.Wednesday || dow == DayOfWeek.Thursday || dow == DayOfWeek.Friday)
-                {
-                    cutOff = item.BizCutOffTimeSpan;
-                    slaTimeSpan = item.ActualBizdayTimeSpan;
-                }
 
                 var Receivedon = item.ReceivedOn.Date;
                 var Receivedtime = item.ReceivedOn.TimeOfDay;
                 DateTime ERDateTime = new DateTime();
 
-                if (!IsHoliday(item.ReceivedOn, holidayList, item.SatSLAType == SLATypes.NA.ToString(), item.SunSLAType == SLATypes.NA.ToString()) && Receivedtime < cutOff)
+                var dow = GetTimeSpanByDOW(item.ReceivedOn.DayOfWeek, item);
+
+                if (!IsHoliday(item.ReceivedOn, holidayList, item.SatSLAType == SLATypes.NA.ToString(), item.SunSLAType == SLATypes.NA.ToString()) && Receivedtime < dow.Item1)
                 {
                     ERDateTime = item.ReceivedOn;
                 }
@@ -98,13 +84,13 @@ namespace AM.UnitTests
                     ERDateTime = GetNextWorkingDay(item.ReceivedOn.Date, holidayList, item.SatSLAType == SLATypes.NA.ToString(), item.SunSLAType == SLATypes.NA.ToString());
                 }
 
+                var Edow = GetTimeSpanByDOW(ERDateTime.DayOfWeek, item);
 
                 TimeSpan? EffectiveTimeSpan = new TimeSpan();
 
-                EffectiveTimeSpan = slaTimeSpan.HasValue ? (TimeSpan?)slaTimeSpan.Value : null;
+                EffectiveTimeSpan = Edow.Item2.HasValue ? (TimeSpan?)Edow.Item2.Value : null;
 
                 var slaTime = EffectiveTimeSpan.HasValue ? string.Format("{0:hh\\:mm\\:ss}", EffectiveTimeSpan.Value) : "";
-
 
                 dueDate = ERDateTime.Date + TimeSpan.Parse((string.IsNullOrEmpty(slaTime) ? "00:00:00" : slaTime));
 
@@ -188,12 +174,32 @@ namespace AM.UnitTests
             #endregion
         }
 
+        private Tuple<TimeSpan?, TimeSpan?> GetTimeSpanByDOW(DayOfWeek dow, TestModel item)
+        {
+            if (dow == DayOfWeek.Saturday)
+            {
+                cutOff = item.satcutoffTimeSpan;
+                slaTimeSpan = item.ActualSatTimeSpan;
+            }
+            if (dow == DayOfWeek.Sunday)
+            {
+                cutOff = item.satcutoffTimeSpan;
+                slaTimeSpan = item.ActualSunTimeSpan;
+            }
+            if (dow == DayOfWeek.Monday || dow == DayOfWeek.Tuesday || dow == DayOfWeek.Wednesday || dow == DayOfWeek.Thursday || dow == DayOfWeek.Friday)
+            {
+                cutOff = item.BizCutOffTimeSpan;
+                slaTimeSpan = item.ActualBizdayTimeSpan;
+            }
+            return Tuple.Create(cutOff, slaTimeSpan);
+        }
+
         private DateTime GetNextWorkingDay(DateTime dateTime, List<DateTime> holidayList, bool p1, bool p2)
         {
             do
             {
                 dateTime = dateTime.AddDays(1);
-            } while (IsHoliday(dateTime, serSvc.GetHolidays(), p1, p2));
+            } while (IsHoliday(dateTime, holidayList, p1, p2));
             return dateTime;
         }
 
@@ -238,21 +244,21 @@ namespace AM.UnitTests
 
             if (dt.Rows.Count > 0)
             {
-                for (int i = 1; i < 10; i++ ) //  dt.Rows.Count; i++)
+                for (int i = 1; i < dt.Rows.Count; i++)
                 {
                     TestModel t = new TestModel();
                     t.Id = Convert.ToInt32(dt.Rows[i][0].ToString());
                     t.ReceivedOn = DateTime.Parse(dt.Rows[i][3].ToString());
                     t.DocTypeId = Convert.ToInt32(dt.Rows[i][5].ToString());
-                    t.DueDate = DateTime.Parse(dt.Rows[i][4].ToString());
+                    t.DueDate = string.IsNullOrEmpty(dt.Rows[i][4].ToString()) ? (DateTime?)null : DateTime.Parse(dt.Rows[i][4].ToString());  //DateTime.Parse(dt.Rows[i][4].ToString());
                     t.ErrorCode = dt.Rows[i][9].ToString();
                     t.BizdayCutOff = DateTime.Parse(dt.Rows[i][11].ToString()).ToString("HH:mm:ss");
                     t.BizdaySLAType = dt.Rows[i][12].ToString();
-                    t.bizdaytimespan = string.IsNullOrEmpty(dt.Rows[i][13].ToString()) ? null :dt.Rows[i][13].ToString();
+                    t.bizdaytimespan = string.IsNullOrEmpty(dt.Rows[i][13].ToString()) ? null : dt.Rows[i][13].ToString();
                     t.satcutoff = DateTime.Parse(dt.Rows[i][14].ToString()).ToString("HH:mm:ss");// string.Format("{0:hh\\:mm\\:ss}", dt.Rows[i][14]); 
                     t.SatSLAType = dt.Rows[i][15].ToString();
-                    t.sattimespan = string.IsNullOrEmpty(dt.Rows[i][16].ToString()) ?  null :dt.Rows[i][16].ToString();
-                    t.suncutoff = string.IsNullOrEmpty(dt.Rows[i][17].ToString()) ? null : dt.Rows[i][17].ToString() ;
+                    t.sattimespan = string.IsNullOrEmpty(dt.Rows[i][16].ToString()) ? null : dt.Rows[i][16].ToString();
+                    t.suncutoff = string.IsNullOrEmpty(dt.Rows[i][17].ToString()) ? null : dt.Rows[i][17].ToString();
                     t.SunSLAType = dt.Rows[i][18].ToString();
                     t.suntimespan = string.IsNullOrEmpty(dt.Rows[i][19].ToString()) ? null : dt.Rows[i][19].ToString();
 
