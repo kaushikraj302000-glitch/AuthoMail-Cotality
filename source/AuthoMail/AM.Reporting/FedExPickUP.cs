@@ -78,7 +78,7 @@ namespace AM.Reporting
                     mailPiece.DocumentOrPackageType,
                     mailPiece.IsPickedUp == 1 ? "Picked Up" : "Not Picked",
                     mailPiece.PickedUpOn);
-                mailPiecesReport.Append(line);
+                mailPiecesReport.AppendLine(line);
             }
 
             return mailPiecesReport;

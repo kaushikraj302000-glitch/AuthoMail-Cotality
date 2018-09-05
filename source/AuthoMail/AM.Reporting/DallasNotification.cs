@@ -19,8 +19,9 @@ namespace AM.Reporting
         {
             try
             {
+                log.Debug("Dallas Notification Execution Triggered at {0} Est".Fill(Common.Now.UtcToEst()));
                 List<DallasBatch> dallasBatches;
-
+                //We have Batch timings in EST time Zone.
                 using (ICommonService commonSvc = new CommonService())
                 {
                     dallasBatches = commonSvc.GetDallasBatches(Common.EstToday);
@@ -63,17 +64,17 @@ namespace AM.Reporting
                         List<Notification> notificationList = new List<Notification>();
                         foreach (var g in batchSummary)
                         {
-
                             notificationList.Add(new Notification() { ClientCode = g.Key.AppCode, ShippingCarrier = g.Key.ShippingCarrier, ShippingServiceType = g.Key.ShippingServiceType, MailPieceCount = g.Count(), TotalPagesCount = g.Sum(b => b.TotalPages) });
                         }
 
                         SendEmailNotification(notificationList, Common.EstToday, batch.Key);
                     }
                 }
+                log.Debug("Dallas Notification Execution Completed at {0} Est".Fill(Common.Now.UtcToEst()));
             }
             catch (Exception ex)
             {
-                log.Error(ex);
+                log.Error("Error occured while trying to generate packages count for dallas printing team ", ex);
             }
         }
 
@@ -82,11 +83,11 @@ namespace AM.Reporting
             int receivedCount = 0;
             int completedCount = 0;
 
-
+            //Here we are passing record counts to UTC because we are storing that time in UTC format.
             using (IMailBatchService mailBatchSvc = new MailBatchService())
             {
-                receivedCount = mailBatchSvc.GetMailBatchesReceivedCount(startDateTime, endDateTime, "Received");
-                completedCount = mailBatchSvc.GetMailBatchesReceivedCount(startDateTime, endDateTime, "Completed");
+                receivedCount = mailBatchSvc.GetMailBatchesReceivedCount(startDateTime.EstToUtc(), endDateTime.EstToUtc(), "Received");
+                completedCount = mailBatchSvc.GetMailBatchesReceivedCount(startDateTime.EstToUtc(), endDateTime.EstToUtc(), "Completed");
             }
 
             return receivedCount == completedCount;
@@ -112,11 +113,11 @@ namespace AM.Reporting
                             var clientList = notificationList.Select(c => c.ClientCode).Distinct();
 
                             StringBuilder fullContent = new StringBuilder();
-                            fullContent.AppendLine(@"<tr><td colspan='3' style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt' valign='top' width='638'><p style='text-align:center' align='center'><span style='font-size:20.0pt'>Below Folder should have count of packages to be printed and shipped<u></u><u></u></span></p></td></tr>");
+                            fullContent.AppendLine(@"<tr><td colspan='4' style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt' valign='top' width='638'><p style='text-align:center' align='center'><span style='font-size:20.0pt'>Below Folder should have count of packages to be printed and shipped<u></u><u></u></span></p></td></tr>");
 
                             foreach (var client in clientList)
                             {
-                                fullContent.AppendLine(@"<tr><td colspan='3' style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt' valign='top' width='638'><p style='text-align:center' align='center'><span style='font-size:20.0pt'>
+                                fullContent.AppendLine(@"<tr><td colspan='4' style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt' valign='top' width='638'><p style='text-align:center' align='center'><span style='font-size:20.0pt'>
                                     {0} / {1} / {2}
                                     <u></u><u></u>
                                 </span></p></td></tr>".Fill(client, currentEstDate.ToString("MMddyyyy"), sweepName));
@@ -124,7 +125,7 @@ namespace AM.Reporting
 
                                 foreach (var filterd in notificationList.Where(f => f.ClientCode == client))
                                 {
-                                    fullContent.AppendLine(@"<tr><td><p style='text-align:center' align='center'><span style='font-size:14.0pt'>{0}</span></p></td><p style='text-align:center' align='center'><span style='font-size:14.0pt'>{1}</span></p></td><td><p style='text-align:center' align='center'>
+                                    fullContent.AppendLine(@"<tr><td><p style='text-align:center' align='center'><span style='font-size:14.0pt'>{0}</span></p></td><td><p style='text-align:center' align='center'><span style='font-size:14.0pt'>{1}</span></p></td><td><p style='text-align:center' align='center'>
                                 <span style='font-size:14.0pt'>{2}</span></p></td><td><p style='text-align:center' align='center'>
                                 <span style='font-size:14.0pt'>{3}</span></p></td></tr>".Fill(filterd.ShippingCarrier, filterd.ShippingServiceType, filterd.MailPieceCount, filterd.TotalPagesCount));
                                 }
@@ -134,7 +135,7 @@ namespace AM.Reporting
                         }
                         else
                         {
-                            sb = sb.Replace("<%REPLACE%>", @"<tr><td colspan='3' style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt' valign='top' width='638'><p style='text-align:center' align='center'><span style='font-size:20.0pt'>{0} sweep does not contain any package to print and ship<u></u><u></u></span></p></td></tr>".Fill(sweepName));
+                            sb = sb.Replace("<%REPLACE%>", @"<tr><td colspan='4' style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt' valign='top' width='638'><p style='text-align:center' align='center'><span style='font-size:20.0pt'>{0} sweep does not contain any package to print and ship<u></u><u></u></span></p></td></tr>".Fill(sweepName));
                         }
                         msg.Body = sb.ToString();
                         smtpClient.Send(msg);
@@ -143,7 +144,7 @@ namespace AM.Reporting
             }
             catch (Exception ex)
             {
-                log.Error("Error occured while sending an Email to Dallas Team : ", ex);
+                log.Error("Error occured while sending an Email to Dallas Printing Team : ", ex);
             }
         }
     }
