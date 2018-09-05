@@ -14,20 +14,20 @@ namespace AM.Web
         {
             Mapper.Initialize(cfg =>
            {
-               cfg.CreateMap<MailPieces, SearchViewModel>()
-                   .ForMember(d => d.ReceivedOn, o => o.MapFrom(s => s.MailBatches != null ? (s.MailBatches.ReceivedOn != null ? s.MailBatches.ReceivedOn : null) : null))
-                   .ForMember(d => d.ShippingCarrier, o => o.MapFrom(s => s.DocTypes != null ? (s.DocTypes.ShippingCarrier != null ? s.DocTypes.ShippingCarrier : "") : null))
-                   .ForMember(d => d.ShippingMethod, o => o.MapFrom(s => s.DocTypes != null ? (s.DocTypes.ShippingServiceType != null ? s.DocTypes.ShippingServiceType : "") : null))
-                   .ForMember(d => d.Channel, o => o.MapFrom(s => s.MailBatches != null ? (s.MailBatches.SFTChannels.Title != null ? s.MailBatches.SFTChannels.Title : "") : null))
-                   .ForMember(d => d.FirstName, o => o.MapFrom(s => s.RcptFirstName))
-                   .ForMember(d => d.LastName, o => o.MapFrom(s => s.RcptLastName))
-                   .ForMember(d => d.ErrorDesc, o => o.MapFrom(s => s.ErrorDescription))
-                   .ForMember(d => d.Status, o => o.MapFrom(s => s.ShippingStatus))
-                   .ForMember(d => d.BusinessIdValue, o => o.MapFrom(s => s.BusinessFriendlyIdValue))
-                   .ForMember(d => d.DocType, o => o.MapFrom(s => s.DocumentOrPackageType))
-                   .ForMember(d => d.City, o => o.MapFrom(s => s.RcptAddressCity))
-                   .ForMember(d => d.ZIP, o => o.MapFrom(s => s.RcptAddressZIP))
-               .ForMember(d => d.State, o => o.MapFrom(s => s.RcptAddressState));
+               //cfg.CreateMap<MailPieces, SearchViewModel>()
+               //    .ForMember(d => d.ReceivedOn, o => o.MapFrom(s => s.MailBatches != null ? (s.MailBatches.ReceivedOn != null ? s.MailBatches.ReceivedOn : null) : null))
+               //    .ForMember(d => d.ShippingCarrier, o => o.MapFrom(s => s.DocTypes != null ? (s.DocTypes.ShippingCarrier != null ? s.DocTypes.ShippingCarrier : "") : null))
+               //    .ForMember(d => d.ShippingMethod, o => o.MapFrom(s => s.DocTypes != null ? (s.DocTypes.ShippingServiceType != null ? s.DocTypes.ShippingServiceType : "") : null))
+               //    .ForMember(d => d.Channel, o => o.MapFrom(s => s.MailBatches != null ? (s.MailBatches.SFTChannels.Title != null ? s.MailBatches.SFTChannels.Title : "") : null))
+               //    .ForMember(d => d.FirstName, o => o.MapFrom(s => s.RcptFirstName))
+               //    .ForMember(d => d.LastName, o => o.MapFrom(s => s.RcptLastName))
+               //    .ForMember(d => d.ErrorDesc, o => o.MapFrom(s => s.ErrorDescription))
+               //    .ForMember(d => d.Status, o => o.MapFrom(s => s.ShippingStatus))
+               //    .ForMember(d => d.BusinessIdValue, o => o.MapFrom(s => s.BusinessFriendlyIdValue))
+               //    .ForMember(d => d.DocType, o => o.MapFrom(s => s.DocumentOrPackageType))
+               //    .ForMember(d => d.City, o => o.MapFrom(s => s.RcptAddressCity))
+               //    .ForMember(d => d.ZIP, o => o.MapFrom(s => s.RcptAddressZIP))
+               //.ForMember(d => d.State, o => o.MapFrom(s => s.RcptAddressState));
 
                cfg.CreateMap<MailPieces, MailPieceViewModel>()
                    .ForMember(d => d.ReceivedOn, o => o.MapFrom(s => s.MailBatches != null ? (s.MailBatches.ReceivedOn != null ? s.MailBatches.ReceivedOn : null) : null))
@@ -70,19 +70,19 @@ namespace AM.Web
                   .ForMember(d => d.ShippingCarrier, o => o.MapFrom(s => s.DocTypes != null ? (s.DocTypes.ShippingCarrier != null ? s.DocTypes.ShippingCarrier : "") : null))
                   .ForMember(d => d.ShippingMethod, o => o.MapFrom(s => s.DocTypes != null ? (s.DocTypes.ShippingServiceType != null ? s.DocTypes.ShippingServiceType : "") : null));
 
-               cfg.CreateMap<MailPieces, MonthlyReconReportViewModel>()
-                  .ForMember(d => d.ReceivedOn, o => o.MapFrom(s => s.MailBatches != null ? (s.MailBatches.ReceivedOn != null ? s.MailBatches.ReceivedOn : null) : null))
-                  .ForMember(d => d.Channel, o => o.MapFrom(s => s.MailBatches != null ? (s.MailBatches.SFTChannels.Title != null ? s.MailBatches.SFTChannels.Title : "") : null))
-                  .ForMember(d => d.Address, o => o.MapFrom(s => s.RcptAddressStreet))
-                  .ForMember(d => d.Status, o => o.MapFrom(s => s.ShippingStatus))
-                  .ForMember(d => d.FirstName, o => o.MapFrom(s => s.RcptFirstName))
-                  .ForMember(d => d.LastName, o => o.MapFrom(s => s.RcptLastName))
-                  .ForMember(d => d.State, o => o.MapFrom(s => s.RcptAddressState))
-                  .ForMember(d => d.City, o => o.MapFrom(s => s.RcptAddressCity))
-                  .ForMember(d => d.ZIP, o => o.MapFrom(s => s.RcptAddressZIP))
-                  .ForMember(d => d.ShippingMethod, o => o.MapFrom(s => s.DocTypes != null ? (s.DocTypes.ShippingServiceType != null ? s.DocTypes.ShippingServiceType : "") : null))
-                  .ForMember(d => d.BusinessIdValue, o => o.MapFrom(s => s.BusinessFriendlyIdValue))
-                  .ForMember(d => d.DocType, o => o.MapFrom(s => s.DocumentOrPackageType));
+               //cfg.CreateMap<MailPieces, MonthlyReconReportViewModel>()
+               //   .ForMember(d => d.ReceivedOn, o => o.MapFrom(s => s.MailBatches != null ? (s.MailBatches.ReceivedOn != null ? s.MailBatches.ReceivedOn : null) : null))
+               //   .ForMember(d => d.Channel, o => o.MapFrom(s => s.MailBatches != null ? (s.MailBatches.SFTChannels.Title != null ? s.MailBatches.SFTChannels.Title : "") : null))
+               //   .ForMember(d => d.Address, o => o.MapFrom(s => s.RcptAddressStreet))
+               //   .ForMember(d => d.Status, o => o.MapFrom(s => s.ShippingStatus))
+               //   .ForMember(d => d.FirstName, o => o.MapFrom(s => s.RcptFirstName))
+               //   .ForMember(d => d.LastName, o => o.MapFrom(s => s.RcptLastName))
+               //   .ForMember(d => d.State, o => o.MapFrom(s => s.RcptAddressState))
+               //   .ForMember(d => d.City, o => o.MapFrom(s => s.RcptAddressCity))
+               //   .ForMember(d => d.ZIP, o => o.MapFrom(s => s.RcptAddressZIP))
+               //   .ForMember(d => d.ShippingMethod, o => o.MapFrom(s => s.DocTypes != null ? (s.DocTypes.ShippingServiceType != null ? s.DocTypes.ShippingServiceType : "") : null))
+               //   .ForMember(d => d.BusinessIdValue, o => o.MapFrom(s => s.BusinessFriendlyIdValue))
+               //   .ForMember(d => d.DocType, o => o.MapFrom(s => s.DocumentOrPackageType));
 
                cfg.CreateMap<MailPieces, SummaryControlViewModel>()
                   .ForMember(d => d.ReceivedOn, o => o.MapFrom(s => s.MailBatches != null ? (s.MailBatches.ReceivedOn != null ? s.MailBatches.ReceivedOn : null) : null))
