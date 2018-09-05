@@ -792,21 +792,22 @@ namespace AM.Core
             using (ICommonService commonSvc = new CommonService())
             using (IMailPieceService mailPieceSvc = new MailPieceService())
             {
-                try
+
+                var responseReceivedPrintBatches = mailBatchSvc.GetResponseReceivedPrintBatchDetails();
+
+                if (responseReceivedPrintBatches.Count == 0)
                 {
-                    var responseReceivedPrintBatches = mailBatchSvc.GetResponseReceivedPrintBatchDetails();
+                    log.Debug("Response process job queue is empty.");
+                    return;
+                }
 
-                    if (responseReceivedPrintBatches.Count == 0)
+                foreach (var printBatch in responseReceivedPrintBatches)
+                {
+                    try
                     {
-                        log.Debug("Response process job queue is empty.");
-                        return;
-                    }
-
-                    foreach (var printBatch in responseReceivedPrintBatches)
-                    {
-                        Client client = clientSvc.GetClientByAppCode(printBatch.AppCode);
-
                         var printBatchMailPieces = mailPieceSvc.GetMailPiecesByPrintBatchId(printBatch.PrintBatchId);
+
+                        // Here we have changed path of pnsresponse to process from "AMRoot/ClientCode/PnSResponses/AppCode_PrintBatchId-res.xml" because now we have multiple batches mail pieces in printbatch table
 
                         string printbatchResponseFilePath = Path.Combine(Config.Common_AuthoMailRootFolder, printBatch.AppCode, "PnSResponses", printBatch.SubmittedBatchName + "-res.xml");
 
@@ -843,45 +844,49 @@ namespace AM.Core
                                     row.ShippingStatus = mailPackage.MailPieceStatus.ToString();
 
                                     mailPieceSvc.UpdateBatchMailPieceShippingStatusDetails(row);
-
-                                    //because of removed MailBatchId we need to check each and every mailpiece' batchid to check we have received response or not for submitted batch to PCI
-                                    var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(row.MailBatchId);
-                                    var pendingMailPieces = batchData.MailPieces.Count(data => data.ShippingStatus == ShippingStatus.InProgress.ToString());
-
-                                    if (pendingMailPieces == 0)
-                                    {
-                                        if (batchData.MailPieces.All(data => data.ShippingStatus == ShippingStatus.Shipped.ToString()))
-                                        {
-                                            commonSvc.UpdateBatchStatus(row.MailBatchId, AM.Entities.BatchStatus.ShippedAll.ToString());
-                                        }
-                                        else if (batchData.MailPieces.All(data => data.ShippingStatus == ShippingStatus.PulledBack.ToString()))
-                                        {
-                                            commonSvc.UpdateBatchStatus(row.MailBatchId, AM.Entities.BatchStatus.PulledBack.ToString());
-                                        }
-                                        else if (batchData.MailPieces.All(data => data.ShippingStatus == ShippingStatus.Error.ToString()))
-                                        {
-                                            commonSvc.UpdateBatchStatus(row.MailBatchId, AM.Entities.BatchStatus.Failed.ToString());
-                                        }
-                                        else
-                                        {
-                                            commonSvc.UpdateBatchStatus(row.MailBatchId, AM.Entities.BatchStatus.ShippedPartial.ToString());
-                                        }
-
-                                        commonSvc.UpdateBatchPipeLineStatus(row.MailBatchId, BatchPipelineStatus.ShippingResponseReceived, Common.Now);
-                                    }
                                 }
                             });
                         }
 
                         //Updates PrintBatches Status values
                         commonSvc.UpdatePrintBatchStatus(printBatch.PrintBatchId, pnsResponse.BatchStatus.ToString(), pnsResponse.StatusDescription);
+
+                        //because of removed MailBatchId we need to check each mailpieces' response is received or not, if received all response we are updating batch status of MailBatch.
+                        var mailBatcheIds = printBatchMailPieces.Select(b => b.MailBatchId).Distinct().ToList();
+                        foreach (var mailBatchId in mailBatcheIds)
+                        {
+                            var mailPiecesData = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatchId);
+                            var pendingMailPieces = mailPiecesData.Count(data => data.ShippingStatus == ShippingStatus.InProgress.ToString());
+
+                            if (pendingMailPieces == 0)
+                            {
+                                if (mailPiecesData.All(data => data.ShippingStatus == ShippingStatus.Shipped.ToString()))
+                                {
+                                    commonSvc.UpdateBatchStatus(mailBatchId, AM.Entities.BatchStatus.ShippedAll.ToString());
+                                }
+                                else if (mailPiecesData.All(data => data.ShippingStatus == ShippingStatus.PulledBack.ToString()))
+                                {
+                                    commonSvc.UpdateBatchStatus(mailBatchId, AM.Entities.BatchStatus.PulledBack.ToString());
+                                }
+                                else if (mailPiecesData.All(data => data.ShippingStatus == ShippingStatus.Error.ToString()))
+                                {
+                                    commonSvc.UpdateBatchStatus(mailBatchId, AM.Entities.BatchStatus.Failed.ToString());
+                                }
+                                else
+                                {
+                                    commonSvc.UpdateBatchStatus(mailBatchId, AM.Entities.BatchStatus.ShippedPartial.ToString());
+                                }
+
+                                commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ShippingResponseReceived, Common.Now);
+                            }
+                        }
                     }
-                }
-                catch (Exception ex)
-                {
-                    var errorMsg = "Error occured while processing PnS response : {0} ".Fill(ex);
-                    log.Error(errorMsg, ex);
-                    SendUnexpectedExceptionEmail(errorMsg);
+                    catch (Exception ex)
+                    {
+                        var errorMsg = "Error occured while processing PnS response for PrintBatchId : {0} And Error : {1} ".Fill(printBatch.PrintBatchId, ex);
+                        log.Error(errorMsg, ex);
+                        SendUnexpectedExceptionEmail(errorMsg);
+                    }
                 }
             }
             log.Debug("Process PnS response job is completed.");
