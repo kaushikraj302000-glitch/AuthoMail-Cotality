@@ -485,11 +485,11 @@ namespace AM.Web.Controllers
         [Authorize(Roles = AMRoles.Admin), HttpGet]
         public ActionResult GetDocTypeById(int id)
         {
-            var PrintSizeList = new string[] { "MixMedia", "LETTER-IP", "GLT-20-DOP-17.5", "LEGAL-IP", "WC24#LTR-PERF", "LEGAL-PERF-IP" };
-            var PrintFormatList = new string[] { "Simplex", "Duplex" };
-            var ShippingCarrierList = new string[] { "USPS", "FedEx", "UPS" };
-            var ShippingServiceTypeList = new string[] { "USPS", "FEDEX_2_DAY", "FEDEX_EXPRESS_SAVER", "FEDEX_GROUND", "FIRST_OVERNIGHT", "GROUND_HOME_DELIVERY", "PRIORITY_OVERNIGHT", "STANDARD_OVERNIGHT" };
-            var ShippingSpecialServiceList = new string[] { "SATURDAY_DELIVERY", "SATURDAY_PICKUP" };
+            var PrintSizeList = Config.Web_DD_PrintSizeList.Split(',').ToArray();
+            var PrintFormatList = Config.Web_DD_PrintFormatList.Split(',').ToArray();
+            var ShippingCarrierList = Config.Web_DD_ShippingCarrierList.Split(',').ToArray();
+            var ShippingServiceTypeList = Config.Web_DD_ShippingServiceTypeList.Split(',').ToArray();
+            var ShippingSpecialServiceList = Config.Web_DD_ShippingSpecialServiceList.Split(',').ToArray(); 
             ViewBag.ShippingSpecialService = ShippingSpecialServiceList.Select(s => new SelectListItem() { Text = s, Value = s }).ToList();
             if (id != 0)
             {
