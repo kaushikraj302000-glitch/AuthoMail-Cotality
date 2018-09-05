@@ -15,7 +15,8 @@ namespace AM.Services
         List<MailPieces> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel);
         List<MailPieces> GetSummaryControlReport(int clientId, DateTime startDate, DateTime endDate, string channel);
         List<MailPieces> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime date, int? batchId, string docType, string filterBy);
-        List<MailPieces> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel);
+        //List<MailPieces> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel);
+        List<MonthlyReconReportViewModel> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel);
         List<ChannelCodeTitle> GetChannelTitle(int clientId);
         List<PullBackRequests> GetPullbackRequestReport(int clientId, DateTime startDate, DateTime endDate);
         List<MailPieces> GetFedExPickedUpReport(DateTime deploymentDate, DateTime lastReceivedOnDate, int isPickedUp = -1);
@@ -125,20 +126,35 @@ namespace AM.Services
             return data;
         }
 
-        public List<MailPieces> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel)
+        //public List<MailPieces> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel)
+        //{
+        //    string query = "[dbo].[uspweb_MonthlyReconReport] @clientId, @startDate, @endDate, @channel,@shippingStatus";
+
+        //    var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, MRDFRequests, MailPieces>(query,
+        //        (b, s, c, m, d, r) =>
+        //        {
+        //            m.Clients = c;
+        //            m.MailBatches = b;
+        //            b.SFTChannels = s;
+        //            m.DocTypes = d;
+        //            m.MRDFRequests = r;
+        //            return m;
+        //        },
+        //        new
+        //        {
+        //            clientId = clientId,
+        //            startDate = startDate.ToStartDateTime().EstToUtc(),
+        //            endDate = endDate.ToEndDateTime().EstToUtc(),
+        //            channel = channel.IsNullOrWhiteSpace() ? null : channel,
+        //            shippingStatus = ShippingStatus.Shipped.ToString()
+        //        }, splitOn: "Id,Id,Id,Id,Id,UniqueId").ToList();
+        //    return data;
+        //}
+        public List<MonthlyReconReportViewModel> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel)
         {
             string query = "[dbo].[uspweb_MonthlyReconReport] @clientId, @startDate, @endDate, @channel,@shippingStatus";
 
-            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, MRDFRequests, MailPieces>(query,
-                (b, s, c, m, d, r) =>
-                {
-                    m.Clients = c;
-                    m.MailBatches = b;
-                    b.SFTChannels = s;
-                    m.DocTypes = d;
-                    m.MRDFRequests = r;
-                    return m;
-                },
+            var data = db.Query<MonthlyReconReportViewModel>(query,
                 new
                 {
                     clientId = clientId,
@@ -146,7 +162,7 @@ namespace AM.Services
                     endDate = endDate.ToEndDateTime().EstToUtc(),
                     channel = channel.IsNullOrWhiteSpace() ? null : channel,
                     shippingStatus = ShippingStatus.Shipped.ToString()
-                }, splitOn: "Id,Id,Id,Id,Id,UniqueId").ToList();
+                }).ToList();
             return data;
         }
 

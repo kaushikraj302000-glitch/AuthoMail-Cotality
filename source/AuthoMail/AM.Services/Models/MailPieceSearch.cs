@@ -378,4 +378,62 @@ namespace AM.Services
         public string MailPieceStatus { get; set; }
         public bool IsPDFReceived { get; set; }
     }
+
+    public class SearchViewModel
+    {
+        public string BusinessIdValue { get; set; }
+        public string Status { get; set; }
+        public Guid UniqueId { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string City { get; set; }
+        public string ZIP { get; set; }
+        public string State { get; set; }
+        public DateTime? ReceivedOn { get; set; }
+        public DateTime? ShippedOn { get; set; }
+        public string TrackingNo { get; set; }
+        public string DocType { get; set; }
+        public DateTime? DueDate { get; set; }
+        public string Channel { get; set; }
+        public string ShippingMethod { get; set; }
+        public string ShippingCarrier { get; set; }
+        public string ErrorCode { get; set; }
+        public string ErrorDesc { get; set; }
+        public string PrintLocation { get; set; }
+
+    }
+
+    public class MonthlyReconReportViewModel
+    {
+        public int MailPieceId { get; set; }
+        public string BusinessIdValue { get; set; }
+        public string FileName { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Address { get; set; }
+        public string City { get; set; }
+        public string State { get; set; }
+        public string ZIP { get; set; }
+        public DateTime? ReceivedOn { get; set; }
+        public string DocType { get; set; }
+        public string Channel { get; set; }
+        public string PrintLocation { get; set; }
+        public string ShippingMethod { get; set; }
+        public string Status { get; set; }
+        public string TrackingNo { get; set; }
+        public int TotalPages { get; set; }
+        public DateTime? PrintedOn { get; set; }
+        public DateTime? ShippedOn { get; set; }
+        public string AppCode { get; set; }
+        public int? JobId { get; set; }
+        public int? PieceId { get; set; }
+        public string PdfReceivedPath
+        {
+            get
+            {
+                if (this.JobId == null || this.PieceId == null) return null;
+                return string.Format(@"ReturnPdfs\{0}\{1}\{2}-{3}-{4}_{5}", this.AppCode, this.JobId, this.JobId, this.PieceId, this.MailPieceId, this.FileName);
+            }
+        }
+    }
 }

@@ -10,7 +10,9 @@ namespace AM.Services
 {
     public interface ISearchService : IDisposable
     {
-        List<MailPieces> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo);
+        //Remove Method(make sure below method in use)
+        //List<MailPieces> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo);
+        List<SearchViewModel> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo);
         MailPieces GetMailPieceByUniqueId(Guid uniqueId);
         List<MailPieces> GetAllData(int clientId);
 
@@ -20,19 +22,41 @@ namespace AM.Services
     }
     public class SearchService : ServiceBase, ISearchService
     {
-        public List<MailPieces> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo)
+        //public List<MailPieces> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo)
+        //{
+        //    string query = "[dbo].[uspweb_MailPieceSearch] @clientId, @businessFriendlyIdName, @businessFriendlyIdValue, @startDate, @endDate, @docType, @shippingStatus, @channel,@clientBatchId,@mailBatchId,@trackingNo";
+        //    var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, Users, DocTypes, MailPieces>(query,
+        //         (b, s, c, m, u, d) =>
+        //         {
+        //             m.Clients = c;
+        //             m.MailBatches = b;
+        //             b.SFTChannels = s;
+        //             m.DocTypes = d;
+        //             m.Users = u;
+        //             return m;
+        //         },
+        //         new
+        //         {
+        //             clientId = clientId,
+        //             businessFriendlyIdName = businessFriendlyIdName.IsNullOrWhiteSpace() ? null : businessFriendlyIdName,
+        //             businessFriendlyIdValue = businessFriendlyIdValue.IsNullOrWhiteSpace() ? null : businessFriendlyIdValue,
+        //             startDate = startDate.ToStartDateTime().EstToUtc(),
+        //             endDate = endDate.ToEndDateTime().EstToUtc(),
+        //             docType = docType.IsNullOrWhiteSpace() ? null : docType,
+        //             shippingStatus = status.IsNullOrWhiteSpace() ? null : status,
+        //             channel = channel.IsNullOrWhiteSpace() ? null : channel,
+        //             clientBatchId = clientBatchId.IsNullOrWhiteSpace() ? null : clientBatchId,
+        //             trackingNo = trackingNo.IsNullOrWhiteSpace() ? null : trackingNo,
+        //             mailBatchId = mailBatchId
+        //         }
+        //         ).ToList();
+        //    return data;
+        //}
+
+        public List<SearchViewModel> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo)
         {
             string query = "[dbo].[uspweb_MailPieceSearch] @clientId, @businessFriendlyIdName, @businessFriendlyIdValue, @startDate, @endDate, @docType, @shippingStatus, @channel,@clientBatchId,@mailBatchId,@trackingNo";
-            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, Users, DocTypes, MailPieces>(query,
-                 (b, s, c, m, u, d) =>
-                 {
-                     m.Clients = c;
-                     m.MailBatches = b;
-                     b.SFTChannels = s;
-                     m.DocTypes = d;
-                     m.Users = u;
-                     return m;
-                 },
+            var data = db.Query<SearchViewModel>(query,
                  new
                  {
                      clientId = clientId,
@@ -202,7 +226,7 @@ namespace AM.Services
             }
         }
         public string ErrorCode { get; set; }
-        
+
     }
 
 }

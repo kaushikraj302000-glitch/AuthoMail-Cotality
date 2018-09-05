@@ -265,8 +265,9 @@
             var selectedData = $("#dates").val().split('-');
             var startDate = moment(selectedData[0].trim()).format("MM/DD/YY");
             var endDate = moment(selectedData[1].trim()).format("MM/DD/YY");
-            var url = baseUrl + "Report/DownloadMonthlyReconReport?loanNumber=&docType=&startDate=<startDate>&endDate=<endDate>&channel=<channel>&fileName=<fileName>".replace("<startDate>", startDate).replace("<endDate>", endDate).replace("<channel>", $("#Channel").val()).replace("<fileName>","MonthlyReconReport.xlsx");
-            window.location = url;//'/Reports/_MonthReconReport?loanNumber=<loanNumber>&docType=<docType>&startDate=<startDate>&endDate=<endDate>&channel=<channel>' + loanNumber;
+            var url = baseUrl + "Report/DownloadMonthlyReconReport?startDate=<startDate>&endDate=<endDate>&channel=<channel>&fileName=<fileName>".replace("<startDate>", startDate).replace("<endDate>", endDate).replace("<channel>", $("#Channel").val()).replace("<fileName>","MonthlyReconReport");
+            window.location = url;
+            //FilterData();
         });
 
     </script>
