@@ -62,7 +62,7 @@ namespace AM.Services
 
         public int UpdateBatchMailPieceDetails(MailPieceDTO mailPiece)
         {
-            string query = @"UPDATE [AM].[MailPieces] SET [EffectiveReceivedOnEst] = @EffectiveReceivedOnEst, [DueDate] = @DueDate,[ShippingStatus] = @ShippingStatus,[TotalPages] = @TotalPages,[ErrorCode] = @ErrorCode,[ErrorDesc] = @ErrorDesc,[TrackingNo] = @TrackingNo,[PrintLocation] = @PrintLocation WHERE Id=@Id";
+            string query = @"UPDATE [AM].[MailPieces] SET [DocTypeId] = @DocTypeId, [EffectiveReceivedOnEst] = @EffectiveReceivedOnEst, [DueDate] = @DueDate,[ShippingStatus] = @ShippingStatus,[TotalPages] = @TotalPages,[ErrorCode] = @ErrorCode,[ErrorDesc] = @ErrorDesc,[TrackingNo] = @TrackingNo,[PrintLocation] = @PrintLocation WHERE Id=@Id";
 
             return db.Execute(query, mailPiece);
         }

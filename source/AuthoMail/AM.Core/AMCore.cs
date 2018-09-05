@@ -209,6 +209,22 @@ namespace AM.Core
                                 {
                                     eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name);
                                     coverLetterPdfPath = doc.GenerateEVSCoverLetter(client.AppCode, commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq);
+
+                                    //if we have service changed to priority then we are updating doctypeid in database also
+                                    if (doc.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY)
+                                    {
+                                        string priorityDocType = mailPiece.DocumentOrPackageType + "-" + Config.Monitor_PriorityMailingText;
+                                        docType = docTypeSvc.GetDocTypeByDocTypeName(client.Id, priorityDocType);
+
+                                        if (docType != null)
+                                        {
+                                            mailPiece.DocTypeId = docType.Id;
+                                        }
+                                        else
+                                        {
+                                            throw new Exception("Priority document type does not exist.");
+                                        }
+                                    }
                                     //coverLetterPdfPath = doc.GenerateUSPSCoverLetter(client.AppCode, coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
                                 }
                                 else

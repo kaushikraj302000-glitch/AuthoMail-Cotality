@@ -25,6 +25,7 @@ namespace AM.Core
 
         public string ExceptionDetail { get; private set; }
         public string TrackingCode { get; private set; }
+        public ServiceType ShippingServiceType { get; private set; }
         public decimal PostageCost { get; private set; }
 
         public string GenerateUSPSIMBCoverLetter(string appCode, string coverTemplatePDFPath, string outputDir, Dictionary<string, string> mailPieceData)
@@ -141,6 +142,7 @@ namespace AM.Core
         {
             TrackingCode = null;
             ExceptionDetail = string.Empty;
+            ShippingServiceType = eVSReq.ServiceType.Value;
 
             string coverLetterPDFPath = Path.Combine(outputDir, string.Format("eVSCoverLetter_{0}.pdf", mailPieceId));
 
@@ -153,15 +155,22 @@ namespace AM.Core
                 using (IUSPSService uspsSvc = new USPSService())
                 {
                     eVSRes = uspsSvc.RequesteVSLabelAsync(sysUserId, eVSReq).Result;
-                }
 
-                if (eVSRes != null)
-                {
                     if (eVSRes.HasError)
                     {
-                        ExceptionDetail = "Error occured while generation eVS label for MailPiece-Id:{0} with Exception : {1}".Fill(mailPieceId, eVSRes.Error.Description);
-                        return "";
+                        //If we get any error while generating USPS Priority express label then we are going to try for USPS Priority label
+                        eVSReq.ServiceType = AM.USPSLib.ServiceType.PRIORITY;
+
+                        eVSRes = uspsSvc.RequesteVSLabelAsync(sysUserId, eVSReq).Result;
+
+                        if (eVSRes.HasError)
+                        {
+                            ExceptionDetail = "Error occured while generation eVS label for MailPiece-Id:{0} with Exception : {1}".Fill(mailPieceId, eVSRes.Error.Description);
+                            return "";
+                        }
                     }
+
+                    ShippingServiceType = eVSReq.ServiceType.Value;
 
                     File.WriteAllBytes(coverLetterPDFPath, Convert.FromBase64String(eVSRes.LabelImageString));
                 }
@@ -171,7 +180,7 @@ namespace AM.Core
             }
             catch (Exception ex)
             {
-                var msg = "Error occured while generating cover letter for MailPiece-Id : {0}".Fill(mailPieceId);
+                var msg = "Error occured while generating cover letter for MailPiece-Id : {0} with Error : {1}".Fill(mailPieceId, ex.Message);
                 log.Error(msg, ex);
                 ExceptionDetail = msg;
                 return "";
