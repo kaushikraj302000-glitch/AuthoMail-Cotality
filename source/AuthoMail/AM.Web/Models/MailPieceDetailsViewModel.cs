@@ -48,6 +48,7 @@ namespace AM.Web.Models
         public string CoRcptOrganization { get; set; }
         public string RetRcptName { get; set; }
         public string RetRcptAddress { get; set; }
+        public string PrintLocation { get; set; }
 
     }
 }
