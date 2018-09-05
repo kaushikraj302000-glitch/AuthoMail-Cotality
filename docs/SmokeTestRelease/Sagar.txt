@@ -855,8 +855,8 @@ Database Changes
 			- UPDATE AM.MailPieces SET [RcptAddrOptionalLine1BelowStreet]=[RcptAddressAptOrSuiteOrOther]
 			- UPDATE AM.MailPieces SET [RcptAddressAptOrSuiteOrOther]=NULL
 		9) Updated CutOff timings of USAA doctypes
-			- UPDATE AM.DOCTYPES SET BizDayCutOff='17:00:00',BizdayTimeSpan='00:23:59:59',BIZDAYSLATYPE='FixedTime',SatCutOff='12:00:00',SatTimeSpan='00:23:59:59',SatSLATYPE='FixedTime' WHERE CLIENTID=101 AND ShippingServiceType='USPS_EXPRESSMAIL'
-			-  UPDATE [AM].[DocTypes]SET BizdayCutOff='20:00:00',SatCutOff='20:00:00' WHERE ShippingCarrier='FedEx' AND ClientId=101
+			- UPDATE AM.DOCTYPES SET BizDayCutOff='18:00:00',BizdayTimeSpan='00:23:59:59',BIZDAYSLATYPE='FixedTime',SatCutOff='14:00:00',SatTimeSpan='00:23:59:59',SatSLATYPE='FixedTime' WHERE CLIENTID=101 AND ShippingServiceType='PRIORITY_EXPRESS'
+			- UPDATE [AM].[DocTypes]SET BizdayCutOff='20:00:00',SatCutOff='14:00:00' WHERE ShippingCarrier='FedEx' AND ClientId=101
 			- UPDATE AM.DOCTYPES SET BizDayCutOff='20:00:00',BizdayTimeSpan='01:23:59:59',BIZDAYSLATYPE='FixedTime',SatCutOff='20:00:00',SatTimeSpan='01:23:59:59',SatSLATYPE='FixedTime' WHERE CLIENTID=101 AND (BIZDAYSLATYPE='Duration' OR SatSLATYPE='Duration')
 
 		
@@ -890,8 +890,22 @@ Database Changes
 		- Updated Keys
 			UPDATE Common.SystemSettings SET Id = 'Web_API_USPS_URL' WHERE id = 'Web_API_USPS_eVSURL'
 			UPDATE Common.SystemSettings SET Value = 'https://stg-secure.shippingapis.com/ShippingAPI.dll' WHERE id = 'Web_API_USPS_URL' - For Staging Deployment
-			--UPDATE Common.SystemSettings SET Value = 'http://10.215.112.64/usps' WHERE id = 'Web_API_USPS_URL' - For Production Deployment With USPS Express Label
+			--UPDATE Common.SystemSettings SET Value = 'https://secure.shippingapis.com/ShippingAPI.dll' WHERE id = 'Web_API_USPS_URL' - For Production Deployment With USPS Express Label
 	2) Tables
+		- Table Modified - [AM].[MailPieces]
+			ALTER TABLE [AM].[MailPieces] ADD [EffectiveReceivedOnEst] DATETIME NULL,[RcptAddressTypes] VARCHAR(255) NULL			
+			
+			CREATE NONCLUSTERED INDEX [IX_MailPieces_EffectiveReceivedOnEst] ON [AM].[MailPieces]
+			(
+				[EffectiveReceivedOnEst] ASC
+			)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)
+			GO
+			
+			UPDATE [AM].[MailPieces]
+			SET
+			[EffectiveReceivedOnEst]=DATEADD(HOUR,-4,[EffectiveReceivedOn])
+
+			ALTER TABLE [AM].[MailPieces] DROP COLUMN [EffectiveReceivedOn]
 		- Added Tables
 			CREATE TYPE [dbo].[Amount] FROM [decimal](14, 2) NULL
 
@@ -931,7 +945,7 @@ Database Changes
 			 -- interfering with SELECT statements.
 			 SET NOCOUNT ON;
 			 
-			 SELECT P.Id AS MailPieceId,P.EffectiveReceivedOnEst AS MailPieceReceivedOn,P.UniqueId as UniqueId,CAST(P.Id AS VARCHAR(20))+'_'+P.[FileName] as MailPieceFileName FROM AM.MailPieces P
+			 SELECT P.Id AS MailPieceId,P.EffectiveReceivedOnEst,P.UniqueId as UniqueId,M.PDFFileName as MailPieceFileName FROM AM.MailPieces P
 			 INNER JOIN [PnS].MRDFRequest M ON P.UniqueId=M.UniqueId
 			 WHERE M.JobId=@pnsPrintBatchId AND M.MailPieceStatus='InProgress'
 			 
@@ -1221,80 +1235,130 @@ Database Changes
 			END
 			
 	4) Functions
-		- Added Functions [dbo].[ufn_GetDallasBatches],[dbo].[ufn_GetEstToday]
-			CREATE FUNCTION [dbo].[ufn_GetDallasBatches]
-			()
-			RETURNS @sweep TABLE 
+		- Added Functions [dbo].[ufn_GetDallasBatchTimings],[dbo].[ufn_GetDallasBatches],[dbo].[ufn_GetDallasBatchDetails]
+			
+			CREATE FUNCTION [dbo].[ufn_GetDallasBatchTimings]
 			(
-			BatchName varchar(255),
-			StartDate datetime,
-			EndDate datetime
+			@EstDate DATE
+			)
+			RETURNS @BatchTimings TABLE 
+			(
+				BatchName varchar(255),
+				StartTime varchar(255),
+				EndTime varchar(255),
+				ShippingCarrier varchar(255),
+				ShippingServiceType varchar(255)
 			)
 			AS
-			BEGIN
-			DECLARE @todayDate date
-			SELECT @todayDate=dbo.ufn_GetEstToday()
+			begin
+				
+				DECLARE @DayofWeek INT = DATEPART(dw,@EstDate)
 
-			INSERT INTO @sweep (BatchName,StartDate,EndDate) 
-			VALUES ('05PM',cast(@todayDate as datetime)+cast('00:00:00' as datetime),cast(@todayDate as datetime)+cast('18:00:00' as datetime))
+				if(@DayofWeek=7)
+				BEGIN
+					insert into @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+					values ('10AM','00:00:00','11:00:00','FedEx','PRIORITY_OVERNIGHT')
+					insert into @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+					values ('11AM','11:00:01','12:00:00','FedEx','PRIORITY_OVERNIGHT')
+					insert into @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+					values ('12PM','12:00:01','13:00:00','FedEx','PRIORITY_OVERNIGHT')		
+					insert into @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+					values ('01PM','13:00:01','14:00:00','FedEx','PRIORITY_OVERNIGHT')
 
-			INSERT INTO @sweep (BatchName,StartDate,EndDate) 
-			VALUES ('06PM',cast(@todayDate as datetime)+cast('18:00:01' as datetime),cast(@todayDate as datetime)+cast('19:00:00' as datetime))
+					insert into @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+					values ('10AM','00:00:00','11:00:00','USPS','PRIORITY_EXPRESS')
+					insert into @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+					values ('11AM','11:00:01','12:00:00','USPS','PRIORITY_EXPRESS')
+					insert into @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+					values ('12PM','12:00:01','13:00:00','USPS','PRIORITY_EXPRESS')		
+					insert into @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+					values ('01PM','13:00:01','14:00:00','USPS','PRIORITY_EXPRESS')
+				END
+				ELSE
+				BEGIN
+					insert into @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+					values ('04PM','00:00:00','17:00:00','FedEx','PRIORITY_OVERNIGHT')
 
-			INSERT INTO @sweep (BatchName,StartDate,EndDate) 
-			VALUES ('07PM',cast(@todayDate as datetime)+cast('19:00:01' as datetime),cast(@todayDate as datetime)+cast('20:00:00' as datetime))
+					insert into @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+					values ('05PM','17:00:01','18:00:00','FedEx','PRIORITY_OVERNIGHT')
 
-			INSERT INTO @sweep (BatchName,StartDate,EndDate) VALUES ('Backlog',DateAdd(day,-7, cast(@todayDate as datetime)),DateAdd(second,-1, cast(@todayDate as datetime)))
-			RETURN
-			END
+					insert into @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+					values ('06PM','18:00:01','19:00:00','FedEx','PRIORITY_OVERNIGHT')
+
+					insert into @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+					values ('07PM','19:00:01','20:00:00','FedEx','PRIORITY_OVERNIGHT')
+
+					insert into @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+					values ('04PM','00:00:00','17:00:00','USPS','PRIORITY_EXPRESS')
+
+					insert into @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+					values ('05PM','17:00:00','18:00:00','USPS','PRIORITY_EXPRESS')
+				END
+				
+				return
+			end
+
 			GO
 			
-			CREATE FUNCTION [dbo].[ufn_GetEstToday]
-			()
-
-			RETURNS date
-			AS
-			BEGIN
-
-			DECLARE @TimeZone VARCHAR(50),@temp int
-
-			EXEC MASTER.dbo.xp_regread 'HKEY_LOCAL_MACHINE','SYSTEM\CurrentControlSet\Control \TimeZoneInformation','TimeZoneKeyName',@TimeZone OUT
-			set @TimeZone='Pacific Standard Time'
-			if(@TimeZone is null or @TimeZone<>'Pacific Standard Time')
-			BEGIN
-			select @temp= cast('Time must be Pacific Standard Time' as int)
-			END
-
-			return DATEADD(HOUR,3,GETDATE());
-
-			END
-	5) Views
-		- Added Views [dbo].[vw_DallasBatches]
-			CREATE VIEW [dbo].[vw_DallasBatches] AS
-			SELECT * FROM 
+			CREATE FUNCTION [dbo].[ufn_GetDallasBatches]
 			(
-			SELECT m.Id,m.ClientId,m.PrintLocation,m.EffectiveReceivedOnEst,m.TrackingNo,m.IsPullBackRequested,m.IsQCRequested,m.TotalSheets,
-			b.PrintBatch,b.IsSubmitted,b.PipelineStatus,b.JobName,
+			@EstDate DATE
+			)
+			RETURNS @sweep TABLE 
+			(
+				BatchName varchar(255),
+				StartDate datetime,
+				EndDate datetime,
+				ShippingCarrier varchar(255),
+				ShippingServiceType varchar(255)
+			)
+			AS
+			begin
+				declare @todayDate date
+				select @todayDate=@EstDate
+				
+				insert into @sweep (BatchName,StartDate,EndDate,ShippingCarrier,ShippingServiceType) 
+				select BatchName,cast(@todayDate as datetime)+cast(StartTime as datetime),cast(@todayDate as datetime)+cast(EndTime as datetime),ShippingCarrier,ShippingServiceType from [dbo].[ufn_GetDallasBatchTimings]()	 
+				
+				
+				insert into @sweep (BatchName,StartDate,EndDate,ShippingCarrier,ShippingServiceType) values ('Backlog',DateAdd(day,-7, cast(@todayDate as datetime)),DateAdd(second,-1, cast(@todayDate as datetime)),'FedEx','PRIORITY_OVERNIGHT')
+				
+				insert into @sweep (BatchName,StartDate,EndDate,ShippingCarrier,ShippingServiceType) values ('Backlog',DateAdd(day,-7, cast(@todayDate as datetime)),DateAdd(second,-1, cast(@todayDate as datetime)),'USPS','PRIORITY_EXPRESS')
+				return
+			end
+			GO
+
+			CREATE FUNCTION [dbo].[ufn_GetDallasBatchDetails]
+			(
+			@EstDate DATE
+			)
+			RETURNS TABLE 
+			AS
+			RETURN
+			(
+			with db as
+			(
+				select * from [dbo].[ufn_GetDallasBatches](@EstDate)
+			),
+			q as
+			(
+			SELECT m.Id,m.BusinessFriendlyIdValue as LoanNumber,m.ClientId, m.PrintLocation, m.EffectiveReceivedOnEst, m.TrackingNo,m.IsPullBackRequested,m.IsQCRequested,m.TotalSheets , m.DueDate,m.TotalPages,
+			b.PrintBatch,b.IsSubmitted,b.PipelineStatus,b.JobName,b.SubmittedOn,
 			req.PieceId,req.JobId,req.[Date] as MRDFReqDate,req.PDFFileName, req.UniqueId,req.MailPieceStatus, res.ProcessingTimeStamp,
-			d.ShippingServiceType,
-			c.AppCode,c.Name as ClientName,
-			CASE WHEN m.EffectiveReceivedOnEst <=(CAST([dbo].ufn_GetEstToday() AS DATETIME) + CAST('18:00:00' AS DATETIME)) THEN '05PM'
-			WHEN m.EffectiveReceivedOnEst >= (CAST([dbo].ufn_GetEstToday() AS DATETIME) + CAST('18:00:01' AS DATETIME)) AND m.EffectiveReceivedOnEst <= (CAST([dbo].ufn_GetEstToday() AS DATETIME) + CAST('19:00:00' AS DATETIME)) THEN '06PM'
-			WHEN m.EffectiveReceivedOnEst >= (CAST([dbo].ufn_GetEstToday() AS DATETIME) + CAST('19:00:01' AS DATETIME)) AND m.EffectiveReceivedOnEst <= (CAST([dbo].ufn_GetEstToday() AS DATETIME) + CAST('20:00:00' AS DATETIME)) THEN '07PM' ELSE 'Backlog' END SweepName
+			d.ShippingServiceType,d.ShippingCarrier,
+			c.AppCode,c.Name as ClientName,(select BatchName from db where EffectiveReceivedOnEst between StartDate AND EndDate AND ShippingCarrier=d.ShippingCarrier AND ShippingServiceType=d.ShippingServiceType) BatchName
 			FROM [AM].[MailPieces] m
 			INNER JOIN PnS.MRDFRequest req ON m.UniqueId = req.UniqueId
 			INNER JOIN PnS.BatchSummary b ON req.JobId = b.PrintBatch
 			LEFT OUTER JOIN PnS.MRDFResponse res ON req.JobId = res.JobId AND req.PieceId=res.PieceId
 			INNER JOIN AM.DocTypes d ON m.DocTypeId=d.Id
 			INNER JOIN Common.Clients c ON m.ClientId=c.Id
-			WHERE b.IsSubmitted=1 
-			AND m.PrintLocation=(SELECT Value FROM Common.SystemSettings WHERE Id='Common_PrintLocationCL') 
-			AND CAST(m.EffectiveReceivedOnEst AS DATE)=dbo.ufn_GetEstToday()
-			)X
-			INNER JOIN 
-			(
-			select BatchName,StartDate,EndDate from dbo.ufn_GetDallasBatches()
-			)Y ON X.SweepName=Y.BatchName
+			WHERE m.PrintLocation=(SELECT Value FROM Common.SystemSettings WHERE Id='Common_PrintLocationCL') 
+			AND m.EffectiveReceivedOnEst >=(select MIN(StartDate) from db)
+			)
+			select * from q where BatchName is not null 
+			)
+
 			GO
 =========================
 Application Changes
@@ -1309,8 +1373,8 @@ Application Changes
 		1) PnS.Service
 
 ====================================================================================================================================================
-UAT Final Status : 
-PROD Final Status : 
+UAT Final Status : Deployed on 09/01/2018 at 12.30 PM IST
+PROD Final Status : Deployed on 09/01/2018 at 10.30 AM IST
 ====================================================================================================================================================
 		
 	

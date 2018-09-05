@@ -438,6 +438,9 @@ namespace AM.Console
             if (estEffectiveReceivedOn.DayOfWeek == DayOfWeek.Saturday && docType.ShippingCarrier == Carrier.FedEx.ToString())
                 return Config.Common_PrintLocationCL;
 
+            if (estEffectiveReceivedOn.DayOfWeek == DayOfWeek.Saturday && (docType.ShippingCarrier == Carrier.USPS.ToString() && docType.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS.ToString()))
+                return Config.Common_PrintLocationCL;
+
             if (estEffectiveReceivedOn.DayOfWeek == DayOfWeek.Saturday)
                 return Config.Common_PrintLocationPCI;
 

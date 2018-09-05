@@ -173,7 +173,7 @@
             </div>
         </div>@*margin-left: 33%;*@
         <div class="pull-left " style="margin-top:-3%;margin-left:12.3%;">
-            <h2 class="text-center alert alert-info">Batch Name :<span id="batchNameDisplay"> --</span></h2>
+            <h2 class="text-center alert alert-info">Batch Name : <span id="batchNameDisplay"> --</span></h2>
         </div>
         <div class="clearfix">
         </div>
@@ -216,7 +216,7 @@
                     <h3 id="modalTitle" class="alert alert-danger">Are you sure you want to start new batch?</h3>
                 </div>
                 <div class="modal-body" style="text-align: center;">
-                    <button type="submit" id="submitModal" tabindex="10" class=" btn btn-success okclick">Yes</button>
+                    <button type="submit" id="submitModal" tabindex="10" class=" btn btn-success">Yes</button>
                     <button type="button" id="cancelModal" tabindex="11" class="btn btn-danger" data-dismiss="modal">No</button>
                 </div>
             </div>
@@ -232,7 +232,7 @@
                     <h3 id="genmodalTitle"></h3>
                 </div>
                 <div class="modal-body" style="text-align: center;">
-                    <button type="button" id="generalmodalOk" tabindex="11" class="btn btn-danger" data-dismiss="modal">Ok</button>
+                    <button type="button" id="generalmodalOk" tabindex="11" class="btn btn-danger okclick" data-dismiss="modal">Ok</button>
                 </div>
             </div>
         </div>
@@ -276,9 +276,9 @@
             });
             $(document).keypress(function (e) {
                 if (e.which == 13) {
-                    if ($('.modal,.fade,.in').hasClass('in')) {
+                    if ($("#generalmodal").hasClass('in')) {
                         $(".okclick").click();
-                        $("#smallModal").modal("hide");
+                        
                     }
                 }
             });

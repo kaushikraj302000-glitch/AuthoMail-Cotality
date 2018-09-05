@@ -24,7 +24,7 @@ namespace AM.Reporting
                 {
                     //DateTime deploymentDateTime = DateTime.Parse(ConfigurationManager.AppSettings["FedExDeployment"]).EstToUtc();
 
-                    DateTime todayDate = Common.Today.UtcToEst();
+                    DateTime todayDate = Common.Now.UtcToEst().Date;
                     TimeSpan todayCutOff = todayDate.DayOfWeek == DayOfWeek.Saturday ? new TimeSpan(12, 00, 00) : new TimeSpan(20, 00, 00);
                     DateTime todayCutOffTime = todayDate + todayCutOff;
 
@@ -78,7 +78,7 @@ namespace AM.Reporting
                     mailPiece.DocumentOrPackageType,
                     mailPiece.IsPickedUp == 1 ? "Picked Up" : "Not Picked",
                     mailPiece.PickedUpOn);
-                mailPiecesReport.Append(line);
+                mailPiecesReport.AppendLine(line);
             }
 
             return mailPiecesReport;
