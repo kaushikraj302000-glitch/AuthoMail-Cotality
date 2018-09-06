@@ -272,6 +272,8 @@
                 $("#code1").blur();
             });
             $(".okclick").click(function () {
+                $("#code1").val("");
+                $("#code2").val("");
                 $("#code1").focus();
             });
             $(document).keypress(function (e) {
@@ -567,6 +569,8 @@
                                             $("#genmodalTitle").addClass("alert alert-info");
                                             $("#generalmodal").modal("show");
                                             //$("#generalmodalOk").focus();
+                                            $("#code1").val("");
+                                            $("#code2").val("");
                                         }
                                         if (code == "Pulledback") {
                                             $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + object.model.JobName + "<br>  Code: " + code + "'  class='lblAMC lbl-danger' for='success'>" + trackingNo + "</lable>");
@@ -575,10 +579,14 @@
                                             $("#genmodalTitle").addClass("alert alert-danger");
                                             $("#generalmodal").modal("show");
                                             //$("#generalmodalOk").focus();
+                                            $("#code1").val("");
+                                            $("#code2").val("");
                                         }
                                         if (code == "Valid") {
                                             $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + object.model.JobName + "<br>  Code: " + code + "'  class='lblAMC lbl-success' for='success'>" + trackingNo + "</lable>");
-
+                                            $("#code1").val("");
+                                            $("#code2").val("");
+                                            $("#code1").focus();
                                         }
                                         $('[data-toggle="tooltip"]').tooltip();
                                         //var successcnt = $("#countsuccess").text();
@@ -601,14 +609,14 @@
                                             $("#modalTitle").addClass("alert alert-success");
                                             $("#submitModal").text("OK");
                                             $("#cancelModal").hide();
+                                            $("#code1").val("");
+                                            $("#code2").val("");
                                             $("#smallModal").modal("show");
                                             //$("#okModal").focus();
-
+                                            return;
                                         }
 
-                                        $("#code1").val("");
-                                        $("#code2").val("");
-                                        $("#code1").focus();
+                                       
 
                                     }
                                     else if (code == "Rescan") {
@@ -683,10 +691,11 @@
             /*---- End Code2 validate Barcode  ----*/
 
             /*---- Start next batch and clear cookies on client side ----*/
-            $("#submitModalOld").click(function () {
+            $("#submitModal").click(function () {
                 $("#code1").val("");
                 $("#code2").val("");
-                $("#code1").focus();
+                //$("#code1").focus();
+                $("#cancelModal").click();
             });
             $("#submitModalOld").click(function () {
                 $.ajax({

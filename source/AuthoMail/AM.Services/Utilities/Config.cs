@@ -28,6 +28,7 @@ namespace AM.Services
         #region Console & Core
         public static string Monitor_AMCPulledBackDate { get; set; }
         public static string Monitor_ExpressMailingText { get; set; }
+        public static string Monitor_PriorityMailingText { get; set; }
         public static string Monitor_AMC_ReportDateFormat { get; private set; }
         public static string Monitor_DSEmail_Subject { get; private set; }
         public static string Monitor_DSEmailTemplate { get; private set; }
@@ -151,6 +152,25 @@ namespace AM.Services
         public static string Web_StartCutOffTime { get; private set; }
         [Description("End cut off time for Mailpiece")]
         public static string Web_EndCutOffTime { get; private set; }
+        #endregion
+
+        #region Web Dropdown For DocType
+
+        [Description("Print size dropdown values")]
+        public static string Web_DD_PrintSizeList { get; private set; }
+
+        [Description("Print format dropdown values")]
+        public static string Web_DD_PrintFormatList { get; private set; }
+
+        [Description("Shipping Carrier dropdown values")]
+        public static string Web_DD_ShippingCarrierList { get; private set; }
+
+        [Description("Shipping Service Type dropdown values")]
+        public static string Web_DD_ShippingServiceTypeList { get; private set; }
+
+        [Description("Shipping Special Service dropdown values")]
+        public static string Web_DD_ShippingSpecialServiceList { get; private set; }
+
         #endregion
 
         #region USPSIntegration

@@ -27,8 +27,9 @@
     .margin {
         margin: 7px;
     }
-    .marginbottom{
-        margin-bottom:5px;
+
+    .marginbottom {
+        margin-bottom: 5px;
     }
 </style>
 <section class="container" style="margin-top:3%;">
@@ -49,50 +50,85 @@
                             </a>
                             <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
                                 <div class="panel-body">
-
-                                    <div style="float: left" class="form-horizontal col-md-5">
-
+                                    <div class="col-md-5">
                                         <div class="form-group">
-                                            <label class="col-sm-4 control-lable" for="exampleInputPassword3">Barcode Value</label>
-                                            <div class="col-md-5">
-                                                <input type="text" class="form-control" name="BarcodeValue" id="BarcodeValue" placeholder="Barcode Value" tabindex="1">
-                                            </div>
-
+                                            <label class="control-lable" for="BarcodeValue">Barcode Value</label>
+                                            <input type="text" class="form-control" name="BarcodeValue" id="BarcodeValue" placeholder="Barcode Value" tabindex="1">
                                         </div>
                                         <div class="form-group">
-                                            <label class="col-sm-4 control-lable" for="exampleInputEmail3">Loan Number</label>
-                                            <div class="col-md-5">
-                                                <input type="text" class="form-control" name="LoanNumber" id="LoanNumber" placeholder="Loan Number" tabindex="2">
+                                            <label class="control-lable" for="LoanNumber">Loan Number</label>
+                                            <input type="text" class="form-control" name="LoanNumber" id="LoanNumber" placeholder="Loan Number" tabindex="2">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <div class="form-group">
+                                            <label class="control-lable">Received On</label>
+                                            <div id="reportrange" class="form-control" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc">
+                                                <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>
+                                                <span id="printedOn"></span><b class="caret"></b>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="control-lable">Shipped On</label>
+                                            <div id="reportrange1" class="form-control" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc">
+                                                <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>
+                                                <span id="shippedOn"></span><b class="caret"></b>
                                             </div>
                                         </div>
                                     </div>
-                                    <div style="float: right" class="form-horizontal col-md-7">
+                                    <div class="col-md-2">
                                         <div class="form-group">
-                                            <label class="col-sm-3 control-lable" for="exampleInputPassword3">Received On</label>
-                                            <div class="col-md-6">
-                                                <div id="reportrange" class="pull-right" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc">
-                                                    <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>
-                                                    <span id="printedOn"></span><b class="caret"></b>
-                                                </div>
+                                            <br /><br /><br />
+                                            <button id="RefineDate" class="btn btn-primary btn-sm" type="reset"><i class="glyphicon glyphicon-filter"></i>Refine</button>
+                                            <button id="ClearData" class="btn btn-warning btn-sm" type="reset"><i class="glyphicon glyphicon-clear"></i>Clear</button>                                            
                                             </div>
                                         </div>
-                                        <div class="form-group">
-                                            <label class="col-sm-3 control-lable" for="exampleInputPassword3">Shipped On</label>
-                                            <div class="col-md-6">
-                                                <div id="reportrange1" class="pull-right" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc">
-                                                    <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>
-                                                    <span id="shippedOn"></span><b class="caret"></b>
-                                                </div>
-
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div style="float: right; margin-top: -6%" class="col-md-3">
-                                        <button id="ClearData" style="margin-right: -5%; margin-left: 4%;" class="btn btn-warning btn-sm pull-right" type="reset"><i class="glyphicon glyphicon-clear"></i>Clear</button>
-                                        <button id="RefineDate" class="btn btn-primary btn-sm pull-right" type="reset"><i class="glyphicon glyphicon-filter"></i>Refine</button>
-                                    </div>
-
                                     <div class="clearfix"></div>
+                                    @*<div class="row">
+                                        <div style="float: left" class="form-horizontal col-md-5">
+
+                                            <div class="form-group">
+                                                <label class="col-sm-4 control-lable" for="exampleInputPassword3">Barcode Value</label>
+                                                <div class="col-md-5">
+                                                    <input type="text" class="form-control" name="BarcodeValue" id="BarcodeValue" placeholder="Barcode Value" tabindex="1">
+                                                </div>
+
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-4 control-lable" for="exampleInputEmail3">Loan Number</label>
+                                                <div class="col-md-5">
+                                                    <input type="text" class="form-control" name="LoanNumber" id="LoanNumber" placeholder="Loan Number" tabindex="2">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div style="float: right" class="form-horizontal col-md-7">
+                                            <div class="form-group">
+                                                <label class="col-sm-3 control-lable" for="exampleInputPassword3">Received On</label>
+                                                <div class="col-md-6">
+                                                    <div id="reportrange" class="pull-right" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc">
+                                                        <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>
+                                                        <span id="printedOn"></span><b class="caret"></b>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-3 control-lable" for="exampleInputPassword3">Shipped On</label>
+                                                <div class="col-md-6">
+                                                    <div id="reportrange1" class="pull-right" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc">
+                                                        <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>
+                                                        <span id="shippedOn"></span><b class="caret"></b>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div style="float: right; margin-top: -6%" class="col-md-3">
+                                            <button id="ClearData" style="margin-right: -5%; margin-left: 4%;" class="btn btn-warning btn-sm pull-right" type="reset"><i class="glyphicon glyphicon-clear"></i>Clear</button>
+                                            <button id="RefineDate" class="btn btn-primary btn-sm pull-right" type="reset"><i class="glyphicon glyphicon-filter"></i>Refine</button>
+                                        </div>
+
+                                        <div class="clearfix"></div>
+                                    </div>*@
                                     <input type="text" id="printedOnFrom" name="printedOnFrom" style="display: none" />
                                     <input type="text" id="printedOnTo" name="printedOnTo" style="display: none" />
                                     <input type="text" id="shippedOnFrom" name="shippedOnFrom" style="display: none" />
@@ -103,7 +139,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- /.box -->
             </div>
             <!-- /.col -->
@@ -345,11 +381,12 @@
             return Model;
         }
 
-        function bindReportData(clientCode, loanNumber, barcodeValue, printOnFrom, printOnTo, shippedOnFrom, shippedOnTo) {
+        function bindReportData(clientCode, barcodeValue, loanNumber, printOnFrom, printOnTo, shippedOnFrom, shippedOnTo) {
+            console.log(loanNumber);
             $.ajax({
                 type: "GET",
                 url: '@Url.Content("~/api/report/ScanedDocumentList")',
-                data: { clientCode: clientCode, loanNumber: loanNumber, barcodeValue: barcodeValue, printOnFrom: printOnFrom, printOnTo: printOnTo, shippedOnFrom: shippedOnFrom, shippedOnTo: shippedOnTo },
+                data: { clientCode: clientCode, barcodeValue: barcodeValue, loanNumber: loanNumber, printOnFrom: printOnFrom, printOnTo: printOnTo, shippedOnFrom: shippedOnFrom, shippedOnTo: shippedOnTo },
                 success: function (response) {
                     //console.log(response);
                     if (response != null) {
@@ -366,7 +403,7 @@
                     $("#scanList").empty();
                     $("#scanList").show();
                     $("#scanList").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong> Communication error.</div>");
-                    
+
                 }
             });
 

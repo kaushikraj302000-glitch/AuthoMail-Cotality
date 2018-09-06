@@ -539,6 +539,12 @@
                     <span class="form-control-static">{ReturnRcptAddress}</span>
                 </div>
             </div>
+            <div class="form-group margin-bottom-2">
+                <div class="input-group">
+                    <label for="PrintLocation">Print Location:&nbsp; </label>
+                    <span class="form-control-static">{PrintLocation}</span>
+                </div>
+            </div>
         </div>
         @*<div class="col-md-3">
 
@@ -755,7 +761,7 @@
                 else {
                     //trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/Track/' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
                     trackingNo = '<a id="' + this.TrackingNo + '" data-toggle="tooltip" data-container="body" data-placement="top" title="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" href="/track/' + this.TrackingNo + '" target="_blank"><i style="margin-top: 2px;" class="fa fa-map-marker fa-2x"></i> </a>';
-                    //if (this.ShippingCarrier == "USPS" && this.ShippingMethod == "USPS_EXPRESSMAIL") {
+                    //if (this.ShippingCarrier == "USPS" && this.ShippingMethod == "PRIORITY_EXPRESS") {
 
                     //    trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="https://m.usps.com/m/TrackConfirmAction_detail?tLabels=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
                     //} else if (this.ShippingCarrier == "USPS" && this.ShippingMethod == "USPS") {

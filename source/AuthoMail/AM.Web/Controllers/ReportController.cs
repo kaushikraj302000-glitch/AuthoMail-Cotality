@@ -9,6 +9,7 @@ using AM.Web.Models;
 using System.Globalization;
 using AM.Lib;
 using AutoMapper;
+using System.IO;
 namespace AM.Web.Controllers
 {
     [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager + "," + AMRoles.PnSOperator)]
@@ -77,11 +78,26 @@ namespace AM.Web.Controllers
             var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
 
             var data = repoSvc.GetMonthlyReconReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate, channel);
-            var model=Mapper.Map<List<MonthlyReconReportViewModel>>(data);
-           return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+            //var model=Mapper.Map<List<MonthlyReconReportViewModel>>(data);
+           return Json(JsonResponseFactory.SuccessResponse(new { model = data.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
             
         }
 
+        public ActionResult DownloadMonthlyReconReport(string startDate, string endDate, string channel, string fileName)
+        {
+            var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            var data = repoSvc.GetMonthlyReconReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate, channel);
+            var model = Mapper.Map<List<MonthlyReconReportViewModel>>(data);
+            var dataTable = ExcelHelper.ToDataTable<MonthlyReconReportViewModel>(model);
+            var memoryStream = ExcelHelper.ExportDataSet(dataTable);
+            memoryStream.Seek(0, SeekOrigin.Begin);
+
+            var fileNameArry = new string[] { fileName, exactStartDate.ToString("MMddyyy"), "TO", exactEndDate.ToString("MMddyyy"), channel };
+            fileName = string.Join("_", fileNameArry.Where(s => s != "").ToArray());
+            fileName = string.Format("{0}.xlsx", fileName);
+            return File(memoryStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
 
         public ActionResult ErrorsReport()
         {
