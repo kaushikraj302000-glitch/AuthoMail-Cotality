@@ -20,6 +20,8 @@ namespace AM.Services
         List<ChannelCodeTitle> GetChannelTitle(int clientId);
         List<PullBackRequests> GetPullbackRequestReport(int clientId, DateTime startDate, DateTime endDate);
         List<MailPieces> GetFedExPickedUpReport(DateTime deploymentDate, DateTime lastReceivedOnDate, int isPickedUp = -1);
+        List<MailPieces> GetMailPiecesDataFromPrintBatchId(int printBatchId);
+        List<MailPieces> GetMailPiecesDataFromMailBatchId(int mailBatchId);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -195,7 +197,6 @@ namespace AM.Services
             return channelList;
         }
 
-
         public List<PullBackRequests> GetPullbackRequestReport(int clientId, DateTime startDate, DateTime endDate)
         {
             string query = "SELECT * FROM [AM].[MailBatches] b,[AM].[MailPieces] m, [AM].[PullBackRequests] p LEFT OUTER JOIN [Profile].[Users] u ON p.[RequestedBy]=u.Id  WHERE p.[ClientId] = @clientId AND p.[MailBatchId]=b.Id AND p.MailPieceId = m.Id AND p.RequestedOn BETWEEN @startDate AND @endDate";
@@ -215,6 +216,64 @@ namespace AM.Services
                 }).ToList();
 
             //return db.Query<MailPieces>(query, new { clientId = clientId, startDate = startDate.ToStartDateTime().EstToUtc(), endDate = endDate.ToEndDateTime().EstToUtc() }).ToList();
+            return data;
+        }
+
+        public List<MailPieces> GetMailPiecesDataFromPrintBatchId(int printBatchId)
+        {
+            string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id LEFT OUTER JOIN AM.MailPieceCustomInfo MC ON M.Id=MC.MailPieceId WHERE M.PrintBatchId=@PrintBatchId";
+
+            var mailPieceDictionary = new Dictionary<int, MailPieces>();
+
+            var data = db.Query<MailPieces, MailBatches, MailPieceCustomInfoTest, MailPieces>(query,
+                (m, b, c) =>
+                {
+                    MailPieces mp;
+
+                    if (!mailPieceDictionary.TryGetValue(m.Id, out mp))
+                    {
+                        mp = m;
+                        mp.MailBatches = b;
+                        mp.MailPieceCustomInfoTest = new List<MailPieceCustomInfoTest>();
+                        mailPieceDictionary.Add(mp.Id, mp);
+                    }
+
+                    mp.MailPieceCustomInfoTest.Add(c);
+                    return mp;
+                },
+                new
+                {
+                    PrintBatchId = printBatchId
+                }, splitOn: "Id,MailPieceId").Distinct().ToList();
+            return data;
+        }
+
+        public List<MailPieces> GetMailPiecesDataFromMailBatchId(int mailBatchId)
+        {
+            var mailPieceDictionary = new Dictionary<int, MailPieces>();
+
+            string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id LEFT OUTER JOIN AM.MailPieceCustomInfo MC ON M.Id=MC.MailPieceId WHERE M.MailBatchId=@MailBatchId";
+
+            var data = db.Query<MailPieces, MailBatches, MailPieceCustomInfoTest, MailPieces>(query,
+                (m, b, c) =>
+                {
+                    MailPieces mp;
+
+                    if (!mailPieceDictionary.TryGetValue(m.Id, out mp))
+                    {
+                        mp = m;
+                        mp.MailBatches = b;
+                        mp.MailPieceCustomInfoTest = new List<MailPieceCustomInfoTest>();
+                        mailPieceDictionary.Add(mp.Id, mp);
+                    }
+
+                    mp.MailPieceCustomInfoTest.Add(c);
+                    return mp;
+                },
+                new
+                {
+                    MailBatchId = mailBatchId
+                }, splitOn: "Id,MailPieceId").Distinct().ToList();
             return data;
         }
     }

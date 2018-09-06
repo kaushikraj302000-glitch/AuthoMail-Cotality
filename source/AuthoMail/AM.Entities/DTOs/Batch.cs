@@ -88,6 +88,7 @@ namespace AM.Entities
         public int PrintBatchId { get; set; }
         public Guid UniqueId { get; set; }
         public int DocTypeId { get; set; }
+        public int SFTChannelId { get; set; }
         public string AppCode { get; set; }
         public string BatchName { get; set; }
         public string SubmittedBatchName { get; set; }

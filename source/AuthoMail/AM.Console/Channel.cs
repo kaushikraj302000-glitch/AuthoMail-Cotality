@@ -88,12 +88,31 @@ namespace AM.Console
         /// </summary>
         protected abstract void AcknowledgeBatches();
 
+        #region Reported Back logic
         /// <summary>
         /// Sends batch level reports of all batches which are queued as ReportPrepped
         /// </summary>
-        public static void ReportBack()
+        public static void ReportBack(string channelCode)
         {
             log.Debug("ReportedBack job is started.");
+
+            switch (channelCode)
+            {
+                case "AMC":
+                    ProcessAMCReportedBack(channelCode);
+                    break;
+                case "HSBC":
+                case "ALASKA":
+                default:
+                    ProcessGeneralReportedBack(channelCode);
+                    break;
+            }
+
+            log.Debug("ReportedBack job is completed.");
+        }
+
+        private static void ProcessGeneralReportedBack(string channelCode)
+        {
             using (IMailBatchService mailBatchSvc = new MailBatchService())
             using (IClientService clientSvc = new ClientService())
             using (ICommonService commonSvc = new CommonService())
@@ -104,6 +123,10 @@ namespace AM.Console
                     log.Debug("Uploading report job queue is empty.");
                     return;
                 }
+
+                SFTChannel channel = clientSvc.GetSFTChannelDetailsBySFTChannelCode(channelCode + "_" + Config.Common_Environment);
+
+                reportPreppedBatches = reportPreppedBatches.Where(b => b.SFTChannelId == channel.Id).ToList();
 
                 foreach (var batch in reportPreppedBatches)
                 {
@@ -122,6 +145,7 @@ namespace AM.Console
                         {
                             SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
                             sftSite.Connect();
+
                             //TODO: Remove switch case after proper logic implementation of deliverables
                             UploadReportsToClients(mbi, sftSite, deliverables, data);
 
@@ -141,104 +165,137 @@ namespace AM.Console
                     }
                 }
             }
-            log.Debug("ReportedBack job is completed.");
         }
 
-        public static void CalculateDueDateAndPrintLocation(int clientId)
+        private static void ProcessAMCReportedBack(string channelCode)
         {
-            log.Debug("Calculation of Due Date and Print location job is started.");
             using (IMailBatchService mailBatchSvc = new MailBatchService())
-            using (IMailPieceService mailPieceSvc = new MailPieceService())
-            using (IDocTypeService docTypeSvc = new DocTypeService())
+            using (IClientService clientSvc = new ClientService())
+            using (ICommonService commonSvc = new CommonService())
+            using (IReportService reportSvc = new ReportService())
             {
-                List<MailBatchDTO> validatedBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Validated, clientId);
-                if (validatedBatches.Count == 0)
+                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelCode(channelCode + "_" + Config.Common_Environment);
+                var reportPreppedBatches = mailBatchSvc.GetReportPreppedPrintBatchDetails();
+                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
+                sftSite.Connect();
+                foreach (var item in reportPreppedBatches)
                 {
-                    log.Debug("Calculation of Due Date and Print location job queue is empty.");
+                    try
+                    {
+                        Client client = clientSvc.GetClientByAppCode(item.AppCode);
+
+                        List<Deliverable> deliverables = commonSvc.GetDeliverablesByClientId(client.Id);
+
+                        string localReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, client.AppCode, "AMResponse", item.PrintBatchId.ToString());
+
+                        //TODO: Remove switch case after proper logic implementation of deliverables
+                        UploadReportsToAMC(deliverables, localReportPath, sftSite, false);
+
+                        mailBatchSvc.UpdatePrintBatchPipelineStatus(item.PrintBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
+
+                        var mailBatchIds = reportSvc.GetMailPiecesDataFromPrintBatchId(item.PrintBatchId).Select(b => b.MailBatchId).Distinct().ToList();
+
+                        foreach (int mailBatchId in mailBatchIds)
+                        {
+                            if (mailBatchSvc.GetReportedBackPrintBatchesFromMailBatchId(mailBatchId))
+                            {
+                                var mailPieceData = reportSvc.GetMailPiecesDataFromMailBatchId(mailBatchId);
+                                string errorReportLocalPath = Path.Combine(Config.Common_AuthoMailRootFolder, client.AppCode, mailBatchId.ToString(), "AMResponse");
+                                GenerateErrorReport(mailBatchId, mailPieceData, errorReportLocalPath);
+                                UploadReportsToAMC(deliverables, errorReportLocalPath, sftSite, true);
+
+                                commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
+                            }
+                        }
+
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Error(ex);
+                    }
+                }
+
+                if (sftSite.IsConnected)
+                    sftSite.Disconnect();
+            }
+        }
+
+        private static void GenerateErrorReport(int mailBatchId, List<MailPieces> mailPieceData, string localErrorReportPath)
+        {
+            using (IAMCService amcSvc = new AMCService())
+            {
+                StringBuilder errorReport = amcSvc.AMCErrorReport(mailPieceData);
+
+                if (errorReport != null)
+                {
+                    string errorReportFileName = "Error-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+
+                    //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
+                    //string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                    string errorReportPath = Path.Combine(localErrorReportPath, errorReportFileName);
+
+                    File.WriteAllText(errorReportPath, errorReport.ToString());
+                }
+            }
+        }
+
+        private static void UploadReportsToAMC(List<Deliverable> deliverables, string localReportPath, SFTUtil sftSite, bool isErrorReport)
+        {
+            string uploadPath = deliverables.SingleOrDefault().UploadPath;
+            if (sftSite.IsDownloadDirectoryAvailable(uploadPath))
+            {
+                //TODO: Replace *.csv in place of *.txt if we don't move new naming convention and tab delimited reports to production environment
+                if (isErrorReport)
+                {
+                    var errorReportList = Directory.EnumerateFiles(localReportPath, "*.txt").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Error-")).ToList();
+
+                    foreach (string filePath in errorReportList)
+                    {
+                        string fileName = Path.GetFileName(filePath);
+                        string ftpUploadPath = Path.Combine(uploadPath, fileName);
+                        sftSite.UploadFile(filePath, ftpUploadPath);
+                    }
+
+                    if (errorReportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Error-")) > 0)
+                    {
+                        string errorGoFilePath = Path.Combine(localReportPath, "ErrReport.go");
+                        string ftpErrorGoUploadPath = Path.Combine(uploadPath, "ErrReport.go");
+                        File.WriteAllText(errorGoFilePath, string.Empty);
+
+                        sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
+                    }
                     return;
                 }
 
-                foreach (var mailBatch in validatedBatches)
+                var deliveryReportList = Directory.EnumerateFiles(localReportPath, "*.txt").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-")).ToList();
+
+
+                foreach (string filePath in deliveryReportList)
                 {
-                    var mailPieceData = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatch.Id);
+                    string fileName = Path.GetFileName(filePath);
+                    string ftpUploadPath = Path.Combine(uploadPath, fileName);
+                    sftSite.UploadFile(filePath, ftpUploadPath);
+                }
 
-                    List<MailPieceDTO> validMailPieces = mailPieceData.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
+                if (deliveryReportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-")) > 0)
+                {
+                    string deliveryGoFilePath = Path.Combine(localReportPath, "DlvrReport.go");
+                    string ftpDeliveryGoUploadPath = Path.Combine(uploadPath, "DlvrReport.go");
+                    File.WriteAllText(deliveryGoFilePath, string.Empty);
 
-                    if (validMailPieces.Count == 0)
-                    {
-                        continue;
-                    }
-
-                    foreach (MailPieceDTO mailPiece in validMailPieces)
-                    {
-                        DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value);
-
-                        //Here first we will calculate effective received on date and based on that we will calculate due date for that
-                        DateTime effectiveEstReceivedOn = Channel.GetEffectiveEstReceivedOn(docType, mailBatch.ReceivedOn.Value);
-                        //Here storing effective receivedon in UTC format as per rule
-                        mailPiece.EffectiveReceivedOnEst = effectiveEstReceivedOn;
-                        //Calculate Due Date for Mail Pieces doc type wise
-                        mailPiece.DueDate = Channel.GetDueDate(docType, effectiveEstReceivedOn);
-                        //Set print location where mail piece will go for print and ship
-                        mailPiece.PrintLocation = Channel.GetPrintLocation(docType, effectiveEstReceivedOn);
-
-                        mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
-                    }
+                    sftSite.UploadFile(deliveryGoFilePath, ftpDeliveryGoUploadPath);
                 }
             }
-            log.Debug("Calculation of Due Date and Print location Job is ended.");
+            else
+            {
+                log.Error("Upload path does not exist for Client-{0} and SFT Channel Path-'{1}'".Fill("AMC", uploadPath));
+            }
         }
 
         private static void UploadReportsToClients(MailBatchInfo mbi, SFTUtil sftSite, List<Deliverable> deliverables, BatchData mailBatchData)
         {
-
             switch (mbi.Client.AppCode)
             {
-                case "USAA":
-                    string uploadPath = deliverables.SingleOrDefault().UploadPath;
-                    if (sftSite.IsDownloadDirectoryAvailable(uploadPath))
-                    {
-                        //TODO: Replace *.csv in place of *.txt if we don't move new naming convention and tab delimited reports to production environment
-                        var reportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.txt").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-") || Path.GetFileNameWithoutExtension(f).StartsWith("Error-")).ToList();
-
-                        reportList.AddRange(Directory.EnumerateFiles(mbi.AMResponsePath, "*.err"));
-
-
-                        if (reportList != null && reportList.Count > 0)
-                        {
-                            foreach (string filePath in reportList)
-                            {
-                                string fileName = Path.GetFileName(filePath);
-                                string ftpUploadPath = Path.Combine(uploadPath, fileName);
-                                sftSite.UploadFile(filePath, ftpUploadPath);
-                            }
-
-                            if (reportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-")) > 0)
-                            {
-                                string deliveryGoFilePath = Path.Combine(mbi.AMResponsePath, "DlvrReport.go");
-                                string ftpDeliveryGoUploadPath = Path.Combine(uploadPath, "DlvrReport.go");
-                                File.WriteAllText(deliveryGoFilePath, string.Empty);
-
-                                sftSite.UploadFile(deliveryGoFilePath, ftpDeliveryGoUploadPath);
-                            }
-
-                            if (reportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Error-")) > 0)
-                            {
-                                string errorGoFilePath = Path.Combine(mbi.AMResponsePath, "ErrReport.go");
-                                string ftpErrorGoUploadPath = Path.Combine(uploadPath, "ErrReport.go");
-                                File.WriteAllText(errorGoFilePath, string.Empty);
-
-                                sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
-                            }
-
-                            MailUtility.SendProductionNotificationEmail(mbi, mailBatchData, reportList, deliverables.SingleOrDefault().EmailChannel);
-                        }
-                    }
-                    else
-                    {
-                        log.Error("Upload path does not exist for Client-{0} and SFT Channel Path-'{1}'".Fill(mbi.Client.Name, uploadPath));
-                    }
-                    break;
                 case "ALASKA":
 
                     var reportToMail = new List<string>();
@@ -308,8 +365,54 @@ namespace AM.Console
 
             }
         }
+        #endregion
 
         #region EffectiveReceivedOn DueDate PrintLocation Logic
+        public static void CalculateDueDateAndPrintLocation(int clientId)
+        {
+            log.Debug("Calculation of Due Date and Print location job is started.");
+            using (IMailBatchService mailBatchSvc = new MailBatchService())
+            using (IMailPieceService mailPieceSvc = new MailPieceService())
+            using (IDocTypeService docTypeSvc = new DocTypeService())
+            {
+                List<MailBatchDTO> validatedBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Validated, clientId);
+                if (validatedBatches.Count == 0)
+                {
+                    log.Debug("Calculation of Due Date and Print location job queue is empty.");
+                    return;
+                }
+
+                foreach (var mailBatch in validatedBatches)
+                {
+                    var mailPieceData = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatch.Id);
+
+                    List<MailPieceDTO> validMailPieces = mailPieceData.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
+
+                    if (validMailPieces.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    foreach (MailPieceDTO mailPiece in validMailPieces)
+                    {
+                        DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value);
+
+                        //Here first we will calculate effective received on date and based on that we will calculate due date for that
+                        DateTime effectiveEstReceivedOn = Channel.GetEffectiveEstReceivedOn(docType, mailBatch.ReceivedOn.Value);
+                        //Here storing effective receivedon in UTC format as per rule
+                        mailPiece.EffectiveReceivedOnEst = effectiveEstReceivedOn;
+                        //Calculate Due Date for Mail Pieces doc type wise
+                        mailPiece.DueDate = Channel.GetDueDate(docType, effectiveEstReceivedOn);
+                        //Set print location where mail piece will go for print and ship
+                        mailPiece.PrintLocation = Channel.GetPrintLocation(docType, effectiveEstReceivedOn);
+
+                        mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                    }
+                }
+            }
+            log.Debug("Calculation of Due Date and Print location Job is ended.");
+        }
+
         public static DateTime GetEffectiveEstReceivedOn(DocType docType, DateTime utcReceivedOn)
         {
             var estReceivedOn = utcReceivedOn.UtcToEst();
@@ -467,7 +570,6 @@ namespace AM.Console
             return true;
         }
         #endregion
-
 
         protected override void DisposeManagedObjects()
         {

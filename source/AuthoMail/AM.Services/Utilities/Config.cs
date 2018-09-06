@@ -60,6 +60,7 @@ namespace AM.Services
         public static int Core_NoofTime_AttemptFedexService { get; private set; }
         public static int Core_FedexServiceAttemptInterval { get; private set; }
         public static string Core_BundleSweepClientChannelIds { get; private set; }
+        public static string Core_DirectReportBackChannelIds { get; private set; }
         public static string Core_EndPageTemplatePath { get; private set; }
 
 

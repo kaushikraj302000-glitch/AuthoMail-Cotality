@@ -16,7 +16,7 @@ namespace AM.Services
         List<MailPieceDTO> GetMailPiecesByPrintBatchId(int printBatchId);
         int InsertBatchMailPieceCustomDetails(List<MailPieceCustomInfo> mailPieceCustomInfos);
         int UpdateBatchMailPieceDetails(MailPieceDTO mailPiece);
-        int UpdateBatchMailPieceShippingStatusDetails(MailPieceDTO mailPiece);
+        int UpdateBatchMailPieceShippingStatusDetails(MailPieces mailPiece);
         int UpdateMailPiecePickedUpDetailsFromTrackingNo(FedExPickedPackagesDetail pickedUpDetail);
         MailPieceDTO GetMailPieceDataFromTrackingNo(string trackingNo);
         List<DallasMailPieceData> GetDallasMailPiecesByTimingsAndClient(string sweepName);
@@ -67,14 +67,14 @@ namespace AM.Services
             return db.Execute(query, mailPiece);
         }
 
-        public int UpdateBatchMailPieceShippingStatusDetails(MailPieceDTO mailPiece)
+        public int UpdateBatchMailPieceShippingStatusDetails(MailPieces mailPiece)
         {
             string query = @"UPDATE [AM].[MailPieces] SET [ShippingStatus] = @ShippingStatus,[TotalSheets] = @TotalSheets,[ErrorCode] = @ErrorCode,[ErrorDesc] = @ErrorDesc,[PulledBackOn] = @PulledBackOn,[PrintedOn] = @PrintedOn,[ShippedOn] = @ShippedOn,[ShippingCost] = @ShippingCost,[Weight] = @Weight,[IsQCPerformed] = @IsQCPerformed, [TrackingNo] = @TrackingNo WHERE Id=@Id";
 
             var data = db.Execute(query, mailPiece);
 
             //Update data if any pulled back
-            if (mailPiece.IsPullBackRequested == true)
+            if (mailPiece.IsPullBackRequested == 1)
             {
                 UpdatePulledBackDetails(mailPiece.MailBatchId, mailPiece.Id, mailPiece.ShippingStatus);
             }

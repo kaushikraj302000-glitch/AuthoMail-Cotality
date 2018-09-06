@@ -11,15 +11,15 @@ namespace AM.Services
 {
     public interface IAMCService : IDisposable
     {
-        StringBuilder AMCErrorReport(BatchData data);
-        StringBuilder AMCDeliveryReport(BatchData data);
+        StringBuilder AMCErrorReport(List<MailPieces> mailPieces);
+        StringBuilder AMCDeliveryReport(List<MailPieces> mailPieces);
     }
 
     public class AMCService : ServiceBase, IAMCService
     {
         const string Separator = "\t";
 
-        public StringBuilder AMCErrorReport(BatchData data)
+        public StringBuilder AMCErrorReport(List<MailPieces> mailPieces)
         {
             var columnName = String.Join(Separator, "BatchID", "ID", "Package Name", "Loan Number", "File Name", "Date Received", "First Name", "Last Name", "Recipient Street Address", "Recipient City", "Recipient State", "Recipient Zip", "Error Code", "Error Text", "Shipping Method", "Customer Identifier", "RequestID");
 
@@ -27,7 +27,7 @@ namespace AM.Services
 
             errorReport.AppendLine();
 
-            var erroredData = data.MailPieces.Where(l => l.ErrorCode != OutComeCodes.No_Error).ToList();
+            var erroredData = mailPieces.Where(l => l.ErrorCode != OutComeCodes.No_Error).ToList();
 
             if (erroredData == null || erroredData.Count == 0)
             {
@@ -37,21 +37,21 @@ namespace AM.Services
             using (DocTypeService docTypeSvc = new DocTypeService())
             {
                 // All the loans where outcome code is anything except no_error are processed invalid loans.
-                foreach (MailPieceDTO mailPiece in erroredData)
+                foreach (MailPieces mailPiece in erroredData)
                 {
                     DocType docType = mailPiece.DocTypeId.HasValue ? docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value) : null;
 
-                    var custId = data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").SingleOrDefault();
+                    var custId = mailPiece.MailPieceCustomInfoTest.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").SingleOrDefault();
 
-                    var requestId = data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").SingleOrDefault();
+                    var requestId = mailPiece.MailPieceCustomInfoTest.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").SingleOrDefault();
 
                     var line = String.Join(Separator,
-                        data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
+                       mailPiece.MailBatches.BatchName == null ? string.Empty : mailPiece.MailBatches.BatchName,
                         mailPiece.ErrorCode == OutComeCodes.Invalid_DuplicateKey ? Guid.Parse(mailPiece.ErrorDesc.Substring(0, mailPiece.ErrorDesc.IndexOf(" ")).Trim()) : mailPiece.UniqueId,
                             mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType,
                             mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
                             mailPiece.FileName == null ? string.Empty : mailPiece.FileName,
-                            data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.ToString(Config.Monitor_AMC_ReportDateFormat),
+                            mailPiece.MailBatches.ReceivedOn == null ? string.Empty : mailPiece.MailBatches.ReceivedOn.Value.ToString(Config.Monitor_AMC_ReportDateFormat),
                             mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName,
                             mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName,
                             mailPiece.RcptAddressStreet == null ? string.Empty : string.IsNullOrEmpty(mailPiece.RcptAddressAptOrSuiteOrOther) ? mailPiece.RcptAddressStreet : mailPiece.RcptAddressStreet + " " + mailPiece.RcptAddressAptOrSuiteOrOther,
@@ -72,7 +72,7 @@ namespace AM.Services
             return errorReport;
         }
 
-        public StringBuilder AMCDeliveryReport(BatchData data)
+        public StringBuilder AMCDeliveryReport(List<MailPieces> mailPieces)
         {
             var columnName = String.Join(Separator, "BatchID", "ID", "Package Name", "Loan Number", "File Name", "Date Received", "Date Printed", "Date Mailed", "Client Code", "Tracking Number", "Shipping Method", "Customer Identifier", "First Name", "Last Name", "Recipient Street Address", "Recipient City", "Recipient State", "Recipient Zip", "RequestID", "Pages Shipped");
 
@@ -80,7 +80,7 @@ namespace AM.Services
 
             deliveryReport.AppendLine();
 
-            var shippedData = data.MailPieces.Where(l => l.ShippingStatus == ShippingStatus.Shipped.ToString() || l.ShippingStatus == ShippingStatus.PulledBack.ToString()).ToList();
+            var shippedData = mailPieces.Where(l => l.ShippingStatus == ShippingStatus.Shipped.ToString() || l.ShippingStatus == ShippingStatus.PulledBack.ToString()).ToList();
 
             if (shippedData == null || shippedData.Count == 0)
             {
@@ -90,23 +90,23 @@ namespace AM.Services
             using (DocTypeService docTypeSvc = new DocTypeService())
             {
                 // All the loans where outcome code is anything except no_error are processed invalid loans.
-                foreach (MailPieceDTO mailPiece in shippedData)
+                foreach (MailPieces mailPiece in shippedData)
                 {
                     DocType docType = mailPiece.DocTypeId.HasValue ? docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value) : null;
 
-                    var shippingCredCode = data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingCredCode").SingleOrDefault();
+                    var shippingCredCode = mailPiece.MailPieceCustomInfoTest.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingCredCode").SingleOrDefault();
 
-                    var custId = data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").SingleOrDefault();
+                    var custId = mailPiece.MailPieceCustomInfoTest.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").SingleOrDefault();
 
-                    var requestId = data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").SingleOrDefault();
+                    var requestId = mailPiece.MailPieceCustomInfoTest.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").SingleOrDefault();
 
                     var line = String.Join(Separator,
-                        data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName,
+                        mailPiece.MailBatches.BatchName == null ? string.Empty : mailPiece.MailBatches.BatchName,
                             mailPiece.UniqueId,
                             mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType,
                             mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
                             mailPiece.FileName == null ? string.Empty : mailPiece.FileName,
-                            data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.ToString(Config.Monitor_AMC_ReportDateFormat),
+                            mailPiece.MailBatches.ReceivedOn == null ? string.Empty : mailPiece.MailBatches.ReceivedOn.Value.ToString(Config.Monitor_AMC_ReportDateFormat),
                             mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? Config.Monitor_AMCPulledBackDate : mailPiece.PrintedOn.Value.ToString(Config.Monitor_AMC_ReportDateFormat),
                             mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? Config.Monitor_AMCPulledBackDate : mailPiece.ShippedOn.Value.ToString(Config.Monitor_AMC_ReportDateFormat),
                             shippingCredCode == null ? string.Empty : shippingCredCode.Value,

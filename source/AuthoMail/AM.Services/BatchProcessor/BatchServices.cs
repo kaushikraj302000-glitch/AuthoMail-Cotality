@@ -21,7 +21,10 @@ namespace AM.Services
         int InsertPrintBatchDetails(PrintBatch printBatch);
         List<SubmittedBatch> GetSubmittedPrintBatchDetails();
         List<SubmittedBatch> GetResponseReceivedPrintBatchDetails();
+        List<SubmittedBatch> GetReportPreppedPrintBatchDetails();
         int GetMailBatchesReceivedCount(DateTime startTime, DateTime endTime, string status);
+        int UpdatePrintBatchPipelineStatus(int printBatchId, string pipeLineStatus, DateTime timestamp);
+        bool GetReportedBackPrintBatchesFromMailBatchId(int mailBatchId);
     }
     public class MailBatchService : ServiceBase, IMailBatchService //It implements Interfaces 
     {
@@ -134,7 +137,7 @@ namespace AM.Services
         public List<SubmittedBatch> GetSubmittedPrintBatchDetails()
         {
             //Sql Query
-            string query = @"SELECT PB.Id AS PrintBatchId, PB.AppCode +'_'+ CONVERT(VARCHAR(10),PB.Id) as SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode FROM [AM].[PrintBatches] PB WHERE PB.IsSubmittedToShipping=1 AND PB.IsShippingResponseReceived=0";
+            string query = @"SELECT PB.Id AS PrintBatchId, PB.AppCode +'_'+ CONVERT(VARCHAR(10),PB.Id) AS SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode FROM AM.PrintBatches PB WHERE PB.IsSubmittedToShipping=1 AND PB.IsShippingResponseReceived=0";
 
             return db.Query<SubmittedBatch>(query).ToList();
         }
@@ -142,9 +145,17 @@ namespace AM.Services
         public List<SubmittedBatch> GetResponseReceivedPrintBatchDetails()
         {
             //Sql Query
-            string query = @"SELECT PB.Id AS PrintBatchId,PB.AppCode +'_'+ CONVERT(VARCHAR(10),PB.Id) as SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode FROM [AM].[PrintBatches] PB WHERE PB.IsSubmittedToShipping=1 AND PB.IsShippingResponseReceived=1 AND PB.BatchStatus=@BatchStatus";
+            string query = @"SELECT DISTINCT PB.Id AS PrintBatchId, PB.AppCode +'_'+ CONVERT(VARCHAR(10),PB.Id) AS SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode,MB.SFTChannelId FROM AM.PrintBatches PB INNER JOIN AM.MailPieces MP ON PB.Id=MP.PrintBatchId INNER JOIN AM.MailBatches MB ON MP.MailBatchId=MB.Id WHERE PB.IsSubmittedToShipping=1 AND PB.IsShippingResponseReceived=1 AND PB.BatchStatus=@BatchStatus";
 
             return db.Query<SubmittedBatch>(query, new { BatchStatus = BatchStatus.InProgress.ToString() }).ToList();
+        }
+
+        public List<SubmittedBatch> GetReportPreppedPrintBatchDetails()
+        {
+            //Sql Query
+            string query = @"SELECT DISTINCT PB.Id AS PrintBatchId, PB.AppCode +'_'+ CONVERT(VARCHAR(10),PB.Id) AS SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode,MB.SFTChannelId FROM AM.PrintBatches PB INNER JOIN AM.MailPieces MP ON PB.Id=MP.PrintBatchId INNER JOIN AM.MailBatches MB ON MP.MailBatchId=MB.Id WHERE PB.IsSubmittedToShipping=1 AND PB.IsReportPrepped=1 AND PB.IsReportedBack=0";
+
+            return db.Query<SubmittedBatch>(query, null).ToList();
         }
 
         public int GetMailBatchesReceivedCount(DateTime startDateTime, DateTime endDateTime, string status)
@@ -157,6 +168,23 @@ namespace AM.Services
                 query += " AND (IsAcknowledged = 1 OR IsReportPrepped = 1 OR IsReportedBack = 1)";
 
             return db.ExecuteScalar<int>(query, new { StartDate = startDateTime, EndDate = endDateTime });
+        }
+
+        public int UpdatePrintBatchPipelineStatus(int printBatchId, string pipeLineStatus, DateTime timestamp)
+        {
+            string query = "UPDATE [AM].[PrintBatches] SET [{0}On] = @TimeStamp WHERE Id=@Id".Fill(pipeLineStatus);
+
+            return db.Execute(query, new { TimeStamp = timestamp, Id = printBatchId });
+        }
+
+        public bool GetReportedBackPrintBatchesFromMailBatchId(int mailBatchId)
+        {
+            string query = @"SELECT COUNT(*) FROM AM.MailPieces P INNER JOIN AM.PrintBatches PB ON P.PrintBatchId=PB.Id WHERE P.MailBatchId=@MailBatchId AND PB.IsReportedBack=0";
+
+            int count = db.ExecuteScalar<int>(query, new { MailBatchId = mailBatchId });
+            if (count == 0)
+                return true;
+            return false;
         }
     }
 }

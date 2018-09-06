@@ -345,8 +345,14 @@ namespace AM.Core
 
                         if (validMailPiecesList.Count == 0)
                         {
+                            List<MailPieces> mailPieces;
+                            using (IReportService reportSvc = new ReportService())
+                            {
+                                mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
+                            }
+
                             //TODO: Remove after proper logic implementation client wise switch case implemented
-                            GenerateImmidiateReports(mbi, data, reportDeliverable);
+                            GenerateImmidiateReports(mbi, data, reportDeliverable, mailPieces);
                             // Batch status Prepped
                             mailBatchSvc.MarkMailBatchAsInvalid(mbi.MailBatch.Id, (mbi.MailBatch.ValidationErrors + Environment.NewLine + "Some documents could not be processed."));
                             commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.Failed.ToString());
@@ -450,7 +456,7 @@ namespace AM.Core
             }
         }
 
-        private static void GenerateImmidiateReports(MailBatchInfo mbi, BatchData mailBatchData, Deliverable deliverable)
+        private static void GenerateImmidiateReports(MailBatchInfo mbi, BatchData mailBatchData, Deliverable deliverable, List<MailPieces> mailPieces = null)
         {
             switch (mbi.Client.AppCode)
             {
@@ -462,7 +468,7 @@ namespace AM.Core
                         //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
                         //string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
                         string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-                        StringBuilder errorData = amcSvc.AMCErrorReport(mailBatchData);
+                        StringBuilder errorData = amcSvc.AMCErrorReport(mailPieces);
                         if (errorData != null)
                         {
                             File.WriteAllText(errorReportPath, errorData.ToString());
@@ -808,6 +814,7 @@ namespace AM.Core
             using (IClientService clientSvc = new ClientService())
             using (ICommonService commonSvc = new CommonService())
             using (IMailPieceService mailPieceSvc = new MailPieceService())
+            using (IReportService reportSvc = new ReportService())
             {
 
                 var responseReceivedPrintBatches = mailBatchSvc.GetResponseReceivedPrintBatchDetails();
@@ -822,7 +829,7 @@ namespace AM.Core
                 {
                     try
                     {
-                        var printBatchMailPieces = mailPieceSvc.GetMailPiecesByPrintBatchId(printBatch.PrintBatchId);
+                        var printBatchMailPieces = reportSvc.GetMailPiecesDataFromPrintBatchId(printBatch.PrintBatchId);
 
                         // Here we have changed path of pnsresponse to process from "AMRoot/ClientCode/PnSResponses/AppCode_PrintBatchId-res.xml" because now we have multiple batches mail pieces in printbatch table
 
@@ -868,6 +875,34 @@ namespace AM.Core
                         //Updates PrintBatches Status values
                         commonSvc.UpdatePrintBatchStatus(printBatch.PrintBatchId, pnsResponse.BatchStatus.ToString(), pnsResponse.StatusDescription);
 
+                        int[] reportPreppedChannelIds = Array.ConvertAll(Config.Core_DirectReportBackChannelIds.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries), s => int.Parse(s));
+
+                        if (reportPreppedChannelIds.Contains(printBatch.SFTChannelId))
+                        {
+                            string amResponsePath = Path.Combine(Config.Common_AuthoMailRootFolder, printBatch.AppCode, "AMResponse", printBatch.PrintBatchId.ToString());
+
+                            amResponsePath.CreateDirectoryIfNotExist();
+
+                            using (IAMCService amcSvc = new AMCService())
+                            {
+                                StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(printBatchMailPieces);
+
+                                if (deliveryReport != null)
+                                {
+                                    string deliveryReportFileName = "Delivery-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+
+                                    //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
+                                    //string deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                                    string deliveryReportPath = Path.Combine(amResponsePath, deliveryReportFileName);
+
+                                    File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
+                                }
+                            }
+                            Thread.Sleep(1000);
+
+                            mailBatchSvc.UpdatePrintBatchPipelineStatus(printBatch.PrintBatchId, BatchPipelineStatus.ReportPrepped, Common.Now);
+                        }
+
                         //because of removed MailBatchId we need to check each mailpieces' response is received or not, if received all response we are updating batch status of MailBatch.
                         var mailBatcheIds = printBatchMailPieces.Select(b => b.MailBatchId).Distinct().ToList();
                         foreach (var mailBatchId in mailBatcheIds)
@@ -895,6 +930,7 @@ namespace AM.Core
                                 }
 
                                 commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ShippingResponseReceived, Common.Now);
+                                commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportPrepped, Common.Now);
                             }
                         }
                     }
@@ -962,7 +998,7 @@ namespace AM.Core
             log.Debug("Report prepped job is completed.");
         }
 
-        private static bool GenerateFinalReports(MailBatchInfo mbi, BatchData mailBatchData, Deliverable deliverable)
+        private static bool GenerateFinalReports(MailBatchInfo mbi, BatchData mailBatchData, Deliverable deliverable, List<MailPieces> mailPieces = null)
         {
             bool isReportGenerated = false;
             switch (mbi.Client.AppCode)
@@ -970,7 +1006,7 @@ namespace AM.Core
                 case "USAA":
                     using (IAMCService amcSvc = new AMCService())
                     {
-                        StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(mailBatchData);
+                        StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(mailPieces);
 
                         if (deliveryReport != null)
                         {
@@ -984,7 +1020,7 @@ namespace AM.Core
                             isReportGenerated = true;
                         }
 
-                        StringBuilder errorReport = amcSvc.AMCErrorReport(mailBatchData);
+                        StringBuilder errorReport = amcSvc.AMCErrorReport(mailPieces);
 
                         if (errorReport != null)
                         {

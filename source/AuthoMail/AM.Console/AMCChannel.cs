@@ -838,9 +838,16 @@ namespace AM.Console
 
                         // valid: ack, pvalid: err rpt upload, invalid: Generate Error Report, ReportPrepped
 
+                        List<MailPieces> mailPieces;
+                        using (IReportService reportSvc = new ReportService())
+                        {
+                            mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
+                        }
+
                         if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.Invalid)
                         {
-                            StringBuilder errorData = amcSvc.AMCErrorReport(data);
+                            
+                            StringBuilder errorData = amcSvc.AMCErrorReport(mailPieces);
                             if (errorData != null)
                             {
                                 File.WriteAllText(errorReportPath, errorData.ToString());
@@ -852,7 +859,7 @@ namespace AM.Console
                         }
                         else if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.PartiallyValid)
                         {
-                            StringBuilder errorData = amcSvc.AMCErrorReport(data);
+                            StringBuilder errorData = amcSvc.AMCErrorReport(mailPieces);
 
                             if (errorData != null)
                             {

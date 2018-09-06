@@ -39,7 +39,8 @@ namespace AM.Console
                 }
                 else if (args[0] == "BatchReporting")
                 {
-                    Channel.ReportBack();
+                    string channelCode = string.IsNullOrEmpty(args[1]) ? string.Empty : args[1] ;
+                    Channel.ReportBack(channelCode);
                 }
                 else
                 {
