@@ -37,7 +37,7 @@ namespace AM.USPSLib
 
         decimal Postage { get; set; }
 
-        List<ExtraService> ExtraServices { get; set; }
+        List<ExtraServices> ExtraServices { get; set; }
 
         string Zone { get; set; }
 

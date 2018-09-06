@@ -83,10 +83,8 @@ namespace AM.USPSLib
 
     public class Commitment
     {
-        [XmlElement(ElementName = "CommitmentName")]
-        public string CommitmentName { get; set; }
+                public string CommitmentName { get; set; }
 
-        [XmlElement(ElementName = "ScheduledDeliveryDate")]
         public string ScheduledDeliveryDate { get; set; }
     }
 
@@ -95,6 +93,14 @@ namespace AM.USPSLib
         public string CommitmentName { get; set; }
 
         public DateTime? ScheduledDeliveryDate { get; set; }
+    }
+
+        
+    public class ExtraServices
+    {
+        public string ServiceID { get; set; }
+        public ExtraService ServiceName { get; set; }
+        public decimal? Price { get; set; }
     }
 
     //public static class AddressTypes

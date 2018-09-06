@@ -40,7 +40,8 @@ namespace AM.Services
 
         public decimal Postage { get; set; }
 
-        public List<ExtraService> ExtraServices { get; set; }
+        [XmlElement(ElementName = "ExtraService")]
+        public List<ExtraServices> ExtraServices { get; set; }
 
         public string Zone { get; set; }
 
