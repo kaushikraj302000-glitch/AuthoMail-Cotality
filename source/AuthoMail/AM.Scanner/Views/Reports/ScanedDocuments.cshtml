@@ -381,11 +381,12 @@
             return Model;
         }
 
-        function bindReportData(clientCode, loanNumber, barcodeValue, printOnFrom, printOnTo, shippedOnFrom, shippedOnTo) {
+        function bindReportData(clientCode, barcodeValue, loanNumber, printOnFrom, printOnTo, shippedOnFrom, shippedOnTo) {
+            console.log(loanNumber);
             $.ajax({
                 type: "GET",
                 url: '@Url.Content("~/api/report/ScanedDocumentList")',
-                data: { clientCode: clientCode, loanNumber: loanNumber, barcodeValue: barcodeValue, printOnFrom: printOnFrom, printOnTo: printOnTo, shippedOnFrom: shippedOnFrom, shippedOnTo: shippedOnTo },
+                data: { clientCode: clientCode, barcodeValue: barcodeValue, loanNumber: loanNumber, printOnFrom: printOnFrom, printOnTo: printOnTo, shippedOnFrom: shippedOnFrom, shippedOnTo: shippedOnTo },
                 success: function (response) {
                     //console.log(response);
                     if (response != null) {
