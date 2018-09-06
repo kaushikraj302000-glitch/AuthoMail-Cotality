@@ -56,6 +56,18 @@ namespace AM.Core
                 }
                 else
                 {
+                    //If we get saturday delivery failed then we just remove that special handling parameters.
+                    if (reply.Notifications[0].Message == "Saturday Delivery is not allowed.")
+                    {
+                        request.RequestedShipment.SpecialServicesRequested = null;
+                        reply = service.processShipment(request);
+
+                        if ((reply.HighestSeverity != NotificationSeverityType.ERROR) && (reply.HighestSeverity != NotificationSeverityType.FAILURE))
+                        {
+                            GenerateShipmentLabel(reply, mbi, ref isLabelGenerated);
+                            return isLabelGenerated;
+                        }
+                    }
                     List<Notification> notificaitons = new List<Notification>(reply.Notifications);
                     StringBuilder sbMessages = new StringBuilder(string.Format("Error occurred while generating FedEx label for client {0} and {1} : {2}<br/>", mbi.Client.AppCode, mailPiece.BusinessFriendlyIdName, mailPiece.BusinessFriendlyIdValue));
                     notificaitons.ForEach(n => sbMessages = sbMessages.AppendLine(n.Message));
