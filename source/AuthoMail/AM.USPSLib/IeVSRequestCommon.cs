@@ -86,7 +86,7 @@ namespace AM.USPSLib
 
         string CustomerRefNo2 { get; set; }
 
-        List<ExtraService> ExtraServices { get; set; }
+        List<ExtraServiceType> ExtraServices { get; set; }
 
         string CRID { get; set; }
 

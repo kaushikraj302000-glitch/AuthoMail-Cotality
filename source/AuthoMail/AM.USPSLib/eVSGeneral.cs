@@ -83,7 +83,7 @@ namespace AM.USPSLib
 
     public class Commitment
     {
-                public string CommitmentName { get; set; }
+        public string CommitmentName { get; set; }
 
         public string ScheduledDeliveryDate { get; set; }
     }
@@ -95,11 +95,11 @@ namespace AM.USPSLib
         public DateTime? ScheduledDeliveryDate { get; set; }
     }
 
-        
-    public class ExtraServices
+    //[XmlRoot(ElementName = "ExtraService")]
+    public class ExtraService
     {
         public string ServiceID { get; set; }
-        public ExtraService ServiceName { get; set; }
+        public string ServiceName { get; set; }
         public decimal? Price { get; set; }
     }
 

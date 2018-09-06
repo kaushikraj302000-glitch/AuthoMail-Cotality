@@ -155,7 +155,8 @@ namespace AM.USPSLib
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum ExtraService
+    [XmlType(TypeName = "ExtraService")]
+    public enum ExtraServiceType
     {
         [EnumMember(Value = "100")]
         [XmlEnum(Name = "100")]
@@ -570,7 +571,7 @@ namespace AM.USPSLib
         [EnumMember(Value = "Military")]
         [XmlEnum(Name = "Military")]
         Military,
-        
+
         [EnumMember(Value = "Territory")]
         [XmlEnum(Name = "Territory")]
         Territory,
