@@ -13,27 +13,34 @@ namespace AM.Monitor
 {
     public class Program
     {
+        /// <summary>
+        ///     Commented code is for bundle sweep logic. when bundle logic needs to updated uncomment below code.
+        /// </summary>
+        /// <param name="args"></param>
         static void Main(string[] args)
         {
             MonitorBatchesService monitorSvc = new MonitorBatchesService();
-            var checkSFTChannels = monitorSvc.CheckSFTChannelsOfPendingBatches();
-            var bundleSweepTimes = ConfigurationManager.AppSettings["BundleSweepTimes"].ToString().Split(',').Select(TimeSpan.Parse).ToList();
-            List<int> bundleIds = Config.Core_BundleSweepClientChannelIds.Split(',').Select(int.Parse).ToList();
+            //var checkSFTChannels = monitorSvc.CheckSFTChannelsOfPendingBatches();
+            //var bundleSweepTimes = ConfigurationManager.AppSettings["BundleSweepTimes"].ToString().Split(',').Select(TimeSpan.Parse).ToList();
+            //List<int> bundleIds = Config.Core_BundleSweepClientChannelIds.Split(',').Select(int.Parse).ToList();
             var pendingBatchesToSubmit = new List<dynamic>();
-            var pendingSweepBatchesToSubmit = monitorSvc.GetPendingBatchesToSubmit();
-            var pendingBundleSweepBatchesToSubmit = monitorSvc.GetPendingSweepBatchesToSubmit();
+            var pendingSweepBatchesToSubmit = monitorSvc.GetPendingBatchesToSubmit(int.Parse(ConfigurationManager.AppSettings["CutOffMinutes"]));
+            ///delete below line when bundle logic uncommented.
+            pendingBatchesToSubmit.AddRange(pendingSweepBatchesToSubmit);
+            //var pendingBundleSweepBatchesToSubmit = monitorSvc.GetPendingSweepBatchesToSubmit();
+           
+            //var sweepBatchesList = checkSFTChannels.Where(c => bundleIds.Any(b => b != c.SFTChannelId) && pendingSweepBatchesToSubmit.Any(p => p.SFTChannelId == c.SFTChannelId)).ToList();
+            //pendingBatchesToSubmit.AddRange(sweepBatchesList);
 
-            var sweepBatchesList = checkSFTChannels.Where(c => bundleIds.Any(b => b != c.SFTChannelId) && pendingSweepBatchesToSubmit.Any(p => p.SFTChannelId == c.SFTChannelId)).ToList();
-            pendingBatchesToSubmit.AddRange(sweepBatchesList);
-            foreach (var bundleSweepTime in bundleSweepTimes)
-            {
-                if (TimeSpan.Parse(DateTime.Now.ToString("HH:mm")) > TimeSpan.Parse(bundleSweepTime.ToString()))
-                {
-                    var bundleBatchesList = checkSFTChannels.Where(c => bundleIds.Any(b => b == c.SFTChannelId) && pendingBundleSweepBatchesToSubmit.Any(p => p.SFTChannelId != c.SFTChannelId)).ToList();
-                    var list = bundleBatchesList.Where(p => !pendingBatchesToSubmit.Any(pb => pb.PrintBatchId == p.PrintBatchId)).ToList();
-                    pendingBatchesToSubmit.AddRange(list);
-                }
-            }
+            //foreach (var bundleSweepTime in bundleSweepTimes)
+            //{
+            //    if (TimeSpan.Parse(DateTime.Now.ToString("HH:mm")) > TimeSpan.Parse(bundleSweepTime.ToString()))
+            //    {
+            //        var bundleBatchesList = checkSFTChannels.Where(c => bundleIds.Any(b => b == c.SFTChannelId) && pendingBundleSweepBatchesToSubmit.Any(p => p.SFTChannelId != c.SFTChannelId)).ToList();
+            //        var list = bundleBatchesList.Where(p => !pendingBatchesToSubmit.Any(pb => pb.PrintBatchId == p.PrintBatchId)).ToList();
+            //        pendingBatchesToSubmit.AddRange(list);
+            //    }
+            //}
 
             var pendingBatchesToReportBack = monitorSvc.GetPendingBatchesToReportBack();
             string monitor_PrintBatch = "style='width:10%;border:solid windowtext 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
