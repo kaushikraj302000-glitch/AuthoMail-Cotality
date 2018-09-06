@@ -195,7 +195,7 @@ namespace AM.Services
             labelResponse.Postnet = response.Postnet;
             labelResponse.RDC = response.RDC;
             labelResponse.Postage = response.Postage;
-            labelResponse.Extraservices = response.Extraservices;
+            labelResponse.ExtraServices = response.ExtraServices;
             labelResponse.Zone = response.Zone;
             labelResponse.DimensionalWeight = response.DimensionalWeight;
             labelResponse.CarrierRoute = response.CarrierRoute;
