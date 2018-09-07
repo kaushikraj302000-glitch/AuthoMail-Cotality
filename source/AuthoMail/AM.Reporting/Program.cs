@@ -31,6 +31,9 @@ namespace AM.Reporting
                     case "DallasNotification":
                         DallasNotification.GenerateEmailNotification();
                         break;
+                    case "PCIRecon":
+                        PCIReconReport.GeneratePCIReconReport();
+                        break;
                     default:
                         break;
                 }

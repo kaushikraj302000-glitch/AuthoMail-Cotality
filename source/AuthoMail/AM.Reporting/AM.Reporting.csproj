@@ -60,6 +60,7 @@
     <Compile Include="DallasNotification.cs" />
     <Compile Include="FedExPickUP.cs" />
     <Compile Include="HSBCChannel.cs" />
+    <Compile Include="PCIReconReport.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Service References\TrackingShipmentService\Reference.cs">
@@ -130,6 +131,9 @@
     <Content Include="EmailTemplates\DallasNotification.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="PCIReconReport\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

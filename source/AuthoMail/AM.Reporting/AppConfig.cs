@@ -19,6 +19,13 @@ namespace AM.Reporting
         public static string FedExReportSubject { get; private set; }
         public static string FedExAccountCode { get; private set; }
 
+        public static string PCIReconEMailTo { get; private set; }
+        public static string PCIReconEMailCc { get; private set; }
+        public static string PCIReconEMailSubject { get; private set; }
+        public static string PCIReconClientId { get; private set; }
+        public static TimeSpan PCIReconCutOff { get; set; }
+        public static string PCIReconReportPath { get; private set; }
+
         static AppConfig()
         {
             DallasEMailTo = ConfigurationManager.AppSettings["DallasEMailTo"].Trim();
@@ -30,6 +37,13 @@ namespace AM.Reporting
             FedExReport_Email_Cc = ConfigurationManager.AppSettings["FedExReport_Email_Cc"].Trim();
             FedExReportSubject = ConfigurationManager.AppSettings["FedExReportSubject"].Trim();
             FedExAccountCode = ConfigurationManager.AppSettings["FedExAccountCode"].Trim();
+
+            PCIReconEMailTo = ConfigurationManager.AppSettings["PCIReconEMailTo"].Trim();
+            PCIReconEMailCc = ConfigurationManager.AppSettings["PCIReconEMailCc"].Trim();
+            PCIReconEMailSubject = ConfigurationManager.AppSettings["PCIReconEMailSubject"].Trim();
+            PCIReconClientId = ConfigurationManager.AppSettings["PCIReconClientId"].Trim();
+            PCIReconCutOff = TimeSpan.Parse(ConfigurationManager.AppSettings["PCIReconCutOff"].Trim());
+            PCIReconReportPath = ConfigurationManager.AppSettings["PCIReconReportPath"].Trim();
         }
     }
 }

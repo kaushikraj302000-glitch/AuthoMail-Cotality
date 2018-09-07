@@ -95,4 +95,16 @@ namespace AM.Entities
         public string ResponseFilePath { get; set; }
         public string ResponseTriggerFilePath { get; set; }
     }
+
+    public class PCISubmittedBatchDetail
+    {
+        public int PrintBatch { get; set; }
+        public string PrintFileName { get; set; }
+        public DateTime DueDate { get; set; }
+        public DateTime SubmittedOn { get; set; }
+        public string ShippingCarrier { get; set; }
+        public string ShippingServiceType { get; set; }
+        public int PackageCount { get; set; }
+        public int TotalPages { get; set; }
+    }
 }
