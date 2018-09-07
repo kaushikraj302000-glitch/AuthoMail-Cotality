@@ -22,8 +22,9 @@ namespace AM.Services
 
         public string ToFirm { get; set; }
 
+        [XmlElement(ElementName = "ToAddress1")]
         public string ToAptOrSuiteorOther { get; set; }
-
+        [XmlElement(ElementName = "ToAddress2")]
         public string ToStreetAddress { get; set; }
 
         public string ToCity { get; set; }
