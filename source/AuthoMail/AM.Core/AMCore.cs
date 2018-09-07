@@ -213,7 +213,7 @@ namespace AM.Core
                                     //if we have service changed to priority then we are updating doctypeid in database also
                                     if (doc.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY)
                                     {
-                                        string priorityDocType = mailPiece.DocumentOrPackageType + "-" + Config.Monitor_PriorityMailingText;
+                                        string priorityDocType = mailPiece.DocumentOrPackageType + Config.Monitor_PriorityMailingText;
                                         docType = docTypeSvc.GetDocTypeByDocTypeName(client.Id, priorityDocType);
 
                                         if (docType != null)
