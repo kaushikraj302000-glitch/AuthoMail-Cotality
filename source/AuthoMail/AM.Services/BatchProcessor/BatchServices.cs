@@ -165,7 +165,7 @@ namespace AM.Services
             if (status == "Received")
                 query += " AND IsReceived=1";
             else
-                query += " AND (IsAcknowledged = 1 OR IsReportPrepped = 1 OR IsReportedBack = 1)";
+                query += " AND (IsPrepped = 1 OR IsReportPrepped = 1 OR IsReportedBack = 1)";
 
             return db.ExecuteScalar<int>(query, new { StartDate = startDateTime, EndDate = endDateTime });
         }
