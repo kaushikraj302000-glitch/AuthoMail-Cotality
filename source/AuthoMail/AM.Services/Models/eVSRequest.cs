@@ -100,7 +100,8 @@ namespace AM.Services
         public string CustomerRefNo { get; set; }
 
         public string CustomerRefNo2 { get; set; }
-
+        
+        [XmlArrayItem(ElementName = "ExtraService")]
         public List<ExtraServiceType> ExtraServices { get; set; }
 
         public string CRID { get; set; }

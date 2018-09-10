@@ -95,10 +95,10 @@ namespace AM.USPSLib
         public DateTime? ScheduledDeliveryDate { get; set; }
     }
 
-    //[XmlRoot(ElementName = "ExtraService")]
     public class ExtraService
     {
-        public string ServiceID { get; set; }
+        [XmlElement(ElementName = "ServiceID")]
+        public ExtraServiceType? ServiceID { get; set; }
         public string ServiceName { get; set; }
         public decimal? Price { get; set; }
     }

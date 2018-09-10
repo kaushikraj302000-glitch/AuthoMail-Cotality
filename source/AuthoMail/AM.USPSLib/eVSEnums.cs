@@ -155,7 +155,6 @@ namespace AM.USPSLib
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
-    [XmlType(TypeName = "ExtraService")]
     public enum ExtraServiceType
     {
         [EnumMember(Value = "100")]
