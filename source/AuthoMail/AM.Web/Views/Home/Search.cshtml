@@ -463,20 +463,18 @@
                     <span class="form-control-static">{ErrorDescPopover}</span>
                 </div>
             </div>
-        </div>
-        <div class="col-md-4">
-
-
-            <div class="form-group margin-bottom-2">
-                <div class="input-group">
-                    <label for="BusinessFriendlyIdValue">Recipient Info Specified:&nbsp; </label>
-                    <span class="form-control-static">{IsRcptInfoSpecified}</span>
-                </div>
-            </div>
             <div class="form-group margin-bottom-2">
                 <div class="input-group">
                     <label for="BusinessFriendlyIdValue">Total Pages:&nbsp; </label>
                     <span class="form-control-static">{TotalPages}</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group margin-bottom-2">
+                <div class="input-group">
+                    <label for="BusinessFriendlyIdValue">Recipient Info Specified:&nbsp; </label>
+                    <span class="form-control-static">{IsRcptInfoSpecified}</span>
                 </div>
             </div>
             <div class="form-group margin-bottom-2">
@@ -489,6 +487,18 @@
                 <div class="input-group">
                     <label for="BusinessFriendlyIdValue">Recipient Address:&nbsp; </label>
                     <span class="form-control-static">{RcptAddress}</span>
+                </div>
+            </div>
+            <div class="form-group margin-bottom-2">
+                <div class="input-group">
+                    <label for="PrintLocation">Print Batch:&nbsp; </label>
+                    <span class="form-control-static">{PrintBatch}</span>
+                </div>
+            </div>
+            <div class="form-group margin-bottom-2">
+                <div class="input-group">
+                    <label for="PrintLocation">Print Location:&nbsp; </label>
+                    <span class="form-control-static">{PrintLocation}</span>
                 </div>
             </div>
             <div class="form-group margin-bottom-2">
@@ -539,18 +549,8 @@
                     <span class="form-control-static">{ReturnRcptAddress}</span>
                 </div>
             </div>
-            <div class="form-group margin-bottom-2">
-                <div class="input-group">
-                    <label for="PrintLocation">Print Location:&nbsp; </label>
-                    <span class="form-control-static">{PrintLocation}</span>
-                </div>
-            </div>
+
         </div>
-        @*<div class="col-md-3">
-
-
-
-            </div>*@
     </div>
 </div>
 @section Scripts{
@@ -667,12 +667,14 @@
                 //this.RcptName = this.RcptFirstName + " " + this.RcptMiddleName + " " + this.RcptLastName;
                 this.RcptName = this.RcptName == null ? "" : this.RcptName.trim();
                 //this.RcptAddress = this.RcptAddrOptionalLine1AboveStreet + " " + this.RcptAddrOptionalLine2AboveStreet + " " + this.RcptAddressStreet + " " + this.RcptAddressAptOrSuiteOrOther + " " + this.RcptAddrOptionalLine1BelowStreet + " " + this.RcptAddrOptionalLine2BelowStreet + " " + this.RcptAddressCity + " " + this.RcptAddressState + " " + this.RcptAddressZIP;
-                this.RcptAddress = this.RcptAddress == null ? "" : this.RcptAddress.trim();
+                var cityStateZip = this.RcptAddressCity + " " + this.RcptAddressState + " " + this.RcptAddressZIP;
+                this.RcptAddress = this.RcptAddress == null ? "" : this.RcptAddress.trim() + (cityStateZip != "" ? ", " + cityStateZip : "");
                 //this.CoRcptName = this.CoRcptPrefix + " " + this.CoRcptFirstName + " " + this.CoRcptMiddleName + " " + this.CoRcptLastName + " " + this.CoRcptSuffix;
                 //this.CoRcptName = this.CoRcptName.replace(/null/g, "").trim();
                 //this.CoRcptName = this.CoRcptName == "" ? "--" : this.CoRcptName;
                 //this.ReturnRcptName = this.RetRcptPrefix + " " + this.RetRcptFirstName + " " + this.RetRcptMiddleName + " " + this.RetRcptLastName + " " + this.RetRcptSuffix
-                this.RetRcptName = this.RetRcptName == null ? "" : this.RetRcptName.replace(/null/g, "").trim();
+                var returnCityStateZip = this.RetRcptAddressCity + " " + this.RetRcptAddressState + " " + this.RetRcptAddressZIP;
+                this.RetRcptName = this.RetRcptName == null ? "" : this.RetRcptName.replace(/null/g, "").trim() + (returnCityStateZip != "" ? ", " + returnCityStateZip : "");
                 //this.ReturnRcptAddress = this.RetRcptAddrOptionalLine1AboveStreet + " " + this.RetRcptAddrOptionalLine2AboveStreet + " " + this.RetRcptAddressStreet + " " + this.RetRcptAddressAptOrSuiteOrOther + " " + this.RetRcptAddrOptionalLine1BelowStreet + " " + this.RetRcptAddrOptionalLine2BelowStreet + " " + this.RetRcptAddressCity + " " + this.RetRcptAddressState + " " + this.RetRcptAddressZIP;
                 this.RetRcptAddress = this.RetRcptAddress == null ? "" : this.RetRcptAddress.replace(/null/g, "").trim();
                 switch (this.ShippingStatus) {
@@ -826,7 +828,7 @@
                 ],
 
                 "scrollX": true,
-               
+
                 "order": [
                     [1, 'asc']
                 ],
