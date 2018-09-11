@@ -124,7 +124,7 @@ namespace AM.Web
                    .ForMember(d => d.ReceivedOn, o => o.MapFrom(s => s.MailBatches == null ? null : s.MailBatches.ReceivedOn))
                    .ForMember(d => d.SFTChannels, o => o.MapFrom(s => s.MailBatches != null ? (s.MailBatches.SFTChannels.Title != null ? s.MailBatches.SFTChannels.Title : "") : null))
                    .ForMember(d => d.DocTypeCode, o => o.MapFrom(s => s.DocTypes == null ? null : s.DocTypes.DocTypeCode))
-                   .ForMember(d => d.PrintBatch, o => o.MapFrom(s => s.MRDFRequests != null ? s.MRDFRequests.JobId.ToString() : null));
+                   .ForMember(d => d.PrintBatch, o => o.MapFrom(s => s.MRDFRequests != null && s.MRDFRequests.JobId != 0 ? s.MRDFRequests.JobId.ToString() : null));
            });
         }
     }
