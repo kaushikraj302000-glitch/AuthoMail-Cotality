@@ -78,15 +78,16 @@ namespace AM.Services
 
         public MailPieces GetMailPieceByUniqueId(Guid uniqueId)
         {
-            string query = "SELECT * FROM  [AM].[MailBatches] b,[Common].[SFTChannels] ch,[Common].[Clients] c,[AM].[MailPieces] m LEFT OUTER JOIN [Profile].[Users] u ON m.PulledBackRequestedBy=u.Id LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id WHERE m.MailBatchId=b.Id AND b.SFTChannelId=ch.Id AND b.ClientId=c.Id AND m.[UniqueId] = @uniqueId";
-            return db.Query<MailBatches, SFTChannels, Clients, MailPieces, Users, DocTypes, MailPieces>(query,
-                 (b, s, c, m, u, d) =>
+            string query = "SELECT * FROM  [AM].[MailBatches] b,[Common].[SFTChannels] ch,[Common].[Clients] c,[AM].[MailPieces] m LEFT OUTER JOIN [Profile].[Users] u ON m.PulledBackRequestedBy=u.Id LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id left outer join PnS.MRDFRequest r on m.UniqueId=r.UniqueId WHERE m.MailBatchId=b.Id AND b.SFTChannelId=ch.Id AND b.ClientId=c.Id AND m.[UniqueId] = @uniqueId";
+            return db.Query<MailBatches, SFTChannels, Clients, MailPieces, Users, DocTypes, MRDFRequests, MailPieces>(query,
+                 (b, s, c, m, u, d, r) =>
                  {
                      m.Clients = c;
                      m.MailBatches = b;
                      b.SFTChannels = s;
                      m.DocTypes = d;
                      m.Users = u;
+                     m.MRDFRequests = r;
                      return m;
                  },
                  new
@@ -154,7 +155,7 @@ namespace AM.Services
 
 
         public List<DateTime> GetHolidays()
-         {
+        {
             string q = "select HolidayDate from Common.Holidays";
             return db.Query<DateTime>(q).ToList();
         }
