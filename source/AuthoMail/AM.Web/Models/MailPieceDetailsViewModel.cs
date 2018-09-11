@@ -43,11 +43,17 @@ namespace AM.Web.Models
         public string  RcptAddress { get; set; }
         public string RcptPhone { get; set; }
         public string RcptOrganization { get; set; }
+        public string RcptAddressCity { get; set; }
+        public string RcptAddressState { get; set; }
+        public string RcptAddressZIP { get; set; }
         public string CoRcptName { get; set; }
         public string CoRcptPhone { get; set; }
         public string CoRcptOrganization { get; set; }
         public string RetRcptName { get; set; }
         public string RetRcptAddress { get; set; }
+        public string RetRcptAddressCity { get; set; }
+        public string RetRcptAddressState { get; set; }
+        public string RetRcptAddressZIP { get; set; }
         public string PrintLocation { get; set; }
         public string PrintBatch { get; set; }
 
