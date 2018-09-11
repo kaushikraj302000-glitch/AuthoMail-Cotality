@@ -93,8 +93,7 @@ namespace AM.Services
                  new
                  {
                      uniqueId = uniqueId
-                 }
-                 ).ToList().First();
+                 }, splitOn: "Id,Id,Id,Id,Id,Id,UniqueId").ToList().First();
         }
 
         public List<MailPieces> GetAllData(int clientId)
