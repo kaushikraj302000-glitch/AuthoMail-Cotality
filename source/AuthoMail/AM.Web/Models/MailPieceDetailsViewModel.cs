@@ -49,6 +49,7 @@ namespace AM.Web.Models
         public string RetRcptName { get; set; }
         public string RetRcptAddress { get; set; }
         public string PrintLocation { get; set; }
+        public string PrintBatch { get; set; }
 
     }
 }
