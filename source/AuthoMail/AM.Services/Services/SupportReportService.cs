@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Dapper;
-using AM.Services.Models;
+using AM.Services;
 
-namespace AM.Services.Services
+namespace AM.Services
 {
     public interface ISupportReportService : IDisposable
     {
