@@ -100,6 +100,7 @@
     <Compile Include="Models\PullBackViewModel.cs" />
     <Compile Include="Models\Report.cs" />
     <Compile Include="Models\AuthoMailSettings.cs" />
+    <Compile Include="Models\SupportVM.cs" />
     <Compile Include="Models\USPSAddressVerify.cs" />
     <Compile Include="Models\WeeklyChartDTO.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -121,6 +122,7 @@
     <Compile Include="Services\ReCalculateDueDateService.cs" />
     <Compile Include="Services\ReportService.cs" />
     <Compile Include="Services\SearchService.cs" />
+    <Compile Include="Services\SupportReportService.cs" />
     <Compile Include="Services\SupportService.cs" />
     <Compile Include="Services\USPSService.cs" />
     <Compile Include="Services\USPSService.eVS.cs" />
