@@ -73,7 +73,7 @@ namespace AM.Services
 
         public List<MailPieceByPrintBatch> GetMailPieceByBatchId(int batchId, int clientId)
         {
-            string query = "select m.Id as MailPieceId,m.BusinessFriendlyIdValue as LoanNumber,m.DocumentOrPackageType,m.EffectiveReceivedOnEst,d.ShippingCarrier,d.ShippingServiceType,b.PrintBatch as PrintBatchId,b.PipelineStatus,m.ErrorCode,m.ErrorDesc,m.PrintedOn,m.ShippedOn,m.TotalPages,m.PrintLocation from AM.MailPieces m inner join AM.DocTypes d on m.DocTypeId=d.Id inner join PnS.MRDFRequest r on m.UniqueId=r.UniqueId inner join PnS.BatchSummary b on  r.JobId=b.PrintBatch where m.ClientId=@clientId and m.MailBatchId=@batchId";
+            string query = "select m.Id as MailPieceId,m.BusinessFriendlyIdValue as LoanNumber,m.DocumentOrPackageType,m.EffectiveReceivedOnEst,d.ShippingCarrier,d.ShippingServiceType,b.PrintBatch as PrintBatchId,b.PipelineStatus,m.ErrorCode,m.ShippingStatus,m.ErrorDesc,m.PrintedOn,m.ShippedOn,m.TotalPages,m.PrintLocation from AM.MailPieces m inner join AM.DocTypes d on m.DocTypeId=d.Id inner join PnS.MRDFRequest r on m.UniqueId=r.UniqueId inner join PnS.BatchSummary b on  r.JobId=b.PrintBatch where m.ClientId=@clientId and m.MailBatchId=@batchId";
             return db.Query<MailPieceByPrintBatch>(query, new { batchId = batchId, clientId = clientId }).ToList();
         }
     }
