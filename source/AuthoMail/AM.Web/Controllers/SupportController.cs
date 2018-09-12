@@ -52,14 +52,24 @@ namespace AM.Web.Controllers
             }
         }
 
-        public ActionResult LoanDetailsByPrintBatchId()
+        public ActionResult LoanDetailsBySubmittedOn()
         {
             return View();
         }
 
-        public ActionResult _GetLoanDetailsByPrintBatchId(int printBatchId)
+        public ActionResult _GetLoanDetailsBySubmittedOn(string date)
         {
-            return View();
+            try
+            {
+
+                var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+                var data = supportSvc.GetNotReportedBackMailPieces(User.Identity.GetClientId().Value, null, exactDate);
+                return Json(JsonResponseFactory.SuccessResponse(new { model = data.OrderByDescending(s => s.SubmittedOn) }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.ToString()), JsonRequestBehavior.AllowGet);
+            }
         }
 
         public ActionResult NotReportedBackOfMailBatches()
