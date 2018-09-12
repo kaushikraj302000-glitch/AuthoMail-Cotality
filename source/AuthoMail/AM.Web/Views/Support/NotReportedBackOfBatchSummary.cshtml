@@ -1,0 +1,461 @@
+﻿@{
+    ViewBag.Title = "Not Reported Back Of BatchSummary";
+}
+
+<link href="~/clui/dist/css/datatablecustom.css" rel="stylesheet" />
+<style>
+    #dateFilter .bootstrap-select {
+        width: 100% !important;
+    }
+
+    .bootstrap-select {
+        width: 205px !important;
+    }
+
+    .popover-content {
+        word-wrap: break-word;
+        color: red;
+    }
+</style>
+<div class="panel-group">
+    <div class="panel panel-default">
+        <div class="panel-heading" id="headingOne">
+            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#metaItem1">
+                <div class="panel-title">
+                    Not Reported Back Of BatchSummary
+                    <div class="collapsed-icon pull-right">
+                        <i class="fa fa-caret-left"></i>
+                    </div>
+                    <div class="expanded-icon pull-right">
+                        <i class="fa fa-caret-down"></i>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div id="metaItem1" class="panel-collapse collapse in">
+            <div class="panel-body">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="date">Select Date (EST)</label>
+                        <div class="input-group date" id="datepicker4">
+                            <input type="text" class="form-control" id="date">
+                            <span class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-md-3" id="dateFilter">
+                    <div class="form-group">
+                        <label for="Channel">Print Location</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="PrintLocation" placeholder="Print Location" id="PrintLocation">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-1">
+                    <div class="form-group ">
+                        <label for="filterData"> &nbsp;&nbsp;&nbsp;&nbsp;</label>
+                        <button type="button" id="filterData" class="btn btn-primary" style=" padding-top: 6%;">
+                            <span class="sr-only">Filter</span>
+                            <i class="fa fa-arrow-right fa-2x"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+<div class="modal fade" id="TrackingInfo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog modal-lg col-md-10" role="document">
+        <div class="modal-content">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <div class="modal-header">
+                <h1 id="myModalLabel">Tracking Details</h1>
+            </div>
+            <div class="modal-body">
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                @*<button type="button" class="btn btn-primary">View All</button>*@
+            </div>
+        </div>
+    </div>
+</div>
+<div class="panel panel-default">
+    <div class='alert alert-blue text-center' id="loading" style="display:none"><span> Loading... </span></div>
+    <div class="panel-heading" id="dailyHeader">
+        <div class="panel-title">
+            Not Reported Back Of BatchSummary : <span class="normaltext" id="headerdate"></span>
+            
+        </div>
+    </div>
+    <div class="panel-body" id="dailyMailPieceList"></div>
+</div>
+
+<!-- table html template code -->
+<div id="dailyTableContent" style="display:none">
+    <table class="table table-responsive" style="overflow-x:scroll">
+        <thead>
+            <tr>
+                <th>Print Batch</th>
+                <th>Client Code</th>
+                <th>Print File Name</th>
+                <th>Pipeline Status</th>
+                <th>Document Type </th>
+                <th>Shipping Carrier</th>
+                <th>ShippingServiceType</th>
+                <th>Print Location</th>
+                <th>Date Submitted <span class="fontcapitalize">(Local)</span></th>
+                <th>Job Name</th>
+                <th>Total Packages</th>
+                <th>TotalPages</th>
+            </tr>
+        </thead>
+        <tbody id="dailybodyContent"></tbody>
+    </table>
+</div>
+<div style="display:none">
+    <table>
+        <tbody id="dailyBody">
+            <tr class="row-small">
+                <td><span>{PrintBatch}</span></td>
+                <td><span>{ClientCode}</span></td>
+                <td><span data-toggle="tooltip" data-container="body" data-placement="bottom" title='{PrintFileName}'>{ShortFileName}</span></td>
+                <td><span>{PipelineStatus}</span></td>
+                <td><span>{DocTypeCode}</span></td>
+                <td><span>{ShippingCarrier}</span></td>
+                <td><span>{ShippingServiceType}</span></td>
+                <td><span>{PrintLocation}</span></td>
+                <td><span>{SubmittedOnFormatted}</span></td>
+                <td><span>{JobName}</span></td>
+                <td><span>{TotalPackages}</span></td>
+                <td><span>{TotalPages}</span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="modal fade" id="ViewInfo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog modal-lg col-md-12" role="document">
+        <div class="modal-content">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <div class="modal-header">
+                <h1 id="myModalLabel">MailPiece Details</h1>
+                <hr />
+            </div>
+            <div class="modal-body">
+                <div id="showerror" style="display:none"></div>
+                <div class='alert alert-blue text-center' id="loadingModal" style="display:none"><span> Loading... </span></div>
+                <div class="row" id="databind">
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <hr />
+                <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="templatemodal" style="display:none">
+    <div class="col-md-12">
+            <div class="form-group margin-bottom-2">
+                <div class="input-group">
+                    <label for="BusinessFriendlyIdValue">MailPiece Id:&nbsp; </label>
+                    <span class="form-control-static">{Id}</span>
+                </div>
+            </div>
+            <div class="form-group margin-bottom-2">
+                <div class="input-group">
+                    <label for="BusinessFriendlyIdValue">File Name:&nbsp; </label>
+                    <span class="form-control-static" data-toggle="tooltip" data-container="body" data-placement="bottom" title='{PrintFileName}'>{ShortFileName}</span>
+                </div>
+            </div>
+            <div class="form-group margin-bottom-2">
+                <div class="input-group">
+                    <label for="BusinessFriendlyIdValue">Unique Id:&nbsp; </label>
+                    <span class="form-control-static">{UniqueId}</span>
+                </div>
+            </div>
+            <div class="form-group margin-bottom-2">
+                <div class="input-group">
+                    <label for="BusinessFriendlyIdValue">Shipping Status:&nbsp; </label>
+                    <span class="form-control-static">{ShippingStatus}</span>
+                </div>
+            </div>
+            <div class="form-group margin-bottom-2">
+                <div class="input-group">
+                    <label for="BusinessFriendlyIdValue">Processing Timestamp:&nbsp; </label>
+                    <span class="form-control-static">{ProcessingTimeStamp}</span>
+                </div>
+            </div>
+            <div class="form-group margin-bottom-2">
+
+                <div class="input-group">
+                    <label for="BusinessFriendlyIdValue">Disposition Code:&nbsp; </label>
+                    <span class="form-control-static">{DispositionCode}</span>
+                </div>
+            </div>
+    </div>
+</div>
+
+<!-- end table template code -->
+@section Scripts{
+    @Styles.Render("~/bundles/datatablescss")
+    @Scripts.Render("~/bundles/datatables")
+    <script>
+        $(document).ready(function () {
+            window.clui.dateTimePickerInit();
+            //console.log(baseUrl);
+            FilterData();
+
+        });
+        function applyDataTable() {
+            $('[data-toggle="popover"]').popover({
+                'trigger': 'hover',
+                'placement': 'auto left',
+                'container': 'body'
+            });
+            var table = $('#sample_2');
+            var filename = "DailyDetailOperationsReport";
+            var title = "Daily Detail Operations Report";
+            var oTable = table.dataTable({
+
+                "language": {
+                    "aria": {
+                        "sortAscending": ": activate to sort column ascending",
+                        "sortDescending": ": activate to sort column descending"
+                    },
+                    "emptyTable": "No data available in table",
+                    "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+                    "infoEmpty": "No entries found",
+                    "infoFiltered": "(filtered1 from _MAX_ total entries)",
+                    "lengthMenu": "_MENU_ entries",
+                    "search": "<b>Search:</b>",
+                    "zeroRecords": "No matching records found"
+                },
+                "columnDefs": [
+                        {
+                            "targets": ["BatchId"],
+                            "visible": false,
+                            "searchable": true
+                        },
+                ],
+                "scrollX": true,
+                buttons: [
+                    //{
+                    //    extend: 'colvis',
+                    //    text: 'Select Fields',
+                    //    className: 'btn purple pull-left',
+                    //    columns: ':not(.noVis)'
+                    //},
+                {
+                    extend: 'csv',
+                    text: '<i class="fa fa-file-excel-o fa-2x"></i>',
+                    className: 'btn btn-primary',
+                    filename: filename,
+                    title: title,
+                    exportOptions: {
+                        columns: "thead th:not(.BatchId)",//[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+                    }
+
+                }
+
+
+                ],
+
+                "order": [
+                    [0, 'asc']
+                ],
+                "lengthMenu": [
+                    [5, 10, 25, 50, 100, -1],
+                    [5, 10, 25, 50, 100, "All"] // change per page values here
+                ],
+                // set the initial value
+                "pageLength": 5,
+
+                "dom": "<'row' <'col-md-12'B>><'row'<'col-md-6 col-sm-12'l><'col-md-6 col-sm-12'f>r><'table-scrollable't><'row'<'col-md-5 col-sm-12'i><'col-md-7 col-sm-12'p>>", // horizobtal scrollable datatable
+
+
+            });
+            $('.selectpicker').selectpicker('refresh');
+            $('#BatchList').on('change', function () {
+                var oTable = $('#sample_2').dataTable();
+                var filterColumn = oTable.api().column(".BatchId").index();
+                var selected = $(this).find("option:selected").val();
+                if (!selected) {
+
+                    oTable.fnFilter('', filterColumn, true);
+                } else {
+                    oTable.fnFilter("^" + parseInt(selected) + "$", filterColumn, true); //Exact value, column, reg
+                }
+            });
+        }
+        function FormatObject(Model) {
+            console.log(Model);
+            $(Model).each(function () {
+                this.ShortFileName = shortName(this.PrintFileName);
+                this.PrintBatch = '<a  data-printbatchid="' + this.PrintBatch + '" onclick="ViewDetails(this)" class="btn btn-transparent-blue btn-sm" >' + this.PrintBatch + '</a>';
+               // this.TotalPages = this.Status == "Shipped" ? this.TotalPages : 0;
+                this.SubmittedOnFormatted = this.SubmittedOn == null ? "--" : moment(this.SubmittedOn).format("MM/DD/YY HH:mm:ss");
+            });
+            return Model;
+        }
+        function FormatMailPieceObject(Model) {
+
+            $(Model).each(function () {
+                //console.log(Model)
+                
+                this.ShortFileName = shortName(this.PrintFileName);
+                this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
+                this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
+                switch (this.ShippingStatus) {
+
+                    case "PulledBack":
+                        status = '<span class="label medium label-yellow">' + this.ShippingStatus + '</span>';
+
+                        break;
+                    case "Error":
+                        status = '<span class="label medium label-red">' + this.ShippingStatus + '</span>';
+                        //status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error Code: ' + this.ErrorCode + '" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.Status + '</span>';
+                        break;
+                    case "Shipped":
+                        status = '<span class="label medium label-success">' + this.ShippingStatus + '</span>';
+                        break;
+                    case "InProgress":
+                        status = '<span class="label medium label-blue">' + this.ShippingStatus + '</span>';
+                        break;
+
+                }
+                this.ShippingStatus = status;
+            });
+            //console.log(Model);
+            return Model;
+        }
+        function shortName(str) {
+            //console.log(str);
+            if (typeof str != 'undefined' && str != null && str != "")
+                return str.length > 31 ? str.substring(0, 31) + '...' : str;
+        }
+        function ViewDetails(obj) {
+            //alert("call");
+            var printBatchId = $(obj).data("printbatchid");
+            //console.log(mailPieceId);
+            $("#databind").html("");
+            $("#ViewInfo").modal("show");
+            $("#loadingModal").show();
+            $.ajax({
+                type: "GET",
+                url: baseUrl + "Home/GetMailPieceByUniqueId",
+                data: {
+                    mailPieceId: mailPieceId
+                },
+                //contentType: "application/json; charset=utf-8",
+                success: function (response) {
+                    //console.log(response);
+                    if (response.Success) {
+                        if (response.Object != null) {
+                            if (response.Object.model != null) {
+                                $("#loadingModal").hide();
+                                var data = FormatMailPieceObject(response.Object.model);
+                                var bodyHtml = $("#templatemodal").html();
+                                $("#databind").html("");
+                                bodyHtml = bodyHtml.supplant(data);
+                                $("#databind").html(bodyHtml);
+                                $('[data-toggle="popover"]').popover({
+                                    'trigger': 'hover',
+                                    'placement': 'auto left',
+                                    'container': 'body'
+                                });
+                                window.clui.tooltipInit();
+                            }
+                            else {
+                                $("#loadingModal").hide();
+                                $("#databind").html("");
+                                $("#showerror").show();
+                                $("#showerror").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>");
+
+                            }
+                        }
+                    } else {
+                        $("#loadingModal").hide();
+                        $("#databind").html("");
+                        $("#showerror").show();
+                        $("#searchMailPieceList").show();
+                        $("#showerror").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + response.ErrorMessage + "</span></div>");
+                        // $("#ViewInfo").modal("show");
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    $("#showerror").show();
+                    $("#loadingModal").hide();
+                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
+                    $("#showerror").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
+                    $("#ViewInfo").modal("show");
+                }
+
+            });
+            //$("#ViewInfo").find(".modal-body").text(mailPieceId);
+
+        }
+        function FilterData() {
+
+            $("#dailyHeader").hide();
+            $("#dailyMailPieceList").hide();
+            var date = $("#date").val();
+            var el = $('#dailyMailPieceList');
+            $("#headerdate").html(date + " EST");
+            $("#loading").show();
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "Support/_GetNotReportedBackOfBatchSummary",
+                data: JSON.stringify({ date: date, printLocation: $("#printLocation").val() }),
+                contentType: "application/json; charset=utf-8",
+                success: function (response) {
+                    // console.log(response);
+                    if (response.Success) {
+                        if (response.Object != null) {
+                            $("#loading").hide();
+                            $("#dailyHeader").show();
+                            $("#dailyMailPieceList").show();
+                            //console.log(response.Object.model.length);
+                            if (response.Object.model.length > 0) {
+                                $("#dailyMailPieceList").html("");
+                                var data = FormatObject(response.Object.model);
+                                BindTemplate(data, "#dailyBody", "#dailybodyContent", "#dailyTableContent", "#dailyMailPieceList");
+                            }
+                            else {
+                                $("#dailyMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                            }
+                        }
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    $("#loading").hide();
+                    $("#dailyHeader").show();
+                    $("#dailyMailPieceList").show();
+                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
+                    $("#dailyMailPieceList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
+                }
+
+            });
+        }
+        $("#filterData").click(function () {
+            FilterData();
+        });
+
+    </script>
+}
+
+
+
+
+
+

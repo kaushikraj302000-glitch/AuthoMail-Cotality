@@ -21,4 +21,13 @@ namespace AM.Services
         public int TotalPackages { get; set; }
         public int TotalPages { get; set; }
     }
+    public class MailPieceByPrintBatch
+    {
+        public int PieceId { get; set; }
+        public string PDFFileName { get; set; }
+        public Guid UniqueId { get; set; }
+        public string MailPieceStatus { get; set; }
+        public string ProcessingTimeStamp { get; set; }
+        public string Disposition { get; set; }
+    }
 }
