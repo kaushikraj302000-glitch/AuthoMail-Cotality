@@ -43,7 +43,7 @@ namespace AM.Services
         public int TotalPages { get; set; }
         public string PrintLocation { get; set; }
         public int? PrintBatchId { get; set; }
-        public string PrintBatchPipelineStatus { get; set; }
+        public string PipelineStatus { get; set; }
     }
     public class MailBatchesSupport
     {
