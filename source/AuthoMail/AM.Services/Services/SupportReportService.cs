@@ -13,7 +13,7 @@ namespace AM.Services
     {
         List<NotReportedBackMailPieces> GetNotReportedBackMailPieces(int clientId, string printLocation, DateTime date);
         List<MailPieceByPrintBatch> GetMailPiecebyPrintBatch(int printBatch, int clientId);
-        List<NotReportedBackMailPieces> GetBatchsummarybyPrintBatch(int printBatch, int clientId);
+        List<NotReportedBackMailPieces> GetBatchSummarybyDate(DateTime date, int clientId);
     }
     public class SupportReportService : ServiceBase, ISupportReportService
     {
@@ -39,14 +39,14 @@ namespace AM.Services
         }
 
 
-        public List<NotReportedBackMailPieces> GetBatchsummarybyPrintBatch(int printBatch, int clientId)
+        public List<NotReportedBackMailPieces> GetBatchSummarybyDate(DateTime date, int clientId)
         {
-            string query = "select bs.PrintBatch,bs.PrintLocation,bs.SubmittedOn,bs.JobName,bs.PrintFileName,bs.PipelineStatus, c.AppCode as ClientCode,d.DocTypeCode, d.ShippingCarrier,d.ShippingServiceType,Count(m.Id) as TotalPackages,Sum(m.TotalPages) as TotalPages from PnS.MRDFRequest rq inner join PnS.BatchSummary bs on rq.JobId=bs.PrintBatch inner join Common.Clients c on bs.ClientId=c.Id inner join AM.DocTypes d on bs.DocTypeId=d.Id inner join AM.MailPieces m on rq.UniqueId=m.UniqueId where c.Id=@clientId and bs.PrintBatch=@printBatch group by bs.PrintBatch,bs.PrintLocation,bs.SubmittedOn,bs.JobName,bs.PrintFileName,bs.PipelineStatus, c.AppCode,d.DocTypeCode, d.ShippingCarrier,d.ShippingServiceType";
+            string query = "select bs.PrintBatch,bs.PrintLocation,bs.SubmittedOn,bs.JobName,bs.PrintFileName,bs.PipelineStatus, c.AppCode as ClientCode,d.DocTypeCode, d.ShippingCarrier,d.ShippingServiceType,Count(m.Id) as TotalPackages,Sum(m.TotalPages) as TotalPages from PnS.MRDFRequest rq inner join PnS.BatchSummary bs on rq.JobId=bs.PrintBatch inner join Common.Clients c on bs.ClientId=c.Id inner join AM.DocTypes d on bs.DocTypeId=d.Id inner join AM.MailPieces m on rq.UniqueId=m.UniqueId where c.Id=@clientId and bs.SubmittedOn <= @date group by bs.PrintBatch,bs.PrintLocation,bs.SubmittedOn,bs.JobName,bs.PrintFileName,bs.PipelineStatus, c.AppCode,d.DocTypeCode, d.ShippingCarrier,d.ShippingServiceType";
             return db.Query<NotReportedBackMailPieces>(query,
                 new
                 {
                     ClientId = clientId,
-                    printBatch = printBatch
+                    date = date
                 }).ToList();
         }
     }
