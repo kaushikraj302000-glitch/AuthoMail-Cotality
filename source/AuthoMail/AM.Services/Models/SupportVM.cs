@@ -30,6 +30,18 @@ namespace AM.Services
         public string ProcessingTimeStamp { get; set; }
         public string Disposition { get; set; }
         public int MailPieceId { get; set; }
+        public string LoanNumber { get; set; }
+        public string DocumentOrPackageType { get; set; }
+        public DateTime? EffectiveReceivedOn { get; set; }
+        public string ShippingCarrier { get; set; }
+        public string ShippingServiceType { get; set; }
+        public string ShippingStatus { get; set; }
+        public string ErrorCode { get; set; }
+        public string ErrorDesc { get; set; }
+        public DateTime? PrintedOn { get; set; }
+        public DateTime? ShippedOn { get; set; }
+        public int TotalPages { get; set; }
+        public string PrintLocation { get; set; }
     }
     public class MailBatchesSupport
     {
