@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AM.Lib;
 using System.Xml.Serialization;
 
 namespace AM.USPSLib
@@ -12,11 +11,15 @@ namespace AM.USPSLib
     {
         public List<AddressResponse> AddressResponses { get; private set; }
         public string Error { get; set; }
-        public bool HasError { get { return !this.Error.IsNullOrWhiteSpace(); } }
+        public bool HasError { get { return !string.IsNullOrWhiteSpace(this.Error); } }
 
         public VerifierAddressResponse(List<AddressResponse> responseList)
         {
             this.AddressResponses = responseList;
+        }
+        public VerifierAddressResponse()
+        {
+            this.AddressResponses = new List<AddressResponse>();
         }
     }
 
@@ -43,7 +46,7 @@ namespace AM.USPSLib
 
         public string Zip4 { get; set; }
 
-        public string Zip { get { return string.Join("-", new string[] { Zip5, Zip4 }.Where(s => !s.IsNullOrWhiteSpace())); } }
+        public string Zip { get { return string.Join("-", new string[] { Zip5, Zip4 }.Where(s => !string.IsNullOrWhiteSpace(s))); } }
 
         public string DeliveryPoint { get; set; }
 
@@ -79,9 +82,9 @@ namespace AM.USPSLib
         public AddressResponse(AddressRequest request, int order)
         {
             this.AddressRequest = request;
-            this.Id = "{0}{1}{2}".Fill(order, ResponseSource.CLSVC, request == null ? "" : request.Id);
+            this.Id = string.Format("{0}{1}{2}", order, ResponseSource.CLSVC, request == null ? "" : request.Id);
         }
-        private AddressResponse()
+        public AddressResponse()
         {
 
         }

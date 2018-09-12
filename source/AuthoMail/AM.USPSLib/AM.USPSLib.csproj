@@ -50,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AuthenticatedHttpClientHandler.cs" />
     <Compile Include="eVSCustomsFormsData.cs" />
     <Compile Include="eVSEnums.cs" />
     <Compile Include="eVSLabelRequest.cs" />
@@ -65,12 +66,6 @@
     <Compile Include="USPSError.cs" />
     <Compile Include="VerifierAddressRequest.cs" />
     <Compile Include="VerifierAddressResponse.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\AM.Lib\AM.Lib.csproj">
-      <Project>{75996573-6449-4675-a5ff-f1c39c84d685}</Project>
-      <Name>AM.Lib</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
