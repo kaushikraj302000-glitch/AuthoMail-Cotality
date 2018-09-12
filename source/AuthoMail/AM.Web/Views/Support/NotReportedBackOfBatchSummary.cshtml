@@ -102,7 +102,7 @@
     <table class="table table-responsive" style="overflow-x:scroll">
         <thead>
             <tr>
-                <th>Print Batch Id</th>
+                <th>Print Batch</th>
                 <th>Client Code</th>
                 <th>Print File Name</th>
                 <th>Pipeline Status</th>
@@ -123,11 +123,11 @@
     <table>
         <tbody id="dailyBody">
             <tr class="row-small">
-                <td><span>{PrintBatchId}</span></td>
+                <td><span>{PrintBatch}</span></td>
                 <td><span>{ClientCode}</span></td>
-                <td><span>{FileName}</span></td>
+                <td><span data-toggle="tooltip" data-container="body" data-placement="bottom" title='{PrintFileName}'>{ShortFileName}</span></td>
                 <td><span>{PipelineStatus}</span></td>
-                <td><span>{DocType}</span></td>
+                <td><span>{DocTypeCode}</span></td>
                 <td><span>{ShippingCarrier}</span></td>
                 <td><span>{ShippingServiceType}</span></td>
                 <td><span>{PrintLocation}</span></td>
@@ -175,7 +175,7 @@
             <div class="form-group margin-bottom-2">
                 <div class="input-group">
                     <label for="BusinessFriendlyIdValue">File Name:&nbsp; </label>
-                    <span class="form-control-static" data-toggle="tooltip" data-container="body" data-placement="bottom" title='{FileName}'>{ShortFileName}</span>
+                    <span class="form-control-static" data-toggle="tooltip" data-container="body" data-placement="bottom" title='{PrintFileName}'>{ShortFileName}</span>
                 </div>
             </div>
             <div class="form-group margin-bottom-2">
@@ -301,7 +301,8 @@
         function FormatObject(Model) {
             console.log(Model);
             $(Model).each(function () {
-                this.PrintBatchId = '<a  data-printbatchid="' + this.PrintBatchId + '" onclick="ViewDetails(this)" class="btn btn-transparent-blue btn-sm" >' + this.PrintBatchId + '</a>';
+                this.ShortFileName = shortName(this.PrintFileName);
+                this.PrintBatch = '<a  data-printbatchid="' + this.PrintBatch + '" onclick="ViewDetails(this)" class="btn btn-transparent-blue btn-sm" >' + this.PrintBatch + '</a>';
                // this.TotalPages = this.Status == "Shipped" ? this.TotalPages : 0;
                 this.SubmittedOnFormatted = this.SubmittedOn == null ? "--" : moment(this.SubmittedOn).format("MM/DD/YY HH:mm:ss");
             });
@@ -312,7 +313,7 @@
             $(Model).each(function () {
                 //console.log(Model)
                 
-                this.ShortFileName = shortName(this.FileName);
+                this.ShortFileName = shortName(this.PrintFileName);
                 this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
                 this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
                 switch (this.ShippingStatus) {
@@ -337,6 +338,11 @@
             });
             //console.log(Model);
             return Model;
+        }
+        function shortName(str) {
+            //console.log(str);
+            if (typeof str != 'undefined' && str != null && str != "")
+                return str.length > 31 ? str.substring(0, 31) + '...' : str;
         }
         function ViewDetails(obj) {
             //alert("call");
