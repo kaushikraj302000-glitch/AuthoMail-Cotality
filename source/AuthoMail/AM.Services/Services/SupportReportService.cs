@@ -66,7 +66,7 @@ namespace AM.Services
 
         public List<MailBatchesSupport> GetMailBatchesbyDate(DateTime date, int clientId)
         {
-            string query = "select mb.Id as MailBatchId,mb.BatchName as MailBatchName,c.Name as Client,mb.PipelineStatus,mb.BatchStatus, mb.ValidationStatus,mb.ValidationErrors,c.AppCode,mb.ReceivedOn,mb.DownloadedOn from PnS.MRDFRequest rq inner join PnS.BatchSummary bs on rq.JobId=bs.PrintBatch inner join Common.Clients c on bs.ClientId=c.Id inner join AM.DocTypes d on bs.DocTypeId=d.Id inner join AM.MailPieces m on rq.UniqueId=m.UniqueId inner join AM.MailBatches mb on m.MailBatchId=mb.Id where c.Id=@clientId and bs.PipelineStatus not in ('ReportedBack','Cancelled') and bs.SubmittedOn <= @date";
+            string query = "select mb.Id as MailBatchId,mb.BatchName as MailBatchName,c.Name as Client,mb.PipelineStatus,mb.BatchStatus, mb.ValidationStatus,mb.ValidationErrors,c.AppCode,mb.ReceivedOn,mb.DownloadedOn from AM.MailBatches mb inner join Common.Clients c on bs.ClientId=c.Id inner join AM.MailBatches mb on m.MailBatchId=mb.Id where c.Id=@clientId and cast(bs.ReceivedOn as date) = cast(@date as date)";
             return db.Query<MailBatchesSupport>(query, new { date = date, clientId = clientId }).ToList();
         }
 
