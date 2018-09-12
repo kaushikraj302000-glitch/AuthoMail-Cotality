@@ -42,11 +42,20 @@ namespace AM.Services
         public DateTime? ShippedOn { get; set; }
         public int TotalPages { get; set; }
         public string PrintLocation { get; set; }
+        public int? PrintBatchId { get; set; }
+        public string PrintBatchPipelineStatus { get; set; }
     }
     public class MailBatchesSupport
     {
         public int MailBatchId { get; set; }
-        public int MyProperty { get; set; }
+        public string MailBatchName { get; set; }
+        public string Client { get; set; }
+        public string PipelineStatus { get; set; }
+        public string BatchStatus { get; set; }
+        public string ValidationStatus { get; set; }
+        public string ValidationErrors { get; set; }
+        public string AppCode { get; set; }
+        public DateTime? ReceivedOn { get; set; }
+        public DateTime? DownloadedOn { get; set; }
     }
-    
 }
