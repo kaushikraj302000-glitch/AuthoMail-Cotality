@@ -26,7 +26,7 @@ namespace AM.Web
             Exception exception = Server.GetLastError();
             Response.Clear();
             HttpException httpException = exception as HttpException;
-            if (exception != null)
+            if (httpException != null)
             {
                 if (httpException.GetHttpCode() == 400)
                 {

@@ -88,17 +88,17 @@
 </div>
 <div class="panel panel-default">
     <div class='alert alert-blue text-center' id="loading" style="display:none"><span> Loading... </span></div>
-    <div class="panel-heading" id="dailyHeader">
+    <div class="panel-heading" id="supportHeader">
         <div class="panel-title">
             Not Reported Back Of BatchSummary : <span class="normaltext" id="headerdate"></span>
             
         </div>
     </div>
-    <div class="panel-body" id="dailyMailPieceList"></div>
+    <div class="panel-body" id="supportMailPieceList"></div>
 </div>
 
 <!-- table html template code -->
-<div id="dailyTableContent" style="display:none">
+<div id="supportTableContent" style="display:none">
     <table class="table table-responsive" style="overflow-x:scroll">
         <thead>
             <tr>
@@ -116,12 +116,12 @@
                 <th>TotalPages</th>
             </tr>
         </thead>
-        <tbody id="dailybodyContent"></tbody>
+        <tbody id="supportbodyContent"></tbody>
     </table>
 </div>
 <div style="display:none">
     <table>
-        <tbody id="dailyBody">
+        <tbody id="supportBody">
             <tr class="row-small">
                 <td><span>{PrintBatch}</span></td>
                 <td><span>{ClientCode}</span></td>
@@ -140,6 +140,35 @@
     </table>
 </div>
 
+<div id="printBatchTableContent" style="display:none">
+    <table class="table table-responsive" style="overflow-x:scroll">
+        <thead>
+            <tr>
+                <th>PieceId</th>
+                <th>MailPiece Status</th>
+                <th>PDF File Name</th>
+                <th>Processing Timestamp<span class="fontcapitalize">(Local)</span></th>
+                <th>Unique Id</th>
+                <th>Disposition</th>
+            </tr>
+        </thead>
+        <tbody id="printBatchbodyContent"></tbody>
+    </table>
+</div>
+<div style="display:none">
+    <table>
+        <tbody id="printBatchBody">
+            <tr class="row-small">
+                <td><span>{PieceId}</span></td>
+                <td><span>{MailPieceStatus}</span></td>
+                <td><span data-toggle="tooltip" data-container="body" data-placement="bottom" title='{PDFFileName}'>{ShortFileName}</span></td>
+                <td><span>{ProcessingTimeStamp}</span></td>
+                <td><span>{UniqueId}</span></td>
+                <td><span>{Disposition}</span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 <div class="modal fade" id="ViewInfo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
     <div class="modal-dialog modal-lg col-md-12" role="document">
         <div class="modal-content">
@@ -163,49 +192,6 @@
         </div>
     </div>
 </div>
-
-<div id="templatemodal" style="display:none">
-    <div class="col-md-12">
-            <div class="form-group margin-bottom-2">
-                <div class="input-group">
-                    <label for="BusinessFriendlyIdValue">MailPiece Id:&nbsp; </label>
-                    <span class="form-control-static">{Id}</span>
-                </div>
-            </div>
-            <div class="form-group margin-bottom-2">
-                <div class="input-group">
-                    <label for="BusinessFriendlyIdValue">File Name:&nbsp; </label>
-                    <span class="form-control-static" data-toggle="tooltip" data-container="body" data-placement="bottom" title='{PrintFileName}'>{ShortFileName}</span>
-                </div>
-            </div>
-            <div class="form-group margin-bottom-2">
-                <div class="input-group">
-                    <label for="BusinessFriendlyIdValue">Unique Id:&nbsp; </label>
-                    <span class="form-control-static">{UniqueId}</span>
-                </div>
-            </div>
-            <div class="form-group margin-bottom-2">
-                <div class="input-group">
-                    <label for="BusinessFriendlyIdValue">Shipping Status:&nbsp; </label>
-                    <span class="form-control-static">{ShippingStatus}</span>
-                </div>
-            </div>
-            <div class="form-group margin-bottom-2">
-                <div class="input-group">
-                    <label for="BusinessFriendlyIdValue">Processing Timestamp:&nbsp; </label>
-                    <span class="form-control-static">{ProcessingTimeStamp}</span>
-                </div>
-            </div>
-            <div class="form-group margin-bottom-2">
-
-                <div class="input-group">
-                    <label for="BusinessFriendlyIdValue">Disposition Code:&nbsp; </label>
-                    <span class="form-control-static">{DispositionCode}</span>
-                </div>
-            </div>
-    </div>
-</div>
-
 <!-- end table template code -->
 @section Scripts{
     @Styles.Render("~/bundles/datatablescss")
@@ -224,8 +210,8 @@
                 'container': 'body'
             });
             var table = $('#sample_2');
-            var filename = "DailyDetailOperationsReport";
-            var title = "Daily Detail Operations Report";
+            var filename = "NotReportedBackOfBatchSummary";
+            var title = "Not Reported Back Of BatchSummary";
             var oTable = table.dataTable({
 
                 "language": {
@@ -272,7 +258,7 @@
                 ],
 
                 "order": [
-                    [0, 'asc']
+                    [8, 'desc']
                 ],
                 "lengthMenu": [
                     [5, 10, 25, 50, 100, -1],
@@ -299,7 +285,7 @@
             });
         }
         function FormatObject(Model) {
-            console.log(Model);
+            
             $(Model).each(function () {
                 this.ShortFileName = shortName(this.PrintFileName);
                 this.PrintBatch = '<a  data-printbatchid="' + this.PrintBatch + '" onclick="ViewDetails(this)" class="btn btn-transparent-blue btn-sm" >' + this.PrintBatch + '</a>';
@@ -309,34 +295,29 @@
             return Model;
         }
         function FormatMailPieceObject(Model) {
-
             $(Model).each(function () {
-                //console.log(Model)
-                
-                this.ShortFileName = shortName(this.PrintFileName);
-                this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
-                this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
-                switch (this.ShippingStatus) {
+                this.ShortFileName = shortName(this.PDFFileName);
+                this.ProcessingTimeStamp = this.ProcessingTimeStamp == null ? "--" : moment(this.ProcessingTimeStamp).format("MM/DD/YY HH:mm:ss");
+                switch (this.MailPieceStatus) {
 
                     case "PulledBack":
-                        status = '<span class="label medium label-yellow">' + this.ShippingStatus + '</span>';
+                        status = '<span class="label medium label-yellow">' + this.MailPieceStatus + '</span>';
 
                         break;
                     case "Error":
-                        status = '<span class="label medium label-red">' + this.ShippingStatus + '</span>';
+                        status = '<span class="label medium label-red">' + this.MailPieceStatus + '</span>';
                         //status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error Code: ' + this.ErrorCode + '" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.Status + '</span>';
                         break;
                     case "Shipped":
-                        status = '<span class="label medium label-success">' + this.ShippingStatus + '</span>';
+                        status = '<span class="label medium label-success">' + this.MailPieceStatus + '</span>';
                         break;
                     case "InProgress":
-                        status = '<span class="label medium label-blue">' + this.ShippingStatus + '</span>';
+                        status = '<span class="label medium label-blue">' + this.MailPieceStatus + '</span>';
                         break;
 
                 }
-                this.ShippingStatus = status;
+                this.MailPieceStatus = status;
             });
-            //console.log(Model);
             return Model;
         }
         function shortName(str) {
@@ -353,9 +334,9 @@
             $("#loadingModal").show();
             $.ajax({
                 type: "GET",
-                url: baseUrl + "Home/GetMailPieceByUniqueId",
+                url: baseUrl + "Support/GetDataByPrintBatchId",
                 data: {
-                    mailPieceId: mailPieceId
+                    printBatchId: printBatchId
                 },
                 //contentType: "application/json; charset=utf-8",
                 success: function (response) {
@@ -365,10 +346,7 @@
                             if (response.Object.model != null) {
                                 $("#loadingModal").hide();
                                 var data = FormatMailPieceObject(response.Object.model);
-                                var bodyHtml = $("#templatemodal").html();
-                                $("#databind").html("");
-                                bodyHtml = bodyHtml.supplant(data);
-                                $("#databind").html(bodyHtml);
+                                BindTemplateWithOutDatatable(data, "#printBatchBody", "#printBatchbodyContent", "#printBatchTableContent", "#databind");
                                 $('[data-toggle="popover"]').popover({
                                     'trigger': 'hover',
                                     'placement': 'auto left',
@@ -407,10 +385,10 @@
         }
         function FilterData() {
 
-            $("#dailyHeader").hide();
-            $("#dailyMailPieceList").hide();
+            $("#supportHeader").hide();
+            $("#supportMailPieceList").hide();
             var date = $("#date").val();
-            var el = $('#dailyMailPieceList');
+            var el = $('#supportMailPieceList');
             $("#headerdate").html(date + " EST");
             $("#loading").show();
             $.ajax({
@@ -423,26 +401,26 @@
                     if (response.Success) {
                         if (response.Object != null) {
                             $("#loading").hide();
-                            $("#dailyHeader").show();
-                            $("#dailyMailPieceList").show();
+                            $("#supportHeader").show();
+                            $("#supportMailPieceList").show();
                             //console.log(response.Object.model.length);
                             if (response.Object.model.length > 0) {
-                                $("#dailyMailPieceList").html("");
+                                $("#supportMailPieceList").html("");
                                 var data = FormatObject(response.Object.model);
-                                BindTemplate(data, "#dailyBody", "#dailybodyContent", "#dailyTableContent", "#dailyMailPieceList");
+                                BindTemplate(data, "#supportBody", "#supportbodyContent", "#supportTableContent", "#supportMailPieceList");
                             }
                             else {
-                                $("#dailyMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                                $("#supportMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                             }
                         }
                     }
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     $("#loading").hide();
-                    $("#dailyHeader").show();
-                    $("#dailyMailPieceList").show();
+                    $("#supportHeader").show();
+                    $("#supportMailPieceList").show();
                     var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
-                    $("#dailyMailPieceList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
+                    $("#supportMailPieceList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
                 }
 
             });

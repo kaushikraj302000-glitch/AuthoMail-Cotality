@@ -302,6 +302,20 @@
             $(mainDivId).find("table").attr("id", "sample_2");
             applyDataTable();
         }
+
+        function BindTemplateWithOutDatatable(model, bodyId, bodyContentId, mainTableId, mainDivId) {
+
+            var bodyHtml = $(bodyId).html();
+            var tableHtml = "";
+            $(model).each(function () {
+                tableHtml = tableHtml + bodyHtml.supplant(this);
+            });
+            // console.log(test1);
+
+            $(bodyContentId).html(tableHtml);
+            $(mainDivId).html($(mainTableId).html());
+            $(mainDivId).find("table").attr("id", "sample_2");
+        }
         function GetTrackingInfo(TrackingNo, ShippingMethod) {
             selector = "#" + TrackingNo;
             Spinners(selector, "faspinner");
