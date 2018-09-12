@@ -22,7 +22,7 @@
         <div class="panel-heading" id="headingOne">
             <a role="button" data-toggle="collapse" data-parent="#accordion" href="#metaItem1">
                 <div class="panel-title">
-                    Not Reported Back Of BatchSummary
+                    Not Reported Back Of Batch Summary
                     <div class="collapsed-icon pull-right">
                         <i class="fa fa-caret-left"></i>
                     </div>
@@ -90,7 +90,7 @@
     <div class='alert alert-blue text-center' id="loading" style="display:none"><span> Loading... </span></div>
     <div class="panel-heading" id="supportHeader">
         <div class="panel-title">
-            Not Reported Back Of BatchSummary : <span class="normaltext" id="headerdate"></span>
+            Not Reported Back Of Batch Summary : <span class="normaltext" id="headerdate"></span>
             
         </div>
     </div>
@@ -144,12 +144,20 @@
     <table class="table table-responsive" style="overflow-x:scroll">
         <thead>
             <tr>
-                <th>PieceId</th>
-                <th>MailPiece Status</th>
+                
+                <th>MailPieceId</th>
+                <th>LoanNumber</th>
                 <th>PDF File Name</th>
-                <th>Processing Timestamp<span class="fontcapitalize">(Local)</span></th>
-                <th>Unique Id</th>
-                <th>Disposition</th>
+                <th>DocumentType</th>
+                <th>Effective Received Date<span class="fontcapitalize">(Local)</span></th>
+                <th>Shipping Carrier</th>
+                <th>Shipping Service Type</th>
+                <th>Shipping Status</th>
+                <th>ErrorCode</th>
+                <th>ErrrorDesc</th>
+                <th>Shipped Date<span class="fontcapitalize">(Local)</span></th>
+                <th>TotalPages</th>
+                <th>PrintLocation</th>
             </tr>
         </thead>
         <tbody id="printBatchbodyContent"></tbody>
@@ -159,12 +167,20 @@
     <table>
         <tbody id="printBatchBody">
             <tr class="row-small">
-                <td><span>{PieceId}</span></td>
-                <td><span>{MailPieceStatus}</span></td>
-                <td><span data-toggle="tooltip" data-container="body" data-placement="bottom" title='{PDFFileName}'>{ShortFileName}</span></td>
-                <td><span>{ProcessingTimeStamp}</span></td>
-                <td><span>{UniqueId}</span></td>
-                <td><span>{Disposition}</span></td>
+                MailPieceId,LoanNumber,DocumentType,EffectiveReceivedOn, ShippingCarrier,ShippingServiceType,ShippingStatus,ErrorCode,ErrrorDesc,PrintedOn,ShippedOn,TotalPages,PrintLocation
+                <td><span>{MailPieceId}</span></td>
+                <td><span>{LoanNumber}</span></td>
+                <td><span>{DocumentType}</span></td>
+                <td><span>{EffectiveReceivedOn}</span></td>
+                <td><span>{ShippingCarrier}</span></td>
+                <td><span>{ShippingServiceType}</span></td>
+                <td><span>{ShippingStatus}</span></td>
+                <td><span>{ErrorCode}</span></td>
+                <td><span>{ErrrorDesc}</span></td>
+                <td><span>{PrintedOn}</span></td>
+                <td><span>{ShippedOn}</span></td>
+                <td><span>{TotalPages}</span></td>
+                <td><span>{PrintLocation}</span></td>
             </tr>
         </tbody>
     </table>
