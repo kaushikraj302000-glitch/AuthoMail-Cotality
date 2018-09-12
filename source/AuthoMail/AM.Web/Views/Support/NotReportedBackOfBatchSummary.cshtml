@@ -144,18 +144,12 @@
     <table class="table table-responsive" style="overflow-x:scroll">
         <thead>
             <tr>
-                <th>Print Batch</th>
-                <th>Client Code</th>
-                <th>Print File Name</th>
-                <th>Pipeline Status</th>
-                <th>Document Type </th>
-                <th>Shipping Carrier</th>
-                <th>ShippingServiceType</th>
-                <th>Print Location</th>
-                <th>Date Submitted <span class="fontcapitalize">(Local)</span></th>
-                <th>Job Name</th>
-                <th>Total Packages</th>
-                <th>TotalPages</th>
+                <th>PieceId</th>
+                <th>MailPiece Status</th>
+                <th>PDF File Name</th>
+                <th>Processing Timestamp<span class="fontcapitalize">(Local)</span></th>
+                <th>Unique Id</th>
+                <th>Disposition</th>
             </tr>
         </thead>
         <tbody id="printBatchbodyContent"></tbody>
@@ -175,7 +169,29 @@
         </tbody>
     </table>
 </div>
+<div class="modal fade" id="ViewInfo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog modal-lg col-md-12" role="document">
+        <div class="modal-content">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <div class="modal-header">
+                <h1 id="myModalLabel">MailPiece Details</h1>
+                <hr />
+            </div>
+            <div class="modal-body">
+                <div id="showerror" style="display:none"></div>
+                <div class='alert alert-blue text-center' id="loadingModal" style="display:none"><span> Loading... </span></div>
+                <div class="row" id="databind">
 
+                </div>
+            </div>
+            <div class="modal-footer">
+                <hr />
+                <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+
+            </div>
+        </div>
+    </div>
+</div>
 <!-- end table template code -->
 @section Scripts{
     @Styles.Render("~/bundles/datatablescss")
@@ -330,11 +346,7 @@
                             if (response.Object.model != null) {
                                 $("#loadingModal").hide();
                                 var data = FormatMailPieceObject(response.Object.model);
-                                var bodyHtml = $("#templatemodal").html();
-                                $("#databind").html("");
-                                console.log(data);
-                                bodyHtml = bodyHtml.supplant(data);
-                                $("#databind").html(bodyHtml);
+                                BindTemplateWithOutDatatable(data, "#printBatchBody", "#printBatchbodyContent", "#printBatchTableContent", "#databind");
                                 $('[data-toggle="popover"]').popover({
                                     'trigger': 'hover',
                                     'placement': 'auto left',
