@@ -43,14 +43,8 @@ namespace AM.Web.Controllers
         {
             try
             {
-
-
-                //var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, exactStartDate, exactEndDate, docType, status, channel, clientBatchId, mailBatchId, trackingNumber);
-
-                //var model = Mapper.Map<List<SearchViewModel>>(data);
-
-                //return Json(JsonResponseFactory.SuccessResponse(new { model = data.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
-                return null;
+                var data = supportSvc.GetMailPiecebyPrintBatch(printBatchId, User.Identity.GetClientId().Value);
+                return Json(JsonResponseFactory.SuccessResponse(new { model = data }), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
             {
