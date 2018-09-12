@@ -29,5 +29,7 @@ namespace AM.Services
         public string MailPieceStatus { get; set; }
         public string ProcessingTimeStamp { get; set; }
         public string Disposition { get; set; }
+        public int MailPieceId { get; set; }
     }
+    
 }
