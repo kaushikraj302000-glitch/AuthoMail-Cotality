@@ -234,7 +234,7 @@ namespace AM.Services
                     await responseLog.ConfigureAwait(false);
                 }
 
-                return await Task.Run(() => new VerifierAddressResponse(addressResponses)).ConfigureAwait(false);
+                return new VerifierAddressResponse(addressResponses);
             }
             catch (Exception ex)
             {

@@ -57,7 +57,6 @@ namespace AM.Services
                 Task<int> uspsReqLog = null;
                 int uspsReqLogAwait = 0;
                 eVSResponse eVSresponse = null;
-                eVSLabelResponse eVSLabelresponse = null;
 
                 var eVSrequest = new eVSRequest(request);
                 eVSrequest.USERID = Config.Web_API_USPS_UserId;
@@ -149,11 +148,11 @@ namespace AM.Services
                         apiResponseLog = db.ExecuteAsync("Update [API].[USPSeVS] set APIResponse = @APIResponse, APIResponseOn = @APIResponseOn, BarcodeNumber = @BarcodeNumber, Postage = @Postage,CommitmentName = @CommitmentName,ScheduledDeliveryDate = @ScheduledDeliveryDate Where Id = @Id", new { APIResponse = responseXML, APIResponseOn = Common.Now, BarcodeNumber = eVSresponse.BarcodeNumber, Postage = eVSresponse.Postage, CommitmentName = commitmentName, ScheduledDeliveryDate = scheduledDeliveryDate, Id = logId });
                     }
 
-                    eVSLabelresponse = eVSLabelResponse(eVSresponse);
+                    var eVSLabelresponse = eVSLabelResponse(eVSresponse);
 
                     apiResponseLogAwait = await apiResponseLog.ConfigureAwait(false);
 
-                    return await Task.Run(() => eVSLabelresponse).ConfigureAwait(false);
+                    return eVSLabelresponse;
                 }
             }
             catch (Exception ex)

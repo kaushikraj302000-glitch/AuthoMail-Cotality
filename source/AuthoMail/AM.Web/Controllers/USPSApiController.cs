@@ -9,6 +9,7 @@ using AM.Entities;
 using AM.Services;
 using AM.USPSLib;
 using Microsoft.AspNet.Identity;
+using System.Threading.Tasks;
 
 namespace AM.Web.Controllers
 {
@@ -25,16 +26,16 @@ namespace AM.Web.Controllers
 
         [Route("verify")]
         [HttpPost]
-        public VerifierAddressResponse VerifyAddress([FromBody]VerifierAddressRequest addressRequest)
+        public async Task<VerifierAddressResponse> VerifyAddress([FromBody]VerifierAddressRequest addressRequest)
         {
-            return uspsSvc.VerifyAddressAsync(User.Identity.GetUserId(), addressRequest).Result;
+            return await uspsSvc.VerifyAddressAsync(User.Identity.GetUserId(), addressRequest).ConfigureAwait(false);
         }
 
         [Route("eVS")]
         [HttpPost]
-        public eVSLabelResponse RequesteVSLabel([FromBody]eVSLabelRequest request)
+        public async Task<eVSLabelResponse> RequesteVSLabel([FromBody]eVSLabelRequest request)
         {
-            return uspsSvc.RequesteVSLabelAsync(User.Identity.GetUserId(), request).Result;
+            return await uspsSvc.RequesteVSLabelAsync(User.Identity.GetUserId(), request).ConfigureAwait(false);
         }
     }
 }
