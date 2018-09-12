@@ -138,12 +138,19 @@
     <table class="table table-responsive" style="overflow-x:scroll">
         <thead>
             <tr>
-                <th>PieceId</th>
-                <th>MailPiece Status</th>
-                <th>PDF File Name</th>
-                <th>Processing Timestamp<span class="fontcapitalize">(Local)</span></th>
-                <th>Unique Id</th>
-                <th>Disposition</th>
+                <th>MailPiece Id</th>
+                <th>Loan Number</th>
+                <th>Document Type</th>
+                <th>Effective Received Date<span class="fontcapitalize">(Local)</span></th>
+                <th>Shipping Carrier</th>
+                <th>Shipping Service Type</th>
+                <th>Shipping Status</th>
+                <th>Error Code</th>
+                <th>Errror Desc</th>
+                <th>Printed Date<span class="fontcapitalize">(Local)</span></th>
+                <th>Shipped Date<span class="fontcapitalize">(Local)</span></th>
+                <th>Total Pages</th>
+                <th>Print Location</th>
             </tr>
         </thead>
         <tbody id="printBatchbodyContent"></tbody>
@@ -153,12 +160,19 @@
     <table>
         <tbody id="printBatchBody">
             <tr class="row-small">
-                <td><span>{PieceId}</span></td>
-                <td><span>{MailPieceStatus}</span></td>
-                <td><span data-toggle="tooltip" data-container="body" data-placement="bottom" title='{PDFFileName}'>{ShortFileName}</span></td>
-                <td><span>{ProcessingTimeStamp}</span></td>
-                <td><span>{UniqueId}</span></td>
-                <td><span>{Disposition}</span></td>
+                <td><span>{MailPieceId}</span></td>
+                <td><span>{LoanNumber}</span></td>
+                <td><span>{DocumentOrPackageType}</span></td>
+                <td><span>{EffectiveReceivedOnEst}</span></td>
+                <td><span>{ShippingCarrier}</span></td>
+                <td><span>{ShippingServiceType}</span></td>
+                <td><span>{ShippingStatus}</span></td>
+                <td><span>{ErrorCode}</span></td>
+                <td><span>{ErrorDescPopover}</span></td>
+                <td><span>{PrintedOn}</span></td>
+                <td><span>{ShippedOn}</span></td>
+                <td><span>{TotalPages}</span></td>
+                <td><span>{PrintLocation}</span></td>
             </tr>
         </tbody>
     </table>
@@ -290,27 +304,32 @@
         }
         function FormatMailPieceObject(Model) {
             $(Model).each(function () {
-                this.ShortFileName = shortName(this.PDFFileName);
-                this.ProcessingTimeStamp = this.ProcessingTimeStamp == null ? "--" : moment(this.ProcessingTimeStamp).format("MM/DD/YY HH:mm:ss");
-                switch (this.MailPieceStatus) {
+                //this.ShortFileName = shortName(this.PDFFileName);
+                this.ShippedOn = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
+                this.EffectiveReceivedOnEst = this.EffectiveReceivedOnEst == null ? "--" : moment(this.EffectiveReceivedOnEst).format("MM/DD/YY HH:mm:ss");
+                this.PrintedOn = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
+                var eddDesc = '<span id="popoverError" data-toggle="popover" data-original-title="Error Code: <ErrorCode>" data-html="true" data-content="<dataContent>" data-placement="left"><a> <ErrorCode> </a></span>'.replace(/<ErrorCode>/g, this.ErrorCode).replace("<dataContent>", this.ErrorDesc == null ? "--" : this.ErrorDesc);
+                this.ErrorDescPopover = this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>' : eddDesc;
+              
+                switch (this.ShippingStatus) {
 
                     case "PulledBack":
-                        status = '<span class="label medium label-yellow">' + this.MailPieceStatus + '</span>';
+                        status = '<span class="label medium label-yellow">' + this.ShippingStatus + '</span>';
 
                         break;
                     case "Error":
-                        status = '<span class="label medium label-red">' + this.MailPieceStatus + '</span>';
+                        status = '<span class="label medium label-red">' + this.ShippingStatus + '</span>';
                         //status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error Code: ' + this.ErrorCode + '" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.Status + '</span>';
                         break;
                     case "Shipped":
-                        status = '<span class="label medium label-success">' + this.MailPieceStatus + '</span>';
+                        status = '<span class="label medium label-success">' + this.ShippingStatus + '</span>';
                         break;
                     case "InProgress":
-                        status = '<span class="label medium label-blue">' + this.MailPieceStatus + '</span>';
+                        status = '<span class="label medium label-blue">' + this.ShippingStatus + '</span>';
                         break;
 
                 }
-                this.MailPieceStatus = status;
+                this.ShippingStatus = status;
             });
             return Model;
         }
@@ -328,18 +347,19 @@
             $("#loadingModal").show();
             $.ajax({
                 type: "GET",
-                url: baseUrl + "Support/GetDataByPrintBatchId",
+                url: baseUrl + "Support/GetMailPieceWithBatchSummaryByPrintBatch",
                 data: {
                     printBatchId: printBatchId
                 },
                 //contentType: "application/json; charset=utf-8",
                 success: function (response) {
-                    //console.log(response);
+                    //console.log(response);    
                     if (response.Success) {
                         if (response.Object != null) {
                             if (response.Object.model != null) {
                                 $("#loadingModal").hide();
                                 var data = FormatMailPieceObject(response.Object.model);
+                                console.log(data);
                                 BindTemplateWithOutDatatable(data, "#printBatchBody", "#printBatchbodyContent", "#printBatchTableContent", "#databind");
                                 $('[data-toggle="popover"]').popover({
                                     'trigger': 'hover',
@@ -347,6 +367,7 @@
                                     'container': 'body'
                                 });
                                 window.clui.tooltipInit();
+                                setModalHeight("ViewInfo");
                             }
                             else {
                                 $("#loadingModal").hide();
@@ -375,6 +396,19 @@
 
             });
             //$("#ViewInfo").find(".modal-body").text(mailPieceId);
+
+        }
+        function setModalHeight(id) {
+            var bodyHeight = $("body").height();
+            var count = $("#" + id).find("tr").length;//.find(".modal-body").height();
+            if (count > 5) {
+                $("#" + id).find(".modal-body").height(bodyHeight - 750);
+                $("#" + id).find(".modal-body").css("overflow-y", "scroll");
+            }
+            else {
+                $("#" + id).find(".modal-body").height('auto');
+
+            }
 
         }
         function FilterData() {

@@ -91,7 +91,7 @@
     <div class="panel-heading" id="supportHeader">
         <div class="panel-title">
             Not Reported Back Of Batch Summary : <span class="normaltext" id="headerdate"></span>
-            
+
         </div>
     </div>
     <div class="panel-body" id="supportMailPieceList"></div>
@@ -141,23 +141,15 @@
 </div>
 
 <div id="printBatchTableContent" style="display:none">
-    <table class="table table-responsive" style="overflow-x:scroll">
+    <table class="table table-responsive" style="overflow-x:scroll;margin-bottom:2%;">
         <thead>
             <tr>
-                
-                <th>MailPieceId</th>
-                <th>LoanNumber</th>
+                <th>PieceId</th>
+                <th>MailPiece Status</th>
                 <th>PDF File Name</th>
-                <th>DocumentType</th>
-                <th>Effective Received Date<span class="fontcapitalize">(Local)</span></th>
-                <th>Shipping Carrier</th>
-                <th>Shipping Service Type</th>
-                <th>Shipping Status</th>
-                <th>ErrorCode</th>
-                <th>ErrrorDesc</th>
-                <th>Shipped Date<span class="fontcapitalize">(Local)</span></th>
-                <th>TotalPages</th>
-                <th>PrintLocation</th>
+                <th>Processing Timestamp<span class="fontcapitalize">(Local)</span></th>
+                <th>Unique Id</th>
+                <th>Disposition</th>
             </tr>
         </thead>
         <tbody id="printBatchbodyContent"></tbody>
@@ -167,20 +159,12 @@
     <table>
         <tbody id="printBatchBody">
             <tr class="row-small">
-                MailPieceId,LoanNumber,DocumentType,EffectiveReceivedOn, ShippingCarrier,ShippingServiceType,ShippingStatus,ErrorCode,ErrrorDesc,PrintedOn,ShippedOn,TotalPages,PrintLocation
-                <td><span>{MailPieceId}</span></td>
-                <td><span>{LoanNumber}</span></td>
-                <td><span>{DocumentType}</span></td>
-                <td><span>{EffectiveReceivedOn}</span></td>
-                <td><span>{ShippingCarrier}</span></td>
-                <td><span>{ShippingServiceType}</span></td>
-                <td><span>{ShippingStatus}</span></td>
-                <td><span>{ErrorCode}</span></td>
-                <td><span>{ErrrorDesc}</span></td>
-                <td><span>{PrintedOn}</span></td>
-                <td><span>{ShippedOn}</span></td>
-                <td><span>{TotalPages}</span></td>
-                <td><span>{PrintLocation}</span></td>
+                <td><span>{PieceId}</span></td>
+                <td><span>{MailPieceStatus}</span></td>
+                <td><span data-toggle="tooltip" data-container="body" data-placement="bottom" title='{PDFFileName}'>{ShortFileName}</span></td>
+                <td><span>{ProcessingTimeStamp}</span></td>
+                <td><span>{UniqueId}</span></td>
+                <td><span>{Disposition}</span></td>
             </tr>
         </tbody>
     </table>
@@ -301,11 +285,11 @@
             });
         }
         function FormatObject(Model) {
-            
+
             $(Model).each(function () {
                 this.ShortFileName = shortName(this.PrintFileName);
                 this.PrintBatch = '<a  data-printbatchid="' + this.PrintBatch + '" onclick="ViewDetails(this)" class="btn btn-transparent-blue btn-sm" >' + this.PrintBatch + '</a>';
-               // this.TotalPages = this.Status == "Shipped" ? this.TotalPages : 0;
+                // this.TotalPages = this.Status == "Shipped" ? this.TotalPages : 0;
                 this.SubmittedOnFormatted = this.SubmittedOn == null ? "--" : moment(this.SubmittedOn).format("MM/DD/YY HH:mm:ss");
             });
             return Model;
@@ -369,6 +353,7 @@
                                     'container': 'body'
                                 });
                                 window.clui.tooltipInit();
+                                setModalHeight("ViewInfo");
                             }
                             else {
                                 $("#loadingModal").hide();
@@ -397,6 +382,19 @@
 
             });
             //$("#ViewInfo").find(".modal-body").text(mailPieceId);
+
+        }
+        function setModalHeight(id) {
+            var bodyHeight = $("body").height();
+            var count = $("#" + id).find("tr").length;//.find(".modal-body").height();
+            if (count > 5) {
+                $("#" + id).find(".modal-body").height(bodyHeight - 750);
+                $("#" + id).find(".modal-body").css("overflow-y", "scroll");
+            }
+            else {
+                $("#" + id).find(".modal-body").height('auto');
+
+            }
 
         }
         function FilterData() {
