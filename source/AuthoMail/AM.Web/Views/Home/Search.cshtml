@@ -491,8 +491,8 @@
             </div>
             <div class="form-group margin-bottom-2">
                 <div class="input-group">
-                    <label for="PrintLocation">Print Batch:&nbsp; </label>
-                    <span class="form-control-static">{PrintBatch}</span>
+                    <label for="PrintLocation">Print File Name:&nbsp; </label>
+                    <span class="form-control-static" data-toggle="tooltip" data-container="body" data-placement="bottom" title='{PrintFileName}'>{ShortPrintFileName}</span>
                 </div>
             </div>
             <div class="form-group margin-bottom-2">
@@ -660,6 +660,7 @@
                 this.SLADays = parseInt(this.SLADays / 86400);
                 this.ShortBatchName = shortName(this.BatchName);
                 this.ShortFileName = shortName(this.FileName);
+                this.ShortPrintFileName = shortName(this.PrintFileName);
                 this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
                 this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
