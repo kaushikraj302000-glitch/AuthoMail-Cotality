@@ -15,6 +15,7 @@ namespace AM.Services
         List<MailPieceByPrintBatch> GetMailPiecebyPrintBatch(int printBatch, int clientId);
         List<NotReportedBackMailPieces> GetBatchSummarybyDate(DateTime date, int clientId);
         List<MailPieceByPrintBatch> GetMailPieceWithBatchSummaryByPrintBatch(int printBatch, int clientId);
+
     }
     public class SupportReportService : ServiceBase, ISupportReportService
     {

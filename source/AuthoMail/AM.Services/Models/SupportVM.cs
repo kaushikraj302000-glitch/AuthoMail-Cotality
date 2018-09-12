@@ -31,5 +31,10 @@ namespace AM.Services
         public string Disposition { get; set; }
         public int MailPieceId { get; set; }
     }
+    public class MailBatchesSupport
+    {
+        public int MailBatchId { get; set; }
+        public int MyProperty { get; set; }
+    }
     
 }
