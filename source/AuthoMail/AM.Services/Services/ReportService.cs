@@ -22,7 +22,7 @@ namespace AM.Services
         List<MailPieces> GetFedExPickedUpReport(DateTime deploymentDate, DateTime lastReceivedOnDate, int isPickedUp = -1);
         List<MailPieces> GetMailPiecesDataFromPrintBatchId(int printBatchId);
         List<MailPieces> GetMailPiecesDataFromMailBatchId(int mailBatchId);
-        List<PCISubmittedBatchDetail> GetPCIReconReport(string clientIds, DateTime startDateTime, DateTime endDateTime);
+        List<PCISubmittedBatchDetail> GetPCIReconReport(DateTime effectiveStartDate, DateTime effectiveEndDate);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -278,11 +278,11 @@ namespace AM.Services
             return data;
         }
 
-        public List<PCISubmittedBatchDetail> GetPCIReconReport(string clientIds, DateTime startDateTime, DateTime endDateTime)
+        public List<PCISubmittedBatchDetail> GetPCIReconReport(DateTime effectiveStartDate, DateTime effectiveEndDate)
         {
-            string query = @"SELECT DISTINCT B.PrintBatch,B.PrintFileName,B.SubmittedOn,B.DueDate,D.ShippingCarrier,D.ShippingServiceType,COUNT(*) AS PackageCount,SUM(M.TotalPages) as TotalPages FROM PnS.BatchSummary B INNER JOIN PnS.MRDFRequest REQ ON REQ.JobId=B.PrintBatch INNER JOIN AM.MailPieces M ON M.UniqueId=REQ.UniqueId INNER JOIN AM.DocTypes D ON D.Id=B.DocTypeId WHERE B.PrintLocation='Fort Mill, SC' AND B.ClientId IN ({0}) AND M.EffectiveReceivedOnEst >= @StartDateTime AND M.EffectiveReceivedOnEst <= @EndDateTime GROUP BY B.PrintBatch,B.PrintFileName,B.SubmittedOn,B.DueDate,D.ShippingCarrier,D.ShippingServiceType,B.Images".Fill(clientIds);
+            string query = "[dbo].[usp_GetPCIReconReport] @StartDate, @EndDate";
 
-            return db.Query<PCISubmittedBatchDetail>(query, new { StartDateTime = startDateTime, EndDateTime = endDateTime }).ToList();
+            return db.Query<PCISubmittedBatchDetail>(query, new { StartDate = effectiveStartDate, EndDate = effectiveEndDate }).ToList();
         }
     }
 }
