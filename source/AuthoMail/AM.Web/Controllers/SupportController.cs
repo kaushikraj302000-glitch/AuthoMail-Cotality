@@ -60,7 +60,6 @@ namespace AM.Web.Controllers
         {
             try
             {
-
                 var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
                 var data = supportSvc.GetBatchSummarybyDate(exactDate, User.Identity.GetClientId().Value);
                 return Json(JsonResponseFactory.SuccessResponse(new { model = data.OrderByDescending(s => s.SubmittedOn) }), JsonRequestBehavior.AllowGet);
@@ -92,7 +91,30 @@ namespace AM.Web.Controllers
 
         public ActionResult _GetNotReportedBackOfMailBatches(string date)
         {
-            return View();
+            try
+            {
+                var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+                var data = supportSvc.GetMailBatchesbyDate(exactDate, User.Identity.GetClientId().Value);
+                return Json(JsonResponseFactory.SuccessResponse(new { model = data }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        public ActionResult GetMailPieceByBatchId(int batchId)
+        {
+            try
+            {
+
+                var data = supportSvc.GetMailPieceByBatchId(batchId, User.Identity.GetClientId().Value);
+                return Json(JsonResponseFactory.SuccessResponse(new { model =data }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.ToString()), JsonRequestBehavior.AllowGet);
+            }
         }
 
     }

@@ -359,7 +359,6 @@
                             if (response.Object.model != null) {
                                 $("#loadingModal").hide();
                                 var data = FormatMailPieceObject(response.Object.model);
-                                console.log(data);
                                 BindTemplateWithOutDatatable(data, "#printBatchBody", "#printBatchbodyContent", "#printBatchTableContent", "#databind");
                                 $('[data-toggle="popover"]').popover({
                                     'trigger': 'hover',
@@ -402,7 +401,7 @@
             var bodyHeight = $("body").height();
             var count = $("#" + id).find("tr").length;//.find(".modal-body").height();
             if (count > 5) {
-                $("#" + id).find(".modal-body").height(bodyHeight - 750);
+                $("#" + id).find(".modal-body").height(bodyHeight - 350);
                 $("#" + id).find(".modal-body").css("overflow-y", "scroll");
             }
             else {
