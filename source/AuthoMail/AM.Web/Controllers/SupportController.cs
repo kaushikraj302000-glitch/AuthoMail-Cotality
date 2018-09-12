@@ -9,7 +9,7 @@ using AM.Web.Models;
 using AM.Entities;
 namespace AM.Web.Controllers
 {
-    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," +  AMRoles.PnSOperator)]
+    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.PnSOperator)]
     public class SupportController : BaseController
     {
         ISupportReportService supportSvc;
@@ -62,8 +62,22 @@ namespace AM.Web.Controllers
             {
 
                 var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-                var data = supportSvc.GetNotReportedBackMailPieces(User.Identity.GetClientId().Value, null, exactDate);
+                var data = supportSvc.GetBatchSummarybyDate(exactDate, User.Identity.GetClientId().Value);
                 return Json(JsonResponseFactory.SuccessResponse(new { model = data.OrderByDescending(s => s.SubmittedOn) }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        public ActionResult GetMailPieceWithBatchSummaryByPrintBatch(int printBatchId)
+        {
+
+            try
+            {
+                var data = supportSvc.GetMailPieceWithBatchSummaryByPrintBatch(printBatchId, User.Identity.GetClientId().Value);
+                return Json(JsonResponseFactory.SuccessResponse(new { model = data }), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
             {
