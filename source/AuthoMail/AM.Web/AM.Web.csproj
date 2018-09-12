@@ -211,6 +211,7 @@
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\ChartApiController.cs" />
     <Compile Include="Controllers\CommonController.cs" />
+    <Compile Include="Controllers\SupportController.cs" />
     <Compile Include="Controllers\TrackController.cs" />
     <Compile Include="Controllers\USPSApiController.cs" />
     <Compile Include="Models\ChartViewModel.cs" />
@@ -488,6 +489,7 @@
     <Content Include="Views\Shared\_LayoutTracking.cshtml" />
     <Content Include="Views\Admin\_AddCoverLetter.cshtml" />
     <Content Include="Views\Admin\_GetCoverLetterFiles.cshtml" />
+    <Content Include="Views\Support\NotReportedBackOfBatchSummary.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
