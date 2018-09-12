@@ -32,7 +32,7 @@ namespace AM.Services
         public int MailPieceId { get; set; }
         public string LoanNumber { get; set; }
         public string DocumentOrPackageType { get; set; }
-        public DateTime? EffectiveReceivedOn { get; set; }
+        public DateTime? EffectiveReceivedOnEst { get; set; }
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
         public string ShippingStatus { get; set; }
