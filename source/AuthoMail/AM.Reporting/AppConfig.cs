@@ -22,8 +22,6 @@ namespace AM.Reporting
         public static string PCIReconEMailTo { get; private set; }
         public static string PCIReconEMailCc { get; private set; }
         public static string PCIReconEMailSubject { get; private set; }
-        public static string PCIReconClientId { get; private set; }
-        public static TimeSpan PCIReconCutOff { get; set; }
         public static string PCIReconReportPath { get; private set; }
 
         static AppConfig()
@@ -41,8 +39,6 @@ namespace AM.Reporting
             PCIReconEMailTo = ConfigurationManager.AppSettings["PCIReconEMailTo"].Trim();
             PCIReconEMailCc = ConfigurationManager.AppSettings["PCIReconEMailCc"].Trim();
             PCIReconEMailSubject = ConfigurationManager.AppSettings["PCIReconEMailSubject"].Trim();
-            PCIReconClientId = ConfigurationManager.AppSettings["PCIReconClientId"].Trim();
-            PCIReconCutOff = TimeSpan.Parse(ConfigurationManager.AppSettings["PCIReconCutOff"].Trim());
             PCIReconReportPath = ConfigurationManager.AppSettings["PCIReconReportPath"].Trim();
         }
     }
