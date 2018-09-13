@@ -50,5 +50,27 @@ Sagar's Thought Process - 2 :
 	- Extract XML and separate it clientcode wise and move that batch to particular client folder with the help of ClientCode Mapping table of AMC
 	- Make an entry while separting batches in MailBatches table as Received and Downloaded
 	- No need to change further flow. (But For Processing Response need to change logic as mentioned in 1st Thought Process)
-		- Challange : What to do if we have invalid batch xml?
-		- Challange : What to do if Package does not contain ClientCode?
+		- Challange : What to do if we have invalid batch xml? Solution - treate as separate batch and leave it as NULL in ClientId
+		- Challange : What to do if Package does not contain ClientCode? Solution - treate as separate batch and leave it as NULL in ClientId
+		
+Flow :
+1) Download in separate AMC folder - Monitor AMRoot/ChannelCode/AMC/
+2) Extract Zip - Monitor
+3) Valid XML is there or not, if not valid then directly reported back - Monitor
+3) Separate with ClientCode using AMC mapping table (Consider clientcode is not provided in xml as invalid) - Monitor
+4) Drop rewrited xml and related pdfs into particular client with folder structure - Monitor
+5) 
+
+Flow
+1) AMC Folder Clean
+2) Note Trigger Time 
+3) Download AMC Folder, Extract if xml invalid then reportback directly (DELETE from SFTP)(ClientId - AMCInvalid)
+4) Separate Xmls clientwise & Invalid client xmls (AMCInvalid)(ClientWiseFolder then xml and pdfs)
+5) Make an entry in AM.Batches table with ReceivedOn(Maintained Value) IMP : ReceivedOn entry must be in single transaction 
+6) BEGIN TRANSACTION 
+7) INSERT BATCH RECEIVED RECORDS
+8) File Move Operation (Xmls and PDFs) 
+9) Move AMC batches into Archive
+10) Delete from SFTP
+11) UPDATE DOWNLOADED UTCNOW
+12) END TRANSACTION

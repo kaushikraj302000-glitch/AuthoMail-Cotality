@@ -1377,4 +1377,230 @@ UAT Final Status : Deployed on 09/01/2018 at 12.30 PM IST
 PROD Final Status : Deployed on 09/01/2018 at 10.30 AM IST
 ====================================================================================================================================================
 		
+====================================================
+Deployment 13/09/2018
+====================================================
+=========================
+Database Changes
+=========================
+1) Added 4 new columns in AM.PrintBatches
+	ALTER TABLE [AM].[PrintBatches] ADD [IsReportPrepped]  AS (case when [ReportPreppedOn] IS NULL then (0) else (1) end),ReportPreppedOn DATETIME NULL,
+	[IsReportedBack]  AS (case when [ReportedBackOn] IS NULL then (0) else (1) end),ReportedBackOn DATETIME NULL
+2) Function Changed
+	ALTER FUNCTION [dbo].[ufn_GetDallasBatchTimings]
+	(
+	@EstDate DATE
+	)
+	RETURNS @BatchTimings TABLE 
+	(
+		BatchName varchar(255),
+		StartTime varchar(255),
+		EndTime varchar(255),
+		ShippingCarrier varchar(255),
+		ShippingServiceType varchar(255)
+	)
+	AS
+	BEGIN		
+	
+		DECLARE @DayofWeek INT = DATEPART(dw,@EstDate)
+		if(@DayofWeek=7)
+		BEGIN
+			INSERT INTO @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('10AM','00:00:00','11:00:00','FedEx','PRIORITY_OVERNIGHT')
+			INSERT INTO @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('12PM','11:00:01','13:00:00','FedEx','PRIORITY_OVERNIGHT')		
+			INSERT INTO @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('01PM','13:00:01','14:00:00','FedEx','PRIORITY_OVERNIGHT')
+
+			INSERT INTO @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('10AM','00:00:00','11:00:00','USPS','PRIORITY_EXPRESS')
+			INSERT INTO @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('12PM','11:00:01','13:00:00','USPS','PRIORITY_EXPRESS')		
+			INSERT INTO @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('01PM','13:00:01','14:00:00','USPS','PRIORITY_EXPRESS')
+
+			INSERT INTO @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('10AM','00:00:00','11:00:00','USPS','PRIORITY')
+			INSERT INTO @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('12PM','11:00:01','13:00:00','USPS','PRIORITY')		
+			INSERT INTO @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('01PM','13:00:01','14:00:00','USPS','PRIORITY')
+		END
+		ELSE
+		BEGIN
+			INSERT INTO @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('04PM','00:00:00','17:00:00','FedEx','PRIORITY_OVERNIGHT')
+
+			INSERT INTO @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('05PM','17:00:01','18:00:00','FedEx','PRIORITY_OVERNIGHT')
+
+			INSERT INTO @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('06PM','18:00:01','19:00:00','FedEx','PRIORITY_OVERNIGHT')
+
+			INSERT INTO @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('07PM','19:00:01','20:00:00','FedEx','PRIORITY_OVERNIGHT')
+
+			INSERT INTO @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('04PM','00:00:00','17:00:00','USPS','PRIORITY_EXPRESS')
+
+			INSERT INTO @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('05PM','17:00:01','18:00:00','USPS','PRIORITY_EXPRESS')
+
+			INSERT INTO @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('04PM','00:00:00','17:00:00','USPS','PRIORITY')
+
+			INSERT INTO @BatchTimings (BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('05PM','17:00:01','18:00:00','USPS','PRIORITY')
+		END		
+		RETURN
+	END
+	GO
+	---------------------------------------------
+	ALTER FUNCTION [dbo].[ufn_GetDallasBatches]
+	(
+	@EstDate DATE
+	)
+	RETURNS @sweep TABLE 
+	(
+		BatchName varchar(255),
+		StartDate datetime,
+		EndDate datetime,
+		ShippingCarrier varchar(255),
+		ShippingServiceType varchar(255)
+	)
+	AS
+	BEGIN
+		DECLARE @todayDate DATE
+		SELECT @todayDate=@EstDate
+		
+		INSERT INTO @sweep (BatchName,StartDate,EndDate,ShippingCarrier,ShippingServiceType) 
+		SELECT BatchName,cast(@todayDate AS DATETIME)+cast(StartTime AS DATETIME),cast(@todayDate AS DATETIME)+cast(EndTime AS DATETIME),ShippingCarrier,ShippingServiceType from [dbo].[ufn_GetDallasBatchTimings](@EstDate)	 
+		
+		
+		INSERT INTO @sweep (BatchName,StartDate,EndDate,ShippingCarrier,ShippingServiceType) 
+		VALUES ('Backlog',DateAdd(day,-7, cast(@todayDate AS DATETIME)),DateAdd(second,-1, cast(@todayDate AS DATETIME)),'FedEx','PRIORITY_OVERNIGHT')
+		
+		INSERT INTO @sweep (BatchName,StartDate,EndDate,ShippingCarrier,ShippingServiceType) 
+		VALUES ('Backlog',DateAdd(day,-7, cast(@todayDate AS DATETIME)),DateAdd(second,-1, cast(@todayDate AS DATETIME)),'USPS','PRIORITY_EXPRESS')
+
+		INSERT INTO @sweep (BatchName,StartDate,EndDate,ShippingCarrier,ShippingServiceType) 
+		VALUES ('Backlog',DateAdd(day,-7, cast(@todayDate AS DATETIME)),DateAdd(second,-1, cast(@todayDate AS DATETIME)),'USPS','PRIORITY')
+		RETURN
+	END
+	GO
+	----------------------------------------
+	ALTER FUNCTION [dbo].[ufn_GetDallasBatchDetails]
+	(
+	@EstDate DATE
+	)
+	RETURNS TABLE 
+	AS
+	RETURN
+	(
+	with db as
+	(
+		select * from [dbo].[ufn_GetDallasBatches](@EstDate)
+	),
+	q as
+	(
+	SELECT m.Id,m.BusinessFriendlyIdValue as LoanNumber,m.ClientId, m.PrintLocation, m.EffectiveReceivedOnEst, m.TrackingNo,m.IsPullBackRequested,m.IsQCRequested,m.TotalSheets , m.DueDate,m.TotalPages,
+	b.PrintBatch,b.IsSubmitted,b.PipelineStatus,b.JobName,b.SubmittedOn,
+	req.PieceId,req.JobId,req.[Date] as MRDFReqDate,req.PDFFileName, req.UniqueId,req.MailPieceStatus, res.ProcessingTimeStamp,
+	d.ShippingServiceType,d.ShippingCarrier,
+	c.AppCode,c.Name as ClientName,(select BatchName from db where EffectiveReceivedOnEst between StartDate AND EndDate AND ShippingCarrier=d.ShippingCarrier AND ShippingServiceType=d.ShippingServiceType) BatchName
+	FROM [AM].[MailPieces] m
+	LEFT OUTER JOIN PnS.MRDFRequest req ON m.UniqueId = req.UniqueId
+	LEFT OUTER JOIN PnS.BatchSummary b ON req.JobId = b.PrintBatch
+	LEFT OUTER JOIN PnS.MRDFResponse res ON req.JobId = res.JobId AND req.PieceId=res.PieceId
+	INNER JOIN AM.DocTypes d ON m.DocTypeId=d.Id
+	INNER JOIN Common.Clients c ON m.ClientId=c.Id
+	WHERE m.PrintLocation=(SELECT Value FROM Common.SystemSettings WHERE Id='Common_PrintLocationCL') 
+	AND m.EffectiveReceivedOnEst >=(select MIN(StartDate) from db)
+	)
+	select * from q where BatchName is not null 
+	)
+3) SP Updated : [dbo].[SP_GetPendingScanning],[dbo].[SP_GetRecentBatchesStats],[dbo].[SP_GetScannedMailPieces],[dbo].[SP_GetScanReportData], [dbo].[SP_GetScanStats],[dbo].[SP_RegisterScan],[dbo].[usp_GetMRDFResponseDummyDataByJobId]
+	-- =============================================
+	-- Author:		Sagar Golvelkar
+	-- Create date: 09/12/2018
+	-- Description:	<Description,,>
+	-- =============================================
+	ALTER PROCEDURE [dbo].[usp_GetPCIReconReport]
+	@StartDate DATE,
+	@EndDate DATE
+	AS
+	BEGIN
+		-- SET NOCOUNT ON added to prevent extra result sets from
+		-- interfering with SELECT statements.
+		SET NOCOUNT ON;
+		SELECT * FROM 
+		(
+			--USAA,ALASKA
+			SELECT DISTINCT B.PrintBatch,B.PrintFileName,B.SubmittedOn,B.DueDate,D.ShippingCarrier,D.ShippingServiceType,COUNT(*) AS PackageCount,SUM(M.TotalPages) as TotalPages FROM PnS.BatchSummary B INNER JOIN PnS.MRDFRequest REQ ON REQ.JobId=B.PrintBatch INNER JOIN AM.MailPieces M ON M.UniqueId=REQ.UniqueId INNER JOIN AM.DocTypes D ON D.Id=B.DocTypeId WHERE B.PrintLocation='Fort Mill, SC' AND B.ClientId IN (101,102) AND M.EffectiveReceivedOnEst >= @StartDate AND M.EffectiveReceivedOnEst < @EndDate GROUP BY B.PrintBatch,B.PrintFileName,B.SubmittedOn,B.DueDate,D.ShippingCarrier,D.ShippingServiceType,B.Images
+			UNION
+			--HSBC
+			SELECT DISTINCT B.PrintBatch,B.PrintFileName,B.SubmittedOn,B.DueDate,D.ShippingCarrier,D.ShippingServiceType,COUNT(*) AS PackageCount,SUM(M.TotalPages) as TotalPages FROM PnS.BatchSummary B INNER JOIN PnS.MRDFRequest REQ ON REQ.JobId=B.PrintBatch INNER JOIN AM.MailPieces M ON M.UniqueId=REQ.UniqueId INNER JOIN AM.DocTypes D ON D.Id=B.DocTypeId WHERE B.PrintLocation='Fort Mill, SC' AND B.ClientId IN (104) AND CAST(dbo.ufn_UTCToEST(B.SubmittedOn) as DATE) = @StartDate GROUP BY B.PrintBatch,B.PrintFileName,B.SubmittedOn,B.DueDate,D.ShippingCarrier,D.ShippingServiceType,B.Images
+			UNION
+			--CONDOSAFE,RPS,CITI
+			SELECT DISTINCT B.PrintBatch,B.PrintFileName,B.SubmittedOn,B.DueDate,D.ShippingCarrier,D.ShippingServiceType,COUNT(*) AS PackageCount,B.Images as TotalPages FROM PnS.BatchSummary B INNER JOIN PnS.MRDFRequest REQ ON REQ.JobId=B.PrintBatch
+			INNER JOIN AM.DocTypes D ON D.Id=B.DocTypeId
+			WHERE B.ClientId IN (103,109,110) AND CAST(dbo.ufn_UTCToEST(B.SubmittedOn) as DATE) = @StartDate
+			GROUP BY B.PrintBatch,B.PrintFileName,B.SubmittedOn,B.DueDate,D.ShippingCarrier,D.ShippingServiceType,B.Images
+		)X
+		ORDER BY X.PRINTBATCH
+	END
+	GO
+4) New SystemSettings Added in Common.SystemSettings
+	INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) 
+	VALUES (N'Web_DD_PrintFormatList', N'String', N'Simplex, Duplex', N'Print format dropdown values', 0, N'Simplex, Duplex', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+	INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) 
+	VALUES (N'Web_DD_PrintSizeList', N'String', N'MixMedia, LETTER-IP, GLT-20-DOP-17.5, LEGAL-IP, WC24#LTR-PERF, LEGAL-PERF-IP', N'Print size dropdown values', 0, N'MixMedia, LETTER-IP, GLT-20-DOP-17.5, LEGAL-IP, WC24#LTR-PERF, LEGAL-PERF-IP', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+	INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) 
+	VALUES (N'Web_DD_ShippingCarrierList', N'String', N'USPS, FedEx, UPS', N'Shipping Carrier dropdown values', 0, N'USPS, FedEx, UPS', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+	INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) 
+	VALUES (N'Web_DD_ShippingServiceTypeList', N'String', N'USPS, FEDEX_2_DAY, FEDEX_EXPRESS_SAVER, FEDEX_GROUND, FIRST_OVERNIGHT, GROUND_HOME_DELIVERY, PRIORITY_OVERNIGHT, STANDARD_OVERNIGHT', N'Shipping Service Type dropdown values', 0, N'USPS, FEDEX_2_DAY, FEDEX_EXPRESS_SAVER, FEDEX_GROUND, FIRST_OVERNIGHT, GROUND_HOME_DELIVERY, PRIORITY_OVERNIGHT, STANDARD_OVERNIGHT', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+	INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) 
+	VALUES (N'Web_DD_ShippingSpecialServiceList', N'String', N'SATURDAY_DELIVERY, SATURDAY_PICKUP', N'Shipping Special Service dropdown values', 0, N'SATURDAY_DELIVERY, SATURDAY_PICKUP', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+	INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) 
+	VALUES (N'Monitor_PriorityMailingText', N'String', N'-Priority', NULL, 0, N'-Priority', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+	
+	INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) 
+	VALUES (N'Core_DirectReportBackChannelIds', N'String', N'2', N'', 0, N'', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+5) New Priority DocTypes added in AM.DocTypes
+	SET IDENTITY_INSERT [AM].[DocTypes] ON 
+	GO
+	INSERT [AM].[DocTypes] ([Id], [DocTypeCode], [Description], [ClientId], [PrintSize], [ContentScalePercent], [PrintFormat], [QCPercent], [ShippingCarrier], [ShippingServiceType], [ShippingAccountCode], [IsReturnInfoSpecified], [RetRcptPrefix], [RetRcptFirstName], [RetRcptMiddleName], [RetRcptLastName], [RetRcptSuffix], [RetRcptPhone], [RetRcptOrganization], [RetRcptAddrOptionalLine1AboveStreet], [RetRcptAddrOptionalLine2AboveStreet], [RetRcptAddressStreet], [RetRcptAddressAptOrSuiteOrOther], [RetRcptAddrOptionalLine1BelowStreet], [RetRcptAddrOptionalLine2BelowStreet], [RetRcptAddressCity], [RetRcptAddressState], [RetRcptAddressZIP], [ClientEmails], [ClientContactNo], [SupportEmails], [SupportContactNo], [IsActive], [ModifiedOn], [CreatedOn], [CreatedBy], [ModifiedBy], [BizdayCutOff], [BizdaySLAType], [BizdayTimeSpan], [SatCutOff], [SatSLAType], [SatTimeSpan], [SunCutOff], [SunSLAType], [SunTimeSpan]) VALUES (102, N'AppraisalReportWaiver_P', N'Appraisal Report Waiver-Priority', 101, N'LETTER-IP', 100, N'Simplex', 0, N'USPS', N'PRIORITY', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, CAST(N'2018-02-28 13:09:29.223' AS DateTime), CAST(N'2018-02-27 13:09:29.223' AS DateTime), N'66f8d3e7-b66a-48d9-911f-d3914f1b3a11', N'66f8d3e7-b66a-48d9-911f-d3914f1b3a11', N'18:00:00', N'FixedTime', N'00:23:59:59', N'14:00:00', N'FixedTime', N'00:23:59:59', NULL, N'NA', NULL)
+	GO
+	INSERT [AM].[DocTypes] ([Id], [DocTypeCode], [Description], [ClientId], [PrintSize], [ContentScalePercent], [PrintFormat], [QCPercent], [ShippingCarrier], [ShippingServiceType], [ShippingAccountCode], [IsReturnInfoSpecified], [RetRcptPrefix], [RetRcptFirstName], [RetRcptMiddleName], [RetRcptLastName], [RetRcptSuffix], [RetRcptPhone], [RetRcptOrganization], [RetRcptAddrOptionalLine1AboveStreet], [RetRcptAddrOptionalLine2AboveStreet], [RetRcptAddressStreet], [RetRcptAddressAptOrSuiteOrOther], [RetRcptAddrOptionalLine1BelowStreet], [RetRcptAddrOptionalLine2BelowStreet], [RetRcptAddressCity], [RetRcptAddressState], [RetRcptAddressZIP], [ClientEmails], [ClientContactNo], [SupportEmails], [SupportContactNo], [IsActive], [ModifiedOn], [CreatedOn], [CreatedBy], [ModifiedBy], [BizdayCutOff], [BizdaySLAType], [BizdayTimeSpan], [SatCutOff], [SatSLAType], [SatTimeSpan], [SunCutOff], [SunSLAType], [SunTimeSpan]) VALUES (103, N'StandAloneClosingDisclosure_P', N'Stand Alone - Closing Disclosure-Priority', 101, N'LETTER-IP', 100, N'Simplex', 0, N'USPS', N'PRIORITY', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, CAST(N'2018-02-28 13:09:29.223' AS DateTime), CAST(N'2018-02-27 13:09:29.223' AS DateTime), N'66f8d3e7-b66a-48d9-911f-d3914f1b3a11', N'66f8d3e7-b66a-48d9-911f-d3914f1b3a11', N'18:00:00', N'FixedTime', N'00:23:59:59', N'14:00:00', N'FixedTime', N'00:23:59:59', NULL, N'NA', NULL)
+	GO
+	INSERT [AM].[DocTypes] ([Id], [DocTypeCode], [Description], [ClientId], [PrintSize], [ContentScalePercent], [PrintFormat], [QCPercent], [ShippingCarrier], [ShippingServiceType], [ShippingAccountCode], [IsReturnInfoSpecified], [RetRcptPrefix], [RetRcptFirstName], [RetRcptMiddleName], [RetRcptLastName], [RetRcptSuffix], [RetRcptPhone], [RetRcptOrganization], [RetRcptAddrOptionalLine1AboveStreet], [RetRcptAddrOptionalLine2AboveStreet], [RetRcptAddressStreet], [RetRcptAddressAptOrSuiteOrOther], [RetRcptAddrOptionalLine1BelowStreet], [RetRcptAddrOptionalLine2BelowStreet], [RetRcptAddressCity], [RetRcptAddressState], [RetRcptAddressZIP], [ClientEmails], [ClientContactNo], [SupportEmails], [SupportContactNo], [IsActive], [ModifiedOn], [CreatedOn], [CreatedBy], [ModifiedBy], [BizdayCutOff], [BizdaySLAType], [BizdayTimeSpan], [SatCutOff], [SatSLAType], [SatTimeSpan], [SunCutOff], [SunSLAType], [SunTimeSpan]) VALUES (104, N'StandAloneLoanEstimate_P', N'Stand Alone - Loan Estimate-Priority', 101, N'LETTER-IP', 100, N'Simplex', 0, N'USPS', N'PRIORITY', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, CAST(N'2018-02-28 13:09:29.223' AS DateTime), CAST(N'2018-02-27 13:09:29.223' AS DateTime), N'66f8d3e7-b66a-48d9-911f-d3914f1b3a11', N'66f8d3e7-b66a-48d9-911f-d3914f1b3a11', N'18:00:00', N'FixedTime', N'00:23:59:59', N'14:00:00', N'FixedTime', N'00:23:59:59', NULL, N'NA', NULL)
+	GO
+	INSERT [AM].[DocTypes] ([Id], [DocTypeCode], [Description], [ClientId], [PrintSize], [ContentScalePercent], [PrintFormat], [QCPercent], [ShippingCarrier], [ShippingServiceType], [ShippingAccountCode], [IsReturnInfoSpecified], [RetRcptPrefix], [RetRcptFirstName], [RetRcptMiddleName], [RetRcptLastName], [RetRcptSuffix], [RetRcptPhone], [RetRcptOrganization], [RetRcptAddrOptionalLine1AboveStreet], [RetRcptAddrOptionalLine2AboveStreet], [RetRcptAddressStreet], [RetRcptAddressAptOrSuiteOrOther], [RetRcptAddrOptionalLine1BelowStreet], [RetRcptAddrOptionalLine2BelowStreet], [RetRcptAddressCity], [RetRcptAddressState], [RetRcptAddressZIP], [ClientEmails], [ClientContactNo], [SupportEmails], [SupportContactNo], [IsActive], [ModifiedOn], [CreatedOn], [CreatedBy], [ModifiedBy], [BizdayCutOff], [BizdaySLAType], [BizdayTimeSpan], [SatCutOff], [SatSLAType], [SatTimeSpan], [SunCutOff], [SunSLAType], [SunTimeSpan]) VALUES (105, N'InitialDisclosures_P', N'Initial Disclosures-Priority', 101, N'LETTER-IP', 100, N'Simplex', 0, N'USPS', N'PRIORITY', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, CAST(N'2018-02-28 13:09:29.223' AS DateTime), CAST(N'2018-02-27 13:09:29.223' AS DateTime), N'66f8d3e7-b66a-48d9-911f-d3914f1b3a11', N'66f8d3e7-b66a-48d9-911f-d3914f1b3a11', N'18:00:00', N'FixedTime', N'00:23:59:59', N'14:00:00', N'FixedTime', N'00:23:59:59', NULL, N'NA', NULL)
+	GO
+	SET IDENTITY_INSERT [AM].[DocTypes] OFF
+	GO
+
+=========================
+Application Changes
+=========================
+
+1) AM.Console Update : exe, dlls
+2) AM.Core Update : exe, dlls
+3) AM.Reporting Update : exe, dlls
+	- Create new task schedular AM_Reporting_PCIRecon with parameter "PCIRecon" at 9 PM EST, Check App.Config for new keys
+	- Check task schedular AM_Reporting_DallasNotification for Saturday notification
+	- Separated ReportBack for AMC,HSBC,ALASKA
+4) PnS Service Update : exe, dlls
+	- Update App.Config Key: <add key="SubmitBatchEmailSubject" value="Batch Submitted To {0} : {1} at {2} Total Files : {3} Total Page Count : {4}" />
+	
+====================================================================================================================================================
+UAT Final Status : Deployed on 09/10/2018 at 12.30 PM IST
+PROD Final Status : Deployed on 09/13/2018 at 11.00 AM IST
+====================================================================================================================================================
 	
