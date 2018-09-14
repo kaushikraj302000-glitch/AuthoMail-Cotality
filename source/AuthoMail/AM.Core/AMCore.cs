@@ -543,7 +543,7 @@ namespace AM.Core
                     foreach (MailBatchDTO mailBatch in mailBatches)
                     {
                         var mailPieces = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatch.Id);
-                        validMailPieces.AddRange(mailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList());
+                        validMailPieces.AddRange(mailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString() && c.PrintBatchId == null && c.PrintLocation != Config.Common_PrintLocationCL).ToList());
                     }
                     try
                     {
@@ -553,8 +553,8 @@ namespace AM.Core
                         foreach (MailBatchDTO mailBatch in mailBatches)
                         {
                             var mailPiecesList = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatch.Id);
-                            var validPieces = mailPiecesList.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.PrintBatchId != null).ToList().Count;
-                            var errorPieces = mailPiecesList.Where(c => c.ErrorCode != OutComeCodes.No_Error && c.PrintBatchId == null).ToList().Count;
+                            var validPieces = mailPiecesList.Count(c => c.ErrorCode == OutComeCodes.No_Error && c.PrintBatchId != null);
+                            var errorPieces = mailPiecesList.Count(c => c.ErrorCode != OutComeCodes.No_Error && c.PrintBatchId == null);
 
                             if (mailPiecesList.Count == (validPieces + errorPieces))
                             {
@@ -572,7 +572,7 @@ namespace AM.Core
                 }
                 else
                 {
-                    mailBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Prepped).Where(c => !channelIds.Contains(c.SFTChannelId)).ToList();
+                    mailBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Prepped);
 
                     foreach (MailBatchDTO mailBatch in mailBatches)
                     {
@@ -581,15 +581,23 @@ namespace AM.Core
 
                         var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
 
-                        validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
+                        if (channelIds.Contains(mailBatch.SFTChannelId))
+                        {
+                            validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString() && c.PrintBatchId == null && c.PrintLocation == Config.Common_PrintLocationCL).ToList();
+                        }
+                        else
+                        {
+                            validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
+                        }
+
                         try
                         {
                             GeneratePrintBatches(validMailPieces);
 
                             //After processing mail batch for PrintBatches we will check for each and every mailpieces are having printbatchid in it or not then update SubmittedToShipping status in MailBatches table
                             var mailPiecesList = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatch.Id);
-                            var validPieces = mailPiecesList.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.PrintBatchId != null).ToList().Count;
-                            var errorPieces = mailPiecesList.Where(c => c.ErrorCode != OutComeCodes.No_Error && c.PrintBatchId == null).ToList().Count;
+                            var validPieces = mailPiecesList.Count(c => c.ErrorCode == OutComeCodes.No_Error && c.PrintBatchId != null);
+                            var errorPieces = mailPiecesList.Count(c => c.ErrorCode != OutComeCodes.No_Error && c.PrintBatchId == null);
 
                             if (mailPiecesList.Count == (validPieces + errorPieces))
                             {
@@ -625,6 +633,9 @@ namespace AM.Core
 
         private static void GeneratePrintBatches(List<MailPieceDTO> validMailPieces)
         {
+            if (validMailPieces.Count == 0)
+                return;
+
             using (IMailBatchService mailBatchSvc = new MailBatchService())
             using (IClientService clientSvc = new ClientService())
             using (ICommonService commonSvc = new CommonService())
