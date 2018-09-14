@@ -222,10 +222,12 @@ namespace AM.Services
 
                     SetResponseValues(addressResponses, response.AddressList);
                 }
+               
+                var verifierAddressResponse = new VerifierAddressResponse(addressResponses);
 
                 if (Config.Web_API_USPS_IsDbLoggingEnabled)
                 {
-                    var addressResponseXML = addressResponses.Serialize();
+                    var addressResponseXML = verifierAddressResponse.Serialize();
 
                     var uspsResponseLogAwait = await uspsResponseLog.ConfigureAwait(false);
 
@@ -234,7 +236,7 @@ namespace AM.Services
                     await responseLog.ConfigureAwait(false);
                 }
 
-                return new VerifierAddressResponse(addressResponses);
+                return verifierAddressResponse;
             }
             catch (Exception ex)
             {
