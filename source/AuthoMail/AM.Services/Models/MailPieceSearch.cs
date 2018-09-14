@@ -377,6 +377,7 @@ namespace AM.Services
         public string ErrDesc { get; set; }
         public string MailPieceStatus { get; set; }
         public bool IsPDFReceived { get; set; }
+        public string PrintFileName { get; set; }
     }
 
     public class SearchViewModel

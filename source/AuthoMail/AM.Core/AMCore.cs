@@ -523,6 +523,15 @@ namespace AM.Core
 
                 if (arg == "BUNDLE")
                 {
+                    DateTime startDateTime = Common.EstToday;
+                    DateTime toDateTime = Common.Now.UtcToEst();
+                    DateTime endDateTime = new DateTime(toDateTime.Year, toDateTime.Month, toDateTime.Day, toDateTime.Hour, toDateTime.Minute, 0);
+
+                    while (!CheckAllBatchStatusCompleted(startDateTime, endDateTime))
+                    {
+                        Thread.Sleep(6000);
+                    }
+
                     mailBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Prepped).Where(c => channelIds.Contains(c.SFTChannelId)).ToList();
 
                     if (mailBatches.Count == 0)
@@ -597,6 +606,21 @@ namespace AM.Core
                     }
                 }
             }
+        }
+
+        private static bool CheckAllBatchStatusCompleted(DateTime startDateTime, DateTime endDateTime)
+        {
+            int receivedCount = 0;
+            int completedCount = 0;
+
+            //Here we are passing record counts to UTC because we are storing that time in UTC format.
+            using (IMailBatchService mailBatchSvc = new MailBatchService())
+            {
+                receivedCount = mailBatchSvc.GetMailBatchesReceivedCount(startDateTime.EstToUtc(), endDateTime.EstToUtc(), "Received");
+                completedCount = mailBatchSvc.GetMailBatchesReceivedCount(startDateTime.EstToUtc(), endDateTime.EstToUtc(), "Completed");
+            }
+
+            return receivedCount == completedCount;
         }
 
         private static void GeneratePrintBatches(List<MailPieceDTO> validMailPieces)

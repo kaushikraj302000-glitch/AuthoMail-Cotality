@@ -93,7 +93,7 @@
                                 <ul class="dropdown-menu">
                                    
                                         <li>@Html.ActionLink("Not Reported Back Of Batch Summary", "NotReportedBackOfBatchSummary", "Support")</li>
-                                        <li>@Html.ActionLink("Loan Details By Print Batch Id", "LoanDetailsByPrintBatchId", "Support")</li>
+                                        <li>@Html.ActionLink("Loan Details By SubmittedOn", "LoanDetailsBySubmittedOn", "Support")</li>
                                         <li>@Html.ActionLink("Not Reported Back Of MailBatches", "NotReportedBackOfMailBatches", "Support")</li>
                                         
                                     
@@ -301,6 +301,20 @@
             $(mainDivId).html($(mainTableId).html());
             $(mainDivId).find("table").attr("id", "sample_2");
             applyDataTable();
+        }
+
+        function BindTemplateWithOutDatatable(model, bodyId, bodyContentId, mainTableId, mainDivId) {
+
+            var bodyHtml = $(bodyId).html();
+            var tableHtml = "";
+            $(model).each(function () {
+                tableHtml = tableHtml + bodyHtml.supplant(this);
+            });
+            // console.log(test1);
+
+            $(bodyContentId).html(tableHtml);
+            $(mainDivId).html($(mainTableId).html());
+            $(mainDivId).find("table").attr("id", "sample_2");
         }
         function GetTrackingInfo(TrackingNo, ShippingMethod) {
             selector = "#" + TrackingNo;

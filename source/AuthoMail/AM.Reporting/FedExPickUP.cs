@@ -25,11 +25,11 @@ namespace AM.Reporting
                     //DateTime deploymentDateTime = DateTime.Parse(ConfigurationManager.AppSettings["FedExDeployment"]).EstToUtc();
 
                     DateTime todayDate = Common.Now.UtcToEst().Date;
-                    TimeSpan todayCutOff = todayDate.DayOfWeek == DayOfWeek.Saturday ? new TimeSpan(12, 00, 00) : new TimeSpan(20, 00, 00);
+                    TimeSpan todayCutOff = todayDate.DayOfWeek == DayOfWeek.Saturday ? new TimeSpan(14, 00, 00) : new TimeSpan(20, 00, 00);
                     DateTime todayCutOffTime = todayDate + todayCutOff;
 
                     DateTime previousDate = todayDate.AddDays(-1);
-                    TimeSpan previousDateCutOff = previousDate.DayOfWeek == DayOfWeek.Saturday ? new TimeSpan(12, 00, 00) : new TimeSpan(20, 00, 00);
+                    TimeSpan previousDateCutOff = previousDate.DayOfWeek == DayOfWeek.Saturday ? new TimeSpan(14, 00, 00) : new TimeSpan(20, 00, 00);
                     DateTime previousDateCutOffTime = previousDate + previousDateCutOff;
 
                     mailPieces = reportSvc.GetFedExPickedUpReport(previousDateCutOffTime.EstToUtc(), todayCutOffTime.EstToUtc(), 0);
@@ -62,14 +62,14 @@ namespace AM.Reporting
 
             //generate using report format and send it to CL team
             StringBuilder mailPiecesReport = new StringBuilder(columnName);
-
+            mailPiecesReport.AppendLine();
             foreach (MailPieces mailPiece in mailPieces)
             {
                 var line = String.Join(",",
                     mailPiece.MailBatches.BatchName,
                     mailPiece.BusinessFriendlyIdValue,
-                    mailPiece.RcptLastName + " " + mailPiece.RcptFirstName.ToCsvString(),
-                    mailPiece.RcptAddressStreet + " " + mailPiece.RcptAddressAptOrSuiteOrOther.ToCsvString(),
+                    (mailPiece.RcptLastName + " " + mailPiece.RcptFirstName).ToCsvString(),
+                    (mailPiece.RcptAddressStreet + " " + mailPiece.RcptAddressAptOrSuiteOrOther).ToCsvString(),
                     mailPiece.RcptAddressCity.ToCsvString(),
                     mailPiece.RcptAddressState,
                     mailPiece.RcptAddressZIP,

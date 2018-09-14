@@ -94,7 +94,7 @@ namespace AM.Services
                      uniqueId = uniqueId
                  }).ToList().First();
 
-            var mreq = db.QuerySingleOrDefault<MRDFRequests>("select * from PnS.MRDFRequest where UniqueId=@uniqueId ", new { uniqueId = mp.UniqueId });
+            var mreq = db.QuerySingleOrDefault<MRDFRequests>("select r.*,b.PrintFileName from PnS.MRDFRequest r inner join PnS.BatchSummary b on r.JobId=b.PrintBatch where r.UniqueId=@uniqueId", new { uniqueId = mp.UniqueId });
             if (mreq != null) mp.MRDFRequests = mreq;
             return mp;
         }

@@ -490,6 +490,8 @@
     <Content Include="Views\Admin\_AddCoverLetter.cshtml" />
     <Content Include="Views\Admin\_GetCoverLetterFiles.cshtml" />
     <Content Include="Views\Support\NotReportedBackOfBatchSummary.cshtml" />
+    <Content Include="Views\Support\LoanDetailsBySubmittedOn.cshtml" />
+    <Content Include="Views\Support\NotReportedBackOfMailBatches.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
