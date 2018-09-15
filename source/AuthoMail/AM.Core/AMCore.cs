@@ -965,7 +965,10 @@ namespace AM.Core
                                 }
 
                                 commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ShippingResponseReceived, Common.Now);
-                                commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportPrepped, Common.Now);
+                               
+                                //Update overall ReportPrepped only if SFTChannel is mentioned for Direct response
+                                if (reportPreppedChannelIds.Contains(printBatch.SFTChannelId))
+                                    commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportPrepped, Common.Now);
                             }
                         }
                     }
