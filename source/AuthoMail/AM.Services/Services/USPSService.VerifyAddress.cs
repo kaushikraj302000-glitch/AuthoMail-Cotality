@@ -10,11 +10,14 @@ using System.Net.Http;
 using System.Text.RegularExpressions;
 using AM.USPSLib;
 using System.IO;
+using log4net;
 
 namespace AM.Services
 {
     public partial class USPSService : ServiceBase, IUSPSService
     {
+        private static readonly ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private IEnumerable<string> ValidateAddress(AddressRequest address)
         {
             // Validate if address is null
@@ -222,7 +225,7 @@ namespace AM.Services
 
                     SetResponseValues(addressResponses, response.AddressList);
                 }
-               
+
                 var verifierAddressResponse = new VerifierAddressResponse(addressResponses);
 
                 if (Config.Web_API_USPS_IsDbLoggingEnabled)
@@ -240,38 +243,7 @@ namespace AM.Services
             }
             catch (Exception ex)
             {
-                //if (addressRequests != null && addressResponses.Count == 0)
-                //{
-                //    var idRegex = new Regex(@"(\d+{0})(.*)".Fill(ResponseSource.CLSVC));
-
-                //    for (int i = 0; i < addressRequests.Count; i++)
-                //    {
-                //        var request = addressRequests[i];
-                //        var add = "{0} {1}".Fill(request.Line1, request.Line2).Trim();
-                //        //Id index 1 base
-                //        var response = new AddressResponse(request, i + 1)
-                //        {
-                //            Id = idRegex.Match(request.Id).Groups[2].Value,
-                //            FirmName = request.FirmName,
-                //            Line1 = add,
-                //            City = request.City,
-                //            State = request.State,
-                //            Zip5 = request.Zip5,
-                //            Zip4 = request.Zip4,
-                //            Urbanization = request.Urbanization
-                //        };
-                //        addressResponses.Add(response);
-                //    }
-                //}
-                string path = @"logs\USPS_Verify.txt";
-                string fullpath = Path.GetFullPath(path);
-                if (!Directory.Exists(Path.GetDirectoryName(fullpath)))
-                {
-                    Directory.CreateDirectory(Path.GetDirectoryName(fullpath));
-                }
-
-                File.AppendAllText(path, "\r\nError in Address Verify - {0} : {1}".Fill(DateTime.Now, ex.ToString()));
-
+                log.Error("Verify Address has this Unexpected Error : ", ex);
                 return new VerifierAddressResponse(addressResponses)
                 {
                     Error = "Unexpected Error"//ex.ToString()
@@ -288,7 +260,7 @@ namespace AM.Services
                 AddressResponse responseAdd = addressResponses.Single(res => res.Id == address.ID);
 
                 responseAdd.Id = idRegex.Match(responseAdd.Id).Groups[2].Value;
-                
+
                 //if error by USPS then assign requested add to respond with source CLSVC
                 if (address.HasError)
                 {

@@ -9,6 +9,7 @@ using AM.Lib;
 using System.Net.Http;
 using Dapper;
 using AM.USPSLib;
+using log4net;
 
 namespace AM.Services
 {
@@ -158,14 +159,7 @@ namespace AM.Services
             }
             catch (Exception ex)
             {
-                string path = @"logs\USPS_eVS.txt";
-                string fullpath = Path.GetFullPath(path);
-                if (!Directory.Exists(Path.GetDirectoryName(fullpath)))
-                {
-                    Directory.CreateDirectory(Path.GetDirectoryName(fullpath));
-                }
-
-                File.AppendAllText(path, "\r\nError in eVS - {0} : {1}".Fill(DateTime.Now, ex.ToString()));
+                log.Error("eVS Label has this Unexpected Error : ", ex);
 
                 return new eVSLabelResponse()
                 {
