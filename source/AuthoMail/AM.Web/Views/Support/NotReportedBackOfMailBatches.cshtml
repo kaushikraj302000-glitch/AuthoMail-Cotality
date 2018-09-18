@@ -188,7 +188,7 @@
             <div class="modal-body">
                 <div id="showerror" style="display:none"></div>
                 <div class='alert alert-blue text-center' id="loadingModal" style="display:none"><span> Loading... </span></div>
-                <div class="row" id="databind">
+                <div class="row" id="databind" >
 
                 </div>
             </div>
@@ -359,8 +359,9 @@
                 //console.log(response);
                 if (response.Success) {
                     if (response.Object != null) {
-                        if (response.Object.model != null) {
+                        if (response.Object.model != null && response.Object.model.length > 0) {
                             $("#loadingModal").hide();
+                            $("#showerror").hide();
                             var data = FormatMailPieceObject(response.Object.model);
                             BindTemplateWithOutDatatable(data, "#printBatchBody", "#printBatchbodyContent", "#printBatchTableContent", "#databind");
                             $('[data-toggle="popover"]').popover({
@@ -369,6 +370,7 @@
                                 'container': 'body'
                             });
                             window.clui.tooltipInit();
+                            $("#ViewInfo").modal("show");
                             setModalHeight("ViewInfo");
                         }
                         else {
@@ -401,10 +403,9 @@
 
     }
     function setModalHeight(id) {
-        var bodyHeight = $("body").height();
         var count = $("#" + id).find("tr").length;//.find(".modal-body").height();
         if (count > 5) {
-            $("#" + id).find(".modal-body").height(bodyHeight - 350);
+            $("#" + id).find(".modal-body").height(window.screen.height - 450);
             $("#" + id).find(".modal-body").css("overflow-y", "scroll");
         }
         else {
