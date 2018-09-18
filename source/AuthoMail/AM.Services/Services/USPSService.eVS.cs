@@ -9,6 +9,7 @@ using AM.Lib;
 using System.Net.Http;
 using Dapper;
 using AM.USPSLib;
+using log4net;
 
 namespace AM.Services
 {
@@ -142,13 +143,14 @@ namespace AM.Services
                         }
                     }
 
+                    var eVSLabelresponse = eVSLabelResponse(eVSresponse);
+
                     if (Config.Web_API_USPS_IsDbLoggingEnabled)
                     {
+                        var apiResponseXML = eVSLabelresponse.Serialize();
                         uspsResXMLLogAwait = await uspsResXMLLog.ConfigureAwait(false);
-                        apiResponseLog = db.ExecuteAsync("Update [API].[USPSeVS] set APIResponse = @APIResponse, APIResponseOn = @APIResponseOn, BarcodeNumber = @BarcodeNumber, Postage = @Postage,CommitmentName = @CommitmentName,ScheduledDeliveryDate = @ScheduledDeliveryDate Where Id = @Id", new { APIResponse = responseXML, APIResponseOn = Common.Now, BarcodeNumber = eVSresponse.BarcodeNumber, Postage = eVSresponse.Postage, CommitmentName = commitmentName, ScheduledDeliveryDate = scheduledDeliveryDate, Id = logId });
+                        apiResponseLog = db.ExecuteAsync("Update [API].[USPSeVS] set APIResponse = @APIResponse, APIResponseOn = @APIResponseOn, BarcodeNumber = @BarcodeNumber, Postage = @Postage,CommitmentName = @CommitmentName,ScheduledDeliveryDate = @ScheduledDeliveryDate Where Id = @Id", new { APIResponse = apiResponseXML, APIResponseOn = Common.Now, BarcodeNumber = eVSresponse.BarcodeNumber, Postage = eVSresponse.Postage, CommitmentName = commitmentName, ScheduledDeliveryDate = scheduledDeliveryDate, Id = logId });
                     }
-
-                    var eVSLabelresponse = eVSLabelResponse(eVSresponse);
 
                     apiResponseLogAwait = await apiResponseLog.ConfigureAwait(false);
 
@@ -157,14 +159,7 @@ namespace AM.Services
             }
             catch (Exception ex)
             {
-                string path = @"logs\USPS_eVS.txt";
-                string fullpath = Path.GetFullPath(path);
-                if (!Directory.Exists(Path.GetDirectoryName(fullpath)))
-                {
-                    Directory.CreateDirectory(Path.GetDirectoryName(fullpath));
-                }
-
-                File.AppendAllText(path, "\r\nError in eVS - {0} : {1}".Fill(DateTime.Now, ex.ToString()));
+                log.Error("eVS Label has this Unexpected Error : ", ex);
 
                 return new eVSLabelResponse()
                 {
