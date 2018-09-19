@@ -37,5 +37,12 @@ namespace AM.Web.Controllers
         {
             return await uspsSvc.RequesteVSLabelAsync(User.Identity.GetUserId(), request).ConfigureAwait(false);
         }
+
+        [Route("eVSCancel")]
+        [HttpPost]
+        public async Task<eVSCancelLabelResponse> RequesteVSLabel([FromBody]eVSCancelLabelRequest request)
+        {
+            return await uspsSvc.RequesteVSCancelLabelAsync(User.Identity.GetUserId(), request).ConfigureAwait(false);
+        }
     }
 }
