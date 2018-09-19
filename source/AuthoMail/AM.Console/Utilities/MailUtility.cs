@@ -45,7 +45,7 @@ namespace AM.Console
             return isEmailSent;
         }
 
-        public static void SendUnexpectedExcelptionEmail(string exception)
+        public static void SendUnexpectedExceptionEmail(string exception)
         {
             try
             {

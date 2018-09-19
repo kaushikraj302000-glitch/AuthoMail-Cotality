@@ -13,10 +13,12 @@ namespace AM.Services
     public interface IMailBatchService : IDisposable
     {
         int InsertBatchDetails(MailBatchDTO mailBatch);
+        List<MailBatchDTO> InsertBatchDetails(List<MailBatchDTO> mailBatches);
         int DeleteBatchDetails(int mailBatchId);
         int UpdateBatchDetails(MailBatchDTO mailBatch);
         int MarkMailBatchAsInvalid(int id, string errorDesc);
-        List<MailBatchDTO> GetBatchesByPipelineStatus(string batchPipelineStatus, int? clientId = null);
+        List<MailBatchDTO> GetBatchesByPipelineStatusAndClientId(string batchPipelineStatus, int? clientId = null);
+        List<MailBatchDTO> GetBatchesByPipelineStatusAndSFTChannelId(string batchPipelineStatus, int? sftChannelId = null);
         BatchData GetMailBatchDetailsByBatchId(int mailBatchId);
         int InsertPrintBatchDetails(PrintBatch printBatch);
         List<SubmittedBatch> GetSubmittedPrintBatchDetails();
@@ -33,6 +35,19 @@ namespace AM.Services
             string query = @"INSERT INTO [AM].[MailBatches](UniqueId, ClientId, DocumentOrPackageType, SFTChannelId, ClientBatchId, BatchName, [Priority]) Output Inserted.Id VALUES (@UniqueId, @ClientId, @DocumentOrPackageType, @SFTChannelId, @ClientBatchId, @BatchName, @Priority)";
 
             return db.ExecuteScalar<int>(query, mailBatch);
+        }
+
+        public List<MailBatchDTO> InsertBatchDetails(List<MailBatchDTO> mailBatches)
+        {
+            List<MailBatchDTO> mailBatchDetails = new List<MailBatchDTO>();
+            foreach (var mailBatch in mailBatches)
+            {
+                string query = @"INSERT INTO [AM].[MailBatches](UniqueId, ClientId, DocumentOrPackageType, SFTChannelId, ClientBatchId, BatchName, [Priority],[ReceivedOn]) VALUES (@UniqueId, @ClientId, @DocumentOrPackageType, @SFTChannelId, @ClientBatchId, @BatchName, @Priority, @ReceivedOn); SELECT * from [AM].[MailBatches] WHERE ID = CAST(SCOPE_IDENTITY() as int)";
+
+                mailBatchDetails.Add(db.Query<MailBatchDTO>(query, mailBatch).SingleOrDefault());
+            }
+
+            return mailBatchDetails;
         }
 
         public int DeleteBatchDetails(int mailBatchId)
@@ -61,7 +76,7 @@ namespace AM.Services
             return db.Execute(query, new { ValidationStatus = BatchValidationStatus.Invalid, ValidationErrors = errorDesc, Id = id });
         }
 
-        public List<MailBatchDTO> GetBatchesByPipelineStatus(string batchPipelineStatus, int? clientId)
+        public List<MailBatchDTO> GetBatchesByPipelineStatusAndClientId(string batchPipelineStatus, int? clientId)
         {
             //Sql Query
             string query = "SELECT * FROM [AM].[MailBatches] WHERE PipelineStatus= @batchPipelineStatus";
@@ -93,6 +108,39 @@ namespace AM.Services
 
             var data = db.Query<MailBatchDTO>(query, new { batchPipelineStatus = batchPipelineStatus, ClientId = clientId }).ToList();
             return data;
+        }
+
+        public List<MailBatchDTO> GetBatchesByPipelineStatusAndSFTChannelId(string batchPipelineStatus, int? sftChannelId)
+        {
+            //Sql Query
+            string query = "SELECT * FROM [AM].[MailBatches] WHERE PipelineStatus= @batchPipelineStatus";
+
+            if (sftChannelId.HasValue)
+                query += " AND SFTChannelId= @SFTChannelId";
+
+            switch (batchPipelineStatus)
+            {
+                case BatchPipelineStatus.Received: query += " AND IsReceived=1 AND IsDownloaded=0";
+                    break;
+                case BatchPipelineStatus.Downloaded: query += " AND IsDownloaded=1 AND IsValidated=0";
+                    break;
+                case BatchPipelineStatus.Validated: query += " AND IsValidated=1 AND IsAcknowledged=0";
+                    break;
+                case BatchPipelineStatus.Acknowledged: query += " AND IsAcknowledged=1 AND IsPrepped=0";
+                    break;
+                case BatchPipelineStatus.Prepped: query += " AND IsPrepped=1 AND IsSubmittedToShipping=0";
+                    break;
+                case BatchPipelineStatus.SubmittedToShipping: query += " AND IsSubmittedToShipping=1 AND IsShippingResponseReceived=0";
+                    break;
+                case BatchPipelineStatus.ShippingResponseReceived: query += " AND IsShippingResponseReceived=1 AND IsReportPrepped=0";
+                    break;
+                case BatchPipelineStatus.ReportPrepped: query += " AND IsReportPrepped=1 AND IsReportedBack=0";
+                    break;
+                default:
+                    break;
+            }
+
+            return db.Query<MailBatchDTO>(query, new { batchPipelineStatus = batchPipelineStatus, SFTChannelId = sftChannelId }).ToList();
         }
 
         public BatchData GetMailBatchDetailsByBatchId(int mailBatchId)

@@ -72,4 +72,10 @@ namespace AM.Entities
         public string BodyTemplate { get; set; }
         public bool IsBodyHTML { get; set; }
     }
+
+    public class ClientAMCCustIdMap
+    {
+        public int ClientId { get; set; }
+        public string AMCCustId { get; set; }
+    }
 }

@@ -63,7 +63,7 @@ namespace AM.Console
                 log.Error("Unexpected error.", ex);
 
                 // Send email to support team
-                MailUtility.SendUnexpectedExcelptionEmail(ex.ToString());
+                MailUtility.SendUnexpectedExceptionEmail(ex.ToString());
             }
         }
 
@@ -117,7 +117,7 @@ namespace AM.Console
             using (IClientService clientSvc = new ClientService())
             using (ICommonService commonSvc = new CommonService())
             {
-                List<MailBatchDTO> reportPreppedBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.ReportPrepped);
+                List<MailBatchDTO> reportPreppedBatches = mailBatchSvc.GetBatchesByPipelineStatusAndClientId(BatchPipelineStatus.ReportPrepped);
                 if (reportPreppedBatches == null)
                 {
                     log.Debug("Uploading report job queue is empty.");
@@ -170,6 +170,7 @@ namespace AM.Console
         private static void ProcessAMCReportedBack(string channelCode)
         {
             using (IMailBatchService mailBatchSvc = new MailBatchService())
+            using (IMailPieceService mailPieceSvc = new MailPieceService())
             using (IClientService clientSvc = new ClientService())
             using (ICommonService commonSvc = new CommonService())
             using (IReportService reportSvc = new ReportService())
@@ -184,12 +185,12 @@ namespace AM.Console
                     {
                         Client client = clientSvc.GetClientByAppCode(item.AppCode);
 
-                        List<Deliverable> deliverables = commonSvc.GetDeliverablesByClientId(client.Id);
+                        Deliverable deliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Error);
 
                         string localReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, client.AppCode, "AMResponse", item.PrintBatchId.ToString());
 
                         //TODO: Remove switch case after proper logic implementation of deliverables
-                        UploadReportsToAMC(deliverables, localReportPath, sftSite, false);
+                        UploadReportsToAMC(deliverable, localReportPath, sftSite, false);
 
                         mailBatchSvc.UpdatePrintBatchPipelineStatus(item.PrintBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
 
@@ -197,17 +198,21 @@ namespace AM.Console
 
                         foreach (int mailBatchId in mailBatchIds)
                         {
+                            var mailPieceCount = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatchId).Count(status => status.ShippingStatus == ShippingStatus.InProgress.ToString());
+
+                            if (mailPieceCount > 0)
+                                continue;
+
                             if (mailBatchSvc.GetReportedBackPrintBatchesFromMailBatchId(mailBatchId))
                             {
                                 var mailPieceData = reportSvc.GetMailPiecesDataFromMailBatchId(mailBatchId);
                                 string errorReportLocalPath = Path.Combine(Config.Common_AuthoMailRootFolder, client.AppCode, mailBatchId.ToString(), "AMResponse");
                                 GenerateErrorReport(mailBatchId, mailPieceData, errorReportLocalPath);
-                                UploadReportsToAMC(deliverables, errorReportLocalPath, sftSite, true);
+                                UploadReportsToAMC(deliverable, errorReportLocalPath, sftSite, true);
 
                                 commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
                             }
                         }
-
                     }
                     catch (Exception ex)
                     {
@@ -239,9 +244,9 @@ namespace AM.Console
             }
         }
 
-        private static void UploadReportsToAMC(List<Deliverable> deliverables, string localReportPath, SFTUtil sftSite, bool isErrorReport)
+        private static void UploadReportsToAMC(Deliverable deliverable, string localReportPath, SFTUtil sftSite, bool isErrorReport)
         {
-            string uploadPath = deliverables.SingleOrDefault().UploadPath;
+            string uploadPath = deliverable.UploadPath;
             if (sftSite.IsDownloadDirectoryAvailable(uploadPath))
             {
                 //TODO: Replace *.csv in place of *.txt if we don't move new naming convention and tab delimited reports to production environment
@@ -368,14 +373,14 @@ namespace AM.Console
         #endregion
 
         #region EffectiveReceivedOn DueDate PrintLocation Logic
-        public static void CalculateDueDateAndPrintLocation(int clientId)
+        public static void CalculateDueDateAndPrintLocation(int sftChannelId)
         {
             log.Debug("Calculation of Due Date and Print location job is started.");
             using (IMailBatchService mailBatchSvc = new MailBatchService())
             using (IMailPieceService mailPieceSvc = new MailPieceService())
             using (IDocTypeService docTypeSvc = new DocTypeService())
             {
-                List<MailBatchDTO> validatedBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Validated, clientId);
+                List<MailBatchDTO> validatedBatches = mailBatchSvc.GetBatchesByPipelineStatusAndSFTChannelId(BatchPipelineStatus.Validated, sftChannelId);
                 if (validatedBatches.Count == 0)
                 {
                     log.Debug("Calculation of Due Date and Print location job queue is empty.");
