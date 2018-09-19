@@ -91,6 +91,7 @@
     <Compile Include="Demo.cs" />
     <Compile Include="IDemo.cs" />
     <Compile Include="Models\AccountAPI.cs" />
+    <Compile Include="Models\AccountManage.cs" />
     <Compile Include="Models\BatchReportInfo.cs" />
     <Compile Include="Models\ChartModels.cs" />
     <Compile Include="Models\eVSRequest.cs" />
@@ -117,6 +118,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Services\AccountManageService.cs" />
     <Compile Include="Services\ChartDataService.cs" />
     <Compile Include="Services\ConfigService.cs" />
     <Compile Include="Services\HomeService.cs" />
