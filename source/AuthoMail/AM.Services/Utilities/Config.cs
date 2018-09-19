@@ -186,7 +186,7 @@ namespace AM.Services
         public static int Web_API_USPS_AddressCount { get; private set; }
         public static string Web_API_USPS_MainlandStates { get; private set; }
         public static string Web_API_USPS_eVSAPIName { get; private set; }
-
+        public static string Web_API_USPS_eVSCancelAPIName { get; private set; }
 
         #endregion
 

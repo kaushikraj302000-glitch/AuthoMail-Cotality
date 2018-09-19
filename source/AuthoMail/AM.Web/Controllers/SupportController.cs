@@ -9,7 +9,7 @@ using AM.Web.Models;
 using AM.Entities;
 namespace AM.Web.Controllers
 {
-    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.PnSOperator)]
+    [Authorize(Roles = AMRoles.Admin)]
     public class SupportController : BaseController
     {
         ISupportReportService supportSvc;
@@ -109,7 +109,7 @@ namespace AM.Web.Controllers
             {
 
                 var data = supportSvc.GetMailPieceByBatchId(batchId, User.Identity.GetClientId().Value);
-                return Json(JsonResponseFactory.SuccessResponse(new { model =data }), JsonRequestBehavior.AllowGet);
+                return Json(JsonResponseFactory.SuccessResponse(new { model = data }), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
             {

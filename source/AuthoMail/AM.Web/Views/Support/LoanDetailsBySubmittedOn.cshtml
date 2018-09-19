@@ -356,8 +356,9 @@
                     //console.log(response);    
                     if (response.Success) {
                         if (response.Object != null) {
-                            if (response.Object.model != null) {
+                            if (response.Object.model != null && response.Object.model.length > 0) {
                                 $("#loadingModal").hide();
+                                $("#showerror").hide();
                                 var data = FormatMailPieceObject(response.Object.model);
                                 BindTemplateWithOutDatatable(data, "#printBatchBody", "#printBatchbodyContent", "#printBatchTableContent", "#databind");
                                 $('[data-toggle="popover"]').popover({
@@ -398,10 +399,9 @@
 
         }
         function setModalHeight(id) {
-            var bodyHeight = $("body").height();
             var count = $("#" + id).find("tr").length;//.find(".modal-body").height();
             if (count > 5) {
-                $("#" + id).find(".modal-body").height(bodyHeight - 350);
+                $("#" + id).find(".modal-body").height(window.screen.height - 500);
                 $("#" + id).find(".modal-body").css("overflow-y", "scroll");
             }
             else {

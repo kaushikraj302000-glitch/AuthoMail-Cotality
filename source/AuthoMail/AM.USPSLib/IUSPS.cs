@@ -16,5 +16,9 @@ namespace AM.USPSLib
         [Post("/api/usps/eVS")]
         [Headers("Authorization: Bearer")]
         Task<eVSLabelResponse> RequesteVSLabelAsync([Body(BodySerializationMethod.Json)] eVSLabelRequest request);
+
+        [Post("/api/usps/eVSCancel")]
+        [Headers("Authorization: Bearer")]
+        Task<eVSCancelLabelResponse> RequesteVSCancelLabelAsync([Body(BodySerializationMethod.Json)] eVSCancelLabelRequest request);
     }
 }
