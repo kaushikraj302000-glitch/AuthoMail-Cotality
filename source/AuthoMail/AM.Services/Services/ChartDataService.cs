@@ -16,6 +16,8 @@ namespace AM.Services
         List<MailPieces> GetMailPieceByParam(int batchId, string status, int clientId);
         List<BatchListByChartData> GetBatchByParam(DateTime date, string status, int clientId);
         List<MailPieces> GetMailPieceByBatchId(int batchId, int clientId);
+        //--------------Chart for all clients-----------------------------------------------------//
+        List<WeeklyChart> GetWeeklyChartData();
     }
 
     public class ChartDataService : ServiceBase, IChartDataService
@@ -119,6 +121,53 @@ namespace AM.Services
                     clientId = clientId
                 }).ToList();
             return data;
+        }
+
+
+        public List<WeeklyChart> GetWeeklyChartData()
+        {
+            var estToday = DateTime.UtcNow.UtcToEst().Date;
+            // EST Week
+            var startDate = (estToday.AddDays(-7)).EstToUtc();
+            var endDate = (estToday + new TimeSpan(23, 59, 59)).EstToUtc();
+            var data = db.Query<WeeklyChartDTO>("select Id,BatchStatus,BatchName,ReceivedOn from AM.MailBatches Where ReceivedOn between @startDate and @endDate", new { startDate = startDate, endDate = endDate}).ToList();
+
+            // Convert received on date to EST timezone
+            data.ForEach(s => s.ReceivedOn = s.ReceivedOn.UtcToEst());
+
+            var model = data.GroupBy(d => d.ReceivedOn.Date,
+                (key, g) => new WeeklyChart
+                {
+                    Date = key,
+                    Weekday = key == estToday ? string.Format("{0} ({1})", "Today", key.ToString("dd")) : string.Format("{0} ({1})", key.ToString("ddd"), key.ToString("dd")),
+                    Failed = g.Count(s => s.BatchStatus == BatchStatus.Failed.ToString()),
+                    InProgress = g.Count(s => s.BatchStatus == BatchStatus.InProgress.ToString()),
+                    ShippedAll = g.Count(s => s.BatchStatus == BatchStatus.ShippedAll.ToString()),
+                    ShippedPartial = g.Count(s => s.BatchStatus == BatchStatus.ShippedPartial.ToString()),
+                    PulledBack = g.Count(s => s.BatchStatus == BatchStatus.PulledBack.ToString())
+                }).ToList();
+
+            //DateTime dt = DateTime.Today; dt > DateTime.Today.AddDays(-8); dt = dt.AddDays(-1)
+            for (DateTime ed = estToday; ed >= startDate.UtcToEst().Date; ed = ed.AddDays(-1))
+            {
+                if (!model.Any(m => m.Date == ed))
+                {
+                    model.Add(new WeeklyChart
+                    {
+                        Date = ed,
+                        Weekday = ed == estToday ? string.Format("{0} ({1})", "Today", ed.ToString("dd")) : string.Format("{0} ({1})", ed.ToString("ddd"), ed.ToString("dd")),
+                        Failed = 0,
+                        InProgress = 0,
+                        ShippedAll = 0,
+                        ShippedPartial = 0,
+                        PulledBack = 0
+                    });
+                }
+            }
+
+            model = model.OrderByDescending(m => m.Date).ToList();
+
+            return model;
         }
     }
     public static class ChartDataServiceQuery

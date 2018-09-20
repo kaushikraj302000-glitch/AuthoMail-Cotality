@@ -109,7 +109,7 @@ namespace AM.Services.Services
                 db.Open();
                 using (var t = db.BeginTransaction())
                 {
-                    string query = "INSERT INTO Profile.Users (Id ,Email ,EmailConfirmed ,PasswordHash ,SecurityStamp ,LockoutEnabled ,UserName ,ClientId ,FirstName ,LastName ,DisplayName ,RequestedOn ,Status ,ClosedOn ,ClosedBy) VALUES @Id ,@Email ,@EmailConfirmed ,@PasswordHash ,@SecurityStamp ,@LockoutEnabled ,@UserName ,@ClientId ,@FirstName ,@LastName ,@DisplayName ,@RequestedOn ,@Status ,@ClosedOn ,@ClosedBy";
+                    string query = "INSERT INTO Profile.Users (Id ,Email ,EmailConfirmed ,PasswordHash ,SecurityStamp ,LockoutEnabled ,UserName ,ClientId ,FirstName ,LastName ,DisplayName ,RequestedOn ,Status ,ClosedOn ,ClosedBy) VALUES (@Id ,@Email ,@EmailConfirmed ,@PasswordHash ,@SecurityStamp ,@LockoutEnabled ,@UserName ,@ClientId ,@FirstName ,@LastName ,@DisplayName ,@RequestedOn ,@Status ,@ClosedOn ,@ClosedBy)";
                     db.Execute(query, user, t);
                     foreach (var item in user.AccountUserRoleList)
                     {
