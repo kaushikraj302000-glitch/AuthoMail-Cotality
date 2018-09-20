@@ -18,6 +18,10 @@ namespace AM.Services
         List<MailPieces> GetMailPieceByBatchId(int batchId, int clientId);
         //--------------Chart for all clients-----------------------------------------------------//
         List<WeeklyChart> GetWeeklyChartData();
+        List<TodayMailPieceChart> GetTodayMailPieceChartData(DateTime todayDate);
+        List<MailPieces> GetMailPieceByParam(int batchId, string status);
+        List<BatchListByChartData> GetBatchByParam(DateTime date, string status);
+        List<MailPieces> GetMailPieceByBatchId(int batchId);
     }
 
     public class ChartDataService : ServiceBase, IChartDataService
@@ -168,6 +172,59 @@ namespace AM.Services
             model = model.OrderByDescending(m => m.Date).ToList();
 
             return model;
+        }
+
+        public List<TodayMailPieceChart> GetTodayMailPieceChartData(DateTime todayDate)
+        {
+            string query = "select * from(select b.ClientBatchId,m.MailBatchId as [MailBatchId], b.BatchName,m.Id,m.ShippingStatus, b.ReceivedOn from [AM].[MailPieces] m,[AM].[MailBatches] b where m.MailBatchId=b.Id AND  b.ReceivedOn BETWEEN @startDate AND @endDate) s PIVOT (count(Id) FOR ShippingStatus IN ([InProgress],[PulledBack],[Error],[Shipped]))pvt";
+            var data = db.Query<TodayMailPieceChart>(query, new { startDate = todayDate.ToStartDateTime().EstToUtc(), endDate = todayDate.ToEndDateTime().EstToUtc() }).ToList();
+            return data;
+        }
+
+
+        public List<MailPieces> GetMailPieceByParam(int batchId, string status)
+        {
+            //need to update
+            string query = "[dbo].[uspweb_GetMailPieceByBatchIdAndStatus] @batchId, @status, @clientId";
+            var data = db.Query<MailBatches, Clients, MailPieces, DocTypes, MailPieces>(query,
+                (b, c, m, d) =>
+                {
+                    m.MailBatches = b;
+                    m.Clients = c;
+                    m.DocTypes = d;
+                    return m;
+                },
+                new
+                {
+                    batchId = batchId,
+                    status = status                    
+                }).ToList();
+            return data;
+        }
+
+        public List<BatchListByChartData> GetBatchByParam(DateTime date, string status)
+        {
+            var data = db.Query<BatchListByChartData>("select b.Id as [BatchId],b.ClientBatchId,b.[UniqueId] as [BatchUniqueId],b.BatchName,b.BatchStatus,b.DocumentOrPackageType,b.ReceivedOn,b.ValidationErrors, c.TimeZone as [ClientTimeZone],( select COUNT(Id) FROM [AM].[MailPieces]  WHERE [MailBatchId]=b.Id ) as MailPieceCount from [AM].[MailBatches] b left outer join [Common].[Clients] c ON b.ClientId=c.Id where BatchStatus=@status and ReceivedOn BETWEEN @startDate AND @enddate", new { startDate = date.ToStartDateTime().EstToUtc(), endDate = date.ToEndDateTime().EstToUtc(), status = status }).ToList();
+            return data;
+        }
+
+
+        public List<MailPieces> GetMailPieceByBatchId(int batchId)
+        {
+            string query = "[dbo].[uspweb_GetMailPieceByBatchId] @batchId";
+            var data = db.Query<MailBatches, Clients, MailPieces, DocTypes, MailPieces>(query,
+                (b, c, m, d) =>
+                {
+                    m.MailBatches = b;
+                    m.Clients = c;
+                    m.DocTypes = d;
+                    return m;
+                },
+                new
+                {
+                    batchId = batchId
+                }).ToList();
+            return data;
         }
     }
     public static class ChartDataServiceQuery
