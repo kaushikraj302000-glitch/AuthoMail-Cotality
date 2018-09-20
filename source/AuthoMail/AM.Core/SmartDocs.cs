@@ -165,7 +165,7 @@ namespace AM.Core
 
                         if (eVSRes.HasError)
                         {
-                            ExceptionDetail = "Error occured while generation eVS label for MailPiece-Id:{0} with Exception : {1}".Fill(mailPieceId, eVSRes.Error.Description);
+                            ExceptionDetail = "Error occured while generating eVS label for MailPiece-Id:{0} with Exception : {1}".Fill(mailPieceId, eVSRes.Error.Description);
                             return "";
                         }
                     }
