@@ -112,25 +112,24 @@ namespace AM.Services
             {
                 foreach (var item in pullBackData)
                 {
-                    Dictionary<string, string> dataForPullBackForm = new Dictionary<string, string>();
-                    DateTime eastern = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, Config.Web_API_PB_ClientTimeZone);
-                    dataForPullBackForm.Add("RequestDateTime", eastern.ToString());
-                    dataForPullBackForm.Add("FileName", string.Format("{0} {1}", item.PrintFileName, item.SubmittedOn.Value.ToString("MM/dd/yy")));
-                    dataForPullBackForm.Add("JobNumber", item.PrintBatch.ToString());
-                    dataForPullBackForm.Add("PackagesToPull", string.Format("{0} : {1}", item.PrintBatch.ToString(), item.PieceId.ToString()));
-                    dataForPullBackForm.Add("Coordinator", string.Format("AuthoMail, ADE, {0}-{1}", item.Name, item.DocTypeCode));
-                    dataForPullBackForm.Add("PkgInstruction", string.Empty);
-                    dataForPullBackForm.Add("Comments", string.Empty);
-
-                    byte[] output = null;
-                    string attachmentPdfName = string.Format("{0}_{1}.pdf", item.PrintBatch.ToString(), DateTime.Now.ToString("ddMMyyyyhhmmss"));
-                    //string outputPdfPath = Path.Combine(Config.API_PB_OutputDir, string.Format("{0}_{1}.pdf", item.PrintBatch.ToString(), DateTime.Now.ToString("ddMMyyyyhhmmss")));
-                    //Helper.MailMerge(Config.API_PB_PullBackFormTemplatePath, dataForPullBackForm, outputPdfPath);
-                    Helper.MailMerge(System.Web.Hosting.HostingEnvironment.MapPath(Config.Web_API_PB_PullBackFormTemplatePath), dataForPullBackForm, ref output);
-
                     if (item.PrintLocation == Config.Common_PrintLocationPCI)
                     {
-                        bool isEmailSent = SendEmailWithPullBackForm(output, attachmentPdfName); 
+                        Dictionary<string, string> dataForPullBackForm = new Dictionary<string, string>();
+                        DateTime eastern = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, Config.Web_API_PB_ClientTimeZone);
+                        dataForPullBackForm.Add("RequestDateTime", eastern.ToString());
+                        dataForPullBackForm.Add("FileName", string.Format("{0} {1}", item.PrintFileName,item.SubmittedOn == null ? string.Empty : item.SubmittedOn.Value.ToString("MM/dd/yy")));
+                        dataForPullBackForm.Add("JobNumber", item.PrintBatch.ToString());
+                        dataForPullBackForm.Add("PackagesToPull", string.Format("{0} : {1}", item.PrintBatch.ToString(), item.PieceId.ToString()));
+                        dataForPullBackForm.Add("Coordinator", string.Format("AuthoMail, ADE, {0}-{1}", item.Name, item.DocTypeCode));
+                        dataForPullBackForm.Add("PkgInstruction", string.Empty);
+                        dataForPullBackForm.Add("Comments", string.Empty);
+
+                        byte[] output = null;
+                        string attachmentPdfName = string.Format("{0}_{1}.pdf", item.PrintBatch.ToString(), DateTime.Now.ToString("ddMMyyyyhhmmss"));
+                        //string outputPdfPath = Path.Combine(Config.API_PB_OutputDir, string.Format("{0}_{1}.pdf", item.PrintBatch.ToString(), DateTime.Now.ToString("ddMMyyyyhhmmss")));
+                        //Helper.MailMerge(Config.API_PB_PullBackFormTemplatePath, dataForPullBackForm, outputPdfPath);
+                        Helper.MailMerge(System.Web.Hosting.HostingEnvironment.MapPath(Config.Web_API_PB_PullBackFormTemplatePath), dataForPullBackForm, ref output);
+                        bool isEmailSent = SendEmailWithPullBackForm(output, attachmentPdfName);
                     }
 
                 }
