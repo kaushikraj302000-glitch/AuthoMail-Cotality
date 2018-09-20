@@ -68,7 +68,7 @@ namespace AM.Core
                             string outputFilePath = Path.Combine(mbi.PnSRequestPath, "{0}_{1}".Fill(mailPieceId, mailPiece.FileName));
                             string coverLetterPdfPath = string.Empty;
                             string endPagePdfPath = string.Empty;
-                            string endPageTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, Config.Core_EndPageTemplatePath);
+
 
                             #region Prepare dictionary of placeholders/tags to fill the PDF template.
                             string fromAddress = string.Empty;
@@ -188,6 +188,9 @@ namespace AM.Core
 
                             if (docType.ShippingCarrier == Carrier.USPS.ToString())
                             {
+                                //Using different end page for USPS packages
+                                string endPageUSPSTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, Config.Core_USPSEndPageTemplatePath);
+
                                 DocTypeCoverLetter docTypeLetter = docTypeSvc.GetDocumentCoverLetterTemplates(docType.Id).SingleOrDefault();
 
                                 if (docTypeLetter == null)
@@ -253,11 +256,14 @@ namespace AM.Core
                                 {
                                     mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((mailPiece.TrackingNo).Reverse().ToArray()) + "*");
 
-                                    endPagePdfPath = doc.GenerateLastPageWithBarcode(endPageTemplatePath, mbi.PnSRequestPath, mailPieceData);
+                                    endPagePdfPath = doc.GenerateLastPageWithBarcode(endPageUSPSTemplatePath, mbi.PnSRequestPath, mailPieceData);
                                 }
                             }
                             else if (docType.ShippingCarrier == Carrier.FedEx.ToString())
                             {
+                                //Using different end page for FedEx packages
+                                string endPageFedExTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, Config.Core_FedExEndPageTemplatePath);
+
                                 DocTypeCoverLetter docTypeLetter = docTypeSvc.GetDocumentCoverLetterTemplates(docType.Id).SingleOrDefault();
 
                                 if (docTypeLetter == null)
@@ -301,7 +307,7 @@ namespace AM.Core
                                     {
                                         mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((mailPiece.TrackingNo).Reverse().ToArray()) + "*");
 
-                                        endPagePdfPath = doc.GenerateLastPageWithBarcode(endPageTemplatePath, mbi.PnSRequestPath, mailPieceData);
+                                        endPagePdfPath = doc.GenerateLastPageWithBarcode(endPageFedExTemplatePath, mbi.PnSRequestPath, mailPieceData);
                                     }
                                 }
 
@@ -336,36 +342,45 @@ namespace AM.Core
                         }
                     }
 
-                    Deliverable reportDeliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Error);
-
-                    var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
-                    if (data != null)
+                    try
                     {
-                        var validMailPiecesList = data.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
+                        Deliverable reportDeliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Error);
 
-                        if (validMailPiecesList.Count == 0)
+                        var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
+                        if (data != null)
                         {
-                            List<MailPieces> mailPieces;
-                            using (IReportService reportSvc = new ReportService())
+                            var validMailPiecesList = data.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
+
+                            if (validMailPiecesList.Count == 0)
                             {
-                                mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
+                                List<MailPieces> mailPieces;
+                                using (IReportService reportSvc = new ReportService())
+                                {
+                                    mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
+                                }
+
+                                //TODO: Remove after proper logic implementation client wise switch case implemented
+                                GenerateImmidiateReports(mbi, data, reportDeliverable, mailPieces);
+
+                                mailBatchSvc.MarkMailBatchAsInvalid(mbi.MailBatch.Id, (mbi.MailBatch.ValidationErrors + Environment.NewLine + "Some documents could not be processed."));
+                                commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.Failed.ToString());
                             }
-
-                            //TODO: Remove after proper logic implementation client wise switch case implemented
-                            GenerateImmidiateReports(mbi, data, reportDeliverable, mailPieces);
-
-                            mailBatchSvc.MarkMailBatchAsInvalid(mbi.MailBatch.Id, (mbi.MailBatch.ValidationErrors + Environment.NewLine + "Some documents could not be processed."));
-                            commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.Failed.ToString());
+                            else if (validMailPiecesList.Count < data.MailPieces.Count)
+                            {
+                                commonSvc.UpdateBatchValidationStatus(mbi.MailBatch.Id, BatchValidationStatus.PartiallyValid, data.MailBatch.ValidationErrors);
+                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Prepped, Common.Now);
+                            }
+                            else
+                            {
+                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Prepped, Common.Now);
+                            }
                         }
-                        else if (validMailPiecesList.Count < data.MailPieces.Count)
-                        {
-                            commonSvc.UpdateBatchValidationStatus(mbi.MailBatch.Id, BatchValidationStatus.PartiallyValid, data.MailBatch.ValidationErrors);
-                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Prepped, Common.Now);
-                        }
-                        else
-                        {
-                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Prepped, Common.Now);
-                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        var msg = "Error occured while preparing batches for printing for Batch Id - {0} and error - {1}".Fill(mbi.MailBatch.Id, ex.Message);
+                        log.Error(msg, ex);
+                        SendUnexpectedExceptionEmail(msg);
                     }
                 }
             }
