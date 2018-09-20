@@ -184,8 +184,8 @@ namespace AM.Services
 
         public List<MailPieces> GetMailPieceByParam(int batchId, string status)
         {
-            //need to update
-            string query = "[dbo].[uspweb_GetMailPieceByBatchIdAndStatus] @batchId, @status, @clientId";
+            //need to update, update done clientid
+            string query = "[dbo].[uspweb_GetMailPieceByBatchIdAndStatus] @batchId, @status, null";
             var data = db.Query<MailBatches, Clients, MailPieces, DocTypes, MailPieces>(query,
                 (b, c, m, d) =>
                 {
@@ -211,7 +211,7 @@ namespace AM.Services
 
         public List<MailPieces> GetMailPieceByBatchId(int batchId)
         {
-            string query = "[dbo].[uspweb_GetMailPieceByBatchId] @batchId";
+            string query = "[dbo].[uspweb_GetMailPieceByBatchId] @batchId,null";
             var data = db.Query<MailBatches, Clients, MailPieces, DocTypes, MailPieces>(query,
                 (b, c, m, d) =>
                 {
