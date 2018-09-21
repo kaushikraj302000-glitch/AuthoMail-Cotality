@@ -127,7 +127,7 @@ namespace AM.Console
         {
             log.Debug("Alaska download job is started.");
 
-            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Received, client.Id);
+            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatusAndClientId(BatchPipelineStatus.Received, client.Id);
             if (downloadBatches.Count == 0)
             {
                 log.Debug("Alaska download job queue is empty.");
@@ -179,7 +179,7 @@ namespace AM.Console
                     var error = "Error occured while downloading {0} batch from SFT site for Batch-Id : {1}".Fill(mbi.BatchName, mbi.MailBatch.Id) + Environment.NewLine + ex.ToString();
 
                     log.Error(error);
-                    MailUtility.SendUnexpectedExcelptionEmail(error);
+                    MailUtility.SendUnexpectedExceptionEmail(error);
                     continue;
                 }
             }
@@ -194,7 +194,7 @@ namespace AM.Console
         {
             log.Debug("Validate job queue is started.");
 
-            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Downloaded, client.Id);
+            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatusAndClientId(BatchPipelineStatus.Downloaded, client.Id);
             if (downloadBatches.Count == 0)
             {
                 log.Debug("Validate job queue is empty.");
@@ -430,7 +430,7 @@ namespace AM.Console
 
         protected override void CalculateDueDateAndPrintLocation()
         {
-            Channel.CalculateDueDateAndPrintLocation(client.Id);
+            Channel.CalculateDueDateAndPrintLocation(SFTChannel.Id);
         }
 
         private MailPieceValidationResult ValidateRespaControlNode(XmlNode mailPieceNode)
@@ -490,7 +490,7 @@ namespace AM.Console
         {
             log.Debug("Alaska acknowledge job queue is started.");
 
-            List<MailBatchDTO> validatedBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Validated, client.Id);
+            List<MailBatchDTO> validatedBatches = mailBatchSvc.GetBatchesByPipelineStatusAndClientId(BatchPipelineStatus.Validated, client.Id);
 
             if (validatedBatches.Count == 0)
             {

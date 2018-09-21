@@ -91,13 +91,18 @@
     <Compile Include="Demo.cs" />
     <Compile Include="IDemo.cs" />
     <Compile Include="Models\AccountAPI.cs" />
+    <Compile Include="Models\AccountManage.cs" />
     <Compile Include="Models\AlertPendingBatchesViewModel.cs" />
     <Compile Include="Models\BatchReportInfo.cs" />
     <Compile Include="Models\ChartModels.cs" />
+    <Compile Include="Models\eVSCancelRequest.cs" />
     <Compile Include="Models\eVSRequest.cs" />
+    <Compile Include="Models\eVSCancelResponse.cs" />
     <Compile Include="Models\eVSResponse.cs" />
-    <Compile Include="Models\IeVSResponse.cs" />
     <Compile Include="Models\IeVSRequest.cs" />
+    <Compile Include="Models\IeVSCancelResponse.cs" />
+    <Compile Include="Models\IeVSResponse.cs" />
+    <Compile Include="Models\IeVSCancelRequest.cs" />
     <Compile Include="Models\SupportModel.cs" />
     <Compile Include="Models\CustomModels.cs" />
     <Compile Include="Models\MailPieceSearch.cs" />
@@ -118,6 +123,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Services\AccountManageService.cs" />
     <Compile Include="Services\ChartDataService.cs" />
     <Compile Include="Services\ConfigService.cs" />
     <Compile Include="Services\HomeService.cs" />
@@ -140,6 +146,7 @@
     <None Include="app.config" />
     <None Include="packages.config" />
     <Compile Include="Services\USPSService.VerifyAddress.cs" />
+    <Compile Include="Services\USPSService.eVSCancel.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AM.Entities\AM.Entities.csproj">

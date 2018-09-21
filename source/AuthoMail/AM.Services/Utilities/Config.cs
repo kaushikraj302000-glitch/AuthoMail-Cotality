@@ -61,7 +61,8 @@ namespace AM.Services
         public static int Core_FedexServiceAttemptInterval { get; private set; }
         public static string Core_BundleSweepClientChannelIds { get; private set; }
         public static string Core_DirectReportBackChannelIds { get; private set; }
-        public static string Core_EndPageTemplatePath { get; private set; }
+        public static string Core_USPSEndPageTemplatePath { get; private set; }
+        public static string Core_FedExEndPageTemplatePath { get; private set; }
 
 
         //FedEx URLs
@@ -186,7 +187,7 @@ namespace AM.Services
         public static int Web_API_USPS_AddressCount { get; private set; }
         public static string Web_API_USPS_MainlandStates { get; private set; }
         public static string Web_API_USPS_eVSAPIName { get; private set; }
-
+        public static string Web_API_USPS_eVSCancelAPIName { get; private set; }
 
         #endregion
 

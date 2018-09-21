@@ -15,6 +15,8 @@ using System.Xml.Linq;
 using System.Xml.Schema;
 using System.Data.SqlClient;
 using AM.USPSLib;
+using System.Transactions;
+using System.Threading;
 
 namespace AM.Console
 {
@@ -26,8 +28,6 @@ namespace AM.Console
 
         private string channelType;
 
-        protected Client client;
-
         private static XmlSchemaSet schemas;
 
         static AMCChannel()
@@ -36,12 +36,10 @@ namespace AM.Console
             schemas.Add("http://schemas.corelogic.com/2015/amc/v1/packages", XmlReader.Create(new StringReader(Resources.PackageInfoSchema)));
         }
 
-
         public AMCChannel(string channelCode, string channelType)
             : base(channelCode)
         {
             amcSvc = GetService<AMCService>();
-            client = clientSvc.GetClientByAppCode("USAA");
             this.channelType = channelType;
         }
 
@@ -59,23 +57,10 @@ namespace AM.Console
 
             foreach (string triggerFile in triggerFilePaths)
             {
-                MailBatchDTO mailBatch = null;
-
                 string triggerFilePath = Path.Combine(SFTChannel.ToADEDir, triggerFile + "_Complete.go");
 
                 //Download and Insert the batch in database first always.
                 string batchName = triggerFile;
-
-                mailBatch = new MailBatchDTO();
-                mailBatch.ClientId = client.Id;
-                mailBatch.BatchName = batchName;
-                mailBatch.SFTChannelId = SFTChannel.Id;
-                mailBatch.ClientBatchId = batchName;
-                mailBatch.UniqueId = Guid.NewGuid();
-                mailBatch.Priority = Priority.Medium.ToString();
-
-                //Insert New Batch Entry
-                mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
 
                 DateTime lastModifiedTime = Common.Now;
                 if (channelType == ChannelType.Trigger)
@@ -83,28 +68,255 @@ namespace AM.Console
                     lastModifiedTime = sftSite.LastModifiedTimeOfFile(triggerFilePath);
                 }
 
-                //Update Pipeline Status of Batch Received
-                commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, lastModifiedTime);
-                commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.InProgress.ToString());
+                #region Create AMC Directory.
+                //Here first we are cleaning AMC folder
+                string amcDownloadPath = Path.Combine(Config.Common_AuthoMailRootFolder, SFTChannel.Code.Split('_')[0]);
 
-                //Delete or move trigger file after status update as Received
-                MoveTriggerFileToBackupDir(sftSite, triggerFilePath);
+                if (Directory.Exists(amcDownloadPath))
+                {
+                    Directory.Delete(amcDownloadPath, true);
+                }
+
+                Directory.CreateDirectory(amcDownloadPath);
+
+                #endregion
+
+                #region Download Zip
+                string zipFileName = "{0}.zip".Fill(batchName);
+                string localZipFilePath = Path.Combine(amcDownloadPath, zipFileName);
+                string xmlFilePath = Path.Combine(amcDownloadPath, batchName + ".xml");
+                string ftpZipFilePath = Path.Combine(SFTChannel.ToADEDir, zipFileName);
+                string ftpTriggerFilePath = Path.Combine(SFTChannel.ToADEDir, "{0}_Complete.go".Fill(batchName));
+
+                if (!sftSite.IsFileAvailable(ftpZipFilePath))
+                {
+                    var msg = "'{0}.zip' file is missing on SFT site.".Fill(batchName);
+                    ReportInvalidBatch(InsertInvalidBatchInfo(batchName, lastModifiedTime, msg), "");
+                    continue;
+                }
+
+                //Some time it is not creating AMC folder in flow so here we are again checking this if not created then below code will create
+                if (!Directory.Exists(amcDownloadPath))
+                {
+                    Directory.CreateDirectory(amcDownloadPath);
+                }
+
+                DownloadBatchZipFile(sftSite, ftpZipFilePath, ftpTriggerFilePath, localZipFilePath);
+
+                try
+                {
+                    ZipFile.ExtractToDirectory(localZipFilePath, Path.GetDirectoryName(localZipFilePath));
+                }
+                catch (Exception ex)
+                {
+                    var msg = "Unable to extract '{0}.zip' file.".Fill(batchName);
+                    log.Error(msg, ex);
+                    ReportInvalidBatch(InsertInvalidBatchInfo(batchName, lastModifiedTime, msg), localZipFilePath);
+                    continue;
+                }
+                #endregion
+
+                SeparateAMCBatchClientWise(xmlFilePath, localZipFilePath, batchName, amcDownloadPath, lastModifiedTime, sftSite);
             }
 
             if (sftSite.IsConnected)
                 sftSite.Disconnect();
         }
 
-        private void MoveTriggerFileToBackupDir(SFTUtil sftSite, string triggerFTPFilePath)
+        private MailBatchDTO InsertInvalidBatchInfo(string batchName, DateTime receivedOn, string errorMessage)
         {
-            string triggerFTPBackUpFilePath = Path.Combine(SFTChannel.ArchiveDir, Path.GetFileName(triggerFTPFilePath));
+            MailBatchDTO mailBatch = new MailBatchDTO();
+            mailBatch.UniqueId = Guid.NewGuid();
+            mailBatch.ClientId = GetInvalidClient().Id;
+            mailBatch.SFTChannelId = SFTChannel.Id;
+            mailBatch.BatchName = batchName;
+            mailBatch.ClientBatchId = batchName;
+            mailBatch.Priority = Priority.Medium.ToString();
+            mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
+            mailBatchSvc.MarkMailBatchAsInvalid(mailBatch.Id, errorMessage);
+            commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.Failed.ToString());
+            return mailBatch;
+        }
+
+        private void SeparateAMCBatchClientWise(string xmlFilePath, string localZipFilePath, string batchName, string amcDownloadPath, DateTime receivedOn, SFTUtil sftSite)
+        {
+            List<ClientAMCCustIdMap> amcClientMaps = clientSvc.GetAMCClientIdMaps();
+            List<MailBatchDTO> mailBatches = new List<MailBatchDTO>();
+
+            XmlDocument batchXML = new XmlDocument();
+            XmlNamespaceManager nsManager = null;
+            XmlNodeList mailPieceNodes = null;
+            try
+            {
+                batchXML.LoadXml(File.ReadAllText(xmlFilePath));
+                nsManager = new XmlNamespaceManager(batchXML.NameTable);
+                nsManager.AddNamespace("x", "http://schemas.corelogic.com/2015/amc/v1/packages");
+                mailPieceNodes = batchXML.DocumentElement.ChildNodes;
+            }
+            catch (XmlException ex)
+            {
+                var msg = "'{0}.xml' is not a valid XML document.".Fill(batchName);
+                log.Error(msg, ex);
+                ReportInvalidBatch(InsertInvalidBatchInfo(batchName, receivedOn, msg), localZipFilePath);
+                return;
+            }
+            catch (Exception ex)
+            {
+                var msg = "'{0}.xml' is not a valid XML document.".Fill(batchName);
+                log.Error(msg, ex);
+                ReportInvalidBatch(InsertInvalidBatchInfo(batchName, receivedOn, msg), localZipFilePath);
+                return;
+            }
+
+            try
+            {
+                PackageRequests requests = null;
+                PackageRequests amcRequest = new PackageRequests();
+
+                requests = XmlUtil.Deserialize<PackageRequests>(batchXML.OuterXml);
+
+                List<PackageInfo> invalidPackages = requests.Packages.FindAll(p => !amcClientMaps.Select(c => c.AMCCustId).Contains(p.CustomerIdentifier));
+                amcRequest.Packages = invalidPackages;
+
+                if (invalidPackages.Count > 0)
+                {
+                    SeparateXMLsAndPDFsClientWise(amcRequest, amcDownloadPath, GetInvalidClient().AppCode, batchName);
+
+                    MailBatchDTO invalidMailBatch = new MailBatchDTO();
+                    invalidMailBatch.ClientId = GetInvalidClient().Id;
+                    invalidMailBatch.BatchName = batchName;
+                    invalidMailBatch.SFTChannelId = SFTChannel.Id;
+                    invalidMailBatch.ClientBatchId = batchName;
+                    invalidMailBatch.UniqueId = Guid.NewGuid();
+                    invalidMailBatch.Priority = Priority.Medium.ToString();
+                    invalidMailBatch.ReceivedOn = receivedOn;
+
+                    mailBatches.Add(invalidMailBatch);
+
+                    requests.Packages.RemoveAll(p => !amcClientMaps.Select(c => c.AMCCustId).Contains(p.CustomerIdentifier));
+                }
+
+                if (requests.Packages.Count > 0)
+                {
+                    foreach (var map in amcClientMaps)
+                    {
+                        Client client = clientSvc.GetClientById(map.ClientId);
+
+                        List<PackageInfo> packages = requests.Packages.FindAll(p => p.CustomerIdentifier == map.AMCCustId);
+
+                        if (packages != null && packages.Count > 0)
+                        {
+                            amcRequest.Packages = packages;
+
+                            SeparateXMLsAndPDFsClientWise(amcRequest, amcDownloadPath, client.AppCode, batchName);
+
+                            MailBatchDTO mailBatch = new MailBatchDTO();
+                            mailBatch.ClientId = client.Id;
+                            mailBatch.BatchName = batchName;
+                            mailBatch.SFTChannelId = SFTChannel.Id;
+                            mailBatch.ClientBatchId = batchName;
+                            mailBatch.UniqueId = Guid.NewGuid();
+                            mailBatch.Priority = Priority.Medium.ToString();
+                            mailBatch.ReceivedOn = receivedOn;
+                            mailBatches.Add(mailBatch);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var msg = "Error occured while separating AMC batches from Batch '{0}.xml'".Fill(batchName);
+                log.Error(msg, ex);
+                MailUtility.SendUnexpectedExceptionEmail(msg + "<br/> Error Message is {0}".Fill(ex));
+                return;
+            }
+
+            using (TransactionScope scope = new TransactionScope())
+            {
+                try
+                {
+                    var insertedList = mailBatchSvc.InsertBatchDetails(mailBatches);
+
+                    if (insertedList.Count > 0)
+                    {
+                        foreach (var clientBatch in insertedList)
+                        {
+                            Client client = clientSvc.GetClientById(clientBatch.ClientId);
+                            MailBatchInfo mbi = new MailBatchInfo(clientBatch, client, Config.Common_AuthoMailRootFolder);
+
+                            //Here we create folder structure
+                            mbi.AMRequestPath.CreateDirectoryIfNotExist();
+                            mbi.AMResponsePath.CreateDirectoryIfNotExist();
+                            mbi.PnSRequestPath.CreateDirectoryIfNotExist();
+                            mbi.PnSRequestPath.CreateDirectoryIfNotExist();
+
+                            var fileList = Directory.GetFiles(Path.Combine(amcDownloadPath, client.AppCode));
+                            foreach (var srcFilePath in fileList)
+                            {
+                                string destFilePath = Path.Combine(mbi.AMRequestPath, Path.GetFileName(srcFilePath));
+                                if (File.Exists(destFilePath))
+                                    File.Delete(destFilePath);
+
+                                File.Move(srcFilePath, destFilePath);
+                            }
+
+                            commonSvc.UpdateBatchPipeLineStatus(clientBatch.Id, BatchPipelineStatus.Downloaded, Common.Now);
+                        }
+                    }
+
+                    //Here after moving all batches to particular client location , archive amc batch
+                    string archiveZipPath = Path.Combine(Config.Common_AuthoMailRootFolder, "Archive", batchName + ".zip");
+                    File.Move(localZipFilePath, archiveZipPath);
+
+                    //Now delete/archive trigger and zip from SFTP
+                    MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, batchName + ".zip"));
+                    MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, batchName + "_Complete.go"));
+
+                    scope.Complete();
+                }
+                catch (Exception ex)
+                {
+                    var msg = "Error occured while inserting AMC batches details for Batch '{0}.xml'".Fill(batchName);
+                    log.Error(msg, ex);
+                    MailUtility.SendUnexpectedExceptionEmail(msg + "<br/> Error Message is {0}".Fill(ex));
+                }
+            }
+        }
+
+        private Client GetInvalidClient()
+        {
+            return clientSvc.GetClientByAppCode("AMCInvalid");
+        }
+
+        private void SeparateXMLsAndPDFsClientWise(PackageRequests request, string amcDownloadPath, string clientCode, string batchName)
+        {
+            string clientBatchDirectory = Path.Combine(amcDownloadPath, clientCode);
+            clientBatchDirectory.CleanDirectory();
+            string amcFilePath = Path.Combine(clientBatchDirectory, string.Format("{0}.xml", batchName));
+            List<PackageInfo> packages = request.Packages;
+            foreach (PackageInfo package in packages)
+            {
+                if (File.Exists(Path.Combine(amcDownloadPath, package.File)))
+                {
+                    string sourceFile = Path.Combine(amcDownloadPath, package.File);
+                    string destFile = Path.Combine(clientBatchDirectory, package.File);
+                    File.Move(sourceFile, destFile);
+                }
+            }
+
+            File.WriteAllText(amcFilePath, XmlUtil.Serialize<PackageRequests>(request));
+        }
+
+        private void MoveBatchToBackupDir(SFTUtil sftSite, string ftpFilePath)
+        {
+            string ftpBackUpFilePath = Path.Combine(SFTChannel.ArchiveDir, Path.GetFileName(ftpFilePath));
 
             if (SFTChannel.PostDownloadAction == PostDownloadAction.Archive)
             {
-                sftSite.MoveFile(triggerFTPFilePath, triggerFTPBackUpFilePath);
+                sftSite.MoveFile(ftpFilePath, ftpBackUpFilePath);
             }
             else
-                sftSite.DeleteFile(triggerFTPFilePath);
+                sftSite.DeleteFile(ftpFilePath);
         }
 
         private List<string> GetTriggerFilePaths(SFTUtil sftSite)
@@ -128,109 +340,11 @@ namespace AM.Console
 
             return availableTriggerFilePaths;
         }
-        #endregion
 
-        #region DownloadBatches
-        protected override void DownloadBatches()
-        {
-            log.Debug("Download job queue is started.");
-
-            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Received, client.Id);
-            if (downloadBatches == null)
-            {
-                log.Debug("Download job queue is empty.");
-                return;
-            }
-
-            SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
-            sftSite.Connect();
-
-
-            foreach (var batch in downloadBatches)
-            {
-                MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
-
-                try
-                {
-                    #region Create directory structure.
-
-                    mbi.BatchRepo.CleanDirectory();
-                    mbi.AMRequestPath.CreateDirectoryIfNotExist();
-                    mbi.PnSRequestPath.CreateDirectoryIfNotExist();
-                    mbi.PnSResponsePath.CreateDirectoryIfNotExist();
-                    mbi.AMResponsePath.CreateDirectoryIfNotExist();
-
-                    #endregion
-
-                    string localZipFilePath = string.Empty;
-                    string zipFileName = "{0}.zip".Fill(mbi.BatchName);
-                    string ftpZipFilePath = Path.Combine(SFTChannel.ToADEDir, zipFileName);
-                    string ftpTriggerFilePath = Path.Combine(SFTChannel.ToADEDir, "{0}_Complete.go".Fill(mbi.BatchName));
-
-                    if (!sftSite.IsFileAvailable(ftpZipFilePath))
-                    {
-                        ReportInvalidBatch(mbi, "'{0}.zip' file is missing on SFT site.".Fill(mbi.BatchName));
-                        continue;
-                    }
-
-                    localZipFilePath = DownloadBatchZipFile(sftSite, ftpZipFilePath, ftpTriggerFilePath, mbi);
-
-                    try
-                    {
-                        ZipFile.ExtractToDirectory(localZipFilePath, mbi.AMRequestPath);
-                    }
-                    catch (Exception ex)
-                    {
-                        var msg = "Unable to extract '{0}.zip' file. Batch ID : {1} ".Fill(mbi.BatchName, mbi.MailBatch.Id);
-
-                        log.Error(msg, ex);
-
-                        ReportInvalidBatch(mbi, msg);
-                        continue;
-                    }
-
-                    //Based on post download action zip file and trigger file will get moved or delete from that location
-                    if (SFTChannel.PostDownloadAction == PostDownloadAction.Archive)
-                    {
-                        //Move zip file
-                        string archiveFTPZipFilePath = Path.Combine(SFTChannel.ArchiveDir, zipFileName);
-
-                        sftSite.MoveFile(ftpZipFilePath, archiveFTPZipFilePath);
-                    }
-                    else
-                    {
-                        sftSite.DeleteFile(ftpZipFilePath);
-                    }
-
-                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Downloaded, Common.Now);
-                }
-                catch (Exception ex)
-                {
-                    var error = "Error occured while downloading {0} batch from SFT site for Batch-Id : {1}".Fill(mbi.BatchName, mbi.MailBatch.Id) + Environment.NewLine + ex.ToString();
-
-                    log.Error(error);
-
-                    continue;
-                }
-            }
-            if (sftSite.IsConnected)
-                sftSite.Disconnect();
-
-            log.Debug("Download job queue is completed.");
-
-            //if (Config.Common_Environment != Env.Prod)
-            //{
-            // Separate batches for USAA from AMC
-            SeparateBatches();
-            //}
-        }
-
-        private string DownloadBatchZipFile(SFTUtil sftSite, string ftpZipFilePath, string ftpTriggerFilePath, MailBatchInfo mbi)
+        private string DownloadBatchZipFile(SFTUtil sftSite, string ftpZipFilePath, string ftpTriggerFilePath, string localZipFilePath)
         {
             string triggerFileName = Path.GetFileName(ftpTriggerFilePath);
             string zipFileName = Path.GetFileName(ftpZipFilePath);
-
-            string localZipFilePath = Path.Combine(mbi.AMRequestPath, zipFileName);
 
             sftSite.DownloadFile(ftpZipFilePath, localZipFilePath);
 
@@ -238,190 +352,57 @@ namespace AM.Console
         }
         #endregion
 
-        private void ReportInvalidBatch(MailBatchInfo mbi, string error)
+        #region DownloadBatches
+        protected override void DownloadBatches()
         {
+        }
+
+        #endregion
+
+        private void ReportInvalidBatch(MailBatchDTO mailBatch, string localZipFilePath)
+        {
+            Client client = clientSvc.GetClientById(mailBatch.ClientId);
+
+            Deliverable deliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Error);
+
+            MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
+
+            mbi.AMRequestPath.CreateDirectoryIfNotExist();
+            mbi.AMResponsePath.CreateDirectoryIfNotExist();
+
+            if (!string.IsNullOrEmpty(localZipFilePath))
+                File.Move(localZipFilePath, Path.Combine(mbi.AMRequestPath, mbi.BatchName + ".zip"));
+
             //For Invalid Batch, we will generate err file 
-            string invalidBatchFileName = "{0}_InvalidZipfile.err".Fill(mbi.BatchName);
+            string invalidBatchFileName = "{0}_InvalidZipfile.err".Fill(mailBatch.BatchName);
+
             string invalidBatchPath = Path.Combine(mbi.AMResponsePath, invalidBatchFileName);
 
             File.WriteAllText(invalidBatchPath, string.Empty);
 
-            mailBatchSvc.MarkMailBatchAsInvalid(mbi.MailBatch.Id, error);
-
             commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
 
-            commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
+            string remoteFilePath = Path.Combine(deliverable.UploadPath, invalidBatchFileName);
+
+            SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
+            sftSite.Connect();
+
+            sftSite.UploadFile(invalidBatchPath, remoteFilePath);
+
+            MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, mbi.BatchName + ".zip"));
+            MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, mbi.BatchName + "_Complete.go"));
+
+            if (sftSite.IsConnected)
+                sftSite.Disconnect();
+
+            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
         }
-
-        #region Separate Batches
-        protected void SeparateBatches()
-        {
-            log.Debug("Separate batches job queue is started.");
-            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Downloaded, client.Id);
-            if (downloadBatches == null)
-            {
-                log.Debug("Separating job queue is empty.");
-                return;
-            }
-
-            foreach (var batch in downloadBatches)
-            {
-                MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
-
-                var xmlFilePath = Path.Combine(mbi.AMRequestPath, mbi.BatchName + ".xml");
-                if (!File.Exists(xmlFilePath))
-                {
-                    ReportInvalidBatch(mbi, "Xml file does not exist in Batch-{0}".Fill(batch.BatchName));
-
-                    continue;
-                }
-
-                XmlDocument batchXML = new XmlDocument();
-                XmlNamespaceManager nsManager = null;
-                XmlNodeList mailPieceNodes = null;
-                try
-                {
-                    batchXML.LoadXml(File.ReadAllText(xmlFilePath));
-                    nsManager = new XmlNamespaceManager(batchXML.NameTable);
-                    nsManager.AddNamespace("x", "http://schemas.corelogic.com/2015/amc/v1/packages");
-                    mailPieceNodes = batchXML.DocumentElement.ChildNodes;
-                }
-                catch (XmlException ex)
-                {
-                    var msg = "'{0}.xml' is not a valid XML document.".Fill(mbi.BatchName);
-                    log.Error(msg, ex);
-
-                    ReportInvalidBatch(mbi, msg);
-
-                    continue;
-                }
-                catch (Exception ex)
-                {
-                    var msg = "'{0}.xml' is not a valid XML document.".Fill(mbi.BatchName);
-                    log.Error(msg, ex);
-                    ReportInvalidBatch(mbi, ex.Message);
-                    continue;
-                }
-
-                if (mailPieceNodes == null)
-                {
-                    ReportInvalidBatch(mbi, "Xml does not contain any package info nodes.");
-
-                    continue;
-                }
-
-                try
-                {
-                    PackageRequests requests = null;
-                    PackageRequests amcRequest = new PackageRequests();
-
-                    requests = XmlUtil.Deserialize<PackageRequests>(batchXML.OuterXml);
-
-                    List<PackageInfo> packages = requests.Packages.FindAll(p => p.CustomerIdentifier != Config.Monitor_USAACustIdentifier);
-
-                    if (packages != null && packages.Count > 0)
-                    {
-                        amcRequest.Packages = packages;
-                        SplitXMLAndPDFS(amcRequest, Path.GetDirectoryName(xmlFilePath), mbi.BatchName);
-                        requests.Packages.RemoveAll(p => p.CustomerIdentifier != Config.Monitor_USAACustIdentifier);
-                        //After removing other document types from package request we are checking for any remaining USAA packages are there or not if not then we don't need to process that batch further so we will remove that batch's records and files from database and from folder
-                        if (requests.Packages.Count == 0)
-                        {
-                            //TODO: Ask to Ravi Sir
-                            DeleteBatchInfo(mbi.MailBatch.Id, mbi.BatchRepo);
-                            continue;
-                        }
-
-                        if (File.Exists(xmlFilePath))
-                            File.Delete(xmlFilePath);
-
-                        File.WriteAllText(xmlFilePath, XmlUtil.Serialize<PackageRequests>(requests));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    log.Error("Error occured while separating AMC batches from Batch '{0}.xml'".Fill(mbi.BatchName), ex);
-                }
-            }
-            log.Debug("Separate batches job queue is completed.");
-        }
-
-        private void DeleteBatchInfo(int mailBatchId, string mailBatchRepo)
-        {
-            int retVal = 0;
-            try
-            {
-                retVal = mailBatchSvc.DeleteBatchDetails(mailBatchId);
-            }
-            catch (Exception ex)
-            {
-                log.Error(ex);
-            }
-        }
-
-        private void SplitXMLAndPDFS(PackageRequests request, string PDFsDir, string batchName)
-        {
-            //Create folder for Separate batch for AMC in UNC path
-            string batchDirectoryPath = Path.Combine(Config.Monitor_AMCDirPath, batchName);
-
-            batchDirectoryPath.CleanDirectory();
-
-            //Xml and pdf files will be copied to batchname folder.
-            string amcFilePath = Path.Combine(batchDirectoryPath, string.Format("{0}.xml", batchName));
-
-            string zipFilePath = Path.Combine(Config.Monitor_AMCDirPath, string.Format("{0}.zip", batchName));
-            string triggerFilePath = Path.Combine(Config.Monitor_AMCDirPath, string.Format("{0}_Complete.go", batchName));
-
-            List<PackageInfo> packages = request.Packages;
-            if (packages != null)
-            {
-                foreach (PackageInfo package in packages)
-                {
-                    if (File.Exists(Path.Combine(PDFsDir, package.File)))
-                    {
-                        string sourceFile = Path.Combine(PDFsDir, package.File);
-                        string destFile = Path.Combine(batchDirectoryPath, package.File);
-
-                        if (File.Exists(destFile))
-                            File.Delete(destFile);
-
-                        File.Copy(sourceFile, destFile);
-                    }
-                }
-
-                if (File.Exists(amcFilePath))
-                    File.Delete(amcFilePath);
-
-                File.WriteAllText(amcFilePath, XmlUtil.Serialize<PackageRequests>(request));
-
-                if (File.Exists(zipFilePath))
-                    File.Delete(zipFilePath);
-
-                using (ZipArchive newFile = System.IO.Compression.ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
-                {
-                    foreach (string file in Directory.GetFiles(batchDirectoryPath).Where(fileType => !fileType.ToLower().EndsWith(".zip")))
-                    {
-                        newFile.CreateEntryFromFile(file, Path.GetFileName(file));
-                    }
-                }
-
-                //After creating zip remove batch folder
-                Directory.Delete(batchDirectoryPath, true);
-
-
-                if (File.Exists(triggerFilePath))
-                    File.Delete(triggerFilePath);
-
-                File.Create(triggerFilePath);
-            }
-        }
-        #endregion
 
         protected override void ValidateBatches()
         {
             log.Debug("Validate job queue is started.");
 
-            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Downloaded, client.Id);
+            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatusAndSFTChannelId(BatchPipelineStatus.Downloaded, SFTChannel.Id);
             if (downloadBatches == null)
             {
                 log.Debug("Validate job queue is empty.");
@@ -430,6 +411,8 @@ namespace AM.Console
 
             foreach (var mailBatch in downloadBatches)
             {
+                Client client = clientSvc.GetClientById(mailBatch.ClientId);
+
                 MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
 
                 //TODO: Can we have multiple business identifier in client business?
@@ -461,7 +444,7 @@ namespace AM.Console
                     var msg = "'{0}.xml' is not a valid XML document.".Fill(mbi.BatchName);
                     log.Error(msg, ex);
 
-                    ReportInvalidBatch(mbi, msg);
+                    ReportInvalidBatch(mailBatch, "");
 
                     continue;
                 }
@@ -469,14 +452,7 @@ namespace AM.Console
                 {
                     var msg = "'{0}.xml' is not a valid XML document.".Fill(mbi.BatchName);
                     log.Error(msg, ex);
-                    ReportInvalidBatch(mbi, ex.Message);
-                    continue;
-                }
-
-                if (mailPieceNodes == null || mailPieceNodes.Count == 0)
-                {
-                    ReportInvalidBatch(mbi, "'{0}.xml' does not contain any package info node(s).".Fill(mbi.BatchName));
-
+                    ReportInvalidBatch(mailBatch, "");
                     continue;
                 }
 
@@ -549,7 +525,6 @@ namespace AM.Console
                     }
                 }
                 #endregion
-
 
                 foreach (XmlNode mailPieceNode in mailPieceNodes)
                 {
@@ -715,7 +690,7 @@ namespace AM.Console
                             if (docType == null)
                             {
                                 mailPieceDTO.ErrorCode = OutComeCodes.Invalid_PackageType;
-                                mailPieceDTO.ErrorDesc = "The specified document or package type '{0}' is not configured.".Fill(mailPieceDTO.DocumentOrPackageType);
+                                mailPieceDTO.ErrorDesc = client.AppCode == GetInvalidClient().AppCode ? "The specified customer identifier {0} is not configured.".Fill(mailPieceCustomInfo.Single(c => c.Key == "CustomerIdentifier").Value) : "The specified document or package type '{0}' is not configured.".Fill(mailPieceDTO.DocumentOrPackageType);
                                 mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                             }
                             else if (!File.Exists(filePath))
@@ -802,14 +777,14 @@ namespace AM.Console
 
         protected override void CalculateDueDateAndPrintLocation()
         {
-            Channel.CalculateDueDateAndPrintLocation(client.Id);
+            Channel.CalculateDueDateAndPrintLocation(SFTChannel.Id);
         }
 
         protected override void AcknowledgeBatches()
         {
             log.Debug("Acknowledge job queue is started.");
 
-            List<MailBatchDTO> validatedBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Validated, client.Id);
+            List<MailBatchDTO> validatedBatches = mailBatchSvc.GetBatchesByPipelineStatusAndSFTChannelId(BatchPipelineStatus.Validated, SFTChannel.Id);
 
             if (validatedBatches == null)
             {
@@ -819,6 +794,8 @@ namespace AM.Console
 
             foreach (var batch in validatedBatches)
             {
+                Client client = clientSvc.GetClientById(batch.ClientId);
+
                 Deliverable deliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Error);
 
                 MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
@@ -846,16 +823,29 @@ namespace AM.Console
 
                         if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.Invalid)
                         {
-                            
                             StringBuilder errorData = amcSvc.AMCErrorReport(mailPieces);
                             if (errorData != null)
                             {
                                 File.WriteAllText(errorReportPath, errorData.ToString());
+
+                                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
+                                sftSite.Connect();
+
+                                var ftpUploadPath = Path.Combine(deliverable.UploadPath, errorReportFileName);
+
+                                sftSite.UploadFile(errorReportPath, ftpUploadPath);
+
+                                // Upload Error.GO file after uploading error report
+                                File.WriteAllText(errorGoFilePath, string.Empty);
+
+                                sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
+
+                                if (sftSite.IsConnected)
+                                    sftSite.Disconnect();
+
+                                // Batch status Reported Back
+                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
                             }
-
-                            // Batch status Prepped
-                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
-
                         }
                         else if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.PartiallyValid)
                         {

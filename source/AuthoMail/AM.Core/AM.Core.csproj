@@ -92,9 +92,8 @@
     <None Include="CoverTemplates\ALASKA\ALASKA_USPS_Generic_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="CoverTemplates\BarcodedEndPageTemplate.pdf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <None Include="CoverTemplates\BECU\BECU_USPS_Generic_1.pdf" />
+    <None Include="CoverTemplates\FedExBarcodedEndPageTemplate.pdf" />
     <None Include="CoverTemplates\Generic_Template95X12.pdf" />
     <None Include="CoverTemplates\HSBC\HSBC_USPS_Generic_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -106,6 +105,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="CoverTemplates\USAA_Template.pdf" />
+    <None Include="CoverTemplates\USPSBarcodedEndPageTemplate.pdf" />
     <None Include="log4net.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

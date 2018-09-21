@@ -561,6 +561,34 @@ namespace AM.USPSLib
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
+    public enum eVSCancelStatus
+    {
+        [EnumMember(Value = "Cancelled")]
+        [XmlEnum(Name = "Cancelled")]
+        Cancelled,
+
+        [EnumMember(Value = "Not Cancelled")]
+        [XmlEnum(Name = "Not Cancelled")]
+        Not_Cancelled
+    }
+
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum eVSCancelReason
+    {
+        [EnumMember(Value = "Order Cancelled Successfully")]
+        [XmlEnum(Name = "Order Cancelled Successfully")]
+        Order_Cancelled_Successfully,
+
+        [EnumMember(Value = "Order Already Cancelled")]
+        [XmlEnum(Name = "Order Already Cancelled")]
+        Order_Already_Cancelled,
+
+        [EnumMember(Value = "Order Not Found")]
+        [XmlEnum(Name = "Order Not Found")]
+        Order_Not_Found
+    }
+
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum AddressType
     {
         [EnumMember(Value = "POBOX")]

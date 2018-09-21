@@ -17,6 +17,7 @@ namespace AM.Services
         List<ClientSFTChannel> GetClientSFTChannelMapDetails(int clientId);
         SFTChannel GetSFTChannelDetailsBySFTChannelId(int sftChannelId);
         SFTChannel GetSFTChannelDetailsBySFTChannelCode(string sftChannelCode);
+        List<ClientAMCCustIdMap> GetAMCClientIdMaps();
     }
     public class ClientService : ServiceBase, IClientService //It implements Interfaces 
     {
@@ -56,6 +57,13 @@ namespace AM.Services
 
             var data = db.QuerySingleOrDefault<SFTChannel>(query, new { sftChannelCode = sftChannelCode });
             return data;
+        }
+
+        public List<ClientAMCCustIdMap> GetAMCClientIdMaps()
+        {
+            string query = "SELECT [ClientId],[AMCCustId] FROM [AM].[ClientAMCCustIdMap]";
+
+            return db.Query<ClientAMCCustIdMap>(query, null).ToList();
         }
     }
 }

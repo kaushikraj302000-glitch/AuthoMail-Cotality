@@ -98,7 +98,7 @@ namespace AM.Console
         {
             log.Debug("HSBC download job is started.");
 
-            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Received, client.Id);
+            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatusAndClientId(BatchPipelineStatus.Received, client.Id);
             if (downloadBatches.Count == 0)
             {
                 log.Debug("HSBC download job queue is empty.");
@@ -150,7 +150,7 @@ namespace AM.Console
                     var error = "Error occured while downloading {0} batch from SFT site for Batch-Id : {1}".Fill(mbi.BatchName, mbi.MailBatch.Id) + Environment.NewLine + ex.ToString();
 
                     log.Error(error);
-                    MailUtility.SendUnexpectedExcelptionEmail(error);
+                    MailUtility.SendUnexpectedExceptionEmail(error);
                     continue;
                 }
             }
@@ -165,7 +165,7 @@ namespace AM.Console
         {
             log.Debug("HSBC validate job queue is started.");
 
-            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Downloaded, client.Id);
+            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatusAndClientId(BatchPipelineStatus.Downloaded, client.Id);
             if (downloadBatches.Count == 0)
             {
                 log.Debug("HSBC validate job queue is empty.");
@@ -378,7 +378,7 @@ namespace AM.Console
                             log.Error(msg, ex);
                             mailPieceDTO.UniqueId = Guid.NewGuid();
                             mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfoList);
-                            MailUtility.SendUnexpectedExcelptionEmail(msg);
+                            MailUtility.SendUnexpectedExceptionEmail(msg);
                         }
                     }
                 }
@@ -434,7 +434,7 @@ namespace AM.Console
 
         protected override void CalculateDueDateAndPrintLocation()
         {
-            Channel.CalculateDueDateAndPrintLocation(client.Id);
+            Channel.CalculateDueDateAndPrintLocation(SFTChannel.Id);
         }
 
         private XmlNodeList SeparateRespaNodes(XmlDocument batchXML)
@@ -506,7 +506,7 @@ namespace AM.Console
         {
             log.Debug("HSBC acknowledge job queue is started.");
 
-            List<MailBatchDTO> validatedBatches = mailBatchSvc.GetBatchesByPipelineStatus(BatchPipelineStatus.Validated, client.Id);
+            List<MailBatchDTO> validatedBatches = mailBatchSvc.GetBatchesByPipelineStatusAndClientId(BatchPipelineStatus.Validated, client.Id);
 
             if (validatedBatches.Count == 0)
             {
