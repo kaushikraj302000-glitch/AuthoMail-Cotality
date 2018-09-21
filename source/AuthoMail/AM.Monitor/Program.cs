@@ -19,31 +19,15 @@ namespace AM.Monitor
         /// <param name="args"></param>
         static void Main(string[] args)
         {
-            MRDFResponseService mr = new MRDFResponseService();
-            mr.GenerateMRDFResponse(@"C:\Users\akshar.vala.mtc\Desktop\03232017\AuthoMail\MRDFResponse", @"C:\Users\akshar.vala.mtc\Desktop\03232017\AuthoMail\MRDFResponse");
-            return;
             MonitorBatchesService monitorSvc = new MonitorBatchesService();
-            //var checkSFTChannels = monitorSvc.CheckSFTChannelsOfPendingBatches();
-            //var bundleSweepTimes = ConfigurationManager.AppSettings["BundleSweepTimes"].ToString().Split(',').Select(TimeSpan.Parse).ToList();
-            //List<int> bundleIds = Config.Core_BundleSweepClientChannelIds.Split(',').Select(int.Parse).ToList();
+            var pendingBatchesListByPrintLocation = monitorSvc.GetPendingBatchesToSubmit(int.Parse(ConfigurationManager.AppSettings["CutOffMinutes"]));
+            var pendingDallasBatches = pendingBatchesListByPrintLocation.Dallas.ToList();
+            var pendingPCIBatches = pendingBatchesListByPrintLocation.PCI.ToList();
+            var pendingEmptyPrintLocation = pendingBatchesListByPrintLocation.Empty.ToList();
             var pendingBatchesToSubmit = new List<AlertPendingBatchesViewModel>();
-            var pendingSweepBatchesToSubmit = new List<AlertPendingBatchesViewModel>();// monitorSvc.GetPendingBatchesToSubmit(int.Parse(ConfigurationManager.AppSettings["CutOffMinutes"]));
-            ///delete below line when bundle logic uncommented.
-            pendingBatchesToSubmit.AddRange(pendingSweepBatchesToSubmit);
-            //var pendingBundleSweepBatchesToSubmit = monitorSvc.GetPendingSweepBatchesToSubmit();
-
-            //var sweepBatchesList = checkSFTChannels.Where(c => bundleIds.Any(b => b != c.SFTChannelId) && pendingSweepBatchesToSubmit.Any(p => p.SFTChannelId == c.SFTChannelId)).ToList();
-            //pendingBatchesToSubmit.AddRange(sweepBatchesList);
-
-            //foreach (var bundleSweepTime in bundleSweepTimes)
-            //{
-            //    if (TimeSpan.Parse(DateTime.Now.ToString("HH:mm")) > TimeSpan.Parse(bundleSweepTime.ToString()))
-            //    {
-            //        var bundleBatchesList = checkSFTChannels.Where(c => bundleIds.Any(b => b == c.SFTChannelId) && pendingBundleSweepBatchesToSubmit.Any(p => p.SFTChannelId != c.SFTChannelId)).ToList();
-            //        var list = bundleBatchesList.Where(p => !pendingBatchesToSubmit.Any(pb => pb.PrintBatchId == p.PrintBatchId)).ToList();
-            //        pendingBatchesToSubmit.AddRange(list);
-            //    }
-            //}
+            pendingBatchesToSubmit.AddRange(pendingDallasBatches);
+            pendingBatchesToSubmit.AddRange(pendingPCIBatches);
+            pendingBatchesToSubmit.AddRange(pendingEmptyPrintLocation);
 
             var pendingBatchesToReportBack = monitorSvc.GetPendingBatchesToReportBack();
             string monitor_PrintBatch = "style='width:10%;border:solid windowtext 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
