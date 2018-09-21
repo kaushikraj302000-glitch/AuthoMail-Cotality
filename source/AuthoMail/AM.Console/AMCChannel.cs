@@ -158,12 +158,14 @@ namespace AM.Console
                 var msg = "'{0}.xml' is not a valid XML document.".Fill(batchName);
                 log.Error(msg, ex);
                 ReportInvalidBatch(InsertInvalidBatchInfo(batchName, receivedOn, msg), localZipFilePath);
+                return;
             }
             catch (Exception ex)
             {
                 var msg = "'{0}.xml' is not a valid XML document.".Fill(batchName);
                 log.Error(msg, ex);
                 ReportInvalidBatch(InsertInvalidBatchInfo(batchName, receivedOn, msg), localZipFilePath);
+                return;
             }
 
             try
@@ -226,6 +228,7 @@ namespace AM.Console
                 var msg = "Error occured while separating AMC batches from Batch '{0}.xml'".Fill(batchName);
                 log.Error(msg, ex);
                 MailUtility.SendUnexpectedExceptionEmail(msg + "<br/> Error Message is {0}".Fill(ex));
+                return;
             }
 
             using (TransactionScope scope = new TransactionScope())
@@ -368,7 +371,7 @@ namespace AM.Console
             mbi.AMResponsePath.CreateDirectoryIfNotExist();
 
             if (!string.IsNullOrEmpty(localZipFilePath))
-                File.Move(localZipFilePath, mbi.AMRequestPath);
+                File.Move(localZipFilePath, Path.Combine(mbi.AMRequestPath, mbi.BatchName + ".zip"));
 
             //For Invalid Batch, we will generate err file 
             string invalidBatchFileName = "{0}_InvalidZipfile.err".Fill(mailBatch.BatchName);
