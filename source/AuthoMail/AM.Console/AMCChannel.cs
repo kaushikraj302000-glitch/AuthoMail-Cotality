@@ -386,6 +386,9 @@ namespace AM.Console
 
             sftSite.UploadFile(invalidBatchPath, remoteFilePath);
 
+            MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, mbi.BatchName + ".zip"));
+            MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, mbi.BatchName + "_Complete.go"));
+
             if (sftSite.IsConnected)
                 sftSite.Disconnect();
 
