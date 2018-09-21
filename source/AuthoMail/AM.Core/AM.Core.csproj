@@ -92,6 +92,7 @@
     <None Include="CoverTemplates\ALASKA\ALASKA_USPS_Generic_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="CoverTemplates\BECU\BECU_USPS_Generic_1.pdf" />
     <None Include="CoverTemplates\FedExBarcodedEndPageTemplate.pdf" />
     <None Include="CoverTemplates\Generic_Template95X12.pdf" />
     <None Include="CoverTemplates\HSBC\HSBC_USPS_Generic_1.pdf">
