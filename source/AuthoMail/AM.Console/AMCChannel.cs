@@ -684,7 +684,7 @@ namespace AM.Console
                             if (docType == null)
                             {
                                 mailPieceDTO.ErrorCode = OutComeCodes.Invalid_PackageType;
-                                mailPieceDTO.ErrorDesc = client.AppCode == "AMCInvalid" ? "The specified customer identifier {0} is not configured.".Fill(mailPieceCustomInfo.Single(c => c.Key == "CustomerIdentifier").Value) : "The specified document or package type '{0}' is not configured.".Fill(mailPieceDTO.DocumentOrPackageType);
+                                mailPieceDTO.ErrorDesc = client.AppCode == GetInvalidClient().AppCode ? "The specified customer identifier {0} is not configured.".Fill(mailPieceCustomInfo.Single(c => c.Key == "CustomerIdentifier").Value) : "The specified document or package type '{0}' is not configured.".Fill(mailPieceDTO.DocumentOrPackageType);
                                 mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                             }
                             else if (!File.Exists(filePath))
