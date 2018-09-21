@@ -11,7 +11,7 @@ using AM.Services;
 namespace AM.Web.Controllers
 {
     [EnableCors(origins: "*", headers: "*", methods: "*")]
-    [Authorize(Roles = AMRoles.API)]
+    //[Authorize(Roles = AMRoles.API)]
     [RoutePrefix("api/alert")]
     public class AlertApiController : ApiController
     {
@@ -19,6 +19,11 @@ namespace AM.Web.Controllers
         public AlertApiController(IMonitorBatchesService alertSvc)
         {
             this.alertSvc = alertSvc;
+        }
+        [Route("GetPendingBatches")]
+        public PendingBatchesListByPrintLocation GetPendingBatches()
+        {
+            return alertSvc.GetPendingBatchesToSubmit(10);
         }
     }
 }

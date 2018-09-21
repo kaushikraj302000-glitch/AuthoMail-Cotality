@@ -19,12 +19,15 @@ namespace AM.Monitor
         /// <param name="args"></param>
         static void Main(string[] args)
         {
+            MRDFResponseService mr = new MRDFResponseService();
+            mr.GenerateMRDFResponse(@"C:\Users\akshar.vala.mtc\Desktop\03232017\AuthoMail\MRDFResponse", @"C:\Users\akshar.vala.mtc\Desktop\03232017\AuthoMail\MRDFResponse");
+            return;
             MonitorBatchesService monitorSvc = new MonitorBatchesService();
             //var checkSFTChannels = monitorSvc.CheckSFTChannelsOfPendingBatches();
             //var bundleSweepTimes = ConfigurationManager.AppSettings["BundleSweepTimes"].ToString().Split(',').Select(TimeSpan.Parse).ToList();
             //List<int> bundleIds = Config.Core_BundleSweepClientChannelIds.Split(',').Select(int.Parse).ToList();
             var pendingBatchesToSubmit = new List<AlertPendingBatchesViewModel>();
-            var pendingSweepBatchesToSubmit = monitorSvc.GetPendingBatchesToSubmit(int.Parse(ConfigurationManager.AppSettings["CutOffMinutes"]));
+            var pendingSweepBatchesToSubmit = new List<AlertPendingBatchesViewModel>();// monitorSvc.GetPendingBatchesToSubmit(int.Parse(ConfigurationManager.AppSettings["CutOffMinutes"]));
             ///delete below line when bundle logic uncommented.
             pendingBatchesToSubmit.AddRange(pendingSweepBatchesToSubmit);
             //var pendingBundleSweepBatchesToSubmit = monitorSvc.GetPendingSweepBatchesToSubmit();
@@ -84,7 +87,7 @@ namespace AM.Monitor
                             batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", monitor_JobName, pendingBatch.BatchName != null ? pendingBatch.BatchName.ToString() : string.Empty));
                             batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", monitor_Pipelinestatus, pendingBatch.PipelineStatus != null ? pendingBatch.PipelineStatus.ToString() : string.Empty));
                             batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", monitor_ReceivedOn, receivedOn.UtcToEst().ToString()));
-                            batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td> </tr>", monitor_DownloadedOn, pendingBatch.TotalValidMailPieces));
+                            batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td> </tr>", monitor_DownloadedOn, pendingBatch.PendingMailPieces));
                             monitorSvc.UpdateEmailTimeStamp(int.Parse(pendingBatch.Id.ToString()), true);
                         }
                     }
@@ -95,7 +98,7 @@ namespace AM.Monitor
                         batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", monitor_JobName, pendingBatch.BatchName != null ? pendingBatch.BatchName.ToString() : string.Empty));
                         batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", monitor_Pipelinestatus, pendingBatch.PipelineStatus != null ? pendingBatch.PipelineStatus.ToString() : string.Empty));
                         batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", monitor_ReceivedOn, receivedOn.UtcToEst().ToString()));
-                        batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td> </tr>", monitor_DownloadedOn, pendingBatch.TotalValidMailPieces));
+                        batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td> </tr>", monitor_DownloadedOn, pendingBatch.PendingMailPieces));
                         monitorSvc.SaveEmailSentTimeStamp(int.Parse(pendingBatch.Id.ToString()), true);
                     }
                 }
