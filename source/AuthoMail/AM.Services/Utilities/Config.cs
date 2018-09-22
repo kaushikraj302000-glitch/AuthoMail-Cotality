@@ -197,6 +197,12 @@ namespace AM.Services
 
         #endregion Support
 
+        #region AlertApp
+
+        public static int Alert_CutOffMinutes { get; private set; }
+
+        #endregion
+
         private static List<string> errors;
         static Config()
         {

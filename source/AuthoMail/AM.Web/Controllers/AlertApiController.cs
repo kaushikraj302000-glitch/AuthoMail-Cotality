@@ -23,7 +23,7 @@ namespace AM.Web.Controllers
         [Route("GetPendingBatches")]
         public PendingBatchesListByPrintLocation GetPendingBatches()
         {
-            return alertSvc.GetPendingBatchesToSubmit(10);
+            return alertSvc.GetPendingBatchesToSubmit(Config.Alert_CutOffMinutes);
         }
     }
 }

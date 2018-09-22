@@ -13,7 +13,7 @@ namespace AM.Services
         public string BatchName { get; set; }
         public DateTime? ReceivedOn { get; set; }
         public string PipelineStatus { get; set; }
-        public string BatchStatus { get; set; }
+        public string ShippingStatus { get; set; }
         public string PrintLocation { get; set; }
         public int PendingMailPieces { get; set; }
         public string SweepName { get; set; }

@@ -34,10 +34,27 @@ namespace AM.Services
             var pendingEmptyPrintLocation = pendingMPsToSubmit.Where(p => p.PrintLocation == null || p.PrintLocation == string.Empty).ToList();
             var pendingDallasMailPieces = pendingMPsToSubmit.Where(p => p.PrintLocation == Config.Common_PrintLocationCL).ToList();
             var pendingPCIMailPieces = pendingMPsToSubmit.Where(p => p.PrintLocation == Config.Common_PrintLocationPCI).ToList();
+            var emptyPrintLocation = EmptyPrintLocationPendingBatches(pendingEmptyPrintLocation);
             var dallas = DallasPendingBatches(pendingDallasMailPieces);
             var pci = PCIPendingBatches(pendingPCIMailPieces);
-            return new PendingBatchesListByPrintLocation() { Dallas = dallas, PCI = pci, Empty = pendingEmptyPrintLocation };
+            return new PendingBatchesListByPrintLocation() { Dallas = dallas, PCI = pci, Empty = emptyPrintLocation};
 
+        }
+
+        private List<AlertPendingBatchesViewModel> EmptyPrintLocationPendingBatches(List<AlertPendingBatchesViewModel> pendingEmptyPrintLocation)
+        {
+            var pendingEmptyPLBatches = pendingEmptyPrintLocation.GroupBy(g => g.Id).Select(s => new AlertPendingBatchesViewModel
+            {
+                Id = s.First().Id,
+                AppCode = s.First().AppCode,
+                BatchName = s.First().BatchName,
+                ReceivedOn = s.First().ReceivedOn,
+                PipelineStatus = s.First().PipelineStatus,
+                ShippingStatus = s.First().ShippingStatus,
+                PrintLocation = s.First().PrintLocation,
+                PendingMailPieces = s.Count()
+            }).ToList();
+            return pendingEmptyPLBatches;
         }
 
         public List<AlertPendingBatchesViewModel> DallasPendingBatches(List<AlertPendingBatchesViewModel> pendingDallasMailPieces)
@@ -49,7 +66,8 @@ namespace AM.Services
                 BatchName = s.First().BatchName,
                 ReceivedOn = s.First().ReceivedOn,
                 PipelineStatus = s.First().PipelineStatus,
-                BatchStatus = s.First().BatchStatus,
+                ShippingStatus = s.First().ShippingStatus,
+                PrintLocation = s.First().PrintLocation,
                 PendingMailPieces = s.Count()
             }).ToList();
             return pendingDallasBatches;
@@ -72,7 +90,8 @@ namespace AM.Services
                 BatchName = s.First().BatchName,
                 ReceivedOn = s.First().ReceivedOn,
                 PipelineStatus = s.First().PipelineStatus,
-                BatchStatus = s.First().BatchStatus,
+                ShippingStatus = s.First().ShippingStatus,
+                PrintLocation = s.First().PrintLocation,
                 PendingMailPieces = s.Count()
             }).ToList();
             return pendingPCIBatches;
