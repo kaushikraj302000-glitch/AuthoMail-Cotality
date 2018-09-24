@@ -49,4 +49,20 @@ namespace AM.Services
         public string ValidationErrors { get; set; }
         public int MailPieceCount { get; set; }
     }
+    public class DailySummaryChart
+    {
+        public int Id { get; set; }
+        public string DocTypeCode { get; set; }
+        public int DocTypeId { get; set; }
+        public string ShippingStatus { get; set; }        
+    }
+    public class DailySummaryChartVM
+    {
+        public string DocTypeCode { get; set; }
+        public int DocTypeId { get; set; }
+        public int Shipped { get; set; }
+        public int InProgress { get; set; }
+        public int PulledBack { get; set; }
+        public int Error { get; set; }
+    }
 }

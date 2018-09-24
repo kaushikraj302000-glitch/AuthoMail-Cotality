@@ -18,7 +18,7 @@ namespace AM.Services
     {
         public void GenerateMRDFResponse(string outFilePath, string zipFilePath)
         {
-            string query = "SELECT PB.PrintFileName,PM.JobId,PM.PieceId,PM.[Date],PM.TotalSheets,PM.PDFFileName FROM PnS.BatchSummary PB INNER JOIN PnS.MRDFRequest PM ON PB.PrintBatch = PM.JobId WHERE PB.PipelineStatus = 'Submitted' AND PB.IsMRDFReceived = 0";
+            string query = "SELECT PB.PrintFileName,PM.JobId,PM.PieceId,PM.[Date],PM.TotalSheets,PM.PDFFileName FROM PnS.BatchSummary PB INNER JOIN PnS.MRDFRequest PM ON PB.PrintBatch = PM.JobId WHERE PB.PipelineStatus = 'Submitted' AND PB.IsMRDFReceived = 0 AND PB.PrintLocation = 'Fort Mill, SC'";
             var mrdfData = db.Query<MRDFResponse>(query).ToList();
 
             foreach (var items in mrdfData.GroupBy(m => m.JobId))
@@ -28,7 +28,7 @@ namespace AM.Services
                 string outFileFullPath = string.Empty;
                 string zipFileFullPath = string.Empty;
                 Random r = new Random();
-
+                
                 foreach (var item in items)
                 {
                     outFileFullPath = string.Format("{0}.out", Path.Combine(outFilePath, item.PrintFileName.Replace(".zip", "-000043HYFC")));

@@ -197,6 +197,7 @@ namespace AM.Services
 
         #endregion Support
 
+
         private static List<string> errors;
         static Config()
         {

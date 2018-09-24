@@ -92,6 +92,7 @@
     <Compile Include="IDemo.cs" />
     <Compile Include="Models\AccountAPI.cs" />
     <Compile Include="Models\AccountManage.cs" />
+    <Compile Include="Models\AlertPendingBatchesViewModel.cs" />
     <Compile Include="Models\BatchReportInfo.cs" />
     <Compile Include="Models\ChartModels.cs" />
     <Compile Include="Models\eVSCancelRequest.cs" />
