@@ -62,40 +62,40 @@
 
                             @if (ViewBag.BusinessId.Count == 1)
                             {
-                                <label for="BusinessFriendlyIdValue">@ViewBag.BusinessId[0]</label>
-                                <div class="input-group">
-                                    <i class="fa fa-search left-icon"></i>
-                                    <input class="form-control" name="loanNumber" placeholder="@ViewBag.BusinessId[0]" required id="BusinessFriendlyIdValue">
-                                    <input type="hidden" value="@ViewBag.BusinessId[0]" name="BusinessFriendlyIdName" id="BusinessFriendlyIdName" />
-                                </div>
-                                <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
+                            <label for="BusinessFriendlyIdValue">@ViewBag.BusinessId[0]</label>
+                            <div class="input-group">
+                                <i class="fa fa-search left-icon"></i>
+                                <input class="form-control" name="loanNumber" placeholder="@ViewBag.BusinessId[0]" required id="BusinessFriendlyIdValue">
+                                <input type="hidden" value="@ViewBag.BusinessId[0]" name="BusinessFriendlyIdName" id="BusinessFriendlyIdName" />
+                            </div>
+                            <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
                             }
                             else if (ViewBag.BusinessId.Count > 1)
                             {
-                                <label for="BusinessFriendlyIdName">Select Business ID</label>
-                                <div class="input-group">
+                            <label for="BusinessFriendlyIdName">Select Business ID</label>
+                            <div class="input-group">
 
-                                    <select id="BusinessFriendlyIdName" class="selectpicker" data-live-search="true" data-live-search-placeholder="Search Business ID">
-                                        <option value="">Select BusinessId</option>
-                                        @foreach (var item in ViewBag.BusinessId)
+                                <select id="BusinessFriendlyIdName" class="selectpicker" data-live-search="true" data-live-search-placeholder="Search Business ID">
+                                    <option value="">Select BusinessId</option>
+                                    @foreach (var item in ViewBag.BusinessId)
                                         {
-                                            <option value="@item.ToString()">@item.ToString()</option>
+                                    <option value="@item.ToString()">@item.ToString()</option>
                                         }
-                                    </select>
-                                    <input class="form-control" name="BusinessFriendlyIdValue" placeholder="" required id="BusinessFriendlyIdValue">
+                                </select>
+                                <input class="form-control" name="BusinessFriendlyIdValue" placeholder="" required id="BusinessFriendlyIdValue">
 
-                                </div>
-                                <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdNameError">This field is required.</div>
-                                <div class="text-red pull-right" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
+                            </div>
+                            <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdNameError">This field is required.</div>
+                            <div class="text-red pull-right" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
                             }
                             else
                             {
-                                <style>
-                                    #pullback {
-                                        display: none;
-                                    }
-                                </style>
-                                <div class='alert alert-yellow'><span>No business friendly id found!</span></div>
+                            <style>
+                                #pullback {
+                                    display: none;
+                                }
+                            </style>
+                            <div class='alert alert-yellow'><span>No business friendly id found!</span></div>
                             }
 
 
@@ -114,8 +114,24 @@
             </div>
         </div>
     </div>
+    <div class="clearfix"></div>
+
+    <div class="col-md-6">
+        <div class="panel panel-default ">
+            <div class="panel-heading">
+                <div class="panel-title">
+                    Daily Summary Details
+                </div>
+            </div>
+            <div class="panel-body panel-gray" style="padding:2% 2% 2% 2% !important;">
+                <div id="DailySummaryByDocType"></div>
+            </div>
+
+        </div>
+    </div>
 </div>
 <div class="clearfix"></div>
+
 
 <div class="modal fade" id="TodayChartModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
     <div class="modal-dialog modal-lg col-md-12" role="document">
@@ -390,6 +406,7 @@
             }
         });
         var sumArr = new Array();
+        var sumArrDS = new Array();
         Array.prototype.uniquePush = function (item) {
             if (this.indexOf(item) == -1)
                 this.push(item);
@@ -501,7 +518,6 @@
                 //url: baseUrl + "Home/GetWeeklyChartData",
                 url: baseUrl + "api/chart/GetWeeklyChartData",
                 success: function (response) {
-                    //console.log(response);
                     var chartData = [];
                     //var ticksArr = [];
                     chartData.push(['Date', 'InProgress', 'Failed', 'PulledBack', 'ShippedAll', 'ShippedPartial', 'Dates']);
@@ -796,6 +812,7 @@
         }
         google.charts.setOnLoadCallback(BindWeeklyChartData);
         google.charts.setOnLoadCallback(BindTodayChartData);
+
         $("#FullTodayChart").click(function () {
 
             google.charts.setOnLoadCallback(GetFullChart);
@@ -1013,8 +1030,8 @@
         }
         function shortName(str) {
             //console.log(str);
-            if(typeof str != 'undefined' && str!=null && str!="")
-            return str.length > 31 ? str.substring(0, 31) + '...' : str;
+            if (typeof str != 'undefined' && str != null && str != "")
+                return str.length > 31 ? str.substring(0, 31) + '...' : str;
         }
         function FormatObject(Model) {
             //console.log(Model);
@@ -1093,5 +1110,136 @@
             var mailpieceId = $("#pullbackbodyContent").find(".mailpieceid").data("mailpieceid");
             SendPullBackRequest(mailpieceId);
         });
+
+        function DailySummaryChartFunction() {
+            $.ajax({
+                type: "GET",
+                url: baseUrl + "api/chart/DailySummaryChart",
+                contentType: "application/json; charset=utf-8",
+                success: function (response) {
+
+                    if (response.length == 0) {
+                        $('#DailySummaryByDocType').html("<div class='alert alert-yellow' style='margin-bottom:10px;'><span>@AM.Services.Config.Web_Msg_NoMailPieceReceivedToday</span></div>");
+                        $('#DailySummaryByDocType').parent().css("min-height", "488px");
+                        return;
+                    }
+                    var chartData = [];
+                    chartData.push(['DocTypeCode', 'InProgress', 'Error', 'PulledBack', 'Shipped']);
+                    var cnt = 0;
+                    //var ticksArr = [];
+                    sumArrDS = new Array();
+                    for (var i = 1; i <= response.length; i++) {
+
+                        var inProgressCountBatch = parseInt(response[cnt].InProgress == 0 ? null : response[cnt].InProgress);
+                        var errorCountBatch = parseInt(response[cnt].Error == 0 ? null : response[cnt].Error);
+                        var pulledBackCountBatch = parseInt(response[cnt].PulledBack == 0 ? null : response[cnt].PulledBack);
+                        var shippedCountBatch = parseInt(response[cnt].Shipped == 0 ? null : response[cnt].Shipped);
+
+                        chartData.push([response[cnt].DocTypeCode, inProgressCountBatch, errorCountBatch, pulledBackCountBatch, shippedCountBatch]);
+                        sumArrDS.push(response[cnt].InProgress + response[cnt].Error + response[cnt].PulledBack + response[cnt].Shipped);
+
+                        cnt++;
+                    }
+
+                    drawDailySummaryChart(chartData, "DailySummaryByDocType", 'MailPiece Status', 467, 534);
+                }, error: function (err) {
+                    $('#DailySummaryByDocType').html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + commonmsg + "</span></div>");
+                }
+            });
+        }
+        function drawDailySummaryChart(chartData, div, title, height, width) {
+            var data = google.visualization.arrayToDataTable(chartData);
+            var view = new google.visualization.DataView(data);
+            var colors = [];
+            var series;
+            var hTitle = "Mailpieces";
+            var vTitle = "Doc Types";
+            view.setColumns([0, 1, 2, 3, 4]);
+            //colors = ['#069', '#e03c31', '#e7ab08', '#539536'];
+            series = {
+                0: { color: '#069' },
+                1: { color: '#e03c31' },
+                2: { color: '#e7ab08' },
+                3: { color: '#539536' }
+            };
+            var ticksArr = new Array();
+            if (sumArr.length > 0) {
+                var maxSum = Math.max.apply(Math, sumArrDS);
+                if (maxSum < 5) {
+                    ticksArr = new Array();
+                    for (var i = 0; i <= maxSum; i++) {
+                        ticksArr[i] = i;
+                    }
+                }
+                else {
+                    ticksArr = null;
+                }
+            }
+
+            var options = {
+                title: title,
+                isStacked: true,
+                'height': height,
+                'width': width,
+
+                hAxis: {
+                    minValue: 0,
+                    ticks: ticksArr,
+                    format: 0,
+                    title: hTitle,
+                    textStyle: {
+                        fontSize: 12,
+                        bold: true,
+                        //color: '#848484'
+                    },
+                    titleTextStyle: {
+                        fontSize: 12,
+                        bold: true,
+                        //color: '#848484'
+                    }
+                },
+                vAxis: {
+                    title: vTitle,
+
+                    titleTextStyle: {
+                        fontSize: 12,
+                        bold: true,
+
+                    }
+                },
+                legend: { position: 'top', maxLines: 3 },
+                series: series
+
+            };
+
+            // Instantiate and draw the chart.
+            var chart = new google.visualization.BarChart(document.getElementById(div));
+
+            //google.visualization.events.addListener(chart, 'select', selectHandler);
+            chart.draw(view, options);
+
+            function selectHandler() {
+                var selectedItem = chart.getSelection()[0];
+                if (selectedItem) {
+                    var status = data.getColumnLabel(selectedItem.column);
+                    if (selectedItem.row != null) {
+                //        if (div == "todayChart") {
+                //            var batchId = parseInt(data.getValue(selectedItem.row, 5));
+                //            var clientBatchId = data.getValue(selectedItem.row, 0);
+                //            if (batchId != 0) {
+                //                var receivedOn = data.getValue(selectedItem.row, 6);
+                //                GetChartDataByStatusAndBatchIds(status, batchId, clientBatchId, receivedOn);
+                //            }
+                //        }
+                //        if (div == "weeklyChart") {
+                //            var dates = data.getValue(selectedItem.row, 6);
+                //            GetChartDataByStatusAndDate(status, moment(dates).format("MM/DD/YYYY"));
+                //        }
+                   }
+
+                }
+            }
+        }
+        google.charts.setOnLoadCallback(DailySummaryChartFunction);
     </script>
 }

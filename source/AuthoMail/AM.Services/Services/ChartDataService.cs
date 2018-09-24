@@ -16,6 +16,10 @@ namespace AM.Services
         List<MailPieces> GetMailPieceByParam(int batchId, string status, int clientId);
         List<BatchListByChartData> GetBatchByParam(DateTime date, string status, int clientId);
         List<MailPieces> GetMailPieceByBatchId(int batchId, int clientId);
+        //----------------Daily Summary Chart By DocType----------------------------------------------------------------//
+        List<DailySummaryChartVM> GetDailySummaryChartByDocType(DateTime date, int clientId);
+        List<BatchListByChartData> GetBatchByDocTypeIdAndStatus(DateTime date, string status, int clientId, int docTypeId);
+        //----------------End Daily Summary Chart-----------------------------------------------------------------------//
         //--------------Chart for all clients-----------------------------------------------------//
         List<WeeklyChart> GetWeeklyChartData();
         List<TodayMailPieceChart> GetTodayMailPieceChartData(DateTime todayDate);
@@ -134,7 +138,7 @@ namespace AM.Services
             // EST Week
             var startDate = (estToday.AddDays(-7)).EstToUtc();
             var endDate = (estToday + new TimeSpan(23, 59, 59)).EstToUtc();
-            var data = db.Query<WeeklyChartDTO>("select Id,BatchStatus,BatchName,ReceivedOn from AM.MailBatches Where ReceivedOn between @startDate and @endDate", new { startDate = startDate, endDate = endDate}).ToList();
+            var data = db.Query<WeeklyChartDTO>("select Id,BatchStatus,BatchName,ReceivedOn from AM.MailBatches Where ReceivedOn between @startDate and @endDate", new { startDate = startDate, endDate = endDate }).ToList();
 
             // Convert received on date to EST timezone
             data.ForEach(s => s.ReceivedOn = s.ReceivedOn.UtcToEst());
@@ -197,7 +201,7 @@ namespace AM.Services
                 new
                 {
                     batchId = batchId,
-                    status = status                    
+                    status = status
                 }).ToList();
             return data;
         }
@@ -225,6 +229,34 @@ namespace AM.Services
                     batchId = batchId
                 }).ToList();
             return data;
+        }
+
+
+        public List<DailySummaryChartVM> GetDailySummaryChartByDocType(DateTime date, int clientId)
+        {
+            string query = "select m.Id,m.ShippingStatus, d.DocTypeCode from AM.MailPieces m,AM.MailBatches b,AM.DocTypes d  where m.MailBatchId=b.Id AND m.DocTypeId=d.Id AND b.ClientId=@clientId AND  b.ReceivedOn BETWEEN @startDate AND @endDate";
+            var data = db.Query<DailySummaryChart>(query, new { clientId = clientId, startDate = date.ToStartDateTime().EstToUtc(), endDate = date.ToEndDateTime().EstToUtc() });
+
+            var dailySummaryChartList = data.GroupBy(d => d.DocTypeCode).Select(
+                s => new DailySummaryChartVM
+                {
+                    DocTypeCode = s.First().DocTypeCode,
+                    Shipped = s.Count(t => t.ShippingStatus == ShippingStatus.Shipped.ToString()),
+                    InProgress = s.Count(t => t.ShippingStatus == ShippingStatus.InProgress.ToString()),
+                    PulledBack = s.Count(t => t.ShippingStatus == ShippingStatus.PulledBack.ToString()),
+                    Error = s.Count(t => t.ShippingStatus == ShippingStatus.Error.ToString())
+                }
+                ).ToList();
+            return dailySummaryChartList;
+        }
+
+
+        public List<BatchListByChartData> GetBatchByDocTypeIdAndStatus(DateTime date, string status, int clientId, int docTypeId)
+        {
+            string query = "select b.Id as [BatchId],b.ClientBatchId,b.[UniqueId] as [BatchUniqueId],b.BatchName,b.BatchStatus,b.DocumentOrPackageType,b.ReceivedOn,b.ValidationErrors, c.TimeZone as [ClientTimeZone],Count(m.Id) as MailPieceCount from AM.MailPieces m inner join AM.MailBatches b on m.MailBatchId=b.Id inner join Common.Clients c on b.ClientId=c.Id where m.ShippingStatus=@status and m.ClientId=@clientId and m.DocTypeId=@docTypeId and b.ReceivedOn between @startDate and @endDate group by b.Id ,b.ClientBatchId,b.[UniqueId],b.BatchName,b.BatchStatus,b.DocumentOrPackageType,b.ReceivedOn,b.ValidationErrors, c.TimeZone";
+            var data = db.Query<BatchListByChartData>(query, new { startDate = date.ToStartDateTime().EstToUtc(), endDate = date.ToEndDateTime().EstToUtc(), status = status, clientId = clientId, docTypeId = docTypeId }).ToList();
+            return data;
+
         }
     }
     public static class ChartDataServiceQuery

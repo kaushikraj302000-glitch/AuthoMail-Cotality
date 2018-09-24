@@ -132,6 +132,14 @@ namespace AM.Web.Controllers
             return Json(model.OrderByDescending(s => s.MailBatches.Id).ToList(), JsonRequestBehavior.AllowGet);
         }
 
+        [HttpPost]
+        public ActionResult DailySummaryChartDetails(string status, string date, int docTypeId)
+        {
+            var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            var model = chartDataSvc.GetBatchByDocTypeIdAndStatus(exactDate, status, User.Identity.GetClientId().Value, docTypeId);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+        }
+
         [AllowAnonymous]
         public ActionResult About()
         {
