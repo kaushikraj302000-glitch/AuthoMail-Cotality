@@ -36,5 +36,13 @@ namespace AM.Web.Controllers
             var model = chartDataSvc.GetTodayMailPieceChartData(estToday, User.Identity.GetClientId().Value);
             return model.OrderByDescending(s => s.MailBatchId).ToList();
         }
+        [HttpGet, Route("DailySummaryChart")]
+        public object GetDailySummaryChart()
+        {
+            int clientId = User.Identity.GetClientId().Value;
+            var estToday = DateTime.UtcNow.UtcToEst().Date;
+            var model = chartDataSvc.GetDailySummaryChartByDocType(estToday, clientId);
+            return model;
+        }
     }
 }
