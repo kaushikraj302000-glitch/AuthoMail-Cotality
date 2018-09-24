@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Cors;
 using AM.Services;
+using AM.Lib;
 
 namespace AM.Web.Controllers
 {
@@ -21,9 +22,11 @@ namespace AM.Web.Controllers
             this.alertSvc = alertSvc;
         }
         [Route("GetPendingBatches")]
-        public PendingBatchesListByPrintLocation GetPendingBatches()
+        public MonitorReport GetPendingBatches([FromBody]string cutOff)
         {
-            return alertSvc.GetPendingBatchesToSubmit(Config.Alert_CutOffMinutes);
+            int calculatedCutOff = 30;
+            calculatedCutOff = int.TryParse(cutOff, out calculatedCutOff) ? Convert.ToInt32(cutOff) : calculatedCutOff;
+            return alertSvc.GetPendingBatchesToSubmit(calculatedCutOff);
         }
     }
 }
