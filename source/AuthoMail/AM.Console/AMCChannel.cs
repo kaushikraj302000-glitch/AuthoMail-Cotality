@@ -176,10 +176,11 @@ namespace AM.Console
                 requests = XmlUtil.Deserialize<PackageRequests>(batchXML.OuterXml);
 
                 List<PackageInfo> invalidPackages = requests.Packages.FindAll(p => !amcClientMaps.Select(c => c.AMCCustId).Contains(p.CustomerIdentifier));
-                amcRequest.Packages = invalidPackages;
 
                 if (invalidPackages.Count > 0)
                 {
+                    amcRequest.Packages = invalidPackages;
+
                     SeparateXMLsAndPDFsClientWise(amcRequest, amcDownloadPath, GetInvalidClient().AppCode, batchName);
 
                     MailBatchDTO invalidMailBatch = new MailBatchDTO();
@@ -190,7 +191,7 @@ namespace AM.Console
                     invalidMailBatch.UniqueId = Guid.NewGuid();
                     invalidMailBatch.Priority = Priority.Medium.ToString();
                     invalidMailBatch.ReceivedOn = receivedOn;
-
+                    invalidMailBatch.BatchStatus = BatchStatus.InProgress.ToString();
                     mailBatches.Add(invalidMailBatch);
 
                     requests.Packages.RemoveAll(p => !amcClientMaps.Select(c => c.AMCCustId).Contains(p.CustomerIdentifier));
@@ -218,6 +219,7 @@ namespace AM.Console
                             mailBatch.UniqueId = Guid.NewGuid();
                             mailBatch.Priority = Priority.Medium.ToString();
                             mailBatch.ReceivedOn = receivedOn;
+                            mailBatch.BatchStatus = BatchStatus.InProgress.ToString();
                             mailBatches.Add(mailBatch);
                         }
                     }
@@ -259,7 +261,6 @@ namespace AM.Console
 
                                 File.Move(srcFilePath, destFilePath);
                             }
-
                             commonSvc.UpdateBatchPipeLineStatus(clientBatch.Id, BatchPipelineStatus.Downloaded, Common.Now);
                         }
                     }
@@ -805,85 +806,15 @@ namespace AM.Console
                 {
                     try
                     {
-                        string errorReportFileName = "Error-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
-                        //string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
-                        string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+                        //Here we are doing generic flow for AMC.
+                        UploadBaseReportToAMC(mbi, data, deliverable);
 
-                        string errorGoFileName = "ErrReport.go";
-                        string errorGoFilePath = Path.Combine(mbi.AMResponsePath, errorGoFileName);
-                        string ftpErrorGoUploadPath = Path.Combine(deliverable.UploadPath, errorGoFileName);
+                        //Here we have to provide clientwise notification so only reporting functionality will be customized over here
+                        var emailErrorReportPath = GenerateClientWiseAcknowledgementReport(mbi, data, deliverable);
 
-                        // valid: ack, pvalid: err rpt upload, invalid: Generate Error Report, ReportPrepped
-
-                        List<MailPieces> mailPieces;
-                        using (IReportService reportSvc = new ReportService())
-                        {
-                            mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
-                        }
-
-                        if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.Invalid)
-                        {
-                            StringBuilder errorData = amcSvc.AMCErrorReport(mailPieces);
-                            if (errorData != null)
-                            {
-                                File.WriteAllText(errorReportPath, errorData.ToString());
-
-                                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
-                                sftSite.Connect();
-
-                                var ftpUploadPath = Path.Combine(deliverable.UploadPath, errorReportFileName);
-
-                                sftSite.UploadFile(errorReportPath, ftpUploadPath);
-
-                                // Upload Error.GO file after uploading error report
-                                File.WriteAllText(errorGoFilePath, string.Empty);
-
-                                sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
-
-                                if (sftSite.IsConnected)
-                                    sftSite.Disconnect();
-
-                                // Batch status Reported Back
-                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
-                            }
-                        }
-                        else if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.PartiallyValid)
-                        {
-                            StringBuilder errorData = amcSvc.AMCErrorReport(mailPieces);
-
-                            if (errorData != null)
-                            {
-                                File.WriteAllText(errorReportPath, errorData.ToString());
-
-                                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
-                                sftSite.Connect();
-
-                                var ftpUploadPath = Path.Combine(deliverable.UploadPath, errorReportFileName);
-
-                                sftSite.UploadFile(errorReportPath, ftpUploadPath);
-
-                                // Upload Error.GO file after uploading error report
-                                File.WriteAllText(errorGoFilePath, string.Empty);
-
-                                sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
-
-                                if (sftSite.IsConnected)
-                                    sftSite.Disconnect();
-
-                            }
-                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
-
-                            MailUtility.SendDownloadNotificationEmail(mbi, data, errorReportPath);
-                            //After upload delete from local
-                            File.Move(errorReportPath, Path.ChangeExtension(errorReportPath, ".uploaded"));
-                        }
-                        else
-                        {
-                            // Batch is valid
-                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
-
-                            MailUtility.SendDownloadNotificationEmail(mbi, data, errorReportPath);
-                        }
+                        MailUtility.SendDownloadNotificationEmail(mbi, data, emailErrorReportPath, deliverable.EmailChannel);
+                        //After upload change extension of local file Path
+                        File.Move(emailErrorReportPath, Path.ChangeExtension(emailErrorReportPath, ".uploaded"));
                     }
                     catch (Exception ex)
                     {
@@ -893,6 +824,123 @@ namespace AM.Console
             }
 
             log.Debug("Acknowledge job queue is completed.");
+        }
+
+        private void UploadBaseReportToAMC(MailBatchInfo mbi, BatchData data, Deliverable deliverable)
+        {
+            string errorReportFileName = "Error-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+            //string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+            string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+
+            string errorGoFileName = "ErrReport.go";
+            string errorGoFilePath = Path.Combine(mbi.AMResponsePath, errorGoFileName);
+            string ftpErrorGoUploadPath = Path.Combine(deliverable.UploadPath, errorGoFileName);
+
+            List<MailPieces> mailPieces;
+            using (IReportService reportSvc = new ReportService())
+            {
+                mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
+            }
+
+            if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.Invalid)
+            {
+                StringBuilder errorData = amcSvc.AMCErrorReport(mailPieces);
+                if (errorData != null)
+                {
+                    File.WriteAllText(errorReportPath, errorData.ToString());
+
+                    SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
+                    sftSite.Connect();
+
+                    var ftpUploadPath = Path.Combine(deliverable.UploadPath, errorReportFileName);
+
+                    sftSite.UploadFile(errorReportPath, ftpUploadPath);
+
+                    // Upload Error.GO file after uploading error report
+                    File.WriteAllText(errorGoFilePath, string.Empty);
+
+                    sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
+
+                    if (sftSite.IsConnected)
+                        sftSite.Disconnect();
+
+                    // Batch status Reported Back
+                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
+                }
+            }
+            else if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.PartiallyValid)
+            {
+                StringBuilder errorData = amcSvc.AMCErrorReport(mailPieces);
+
+                if (errorData != null)
+                {
+                    File.WriteAllText(errorReportPath, errorData.ToString());
+
+                    SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
+                    sftSite.Connect();
+
+                    var ftpUploadPath = Path.Combine(deliverable.UploadPath, errorReportFileName);
+
+                    sftSite.UploadFile(errorReportPath, ftpUploadPath);
+
+                    // Upload Error.GO file after uploading error report
+                    File.WriteAllText(errorGoFilePath, string.Empty);
+
+                    sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
+
+                    if (sftSite.IsConnected)
+                        sftSite.Disconnect();
+
+                }
+                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
+            }
+            else
+            {
+                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
+            }
+        }
+
+        private string GenerateClientWiseAcknowledgementReport(MailBatchInfo mbi, BatchData mailBatchData, Deliverable reportDeliverable)
+        {
+            string errorReportPath = string.Empty;
+            string errorReportFileName = string.Empty;
+            StringBuilder errorReportData = new StringBuilder();
+            switch (mbi.Client.AppCode)
+            {
+                case "USAA":
+                    errorReportFileName = "Error-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+                    //string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                    errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+
+                    List<MailPieces> mailPieces;
+                    using (IReportService reportSvc = new ReportService())
+                    {
+                        mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
+                    }
+                    errorReportData = amcSvc.AMCErrorReport(mailPieces);
+                    if (errorReportData != null)
+                    {
+                        File.WriteAllText(errorReportPath, errorReportData.ToString());
+                    }
+                    break;
+                case "HSBC":
+                    using (IHSBCService hsbcSvc = new HSBCService())
+                    {
+                        errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
+
+                        errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+
+                        //Here we are generating error report even though it does not have any errored records
+                        errorReportData = hsbcSvc.HSBCErrorReport(mailBatchData, mbi.Client.TimeZone, reportDeliverable.Delimeter);
+
+                        File.WriteAllText(errorReportPath, errorReportData.ToString());
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            return errorReportPath;
         }
 
         private MailPieceValidationResult ValidatePackgeInfoNode(XmlNode xmlPiece)
