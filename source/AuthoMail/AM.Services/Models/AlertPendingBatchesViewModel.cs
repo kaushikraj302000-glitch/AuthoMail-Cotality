@@ -20,17 +20,12 @@ namespace AM.Services
         public string DocTypeCode { get; set; }
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
-        public string ErrorDesc { get; set; }
-        public int? PullBackRequestId { get; set; }
         public int? ClientId { get; set; }
         public string PrintLocation { get; set; }
-        public int PendingMailPieces { get; set; }
-        public string SweepName { get; set; }
-
+        
         public DateTime GetEstimatedSubmittedOn(List<Sweep> sweepTimings, int bufferTime)
         {
             var revisedReceivedOnEst = this.ReceivedOn.UtcToEst();
-
             if (revisedReceivedOnEst.DayOfWeek == DayOfWeek.Saturday)
             {
                 sweepTimings = sweepTimings.Where(s => s.WeekDayType == "Saturday").ToList();
