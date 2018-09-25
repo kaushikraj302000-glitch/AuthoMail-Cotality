@@ -11,6 +11,7 @@ using AM.Lib;
 using System.Threading;
 using System.Net.Mail;
 using AM.USPSLib;
+
 namespace AM.Core
 {
     static class AMCore
@@ -188,9 +189,6 @@ namespace AM.Core
 
                             if (docType.ShippingCarrier == Carrier.USPS.ToString())
                             {
-                                //Using different end page for USPS packages
-                                string endPageUSPSTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, Config.Core_USPSEndPageTemplatePath);
-
                                 DocTypeCoverLetter docTypeLetter = docTypeSvc.GetDocumentCoverLetterTemplates(docType.Id).SingleOrDefault();
 
                                 if (docTypeLetter == null)
@@ -254,6 +252,9 @@ namespace AM.Core
                                 //For now reverse barcoding will be mail piece id
                                 if (mailPiece.PrintLocation == Config.Common_PrintLocationCL)
                                 {
+                                    //Using different end page for USPS packages
+                                    string endPageUSPSTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, Config.Core_USPSEndPageTemplatePath);
+
                                     mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((mailPiece.TrackingNo).Reverse().ToArray()) + "*");
 
                                     endPagePdfPath = doc.GenerateLastPageWithBarcode(endPageUSPSTemplatePath, mbi.PnSRequestPath, mailPieceData);
@@ -261,9 +262,6 @@ namespace AM.Core
                             }
                             else if (docType.ShippingCarrier == Carrier.FedEx.ToString())
                             {
-                                //Using different end page for FedEx packages
-                                string endPageFedExTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, Config.Core_FedExEndPageTemplatePath);
-
                                 DocTypeCoverLetter docTypeLetter = docTypeSvc.GetDocumentCoverLetterTemplates(docType.Id).SingleOrDefault();
 
                                 if (docTypeLetter == null)
@@ -305,6 +303,9 @@ namespace AM.Core
 
                                     if (mailPiece.PrintLocation == Config.Common_PrintLocationCL)
                                     {
+                                        //Using different end page for FedEx packages
+                                        string endPageFedExTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, Config.Core_FedExEndPageTemplatePath);
+
                                         mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((mailPiece.TrackingNo).Reverse().ToArray()) + "*");
 
                                         endPagePdfPath = doc.GenerateLastPageWithBarcode(endPageFedExTemplatePath, mbi.PnSRequestPath, mailPieceData);
@@ -346,28 +347,26 @@ namespace AM.Core
                     {
                         Deliverable reportDeliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Error);
 
-                        var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
-                        if (data != null)
+                        List<MailPieces> mailPieces;
+                        using (IReportService reportSvc = new ReportService())
                         {
-                            var validMailPiecesList = data.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
+                            mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
+                        }
+                        if (mailPieces != null)
+                        {
+                            var validMailPiecesList = mailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
 
                             if (validMailPiecesList.Count == 0)
                             {
-                                List<MailPieces> mailPieces;
-                                using (IReportService reportSvc = new ReportService())
-                                {
-                                    mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
-                                }
-
                                 //TODO: Remove after proper logic implementation client wise switch case implemented
-                                GenerateImmidiateReports(mbi, data, reportDeliverable, mailPieces);
+                                GenerateImmidiateReports(mbi, mailPieces, reportDeliverable, mailPieces);
 
                                 mailBatchSvc.MarkMailBatchAsInvalid(mbi.MailBatch.Id, (mbi.MailBatch.ValidationErrors + Environment.NewLine + "Some documents could not be processed."));
                                 commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.Failed.ToString());
                             }
-                            else if (validMailPiecesList.Count < data.MailPieces.Count)
+                            else if (validMailPiecesList.Count < mailPieces.Count)
                             {
-                                commonSvc.UpdateBatchValidationStatus(mbi.MailBatch.Id, BatchValidationStatus.PartiallyValid, data.MailBatch.ValidationErrors);
+                                commonSvc.UpdateBatchValidationStatus(mbi.MailBatch.Id, BatchValidationStatus.PartiallyValid, mailBatch.ValidationErrors);
                                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Prepped, Common.Now);
                             }
                             else
@@ -470,7 +469,7 @@ namespace AM.Core
             }
         }
 
-        private static void GenerateImmidiateReports(MailBatchInfo mbi, BatchData mailBatchData, Deliverable deliverable, List<MailPieces> mailPieces = null)
+        private static void GenerateImmidiateReports(MailBatchInfo mbi, List<MailPieces> mailPiecesData, Deliverable deliverable, List<MailPieces> mailPieces = null)
         {
             SFTChannel sftChannel;
             using (IClientService clientSvc = new ClientService())
@@ -520,7 +519,7 @@ namespace AM.Core
                         {
                             string errorReportFileName = "ER_{0}.csv".Fill(mbi.BatchName);
                             string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-                            StringBuilder errorData = alaskaSvc.AlaskaErrorReport(mailBatchData, mbi.Client.TimeZone, deliverable.Delimeter);
+                            StringBuilder errorData = alaskaSvc.AlaskaErrorReport(mailPiecesData, mbi.Client.TimeZone, deliverable.Delimeter);
                             if (errorData != null)
                             {
                                 File.WriteAllText(errorReportPath, errorData.ToString());
@@ -533,7 +532,7 @@ namespace AM.Core
                         {
                             string errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
                             string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-                            StringBuilder errorData = hsbcSvc.HSBCErrorReport(mailBatchData, mbi.Client.TimeZone, deliverable.Delimeter);
+                            StringBuilder errorData = hsbcSvc.HSBCErrorReport(mailPiecesData, mbi.Client.TimeZone, deliverable.Delimeter);
                             if (errorData != null)
                             {
                                 File.WriteAllText(errorReportPath, errorData.ToString());
@@ -851,7 +850,7 @@ namespace AM.Core
                             string responseFileName = Path.GetFileName(downloadableBatch.ResponseFilePath);
                             string responseFilePath = downloadableBatch.ResponseFilePath;
 
-                            string amPnSResponseDir = Path.Combine(Config.Common_AuthoMailRootFolder, downloadableBatch.AppCode, "PnSResponses");
+                            string amPnSResponseDir = Path.Combine(Config.Common_AuthoMailRootFolder, downloadableBatch.AppCode, Util.PnSResponsesFolderName);
                             string amPnSResponseFilePath = Path.Combine(amPnSResponseDir, responseFileName);
 
                             DateTime mrdfDownloadStartTime = Common.Now;
@@ -877,7 +876,7 @@ namespace AM.Core
                 }
                 catch (Exception ex)
                 {
-                    var errorMsg = "Error occured while downloading response from PnS Service : {0) ".Fill(ex);
+                    var errorMsg = "Error occured while downloading response from PnS Service : {0} ".Fill(ex);
                     log.Error(errorMsg, ex);
                     SendUnexpectedExceptionEmail(errorMsg);
                 }
@@ -911,7 +910,7 @@ namespace AM.Core
 
                         // Here we have changed path of pnsresponse to process from "AMRoot/ClientCode/PnSResponses/AppCode_PrintBatchId-res.xml" because now we have multiple batches mail pieces in printbatch table
 
-                        string printbatchResponseFilePath = Path.Combine(Config.Common_AuthoMailRootFolder, printBatch.AppCode, "PnSResponses", printBatch.SubmittedBatchName + "-res.xml");
+                        string printbatchResponseFilePath = Path.Combine(Config.Common_AuthoMailRootFolder, printBatch.AppCode, Util.PnSResponsesFolderName, printBatch.SubmittedBatchName + "-res.xml");
 
                         var pnsResponse = PnSResponse.LoadXml(File.ReadAllText(printbatchResponseFilePath));
 
@@ -957,7 +956,7 @@ namespace AM.Core
 
                         if (reportPreppedChannelIds.Contains(printBatch.SFTChannelId))
                         {
-                            string amResponsePath = Path.Combine(Config.Common_AuthoMailRootFolder, printBatch.AppCode, "AMResponse", printBatch.PrintBatchId.ToString());
+                            string amResponsePath = Path.Combine(Config.Common_AuthoMailRootFolder, printBatch.AppCode, Util.AMResponseFolderName, printBatch.PrintBatchId.ToString());
 
                             amResponsePath.CreateDirectoryIfNotExist();
 
@@ -1051,14 +1050,18 @@ namespace AM.Core
 
                     MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
 
-                    var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
-                    if (data != null)
+                    List<MailPieces> mailPieces;
+                    using (IReportService reportSvc = new ReportService())
+                    {
+                        mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
+                    }
+                    if (mailPieces != null)
                     {
                         try
                         {
                             bool isReportGenerated = false;
 
-                            isReportGenerated = GenerateFinalReports(mbi, data, deliverable);
+                            isReportGenerated = GenerateFinalReports(mbi, mailPieces, deliverable);
 
                             if (isReportGenerated)
                                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
@@ -1079,7 +1082,7 @@ namespace AM.Core
             log.Debug("Report prepped job is completed.");
         }
 
-        private static bool GenerateFinalReports(MailBatchInfo mbi, BatchData mailBatchData, Deliverable deliverable, List<MailPieces> mailPieces = null)
+        private static bool GenerateFinalReports(MailBatchInfo mbi, List<MailPieces> mailPiecesData, Deliverable deliverable, List<MailPieces> mailPieces = null)
         {
             bool isReportGenerated = false;
             SFTChannel sftChannel;
@@ -1088,7 +1091,7 @@ namespace AM.Core
                 sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelId(mbi.MailBatch.SFTChannelId);
             }
 
-            switch (sftChannel.Code.Split('_')[0])
+            switch (sftChannel.Code.Split('_')[0].ToUpper())
             {
                 case "AMC":
                     using (IAMCService amcSvc = new AMCService())
@@ -1125,7 +1128,7 @@ namespace AM.Core
                 case "ALASKA":
                     using (IAlaskaService alaskaSvc = new AlaskaService())
                     {
-                        StringBuilder deliveryReport = alaskaSvc.AlaskaDeliveryReport(mailBatchData, mbi.Client.TimeZone, deliverable.Delimeter);
+                        StringBuilder deliveryReport = alaskaSvc.AlaskaDeliveryReport(mailPiecesData, mbi.Client.TimeZone, deliverable.Delimeter);
 
                         if (deliveryReport != null)
                         {
@@ -1136,7 +1139,7 @@ namespace AM.Core
                             isReportGenerated = true;
                         }
 
-                        StringBuilder errorReport = alaskaSvc.AlaskaErrorReport(mailBatchData, mbi.Client.TimeZone, deliverable.Delimeter);
+                        StringBuilder errorReport = alaskaSvc.AlaskaErrorReport(mailPiecesData, mbi.Client.TimeZone, deliverable.Delimeter);
 
                         if (errorReport != null)
                         {
@@ -1152,7 +1155,7 @@ namespace AM.Core
                 case "AMTEST":
                     using (IHSBCService hsbcSvc = new HSBCService())
                     {
-                        StringBuilder deliveryReport = hsbcSvc.HSBCDeliveryReport(mailBatchData, mbi.Client.TimeZone, deliverable.Delimeter);
+                        StringBuilder deliveryReport = hsbcSvc.HSBCDeliveryReport(mailPiecesData, mbi.Client.TimeZone, deliverable.Delimeter);
 
                         string deliveryReportFileName = "{0}.DeliveryReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
                         string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
@@ -1160,7 +1163,7 @@ namespace AM.Core
                         File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
 
 
-                        StringBuilder errorReport = hsbcSvc.HSBCErrorReport(mailBatchData, mbi.Client.TimeZone, deliverable.Delimeter);
+                        StringBuilder errorReport = hsbcSvc.HSBCErrorReport(mailPiecesData, mbi.Client.TimeZone, deliverable.Delimeter);
 
                         string errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
                         string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
