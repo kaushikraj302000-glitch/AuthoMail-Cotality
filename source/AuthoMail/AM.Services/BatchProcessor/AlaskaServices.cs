@@ -10,13 +10,13 @@ namespace AM.Services
 {
     public interface IAlaskaService : IDisposable
     {
-        StringBuilder AlaskaErrorReport(BatchData data, string clientTimeZone, string delimeter);
-        StringBuilder AlaskaDeliveryReport(BatchData data, string clientTimeZone, string delimeter);
+        StringBuilder AlaskaErrorReport(List<MailPieces> mailPieces, string clientTimeZone, string delimeter);
+        StringBuilder AlaskaDeliveryReport(List<MailPieces> mailPieces, string clientTimeZone, string delimeter);
     }
 
     public class AlaskaService : ServiceBase, IAlaskaService
     {
-        public StringBuilder AlaskaErrorReport(BatchData data, string clientTimeZone, string delimeter)
+        public StringBuilder AlaskaErrorReport(List<MailPieces> mailPieces, string clientTimeZone, string delimeter)
         {
             var columnName = String.Join(delimeter, "BatchID", "Loan Number", "File Name", "Date Received", "Recipient FirstName", "Recipient LastName", "Recipient Street Address", "Recipient Street Address2", "Recipient City", "Recipient State", "Recipient Zip", "Error Code", "Error Text");
 
@@ -24,7 +24,7 @@ namespace AM.Services
 
             errorReport.AppendLine();
 
-            var erroredData = data.MailPieces.Where(l => l.ErrorCode != OutComeCodes.No_Error).ToList();
+            var erroredData = mailPieces.Where(l => l.ErrorCode != OutComeCodes.No_Error).ToList();
 
             if (erroredData == null || erroredData.Count == 0)
             {
@@ -33,13 +33,13 @@ namespace AM.Services
 
 
             // All the loans where outcome code is anything except no_error are processed invalid loans.
-            foreach (MailPieceDTO mailPiece in erroredData)
+            foreach (MailPieces mailPiece in erroredData)
             {
                 var line = String.Join(delimeter,
-                    data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName.ToCsvString(),
+                    mailPiece.MailBatches.BatchName == null ? string.Empty : mailPiece.MailBatches.BatchName.ToCsvString(),
                         mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
                         mailPiece.FileName == null ? string.Empty : mailPiece.FileName.ToCsvString(),
-                        data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(clientTimeZone).ToString(),
+                        mailPiece.MailBatches.ReceivedOn == null ? string.Empty : mailPiece.MailBatches.ReceivedOn.Value.UtcToClientTimeZone(clientTimeZone).ToString(),
                         mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName.ToCsvString(),
                         mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName.ToCsvString(),
                         mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet.ToCsvString(),
@@ -56,7 +56,7 @@ namespace AM.Services
             return errorReport;
         }
 
-        public StringBuilder AlaskaDeliveryReport(BatchData data, string clientTimeZone, string delimeter)
+        public StringBuilder AlaskaDeliveryReport(List<MailPieces> mailPieces, string clientTimeZone, string delimeter)
         {
             var columnName = String.Join(delimeter, "BatchID", "Loan Number", "File Name", "Date Received", "Date Printed", "Date Mailed", "Recipient FirstName", "Recipient LastName", "Recipient Street Address", "Recipient Street Address2", "Recipient City", "Recipient State", "Recipient Zip", "Pages Shipped");
 
@@ -64,20 +64,20 @@ namespace AM.Services
 
             deliveryReport.AppendLine();
 
-            var shippedData = data.MailPieces.Where(l => l.ShippingStatus == ShippingStatus.Shipped.ToString() || l.ShippingStatus == ShippingStatus.PulledBack.ToString()).ToList();
+            var shippedData = mailPieces.Where(l => l.ShippingStatus == ShippingStatus.Shipped.ToString() || l.ShippingStatus == ShippingStatus.PulledBack.ToString()).ToList();
 
             if (shippedData == null || shippedData.Count == 0)
             {
                 return null;
             }
 
-            foreach (MailPieceDTO mailPiece in shippedData)
+            foreach (MailPieces mailPiece in shippedData)
             {
                 var line = String.Join(delimeter,
-                    data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName.ToCsvString(),
+                    mailPiece.MailBatches.BatchName == null ? string.Empty : mailPiece.MailBatches.BatchName.ToCsvString(),
                         mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
                         mailPiece.FileName == null ? string.Empty : mailPiece.FileName.ToCsvString(),
-                        data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(clientTimeZone).ToString(),
+                        mailPiece.MailBatches.ReceivedOn == null ? string.Empty : mailPiece.MailBatches.ReceivedOn.Value.UtcToClientTimeZone(clientTimeZone).ToString(),
                         mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? string.Empty : mailPiece.PrintedOn.Value.UtcToClientTimeZone(clientTimeZone).ToString(),
                         mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? string.Empty : mailPiece.ShippedOn.Value.UtcToClientTimeZone(clientTimeZone).ToString(),
                         mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName.ToCsvString(),

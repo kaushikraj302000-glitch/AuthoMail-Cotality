@@ -503,9 +503,12 @@ namespace AM.Console
                 Deliverable reportDeliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Error);
 
                 MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
-
-                var mailBatchData = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
-                if (mailBatchData != null)
+                List<MailPieces> mailPieces;
+                using (IReportService reportSvc = new ReportService())
+                {
+                    mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
+                }
+                if (mailPieces != null)
                 {
                     try
                     {
@@ -525,7 +528,7 @@ namespace AM.Console
 
                         if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.Invalid)
                         {
-                            StringBuilder errorData = alaskaSvc.AlaskaErrorReport(mailBatchData, mbi.Client.TimeZone, reportDeliverable.Delimeter);
+                            StringBuilder errorData = alaskaSvc.AlaskaErrorReport(mailPieces, mbi.Client.TimeZone, reportDeliverable.Delimeter);
                             if (errorData != null)
                             {
                                 File.WriteAllText(errorReportPath, errorData.ToString());
@@ -536,7 +539,7 @@ namespace AM.Console
                         }
                         else if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.PartiallyValid)
                         {
-                            StringBuilder errorData = alaskaSvc.AlaskaErrorReport(mailBatchData, mbi.Client.TimeZone, reportDeliverable.Delimeter);
+                            StringBuilder errorData = alaskaSvc.AlaskaErrorReport(mailPieces, mbi.Client.TimeZone, reportDeliverable.Delimeter);
 
                             if (errorData != null)
                             {
@@ -565,7 +568,7 @@ namespace AM.Console
 
                         if (reportDeliverable.EmailChannel != null)
                         {
-                            MailUtility.SendDownloadNotificationEmail(mbi, mailBatchData, errorReportPath, reportDeliverable.EmailChannel);
+                            MailUtility.SendDownloadNotificationEmail(mbi, mailPieces, errorReportPath, reportDeliverable.EmailChannel);
                         }
                     }
                     catch (Exception ex)

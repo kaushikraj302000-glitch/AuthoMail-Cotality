@@ -253,10 +253,10 @@ namespace AM.Services
         {
             var mailPieceDictionary = new Dictionary<int, MailPieces>();
 
-            string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id LEFT OUTER JOIN AM.MailPieceCustomInfo MC ON M.Id=MC.MailPieceId WHERE M.MailBatchId=@MailBatchId";
+            string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id LEFT OUTER JOIN AM.MailPieceCustomInfo MC ON M.Id=MC.MailPieceId INNER JOIN Common.Clients C ON B.ClientId=C.Id WHERE M.MailBatchId=@MailBatchId";
 
-            var data = db.Query<MailPieces, MailBatches, MailPieceCustomInfoTest, MailPieces>(query,
-                (m, b, c) =>
+            var data = db.Query<MailPieces, MailBatches, MailPieceCustomInfoTest, Clients, MailPieces>(query,
+                (m, b, c, cl) =>
                 {
                     MailPieces mp;
 
@@ -264,6 +264,7 @@ namespace AM.Services
                     {
                         mp = m;
                         mp.MailBatches = b;
+                        mp.Clients = cl;
                         mp.MailPieceCustomInfoTest = new List<MailPieceCustomInfoTest>();
                         mailPieceDictionary.Add(mp.Id, mp);
                     }
@@ -274,7 +275,7 @@ namespace AM.Services
                 new
                 {
                     MailBatchId = mailBatchId
-                }, splitOn: "Id,MailPieceId").Distinct().ToList();
+                }, splitOn: "Id,MailPieceId,Id").Distinct().ToList();
             return data;
         }
 

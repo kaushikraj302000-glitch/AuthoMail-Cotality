@@ -69,77 +69,7 @@ namespace AM.Console
             }
         }
 
-        public static bool SendDownloadNotificationEmail(MailBatchInfo mbi, BatchData batchData, string errorReportPath)
-        {
-            bool isEmailSent = false;
-
-            try
-            {
-                using (SmtpClient smtpClient = new SmtpClient())
-                {
-                    using (MailMessage msg = new MailMessage())
-                    {
-                        msg.IsBodyHtml = true;
-                        msg.To.Add(Config.Monitor_DS_Email_To);
-                        msg.CC.Add(Config.Monitor_DS_Email_Cc);
-                        msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, mbi.Client.AppCode, Config.Monitor_DSEmail_Subject);
-                        msg.Priority = MailPriority.Normal;
-
-                        if (batchData.MailPieces.Count > 0)
-                        {
-                            #region Prepare email body
-
-                            string downloadEmail_TD_SrNoStyle = "style='width:10%;border:solid windowtext 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
-                            string downloadEmail_TD_DescriptionStyle = "style='width:80%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'' valign='top' width='213'><p>";
-                            string downloadEmail_TD_CountStyle = "style='width:10%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
-
-                            StringBuilder sb = new StringBuilder(File.ReadAllText(Config.Monitor_DSEmailTemplate));
-                            sb = sb.Replace("<%FileName%>", mbi.MailBatch.BatchName);
-                            sb = sb.Replace("<%yyyymmdd%>", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("MM/dd/yyyy"));
-                            sb = sb.Replace("<%hhmm%>", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("hh:mm tt"));
-
-                            StringBuilder data = new StringBuilder();
-                            data.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_SrNoStyle, "1"));
-                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_DescriptionStyle, "TOTAL LOANS RECEIVED"));
-                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, batchData.MailPieces.Count));
-                            data.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_SrNoStyle, "2"));
-                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", downloadEmail_TD_DescriptionStyle, "VALID LOANS"));
-                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, batchData.MailPieces.Where(l => l.ErrorCode == OutComeCodes.No_Error).Count()));
-                            data.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_SrNoStyle, "3"));
-                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", downloadEmail_TD_DescriptionStyle, "INVALID LOANS"));
-                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, batchData.MailPieces.Where(l => l.ErrorCode != OutComeCodes.No_Error).Count()));
-
-                            sb = sb.Replace("<%trdata%>", data.ToString());
-                            msg.Body = sb.ToString();
-
-                            #endregion
-                        }
-                        else if (batchData.MailPieces.Count == 0)
-                        {
-                            msg.Body = string.Format("No records available in the batch file {0}.", mbi.MailBatch.BatchName);
-                        }
-
-                        if (msg.Body.Length > 0)
-                        {
-
-                            if (File.Exists(errorReportPath))
-                                msg.Attachments.Add(new Attachment(errorReportPath));
-
-                            smtpClient.Send(msg);
-                            isEmailSent = true;
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                log.Error(ex);
-            }
-
-            return isEmailSent;
-        }
-
-        public static bool SendDownloadNotificationEmail(MailBatchInfo mbi, BatchData batchData, string errorReportPath, EmailChannel emailChannel)
+        public static bool SendDownloadNotificationEmail(MailBatchInfo mbi, List<MailPieces> mailPieces, string errorReportPath, EmailChannel emailChannel)
         {
             bool isEmailSent = false;
 
@@ -155,7 +85,7 @@ namespace AM.Console
                         msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, mbi.Client.AppCode, emailChannel.Subject);
                         msg.Priority = MailPriority.Normal;
 
-                        if (batchData.MailPieces.Count > 0)
+                        if (mailPieces.Count > 0)
                         {
                             #region Prepare email body
 
@@ -171,20 +101,20 @@ namespace AM.Console
                             StringBuilder data = new StringBuilder();
                             data.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_SrNoStyle, "1"));
                             data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_DescriptionStyle, "TOTAL LOANS RECEIVED"));
-                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, batchData.MailPieces.Count));
+                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, mailPieces.Count));
                             data.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_SrNoStyle, "2"));
                             data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", downloadEmail_TD_DescriptionStyle, "VALID LOANS"));
-                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, batchData.MailPieces.Where(l => l.ErrorCode == OutComeCodes.No_Error).Count()));
+                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, mailPieces.Where(l => l.ErrorCode == OutComeCodes.No_Error).Count()));
                             data.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_SrNoStyle, "3"));
                             data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", downloadEmail_TD_DescriptionStyle, "INVALID LOANS"));
-                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, batchData.MailPieces.Where(l => l.ErrorCode != OutComeCodes.No_Error).Count()));
+                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, mailPieces.Where(l => l.ErrorCode != OutComeCodes.No_Error).Count()));
 
                             sb = sb.Replace("<%trdata%>", data.ToString());
                             msg.Body = sb.ToString();
 
                             #endregion
                         }
-                        else if (batchData.MailPieces.Count == 0)
+                        else if (mailPieces.Count == 0)
                         {
                             msg.Body = string.Format("No records available in the batch file {0}.", mbi.MailBatch.BatchName);
                         }
@@ -208,81 +138,7 @@ namespace AM.Console
             return isEmailSent;
         }
 
-        public static bool SendProductionNotificationEmail(MailBatchInfo mbi, BatchData batchData, List<string> reports)
-        {
-            bool isEmailSent = false;
-
-            try
-            {
-                using (SmtpClient smtpClient = new SmtpClient())
-                {
-                    using (MailMessage msg = new MailMessage())
-                    {
-                        msg.IsBodyHtml = true;
-                        msg.To.Add(Config.Monitor_PS_Email_To);
-                        msg.CC.Add(Config.Monitor_PS_Email_Cc);
-                        msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, mbi.Client.AppCode, Config.Monitor_PSEmail_Subject);
-                        msg.Priority = MailPriority.Normal;
-
-                        if (batchData.MailPieces.Count > 0)
-                        {
-                            #region Prepare email body
-
-                            string downloadEmail_TD_SrNoStyle = "style='width:10%;border:solid windowtext 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
-                            string downloadEmail_TD_DescriptionStyle = "style='width:80%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'' valign='top' width='213'><p>";
-                            string downloadEmail_TD_CountStyle = "style='width:10%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
-
-                            StringBuilder sb = new StringBuilder(File.ReadAllText(Config.Monitor_PSEmailTemplate));
-                            sb = sb.Replace("<%FileName%>", mbi.MailBatch.BatchName);
-                            sb = sb.Replace("<%yyyymmdd%>", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("MM/dd/yyyy"));
-                            sb = sb.Replace("<%hhmm%>", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("hh:mm tt"));
-
-                            StringBuilder data = new StringBuilder();
-                            data.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_SrNoStyle, "1"));
-                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_DescriptionStyle, "TOTAL LOANS RECEIVED"));
-                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, batchData.MailPieces.Count));
-                            data.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_SrNoStyle, "2"));
-                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", downloadEmail_TD_DescriptionStyle, "VALID LOANS"));
-                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, batchData.MailPieces.Where(l => l.ErrorCode == OutComeCodes.No_Error).Count()));
-                            data.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_SrNoStyle, "3"));
-                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", downloadEmail_TD_DescriptionStyle, "INVALID LOANS"));
-                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, batchData.MailPieces.Where(l => l.ErrorCode != OutComeCodes.No_Error).Count()));
-
-                            sb = sb.Replace("<%trdata%>", data.ToString());
-                            msg.Body = sb.ToString();
-
-                            #endregion
-                        }
-                        else if (batchData.MailPieces.Count == 0)
-                        {
-                            msg.Body = string.Format("No records available in the batch file {0}.", mbi.MailBatch.BatchName);
-                        }
-
-                        if (msg.Body.Length > 0)
-                        {
-
-                            if (reports.Count > 0)
-                            {
-                                foreach (var report in reports)
-                                {
-                                    msg.Attachments.Add(new Attachment(report));
-                                }
-                            }
-                            smtpClient.Send(msg);
-                            isEmailSent = true;
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                log.Error(ex);
-            }
-
-            return isEmailSent;
-        }
-
-        public static bool SendProductionNotificationEmail(MailBatchInfo mbi, BatchData batchData, List<string> reports, EmailChannel emailChannel)
+        public static bool SendProductionNotificationEmail(MailBatchInfo mbi, List<MailPieces> mailPieces, List<string> reports, EmailChannel emailChannel)
         {
             bool isEmailSent = false;
 
@@ -298,7 +154,7 @@ namespace AM.Console
                         msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, mbi.Client.AppCode, emailChannel.Subject);
                         msg.Priority = MailPriority.Normal;
 
-                        if (batchData.MailPieces.Count > 0)
+                        if (mailPieces.Count > 0)
                         {
                             #region Prepare email body
 
@@ -314,20 +170,20 @@ namespace AM.Console
                             StringBuilder data = new StringBuilder();
                             data.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_SrNoStyle, "1"));
                             data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_DescriptionStyle, "TOTAL LOANS RECEIVED"));
-                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, batchData.MailPieces.Count));
+                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, mailPieces.Count));
                             data.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_SrNoStyle, "2"));
                             data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", downloadEmail_TD_DescriptionStyle, "VALID LOANS"));
-                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, batchData.MailPieces.Where(l => l.ErrorCode == OutComeCodes.No_Error).Count()));
+                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, mailPieces.Where(l => l.ErrorCode == OutComeCodes.No_Error).Count()));
                             data.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_SrNoStyle, "3"));
                             data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", downloadEmail_TD_DescriptionStyle, "INVALID LOANS"));
-                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, batchData.MailPieces.Where(l => l.ErrorCode != OutComeCodes.No_Error).Count()));
+                            data.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td> </tr>", downloadEmail_TD_CountStyle, mailPieces.Where(l => l.ErrorCode != OutComeCodes.No_Error).Count()));
 
                             sb = sb.Replace("<%trdata%>", data.ToString());
                             msg.Body = sb.ToString();
 
                             #endregion
                         }
-                        else if (batchData.MailPieces.Count == 0)
+                        else if (mailPieces.Count == 0)
                         {
                             msg.Body = string.Format("No records available in the batch file {0}.", mbi.MailBatch.BatchName);
                         }

@@ -520,8 +520,12 @@ namespace AM.Console
 
                 MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
 
-                var mailBatchData = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
-                if (mailBatchData != null)
+                List<MailPieces> mailPieces;
+                using (IReportService reportSvc = new ReportService())
+                {
+                    mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
+                }
+                if (mailPieces != null)
                 {
                     try
                     {
@@ -530,7 +534,7 @@ namespace AM.Console
                         string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 
                         //Here we are generating error report even though it does not have any errored records
-                        StringBuilder errorData = hsbcSvc.HSBCErrorReport(mailBatchData, mbi.Client.TimeZone, reportDeliverable.Delimeter);
+                        StringBuilder errorData = hsbcSvc.HSBCErrorReport(mailPieces, mbi.Client.TimeZone, reportDeliverable.Delimeter);
                         if (errorData != null)
                         {
                             File.WriteAllText(errorReportPath, errorData.ToString());
@@ -539,7 +543,7 @@ namespace AM.Console
                         //This logic added because if we get any error while sending notification to client it will update status and process batch without any error notification. So if we get true in return then only we can process further
                         if (reportDeliverable.EmailChannel != null)
                         {
-                            MailUtility.SendDownloadNotificationEmail(mbi, mailBatchData, errorReportPath, reportDeliverable.EmailChannel);
+                            MailUtility.SendDownloadNotificationEmail(mbi, mailPieces, errorReportPath, reportDeliverable.EmailChannel);
                         }
 
                         if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.Invalid)
