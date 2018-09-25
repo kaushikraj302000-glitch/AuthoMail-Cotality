@@ -116,6 +116,10 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse(e.ToString()), JsonRequestBehavior.AllowGet);
             }
         }
+        public ActionResult DelayedBatches()
+        {
+            return View();
+        }
 
     }
 }
