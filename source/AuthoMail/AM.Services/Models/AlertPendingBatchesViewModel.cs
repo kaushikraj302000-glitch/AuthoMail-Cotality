@@ -20,17 +20,14 @@ namespace AM.Services
         public string DocTypeCode { get; set; }
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
-        public string ErrorDesc { get; set; }
-        public int? PullBackRequestId { get; set; }
         public int? ClientId { get; set; }
         public string PrintLocation { get; set; }
-        public int PendingMailPieces { get; set; }
-        public string SweepName { get; set; }
-
+        
         public DateTime GetEstimatedSubmittedOn(List<Sweep> sweepTimings, int bufferTime)
         {
             var revisedReceivedOnEst = this.ReceivedOn.UtcToEst();
-
+            
+            sweepTimings = sweepTimings.OrderBy(t => t.SrNo).ToList();
             if (revisedReceivedOnEst.DayOfWeek == DayOfWeek.Saturday)
             {
                 sweepTimings = sweepTimings.Where(s => s.WeekDayType == "Saturday").ToList();
@@ -38,12 +35,10 @@ namespace AM.Services
             else
             {
                 sweepTimings = sweepTimings.Where(s => s.WeekDayType == "Weekday").ToList();
-            }
-            sweepTimings = sweepTimings.OrderBy(t => t.SrNo).ToList();
-
+            }            
 
             // adjust for sunday
-            revisedReceivedOnEst = revisedReceivedOnEst.DayOfWeek == DayOfWeek.Sunday ? revisedReceivedOnEst.AddDays(1) : revisedReceivedOnEst;
+            revisedReceivedOnEst = revisedReceivedOnEst.DayOfWeek == DayOfWeek.Sunday ? revisedReceivedOnEst.AddDays(1).Date : revisedReceivedOnEst;
 
             var applicableSweep = sweepTimings.FirstOrDefault(s => s.SweepTime >= revisedReceivedOnEst.TimeOfDay);
 
@@ -51,8 +46,7 @@ namespace AM.Services
             {
                 revisedReceivedOnEst = revisedReceivedOnEst.AddDays(1);
                 // adjust for sunday
-                revisedReceivedOnEst = revisedReceivedOnEst.DayOfWeek == DayOfWeek.Sunday ? revisedReceivedOnEst.AddDays(1) : revisedReceivedOnEst;
-
+                revisedReceivedOnEst = revisedReceivedOnEst.DayOfWeek == DayOfWeek.Sunday ? revisedReceivedOnEst.AddDays(1).Date : revisedReceivedOnEst;
                 applicableSweep = sweepTimings.First();
             }
 

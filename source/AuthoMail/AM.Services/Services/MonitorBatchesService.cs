@@ -12,9 +12,7 @@ namespace AM.Services
 {
     public interface IMonitorBatchesService : IDisposable
     {
-        List<dynamic> CheckSFTChannelsOfPendingBatches();
         MonitorReport GetPendingBatchesToSubmit(int cutOffMinutes);
-        List<dynamic> GetPendingSweepBatchesToSubmit();
         List<dynamic> GetPendingBatchesToReportBack();
         void SaveEmailSentTimeStamp(int mailBatchId, bool IsSubmitted);
         int CheckPrintBatchIdExist(int mailBatchId, bool IsSubmitted);
@@ -22,12 +20,7 @@ namespace AM.Services
         void UpdateEmailTimeStamp(int mailBatchId, bool IsSubmitted);
     }
     public class MonitorBatchesService : ServiceBase, IMonitorBatchesService
-    {
-        public List<dynamic> CheckSFTChannelsOfPendingBatches()
-        {
-            return db.Query("SELECT X.PrintBatchId,X.AppCode,X.PrintLocation,BS.PrintFileName,BS.PipelineStatus,X.ReceivedOn,X.DownloadedOn,X.PreppedOn,X.SFTChannelId ,BS.IsSubmitted,BS.IsReportedBack FROM (SELECT DISTINCT						  P.PrintBatchId,PB.UniqueId,B.PipelineStatus,B.ReceivedOn,B.DownloadedOn,B.PreppedOn,PB.AppCode,B.SFTChannelId,P.PrintLocation FROM	AM.MailPieces P  INNER JOIN AM.MailBatches B ON B.Id=P.MailBatchID INNER JOIN AM.PrintBatches PB ON PB.Id=P.PrintBatchId)X LEFT OUTER JOIN PnS.BatchSummary BS ON X.UniqueId = BS.BatchIdentifier WHERE (ISNULL(BS.IsSubmitted,0) = 0) AND DATEDIFF(minute, CASE WHEN DATENAME(DW, X.ReceivedOn) = 'Sunday' THEN X.DownloadedOn ELSE X.ReceivedOn END, ISNULL(BS.SubmittedOn,GETUTCDATE()) ) > 20").ToList();
-        }
-
+    {        
         public MonitorReport GetPendingBatchesToSubmit(int cutOffMinutes)
         {
 
@@ -57,82 +50,7 @@ namespace AM.Services
 
             return new MonitorReport { DelayedBatches = delayedBatches, DelayedMailPieces = delayedMailPieces };
         }
-
-
-        public List<PendingMailPieceInfo> EmptyPrintLocationPendingBatches(List<PendingMailPieceInfo> pendingEmptyPrintLocation)
-        {
-            var pendingEmptyPLBatches = pendingEmptyPrintLocation.GroupBy(g => g.Id).Select(s => new PendingMailPieceInfo
-            {
-                Id = s.First().Id,
-                AppCode = s.First().AppCode,
-                BatchName = s.First().BatchName,
-                ReceivedOn = s.First().ReceivedOn,
-                PipelineStatus = s.First().PipelineStatus,
-                ShippingStatus = s.First().ShippingStatus,
-                PrintLocation = s.First().PrintLocation,
-                PendingMailPieces = s.Count(),
-                SweepName = s.First().SweepName
-            }).ToList();
-            return pendingEmptyPLBatches;
-        }
-
-        public List<PendingMailPieceInfo> DallasPendingBatches(List<PendingMailPieceInfo> pendingDallasMailPieces)
-        {
-            var pendingDallasBatches = pendingDallasMailPieces.GroupBy(g => g.Id).Select(s => new PendingMailPieceInfo
-            {
-                Id = s.First().Id,
-                AppCode = s.First().AppCode,
-                BatchName = s.First().BatchName,
-                ReceivedOn = s.First().ReceivedOn,
-                PipelineStatus = s.First().PipelineStatus,
-                ShippingStatus = s.First().ShippingStatus,
-                PrintLocation = s.First().PrintLocation,
-                PendingMailPieces = s.Count(),
-                SweepName = s.First().SweepName
-            }).ToList();
-            return pendingDallasBatches;
-        }
-        public List<PendingMailPieceInfo> PCIPendingBatches(List<PendingMailPieceInfo> pendingPCIMailPieces)
-        {
-            List<int> batchIds = new List<int>();
-            //foreach (var bt in pendingPCIMailPieces.GroupBy(g => g.Id).Distinct())
-            //{
-            //    var qry = "select * from ufn_GetPCIBundleSweepTimings(@date)";
-            //    var timings = db.Query<PCIBundleSweepTiming>(qry, new { date = bt.First().ReceivedOn.Value.Date }).ToList();
-
-            //    var thisBatchSweep = timings.Single(t => t.StartTime <= bt.First().ReceivedOn && t.EndTime >= bt.First().ReceivedOn);
-            //    if (DateTime.UtcNow.UtcToEst() > thisBatchSweep.SweepTime) batchIds.Add(bt.First().Id);
-            //}
-
-
-
-
-
-            //var thisBatchSweep = timings.Single(t => t.StartTime <= bt.First().ReceivedOn && t.EndTime >= bt.First().ReceivedOn);
-            //if (DateTime.UtcNow.UtcToEst() > thisBatchSweep.SweepTime) batchIds.Add(bt.First().Id);
-
-            var pendingPCIBatches = pendingPCIMailPieces.Where(p => batchIds.Any(b => b == p.Id)).GroupBy(g => g.Id).Select(s => new PendingMailPieceInfo
-            {
-                Id = s.First().Id,
-                AppCode = s.First().AppCode,
-                BatchName = s.First().BatchName,
-                ReceivedOn = s.First().ReceivedOn,
-                PipelineStatus = s.First().PipelineStatus,
-                ShippingStatus = s.First().ShippingStatus,
-                PrintLocation = s.First().PrintLocation,
-                PendingMailPieces = s.Count(),
-                SweepName = s.First().SweepName
-            }).ToList();
-            return pendingPCIBatches;
-        }
-
-
-
-        public List<dynamic> GetPendingSweepBatchesToSubmit()
-        {
-            return db.Query("SELECT X.PrintBatchId,X.AppCode,BS.PrintFileName,X.PrintLocation,BS.PipelineStatus,X.ReceivedOn,X.DownloadedOn,X.PreppedOn,X.SFTChannelId ,BS.IsSubmitted,BS.IsReportedBack FROM(SELECT DISTINCT P.PrintBatchId,PB.UniqueId,B.ReceivedOn,B.DownloadedOn,B.PreppedOn,B.SubmittedToShippingOn,PB.AppCode,B.SFTChannelId,P.PrintLocation  FROM AM.MailPieces P  INNER JOIN AM.MailBatches B ON B.Id=P.MailBatchID INNER JOIN AM.PrintBatches PB ON PB.Id=P.PrintBatchId )X LEFT OUTER JOIN PnS.BatchSummary BS ON X.UniqueId = BS.BatchIdentifier WHERE (ISNULL(BS.IsSubmitted,0) = 0 AND ISNULL(BS.IsReportedBack,0) = 0) AND DATEDIFF(minute, X.SubmittedToShippingOn, ISNULL(BS.SubmittedOn,GETUTCDATE()) ) > 20").ToList();
-        }
-
+      
         public List<dynamic> GetPendingBatchesToReportBack()
         {
             //return db.Query("SELECT PB.PrintBatch,CC.AppCode,PB.PrintFileName,PB.Pipelinestatus,PB.ReceivedOn,PB.DownloadedOn,PB.PreppedOn,PB.SubmittedOn FROM PnS.BatchSummary PB LEFT OUTER JOIN AM.PrintBatches AP ON AP.UniqueId = PB.BatchIdentifier INNER JOIN Common.Clients CC ON CC.Id = PB.ClientId WHERE PB.IsSubmitted = 1 AND (PB.IsReportedBack = 0 OR AP.IsShippingResponseReceived = 0) AND DATEDIFF(HOUR, ReceivedOn, GETUTCDATE()) > 10 AND PB.PipelineStatus <> 'Cancelled'").ToList();
