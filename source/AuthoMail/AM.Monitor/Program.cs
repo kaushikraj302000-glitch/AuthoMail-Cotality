@@ -18,9 +18,9 @@ namespace AM.Monitor
         /// </summary>
         /// <param name="args"></param>
         static void Main(string[] args)
-        {
+        {            
             MonitorBatchesService monitorSvc = new MonitorBatchesService();
-            var monitorReport = monitorSvc.GetPendingBatchesToSubmit(Config.Alert_CutOffMinutes);
+            var monitorReport = monitorSvc.GetPendingBatchesToSubmit(Int32.Parse(ConfigurationManager.AppSettings["Alert_CutOffMinutes"]));
             var delayedBatchesList = monitorReport.DelayedBatches;
             var pendingBatchesToReportBack = monitorSvc.GetPendingBatchesToReportBack();
             string monitor_PrintBatch = "style='width:10%;border:solid windowtext 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
