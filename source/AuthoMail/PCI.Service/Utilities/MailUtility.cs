@@ -120,8 +120,8 @@ namespace PCI.Service
             {
                 using (MailMessage msg = new MailMessage())
                 {
-                    msg.To.Add(Common.MRDFIssue_Email_To);
-                    msg.CC.Add(Common.MRDFIssue_Email_Cc);
+                    msg.To.Add(Common.UnexpectedEmail_ToEmail);
+                    msg.CC.Add(Common.UnexpectedEmail_CcEmail);
                     msg.Subject = Common.ApplicationEnvironment + " : " + Common.UnexpectedEmail_Subject;
                     msg.Priority = MailPriority.High;
 
