@@ -318,7 +318,7 @@ namespace AM.Entities
             AMRequestPath = Path.Combine(BatchRepo, "AMRequest");
             PnSRequestPath = Path.Combine(BatchRepo, "PnSRequest");
             PnSResponsePath = Path.Combine(BatchRepo, "PnSResponse");
-            AMResponsePath = Path.Combine(BatchRepo, "AMResponse");
+            AMResponsePath = Path.Combine(BatchRepo, Util.AMResponseFolderName);
         }
     }
 }

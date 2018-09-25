@@ -191,7 +191,6 @@ namespace AM.Console
                     invalidMailBatch.UniqueId = Guid.NewGuid();
                     invalidMailBatch.Priority = Priority.Medium.ToString();
                     invalidMailBatch.ReceivedOn = receivedOn;
-                    invalidMailBatch.BatchStatus = BatchStatus.InProgress.ToString();
                     mailBatches.Add(invalidMailBatch);
 
                     requests.Packages.RemoveAll(p => !amcClientMaps.Select(c => c.AMCCustId).Contains(p.CustomerIdentifier));
@@ -219,7 +218,6 @@ namespace AM.Console
                             mailBatch.UniqueId = Guid.NewGuid();
                             mailBatch.Priority = Priority.Medium.ToString();
                             mailBatch.ReceivedOn = receivedOn;
-                            mailBatch.BatchStatus = BatchStatus.InProgress.ToString();
                             mailBatches.Add(mailBatch);
                         }
                     }
@@ -250,7 +248,7 @@ namespace AM.Console
                             mbi.AMRequestPath.CreateDirectoryIfNotExist();
                             mbi.AMResponsePath.CreateDirectoryIfNotExist();
                             mbi.PnSRequestPath.CreateDirectoryIfNotExist();
-                            mbi.PnSRequestPath.CreateDirectoryIfNotExist();
+                            mbi.PnSResponsePath.CreateDirectoryIfNotExist();
 
                             var fileList = Directory.GetFiles(Path.Combine(amcDownloadPath, client.AppCode));
                             foreach (var srcFilePath in fileList)
@@ -262,11 +260,15 @@ namespace AM.Console
                                 File.Move(srcFilePath, destFilePath);
                             }
                             commonSvc.UpdateBatchPipeLineStatus(clientBatch.Id, BatchPipelineStatus.Downloaded, Common.Now);
+                            commonSvc.UpdateBatchStatus(clientBatch.Id, BatchStatus.InProgress.ToString());
                         }
                     }
 
                     //Here after moving all batches to particular client location , archive amc batch
                     string archiveZipPath = Path.Combine(Config.Common_AuthoMailRootFolder, "Archive", batchName + ".zip");
+                    if (File.Exists(archiveZipPath))
+                        File.Delete(archiveZipPath);
+
                     File.Move(localZipFilePath, archiveZipPath);
 
                     //Now delete/archive trigger and zip from SFTP
@@ -801,18 +803,22 @@ namespace AM.Console
 
                 MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
 
-                var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
-                if (data != null)
+                List<MailPieces> mailPieces;
+                using (IReportService reportSvc = new ReportService())
+                {
+                    mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
+                }
+                if (mailPieces != null)
                 {
                     try
                     {
                         //Here we are doing generic flow for AMC.
-                        UploadBaseReportToAMC(mbi, data, deliverable);
+                        UploadBaseReportToAMC(mbi, mailPieces, deliverable);
 
                         //Here we have to provide clientwise notification so only reporting functionality will be customized over here
-                        var emailErrorReportPath = GenerateClientWiseAcknowledgementReport(mbi, data, deliverable);
+                        var emailErrorReportPath = GenerateClientWiseAcknowledgementReport(mbi, mailPieces, deliverable);
 
-                        MailUtility.SendDownloadNotificationEmail(mbi, data, emailErrorReportPath, deliverable.EmailChannel);
+                        MailUtility.SendDownloadNotificationEmail(mbi, mailPieces, emailErrorReportPath, deliverable.EmailChannel);
                         //After upload change extension of local file Path
                         File.Move(emailErrorReportPath, Path.ChangeExtension(emailErrorReportPath, ".uploaded"));
                     }
@@ -826,7 +832,7 @@ namespace AM.Console
             log.Debug("Acknowledge job queue is completed.");
         }
 
-        private void UploadBaseReportToAMC(MailBatchInfo mbi, BatchData data, Deliverable deliverable)
+        private void UploadBaseReportToAMC(MailBatchInfo mbi, List<MailPieces> mailPieces, Deliverable deliverable)
         {
             string errorReportFileName = "Error-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
             //string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
@@ -835,12 +841,6 @@ namespace AM.Console
             string errorGoFileName = "ErrReport.go";
             string errorGoFilePath = Path.Combine(mbi.AMResponsePath, errorGoFileName);
             string ftpErrorGoUploadPath = Path.Combine(deliverable.UploadPath, errorGoFileName);
-
-            List<MailPieces> mailPieces;
-            using (IReportService reportSvc = new ReportService())
-            {
-                mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
-            }
 
             if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.Invalid)
             {
@@ -900,23 +900,19 @@ namespace AM.Console
             }
         }
 
-        private string GenerateClientWiseAcknowledgementReport(MailBatchInfo mbi, BatchData mailBatchData, Deliverable reportDeliverable)
+        private string GenerateClientWiseAcknowledgementReport(MailBatchInfo mbi, List<MailPieces> mailPieces, Deliverable reportDeliverable)
         {
             string errorReportPath = string.Empty;
             string errorReportFileName = string.Empty;
             StringBuilder errorReportData = new StringBuilder();
+
             switch (mbi.Client.AppCode)
             {
+                case "AMCInvalid":
                 case "USAA":
                     errorReportFileName = "Error-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
                     //string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
                     errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-
-                    List<MailPieces> mailPieces;
-                    using (IReportService reportSvc = new ReportService())
-                    {
-                        mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
-                    }
                     errorReportData = amcSvc.AMCErrorReport(mailPieces);
                     if (errorReportData != null)
                     {
@@ -931,7 +927,7 @@ namespace AM.Console
                         errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 
                         //Here we are generating error report even though it does not have any errored records
-                        errorReportData = hsbcSvc.HSBCErrorReport(mailBatchData, mbi.Client.TimeZone, reportDeliverable.Delimeter);
+                        errorReportData = hsbcSvc.HSBCErrorReport(mailPieces, mbi.Client.TimeZone, reportDeliverable.Delimeter);
 
                         File.WriteAllText(errorReportPath, errorReportData.ToString());
                     }
