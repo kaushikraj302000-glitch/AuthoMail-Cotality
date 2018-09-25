@@ -29,7 +29,7 @@ namespace AM.Reporting
                     DateTime todayCutOffTime = todayDate + todayCutOff;
 
                     DateTime previousDate = todayDate.AddDays(-1);
-                    TimeSpan previousDateCutOff = previousDate.DayOfWeek == DayOfWeek.Saturday ? new TimeSpan(14, 00, 00) : new TimeSpan(20, 00, 00);
+                    TimeSpan previousDateCutOff = previousDate.DayOfWeek == DayOfWeek.Saturday ? new TimeSpan(14, 00, 01) : new TimeSpan(20, 00, 01);
                     DateTime previousDateCutOffTime = previousDate + previousDateCutOff;
 
                     mailPieces = reportSvc.GetFedExPickedUpReport(previousDateCutOffTime.EstToUtc(), todayCutOffTime.EstToUtc(), 0);
@@ -40,7 +40,7 @@ namespace AM.Reporting
                     }
 
                     //Get all records after updating pickedup information and generate report
-                    mailPieces = reportSvc.GetFedExPickedUpReport(previousDateCutOffTime, todayCutOffTime);
+                    mailPieces = reportSvc.GetFedExPickedUpReport(previousDateCutOffTime.EstToUtc(), todayCutOffTime.EstToUtc());
                     if (mailPieces != null && mailPieces.Count > 0)
                     {
                         StringBuilder fedExReport = GetFedExReport(mailPieces);

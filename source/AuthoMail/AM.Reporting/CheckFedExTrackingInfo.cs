@@ -82,7 +82,7 @@ namespace AM.Reporting
                 {
                     if (trackDetail.Events != null)
                     {
-                        var trackEvent = trackDetail.Events.Where(c => c.EventType == "PU").SingleOrDefault();
+                        var trackEvent = trackDetail.Events.Where(c => c.EventType == "PU").FirstOrDefault();
                         if (trackEvent != null)
                         {
                             FedExPickedPackagesDetail pickupDetail = new FedExPickedPackagesDetail();
