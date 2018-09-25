@@ -231,7 +231,7 @@
         function FormatObject(Model) {
             $(Model).each(function () {
                 this.ShortMailBatchName = shortName(this.BatchName);
-                this.Id = '<a  data-batchid="' + this.Id + '" onclick="ViewDetails(this)" class="btn btn-transparent-blue btn-sm" >' + this.Id + '</a>';
+                this.Id = '<a  data-batchid="' + this.Id + '" onclick="ViewDetails(' + this.Id + ')" class="btn btn-transparent-blue btn-sm" >' + this.Id + '</a>';
                 // this.TotalPages = this.Status == "Shipped" ? this.TotalPages : 0;
                 this.ReceivedOn = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.DelayedMailPieces = this.DelayedMailPieces.length;
@@ -324,10 +324,9 @@
             $("#databind").html("");
             $("#ViewInfo").modal("show");
             $("#loadingModal").show();
-            console.log("mailpiecesList:" + mailpiecesList);
             var MPs = jQuery.grep(JSON.stringify(mailpiecesList), function (i, v) {
-                // console.log(JSON.stringify(v.Id));
-                if (v.Id == obj) {
+                console.log(JSON.stringify(v.Id));
+                if (v[i].Id == obj) {
                     return v.DelayedMailPieces;
                 }
             });
