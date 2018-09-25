@@ -12,7 +12,7 @@ using AM.Lib;
 namespace AM.Web.Controllers
 {
     [EnableCors(origins: "*", headers: "*", methods: "*")]
-    //[Authorize(Roles = AMRoles.API)]
+    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager + "," + AMRoles.PnSOperator + "," + AMRoles.API)]
     [RoutePrefix("api/alert")]
     public class AlertApiController : ApiController
     {
@@ -21,12 +21,15 @@ namespace AM.Web.Controllers
         {
             this.alertSvc = alertSvc;
         }
-        [Route("GetPendingBatches")]
-        public MonitorReport GetPendingBatches([FromBody]string cutOff)
+        [Route("GetDelayedBatches/{cutOff}")]
+        [HttpGet]
+        public MonitorReport GetDelayedBatches(string cutOff)
         {
-            int calculatedCutOff = 30;
-            calculatedCutOff = int.TryParse(cutOff, out calculatedCutOff) ? Convert.ToInt32(cutOff) : calculatedCutOff;
-            return alertSvc.GetPendingBatchesToSubmit(calculatedCutOff);
+            int defaultCutOff = 30;
+            int effectiveCutOff;            
+            if (!int.TryParse(cutOff, out effectiveCutOff))
+                effectiveCutOff = defaultCutOff;
+            return alertSvc.GetPendingBatchesToSubmit(effectiveCutOff);
         }
     }
 }
