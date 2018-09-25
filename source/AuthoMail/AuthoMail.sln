@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AM.Unit", "UnitTestProject1
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AM.USPSLib", "AM.USPSLib\AM.USPSLib.csproj", "{C221D27E-C501-4838-B58F-D06C97E07923}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PCI.Service", "PCI.Service\PCI.Service.csproj", "{8107735F-EAD2-47EA-9BB1-A77637C62CA6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -85,6 +87,10 @@ Global
 		{C221D27E-C501-4838-B58F-D06C97E07923}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C221D27E-C501-4838-B58F-D06C97E07923}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C221D27E-C501-4838-B58F-D06C97E07923}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8107735F-EAD2-47EA-9BB1-A77637C62CA6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8107735F-EAD2-47EA-9BB1-A77637C62CA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8107735F-EAD2-47EA-9BB1-A77637C62CA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8107735F-EAD2-47EA-9BB1-A77637C62CA6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

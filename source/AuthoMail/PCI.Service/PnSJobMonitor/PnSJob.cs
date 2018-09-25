@@ -1,0 +1,322 @@
+﻿using log4net;
+using Microsoft.Practices.EnterpriseLibrary.Data;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Data.Common;
+using System.Xml;
+using PCI.Service.Utilities;
+
+namespace PCI.Service
+{
+    static class PnSJobMonitor
+    {
+        private static readonly ILog log = LogManager.GetLogger(typeof(PnSJobMonitor));
+        private static Database db = DatabaseFactory.CreateDatabase();
+
+        public static void GetNewPnSBatch()
+        {
+            SFTUtil sftSite = new SFTUtil(Common.PnS_SFT_Protocol, Common.PnS_SFT_HostURL, Common.PnS_SFT_UserName, Common.PnS_SFT_Password,
+                    300000);
+            sftSite.Connect();
+
+            // If at least one batch found from any of the client then re-check for all clients; if for all clients no batch found then end.
+            bool foundNewBatch = false;
+
+            while (true)
+            {
+                //Get all client
+                List<Client> clients = DAL.GetAllClientAppDetail().Where(c => c.IsPnSActive).ToList();
+
+                foreach (var client in clients)
+                {
+                    bool isOneNewBatchFound = CheckForNewPnSBatch(client, sftSite);
+                    if (isOneNewBatchFound)
+                    {
+                        // at least one batch found.
+                        foundNewBatch = true;
+                    }
+                }
+
+                // As checked for all clients break now; remove this during deployment.
+                //break;
+                if (foundNewBatch)
+                {
+                    foundNewBatch = false;
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            sftSite.Disconnect();
+        }
+
+        #region Sub-Methods for downloading new PnS batch
+
+        private static bool CheckForNewPnSBatch(Client clientInfo, SFTUtil sftSite)
+        {
+            List<string> availableSFTFiles;
+            List<string> availableBatches;
+
+            availableSFTFiles = sftSite.ListDirectory(string.Format("{0}/{1}", Common.PnS_SFT_RootDir, clientInfo.AppCode));
+            availableBatches = availableSFTFiles.Where(x => x.ToLower().EndsWith(".go")).ToList();
+
+            if (availableBatches.Count > 0)
+            {
+                log.InfoFormat("Found {0} new batches from client : {1}", availableBatches.Count, clientInfo.AppCode);
+
+                #region Process all found batches.
+
+                foreach (string goFile in availableBatches)
+                {
+                    log.Debug("Downloading Started For Batch {0}".Fill(Path.GetFileNameWithoutExtension(goFile)));
+                    string clientBatchName = Path.GetFileNameWithoutExtension(goFile);
+                    string appDirRemotePath = "{0}/{1}".Fill(Common.PnS_SFT_RootDir, clientInfo.AppCode);
+                    string batchPDFsDirRemotePath = "{0}/{1}".Fill(appDirRemotePath, clientBatchName);
+                    string requestXMLRemotePath = "{0}/{1}.xml".Fill(appDirRemotePath, clientBatchName);
+
+                    if (!availableSFTFiles.Contains("{0}.xml".Fill(clientBatchName)) || !availableSFTFiles.Contains(clientBatchName))
+                    {
+                        // If trigger file + XML + PDFs folder is available then only it will be considered a complete batch to be processed.
+                        continue;
+                    }
+                    else
+                    {
+                        // TODO: Create batch summary record
+                        BatchSummary batchSummary = new BatchSummary { ClientId = clientInfo.Id, JobName = "{0}-{1}".Fill(clientInfo.AppCode, clientBatchName) };
+                        string sql = "INSERT INTO [PnS].[BatchSummary] (ClientId,JobName) OUTPUT INSERTED.PrintBatch VALUES (@p1, @p2)";
+                        batchSummary.PrintBatch = db.ExecuteSqlScalar<int>(sql, batchSummary.ClientId, batchSummary.JobName);
+
+                        // Mark the batch as received.
+                        DAL.UpdateBatchPipeLineStatus(batchSummary.PrintBatch, BatchPipelineStatus.Received, sftSite.LastModifiedTimeOfFile("{0}/{1}".Fill(appDirRemotePath, goFile)));
+
+                        BatchInfo bi = new BatchInfo(batchSummary, clientInfo);
+
+                        DownloadPDFsAndCreateNewBatch(bi, appDirRemotePath, requestXMLRemotePath, sftSite);
+                    }
+                }
+
+                #endregion
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private static void DownloadPDFsAndCreateNewBatch(BatchInfo bi, string appDirRemotePath, string requestXMLRemotePath, SFTUtil sftSite)
+        {
+            string batchPDFsDirRemotePath = "{0}/{1}".Fill(appDirRemotePath, bi.BatchName);
+
+            try
+            {
+                DAL.LogBatchTimeLine(bi.BatchSummary.PrintBatch, LogBatchTimeLine.DownloadStart, Common.GetCurrentTime());
+
+                #region Create directory structure.
+
+                Common.CleanDirectory(bi.BatchRepo);
+                bi.PnSRequestPath.CreateDirectoryIfNotExist();
+                bi.PCIRequestPath.CreateDirectoryIfNotExist();
+                bi.PnSResponsePath.CreateDirectoryIfNotExist();
+                bi.PCIResponsePath.CreateDirectoryIfNotExist();
+
+                #endregion
+
+                sftSite.DownloadFile(bi.RequestXmlPath, requestXMLRemotePath);//, Common.RemoveBatchFiles_PnS_SFT, false);
+
+                sftSite.DownloadDirectory(bi.PnSRequestPDFsPath, batchPDFsDirRemotePath);//, Common.RemoveBatchFiles_PnS_SFT, false);
+
+                #region Remove batch from PnS SFT site and update status.
+
+                //Uncomment removePDFsDir,removeRemoteXML related lines in production
+                //RemovalOperationResult removePDFsDir = session.RemoveFiles("{0}/*".Fill( batchPDFsFolderRemotePath));
+                //RemovalOperationResult removeRemoteXML = session.RemoveFiles(session.EscapeFileMask( "{0}/{1}.xml".Fill(appDirRemotePath, batchName)));
+                //RemovalOperationResult removeRemoteGo = session.RemoveFiles(session.EscapeFileMask("{0}/{1}.go".Fill(appDirRemotePath, bi.BatchSummary.PrintBatch)));
+
+                //removePDFsDir.Check();
+                //removeRemoteXML.Check();
+                //removeRemoteGo.Check();
+
+                // Comment below line in production.
+                if (Common.RemoveBatchFiles_PnS_SFT)
+                {
+                    sftSite.DeleteFile("{0}/{1}.xml".Fill(appDirRemotePath, bi.BatchName));
+                    sftSite.DeleteFile("{0}/{1}.go".Fill(appDirRemotePath, bi.BatchName));
+                    sftSite.DeleteDirectory(batchPDFsDirRemotePath);
+                }
+                else
+                {
+                    string goFilePath = "{0}/{1}.go".Fill(appDirRemotePath, bi.BatchName);
+                    string archiveGOFilePath = "{0}/triggers/{1}.go".Fill(appDirRemotePath, bi.BatchName);
+
+                    if (sftSite.IsFileAvailable(archiveGOFilePath))
+                        sftSite.DeleteFile(archiveGOFilePath);
+
+                    sftSite.MoveFile(goFilePath, archiveGOFilePath);
+                }
+
+                DAL.UpdateBatchPipeLineStatus(bi.BatchSummary.PrintBatch, BatchPipelineStatus.Downloaded, Common.GetCurrentTime());
+
+                #endregion
+
+            }
+            catch (Exception err)
+            {
+                // During downloading PDFs for this batch if any error occurs; remove the batch entry from DB and remove folder structure also.
+                log.Error("Error occurred during downloading new PnS batch: {0} files.".Fill(bi.BatchName), err);
+                DAL.DeleteInCompleteBatchById(bi.BatchSummary.PrintBatch);
+                Common.CleanDirectory(bi.BatchRepo);
+            }
+            finally
+            {
+                DAL.LogBatchTimeLine(bi.BatchSummary.PrintBatch, LogBatchTimeLine.DownloadEnd, Common.GetCurrentTime());
+            }
+
+        }
+
+        #endregion
+
+        public static void SubmitImmediateErrorReport()
+        {
+            Dictionary<string, string> errFilesWithAppCode = Directory.GetFiles(Common.PCIRootFolder, "*.err.*", SearchOption.TopDirectoryOnly).Where(f => Path.GetExtension(Path.GetFileNameWithoutExtension(f)) == ".err").ToDictionary(f => f, f => Path.GetExtension(f));
+
+            if (errFilesWithAppCode.Count > 0)
+            {
+                log.DebugFormat("{0} immediate error report(s) found to upload.", errFilesWithAppCode.Count);
+
+                SFTUtil sftSite = new SFTUtil(Common.PnS_SFT_Protocol, Common.PnS_SFT_HostURL, Common.PnS_SFT_UserName, Common.PnS_SFT_Password, 300000);
+
+                // Connect                    
+                sftSite.Connect();
+
+                foreach (var errFile in errFilesWithAppCode)
+                {
+                    UploadImmediateErrReport(errFile.Value.TrimStart('.'), errFile.Key, sftSite);
+                }
+
+                sftSite.Disconnect();
+            }
+        }
+
+        #region Sub-Methods for uploading immediate error report.
+
+        private static void UploadImmediateErrReport(string appCode, string ieReportTriggerFile, SFTUtil sftSite)
+        {
+            string batchName = Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(ieReportTriggerFile));
+            string immediateErrorReportPath = Path.Combine(Common.PCIRootFolder, "{0}-res.xml".Fill(batchName));
+
+            string sftTriggerFilePath = Path.Combine(Common.PCIRootFolder, Path.GetFileNameWithoutExtension(ieReportTriggerFile));
+            File.AppendAllText(sftTriggerFilePath, string.Empty);
+
+            if (File.Exists(immediateErrorReportPath))
+            {
+                string ieReportRemoteDirPath = "{0}/{1}".Fill(Common.PnS_SFT_RootDir, appCode);
+                UploadFileOnSFTSite(immediateErrorReportPath, ieReportRemoteDirPath, Common.Remove_ImmediateErrFiles, sftSite);
+                UploadFileOnSFTSite(sftTriggerFilePath, ieReportRemoteDirPath, Common.Remove_ImmediateErrFiles, sftSite);
+
+                // Immediate error report uploaded successfully on PnS SFT site; so remove local files of immediate error report.
+                File.Delete(ieReportTriggerFile);
+                File.Delete(immediateErrorReportPath);
+                File.Delete(sftTriggerFilePath);
+            }
+            else
+            {
+                log.ErrorFormat("Immediate Error Report file not found for : {0}", ieReportTriggerFile);
+            }
+        }
+
+        private static void UploadFileOnSFTSite(string localFilePath, string remoteDirPath, bool removeLocalFileAfterUpload, SFTUtil sftSite)
+        {
+            var sw = new Stopwatch();
+            sw.Start();
+
+            sftSite.UploadFile(localFilePath, string.Format("{0}/{1}", remoteDirPath, Path.GetFileName(localFilePath)), removeLocalFileAfterUpload, false);
+
+            sw.Stop();
+            var time = sw.Elapsed;
+            log.DebugFormat("Total time spent : {0}", time);
+
+        }
+
+        #endregion
+
+        public static void SubmitFinalXMLReport()
+        {
+            SFTUtil sftSite = new SFTUtil(Common.PnS_SFT_Protocol, Common.PnS_SFT_HostURL, Common.PnS_SFT_UserName, Common.PnS_SFT_Password, 300000);
+
+            sftSite.Connect();
+
+
+            List<int> batchIds = DAL.GetNextBatchIdByJobName(JobTypes.PnSJobMonitor, OperationTypes.ReportBack);
+
+            if (batchIds == null)
+            {
+                log.Debug("No batch available for PnS job monitor to report back.");
+                if (sftSite != null && sftSite.IsConnected)
+                {
+                    sftSite.Disconnect();
+                }
+                return;
+            }
+
+            foreach (var batchId in batchIds)
+            {
+                try
+                {
+                    BatchSummary bs = DAL.GetBatchSummaryById(batchId);
+                    Client app = DAL.GetClientAppDetailsById(bs.ClientId);
+                    BatchInfo bi = new BatchInfo(bs, app);
+
+                    log.Debug("Final Report Uploading Started For Batch {0}".Fill(bi.BatchName));
+
+                    #region Upload final XML report to PnS SFT site back.
+
+                    if (sftSite != null && !sftSite.IsConnected)
+                    {
+                        sftSite.Connect();
+                    }
+
+                    string batchRemoteDirPath = "{0}/{1}".Fill(Common.PnS_SFT_RootDir, bi.Client.AppCode);
+                    string xmlReportPath = Path.Combine(bi.PnSResponsePath, "{0}-res.xml".Fill(bi.BatchName));
+                    string finalTriggerPath = Path.Combine(bi.PnSResponsePath, "{0}.rpt".Fill(bi.BatchName));
+
+                    // In case of immediate error report; there will be .err as trigger file will be available.
+                    // Like XML is invalid then immediate error report itself if final report.
+                    if (!File.Exists(finalTriggerPath))
+                    {
+                        string errTriggerPath = Path.Combine(bi.PnSResponsePath, "{0}.err".Fill(bi.BatchName));
+                        if (File.Exists(errTriggerPath))
+                        {
+                            finalTriggerPath = errTriggerPath;
+                        }
+                    }
+
+                    DAL.LogBatchTimeLine(bi.BatchSummary.PrintBatch, LogBatchTimeLine.ReportBackStart, Common.GetCurrentTime());
+
+                    UploadFileOnSFTSite(xmlReportPath, batchRemoteDirPath, false, sftSite);
+                    UploadFileOnSFTSite(finalTriggerPath, batchRemoteDirPath, false, sftSite);
+
+                    // Final report uploaded successfully on PnS SFT site; so update batch status.
+                    DAL.UpdateBatchPipeLineStatus(batchId, BatchPipelineStatus.ReportedBack, Common.GetCurrentTime());
+                    log.InfoFormat("Batch {0} reported back successfully.", batchId);
+
+                    DAL.LogBatchTimeLine(bi.BatchSummary.PrintBatch, LogBatchTimeLine.ReportBackEnd, Common.GetCurrentTime());
+                    #endregion
+                }
+                catch (Exception ex)
+                {
+                    var errorMsg = "Error occured while reporting back pns response for Batch-Id {0} with Error - {1}".Fill(batchId, ex);
+                    log.Error(errorMsg);
+                    MailUtility.SendUnexpectedNotificationEmail(errorMsg);
+                    continue;
+                }
+            }
+        }
+    }
+}
