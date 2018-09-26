@@ -18,18 +18,36 @@
 </style>
 <div class="panel-group">
     <div class="panel panel-default">
-        <div class="panel-heading" id="headingOne">
-            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#metaItem1">
-                <div class="panel-title">
+        <div class="panel-heading addon" id="headingOne">
+            <div class="panel-title">
+                <a role="button" data-toggle="collapse" data-parent="#accordion" href="#metaItem1">
                     Delayed MailBatches
+                </a>
+                <div class="addon-content">
+                    <div class="tab-pane">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#supportMailBatchesList" aria-controls="supportMailBatchesList" role="tab" data-toggle="tab">Mail Batches</a></li>
+                            <li role="presentation"><a href="#supportMailPiecesList" aria-controls="supportMailPiecesList" role="tab" data-toggle="tab">All MailPieces</a></li>
+                        </ul>
+                    </div>
                 </div>
-            </a>
+
+            </div>
         </div>
         <div class="panel-collapse collapse in">
             <div class="panel-body">
-                <div class="panel-body" id="supportMailBatchesList"></div>
-
-
+                <div class="tab-content clearfix">
+                    <div role="tabpanel" class="tab-pane active" id="supportMailBatchesList">
+                        <div class="alert-blue alert text-center">
+                            <span>Please Wait...</span>
+                        </div>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="supportMailPiecesList">
+                        <div class="alert-blue alert text-center">
+                            <span>Please Wait...</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -57,13 +75,13 @@
     <table>
         <tbody id="supportBody">
             <tr class="row-small">
-                <td><span>{Id}</span></td>
+                <td><span>{BatchId}</span></td>
                 <td><span>{BatchName}</span></td>
                 <td><span>{AppCode}</span></td>
                 <td><span>{PipelineStatus}</span></td>
                 <td><span>{ClientId}</span></td>
                 <td><span>{ReceivedOn}</span></td>
-                <td><span>{DelayedMailPieces}</span></td>
+                <td><span>{TotalDelayedMailPieces}</span></td>
             </tr>
         </tbody>
 
@@ -75,7 +93,6 @@
             <tr>
                 <td><span>Id</span></td>
                 <td><span>UniqueId</span></td>
-                <td><span>IsSubmitted</span></td>
                 <td><span>AppCode</span></td>
                 <td><span>BatchName</span></td>
                 <td><span class="fontcapitalize">ReceivedOn</span></td>
@@ -91,14 +108,54 @@
         <tbody id="delayedbatchmailpiecesbodyContent"></tbody>
     </table>
 </div>
-
 <div style="display:none">
     <table>
         <tbody id="delayedmailpiecesbody">
             <tr class="row-small">
                 <td><span>{Id}</span></td>
                 <td><span>{UniqueId}</span></td>
-                <td><span>{IsSubmitted}</span></td>
+                <td><span>{AppCode}</span></td>
+                <td><span>{BatchName}</span></td>
+                <td><span>{ReceivedOn}</span></td>
+                <td><span>{PipelineStatus}</span></td>
+                <td><span>{ShippingStatus}</span></td>
+                <td><span>{DocTypeCode}</span></td>
+                <td><span>{ShippingCarrier}</span></td>
+                <td><span>{ShippingServiceType}</span></td>
+                <td><span>{ClientId}</span></td>
+                <td><span>{PrintLocation}</span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div id="delayedbatchmailpiecesContentmodal" style="display:none">
+    <table class="table table-responsive" style="overflow-x:scroll">
+        <thead>
+            <tr>
+                <td><span>Id</span></td>
+                <td><span>UniqueId</span></td>
+                <td><span>AppCode</span></td>
+                <td><span>BatchName</span></td>
+                <td><span class="fontcapitalize">ReceivedOn</span></td>
+                <td><span>PipelineStatus</span></td>
+                <td><span>ShippingStatus</span></td>
+                <td><span>DocTypeCode</span></td>
+                <td><span>ShippingCarrier</span></td>
+                <td><span>ShippingServiceType</span></td>
+                <td><span>ClientId</span></td>
+                <td><span>PrintLocation</span></td>
+            </tr>
+        </thead>
+        <tbody id="delayedbatchmailpiecesbodyContentmodal"></tbody>
+    </table>
+</div>
+<div style="display:none">
+    <table>
+        <tbody id="delayedmailpiecesbodymodal">
+            <tr class="row-small">
+                <td><span>{Id}</span></td>
+                <td><span>{UniqueId}</span></td>
                 <td><span>{AppCode}</span></td>
                 <td><span>{BatchName}</span></td>
                 <td><span>{ReceivedOn}</span></td>
@@ -124,7 +181,7 @@
             <div class="modal-body">
                 <div id="showerror" style="display:none"></div>
                 <div class='alert alert-blue text-center' id="loadingModal" style="display:none"><span> Loading... </span></div>
-                <div class="row" id="databind">
+                <div class="row" id="databind" style="overflow:scroll">
 
                 </div>
             </div>
@@ -141,7 +198,7 @@
     @Styles.Render("~/bundles/datatablescss")
     @Scripts.Render("~/bundles/datatables")
     <script type="text/javascript">
-        var mailpiecesList = null;
+        var mailpiecesByBatch = {};
         $(document).ready(function () {
             window.clui.dateTimePickerInit();
             FilterData();
@@ -190,19 +247,16 @@
                     extend: 'csv',
                     text: '<i class="fa fa-file-excel-o fa-2x"></i>',
                     className: 'btn btn-primary',
-                    filename: filename,
-                    title: title,
+                    filename: 'DelayedBatches',
+                    title: 'Delayed Batches',
                     exportOptions: {
                         //columns: "thead th:not(.BatchId)",
                     }
 
-                }
-
-
-                ],
+                }],
 
                 "order": [
-                    [8, 'desc']
+                    [1, 'desc']
                 ],
                 "lengthMenu": [
                     [5, 10, 25, 50, 100, -1],
@@ -215,30 +269,135 @@
 
 
             });
-            $('.selectpicker').selectpicker('refresh');
-            $('#BatchList').on('change', function () {
-                var oTable = $('#sample_2').dataTable();
-                var filterColumn = oTable.api().column(".BatchId").index();
-                var selected = $(this).find("option:selected").val();
-                if (!selected) {
-
-                    oTable.fnFilter('', filterColumn, true);
-                } else {
-                    oTable.fnFilter("^" + parseInt(selected) + "$", filterColumn, true); //Exact value, column, reg
-                }
+        }
+        function applyDataTableWithId(tableId, filename, title) {
+            $('[data-toggle="popover"]').popover({
+                'trigger': 'hover',
+                'placement': 'auto left',
+                'container': 'body'
             });
+            var table = $('#' + tableId);
+            var filename = filename;
+            var title = title;
+            var oTable = table.dataTable({
+
+                "language": {
+                    "aria": {
+                        "sortAscending": ": activate to sort column ascending",
+                        "sortDescending": ": activate to sort column descending"
+                    },
+                    "emptyTable": "No data available in table",
+                    "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+                    "infoEmpty": "No entries found",
+                    "infoFiltered": "(filtered1 from _MAX_ total entries)",
+                    "lengthMenu": "_MENU_ entries",
+                    "search": "<b>Search:</b>",
+                    "zeroRecords": "No matching records found"
+                },
+                "columnDefs": [
+                        {
+                            "targets": ["Id"],
+                            "visible": false,
+                            "searchable": true
+                        },
+                ],
+                "scrollX": true,
+                buttons: [
+                    //{
+                    //    extend: 'colvis',
+                    //    text: 'Select Fields',
+                    //    className: 'btn purple pull-left',
+                    //    columns: ':not(.noVis)'
+                    //},
+                {
+                    extend: 'csv',
+                    text: '<i class="fa fa-file-excel-o fa-2x"></i>',
+                    className: 'btn btn-primary',
+                    filename: filename,
+                    title: title,
+                    exportOptions: {
+                        //columns: "thead th:not(.BatchId)",
+                    }
+
+                }
+
+
+                ],
+
+                "order": [
+                    [0, 'desc']
+                ],
+                "lengthMenu": [
+                    [5, 10, 25, 50, 100, -1],
+                    [5, 10, 25, 50, 100, "All"] // change per page values here
+                ],
+                // set the initial value
+                "pageLength": 5,
+
+                "dom": "<'row' <'col-md-12'B>><'row'<'col-md-6 col-sm-12'l><'col-md-6 col-sm-12'f>r><'table-scrollable't><'row'<'col-md-5 col-sm-12'i><'col-md-7 col-sm-12'p>>", // horizobtal scrollable datatable
+
+
+            });
+            //$('.selectpicker').selectpicker('refresh');
+            //$('#BatchList').on('change', function () {
+            //    var oTable = $('#sample_2').dataTable();
+            //    var filterColumn = oTable.api().column(".BatchId").index();
+            //    var selected = $(this).find("option:selected").val();
+            //    if (!selected) {
+
+            //        oTable.fnFilter('', filterColumn, true);
+            //    } else {
+            //        oTable.fnFilter("^" + parseInt(selected) + "$", filterColumn, true); //Exact value, column, reg
+            //    }
+            //});
         }
         function FormatObject(Model) {
             $(Model).each(function () {
                 this.ShortMailBatchName = shortName(this.BatchName);
-                this.Id = '<a  data-batchid="' + this.Id + '" onclick="ViewDetails(' + this.Id + ')" class="btn btn-transparent-blue btn-sm" >' + this.Id + '</a>';
+                this.BatchId = '<a  data-batchid="' + this.Id + '" onclick="ViewDetails(' + this.Id + ')" class="btn btn-transparent-blue btn-sm" >' + this.Id + '</a>';
                 // this.TotalPages = this.Status == "Shipped" ? this.TotalPages : 0;
                 this.ReceivedOn = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
-                this.DelayedMailPieces = this.DelayedMailPieces.length;
+                this.TotalDelayedMailPieces = this.DelayedMailPieces.length;
+                this.ClientId = this.ClientId == null ? '--' : this.ClientId;
+                this.UniqueId = this.UniqueId == null ? "--" : this.UniqueId;
                 //this.DownloadedOn = this.DownloadedOn == null ? "--" : moment(this.DownloadedOn).format("MM/DD/YY HH:mm:ss");
                 //var eddDesc = '<span id="popoverError" data-toggle="popover" data-original-title="Error Code: <ErrorCode>" data-html="true" data-content="<dataContent>" data-placement="left"><a> <ErrorCode> </a></span>'.replace(/<ErrorCode>/g, this.ValidationStatus).replace("<dataContent>", this.ValidationErrors == null ? "--" : this.ValidationErrors);
                 //this.ValidationErrors = this.ValidationErrors == null ? '--' : eddDesc;
+            });
 
+            return Model;
+        }
+        function FormatObjectMP(Model) {
+            $(Model).each(function () {
+                this.ClientId = this.ClientId == null ? '--' : this.ClientId;
+                this.UniqueId = this.UniqueId == null ? '--' : this.UniqueId;
+                this.AppCode = this.AppCode == null ? '--' : this.AppCode;
+                this.ReceivedOn = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                this.BatchName = this.BatchName == null ? '--' : this.BatchName;
+                this.PipelineStatus = this.PipelineStatus == null ? '--' : this.PipelineStatus;
+                //this.ShippingStatus = this.ShippingStatus == null ? '--' : this.ShippingStatus;
+                this.DocTypeCode = this.DocTypeCode == null ? '--' : this.DocTypeCode;
+                this.ShippingCarrier = this.ShippingCarrier == null ? '--' : this.ShippingCarrier;
+                this.ShippingServiceType = this.ShippingServiceType == null ? '--' : this.ShippingServiceType;
+                this.PrintLocation = this.PrintLocation == null ? '--' : this.PrintLocation;
+                switch (this.ShippingStatus) {
+
+                    case "PulledBack":
+                        status = '<span class="label medium label-yellow">' + this.ShippingStatus + '</span>';
+
+                        break;
+                    case "Error":
+                        status = '<span class="label medium label-red">' + this.ShippingStatus + '</span>';
+                        break;
+                    case "Shipped":
+                        status = '<span class="label medium label-success">' + this.ShippingStatus + '</span>';
+                        break;
+                    case "InProgress":
+                        status = '<span class="label medium label-blue">' + this.ShippingStatus + '</span>';
+                        break;
+
+                }
+                this.ShippingStatus = status;
             });
 
             return Model;
@@ -279,10 +438,8 @@
         }
         function FilterData() {
             $("#supportHeader").hide();
-            $("#supportMailBatchesList").hide();
-            //var date = $("#date").val();
+            //$("#supportMailBatchesList").hide();
             var el = $('#supportMailBatchesList');
-            //$("#headerdate").html(date + " EST");
             $("#loading").show();
             $.ajax({
                 type: "GET",
@@ -293,16 +450,26 @@
                     if (response != null) {
                         $("#loading").hide();
                         $("#supportHeader").show();
-                        $("#supportMailBatchesList").show();
+                        //$("#supportMailBatchesList").show();
+                        //All Mail Batches
                         if (response.DelayedBatches.length > 0) {
-                            $("#supportMailBatchesList").html("");
-                            mailpiecesList = response.DelayedBatches;
+                            //$("#supportMailBatchesList").html("");
+                            mailpiecesByBatch = response.DelayedBatches;
                             var data = FormatObject(response.DelayedBatches);
                             BindTemplate(data, "#supportBody", "#supportbodyContent", "#supportTableContent", "#supportMailBatchesList");
                             window.clui.tooltipInit();
                         }
                         else {
                             $("#supportMailBatchesList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                        }
+                        //All MailPieces
+                        if (response.DelayedMailPieces.length > 0) {
+                            //console.log(response.DelayedMailPieces);
+                            var mdata = FormatObjectMP(response.DelayedMailPieces);
+                            BindTemplateWithDataTable(mdata, "#delayedmailpiecesbody", "#delayedbatchmailpiecesbodyContent", "#delayedbatchmailpiecesContent", "#supportMailPiecesList", 'DelayedMPsDatatable', 'delayedmailpieces', 'Delayed MailPieces');
+                            //window.clui.tooltipInit();
+                        } else {
+                            $("#supportMailPiecesList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                         }
                     }
 
@@ -324,17 +491,16 @@
             $("#databind").html("");
             $("#ViewInfo").modal("show");
             $("#loadingModal").show();
-            var MPs = jQuery.grep(JSON.stringify(mailpiecesList), function (i, v) {
-                console.log(JSON.stringify(v.Id));
-                if (v[i].Id == obj) {
-                    return v.DelayedMailPieces;
+            var MPs = {};
+            jQuery.grep(mailpiecesByBatch, function (i, v) {
+                if (i['Id'] == obj) {
+                    MPs = i['DelayedMailPieces'];
                 }
             });
-            console.log(JSON.stringify(MPs));
             $("#loadingModal").hide();
             $("#showerror").hide();
-            var data = FormatMailPieceObject(MPs);
-            BindTemplateWithOutDatatable(data, "#delayedmailpiecesbody", "#delayedbatchmailpiecesbodyContent", "#delayedbatchmailpiecesContent", "#databind");
+            //var data = FormatMailPieceObject(MPs);
+            BindTemplateWithOutDatatable(MPs, "#delayedmailpiecesbodymodal", "#delayedbatchmailpiecesbodyContentmodal", "#delayedbatchmailpiecesContentmodal", "#databind");
             $('[data-toggle="popover"]').popover({
                 'trigger': 'hover',
                 'placement': 'auto left',
