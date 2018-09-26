@@ -27,7 +27,7 @@ namespace PCI.Service
         {
             List<int> batchIds = DAL.GetNextBatchIdByJobName(JobTypes.PCIJobMonitor, OperationTypes.Submit);
 
-            if (batchIds == null)
+            if (batchIds == null || batchIds.Count == 0)
             {
                 log.Debug("Submit batches job queue is empty.");
                 return;

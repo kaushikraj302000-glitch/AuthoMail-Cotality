@@ -248,22 +248,17 @@ namespace PCI.Service
 
         public static void SubmitFinalXMLReport()
         {
+            List<int> batchIds = DAL.GetNextBatchIdByJobName(JobTypes.PnSJobMonitor, OperationTypes.ReportBack);
+
+            if (batchIds == null || batchIds.Count == 0)
+            {
+                log.Debug("No batch available for PnS job monitor to report back.");
+                return;
+            }
+
             SFTUtil sftSite = new SFTUtil(Common.PnS_SFT_Protocol, Common.PnS_SFT_HostURL, Common.PnS_SFT_UserName, Common.PnS_SFT_Password, 300000);
 
             sftSite.Connect();
-
-
-            List<int> batchIds = DAL.GetNextBatchIdByJobName(JobTypes.PnSJobMonitor, OperationTypes.ReportBack);
-
-            if (batchIds == null)
-            {
-                log.Debug("No batch available for PnS job monitor to report back.");
-                if (sftSite != null && sftSite.IsConnected)
-                {
-                    sftSite.Disconnect();
-                }
-                return;
-            }
 
             foreach (var batchId in batchIds)
             {
