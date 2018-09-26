@@ -27,7 +27,7 @@ namespace PCI.Service
         {
             List<int> batchIds = DAL.GetNextBatchIdByJobName(JobTypes.PCIJobMonitor, OperationTypes.Submit);
 
-            if (batchIds == null)
+            if (batchIds == null || batchIds.Count == 0)
             {
                 log.Debug("Submit batches job queue is empty.");
                 return;
@@ -35,9 +35,10 @@ namespace PCI.Service
 
             foreach (var batchId in batchIds)
             {
-                BatchSummary bs = DAL.GetBatchSummaryById(batchId);
+                BatchSummary bs = new BatchSummary();
                 try
                 {
+                    bs = DAL.GetBatchSummaryById(batchId);
                     Client client = DAL.GetClientAppDetailsById(bs.ClientId);
                     BatchInfo bi = new BatchInfo(bs, client);
                     List<MailPieceReceivedOnData> mailPiecesReceivedOnData = DAL.GetMailBatchReceivedOnDataBasedFromPrintBatchId(bi.BatchSummary.PrintBatch);

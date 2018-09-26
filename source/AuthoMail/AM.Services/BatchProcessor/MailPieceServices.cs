@@ -20,6 +20,7 @@ namespace AM.Services
         int UpdateMailPiecePickedUpDetailsFromTrackingNo(FedExPickedPackagesDetail pickedUpDetail);
         MailPieceDTO GetMailPieceDataFromTrackingNo(string trackingNo);
         List<DallasMailPieceData> GetDallasMailPiecesByTimingsAndClient(string sweepName);
+        BatchSummary GetBatchSummaryDetailByUniqueId(Guid uniqueId);
     }
     public class MailPieceService : ServiceBase, IMailPieceService //It implements Interfaces 
     {
@@ -69,7 +70,7 @@ namespace AM.Services
 
         public int UpdateBatchMailPieceShippingStatusDetails(MailPieces mailPiece)
         {
-            string query = @"UPDATE [AM].[MailPieces] SET [ShippingStatus] = @ShippingStatus,[TotalSheets] = @TotalSheets,[ErrorCode] = @ErrorCode,[ErrorDesc] = @ErrorDesc,[PulledBackOn] = @PulledBackOn,[PrintedOn] = @PrintedOn,[ShippedOn] = @ShippedOn,[ShippingCost] = @ShippingCost,[Weight] = @Weight,[IsQCPerformed] = @IsQCPerformed, [TrackingNo] = @TrackingNo WHERE Id=@Id";
+            string query = @"UPDATE [AM].[MailPieces] SET [ShippingStatus] = @ShippingStatus,[TotalSheets] = @TotalSheets,[ErrorCode] = @ErrorCode,[ErrorDesc] = @ErrorDesc,[PulledBackOn] = @PulledBackOn,[PrintedOn] = @PrintedOn,[ShippedOn] = @ShippedOn,[ShippingCost] = @ShippingCost,[Weight] = @Weight,[IsQCPerformed] = @IsQCPerformed, [TrackingNo] = @TrackingNo, [MissedSLAReason] = MissedSLAReason WHERE Id=@Id";
 
             var data = db.Execute(query, mailPiece);
 
@@ -107,6 +108,13 @@ namespace AM.Services
             string query = @"SELECT * FROM [dbo].[ufn_GetDallasBatchDetails](@EstDate) WHERE BatchName=@BatchName";
 
             return db.Query<DallasMailPieceData>(query, new { BatchName = batchName, EstDate = Common.EstToday }).ToList();
+        }
+
+        public BatchSummary GetBatchSummaryDetailByUniqueId(Guid uniqueId)
+        {
+            string query = @"SELECT TOP 1 * FROM [PnS].[BatchSummary] WHERE [BatchIdentifier] = @UniqueId";
+
+            return db.ExecuteScalar<BatchSummary>(query, new { UniqueId = uniqueId });
         }
     }
 }

@@ -301,6 +301,18 @@
             $(mainDivId).find("table").attr("id", "sample_2");
             applyDataTable();
         }
+        function BindTemplateWithDataTable(model, bodyId, bodyContentId, mainTableId, mainDivId,tableId,filename,title) {
+
+            var bodyHtml = $(bodyId).html();
+            var tableHtml = "";
+            $(model).each(function () {
+                tableHtml = tableHtml + bodyHtml.supplant(this);
+            });
+            $(bodyContentId).html(tableHtml);
+            $(mainDivId).html($(mainTableId).html());
+            $(mainDivId).find("table").attr("id", tableId);
+            applyDataTableWithId(tableId,filename,title);
+        }
 
         function BindTemplateWithOutDatatable(model, bodyId, bodyContentId, mainTableId, mainDivId) {
 

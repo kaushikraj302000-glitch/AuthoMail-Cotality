@@ -148,6 +148,8 @@ namespace AM.Services
         public bool IsQCPerformed { get; set; }
         public int? DocTypeId { get; set; }
         public string PrintLocation { get; set; }
+        public DateTime? StdPrepStartTime { get; set; }
+        public string MissedSLAReason { get; set; }
         public MailBatches MailBatches { get; set; }
         public Clients Clients { get; set; }
         public DocTypes DocTypes { get; set; }
