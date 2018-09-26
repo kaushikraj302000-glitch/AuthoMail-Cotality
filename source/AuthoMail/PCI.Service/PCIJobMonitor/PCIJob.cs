@@ -35,9 +35,10 @@ namespace PCI.Service
 
             foreach (var batchId in batchIds)
             {
-                BatchSummary bs = DAL.GetBatchSummaryById(batchId);
+                BatchSummary bs = new BatchSummary();
                 try
                 {
+                    bs = DAL.GetBatchSummaryById(batchId);
                     Client client = DAL.GetClientAppDetailsById(bs.ClientId);
                     BatchInfo bi = new BatchInfo(bs, client);
                     List<MailPieceReceivedOnData> mailPiecesReceivedOnData = DAL.GetMailBatchReceivedOnDataBasedFromPrintBatchId(bi.BatchSummary.PrintBatch);

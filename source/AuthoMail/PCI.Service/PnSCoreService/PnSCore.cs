@@ -50,122 +50,130 @@ namespace PCI.Service
 
             foreach (var batchId in batchIds)
             {
-                DAL.LogBatchTimeLine(batchId, LogBatchTimeLine.PCIBatchPrepStart, Common.GetCurrentTime());
-
-                BatchSummary batchSummary = DAL.GetBatchSummaryById(batchId);
-                Client clientDetail = DAL.GetClientAppDetailsById(batchSummary.ClientId);
-
-                var bi = new BatchInfo(batchSummary, clientDetail);
-
-                log.Debug("Prepped Job Started For Batch {0}".Fill(bi.BatchName));
-
-                // Clean up
-                Common.CleanDirectory(bi.PCIRequestPath);
-
-                PnSRequest pnsRequest = null;
-
                 try
                 {
-                    pnsRequest = PnSRequest.LoadXml(File.ReadAllText(bi.RequestXmlPath));
-                }
-                catch (XmlException ex)
-                {
-                    var msg = "The request file is not a valid XML.";
-                    ReportInvalidBatch(bi, msg, ex);
-                    continue;
-                }
-                catch (XmlSchemaValidationException ex)
-                {
-                    var msg = "The request XML has some invalid data.";
-                    ReportInvalidBatch(bi, msg, ex);
-                    continue;
+                    DAL.LogBatchTimeLine(batchId, LogBatchTimeLine.PCIBatchPrepStart, Common.GetCurrentTime());
+
+                    BatchSummary batchSummary = DAL.GetBatchSummaryById(batchId);
+                    Client clientDetail = DAL.GetClientAppDetailsById(batchSummary.ClientId);
+
+                    var bi = new BatchInfo(batchSummary, clientDetail);
+
+                    log.Debug("Prepped Job Started For Batch {0}".Fill(bi.BatchName));
+
+                    // Clean up
+                    Common.CleanDirectory(bi.PCIRequestPath);
+
+                    PnSRequest pnsRequest = null;
+
+                    try
+                    {
+                        pnsRequest = PnSRequest.LoadXml(File.ReadAllText(bi.RequestXmlPath));
+                    }
+                    catch (XmlException ex)
+                    {
+                        var msg = "The request file is not a valid XML.";
+                        ReportInvalidBatch(bi, msg, ex);
+                        continue;
+                    }
+                    catch (XmlSchemaValidationException ex)
+                    {
+                        var msg = "The request XML has some invalid data.";
+                        ReportInvalidBatch(bi, msg, ex);
+                        continue;
+                    }
+                    catch (Exception ex)
+                    {
+                        var msg = "Ensure that the request XML complies with the request schema.";
+                        ReportInvalidBatch(bi, msg, ex);
+                        continue;
+                    }
+
+                    // Load PnSRequest into batch summary
+                    batchSummary.JulianDate = DateTime.Today.Year * 1000 + DateTime.Today.DayOfYear;
+                    batchSummary.DueDate = pnsRequest.DueDate;
+                    batchSummary.OnValidationErrors = pnsRequest.OnValidationErrors.ToString();
+                    batchSummary.SLADays = pnsRequest.SLADays;
+                    batchSummary.BatchIdentifier = pnsRequest.BatchIdentifier;
+                    batchSummary.PrintLocation = pnsRequest.PrintLocation.IsNullOrEmpty() ? Common.PrintLocationPCI : pnsRequest.PrintLocation;
+
+                    //Ensure that the DocTypeCode is valid
+                    var docTypes = DAL.GetDocTypeDetailsByAppId(clientDetail.Id);
+                    if (docTypes == null)
+                    {
+                        var msg = "Client does not have allocated any document types.";
+                        ReportInvalidBatch(bi, msg);
+                        continue;
+                    }
+                    var validDocType = docTypes.Where(x => x.DocTypeId == pnsRequest.DocTypeId).FirstOrDefault();
+                    if (validDocType == null)
+                    {
+                        var msg = "The specified document type id '{0}' is not valid.".Fill(pnsRequest.DocTypeId);
+                        ReportInvalidBatch(bi, msg);
+                        continue;
+                    }
+                    batchSummary.DocTypeId = pnsRequest.DocTypeId;
+
+                    bi.InitializeDocTypeMaps(validDocType, bi.BatchSummary.PrintBatch, bi.Client.AppCode, clientDetail.CustCode);
+
+                    // Update database
+                    DAL.UpdatePnSRequestDataInBatchSummary(batchSummary);
+
+                    // Ensure that the app code is valid
+                    if (clientDetail.AppCode != pnsRequest.AppCode)
+                    {
+                        var msg = "The specified application code '{0}' is not valid.".Fill(pnsRequest.AppCode);
+                        ReportInvalidBatch(bi, msg);
+                        continue;
+                    }
+
+                    // Batch xml file name MUST match with batch name mentioned in the file name.
+                    if (pnsRequest.BatchName != bi.BatchName)
+                    {
+                        var msg = "The XML file name '{0}' must match with batch name ('{1}') attribute of the XML.".Fill(bi.BatchName, pnsRequest.BatchName);
+                        ReportInvalidBatch(bi, msg);
+                        continue;
+                    }
+
+                    // Ensure that files in XML and in batch folder match
+
+                    var validationResult = ValidateMailPieces(pnsRequest, bi);
+
+                    if (validationResult.HasErrors)
+                    {
+                        ReportInvalidBatch(bi, validationResult.Errors);
+                        continue;
+                    }
+
+                    //If any extra attachments needs to send to PCI then it will validate Attachements attribute of XML and copy to PCI Request folder 
+                    if (pnsRequest.Attachments != null && pnsRequest.Attachments.Count > 0)
+                    {
+                        string jobName = bi.BatchSummary.JobName.Substring(bi.BatchSummary.JobName.IndexOf('-') + 1, bi.BatchSummary.JobName.Length - (bi.BatchSummary.JobName.IndexOf('-') + 1));
+                        foreach (var attachment in pnsRequest.Attachments)
+                        {
+                            if (File.Exists(Path.Combine(bi.PnSRequestPath, jobName, attachment.Name)))
+                            {
+                                File.Copy(Path.Combine(bi.PnSRequestPath, jobName, attachment.Name), Path.Combine(bi.PCIRequestPath, attachment.Name));
+                            }
+                            else
+                            {
+                                var msg = "Mentioned attachment file '{0}' was not found.".Fill(attachment.Name);
+                                ReportInvalidBatch(bi, msg);
+                                continue;
+                            }
+                        }
+                    }
+
+                    ProcessPDFsForPCI(pnsRequest, bi);
+
+                    DAL.LogBatchTimeLine(batchId, LogBatchTimeLine.PCIBatchPrepEnd, Common.GetCurrentTime());
                 }
                 catch (Exception ex)
                 {
-                    var msg = "Ensure that the request XML complies with the request schema.";
-                    ReportInvalidBatch(bi, msg, ex);
-                    continue;
+                    var msg = "Unexpected error occured in PrepPCIJobs()";
+                    log.Error(msg, ex);
+                    MailUtility.SendUnexpectedNotificationEmail(msg + ex.Message);
                 }
-
-                // Load PnSRequest into batch summary
-                batchSummary.JulianDate = DateTime.Today.Year * 1000 + DateTime.Today.DayOfYear;
-                batchSummary.DueDate = pnsRequest.DueDate;
-                batchSummary.OnValidationErrors = pnsRequest.OnValidationErrors.ToString();
-                batchSummary.SLADays = pnsRequest.SLADays;
-                batchSummary.BatchIdentifier = pnsRequest.BatchIdentifier;
-                batchSummary.PrintLocation = pnsRequest.PrintLocation.IsNullOrEmpty() ? Common.PrintLocationPCI : pnsRequest.PrintLocation;
-
-                //Ensure that the DocTypeCode is valid
-                var docTypes = DAL.GetDocTypeDetailsByAppId(clientDetail.Id);
-                if (docTypes == null)
-                {
-                    var msg = "Client does not have allocated any document types.";
-                    ReportInvalidBatch(bi, msg);
-                    continue;
-                }
-                var validDocType = docTypes.Where(x => x.DocTypeId == pnsRequest.DocTypeId).FirstOrDefault();
-                if (validDocType == null)
-                {
-                    var msg = "The specified document type id '{0}' is not valid.".Fill(pnsRequest.DocTypeId);
-                    ReportInvalidBatch(bi, msg);
-                    continue;
-                }
-                batchSummary.DocTypeId = pnsRequest.DocTypeId;
-
-                bi.InitializeDocTypeMaps(validDocType, bi.BatchSummary.PrintBatch, bi.Client.AppCode, clientDetail.CustCode);
-
-                // Update database
-                DAL.UpdatePnSRequestDataInBatchSummary(batchSummary);
-
-                // Ensure that the app code is valid
-                if (clientDetail.AppCode != pnsRequest.AppCode)
-                {
-                    var msg = "The specified application code '{0}' is not valid.".Fill(pnsRequest.AppCode);
-                    ReportInvalidBatch(bi, msg);
-                    continue;
-                }
-
-                // Batch xml file name MUST match with batch name mentioned in the file name.
-                if (pnsRequest.BatchName != bi.BatchName)
-                {
-                    var msg = "The XML file name '{0}' must match with batch name ('{1}') attribute of the XML.".Fill(bi.BatchName, pnsRequest.BatchName);
-                    ReportInvalidBatch(bi, msg);
-                    continue;
-                }
-
-                // Ensure that files in XML and in batch folder match
-
-                var validationResult = ValidateMailPieces(pnsRequest, bi);
-
-                if (validationResult.HasErrors)
-                {
-                    ReportInvalidBatch(bi, validationResult.Errors);
-                    continue;
-                }
-
-                //If any extra attachments needs to send to PCI then it will validate Attachements attribute of XML and copy to PCI Request folder 
-                if (pnsRequest.Attachments != null && pnsRequest.Attachments.Count > 0)
-                {
-                    string jobName = bi.BatchSummary.JobName.Substring(bi.BatchSummary.JobName.IndexOf('-') + 1, bi.BatchSummary.JobName.Length - (bi.BatchSummary.JobName.IndexOf('-') + 1));
-                    foreach (var attachment in pnsRequest.Attachments)
-                    {
-                        if (File.Exists(Path.Combine(bi.PnSRequestPath, jobName, attachment.Name)))
-                        {
-                            File.Copy(Path.Combine(bi.PnSRequestPath, jobName, attachment.Name), Path.Combine(bi.PCIRequestPath, attachment.Name));
-                        }
-                        else
-                        {
-                            var msg = "Mentioned attachment file '{0}' was not found.".Fill(attachment.Name);
-                            ReportInvalidBatch(bi, msg);
-                            continue;
-                        }
-                    }
-                }
-
-                ProcessPDFsForPCI(pnsRequest, bi);
-
-                DAL.LogBatchTimeLine(batchId, LogBatchTimeLine.PCIBatchPrepEnd, Common.GetCurrentTime());
-
             }
             log.Debug("Completed preparing PCI jobs");
         }
