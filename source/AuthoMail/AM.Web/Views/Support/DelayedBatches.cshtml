@@ -25,10 +25,10 @@
         <div class="panel-heading" id="headingOne">
             <div class="panel-title">
                 <a role="button" data-toggle="collapse" data-parent="#accordion" href="#metaItem1">
-                    Delayed MailBatches
+                    Delayed Packages
                 </a>
-                <button class="btn btn-warning active" type="button" id="supportMailBatchesListBtn">Batches</button>
-                <button class="btn btn-warning" type="button" id="supportMailPiecesListBtn">MailPieces</button>
+                <button class="btn btn-warning active" type="button" id="supportMailBatchesListBtn">Grouped by Batch</button>
+                <button class="btn btn-warning" type="button" id="supportMailPiecesListBtn">All Mail Pieces</button>
             </div>
         </div>
         <div class="panel-collapse collapse in">
@@ -481,7 +481,7 @@
                         if (response.AppCodeCountByBatch != null && response.AppCodeCountByBatch.length > 0) {
                             var dispText = "";
                             $.each(response.AppCodeCountByBatch, function (i, v) {
-                                var lbl = '<label class="btn btn-default" style="margin-left:5px">' + v['AppCode'] + '  <i class="label label-black"style="margin:0px">' + v['Total'] + '</i></label>';
+                                var lbl = '<button class="btn btn-primary btn-sm" style="margin-left:5px">' + v['AppCode'] + '  <span class="label label-blue"style="margin:0px;background-color:white;color:black">' + v['Total'] + '</span></button>';
                                 dispText = dispText + lbl;
                             });
                             $('#ClientWiseBatchCount').html(dispText);
@@ -498,7 +498,7 @@
                         if (response.AppCodeCountByMailPiece != null && response.AppCodeCountByMailPiece.length > 0) {
                             var dispText = "";
                             $.each(response.AppCodeCountByMailPiece, function (i, v) {
-                                var lbl = '<label class="btn btn-default" style="margin-left:5px">' + v['AppCode'] + '  <i class="label label-black"style="margin:0px">' + v['Total'] + '</i></label>';
+                                var lbl = '<button class="btn btn-primary btn-sm" style="margin-left:5px">' + v['AppCode'] + '  <span class="label label-blue"style="margin:0px;background-color:white;color:black">' + v['Total'] + '</span></button>';
                                 dispText = dispText + lbl;
                             });
                             $('#ClientWiseMailPieceCount').html(dispText);
