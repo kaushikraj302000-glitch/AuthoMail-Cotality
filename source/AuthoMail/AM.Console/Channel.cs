@@ -136,7 +136,11 @@ namespace AM.Console
 
                     MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
 
-                    var data = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
+                    List<MailPieces> mailPieces;
+                    using (IReportService reportSvc = new ReportService())
+                    {
+                        mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
+                    }
 
                     SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(batch.SFTChannelId);
                     if (sftChannelDetails != null)
@@ -147,7 +151,7 @@ namespace AM.Console
                             sftSite.Connect();
 
                             //TODO: Remove switch case after proper logic implementation of deliverables
-                            UploadReportsToClients(mbi, sftSite, deliverables, data);
+                            UploadReportsToClients(mbi, sftSite, deliverables, mailPieces);
 
                             commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
 
@@ -185,9 +189,9 @@ namespace AM.Console
                     {
                         Client client = clientSvc.GetClientByAppCode(item.AppCode);
 
-                        Deliverable deliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Error);
+                        Deliverable deliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Delivery);
 
-                        string localReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, client.AppCode, "AMResponse", item.PrintBatchId.ToString());
+                        string localReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, client.AppCode, Util.AMResponseFolderName, item.PrintBatchId.ToString());
 
                         //TODO: Remove switch case after proper logic implementation of deliverables
                         UploadReportsToAMC(deliverable, localReportPath, sftSite, false);
@@ -198,20 +202,22 @@ namespace AM.Console
 
                         foreach (int mailBatchId in mailBatchIds)
                         {
+                            var mailBatch = mailBatchSvc.GetMailBatchDetailByBatchId(mailBatchId);
                             var mailPieceCount = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatchId).Count(status => status.ShippingStatus == ShippingStatus.InProgress.ToString());
 
-                            if (mailPieceCount > 0)
+                            if (mailPieceCount > 0 || mailBatch.PipelineStatus == BatchPipelineStatus.ReportedBack)
                                 continue;
 
-                            if (mailBatchSvc.GetReportedBackPrintBatchesFromMailBatchId(mailBatchId))
-                            {
-                                var mailPieceData = reportSvc.GetMailPiecesDataFromMailBatchId(mailBatchId);
-                                string errorReportLocalPath = Path.Combine(Config.Common_AuthoMailRootFolder, client.AppCode, mailBatchId.ToString(), "AMResponse");
-                                GenerateErrorReport(mailBatchId, mailPieceData, errorReportLocalPath);
-                                UploadReportsToAMC(deliverable, errorReportLocalPath, sftSite, true);
+                            MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
+                            var mailPieceData = reportSvc.GetMailPiecesDataFromMailBatchId(mailBatchId);
 
-                                commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
-                            }
+                            string errorReportLocalPath = Path.Combine(Config.Common_AuthoMailRootFolder, client.AppCode, mailBatchId.ToString(), Util.AMResponseFolderName);
+                            GenerateErrorReport(mailBatchId, mailPieceData, errorReportLocalPath);
+                            UploadReportsToAMC(deliverable, errorReportLocalPath, sftSite, true);
+
+
+                            GenerateAndSendProductionSummaryNotification(mbi, mailPieceData, deliverable);
+                            commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
                         }
                     }
                     catch (Exception ex)
@@ -223,6 +229,77 @@ namespace AM.Console
                 if (sftSite.IsConnected)
                     sftSite.Disconnect();
             }
+        }
+
+        private static void GenerateAndSendProductionSummaryNotification(MailBatchInfo mbi, List<MailPieces> mailPieces, Deliverable deliverable)
+        {
+            string errorReportPath = string.Empty;
+            string errorReportFileName = string.Empty;
+            StringBuilder errorReportData = new StringBuilder();
+            string deliveryReportPath = string.Empty;
+            string deliveryReportFileName = string.Empty;
+            StringBuilder deliveryReportData = new StringBuilder();
+            var reportToMail = new List<string>();
+            switch (mbi.Client.AppCode)
+            {
+                case "AMCInvalid":
+                case "USAA":
+                    using (IAMCService amcSvc = new AMCService())
+                    {
+                        StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(mailPieces);
+
+                        if (deliveryReport != null)
+                        {
+                            deliveryReportFileName = "Delivery-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+
+                            //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
+                            //string deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                            deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
+
+                            File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
+                            reportToMail.Add(deliveryReportPath);
+                        }
+
+                        StringBuilder errorReport = amcSvc.AMCErrorReport(mailPieces);
+
+                        if (errorReport != null)
+                        {
+                            errorReportFileName = "Error-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+
+                            //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
+                            //string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                            errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+
+                            File.WriteAllText(errorReportPath, errorReport.ToString());
+                            reportToMail.Add(errorReportPath);
+                        }
+                    }
+                    break;
+                case "HSBC":
+                    using (IHSBCService hsbcSvc = new HSBCService())
+                    {
+                        StringBuilder deliveryReport = hsbcSvc.HSBCDeliveryReport(mailPieces, mbi.Client.TimeZone, deliverable.Delimeter);
+
+                        deliveryReportFileName = "{0}.DeliveryReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
+                        deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
+
+                        File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
+                        reportToMail.Add(deliveryReportPath);
+
+                        StringBuilder errorReport = hsbcSvc.HSBCErrorReport(mailPieces, mbi.Client.TimeZone, deliverable.Delimeter);
+
+                        errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
+                        errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+
+                        File.WriteAllText(errorReportPath, errorReport.ToString());
+                        reportToMail.Add(errorReportPath);
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            MailUtility.SendProductionNotificationEmail(mbi, mailPieces, reportToMail, deliverable.EmailChannel);
         }
 
         private static void GenerateErrorReport(int mailBatchId, List<MailPieces> mailPieceData, string localErrorReportPath)
@@ -297,7 +374,7 @@ namespace AM.Console
             }
         }
 
-        private static void UploadReportsToClients(MailBatchInfo mbi, SFTUtil sftSite, List<Deliverable> deliverables, BatchData mailBatchData)
+        private static void UploadReportsToClients(MailBatchInfo mbi, SFTUtil sftSite, List<Deliverable> deliverables, List<MailPieces> mailPieceData)
         {
             switch (mbi.Client.AppCode)
             {
@@ -331,7 +408,7 @@ namespace AM.Console
                             }
                         }
                     }
-                    MailUtility.SendProductionNotificationEmail(mbi, mailBatchData, reportToMail, emailChannel);
+                    MailUtility.SendProductionNotificationEmail(mbi, mailPieceData, reportToMail, emailChannel);
                     break;
                 case "HSBC":
                 case "AMTEST":
@@ -363,7 +440,7 @@ namespace AM.Console
                             }
                         }
                     }
-                    MailUtility.SendProductionNotificationEmail(mbi, mailBatchData, reportToMailHSBC, emailChannelHSBC);
+                    MailUtility.SendProductionNotificationEmail(mbi, mailPieceData, reportToMailHSBC, emailChannelHSBC);
                     break;
                 default:
                     throw new Exception("Invalid App Code");

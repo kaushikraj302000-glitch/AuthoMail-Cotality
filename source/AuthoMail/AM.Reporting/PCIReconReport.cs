@@ -51,7 +51,7 @@ namespace AM.Reporting
             reconReport.AppendLine();
             foreach (var batch in pciSubmittedBatchDetails)
             {
-                var line = String.Join(",", batch.PrintBatch, batch.PrintFileName, batch.SubmittedOn.UtcToEst(), batch.DueDate, batch.ShippingCarrier, batch.ShippingServiceType, batch.PackageCount, batch.TotalPages);
+                var line = String.Join(",", batch.PrintBatch, batch.PrintFileName, batch.SubmittedOn.UtcToEst(), batch.DueDate.UtcToEst().ToShortDateString(), batch.ShippingCarrier, batch.ShippingServiceType, batch.PackageCount, batch.TotalPages);
                 reconReport.AppendLine(line);
             }
             string reportFilePath = Path.Combine(AppConfig.PCIReconReportPath, "PCIReconReport_" + effectiveCurrentTime.ToString("MMddyyyy") + ".csv");

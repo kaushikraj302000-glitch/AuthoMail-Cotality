@@ -26,6 +26,8 @@ namespace AM.Services
         public DateTime GetEstimatedSubmittedOn(List<Sweep> sweepTimings, int bufferTime)
         {
             var revisedReceivedOnEst = this.ReceivedOn.UtcToEst();
+            
+            sweepTimings = sweepTimings.OrderBy(t => t.SrNo).ToList();
             if (revisedReceivedOnEst.DayOfWeek == DayOfWeek.Saturday)
             {
                 sweepTimings = sweepTimings.Where(s => s.WeekDayType == "Saturday").ToList();
@@ -33,12 +35,10 @@ namespace AM.Services
             else
             {
                 sweepTimings = sweepTimings.Where(s => s.WeekDayType == "Weekday").ToList();
-            }
-            sweepTimings = sweepTimings.OrderBy(t => t.SrNo).ToList();
-
+            }            
 
             // adjust for sunday
-            revisedReceivedOnEst = revisedReceivedOnEst.DayOfWeek == DayOfWeek.Sunday ? revisedReceivedOnEst.AddDays(1) : revisedReceivedOnEst;
+            revisedReceivedOnEst = revisedReceivedOnEst.DayOfWeek == DayOfWeek.Sunday ? revisedReceivedOnEst.AddDays(1).Date : revisedReceivedOnEst;
 
             var applicableSweep = sweepTimings.FirstOrDefault(s => s.SweepTime >= revisedReceivedOnEst.TimeOfDay);
 
@@ -46,8 +46,7 @@ namespace AM.Services
             {
                 revisedReceivedOnEst = revisedReceivedOnEst.AddDays(1);
                 // adjust for sunday
-                revisedReceivedOnEst = revisedReceivedOnEst.DayOfWeek == DayOfWeek.Sunday ? revisedReceivedOnEst.AddDays(1) : revisedReceivedOnEst;
-
+                revisedReceivedOnEst = revisedReceivedOnEst.DayOfWeek == DayOfWeek.Sunday ? revisedReceivedOnEst.AddDays(1).Date : revisedReceivedOnEst;
                 applicableSweep = sweepTimings.First();
             }
 

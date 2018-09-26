@@ -20,6 +20,7 @@ namespace AM.Services
         List<MailBatchDTO> GetBatchesByPipelineStatusAndClientId(string batchPipelineStatus, int? clientId = null);
         List<MailBatchDTO> GetBatchesByPipelineStatusAndSFTChannelId(string batchPipelineStatus, int? sftChannelId = null);
         BatchData GetMailBatchDetailsByBatchId(int mailBatchId);
+        MailBatchDTO GetMailBatchDetailByBatchId(int mailBatchId);
         int InsertPrintBatchDetails(PrintBatch printBatch);
         List<SubmittedBatch> GetSubmittedPrintBatchDetails();
         List<SubmittedBatch> GetResponseReceivedPrintBatchDetails();
@@ -164,6 +165,13 @@ namespace AM.Services
             }
 
             return data;
+        }
+
+        public MailBatchDTO GetMailBatchDetailByBatchId(int mailBatchId)
+        {
+            string query = @"SELECT * FROM [AM].[MailBatches] WHERE Id=@MailBatchId";
+
+            return db.QuerySingle<MailBatchDTO>(query, new { MailBatchId = mailBatchId });
         }
 
         public int InsertPrintBatchDetails(PrintBatch printBatch)

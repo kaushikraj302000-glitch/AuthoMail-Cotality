@@ -11,14 +11,14 @@ namespace AM.Services
 {
     public interface IHSBCService : IDisposable
     {
-        StringBuilder HSBCErrorReport(BatchData data, string clientTimeZone, string delimeter);
-        StringBuilder HSBCDeliveryReport(BatchData data, string clientTimeZone, string delimeter);
+        StringBuilder HSBCErrorReport(List<MailPieces> data, string clientTimeZone, string delimeter);
+        StringBuilder HSBCDeliveryReport(List<MailPieces> data, string clientTimeZone, string delimeter);
         List<HSBCConsolidateReport> ConsolidatedReport(int clientId, DateTime startReceivedOnDate, DateTime endReceivedOnDate);
     }
 
     public class HSBCService : ServiceBase, IHSBCService
     {
-        public StringBuilder HSBCErrorReport(BatchData data, string clientTimeZone, string delimeter)
+        public StringBuilder HSBCErrorReport(List<MailPieces> data, string clientTimeZone, string delimeter)
         {
             var columnName = String.Join(delimeter, "BatchID", "StatusID", "Loan Number", "File Name", "Package Name", "Date Received", "Recipient FirstName", "Recipient LastName", "Recipient Street Address", "Recipient City", "Recipient State", "Recipient Zip", "Error Code", "Error Text", "Total Postage Cost");
 
@@ -26,20 +26,20 @@ namespace AM.Services
 
             errorReport.AppendLine();
 
-            var erroredData = data.MailPieces.Where(l => l.ErrorCode != OutComeCodes.No_Error).ToList();
+            var erroredData = data.Where(l => l.ErrorCode != OutComeCodes.No_Error).ToList();
 
             // All the loans where outcome code is anything except no_error are processed invalid loans.
-            foreach (MailPieceDTO mailPiece in erroredData)
+            foreach (MailPieces mailPiece in erroredData)
             {
-                var statusID = data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "StatusID").SingleOrDefault();
+                var statusID = mailPiece.MailPieceCustomInfoTest.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "StatusID").SingleOrDefault();
 
                 var line = String.Join(delimeter,
-                    data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName + ".xml",
+                    mailPiece.MailBatches.BatchName == null ? string.Empty : mailPiece.MailBatches.BatchName + ".xml",
                     statusID == null ? string.Empty : statusID.Value,
                         mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
                         mailPiece.FileName == null ? string.Empty : mailPiece.FileName,
                         mailPiece.FilePattern == null ? string.Empty : mailPiece.FilePattern.ToCsvString(),
-                        data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(clientTimeZone).ToString(),
+                        mailPiece.MailBatches.ReceivedOn == null ? string.Empty : mailPiece.MailBatches.ReceivedOn.Value.UtcToClientTimeZone(clientTimeZone).ToString(),
                         mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName.ToCsvString(),
                         mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName.ToCsvString(),
                         mailPiece.RcptAddressStreet == null ? string.Empty : mailPiece.RcptAddressStreet.Replace(",", "").ToCsvString(),
@@ -56,7 +56,7 @@ namespace AM.Services
             return errorReport;
         }
 
-        public StringBuilder HSBCDeliveryReport(BatchData data, string clientTimeZone, string delimeter)
+        public StringBuilder HSBCDeliveryReport(List<MailPieces> data, string clientTimeZone, string delimeter)
         {
             var columnName = String.Join(delimeter, "BatchID", "StatusID", "Loan Number", "File Name", "Package Name", "Date Received", "Date Printed", "Date Mailed", "Recipient FirstName", "Recipient LastName", "Recipient Street Address", "Recipient City", "Recipient State", "Recipient Zip", "Pages Shipped", "Total Postage Cost");
 
@@ -64,19 +64,19 @@ namespace AM.Services
 
             deliveryReport.AppendLine();
 
-            var shippedData = data.MailPieces.Where(l => l.ShippingStatus == ShippingStatus.Shipped.ToString() || l.ShippingStatus == ShippingStatus.PulledBack.ToString()).ToList();
+            var shippedData = data.Where(l => l.ShippingStatus == ShippingStatus.Shipped.ToString() || l.ShippingStatus == ShippingStatus.PulledBack.ToString()).ToList();
 
-            foreach (MailPieceDTO mailPiece in shippedData)
+            foreach (MailPieces mailPiece in shippedData)
             {
-                var statusID = data.MailPieceCustomInfo.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "StatusID").SingleOrDefault();
+                var statusID = mailPiece.MailPieceCustomInfoTest.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "StatusID").SingleOrDefault();
 
                 var line = String.Join(delimeter,
-                    data.MailBatch.BatchName == null ? string.Empty : data.MailBatch.BatchName + ".xml",
+                    mailPiece.MailBatches.BatchName == null ? string.Empty : mailPiece.MailBatches.BatchName + ".xml",
                     statusID == null ? string.Empty : statusID.Value,
                         mailPiece.BusinessFriendlyIdValue == null ? string.Empty : mailPiece.BusinessFriendlyIdValue,
                         mailPiece.FileName == null ? string.Empty : mailPiece.FileName,
                          mailPiece.FilePattern == null ? string.Empty : mailPiece.FilePattern.ToCsvString(),
-                        data.MailBatch.ReceivedOn == null ? string.Empty : data.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(clientTimeZone).ToString(),
+                        mailPiece.MailBatches.ReceivedOn == null ? string.Empty : mailPiece.MailBatches.ReceivedOn.Value.UtcToClientTimeZone(clientTimeZone).ToString(),
                         mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? string.Empty : mailPiece.PrintedOn.Value.UtcToClientTimeZone(clientTimeZone).ToString(),
                         mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? string.Empty : mailPiece.ShippedOn.Value.UtcToClientTimeZone(clientTimeZone).ToString(),
                         mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName.ToCsvString(),
