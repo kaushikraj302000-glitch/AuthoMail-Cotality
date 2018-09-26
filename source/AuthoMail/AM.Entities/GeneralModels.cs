@@ -214,6 +214,14 @@ namespace AM.Entities
         public const string Archive = "Archive";
     }
 
+    public static class MissedSLAReason
+    {
+        public const string NA = "NA";
+        public const string AM = "AM";
+        public const string PCI = "PCI";
+        public const string DALLAS_CL = "DALLAS_CL";
+    }
+
     public static class ReportTypes
     {
         public const string Error = "Error";
