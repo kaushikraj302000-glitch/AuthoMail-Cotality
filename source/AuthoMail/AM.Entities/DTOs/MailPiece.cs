@@ -94,4 +94,42 @@ namespace AM.Entities
         public DataType DataType { get; set; }
         public string Value { get; set; }
     }
+
+    public class BatchSummary
+    {
+        public int PrintBatch { get; set; }
+        public int ClientId { get; set; }
+        public string JobName { get; set; }
+        public string PipelineStatus { get; set; }
+        public string ValidationStatus { get; set; }
+        public string OnValidationErrors { get; set; }
+        public string ValidationErrors { get; set; }
+        public bool IsReceived { get; set; }
+        public DateTime ReceivedOn { get; set; }
+        public bool IsDownloaded { get; set; }
+        public DateTime DownloadedOn { get; set; }
+        public bool IsPrepped { get; set; }
+        public DateTime PreppedOn { get; set; }
+        public bool IsSubmitted { get; set; }
+        public DateTime SubmittedOn { get; set; }
+        public bool IsMRDFReceived { get; set; }
+        public DateTime MRDFReceivedOn { get; set; }
+        public bool IsReportPrepped { get; set; }
+        public DateTime ReportPreppedOn { get; set; }
+        public bool IsReportedBack { get; set; }
+        public DateTime ReportedBackOn { get; set; }
+        public int JulianDate { get; set; }
+        public int Images { get; set; }
+        public DateTime DueDate { get; set; }
+        public int SLADays { get; set; }
+        public string BatchStatus { get; set; }
+        public bool IsSuspended { get; set; }
+        public DateTime SuspendedOn { get; set; }
+        public bool IsCancelled { get; set; }
+        public DateTime CancelledOn { get; set; }
+        public Guid BatchIdentifier { get; set; }
+        public int? DocTypeId { get; set; }
+        public string PrintFileName { get; set; }
+        public string PrintLocation { get; set; }
+    }
 }

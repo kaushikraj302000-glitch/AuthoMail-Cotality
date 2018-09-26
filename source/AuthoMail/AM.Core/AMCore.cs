@@ -924,10 +924,12 @@ namespace AM.Core
                                     {
                                         row.ErrorCode = Enum.ToObject(typeof(ErrorTypes), mailPackage.ErrId).ToString();
                                         row.ErrorDesc = mailPackage.ErrDesc;
+                                        row.MissedSLAReason = MissedSLAReason.NA;
                                     }
                                     else if (mailPackage.MailPieceStatus == MailPieceStatus.PulledBack)
                                     {
                                         row.PulledBackOn = mailPackage.PulledBackOn;
+                                        row.MissedSLAReason = MissedSLAReason.NA;
                                     }
                                     else if (mailPackage.MailPieceStatus == MailPieceStatus.Shipped)
                                     {
@@ -941,6 +943,8 @@ namespace AM.Core
                                         {
                                             row.TrackingNo = mailPackage.TrackingNumber;
                                         }
+
+                                        row.MissedSLAReason = GetMissedSLAReason(row);
                                     }
                                     row.ShippingStatus = mailPackage.MailPieceStatus.ToString();
 
@@ -1023,6 +1027,29 @@ namespace AM.Core
                 }
             }
             log.Debug("Process PnS response job is completed.");
+        }
+
+        private static string GetMissedSLAReason(MailPieces mailPiece)
+        {
+            if (mailPiece.DueDate > mailPiece.ShippedOn)
+                return MissedSLAReason.NA;
+
+            BatchSummary pnsBatchSummary;
+            using (IMailPieceService mailPieceSvc = new MailPieceService())
+            {
+                pnsBatchSummary = mailPieceSvc.GetBatchSummaryDetailByUniqueId(mailPiece.UniqueId);
+            }
+
+            if ((pnsBatchSummary.SubmittedOn - mailPiece.StdPrepStartTime.Value).Minutes > 60)
+                return MissedSLAReason.AM;
+
+            if (mailPiece.PrintLocation == Config.Common_PrintLocationCL)
+                return MissedSLAReason.DALLAS_CL;
+
+            if (mailPiece.PrintLocation == Config.Common_PrintLocationPCI)
+                return MissedSLAReason.PCI;
+
+            return MissedSLAReason.NA;
         }
 
         #region ReportPreppedProcess
