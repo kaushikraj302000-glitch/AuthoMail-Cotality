@@ -42,7 +42,7 @@ namespace PCI.Service
 
             List<int> batchIds = DAL.GetNextBatchIdByJobName(JobTypes.PnSCoreService, OperationTypes.Prep);
 
-            if (batchIds == null)
+            if (batchIds == null || batchIds.Count == 0)
             {
                 log.Debug("Prepped job queue is empty.");
                 return;
@@ -1089,7 +1089,7 @@ namespace PCI.Service
 
             List<int> batchIds = DAL.GetNextBatchIdByJobName(JobTypes.PnSCoreService, OperationTypes.ProcessMRDF);
 
-            if (batchIds == null)
+            if (batchIds == null || batchIds.Count == 0)
             {
                 log.Debug("Generate PnS response job queue is empty.");
                 return;
