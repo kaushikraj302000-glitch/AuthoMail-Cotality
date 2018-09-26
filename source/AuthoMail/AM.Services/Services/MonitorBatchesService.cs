@@ -45,8 +45,8 @@ namespace AM.Services
             var delayedMailPieces = delayedDallasMailPieces.Concat(delayedEmptyPrintLocation).Concat(delayedShippedMailPieces).Concat(delayedPulledBackMailPieces).Concat(delayedErrorMailPieces).Concat(clientIdNullMailPieces).Concat(shippingStatusNullMailPieces).Concat(delayedPCIMailPieces).ToList();
 
             var delayedBatches = delayedMailPieces
-                .GroupBy(mp => new { mp.Id, mp.AppCode, mp.BatchName, mp.ClientId, mp.PipelineStatus, mp.ReceivedOn })
-                .Select(g => new BatchInfo { Id = g.Key.Id, AppCode = g.Key.AppCode, BatchName = g.Key.BatchName, ClientId = g.Key.ClientId, PipelineStatus = g.Key.PipelineStatus, ReceivedOn = g.Key.ReceivedOn, DelayedMailPieces = g.ToList() }).ToList();
+                .GroupBy(mp => new { mp.MailBatchId, mp.AppCode, mp.BatchName, mp.ClientId, mp.PipelineStatus, mp.ReceivedOn })
+                .Select(g => new BatchInfo { Id = g.Key.MailBatchId, AppCode = g.Key.AppCode, BatchName = g.Key.BatchName, ClientId = g.Key.ClientId, PipelineStatus = g.Key.PipelineStatus, ReceivedOn = g.Key.ReceivedOn, DelayedMailPieces = g.ToList() }).ToList();
 
             return new MonitorReport { DelayedBatches = delayedBatches, DelayedMailPieces = delayedMailPieces };
         }

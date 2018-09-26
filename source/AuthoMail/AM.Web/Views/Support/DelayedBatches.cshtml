@@ -25,19 +25,12 @@
                 </a>
                 <button class="btn btn-warning active" type="button" id="supportMailBatchesListBtn">Batches</button>
                 <button class="btn btn-warning" type="button" id="supportMailPiecesListBtn">MailPieces</button>
-                @*<div class="addon-content">
-                        <div class="tab-pane">
-                            <ul class="nav nav-tabs" role="tablist">
-                                <li role="presentation" class="active"><a href="#supportMailBatchesList" aria-controls="supportMailBatchesList" role="tab" data-toggle="tab">Mail Batches</a></li>
-                                <li role="presentation"><a href="#supportMailPiecesList" aria-controls="supportMailPiecesList" role="tab" data-toggle="tab">All MailPieces</a></li>
-                            </ul>
-                        </div>
-                    </div>*@
-
             </div>
         </div>
         <div class="panel-collapse collapse in">
             <div class="panel-body">
+                <div id="ClientWiseBatchCount" class="alert alert-info" style="padding:10px 0px"></div>
+                <div id="ClientWiseMailPieceCount" class="alert alert-info hidden" style="padding:10px 0px"></div>
                 <div class="clearfix">
                     <div id="supportMailBatchesList">
                         <div class="alert-blue alert text-center">
@@ -212,6 +205,8 @@
                     $('#supportMailPiecesListBtn').removeClass('active');
                     $('#supportMailBatchesList').removeClass('hidden');
                     $('#supportMailPiecesList').addClass('hidden');
+                    $('#ClientWiseMailPieceCount').addClass('hidden');
+                    $('#ClientWiseBatchCount').removeClass('hidden');
                 });
                 $('#supportMailPiecesListBtn').click(function (e) {
                     e.preventDefault();
@@ -219,6 +214,8 @@
                     $('#supportMailBatchesListBtn').removeClass('active');
                     $('#supportMailBatchesList').addClass('hidden');
                     $('#supportMailPiecesList').removeClass('hidden');
+                    $('#ClientWiseMailPieceCount').removeClass('hidden');
+                    $('#ClientWiseBatchCount').addClass('hidden');
                 });
             }
             ButtonEvent();
@@ -380,9 +377,6 @@
                 this.TotalDelayedMailPieces = this.DelayedMailPieces.length;
                 this.ClientId = this.ClientId == null ? '--' : this.ClientId;
                 this.UniqueId = this.UniqueId == null ? "--" : this.UniqueId;
-                //this.DownloadedOn = this.DownloadedOn == null ? "--" : moment(this.DownloadedOn).format("MM/DD/YY HH:mm:ss");
-                //var eddDesc = '<span id="popoverError" data-toggle="popover" data-original-title="Error Code: <ErrorCode>" data-html="true" data-content="<dataContent>" data-placement="left"><a> <ErrorCode> </a></span>'.replace(/<ErrorCode>/g, this.ValidationStatus).replace("<dataContent>", this.ValidationErrors == null ? "--" : this.ValidationErrors);
-                //this.ValidationErrors = this.ValidationErrors == null ? '--' : eddDesc;
             });
 
             return Model;
@@ -395,7 +389,6 @@
                 this.ReceivedOn = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.BatchName = this.BatchName == null ? '--' : this.BatchName;
                 this.PipelineStatus = this.PipelineStatus == null ? '--' : this.PipelineStatus;
-                //this.ShippingStatus = this.ShippingStatus == null ? '--' : this.ShippingStatus;
                 this.DocTypeCode = this.DocTypeCode == null ? '--' : this.DocTypeCode;
                 this.ShippingCarrier = this.ShippingCarrier == null ? '--' : this.ShippingCarrier;
                 this.ShippingServiceType = this.ShippingServiceType == null ? '--' : this.ShippingServiceType;
@@ -404,7 +397,6 @@
 
                     case "PulledBack":
                         status = '<span class="label medium label-yellow">' + this.ShippingStatus + '</span>';
-
                         break;
                     case "Error":
                         status = '<span class="label medium label-red">' + this.ShippingStatus + '</span>';
@@ -415,6 +407,8 @@
                     case "InProgress":
                         status = '<span class="label medium label-blue">' + this.ShippingStatus + '</span>';
                         break;
+                    default:
+                        status = '--';
 
                 }
                 this.ShippingStatus = status;
@@ -426,10 +420,6 @@
             $(Model).each(function () {
                 this.ReceivedOn = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.UniqueId = this.UniqueId == null ? "--" : this.UniqueId;
-                //this.EffectiveReceivedOnEst = this.EffectiveReceivedOnEst == null ? "--" : moment(this.EffectiveReceivedOnEst).format("MM/DD/YY HH:mm:ss");
-                //this.PrintedOn = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
-                // var eddDesc = '<span id="popoverError" data-toggle="popover" data-original-title="Error Code: <ErrorCode>" data-html="true" data-content="<dataContent>" data-placement="left"><a> <ErrorCode> </a></span>'.replace(/<ErrorCode>/g, this.ErrorCode).replace("<dataContent>", this.ErrorDesc == null ? "--" : this.ErrorDesc);
-                //this.ErrorDescPopover = this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>' : eddDesc;
 
                 switch (this.ShippingStatus) {
 
@@ -446,6 +436,8 @@
                     case "InProgress":
                         status = '<span class="label medium label-blue">' + this.ShippingStatus + '</span>';
                         break;
+                    default:
+                        status = '--';
 
                 }
                 this.ShippingStatus = status;
@@ -482,6 +474,14 @@
                         else {
                             $("#supportMailBatchesList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                         }
+                        if (response.AppCodeCountByBatch != null && response.AppCodeCountByBatch.length > 0) {
+                            var dispText = "";
+                            $.each(response.AppCodeCountByBatch, function (i, v) {
+                                var lbl = '<label class="btn btn-default">' + v['AppCode'] + '  <i class="label label-black">' + v['Total'] + '</i></label>';
+                                dispText = dispText + lbl;
+                            });
+                            $('#ClientWiseBatchCount').html(dispText);
+                        }
                         //All MailPieces
                         if (response.DelayedMailPieces.length > 0) {
                             //console.log(response.DelayedMailPieces);
@@ -490,6 +490,14 @@
                             //window.clui.tooltipInit();
                         } else {
                             $("#supportMailPiecesList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                        }
+                        if (response.AppCodeCountByMailPiece != null && response.AppCodeCountByMailPiece.length > 0) {
+                            var dispText = "";
+                            $.each(response.AppCodeCountByMailPiece, function (i, v) {
+                                var lbl = '<label class="btn btn-default">' + v['AppCode'] + '  <i class="label label-black">' + v['Total'] + '</i></label>';
+                                dispText = dispText + lbl;
+                            });
+                            $('#ClientWiseMailPieceCount').html(dispText);
                         }
                     }
 

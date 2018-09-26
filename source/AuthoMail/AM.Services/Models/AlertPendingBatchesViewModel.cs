@@ -10,6 +10,7 @@ namespace AM.Services
     public class PendingMailPieceInfo
     {
         public int Id { get; set; }
+        public int MailBatchId { get; set; }
         public Guid? UniqueId { get; set; }
         public bool? IsSubmitted { get; set; }
         public string AppCode { get; set; }
@@ -22,11 +23,11 @@ namespace AM.Services
         public string ShippingServiceType { get; set; }
         public int? ClientId { get; set; }
         public string PrintLocation { get; set; }
-        
+
         public DateTime GetEstimatedSubmittedOn(List<Sweep> sweepTimings, int bufferTime)
         {
             var revisedReceivedOnEst = this.ReceivedOn.UtcToEst();
-            
+
             sweepTimings = sweepTimings.OrderBy(t => t.SrNo).ToList();
             if (revisedReceivedOnEst.DayOfWeek == DayOfWeek.Saturday)
             {
@@ -35,7 +36,7 @@ namespace AM.Services
             else
             {
                 sweepTimings = sweepTimings.Where(s => s.WeekDayType == "Weekday").ToList();
-            }            
+            }
 
             // adjust for sunday
             revisedReceivedOnEst = revisedReceivedOnEst.DayOfWeek == DayOfWeek.Sunday ? revisedReceivedOnEst.AddDays(1).Date : revisedReceivedOnEst;
@@ -69,7 +70,22 @@ namespace AM.Services
     {
         public List<BatchInfo> DelayedBatches { get; set; }
         public List<PendingMailPieceInfo> DelayedMailPieces { get; set; }
-
+        public List<MonitorAppCodeCount> AppCodeCountByBatch
+        {
+            get
+            {
+                if (DelayedBatches == null) return null;
+                return DelayedBatches.GroupBy(g => g.AppCode).Select(g => new MonitorAppCodeCount { AppCode = g.Key, Total = g.Count() }).ToList();
+            }
+        }
+        public List<MonitorAppCodeCount> AppCodeCountByMailPiece
+        {
+            get
+            {
+                if (DelayedMailPieces == null) return null;
+                return DelayedMailPieces.GroupBy(g => g.AppCode).Select(g => new MonitorAppCodeCount { AppCode = g.Key, Total = g.Count() }).ToList();
+            }
+        }
         public string Status
         {
             get
@@ -80,6 +96,10 @@ namespace AM.Services
                     return "green";
             }
         }
-        
+    }
+    public class MonitorAppCodeCount
+    {
+        public string AppCode { get; set; }
+        public int Total { get; set; }
     }
 }
