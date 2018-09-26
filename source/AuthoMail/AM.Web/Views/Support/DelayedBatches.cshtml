@@ -18,31 +18,33 @@
 </style>
 <div class="panel-group">
     <div class="panel panel-default">
-        <div class="panel-heading addon" id="headingOne">
+        <div class="panel-heading" id="headingOne">
             <div class="panel-title">
                 <a role="button" data-toggle="collapse" data-parent="#accordion" href="#metaItem1">
                     Delayed MailBatches
                 </a>
-                <div class="addon-content">
-                    <div class="tab-pane">
-                        <ul class="nav nav-tabs" role="tablist">
-                            <li role="presentation" class="active"><a href="#supportMailBatchesList" aria-controls="supportMailBatchesList" role="tab" data-toggle="tab">Mail Batches</a></li>
-                            <li role="presentation"><a href="#supportMailPiecesList" aria-controls="supportMailPiecesList" role="tab" data-toggle="tab">All MailPieces</a></li>
-                        </ul>
-                    </div>
-                </div>
+                <button class="btn btn-warning active" type="button" id="supportMailBatchesListBtn">Batches</button>
+                <button class="btn btn-warning" type="button" id="supportMailPiecesListBtn">MailPieces</button>
+                @*<div class="addon-content">
+                        <div class="tab-pane">
+                            <ul class="nav nav-tabs" role="tablist">
+                                <li role="presentation" class="active"><a href="#supportMailBatchesList" aria-controls="supportMailBatchesList" role="tab" data-toggle="tab">Mail Batches</a></li>
+                                <li role="presentation"><a href="#supportMailPiecesList" aria-controls="supportMailPiecesList" role="tab" data-toggle="tab">All MailPieces</a></li>
+                            </ul>
+                        </div>
+                    </div>*@
 
             </div>
         </div>
         <div class="panel-collapse collapse in">
             <div class="panel-body">
-                <div class="tab-content clearfix">
-                    <div role="tabpanel" class="tab-pane active" id="supportMailBatchesList">
+                <div class="clearfix">
+                    <div id="supportMailBatchesList">
                         <div class="alert-blue alert text-center">
                             <span>Please Wait...</span>
                         </div>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="supportMailPiecesList">
+                    <div class="hidden" id="supportMailPiecesList">
                         <div class="alert-blue alert text-center">
                             <span>Please Wait...</span>
                         </div>
@@ -91,18 +93,18 @@
     <table class="table table-responsive" style="overflow-x:scroll">
         <thead>
             <tr>
-                <td><span>Id</span></td>
-                <td><span>UniqueId</span></td>
-                <td><span>AppCode</span></td>
-                <td><span>BatchName</span></td>
-                <td><span class="fontcapitalize">ReceivedOn</span></td>
-                <td><span>PipelineStatus</span></td>
-                <td><span>ShippingStatus</span></td>
-                <td><span>DocTypeCode</span></td>
-                <td><span>ShippingCarrier</span></td>
-                <td><span>ShippingServiceType</span></td>
-                <td><span>ClientId</span></td>
-                <td><span>PrintLocation</span></td>
+                <th><span>Id</span></th>
+                <th><span>UniqueId</span></th>
+                <th><span>AppCode</span></th>
+                <th><span>BatchName</span></th>
+                <th><span class="fontcapitalize">ReceivedOn</span></th>
+                <th><span>PipelineStatus</span></th>
+                <th><span>ShippingStatus</span></th>
+                <th><span>DocTypeCode</span></th>
+                <th><span>ShippingCarrier</span></th>
+                <th><span>ShippingServiceType</span></th>
+                <th><span>ClientId</span></th>
+                <th><span>PrintLocation</span></th>
             </tr>
         </thead>
         <tbody id="delayedbatchmailpiecesbodyContent"></tbody>
@@ -133,18 +135,18 @@
     <table class="table table-responsive" style="overflow-x:scroll">
         <thead>
             <tr>
-                <td><span>Id</span></td>
-                <td><span>UniqueId</span></td>
-                <td><span>AppCode</span></td>
-                <td><span>BatchName</span></td>
-                <td><span class="fontcapitalize">ReceivedOn</span></td>
-                <td><span>PipelineStatus</span></td>
-                <td><span>ShippingStatus</span></td>
-                <td><span>DocTypeCode</span></td>
-                <td><span>ShippingCarrier</span></td>
-                <td><span>ShippingServiceType</span></td>
-                <td><span>ClientId</span></td>
-                <td><span>PrintLocation</span></td>
+                <th><span>Id</span></th>
+                <th><span>UniqueId</span></th>
+                <th><span>AppCode</span></th>
+                <th><span>BatchName</span></th>
+                <th><span class="fontcapitalize">ReceivedOn</span></th>
+                <th><span>PipelineStatus</span></th>
+                <th><span>ShippingStatus</span></th>
+                <th><span>DocTypeCode</span></th>
+                <th><span>ShippingCarrier</span></th>
+                <th><span>ShippingServiceType</span></th>
+                <th><span>ClientId</span></th>
+                <th><span>PrintLocation</span></th>
             </tr>
         </thead>
         <tbody id="delayedbatchmailpiecesbodyContentmodal"></tbody>
@@ -202,6 +204,24 @@
         $(document).ready(function () {
             window.clui.dateTimePickerInit();
             FilterData();
+
+            var ButtonEvent = function () {
+                $('#supportMailBatchesListBtn').click(function (e) {
+                    e.preventDefault();
+                    $('#supportMailBatchesListBtn').addClass('active');
+                    $('#supportMailPiecesListBtn').removeClass('active');
+                    $('#supportMailBatchesList').removeClass('hidden');
+                    $('#supportMailPiecesList').addClass('hidden');
+                });
+                $('#supportMailPiecesListBtn').click(function (e) {
+                    e.preventDefault();
+                    $('#supportMailPiecesListBtn').addClass('active');
+                    $('#supportMailBatchesListBtn').removeClass('active');
+                    $('#supportMailBatchesList').addClass('hidden');
+                    $('#supportMailPiecesList').removeClass('hidden');
+                });
+            }
+            ButtonEvent();
         });
 
         function applyDataTable() {
@@ -235,7 +255,7 @@
                             "searchable": true
                         },
                 ],
-                "scrollX": true,
+                "scrollX": false,
                 buttons: [
                     //{
                     //    extend: 'colvis',
@@ -443,7 +463,7 @@
             $("#loading").show();
             $.ajax({
                 type: "GET",
-                url: baseUrl + "api/alert/GetPendingBatches",
+                url: baseUrl + "api/alert/GetDelayedBatches",
                 data: { cutOff: 30 },
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {

@@ -21,12 +21,12 @@ namespace AM.Web.Controllers
         {
             this.alertSvc = alertSvc;
         }
-        [Route("GetDelayedBatches/{cutOff}")]
+        [Route("GetDelayedBatches/{*cutOff}")]
         [HttpGet]
         public MonitorReport GetDelayedBatches(string cutOff)
         {
             int defaultCutOff = 30;
-            int effectiveCutOff;            
+            int effectiveCutOff;
             if (!int.TryParse(cutOff, out effectiveCutOff))
                 effectiveCutOff = defaultCutOff;
             return alertSvc.GetPendingBatchesToSubmit(effectiveCutOff);
