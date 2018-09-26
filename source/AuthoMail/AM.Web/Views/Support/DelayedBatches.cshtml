@@ -15,6 +15,10 @@
         word-wrap: break-word;
         color: red;
     }
+
+    label.btn:hover {
+        cursor: none;
+    }
 </style>
 <div class="panel-group">
     <div class="panel panel-default">
@@ -477,7 +481,7 @@
                         if (response.AppCodeCountByBatch != null && response.AppCodeCountByBatch.length > 0) {
                             var dispText = "";
                             $.each(response.AppCodeCountByBatch, function (i, v) {
-                                var lbl = '<label class="btn btn-default" style="margin-left:5px">' + v['AppCode'] + '  <i class="label label-black">' + v['Total'] + '</i></label>';
+                                var lbl = '<label class="btn btn-default" style="margin-left:5px">' + v['AppCode'] + '  <i class="label label-black"style="margin:0px">' + v['Total'] + '</i></label>';
                                 dispText = dispText + lbl;
                             });
                             $('#ClientWiseBatchCount').html(dispText);
@@ -494,7 +498,7 @@
                         if (response.AppCodeCountByMailPiece != null && response.AppCodeCountByMailPiece.length > 0) {
                             var dispText = "";
                             $.each(response.AppCodeCountByMailPiece, function (i, v) {
-                                var lbl = '<label class="btn btn-default" style="margin-left:5px">' + v['AppCode'] + '  <i class="label label-black">' + v['Total'] + '</i></label>';
+                                var lbl = '<label class="btn btn-default" style="margin-left:5px">' + v['AppCode'] + '  <i class="label label-black"style="margin:0px">' + v['Total'] + '</i></label>';
                                 dispText = dispText + lbl;
                             });
                             $('#ClientWiseMailPieceCount').html(dispText);
