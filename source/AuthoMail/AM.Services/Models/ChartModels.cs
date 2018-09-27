@@ -33,6 +33,7 @@ namespace AM.Services
         public string ClientBatchId { get; set; }
         public int BatchId { get; set; }
         public Guid BatchUniqueId { get; set; }
+        public string AppCode { get; set; }
         public string BatchName { get; set; }
         public string BatchStatus { get; set; }
         public string DocumentOrPackageType { get; set; }

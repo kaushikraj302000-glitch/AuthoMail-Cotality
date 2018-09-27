@@ -208,7 +208,7 @@ namespace AM.Services
 
         public List<BatchListByChartData> GetBatchByParam(DateTime date, string status)
         {
-            var data = db.Query<BatchListByChartData>("select b.Id as [BatchId],b.ClientBatchId,b.[UniqueId] as [BatchUniqueId],b.BatchName,b.BatchStatus,b.DocumentOrPackageType,b.ReceivedOn,b.ValidationErrors, c.TimeZone as [ClientTimeZone],( select COUNT(Id) FROM [AM].[MailPieces]  WHERE [MailBatchId]=b.Id ) as MailPieceCount from [AM].[MailBatches] b left outer join [Common].[Clients] c ON b.ClientId=c.Id where BatchStatus=@status and ReceivedOn BETWEEN @startDate AND @enddate", new { startDate = date.ToStartDateTime().EstToUtc(), endDate = date.ToEndDateTime().EstToUtc(), status = status }).ToList();
+            var data = db.Query<BatchListByChartData>("select b.Id as [BatchId],b.ClientBatchId,b.[UniqueId] as [BatchUniqueId],c.AppCode,b.BatchName,b.BatchStatus,b.DocumentOrPackageType,b.ReceivedOn,b.ValidationErrors, c.TimeZone as [ClientTimeZone],( select COUNT(Id) FROM [AM].[MailPieces]  WHERE [MailBatchId]=b.Id ) as MailPieceCount from [AM].[MailBatches] b left outer join [Common].[Clients] c ON b.ClientId=c.Id where BatchStatus=@status and ReceivedOn BETWEEN @startDate AND @enddate", new { startDate = date.ToStartDateTime().EstToUtc(), endDate = date.ToEndDateTime().EstToUtc(), status = status }).ToList();
             return data;
         }
 

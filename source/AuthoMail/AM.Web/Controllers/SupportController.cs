@@ -7,15 +7,18 @@ using System.Web;
 using System.Web.Mvc;
 using AM.Web.Models;
 using AM.Entities;
+using AutoMapper;
 namespace AM.Web.Controllers
 {
     [Authorize(Roles = AMRoles.Admin)]
     public class SupportController : BaseController
     {
         ISupportReportService supportSvc;
-        public SupportController(ISupportReportService supportSvc)
+        IChartDataService chartDataSvc;
+        public SupportController(ISupportReportService supportSvc, IChartDataService chartDataSvc)
         {
             this.supportSvc = supportSvc;
+            this.chartDataSvc = chartDataSvc;
         }
         // GET: Support
         public ActionResult NotReportedBackOfBatchSummary()
@@ -107,7 +110,6 @@ namespace AM.Web.Controllers
         {
             try
             {
-
                 var data = supportSvc.GetMailPieceByBatchId(batchId, User.Identity.GetClientId().Value);
                 return Json(JsonResponseFactory.SuccessResponse(new { model = data }), JsonRequestBehavior.AllowGet);
             }
@@ -116,10 +118,44 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse(e.ToString()), JsonRequestBehavior.AllowGet);
             }
         }
+        [HttpGet]
         public ActionResult DelayedBatches()
         {
             return View();
         }
+        [HttpGet]
+        public ActionResult AllClientsPackages()
+        {
+            return View();
+        }
+        [HttpPost]
+        public ActionResult TodayChartDetails(string status, int batchId)
+        {
+            var data = chartDataSvc.GetMailPieceByParam(batchId, status);
 
+            var model = Mapper.Map<List<MailPieceViewModel>>(data);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult GetMailPieceByBatchIdChart(int batchId)
+        {
+            var data = chartDataSvc.GetMailPieceByBatchId(batchId);
+            var model = Mapper.Map<List<MailPieceViewModel>>(data);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+        }
+        [HttpPost]
+        public ActionResult WeeklyChartDetailsChart(string status, string date)
+        {
+            var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            var model = chartDataSvc.GetBatchByParam(exactDate, status);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        public ActionResult GetMailPieceDataByStatusAndBatchIdChart(string status, int batchId)
+        {
+            var model = chartDataSvc.GetMailPieceByParam(batchId, status);
+            return Json(model.OrderByDescending(s => s.MailBatches.Id).ToList(), JsonRequestBehavior.AllowGet);
+        }
     }
 }

@@ -38,7 +38,7 @@
                             @Html.ActionLink("AuthoMail", "Index", "Home", new { area = "" }, new { @class = "text-white ", @id = "mainlink" }) <span style="font-size:15px !important;" id="ClientName"></span>
                             @if (User.IsInRole(AM.Entities.AMRoles.Admin))
                             {
-                                <span id="AMStatusNotification">                                    
+                                <span id="AMStatusNotification">
                                 </span>
                             }
                         </h1>
@@ -103,6 +103,7 @@
                                     <li>@Html.ActionLink("Loan Details By SubmittedOn", "LoanDetailsBySubmittedOn", "Support")</li>
                                     <li>@Html.ActionLink("Not Reported Back Of MailBatches", "NotReportedBackOfMailBatches", "Support")</li>
                                     <li>@Html.ActionLink("Delayed Batches", "DelayedBatches", "Support")</li>
+                                    <li>@Html.ActionLink("Clients Packages", "AllClientsPackages", "Support")</li>
                                 </ul>
                             </li>
                         }
@@ -177,7 +178,7 @@
                         success: function (response) {
                             if(response==false)
                             {
-                                $('#AMStatusNotification').html('<a href="/Support/DelayedBatches" style="background-color:rgba(255,255,255,1);color:#ce534b;"><i class="fa fa-times-circle-o" style="margin:5px;"></i></a>');                                
+                                $('#AMStatusNotification').html('<a href="/Support/DelayedBatches" style="background-color:rgba(255,255,255,1);color:#ce534b;"><i class="fa fa-times-circle-o" style="margin:5px;"></i></a>');
                             }
                             else{
                                 $('#AMStatusNotification').html('<span style="background-color:rgba(255,255,255,1);color:green;"><i class="fa fa-check-circle-o" style="margin:5px;"></i></span>');
