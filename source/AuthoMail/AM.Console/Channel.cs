@@ -456,6 +456,7 @@ namespace AM.Console
             using (IMailBatchService mailBatchSvc = new MailBatchService())
             using (IMailPieceService mailPieceSvc = new MailPieceService())
             using (IDocTypeService docTypeSvc = new DocTypeService())
+            using (ICommonService commonSvc = new CommonService())
             {
                 List<MailBatchDTO> validatedBatches = mailBatchSvc.GetBatchesByPipelineStatusAndSFTChannelId(BatchPipelineStatus.Validated, sftChannelId);
                 if (validatedBatches.Count == 0)
@@ -463,6 +464,8 @@ namespace AM.Console
                     log.Debug("Calculation of Due Date and Print location job queue is empty.");
                     return;
                 }
+
+                var sweepTimings = commonSvc.GetPCIBundleSweepTimings();
 
                 foreach (var mailBatch in validatedBatches)
                 {
@@ -488,7 +491,7 @@ namespace AM.Console
                         //Set print location where mail piece will go for print and ship
                         mailPiece.PrintLocation = Channel.GetPrintLocation(docType, effectiveEstReceivedOn);
                         //This field will be used for monitoring data
-                        mailPiece.StdSubmissionTime = Channel.GetStandardSubmissionTime(docType, effectiveEstReceivedOn);
+                        mailPiece.StdSubmissionTime = Channel.GetStandardSubmissionTime(mailBatch.ReceivedOn.Value, sweepTimings);
                         mailPiece.MaxSubmissionTime = Channel.GetMaximumSubmissionTime(docType, effectiveEstReceivedOn);
                         mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                     }
@@ -645,11 +648,11 @@ namespace AM.Console
             return dueDate.EstToUtc();
         }
 
-        public static DateTime GetStandardSubmissionTime(DateTime receivedOn)
+        public static DateTime GetStandardSubmissionTime(DateTime receivedOn, List<Sweep> sweepTimings)
         {
             using (ICommonService commonSvc = new CommonService())
             {
-                return commonSvc.GetStandardSubmissionTime(receivedOn, commonSvc.GetPCIBundleSweepTimings());
+                return commonSvc.GetStandardSubmissionTime(receivedOn, sweepTimings);
             }
         }
 

@@ -1041,7 +1041,7 @@ namespace AM.Core
                 pnsBatchSummary = mailPieceSvc.GetBatchSummaryDetailByUniqueId(mailPiece.UniqueId);
             }
 
-            if ((pnsBatchSummary.SubmittedOn - mailPiece.StdSubmissionTime.Value).Minutes > Config.Common_ProcessingBufferTime)
+            if ((pnsBatchSummary.SubmittedOn - mailPiece.MaxSubmissionTime.Value).TotalMinutes > Config.Common_ProcessingBufferTime)
                 return MissedSLAReason.AM;
 
             if (mailPiece.PrintLocation == Config.Common_PrintLocationCL)
@@ -1050,7 +1050,7 @@ namespace AM.Core
             if (mailPiece.PrintLocation == Config.Common_PrintLocationPCI)
                 return MissedSLAReason.PCI;
 
-            return MissedSLAReason.NA;
+            return MissedSLAReason.AM;
         }
 
         #region ReportPreppedProcess
