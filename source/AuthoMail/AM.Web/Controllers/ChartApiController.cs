@@ -44,5 +44,15 @@ namespace AM.Web.Controllers
             var model = chartDataSvc.GetDailySummaryChartByDocType(estToday, clientId);
             return model;
         }
+        [HttpGet, Route("GetAllClientsWeeklyChartData")]
+        public object GetAllClientsWeeklyChartData()
+        {
+            return chartDataSvc.GetWeeklyChartData();
+        }
+        [HttpGet, Route("GetAllClientsTodayChartData")]
+        public object GetAllClientsTodayChartData()
+        {
+            return chartDataSvc.GetTodayMailPieceChartData(DateTime.UtcNow.AddDays(-2).UtcToEst());
+        }
     }
 }
