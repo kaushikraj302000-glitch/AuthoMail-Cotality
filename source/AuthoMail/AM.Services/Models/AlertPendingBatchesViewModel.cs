@@ -23,6 +23,14 @@ namespace AM.Services
         public string ShippingServiceType { get; set; }
         public int? ClientId { get; set; }
         public string PrintLocation { get; set; }
+        public DateTime? StdPrepStartTime { get; set; }
+        public double MinRemainingHours
+        {
+            get
+            {
+                return StdPrepStartTime.Value.Subtract(Common.Now).TotalHours;
+            }
+        }
 
         public DateTime GetEstimatedSubmittedOn(List<Sweep> sweepTimings, int bufferTime)
         {
