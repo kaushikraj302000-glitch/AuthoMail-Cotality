@@ -487,12 +487,39 @@ namespace AM.Console
                         mailPiece.DueDate = Channel.GetDueDate(docType, effectiveEstReceivedOn);
                         //Set print location where mail piece will go for print and ship
                         mailPiece.PrintLocation = Channel.GetPrintLocation(docType, effectiveEstReceivedOn);
-
+                        //This field will be used for monitoring data
+                        mailPiece.StdSubmissionTime = Channel.GetStandardSubmissionTime(docType, effectiveEstReceivedOn);
+                        mailPiece.MaxSubmissionTime = Channel.GetMaximumSubmissionTime(docType, effectiveEstReceivedOn);
                         mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                     }
                 }
             }
             log.Debug("Calculation of Due Date and Print location Job is ended.");
+        }
+
+        private static DateTime GetMaximumSubmissionTime(DocType docType, DateTime effectiveReceivedOnEst)
+        {
+            DayOfWeek dayOfWeek = effectiveReceivedOnEst.DayOfWeek;
+
+            string cutOffTime = string.Empty;
+
+            switch (dayOfWeek)
+            {
+                case DayOfWeek.Saturday:
+                    cutOffTime = docType.SatCutOff;
+                    break;
+                case DayOfWeek.Sunday:
+                    cutOffTime = docType.SunCutOff;
+                    break;
+                default:
+                    cutOffTime = docType.BizdayCutOff;
+                    break;
+            }
+
+            var effectiveReceivedOnEstDate = effectiveReceivedOnEst.Date;
+            var maxSubmissionDateTime = effectiveReceivedOnEstDate + TimeSpan.Parse(cutOffTime);
+
+            return maxSubmissionDateTime.EstToUtc();
         }
 
         public static DateTime GetEffectiveEstReceivedOn(DocType docType, DateTime utcReceivedOn)
@@ -616,6 +643,31 @@ namespace AM.Console
 
 
             return dueDate.EstToUtc();
+        }
+
+        public static DateTime GetStandardSubmissionTime(DocType docType, DateTime effectiveReceivedOnEst)
+        {
+            DayOfWeek dayOfWeek = effectiveReceivedOnEst.DayOfWeek;
+
+            string cutOffTime = string.Empty;
+
+            switch (dayOfWeek)
+            {
+                case DayOfWeek.Saturday:
+                    cutOffTime = docType.SatCutOff;
+                    break;
+                case DayOfWeek.Sunday:
+                    cutOffTime = docType.SunCutOff;
+                    break;
+                default:
+                    cutOffTime = docType.BizdayCutOff;
+                    break;
+            }
+
+            var effectiveReceivedOnEstDate = effectiveReceivedOnEst.Date;
+            var stdPrepDateTime = effectiveReceivedOnEstDate + TimeSpan.Parse(cutOffTime);
+
+            return stdPrepDateTime.EstToUtc();
         }
 
         public static string GetPrintLocation(DocType docType, DateTime estEffectiveReceivedOn)

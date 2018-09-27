@@ -939,10 +939,11 @@ namespace AM.Core
                                         row.TotalSheets = mailPackage.TotalSheets;
                                         row.Weight = mailPackage.WeightMeasured;
                                         row.IsQCPerformed = mailPackage.IsQCPerformed;
-                                        if (!string.IsNullOrEmpty(mailPackage.TrackingNumber))
-                                        {
-                                            row.TrackingNo = mailPackage.TrackingNumber;
-                                        }
+
+                                        //if (!string.IsNullOrEmpty(mailPackage.TrackingNumber))
+                                        //{
+                                        //    row.TrackingNo = mailPackage.TrackingNumber;
+                                        //}
 
                                         row.MissedSLAReason = GetMissedSLAReason(row);
                                     }
@@ -1031,7 +1032,7 @@ namespace AM.Core
 
         private static string GetMissedSLAReason(MailPieces mailPiece)
         {
-            if (mailPiece.DueDate > mailPiece.ShippedOn)
+            if (mailPiece.ShippedOn <= mailPiece.DueDate)
                 return MissedSLAReason.NA;
 
             BatchSummary pnsBatchSummary;
@@ -1040,7 +1041,7 @@ namespace AM.Core
                 pnsBatchSummary = mailPieceSvc.GetBatchSummaryDetailByUniqueId(mailPiece.UniqueId);
             }
 
-            if ((pnsBatchSummary.SubmittedOn - mailPiece.StdPrepStartTime.Value).Minutes > 60)
+            if ((pnsBatchSummary.SubmittedOn - mailPiece.StdSubmissionTime.Value).Minutes > Config.Common_ProcessingBufferTime)
                 return MissedSLAReason.AM;
 
             if (mailPiece.PrintLocation == Config.Common_PrintLocationCL)

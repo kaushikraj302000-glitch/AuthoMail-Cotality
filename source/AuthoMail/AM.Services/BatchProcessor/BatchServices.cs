@@ -40,15 +40,15 @@ namespace AM.Services
 
         public List<MailBatchDTO> InsertBatchDetails(List<MailBatchDTO> mailBatches)
         {
-            List<MailBatchDTO> mailBatchDetails = new List<MailBatchDTO>();
+            //Insert batch record, mark batch as received and inprogress
             foreach (var mailBatch in mailBatches)
             {
-                string query = @"INSERT INTO [AM].[MailBatches](UniqueId, ClientId, DocumentOrPackageType, SFTChannelId, ClientBatchId, BatchName, [Priority],[ReceivedOn]) VALUES (@UniqueId, @ClientId, @DocumentOrPackageType, @SFTChannelId, @ClientBatchId, @BatchName, @Priority, @ReceivedOn); SELECT * from [AM].[MailBatches] WHERE ID = CAST(SCOPE_IDENTITY() as int)";
+                string query = @"INSERT INTO [AM].[MailBatches](UniqueId, ClientId, DocumentOrPackageType, SFTChannelId, ClientBatchId, BatchName, [Priority],[ReceivedOn], [PipelineStatus], [BatchStatus]) Output Inserted.Id VALUES (@UniqueId, @ClientId, @DocumentOrPackageType, @SFTChannelId, @ClientBatchId, @BatchName, @Priority, @ReceivedOn, @PipelineStatus, @BatchStatus)";
 
-                mailBatchDetails.Add(db.Query<MailBatchDTO>(query, mailBatch).SingleOrDefault());
+                mailBatch.Id = db.ExecuteScalar<int>(query, mailBatch);
             }
 
-            return mailBatchDetails;
+            return mailBatches;
         }
 
         public int DeleteBatchDetails(int mailBatchId)

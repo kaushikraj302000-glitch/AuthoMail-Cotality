@@ -77,6 +77,8 @@ namespace AM.Console
                     Directory.Delete(amcDownloadPath, true);
                 }
 
+                //To ensure that folder gets created.
+                Thread.Sleep(1000);
                 Directory.CreateDirectory(amcDownloadPath);
 
                 #endregion
@@ -98,6 +100,7 @@ namespace AM.Console
                 //Some time it is not creating AMC folder in flow so here we are again checking this if not created then below code will create
                 if (!Directory.Exists(amcDownloadPath))
                 {
+                    log.Error("AMC Folder was not created as expected.");
                     Directory.CreateDirectory(amcDownloadPath);
                 }
 
@@ -168,58 +171,50 @@ namespace AM.Console
                 return;
             }
 
+            //Here we are caching all clients details 
+            var clients = new List<Client>();
+
             try
             {
-                PackageRequests requests = null;
-                PackageRequests amcRequest = new PackageRequests();
+                Dictionary<string, List<XmlNode>> inputXmlByCustId = new Dictionary<string, List<XmlNode>>();
 
-                requests = XmlUtil.Deserialize<PackageRequests>(batchXML.OuterXml);
-
-                List<PackageInfo> invalidPackages = requests.Packages.FindAll(p => !amcClientMaps.Select(c => c.AMCCustId).Contains(p.CustomerIdentifier));
-
-                if (invalidPackages.Count > 0)
+                foreach (XmlNode node in batchXML.DocumentElement.SelectNodes("//x:PackageInfo", nsManager))
                 {
-                    amcRequest.Packages = invalidPackages;
+                    var custIdNode = node.SelectSingleNode("x:CustomerIdentifier", nsManager);
 
-                    SeparateXMLsAndPDFsClientWise(amcRequest, amcDownloadPath, GetInvalidClient().AppCode, batchName);
+                    string custId = custIdNode == null || !amcClientMaps.Any(c => c.AMCCustId == custIdNode.InnerXml) ? "InvalidCustId" : custIdNode.InnerXml;
 
-                    MailBatchDTO invalidMailBatch = new MailBatchDTO();
-                    invalidMailBatch.ClientId = GetInvalidClient().Id;
-                    invalidMailBatch.BatchName = batchName;
-                    invalidMailBatch.SFTChannelId = SFTChannel.Id;
-                    invalidMailBatch.ClientBatchId = batchName;
-                    invalidMailBatch.UniqueId = Guid.NewGuid();
-                    invalidMailBatch.Priority = Priority.Medium.ToString();
-                    invalidMailBatch.ReceivedOn = receivedOn;
-                    mailBatches.Add(invalidMailBatch);
+                    if (!inputXmlByCustId.ContainsKey(custId))
+                    {
+                        inputXmlByCustId.Add(custId, new List<XmlNode>());
+                    }
 
-                    requests.Packages.RemoveAll(p => !amcClientMaps.Select(c => c.AMCCustId).Contains(p.CustomerIdentifier));
+                    inputXmlByCustId[custId].Add(node);
                 }
 
-                if (requests.Packages.Count > 0)
+                foreach (var map in amcClientMaps)
                 {
-                    foreach (var map in amcClientMaps)
+                    Client client = clientSvc.GetClientById(map.ClientId);
+
+                    clients.Add(client);
+
+                    var packages = inputXmlByCustId[map.AMCCustId];
+
+                    if (packages.Count > 0)
                     {
-                        Client client = clientSvc.GetClientById(map.ClientId);
+                        SeparateXMLsAndPDFsClientWise(packages, nsManager, amcDownloadPath, client.AppCode, batchName);
 
-                        List<PackageInfo> packages = requests.Packages.FindAll(p => p.CustomerIdentifier == map.AMCCustId);
-
-                        if (packages != null && packages.Count > 0)
-                        {
-                            amcRequest.Packages = packages;
-
-                            SeparateXMLsAndPDFsClientWise(amcRequest, amcDownloadPath, client.AppCode, batchName);
-
-                            MailBatchDTO mailBatch = new MailBatchDTO();
-                            mailBatch.ClientId = client.Id;
-                            mailBatch.BatchName = batchName;
-                            mailBatch.SFTChannelId = SFTChannel.Id;
-                            mailBatch.ClientBatchId = batchName;
-                            mailBatch.UniqueId = Guid.NewGuid();
-                            mailBatch.Priority = Priority.Medium.ToString();
-                            mailBatch.ReceivedOn = receivedOn;
-                            mailBatches.Add(mailBatch);
-                        }
+                        MailBatchDTO mailBatch = new MailBatchDTO();
+                        mailBatch.ClientId = client.Id;
+                        mailBatch.BatchName = batchName;
+                        mailBatch.SFTChannelId = SFTChannel.Id;
+                        mailBatch.ClientBatchId = batchName;
+                        mailBatch.UniqueId = Guid.NewGuid();
+                        mailBatch.Priority = Priority.Medium.ToString();
+                        mailBatch.ReceivedOn = receivedOn;
+                        mailBatch.PipelineStatus = BatchPipelineStatus.Received;
+                        mailBatch.BatchStatus = BatchStatus.InProgress.ToString();
+                        mailBatches.Add(mailBatch);
                     }
                 }
             }
@@ -235,37 +230,27 @@ namespace AM.Console
             {
                 try
                 {
-                    var insertedList = mailBatchSvc.InsertBatchDetails(mailBatches);
+                    mailBatches = mailBatchSvc.InsertBatchDetails(mailBatches);
 
-                    if (insertedList.Count > 0)
+                    foreach (var clientBatch in mailBatches)
                     {
-                        foreach (var clientBatch in insertedList)
-                        {
-                            Client client = clientSvc.GetClientById(clientBatch.ClientId);
-                            MailBatchInfo mbi = new MailBatchInfo(clientBatch, client, Config.Common_AuthoMailRootFolder);
+                        Client client = clients.Single(c => c.Id == clientBatch.ClientId);
+                        MailBatchInfo mbi = new MailBatchInfo(clientBatch, client, Config.Common_AuthoMailRootFolder);
 
-                            //Here we create folder structure
-                            mbi.AMRequestPath.CreateDirectoryIfNotExist();
-                            mbi.AMResponsePath.CreateDirectoryIfNotExist();
-                            mbi.PnSRequestPath.CreateDirectoryIfNotExist();
-                            mbi.PnSResponsePath.CreateDirectoryIfNotExist();
+                        //Here we create folder structure
+                        //mbi.AMRequestPath.CreateDirectoryIfNotExist();
+                        mbi.AMResponsePath.CreateDirectoryIfNotExist();
+                        mbi.PnSRequestPath.CreateDirectoryIfNotExist();
+                        mbi.PnSResponsePath.CreateDirectoryIfNotExist();
 
-                            var fileList = Directory.GetFiles(Path.Combine(amcDownloadPath, client.AppCode));
-                            foreach (var srcFilePath in fileList)
-                            {
-                                string destFilePath = Path.Combine(mbi.AMRequestPath, Path.GetFileName(srcFilePath));
-                                if (File.Exists(destFilePath))
-                                    File.Delete(destFilePath);
+                        Directory.Move(Path.Combine(amcDownloadPath, client.AppCode), mbi.AMRequestPath);
 
-                                File.Move(srcFilePath, destFilePath);
-                            }
-                            commonSvc.UpdateBatchPipeLineStatus(clientBatch.Id, BatchPipelineStatus.Downloaded, Common.Now);
-                            commonSvc.UpdateBatchStatus(clientBatch.Id, BatchStatus.InProgress.ToString());
-                        }
+                        commonSvc.UpdateBatchPipeLineStatus(clientBatch.Id, BatchPipelineStatus.Downloaded, Common.Now);
                     }
 
                     //Here after moving all batches to particular client location , archive amc batch
                     string archiveZipPath = Path.Combine(Config.Common_AuthoMailRootFolder, "Archive", batchName + ".zip");
+
                     if (File.Exists(archiveZipPath))
                         File.Delete(archiveZipPath);
 
@@ -274,8 +259,12 @@ namespace AM.Console
                     //Now delete/archive trigger and zip from SFTP
                     MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, batchName + ".zip"));
                     MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, batchName + "_Complete.go"));
+                    
+                    //After complete process clean AMC folder
+                    amcDownloadPath.CleanDirectory();
 
                     scope.Complete();
+
                 }
                 catch (Exception ex)
                 {
@@ -291,23 +280,32 @@ namespace AM.Console
             return clientSvc.GetClientByAppCode("AMCInvalid");
         }
 
-        private void SeparateXMLsAndPDFsClientWise(PackageRequests request, string amcDownloadPath, string clientCode, string batchName)
+        private void SeparateXMLsAndPDFsClientWise(List<XmlNode> packages, XmlNamespaceManager nsManager, string amcDownloadPath, string clientCode, string batchName)
         {
             string clientBatchDirectory = Path.Combine(amcDownloadPath, clientCode);
+
             clientBatchDirectory.CleanDirectory();
+
             string amcFilePath = Path.Combine(clientBatchDirectory, string.Format("{0}.xml", batchName));
-            List<PackageInfo> packages = request.Packages;
-            foreach (PackageInfo package in packages)
+
+            string reqRootXml = "<?xml version=\"1.0\" encoding=\"utf-16\"?><PackageRequests xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://schemas.corelogic.com/2015/amc/v1/packages\">{0}</PackageRequests>";
+
+            var packageInfoNodes = string.Join(Environment.NewLine, packages.Select(nodes => nodes.OuterXml));
+
+            foreach (var package in packages)
             {
-                if (File.Exists(Path.Combine(amcDownloadPath, package.File)))
+                var fileNameAttr = package.SelectSingleNode("x:File", nsManager);
+                string fileName = fileNameAttr == null ? string.Empty : fileNameAttr.InnerXml;
+
+                if (!string.IsNullOrEmpty(fileName) && File.Exists(Path.Combine(amcDownloadPath, fileName)))
                 {
-                    string sourceFile = Path.Combine(amcDownloadPath, package.File);
-                    string destFile = Path.Combine(clientBatchDirectory, package.File);
+                    string sourceFile = Path.Combine(amcDownloadPath, fileName);
+                    string destFile = Path.Combine(clientBatchDirectory, fileName);
                     File.Move(sourceFile, destFile);
                 }
             }
 
-            File.WriteAllText(amcFilePath, XmlUtil.Serialize<PackageRequests>(request));
+            File.WriteAllText(amcFilePath, reqRootXml.Fill(packageInfoNodes));
         }
 
         private void MoveBatchToBackupDir(SFTUtil sftSite, string ftpFilePath)
@@ -346,9 +344,6 @@ namespace AM.Console
 
         private string DownloadBatchZipFile(SFTUtil sftSite, string ftpZipFilePath, string ftpTriggerFilePath, string localZipFilePath)
         {
-            string triggerFileName = Path.GetFileName(ftpTriggerFilePath);
-            string zipFileName = Path.GetFileName(ftpZipFilePath);
-
             sftSite.DownloadFile(ftpZipFilePath, localZipFilePath);
 
             return localZipFilePath;

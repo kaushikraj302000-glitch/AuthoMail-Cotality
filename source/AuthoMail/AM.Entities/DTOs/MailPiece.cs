@@ -85,6 +85,9 @@ namespace AM.Entities
         public string PrintLocation { get; set; }
         public DateTime? EffectiveReceivedOnEst { get; set; }
         public string RcptAddressTypes { get; set; }
+        public DateTime? StdSubmissionTime { get; set; }
+        public DateTime? MaxSubmissionTime { get; set; }
+        public string MissedSLAReason { get; set; }
     }
 
     public class MailPieceCustomInfo

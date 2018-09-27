@@ -63,14 +63,14 @@ namespace AM.Services
 
         public int UpdateBatchMailPieceDetails(MailPieceDTO mailPiece)
         {
-            string query = @"UPDATE [AM].[MailPieces] SET [DocTypeId] = @DocTypeId, [EffectiveReceivedOnEst] = @EffectiveReceivedOnEst, [DueDate] = @DueDate,[ShippingStatus] = @ShippingStatus,[TotalPages] = @TotalPages,[ErrorCode] = @ErrorCode,[ErrorDesc] = @ErrorDesc,[TrackingNo] = @TrackingNo,[PrintLocation] = @PrintLocation WHERE Id=@Id";
+            string query = @"UPDATE [AM].[MailPieces] SET [DocTypeId] = @DocTypeId, [EffectiveReceivedOnEst] = @EffectiveReceivedOnEst, [DueDate] = @DueDate,[ShippingStatus] = @ShippingStatus,[TotalPages] = @TotalPages,[ErrorCode] = @ErrorCode,[ErrorDesc] = @ErrorDesc,[TrackingNo] = @TrackingNo,[PrintLocation] = @PrintLocation, [StdSubmissionTime] = @StdSubmissionTime, [MaxSubmissionTime] = @MaxSubmissionTime WHERE Id=@Id";
 
             return db.Execute(query, mailPiece);
         }
 
         public int UpdateBatchMailPieceShippingStatusDetails(MailPieces mailPiece)
         {
-            string query = @"UPDATE [AM].[MailPieces] SET [ShippingStatus] = @ShippingStatus,[TotalSheets] = @TotalSheets,[ErrorCode] = @ErrorCode,[ErrorDesc] = @ErrorDesc,[PulledBackOn] = @PulledBackOn,[PrintedOn] = @PrintedOn,[ShippedOn] = @ShippedOn,[ShippingCost] = @ShippingCost,[Weight] = @Weight,[IsQCPerformed] = @IsQCPerformed, [TrackingNo] = @TrackingNo, [MissedSLAReason] = MissedSLAReason WHERE Id=@Id";
+            string query = @"UPDATE [AM].[MailPieces] SET [ShippingStatus] = @ShippingStatus,[TotalSheets] = @TotalSheets,[ErrorCode] = @ErrorCode,[ErrorDesc] = @ErrorDesc,[PulledBackOn] = @PulledBackOn,[PrintedOn] = @PrintedOn,[ShippedOn] = @ShippedOn,[ShippingCost] = @ShippingCost,[Weight] = @Weight,[IsQCPerformed] = @IsQCPerformed, [MissedSLAReason] = MissedSLAReason WHERE Id=@Id";
 
             var data = db.Execute(query, mailPiece);
 
@@ -112,9 +112,9 @@ namespace AM.Services
 
         public BatchSummary GetBatchSummaryDetailByUniqueId(Guid uniqueId)
         {
-            string query = @"SELECT TOP 1 * FROM [PnS].[BatchSummary] WHERE [BatchIdentifier] = @UniqueId";
+            string query = @"SELECT * FROM [PnS].[BatchSummary] WHERE PrintBatch = (SELECT JobId FROM [PnS].[MRDFRequest] WHERE UniqueId=@UniqueId)";
 
-            return db.ExecuteScalar<BatchSummary>(query, new { UniqueId = uniqueId });
+            return db.QuerySingle<BatchSummary>(query, new { UniqueId = uniqueId });
         }
     }
 }

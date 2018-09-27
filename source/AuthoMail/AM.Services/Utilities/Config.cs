@@ -22,6 +22,7 @@ namespace AM.Services
         public static string Common_PrintLocationPCI { get; private set; }
         public static string Common_PrintLocationCL { get; private set; }
         public static List<Holiday> Common_Holidays { get; private set; }
+        public static int Common_ProcessingBufferTime { get; private set; }
 
         #endregion
 
