@@ -52,7 +52,7 @@ namespace AM.Web.Controllers
         [HttpGet, Route("GetAllClientsTodayChartData")]
         public object GetAllClientsTodayChartData()
         {
-            return chartDataSvc.GetTodayMailPieceChartData(DateTime.UtcNow.AddDays(-2).UtcToEst());
+            return chartDataSvc.GetTodayMailPieceChartData(DateTime.UtcNow.UtcToEst());
         }
     }
 }
