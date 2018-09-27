@@ -520,12 +520,12 @@
 
                         if (response.Status == 'red')
                         {
-                            $('#statustitle').addClass('text-danger blink');
-                            $('#statustitle').html('<i class="fa fa-exclamation-triangle fa-2x"></i> ' + $('#statustitle').html());
+                            $('#statustitle').addClass('text-danger');
+                            $('#statustitle').html('<i class="fa fa-exclamation-triangle"></i> ' + $('#statustitle').html());
                         }
                         else {
-                            $('#statustitle').addClass('text-success blink');
-                            $('#statustitle').html('<i class="fa fa-check-triangle fa-2x"></i> ' + $('#statustitle').html());
+                            $('#statustitle').addClass('text-success');
+                            $('#statustitle').html('<i class="fa fa-check-circle"></i> ' + $('#statustitle').html());
                         }
                         $("#loading").hide();
                         $("#supportHeader").show();
