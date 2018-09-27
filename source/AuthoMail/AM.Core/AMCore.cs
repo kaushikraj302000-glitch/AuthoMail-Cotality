@@ -808,13 +808,12 @@ namespace AM.Core
 
                 try
                 {
-                    List<string> responseFiles;
                     var clientAppCodes = submittedPrintBatches.Select(client => client.AppCode).Distinct();
                     foreach (var appCode in clientAppCodes)
                     {
                         Client client = clientSvc.GetClientByAppCode(appCode);
 
-                        responseFiles = Directory.EnumerateFiles(Path.Combine(Config.Core_PnS_SFT_RootDir, client.AppCode), "*.rpt").ToList();
+                        List<string> responseFiles = Directory.EnumerateFiles(Path.Combine(Config.Core_PnS_SFT_RootDir, client.AppCode), "*.rpt").ToList();
 
                         var responseTriggerFiles = responseFiles
                         .Select(file => new KeyValuePair<string, string>(Path.GetFileNameWithoutExtension(file), file))
@@ -835,42 +834,42 @@ namespace AM.Core
                                 });
                             }
                         }
+                    }
 
-                        var downloadableFiles = submittedPrintBatches.Where(c => !string.IsNullOrEmpty(c.ResponseFilePath)).ToList();
+                    var downloadableFiles = submittedPrintBatches.Where(c => !string.IsNullOrEmpty(c.ResponseFilePath)).ToList();
 
-                        if (downloadableFiles.Count == 0)
+                    if (downloadableFiles.Count == 0)
+                    {
+                        log.Debug("Response files are not available to download.");
+                        return;
+                    }
+
+                    foreach (var downloadableBatch in downloadableFiles)
+                    {
+                        string responseTriggerFilePath = downloadableBatch.ResponseTriggerFilePath;
+                        string responseFileName = Path.GetFileName(downloadableBatch.ResponseFilePath);
+                        string responseFilePath = downloadableBatch.ResponseFilePath;
+
+                        string amPnSResponseDir = Path.Combine(Config.Common_AuthoMailRootFolder, downloadableBatch.AppCode, Util.PnSResponsesFolderName);
+                        string amPnSResponseFilePath = Path.Combine(amPnSResponseDir, responseFileName);
+
+                        DateTime mrdfDownloadStartTime = Common.Now;
+                        DateTime responseReceivedOn = File.GetLastWriteTimeUtc(responseFilePath);
+
+                        if (!Directory.Exists(amPnSResponseDir))
+                            Directory.CreateDirectory(amPnSResponseDir);
+
+                        File.Copy(responseFilePath, amPnSResponseFilePath, true);
+
+                        if (File.Exists(responseTriggerFilePath))
+                            File.Delete(responseTriggerFilePath);
+
+                        if (File.Exists(amPnSResponseFilePath))
                         {
-                            log.Debug("Response files are not available to download.");
-                            continue;
-                        }
+                            //After checking response is copied to path system will remove response file from remote location
+                            File.Delete(responseFilePath);
 
-                        foreach (var downloadableBatch in downloadableFiles)
-                        {
-                            string responseTriggerFilePath = downloadableBatch.ResponseTriggerFilePath;
-                            string responseFileName = Path.GetFileName(downloadableBatch.ResponseFilePath);
-                            string responseFilePath = downloadableBatch.ResponseFilePath;
-
-                            string amPnSResponseDir = Path.Combine(Config.Common_AuthoMailRootFolder, downloadableBatch.AppCode, Util.PnSResponsesFolderName);
-                            string amPnSResponseFilePath = Path.Combine(amPnSResponseDir, responseFileName);
-
-                            DateTime mrdfDownloadStartTime = Common.Now;
-                            DateTime responseReceivedOn = File.GetLastWriteTimeUtc(responseFilePath);
-
-                            if (!Directory.Exists(amPnSResponseDir))
-                                Directory.CreateDirectory(amPnSResponseDir);
-
-                            File.Copy(responseFilePath, amPnSResponseFilePath, true);
-
-                            if (File.Exists(responseTriggerFilePath))
-                                File.Delete(responseTriggerFilePath);
-
-                            if (File.Exists(amPnSResponseFilePath))
-                            {
-                                //After checking response is copied to path system will remove response file from remote location
-                                File.Delete(responseFilePath);
-
-                                commonSvc.UpdatePrintBatchPipeLineStatus(downloadableBatch.PrintBatchId, BatchPipelineStatus.ShippingResponseReceived, responseReceivedOn);
-                            }
+                            commonSvc.UpdatePrintBatchPipeLineStatus(downloadableBatch.PrintBatchId, BatchPipelineStatus.ShippingResponseReceived, responseReceivedOn);
                         }
                     }
                 }
