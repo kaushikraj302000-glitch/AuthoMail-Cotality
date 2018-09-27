@@ -34,34 +34,10 @@ namespace AM.Services
 
         public DateTime GetEstimatedSubmittedOn(List<Sweep> sweepTimings, int bufferTime)
         {
-            var revisedReceivedOnEst = this.ReceivedOn.UtcToEst();
-
-            sweepTimings = sweepTimings.OrderBy(t => t.SrNo).ToList();
-            if (revisedReceivedOnEst.DayOfWeek == DayOfWeek.Saturday)
+            using (ICommonService commonSvc = new CommonService())
             {
-                sweepTimings = sweepTimings.Where(s => s.WeekDayType == "Saturday").ToList();
+                return commonSvc.GetStandardSubmissionTime(this.ReceivedOn, sweepTimings).Add(new TimeSpan(0, bufferTime, 0));
             }
-            else
-            {
-                sweepTimings = sweepTimings.Where(s => s.WeekDayType == "Weekday").ToList();
-            }
-
-            // adjust for sunday
-            revisedReceivedOnEst = revisedReceivedOnEst.DayOfWeek == DayOfWeek.Sunday ? revisedReceivedOnEst.AddDays(1).Date : revisedReceivedOnEst;
-
-            var applicableSweep = sweepTimings.FirstOrDefault(s => s.SweepTime >= revisedReceivedOnEst.TimeOfDay);
-
-            if (applicableSweep == null)
-            {
-                revisedReceivedOnEst = revisedReceivedOnEst.AddDays(1);
-                // adjust for sunday
-                revisedReceivedOnEst = revisedReceivedOnEst.DayOfWeek == DayOfWeek.Sunday ? revisedReceivedOnEst.AddDays(1).Date : revisedReceivedOnEst;
-                applicableSweep = sweepTimings.First();
-            }
-
-            var estimatedSubmittedOn = (revisedReceivedOnEst.Date + applicableSweep.SweepTime.Add(new TimeSpan(0, bufferTime, 0))).EstToUtc();
-
-            return estimatedSubmittedOn;
         }
     }
     public class BatchInfo

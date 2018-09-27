@@ -645,29 +645,12 @@ namespace AM.Console
             return dueDate.EstToUtc();
         }
 
-        public static DateTime GetStandardSubmissionTime(DocType docType, DateTime effectiveReceivedOnEst)
+        public static DateTime GetStandardSubmissionTime(DateTime receivedOn)
         {
-            DayOfWeek dayOfWeek = effectiveReceivedOnEst.DayOfWeek;
-
-            string cutOffTime = string.Empty;
-
-            switch (dayOfWeek)
+            using (ICommonService commonSvc = new CommonService())
             {
-                case DayOfWeek.Saturday:
-                    cutOffTime = docType.SatCutOff;
-                    break;
-                case DayOfWeek.Sunday:
-                    cutOffTime = docType.SunCutOff;
-                    break;
-                default:
-                    cutOffTime = docType.BizdayCutOff;
-                    break;
+                return commonSvc.GetStandardSubmissionTime(receivedOn, commonSvc.GetPCIBundleSweepTimings());
             }
-
-            var effectiveReceivedOnEstDate = effectiveReceivedOnEst.Date;
-            var stdPrepDateTime = effectiveReceivedOnEstDate + TimeSpan.Parse(cutOffTime);
-
-            return stdPrepDateTime.EstToUtc();
         }
 
         public static string GetPrintLocation(DocType docType, DateTime estEffectiveReceivedOn)

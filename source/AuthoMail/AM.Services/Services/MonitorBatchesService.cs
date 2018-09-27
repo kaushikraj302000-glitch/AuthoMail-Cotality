@@ -27,7 +27,12 @@ namespace AM.Services
         {
 
             string qry = "[dbo].[uspalert_GetDelayedBatchesToSubmit] @cutOffMinutes";
-            var timings = db.Query<Sweep>("select * from ufn_GetPCIBundleSweepTimings()").ToList();
+            List<Sweep> timings;
+            using (ICommonService commonSvc = new CommonService())
+            {
+                timings = commonSvc.GetPCIBundleSweepTimings();
+            }
+
             var pendingMPsToSubmit = db.Query<PendingMailPieceInfo>(qry, new { cutOffMinutes = cutOffMinutes }).ToList();
 
             var shippingStatusNullMailPieces = pendingMPsToSubmit.Where(p => p.ShippingStatus.IsNullOrEmpty()).ToList();

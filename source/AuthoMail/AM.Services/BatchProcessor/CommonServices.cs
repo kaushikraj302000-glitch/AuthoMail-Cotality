@@ -26,6 +26,8 @@ namespace AM.Services
         List<Holiday> GetHolidayList();
         string GetSystemUserId();
         List<DallasBatch> GetDallasBatches(DateTime estToday);
+        DateTime GetStandardSubmissionTime(DateTime receivedOn, List<Sweep> sweepTimings);
+        List<Sweep> GetPCIBundleSweepTimings();
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -147,6 +149,44 @@ namespace AM.Services
             string query = "Select * from [dbo].[ufn_GetDallasBatches](@EstToday)";
 
             return db.Query<DallasBatch>(query, new { EstToday = estToday }).ToList();
+        }
+
+        public DateTime GetStandardSubmissionTime(DateTime receivedOn, List<Sweep> sweepTimings)
+        {
+            var revisedReceivedOnEst = receivedOn.UtcToEst();
+
+            sweepTimings = sweepTimings.OrderBy(t => t.SrNo).ToList();
+
+            if (revisedReceivedOnEst.DayOfWeek == DayOfWeek.Saturday)
+            {
+                sweepTimings = sweepTimings.Where(s => s.WeekDayType == "Saturday").ToList();
+            }
+            else
+            {
+                sweepTimings = sweepTimings.Where(s => s.WeekDayType == "Weekday").ToList();
+            }
+
+            // adjust for sunday
+            revisedReceivedOnEst = revisedReceivedOnEst.DayOfWeek == DayOfWeek.Sunday ? revisedReceivedOnEst.AddDays(1).Date : revisedReceivedOnEst;
+
+            var applicableSweep = sweepTimings.FirstOrDefault(s => s.SweepTime >= revisedReceivedOnEst.TimeOfDay);
+
+            if (applicableSweep == null)
+            {
+                revisedReceivedOnEst = revisedReceivedOnEst.AddDays(1);
+                // adjust for sunday
+                revisedReceivedOnEst = revisedReceivedOnEst.DayOfWeek == DayOfWeek.Sunday ? revisedReceivedOnEst.AddDays(1).Date : revisedReceivedOnEst;
+                applicableSweep = sweepTimings.First();
+            }
+
+            var standardSubmissionTime = (revisedReceivedOnEst.Date + applicableSweep.SweepTime).EstToUtc();
+
+            return standardSubmissionTime;
+        }
+
+        public List<Sweep> GetPCIBundleSweepTimings()
+        {
+            return db.Query<Sweep>("SELECT * from ufn_GetPCIBundleSweepTimings()").ToList();
         }
     }
 }
