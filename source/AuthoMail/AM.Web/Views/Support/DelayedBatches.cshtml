@@ -33,7 +33,8 @@
         </div>
         <div class="panel-collapse collapse in">
             <div class="panel-body">
-                <div id="ClientWiseBatchCount" class="" style="padding:10px 0px"></div>
+                <div id="remainingminmaxtime" class="alert alert-blue" role="alert">Estimated fixing time minimum {0} hrs and maximum {1} hrs remaining</div>
+                <div id="ClientWiseBatchCount" style="padding:10px 0px"></div>
                 <div id="ClientWiseMailPieceCount" class="hidden" style="padding:10px 0px"></div>
                 <div class="clearfix">
                     <div id="supportMailBatchesList">
@@ -517,15 +518,19 @@
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     if (response != null) {
-
-                        if (response.Status == 'red')
-                        {
+                        if (response.Status == 'red') {
                             $('#statustitle').addClass('text-danger');
                             $('#statustitle').html('<i class="fa fa-exclamation-triangle"></i> ' + $('#statustitle').html());
                         }
                         else {
                             $('#statustitle').addClass('text-success');
                             $('#statustitle').html('<i class="fa fa-check-circle"></i> ' + $('#statustitle').html());
+                        }
+                        if (response.MinHour != 0) {
+                            $('#remainingminmaxtime').html($('#remainingminmaxtime').html().replace("{0}", response.MinHour).replace("{1}", response.MaxHour));
+                        }
+                        else {
+                            $('#remainingminmaxtime').hide();
                         }
                         $("#loading").hide();
                         $("#supportHeader").show();

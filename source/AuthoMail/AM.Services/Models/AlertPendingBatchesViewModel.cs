@@ -104,6 +104,24 @@ namespace AM.Services
                     return "green";
             }
         }
+        public double MinHour
+        {
+            get
+            {
+                if (DelayedMailPieces == null) return 0;
+                var lst = DelayedMailPieces.Where(d => d.MinRemainingHours > 0).Select(d => d.MinRemainingHours).ToList();
+                return lst.Count() > 0 ? lst.Min(d => d) : 0;
+            }
+        }
+        public double MaxHour
+        {
+            get
+            {
+                if (DelayedMailPieces == null) return 0;
+                var lst = DelayedMailPieces.Where(d => d.MinRemainingHours > 0).Select(d => d.MinRemainingHours).ToList();
+                return lst.Count() > 0 ? lst.Max(d => d) : 0;
+            }
+        }
     }
     public class MonitorAppCodeCount
     {
