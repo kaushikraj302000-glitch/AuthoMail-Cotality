@@ -19,7 +19,7 @@ namespace AM.Console
                 foreach (var item in docTypeList)
                 {
                     var docType = docTypeSvc.GetDocTypeById(item.DocTypeId);
-                    DateTime estEffectiveReceivedOn = Channel.GetEffectiveEstReceivedOn(docType, item.ReceivedOn.Value);
+                    DateTime estEffectiveReceivedOn = Channel.GetEffectiveEstReceivedOn(docType, item.ReceivedOn);
                     var dueDate = Channel.GetDueDate(docType, estEffectiveReceivedOn);                    
                     rSvc.UpdateDueDateAndEftRecOnEST(item.Id, dueDate,estEffectiveReceivedOn.EstToUtc());
                 }

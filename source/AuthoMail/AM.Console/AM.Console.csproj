@@ -78,6 +78,7 @@
     <Compile Include="AlaskaChannel.cs" />
     <Compile Include="AlaskaSchema.cs" />
     <Compile Include="AMCChannel.cs" />
+    <Compile Include="CalcStdPrepStartTime.cs" />
     <Compile Include="Channel.cs" />
     <Compile Include="ChannelFactory.cs" />
     <Compile Include="HSBCChannel.cs" />
