@@ -36,7 +36,10 @@
                     <div class="application-name">
                         <h1 style="line-height:50px;">@Html.ActionLink("AuthoMail", "Index", "Home", new { area = "" }, new { @class = "text-white ", @id = "mainlink" }) <span style="font-size:15px !important;" id="ClientName"></span></h1>
                     </div>
-
+                    @if (User.IsInRole(AM.Entities.AMRoles.Admin))
+                    {
+                        <span id="AMStatusNotification"></span>
+                    }
                 </div>
                 <div class="collapse navbar-collapse" id="example-navbar-collapse-3">
 
@@ -157,8 +160,28 @@
                 //console.log(!(/^[-]+[\s]+$/i.test(value)));
                 return this.optional(element) || !(/[-\s]+/i.test(value));
             },"space and dash not allow.");
-            //""
 
+            var GetAMStatus=function()
+            {
+                if($('#AMStatusNotification').length!=0)
+                {
+                    $.ajax({
+                        type: "GET",
+                        url: baseUrl+ "api/alert/GetDelayedPackagesStatus",
+                        data: {cutOff:30},
+                        dataType: "json",
+                        success: function (response) {
+                            if(response==false)
+                            {
+                                $('#AMStatusNotification').parent().find('a').addClass('text-danger blink');
+                                $('#AMStatusNotification').parent().find('a').css({'color':'rgb(253, 231, 6,1)','text-shadow':'0px 0px #ffffff'});
+                            }
+                        }
+                    });
+
+                }
+            }
+            GetAMStatus();
         });
 
         function RefreshDataByClientId(obj) {

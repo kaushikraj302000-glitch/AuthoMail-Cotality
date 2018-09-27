@@ -18,9 +18,11 @@ namespace AM.Services
         int CheckPrintBatchIdExist(int mailBatchId, bool IsSubmitted);
         int CheckLastEmailSentTime(int mailBatchId, bool IsSubmitted);
         void UpdateEmailTimeStamp(int mailBatchId, bool IsSubmitted);
+
+        bool GetDelayedPackagesStatus(int effectiveCutOff);
     }
     public class MonitorBatchesService : ServiceBase, IMonitorBatchesService
-    {        
+    {
         public MonitorReport GetPendingBatchesToSubmit(int cutOffMinutes)
         {
 
@@ -50,7 +52,7 @@ namespace AM.Services
 
             return new MonitorReport { DelayedBatches = delayedBatches, DelayedMailPieces = delayedMailPieces };
         }
-      
+
         public List<dynamic> GetPendingBatchesToReportBack()
         {
             //return db.Query("SELECT PB.PrintBatch,CC.AppCode,PB.PrintFileName,PB.Pipelinestatus,PB.ReceivedOn,PB.DownloadedOn,PB.PreppedOn,PB.SubmittedOn FROM PnS.BatchSummary PB LEFT OUTER JOIN AM.PrintBatches AP ON AP.UniqueId = PB.BatchIdentifier INNER JOIN Common.Clients CC ON CC.Id = PB.ClientId WHERE PB.IsSubmitted = 1 AND (PB.IsReportedBack = 0 OR AP.IsShippingResponseReceived = 0) AND DATEDIFF(HOUR, ReceivedOn, GETUTCDATE()) > 10 AND PB.PipelineStatus <> 'Cancelled'").ToList();
@@ -74,7 +76,11 @@ namespace AM.Services
             db.Execute("UPDATE Common.MonitorBatches SET Email_TimeStamp = GETUTCDATE(),IsSubmitted = @IsSubmitted WHERE MailBatchId = @MailBatchId", new { @MailBatchId = mailBatchId, @IsSubmitted = IsSubmitted });
         }
 
-
+        public bool GetDelayedPackagesStatus(int effectiveCutOff)
+        {
+            int result = db.Execute("dbo.uspalert_GetDelayedPackagesStatus @p1", new { p1 = effectiveCutOff });
+            return result > 0 ? false : true;
+        }
     }
 }
 

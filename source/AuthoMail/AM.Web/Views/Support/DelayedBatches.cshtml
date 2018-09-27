@@ -25,7 +25,7 @@
         <div class="panel-heading" id="headingOne">
             <div class="panel-title">
                 <a role="button" data-toggle="collapse" data-parent="#accordion" href="#metaItem1">
-                    Delayed Packages
+                    <span id="statustitle">Delayed Packages</span>
                 </a>
                 <button class="btn btn-warning active" type="button" id="supportMailBatchesListBtn">Grouped by Batch</button>
                 <button class="btn btn-warning" type="button" id="supportMailPiecesListBtn">All Mail Pieces</button>
@@ -517,6 +517,16 @@
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     if (response != null) {
+
+                        if (response.Status == 'red')
+                        {
+                            $('#statustitle').addClass('text-danger blink');
+                            $('#statustitle').html('<i class="fa fa-exclamation-triangle fa-2x"></i> ' + $('#statustitle').html());
+                        }
+                        else {
+                            $('#statustitle').addClass('text-success blink');
+                            $('#statustitle').html('<i class="fa fa-check-triangle fa-2x"></i> ' + $('#statustitle').html());
+                        }
                         $("#loading").hide();
                         $("#supportHeader").show();
                         //$("#supportMailBatchesList").show();
@@ -529,7 +539,7 @@
                             window.clui.tooltipInit();
                         }
                         else {
-                            $("#supportMailBatchesList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                            $("#supportMailBatchesList").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                         }
                         if (response.AppCodeCountByBatch != null && response.AppCodeCountByBatch.length > 0) {
                             var dispText = "";
@@ -549,7 +559,7 @@
                             //window.clui.tooltipInit();
 
                         } else {
-                            $("#supportMailPiecesList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                            $("#supportMailPiecesList").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                         }
                         if (response.AppCodeCountByMailPiece != null && response.AppCodeCountByMailPiece.length > 0) {
                             var dispText = "";

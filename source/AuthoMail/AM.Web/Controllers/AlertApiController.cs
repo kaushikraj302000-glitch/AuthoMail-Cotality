@@ -31,5 +31,15 @@ namespace AM.Web.Controllers
                 effectiveCutOff = defaultCutOff;
             return alertSvc.GetPendingBatchesToSubmit(effectiveCutOff);
         }
+        [HttpGet, Route("GetDelayedPackagesStatus/{*cutOff}")]
+        public bool GetDelayedPackagesStatus(string cutOff)
+        {
+            int defaultCutOff = 30;
+            int effectiveCutOff;
+            if (!int.TryParse(cutOff, out effectiveCutOff))
+                effectiveCutOff = defaultCutOff;
+            var data = alertSvc.GetPendingBatchesToSubmit(effectiveCutOff);
+            return data.Status == "red" ? false : true;
+        }
     }
 }
