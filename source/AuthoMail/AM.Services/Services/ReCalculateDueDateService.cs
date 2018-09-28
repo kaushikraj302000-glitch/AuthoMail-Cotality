@@ -10,10 +10,10 @@ namespace AM.Services
     public interface IReCalculateDueDateService : IDisposable
     {
         List<Recal> GetDocTypeTest();
-        List<Recal> GetCalcListOfPrepStartTime();
+        List<Recal> GetCalcListOfMailPieces();
         List<Sweep> GetSweepTimings();
         int UpdateDueDateAndEftRecOnEST(int Id, DateTime dueDate, DateTime effectiveReceivedOnEst);
-        int UpdateStdPrepStartTime(int id, DateTime stdPrepStartTime);
+        int UpdateSubmissionTime(int id, DateTime stdSubmissionTime, DateTime maxSubmissionTime, string missedSLAReason);
     }
     public class ReCalculateDueDateService : ServiceBase, IReCalculateDueDateService
     {
@@ -31,9 +31,9 @@ namespace AM.Services
             return db.Execute(q, new { id = Id, dueDate = dueDate, effectiveReceivedOnEst = effectiveReceivedOnEst });
         }
 
-        public List<Recal> GetCalcListOfPrepStartTime()
+        public List<Recal> GetCalcListOfMailPieces()
         {
-            string q = "select M.Id,B.ReceivedOn from AM.MailPieces M inner join AM.MailBatches B on M.MailbatchId = B.Id Where B.ReceivedOn > '9/13/2018' AND DueDate IS NOT NULL and M.PrintLocation = 'Fort Mill, SC'";
+            string q = "select M.Id,M.UniqueId,B.ReceivedOn,M.ClientId,M.SLADays,M.DueDate,M.ShippingStatus,M.DocTypeId,M.PrintLocation,M.ShippedOn,M.EffectiveReceivedOnEst,D.BizdayCutOff,D.SatCutOff,M.MissedSLAReason,M.StdSubmissionTime,M.MaxSubmissionTime from AM.MailPieces M inner join AM.MailBatches B on M.MailbatchId = B.Id inner join AM.DocTypes D on M.DocTypeId = D.Id Where DueDate IS NOT NULL and M.EffectiveReceivedOnEst IS NOT NULL and M.PrintLocation is not null";
             return db.Query<Recal>(q).ToList();
         }
 
@@ -42,18 +42,28 @@ namespace AM.Services
             return db.Query<Sweep>("select * from ufn_GetPCIBundleSweepTimings()").ToList();
         }
 
-        public int UpdateStdPrepStartTime(int id, DateTime stdPrepStartTime)
+        public int UpdateSubmissionTime(int id, DateTime stdSubmissionTime, DateTime maxSubmissionTime, string missedSLAReason)
         {
-            string q = "UPDATE AM.MailPieces SET StdPrepStartTime = @stdPrepStartTime FROM AM.MailPieces  WHERE Id = @Id and DueDate IS NOT NULL AND PrintLocation = 'Fort Mill, SC'";
-            return db.Execute(q, new { Id = id, stdPrepStartTime = stdPrepStartTime });
+            string q = "UPDATE AM.MailPieces SET StdSubmissionTime = @stdSubmissionTime,MaxSubmissionTime = @maxSubmissionTime,MissedSLAReason = @missedSLAReason FROM AM.MailPieces WHERE Id = @Id";
+            return db.Execute(q, new { Id = id, stdSubmissionTime = stdSubmissionTime, maxSubmissionTime = maxSubmissionTime, missedSLAReason = missedSLAReason });
         }
     }
     public class Recal
     {
         public int Id { get; set; }
+        public Guid UniqueId { get; set; }
         public int DocTypeId { get; set; }
         public DateTime? DueDate { get; set; }
         public DateTime ReceivedOn { get; set; }
+        public string ShippingStatus { get; set; }
+        public string PrintLocation { get; set; }
+        public DateTime? ShippedOn { get; set; }
+        public DateTime? EffectiveReceivedOnEst { get; set; }
+        public string BizdayCutOff { get; set; }
+        public string SatCutOff { get; set; }
+        public string MissedSLAReason { get; set; }
+        public DateTime? StdSubmissionTime { get; set; }
+        public DateTime? MaxSubmissionTime { get; set; }
     }
 
 
