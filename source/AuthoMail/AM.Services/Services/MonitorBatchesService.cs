@@ -45,8 +45,6 @@ namespace AM.Services
 
             var delayedDallasMailPieces = pendingInProgressMailPieces.Where(p => p.PrintLocation == Config.Common_PrintLocationCL).ToList();
 
-            var pendingPCIMailPieces = pendingInProgressMailPieces.Where(p => p.PrintLocation == Config.Common_PrintLocationPCI).ToList();
-
             var delayedPCIMailPieces = pendingInProgressMailPieces.Where(mp => mp.PrintLocation == Config.Common_PrintLocationPCI && Common.Now > mp.GetEstimatedSubmittedOn(timings, cutOffMinutes + 15)).ToList();
 
             var delayedMailPieces = delayedDallasMailPieces.Concat(delayedEmptyPrintLocation).Concat(delayedShippedMailPieces).Concat(delayedPulledBackMailPieces).Concat(delayedErrorMailPieces).Concat(clientIdNullMailPieces).Concat(shippingStatusNullMailPieces).Concat(delayedPCIMailPieces).ToList();
