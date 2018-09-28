@@ -194,6 +194,9 @@ namespace AM.Console
 
                 foreach (var map in amcClientMaps)
                 {
+                    if (!inputXmlByCustId.ContainsKey(map.AMCCustId))
+                        continue;
+
                     Client client = clientSvc.GetClientById(map.ClientId);
 
                     clients.Add(client);
@@ -259,7 +262,7 @@ namespace AM.Console
                     //Now delete/archive trigger and zip from SFTP
                     MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, batchName + ".zip"));
                     MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, batchName + "_Complete.go"));
-                    
+
                     //After complete process clean AMC folder
                     amcDownloadPath.CleanDirectory();
 

@@ -48,8 +48,9 @@
       <HintPath>..\packages\EnterpriseLibrary.Data.6.0.1304.0\lib\NET45\Microsoft.Practices.EnterpriseLibrary.Data.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="PCI.Lib">
-      <HintPath>..\..\..\..\..\PCI Project\Git\PCI\PCI.Lib\bin\Debug\PCI.Lib.dll</HintPath>
+    <Reference Include="PCI.Lib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>PCILib\PCI.Lib.dll</HintPath>
     </Reference>
     <Reference Include="Renci.SshNet, Version=2016.0.0.0, Culture=neutral, PublicKeyToken=1cee9f8bde3db106, processorArchitecture=MSIL">
       <HintPath>..\packages\SSH.NET.2016.0.0\lib\net40\Renci.SshNet.dll</HintPath>
@@ -223,13 +224,13 @@
     <Content Include="DB Script\Test Batch CleanUp Query.sql" />
     <Content Include="DB Script\Views\view_MRDFResponseData.sql" />
     <Content Include="PCIJobMonitor\PCIJobNotes.txt" />
+    <Content Include="PCILib\PCI.Lib.dll" />
     <Content Include="Resources\Notes.txt" />
     <Content Include="Templates\SubmitBatch.html" />
     <Content Include="Templates\SuspendedBatch.html" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="BatchSamples\OldPrefixBatch\1-BAC Delfus\PnSResponse\" />
-    <Folder Include="PCIRoot\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
