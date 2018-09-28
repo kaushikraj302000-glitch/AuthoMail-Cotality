@@ -818,7 +818,8 @@ namespace AM.Console
 
                         MailUtility.SendDownloadNotificationEmail(mbi, mailPieces, emailErrorReportPath, deliverable.EmailChannel);
                         //After upload change extension of local file Path
-                        File.Move(emailErrorReportPath, Path.ChangeExtension(emailErrorReportPath, ".uploaded"));
+                        if (File.Exists(emailErrorReportPath))
+                            File.Move(emailErrorReportPath, Path.ChangeExtension(emailErrorReportPath, ".uploaded"));
                     }
                     catch (Exception ex)
                     {
@@ -907,6 +908,7 @@ namespace AM.Console
             switch (mbi.Client.AppCode)
             {
                 case "AMCInvalid":
+                case "BECU":
                 case "USAA":
                     errorReportFileName = "Error-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
                     //string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
