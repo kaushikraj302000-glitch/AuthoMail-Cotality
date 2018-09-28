@@ -65,7 +65,6 @@ namespace AM.Monitor
                             batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p> </td>", monitor_Pipelinestatus, pendingBatch.PipelineStatus != null ? pendingBatch.PipelineStatus.ToString() : string.Empty));
                             batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td>", monitor_ReceivedOn, receivedOn.UtcToEst().ToString()));
                             batchData.AppendLine(string.Format("<td {0} {1} <u></u><u></u></p>  </td> </tr>", monitor_DownloadedOn, pendingBatch.DelayedMailPieces.Count));
-
                             monitorSvc.UpdateEmailTimeStamp(int.Parse(pendingBatch.Id.ToString()), true);
                         }
                     }

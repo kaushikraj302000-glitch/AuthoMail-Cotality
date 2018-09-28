@@ -23,12 +23,12 @@ namespace AM.Services
         public string ShippingServiceType { get; set; }
         public int? ClientId { get; set; }
         public string PrintLocation { get; set; }
-        public DateTime? StdPrepStartTime { get; set; }
+        public DateTime? StdSubmissionTime { get; set; }
         public double MinRemainingHours
         {
             get
             {
-                return StdPrepStartTime.Value.Subtract(Common.Now).TotalHours;
+                return StdSubmissionTime.Value.Subtract(Common.Now).TotalHours;
             }
         }
 
