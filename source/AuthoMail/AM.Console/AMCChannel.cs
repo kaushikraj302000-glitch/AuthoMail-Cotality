@@ -136,6 +136,7 @@ namespace AM.Console
             mailBatch.ClientBatchId = batchName;
             mailBatch.Priority = Priority.Medium.ToString();
             mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
+            commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, receivedOn);
             mailBatchSvc.MarkMailBatchAsInvalid(mailBatch.Id, errorMessage);
             commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.Failed.ToString());
             return mailBatch;
