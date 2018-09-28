@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AM.Lib;
+using AM.Entities;
 
 namespace AM.Console
 {
@@ -12,52 +13,37 @@ namespace AM.Console
     {
         public static void Start()
         {
-            using (IReCalculateDueDateService rSvc = new ReCalculateDueDateService())            
+                        
+            using (IReCalculateDueDateService rSvc = new ReCalculateDueDateService())
+            using (ICommonService cSvc = new CommonService())
             {
-                var calcStdPrepStartTimeList = rSvc.GetCalcListOfPrepStartTime();
+                var calcStdPrepStartTimeList = rSvc.GetCalcListOfMailPieces();
                 var timings = rSvc.GetSweepTimings();
+                DateTime bundleStartDate = new DateTime(2018,9,13);
+                
                 foreach (var item in calcStdPrepStartTimeList)
                 {
-                    DateTime stdPrepStartTime = GetEstimatedSubmittedOn(timings, 0, item.ReceivedOn);
-                    if (stdPrepStartTime == null)
+                    if (item.ReceivedOn < bundleStartDate || item.PrintLocation == Config.Common_PrintLocationCL)
                     {
-                        
+                        item.StdSubmissionTime = item.ReceivedOn;
                     }
-                    rSvc.UpdateStdPrepStartTime(item.Id, stdPrepStartTime);
+                    else
+                    {
+                        item.StdSubmissionTime = cSvc.GetStandardSubmissionTime(item.ReceivedOn, timings); 
+                    }
+
+                    if (item.EffectiveReceivedOnEst.Value.DayOfWeek == DayOfWeek.Saturday)
+                    {
+                        item.MaxSubmissionTime = (item.EffectiveReceivedOnEst.Value.Date + TimeSpan.Parse(item.SatCutOff)).EstToUtc();
+                    }
+                    else
+                    {
+                        item.MaxSubmissionTime = (item.EffectiveReceivedOnEst.Value.Date + TimeSpan.Parse(item.BizdayCutOff)).EstToUtc();
+                    }
+                    
+                    rSvc.UpdateSubmissionTime(item.Id, item.StdSubmissionTime.Value, item.MaxSubmissionTime.Value,null);                    
                 }
             }
-        }
-
-        public static DateTime GetEstimatedSubmittedOn(List<Sweep> sweepTimings, int bufferTime,DateTime receivedOn)
-        {
-            var revisedReceivedOnEst = receivedOn.UtcToEst();
-            
-            sweepTimings = sweepTimings.OrderBy(t => t.SrNo).ToList();
-            if (revisedReceivedOnEst.DayOfWeek == DayOfWeek.Saturday)
-            {
-                sweepTimings = sweepTimings.Where(s => s.WeekDayType == "Saturday").ToList();
-            }
-            else
-            {
-                sweepTimings = sweepTimings.Where(s => s.WeekDayType == "Weekday").ToList();
-            }            
-
-            // adjust for sunday
-            revisedReceivedOnEst = revisedReceivedOnEst.DayOfWeek == DayOfWeek.Sunday ? revisedReceivedOnEst.AddDays(1).Date : revisedReceivedOnEst;
-
-            var applicableSweep = sweepTimings.FirstOrDefault(s => s.SweepTime >= revisedReceivedOnEst.TimeOfDay);
-
-            if (applicableSweep == null)
-            {
-                revisedReceivedOnEst = revisedReceivedOnEst.AddDays(1);
-                // adjust for sunday
-                revisedReceivedOnEst = revisedReceivedOnEst.DayOfWeek == DayOfWeek.Sunday ? revisedReceivedOnEst.AddDays(1).Date : revisedReceivedOnEst;
-                applicableSweep = sweepTimings.First();
-            }
-
-            var estimatedSubmittedOn = (revisedReceivedOnEst.Date + applicableSweep.SweepTime.Add(new TimeSpan(0, bufferTime, 0))).EstToUtc();
-
-            return estimatedSubmittedOn;
         }
     }
 }
