@@ -29,7 +29,7 @@ namespace AM.Services
             get
             {
                 if (!MaxSubmissionTime.HasValue) return 0;
-                    return MaxSubmissionTime.Value.Subtract(Common.Now).TotalHours;                
+                return MaxSubmissionTime.Value.Subtract(Common.Now).TotalHours;
             }
         }
 
@@ -81,22 +81,22 @@ namespace AM.Services
                     return "green";
             }
         }
-        public double MinHour
+        public int MinHour
         {
             get
             {
                 if (DelayedMailPieces == null) return 0;
                 var lst = DelayedMailPieces.Where(d => d.MinRemainingHours > 0).Select(d => d.MinRemainingHours).ToList();
-                return lst.Count() > 0 ? lst.Min(d => d) : 0;
+                return lst.Count() > 0 ? Convert.ToInt32(lst.Min(d => d)) : 0;
             }
         }
-        public double MaxHour
+        public int MaxHour
         {
             get
             {
                 if (DelayedMailPieces == null) return 0;
                 var lst = DelayedMailPieces.Where(d => d.MinRemainingHours > 0).Select(d => d.MinRemainingHours).ToList();
-                return lst.Count() > 0 ? lst.Max(d => d) : 0;
+                return lst.Count() > 0 ? Convert.ToInt32(lst.Max(d => d)) : 0;
             }
         }
     }

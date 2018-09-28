@@ -240,11 +240,11 @@ namespace AM.Services
             var dailySummaryChartList = data.GroupBy(d => d.DocTypeCode).Select(
                 s => new DailySummaryChartVM
                 {
-                    DocTypeCode = s.First().DocTypeCode,
-                    Shipped = s.Count(t => t.ShippingStatus == ShippingStatus.Shipped.ToString()),
-                    InProgress = s.Count(t => t.ShippingStatus == ShippingStatus.InProgress.ToString()),
-                    PulledBack = s.Count(t => t.ShippingStatus == ShippingStatus.PulledBack.ToString()),
-                    Error = s.Count(t => t.ShippingStatus == ShippingStatus.Error.ToString())
+                    DocTypeCode = s.Key,
+                    Shipped = s.Count(t => t.ShippingStatus == ShippingStatus.Shipped.ToString() && t.DocTypeCode == s.Key),
+                    InProgress = s.Count(t => t.ShippingStatus == ShippingStatus.InProgress.ToString() && t.DocTypeCode == s.Key),
+                    PulledBack = s.Count(t => t.ShippingStatus == ShippingStatus.PulledBack.ToString() && t.DocTypeCode == s.Key),
+                    Error = s.Count(t => t.ShippingStatus == ShippingStatus.Error.ToString() && t.DocTypeCode == s.Key)
                 }
                 ).ToList();
             return dailySummaryChartList;
