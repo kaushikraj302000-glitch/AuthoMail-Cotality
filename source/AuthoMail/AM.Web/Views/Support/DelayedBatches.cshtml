@@ -33,7 +33,7 @@
         </div>
         <div class="panel-collapse collapse in">
             <div class="panel-body">
-                <div id="remainingminmaxtime" class="alert alert-blue" role="alert">Estimated fixing time minimum {0} hrs and maximum {1} hrs remaining</div>
+                <div id="remainingminmaxtime" class="alert alert-blue hidden" role="alert">Estimated fixing time minimum {0} hrs and maximum {1} hrs remaining</div>
                 <div id="ClientWiseBatchCount" style="padding:10px 0px"></div>
                 <div id="ClientWiseMailPieceCount" class="hidden" style="padding:10px 0px"></div>
                 <div class="clearfix">
@@ -331,7 +331,7 @@
                 }],
 
                 "order": [
-                    [1, 'desc']
+                    [0, 'asc']
                 ],
                 "lengthMenu": [
                     [5, 10, 25, 50, 100, -1],
@@ -400,7 +400,7 @@
                 ],
 
                 "order": [
-                    [0, 'desc']
+                    [0, 'asc']
                 ],
                 "lengthMenu": [
                     [5, 10, 25, 50, 100, -1],
@@ -528,6 +528,8 @@
                         }
                         if (response.MinHour != 0) {
                             $('#remainingminmaxtime').html($('#remainingminmaxtime').html().replace("{0}", response.MinHour).replace("{1}", response.MaxHour));
+                            $('#remainingminmaxtime').removeClass('hidden');
+                            $('#remainingminmaxtime').show();
                         }
                         else {
                             $('#remainingminmaxtime').hide();
