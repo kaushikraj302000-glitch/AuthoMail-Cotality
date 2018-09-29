@@ -10,7 +10,7 @@ using AM.Entities;
 using AutoMapper;
 namespace AM.Web.Controllers
 {
-    [Authorize(Roles = AMRoles.Admin)]
+    [Authorize(Roles = AMRoles.Admin+ "," + AMRoles.BA)]
     public class SupportController : BaseController
     {
         ISupportReportService supportSvc;
@@ -118,6 +118,7 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse(e.ToString()), JsonRequestBehavior.AllowGet);
             }
         }
+        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA)]
         [HttpGet]
         public ActionResult DelayedBatches()
         {
