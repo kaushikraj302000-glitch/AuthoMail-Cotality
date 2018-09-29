@@ -153,7 +153,7 @@ namespace AM.Services
 
         public DateTime GetStandardSubmissionTime(string appCode, string printLocation, DateTime receivedOn, List<Sweep> pciSweepTimings)
         {
-            if (printLocation == Config.Common_PrintLocationCL || appCode == "ALASKA" || appCode == "HSBC")
+            if (printLocation == Config.Common_PrintLocationCL || appCode == "ALASKA")
                 return receivedOn;
 
             var revisedReceivedOnEst = receivedOn.UtcToEst();
