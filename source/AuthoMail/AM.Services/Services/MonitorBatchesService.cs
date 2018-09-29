@@ -7,6 +7,8 @@ using Dapper;
 using AM.Lib;
 using AM.Entities;
 using AM.Services.Services;
+using System.Text.RegularExpressions;
+using System.IO;
 
 namespace AM.Services
 {
@@ -83,6 +85,36 @@ namespace AM.Services
         {
             int result = db.Execute("dbo.uspalert_GetDelayedPackagesStatus @p1", new { p1 = effectiveCutOff });
             return result > 0 ? false : true;
+        }
+
+        public List<string> EnumerateBatches()
+        {
+            List<string> triggerFilePaths = new List<string>();
+            SFTChannel sftChannel;
+            using (IClientService clientSvc = new ClientService())
+            {
+                sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelCode("AMC_" + Config.Common_Environment);
+            }
+            SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannel.Protocol), sftChannel.Host, sftChannel.UserName, sftChannel.Password, 300000);
+            sftSite.Connect();
+
+            triggerFilePaths = GetTriggerFilePaths(sftSite, sftChannel.ToADEDir);
+
+            if (sftSite.IsConnected)
+                sftSite.Disconnect();
+            return triggerFilePaths;
+        }
+
+        private List<string> GetTriggerFilePaths(SFTUtil sftSite, string toADEDir)
+        {
+            var regex = new Regex(@"^(\w*)_Complete.go$", RegexOptions.IgnoreCase);
+
+            List<string> availableTriggerFilePaths = sftSite.ListDirectory(toADEDir)
+                .Select(f => regex.Match(Path.GetFileName(f)))
+                .Where(m => m.Success)
+                .Select(m => m.Groups[1].Value)
+                .ToList();
+            return availableTriggerFilePaths;
         }
     }
 }
