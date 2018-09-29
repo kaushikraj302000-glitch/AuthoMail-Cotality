@@ -71,14 +71,14 @@ namespace AM.Services
                 return DelayedMailPieces.GroupBy(g => g.AppCode).Select(g => new MonitorAppCodeCount { AppCode = g.Key, Total = g.Count() }).ToList();
             }
         }
-        public string Status
+        public bool Status
         {
             get
             {
                 if (this.DelayedMailPieces.Count > 0 || this.DelayedBatches.Count > 0)
-                    return "red";
+                    return false;
                 else
-                    return "green";
+                    return true;
             }
         }
         public int MinHour
@@ -99,10 +99,29 @@ namespace AM.Services
                 return lst.Count() > 0 ? Convert.ToInt32(lst.Max(d => d)) : 0;
             }
         }
+        public DateTime? LastBatchReceivedOn
+        {
+            get
+            {
+                if (DelayedBatches == null || DelayedBatches.Count() == 0) return null;
+                return DelayedBatches.Max(d => d.ReceivedOn);
+            }
+        }
+        public DateTime LastUpdatedOn { get { return DateTime.UtcNow; } }//Status Date
     }
     public class MonitorAppCodeCount
     {
         public string AppCode { get; set; }
         public int Total { get; set; }
+    }
+    public class AMGlobalStatus
+    {
+        public int DelayedBatches { get; set; }
+        public int DelayedMailPieces { get; set; }
+        public int MinHour { get; set; }
+        public int MaxHour { get; set; }
+        public bool Status { get; set; }
+        public DateTime? LastBatchReceivedOn { get; set; }
+        public DateTime LastUpdatedOn { get; set; }
     }
 }

@@ -605,7 +605,7 @@
             });
             $("#loadingModal").hide();
             $("#showerror").hide();
-            //var data = FormatMailPieceObject(MPs);
+            var data = FormatMailPieceObject(MPs);
             BindTemplateWithOutDatatable(MPs, "#delayedmailpiecesbodymodal", "#delayedbatchmailpiecesbodyContentmodal", "#delayedbatchmailpiecesContentmodal", "#databind");
             $('[data-toggle="popover"]').popover({
                 'trigger': 'hover',
