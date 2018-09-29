@@ -495,6 +495,7 @@
     <Content Include="Views\Support\NotReportedBackOfMailBatches.cshtml" />
     <Content Include="Views\Support\DelayedBatches.cshtml" />
     <Content Include="Views\Support\AllClientsPackages.cshtml" />
+    <Content Include="Views\Home\AMHealth.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
