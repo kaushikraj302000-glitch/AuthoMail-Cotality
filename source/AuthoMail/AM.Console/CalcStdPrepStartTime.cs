@@ -13,14 +13,14 @@ namespace AM.Console
     {
         public static void Start()
         {
-                        
+
             using (IReCalculateDueDateService rSvc = new ReCalculateDueDateService())
             using (ICommonService cSvc = new CommonService())
             {
                 var calcStdPrepStartTimeList = rSvc.GetCalcListOfMailPieces();
                 var timings = rSvc.GetSweepTimings();
-                DateTime bundleStartDate = new DateTime(2018,9,13);
-                
+                DateTime bundleStartDate = new DateTime(2018, 9, 13);
+
                 foreach (var item in calcStdPrepStartTimeList)
                 {
                     if (item.ReceivedOn < bundleStartDate || item.PrintLocation == Config.Common_PrintLocationCL)
@@ -29,7 +29,7 @@ namespace AM.Console
                     }
                     else
                     {
-                        item.StdSubmissionTime = cSvc.GetStandardSubmissionTime(item.ReceivedOn, timings); 
+                        item.StdSubmissionTime = cSvc.GetStandardSubmissionTime(item.AppCode, item.PrintLocation, item.ReceivedOn, timings);
                     }
 
                     if (item.EffectiveReceivedOnEst.Value.DayOfWeek == DayOfWeek.Saturday)
@@ -40,8 +40,8 @@ namespace AM.Console
                     {
                         item.MaxSubmissionTime = (item.EffectiveReceivedOnEst.Value.Date + TimeSpan.Parse(item.BizdayCutOff)).EstToUtc();
                     }
-                    
-                    rSvc.UpdateSubmissionTime(item.Id, item.StdSubmissionTime.Value, item.MaxSubmissionTime.Value,null);                    
+
+                    rSvc.UpdateSubmissionTime(item.Id, item.StdSubmissionTime.Value, item.MaxSubmissionTime.Value, null);
                 }
             }
         }

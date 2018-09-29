@@ -457,7 +457,9 @@ namespace AM.Console
             using (IMailPieceService mailPieceSvc = new MailPieceService())
             using (IDocTypeService docTypeSvc = new DocTypeService())
             using (ICommonService commonSvc = new CommonService())
+            using (IClientService clientSvc = new ClientService())
             {
+
                 List<MailBatchDTO> validatedBatches = mailBatchSvc.GetBatchesByPipelineStatusAndSFTChannelId(BatchPipelineStatus.Validated, sftChannelId);
                 if (validatedBatches.Count == 0)
                 {
@@ -469,6 +471,8 @@ namespace AM.Console
 
                 foreach (var mailBatch in validatedBatches)
                 {
+                    Client client = clientSvc.GetClientById(mailBatch.ClientId);
+
                     var mailPieceData = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatch.Id);
 
                     List<MailPieceDTO> validMailPieces = mailPieceData.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
@@ -491,7 +495,7 @@ namespace AM.Console
                         //Set print location where mail piece will go for print and ship
                         mailPiece.PrintLocation = Channel.GetPrintLocation(docType, effectiveEstReceivedOn);
                         //This field will be used for monitoring data
-                        mailPiece.StdSubmissionTime = Channel.GetStandardSubmissionTime(mailBatch.ReceivedOn.Value, sweepTimings);
+                        mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, mailPiece.PrintLocation, mailBatch.ReceivedOn.Value, sweepTimings);
                         mailPiece.MaxSubmissionTime = Channel.GetMaximumSubmissionTime(docType, effectiveEstReceivedOn);
                         mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                     }
@@ -646,14 +650,6 @@ namespace AM.Console
 
 
             return dueDate.EstToUtc();
-        }
-
-        public static DateTime GetStandardSubmissionTime(DateTime receivedOn, List<Sweep> sweepTimings)
-        {
-            using (ICommonService commonSvc = new CommonService())
-            {
-                return commonSvc.GetStandardSubmissionTime(receivedOn, sweepTimings);
-            }
         }
 
         public static string GetPrintLocation(DocType docType, DateTime estEffectiveReceivedOn)

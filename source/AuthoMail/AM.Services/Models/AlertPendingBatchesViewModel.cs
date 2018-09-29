@@ -37,7 +37,7 @@ namespace AM.Services
         {
             using (ICommonService commonSvc = new CommonService())
             {
-                return commonSvc.GetStandardSubmissionTime(this.ReceivedOn, sweepTimings).Add(new TimeSpan(0, bufferTime, 0));
+                return commonSvc.GetStandardSubmissionTime(this.AppCode, this.PrintLocation, this.ReceivedOn, sweepTimings).Add(new TimeSpan(0, bufferTime, 0));
             }
         }
     }
