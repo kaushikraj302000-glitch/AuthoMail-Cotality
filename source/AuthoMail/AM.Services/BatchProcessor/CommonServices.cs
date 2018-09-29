@@ -26,7 +26,7 @@ namespace AM.Services
         List<Holiday> GetHolidayList();
         string GetSystemUserId();
         List<DallasBatch> GetDallasBatches(DateTime estToday);
-        DateTime GetStandardSubmissionTime(DateTime receivedOn, List<Sweep> sweepTimings);
+        DateTime GetStandardSubmissionTime(string appCode, string printLocation, DateTime receivedOn, List<Sweep> pciSweepTimings);
         List<Sweep> GetPCIBundleSweepTimings();
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
@@ -151,32 +151,35 @@ namespace AM.Services
             return db.Query<DallasBatch>(query, new { EstToday = estToday }).ToList();
         }
 
-        public DateTime GetStandardSubmissionTime(DateTime receivedOn, List<Sweep> sweepTimings)
+        public DateTime GetStandardSubmissionTime(string appCode, string printLocation, DateTime receivedOn, List<Sweep> pciSweepTimings)
         {
+            if (printLocation == Config.Common_PrintLocationCL || appCode == "ALASKA" || appCode == "HSBC")
+                return receivedOn;
+
             var revisedReceivedOnEst = receivedOn.UtcToEst();
 
-            sweepTimings = sweepTimings.OrderBy(t => t.SrNo).ToList();
+            pciSweepTimings = pciSweepTimings.OrderBy(t => t.SrNo).ToList();
 
             if (revisedReceivedOnEst.DayOfWeek == DayOfWeek.Saturday)
             {
-                sweepTimings = sweepTimings.Where(s => s.WeekDayType == "Saturday").ToList();
+                pciSweepTimings = pciSweepTimings.Where(s => s.WeekDayType == "Saturday").ToList();
             }
             else
             {
-                sweepTimings = sweepTimings.Where(s => s.WeekDayType == "Weekday").ToList();
+                pciSweepTimings = pciSweepTimings.Where(s => s.WeekDayType == "Weekday").ToList();
             }
 
             // adjust for sunday
             revisedReceivedOnEst = revisedReceivedOnEst.DayOfWeek == DayOfWeek.Sunday ? revisedReceivedOnEst.AddDays(1).Date : revisedReceivedOnEst;
 
-            var applicableSweep = sweepTimings.FirstOrDefault(s => s.SweepTime >= revisedReceivedOnEst.TimeOfDay);
+            var applicableSweep = pciSweepTimings.FirstOrDefault(s => s.SweepTime >= revisedReceivedOnEst.TimeOfDay);
 
             if (applicableSweep == null)
             {
                 revisedReceivedOnEst = revisedReceivedOnEst.AddDays(1);
                 // adjust for sunday
                 revisedReceivedOnEst = revisedReceivedOnEst.DayOfWeek == DayOfWeek.Sunday ? revisedReceivedOnEst.AddDays(1).Date : revisedReceivedOnEst;
-                applicableSweep = sweepTimings.First();
+                applicableSweep = pciSweepTimings.First();
             }
 
             var standardSubmissionTime = (revisedReceivedOnEst.Date + applicableSweep.SweepTime).EstToUtc();
