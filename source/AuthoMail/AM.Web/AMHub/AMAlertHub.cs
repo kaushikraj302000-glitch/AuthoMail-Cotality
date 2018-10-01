@@ -20,25 +20,16 @@ namespace AM.Web.AMHub
             t.Interval = 1000 * 60 * minutes;
             t.Elapsed += TimerElapsed;
             t.Start();
-            t.Enabled = true;
         }
         private void TimerElapsed(object sender, ElapsedEventArgs e)
         {
-            if (connectedClients > 0)
-            {
-                //Send Message to all clients
-                var hub = GlobalHost.ConnectionManager.GetHubContext<AMAlertHub>();
-                using (IMonitorBatchesService alertSvc = new MonitorBatchesService())
-                {
-                    int defaultCutOff = 30;
-                    var data = alertSvc.GetPendingBatchesToSubmit(defaultCutOff);
-                    s = new AMGlobalStatus { DelayedBatches = data.DelayedBatches.Count(), DelayedMailPieces = data.DelayedMailPieces.Count(), MinHour = data.MinHour, MaxHour = data.MaxHour, Status = data.Status, LastBatchReceivedOn = data.LastBatchReceivedOn, LastUpdatedOn = data.LastUpdatedOn };
-                    hub.Clients.All.getAMDetailStatus(s);
-                }
-            }
+            var hub = GlobalHost.ConnectionManager.GetHubContext<AMAlertHub>();
+            GetAMGlobalStatus();
+            hub.Clients.All.getAMDetailStatus(s);
         }
         public void GetStatus()
         {
+            if (s == null) GetAMGlobalStatus();
             Clients.All.getAMDetailStatus(s);
         }
 
@@ -54,5 +45,14 @@ namespace AM.Web.AMHub
             return base.OnDisconnected(s);
         }
 
+        public void GetAMGlobalStatus()
+        {
+            using (IMonitorBatchesService alertSvc = new MonitorBatchesService())
+            {
+                int defaultCutOff = 30;
+                var data = alertSvc.GetPendingBatchesToSubmit(defaultCutOff);
+                s = new AMGlobalStatus { DelayedBatches = data.DelayedBatches.Count(), DelayedMailPieces = data.DelayedMailPieces.Count(), MinHour = data.MinHour, MaxHour = data.MaxHour, Status = data.Status, LastBatchReceivedOn = data.LastBatchReceivedOn, LastUpdatedOn = data.LastUpdatedOn };
+            }
+        }
     }
 }

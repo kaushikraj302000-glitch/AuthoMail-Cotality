@@ -314,11 +314,16 @@
                 var amhub = $.connection.aMAlertHub;
                 var data = $('#tabledata').html();
                 amhub.client.getAMDetailStatus = function (response) {
-                    if (response != null && response != "" && response.length != 0) {
-                        $('#tabledata').html(data.supplant(formatData(response)));
-                    } else {
-                        $('#tabledata').html('<tr class="row-small"><th><div class="alert alert-blue">No delayed batches.</div></th></tr>');
-                    }
+                    SpreadData(response, data);
+                };
+                $.connection.hub.start().done(function () {
+                    amhub.server.getStatus();
+                });
+            }
+            var SpreadData = function (response, data) {
+                console.log("res:" + response);
+                if (response != null) {
+                    $('#tabledata').html(data.supplant(formatData(response)));
                     if (response.Status == false) {
                         $('#statustitle').html('<i class="fa fa-heartbeat fa-2 blink" style="color:rgba(255,0,0,1);"></i> Delayed Packages');
                     }
@@ -327,20 +332,10 @@
                     }
                     $('#messagebody').hide();
                     $('#tabledata').show();
-                };
-                $.connection.hub.start();
-                //$.ajax({
-                //    type: "GET",
-                //    url: baseUrl + "api/alert/GetAMGlobalStatus",
-                //    data: { cutOff: 30 },
-                //    contentType: "application/json; charset=utf-8",
-                //    success: function (response) {
-                //        var data = $('#tabledata').html();
-                //        $('#tabledata').html(data.supplant(formatData(response)));
-                //    }, error: function (err) {
-                //        console.log(JSON.stringify(err));
-                //    }
-                //});
+                } else {
+                    $('#tabledata').html('<tr class="row-small"><th><div class="alert alert-blue">No delayed batches.</div></th></tr>');
+                }
+
             }
             function formatData(data) {
                 return $.extend(data, {
