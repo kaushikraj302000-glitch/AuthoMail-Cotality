@@ -147,5 +147,6 @@ namespace AM.Services
         public bool IsReportBackDelay { get; set; }
         public bool IsReceivedDelay { get; set; }
         public bool IsProcessDelay { get; set; }
+        public string Status { get; set; }
     }
 }

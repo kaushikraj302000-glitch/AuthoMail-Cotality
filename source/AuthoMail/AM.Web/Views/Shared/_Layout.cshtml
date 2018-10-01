@@ -182,7 +182,7 @@
                             var cls = response.Status == "white" ? "" : "blink";
                             var color=response.Status=="white"?"black":response.Status;
 
-                            $('#AMStatusNotification').html('<a href="/AuthoMailHealth/37f9ac3e-40b3-4ae8-ac9a-d84634638065" style="color:'+color+';" class="'+blink+'"><i class="fa fa-heartbeat fa-2" style="margin:5px;"></i></a>');
+                            $('#AMStatusNotification').html('<a href="/AuthoMailHealth/37f9ac3e-40b3-4ae8-ac9a-d84634638065" style="color:'+color+';" class="'+cls+'"><i class="fa fa-heartbeat fa-2" style="margin:5px;"></i></a>');
                         }
 
                     };

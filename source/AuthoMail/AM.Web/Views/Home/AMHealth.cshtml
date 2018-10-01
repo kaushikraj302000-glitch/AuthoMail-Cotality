@@ -334,7 +334,7 @@
                     $('#tabledata').html(data.supplant(formatData(response)));
 
                     var cls = response.Status == "white" ? "" : "blink";
-                    $('#statustitle').html('<i class="fa fa-heartbeat fa-2' + cls + '" style="color:' + response.Status + ';"></i> Delayed Packages');
+                    $('#statustitle').html('<i class="fa fa-heartbeat fa-2 ' + cls + '" style="color:' + response.Status + ';"></i> Delayed Packages');
 
                     $('#messagebody').hide();
                     $('#tabledata').show();

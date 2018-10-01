@@ -51,7 +51,7 @@ namespace AM.Web.AMHub
             {
                 int defaultCutOff = 30;
                 var data = alertSvc.GetPendingBatchesToSubmit(defaultCutOff);
-                s = new AMGlobalStatus { DelayedProcessBatches = data.DelayedBatches.Count(), DelayedProcessMailPieces = data.DelayedMailPieces.Count(), DelayedReportBackBatches = data.DelayedReportedBackBatches.Count(), DelayedReportBackMailPieces = data.DelayedReportedBackMailPieces.Count(), MinHour = data.MinHour, MaxHour = data.MaxHour, LastBatchReceivedOn = data.LastBatchReceivedOn, LastUpdatedOn = data.LastUpdatedOn, IsReportBackDelay = data.IsReportBackDelay, IsReceivedDelay = data.IsReceivedDelay, IsProcessDelay = data.IsProcessDelay };
+                s = new AMGlobalStatus { DelayedProcessBatches = data.DelayedBatches.Count(), DelayedProcessMailPieces = data.DelayedMailPieces.Count(), DelayedReportBackBatches = data.DelayedReportedBackBatches.Count(), DelayedReportBackMailPieces = data.DelayedReportedBackMailPieces.Count(), MinHour = data.MinHour, MaxHour = data.MaxHour, LastBatchReceivedOn = data.LastBatchReceivedOn, LastUpdatedOn = data.LastUpdatedOn, IsReportBackDelay = data.IsReportBackDelay, IsReceivedDelay = data.IsReceivedDelay, IsProcessDelay = data.IsProcessDelay, Status = data.Status };
             }
         }
     }
