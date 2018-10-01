@@ -51,6 +51,7 @@ namespace AM.Web
             app.UseAutofacMvc();
             app.UseAutofacWebApi(config);
             ConfigureAuth(app);
+            app.MapSignalR();
         }
     }
 }
