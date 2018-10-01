@@ -176,38 +176,19 @@
                 {
                     var amh = $.connection.aMAlertHub;
                     amh.client.getAMDetailStatus = function (response) {
-                        console.log("res:"+response);
+                        //console.log("res:"+JSON.stringify(response));
                         if (response != null)
                         {
-                            if(response.Status==false)
-                            {
-                                $('#AMStatusNotification').html('<a href="/AuthoMailHealth/37f9ac3e-40b3-4ae8-ac9a-d84634638065" style="color:rgba(255,0,0,1);" class="blink"><i class="fa fa-heartbeat fa-2" style="margin:5px;"></i></a>');
-                            }
-                            else{
-                                $('#AMStatusNotification').html('<a href="/AuthoMailHealth/37f9ac3e-40b3-4ae8-ac9a-d84634638065" style="color:rgba(255,255,255,1);"><i class="fa fa-heartbeat fa-2" style="margin:5px;"></i></span>');
-                            }
+                            var cls = response.Status == "white" ? "" : "blink";
+                            var color=response.Status=="white"?"black":response.Status;
+
+                            $('#AMStatusNotification').html('<a href="/AuthoMailHealth/37f9ac3e-40b3-4ae8-ac9a-d84634638065" style="color:'+color+';" class="'+cls+'"><i class="fa fa-heartbeat fa-2" style="margin:5px;"></i></a>');
                         }
 
                     };
                     $.connection.hub.start().done(function () {
                         amh.server.getStatus();
                     });
-                    //$.ajax({
-                    //    type: "GET",
-                    //    url: baseUrl+ "api/alert/GetDelayedPackagesStatus",
-                    //    data: {cutOff:30},
-                    //    contentType: "application/json; charset=utf-8",
-                    //    success: function (response) {
-                    //        if(response==false)
-                    //        {
-                    //            $('#AMStatusNotification').html('<a href="#" style="color:rgba(255,0,0,1);" class="blink"><i class="fa fa-heartbeat fa-2" style="margin:5px;"></i></a>');
-                    //        }
-                    //        else{
-                    //            $('#AMStatusNotification').html('<a href="#" style="color:rgba(255,255,255,1);"><i class="fa fa-heartbeat fa-2" style="margin:5px;"></i></span>');
-                    //        }
-                    //    }
-                    //});
-
                 }
             }
             GetAMStatus();
