@@ -46,12 +46,12 @@ namespace PCI.Service
                         PnSCoreService.PrepPCIJobs();
                         PnSCoreService.ProcessPCIResponse();
                         PnSCoreService.GeneratePnSResponse();
-                        PnSCoreService.ProcessPCIReturnPDFsInfo();
+                        //PnSCoreService.ProcessPCIReturnPDFsInfo();
                         break;
                     case "PCIJob":
                         PCIJobMonitor.SubmitBatchToPCI();
                         PCIJobMonitor.GetResponseMRDF();
-                        PCIJobMonitor.GetReturnPDFsZip();
+                        //PCIJobMonitor.GetReturnPDFsZip();
                         break;
                     default:
                         break;
