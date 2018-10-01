@@ -55,6 +55,29 @@ namespace AM.Services
     {
         public List<BatchInfo> DelayedBatches { get; set; }
         public List<PendingMailPieceInfo> DelayedMailPieces { get; set; }
+        public List<BatchInfo> DelayedReportedBackBatches { get; set; }
+        public List<PendingMailPieceInfo> DelayedReportedBackMailPieces { get; set; }
+        public bool IsReceivedDelay { get; set; }
+        public bool IsProcessDelay
+        {
+            get
+            {
+                if (this.DelayedMailPieces.Count > 0 || this.DelayedBatches.Count > 0)
+                    return true;
+                else
+                    return false;
+            }
+        }
+        public bool IsReportBackDelay
+        {
+            get
+            {
+                if (this.DelayedReportedBackMailPieces.Count > 0 || this.DelayedReportedBackBatches.Count > 0)
+                    return true;
+                else
+                    return false;
+            }
+        }
         public List<MonitorAppCodeCount> AppCodeCountByBatch
         {
             get
@@ -69,16 +92,6 @@ namespace AM.Services
             {
                 if (DelayedMailPieces == null) return null;
                 return DelayedMailPieces.GroupBy(g => g.AppCode).Select(g => new MonitorAppCodeCount { AppCode = g.Key, Total = g.Count() }).ToList();
-            }
-        }
-        public bool Status
-        {
-            get
-            {
-                if (this.DelayedMailPieces.Count > 0 || this.DelayedBatches.Count > 0)
-                    return false;
-                else
-                    return true;
             }
         }
         public int MinHour
