@@ -51,7 +51,7 @@ namespace AM.Web.AMHub
             {
                 int defaultCutOff = 30;
                 var data = alertSvc.GetPendingBatchesToSubmit(defaultCutOff);
-                s = new AMGlobalStatus { DelayedBatches = data.DelayedBatches.Count(), DelayedMailPieces = data.DelayedMailPieces.Count(), MinHour = data.MinHour, MaxHour = data.MaxHour, Status = data.Status, LastBatchReceivedOn = data.LastBatchReceivedOn, LastUpdatedOn = data.LastUpdatedOn };
+                s = new AMGlobalStatus { DelayedBatches = data.DelayedBatches.Count(), DelayedMailPieces = data.DelayedMailPieces.Count(), MinHour = data.MinHour, MaxHour = data.MaxHour,  LastBatchReceivedOn = data.LastBatchReceivedOn, LastUpdatedOn = data.LastUpdatedOn };
             }
         }
     }
