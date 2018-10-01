@@ -85,6 +85,7 @@ namespace AM.Services
                     return false;
             }
         }
+        public bool IsVendorDelay { get; set; }
         public List<MonitorAppCodeCount> AppCodeCountByBatch
         {
             get
