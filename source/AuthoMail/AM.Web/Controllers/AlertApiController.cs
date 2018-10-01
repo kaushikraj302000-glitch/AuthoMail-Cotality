@@ -31,26 +31,6 @@ namespace AM.Web.Controllers
                 effectiveCutOff = defaultCutOff;
             return alertSvc.GetPendingBatchesToSubmit(effectiveCutOff);
         }
-        [HttpGet, Route("GetDelayedPackagesStatus/{*cutOff}")]
-        public bool GetDelayedPackagesStatus(string cutOff)
-        {
-            //Remove if not used.
-            int defaultCutOff = 30;
-            int effectiveCutOff;
-            if (!int.TryParse(cutOff, out effectiveCutOff))
-                effectiveCutOff = defaultCutOff;
-            var data = alertSvc.GetPendingBatchesToSubmit(effectiveCutOff);
-            return data.Status;
-        }
-        [HttpGet, Route("GetAMGlobalStatus/{*cutOff}")]
-        public AMGlobalStatus GetAMGlobalStatus(string cutOff)
-        {
-            int defaultCutOff = 30;
-            int effectiveCutOff;
-            if (!int.TryParse(cutOff, out effectiveCutOff))
-                effectiveCutOff = defaultCutOff;
-            var data = alertSvc.GetPendingBatchesToSubmit(effectiveCutOff);
-            return new AMGlobalStatus { DelayedBatches = data.DelayedBatches.Count(), DelayedMailPieces = data.DelayedMailPieces.Count(), MinHour = data.MinHour, MaxHour = data.MaxHour, Status = data.Status, LastBatchReceivedOn = data.LastBatchReceivedOn, LastUpdatedOn = data.LastUpdatedOn };
-        }
+
     }
 }

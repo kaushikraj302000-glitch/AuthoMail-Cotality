@@ -7,6 +7,8 @@ using Dapper;
 using AM.Lib;
 using AM.Entities;
 using AM.Services.Services;
+using System.Text.RegularExpressions;
+using System.IO;
 
 namespace AM.Services
 {
@@ -28,11 +30,21 @@ namespace AM.Services
 
             string qry = "[dbo].[uspalert_GetDelayedBatchesToSubmit] @cutOffMinutes";
             List<Sweep> timings;
+            bool isReceivedDelay = false;
             using (ICommonService commonSvc = new CommonService())
             {
                 timings = commonSvc.GetPCIBundleSweepTimings();
             }
 
+            var lastBatchReceivedOn = db.QuerySingle<BatchInfo>("select top 1 ReceivedOn from AM.MailBatches where IsReceived = 1 order by ReceivedOn desc");
+            if ((Common.Now - lastBatchReceivedOn.ReceivedOn).TotalMinutes > 60)
+            {
+                var triggerFiles = EnumerateBatches();
+                if (triggerFiles.Count > 0)
+                {
+                    isReceivedDelay = true;
+                }
+            }
             var pendingMPsToSubmit = db.Query<PendingMailPieceInfo>(qry, new { cutOffMinutes = cutOffMinutes }).ToList();
 
             var shippingStatusNullMailPieces = pendingMPsToSubmit.Where(p => p.ShippingStatus.IsNullOrEmpty()).ToList();
@@ -53,7 +65,15 @@ namespace AM.Services
                 .GroupBy(mp => new { mp.MailBatchId, mp.AppCode, mp.BatchName, mp.ClientId, mp.PipelineStatus, mp.ReceivedOn })
                 .Select(g => new BatchInfo { Id = g.Key.MailBatchId, AppCode = g.Key.AppCode, BatchName = g.Key.BatchName, ClientId = g.Key.ClientId, PipelineStatus = g.Key.PipelineStatus, ReceivedOn = g.Key.ReceivedOn, DelayedMailPieces = g.ToList() }).ToList();
 
-            return new MonitorReport { DelayedBatches = delayedBatches, DelayedMailPieces = delayedMailPieces };
+            var delayedReportedBackMailPiecesByPrintVendor = db.Query<PendingMailPieceInfo>("Select MP.Id,MP.MailBatchId,C.AppCode,MP.ClientId,MB.BatchName,MB.ReceivedOn,MB.PipelineStatus,MP.PrintLocation from AM.MailPieces MP inner join Common.Clients C on MP.ClientId = C.Id inner join AM.MailBatches MB on MP.MailBatchId = MB.Id inner join PnS.MrdfRequest MR on MP.UniqueId = MR.UniqueId inner join PnS.BatchSummary BS on MR.JobId = BS.PrintBatch where BS.IsSubmitted = 1 and MP.SLADays < 0 and BS.IsReportedBack = 0 and BS.PipelineStatus <> 'Cancelled'").ToList();
+
+            var delayedReportedBackMailPiecesByAM = db.Query<PendingMailPieceInfo>("Select MP.Id,MP.MailBatchId,C.AppCode,MP.ClientId,MB.BatchName,MB.ReceivedOn,MB.PipelineStatus,MP.PrintLocation from AM.MailPieces MP inner join Common.Clients C on MP.ClientId = C.Id inner join AM.MailBatches MB on MP.MailBatchId = MB.Id inner join PnS.MrdfRequest MR on MP.UniqueId = MR.UniqueId inner join PnS.BatchSummary BS on MR.JobId = BS.PrintBatch where BS.IsSubmitted = 1 and MP.SLADays < 0 and BS.IsReportedBack = 1 and BS.PipelineStatus <> 'Cancelled' and MB.IsReportedBack = 0").ToList();
+
+            var delayedReportedBackMailPieces = delayedReportedBackMailPiecesByPrintVendor.Concat(delayedReportedBackMailPiecesByAM).ToList();
+
+            var delayedReportedBackBatches = delayedReportedBackMailPieces.GroupBy(mp => new { mp.MailBatchId, mp.AppCode, mp.BatchName, mp.ClientId, mp.PipelineStatus, mp.ReceivedOn }).Select(g => new BatchInfo { Id = g.Key.MailBatchId, AppCode = g.Key.AppCode, BatchName = g.Key.BatchName, ClientId = g.Key.ClientId, PipelineStatus = g.Key.PipelineStatus, ReceivedOn = g.Key.ReceivedOn, DelayedMailPieces = g.ToList() }).ToList();
+
+            return new MonitorReport { DelayedBatches = delayedBatches, DelayedMailPieces = delayedMailPieces,IsReceivedDelay = isReceivedDelay,DelayedReportedBackBatches = delayedReportedBackBatches, DelayedReportedBackMailPieces = delayedReportedBackMailPieces};
         }
 
         public List<dynamic> GetPendingBatchesToReportBack()
@@ -83,6 +103,36 @@ namespace AM.Services
         {
             int result = db.Execute("dbo.uspalert_GetDelayedPackagesStatus @p1", new { p1 = effectiveCutOff });
             return result > 0 ? false : true;
+        }
+
+        public List<string> EnumerateBatches()
+        {
+            List<string> triggerFilePaths = new List<string>();
+            SFTChannel sftChannel;
+            using (IClientService clientSvc = new ClientService())
+            {
+                sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelCode("AMC_" + Config.Common_Environment);
+            }
+            SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannel.Protocol), sftChannel.Host, sftChannel.UserName, sftChannel.Password, 300000);
+            sftSite.Connect();
+
+            triggerFilePaths = GetTriggerFilePaths(sftSite, sftChannel.ToADEDir);
+
+            if (sftSite.IsConnected)
+                sftSite.Disconnect();
+            return triggerFilePaths;
+        }
+
+        private List<string> GetTriggerFilePaths(SFTUtil sftSite, string toADEDir)
+        {
+            var regex = new Regex(@"^(\w*)_Complete.go$", RegexOptions.IgnoreCase);
+
+            List<string> availableTriggerFilePaths = sftSite.ListDirectory(toADEDir)
+                .Select(f => regex.Match(Path.GetFileName(f)))
+                .Where(m => m.Success)
+                .Select(m => m.Groups[1].Value)
+                .ToList();
+            return availableTriggerFilePaths;
         }
     }
 }
