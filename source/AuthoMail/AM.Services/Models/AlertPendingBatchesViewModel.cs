@@ -57,6 +57,13 @@ namespace AM.Services
         public List<PendingMailPieceInfo> DelayedMailPieces { get; set; }
         public List<BatchInfo> DelayedReportedBackBatches { get; set; }
         public List<PendingMailPieceInfo> DelayedReportedBackMailPieces { get; set; }
+        public string Status
+        {
+            get
+            {
+                return this.IsReceivedDelay || this.IsProcessDelay ? "red" : this.IsReportBackDelay ? "yellow" : "white";
+            }
+        }
         public bool IsReceivedDelay { get; set; }
         public bool IsProcessDelay
         {
