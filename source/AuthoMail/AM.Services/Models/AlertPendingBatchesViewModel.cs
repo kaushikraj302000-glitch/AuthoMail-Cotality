@@ -129,12 +129,16 @@ namespace AM.Services
     }
     public class AMGlobalStatus
     {
-        public int DelayedBatches { get; set; }
-        public int DelayedMailPieces { get; set; }
+        public int DelayedProcessBatches { get; set; }
+        public int DelayedProcessMailPieces { get; set; }
+        public int DelayedReportBackBatches { get; set; }
+        public int DelayedReportBackMailPieces { get; set; }
         public int MinHour { get; set; }
         public int MaxHour { get; set; }
-        public bool Status { get; set; }
         public DateTime? LastBatchReceivedOn { get; set; }
         public DateTime LastUpdatedOn { get; set; }
+        public bool IsReportBackDelay { get; set; }
+        public bool IsReceivedDelay { get; set; }
+        public bool IsProcessDelay { get; set; }
     }
 }
