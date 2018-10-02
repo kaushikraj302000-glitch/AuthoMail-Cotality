@@ -55,37 +55,62 @@ namespace AM.Services
     {
         public List<BatchInfo> DelayedBatches { get; set; }
         public List<PendingMailPieceInfo> DelayedMailPieces { get; set; }
-        public List<BatchInfo> DelayedReportedBackBatches { get; set; }
-        public List<PendingMailPieceInfo> DelayedReportedBackMailPieces { get; set; }
-        public string Status
-        {
-            get
-            {
-                return this.IsReceivedDelay || this.IsProcessDelay ? "red" : this.IsReportBackDelay ? "yellow" : "white";
-            }
-        }
+        public List<BatchInfo> DelayedAMReportBackBatches { get; set; }
+        public List<BatchInfo> DelayedVendorReportBackBatches { get; set; }
+        public List<PendingMailPieceInfo> DelayedAMReportBackMailPieces { get; set; }
+        public List<PendingMailPieceInfo> DelayedVendorReportBackMailPieces { get; set; }
         public bool IsReceivedDelay { get; set; }
         public bool IsProcessDelay
         {
             get
             {
-                if (this.DelayedMailPieces.Count > 0 || this.DelayedBatches.Count > 0)
-                    return true;
-                else
-                    return false;
+                return this.DelayedMailPieces.Count > 0 || this.DelayedBatches.Count > 0;
+
             }
         }
         public bool IsReportBackDelay
         {
             get
             {
-                if (this.DelayedReportedBackMailPieces.Count > 0 || this.DelayedReportedBackBatches.Count > 0)
-                    return true;
-                else
-                    return false;
+                return this.DelayedAMReportBackMailPieces.Count > 0 || this.DelayedAMReportBackBatches.Count > 0;
+
             }
         }
-        public bool IsVendorDelay { get; set; }
+        public bool IsVendorDelay
+        {
+            get
+            {
+                return this.DelayedVendorReportBackMailPieces.Count > 0 || this.DelayedVendorReportBackBatches.Count > 0;
+            }
+        }
+      
+        public bool IsAMDelay
+        {
+            get
+            {
+                return this.IsReceivedDelay || this.IsProcessDelay || this.IsReportBackDelay;
+            }
+        }
+        private bool IsCritical { get { return this.IsReceivedDelay || this.IsProcessDelay; } }
+        private bool IsWarning { get { return this.IsReportBackDelay || this.IsVendorDelay; } }
+        public string AlertLevel
+        {
+            get
+            {
+                if (this.IsCritical)
+                {
+                    return "Critical";
+                }
+                else if (this.IsWarning)
+                {
+                    return "Warning";
+                }
+                else
+                {
+                    return "Normal";
+                }
+            }
+        }
         public List<MonitorAppCodeCount> AppCodeCountByBatch
         {
             get
@@ -120,14 +145,8 @@ namespace AM.Services
                 return lst.Count() > 0 ? Convert.ToInt32(lst.Max(d => d)) : 0;
             }
         }
-        public DateTime? LastBatchReceivedOn
-        {
-            get
-            {
-                if (DelayedBatches == null || DelayedBatches.Count() == 0) return null;
-                return DelayedBatches.Max(d => d.ReceivedOn);
-            }
-        }
+        public DateTime? LastBatchReceivedOn { get; set; }
+
         public DateTime LastUpdatedOn { get { return DateTime.UtcNow; } }//Status Date
     }
     public class MonitorAppCodeCount
@@ -139,15 +158,19 @@ namespace AM.Services
     {
         public int DelayedProcessBatches { get; set; }
         public int DelayedProcessMailPieces { get; set; }
-        public int DelayedReportBackBatches { get; set; }
-        public int DelayedReportBackMailPieces { get; set; }
+        public int DelayedAMReportBackBatches { get; set; }
+        public int DelayedAMReportBackMailPieces { get; set; }
+        public int DelayedVendorReportBackBatches { get; set; }
+        public int DelayedVendorReportBackMailPieces { get; set; }
         public int MinHour { get; set; }
         public int MaxHour { get; set; }
         public DateTime? LastBatchReceivedOn { get; set; }
         public DateTime LastUpdatedOn { get; set; }
         public bool IsReportBackDelay { get; set; }
+        public bool IsVendorDelay { get; set; }
         public bool IsReceivedDelay { get; set; }
         public bool IsProcessDelay { get; set; }
-        public string Status { get; set; }
+        public bool IsAMDelay { get; set; }
+        public string AlertLevel { get; set; }
     }
 }
