@@ -83,13 +83,7 @@ namespace AM.Services
                 return this.DelayedVendorReportBackMailPieces.Count > 0 || this.DelayedVendorReportBackBatches.Count > 0;
             }
         }
-        public string Status
-        {
-            get
-            {
-                return this.IsReceivedDelay || this.IsProcessDelay ? "red" : this.IsReportBackDelay || this.IsVendorDelay ? "yellow" : "white";
-            }
-        }
+      
         public bool IsAMDelay
         {
             get
@@ -176,7 +170,7 @@ namespace AM.Services
         public bool IsVendorDelay { get; set; }
         public bool IsReceivedDelay { get; set; }
         public bool IsProcessDelay { get; set; }
-        public string Status { get; set; }
-        public string Pulse { get; set; }
+        public bool IsAMDelay { get; set; }
+        public string AlertLevel { get; set; }
     }
 }
