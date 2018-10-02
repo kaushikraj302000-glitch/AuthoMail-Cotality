@@ -257,9 +257,13 @@
                         <th colspan="2">
                             {Download}
                             {Process}
-                            {Vendor}
+                            {Printer}
                             {Reporting}
                         </th>
+                    </tr>
+                    <tr class="row-small">
+                        <th>Last Batch ReceivedOn</th>
+                        <th>{LastBatchReceivedOn}</th>
                     </tr>
                     <tr class="row-small">
                         <th>Delayed Process Batches</th>
@@ -270,6 +274,14 @@
                         <th>{DelayedProcessMailPieces}</th>
                     </tr>
                     <tr class="row-small">
+                        <th>Delayed Printer Batches</th>
+                        <th>{DelayedPrinterBatches}</th>
+                    </tr>
+                    <tr class="row-small">
+                        <th>Delayed Printer MailPieces</th>
+                        <th>{DelayedPrinterMailPieces}</th>
+                    </tr>
+                    <tr class="row-small">
                         <th>Delayed AM ReportBack Batches</th>
                         <th>{DelayedAMReportBackBatches}</th>
                     </tr>
@@ -278,24 +290,11 @@
                         <th>{DelayedAMReportBackMailPieces}</th>
                     </tr>
                     <tr class="row-small">
-                        <th>Delayed Vendor ReportBack Batches</th>
-                        <th>{DelayedVendorReportBackBatches}</th>
-                    </tr>
-                    <tr class="row-small">
-                        <th>Delayed Vendor ReportBack MailPieces</th>
-                        <th>{DelayedVendorReportBackMailPieces}</th>
-                    </tr>
-                    <tr class="row-small">
-                        <th>Last Batch ReceivedOn</th>
-                        <th>{LastBatchReceivedOn}</th>
-                    </tr>
-                    <tr class="row-small">
                         <th>Last UpdatedOn</th>
                         <th>{LastUpdatedOn}</th>
                     </tr>
                     <tr>
                         <th colspan="2" class="text-center"><a href="/Support/DelayedBatches" class="btn btn-transparent">View Detail</a></th>
-
                     </tr>
                 </tbody>
             </table>
@@ -366,15 +365,15 @@
                 DelayedProcessMailPieces: data.DelayedProcessMailPieces,
                 DelayedAMReportBackBatches: data.DelayedAMReportBackBatches,
                 DelayedAMReportBackMailPieces: data.DelayedAMReportBackMailPieces,
-                DelayedVendorReportBackBatches: data.DelayedVendorReportBackBatches,
-                DelayedVendorReportBackMailPieces: data.DelayedVendorReportBackMailPieces,
+                DelayedPrinterBatches: data.DelayedPrinterBatches,
+                DelayedPrinterMailPieces: data.DelayedPrinterMailPieces,
                 TATTitle: data.MinHour < 1 ? 'Few SLA are already missed.' : data.MinHour == data.MaxHour ? 'Turnaround time  {0} hours.'.replace('{0}', data.MinHour) : 'Turnaround time {0} to {1} hours.'.replace('{0}', data.MinHour).replace('{1}', data.MaxHour),
                 LastBatchReceivedOn: data.LastBatchReceivedOn != null ? moment(data.LastBatchReceivedOn).format("MM/DD/YY HH:mm:ss") : '--',
                 LastUpdatedOn: data.LastUpdatedOn != null ? moment(data.LastUpdatedOn).format("MM/DD/YY HH:mm:ss") : '--',
                 IsReportBackDelay: data.IsReportBackDelay,
                 Reporting: data.IsReportBackDelay ? '<label class="label label-red medium">Reporting</label>' : '<label class="label label-green medium">Reporting</label>',
-                IsVendorDelay: data.IsVendorDelay,
-                Vendor: data.IsVendorDelay ? '<label class="label label-red medium">Vendor</label>' : '<label class="label label-green medium">Vendor</label>',
+                IsPrinterDelay: data.IsPrinterDelay,
+                Printer: data.IsPrinterDelay ? '<label class="label label-red medium">Printer</label>' : '<label class="label label-green medium">Printer</label>',
                 IsReceivedDelay: data.IsReceivedDelay,
                 Download: data.IsReceivedDelay ? '<label class="label label-red medium">Download</label>' : '<label class="label label-green medium">Download</label>',
                 IsProcessDelay: data.IsProcessDelay,

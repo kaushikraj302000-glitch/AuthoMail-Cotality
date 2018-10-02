@@ -22,29 +22,65 @@
 </style>
 <div class="panel-group">
     <div class="panel panel-default">
-        <div class="panel-heading" id="headingOne">
+        <div class="panel-heading">
             <div class="panel-title">
-                <a role="button" data-toggle="collapse" data-parent="#accordion" href="#metaItem1">
+                <span>
                     <span id="statustitle">Delayed Packages</span>
-                </a>
-                <button class="btn btn-warning active" type="button" id="supportMailBatchesListBtn">Grouped by Batch</button>
-                <button class="btn btn-warning" type="button" id="supportMailPiecesListBtn">All Mail Pieces</button>
+                </span>
+                <button class="btn btn-warning primarybtn active" type="button" data-id="ProcessDataList">Process</button>
+                <button class="btn btn-warning primarybtn" type="button" data-id="AMReportbackDataList">AM Report Back</button>
+                <button class="btn btn-warning primarybtn" type="button" data-id="VendorReportBackDataList">Vendor Report Back</button>
             </div>
         </div>
         <div class="panel-collapse collapse in">
             <div class="panel-body">
-                <div id="remainingminmaxtime" class="alert alert-blue hidden" role="alert"></div>
-                <div id="ClientWiseBatchCount" style="padding:10px 0px"></div>
-                <div id="ClientWiseMailPieceCount" class="hidden" style="padding:10px 0px"></div>
+                @*<div id="remainingminmaxtime" class="alert alert-blue hidden" role="alert"></div>
+                    <div id="ClientWiseBatchCount" style="padding:10px 0px"></div>
+                    <div id="ClientWiseMailPieceCount" class="hidden" style="padding:10px 0px"></div>*@
                 <div class="clearfix">
-                    <div id="supportMailBatchesList">
-                        <div class="alert-blue alert text-center">
-                            <span>Please Wait...</span>
+                    <div class="" id="ProcessDataList">
+                        <span>Grouped by </span>
+                        <button type="button" class="btn btn-transparent-blue btn-xs batch active" data-id="ProcessDataListContentBatch" data-hid="ProcessDataListContentMailPiece">Batch</button>
+                        <button type="button" class="btn btn-transparent-blue btn-xs mailpiece" data-id="ProcessDataListContentMailPiece" data-hid="ProcessDataListContentBatch">Mail Pieces</button>
+                        <div id="ProcessDataListContentBatch" class="">
+                            <div class="alert-blue alert text-center">
+                                <span>Please Wait...</span>
+                            </div>
+                        </div>
+                        <div id="ProcessDataListContentMailPiece" class="hidden">
+                            <div class="alert-blue alert text-center">
+                                <span>Please Wait...</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="hidden" id="supportMailPiecesList">
-                        <div class="alert-blue alert text-center">
-                            <span>Please Wait...</span>
+                    <div class="hidden" id="AMReportbackDataList">
+                        <span>Grouped by </span>
+                        <button type="button" class="btn btn-transparent-blue btn-xs batch" data-id="AMReportbackDataListContentBatch" data-hid="AMReportbackDataListContentMailpiece">Batch</button>
+                        <button type="button" class="btn btn-transparent-blue btn-xs mailpiece" data-id="AMReportbackDataListContentMailpiece" data-hid="AMReportbackDataListContentBatch">Mail Pieces</button>
+                        <div id="AMReportbackDataListContentBatch">
+                            <div class="alert-blue alert text-center">
+                                <span>Please Wait...</span>
+                            </div>
+                        </div>
+                        <div id="AMReportbackDataListContentMailpiece">
+                            <div class="alert-blue alert text-center">
+                                <span>Please Wait...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hidden" id="VendorReportBackDataList">
+                        <span>Grouped by </span>
+                        <button type="button" class="btn btn-transparent-blue btn-xs batch" data-id="VendorReportBackDataListContent" data-hid="VendorReportBackDataListContentBatch">Batch</button>
+                        <button type="button" class="btn btn-transparent-blue btn-xs mailpiece" data-id="VendorReportBackDataListContentMailPiece" data-hid="VendorReportBackDataListContentMailPiece">Mail Pieces</button>
+                        <div id="VendorReportBackDataListContentBatch">
+                            <div class="alert-blue alert text-center">
+                                <span>Please Wait...</span>
+                            </div>
+                        </div>
+                        <div id="VendorReportBackDataListContentMailPiece">
+                            <div class="alert-blue alert text-center">
+                                <span>Please Wait...</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -201,6 +237,8 @@
     <script type="text/javascript">
         var mailpiecesByBatch = {};
         var allmailpieces = {};
+        var amallmailpieces = {};
+        var vendorallmailpieces = {};
         $(document).ready(function () {
             window.clui.dateTimePickerInit();
             FilterData();
@@ -517,30 +555,27 @@
                 data: { cutOff: 30 },
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
+                    masterData = response;
                     if (response != null) {
-                        if (response.Status == 'red') {
-                            $('#statustitle').addClass('text-danger');
-                            $('#statustitle').html('<i class="fa fa-exclamation-triangle"></i> ' + $('#statustitle').html());
-                        }
-                        else {
-                            $('#statustitle').addClass('text-success');
-                            $('#statustitle').html('<i class="fa fa-check-circle"></i> ' + $('#statustitle').html());
-                        }
-                        if (response.MinHour > 0) {
-                            if (response.MinHour == response.MaxHour) {
-                                var msg = "Estimated fixing time minimum {0} hrs remaining";
-                                $('#remainingminmaxtime').html(msg.replace("{0}", response.MinHour));
-                            }
-                            else {
-                                var msg = "Estimated fixing time minimum {0} hrs and maximum {1} hrs remaining";
-                                $('#remainingminmaxtime').html(msg.replace("{0}", response.MinHour).replace("{1}", response.MaxHour));
-                            }
-                            $('#remainingminmaxtime').removeClass('hidden');
-                            $('#remainingminmaxtime').show();
-                        }
-                        else {
-                            $('#remainingminmaxtime').hide();
-                        }
+                        var color = response.AlertLevel == "Critical" ? "red" : response.AlertLevel == "Warning" ? "yellow" : "white";
+                        var pulse = response.IsAMDelay ? "blink" : "";
+                        $('#statustitle').html('<i class="fa fa-heartbeat fa-2 ' + pulse + '" style="color:' + color + ';"></i> ' + $('#statustitle').html());
+
+                        //if (response.MinHour > 0) {
+                        //    if (response.MinHour == response.MaxHour) {
+                        //        var msg = "Estimated fixing time minimum {0} hrs remaining";
+                        //        $('#remainingminmaxtime').html(msg.replace("{0}", response.MinHour));
+                        //    }
+                        //    else {
+                        //        var msg = "Estimated fixing time minimum {0} hrs and maximum {1} hrs remaining";
+                        //        $('#remainingminmaxtime').html(msg.replace("{0}", response.MinHour).replace("{1}", response.MaxHour));
+                        //    }
+                        //    $('#remainingminmaxtime').removeClass('hidden');
+                        //    $('#remainingminmaxtime').show();
+                        //}
+                        //else {
+                        //    $('#remainingminmaxtime').hide();
+                        //}
                         $("#loading").hide();
                         $("#supportHeader").show();
                         //$("#supportMailBatchesList").show();
@@ -549,11 +584,11 @@
                             //$("#supportMailBatchesList").html("");
                             mailpiecesByBatch = response.DelayedBatches;
                             var data = FormatObject(response.DelayedBatches);
-                            BindTemplate(data, "#supportBody", "#supportbodyContent", "#supportTableContent", "#supportMailBatchesList");
+                            BindTemplate(data, "#supportBody", "#supportbodyContent", "#supportTableContent", "#ProcessDataListContentBatch");
                             window.clui.tooltipInit();
                         }
                         else {
-                            $("#supportMailBatchesList").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                            $("#ProcessDataListContentBatch").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                         }
                         if (response.AppCodeCountByBatch != null && response.AppCodeCountByBatch.length > 0) {
                             var dispText = "";
@@ -566,14 +601,13 @@
                         }
                         //All MailPieces
                         if (response.DelayedMailPieces.length > 0) {
-                            //console.log(response.DelayedMailPieces);
                             allmailpieces = response.DelayedMailPieces;
                             var mdata = FormatObjectMP(response.DelayedMailPieces);
-                            BindTemplateWithDataTable(mdata, "#delayedmailpiecesbody", "#delayedbatchmailpiecesbodyContent", "#delayedbatchmailpiecesContent", "#supportMailPiecesList", 'DelayedMPsDatatable', 'delayedmailpieces', 'Delayed MailPieces');
-                            //window.clui.tooltipInit();
+                            BindTemplateWithDataTable(mdata, "#delayedmailpiecesbody", "#delayedbatchmailpiecesbodyContent", "#delayedbatchmailpiecesContent", "#ProcessDataListContentMailPiece", 'ProcessDataListContentMailPiece', 'ProcessDataListContentMailPiece', 'Delayed MailPieces');
+                            window.clui.tooltipInit();
 
                         } else {
-                            $("#supportMailPiecesList").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                            $("#ProcessDataListContentMailPiece").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                         }
                         if (response.AppCodeCountByMailPiece != null && response.AppCodeCountByMailPiece.length > 0) {
                             var dispText = "";
@@ -583,6 +617,28 @@
                             });
                             $('#ClientWiseMailPieceCount').html(dispText);
                             GetMailPiecesByClient();
+                        }
+                        //AM reportedback
+
+                        if (response.DelayedAMReportBackMailPieces.length > 0) {
+                            amallmailpieces = response.DelayedAMReportBackMailPieces;
+                            var mdata = FormatObjectMP(response.DelayedAMReportBackMailPieces);
+                            BindTemplateWithDataTable(mdata, "#delayedmailpiecesbody", "#delayedbatchmailpiecesbodyContent", "#delayedbatchmailpiecesContent", "#AMReportbackDataListContentMailpiece", 'AMReportbackDataListContentMailpiece', 'AMReportbackDataListContentMailpiece', 'Reportedback MailPieces');
+                            window.clui.tooltipInit();
+
+                        } else {
+                            $("#AMReportbackDataListContentMailpiece").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                        }
+
+                        //Vendor reportedback
+                        if (response.DelayedVendorReportBackMailPieces.length > 0) {
+                            vendorallmailpieces = response.DelayedVendorReportBackMailPieces;
+                            var mdata = FormatObjectMP(response.DelayedVendorReportBackMailPieces);
+                            BindTemplateWithDataTable(mdata, "#delayedmailpiecesbody", "#delayedbatchmailpiecesbodyContent", "#delayedbatchmailpiecesContent", "#VendorReportBackDataListContentMailPiece", 'VendorReportBackDataListContentMailPiece', 'VendorReportBackDataListContentMailPiece', 'Reportedback MailPieces');
+                            window.clui.tooltipInit();
+
+                        } else {
+                            $("#VendorReportBackDataListContentMailPiece").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                         }
                     }
 
@@ -636,6 +692,40 @@
             }
 
         }
+
+        var PrimaryBtnEvent = function () {
+            $('.primarybtn').click(function (e) {
+                e.preventDefault();
+                $(this).parent().find('button').removeClass('active');
+                $(this).addClass('active');
+                var thisid = '#' + $(this).data('id');
+                $.each($(this).parent().find('button'), function (i, v) {
+                    $('#' + $(v).data('id')).addClass('hidden');
+                });
+                $(thisid).removeClass('hidden');
+
+                if ($(this).parent().find('button').hasClass('active')) {
+                    $(this).parent().find('.batch').click();
+                }
+            });
+        }
+        var BatchMailPieceEvent = function () {
+            $('.batch').click(function (e) {
+                e.preventDefault();
+                $(this).parent().find('.mailpiece').removeClass('active');
+                $(this).addClass('active');
+                var dataType = $(this).data('datatype');
+                $('#' + $(this).data('id')).removeClass('hidden');
+                $('#' + $(this).data('hid')).addClass('hidden');
+            });
+            $('.mailpiece').click(function (e) {
+                e.preventDefault();
+                $(this).parent().find('.batch').removeClass('active');
+                $(this).addClass('active');
+            });
+        }
+        BatchMailPieceEvent();
+        PrimaryBtnEvent();
     </script>
 }
 
