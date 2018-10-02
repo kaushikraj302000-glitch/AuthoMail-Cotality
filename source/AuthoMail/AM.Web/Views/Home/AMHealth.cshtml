@@ -235,6 +235,7 @@
             .cl-learnmore span {
                 margin-right: 15px;
             }
+
     </style>
 </head>
 
@@ -261,16 +262,24 @@
                         <th>{DelayedProcessMailPieces}</th>
                     </tr>
                     <tr class="row-small">
-                        <th>Delayed ReportBack Batches</th>
-                        <th>{DelayedReportBackBatches}</th>
+                        <th>Delayed AM ReportBack Batches</th>
+                        <th>{DelayedAMReportBackBatches}</th>
                     </tr>
                     <tr class="row-small">
-                        <th>Delayed ReportBack MailPieces</th>
-                        <th>{DelayedReportBackMailPieces}</th>
+                        <th>Delayed AM ReportBack MailPieces</th>
+                        <th>{DelayedAMReportBackMailPieces}</th>
                     </tr>
                     <tr class="row-small">
-                        <th>Last Delayed Batch ReceivedOn</th>
-                        <th>{LastDelayedBatchReceivedOn}</th>
+                        <th>Delayed Vendor ReportBack Batches</th>
+                        <th>{DelayedVendorReportBackBatches}</th>
+                    </tr>
+                    <tr class="row-small">
+                        <th>Delayed Vendor ReportBack MailPieces</th>
+                        <th>{DelayedVendorReportBackMailPieces}</th>
+                    </tr>
+                    <tr class="row-small">
+                        <th>Last Batch ReceivedOn</th>
+                        <th>{LastBatchReceivedOn}</th>
                     </tr>
                     <tr class="row-small">
                         <th>Last UpdatedOn</th>
@@ -329,12 +338,11 @@
             });
         }
         var SpreadData = function (response, data) {
-            console.log("res:" + response);
+            //console.log("res:" + JSON.stringify(response));
             if (response != null) {
                 $('#tabledata').html(data.supplant(formatData(response)));
 
-                var cls = response.Status == "white" ? "" : "blink";
-                $('#statustitle').html('<i class="fa fa-heartbeat fa-2 ' + cls + '" style="color:' + response.Status + ';"></i> Delayed Packages');
+                $('#statustitle').html('<i class="fa fa-heartbeat fa-2 ' + response.Pulse + '" style="color:' + response.Status + ';"></i> Delayed Packages');
 
                 $('#messagebody').hide();
                 $('#tabledata').show();
@@ -346,14 +354,19 @@
             return $.extend(data, {
                 DelayedProcessBatches: data.DelayedProcessBatches,
                 DelayedProcessMailPieces: data.DelayedProcessMailPieces,
-                DelayedReportBackBatches: data.DelayedReportBackBatches,
-                DelayedReportBackMailPieces: data.DelayedReportBackMailPieces,
+                DelayedAMReportBackBatches: data.DelayedAMReportBackBatches,
+                DelayedAMReportBackMailPieces: data.DelayedAMReportBackMailPieces,
+                DelayedVendorReportBackBatches: data.DelayedVendorReportBackBatches,
+                DelayedVendorReportBackMailPieces: data.DelayedVendorReportBackMailPieces,
                 EstimateTitle: data.MinHour < 1 ? '--' : data.MinHour == data.MaxHour ? 'Estimated fixing time minimum {0} hours remaining.'.replace('{0}', data.MinHour) : 'Estimated fixing time minimum {0} hours and maximum {1} hours remaining'.replace('{0}', data.MinHour).replace('{1}', data.MaxHour),
-                LastDelayedBatchReceivedOn: data.LastDelayedBatchReceivedOn != null ? moment(data.LastDelayedBatchReceivedOn).format("MM/DD/YY HH:mm:ss") : '--',
+                LastBatchReceivedOn: data.LastBatchReceivedOn != null ? moment(data.LastBatchReceivedOn).format("MM/DD/YY HH:mm:ss") : '--',
                 LastUpdatedOn: data.LastUpdatedOn != null ? moment(data.LastUpdatedOn).format("MM/DD/YY HH:mm:ss") : '--',
                 IsReportBackDelay: data.IsReportBackDelay,
+                IsVendorDelay: data.IsVendorDelay,
                 IsReceivedDelay: data.IsReceivedDelay,
-                IsProcessDelay: data.IsProcessDelay
+                IsProcessDelay: data.IsProcessDelay,
+                Status: data.Status,
+                Pulse: data.Pulse
             });
         }
         GetAMStatusData();
