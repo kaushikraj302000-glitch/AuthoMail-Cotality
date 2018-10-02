@@ -59,6 +59,30 @@ namespace AM.Services
         public List<BatchInfo> DelayedVendorReportBackBatches { get; set; }
         public List<PendingMailPieceInfo> DelayedAMReportBackMailPieces { get; set; }
         public List<PendingMailPieceInfo> DelayedVendorReportBackMailPieces { get; set; }
+        public bool IsReceivedDelay { get; set; }
+        public bool IsProcessDelay
+        {
+            get
+            {
+                return this.DelayedMailPieces.Count > 0 || this.DelayedBatches.Count > 0;
+
+            }
+        }
+        public bool IsReportBackDelay
+        {
+            get
+            {
+                return this.DelayedAMReportBackMailPieces.Count > 0 || this.DelayedAMReportBackBatches.Count > 0;
+
+            }
+        }
+        public bool IsVendorDelay
+        {
+            get
+            {
+                return this.DelayedVendorReportBackMailPieces.Count > 0 || this.DelayedVendorReportBackBatches.Count > 0;
+            }
+        }
         public string Status
         {
             get
@@ -66,42 +90,31 @@ namespace AM.Services
                 return this.IsReceivedDelay || this.IsProcessDelay ? "red" : this.IsReportBackDelay || this.IsVendorDelay ? "yellow" : "white";
             }
         }
-        public string Pulse
+        public bool IsAMDelay
         {
             get
             {
-                return this.IsReceivedDelay || this.IsProcessDelay || this.IsReportBackDelay ? "blink" : "";
+                return this.IsReceivedDelay || this.IsProcessDelay || this.IsReportBackDelay;
             }
         }
-        public bool IsReceivedDelay { get; set; }
-        public bool IsProcessDelay
+        private bool IsCritical { get { return this.IsReceivedDelay || this.IsProcessDelay; } }
+        private bool IsWarning { get { return this.IsReportBackDelay || this.IsVendorDelay; } }
+        public string AlertLevel
         {
             get
             {
-                if (this.DelayedMailPieces.Count > 0 || this.DelayedBatches.Count > 0)
-                    return true;
+                if (this.IsCritical)
+                {
+                    return "Critical";
+                }
+                else if (this.IsWarning)
+                {
+                    return "Warning";
+                }
                 else
-                    return false;
-            }
-        }
-        public bool IsReportBackDelay
-        {
-            get
-            {
-                if (this.DelayedAMReportBackMailPieces.Count > 0 || this.DelayedAMReportBackBatches.Count > 0)
-                    return true;
-                else
-                    return false;
-            }
-        }
-        public bool IsVendorDelay
-        {
-            get
-            {
-                if (this.DelayedVendorReportBackMailPieces.Count > 0 || this.DelayedVendorReportBackBatches.Count > 0)
-                    return true;
-                else
-                    return false;
+                {
+                    return "Normal";
+                }
             }
         }
         public List<MonitorAppCodeCount> AppCodeCountByBatch
