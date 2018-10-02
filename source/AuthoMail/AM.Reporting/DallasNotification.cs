@@ -113,34 +113,26 @@ namespace AM.Reporting
                             var clientList = notificationList.Select(c => c.ClientCode).Distinct();
 
                             StringBuilder fullContent = new StringBuilder();
-                            fullContent.AppendLine(@"<tr><td colspan='4' style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt' valign='top' width='638'><p style='text-align:center' align='center'><span style='font-size:20.0pt'>Below Folder should have count of packages to be printed and shipped<u></u><u></u></span></p></td></tr>");
 
                             foreach (var client in clientList)
                             {
-                                fullContent.AppendLine(@"<tr><td colspan='4' style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt' valign='top' width='638'><p style='text-align:center' align='center'><span style='font-size:20.0pt'>
-                                    {0} / {1} / {2}
-                                    <u></u><u></u>
-                                </span></p></td></tr>".Fill(client, currentEstDate.ToString("MMddyyyy"), sweepName));
-                                fullContent.AppendLine(@"<tr><td style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 6pt 0in 6pt;text-align:center;font-size:14.0pt' valign='top' width='638'>Shipping Method</td><td style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 6pt 0in 6pt;text-align:center;font-size:14.0pt' valign='top' width='638'>Shipping Service</td><td style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 6pt 0in 6pt;text-align:center;font-size:14.0pt' valign='top' width='638'>Total Packages</td><td style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 6pt 0in 6pt;text-align:center;font-size:14.0pt' valign='top' width='638'>Total Pages</td></tr>");
-                                
+                                fullContent.AppendLine(@"<tr class='information'><td colspan='4'><span> {0} / {1} / {2}</td></tr>".Fill(client, currentEstDate.ToString("MMddyyyy"), sweepName));
+                                fullContent.AppendLine(@"<tr class='title'><td>Shipping Method</td><td>Shipping Service</td><td>Total Packages</td><td>Total Pages</td></tr>");
+
                                 var clientwiseCounts = notificationList.Where(f => f.ClientCode == client).ToList();
                                 foreach (var filterd in clientwiseCounts)
                                 {
-                                    fullContent.AppendLine(@"<tr><td><p style='text-align:center' align='center'><span style='font-size:14.0pt'>{0}</span></p></td><td><p style='text-align:center' align='center'><span style='font-size:14.0pt'>{1}</span></p></td><td><p style='text-align:center' align='center'>
-                                <span style='font-size:14.0pt'>{2}</span></p></td><td><p style='text-align:center' align='center'>
-                                <span style='font-size:14.0pt'>{3}</span></p></td></tr>".Fill(filterd.ShippingCarrier, filterd.ShippingServiceType, filterd.MailPieceCount, filterd.TotalPagesCount));
+                                    fullContent.AppendLine(@"<tr class='details'><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td></tr>".Fill(filterd.ShippingCarrier, filterd.ShippingServiceType, filterd.MailPieceCount, filterd.TotalPagesCount));
                                 }
-                                
-                                fullContent.AppendLine(@"<tr><td colspan='2'><p style='text-align:center' align='center'><span style='font-size:14.0pt'>Total Counts</span></p></td><td><p style='text-align:center' align='center'>
-                                <span style='font-size:14.0pt'>{0}</span></p></td><td><p style='text-align:center' align='center'>
-                                <span style='font-size:14.0pt'>{1}</span></p></td></tr>".Fill(clientwiseCounts.Sum(c => c.MailPieceCount), clientwiseCounts.Sum(c => c.TotalPagesCount)));
+
+                                fullContent.AppendLine(@"<tr class='finalCount'><td colspan='2'>Total Counts</td><td>{0}</td><td>{1}</td></tr>".Fill(clientwiseCounts.Sum(c => c.MailPieceCount), clientwiseCounts.Sum(c => c.TotalPagesCount)));
                             }
 
                             sb = sb.Replace("<%REPLACE%>", fullContent.ToString());
                         }
                         else
                         {
-                            sb = sb.Replace("<%REPLACE%>", @"<tr><td colspan='4' style='width:6.65in;border:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt' valign='top' width='638'><p style='text-align:center' align='center'><span style='font-size:20.0pt'>{0} sweep does not contain any package to print and ship<u></u><u></u></span></p></td></tr>".Fill(sweepName));
+                            sb = sb.Replace("<%REPLACE%>", @"<tr class='information'><td colspan='4'>{0} sweep does not contain any package to print and ship</td></tr>".Fill(sweepName));
                         }
                         msg.Body = sb.ToString();
                         smtpClient.Send(msg);
