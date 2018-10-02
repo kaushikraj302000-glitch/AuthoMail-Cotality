@@ -49,7 +49,7 @@ namespace AM.Web.AMHub
             using (IMonitorBatchesService alertSvc = new MonitorBatchesService())
             {
                 var data = alertSvc.GetPendingBatchesToSubmit(30);
-                s = new AMGlobalStatus { DelayedProcessBatches = data.DelayedBatches.Count(), DelayedProcessMailPieces = data.DelayedMailPieces.Count(), DelayedReportBackBatches = data.DelayedReportedBackBatches.Count(), DelayedReportBackMailPieces = data.DelayedReportedBackMailPieces.Count(), MinHour = data.MinHour, MaxHour = data.MaxHour, LastDelayedBatchReceivedOn = data.LastDelayedBatchReceivedOn, LastUpdatedOn = data.LastUpdatedOn, IsReportBackDelay = data.IsReportBackDelay, IsReceivedDelay = data.IsReceivedDelay, IsProcessDelay = data.IsProcessDelay, Status = data.Status };
+                s = new AMGlobalStatus { DelayedProcessBatches = data.DelayedBatches.Count(), DelayedProcessMailPieces = data.DelayedMailPieces.Count(), DelayedAMReportBackBatches = data.DelayedAMReportBackBatches.Count(), DelayedAMReportBackMailPieces = data.DelayedAMReportBackMailPieces.Count(), DelayedVendorReportBackBatches = data.DelayedVendorReportBackBatches.Count(), DelayedVendorReportBackMailPieces = data.DelayedVendorReportBackMailPieces.Count(), MinHour = data.MinHour, MaxHour = data.MaxHour, LastDelayedBatchReceivedOn = data.LastDelayedBatchReceivedOn, LastUpdatedOn = data.LastUpdatedOn, IsReportBackDelay = data.IsReportBackDelay, IsReceivedDelay = data.IsReceivedDelay, IsProcessDelay = data.IsProcessDelay, Status = data.Status, Pulse = data.Pulse };
             }
         }
     }
