@@ -55,8 +55,10 @@ namespace AM.Services
     {
         public List<BatchInfo> DelayedBatches { get; set; }
         public List<PendingMailPieceInfo> DelayedMailPieces { get; set; }
-        public List<BatchInfo> DelayedReportedBackBatches { get; set; }
-        public List<PendingMailPieceInfo> DelayedReportedBackMailPieces { get; set; }
+        public List<BatchInfo> DelayedAMReportBackBatches { get; set; }
+        public List<BatchInfo> DelayedVendorReportBackBatches { get; set; }
+        public List<PendingMailPieceInfo> DelayedAMReportBackMailPieces { get; set; }
+        public List<PendingMailPieceInfo> DelayedVendorReportBackMailPieces { get; set; }
         public string Status
         {
             get
@@ -79,13 +81,22 @@ namespace AM.Services
         {
             get
             {
-                if (this.DelayedReportedBackMailPieces.Count > 0 || this.DelayedReportedBackBatches.Count > 0)
+                if (this.DelayedAMReportBackMailPieces.Count > 0 || this.DelayedAMReportBackBatches.Count > 0)
                     return true;
                 else
                     return false;
             }
         }
-        public bool IsVendorDelay { get; set; }
+        public bool IsVendorDelay
+        {
+            get
+            {
+                if (this.DelayedVendorReportBackMailPieces.Count > 0 || this.DelayedVendorReportBackBatches.Count > 0)
+                    return true;
+                else
+                    return false;
+            }
+        }
         public List<MonitorAppCodeCount> AppCodeCountByBatch
         {
             get
