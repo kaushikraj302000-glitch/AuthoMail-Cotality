@@ -138,14 +138,8 @@ namespace AM.Services
                 return lst.Count() > 0 ? Convert.ToInt32(lst.Max(d => d)) : 0;
             }
         }
-        public DateTime? LastDelayedBatchReceivedOn
-        {
-            get
-            {
-                if (DelayedBatches == null || DelayedBatches.Count() == 0) return null;
-                return DelayedBatches.Max(d => d.ReceivedOn);
-            }
-        }
+        public DateTime? LastBatchReceivedOn { get; set; }
+
         public DateTime LastUpdatedOn { get { return DateTime.UtcNow; } }//Status Date
     }
     public class MonitorAppCodeCount
