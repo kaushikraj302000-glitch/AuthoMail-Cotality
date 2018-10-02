@@ -166,6 +166,7 @@ namespace AM.Services
         public DateTime? LastDelayedBatchReceivedOn { get; set; }
         public DateTime LastUpdatedOn { get; set; }
         public bool IsReportBackDelay { get; set; }
+        public bool IsVendorDelay { get; set; }
         public bool IsReceivedDelay { get; set; }
         public bool IsProcessDelay { get; set; }
         public string Status { get; set; }
