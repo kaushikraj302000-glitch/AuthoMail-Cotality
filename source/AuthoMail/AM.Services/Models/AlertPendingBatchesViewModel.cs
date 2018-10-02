@@ -63,7 +63,14 @@ namespace AM.Services
         {
             get
             {
-                return this.IsReceivedDelay || this.IsProcessDelay ? "red" : this.IsReportBackDelay ? "yellow" : "white";
+                return this.IsReceivedDelay || this.IsProcessDelay ? "red" : this.IsReportBackDelay || this.IsVendorDelay ? "yellow" : "white";
+            }
+        }
+        public string Pulse
+        {
+            get
+            {
+                return this.IsReceivedDelay || this.IsProcessDelay || this.IsReportBackDelay ? "blink" : "";
             }
         }
         public bool IsReceivedDelay { get; set; }
