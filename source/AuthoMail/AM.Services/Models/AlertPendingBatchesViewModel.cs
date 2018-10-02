@@ -56,9 +56,9 @@ namespace AM.Services
         public List<BatchInfo> DelayedBatches { get; set; }
         public List<PendingMailPieceInfo> DelayedMailPieces { get; set; }
         public List<BatchInfo> DelayedAMReportBackBatches { get; set; }
-        public List<BatchInfo> DelayedVendorReportBackBatches { get; set; }
+        public List<BatchInfo> DelayedPrinterReportBackBatches { get; set; }
         public List<PendingMailPieceInfo> DelayedAMReportBackMailPieces { get; set; }
-        public List<PendingMailPieceInfo> DelayedVendorReportBackMailPieces { get; set; }
+        public List<PendingMailPieceInfo> DelayedPrinterReportBackMailPieces { get; set; }
         public bool IsReceivedDelay { get; set; }
         public bool IsProcessDelay
         {
@@ -76,11 +76,11 @@ namespace AM.Services
 
             }
         }
-        public bool IsVendorDelay
+        public bool IsPrinterDelay
         {
             get
             {
-                return this.DelayedVendorReportBackMailPieces.Count > 0 || this.DelayedVendorReportBackBatches.Count > 0;
+                return this.DelayedPrinterReportBackMailPieces.Count > 0 || this.DelayedPrinterReportBackBatches.Count > 0;
             }
         }
       
@@ -92,7 +92,7 @@ namespace AM.Services
             }
         }
         private bool IsCritical { get { return this.IsReceivedDelay || this.IsProcessDelay; } }
-        private bool IsWarning { get { return this.IsReportBackDelay || this.IsVendorDelay; } }
+        private bool IsWarning { get { return this.IsReportBackDelay || this.IsPrinterDelay; } }
         public string AlertLevel
         {
             get
@@ -160,14 +160,14 @@ namespace AM.Services
         public int DelayedProcessMailPieces { get; set; }
         public int DelayedAMReportBackBatches { get; set; }
         public int DelayedAMReportBackMailPieces { get; set; }
-        public int DelayedVendorReportBackBatches { get; set; }
-        public int DelayedVendorReportBackMailPieces { get; set; }
+        public int DelayedPrinterReportBackBatches { get; set; }
+        public int DelayedPrinterReportBackMailPieces { get; set; }
         public int MinHour { get; set; }
         public int MaxHour { get; set; }
         public DateTime? LastBatchReceivedOn { get; set; }
         public DateTime LastUpdatedOn { get; set; }
         public bool IsReportBackDelay { get; set; }
-        public bool IsVendorDelay { get; set; }
+        public bool IsPrinterDelay { get; set; }
         public bool IsReceivedDelay { get; set; }
         public bool IsProcessDelay { get; set; }
         public bool IsAMDelay { get; set; }
