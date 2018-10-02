@@ -235,6 +235,7 @@
             .cl-learnmore span {
                 margin-right: 15px;
             }
+
     </style>
 </head>
 
@@ -277,8 +278,8 @@
                         <th>{DelayedVendorReportBackMailPieces}</th>
                     </tr>
                     <tr class="row-small">
-                        <th>Last Delayed Batch ReceivedOn</th>
-                        <th>{LastDelayedBatchReceivedOn}</th>
+                        <th>Last Batch ReceivedOn</th>
+                        <th>{LastBatchReceivedOn}</th>
                     </tr>
                     <tr class="row-small">
                         <th>Last UpdatedOn</th>
@@ -358,7 +359,7 @@
                 DelayedVendorReportBackBatches: data.DelayedVendorReportBackBatches,
                 DelayedVendorReportBackMailPieces: data.DelayedVendorReportBackMailPieces,
                 EstimateTitle: data.MinHour < 1 ? '--' : data.MinHour == data.MaxHour ? 'Estimated fixing time minimum {0} hours remaining.'.replace('{0}', data.MinHour) : 'Estimated fixing time minimum {0} hours and maximum {1} hours remaining'.replace('{0}', data.MinHour).replace('{1}', data.MaxHour),
-                LastDelayedBatchReceivedOn: data.LastDelayedBatchReceivedOn != null ? moment(data.LastDelayedBatchReceivedOn).format("MM/DD/YY HH:mm:ss") : '--',
+                LastBatchReceivedOn: data.LastBatchReceivedOn != null ? moment(data.LastBatchReceivedOn).format("MM/DD/YY HH:mm:ss") : '--',
                 LastUpdatedOn: data.LastUpdatedOn != null ? moment(data.LastUpdatedOn).format("MM/DD/YY HH:mm:ss") : '--',
                 IsReportBackDelay: data.IsReportBackDelay,
                 IsVendorDelay: data.IsVendorDelay,
