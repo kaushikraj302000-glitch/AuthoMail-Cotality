@@ -56,9 +56,9 @@ namespace AM.Services
         public List<BatchInfo> DelayedBatches { get; set; }
         public List<PendingMailPieceInfo> DelayedMailPieces { get; set; }
         public List<BatchInfo> DelayedAMReportBackBatches { get; set; }
-        public List<BatchInfo> DelayedPrinterReportBackBatches { get; set; }
+        public List<BatchInfo> DelayedPrinterBatches { get; set; }
         public List<PendingMailPieceInfo> DelayedAMReportBackMailPieces { get; set; }
-        public List<PendingMailPieceInfo> DelayedPrinterReportBackMailPieces { get; set; }
+        public List<PendingMailPieceInfo> DelayedPrinterMailPieces { get; set; }
         public bool IsReceivedDelay { get; set; }
         public bool IsProcessDelay
         {
@@ -80,7 +80,7 @@ namespace AM.Services
         {
             get
             {
-                return this.DelayedPrinterReportBackMailPieces.Count > 0 || this.DelayedPrinterReportBackBatches.Count > 0;
+                return this.DelayedPrinterMailPieces.Count > 0 || this.DelayedPrinterBatches.Count > 0;
             }
         }
       
@@ -160,8 +160,8 @@ namespace AM.Services
         public int DelayedProcessMailPieces { get; set; }
         public int DelayedAMReportBackBatches { get; set; }
         public int DelayedAMReportBackMailPieces { get; set; }
-        public int DelayedPrinterReportBackBatches { get; set; }
-        public int DelayedPrinterReportBackMailPieces { get; set; }
+        public int DelayedPrinterBatches { get; set; }
+        public int DelayedPrinterMailPieces { get; set; }
         public int MinHour { get; set; }
         public int MaxHour { get; set; }
         public DateTime? LastBatchReceivedOn { get; set; }
