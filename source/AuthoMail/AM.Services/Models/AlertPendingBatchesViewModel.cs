@@ -151,8 +151,10 @@ namespace AM.Services
     {
         public int DelayedProcessBatches { get; set; }
         public int DelayedProcessMailPieces { get; set; }
-        public int DelayedReportBackBatches { get; set; }
-        public int DelayedReportBackMailPieces { get; set; }
+        public int DelayedAMReportBackBatches { get; set; }
+        public int DelayedAMReportBackMailPieces { get; set; }
+        public int DelayedVendorReportBackBatches { get; set; }
+        public int DelayedVendorReportBackMailPieces { get; set; }
         public int MinHour { get; set; }
         public int MaxHour { get; set; }
         public DateTime? LastDelayedBatchReceivedOn { get; set; }
@@ -161,5 +163,6 @@ namespace AM.Services
         public bool IsReceivedDelay { get; set; }
         public bool IsProcessDelay { get; set; }
         public string Status { get; set; }
+        public string Pulse { get; set; }
     }
 }
