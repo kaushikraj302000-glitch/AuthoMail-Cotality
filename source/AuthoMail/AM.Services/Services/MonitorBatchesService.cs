@@ -75,7 +75,7 @@ namespace AM.Services
 
             var delayedVendorReportedBackBatches = delayedReportedBackMailPiecesByPrintVendor.GroupBy(mp => new { mp.MailBatchId, mp.AppCode, mp.BatchName, mp.ClientId, mp.PipelineStatus, mp.ReceivedOn }).Select(g => new BatchInfo { Id = g.Key.MailBatchId, AppCode = g.Key.AppCode, BatchName = g.Key.BatchName, ClientId = g.Key.ClientId, PipelineStatus = g.Key.PipelineStatus, ReceivedOn = g.Key.ReceivedOn, DelayedMailPieces = g.ToList() }).ToList();
 
-            return new MonitorReport { DelayedBatches = delayedBatches, DelayedMailPieces = delayedMailPieces, IsReceivedDelay = isReceivedDelay, DelayedAMReportBackBatches = delayedAMReportedBackBatches, DelayedVendorReportBackBatches = delayedVendorReportedBackBatches, DelayedAMReportBackMailPieces = delayedReportedBackMailPiecesByAM, DelayedVendorReportBackMailPieces = delayedReportedBackMailPiecesByPrintVendor };
+            return new MonitorReport { DelayedBatches = delayedBatches, DelayedMailPieces = delayedMailPieces, IsReceivedDelay = isReceivedDelay, DelayedAMReportBackBatches = delayedAMReportedBackBatches, DelayedVendorReportBackBatches = delayedVendorReportedBackBatches, DelayedAMReportBackMailPieces = delayedReportedBackMailPiecesByAM, DelayedVendorReportBackMailPieces = delayedReportedBackMailPiecesByPrintVendor,LastBatchReceivedOn = lastBatchReceivedOn.ReceivedOn };
         }
 
         public List<dynamic> GetPendingBatchesToReportBack()
