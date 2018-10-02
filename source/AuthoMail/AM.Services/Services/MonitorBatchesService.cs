@@ -69,11 +69,13 @@ namespace AM.Services
 
             var delayedReportedBackMailPiecesByAM = db.Query<PendingMailPieceInfo>("Select MP.Id,MP.MailBatchId,C.AppCode,MP.ClientId,MB.BatchName,MB.ReceivedOn,MB.PipelineStatus,MP.PrintLocation from AM.MailPieces MP inner join Common.Clients C on MP.ClientId = C.Id inner join AM.MailBatches MB on MP.MailBatchId = MB.Id inner join PnS.MrdfRequest MR on MP.UniqueId = MR.UniqueId inner join PnS.BatchSummary BS on MR.JobId = BS.PrintBatch where BS.IsSubmitted = 1 and MP.SLADays < 0 and BS.IsReportedBack = 1 and BS.PipelineStatus <> 'Cancelled' and MB.IsReportedBack = 0").ToList();
 
-            var delayedReportedBackMailPieces = delayedReportedBackMailPiecesByPrintVendor.Concat(delayedReportedBackMailPiecesByAM).ToList();
+            //var delayedReportedBackBatches = delayedReportedBackMailPieces.GroupBy(mp => new { mp.MailBatchId, mp.AppCode, mp.BatchName, mp.ClientId, mp.PipelineStatus, mp.ReceivedOn }).Select(g => new BatchInfo { Id = g.Key.MailBatchId, AppCode = g.Key.AppCode, BatchName = g.Key.BatchName, ClientId = g.Key.ClientId, PipelineStatus = g.Key.PipelineStatus, ReceivedOn = g.Key.ReceivedOn, DelayedMailPieces = g.ToList() }).ToList();
 
-            var delayedReportedBackBatches = delayedReportedBackMailPieces.GroupBy(mp => new { mp.MailBatchId, mp.AppCode, mp.BatchName, mp.ClientId, mp.PipelineStatus, mp.ReceivedOn }).Select(g => new BatchInfo { Id = g.Key.MailBatchId, AppCode = g.Key.AppCode, BatchName = g.Key.BatchName, ClientId = g.Key.ClientId, PipelineStatus = g.Key.PipelineStatus, ReceivedOn = g.Key.ReceivedOn, DelayedMailPieces = g.ToList() }).ToList();
+            var delayedAMReportedBackBatches = delayedReportedBackMailPiecesByAM.GroupBy(mp => new { mp.MailBatchId, mp.AppCode, mp.BatchName, mp.ClientId, mp.PipelineStatus, mp.ReceivedOn }).Select(g => new BatchInfo { Id = g.Key.MailBatchId, AppCode = g.Key.AppCode, BatchName = g.Key.BatchName, ClientId = g.Key.ClientId, PipelineStatus = g.Key.PipelineStatus, ReceivedOn = g.Key.ReceivedOn, DelayedMailPieces = g.ToList() }).ToList();
 
-            return new MonitorReport { DelayedBatches = delayedBatches, DelayedMailPieces = delayedMailPieces,IsReceivedDelay = isReceivedDelay,DelayedReportedBackBatches = delayedReportedBackBatches, DelayedReportedBackMailPieces = delayedReportedBackMailPieces};
+            var delayedVendorReportedBackBatches = delayedReportedBackMailPiecesByPrintVendor.GroupBy(mp => new { mp.MailBatchId, mp.AppCode, mp.BatchName, mp.ClientId, mp.PipelineStatus, mp.ReceivedOn }).Select(g => new BatchInfo { Id = g.Key.MailBatchId, AppCode = g.Key.AppCode, BatchName = g.Key.BatchName, ClientId = g.Key.ClientId, PipelineStatus = g.Key.PipelineStatus, ReceivedOn = g.Key.ReceivedOn, DelayedMailPieces = g.ToList() }).ToList();
+
+            return new MonitorReport { DelayedBatches = delayedBatches, DelayedMailPieces = delayedMailPieces, IsReceivedDelay = isReceivedDelay, DelayedAMReportBackBatches = delayedAMReportedBackBatches, DelayedVendorReportBackBatches = delayedVendorReportedBackBatches, DelayedAMReportBackMailPieces = delayedReportedBackMailPiecesByAM, DelayedVendorReportBackMailPieces = delayedReportedBackMailPiecesByPrintVendor };
         }
 
         public List<dynamic> GetPendingBatchesToReportBack()
