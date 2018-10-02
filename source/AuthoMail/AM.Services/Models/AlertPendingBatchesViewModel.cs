@@ -138,7 +138,7 @@ namespace AM.Services
                 return lst.Count() > 0 ? Convert.ToInt32(lst.Max(d => d)) : 0;
             }
         }
-        public DateTime? LastBatchReceivedOn
+        public DateTime? LastDelayedBatchReceivedOn
         {
             get
             {
@@ -161,7 +161,7 @@ namespace AM.Services
         public int DelayedReportBackMailPieces { get; set; }
         public int MinHour { get; set; }
         public int MaxHour { get; set; }
-        public DateTime? LastBatchReceivedOn { get; set; }
+        public DateTime? LastDelayedBatchReceivedOn { get; set; }
         public DateTime LastUpdatedOn { get; set; }
         public bool IsReportBackDelay { get; set; }
         public bool IsReceivedDelay { get; set; }
