@@ -16,7 +16,7 @@ namespace AM.Web.AMHub
         static AMGlobalStatus s = null;
         public AMAlertHub()
         {
-            t.Interval = 1000 * 60 * Config.Web_API_AlertElapsedMinute;
+            t.Interval = 1000 * 60 * (Config.Web_API_AlertElapsedMinute <= 0 ? 10 : Config.Web_API_AlertElapsedMinute);
             t.Elapsed += TimerElapsed;
             t.Start();
         }
