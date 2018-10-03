@@ -11,6 +11,11 @@
     @Styles.Render("~/Content/clcss")
     @Styles.Render("~/bundles/datatablescss")
 
+    <style>
+        #mainlink:hover {
+            color: lightgray;
+        }
+    </style>
 
 </head>
 
@@ -30,7 +35,6 @@
                         @Html.ActionLink("AuthoMail", "Index", "Home", new { area = "" }, new { @class = "text-white ", @id = "mainlink" })<span id="statustitle" style="margin-left:5px;"></span>
                     </h1>
                 </div>
-
             </div>
 
         </div>
@@ -142,7 +146,6 @@
             });
         }
         var SpreadData = function (response, data) {
-            //console.log("res:" + JSON.stringify(response));
             if (response != null) {
                 $('#tabledata').html(data.supplant(formatData(response)));
                 var color = response.AlertLevel == "Critical" ? "red" : response.AlertLevel == "Warning" ? "yellow" : "white";
