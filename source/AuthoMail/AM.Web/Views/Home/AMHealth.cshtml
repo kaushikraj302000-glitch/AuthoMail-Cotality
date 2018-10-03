@@ -12,7 +12,7 @@
     @Styles.Render("~/bundles/datatablescss")
 
     <style>
-         #mainlink:hover {
+        #mainlink:hover {
             color: lightgray;
         }
     </style>
@@ -146,7 +146,6 @@
             });
         }
         var SpreadData = function (response, data) {
-            console.log("res:" + JSON.stringify(response));
             if (response != null) {
                 $('#tabledata').html(data.supplant(formatData(response)));
                 var color = response.AlertLevel == "Critical" ? "red" : response.AlertLevel == "Warning" ? "yellow" : "white";
