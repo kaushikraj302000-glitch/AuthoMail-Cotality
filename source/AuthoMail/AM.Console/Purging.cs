@@ -38,7 +38,7 @@ namespace AM.Console
                     if (!Directory.Exists(Path.Combine(destAMDir, dir.Name)))
                         Directory.CreateDirectory(Path.Combine(destAMDir, dir.Name));
 
-                    var subdirs = dir.EnumerateDirectories().Where(d => d.LastWriteTime < Common.Today.AddMonths(-2)).ToList();
+                    var subdirs = dir.EnumerateDirectories().Where(d => d.LastWriteTime < Common.Today.AddMonths(-1)).ToList();
                     
                     foreach (var subdir in subdirs)
                     {
