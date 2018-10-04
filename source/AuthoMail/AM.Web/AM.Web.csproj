@@ -205,6 +205,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AMHub\AMAlert.cs" />
     <Compile Include="AMHub\AMAlertHub.cs" />
     <Compile Include="APIProviders\AMOAuthProvider.cs" />
     <Compile Include="APIProviders\ChallengeResult.cs" />
