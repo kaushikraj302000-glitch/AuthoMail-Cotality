@@ -1,5 +1,22 @@
--"Web_Msg_API_PB_BatchNotValidated" key added in SystemSettings table.
--"Web_Msg_API_PB_PulledBackSuccess" key added in SystemSettings table.
--"usp_InsertPullBackRequestsData" SP updated.
--"usp_UpdateAMMailBatchesStatus" SP added.
 
+***29 August 2018***
+delete from Common.SystemSettings where id = 'Web_Msg_API_PB_BatchStatusSubmitted'
+
+
+*** 1 sept 2018***
+DALLAS batch timings change(table value function)
+
+*** 7 Sept 2018 ***
+[dbo].[uspalert_GetPendingBatchesToSubmit] SP added. 
+
+
+*** 20 sept 2018 ***
+- Remove [dbo].[uspalert_GetPendingBatchesToSubmit] SP.
+-[dbo].[uspalert_GetDelayedBatchesToSubmit] SP change.
+-Common.MonitorBatches table column name change.
+-ufn_GetPCIBundleSweepTimings function added.
+- Monitor app update.
+	- check value of <add key="Alert_CutOffMinutes" value="30"/> in config.
+	- remove bundle setting from config.
+	- email template update
+- Website alert api added.
