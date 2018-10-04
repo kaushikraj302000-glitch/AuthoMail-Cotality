@@ -142,7 +142,7 @@
                 SpreadData(response, data);
             };
             $.connection.hub.start().done(function () {
-                amhub.server.getStatus();
+                amhub.server.getConnection($.connection.hub.id);
             });
         }
         var SpreadData = function (response, data) {

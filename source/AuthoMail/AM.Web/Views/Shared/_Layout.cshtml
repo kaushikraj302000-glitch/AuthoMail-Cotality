@@ -185,7 +185,7 @@
                         }
                     };
                     $.connection.hub.start().done(function () {
-                        amh.server.getStatus();
+                        amh.server.getConnection($.connection.hub.id);
                         console.log("connection");
                     });
                 }
@@ -333,7 +333,7 @@
             $(mainDivId).find("table").attr("id", "sample_2");
             applyDataTable();
         }
-        function BindTemplateWithDataTable(model, bodyId, bodyContentId, mainTableId, mainDivId,tableId,filename,title) {
+        function BindTemplateWithDataTable(model, bodyId, bodyContentId, mainTableId, mainDivId,tableId,filename,title,scroll) {
 
             var bodyHtml = $(bodyId).html();
             var tableHtml = "";
@@ -343,7 +343,7 @@
             $(bodyContentId).html(tableHtml);
             $(mainDivId).html($(mainTableId).html());
             $(mainDivId).find("table").attr("id", tableId);
-            applyDataTableWithId(tableId,filename,title);
+            applyDataTableWithId(tableId,filename,title,scroll);
         }
 
         function BindTemplateWithOutDatatable(model, bodyId, bodyContentId, mainTableId, mainDivId) {
