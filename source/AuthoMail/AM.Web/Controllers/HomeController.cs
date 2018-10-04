@@ -16,6 +16,7 @@ using AutoMapper;
 namespace AM.Web.Controllers
 {
     [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager + "," + AMRoles.PnSOperator)]
+    [RoutePrefix("AuthoMailHealth")]
     public class HomeController : BaseController
     {
         IHomeService homeSvc;
@@ -151,7 +152,11 @@ namespace AM.Web.Controllers
         public ActionResult Contact()
         {
             ViewBag.Message = "Your contact page.";
-
+            return View();
+        }
+        [AllowAnonymous,Route("37f9ac3e-40b3-4ae8-ac9a-d84634638065")]
+        public ActionResult AMHealth()
+        {
             return View();
         }
     }

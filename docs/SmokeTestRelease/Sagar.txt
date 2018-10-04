@@ -1603,4 +1603,216 @@ Application Changes
 UAT Final Status : Deployed on 09/10/2018 at 12.30 PM IST
 PROD Final Status : Deployed on 09/13/2018 at 11.00 AM IST (Bundle Sweeps updated)
 ====================================================================================================================================================
-	
+====================================================
+Deployment 29/09/2018
+====================================================
+=========================
+Database Changes
+=========================
+
+	--STORED PROCEDURES
+	CREATE PROCEDURE [dbo].[usp_GetDallasBatchTimingsPnS] 
+	@EstToday DATE
+	AS
+	BEGIN
+		-- SET NOCOUNT ON added to prevent extra result sets from
+		-- interfering with SELECT statements.
+		SET NOCOUNT ON;
+		Select * from dbo.ufn_GetDallasBatchTimings(@EstToday)
+	END
+
+	GO
+
+
+	ALTER PROCEDURE [dbo].[usp_GetNextBatchIdByJobName] 
+		-- Add the parameters for the stored procedure here
+		@jobName varchar(50),
+		@operation varchar(50)
+	AS
+	BEGIN
+		
+		IF (@jobName = 'PnSJobMonitor' AND @operation = 'ReportBack')
+		BEGIN
+			SELECT PrintBatch AS BatchId FROM [PnS].BatchSummary WHERE PipelineStatus = 'ReportPrepped' AND  IsReportPrepped = 1 AND IsReportedBack = 0
+		END
+		ELSE IF(@jobName = 'PnSCoreService')
+		BEGIN
+			IF(@operation = 'Prep')
+			BEGIN
+				SELECT PrintBatch AS BatchId FROM PnS.BatchSummary WHERE PipelineStatus = 'Downloaded' AND  IsDownloaded = 1 AND IsPrepped = 0 
+			END
+			ELSE IF(@operation = 'ProcessMRDF')
+			BEGIN
+				SELECT PrintBatch AS BatchId FROM PnS.BatchSummary WHERE PipelineStatus = 'MRDFReceived' AND  IsMRDFReceived = 1 AND IsReportPrepped = 0
+			END
+		END
+		ELSE IF(@jobName = 'PCIJobMonitor' AND @operation = 'Submit')
+		BEGIN
+			SELECT PrintBatch AS BatchId FROM PnS.BatchSummary WHERE PipelineStatus = 'Prepped' AND  IsPrepped = 1 AND IsSubmitted = 0 
+		END
+	END
+
+	--FUNCTION
+	CREATE FUNCTION [dbo].[ufn_GetPCIBundleSweepTimings] 
+	()
+	RETURNS @T TABLE
+	(
+		SrNo int,
+		WeekDayType varchar(10),
+		SweepTime time
+	) 
+	AS
+	BEGIN
+		
+		INSERT INTO @T (SrNo,WeekDayType,SweepTime) 
+		VALUES (1,'Weekday','16:00:00')
+		INSERT INTO @T (SrNo,WeekDayType,SweepTime) 
+		VALUES (2,'Weekday','20:00:00')
+		INSERT INTO @T (SrNo,WeekDayType,SweepTime) 
+		VALUES (1,'Saturday','16:00:00')
+		INSERT INTO @T (SrNo,WeekDayType,SweepTime) 
+		VALUES (2,'Saturday','20:00:00')
+		RETURN
+	END
+
+	--TABLES CHANGES
+
+	ALTER TABLE AM.MailPieces 
+	ADD StdSubmissionTime DATETIME NULL,MaxSubmissionTime DATETIME NULL, MissedSLAReason VARCHAR(15) NULL
+
+	CREATE TABLE [API].[USPSeVSCancel](
+	 [Id] [int] IDENTITY(1,1) NOT NULL,
+	 [APIName] [nvarchar](255) NOT NULL,
+	 [UserId] [nvarchar](255) NULL,
+	 [IsAPIError] [bit] NOT NULL,
+	 [IsUSPSError] [bit] NOT NULL,
+	 [APIRequest] [nvarchar](max) NOT NULL,
+	 [APIRequestedOn] [datetime] NOT NULL,
+	 [USPSRequest] [nvarchar](max) NULL,
+	 [USPSRequestedOn] [datetime] NULL,
+	 [USPSResponse] [nvarchar](max) NULL,
+	 [USPSResponseOn] [datetime] NULL,
+	 [APIResponse] [nvarchar](max) NULL,
+	 [APIResponseOn] [datetime] NULL,
+	 [BarcodeNumber] [nvarchar](255) NULL,
+	 [Status] [nvarchar](255) NULL,
+	 [Reason] [nvarchar](max) NULL,
+	 CONSTRAINT [PK_USPSeVSCancel.Id] PRIMARY KEY CLUSTERED 
+	(
+	 [Id] ASC
+	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+	) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+
+	CREATE TABLE [AM].[ClientAMCCustIdMap](
+		[ClientId] [int] NOT NULL,
+		[AMCCustId] [varchar](128) NOT NULL,
+	 CONSTRAINT [PK_ClientAMCCustIdMap] PRIMARY KEY CLUSTERED 
+	(
+		[ClientId] ASC,
+		[AMCCustId] ASC
+	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+	) ON [PRIMARY]
+
+
+	ALTER TABLE [AM].[ClientAMCCustIdMap]  WITH CHECK ADD  CONSTRAINT [FK_ClientAMCCustIdMap_Clients] FOREIGN KEY([ClientId])
+	REFERENCES [Common].[Clients] ([Id])
+	GO
+
+	ALTER TABLE [AM].[ClientAMCCustIdMap] CHECK CONSTRAINT [FK_ClientAMCCustIdMap_Clients]
+	GO
+
+
+
+
+
+	-- DATA RELATED CHANGES
+
+	SET IDENTITY_INSERT [Common].[Clients] ON
+	GO
+	DECLARE @SFTChannelCode VARCHAR(50),@SFTChannelId INT,@ClientId INT,@EmailChannelId INT
+
+	SET @SFTChannelId=(SELECT Id FROM Common.SFTChannels WHERE Code='AMC_' + (SELECT VALUE FROM Common.SystemSettings WHERE Id='Common_Environment'))*-1
+
+
+	INSERT INTO [Common].[Clients](Id,Name, AppCode, BusinessUnit, IsAMActive, IsPnSActive, TimeZone, ModifiedOn, CreatedOn, CreatedBy, ModifiedBy, SimulatePCI)
+	VALUES (@SFTChannelId,'AMCInvalid','AMCInvalid',1,1,0,'Eastern Standard Time',GETUTCDATE(),GETUTCDATE(),(select Id FROM [Profile].[Users] where UserName='system@milestonetechnoconsulting.com'),(select Id FROM [Profile].[Users] where UserName='system@milestonetechnoconsulting.com'),0)
+
+	SET @ClientId=@SFTChannelId
+	INSERT INTO [AM].[ClientAMCCustIdMap](Clientid,AMCCustId) VALUES(@ClientId,'InvalidCustId')
+	INSERT INTO [AM].[ClientBusinessIdentifiers](ClientId,BusinessIdName) VALUES (@ClientId,'Loan Number')
+
+	INSERT INTO [Common].[EmailChannels]([Title],[To],[Cc],[Bcc],[Subject],[BodyTemplate],[IsBodyHTML])VALUES('AMCInvalid Reporting','brapatel@corelogic.com','sgolvelkar@corelogic.com,vmungara@corelogic.com,avala@corelogic.com',NULL,'Production Summary','HTML',0)
+	SET @EmailChannelId = SCOPE_IDENTITY()
+
+	INSERT INTO [Common].[Deliverables](ClientId, ReportName, ReportType, DeliveryType, ReportQuery, Delimeter, FileNameExpression, IsSFTUploadRequired, UploadPath, EmailChannelId, ScheduleId)
+	VALUES(@ClientId,'Error Report','Error','Batch','','\t','Error-{Now:yyyyMMdd}.csv',1,'/Reports',@EmailChannelId,NULL)
+
+	SET IDENTITY_INSERT [Common].[Clients] OFF 
+	GO
+
+	--[Common].[ClientSFTChannels] Table
+
+	EXEC usp_MapClientSFTChannels 'AMCInvalid','AMC_Prod'
+	EXEC usp_MapClientSFTChannels 'HSBC','AMC_Prod'
+
+
+	--Common.SystemSettings Table
+	INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Core_USPSEndPageTemplatePath', N'String', N'USPSBarcodedEndPageTemplate.pdf', NULL, 0, N'USPSBarcodedEndPageTemplate.pdf', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+	INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Core_FedExEndPageTemplatePath', N'String', N'FedExBarcodedEndPageTemplate.pdf', NULL, 0, N'FedExBarcodedEndPageTemplate.pdf', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+	DELETE FROM Common.SystemSettings WHERE id = 'Core_EndPageTemplatePath'
+
+	INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_API_USPS_eVSCancelAPIName', N'String', N'eVSCancel', NULL, 0, N'eVSCancel', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+	INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Common_ProcessingBufferTime', N'Int32', N'30', NULL, 0, N'30', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+	--Common.Deliverables AND [Common].[EmailChannels] Tables
+	DECLARE @EmailChannelIdForUSAA INT
+	INSERT INTO [Common].[EmailChannels]([Title],[To],[Cc],[Bcc],[Subject],[BodyTemplate],[IsBodyHTML])VALUES('USAA Reporting','sgolvelkar@corelogic.com','vmungara@corelogic.com',NULL,'Production Summary','HTML',0)
+
+	SET @EmailChannelIdForUSAA=SCOPE_IDENTITY()
+
+	INSERT INTO [Common].[Deliverables]([ClientId],[ReportName],[ReportType],[DeliveryType],[ReportQuery],[Delimeter],[FileNameExpression],[IsSFTUploadRequired],[UploadPath],[EmailChannelId],[ScheduleId])VALUES(101,'Delivery Report','Delivery','Batch','','\t','Delivery-{Now:yyyyMMdd}.csv',1,'/Reports',@EmailChannelIdForUSAA,NULL)
+
+	UPDATE [Common].[EmailChannels]
+	SET
+	[Subject]='Download Summary'
+	WHERE Id=3
+
+	UPDATE [Common].[Deliverables]
+	SET
+	UploadPath='/Reports'
+	WHERE ClientId=104 AND IsSFTUploadRequired=1
+
+	--[AM].[ClientAMCCustIdMap] Table
+	INSERT INTO [AM].[ClientAMCCustIdMap](Clientid,AMCCustId) VALUES(101,'166')
+	INSERT INTO [AM].[ClientAMCCustIdMap](Clientid,AMCCustId) VALUES(104,'185')
+
+=========================
+Application Changes
+=========================
+
+1) AM.Console Update : exe, dlls
+2) AM.Core Update : exe, dlls
+	- Add two cover rear barcoded cover letters in CoverTemplates
+3) AM.Reporting Update : exe, dlls
+4) PnS Service :
+	- New Deployment in AuthoMail folder With 3 Separate Exe Just like UAT
+	- Create 3 Task schedular with PnSJob, PnSCore and PCIJob Arguments
+	- Disable PnSServices
+	- Use same config file of Original PnSService
+	- Added 3 keys in PnS Service
+		<add key="UnexpectedEmail_Subject" value="Unexpected Error Occured in PnS Service" />
+		<add key="UnexpectedEmail_ToEmail" value="sgolvelkar@corelogic.com" />
+		<add key="UnexpectedEmail_CcEmail" value="sgolvelkar@corelogic.com" />
+	- Removed DallasSweepTiming key in PnS.AppConfig
+5) Disable AM_Monitor_HSBC Task Schedular
+6) Creat "Archive" folder in AMRoot
+7) Deploy TaskManager and Create task schedular for Disabling task on SUNDAY 00:00:00(EST) SATURDAY (21:00:00 PST) and Start again on Monday 00:00:00(EST)  SUNDAY (21:00:00 PST)
+8) Look into web deployment
+====================================================================================================================================================
+UAT Final Status : Deployed on 09/26/2018 at 04.30 AM IST
+PROD Final Status : Deployed on 09/29/2018 at 10.59 AM IST (PnSService separate exe updates, HSBC onboard through AMC,evscancel updates )
+====================================================================================================================================================

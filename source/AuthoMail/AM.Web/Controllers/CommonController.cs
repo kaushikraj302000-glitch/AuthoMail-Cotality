@@ -20,7 +20,7 @@ namespace AM.Web.Controllers
         IHomeService homeSvc;
         private AMSignInManager _signInManager;
         private AMUserManager _userManager;
-        public CommonController(IReportService repoSvc, IHomeService homeSvc, AMSignInManager signInManager,AMUserManager userManager)
+        public CommonController(IReportService repoSvc, IHomeService homeSvc, AMSignInManager signInManager, AMUserManager userManager)
         {
             this.repoSvc = repoSvc;
             this.homeSvc = homeSvc;
@@ -81,7 +81,7 @@ namespace AM.Web.Controllers
         [HttpGet]
         public ActionResult GetClientMenu()
         {
-            var model = homeSvc.GetAllActiveClient();
+            var model = User.IsInRole(AMRoles.BA) ? homeSvc.GetAllActiveClient().Where(u => u.Id > 0).ToList() : homeSvc.GetAllActiveClient();
             return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
         }
 
@@ -93,15 +93,15 @@ namespace AM.Web.Controllers
 
             if (result > 0)
             {
-                var user=UserManager.FindById(User.Identity.GetUserId());
-                SignInManager.SignInAsync(user, false,false);
+                var user = UserManager.FindById(User.Identity.GetUserId());
+                SignInManager.SignInAsync(user, false, false);
                 return Json(JsonResponseFactory.SuccessResponse(result), JsonRequestBehavior.AllowGet);
             }
             else
             {
                 return Json(JsonResponseFactory.ErrorResponse("You don't have access for this client."), JsonRequestBehavior.AllowGet);
             }
-            
+
         }
     }
 }

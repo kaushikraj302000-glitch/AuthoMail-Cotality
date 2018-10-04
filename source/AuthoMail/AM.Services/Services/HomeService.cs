@@ -60,7 +60,7 @@ namespace AM.Services
 
         public List<ClientIdName> GetAllActiveClient()
         {
-            return db.Query<ClientIdName>(HomeServiceQuery.GetAllActiveClient).ToList();
+            return db.Query<ClientIdName>(HomeServiceQuery.GetAllActiveClient).OrderBy(o => o.Name).ToList();
         }
 
 

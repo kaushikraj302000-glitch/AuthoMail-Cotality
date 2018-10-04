@@ -21,7 +21,7 @@ namespace AM.Console
                     var docType = docTypeSvc.GetDocTypeById(item.DocTypeId);
                     DateTime estEffectiveReceivedOn = Channel.GetEffectiveEstReceivedOn(docType, item.ReceivedOn);
                     var dueDate = Channel.GetDueDate(docType, estEffectiveReceivedOn);                    
-                    rSvc.UpdateDueDateAndEftRecOnEST(item.Id, dueDate,estEffectiveReceivedOn.EstToUtc());
+                    rSvc.UpdateDueDateAndEftRecOnEST(item.Id, dueDate,estEffectiveReceivedOn);
                 }
             }
         }

@@ -29,7 +29,7 @@ namespace AM.Services
             get
             {
                 if (!MaxSubmissionTime.HasValue) return 0;
-                    return MaxSubmissionTime.Value.Subtract(Common.Now).TotalHours;                
+                return MaxSubmissionTime.Value.Subtract(Common.Now).TotalHours;
             }
         }
 
@@ -37,7 +37,7 @@ namespace AM.Services
         {
             using (ICommonService commonSvc = new CommonService())
             {
-                return commonSvc.GetStandardSubmissionTime(this.ReceivedOn, sweepTimings).Add(new TimeSpan(0, bufferTime, 0));
+                return commonSvc.GetStandardSubmissionTime(this.AppCode, this.PrintLocation, this.ReceivedOn, sweepTimings).Add(new TimeSpan(0, bufferTime, 0));
             }
         }
     }
@@ -55,6 +55,62 @@ namespace AM.Services
     {
         public List<BatchInfo> DelayedBatches { get; set; }
         public List<PendingMailPieceInfo> DelayedMailPieces { get; set; }
+        public List<BatchInfo> DelayedAMReportBackBatches { get; set; }
+        public List<BatchInfo> DelayedPrinterBatches { get; set; }
+        public List<PendingMailPieceInfo> DelayedAMReportBackMailPieces { get; set; }
+        public List<PendingMailPieceInfo> DelayedPrinterMailPieces { get; set; }
+        public bool IsReceivedDelay { get; set; }
+        public bool IsProcessDelay
+        {
+            get
+            {
+                return this.DelayedMailPieces.Count > 0 || this.DelayedBatches.Count > 0;
+
+            }
+        }
+        public bool IsReportBackDelay
+        {
+            get
+            {
+                return this.DelayedAMReportBackMailPieces.Count > 0 || this.DelayedAMReportBackBatches.Count > 0;
+
+            }
+        }
+        public bool IsPrinterDelay
+        {
+            get
+            {
+                return this.DelayedPrinterMailPieces.Count > 0 || this.DelayedPrinterBatches.Count > 0;
+            }
+        }
+      
+        public bool IsAMDelay
+        {
+            get
+            {
+                return this.IsReceivedDelay || this.IsProcessDelay || this.IsReportBackDelay;
+            }
+        }
+        private bool IsCritical { get { return this.IsReceivedDelay || this.IsProcessDelay; } }
+        private bool IsWarning { get { return this.IsReportBackDelay || this.IsPrinterDelay; } }
+        public string AlertLevel
+        {
+            get
+            {
+                if (this.IsCritical)
+                {
+                    return "Critical";
+                }
+                else if (this.IsWarning)
+                {
+                    return "Warning";
+                }
+                else
+                {
+                    return "Normal";
+                }
+            }
+        }
         public List<MonitorAppCodeCount> AppCodeCountByBatch
         {
             get
@@ -71,38 +127,50 @@ namespace AM.Services
                 return DelayedMailPieces.GroupBy(g => g.AppCode).Select(g => new MonitorAppCodeCount { AppCode = g.Key, Total = g.Count() }).ToList();
             }
         }
-        public string Status
-        {
-            get
-            {
-                if (this.DelayedMailPieces.Count > 0 || this.DelayedBatches.Count > 0)
-                    return "red";
-                else
-                    return "green";
-            }
-        }
-        public double MinHour
+        public int MinHour
         {
             get
             {
                 if (DelayedMailPieces == null) return 0;
                 var lst = DelayedMailPieces.Where(d => d.MinRemainingHours > 0).Select(d => d.MinRemainingHours).ToList();
-                return lst.Count() > 0 ? lst.Min(d => d) : 0;
+                return lst.Count() > 0 ? Convert.ToInt32(lst.Min(d => d)) : 0;
             }
         }
-        public double MaxHour
+        public int MaxHour
         {
             get
             {
                 if (DelayedMailPieces == null) return 0;
                 var lst = DelayedMailPieces.Where(d => d.MinRemainingHours > 0).Select(d => d.MinRemainingHours).ToList();
-                return lst.Count() > 0 ? lst.Max(d => d) : 0;
+                return lst.Count() > 0 ? Convert.ToInt32(lst.Max(d => d)) : 0;
             }
         }
+        public DateTime? LastBatchReceivedOn { get; set; }
+
+        public DateTime LastUpdatedOn { get { return DateTime.UtcNow; } }//Status Date
     }
     public class MonitorAppCodeCount
     {
         public string AppCode { get; set; }
         public int Total { get; set; }
+    }
+    public class AMGlobalStatus
+    {
+        public int DelayedProcessBatches { get; set; }
+        public int DelayedProcessMailPieces { get; set; }
+        public int DelayedAMReportBackBatches { get; set; }
+        public int DelayedAMReportBackMailPieces { get; set; }
+        public int DelayedPrinterBatches { get; set; }
+        public int DelayedPrinterMailPieces { get; set; }
+        public int MinHour { get; set; }
+        public int MaxHour { get; set; }
+        public DateTime? LastBatchReceivedOn { get; set; }
+        public DateTime LastUpdatedOn { get; set; }
+        public bool IsReportBackDelay { get; set; }
+        public bool IsPrinterDelay { get; set; }
+        public bool IsReceivedDelay { get; set; }
+        public bool IsProcessDelay { get; set; }
+        public bool IsAMDelay { get; set; }
+        public string AlertLevel { get; set; }
     }
 }

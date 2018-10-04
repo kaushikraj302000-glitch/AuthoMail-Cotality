@@ -29,7 +29,12 @@ namespace AM.Reporting
                     DateTime todayCutOffTime = todayDate + todayCutOff;
 
                     DateTime previousDate = todayDate.AddDays(-1);
+                    //Here if we have previous day as Sunday then we are adding one more day in current date.
+                    if (previousDate.DayOfWeek == DayOfWeek.Sunday)
+                        previousDate = todayDate.AddDays(-2);
+
                     TimeSpan previousDateCutOff = previousDate.DayOfWeek == DayOfWeek.Saturday ? new TimeSpan(14, 00, 01) : new TimeSpan(20, 00, 01);
+
                     DateTime previousDateCutOffTime = previousDate + previousDateCutOff;
 
                     mailPieces = reportSvc.GetFedExPickedUpReport(previousDateCutOffTime.EstToUtc(), todayCutOffTime.EstToUtc(), 0);
