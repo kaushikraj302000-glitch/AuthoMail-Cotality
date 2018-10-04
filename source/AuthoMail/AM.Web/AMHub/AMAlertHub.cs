@@ -11,7 +11,7 @@ namespace AM.Web.AMHub
 {
     public class AMAlertHub : Hub
     {
-        static readonly Timer t = new Timer();
+        private static readonly Timer t = new Timer();
         static int connectedClients = 0;
         static AMGlobalStatus s = null;
         public AMAlertHub()
@@ -19,6 +19,8 @@ namespace AM.Web.AMHub
             t.Interval = 1000 * 60 * (Config.Web_API_AlertElapsedMinute <= 0 ? 10 : Config.Web_API_AlertElapsedMinute);
             t.Elapsed += TimerElapsed;
             t.Start();
+            t.AutoReset = true;
+            t.Enabled = true;
         }
         private void TimerElapsed(object sender, ElapsedEventArgs e)
         {
@@ -26,10 +28,10 @@ namespace AM.Web.AMHub
             GetAMGlobalStatus();
             hub.Clients.All.getAMDetailStatus(s);
         }
-        public void GetStatus()
+        public void GetConnection(string conId)
         {
             if (s == null) GetAMGlobalStatus();
-            Clients.All.getAMDetailStatus(s);
+            Clients.Client(conId).getAMDetailStatus(s);
         }
 
         public override Task OnConnected()
