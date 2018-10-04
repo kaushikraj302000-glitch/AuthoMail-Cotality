@@ -14,8 +14,6 @@ namespace AM.Services
         List<Sweep> GetSweepTimings();
         int UpdateDueDateAndEftRecOnEST(int Id, DateTime dueDate, DateTime effectiveReceivedOnEst);
         int UpdateSubmissionTime(int id, DateTime stdSubmissionTime, DateTime maxSubmissionTime, string missedSLAReason);
-        List<Purge> GetMailBatchesListToPurge();
-        List<Purge> GetBatchSummaryListToPurge();
     }
     public class ReCalculateDueDateService : ServiceBase, IReCalculateDueDateService
     {
@@ -49,14 +47,6 @@ namespace AM.Services
             return db.Execute(q, new { Id = id, stdSubmissionTime = stdSubmissionTime, maxSubmissionTime = maxSubmissionTime, missedSLAReason = missedSLAReason });
         }
 
-        public List<Purge> GetMailBatchesListToPurge()
-        {
-            return db.Query<Purge>("select B.Id as BatchId,B.ClientId,C.AppCode,B.ReceivedOn from AM.MailBatches B inner join Common.Clients C on B.ClientId = C.Id WHERE B.ReceivedOn < DATEADD(month, -2, GETUTCDATE()) order by B.ReceivedOn desc").ToList();
-        }
-        public List<Purge> GetBatchSummaryListToPurge()
-        {
-            return db.Query<Purge>("select B.PrintBatch,cast(B.PrintBatch as varchar)+'-'+C.AppCode as SearchPattern,C.AppCode,B.ReceivedOn from PnS.BatchSummary B inner join Common.Clients C on B.ClientId = C.Id WHERE B.ReceivedOn < DATEADD(month, -2, GETUTCDATE()) order by B.ReceivedOn desc").ToList();
-        }
     }
     public class Recal
     {
@@ -77,12 +67,4 @@ namespace AM.Services
         public DateTime? MaxSubmissionTime { get; set; }
     }
 
-    public class Purge
-    {
-        public int BatchId { get; set; }        
-        public int PrintBatch { get; set; }
-        public string AppCode { get; set; }
-        public string SearchPattern { get; set; }
-        public DateTime ReceivedOn { get; set; }
-    }
 }
