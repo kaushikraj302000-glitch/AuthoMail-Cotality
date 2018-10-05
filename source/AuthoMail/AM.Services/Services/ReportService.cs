@@ -19,7 +19,7 @@ namespace AM.Services
         List<MonthlyReconReportViewModel> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel);
         List<ChannelCodeTitle> GetChannelTitle(int clientId);
         List<PullBackRequests> GetPullbackRequestReport(int clientId, DateTime startDate, DateTime endDate);
-        List<MailPieces> GetFedExPickedUpReport(DateTime deploymentDate, DateTime lastReceivedOnDate, int isPickedUp = -1);
+        List<MailPieces> GetFedExPickedUpReport(DateTime todayEffectiveDate, int isPickedUp = -1);
         List<MailPieces> GetMailPiecesDataFromPrintBatchId(int printBatchId);
         List<MailPieces> GetMailPiecesDataFromMailBatchId(int mailBatchId);
         List<PCISubmittedBatchDetail> GetPCIReconReport(DateTime effectiveStartDate, DateTime effectiveEndDate);
@@ -169,10 +169,10 @@ namespace AM.Services
             return data;
         }
 
-        public List<MailPieces> GetFedExPickedUpReport(DateTime deploymentDate, DateTime lastReceivedOnDate, int isPickedUp)
+        public List<MailPieces> GetFedExPickedUpReport(DateTime todayEffectiveDate, int isPickedUp)
         {
             //Possible values are for isPickedUp parameter is : 1-for pickedup records, 0-for not pickedup records and default -1 for get all records
-            string query = "[dbo].[uspweb_FedExPickedUpReport] @deploymentDate, @lastReceivedOnDate, @shippingType, @isPickedUp";
+            string query = "[dbo].[uspweb_FedExPickedUpReport] @todayEffectiveDate, @isPickedUp";
 
             var data = db.Query<MailPieces, MailBatches, DocTypes, MailPieces>(query,
                 (m, b, d) =>
@@ -184,9 +184,7 @@ namespace AM.Services
                 new
                 {
                     isPickedUp = isPickedUp,
-                    deploymentDate = deploymentDate,
-                    lastReceivedOnDate = lastReceivedOnDate,
-                    shippingType = Carrier.FedEx.ToString()
+                    todayEffectiveDate = todayEffectiveDate,
                 }).ToList();
             return data;
         }

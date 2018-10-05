@@ -31,10 +31,9 @@ namespace AM.Reporting
 
                     if (deliverable != null)
                     {
-                        var startDate = DateTime.UtcNow.AddDays(-1).Date.EstToUtc();
-                        var endDate = startDate.AddDays(1).Date.EstToUtc();
+                        var effectiveReceivedOnDate = Common.EstToday.AddDays(-1);
 
-                        var consolidatedReportData = hsbcSvc.ConsolidatedReport(client.Id, startDate, endDate);
+                        var consolidatedReportData = hsbcSvc.ConsolidatedReport(client.Id, effectiveReceivedOnDate);
 
                         var columnName = String.Join(deliverable.Delimeter, "BatchID", "StatusID", "Loan Number", "File Name", "Package Name", "Date Received", "Date Printed", "Date Mailed", "Recipient FirstName", "Recipient LastName", "Recipient Street Address", "Recipient City", "Recipient State", "Recipient Zip", "Pages Shipped", "Total Postage Cost");
 
@@ -49,7 +48,7 @@ namespace AM.Reporting
                                 mailPiece.StatusID,
                                 mailPiece.BusinessFriendlyIdValue,
                                 mailPiece.FileName,
-                                mailPiece.FilePattern,
+                                mailPiece.DocumentOrPackageType,
                                 mailPiece.ReceivedOn.HasValue ? mailPiece.ReceivedOn.Value.UtcToClientTimeZone(client.TimeZone) : mailPiece.ReceivedOn,
                                 mailPiece.PrintedOn.HasValue ? mailPiece.PrintedOn.Value.UtcToClientTimeZone(client.TimeZone) : mailPiece.PrintedOn,
                                 mailPiece.ShippedOn.HasValue ? mailPiece.ShippedOn.Value.UtcToClientTimeZone(client.TimeZone) : mailPiece.ShippedOn,
@@ -73,7 +72,7 @@ namespace AM.Reporting
 
                             if (deliverable.EmailChannel != null)
                             {
-                                SendConsolidatedNotificationEmail(consolidateReportPath, client.TimeZone, deliverable,startDate);
+                                SendConsolidatedNotificationEmail(consolidateReportPath, client.TimeZone, deliverable, effectiveReceivedOnDate);
                             }
                         }
                         catch (Exception ex)

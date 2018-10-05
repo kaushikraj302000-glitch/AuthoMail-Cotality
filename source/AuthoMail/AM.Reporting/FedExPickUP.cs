@@ -22,36 +22,24 @@ namespace AM.Reporting
                 List<MailPieces> mailPieces = new List<MailPieces>();
                 using (IReportService reportSvc = new ReportService())
                 {
-                    //DateTime deploymentDateTime = DateTime.Parse(ConfigurationManager.AppSettings["FedExDeployment"]).EstToUtc();
+                    //Here we are passing dates in EST format because we are looking for est dates column
+                    DateTime todayEffectiveDate = Common.EstToday;
 
-                    DateTime todayDate = Common.Now.UtcToEst().Date;
-                    TimeSpan todayCutOff = todayDate.DayOfWeek == DayOfWeek.Saturday ? new TimeSpan(14, 00, 00) : new TimeSpan(20, 00, 00);
-                    DateTime todayCutOffTime = todayDate + todayCutOff;
-
-                    DateTime previousDate = todayDate.AddDays(-1);
-                    //Here if we have previous day as Sunday then we are adding one more day in current date.
-                    if (previousDate.DayOfWeek == DayOfWeek.Sunday)
-                        previousDate = todayDate.AddDays(-2);
-
-                    TimeSpan previousDateCutOff = previousDate.DayOfWeek == DayOfWeek.Saturday ? new TimeSpan(14, 00, 01) : new TimeSpan(20, 00, 01);
-
-                    DateTime previousDateCutOffTime = previousDate + previousDateCutOff;
-
-                    mailPieces = reportSvc.GetFedExPickedUpReport(previousDateCutOffTime.EstToUtc(), todayCutOffTime.EstToUtc(), 0);
+                    mailPieces = reportSvc.GetFedExPickedUpReport(todayEffectiveDate, 0);
                     if (mailPieces != null && mailPieces.Count > 0)
                     {
                         CheckFedExTrackingInfo checkTrackingInfo = new CheckFedExTrackingInfo();
-                        bool isChecked = checkTrackingInfo.GetTrackingInformation(mailPieces);
+                        checkTrackingInfo.GetTrackingInformation(mailPieces);
                     }
 
                     //Get all records after updating pickedup information and generate report
-                    mailPieces = reportSvc.GetFedExPickedUpReport(previousDateCutOffTime.EstToUtc(), todayCutOffTime.EstToUtc());
+                    mailPieces = reportSvc.GetFedExPickedUpReport(todayEffectiveDate);
                     if (mailPieces != null && mailPieces.Count > 0)
                     {
                         StringBuilder fedExReport = GetFedExReport(mailPieces);
-                        string fedExReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, "USAA", "FedExReport_{0}To{1}.csv".Fill(previousDateCutOffTime.ToString("MMddyyyyhhmmtt"), todayCutOffTime.ToString("MMddyyyyhhmmtt")));
+                        string fedExReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, "USAA", "FedExReport_{0}.csv".Fill(todayEffectiveDate.ToString("MMddyyyyhhmmtt")));
                         File.WriteAllText(fedExReportPath, fedExReport.ToString());
-                        bool isEmailSent = SendReportToCLTeam(fedExReportPath, previousDateCutOffTime, todayCutOffTime);
+                        SendReportToCLTeam(fedExReportPath, todayEffectiveDate);
                     }
                 }
             }
@@ -89,7 +77,7 @@ namespace AM.Reporting
             return mailPiecesReport;
         }
 
-        private static bool SendReportToCLTeam(string fedExReportPath, DateTime previousDateCutOffTime, DateTime todayCutOffTime)
+        private static bool SendReportToCLTeam(string fedExReportPath, DateTime todayDate)
         {
             bool isEmailSent = false;
 
@@ -104,7 +92,7 @@ namespace AM.Reporting
                         msg.CC.Add(AppConfig.FedExReport_Email_Cc);
                         msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, "USAA", AppConfig.FedExReportSubject);
                         msg.Priority = MailPriority.Normal;
-                        msg.Body = "FedEx Status Report From : {0} To {1}".Fill(previousDateCutOffTime.ToString("MM/dd/yyyy hh:mm tt"), todayCutOffTime.ToString("MM/dd/yyyy hh:mm tt"));
+                        msg.Body = "FedEx Status Report From : {0} To {1}".Fill(todayDate.ToString("MM/dd/yyyy hh:mm tt"));
 
                         if (File.Exists(fedExReportPath))
                             msg.Attachments.Add(new Attachment(fedExReportPath));

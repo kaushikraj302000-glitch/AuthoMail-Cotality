@@ -13,7 +13,7 @@ namespace AM.Services
         public string StatusID { get; set; }
         public string BusinessFriendlyIdValue { get; set; }
         public string FileName { get; set; }
-        public string FilePattern { get; set; }
+        public string DocumentOrPackageType { get; set; }
         public DateTime? ReceivedOn { get; set; }
         public DateTime? PrintedOn { get; set; }
         public DateTime? ShippedOn { get; set; }

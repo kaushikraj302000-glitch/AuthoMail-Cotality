@@ -13,7 +13,7 @@ namespace AM.Services
     {
         StringBuilder HSBCErrorReport(List<MailPieces> data, string clientTimeZone, string delimeter);
         StringBuilder HSBCDeliveryReport(List<MailPieces> data, string clientTimeZone, string delimeter);
-        List<HSBCConsolidateReport> ConsolidatedReport(int clientId, DateTime startReceivedOnDate, DateTime endReceivedOnDate);
+        List<HSBCConsolidateReport> ConsolidatedReport(int clientId, DateTime effectiveReceivedOnDate);
     }
 
     public class HSBCService : ServiceBase, IHSBCService
@@ -94,35 +94,18 @@ namespace AM.Services
             return deliveryReport;
         }
 
-        public List<HSBCConsolidateReport> ConsolidatedReport(int clientId, DateTime startReceivedOnDate, DateTime endReceivedOnDate)
+        public List<HSBCConsolidateReport> ConsolidatedReport(int clientId, DateTime effectiveReceivedOnDate)
         {
-            string query = @"SELECT a.*,b.* FROM 
-            (
+            string query = @"
 	            SELECT b.BatchName, p.DocumentOrPackageType ,p.BusinessFriendlyIdValue, p.[FileName], p.[FilePattern], b.ReceivedOn, p.PrintedOn 
 	            ,p.ShippedOn ,p.TotalPages ,p.RcptFirstName,p.RcptLastName ,p.RcptAddressStreet ,p.RcptAddressCity,p.RcptAddressState 
 	            ,p.RcptAddressZIP,p.Id AS [MailPieceId],p.ShippingCost
 	            FROM AM.MailBatches b
 	            INNER JOIN AM.MailPieces p on p.MailBatchId=b.Id
 	            LEFT JOIN AM.DocTypes d on d.Id=p.DocTypeId
-	            WHERE p.ErrorCode = 'No_Error' AND p.ShippingStatus='Shipped' AND b.ReceivedOn >= @StartReceivedOnDate AND b.ReceivedOn < @EndReceivedOnDate AND b.ClientId=@ClientId
-            )a
-            INNER JOIN 
-            (
-	            SELECT *
-	            FROM 
-	            (
-		            SELECT 
-			            [MailPieceId],[Key], [Value]
-		            FROM AM.MailPieceCustomInfo
-	            ) AS s
-	            PIVOT
-	            (
-		            MAX([Value])
-		            FOR [Key] IN ([StatusID])
-	            )AS pvt
-            )b on a.MailPieceId=b.MailPieceId";
+	            WHERE p.ShippingStatus IN ('InProgress','Shipped') AND CAST(p.EffectiveReceivedOnEst AS DATE)= @EffectiveReceivedOnDate AND b.ClientId=@ClientId";
 
-            return db.Query<HSBCConsolidateReport>(query, new { ClientId = clientId, StartReceivedOnDate = startReceivedOnDate, EndReceivedOnDate = endReceivedOnDate }).ToList();
+            return db.Query<HSBCConsolidateReport>(query, new { ClientId = clientId, EffectiveReceivedOnDate = effectiveReceivedOnDate }).ToList();
         }
     }
 }
