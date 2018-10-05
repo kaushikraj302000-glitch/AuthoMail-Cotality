@@ -33,8 +33,6 @@
         <div class="panel-heading addon" id="headingOne">
             <div class="panel-title">
                 <span id="statustitle">Delayed Packages</span>
-                @*<button class="btn btn-warning btn-xs active" type="button" id="supportMailBatchesListBtn">Grouped by Batch</button>
-                    <button class="btn btn-warning btn-xs" type="button" id="supportMailPiecesListBtn">All Mail Pieces</button>*@
                 <div class="addon-content">
                     <ul class="nav nav-pills">
                         <li class="active">
@@ -173,9 +171,72 @@
                 <td>{TotalDelayedMailPieces}</td>
             </tr>
         </tbody>
-
     </table>
 </div>
+<div id="supportTableContentPrinter" style="display:none">
+    <table class="table table-responsive" style="overflow-x:scroll">
+        <thead>
+            <tr>
+                <th>Batch Id</th>
+                <th>Batch Name</th>
+                <th>AppCode</th>
+                <th>Pipeline Status</th>
+                <th>Client Id</th>
+                <th>Received Date <span class="fontcapitalize">(Local)</span></th>
+                <th>Delayed MailPieces</th>
+            </tr>
+        </thead>
+        <tbody id="supportbodyContentPrinter"></tbody>
+    </table>
+</div>
+<div style="display:none">
+    <table>
+        <tbody id="supportBodyPrinter">
+            <tr class="row-small">
+                <td>{BatchId}</td>
+                <td>{BatchName}</td>
+                <td>{AppCode}</td>
+                <td>{PipelineStatus}</td>
+                <td>{ClientId}</td>
+                <td>{ReceivedOn}</td>
+                <td>{TotalDelayedMailPieces}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div id="supportTableContentReport" style="display:none">
+    <table class="table table-responsive" style="overflow-x:scroll">
+        <thead>
+            <tr>
+                <th>Batch Id</th>
+                <th>Batch Name</th>
+                <th>AppCode</th>
+                <th>Pipeline Status</th>
+                <th>Client Id</th>
+                <th>Received Date <span class="fontcapitalize">(Local)</span></th>
+                <th>Delayed MailPieces</th>
+            </tr>
+        </thead>
+        <tbody id="supportbodyContentReport"></tbody>
+    </table>
+</div>
+<div style="display:none">
+    <table>
+        <tbody id="supportBodyReport">
+            <tr class="row-small">
+                <td>{BatchId}</td>
+                <td>{BatchName}</td>
+                <td>{AppCode}</td>
+                <td>{PipelineStatus}</td>
+                <td>{ClientId}</td>
+                <td>{ReceivedOn}</td>
+                <td>{TotalDelayedMailPieces}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
 <div id="delayedbatchmailpiecesContent" style="display:none">
     <table class="table table-responsive" style="overflow-x:scroll">
         <thead>
@@ -217,6 +278,92 @@
         </tbody>
     </table>
 </div>
+
+<div id="delayedbatchmailpiecesContentPrinter" style="display:none">
+    <table class="table table-responsive" style="overflow-x:scroll">
+        <thead>
+            <tr>
+                <th><span>Id</span></th>
+                <th><span>UniqueId</span></th>
+                <th><span>AppCode</span></th>
+                <th><span>BatchName</span></th>
+                <th><span class="fontcapitalize">ReceivedOn</span></th>
+                <th><span>PipelineStatus</span></th>
+                <th><span>ShippingStatus</span></th>
+                <th><span>DocTypeCode</span></th>
+                <th><span>ShippingCarrier</span></th>
+                <th><span>ShippingServiceType</span></th>
+                <th><span>ClientId</span></th>
+                <th><span>PrintLocation</span></th>
+            </tr>
+        </thead>
+        <tbody id="delayedbatchmailpiecesbodyContentPrinter"></tbody>
+    </table>
+</div>
+<div style="display:none">
+    <table>
+        <tbody id="delayedmailpiecesbodyPrinter">
+            <tr class="row-small">
+                <td><span>{Id}</span></td>
+                <td><span>{UniqueId}</span></td>
+                <td><span>{AppCode}</span></td>
+                <td><span>{BatchName}</span></td>
+                <td><span>{ReceivedOn}</span></td>
+                <td><span>{PipelineStatus}</span></td>
+                <td><span>{ShippingStatus}</span></td>
+                <td><span>{DocTypeCode}</span></td>
+                <td><span>{ShippingCarrier}</span></td>
+                <td><span>{ShippingServiceType}</span></td>
+                <td><span>{ClientId}</span></td>
+                <td><span>{PrintLocation}</span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div id="delayedbatchmailpiecesContentReport" style="display:none">
+    <table class="table table-responsive" style="overflow-x:scroll">
+        <thead>
+            <tr>
+                <th><span>Id</span></th>
+                <th><span>UniqueId</span></th>
+                <th><span>AppCode</span></th>
+                <th><span>BatchName</span></th>
+                <th><span class="fontcapitalize">ReceivedOn</span></th>
+                <th><span>PipelineStatus</span></th>
+                <th><span>ShippingStatus</span></th>
+                <th><span>DocTypeCode</span></th>
+                <th><span>ShippingCarrier</span></th>
+                <th><span>ShippingServiceType</span></th>
+                <th><span>ClientId</span></th>
+                <th><span>PrintLocation</span></th>
+            </tr>
+        </thead>
+        <tbody id="delayedbatchmailpiecesbodyContentReport"></tbody>
+    </table>
+</div>
+<div style="display:none">
+    <table>
+        <tbody id="delayedmailpiecesbodyReport">
+            <tr class="row-small">
+                <td><span>{Id}</span></td>
+                <td><span>{UniqueId}</span></td>
+                <td><span>{AppCode}</span></td>
+                <td><span>{BatchName}</span></td>
+                <td><span>{ReceivedOn}</span></td>
+                <td><span>{PipelineStatus}</span></td>
+                <td><span>{ShippingStatus}</span></td>
+                <td><span>{DocTypeCode}</span></td>
+                <td><span>{ShippingCarrier}</span></td>
+                <td><span>{ShippingServiceType}</span></td>
+                <td><span>{ClientId}</span></td>
+                <td><span>{PrintLocation}</span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+
 
 <div id="delayedbatchmailpiecesContentmodal" style="display:none">
     <table class="table table-responsive" style="overflow-x:scroll">
@@ -655,7 +802,7 @@
                             printerbatches = response.DelayedPrinterBatches;
                             var data = FormatObject(response.DelayedPrinterBatches);
                             //BindTemplate(data, "#supportBody", "#supportbodyContent", "#supportTableContent", "#printerbatchbody");
-                            BindTemplateWithDataTable(data, "#supportBody", "#supportbodyContent", "#supportTableContent", "#printerbatchbody", 'PrinterDelayedBatchesDatatable', 'PrinterdelayedBatches', 'Printer Delayed Batches', false);
+                            BindTemplateWithDataTable(data, "#supportBodyPrinter", "#supportbodyContentPrinter", "#supportTableContentPrinter", "#printerbatchbody", 'PrinterDelayedBatchesDatatable', 'PrinterdelayedBatches', 'Printer Delayed Batches', false);
                             window.clui.tooltipInit();
                         }
                         else {
@@ -665,7 +812,7 @@
                         if (response.DelayedPrinterMailPieces.length > 0) {
                             printermailpieces = response.DelayedMailPieces;
                             var mdata = FormatObjectMP(response.DelayedPrinterMailPieces);
-                            BindTemplateWithDataTable(mdata, "#delayedmailpiecesbody", "#delayedbatchmailpiecesbodyContent", "#delayedbatchmailpiecesContent", "#printermailpiecebody", 'PrinterDelayedMPsDatatable', 'Printerdelayedmailpieces', 'Printer Delayed MailPieces', true);
+                            BindTemplateWithDataTable(mdata, "#delayedmailpiecesbodyPrinter", "#delayedbatchmailpiecesbodyContentPrinter", "#delayedbatchmailpiecesContentPrinter", "#printermailpiecebody", 'PrinterDelayedMPsDatatable', 'Printerdelayedmailpieces', 'Printer Delayed MailPieces', true);
                         } else {
                             $("#printermailpiecebody").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                         }
@@ -674,7 +821,7 @@
                         if (response.DelayedAMReportBackBatches.length > 0) {
                             reportingbatches = response.DelayedAMReportBackBatches;
                             var data = FormatObject(response.DelayedAMReportBackBatches);
-                            BindTemplateWithDataTable(data, "#supportBody", "#supportbodyContent", "#supportTableContent", "#reportingbatchbody", 'ReportingDelayedBatchesDatatable', 'Reportingdelayedmailpieces', 'Reporting Delayed Batches', false);
+                            BindTemplateWithDataTable(data, "#supportBodyReport", "#supportbodyContentReport", "#supportTableContentReport", "#reportingbatchbody", 'ReportingDelayedBatchesDatatable', 'Reportingdelayedmailpieces', 'Reporting Delayed Batches', false);
                             window.clui.tooltipInit();
                         }
                         else {
@@ -684,7 +831,7 @@
                         if (response.DelayedAMReportBackMailPieces.length > 0) {
                             reportingbatches = response.DelayedAMReportBackMailPieces;
                             var mdata = FormatObjectMP(response.DelayedAMReportBackMailPieces);
-                            BindTemplateWithDataTable(mdata, "#delayedmailpiecesbody", "#delayedbatchmailpiecesbodyContent", "#delayedbatchmailpiecesContent", "#reportingmailpiecebody", 'reportingDelayedMPsDatatable', 'reportingdelayedmailpieces', 'reporting Delayed MailPieces', true);
+                            BindTemplateWithDataTable(mdata, "#delayedmailpiecesbodyReport", "#delayedbatchmailpiecesbodyContentReport", "#delayedbatchmailpiecesContentReport", "#reportingmailpiecebody", 'reportingDelayedMPsDatatable', 'reportingdelayedmailpieces', 'reporting Delayed MailPieces', true);
                         } else {
                             $("#reportingmailpiecebody").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                         }
@@ -711,18 +858,29 @@
             $("#ViewInfo").modal("show");
             $("#loadingModal").show();
             var MPs = {};
-            //console.log(JSON.stringify(primaryobj));
-            //$.extend(processbatches, printerbatches, reportingbatches);
-            var ob = primaryobj.DelayedBatches;
-            $.extend(ob, primaryobj.DelayedPrinterBatches);
-            $.extend(ob, primaryobj.DelayedAMReportBackBatches);
-            //console.log(JSON.stringify(primaryobj.DelayedAMReportBackBatches));
-            jQuery.grep(ob, function (i, v) {
+            var isFind = false;
+            jQuery.grep(primaryobj.DelayedBatches, function (i, v) {
                 if (i['Id'] == obj) {
                     MPs = i['DelayedMailPieces'];
-                    //       console.log("MPs:" + MPs);
+                    isFind = true;
                 }
             });
+            if (!isFind) {
+                jQuery.grep(primaryobj.DelayedPrinterBatches, function (i, v) {
+                    if (i['Id'] == obj) {
+                        MPs = i['DelayedMailPieces'];
+                        isFind = true;
+                    }
+                });
+            }
+            if (!isFind) {
+                jQuery.grep(primaryobj.DelayedAMReportBackBatches, function (i, v) {
+                    if (i['Id'] == obj) {
+                        MPs = i['DelayedMailPieces'];
+                        isFind = true;
+                    }
+                });
+            }
             $("#loadingModal").hide();
             $("#showerror").hide();
             var data = FormatMailPieceObject(MPs);
