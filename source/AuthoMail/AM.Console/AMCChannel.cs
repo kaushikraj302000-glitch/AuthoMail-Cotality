@@ -672,24 +672,30 @@ namespace AM.Console
                             //Document Or Package Type validation
                             var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType);
 
+                            var addressResponse = addressResponses.Single(c => c.Id.ToLower() == mailPieceDTO.UniqueId.ToString().ToLower());
+
                             if (docType != null)
                             {
-                                List<AddressType> addressTypes = addressResponses.Single(c => c.Id.ToLower() == mailPieceDTO.UniqueId.ToString().ToLower()).AddressTypes;
                                 if (docType.ShippingCarrier == Carrier.FedEx.ToString())
                                 {
-                                    if (!(addressTypes.All(c => c == AddressType.DHAM)))
+                                    if (!(addressResponse.AddressTypes.All(c => c == AddressType.DHAM)))
                                     {
                                         documentOrPackageType = documentOrPackageType + Config.Monitor_ExpressMailingText;
 
                                         docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType);
                                     }
                                 }
-                                mailPieceDTO.RcptAddressTypes = string.Join(",", addressTypes);
+                                mailPieceDTO.RcptAddressTypes = string.Join(",", addressResponse.AddressTypes);
                                 mailPieceDTO.DocTypeId = docType.Id;
                             }
 
-
-                            if (docType == null)
+                            if (addressResponse.AddressTypes.Any(addr => addr == AddressType.INVALID))
+                            {
+                                mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
+                                mailPieceDTO.ErrorCode = OutComeCodes.Mailing_Address_Missing_Or_Invalid;
+                                mailPieceDTO.ErrorDesc = !string.IsNullOrEmpty(addressResponse.VerifierDesc) ? addressResponse.VerifierDesc : addressResponse.Error.Description;
+                            }
+                            else if (docType == null)
                             {
                                 mailPieceDTO.ErrorCode = OutComeCodes.Invalid_PackageType;
                                 mailPieceDTO.ErrorDesc = client.AppCode == GetInvalidClient().AppCode ? "The specified customer identifier {0} is not configured.".Fill(mailPieceCustomInfo.Single(c => c.Key == "CustomerIdentifier").Value) : "The specified document or package type '{0}' is not configured.".Fill(mailPieceDTO.DocumentOrPackageType);
