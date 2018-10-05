@@ -25,7 +25,7 @@ namespace AM.Reporting
                 {
                     Client client = clientSvc.GetClientByAppCode("HSBC");
 
-                    string clientReportFolderPath = Path.Combine(Config.Common_AuthoMailRootFolder, client.AppCode);
+                    string clientReportFolderPath = Path.Combine(Config.Common_AuthoMailRootFolder, client.AppCode, "ConsolidatedReport");
 
                     Deliverable deliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Consolidated);
 
@@ -104,7 +104,7 @@ namespace AM.Reporting
                         msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, "HSBC", deliverable.EmailChannel.Subject); ;
                         msg.Priority = MailPriority.Normal;
                         //msg.Body = deliverable.EmailChannel.BodyTemplate;
-                        msg.Body = "Consolidated Reports of {0} batches".Fill(startDate.Date.ToString("MM/dd/yyyy"));
+                        msg.Body = "Consolidated Report of {0} batches".Fill(startDate.Date.ToString("MM/dd/yyyy"));
                         if (File.Exists(consolidateReportPath))
                             msg.Attachments.Add(new Attachment(consolidateReportPath));
 

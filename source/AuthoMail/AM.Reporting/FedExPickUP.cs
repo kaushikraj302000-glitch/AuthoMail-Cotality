@@ -37,7 +37,7 @@ namespace AM.Reporting
                     if (mailPieces != null && mailPieces.Count > 0)
                     {
                         StringBuilder fedExReport = GetFedExReport(mailPieces);
-                        string fedExReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, "USAA", "FedExReport_{0}.csv".Fill(todayEffectiveDate.ToString("MMddyyyyhhmmtt")));
+                        string fedExReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, "FedExReport", "FedExReport_{0}.csv".Fill(todayEffectiveDate.ToString("MMddyyyyhhmmtt")));
                         File.WriteAllText(fedExReportPath, fedExReport.ToString());
                         SendReportToCLTeam(fedExReportPath, todayEffectiveDate);
                     }
@@ -92,7 +92,7 @@ namespace AM.Reporting
                         msg.CC.Add(AppConfig.FedExReport_Email_Cc);
                         msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, "USAA", AppConfig.FedExReportSubject);
                         msg.Priority = MailPriority.Normal;
-                        msg.Body = "FedEx Status Report From : {0} To {1}".Fill(todayDate.ToString("MM/dd/yyyy hh:mm tt"));
+                        msg.Body = "FedEx Status Report For : {0}".Fill(todayDate.ToString("MM/dd/yyyy"));
 
                         if (File.Exists(fedExReportPath))
                             msg.Attachments.Add(new Attachment(fedExReportPath));
