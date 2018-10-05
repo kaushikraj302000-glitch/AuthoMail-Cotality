@@ -242,8 +242,27 @@ namespace AM.Console
             var reportToMail = new List<string>();
             switch (mbi.Client.AppCode)
             {
-                case "AMCInvalid":
-                case "USAA":
+                case "HSBC":
+                    using (IHSBCService hsbcSvc = new HSBCService())
+                    {
+                        StringBuilder deliveryReport = hsbcSvc.HSBCDeliveryReport(mailPieces, mbi.Client.TimeZone, deliverable.Delimeter);
+
+                        deliveryReportFileName = "{0}.DeliveryReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
+                        deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
+
+                        File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
+                        reportToMail.Add(deliveryReportPath);
+
+                        StringBuilder errorReport = hsbcSvc.HSBCErrorReport(mailPieces, mbi.Client.TimeZone, deliverable.Delimeter);
+
+                        errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
+                        errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+
+                        File.WriteAllText(errorReportPath, errorReport.ToString());
+                        reportToMail.Add(errorReportPath);
+                    }
+                    break;
+                default:
                     using (IAMCService amcSvc = new AMCService())
                     {
                         StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(mailPieces);
@@ -274,28 +293,6 @@ namespace AM.Console
                             reportToMail.Add(errorReportPath);
                         }
                     }
-                    break;
-                case "HSBC":
-                    using (IHSBCService hsbcSvc = new HSBCService())
-                    {
-                        StringBuilder deliveryReport = hsbcSvc.HSBCDeliveryReport(mailPieces, mbi.Client.TimeZone, deliverable.Delimeter);
-
-                        deliveryReportFileName = "{0}.DeliveryReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
-                        deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
-
-                        File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
-                        reportToMail.Add(deliveryReportPath);
-
-                        StringBuilder errorReport = hsbcSvc.HSBCErrorReport(mailPieces, mbi.Client.TimeZone, deliverable.Delimeter);
-
-                        errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
-                        errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-
-                        File.WriteAllText(errorReportPath, errorReport.ToString());
-                        reportToMail.Add(errorReportPath);
-                    }
-                    break;
-                default:
                     break;
             }
 

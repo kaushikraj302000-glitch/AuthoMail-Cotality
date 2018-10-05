@@ -908,18 +908,6 @@ namespace AM.Console
 
             switch (mbi.Client.AppCode)
             {
-                case "AMCInvalid":
-                case "BECU":
-                case "USAA":
-                    errorReportFileName = "Error-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
-                    //string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
-                    errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-                    errorReportData = amcSvc.AMCErrorReport(mailPieces);
-                    if (errorReportData != null)
-                    {
-                        File.WriteAllText(errorReportPath, errorReportData.ToString());
-                    }
-                    break;
                 case "HSBC":
                     using (IHSBCService hsbcSvc = new HSBCService())
                     {
@@ -934,6 +922,14 @@ namespace AM.Console
                     }
                     break;
                 default:
+                    errorReportFileName = "Error-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+                    //string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                    errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+                    errorReportData = amcSvc.AMCErrorReport(mailPieces);
+                    if (errorReportData != null)
+                    {
+                        File.WriteAllText(errorReportPath, errorReportData.ToString());
+                    }
                     break;
             }
 
