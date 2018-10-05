@@ -19,40 +19,127 @@
     .dataTables_wrapper {
         margin-top: -1.3% !important;
     }
+
+    .nav-pills li a {
+        padding: 2px 10px;
+    }
+    .tab-content
+    {
+        margin-top:5px;
+    }
 </style>
 <div class="panel-group">
     <div class="panel panel-default">
-        <div class="panel-heading" id="headingOne">
+        <div class="panel-heading addon" id="headingOne">
             <div class="panel-title">
-                <a role="button" data-toggle="collapse" data-parent="#accordion" href="#metaItem1">
-                    <span id="statustitle">Delayed Packages</span>
-                </a>
-                <button class="btn btn-warning active" type="button" id="supportMailBatchesListBtn">Grouped by Batch</button>
-                <button class="btn btn-warning" type="button" id="supportMailPiecesListBtn">All Mail Pieces</button>
+                <span id="statustitle">Delayed Packages</span>
+                <div class="addon-content">
+                    <ul class="nav nav-pills">
+                        <li class="active">
+                            <a href="#processbody" data-toggle="tab">Process</a>
+                        </li>
+                        <li>
+                            <a href="#printerbody" data-toggle="tab">Printer</a>
+                        </li>
+                        <li>
+                            <a href="#reportingbody" data-toggle="tab">Reporting</a>
+                        </li>
+                    </ul>
+                </div>
             </div>
+
         </div>
         <div class="panel-collapse collapse in">
             <div class="panel-body">
-                <div id="remainingminmaxtime" class="alert alert-blue hidden" role="alert"></div>
-                <div id="ClientWiseBatchCount" style="padding:10px 0px"></div>
-                <div id="ClientWiseMailPieceCount" class="hidden" style="padding:10px 0px"></div>
-                <div class="clearfix">
-                    <div id="supportMailBatchesList">
-                        <div class="alert-blue alert text-center">
-                            <span>Please Wait...</span>
+                <div class="tab-content clearfix">
+                    <div class="tab-pane active" id="processbody">
+                        <ul class="nav nav-pills">
+                            <li class="active">
+                                <a href="#processbatchbody" data-toggle="tab">Batch</a>
+                            </li>
+                            <li>
+                                <a href="#processmailpiecebody" data-toggle="tab">Mailpiece</a>
+                            </li>
+                        </ul>
+                        <div class="tab-content clearfix">
+                            <div class="tab-pane active" id="processbatchbody">
+                                <div class="alert-blue alert text-center">
+                                    <span>Please Wait...</span>
+                                </div>
+                            </div>
+                            <div class="tab-pane" id="processmailpiecebody">
+                                <div class="alert-blue alert text-center">
+                                    <span>Please Wait...</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="hidden" id="supportMailPiecesList">
-                        <div class="alert-blue alert text-center">
-                            <span>Please Wait...</span>
+                    <div class="tab-pane" id="printerbody">
+                        <ul class="nav nav-pills">
+                            <li class="active">
+                                <a href="#printerbatchbody" data-toggle="tab">Batch</a>
+                            </li>
+                            <li>
+                                <a href="#printermailpiecebody" data-toggle="tab">Mailpiece</a>
+                            </li>
+                        </ul>
+                        <div class="tab-content clearfix">
+                            <div class="tab-pane active" id="printerbatchbody">
+                                <div class="alert-blue alert text-center">
+                                    <span>Please Wait...</span>
+                                </div>
+                            </div>
+                            <div class="tab-pane" id="printermailpiecebody">
+                                <div class="alert-blue alert text-center">
+                                    <span>Please Wait...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane" id="reportingbody">
+                        <ul class="nav nav-pills">
+                            <li class="active">
+                                <a href="#reportingbatchbody" data-toggle="tab">Batch</a>
+                            </li>
+                            <li>
+                                <a href="#reportingmailpiecebody" data-toggle="tab">Mailpiece</a>
+                            </li>
+                        </ul>
+                        <div class="tab-content clearfix">
+                            <div class="tab-pane active" id="reportingbatchbody">
+                                <div class="alert-blue alert text-center">
+                                    <span>Please Wait...</span>
+                                </div>
+                            </div>
+                            <div class="tab-pane" id="reportingmailpiecebody">
+                                <div class="alert-blue alert text-center">
+                                    <span>Please Wait...</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            @*<div id="remainingminmaxtime" class="alert alert-blue hidden" role="alert">Estimated fixing time minimum {0} hrs and maximum {1} hrs remaining</div>
+                <div id="ClientWiseBatchCount" style="padding:10px 0px"></div>
+                <div id="ClientWiseMailPieceCount" class="hidden" style="padding:10px 0px"></div>
+                <div class="clearfix">
+                    <div id="processbatch">
+                        <div class="alert-blue alert text-center">
+                            <span>Please Wait...</span>
+                        </div>
+                    </div>
+                    <div class="hidden" id="processmp">
+                        <div class="alert-blue alert text-center">
+                            <span>Please Wait...</span>
+                        </div>
+                    </div>
+                </div>*@
         </div>
     </div>
-
 </div>
+
 
 <!-- table html template code -->
 <div id="supportTableContent" style="display:none">
@@ -84,9 +171,72 @@
                 <td>{TotalDelayedMailPieces}</td>
             </tr>
         </tbody>
-
     </table>
 </div>
+<div id="supportTableContentPrinter" style="display:none">
+    <table class="table table-responsive" style="overflow-x:scroll">
+        <thead>
+            <tr>
+                <th>Batch Id</th>
+                <th>Batch Name</th>
+                <th>AppCode</th>
+                <th>Pipeline Status</th>
+                <th>Client Id</th>
+                <th>Received Date <span class="fontcapitalize">(Local)</span></th>
+                <th>Delayed MailPieces</th>
+            </tr>
+        </thead>
+        <tbody id="supportbodyContentPrinter"></tbody>
+    </table>
+</div>
+<div style="display:none">
+    <table>
+        <tbody id="supportBodyPrinter">
+            <tr class="row-small">
+                <td>{BatchId}</td>
+                <td>{BatchName}</td>
+                <td>{AppCode}</td>
+                <td>{PipelineStatus}</td>
+                <td>{ClientId}</td>
+                <td>{ReceivedOn}</td>
+                <td>{TotalDelayedMailPieces}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div id="supportTableContentReport" style="display:none">
+    <table class="table table-responsive" style="overflow-x:scroll">
+        <thead>
+            <tr>
+                <th>Batch Id</th>
+                <th>Batch Name</th>
+                <th>AppCode</th>
+                <th>Pipeline Status</th>
+                <th>Client Id</th>
+                <th>Received Date <span class="fontcapitalize">(Local)</span></th>
+                <th>Delayed MailPieces</th>
+            </tr>
+        </thead>
+        <tbody id="supportbodyContentReport"></tbody>
+    </table>
+</div>
+<div style="display:none">
+    <table>
+        <tbody id="supportBodyReport">
+            <tr class="row-small">
+                <td>{BatchId}</td>
+                <td>{BatchName}</td>
+                <td>{AppCode}</td>
+                <td>{PipelineStatus}</td>
+                <td>{ClientId}</td>
+                <td>{ReceivedOn}</td>
+                <td>{TotalDelayedMailPieces}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
 <div id="delayedbatchmailpiecesContent" style="display:none">
     <table class="table table-responsive" style="overflow-x:scroll">
         <thead>
@@ -128,6 +278,92 @@
         </tbody>
     </table>
 </div>
+
+<div id="delayedbatchmailpiecesContentPrinter" style="display:none">
+    <table class="table table-responsive" style="overflow-x:scroll">
+        <thead>
+            <tr>
+                <th><span>Id</span></th>
+                <th><span>UniqueId</span></th>
+                <th><span>AppCode</span></th>
+                <th><span>BatchName</span></th>
+                <th><span class="fontcapitalize">ReceivedOn</span></th>
+                <th><span>PipelineStatus</span></th>
+                <th><span>ShippingStatus</span></th>
+                <th><span>DocTypeCode</span></th>
+                <th><span>ShippingCarrier</span></th>
+                <th><span>ShippingServiceType</span></th>
+                <th><span>ClientId</span></th>
+                <th><span>PrintLocation</span></th>
+            </tr>
+        </thead>
+        <tbody id="delayedbatchmailpiecesbodyContentPrinter"></tbody>
+    </table>
+</div>
+<div style="display:none">
+    <table>
+        <tbody id="delayedmailpiecesbodyPrinter">
+            <tr class="row-small">
+                <td><span>{Id}</span></td>
+                <td><span>{UniqueId}</span></td>
+                <td><span>{AppCode}</span></td>
+                <td><span>{BatchName}</span></td>
+                <td><span>{ReceivedOn}</span></td>
+                <td><span>{PipelineStatus}</span></td>
+                <td><span>{ShippingStatus}</span></td>
+                <td><span>{DocTypeCode}</span></td>
+                <td><span>{ShippingCarrier}</span></td>
+                <td><span>{ShippingServiceType}</span></td>
+                <td><span>{ClientId}</span></td>
+                <td><span>{PrintLocation}</span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div id="delayedbatchmailpiecesContentReport" style="display:none">
+    <table class="table table-responsive" style="overflow-x:scroll">
+        <thead>
+            <tr>
+                <th><span>Id</span></th>
+                <th><span>UniqueId</span></th>
+                <th><span>AppCode</span></th>
+                <th><span>BatchName</span></th>
+                <th><span class="fontcapitalize">ReceivedOn</span></th>
+                <th><span>PipelineStatus</span></th>
+                <th><span>ShippingStatus</span></th>
+                <th><span>DocTypeCode</span></th>
+                <th><span>ShippingCarrier</span></th>
+                <th><span>ShippingServiceType</span></th>
+                <th><span>ClientId</span></th>
+                <th><span>PrintLocation</span></th>
+            </tr>
+        </thead>
+        <tbody id="delayedbatchmailpiecesbodyContentReport"></tbody>
+    </table>
+</div>
+<div style="display:none">
+    <table>
+        <tbody id="delayedmailpiecesbodyReport">
+            <tr class="row-small">
+                <td><span>{Id}</span></td>
+                <td><span>{UniqueId}</span></td>
+                <td><span>{AppCode}</span></td>
+                <td><span>{BatchName}</span></td>
+                <td><span>{ReceivedOn}</span></td>
+                <td><span>{PipelineStatus}</span></td>
+                <td><span>{ShippingStatus}</span></td>
+                <td><span>{DocTypeCode}</span></td>
+                <td><span>{ShippingCarrier}</span></td>
+                <td><span>{ShippingServiceType}</span></td>
+                <td><span>{ClientId}</span></td>
+                <td><span>{PrintLocation}</span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+
 
 <div id="delayedbatchmailpiecesContentmodal" style="display:none">
     <table class="table table-responsive" style="overflow-x:scroll">
@@ -199,34 +435,16 @@
     @Styles.Render("~/bundles/datatablescss")
     @Scripts.Render("~/bundles/datatables")
     <script type="text/javascript">
-        var mailpiecesByBatch = {};
-        var allmailpieces = {};
+        var primaryobj = {};
+        var processbatches = {};
+        var processmailpieces = {};
+        var printerbatches = {};
+        var printermailpieces = {};
+        var reportingbatches = {};
+        var reportingmailpieces = {};
         $(document).ready(function () {
             window.clui.dateTimePickerInit();
             FilterData();
-
-            var ButtonEvent = function () {
-                $('#supportMailBatchesListBtn').click(function (e) {
-                    e.preventDefault();
-                    $('#supportMailBatchesListBtn').addClass('active');
-                    $('#supportMailPiecesListBtn').removeClass('active');
-                    $('#supportMailBatchesList').removeClass('hidden');
-                    $('#supportMailPiecesList').addClass('hidden');
-                    $('#ClientWiseMailPieceCount').addClass('hidden');
-                    $('#ClientWiseBatchCount').removeClass('hidden');
-                });
-                $('#supportMailPiecesListBtn').click(function (e) {
-                    e.preventDefault();
-                    $('#supportMailPiecesListBtn').addClass('active');
-                    $('#supportMailBatchesListBtn').removeClass('active');
-                    $('#supportMailBatchesList').addClass('hidden');
-                    $('#supportMailPiecesList').removeClass('hidden');
-                    $('#ClientWiseMailPieceCount').removeClass('hidden');
-                    $('#ClientWiseBatchCount').addClass('hidden');
-                });
-            }
-            ButtonEvent();
-
         });
         var GetBatchByClient = function () {
             $('.viewbatch').unbind('click');
@@ -345,7 +563,8 @@
 
             });
         }
-        function applyDataTableWithId(tableId, filename, title) {
+        function applyDataTableWithId(tableId, filename, title, scroll) {
+            scroll = scroll == null ? true : scroll;
             $('[data-toggle="popover"]').popover({
                 'trigger': 'hover',
                 'placement': 'auto left',
@@ -376,7 +595,7 @@
                             "searchable": true
                         },
                 ],
-                "scrollX": true,
+                "scrollX": scroll,
                 buttons: [
                     //{
                     //    extend: 'colvis',
@@ -517,73 +736,107 @@
                 data: { cutOff: 30 },
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
+                    //console.log(JSON.stringify(response));
                     if (response != null) {
-                        if (response.Status == 'red') {
-                            $('#statustitle').addClass('text-danger');
-                            $('#statustitle').html('<i class="fa fa-exclamation-triangle"></i> ' + $('#statustitle').html());
-                        }
-                        else {
-                            $('#statustitle').addClass('text-success');
-                            $('#statustitle').html('<i class="fa fa-check-circle"></i> ' + $('#statustitle').html());
-                        }
-                        if (response.MinHour > 0) {
-                            if (response.MinHour == response.MaxHour) {
-                                var msg = "Estimated fixing time minimum {0} hrs remaining";
-                                $('#remainingminmaxtime').html(msg.replace("{0}", response.MinHour));
-                            }
-                            else {
-                                var msg = "Estimated fixing time minimum {0} hrs and maximum {1} hrs remaining";
-                                $('#remainingminmaxtime').html(msg.replace("{0}", response.MinHour).replace("{1}", response.MaxHour));
-                            }
-                            $('#remainingminmaxtime').removeClass('hidden');
-                            $('#remainingminmaxtime').show();
-                        }
-                        else {
-                            $('#remainingminmaxtime').hide();
-                        }
+                        //if (response.Status == 'red') {
+                        //    $('#statustitle').addClass('text-danger');
+                        //    $('#statustitle').html('<i class="fa fa-exclamation-triangle"></i> ' + $('#statustitle').html());
+                        //}
+                        //else {
+                        //    $('#statustitle').addClass('text-success');
+                        //    $('#statustitle').html('<i class="fa fa-check-circle"></i> ' + $('#statustitle').html());
+                        //}
+                        //if (response.MinHour != 0) {
+                        //    $('#remainingminmaxtime').html($('#remainingminmaxtime').html().replace("{0}", response.MinHour).replace("{1}", response.MaxHour));
+                        //    $('#remainingminmaxtime').removeClass('hidden');
+                        //    $('#remainingminmaxtime').show();
+                        //}
+                        //else {
+                        //    $('#remainingminmaxtime').hide();
+                        //}
                         $("#loading").hide();
                         $("#supportHeader").show();
                         //$("#supportMailBatchesList").show();
                         //All Mail Batches
+                        primaryobj = response;
                         if (response.DelayedBatches.length > 0) {
-                            //$("#supportMailBatchesList").html("");
-                            mailpiecesByBatch = response.DelayedBatches;
+                            processbatches = response.DelayedBatches;
                             var data = FormatObject(response.DelayedBatches);
-                            BindTemplate(data, "#supportBody", "#supportbodyContent", "#supportTableContent", "#supportMailBatchesList");
+                            BindTemplateWithDataTable(data, "#supportBody", "#supportbodyContent", "#supportTableContent", "#processbatchbody", 'DelayedMPsDatatable', 'delayedmailpieces', 'Delayed MailPieces', false);
                             window.clui.tooltipInit();
                         }
                         else {
-                            $("#supportMailBatchesList").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                            $("#processbatchbody").html(" <div style='margin-bottom:10px;' class='alert alert-green'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                         }
-                        if (response.AppCodeCountByBatch != null && response.AppCodeCountByBatch.length > 0) {
-                            var dispText = "";
-                            $.each(response.AppCodeCountByBatch, function (i, v) {
-                                var lbl = '<button class="btn btn-primary btn-sm viewbatch" data-appcode=' + v['AppCode'] + ' style="margin-left:5px">' + v['AppCode'] + '  <span class="label label-blue"style="margin:0px;background-color:white;color:black">' + v['Total'] + '</span></button>';
-                                dispText = dispText + lbl;
-                            });
-                            $('#ClientWiseBatchCount').html(dispText);
-                            GetBatchByClient();
-                        }
+                        //if (response.AppCodeCountByBatch != null && response.AppCodeCountByBatch.length > 0) {
+                        //    var dispText = "";
+                        //    $.each(response.AppCodeCountByBatch, function (i, v) {
+                        //        var lbl = '<button class="btn btn-primary btn-sm viewbatch" data-appcode=' + v['AppCode'] + ' style="margin-left:5px">' + v['AppCode'] + '  <span class="label label-blue"style="margin:0px;background-color:white;color:black">' + v['Total'] + '</span></button>';
+                        //        dispText = dispText + lbl;
+                        //    });
+                        //    $('#ClientWiseBatchCount').html(dispText);
+                        //    GetBatchByClient();
+                        //}
                         //All MailPieces
                         if (response.DelayedMailPieces.length > 0) {
-                            //console.log(response.DelayedMailPieces);
-                            allmailpieces = response.DelayedMailPieces;
+                            processmailpieces = response.DelayedMailPieces;
                             var mdata = FormatObjectMP(response.DelayedMailPieces);
-                            BindTemplateWithDataTable(mdata, "#delayedmailpiecesbody", "#delayedbatchmailpiecesbodyContent", "#delayedbatchmailpiecesContent", "#supportMailPiecesList", 'DelayedMPsDatatable', 'delayedmailpieces', 'Delayed MailPieces');
-                            //window.clui.tooltipInit();
-
+                            BindTemplateWithDataTable(mdata, "#delayedmailpiecesbody", "#delayedbatchmailpiecesbodyContent", "#delayedbatchmailpiecesContent", "#processmailpiecebody", 'DelayedMPsDatatable', 'delayedmailpieces', 'Delayed MailPieces', true);
                         } else {
-                            $("#supportMailPiecesList").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                            $("#processmailpiecebody").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                         }
-                        if (response.AppCodeCountByMailPiece != null && response.AppCodeCountByMailPiece.length > 0) {
-                            var dispText = "";
-                            $.each(response.AppCodeCountByMailPiece, function (i, v) {
-                                var lbl = '<button class="btn btn-primary btn-sm viewmps" data-appcode=' + v['AppCode'] + ' style="margin-left:5px">' + v['AppCode'] + '  <span class="label label-blue"style="margin:0px;background-color:white;color:black">' + v['Total'] + '</span></button>';
-                                dispText = dispText + lbl;
-                            });
-                            $('#ClientWiseMailPieceCount').html(dispText);
-                            GetMailPiecesByClient();
+                        //if (response.AppCodeCountByMailPiece != null && response.AppCodeCountByMailPiece.length > 0) {
+                        //    var dispText = "";
+                        //    $.each(response.AppCodeCountByMailPiece, function (i, v) {
+                        //        var lbl = '<button class="btn btn-primary btn-sm viewmps" data-appcode=' + v['AppCode'] + ' style="margin-left:5px">' + v['AppCode'] + '  <span class="label label-blue"style="margin:0px;background-color:white;color:black">' + v['Total'] + '</span></button>';
+                        //        dispText = dispText + lbl;
+                        //    });
+                        //    $('#ClientWiseMailPieceCount').html(dispText);
+                        //    GetMailPiecesByClient();
+                        //}
+
+
+
+                        //Printer  //Batch
+                        if (response.DelayedPrinterBatches.length > 0) {
+                            printerbatches = response.DelayedPrinterBatches;
+                            var data = FormatObject(response.DelayedPrinterBatches);
+                            //BindTemplate(data, "#supportBody", "#supportbodyContent", "#supportTableContent", "#printerbatchbody");
+                            BindTemplateWithDataTable(data, "#supportBodyPrinter", "#supportbodyContentPrinter", "#supportTableContentPrinter", "#printerbatchbody", 'PrinterDelayedBatchesDatatable', 'PrinterdelayedBatches', 'Printer Delayed Batches', false);
+                            window.clui.tooltipInit();
                         }
+                        else {
+                            $("#printerbatchbody").html(" <div style='margin-bottom:10px;' class='alert alert-green'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                        }
+                        //Printer //MailPieces
+                        if (response.DelayedPrinterMailPieces.length > 0) {
+                            printermailpieces = response.DelayedMailPieces;
+                            var mdata = FormatObjectMP(response.DelayedPrinterMailPieces);
+                            BindTemplateWithDataTable(mdata, "#delayedmailpiecesbodyPrinter", "#delayedbatchmailpiecesbodyContentPrinter", "#delayedbatchmailpiecesContentPrinter", "#printermailpiecebody", 'PrinterDelayedMPsDatatable', 'Printerdelayedmailpieces', 'Printer Delayed MailPieces', true);
+                        } else {
+                            $("#printermailpiecebody").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                        }
+
+                        //reporting  //Batch
+                        if (response.DelayedAMReportBackBatches.length > 0) {
+                            reportingbatches = response.DelayedAMReportBackBatches;
+                            var data = FormatObject(response.DelayedAMReportBackBatches);
+                            BindTemplateWithDataTable(data, "#supportBodyReport", "#supportbodyContentReport", "#supportTableContentReport", "#reportingbatchbody", 'ReportingDelayedBatchesDatatable', 'Reportingdelayedmailpieces', 'Reporting Delayed Batches', false);
+                            window.clui.tooltipInit();
+                        }
+                        else {
+                            $("#reportingbatchbody").html(" <div style='margin-bottom:10px;' class='alert alert-green'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                        }
+                        //reporting //MailPieces
+                        if (response.DelayedAMReportBackMailPieces.length > 0) {
+                            reportingbatches = response.DelayedAMReportBackMailPieces;
+                            var mdata = FormatObjectMP(response.DelayedAMReportBackMailPieces);
+                            BindTemplateWithDataTable(mdata, "#delayedmailpiecesbodyReport", "#delayedbatchmailpiecesbodyContentReport", "#delayedbatchmailpiecesContentReport", "#reportingmailpiecebody", 'reportingDelayedMPsDatatable', 'reportingdelayedmailpieces', 'reporting Delayed MailPieces', true);
+                        } else {
+                            $("#reportingmailpiecebody").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                        }
+
+
                     }
 
                 },
@@ -605,11 +858,29 @@
             $("#ViewInfo").modal("show");
             $("#loadingModal").show();
             var MPs = {};
-            jQuery.grep(mailpiecesByBatch, function (i, v) {
+            var isFind = false;
+            jQuery.grep(primaryobj.DelayedBatches, function (i, v) {
                 if (i['Id'] == obj) {
                     MPs = i['DelayedMailPieces'];
+                    isFind = true;
                 }
             });
+            if (!isFind) {
+                jQuery.grep(primaryobj.DelayedPrinterBatches, function (i, v) {
+                    if (i['Id'] == obj) {
+                        MPs = i['DelayedMailPieces'];
+                        isFind = true;
+                    }
+                });
+            }
+            if (!isFind) {
+                jQuery.grep(primaryobj.DelayedAMReportBackBatches, function (i, v) {
+                    if (i['Id'] == obj) {
+                        MPs = i['DelayedMailPieces'];
+                        isFind = true;
+                    }
+                });
+            }
             $("#loadingModal").hide();
             $("#showerror").hide();
             var data = FormatMailPieceObject(MPs);
@@ -638,4 +909,3 @@
         }
     </script>
 }
-
