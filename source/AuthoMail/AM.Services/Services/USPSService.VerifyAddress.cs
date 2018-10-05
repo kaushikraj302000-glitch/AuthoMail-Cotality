@@ -97,6 +97,8 @@ namespace AM.Services
                     //Id index 1 base
                     var response = new AddressResponse(request, i + 1);
 
+                    response.AddressTypes = new List<AddressType>();
+
                     if (validationErrors.Any())
                     {
                         response.Error = new USPSError
@@ -104,6 +106,8 @@ namespace AM.Services
                             Source = ResponseSource.CLSVC,
                             Description = String.Join(Environment.NewLine, validationErrors)
                         };
+
+                        response.AddressTypes.Add(AddressType.INVALID);
                     }
                     else
                     {
@@ -121,8 +125,6 @@ namespace AM.Services
                             Urbanization = request.Urbanization.IsNullOrWhiteSpace() ? string.Empty : request.Urbanization.Trim()
                         });
                     }
-
-                    response.AddressTypes = new List<AddressType>();
 
                     addressResponses.Add(response);
                 }
@@ -282,6 +284,7 @@ namespace AM.Services
                     if (responseAdd.AddressTypes.Count == 0)
                     {
                         responseAdd.VerifierDesc = "{0}\r\n* Invalid state code '{1}', AddressType could not be determined.*".Fill(responseAdd.VerifierDesc, responseAdd.State);
+                        responseAdd.AddressTypes.Add(AddressType.INVALID);
                     }
                 }
                 else
@@ -308,6 +311,8 @@ namespace AM.Services
             }
         }
 
+        static Regex poboxRgx = new Regex("[^a-zA-Z]");
+
         private static List<AddressType> CheckAddressType(Address address)
         {
             var addressTypes = new List<AddressType>();
@@ -323,9 +328,6 @@ namespace AM.Services
 
             var fullAddress = "{0} {1}".Fill(address.Address1, address.Address2).ToLower().Trim();
 
-            if (fullAddress.Contains("po box") || fullAddress.Contains("pobox"))
-                addressTypes.Add(AddressType.POBOX);
-
             if (militarystates.Contains(address.State.ToUpper()) && militaryCities.Contains(address.City.ToUpper()))
                 addressTypes.Add(AddressType.Military);
 
@@ -334,6 +336,12 @@ namespace AM.Services
 
             if (dhamStates.Contains(address.State.ToUpper()))
                 addressTypes.Add(AddressType.DHAM);
+
+            if (addressTypes.Count > 0)
+            {
+                if (poboxRgx.Replace(fullAddress, "").ToLower().Contains("pobox"))
+                    addressTypes.Add(AddressType.POBOX);
+            }
 
             return addressTypes;
         }

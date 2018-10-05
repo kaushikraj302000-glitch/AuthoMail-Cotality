@@ -591,6 +591,10 @@ namespace AM.USPSLib
     [JsonConverter(typeof(StringEnumConverter))]
     public enum AddressType
     {
+        [EnumMember(Value = "INVALID")]
+        [XmlEnum(Name = "INVALID")]
+        INVALID,
+
         [EnumMember(Value = "POBOX")]
         [XmlEnum(Name = "POBOX")]
         POBOX,
