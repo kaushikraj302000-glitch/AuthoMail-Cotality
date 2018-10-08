@@ -9,9 +9,9 @@ using AM.Lib;
 using AM.Entities;
 using System.Net.Mail;
 
-namespace AM.Services.Services
+namespace AM.Services
 {
-    interface IAccountManageService : IDisposable
+    public interface IAccountManageService : IDisposable
     {
         KeyValuePair<bool, string> CreateUser(AccountUser user, string userId);
     }

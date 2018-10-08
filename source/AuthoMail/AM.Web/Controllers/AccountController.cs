@@ -27,16 +27,17 @@ namespace AM.Web.Controllers
         private AMSignInManager _signInManager;
         private AMUserManager _userManager;
         private ISupportService supportSvc;
-
+        private IAccountManageService accSvc;
         public AccountController()
         {
         }
 
-        public AccountController(AMUserManager userManager, AMSignInManager signInManager, ISupportService supportSvc)
+        public AccountController(AMUserManager userManager, AMSignInManager signInManager, ISupportService supportSvc, IAccountManageService accSvc)
         {
             UserManager = userManager;
             SignInManager = signInManager;
             this.supportSvc = supportSvc;
+            this.accSvc = accSvc;
         }
 
 
@@ -257,6 +258,26 @@ namespace AM.Web.Controllers
             };
             return Json(JsonResponseFactory.SuccessResponse(data), JsonRequestBehavior.AllowGet);
         }
+
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult CreateUser()
+        {
+            return View();
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult SaveUser(AccountUser user)
+        {
+            var result = accSvc.CreateUser(user, User.Identity.GetUserId());
+            if (result.Key)
+            {
+                return Json(JsonResponseFactory.SuccessResponse(result.Value), JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                return Json(JsonResponseFactory.ErrorResponse(result.Value), JsonRequestBehavior.AllowGet);
+            }
+        }
+
         //
         // POST: /Account/Register
         [HttpPost]
