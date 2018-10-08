@@ -262,6 +262,7 @@ namespace AM.Web.Controllers
         [Authorize(Roles = AMRoles.Admin), HttpGet]
         public ActionResult CreateUser()
         {
+            
             return View();
         }
         [Authorize(Roles = AMRoles.Admin), HttpGet]

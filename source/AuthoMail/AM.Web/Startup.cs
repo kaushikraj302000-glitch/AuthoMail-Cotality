@@ -1,9 +1,11 @@
 ﻿using AM.Entities;
 using AM.Services;
+using AM.Web.AMHub;
 using Autofac;
 using Autofac.Integration.Mvc;
 using Autofac.Integration.WebApi;
 using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.SignalR;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.DataProtection;
@@ -51,7 +53,10 @@ namespace AM.Web
             app.UseAutofacMvc();
             app.UseAutofacWebApi(config);
             ConfigureAuth(app);
-            app.MapSignalR();
+            GlobalHost.HubPipeline.AddModule(new SOHubPipelineModule());
+            HubConfiguration hubConfig = new HubConfiguration();
+            hubConfig.EnableDetailedErrors = true;
+            app.MapSignalR(hubConfig);
         }
     }
 }

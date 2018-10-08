@@ -144,6 +144,12 @@
             $.connection.hub.start().done(function () {
                 amhub.server.getConnection($.connection.hub.id);
             });
+            $.connection.hub.error(function (error) {
+                console.log('communication error: ' + error);
+            });
+            $.connection.aMAlertHub.client.exceptionHandler = function (error) {
+                console.log('Server Error: ' + error);
+            };
         }
         var SpreadData = function (response, data) {
             if (response != null) {

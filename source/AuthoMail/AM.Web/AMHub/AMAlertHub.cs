@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using AM.Services;
+using Microsoft.AspNet.SignalR.Hubs;
 
 namespace AM.Web.AMHub
 {
@@ -21,6 +22,20 @@ namespace AM.Web.AMHub
         public void GetConnection(string conId)//Get Connection id
         {
             _amAlert.UpdateAMAlert(conId);
+        }
+        public override System.Threading.Tasks.Task OnReconnected()
+        {
+            _amAlert.UpdateAMAlert(Context.ConnectionId);
+            return base.OnReconnected();
+        }
+    }
+    public class SOHubPipelineModule : HubPipelineModule
+    {
+        protected override void OnIncomingError(ExceptionContext exceptionContext,
+                                                IHubIncomingInvokerContext invokerContext)
+        {
+            dynamic caller = invokerContext.Hub.Clients.Caller;
+            caller.ExceptionHandler(exceptionContext.Error.Message);
         }
     }
 
