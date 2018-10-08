@@ -39,10 +39,10 @@ namespace AM.Console
                         Directory.CreateDirectory(Path.Combine(destAMDir, dir.Name));
 
                     var subdirs = dir.EnumerateDirectories().Where(d => d.LastWriteTime < Common.Today.AddMonths(-1)).ToList();
-                    
+
                     foreach (var subdir in subdirs)
                     {
-                        if (Directory.Exists(Path.Combine(Path.Combine(destAMDir, dir.Name),subdir.Name)))
+                        if (Directory.Exists(Path.Combine(Path.Combine(destAMDir, dir.Name), subdir.Name)))
                             Directory.Delete(Path.Combine(Path.Combine(destAMDir, dir.Name), subdir.Name));
                         Directory.Move(subdir.FullName, Path.Combine(Path.Combine(destAMDir, dir.Name), subdir.Name));
                     }
@@ -58,7 +58,7 @@ namespace AM.Console
 
                     foreach (var subdir in subdirs)
                     {
-                        if (Directory.Exists(Path.Combine(Path.Combine(destPCIDir, dir.Name),subdir.Name)))
+                        if (Directory.Exists(Path.Combine(Path.Combine(destPCIDir, dir.Name), subdir.Name)))
                             Directory.Delete(Path.Combine(Path.Combine(destPCIDir, dir.Name), subdir.Name));
                         Directory.Move(subdir.FullName, Path.Combine(Path.Combine(destPCIDir, dir.Name), subdir.Name));
                     }
