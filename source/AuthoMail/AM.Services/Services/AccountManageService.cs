@@ -31,9 +31,9 @@ namespace AM.Services
             {
                 //Common validation
                 if (user.UserName.IsNullOrWhiteSpace()) return ReturnError("Username is required.");
-                if (user.AccountUserRoleList.Count() == 0) return ReturnError("Please assign role.");
+                if (user.Roles.Count() == 0) return ReturnError("Please assign role.");
                 if (user.Status.IsNullOrWhiteSpace()) return ReturnError("Status field is required.");
-                if (user.UserName.Length < 2 || user.UserName.Length > 20) return ReturnError("Username is too short or long.");
+                if (user.UserName.Length < 2 || user.UserName.Length > 35) return ReturnError("Username is too short or long.");
 
                 user.SecurityStamp = Guid.NewGuid().ToString();
                 //Password Rules
@@ -62,12 +62,14 @@ namespace AM.Services
                     if (!user.Email.IsNullOrWhiteSpace())
                     {
                         var mailAddress = new MailAddress(user.Email);
+                        var getDomains = db.Query<string>("select AllowedDomain from Common.ClientDomains").ToList();
+                        if (!getDomains.Any(g => g == mailAddress.Host)) ReturnError("Domain not registered.");
                     }
                     //Role Validation
                     var roles = new List<string>() { AMRoles.API, AMRoles.APIUSPSeVS, AMRoles.APIUSPSVerify };
-                    foreach (var item in user.AccountUserRoleList)
+                    foreach (var item in user.Roles)
                     {
-                        if (!roles.Any(rl => rl == item.RoleName)) return ReturnError("Please assign API roles only.");
+                        if (!roles.Any(rl => rl == item)) return ReturnError("Please assign API roles only.");
                     }
                 }
                 else
@@ -84,23 +86,26 @@ namespace AM.Services
                     var mailAddress = new MailAddress(user.Email);
                     //Role Validation
                     var roles = new List<string>() { AMRoles.Admin, AMRoles.BA, AMRoles.Client, AMRoles.ClientUserManager, AMRoles.CoreLogicUserManager, AMRoles.PnSOperator };
-                    foreach (var item in user.AccountUserRoleList)
+                    foreach (var item in user.Roles)
                     {
-                        if (!roles.Any(rl => rl == item.RoleName)) return ReturnError("Please assign Non API roles.");
+                        if (!roles.Any(rl => rl == item)) return ReturnError("Please assign Non API roles.");
                     }
+                    var getDomains = db.Query<string>("select AllowedDomain from Common.ClientDomains").ToList();
+                    if (!getDomains.Any(g => g == mailAddress.Host)) ReturnError("Domain not registered.");
                 }
 
                 var ust = new UserStore<IdentityUser>();
                 if (!user.Email.IsNullOrWhiteSpace())
                 {
-                    var edata = ust.FindByEmailAsync(user.Email);
+                    var edata = ust.FindByEmailAsync(user.Email).Result;
                     if (edata != null) return ReturnError("Email is already exists.");
+
                 }
                 var udata = ust.FindByName(user.UserName);
                 if (udata != null) return ReturnError("Username already exists.");
 
                 user.RequestedOn = DateTime.UtcNow;
-                user.ClosedOn = user.RequestedOn;
+                user.ClosedOn = (user.Status == AMUserStatus.Approved || user.Status == AMUserStatus.Rejected) ? user.RequestedOn : user.ClosedOn;
                 user.ClosedBy = userId;
 
                 var rst = new RoleStore<IdentityRole>();
@@ -109,12 +114,12 @@ namespace AM.Services
                 db.Open();
                 using (var t = db.BeginTransaction())
                 {
-                    string query = "INSERT INTO Profile.Users (Id ,Email ,EmailConfirmed ,PasswordHash ,SecurityStamp ,LockoutEnabled ,UserName ,ClientId ,FirstName ,LastName ,DisplayName ,RequestedOn ,Status ,ClosedOn ,ClosedBy) VALUES (@Id ,@Email ,@EmailConfirmed ,@PasswordHash ,@SecurityStamp ,@LockoutEnabled ,@UserName ,@ClientId ,@FirstName ,@LastName ,@DisplayName ,@RequestedOn ,@Status ,@ClosedOn ,@ClosedBy)";
+                    string query = "INSERT INTO Profile.Users (Id ,Email ,EmailConfirmed ,PasswordHash ,SecurityStamp,PhoneNumberConfirmed,TwoFactorEnabled,LockoutEnabled,AccessFailedCount ,UserName ,ClientId ,FirstName ,LastName ,DisplayName ,RequestedOn ,Status ,ClosedOn ,ClosedBy) VALUES (@Id ,@Email ,@EmailConfirmed ,@PasswordHash ,@SecurityStamp,0,0,0 ,@LockoutEnabled ,@UserName ,@ClientId ,@FirstName ,@LastName ,@DisplayName ,@RequestedOn ,@Status ,@ClosedOn ,@ClosedBy)";
                     db.Execute(query, user, t);
-                    foreach (var item in user.AccountUserRoleList)
+                    foreach (var item in user.Roles)
                     {
                         string rq = "INSERT INTO Profile.UserRoles(UserId,RoleId) VALUES (@userId,@roleId)";
-                        db.Execute(rq, new { userId = user.Id, roleId = rst.Roles.Single(rl => rl.Name == item.RoleName).Id }, t);
+                        db.Execute(rq, new { userId = user.Id, roleId = rst.Roles.Single(rl => rl.Name == item).Id }, t);
                     }
                     t.Commit();
                 }

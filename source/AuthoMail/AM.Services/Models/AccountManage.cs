@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+
 namespace AM.Services
 {
     public class AccountUser
@@ -23,15 +24,9 @@ namespace AM.Services
         public string Status { get; set; }
         public DateTime? ClosedOn { get; set; }
         public string ClosedBy { get; set; }
-        public ICollection<AccountUserRole> AccountUserRoleList { get; set; }
+        public List<string> Roles { get; set; }
         public virtual bool IsAPIUser { get; set; }
-        public AccountUser()
-        {
-            this.AccountUserRoleList = new HashSet<AccountUserRole>();
-        }
+
     }
-    public class AccountUserRole
-    {
-        public string RoleName { get; set; }
-    }
+
 }

@@ -18,6 +18,7 @@ using System.Text.RegularExpressions;
 using System.IO;
 using System.Configuration;
 using System.Net;
+using System.Collections.Generic;
 
 namespace AM.Web.Controllers
 {
@@ -262,23 +263,42 @@ namespace AM.Web.Controllers
         [Authorize(Roles = AMRoles.Admin), HttpGet]
         public ActionResult CreateUser()
         {
-            
-            return View();
+            var r = new RoleStore<IdentityRole>();
+            ViewBag.Roles = new SelectList(r.Roles.ToList(), "Name", "Name");
+            ViewBag.Clients = new SelectList(supportSvc.GetClients().Where(c => c.IsAMActive).Select(c => new { c.Id, c.Name }).ToList(), "Id", "Name");
+            var statusList = new List<SelectListItem>() { 
+                new SelectListItem { Text = AMUserStatus.Open, Value = AMUserStatus.Open }, 
+                new SelectListItem { Text = AMUserStatus.Approved, Value = AMUserStatus.Approved },
+                new SelectListItem { Text = AMUserStatus.Rejected, Value = AMUserStatus.Rejected } };
+            ViewBag.Status = new SelectList(statusList, "Value", "Text");
+            return View(new AccountUser());
         }
-        [Authorize(Roles = AMRoles.Admin), HttpGet]
-        public ActionResult SaveUser(AccountUser user)
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult CreateUser(AccountUser user)
         {
             var result = accSvc.CreateUser(user, User.Identity.GetUserId());
             if (result.Key)
             {
-                return Json(JsonResponseFactory.SuccessResponse(result.Value), JsonRequestBehavior.AllowGet);
+                return View("Success");
             }
             else
             {
-                return Json(JsonResponseFactory.ErrorResponse(result.Value), JsonRequestBehavior.AllowGet);
+                var r = new RoleStore<IdentityRole>();
+                ViewBag.Roles = new SelectList(r.Roles.ToList(), "Name", "Name");
+                ViewBag.Clients = new SelectList(supportSvc.GetClients().Where(c => c.IsAMActive).Select(c => new { c.Id, c.Name }).ToList(), "Id", "Name");
+                var statusList = new List<SelectListItem>() { 
+                new SelectListItem { Text = AMUserStatus.Open, Value = AMUserStatus.Open }, 
+                new SelectListItem { Text = AMUserStatus.Approved, Value = AMUserStatus.Approved },
+                new SelectListItem { Text = AMUserStatus.Rejected, Value = AMUserStatus.Rejected } };
+                ViewBag.Status = new SelectList(statusList, "Value", "Text");
+                ModelState.AddModelError("", result.Value);
+                return View(user);
             }
         }
-
+        public ActionResult Success()
+        {
+            return View();
+        }
         //
         // POST: /Account/Register
         [HttpPost]
