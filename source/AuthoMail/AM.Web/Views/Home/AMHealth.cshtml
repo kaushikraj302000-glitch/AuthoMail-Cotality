@@ -134,61 +134,76 @@
                 );
             };
         }
-        // $(document).ready(function () {
-        var GetAMStatusData = function () {
-            var amhub = $.connection.aMAlertHub;
-            var data = $('#tabledata').html();
-            amhub.client.getAMDetailStatus = function (response) {
-                SpreadData(response, data);
-            };
-            $.connection.hub.start().done(function () {
-                amhub.server.getConnection($.connection.hub.id);
-            });
-            $.connection.hub.error(function (error) {
-                console.log('communication error: ' + error);
-            });
-            $.connection.aMAlertHub.client.exceptionHandler = function (error) {
-                console.log('Server Error: ' + error);
-            };
-        }
-        var SpreadData = function (response, data) {
-            if (response != null) {
-                $('#tabledata').html(data.supplant(formatData(response)));
-                var color = response.AlertLevel == "Critical" ? "red" : response.AlertLevel == "Warning" ? "yellow" : "white";
-                var pulse = response.IsAMDelay ? "blink" : "";
-                $('#statustitle').html('<i class="fa fa-heartbeat fa-2 ' + pulse + '" style="color:' + color + ';"></i>');
+        $(document).ready(function () {
+            //var GetAMStatusData = function () {
+            //    var amhub = $.connection.aMAlertHub;
+            //    var data = $('#tabledata').html();
+            //    amhub.client.getAMDetailStatus = function (response) {
+            //        SpreadData(response, data);
+            //    };
+            //    $.connection.hub.start().done(function () {
+            //        amhub.server.getConnection($.connection.hub.id);
+            //    });
+            //    $.connection.hub.error(function (error) {
+            //        console.log('communication error: ' + error);
+            //    });
+            //    $.connection.aMAlertHub.client.exceptionHandler = function (error) {
+            //        console.log('Server Error: ' + error);
+            //    };
+            //}
+            var SpreadData = function (response, data) {
+                if (response != null) {
+                    $('#tabledata').html(data.supplant(formatData(response)));
+                    var color = response.AlertLevel == "Critical" ? "red" : response.AlertLevel == "Warning" ? "yellow" : "white";
+                    var pulse = response.IsAMDelay ? "blink" : "";
+                    $('#statustitle').html('<i class="fa fa-heartbeat fa-2 ' + pulse + '" style="color:' + color + ';"></i>');
 
-                $('#messagebody').hide();
-                $('#tabledata').show();
-            } else {
-                $('#tabledata').html('<tr class="row-small"><th><div class="alert alert-blue">No delayed batches.</div></th></tr>');
+                    $('#messagebody').hide();
+                    $('#tabledata').show();
+                } else {
+                    $('#tabledata').html('<tr class="row-small"><th><div class="alert alert-blue">No delayed batches.</div></th></tr>');
+                }
             }
-        }
-        function formatData(data) {
-            return $.extend(data, {
-                DelayedProcessBatches: data.DelayedProcessBatches,
-                DelayedProcessMailPieces: data.DelayedProcessMailPieces,
-                DelayedAMReportBackBatches: data.DelayedAMReportBackBatches,
-                DelayedAMReportBackMailPieces: data.DelayedAMReportBackMailPieces,
-                DelayedPrinterBatches: data.DelayedPrinterBatches,
-                DelayedPrinterMailPieces: data.DelayedPrinterMailPieces,
-                TATTitle: data.MinHour < 1 ? 'Few SLA are already missed.' : data.MinHour == data.MaxHour ? 'Turnaround time  {0} hours.'.replace('{0}', data.MinHour) : 'Turnaround time {0} to {1} hours.'.replace('{0}', data.MinHour).replace('{1}', data.MaxHour),
-                LastBatchReceivedOn: data.LastBatchReceivedOn != null ? moment(data.LastBatchReceivedOn).format("MM/DD/YY HH:mm:ss") : '--',
-                LastUpdatedOn: data.LastUpdatedOn != null ? moment(data.LastUpdatedOn).format("MM/DD/YY HH:mm:ss") : '--',
-                IsReportBackDelay: data.IsReportBackDelay,
-                Reporting: data.IsReportBackDelay ? '<label class="label label-red medium">Reporting</label>' : '<label class="label label-green medium">Reporting</label>',
-                IsPrinterDelay: data.IsPrinterDelay,
-                Printer: data.IsPrinterDelay ? '<label class="label label-red medium">Printer</label>' : '<label class="label label-green medium">Printer</label>',
-                IsReceivedDelay: data.IsReceivedDelay,
-                Download: data.IsReceivedDelay ? '<label class="label label-red medium">Download</label>' : '<label class="label label-green medium">Download</label>',
-                IsProcessDelay: data.IsProcessDelay,
-                Process: data.IsProcessDelay ? '<label class="label label-red medium">Process</label>' : '<label class="label label-green medium">Process</label>',
-                Status: data.Status,
-                IsAMDelay: data.IsAMDelay
-            });
-        }
-        GetAMStatusData();
-        //});
+            function formatData(data) {
+                return $.extend(data, {
+                    DelayedProcessBatches: data.DelayedProcessBatches,
+                    DelayedProcessMailPieces: data.DelayedProcessMailPieces,
+                    DelayedAMReportBackBatches: data.DelayedAMReportBackBatches,
+                    DelayedAMReportBackMailPieces: data.DelayedAMReportBackMailPieces,
+                    DelayedPrinterBatches: data.DelayedPrinterBatches,
+                    DelayedPrinterMailPieces: data.DelayedPrinterMailPieces,
+                    TATTitle: data.MinHour < 1 ? 'Few SLA are already missed.' : data.MinHour == data.MaxHour ? 'Turnaround time  {0} hours.'.replace('{0}', data.MinHour) : 'Turnaround time {0} to {1} hours.'.replace('{0}', data.MinHour).replace('{1}', data.MaxHour),
+                    LastBatchReceivedOn: data.LastBatchReceivedOn != null ? moment(data.LastBatchReceivedOn).format("MM/DD/YY HH:mm:ss") : '--',
+                    LastUpdatedOn: data.LastUpdatedOn != null ? moment(data.LastUpdatedOn).format("MM/DD/YY HH:mm:ss") : '--',
+                    IsReportBackDelay: data.IsReportBackDelay,
+                    Reporting: data.IsReportBackDelay ? '<label class="label label-red medium">Reporting</label>' : '<label class="label label-green medium">Reporting</label>',
+                    IsPrinterDelay: data.IsPrinterDelay,
+                    Printer: data.IsPrinterDelay ? '<label class="label label-red medium">Printer</label>' : '<label class="label label-green medium">Printer</label>',
+                    IsReceivedDelay: data.IsReceivedDelay,
+                    Download: data.IsReceivedDelay ? '<label class="label label-red medium">Download</label>' : '<label class="label label-green medium">Download</label>',
+                    IsProcessDelay: data.IsProcessDelay,
+                    Process: data.IsProcessDelay ? '<label class="label label-red medium">Process</label>' : '<label class="label label-green medium">Process</label>',
+                    Status: data.Status,
+                    IsAMDelay: data.IsAMDelay
+                });
+            }
+            var AMHealthDetail = function () {
+                var tabData = $('#tabledata').html();
+                $.ajax({
+                    type: "GET",
+                    url: "/api/alert/getamstatusdetail",
+                    dataType: "json",
+                    success: function (response) {
+                        SpreadData(response, tabData);
+                    }, error: function (err) {
+                        console.log(JSON.stringify(err));
+                    }
+                });
+            }
+            AMHealthDetail();
+            setInterval(function () { AMHealthDetail(); }, (1000 * 60 * 10));
+            //GetAMStatusData();
+        });
     </script>
 </body>
 </html>

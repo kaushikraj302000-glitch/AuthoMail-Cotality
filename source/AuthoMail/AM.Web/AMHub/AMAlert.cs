@@ -50,6 +50,23 @@ namespace AM.Web.AMHub
             }
         }
 
+        public AMHealth GetAMHealth
+        {
+            get
+            {
+                if (_model == null) _model = GetData();
+                return new AMHealth { AlertLevel = _model.AlertLevel, IsAMDelay = _model.IsAMDelay, LastUpdatedOn = _model.LastUpdatedOn };
+            }
+        }
+        public AMGlobalStatus GetGlobalStatus
+        {
+            get
+            {
+                if (_model == null) _model = GetData();
+                return _model;
+            }
+        }
+
         private AMGlobalStatus GetData()
         {
             using (IMonitorBatchesService alertSvc = new MonitorBatchesService())

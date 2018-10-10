@@ -38,5 +38,10 @@ namespace AM.Web.AMHub
             caller.ExceptionHandler(exceptionContext.Error.Message);
         }
     }
-
+    public class AMHealth
+    {
+        public string AlertLevel { get; set; }
+        public bool IsAMDelay { get; set; }
+        public DateTime LastUpdatedOn { get; set; }
+    }
 }

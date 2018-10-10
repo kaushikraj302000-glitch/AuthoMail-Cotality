@@ -170,33 +170,56 @@
                 return this.optional(element) || !(/[-\s]+/i.test(value));
             },"space and dash not allow.");
 
-            var GetAMStatus=function()
-            {
-                if($('#AMStatusNotification').length!=0)
-                {
-                    //$.connection.hub.logging = true;
-                    var amh = $.connection.aMAlertHub;
-                    amh.client.getAMDetailStatus = function (response) {
-                        //console.log("res:"+JSON.stringify(response));
+            //var GetAMStatus=function()
+            //{
+            //    if($('#AMStatusNotification').length!=0)
+            //    {
+            //        //$.connection.hub.logging = true;
+            //        var amh = $.connection.aMAlertHub;
+            //        amh.client.getAMDetailStatus = function (response) {
+            //            //console.log("res:"+JSON.stringify(response));
+            //            if (response != null)
+            //            {
+            //                var color=response.AlertLevel=="Critical"?"red":response.AlertLevel=="Warning"?"yellow":"white";
+            //                var pulse=response.IsAMDelay?"blink":"";
+            //                $('#AMStatusNotification').html('<a href="/AuthoMailHealth/37f9ac3e-40b3-4ae8-ac9a-d84634638065" style="color:'+color+';" class="'+pulse+'"><i class="fa fa-heartbeat fa-2" style="margin:5px;"></i></a>');
+            //            }
+            //        };
+            //        $.connection.hub.start().done(function () {
+            //            amh.server.getConnection($.connection.hub.id);
+            //        });
+            //        $.connection.hub.error(function(error) {
+            //            console.log('communication error: ' + error);
+            //        });
+            //        $.connection.aMAlertHub.client.exceptionHandler = function (error) {
+            //            console.log('Server Error: ' + error);
+            //        };
+
+            //    }
+            //}
+            //GetAMStatus();
+
+            var AMHealth=function(){
+                $.ajax({
+                    type: "GET",
+                    url: "/api/alert/getamstatus",
+                    dataType: "json",
+                    success: function (response) {
+                        //console.log(JSON.stringify(response));
                         if (response != null)
                         {
                             var color=response.AlertLevel=="Critical"?"red":response.AlertLevel=="Warning"?"yellow":"white";
                             var pulse=response.IsAMDelay?"blink":"";
                             $('#AMStatusNotification').html('<a href="/AuthoMailHealth/37f9ac3e-40b3-4ae8-ac9a-d84634638065" style="color:'+color+';" class="'+pulse+'"><i class="fa fa-heartbeat fa-2" style="margin:5px;"></i></a>');
                         }
-                    };
-                    $.connection.hub.start().done(function () {
-                        amh.server.getConnection($.connection.hub.id);
-                    });
-                    $.connection.hub.error(function(error) {
-                        console.log('communication error: ' + error);
-                    });
-                    $.connection.aMAlertHub.client.exceptionHandler = function (error) {
-                        console.log('Server Error: ' + error);
-                    };
-                }
+                    },error:function(err)
+                    {
+                        console.log(JSON.stringify(err));
+                    }
+                });
             }
-            GetAMStatus();
+            AMHealth();
+            setInterval(function(){AMHealth();},(1000*60*10));
         });
 
         function RefreshDataByClientId(obj) {
