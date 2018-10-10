@@ -8,7 +8,6 @@ using System.Web.Http;
 using System.Web.Http.Cors;
 using AM.Services;
 using AM.Lib;
-using AM.Web.AMHub;
 
 namespace AM.Web.Controllers
 {
@@ -40,16 +39,8 @@ namespace AM.Web.Controllers
             }
         }
 
-        [HttpGet, Route("getamstatus")]
-        public AMHealth AMStatus()
-        {
-            return AMAlert.Instance.GetAMHealth;
-        }
-        [HttpGet, Route("getamstatusdetail")]
-        public AMGlobalStatus AMStatusDetail()
-        {
-            return AMAlert.Instance.GetGlobalStatus;
-        }
+       
+        
 
     }
 }

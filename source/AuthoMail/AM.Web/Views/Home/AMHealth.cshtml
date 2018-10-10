@@ -187,13 +187,14 @@
                     IsAMDelay: data.IsAMDelay
                 });
             }
-            var AMHealthDetail = function () {
-                var tabData = $('#tabledata').html();
+            var tabData = $('#tabledata').html();
+            var AMHealthDetail = function () {                
                 $.ajax({
                     type: "GET",
-                    url: "/api/alert/getamstatusdetail",
+                    url: baseUrl + "AuthoMailHealth/getamstatusdetail",
                     dataType: "json",
                     success: function (response) {
+                        //console.log(Date() + " : " + response);
                         SpreadData(response, tabData);
                     }, error: function (err) {
                         console.log(JSON.stringify(err));
@@ -201,7 +202,7 @@
                 });
             }
             AMHealthDetail();
-            setInterval(function () { AMHealthDetail(); }, (1000 * 60 * 10));
+            setInterval(function () { AMHealthDetail(); }, (1000 * 60 * 5));
             //GetAMStatusData();
         });
     </script>

@@ -202,10 +202,10 @@
             var AMHealth=function(){
                 $.ajax({
                     type: "GET",
-                    url: "/api/alert/getamstatus",
+                    url: baseUrl+"AuthoMailHealth/getamstatus",
                     dataType: "json",
                     success: function (response) {
-                        //console.log(JSON.stringify(response));
+                        //console.log(Date() + " : " + response);
                         if (response != null)
                         {
                             var color=response.AlertLevel=="Critical"?"red":response.AlertLevel=="Warning"?"yellow":"white";
@@ -219,7 +219,7 @@
                 });
             }
             AMHealth();
-            setInterval(function(){AMHealth();},(1000*60*10));
+            setInterval(function(){AMHealth();},(1000*60*5));
         });
 
         function RefreshDataByClientId(obj) {
