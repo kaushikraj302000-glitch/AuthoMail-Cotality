@@ -762,7 +762,7 @@
                         if (response.DelayedBatches.length > 0) {
                             processbatches = response.DelayedBatches;
                             var data = FormatObject(response.DelayedBatches);
-                            BindTemplateWithDataTable(data, "#supportBody", "#supportbodyContent", "#supportTableContent", "#processbatchbody", 'DelayedMPsDatatable', 'delayedmailpieces', 'Delayed MailPieces', false);
+                            BindTemplateWithDataTable(data, "#supportBody", "#supportbodyContent", "#supportTableContent", "#processbatchbody", 'DelayedBatchDatatable', 'delayedbatches', 'Delayed Batches', false);
                             window.clui.tooltipInit();
                         }
                         else {

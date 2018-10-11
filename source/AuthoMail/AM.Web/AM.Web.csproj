@@ -508,6 +508,8 @@
     <Content Include="Views\Support\DelayedBatches.cshtml" />
     <Content Include="Views\Support\AllClientsPackages.cshtml" />
     <Content Include="Views\Home\AMHealth.cshtml" />
+    <Content Include="Views\Account\CreateUser.cshtml" />
+    <Content Include="Views\Account\Success.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

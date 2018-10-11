@@ -18,6 +18,7 @@ using System.Text.RegularExpressions;
 using System.IO;
 using System.Configuration;
 using System.Net;
+using System.Collections.Generic;
 
 namespace AM.Web.Controllers
 {
@@ -27,16 +28,17 @@ namespace AM.Web.Controllers
         private AMSignInManager _signInManager;
         private AMUserManager _userManager;
         private ISupportService supportSvc;
-
+        private IAccountManageService accSvc;
         public AccountController()
         {
         }
 
-        public AccountController(AMUserManager userManager, AMSignInManager signInManager, ISupportService supportSvc)
+        public AccountController(AMUserManager userManager, AMSignInManager signInManager, ISupportService supportSvc, IAccountManageService accSvc)
         {
             UserManager = userManager;
             SignInManager = signInManager;
             this.supportSvc = supportSvc;
+            this.accSvc = accSvc;
         }
 
 
@@ -256,6 +258,46 @@ namespace AM.Web.Controllers
                 DisplayName = nm[2]
             };
             return Json(JsonResponseFactory.SuccessResponse(data), JsonRequestBehavior.AllowGet);
+        }
+
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult CreateUser()
+        {
+            var r = new RoleStore<IdentityRole>();
+            ViewBag.Roles = new SelectList(r.Roles.ToList(), "Name", "Name");
+            ViewBag.Clients = new SelectList(supportSvc.GetClients().Where(c => c.IsAMActive).Select(c => new { c.Id, c.Name }).ToList(), "Id", "Name");
+            var statusList = new List<SelectListItem>() { 
+                new SelectListItem { Text = AMUserStatus.Open, Value = AMUserStatus.Open }, 
+                new SelectListItem { Text = AMUserStatus.Approved, Value = AMUserStatus.Approved },
+                new SelectListItem { Text = AMUserStatus.Rejected, Value = AMUserStatus.Rejected } };
+            ViewBag.Status = new SelectList(statusList, "Value", "Text");
+            return View(new AccountUser());
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult CreateUser(AccountUser user)
+        {
+            var result = accSvc.CreateUser(user, User.Identity.GetUserId());
+            if (result.Key)
+            {
+                return View("Success");
+            }
+            else
+            {
+                var r = new RoleStore<IdentityRole>();
+                ViewBag.Roles = new SelectList(r.Roles.ToList(), "Name", "Name");
+                ViewBag.Clients = new SelectList(supportSvc.GetClients().Where(c => c.IsAMActive).Select(c => new { c.Id, c.Name }).ToList(), "Id", "Name");
+                var statusList = new List<SelectListItem>() { 
+                new SelectListItem { Text = AMUserStatus.Open, Value = AMUserStatus.Open }, 
+                new SelectListItem { Text = AMUserStatus.Approved, Value = AMUserStatus.Approved },
+                new SelectListItem { Text = AMUserStatus.Rejected, Value = AMUserStatus.Rejected } };
+                ViewBag.Status = new SelectList(statusList, "Value", "Text");
+                ModelState.AddModelError("", result.Value);
+                return View(user);
+            }
+        }
+        public ActionResult Success()
+        {            
+            return View();
         }
         //
         // POST: /Account/Register

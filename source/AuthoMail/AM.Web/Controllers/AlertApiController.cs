@@ -25,12 +25,22 @@ namespace AM.Web.Controllers
         [HttpGet]
         public MonitorReport GetDelayedBatches(string cutOff)
         {
-            int defaultCutOff = 30;
-            int effectiveCutOff;
-            if (!int.TryParse(cutOff, out effectiveCutOff))
-                effectiveCutOff = defaultCutOff;
-            return alertSvc.GetPendingBatchesToSubmit(effectiveCutOff);
+            try
+            {
+                int defaultCutOff = 30;
+                int effectiveCutOff;
+                if (!int.TryParse(cutOff, out effectiveCutOff))
+                    effectiveCutOff = defaultCutOff;
+                return alertSvc.GetPendingBatchesToSubmit(effectiveCutOff);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
+
+       
+        
 
     }
 }

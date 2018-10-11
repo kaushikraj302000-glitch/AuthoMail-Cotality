@@ -12,6 +12,7 @@ using System.Globalization;
 using AM.Lib;
 using AM.Web.Models;
 using AutoMapper;
+using AM.Web.AMHub;
 
 namespace AM.Web.Controllers
 {
@@ -154,10 +155,21 @@ namespace AM.Web.Controllers
             ViewBag.Message = "Your contact page.";
             return View();
         }
-        [AllowAnonymous,Route("37f9ac3e-40b3-4ae8-ac9a-d84634638065")]
+        [AllowAnonymous, Route("37f9ac3e-40b3-4ae8-ac9a-d84634638065")]
         public ActionResult AMHealth()
         {
             return View();
+        }
+        [AllowAnonymous]
+        [HttpGet, Route("getamstatusdetail")]
+        public JsonResult AMStatusDetail()
+        {
+            return Json(AMAlert.Instance.GetGlobalStatus, JsonRequestBehavior.AllowGet);
+        }
+        [HttpGet, Route("getamstatus")]
+        public JsonResult AMStatus()
+        {
+            return Json(AMAlert.Instance.GetAMHealth, JsonRequestBehavior.AllowGet);
         }
     }
 }
