@@ -13,6 +13,7 @@ using AM.Lib;
 using AM.Web.Models;
 using AutoMapper;
 using AM.Web.AMHub;
+using System.Threading.Tasks;
 
 namespace AM.Web.Controllers
 {
@@ -164,12 +165,36 @@ namespace AM.Web.Controllers
         [HttpGet, Route("getamstatusdetail")]
         public JsonResult AMStatusDetail()
         {
-            return Json(AMAlert.Instance.GetGlobalStatus, JsonRequestBehavior.AllowGet);
+
+            try
+            {                
+                return Json(AMAlert.Instance.GetGlobalStatus, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception)
+            {               
+                return Json(GetData(), JsonRequestBehavior.AllowGet);
+            }
         }
         [HttpGet, Route("getamstatus")]
         public JsonResult AMStatus()
         {
-            return Json(AMAlert.Instance.GetAMHealth, JsonRequestBehavior.AllowGet);
+            try
+            {
+                return Json(AMAlert.Instance.GetAMHealth, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception)
+            {
+                var _model = GetData();
+                return Json(new AMHealth { AlertLevel = _model.AlertLevel, IsAMDelay = _model.IsAMDelay, LastUpdatedOn = _model.LastUpdatedOn }, JsonRequestBehavior.AllowGet);
+            }
+        }
+        private AMGlobalStatus GetData()
+        {
+            using (IMonitorBatchesService alertSvc = new MonitorBatchesService())
+            {
+                var data = alertSvc.GetPendingBatchesToSubmit(30);
+                return new AMGlobalStatus { DelayedProcessBatches = data.DelayedBatches.Count(), DelayedProcessMailPieces = data.DelayedMailPieces.Count(), DelayedAMReportBackBatches = data.DelayedAMReportBackBatches.Count(), DelayedAMReportBackMailPieces = data.DelayedAMReportBackMailPieces.Count(), DelayedPrinterBatches = data.DelayedPrinterBatches.Count(), DelayedPrinterMailPieces = data.DelayedPrinterMailPieces.Count(), MinHour = data.MinHour, MaxHour = data.MaxHour, LastBatchReceivedOn = data.LastBatchReceivedOn, LastUpdatedOn = data.LastUpdatedOn, IsReportBackDelay = data.IsReportBackDelay, IsPrinterDelay = data.IsPrinterDelay, IsReceivedDelay = data.IsReceivedDelay, IsProcessDelay = data.IsProcessDelay, AlertLevel = data.AlertLevel, IsAMDelay = data.IsAMDelay };
+            }
         }
     }
 }

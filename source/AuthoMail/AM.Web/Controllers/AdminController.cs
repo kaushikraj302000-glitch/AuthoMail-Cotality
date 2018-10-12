@@ -44,7 +44,7 @@ namespace AM.Web.Controllers
         }
         public ActionResult GetSingUpRequestedList()
         {
-            string userId = User.IsInRole(AMRoles.Admin) ? null : User.Identity.GetUserId();
+            string userId = User.IsInRole(AMRoles.Admin) || User.IsInRole(AMRoles.CoreLogicUserManager) ? null : User.Identity.GetUserId();
             var model = supportSvc.GetUsersRequestSignUp(userId);
             return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
         }
@@ -255,9 +255,9 @@ namespace AM.Web.Controllers
         [Authorize(Roles = AMRoles.Admin)]
         public ActionResult _AddCoverLetter(int id)
         {
-            var model=supportSvc.GetDocTypesByClientId(id);
+            var model = supportSvc.GetDocTypesByClientId(id);
             ViewBag.IsModelEmpty = true;
-            if (model!=null)
+            if (model != null)
             {
                 ViewBag.IsModelEmpty = false;
                 ViewBag.ClientId = id;
@@ -286,7 +286,7 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
             }
         }
-        
+
         [Authorize(Roles = AMRoles.Admin)]
         public ActionResult GetCoverLetterByDocTypeId(int id)
         {
@@ -451,11 +451,11 @@ namespace AM.Web.Controllers
             return PartialView(model);
         }
         [Authorize(Roles = AMRoles.Admin), HttpPost]
-        public ActionResult RemoveCoverLetter(int docTypeId,int seqId,string fileName)
+        public ActionResult RemoveCoverLetter(int docTypeId, int seqId, string fileName)
         {
             try
             {
-                var model = supportSvc.RemoveCoverletter(docTypeId,seqId,fileName);
+                var model = supportSvc.RemoveCoverletter(docTypeId, seqId, fileName);
                 return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
@@ -489,7 +489,7 @@ namespace AM.Web.Controllers
             var PrintFormatList = Config.Web_DD_PrintFormatList.Split(',').ToArray();
             var ShippingCarrierList = Config.Web_DD_ShippingCarrierList.Split(',').ToArray();
             var ShippingServiceTypeList = Config.Web_DD_ShippingServiceTypeList.Split(',').ToArray();
-            var ShippingSpecialServiceList = Config.Web_DD_ShippingSpecialServiceList.Split(',').ToArray(); 
+            var ShippingSpecialServiceList = Config.Web_DD_ShippingSpecialServiceList.Split(',').ToArray();
             ViewBag.ShippingSpecialService = ShippingSpecialServiceList.Select(s => new SelectListItem() { Text = s, Value = s }).ToList();
             if (id != 0)
             {

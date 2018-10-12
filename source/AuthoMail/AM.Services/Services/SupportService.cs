@@ -109,27 +109,27 @@ namespace AM.Services
             {
                 var emailClient = db.QuerySingle("SELECT Email,ClientId FROM [Profile].[Users] WHERE Id= @userId", new { userId = userId });
                 var mailAddress = new MailAddress(emailClient.Email);
-                if (mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    string sql = "SELECT Id,UserName,Email,EmailConfirmed,FirstName,LastName,DisplayName,RequestedOn,Status FROM [Profile].[Users] WHERE Status = @status AND EmailConfirmed=1 AND Email LIKE @email";
-                    return db.Query<UserRequestSignUp>(sql, new { status = AMUserStatus.Open, email = string.Format("%{0}", mailAddress.Host) }).ToList();
-                }
-                else
-                {
-                    var domains = db.Query<string>("SELECT AllowedDomain FROM [Common].[ClientDomains] WHERE ClientId=@clientId", new { clientId = emailClient.ClientId }).ToList();
+                //if (isCLUserManager)
+                //{
+                //    string sql = "SELECT Id,UserName,Email,EmailConfirmed,FirstName,LastName,DisplayName,RequestedOn,Status FROM [Profile].[Users] WHERE Status = @status AND EmailConfirmed=1";
+                //    return db.Query<UserRequestSignUp>(sql, new { status = AMUserStatus.Open }).ToList();
+                //}
+                //else
+                //{
+                var domains = db.Query<string>("SELECT AllowedDomain FROM [Common].[ClientDomains] WHERE ClientId=@clientId", new { clientId = emailClient.ClientId }).ToList();
 
-                    string emailQuery = "";
-                    int i = 0;
-                    foreach (var item in domains)
-                    {
-                        i++;
-                        emailQuery = domains.Count() == i ? string.Format("{0} Email LIKE '%{1}'", emailQuery, item) :
-                            string.Format("{0} Email LIKE '%{1}' OR", emailQuery, item);
+                string emailQuery = "";
+                int i = 0;
+                foreach (var item in domains)
+                {
+                    i++;
+                    emailQuery = domains.Count() == i ? string.Format("{0} Email LIKE '%{1}'", emailQuery, item) :
+                        string.Format("{0} Email LIKE '%{1}' OR", emailQuery, item);
 
-                    }
-                    string sql = string.Format("SELECT Id,UserName,Email,EmailConfirmed,FirstName,LastName,DisplayName,RequestedOn,Status FROM [Profile].[Users] WHERE Status = @status AND EmailConfirmed=1 AND ({0})", emailQuery);
-                    return db.Query<UserRequestSignUp>(sql, new { status = AMUserStatus.Open }).ToList();
                 }
+                string sql = string.Format("SELECT Id,UserName,Email,EmailConfirmed,FirstName,LastName,DisplayName,RequestedOn,Status FROM [Profile].[Users] WHERE Status = @status AND EmailConfirmed=1 AND ({0})", emailQuery);
+                return db.Query<UserRequestSignUp>(sql, new { status = AMUserStatus.Open }).ToList();
+                //}
             }
             string query = "SELECT Id,UserName,Email,EmailConfirmed,FirstName,LastName,DisplayName,RequestedOn,Status FROM [Profile].[Users] WHERE Status = @status AND EmailConfirmed=1";
             return db.Query<UserRequestSignUp>(query, new { status = AMUserStatus.Open }).ToList();
@@ -475,22 +475,22 @@ namespace AM.Services
             var mailAddress = new MailAddress(clientEmail);
             var emailList = new List<string>();
 
-            if (mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase))
+            //if (mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase))
+            //{
+            string query = "SELECT Email FROM [Profile].[Users] u,[Profile].[UserRoles] ur WHERE u.Id=ur.UserId AND ur.RoleId=@roleId";
+            var emails = db.Query<string>(query, new { roleId = roles.Single(r => r.Name == AMRoles.CoreLogicUserManager).Id }).ToList();
+            emailList.AddRange(emails);
+            //}
+            //else
+            //{
+            var client = db.QuerySingle<ClientDomains>("SELECT * FROM [Common].[ClientDomains] WHERE AllowedDomain=@domain", new { domain = mailAddress.Host });
+            if (client != null)
             {
-                string query = "SELECT Email FROM [Profile].[Users] u,[Profile].[UserRoles] ur WHERE u.Id=ur.UserId AND ur.RoleId=@roleId";
-                var emails = db.Query<string>(query, new { roleId = roles.Single(r => r.Name == AMRoles.CoreLogicUserManager).Id }).ToList();
-                emailList.AddRange(emails);
+                string queryOther = "SELECT Email FROM [Profile].[Users] u,[Profile].[UserRoles] ur WHERE u.Id=ur.UserId AND ur.RoleId=@roleId AND u.ClientId = @clientId";
+                var emailsOther = db.Query<string>(queryOther, new { roleId = roles.Single(r => r.Name == AMRoles.ClientUserManager).Id, clientId = client.ClientId }).ToList();
+                emailList.AddRange(emailsOther);
             }
-            else
-            {
-                var client = db.QuerySingle<ClientDomains>("SELECT * FROM [Common].[ClientDomains] WHERE AllowedDomain=@domain", new { domain = mailAddress.Host });
-                if (client != null)
-                {
-                    string query = "SELECT Email FROM [Profile].[Users] u,[Profile].[UserRoles] ur WHERE u.Id=ur.UserId AND ur.RoleId=@roleId AND u.ClientId = @clientId";
-                    var emails = db.Query<string>(query, new { roleId = roles.Single(r => r.Name == AMRoles.ClientUserManager).Id, clientId = client.ClientId }).ToList();
-                    emailList.AddRange(emails);
-                }
-            }
+            //}
             if (emailList == null || emailList.Count() == 0)
             {
                 return Config.Web_RegistrationDefaultEmails;
