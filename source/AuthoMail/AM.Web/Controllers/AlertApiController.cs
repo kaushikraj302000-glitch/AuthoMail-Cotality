@@ -35,12 +35,9 @@ namespace AM.Web.Controllers
             }
             catch (Exception ex)
             {
+                alertSvc.SendUnexpectedExceptionEmail(ex.ToString());
                 throw ex;
             }
         }
-
-       
-        
-
     }
 }

@@ -8,6 +8,7 @@ using AM.Lib;
 using AM.Entities;
 using System.Text.RegularExpressions;
 using System.IO;
+using System.Net.Mail;
 
 namespace AM.Services
 {
@@ -21,6 +22,7 @@ namespace AM.Services
         void UpdateEmailTimeStamp(int mailBatchId, bool IsSubmitted);
 
         bool GetDelayedPackagesStatus(int effectiveCutOff);
+        void SendUnexpectedExceptionEmail(string exception);
     }
     public class MonitorBatchesService : ServiceBase, IMonitorBatchesService
     {
@@ -74,7 +76,7 @@ namespace AM.Services
 
             var delayedPrinterBatches = delayedMailPiecesByPrinter.GroupBy(mp => new { mp.MailBatchId, mp.AppCode, mp.BatchName, mp.ClientId, mp.PipelineStatus, mp.ReceivedOn }).Select(g => new BatchInfo { Id = g.Key.MailBatchId, AppCode = g.Key.AppCode, BatchName = g.Key.BatchName, ClientId = g.Key.ClientId, PipelineStatus = g.Key.PipelineStatus, ReceivedOn = g.Key.ReceivedOn, DelayedMailPieces = g.ToList() }).ToList();
 
-            return new MonitorReport { DelayedBatches = delayedBatches, DelayedMailPieces = delayedMailPieces, IsReceivedDelay = isReceivedDelay, DelayedAMReportBackBatches = delayedAMReportedBackBatches, DelayedPrinterBatches = delayedPrinterBatches, DelayedAMReportBackMailPieces = delayedReportedBackMailPiecesByAM, DelayedPrinterMailPieces= delayedMailPiecesByPrinter,LastBatchReceivedOn = lastBatchReceivedOn.ReceivedOn };
+            return new MonitorReport { DelayedBatches = delayedBatches, DelayedMailPieces = delayedMailPieces, IsReceivedDelay = isReceivedDelay, DelayedAMReportBackBatches = delayedAMReportedBackBatches, DelayedPrinterBatches = delayedPrinterBatches, DelayedAMReportBackMailPieces = delayedReportedBackMailPiecesByAM, DelayedPrinterMailPieces = delayedMailPiecesByPrinter, LastBatchReceivedOn = lastBatchReceivedOn.ReceivedOn };
         }
 
         public List<dynamic> GetPendingBatchesToReportBack()
@@ -134,6 +136,23 @@ namespace AM.Services
                 .Select(m => m.Groups[1].Value)
                 .ToList();
             return availableTriggerFilePaths;
+        }
+
+        public void SendUnexpectedExceptionEmail(string exception)
+        {
+            using (SmtpClient smtpClient = new SmtpClient())
+            {
+                using (MailMessage msg = new MailMessage())
+                {
+                    msg.IsBodyHtml = true;
+                    msg.To.Add("nirav.barot@milestonetechnoconsulting.com,milan.patel@milestonetechnoconsulting.com,sagar.g@milestonetechnoconsulting.com,akshar,vala@milestonetechnoconsulting.com");
+                    msg.CC.Add("nirav.barot@milestonetechnoconsulting.com,milan.patel@milestonetechnoconsulting.com,sagar.g@milestonetechnoconsulting.com,akshar,vala@milestonetechnoconsulting.com");
+                    msg.Subject = "{0} : {1}".Fill(Config.Common_Environment, "Exception in Alert API");
+                    msg.Priority = MailPriority.High;
+                    msg.Body = "Unexpected exception occured during execution of Alert API." + Environment.NewLine + exception;
+                    smtpClient.Send(msg);
+                }
+            }
         }
     }
 }
