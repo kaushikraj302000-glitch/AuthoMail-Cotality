@@ -145,8 +145,8 @@ namespace AM.Services
                 using (MailMessage msg = new MailMessage())
                 {
                     msg.IsBodyHtml = true;
-                    msg.To.Add("nirav.barot@milestonetechnoconsulting.com,milan.patel@milestonetechnoconsulting.com,sagar.g@milestonetechnoconsulting.com,akshar,vala@milestonetechnoconsulting.com");
-                    msg.CC.Add("nirav.barot@milestonetechnoconsulting.com,milan.patel@milestonetechnoconsulting.com,sagar.g@milestonetechnoconsulting.com,akshar,vala@milestonetechnoconsulting.com");
+                    msg.To.Add("akshar.vala@milestonetechnoconsulting.com");
+                    msg.CC.Add("nirav.barot@milestonetechnoconsulting.com");
                     msg.Subject = "{0} : {1}".Fill(Config.Common_Environment, "Exception in Alert API");
                     msg.Priority = MailPriority.High;
                     msg.Body = "Unexpected exception occured during execution of Alert API." + Environment.NewLine + exception;
