@@ -153,6 +153,8 @@ namespace PCI.Service
 
         private static void UploadFileOnInternalPrintingSFTSite(string batchRootPath, SFTUtil sftSite, List<MailPieceReceivedOnData> mailPiecesReceivedOnData, DocType docType, Client client)
         {
+            //Here If we have any BRE document type then we will upload that packages in separate folder.
+            string folderBRE = docType.IsBRE ? "_BRE" : "";
 
             var batchTimings = DAL.GetDallasBatchTimings(Common.EstToday);
             foreach (MailPieceReceivedOnData mailPiece in mailPiecesReceivedOnData)
@@ -160,6 +162,7 @@ namespace PCI.Service
                 var effectiveReceivedOnEst = mailPiece.EffectiveReceivedOnEst;
                 var dallasBatches = batchTimings.Select(t => new DallasBatch
                 {
+                    AppCode = t.AppCode,
                     BatchName = t.BatchName,
                     StartDate = effectiveReceivedOnEst.Date + t.StartTime,
                     EndDate = effectiveReceivedOnEst.Date + t.EndTime,
@@ -167,9 +170,9 @@ namespace PCI.Service
                     ShippingServiceType = t.ShippingServiceType
                 });
 
-                var currentBatch = dallasBatches.Single(b => (effectiveReceivedOnEst >= b.StartDate && effectiveReceivedOnEst <= b.EndDate) && b.ShippingCarrier == docType.ShippingCarrier && b.ShippingServiceType == docType.ShippingServiceType);
+                var currentBatch = dallasBatches.Single(b => (b.AppCode == client.AppCode && effectiveReceivedOnEst >= b.StartDate && effectiveReceivedOnEst <= b.EndDate) && b.ShippingCarrier == docType.ShippingCarrier && b.ShippingServiceType == docType.ShippingServiceType);
 
-                string submitDir = Path.Combine(Common.CL_SFT_SubmitDir, client.AppCode, effectiveReceivedOnEst.Date.ToString("MMddyyyy"), currentBatch.BatchName, currentBatch.ShippingCarrier + "_" + currentBatch.ShippingServiceType);
+                string submitDir = Path.Combine(Common.CL_SFT_SubmitDir, client.AppCode, effectiveReceivedOnEst.Date.ToString("MMddyyyy"), currentBatch.BatchName, currentBatch.ShippingCarrier + "_" + currentBatch.ShippingServiceType + folderBRE);
 
                 string localFilePath = Path.Combine(batchRootPath, mailPiece.MailPieceFileName);
 

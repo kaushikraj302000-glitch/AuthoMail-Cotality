@@ -134,6 +134,7 @@ namespace PCI.Service
 
     public class DallasBatch
     {
+        public string AppCode { get; set; }
         public string BatchName { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
@@ -143,6 +144,7 @@ namespace PCI.Service
 
     public class DallasBatchTiming
     {
+        public string AppCode { get; set; }
         public string BatchName { get; set; }
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }

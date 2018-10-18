@@ -18,5 +18,6 @@ namespace PCI.Service
         public int ClientId { get; set; }
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
+        public bool IsBRE { get; set; }
     }
 }
