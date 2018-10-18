@@ -278,7 +278,7 @@ namespace AM.Entities
     }
     public enum ShippingServiceType
     {
-        USPS = 0,
+        IMB = 0,
         FEDEX_2_DAY = 1,
         FEDEX_EXPRESS_SAVER = 2,
         FEDEX_GROUND = 3,

@@ -490,7 +490,7 @@ namespace AM.Console
                         //Calculate Due Date for Mail Pieces doc type wise
                         mailPiece.DueDate = Channel.GetDueDate(docType, effectiveEstReceivedOn);
                         //Set print location where mail piece will go for print and ship
-                        mailPiece.PrintLocation = Channel.GetPrintLocation(docType, effectiveEstReceivedOn);
+                        mailPiece.PrintLocation = Channel.GetPrintLocation(docType, effectiveEstReceivedOn, client);
                         //This field will be used for monitoring data
                         mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, mailPiece.PrintLocation, mailBatch.ReceivedOn.Value, sweepTimings);
                         mailPiece.MaxSubmissionTime = Channel.GetMaximumSubmissionTime(docType, effectiveEstReceivedOn);
@@ -649,22 +649,36 @@ namespace AM.Console
             return dueDate.EstToUtc();
         }
 
-        public static string GetPrintLocation(DocType docType, DateTime estEffectiveReceivedOn)
+        public static string GetPrintLocation(DocType docType, DateTime estEffectiveReceivedOn, Client client)
         {
-            if (estEffectiveReceivedOn.DayOfWeek == DayOfWeek.Saturday && docType.ShippingCarrier == Carrier.FedEx.ToString())
-                return Config.Common_PrintLocationCL;
+            InternalClientWisePnSTimings timing = Config.Monitor_InternalPnSClientTimings.Single(c => c.AppCode == client.AppCode);
 
-            if (estEffectiveReceivedOn.DayOfWeek == DayOfWeek.Saturday && (docType.ShippingCarrier == Carrier.USPS.ToString() && docType.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS.ToString()))
-                return Config.Common_PrintLocationCL;
+            switch (client.AppCode)
+            {
+                case "HSBC":
+                case "BECU":
+                    if (docType.ShippingCarrier == Carrier.USPS.ToString() && (estEffectiveReceivedOn.TimeOfDay >= timing.StartTime && estEffectiveReceivedOn.TimeOfDay <= timing.EndTime))
+                        return Config.Common_PrintLocationCL;
+                    break;
+                case "USAA":
+                    if (estEffectiveReceivedOn.DayOfWeek == DayOfWeek.Saturday && docType.ShippingCarrier == Carrier.FedEx.ToString())
+                        return Config.Common_PrintLocationCL;
 
-            if (estEffectiveReceivedOn.DayOfWeek == DayOfWeek.Saturday)
-                return Config.Common_PrintLocationPCI;
+                    if (estEffectiveReceivedOn.DayOfWeek == DayOfWeek.Saturday && (docType.ShippingCarrier == Carrier.USPS.ToString() && docType.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS.ToString()))
+                        return Config.Common_PrintLocationCL;
 
-            if (docType.ShippingCarrier == Carrier.USPS.ToString() && docType.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS.ToString())
-                return Config.Common_PrintLocationCL;
+                    if (estEffectiveReceivedOn.DayOfWeek == DayOfWeek.Saturday)
+                        return Config.Common_PrintLocationPCI;
 
-            if (docType.ShippingCarrier == Carrier.FedEx.ToString() && (estEffectiveReceivedOn.TimeOfDay >= Config.Monitor_InternalPrintAndShipStartTime && estEffectiveReceivedOn.TimeOfDay < Config.Monitor_InternalPrintAndShipEndTime))
-                return Config.Common_PrintLocationCL;
+                    if (docType.ShippingCarrier == Carrier.USPS.ToString() && docType.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS.ToString())
+                        return Config.Common_PrintLocationCL;
+
+                    if (docType.ShippingCarrier == Carrier.FedEx.ToString() && (estEffectiveReceivedOn.TimeOfDay >= timing.StartTime && estEffectiveReceivedOn.TimeOfDay <= timing.EndTime))
+                        return Config.Common_PrintLocationCL;
+                    break;
+                default:
+                    return Config.Common_PrintLocationPCI;
+            }
 
             return Config.Common_PrintLocationPCI;
         }

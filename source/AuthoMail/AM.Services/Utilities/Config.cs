@@ -51,8 +51,8 @@ namespace AM.Services
         public static string Monitor_USAACustIdentifier { get; set; }
         public static string Monitor_AMCDirPath { get; set; }
 
-        public static TimeSpan Monitor_InternalPrintAndShipStartTime { get; private set; }
-        public static TimeSpan Monitor_InternalPrintAndShipEndTime { get; private set; }
+        public static string Monitor_InternalPrintAndShipTiming { get; private set; }
+        public static List<InternalClientWisePnSTimings> Monitor_InternalPnSClientTimings { get; private set; }
 
         //Core
         public static string Core_PnS_SFT_RootDir { get; private set; }
@@ -211,6 +211,22 @@ namespace AM.Services
             {
                 Common_Holidays = commonSvc.GetHolidayList();
             }
+
+            #region Internal Printing Timings Client Wise
+
+            // Here Format of String Should be AppCode,StartTiming-EndTiming|AnotherAppCode,StartTiming-EndTiming|So on...
+
+            var clientwiseTimings = Config.Monitor_InternalPrintAndShipTiming.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            List<InternalClientWisePnSTimings> timings = new List<InternalClientWisePnSTimings>();
+            clientwiseTimings.ForEach(t =>
+            {
+                string[] clientTimings = t.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                string[] timing = clientTimings[1].Split(new char[] { '-' }, StringSplitOptions.RemoveEmptyEntries);
+                timings.Add(new InternalClientWisePnSTimings() { AppCode = clientTimings[0], StartTime = TimeSpan.Parse(timing[0]), EndTime = TimeSpan.Parse(timing[1]) });
+            });
+
+            Config.Monitor_InternalPnSClientTimings = timings;
+            #endregion
         }
 
         private static void InitializeProperties<T>()

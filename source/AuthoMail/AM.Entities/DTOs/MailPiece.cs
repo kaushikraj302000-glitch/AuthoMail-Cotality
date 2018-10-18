@@ -135,4 +135,11 @@ namespace AM.Entities
         public string PrintFileName { get; set; }
         public string PrintLocation { get; set; }
     }
+
+    public class InternalClientWisePnSTimings
+    {
+        public string AppCode { get; set; }
+        public TimeSpan StartTime { get; set; }
+        public TimeSpan EndTime { get; set; }
+    }
 }
