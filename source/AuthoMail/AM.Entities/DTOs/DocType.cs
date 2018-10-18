@@ -11,6 +11,7 @@ namespace AM.Entities
         public int Id { get; set; }
         public string DocTypeCode { get; set; }
         public string Description { get; set; }
+        public bool IsBRE { get; set; }
         public string PrintSize { get; set; }
         public int ContentScalePercent { get; set; }
         public bool IsActive { get; set; }

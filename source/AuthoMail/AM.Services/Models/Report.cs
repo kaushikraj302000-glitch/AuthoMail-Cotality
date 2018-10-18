@@ -25,6 +25,7 @@ namespace AM.Services
 
     public class DallasBatch
     {
+        public string AppCode { get; set; }
         public string BatchName { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
@@ -68,5 +69,6 @@ namespace AM.Services
         public DateTime ProcessingTimeStamp { get; set; }
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
+        public bool IsBRE { get; set; }
     }
 }
