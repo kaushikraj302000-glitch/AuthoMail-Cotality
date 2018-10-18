@@ -49,13 +49,7 @@ namespace AM.Core
                     var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
 
                     List<MailPieceDTO> validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
-
-                    if (validMailPieces.Count == 0)
-                    {
-                        // TODO: Ask Ravi Sir -  Report Invalid or Keep Failed at Acknowledge level (generate report at Acknowledge level and make report prepped status)
-                        continue;
-                    }
-
+                    
                     foreach (MailPieceDTO mailPiece in validMailPieces)
                     {
                         int attemptCount = 0;
@@ -70,10 +64,8 @@ namespace AM.Core
                             string coverLetterPdfPath = string.Empty;
                             string endPagePdfPath = string.Empty;
 
-
-                            #region Prepare dictionary of placeholders/tags to fill the PDF template.
-                            string fromAddress = string.Empty;
                             #region From Address
+                            string fromAddress = string.Empty;
                             if (mailPiece.IsReturnInfoSpecified)
                             {
                                 //This is compulsary
@@ -151,8 +143,8 @@ namespace AM.Core
                             }
                             #endregion
 
-                            string toAddress = string.Empty;
                             #region To Address
+                            string toAddress = string.Empty;
                             if (mailPiece.IsRcptInfoSpecified)
                             {
                                 //This is compulsary
@@ -180,6 +172,7 @@ namespace AM.Core
                             }
                             #endregion
 
+                            #region Prepare dictionary of placeholders/tags to fill the PDF template.
                             Dictionary<string, string> mailPieceData = new Dictionary<string, string>();
                             mailPieceData.Add("FromAddress", fromAddress);
 
@@ -194,25 +187,13 @@ namespace AM.Core
 
                             #endregion
 
+                            DocTypeCoverLetter docTypeLetter = docTypeSvc.GetDocumentCoverLetterTemplates(docType.Id).SingleOrDefault();
+
+                            //Folder structure and file naming convention should be Root/AppCode/AppCode_DocTypeCode_SeqNo.pdf
+                            string coverLetterTemplatePath = docTypeLetter == null ? string.Empty : Path.Combine(Config.Core_CoverTemplateFolder, client.AppCode, docTypeLetter.CoverLetterTemplatePath);
+
                             if (docType.ShippingCarrier == Carrier.USPS.ToString())
                             {
-                                DocTypeCoverLetter docTypeLetter = docTypeSvc.GetDocumentCoverLetterTemplates(docType.Id).SingleOrDefault();
-
-                                if (docTypeLetter == null)
-                                {
-                                    mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
-                                    mailPiece.ErrorDesc = "Cover letter does not exist for DocumentType : {0}".Fill(mailPiece.DocumentOrPackageType);
-                                    mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                                    mailPiece.TotalPages = 0;
-                                    mailPiece.DueDate = null;
-                                    mailPiece.PrintLocation = null;
-                                    mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
-                                    continue;
-                                }
-
-                                //Folder structure and file naming convention should be Root/AppCode/AppCode_DocTypeCode_SeqNo.pdf
-                                string coverLetterTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, client.AppCode, docTypeLetter.CoverLetterTemplatePath);
-
                                 if (docType.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS.ToString())
                                 {
                                     eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name);
@@ -233,15 +214,17 @@ namespace AM.Core
                                             throw new Exception("Priority document type does not exist.");
                                         }
                                     }
-                                    //coverLetterPdfPath = doc.GenerateUSPSCoverLetter(client.AppCode, coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
                                 }
                                 else
                                 {
-                                    //Create Cover letter with IMBarcode - USPS First Class
-                                    coverLetterPdfPath = doc.GenerateUSPSIMBCoverLetter(client.AppCode, coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
+                                    if (!string.IsNullOrEmpty(coverLetterTemplatePath))
+                                    {
+                                        //Create Cover letter with IMBarcode - USPS First Class
+                                        coverLetterPdfPath = doc.GenerateUSPSIMBCoverLetter(client.AppCode, coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
+                                    }
                                 }
 
-                                if (string.IsNullOrEmpty(coverLetterPdfPath))
+                                if (!string.IsNullOrEmpty(doc.ExceptionDetail))
                                 {
                                     mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
                                     mailPiece.TotalPages = 0;
@@ -269,13 +252,6 @@ namespace AM.Core
                             }
                             else if (docType.ShippingCarrier == Carrier.FedEx.ToString())
                             {
-                                DocTypeCoverLetter docTypeLetter = docTypeSvc.GetDocumentCoverLetterTemplates(docType.Id).SingleOrDefault();
-
-                                if (docTypeLetter == null)
-                                {
-                                    //TODO : Cover letter check for FedEx if not continue with Shipping label only
-                                }
-
                                 #region  Call FedEx web service and get create shipping label
 
                                 FedExAccountInfo fedExAccInfo = fedExSvc.GetFedExAccountDetailsByAccountCode(docType.ShippingAccountCode);

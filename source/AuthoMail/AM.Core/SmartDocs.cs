@@ -46,6 +46,7 @@ namespace AM.Core
             {
                 mailPieceData.Add("Barcode", IMBarcode.BarcodeString);
                 TrackingCode = IMBarcode.TrackingCode;
+                mailPieceData.Add("FrontBarcode", "*" + IMBarcode.TrackingCode + "*");
             }
             else
             {
