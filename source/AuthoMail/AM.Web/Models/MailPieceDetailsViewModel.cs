@@ -56,6 +56,6 @@ namespace AM.Web.Models
         public string RetRcptAddressZIP { get; set; }
         public string PrintLocation { get; set; }
         public string PrintBatch { get; set; }
-
+        public string PrintFileName { get; set; }
     }
 }

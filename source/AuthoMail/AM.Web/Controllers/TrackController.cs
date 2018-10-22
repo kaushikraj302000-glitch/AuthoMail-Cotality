@@ -22,7 +22,7 @@ namespace AM.Web.Controllers
         {
             TrackingInfoViewModel model = new TrackingInfoViewModel();
             model.TrackingDetailViewModel = supportSvc.GetTrackingDetailByTrackingNo(id);
-            if (model.TrackingDetailViewModel.ShippingCarrier=="USPS" && model.TrackingDetailViewModel.ShippingServiceType=="USPS")
+            if (model.TrackingDetailViewModel.ShippingCarrier == "USPS" && model.TrackingDetailViewModel.ShippingServiceType == "IMB")
             {
                 USPSIMClient uspsClient = new USPSIMClient();
                 model.USPSTrackingInfo = uspsClient.GetShipmentStatus(id);
