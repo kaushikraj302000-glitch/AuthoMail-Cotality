@@ -96,14 +96,16 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="CoverTemplates\BECU_FrontBarcode.pdf" />
+    <None Include="CoverTemplates\BECU__IMBWith_A_Barcode.pdf" />
     <None Include="CoverTemplates\FedExBarcodedEndPageTemplate.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="CoverTemplates\Generic_Template95X12.pdf" />
     <None Include="CoverTemplates\HSBC\HSBC_USPS_Generic_1.pdf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="CoverTemplates\HSBC_FrontBarcode.pdf" />
+    <None Include="CoverTemplates\HSBC_IMBWith_A_Barcode.pdf" />
     <None Include="CoverTemplates\USAA\USAA_USPSExpressMailing_Generic_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
