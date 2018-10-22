@@ -16,9 +16,7 @@ INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsS
 
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Core_DirectReportBackChannelIds', N'String', N'1', NULL, 0, N'1', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
-INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Monitor_InternalPrintAndShipStartTime', N'TimeSpan', N'16:30', NULL, 0, N'16:30', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
-
-INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Monitor_InternalPrintAndShipEndTime', N'TimeSpan', N'20:00', NULL, 0, N'20:00', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Monitor_InternalPrintAndShipTiming', N'String', N'USAA,00:00:00-23:59:59|HSBC,16:00:00-20:00:00', NULL, 0, N'USAA,00:00:00-23:59:59|HSBC,16:00:00-20:00:00', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Monitor_AMCDirPath', N'String', N'\\MTC-sagarg\c$\MSTC\AM\AMC', NULL, 0, N'\\MTC-sagarg\c$\MSTC\AM\AMC', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
