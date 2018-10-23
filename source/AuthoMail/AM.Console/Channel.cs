@@ -651,12 +651,12 @@ namespace AM.Console
 
         public static string GetPrintLocation(DocType docType, DateTime estEffectiveReceivedOn, Client client)
         {
-            InternalClientWisePnSTimings timing = Config.Monitor_InternalPnSClientTimings.Single(c => c.AppCode == client.AppCode);
+            InternalClientWisePnSTimings timing = Config.Monitor_InternalPnSClientTimings.SingleOrDefault(c => c.AppCode == client.AppCode);
 
             switch (client.AppCode)
             {
                 case "HSBC":
-                case "BECU":
+                //case "BECU":
                     if (docType.ShippingCarrier == Carrier.USPS.ToString() && (estEffectiveReceivedOn.TimeOfDay >= timing.StartTime && estEffectiveReceivedOn.TimeOfDay <= timing.EndTime))
                         return Config.Common_PrintLocationCL;
                     break;
