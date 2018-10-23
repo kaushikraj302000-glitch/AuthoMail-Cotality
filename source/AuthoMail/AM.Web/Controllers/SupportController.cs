@@ -10,7 +10,7 @@ using AM.Entities;
 using AutoMapper;
 namespace AM.Web.Controllers
 {
-    [Authorize(Roles = AMRoles.Admin+ "," + AMRoles.BA)]
+    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA)]
     public class SupportController : BaseController
     {
         ISupportReportService supportSvc;
@@ -32,7 +32,7 @@ namespace AM.Web.Controllers
             {
 
                 var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-                var data = supportSvc.GetNotReportedBackMailPieces(User.Identity.GetClientId().Value, printLocation, exactDate);
+                var data = supportSvc.GetNotReportedBackMailPieces(printLocation, exactDate);
                 return Json(JsonResponseFactory.SuccessResponse(new { model = data.OrderByDescending(s => s.SubmittedOn) }), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
