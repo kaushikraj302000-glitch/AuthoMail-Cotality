@@ -495,7 +495,8 @@ namespace AM.Console
                         //Calculate Due Date for Mail Pieces doc type wise
                         mailPiece.DueDate = Channel.GetDueDate(docType, effectiveEstReceivedOn);
                         //Set print location where mail piece will go for print and ship
-                        mailPiece.PrintLocation = Channel.GetPrintLocation(docType, effectiveEstReceivedOn, client);
+                        mailPiece.PrintTrailId = Channel.GetPrintLocation(docType, effectiveEstReceivedOn, client);
+                        mailPiece.PrintLocation = commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value).Name;
                         //This field will be used for monitoring data
                         mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, mailPiece.PrintLocation, mailBatch.ReceivedOn.Value, sweepTimings);
                         mailPiece.MaxSubmissionTime = Channel.GetMaximumSubmissionTime(docType, effectiveEstReceivedOn);
@@ -654,38 +655,30 @@ namespace AM.Console
             return dueDate.EstToUtc();
         }
 
-        public static string GetPrintLocation(DocType docType, DateTime estEffectiveReceivedOn, Client client)
+        public static int GetPrintLocation(DocType docType, DateTime estEffectiveReceivedOn, Client client)
         {
-            InternalClientWisePnSTimings timing = Config.Monitor_InternalPnSClientTimings.SingleOrDefault(c => c.AppCode == client.AppCode);
+            DocTypePrintTrailMap docTypePrintTrail;
 
-            switch (client.AppCode)
+            using (ICommonService commonSvc = new CommonService())
             {
-                case "HSBC":
-                    //case "BECU":
-                    if (docType.ShippingCarrier == Carrier.USPS.ToString() && (estEffectiveReceivedOn.TimeOfDay >= timing.StartTime && estEffectiveReceivedOn.TimeOfDay <= timing.EndTime))
-                        return Config.Common_PrintLocationCL;
-                    break;
-                case "USAA":
-                    if (estEffectiveReceivedOn.DayOfWeek == DayOfWeek.Saturday && docType.ShippingCarrier == Carrier.FedEx.ToString())
-                        return Config.Common_PrintLocationCL;
+                List<DocTypePrintTrailMap> docTypePrintTrailMaps = commonSvc.GetTrailMapDetailsByDocTypeId(docType.Id);
+                var dayofWeek = estEffectiveReceivedOn.DayOfWeek;
 
-                    if (estEffectiveReceivedOn.DayOfWeek == DayOfWeek.Saturday && (docType.ShippingCarrier == Carrier.USPS.ToString() && docType.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS.ToString()))
-                        return Config.Common_PrintLocationCL;
-
-                    if (estEffectiveReceivedOn.DayOfWeek == DayOfWeek.Saturday)
-                        return Config.Common_PrintLocationPCI;
-
-                    if (docType.ShippingCarrier == Carrier.USPS.ToString() && docType.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS.ToString())
-                        return Config.Common_PrintLocationCL;
-
-                    if (docType.ShippingCarrier == Carrier.FedEx.ToString() && (estEffectiveReceivedOn.TimeOfDay >= timing.StartTime && estEffectiveReceivedOn.TimeOfDay <= timing.EndTime))
-                        return Config.Common_PrintLocationCL;
-                    break;
-                default:
-                    return Config.Common_PrintLocationPCI;
+                if (dayofWeek == DayOfWeek.Saturday)
+                {
+                    docTypePrintTrail = docTypePrintTrailMaps.Single(c => c.SatStartTime >= estEffectiveReceivedOn.TimeOfDay && c.SatEndTime <= estEffectiveReceivedOn.TimeOfDay);
+                }
+                else if (dayofWeek == DayOfWeek.Sunday)
+                {
+                    docTypePrintTrail = docTypePrintTrailMaps.Single(c => c.SunStartTime >= estEffectiveReceivedOn.TimeOfDay && c.SunEndTime <= estEffectiveReceivedOn.TimeOfDay);
+                }
+                else
+                {
+                    docTypePrintTrail = docTypePrintTrailMaps.Single(c => c.BizDayStartTime >= estEffectiveReceivedOn.TimeOfDay && c.BizDayEndTime <= estEffectiveReceivedOn.TimeOfDay);
+                }
             }
 
-            return Config.Common_PrintLocationPCI;
+            return docTypePrintTrail.PrintTrailId;
         }
 
         private static bool IsBusinessDay(DateTime dueDate, List<Holiday> holidays, bool isSatWorkDay, bool isSunWorkDay)
@@ -780,7 +773,7 @@ namespace AM.Console
 
                         //Document Or Package Type validation
                         var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPiece.ClientId, documentOrPackageType);
-                        
+
                         var addressResponse = addressResponses.Single(c => c.Id.ToLower() == mailPiece.UniqueId.ToString().ToLower());
 
                         if (docType != null)
