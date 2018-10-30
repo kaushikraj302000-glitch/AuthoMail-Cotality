@@ -1816,3 +1816,258 @@ Application Changes
 UAT Final Status : Deployed on 09/26/2018 at 04.30 AM IST
 PROD Final Status : Deployed on 09/29/2018 at 10.59 AM IST (PnSService separate exe updates, HSBC onboard through AMC,evscancel updates )
 ====================================================================================================================================================
+
+====================================================
+Deployment 23/10/2018
+====================================================
+=========================
+Database Changes
+=========================
+1) Added new column IsBRE in AM.DocTypes
+
+	ALTER TABLE [AM].[DocTypes]
+	ADD [IsBRE] BIT NULL 
+
+	UPDATE [AM].[DocTypes]
+	SET
+	IsBRE=0
+
+	ALTER TABLE [AM].[DocTypes]
+	ALTER COLUMN [IsBRE] BIT NOT NULL 
+
+	ALTER TABLE [AM].[DocTypes] ADD  CONSTRAINT [DF_DocTypes_IsBRE]  DEFAULT ((0)) FOR [IsBRE]
+
+	DocTypes updated for HSBC BRE
+	UPDATE AM.DocTypes
+	SET
+	IsBRE=1
+	WHERE Id IN (15,28,12,17,21,23,25,26,24,29,27,83,101)
+
+2) Key changes in Common.SystemSettings Monitor_InternalPrintAndShipStartTime
+
+	UPDATE COmmon.SystemSettings
+	SET
+	Id='Monitor_InternalPrintAndShipTiming'
+	WHERE Id='Monitor_InternalPrintAndShipStartTime'
+
+	UPDATE Common.SystemSettings
+	SET
+	DataType='String',
+	Value='USAA,00:00:00-23:59:59|HSBC,00:00:00-23:59:59'
+	WHERE Id='Monitor_InternalPrintAndShipTiming'
+
+3) Removed Monitor_InternalPrintAndShipEndTime
+	DELETE FROM COmmon.SystemSettings WHERE Id='Monitor_InternalPrintAndShipEndTime'
+4) Function updated for IsBRE column [ufn_GetDallasBatchDetails]- added one more condition in BatchName by client subquery, and added IsBRE column
+	USE [AuthoMail]
+	GO
+	/****** Object:  UserDefinedFunction [dbo].[ufn_GetDallasBatchDetails]    Script Date: 10/18/2018 6:41:47 PM ******/
+	SET ANSI_NULLS ON
+	GO
+	SET QUOTED_IDENTIFIER ON
+	GO
+	ALTER FUNCTION [dbo].[ufn_GetDallasBatchDetails]
+	(
+	@EstDate DATE
+	)
+	RETURNS TABLE 
+	AS
+	RETURN
+	(
+	with db as
+	(
+		select * from [dbo].[ufn_GetDallasBatches](@EstDate)
+	),
+	q as
+	(
+	SELECT m.Id,m.BusinessFriendlyIdValue as LoanNumber,m.ClientId, m.PrintLocation, m.EffectiveReceivedOnEst, m.TrackingNo,m.IsPullBackRequested,m.IsQCRequested,m.TotalSheets , m.DueDate,m.TotalPages,m.ShippingStatus,
+	b.PrintBatch,b.IsSubmitted,b.PipelineStatus,b.JobName,b.SubmittedOn,
+	req.PieceId,req.JobId,req.[Date] as MRDFReqDate,req.PDFFileName, req.UniqueId,req.MailPieceStatus, res.ProcessingTimeStamp,
+	d.ShippingServiceType,d.ShippingCarrier,d.IsBRE,
+	c.AppCode,c.Name as ClientName,(select BatchName from db where EffectiveReceivedOnEst between StartDate AND EndDate AND ShippingCarrier=d.ShippingCarrier AND ShippingServiceType=d.ShippingServiceType AND AppCode=c.AppCode) BatchName
+	FROM [AM].[MailPieces] m
+	LEFT OUTER JOIN PnS.MRDFRequest req ON m.UniqueId = req.UniqueId
+	LEFT OUTER JOIN PnS.BatchSummary b ON req.JobId = b.PrintBatch
+	LEFT OUTER JOIN PnS.MRDFResponse res ON req.JobId = res.JobId AND req.PieceId=res.PieceId
+	INNER JOIN AM.DocTypes d ON m.DocTypeId=d.Id
+	INNER JOIN Common.Clients c ON m.ClientId=c.Id
+	WHERE m.PrintLocation=(SELECT Value FROM Common.SystemSettings WHERE Id='Common_PrintLocationCL') 
+	AND m.EffectiveReceivedOnEst >=(select MIN(StartDate) from db)
+	)
+	select * from q where BatchName is not null 
+	)
+5) Column added for Client wise ,Timings updated for HSBC [ufn_GetDallasBatchTimings]
+	USE [AuthoMail]
+	GO
+	/****** Object:  UserDefinedFunction [dbo].[ufn_GetDallasBatchTimings]    Script Date: 10/18/2018 6:42:40 PM ******/
+	SET ANSI_NULLS ON
+	GO
+	SET QUOTED_IDENTIFIER ON
+	GO
+
+	ALTER FUNCTION [dbo].[ufn_GetDallasBatchTimings]
+	(
+	@EstDate DATE
+	)
+	RETURNS @BatchTimings TABLE 
+	(
+		AppCode VARCHAR(255),
+		BatchName VARCHAR(255),
+		StartTime VARCHAR(255),
+		EndTime VARCHAR(255),
+		ShippingCarrier VARCHAR(255),
+		ShippingServiceType VARCHAR(255)
+	)
+	AS
+	BEGIN
+		
+		DECLARE @DayofWeek INT = DATEPART(dw,@EstDate)
+
+		IF(@DayofWeek=7)
+		BEGIN
+			INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('USAA','10AM','00:00:00','11:00:00','FedEx','PRIORITY_OVERNIGHT')			
+			INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('USAA','01PM','11:00:01','14:00:00','FedEx','PRIORITY_OVERNIGHT')
+
+			INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('USAA','10AM','00:00:00','11:00:00','USPS','PRIORITY_EXPRESS')			
+			INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('USAA','01PM','11:00:01','14:00:00','USPS','PRIORITY_EXPRESS')
+
+			INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('USAA','10AM','00:00:00','11:00:00','USPS','PRIORITY')		
+			INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('USAA','01PM','11:00:01','14:00:00','USPS','PRIORITY')
+		END
+		ELSE
+		BEGIN
+			
+			INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('USAA','12PM','00:00:00','13:00:00','FedEx','PRIORITY_OVERNIGHT')
+			INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('USAA','05PM','13:00:01','18:00:00','FedEx','PRIORITY_OVERNIGHT')
+			INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('USAA','06PM','18:00:01','19:00:00','FedEx','PRIORITY_OVERNIGHT')
+			INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('USAA','07PM','19:00:01','20:00:00','FedEx','PRIORITY_OVERNIGHT')
+
+			INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('USAA','12PM','00:00:00','13:00:00','USPS','PRIORITY_EXPRESS')
+			INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('USAA','05PM','13:00:01','18:00:00','USPS','PRIORITY_EXPRESS')
+
+			INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('USAA','12PM','00:00:00','13:00:00','USPS','PRIORITY')
+			INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('USAA','05PM','13:00:01','18:00:00','USPS','PRIORITY')
+
+			INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('HSBC','12PM','00:00:00','13:00:00','USPS','IMB')
+			INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('HSBC','05PM','13:00:01','18:00:00','USPS','IMB')
+			INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('HSBC','06PM','18:00:01','19:00:00','USPS','IMB')
+			INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+			VALUES ('HSBC','07PM','19:00:01','20:00:00','USPS','IMB')
+		END
+		
+		RETURN
+	END
+
+SP Changes [ufn_GetDallasBatches]- added AppCode in function
+
+	USE [AuthoMail]
+	GO
+	/****** Object:  UserDefinedFunction [dbo].[ufn_GetDallasBatches]    Script Date: 10/18/2018 6:42:10 PM ******/
+	SET ANSI_NULLS ON
+	GO
+	SET QUOTED_IDENTIFIER ON
+	GO
+
+	ALTER FUNCTION [dbo].[ufn_GetDallasBatches]
+	(
+	@EstDate DATE
+	)
+	RETURNS @sweep TABLE 
+	(
+		AppCode VARCHAR(255),
+		BatchName varchar(255),
+		StartDate datetime,
+		EndDate datetime,
+		ShippingCarrier varchar(255),
+		ShippingServiceType varchar(255)
+	)
+	AS
+	BEGIN
+		DECLARE @todayDate DATE
+		SELECT @todayDate=@EstDate
+		
+		INSERT INTO @sweep (AppCode, BatchName,StartDate,EndDate,ShippingCarrier,ShippingServiceType) 
+		SELECT AppCode, BatchName,cast(@todayDate AS DATETIME)+cast(StartTime AS DATETIME),cast(@todayDate AS DATETIME)+cast(EndTime AS DATETIME),ShippingCarrier,ShippingServiceType from [dbo].[ufn_GetDallasBatchTimings](@EstDate)	 
+		
+		
+		INSERT INTO @sweep (AppCode, BatchName,StartDate,EndDate,ShippingCarrier,ShippingServiceType) 
+		VALUES ('USAA','Backlog',DateAdd(day,-7, cast(@todayDate AS DATETIME)),DateAdd(second,-1, cast(@todayDate AS DATETIME)),'FedEx','PRIORITY_OVERNIGHT')
+		
+		INSERT INTO @sweep (AppCode, BatchName,StartDate,EndDate,ShippingCarrier,ShippingServiceType) 
+		VALUES ('USAA','Backlog',DateAdd(day,-7, cast(@todayDate AS DATETIME)),DateAdd(second,-1, cast(@todayDate AS DATETIME)),'USPS','PRIORITY_EXPRESS')
+
+		INSERT INTO @sweep (AppCode, BatchName,StartDate,EndDate,ShippingCarrier,ShippingServiceType) 
+		VALUES ('USAA','Backlog',DateAdd(day,-7, cast(@todayDate AS DATETIME)),DateAdd(second,-1, cast(@todayDate AS DATETIME)),'USPS','PRIORITY')
+
+		INSERT INTO @sweep (AppCode, BatchName,StartDate,EndDate,ShippingCarrier,ShippingServiceType) 
+		VALUES ('HSBC','Backlog',DateAdd(day,-7, cast(@todayDate AS DATETIME)),DateAdd(second,-1, cast(@todayDate AS DATETIME)),'USPS','IMB')
+
+		INSERT INTO @sweep (AppCode, BatchName,StartDate,EndDate,ShippingCarrier,ShippingServiceType) 
+		VALUES ('BECU','Backlog',DateAdd(day,-7, cast(@todayDate AS DATETIME)),DateAdd(second,-1, cast(@todayDate AS DATETIME)),'USPS','IMB')
+		RETURN
+	END
+	
+6) Rename ShippingServiceType of USPS to IMB
+	UPDATE AM.DocTypes
+	SET
+	ShippingServiceType='IMB'
+	WHERE ShippingCarrier='USPS' AND ShippingServiceType='USPS'
+
+7) Change TrackingDetailViewModel.ShippingServiceType, Config.Web_DD_ShippingServiceTypeList code for IMB instead of USPS
+
+8) Change in SP [usp_GetDocTypeDetailsByAppId] added IsBRE
+	USE [AuthoMail]
+	GO
+	/****** Object:  StoredProcedure [dbo].[usp_GetDocTypeDetailsByAppId]    Script Date: 10/18/2018 6:44:22 PM ******/
+	SET ANSI_NULLS ON
+	GO
+	SET QUOTED_IDENTIFIER ON
+	GO
+
+	ALTER PROCEDURE [dbo].[usp_GetDocTypeDetailsByAppId]
+	 @clientId int
+	AS
+	BEGIN
+	 -- SET NOCOUNT ON added to prevent extra result sets from
+	 -- interfering with SELECT statements.
+	 SET NOCOUNT ON;
+	 
+	 SELECT D.ClientId,D.[PrintSize],D.[ContentScalePercent],D.[QCPercent],D.[ClientEmails],D.[SupportEmails]
+	 ,D.[Description] as DocTypeDesc,D.DocTypeCode,D.IsActive,D.ModifiedOn
+	 ,D.CreatedOn,D.Id AS DocTypeId,D.ShippingCarrier,D.ShippingServiceType,D.IsBRE
+	 FROM AM.DocTypes D
+	 INNER JOIN Common.Clients C ON C.Id=D.ClientId
+	 WHERE C.Id=@clientId
+	 
+	END
+9) Disable SimulatePCI for HSBC
+=========================
+Application Changes
+=========================
+
+1) AM.Console Update : exe, dlls
+2) AM.Core Update : exe, dlls
+	- update BECU and HSBC two cover front barcoded cover letters in CoverTemplates
+3) AM.Reporting Update : exe, dlls, email templates
+4) PnS Service : exe, dlls	
+====================================================================================================================================================
+UAT Final Status : Deployed on 10/23/2018 at 02.30 PM IST (HSBC transfer to Dallas)
+PROD Final Status : 
+====================================================================================================================================================
