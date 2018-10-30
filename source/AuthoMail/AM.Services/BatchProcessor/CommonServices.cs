@@ -33,6 +33,7 @@ namespace AM.Services
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
+
         public int UpdateBatchPipeLineStatus(int batchId, string pipeLineStatus, DateTime timestamp)
         {
             string query = "UPDATE [AM].[MailBatches] SET PipelineStatus = @pipelineStatus, {0}On = @timestamp WHERE Id = @batchId".Fill(pipeLineStatus);
@@ -196,11 +197,13 @@ namespace AM.Services
 
         public List<DocTypePrintTrailMap> GetTrailMapDetailsByDocTypeId(int docTypeId)
         {
-            return null;
+            string query = "select * from [Common].[DocTypePrintTrailMaps] where where DocTypeId = @docTypeId";
+            return db.Query<DocTypePrintTrailMap>(query, new { docTypeId = docTypeId }).ToList();
         }
         public PrintVendor GetPrintVendorDetailsByPrintTrailId(int printTrailId)
         {
-            return null;
+            string query = "select pv.* from [Common].[PrintTrails] as pt inner join  [Common].[PrintVendors] as pv on pt.PrintVendorId = pv.Id where pt.Id = @printTrailId";
+            return db.QuerySingleOrDefault<PrintVendor>(query, new { printTrailId = printTrailId });
         }
     }
 }
