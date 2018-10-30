@@ -88,6 +88,7 @@ namespace AM.Entities
         public DateTime? StdSubmissionTime { get; set; }
         public DateTime? MaxSubmissionTime { get; set; }
         public string MissedSLAReason { get; set; }
+        public int PrintTrailId { get; set; }
     }
 
     public class MailPieceCustomInfo
@@ -134,6 +135,7 @@ namespace AM.Entities
         public int? DocTypeId { get; set; }
         public string PrintFileName { get; set; }
         public string PrintLocation { get; set; }
+        public int PrintTrailId { get; set; }
     }
 
     public class InternalClientWisePnSTimings

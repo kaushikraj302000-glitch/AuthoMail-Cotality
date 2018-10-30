@@ -63,4 +63,30 @@ namespace AM.Entities
         public int SeqId { get; set; }
         public string CoverLetterTemplatePath { get; set; }
     }
+
+    public class PrintVendor
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public int SFTChannelId { get; set; }
+    }
+
+    public class PrintTrail
+    {
+        public int Id { get; set; }
+        public string TrailName { get; set; }
+        public int PrintVendorId { get; set; }
+    }
+
+    public class DocTypeTrailMap
+    {
+        public int DocTypeId { get; set; }
+        public int PrintTrailId { get; set; }
+        public TimeSpan BizDayStartTime { get; set; }
+        public TimeSpan BizDayEndTime { get; set; }
+        public TimeSpan SatStartTime { get; set; }
+        public TimeSpan SatEndTime { get; set; }
+        public TimeSpan SunStartTime { get; set; }
+        public TimeSpan SunEndTime { get; set; }
+    }
 }
