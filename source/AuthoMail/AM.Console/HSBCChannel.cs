@@ -432,6 +432,11 @@ namespace AM.Console
             }
         }
 
+        protected override void ValidateAddress()
+        {
+            Channel.ValidateAddressType(SFTChannel.Id);
+        }
+
         protected override void CalculateDueDateAndPrintLocation()
         {
             Channel.CalculateDueDateAndPrintLocation(SFTChannel.Id);

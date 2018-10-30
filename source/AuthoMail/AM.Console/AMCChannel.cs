@@ -458,75 +458,7 @@ namespace AM.Console
                     continue;
                 }
 
-                #region Address Validation Logic
-                //Get validate Addresses for each records
-                List<AddressResponse> addressResponses = new List<AddressResponse>();
-                List<AddressRequest> addressRequestes = new List<AddressRequest>();
-                foreach (XmlNode mailPieceNode in mailPieceNodes)
-                {
-                    string uniqueId = mailPieceNode.SelectSingleNode("./x:Id/text()", nsManager) == null ? string.Empty : mailPieceNode.SelectSingleNode("./x:Id/text()", nsManager).Value;
 
-                    string strRcptAddressStreet = string.Empty;
-                    string strRcptAddrOptionalLine1BelowStreet = string.Empty;
-                    string strRcptAddressCity = string.Empty;
-                    string strRcptAddressState = string.Empty;
-                    string strRcptAddressZIP = string.Empty;
-                    string addressZip5 = string.Empty;
-                    string addressZip4 = string.Empty;
-
-                    var recipientElement = mailPieceNode.SelectSingleNode("./x:RecipientInfo", nsManager);
-                    if (recipientElement != null)
-                    {
-                        var recipeintAddressElement = recipientElement.SelectSingleNode("./x:Address", nsManager);
-
-                        if (recipeintAddressElement != null)
-                        {
-                            strRcptAddressStreet = recipeintAddressElement.SelectSingleNode("./x:Line1/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:Line1/text()", nsManager).Value;
-
-                            strRcptAddrOptionalLine1BelowStreet = recipeintAddressElement.SelectSingleNode("./x:Line2/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:Line2/text()", nsManager).Value;
-
-                            strRcptAddressCity = recipeintAddressElement.SelectSingleNode("./x:City/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:City/text()", nsManager).Value;
-
-                            strRcptAddressState = recipeintAddressElement.SelectSingleNode("./x:State/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:State/text()", nsManager).Value;
-
-                            strRcptAddressZIP = recipeintAddressElement.SelectSingleNode("./x:Zip/text()", nsManager) == null ? null : recipeintAddressElement.SelectSingleNode("./x:Zip/text()", nsManager).Value;
-                        }
-                    }
-
-                    AddressRequest addressRequest = new AddressRequest() { Id = uniqueId, StreetAddress = strRcptAddressStreet + " " + strRcptAddrOptionalLine1BelowStreet, City = strRcptAddressCity, State = strRcptAddressState, Zip4 = strRcptAddressZIP.SeparateZip4And5(4), Zip5 = strRcptAddressZIP.SeparateZip4And5(5) };
-
-                    addressRequestes.Add(addressRequest);
-                }
-
-                int requestAddressCount = addressRequestes.Count;
-                int maxAddressVerification = 5;
-                int verifiedAddressCount = 0;
-                double loopCount = Math.Ceiling(requestAddressCount / (float)maxAddressVerification);
-
-                for (double i = 0; i < loopCount; i++)
-                {
-                    var takenAddressesList = addressRequestes.Skip(verifiedAddressCount).Take(maxAddressVerification).ToList();
-                    VerifierAddressRequest verifierAddRequest = new VerifierAddressRequest() { AddressRequests = takenAddressesList };
-                    verifiedAddressCount += maxAddressVerification;
-                    VerifierAddressResponse verifierAddResponse;
-
-                    using (IUSPSService uspsSvc = new USPSService())
-                    {
-                        verifierAddResponse = uspsSvc.VerifyAddressAsync(commonSvc.GetSystemUserId(), verifierAddRequest).Result;
-                    }
-
-                    if (verifierAddResponse != null)
-                    {
-                        //if any error at VerifierAddressResponse level then throw unexpected error and exit from loop
-                        if (verifierAddResponse.HasError)
-                        {
-                            throw new Exception("Error occured while validating Addresses : {0}".Fill(verifierAddResponse.Error));
-                        }
-
-                        addressResponses.AddRange(verifierAddResponse.AddressResponses);
-                    }
-                }
-                #endregion
 
                 foreach (XmlNode mailPieceNode in mailPieceNodes)
                 {
@@ -672,30 +604,7 @@ namespace AM.Console
                             //Document Or Package Type validation
                             var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType);
 
-                            var addressResponse = addressResponses.Single(c => c.Id.ToLower() == mailPieceDTO.UniqueId.ToString().ToLower());
-
-                            if (docType != null)
-                            {
-                                if (docType.ShippingCarrier == Carrier.FedEx.ToString())
-                                {
-                                    if (!(addressResponse.AddressTypes.All(c => c == AddressType.DHAM)))
-                                    {
-                                        documentOrPackageType = documentOrPackageType + Config.Monitor_ExpressMailingText;
-
-                                        docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType);
-                                    }
-                                }
-                                mailPieceDTO.RcptAddressTypes = string.Join(",", addressResponse.AddressTypes);
-                                mailPieceDTO.DocTypeId = docType.Id;
-                            }
-
-                            if (addressResponse.AddressTypes.Any(addr => addr == AddressType.INVALID))
-                            {
-                                mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
-                                mailPieceDTO.ErrorCode = OutComeCodes.Mailing_Address_Missing_Or_Invalid;
-                                mailPieceDTO.ErrorDesc = !string.IsNullOrEmpty(addressResponse.VerifierDesc) ? addressResponse.VerifierDesc : addressResponse.Error.Description;
-                            }
-                            else if (docType == null)
+                            if (docType == null)
                             {
                                 mailPieceDTO.ErrorCode = OutComeCodes.Invalid_PackageType;
                                 mailPieceDTO.ErrorDesc = client.AppCode == GetInvalidClient().AppCode ? "The specified customer identifier {0} is not configured.".Fill(mailPieceCustomInfo.Single(c => c.Key == "CustomerIdentifier").Value) : "The specified document or package type '{0}' is not configured.".Fill(mailPieceDTO.DocumentOrPackageType);
@@ -781,6 +690,11 @@ namespace AM.Console
                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
             }
             log.Debug("Validate job queue is completed.");
+        }
+
+        protected override void ValidateAddress()
+        {
+            Channel.ValidateAddressType(SFTChannel.Id);
         }
 
         protected override void CalculateDueDateAndPrintLocation()
