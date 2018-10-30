@@ -28,7 +28,7 @@ namespace AM.Services
         List<DallasBatch> GetDallasBatches(DateTime estToday);
         DateTime GetStandardSubmissionTime(string appCode, string printLocation, DateTime receivedOn, List<Sweep> pciSweepTimings);
         List<Sweep> GetPCIBundleSweepTimings();
-        List<DocTypeTrailMap> GetTrailMapDetailsByDocTypeId(int docTypeId);
+        List<DocTypePrintTrailMap> GetTrailMapDetailsByDocTypeId(int docTypeId);
         PrintVendor GetPrintVendorDetailsByPrintTrailId(int printTrailId);
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
@@ -194,7 +194,7 @@ namespace AM.Services
             return db.Query<Sweep>("SELECT * from ufn_GetPCIBundleSweepTimings()").ToList();
         }
 
-        public List<DocTypeTrailMap> GetTrailMapDetailsByDocTypeId(int docTypeId)
+        public List<DocTypePrintTrailMap> GetTrailMapDetailsByDocTypeId(int docTypeId)
         {
             return null;
         }

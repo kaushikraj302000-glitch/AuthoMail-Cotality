@@ -78,7 +78,7 @@ namespace AM.Entities
         public int PrintVendorId { get; set; }
     }
 
-    public class DocTypeTrailMap
+    public class DocTypePrintTrailMap
     {
         public int DocTypeId { get; set; }
         public int PrintTrailId { get; set; }

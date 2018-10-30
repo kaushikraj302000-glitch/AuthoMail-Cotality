@@ -166,6 +166,7 @@ namespace AM.Services
         }
         public List<MailPieceCustomInfoTest> MailPieceCustomInfoTest { get; set; }
         public MRDFRequests MRDFRequests { get; set; }
+        public int? PrintTrailId { get; set; }
 
     }
     public class MailBatches

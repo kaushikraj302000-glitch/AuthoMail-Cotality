@@ -88,7 +88,7 @@ namespace AM.Entities
         public DateTime? StdSubmissionTime { get; set; }
         public DateTime? MaxSubmissionTime { get; set; }
         public string MissedSLAReason { get; set; }
-        public int PrintTrailId { get; set; }
+        public int? PrintTrailId { get; set; }
     }
 
     public class MailPieceCustomInfo
