@@ -19,12 +19,12 @@ namespace AM.Core
                 if (args.Length > 0)
                 {
                     //Here we need to execute only this method for generating pnsbatch for PCI
-                    AMCore.SubmitBatchesDocTypeWiseToPCI(args[0]);
+                    AMCore.SubmitBatchesDocTypeWiseToPrintVendor(args[0]);
                 }
                 else
                 {
                     AMCore.PrepPnSJobs();
-                    AMCore.SubmitBatchesDocTypeWiseToPCI("");
+                    AMCore.SubmitBatchesDocTypeWiseToPrintVendor("");
                     AMCore.GetSubmittedPnSResponses();
                     AMCore.ProcessPnSResponses();
                     AMCore.ReportPreppedProcess();
@@ -35,12 +35,12 @@ namespace AM.Core
                 if (args.Length > 0)
                 {
                     //Here we need to execute only this method for generating pnsbatch for PCI
-                    AMCore.SubmitBatchesDocTypeWiseToPCI(args[0]);
+                    AMCore.SubmitBatchesDocTypeWiseToPrintVendor(args[0]);
                 }
                 else
                 {
                     AMCore.PrepPnSJobs();
-                    AMCore.SubmitBatchesDocTypeWiseToPCI("");
+                    AMCore.SubmitBatchesDocTypeWiseToPrintVendor("");
                     AMCore.GetSubmittedPnSResponses();
                     AMCore.ProcessPnSResponses();
                     AMCore.ReportPreppedProcess();

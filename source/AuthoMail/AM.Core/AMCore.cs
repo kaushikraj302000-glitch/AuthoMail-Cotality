@@ -232,6 +232,7 @@ namespace AM.Core
                                     mailPiece.ErrorDesc = doc.ExceptionDetail;
                                     mailPiece.DueDate = null;
                                     mailPiece.PrintLocation = null;
+                                    mailPiece.PrintTrailId = null;
                                     mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                                     continue;
                                 }
@@ -274,6 +275,7 @@ namespace AM.Core
                                     {
                                         mailPiece.TotalPages = 0;
                                         mailPiece.PrintLocation = null;
+                                        mailPiece.PrintTrailId = null;
                                         mailPiece.DueDate = null;
                                         break;
                                     }
@@ -310,6 +312,8 @@ namespace AM.Core
                                     mailPiece.ErrorCode = OutComeCodes.Invalid_PDF_File;
                                     mailPiece.TotalPages = 0;
                                     mailPiece.DueDate = null;
+                                    mailPiece.PrintTrailId = null;
+                                    mailPiece.PrintLocation = null;
                                     mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                                     mailPiece.ErrorDesc = doc.ExceptionDetail;
                                 }
@@ -532,7 +536,7 @@ namespace AM.Core
         #endregion
 
         #region SubmitBatchesDocTypeWise
-        internal static void SubmitBatchesDocTypeWiseToPCI(string arg)
+        internal static void SubmitBatchesDocTypeWiseToPrintVendor(string arg)
         {
             using (IMailBatchService mailBatchSvc = new MailBatchService())
             using (IClientService clientSvc = new ClientService())
@@ -541,123 +545,46 @@ namespace AM.Core
             {
                 log.Debug("Submitted Batches job started.");
 
-                List<MailBatchDTO> mailBatches = null;
-                List<MailPieceDTO> validMailPieces = new List<MailPieceDTO>();
+                List<MailBatchDTO> mailBatches = mailBatchSvc.GetBatchesByPipelineStatusAndClientId(BatchPipelineStatus.Prepped);
 
-                int[] channelIds = Array.ConvertAll(Config.Core_BundleSweepClientChannelIds.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries), s => int.Parse(s));
-
-                if (arg == "BUNDLE")
+                foreach (MailBatchDTO mailBatch in mailBatches)
                 {
-                    DateTime startDateTime = Common.EstToday;
-                    DateTime toDateTime = Common.Now.UtcToEst();
-                    DateTime endDateTime = new DateTime(toDateTime.Year, toDateTime.Month, toDateTime.Day, toDateTime.Hour, toDateTime.Minute, 0);
+                    Client client = clientSvc.GetClientById(mailBatch.ClientId);
+                    MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
 
-                    while (!CheckAllBatchStatusCompleted(startDateTime, endDateTime))
-                    {
-                        Thread.Sleep(6000);
-                    }
+                    var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
 
-                    mailBatches = mailBatchSvc.GetBatchesByPipelineStatusAndClientId(BatchPipelineStatus.Prepped).Where(c => channelIds.Contains(c.SFTChannelId)).ToList();
 
-                    if (mailBatches.Count == 0)
-                    {
-                        log.Debug("Bundle sweep job queue is empty.");
-                        return;
-                    }
 
-                    foreach (MailBatchDTO mailBatch in mailBatches)
-                    {
-                        var mailPieces = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatch.Id);
-                        validMailPieces.AddRange(mailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString() && c.PrintBatchId == null && c.PrintLocation != Config.Common_PrintLocationCL).ToList());
-                    }
                     try
                     {
-                        GeneratePrintBatches(validMailPieces);
+                        GeneratePrintBatches(batchData);
 
-                        //After processing all mail batches for PrintBatches we will check for each and every mailpieces are having printbatchid in it or not then update SubmittedToShipping status in MailBatches table
-                        foreach (MailBatchDTO mailBatch in mailBatches)
+                        //After processing mail batch for PrintBatches we will check for each and every mailpieces are having printbatchid in it or not then update SubmittedToShipping status in MailBatches table
+                        var mailPiecesList = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatch.Id);
+                        var validPieces = mailPiecesList.Count(c => c.ErrorCode == OutComeCodes.No_Error && c.PrintBatchId != null);
+                        var errorPieces = mailPiecesList.Count(c => c.ErrorCode != OutComeCodes.No_Error && c.PrintBatchId == null);
+
+                        if (mailPiecesList.Count == (validPieces + errorPieces))
                         {
-                            var mailPiecesList = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatch.Id);
-                            var validPieces = mailPiecesList.Count(c => c.ErrorCode == OutComeCodes.No_Error && c.PrintBatchId != null);
-                            var errorPieces = mailPiecesList.Count(c => c.ErrorCode != OutComeCodes.No_Error && c.PrintBatchId == null);
-
-                            if (mailPiecesList.Count == (validPieces + errorPieces))
-                            {
-                                commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
-                            }
+                            commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
                         }
                     }
                     catch (Exception ex)
                     {
-                        var errorMsg = "Error occured while generationg Bundle Batches IDs : {0} and Error : {1}".Fill(string.Join(",", mailBatches.Select(b => b.Id)), ex);
+                        var errorMsg = "Error occured while generationg PnS Batch - MailBatchId-{0} and Error : {1}".Fill(mailBatch.Id, ex);
                         log.Error(errorMsg, ex);
-
                         SendUnexpectedExceptionEmail(errorMsg);
-                    }
-                }
-                else
-                {
-                    mailBatches = mailBatchSvc.GetBatchesByPipelineStatusAndClientId(BatchPipelineStatus.Prepped);
-
-                    foreach (MailBatchDTO mailBatch in mailBatches)
-                    {
-                        Client client = clientSvc.GetClientById(mailBatch.ClientId);
-                        MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
-
-                        var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
-
-                        if (channelIds.Contains(mailBatch.SFTChannelId))
-                        {
-                            validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString() && c.PrintBatchId == null && c.PrintLocation == Config.Common_PrintLocationCL).ToList();
-                        }
-                        else
-                        {
-                            validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString() && c.PrintBatchId == null).ToList();
-                        }
-
-                        try
-                        {
-                            GeneratePrintBatches(validMailPieces);
-
-                            //After processing mail batch for PrintBatches we will check for each and every mailpieces are having printbatchid in it or not then update SubmittedToShipping status in MailBatches table
-                            var mailPiecesList = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatch.Id);
-                            var validPieces = mailPiecesList.Count(c => c.ErrorCode == OutComeCodes.No_Error && c.PrintBatchId != null);
-                            var errorPieces = mailPiecesList.Count(c => c.ErrorCode != OutComeCodes.No_Error && c.PrintBatchId == null);
-
-                            if (mailPiecesList.Count == (validPieces + errorPieces))
-                            {
-                                commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            var errorMsg = "Error occured while generationg PnS Batch - MailBatchId-{0} and Error : {1}".Fill(mailBatch.Id, ex);
-                            log.Error(errorMsg, ex);
-                            SendUnexpectedExceptionEmail(errorMsg);
-                            commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Suspended, Common.Now);
-                        }
+                        commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Suspended, Common.Now);
                     }
                 }
             }
         }
 
-        private static bool CheckAllBatchStatusCompleted(DateTime startDateTime, DateTime endDateTime)
+        private static void GeneratePrintBatches(BatchData mailBatchData)
         {
-            int receivedCount = 0;
-            int completedCount = 0;
+            List<MailPieceDTO> validMailPieces = mailBatchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString() && c.PrintBatchId == null).ToList();
 
-            //Here we are passing record counts to UTC because we are storing that time in UTC format.
-            using (IMailBatchService mailBatchSvc = new MailBatchService())
-            {
-                receivedCount = mailBatchSvc.GetMailBatchesReceivedCount(startDateTime.EstToUtc(), endDateTime.EstToUtc(), "Received");
-                completedCount = mailBatchSvc.GetMailBatchesReceivedCount(startDateTime.EstToUtc(), endDateTime.EstToUtc(), "Completed");
-            }
-
-            return receivedCount == completedCount;
-        }
-
-        private static void GeneratePrintBatches(List<MailPieceDTO> validMailPieces)
-        {
             if (validMailPieces.Count == 0)
                 return;
 
@@ -668,52 +595,44 @@ namespace AM.Core
             using (IDocTypeService docTypeSvc = new DocTypeService())
             {
                 List<PrintBatch> printBatches = new List<PrintBatch>();
+                var printTrails = validMailPieces.Select(row => row.PrintTrailId.Value).Distinct();
 
-                var docTypes = validMailPieces.Select(row => row.DocTypeId.Value).Distinct();
-                foreach (var docTypeId in docTypes)
+                foreach (var printTrailId in printTrails)
                 {
-                    DocType docType = docTypeSvc.GetDocTypeById(docTypeId);
-                    var filteredMailPiecesDocTypeWise = validMailPieces.Where(c => c.DocTypeId == docTypeId).ToList();
+                    var printTrailWiseMailPieces = validMailPieces.Where(c => c.PrintTrailId == printTrailId).ToList();
 
-                    var printLocations = filteredMailPiecesDocTypeWise.Select(c => c.PrintLocation).Distinct();
+                    PrintBatch printBatch = new PrintBatch();
+                    printBatch.AppCode = clientSvc.GetClientById(mailBatchData.MailBatch.ClientId).AppCode;
+                    printBatch.UniqueId = Guid.NewGuid();
+                    printBatch.PrintTrailId = printTrailId;
+                    printBatch.PrintLocation = commonSvc.GetPrintVendorDetailsByPrintTrailId(printTrailId).Name;
 
-                    foreach (var printLocation in printLocations)
-                    {
-                        PrintBatch printBatch = new PrintBatch();
-                        printBatch.AppCode = clientSvc.GetClientById(docType.ClientId).AppCode;
-                        printBatch.UniqueId = Guid.NewGuid();
-                        printBatch.DocTypeId = docType.Id;
-                        printBatch.PrintLocation = printLocation;
-                        var filteredMailPiecesPrintLocationWise = filteredMailPiecesDocTypeWise.Where(c => c.PrintLocation == printLocation).ToList();
+                    #region QC Request Logic
+                    //if (docType.QCPercent > 0)
+                    //{
+                    //    double qcCount = 0;
+                    //    float qcPercentage = docType.QCPercent / 100;
+                    //    qcCount = Math.Ceiling(filteredMailPiecesPrintLocationWise.Count * qcPercentage);
 
-                        #region QC Request Logic
-                        if (docType.QCPercent > 0)
-                        {
-                            double qcCount = 0;
-                            float qcPercentage = docType.QCPercent / 100;
-                            qcCount = Math.Ceiling(filteredMailPiecesPrintLocationWise.Count * qcPercentage);
+                    //    var randomIndexes = new List<int>();
+                    //    while (randomIndexes.Count < qcCount)
+                    //    {
+                    //        var index = random.Next(0, filteredMailPiecesPrintLocationWise.Count - 1);
+                    //        if (!randomIndexes.Contains(index))
+                    //        {
+                    //            randomIndexes.Add(index);
+                    //        }
+                    //    }
 
-                            var randomIndexes = new List<int>();
-                            while (randomIndexes.Count < qcCount)
-                            {
-                                var index = random.Next(0, filteredMailPiecesPrintLocationWise.Count - 1);
-                                if (!randomIndexes.Contains(index))
-                                {
-                                    randomIndexes.Add(index);
-                                }
-                            }
+                    //    randomIndexes.ForEach(index =>
+                    //    {
+                    //        filteredMailPiecesPrintLocationWise[index].IsQCRequested = true;
+                    //    });
+                    //}
+                    #endregion
 
-                            randomIndexes.ForEach(index =>
-                            {
-                                filteredMailPiecesPrintLocationWise[index].IsQCRequested = true;
-                            });
-                        }
-                        #endregion
-
-                        printBatch.MailPieces = filteredMailPiecesPrintLocationWise;
-
-                        printBatches.Add(printBatch);
-                    }
+                    printBatch.MailPieces = printTrailWiseMailPieces;
+                    printBatches.Add(printBatch);
                 }
 
                 string pnsRootFolder = Config.Core_PnS_SFT_RootDir;
@@ -738,7 +657,7 @@ namespace AM.Core
                     request.AppCode = printBatchData.AppCode;
                     request.BatchIdentifier = printBatchData.UniqueId;
                     request.BatchName = batchName;
-                    request.DocTypeId = printBatchData.DocTypeId;
+                    request.PrintTrailId = printBatchData.PrintTrailId;
                     request.DueDate = printBatchData.MailPieces.OrderBy(x => x.DueDate).Select(x => x.DueDate).Distinct().First().Value.Date;
                     request.PrintLocation = printBatchData.PrintLocation;
                     request.OnValidationErrors = OnValidationErrors.ProcessValidFiles;
@@ -768,7 +687,6 @@ namespace AM.Core
 
                     commonSvc.UpdatePrintBatchStatus(printBatchData.Id, AM.Entities.BatchStatus.InProgress.ToString());
                     commonSvc.UpdatePrintBatchPipeLineStatus(printBatchData.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
-
                 }
             }
         }
@@ -921,12 +839,6 @@ namespace AM.Core
                                         row.TotalSheets = mailPackage.TotalSheets;
                                         row.Weight = mailPackage.WeightMeasured;
                                         row.IsQCPerformed = mailPackage.IsQCPerformed;
-
-                                        //if (!string.IsNullOrEmpty(mailPackage.TrackingNumber))
-                                        //{
-                                        //    row.TrackingNo = mailPackage.TrackingNumber;
-                                        //}
-
                                         row.MissedSLAReason = GetMissedSLAReason(row);
                                     }
                                     row.ShippingStatus = mailPackage.MailPieceStatus.ToString();

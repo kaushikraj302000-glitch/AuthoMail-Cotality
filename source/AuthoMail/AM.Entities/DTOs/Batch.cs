@@ -77,7 +77,7 @@ namespace AM.Entities
     {
         public int Id { get; set; }
         public Guid UniqueId { get; set; }
-        public int DocTypeId { get; set; }
+        public int PrintTrailId { get; set; }
         public string AppCode { get; set; }
         public string PrintLocation { get; set; }
         public List<MailPieceDTO> MailPieces { get; set; }

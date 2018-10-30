@@ -20,7 +20,7 @@ namespace AM.Core
         protected override void OnStart(string[] args)
         {
             AMCore.PrepPnSJobs();
-            AMCore.SubmitBatchesDocTypeWiseToPCI(args[0]);
+            AMCore.SubmitBatchesDocTypeWiseToPrintVendor(args[0]);
             AMCore.GetSubmittedPnSResponses();
             AMCore.ProcessPnSResponses();
             AMCore.ReportPreppedProcess();
