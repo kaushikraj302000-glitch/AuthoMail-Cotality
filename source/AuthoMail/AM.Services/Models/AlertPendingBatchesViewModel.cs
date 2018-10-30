@@ -62,28 +62,33 @@ namespace AM.Services
         public bool IsReceivedDelay { get; set; }
         public bool IsProcessDelay
         {
-            get
-            {
-                return this.DelayedMailPieces.Count > 0 || this.DelayedBatches.Count > 0;
+            //get
+            //{
+            //    return this.DelayedMailPieces.Count > 0 || this.DelayedBatches.Count > 0;
 
-            }
+            //}
+            get;
+            set;
         }
         public bool IsReportBackDelay
         {
-            get
-            {
-                return this.DelayedAMReportBackMailPieces.Count > 0 || this.DelayedAMReportBackBatches.Count > 0;
-
-            }
+            //get
+            //{
+            //    return this.DelayedAMReportBackMailPieces.Count > 0 || this.DelayedAMReportBackBatches.Count > 0;
+            //}
+            get;
+            set;
         }
         public bool IsPrinterDelay
         {
-            get
-            {
-                return this.DelayedPrinterMailPieces.Count > 0 || this.DelayedPrinterBatches.Count > 0;
-            }
+            //get
+            //{
+            //    return this.DelayedPrinterMailPieces.Count > 0 || this.DelayedPrinterBatches.Count > 0;
+            //}
+            get;
+            set;
         }
-      
+
         public bool IsAMDelay
         {
             get

@@ -34,7 +34,7 @@ namespace AM.Services
         }
         public List<PullBackRequestForm> GetPullBackData(List<string> mpIds)
         {
-            string qry = string.Format(";WITH batchSummary AS (SELECT PrintFileName,SubmittedOn,ClientId,PrintBatch,PrintLocation,DocTypeId  FROM PnS.BatchSummary),docTypes AS (SELECT Id,DocTypeCode FROM AM.DocTypes WHERE IsActive = 1),mrdfReq AS(SELECT JobId,PieceId,[UniqueId] FROM PnS.MRDFRequest),Client AS(SELECT Id,Name FROM Common.Clients),RESULT AS(SELECT PBS.PrintFileName,PBS.SubmittedOn,PMR.JobId,PMR.PieceId,CC.Name,PBS.PrintLocation,AD.DocTypeCode FROM batchSummary PBS	INNER JOIN AM.DocTypes AD ON AD.Id = PBS.DocTypeId	INNER JOIN mrdfReq PMR ON PBS.PrintBatch = PMR.JobId INNER JOIN Client CC ON PBS.ClientId = CC.Id WHERE PMR.[UniqueId] IN @mailPieceIds)(SELECT PrintFileName,SubmittedOn,JobId AS PrintBatch,PieceId = STUFF((SELECT DISTINCT ','+ CAST(pRES.PieceId AS VARCHAR(255)) FROM RESULT pRES WHERE pRES.JobId = RES.JobId FOR XML PATH('')),1,1,''),Name,PrintLocation,DocTypeCode FROM RESULT RES GROUP BY RES.JobId,PrintFileName,SubmittedOn,Name,PrintLocation,DocTypeCode)");
+            string qry = string.Format(";WITH batchSummary AS (SELECT PrintFileName,SubmittedOn,ClientId,PrintBatch,PrintLocation,DocTypeId  FROM PnS.BatchSummary),docTypes AS (SELECT Id,DocTypeCode FROM AM.DocTypes WHERE IsActive = 1),mrdfReq AS(SELECT JobId,PieceId,[UniqueId],PDFFileName FROM PnS.MRDFRequest),Client AS(SELECT Id,Name FROM Common.Clients),RESULT AS(SELECT PBS.PrintFileName,PMR.PDFFileName,PBS.SubmittedOn,PMR.JobId,PMR.PieceId,CC.Name,PBS.PrintLocation,AD.DocTypeCode FROM batchSummary PBS	INNER JOIN AM.DocTypes AD ON AD.Id = PBS.DocTypeId	INNER JOIN mrdfReq PMR ON PBS.PrintBatch = PMR.JobId INNER JOIN Client CC ON PBS.ClientId = CC.Id WHERE PMR.[UniqueId] IN @mailPieceIds)(SELECT PrintFileName,SubmittedOn,JobId AS PrintBatch,PieceId = STUFF((SELECT DISTINCT ', '+ CAST(pRES.PieceId AS VARCHAR(255)) + ':'+pRES.PDFFileName FROM RESULT pRES WHERE pRES.JobId = RES.JobId FOR XML PATH('')),1,1,''),Name,PrintLocation,DocTypeCode FROM RESULT RES GROUP BY RES.JobId,PrintFileName,SubmittedOn,Name,PrintLocation,DocTypeCode)");
 
             var data = db.Query<PullBackRequestForm>(qry, new { mailPieceIds = mpIds }).ToList();
             return data;
@@ -117,9 +117,10 @@ namespace AM.Services
                         Dictionary<string, string> dataForPullBackForm = new Dictionary<string, string>();
                         DateTime eastern = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, Config.Web_API_PB_ClientTimeZone);
                         dataForPullBackForm.Add("RequestDateTime", eastern.ToString());
-                        dataForPullBackForm.Add("FileName", string.Format("{0} {1}", item.PrintFileName,item.SubmittedOn == null ? string.Empty : item.SubmittedOn.Value.ToString("MM/dd/yy")));
+                        dataForPullBackForm.Add("FileName", string.Format("{0} {1}", item.PrintFileName, item.SubmittedOn == null ? string.Empty : item.SubmittedOn.Value.ToString("MM/dd/yy")));
                         dataForPullBackForm.Add("JobNumber", item.PrintBatch.ToString());
-                        dataForPullBackForm.Add("PackagesToPull", string.Format("{0} : {1}", item.PrintBatch.ToString(), item.PieceId.ToString()));
+                        //dataForPullBackForm.Add("PackagesToPull", string.Format("{0} : {1}, {2}", item.PrintBatch.ToString(), item.PieceId.ToString(),item.PDFFileName.ToString()));
+                        dataForPullBackForm.Add("PackagesToPull", string.Format("{0}", item.PieceId.ToString()));
                         dataForPullBackForm.Add("Coordinator", string.Format("AuthoMail, ADE, {0}-{1}", item.Name, item.DocTypeCode));
                         dataForPullBackForm.Add("PkgInstruction", string.Empty);
                         dataForPullBackForm.Add("Comments", string.Empty);
