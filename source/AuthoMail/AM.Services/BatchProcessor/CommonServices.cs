@@ -197,9 +197,10 @@ namespace AM.Services
 
         public List<DocTypePrintTrailMap> GetTrailMapDetailsByDocTypeId(int docTypeId)
         {
-            string query = "select * from [Common].[DocTypePrintTrailMaps] where where DocTypeId = @docTypeId";
+            string query = "select * from [Common].[DocTypePrintTrailMaps] where DocTypeId = @docTypeId";
             return db.Query<DocTypePrintTrailMap>(query, new { docTypeId = docTypeId }).ToList();
         }
+
         public PrintVendor GetPrintVendorDetailsByPrintTrailId(int printTrailId)
         {
             string query = "select pv.* from [Common].[PrintTrails] as pt inner join  [Common].[PrintVendors] as pv on pt.PrintVendorId = pv.Id where pt.Id = @printTrailId";
