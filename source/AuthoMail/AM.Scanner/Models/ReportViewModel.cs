@@ -7,7 +7,7 @@ namespace AM.Scanner.Models
 {
     public class ScanedDocument
     {
-        public string JobName { get; set; }
+        public string PrintBatchName { get; set; }
         public string BatchName { get; set; }
         public string LoanNumber { get; set; }
         public string BarcodeValue { get; set; }
@@ -20,7 +20,7 @@ namespace AM.Scanner.Models
 
     public class PendingScanning
     {
-        public string JobName { get; set; }
+        public string PrintBatchName { get; set; }
         public string BatchName { get; set; }
         public string LoanNumber { get; set; }
         public string TrackingNo { get; set; }
