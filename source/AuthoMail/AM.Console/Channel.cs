@@ -55,6 +55,7 @@ namespace AM.Console
                 this.EnumerateBatches();
                 this.DownloadBatches();
                 this.ValidateBatches();
+                this.ValidateAddress();
                 this.CalculateDueDateAndPrintLocation();
                 this.AcknowledgeBatches();
             }
@@ -666,15 +667,15 @@ namespace AM.Console
 
                 if (dayofWeek == DayOfWeek.Saturday)
                 {
-                    docTypePrintTrail = docTypePrintTrailMaps.Single(c => c.SatStartTime >= estEffectiveReceivedOn.TimeOfDay && c.SatEndTime <= estEffectiveReceivedOn.TimeOfDay);
+                    docTypePrintTrail = docTypePrintTrailMaps.Single(c => estEffectiveReceivedOn.TimeOfDay >= c.SatStartTime && estEffectiveReceivedOn.TimeOfDay <= c.SatEndTime);
                 }
                 else if (dayofWeek == DayOfWeek.Sunday)
                 {
-                    docTypePrintTrail = docTypePrintTrailMaps.Single(c => c.SunStartTime >= estEffectiveReceivedOn.TimeOfDay && c.SunEndTime <= estEffectiveReceivedOn.TimeOfDay);
+                    docTypePrintTrail = docTypePrintTrailMaps.Single(c => estEffectiveReceivedOn.TimeOfDay >= c.SunStartTime && estEffectiveReceivedOn.TimeOfDay <= c.SunEndTime);
                 }
                 else
                 {
-                    docTypePrintTrail = docTypePrintTrailMaps.Single(c => c.BizDayStartTime >= estEffectiveReceivedOn.TimeOfDay && c.BizDayEndTime <= estEffectiveReceivedOn.TimeOfDay);
+                    docTypePrintTrail = docTypePrintTrailMaps.Single(c => estEffectiveReceivedOn.TimeOfDay >= c.BizDayStartTime && estEffectiveReceivedOn.TimeOfDay <= c.BizDayEndTime);
                 }
             }
 

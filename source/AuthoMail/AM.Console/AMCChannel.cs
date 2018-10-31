@@ -619,6 +619,7 @@ namespace AM.Console
                             else
                             {
                                 mailPieceDTO.ErrorCode = OutComeCodes.No_Error;
+                                mailPieceDTO.DocTypeId = docType.Id;
                             }
                         }
                         else
