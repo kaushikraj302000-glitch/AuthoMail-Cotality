@@ -12,7 +12,6 @@ namespace PCI.Service
         public string AppCode { get; set; }
         public string Name { get; set; }
         public bool IsPnSActive { get; set; }
-        public bool SimulatePCI { get; set; }
         public DateTime ModifiedOn { get; set; }
         public string ModifiedBy { get; set; }
         public DateTime CreatedOn { get; set; }
