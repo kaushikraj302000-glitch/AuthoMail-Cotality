@@ -133,7 +133,7 @@ namespace PCI.Service
         public static DataTable GetMRDFRequestDataByJobId(int jobId, string mailPieceStatus = "ALL")//To Get All Values define "ALL", Records without pdf level errors use "INTERNAL"
         {
             return db.ExecuteDataSet("usp_GetMRDFRequestDataByJobId", jobId, mailPieceStatus).Tables[0];
-        }        
+        }
 
         public static DataTable GetMRDFResponseDummyDataByJobId(int jobId)//To Get All Values define "ALL", Records without pdf level errors use "INTERNAL"
         {
@@ -265,6 +265,17 @@ namespace PCI.Service
         public static DataTable GetMRDFResponseDataByPrintTrailBatchId(int printTrailBatchId)
         {
             var ds = db.ExecuteDataSet("usp_GetMRDFResponseDataByPrintTrailBatchId", printTrailBatchId);
+            return ds.Tables[0];
+        }
+
+        public static DataTable GetMRDFResponseDummyDataByPrintTrailBatchId(int printTrailBatchId)//To Get All Values define "ALL", Records without pdf level errors use "INTERNAL"
+        {
+            return db.ExecuteDataSet("usp_GetMRDFResponseDummyDataByPrintTrailBatchId", printTrailBatchId).Tables[0];
+        }
+
+        public static DataTable GetMRDFRequestDataByPrintTrailBatchId(int printTrailBatchId, string mailPieceStatus = "ALL")//To Get All Values define "ALL", Records without pdf level errors use "INTERNAL"
+        {
+            var ds = db.ExecuteDataSet("usp_GetMRDFRequestDataByPrintTrailBatchId", printTrailBatchId, mailPieceStatus);//Here we will create view instaed of SP
             return ds.Tables[0];
         }
     }

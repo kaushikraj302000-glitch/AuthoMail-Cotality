@@ -178,6 +178,7 @@ namespace PCI.Service
         public string PrintVendorName { get; set; }
         public string BusinessCode { get; set; }
         public string TrailName { get; set; }
+        public bool SimulateTrail { get; set; }
         public string Protocol { get; set; }
         public string Host { get; set; }
         public string UserName { get; set; }
@@ -195,5 +196,8 @@ namespace PCI.Service
         public DateTime? SubmittedOn { get; set; }
         public bool IsMRDFReceived { get; set; }
         public DateTime? MRDFReceivedOn { get; set; }
+        public bool IsSuspended { get; set; }
+        public DateTime? SuspendedOn { get; set; }
+        public string ValidationErrors { get; set; }
     }
 }

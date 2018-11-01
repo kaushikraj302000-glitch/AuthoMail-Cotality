@@ -53,45 +53,52 @@ namespace PCI.Service
                     log.Debug("Submit batches job queue is empty for PrintTrail {0}".Fill(printTrailName));
                     continue;
                 }
-                //For divert primary key issue we are using starting number as 90001
-                var pieceId = 90001;
 
-                mailPieceDetails.ForEach(mp =>
-                {
-                    mp.SequenceNo = pieceId++;
-                });
-
-                PrintTrailBatch printTrailBatchDetail = new PrintTrailBatch()
-                {
-                    PrintTrailId = printTrailDetail.PrintTrailId
-                };
-
-                printTrailBatchDetail.Id = DAL.InsertPrintTrailBatchDetail(printTrailBatchDetail, mailPieceDetails);
-                printTrailBatchDetail.PrintBatchName = "{0}-{1}-{2}".Fill(printTrailDetail.BusinessCode, printTrailBatchDetail.Id, printTrailDetail.TrailName);
-                DAL.UpdatePrintTrailBatchDetail(printTrailBatchDetail);
                 try
                 {
-                    if (printTrailDetail.PrintVendorName == Common.PrintLocationCL)
+                    //For divert primary key issue we are using starting number as 90001
+                    var pieceId = 90001;
+
+                    mailPieceDetails.ForEach(mp =>
                     {
-                        UploadBatchesToInternalPrintAndShip(mailPieceDetails);
-                    }
-                    else
+                        mp.SequenceNo = pieceId++;
+                    });
+
+                    PrintTrailBatch printTrailBatchDetail = new PrintTrailBatch()
                     {
-                        //NOTE: Bundling folder structure will be like : BundlingRoot/PrintTrailBatchId/Request & Response
-                        var pciRequestPath = Path.Combine(Common.BundlingRootFolder, printTrailBatchDetail.Id.ToString(), Common.BundlingRequestFolderName);
-                        var pciResponsePath = Path.Combine(Common.BundlingRootFolder, printTrailBatchDetail.Id.ToString(), Common.BundlingResponseFolderName);
+                        PrintTrailId = printTrailDetail.PrintTrailId
+                    };
 
-                        pciRequestPath.CreateDirectoryIfNotExist();
-                        pciResponsePath.CreateDirectoryIfNotExist();
+                    printTrailBatchDetail.Id = DAL.InsertPrintTrailBatchDetail(printTrailBatchDetail, mailPieceDetails);
+                    printTrailBatchDetail.PrintBatchName = "{0}-{1}-{2}".Fill(printTrailDetail.BusinessCode, printTrailBatchDetail.Id, printTrailDetail.TrailName);
+                    DAL.UpdatePrintTrailBatchDetail(printTrailBatchDetail);
 
-                        var zipFilePath = Path.Combine(pciRequestPath, printTrailBatchDetail.PrintBatchName + ".zip");
-                        var mrdfFilePath = Path.Combine(pciRequestPath, printTrailBatchDetail.PrintBatchName + ".dat");
+                    if (Common.ApplicationEnvironment == Env.Prod || printTrailDetail.SimulateTrail == false)
+                    {
+                        if (printTrailDetail.PrintVendorName == Common.PrintLocationCL)
+                        {
+                            UploadBatchesToInternalPrintAndShip(mailPieceDetails);
+                        }
+                        else
+                        {
+                            //NOTE: Bundling folder structure will be like : BundlingRoot/PrintTrailBatchId/Request & Response
+                            var pciRequestPath = Path.Combine(Common.BundlingRootFolder, printTrailBatchDetail.Id.ToString(), Common.BundlingRequestFolderName);
+                            var pciResponsePath = Path.Combine(Common.BundlingRootFolder, printTrailBatchDetail.Id.ToString(), Common.BundlingResponseFolderName);
 
-                        CreateZipAndUploadPCIBatch(mailPieceDetails, printTrailBatchDetail, zipFilePath, mrdfFilePath);
+                            pciRequestPath.CreateDirectoryIfNotExist();
+                            Thread.Sleep(1000);
+                            pciResponsePath.CreateDirectoryIfNotExist();
 
-                        //After complete uploading send email to printing team
-                        MailUtility.SendBatchSubmittedNotificationEmail(printTrailDetail.PrintVendorName, zipFilePath, mailPieceDetails.Count, mailPieceDetails.Sum(c => c.TotalPages));
+                            var zipFilePath = Path.Combine(pciRequestPath, printTrailBatchDetail.PrintBatchName + ".zip");
+                            var mrdfFilePath = Path.Combine(pciRequestPath, printTrailBatchDetail.PrintBatchName + ".dat");
+
+                            CreateZipAndUploadPCIBatch(mailPieceDetails, printTrailBatchDetail, zipFilePath, mrdfFilePath);
+
+                            //After complete uploading send email to printing team
+                            MailUtility.SendBatchSubmittedNotificationEmail(printTrailDetail.PrintVendorName, zipFilePath, mailPieceDetails.Count, mailPieceDetails.Sum(c => c.TotalPages));
+                        }
                     }
+
                     //Reason for maintaining this time because it should reflect same for 
                     var currentTime = Common.GetCurrentTime();
 
@@ -112,7 +119,7 @@ namespace PCI.Service
                 }
                 catch (Exception ex)
                 {
-                    var errorMsg = "Error occured while submitting Print Trail Batch id {0} to PrintVendor {1} with Error {2}".Fill(printTrailBatchDetail.Id, printTrailDetail.PrintVendorName, ex);
+                    var errorMsg = "Error occured while submitting Print Trail Name {0} to PrintVendor {1} with Error {2}".Fill(printTrailDetail.TrailName, printTrailDetail.PrintVendorName, ex);
                     log.Error(errorMsg);
 
                     MailUtility.SendUnexpectedNotificationEmail(errorMsg);
@@ -391,27 +398,24 @@ namespace PCI.Service
 
                 if (!Directory.Exists(bundlingRootPath))
                 {
-                    string errorMsg = string.Format("Local directory does not exists for the batch : {0} for {1}", printTrailBatchId, localMRDFResponseFilePath);
-                    log.ErrorFormat(errorMsg);
+                    bundlingRootPath.CreateDirectoryIfNotExist();
                 }
-                else
-                {
-                    if (File.Exists(Path.Combine(bundlingRootPath, Path.GetFileName(localMRDFResponseZipFilePath))))
-                        File.Delete(Path.Combine(bundlingRootPath, Path.GetFileName(localMRDFResponseZipFilePath)));
 
-                    //This will move zip file from root folder of pci response folder also.
-                    File.Move(localMRDFResponseZipFilePath, Path.Combine(bundlingRootPath, Path.GetFileName(localMRDFResponseZipFilePath)));
+                if (File.Exists(Path.Combine(bundlingRootPath, Path.GetFileName(localMRDFResponseZipFilePath))))
+                    File.Delete(Path.Combine(bundlingRootPath, Path.GetFileName(localMRDFResponseZipFilePath)));
+
+                //This will move zip file from root folder of pci response folder also.
+                File.Move(localMRDFResponseZipFilePath, Path.Combine(bundlingRootPath, Path.GetFileName(localMRDFResponseZipFilePath)));
 
 
-                    if (File.Exists(Path.Combine(bundlingRootPath, Path.GetFileName(localMRDFResponseFilePath))))
-                        File.Delete(Path.Combine(bundlingRootPath, Path.GetFileName(localMRDFResponseFilePath)));
+                if (File.Exists(Path.Combine(bundlingRootPath, Path.GetFileName(localMRDFResponseFilePath))))
+                    File.Delete(Path.Combine(bundlingRootPath, Path.GetFileName(localMRDFResponseFilePath)));
 
-                    File.Move(localMRDFResponseFilePath, Path.Combine(bundlingRootPath, Path.GetFileName(localMRDFResponseFilePath)));
+                File.Move(localMRDFResponseFilePath, Path.Combine(bundlingRootPath, Path.GetFileName(localMRDFResponseFilePath)));
 
-                    File.Delete(localMRDFResponseFilePath);
-                    log.DebugFormat("Response MRDF moved in proper batch folder : {0} after batch identified.", printTrailBatchId);
+                File.Delete(localMRDFResponseFilePath);
+                log.DebugFormat("Response MRDF moved in proper batch folder : {0} after batch identified.", printTrailBatchId);
 
-                }
             }
         }
 

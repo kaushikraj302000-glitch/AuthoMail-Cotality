@@ -49,7 +49,8 @@ namespace PCI.Service
                         //PnSCoreService.ProcessPCIReturnPDFsInfo();
                         break;
                     case "PCIJob":
-                        PCIJobMonitor.SubmitBatchToPCI(args[1]);
+                        var printTrails = args.Length > 1 ? args[1] : "";
+                        PCIJobMonitor.SubmitBatchToPCI(printTrails);
                         PCIJobMonitor.GetResponseMRDF();
                         //PCIJobMonitor.GetReturnPDFsZip();
                         break;
