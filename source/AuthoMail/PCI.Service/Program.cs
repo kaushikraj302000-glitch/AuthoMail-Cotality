@@ -49,7 +49,7 @@ namespace PCI.Service
                         //PnSCoreService.ProcessPCIReturnPDFsInfo();
                         break;
                     case "PCIJob":
-                        PCIJobMonitor.SubmitBatchToPCI();
+                        PCIJobMonitor.SubmitBatchToPCI(args[1]);
                         PCIJobMonitor.GetResponseMRDF();
                         //PCIJobMonitor.GetReturnPDFsZip();
                         break;

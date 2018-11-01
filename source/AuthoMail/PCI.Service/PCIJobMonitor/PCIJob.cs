@@ -12,6 +12,7 @@ using PCI.Service.Utilities;
 using System.Text.RegularExpressions;
 using PCI.Lib;
 using System.Data;
+using System.Threading;
 
 namespace PCI.Service
 {
@@ -19,77 +20,99 @@ namespace PCI.Service
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(PCIJobMonitor));
         private static Database db = DatabaseFactory.CreateDatabase();
+        private static List<PCIField> MRDFRequestSchema { get; set; }
 
-
+        static PCIJobMonitor()
+        {
+            MRDFRequestSchema = DAL.GetMRDFRequestSchema();
+        }
 
         #region SubmitBatch To PCI or Corelogic
-        public static void SubmitBatchToPCI()
+        public static void SubmitBatchToPCI(string printTrailNames)
         {
-            List<int> batchIds = DAL.GetNextBatchIdByJobName(JobTypes.PCIJobMonitor, OperationTypes.Submit);
+            string[] printTrails = printTrailNames.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
-            if (batchIds == null || batchIds.Count == 0)
+            foreach (string printTrailName in printTrails)
             {
-                log.Debug("Submit batches job queue is empty.");
-                return;
-            }
+                DateTime startDateTime = Common.EstToday;
+                DateTime toDateTime = Common.UtcToEst(Common.GetCurrentTime());
+                DateTime endDateTime = new DateTime(toDateTime.Year, toDateTime.Month, toDateTime.Day, toDateTime.Hour, toDateTime.Minute, 0);
 
-            foreach (var batchId in batchIds)
-            {
-                BatchSummary bs = new BatchSummary();
+                //Waiting Code for AuthoMail as well as BatchSummary
+                while (!CheckAllBatchStatusCompleted(startDateTime, endDateTime))
+                {
+                    Thread.Sleep(6000);
+                }
+
+                var printTrailDetail = DAL.GetPrintTrailDetailByPrintTrailName(printTrailName);
+
+                var mailPieceDetails = DAL.GetMRDFRequestDataByPrintTrailId(printTrailDetail.PrintTrailId);
+
+                if (mailPieceDetails == null || mailPieceDetails.Count == 0)
+                {
+                    log.Debug("Submit batches job queue is empty for PrintTrail {0}".Fill(printTrailName));
+                    continue;
+                }
+                //For divert primary key issue we are using starting number as 90001
+                var pieceId = 90001;
+
+                mailPieceDetails.ForEach(mp =>
+                {
+                    mp.SequenceNo = pieceId++;
+                });
+
+                PrintTrailBatch printTrailBatchDetail = new PrintTrailBatch()
+                {
+                    PrintTrailId = printTrailDetail.PrintTrailId
+                };
+
+                printTrailBatchDetail.Id = DAL.InsertPrintTrailBatchDetail(printTrailBatchDetail, mailPieceDetails);
+                printTrailBatchDetail.PrintBatchName = "{0}-{1}-{2}".Fill(printTrailDetail.BusinessCode, printTrailBatchDetail.Id, printTrailDetail.TrailName);
+                DAL.UpdatePrintTrailBatchDetail(printTrailBatchDetail);
                 try
                 {
-                    bs = DAL.GetBatchSummaryById(batchId);
-                    Client client = DAL.GetClientAppDetailsById(bs.ClientId);
-                    BatchInfo bi = new BatchInfo(bs, client);
-                    List<MailPieceReceivedOnData> mailPiecesReceivedOnData = DAL.GetMailBatchReceivedOnDataBasedFromPrintBatchId(bi.BatchSummary.PrintBatch);
-
-                    if (!Directory.Exists(bi.BatchRepo))
+                    if (printTrailDetail.PrintVendorName == Common.PrintLocationCL)
                     {
-                        throw new InvalidOperationException("Batch folder does not exist");
+                        UploadBatchesToInternalPrintAndShip(mailPieceDetails);
                     }
-
-                    log.Debug("Submitting Batch To PCI Job Started For Batch {0}".Fill(bi.BatchName));
-
-                    var docTypesMaps = DAL.GetDocTypeDetailsByAppId(client.Id).Where(x => x.DocTypeId == bi.BatchSummary.DocTypeId).First();
-                    if (docTypesMaps != null)
-                        bi.InitializeDocTypeMaps(docTypesMaps, bi.BatchSummary.PrintBatch, bi.Client.AppCode, bi.Client.CustCode);
-
-                    //Get count for inprogress mail pieces
-                    var mailPiecesCount = DAL.GetMRDFRequestDataByJobId(bi.BatchSummary.PrintBatch, MailPieceStatus.InProgress.ToString()).Rows.Count;
-                    #region Upload batch to PCI
-
-                    if (Directory.Exists(bi.PCIRequestPath))
+                    else
                     {
-                        if (bi.RequestMRDFPath.IsFileExists())
-                        {
-                            DAL.LogBatchTimeLine(bi.BatchSummary.PrintBatch, LogBatchTimeLine.SubmitToPCIStart, Common.GetCurrentTime());
-                            if (!bi.Client.SimulatePCI || Common.ApplicationEnvironment == Env.Prod)
-                            {
-                                if (bi.BatchSummary.PrintLocation == Common.PrintLocationCL)
-                                {
-                                    UploadBatchesToInternalPrintAndShip(bi, mailPiecesReceivedOnData);
-                                }
-                                else
-                                {
-                                    CreateZipAndUploadPCIBatch(bi);
-                                    //After complete uploading send email to printing team
-                                    MailUtility.SendBatchSubmittedNotificationEmail(bi, mailPiecesCount);
-                                }
-                            }
+                        //NOTE: Bundling folder structure will be like : BundlingRoot/PrintTrailBatchId/Request & Response
+                        var pciRequestPath = Path.Combine(Common.BundlingRootFolder, printTrailBatchDetail.Id.ToString(), Common.BundlingRequestFolderName);
+                        var pciResponsePath = Path.Combine(Common.BundlingRootFolder, printTrailBatchDetail.Id.ToString(), Common.BundlingResponseFolderName);
 
-                            DAL.UpdateBatchPipeLineStatus(batchId, BatchPipelineStatus.Submitted, Common.GetCurrentTime());
-                            DAL.LogBatchTimeLine(bi.BatchSummary.PrintBatch, LogBatchTimeLine.SubmitToPCIEnd, Common.GetCurrentTime());
-                        }
-                        else
+                        pciRequestPath.CreateDirectoryIfNotExist();
+                        pciResponsePath.CreateDirectoryIfNotExist();
+
+                        var zipFilePath = Path.Combine(pciRequestPath, printTrailBatchDetail.PrintBatchName + ".zip");
+                        var mrdfFilePath = Path.Combine(pciRequestPath, printTrailBatchDetail.PrintBatchName + ".dat");
+
+                        CreateZipAndUploadPCIBatch(mailPieceDetails, printTrailBatchDetail, zipFilePath, mrdfFilePath);
+
+                        //After complete uploading send email to printing team
+                        MailUtility.SendBatchSubmittedNotificationEmail(printTrailDetail.PrintVendorName, zipFilePath, mailPieceDetails.Count, mailPieceDetails.Sum(c => c.TotalPages));
+                    }
+                    //Reason for maintaining this time because it should reflect same for 
+                    var currentTime = Common.GetCurrentTime();
+
+                    DAL.UpdatePrintTrailBatchStatus(printTrailBatchDetail.Id, BatchPipelineStatus.Submitted, currentTime);
+
+                    var jobIds = mailPieceDetails.Select(b => b.JobId).Distinct();
+                    foreach (var jobId in jobIds)
+                    {
+                        var mrdfRequest = DAL.GetMRDFRequestDataByJobId(jobId);
+                        var validReq = mrdfRequest.AsEnumerable().Count(req => req.Field<string>("MailPieceStatus") == MailPieceStatus.InProgress.ToString());
+                        var invalidReq = mrdfRequest.AsEnumerable().Count(req => req.Field<string>("MailPieceStatus") == MailPieceStatus.Error.ToString());
+
+                        if (mrdfRequest.Rows.Count == (validReq + invalidReq))
                         {
-                            throw new Exception("Not all three files available to make PCI request. (Merged PDF, MRDF and Summary).");
+                            DAL.UpdateBatchPipeLineStatus(jobId, BatchPipelineStatus.Submitted, currentTime);
                         }
                     }
-                    #endregion
                 }
                 catch (Exception ex)
                 {
-                    var errorMsg = "Error occured while submitting batch id {0} to PrintVendor {1} with Error {2}".Fill(batchId, bs.PrintLocation, ex);
+                    var errorMsg = "Error occured while submitting Print Trail Batch id {0} to PrintVendor {1} with Error {2}".Fill(printTrailBatchDetail.Id, printTrailDetail.PrintVendorName, ex);
                     log.Error(errorMsg);
 
                     MailUtility.SendUnexpectedNotificationEmail(errorMsg);
@@ -98,18 +121,50 @@ namespace PCI.Service
             }
         }
 
-        private static void CreateZipAndUploadPCIBatch(BatchInfo bi)
+        private static bool CheckAllBatchStatusCompleted(DateTime startDateTime, DateTime endDateTime)
         {
-            if (File.Exists(bi.BatchZipFilePath))
+            int receivedCount = 0;
+            int completedCount = 0;
+
+            receivedCount = DAL.GetMailBatchesReceivedCount(Common.EstToUtc(startDateTime), Common.EstToUtc(endDateTime), "Received");
+            completedCount = DAL.GetMailBatchesReceivedCount(Common.EstToUtc(startDateTime), Common.EstToUtc(endDateTime), "Completed");
+
+            return receivedCount == completedCount;
+        }
+        private static void CreateZipAndUploadPCIBatch(List<MailPieceDetail> mailPieceDetails, PrintTrailBatch printTrailBatchDetail, string zipFilePath, string mrdfFilePath)
+        {
+            var mrdfContent = new StringBuilder();
+
+            foreach (MailPieceDetail row in mailPieceDetails)
             {
-                File.Delete(bi.BatchZipFilePath);
-            }
-            using (ZipArchive newFile = ZipFile.Open(bi.BatchZipFilePath, ZipArchiveMode.Create))
-            {
-                foreach (string file in Directory.GetFiles(bi.PCIRequestPath).Where(fileType => !fileType.ToLower().EndsWith(".zip")))
+                foreach (var f in MRDFRequestSchema)
                 {
-                    newFile.CreateEntryFromFile(file, Path.GetFileName(file));
+                    if (f.FieldName == "JobId")
+                    {
+                        mrdfContent.AppendFormat(f.DataFormat, row.GetType().GetProperty("PrintTrailBatchId").GetValue(row, null));
+                    }
+                    else
+                    {
+                        mrdfContent.AppendFormat(f.DataFormat, row.GetType().GetProperty(f.FieldName).GetValue(row, null));
+                    }
                 }
+                mrdfContent.AppendLine();
+            }
+
+            File.WriteAllText(mrdfFilePath, mrdfContent.ToString());
+
+            using (ZipArchive newFile = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
+            {
+                foreach (var mailPiece in mailPieceDetails)
+                {
+                    //NOTE:Here we are directly creating Zip with Bundling into another path
+                    //We have folder structure like PCIRoot/AppCode/JobId/PCIRequest
+                    var localFilePath = Path.Combine(Common.PCIRootFolder, mailPiece.AppCode, mailPiece.JobId.ToString(), Common.PCIRequestFolderName, mailPiece.PDFFileName);
+                    newFile.CreateEntryFromFile(localFilePath, mailPiece.PDFFileName);
+                }
+
+                //make an entry for mrdf file after making entries of files into zip
+                newFile.CreateEntryFromFile(mrdfFilePath, Path.GetFileName(mrdfFilePath));
             }
 
             SFTUtil sftSite = new SFTUtil(Common.PCI_SFT_Protocol, Common.PCI_SFT_Host, Common.PCI_SFT_Username, Common.PCI_SFT_Password,
@@ -117,12 +172,12 @@ namespace PCI.Service
 
             sftSite.Connect();
 
-            UploadFileOnPCISFTSite(bi.BatchZipFilePath, sftSite, Common.PCI_SFT_SubmitDir);
+            UploadFileOnPCISFTSite(zipFilePath, sftSite, Common.PCI_SFT_SubmitDir);
 
             sftSite.Disconnect();
         }
 
-        private static void UploadBatchesToInternalPrintAndShip(BatchInfo bi, List<MailPieceReceivedOnData> mailPiecesReceivedOnData)
+        private static void UploadBatchesToInternalPrintAndShip(List<MailPieceDetail> mailPieceDetails)
         {
             SFTUtil sftSite = new SFTUtil(Common.CL_SFT_Protocol, Common.CL_SFT_Host, Common.CL_SFT_Username, Common.CL_SFT_Password,
                 300000);
@@ -130,10 +185,10 @@ namespace PCI.Service
             sftSite.Connect();
             var sw = new Stopwatch();
             sw.Start();
-            UploadFileOnInternalPrintingSFTSite(bi.PCIRequestPath, sftSite, mailPiecesReceivedOnData, bi.DocType, bi.Client);
+            UploadFileOnInternalPrintingSFTSite(Common.PCIRootFolder, sftSite, mailPieceDetails);
             sw.Stop();
             var time = sw.Elapsed;
-            log.DebugFormat("Total time spent : {0} For Batch : ", time, Path.GetFileNameWithoutExtension(bi.BatchSummary.PrintFileName));
+            //log.DebugFormat("Total time spent : {0} For Batch : ", time, Path.GetFileNameWithoutExtension(bi.BatchSummary.PrintFileName));
             sftSite.Disconnect();
         }
 
@@ -148,38 +203,48 @@ namespace PCI.Service
             sw.Stop();
             var time = sw.Elapsed;
             log.DebugFormat("Total time spent : {0} For Batch : ", time, Path.GetFileNameWithoutExtension(localFilePath));
-
         }
 
-        private static void UploadFileOnInternalPrintingSFTSite(string batchRootPath, SFTUtil sftSite, List<MailPieceReceivedOnData> mailPiecesReceivedOnData, DocType docType, Client client)
+        private static void UploadFileOnInternalPrintingSFTSite(string pciRootPath, SFTUtil sftSite, List<MailPieceDetail> mailPiecesDetails)
         {
-            //Here If we have any BRE document type then we will upload that packages in separate folder.
-            string folderBRE = docType.IsBRE ? "_BRE" : "";
-
             var batchTimings = DAL.GetDallasBatchTimings(Common.EstToday);
-            foreach (MailPieceReceivedOnData mailPiece in mailPiecesReceivedOnData)
+
+            //Reason for doing this because we can avoid multiple call from database for each mail piece it may contains multiple clients for same print trails
+
+            var clientIds = mailPiecesDetails.Select(m => m.ClientId).Distinct();
+            foreach (var clientId in clientIds)
             {
-                var effectiveReceivedOnEst = mailPiece.EffectiveReceivedOnEst;
-                var dallasBatches = batchTimings.Select(t => new DallasBatch
+                Client client = DAL.GetClientAppDetailsById(clientId);
+
+                var mailPiecesByClient = mailPiecesDetails.Where(c => c.ClientId == clientId);
+
+                foreach (MailPieceDetail mailPiece in mailPiecesByClient)
                 {
-                    AppCode = t.AppCode,
-                    BatchName = t.BatchName,
-                    StartDate = effectiveReceivedOnEst.Date + t.StartTime,
-                    EndDate = effectiveReceivedOnEst.Date + t.EndTime,
-                    ShippingCarrier = t.ShippingCarrier,
-                    ShippingServiceType = t.ShippingServiceType
-                });
+                    string localFilePath = Path.Combine(pciRootPath, client.AppCode, mailPiece.JobId.ToString(), Common.PCIRequestFolderName, mailPiece.PDFFileName);
+                    //NOTE : Here Feeder4_Sel field of MRDFRequest table contains detail about mail packages is BRE or not and Because of that we have used this over here.
 
-                var currentBatch = dallasBatches.Single(b => (b.AppCode == client.AppCode && effectiveReceivedOnEst >= b.StartDate && effectiveReceivedOnEst <= b.EndDate) && b.ShippingCarrier == docType.ShippingCarrier && b.ShippingServiceType == docType.ShippingServiceType);
+                    string folderBRE = mailPiece.Feeder4_Sel == 1 ? "_BRE" : "";
+                    var effectiveReceivedOnEst = mailPiece.EffectiveReceivedOnEst;
 
-                string submitDir = Path.Combine(Common.CL_SFT_SubmitDir, client.AppCode, effectiveReceivedOnEst.Date.ToString("MMddyyyy"), currentBatch.BatchName, currentBatch.ShippingCarrier + "_" + currentBatch.ShippingServiceType + folderBRE);
+                    var dallasBatches = batchTimings.Select(t => new DallasBatch
+                    {
+                        AppCode = t.AppCode,
+                        BatchName = t.BatchName,
+                        StartDate = effectiveReceivedOnEst.Date + t.StartTime,
+                        EndDate = effectiveReceivedOnEst.Date + t.EndTime,
+                        ShippingCarrier = t.ShippingCarrier,
+                        ShippingServiceType = t.ShippingServiceType
+                    });
 
-                string localFilePath = Path.Combine(batchRootPath, mailPiece.MailPieceFileName);
+                    var currentBatch = dallasBatches.Single(b => (b.AppCode == client.AppCode && effectiveReceivedOnEst >= b.StartDate && effectiveReceivedOnEst <= b.EndDate) && b.ShippingCarrier == mailPiece.ShippingCarrier && b.ShippingServiceType == mailPiece.ShippingServiceType);
 
-                if (!sftSite.IsDirectoryAvailable(submitDir))
-                    sftSite.CreateDirectory(submitDir);
+                    string submitDir = Path.Combine(Common.CL_SFT_SubmitDir, client.AppCode, effectiveReceivedOnEst.Date.ToString("MMddyyyy"), currentBatch.BatchName, currentBatch.ShippingCarrier + "_" + currentBatch.ShippingServiceType + folderBRE);
 
-                sftSite.UploadFile(localFilePath, Path.Combine(submitDir, Path.GetFileName(mailPiece.MailPieceFileName)));
+                    if (!sftSite.IsDirectoryAvailable(submitDir))
+                        sftSite.CreateDirectory(submitDir);
+
+                    sftSite.UploadFile(localFilePath, Path.Combine(submitDir, mailPiece.PDFFileName));
+                }
             }
         }
 
@@ -221,7 +286,7 @@ namespace PCI.Service
 
             foreach (var batch in submittedPrintBatches)
             {
-                batch.ReceivedFileList.AddRange(mrdfOutFiles.Where(outfile => outfile.Key.StartsWith(batch.PatternBatchCode, StringComparison.CurrentCultureIgnoreCase)).Select(outfile => outfile.Value));
+                batch.ReceivedFileList.AddRange(mrdfOutFiles.Where(outfile => outfile.Key.StartsWith(batch.PrintBatchName, StringComparison.CurrentCultureIgnoreCase)).Select(outfile => outfile.Value));
             }
 
             var downloadableFiles = submittedPrintBatches.Where(c => c.ReceivedFileList != null && c.ReceivedFileList.Count > 0).ToList();
@@ -236,7 +301,7 @@ namespace PCI.Service
 
                 foreach (var downloadableBatch in downloadableFiles)
                 {
-                    log.Debug("Downloading MRDF.OUT For Batch-ID : " + downloadableBatch.PrintBatchId.ToString());
+                    log.Debug("Downloading MRDF.OUT For Batch-ID : " + downloadableBatch.PrintTrailBatchId.ToString());
                     foreach (string filePath in downloadableBatch.ReceivedFileList)
                     {
                         log.Debug("Downloading PCI Response Job Started For Batch {0}".Fill(Path.GetFileNameWithoutExtension(filePath)));
@@ -264,13 +329,13 @@ namespace PCI.Service
                             }
                         }
 
-                        BatchInfo bi = IdentifyAndUpdateBatchStatus(localMRDFResponseZipFilePath, localMRDFResponseFilePath, mrdfReceivedOn, downloadableBatch.PrintBatchId);
+                        IdentifyAndUpdateBatchStatus(localMRDFResponseZipFilePath, localMRDFResponseFilePath, mrdfReceivedOn, downloadableBatch.PrintTrailBatchId);
 
-                        if (bi != null)
-                        {
-                            DAL.LogBatchTimeLine(bi.BatchSummary.PrintBatch, LogBatchTimeLine.MRDFDownloadStart, mrdfDownloadStartTime);
-                            DAL.LogBatchTimeLine(bi.BatchSummary.PrintBatch, LogBatchTimeLine.MRDFDownloadEnd, Common.GetCurrentTime());
-                        }
+                        //if (bi != null)
+                        //{
+                        //    DAL.LogBatchTimeLine(bi.BatchSummary.PrintBatch, LogBatchTimeLine.MRDFDownloadStart, mrdfDownloadStartTime);
+                        //    DAL.LogBatchTimeLine(bi.BatchSummary.PrintBatch, LogBatchTimeLine.MRDFDownloadEnd, Common.GetCurrentTime());
+                        //}
                     }
                 }
 
@@ -313,169 +378,160 @@ namespace PCI.Service
             }
         }
 
-        private static BatchInfo IdentifyAndUpdateBatchStatus(string localMRDFResponseZipFilePath, string localMRDFResponseFilePath, DateTime mrdfReceivedOn, int printBatchId)
+        private static void IdentifyAndUpdateBatchStatus(string localMRDFResponseZipFilePath, string localMRDFResponseFilePath, DateTime mrdfReceivedOn, int printTrailBatchId)
         {
             string fileName = Path.GetFileNameWithoutExtension(localMRDFResponseFilePath);
             string outFileName = Path.GetFileNameWithoutExtension(localMRDFResponseFilePath);
 
-            BatchSummary bs = DAL.GetBatchSummaryById(printBatchId);
+            PrintTrailBatch printBatchDetail = DAL.GetPrintBatchDetailByPrintBatchTrailId(printTrailBatchId);
 
-            if (bs != null)
+            if (printBatchDetail != null)
             {
-                Client app = DAL.GetClientAppDetailsById(bs.ClientId);
-                BatchInfo bi = new BatchInfo(bs, app);
+                var bundlingRootPath = Path.Combine(Common.BundlingRootFolder, printTrailBatchId.ToString(), Common.BundlingResponseFolderName);
 
-                var docTypesMaps = DAL.GetDocTypeDetailsByAppId(app.Id).Where(x => x.DocTypeId == bi.BatchSummary.DocTypeId).First();
-                if (docTypesMaps != null)
-                    bi.InitializeDocTypeMaps(docTypesMaps, bi.BatchSummary.PrintBatch, bi.Client.AppCode, bi.Client.CustCode);
-
-                if (!Directory.Exists(bi.BatchRepo))
+                if (!Directory.Exists(bundlingRootPath))
                 {
-                    string errorMsg = string.Format("Local directory does not exists for the batch : {0} for {1}", printBatchId, localMRDFResponseFilePath);
+                    string errorMsg = string.Format("Local directory does not exists for the batch : {0} for {1}", printTrailBatchId, localMRDFResponseFilePath);
                     log.ErrorFormat(errorMsg);
                 }
                 else
                 {
-                    if (File.Exists(Path.Combine(bi.PCIResponsePath, Path.GetFileName(localMRDFResponseZipFilePath))))
-                        File.Delete(Path.Combine(bi.PCIResponsePath, Path.GetFileName(localMRDFResponseZipFilePath)));
+                    if (File.Exists(Path.Combine(bundlingRootPath, Path.GetFileName(localMRDFResponseZipFilePath))))
+                        File.Delete(Path.Combine(bundlingRootPath, Path.GetFileName(localMRDFResponseZipFilePath)));
 
                     //This will move zip file from root folder of pci response folder also.
-                    File.Move(localMRDFResponseZipFilePath, Path.Combine(bi.PCIResponsePath, Path.GetFileName(localMRDFResponseZipFilePath)));
+                    File.Move(localMRDFResponseZipFilePath, Path.Combine(bundlingRootPath, Path.GetFileName(localMRDFResponseZipFilePath)));
 
 
-                    if (File.Exists(Path.Combine(bi.PCIResponsePath, Path.GetFileName(localMRDFResponseFilePath))))
-                        File.Delete(Path.Combine(bi.PCIResponsePath, Path.GetFileName(localMRDFResponseFilePath)));
+                    if (File.Exists(Path.Combine(bundlingRootPath, Path.GetFileName(localMRDFResponseFilePath))))
+                        File.Delete(Path.Combine(bundlingRootPath, Path.GetFileName(localMRDFResponseFilePath)));
 
-                    File.Move(localMRDFResponseFilePath, Path.Combine(bi.PCIResponsePath, Path.GetFileName(localMRDFResponseFilePath)));
+                    File.Move(localMRDFResponseFilePath, Path.Combine(bundlingRootPath, Path.GetFileName(localMRDFResponseFilePath)));
 
                     File.Delete(localMRDFResponseFilePath);
-                    log.DebugFormat("Response MRDF moved in proper batch folder : {0} after batch identified.", printBatchId);
+                    log.DebugFormat("Response MRDF moved in proper batch folder : {0} after batch identified.", printTrailBatchId);
 
-                    return bi;
                 }
             }
-
-            return null;
         }
 
         #endregion
 
         #region Return PDF Zip File Logic
-        public static void GetReturnPDFsZip()
-        {
-            log.Debug("Return PDF job started.");
-            List<SubmittedBatches> mrdfReceivedPrintBatches;
-            mrdfReceivedPrintBatches = DAL.GetMRDFReceivedBatches();
-            if (mrdfReceivedPrintBatches.Count == 0)
-            {
-                log.Debug("Return PDF job queue is empty.");
-            }
-            else
-            {
-                SFTUtil sftSite = new SFTUtil(Common.PCI_SFT_Protocol, Common.PCI_SFT_Host, Common.PCI_SFT_Username, Common.PCI_SFT_Password, 300000);
+        //public static void GetReturnPDFsZip()
+        //{
+        //    log.Debug("Return PDF job started.");
+        //    List<SubmittedBatches> mrdfReceivedPrintBatches;
+        //    mrdfReceivedPrintBatches = DAL.GetMRDFReceivedBatches();
+        //    if (mrdfReceivedPrintBatches.Count == 0)
+        //    {
+        //        log.Debug("Return PDF job queue is empty.");
+        //    }
+        //    else
+        //    {
+        //        SFTUtil sftSite = new SFTUtil(Common.PCI_SFT_Protocol, Common.PCI_SFT_Host, Common.PCI_SFT_Username, Common.PCI_SFT_Password, 300000);
 
-                sftSite.Connect();
+        //        sftSite.Connect();
 
-                CheckAndDownloadReturnPDFZipFile(sftSite, mrdfReceivedPrintBatches);
+        //        CheckAndDownloadReturnPDFZipFile(sftSite, mrdfReceivedPrintBatches);
 
-                sftSite.Disconnect();
-            }
+        //        sftSite.Disconnect();
+        //    }
 
-            log.Debug("MRDF download job ended.");
-        }
+        //    log.Debug("MRDF download job ended.");
+        //}
 
-        private static void CheckAndDownloadReturnPDFZipFile(SFTUtil sftSite, List<SubmittedBatches> mrdfReceivedPrintBatches)
-        {
-            List<string> zipFiles;
-            zipFiles = sftSite.ListDirectory(Common.PCI_SFT_ReturnPDFDir);
+        //private static void CheckAndDownloadReturnPDFZipFile(SFTUtil sftSite, List<SubmittedBatches> mrdfReceivedPrintBatches)
+        //{
+        //    List<string> zipFiles;
+        //    zipFiles = sftSite.ListDirectory(Common.PCI_SFT_ReturnPDFDir);
 
-            var retZipFiles = zipFiles
-                .Where(file => Path.GetExtension(file).ToLower() == ".zip")
-                .Select(file => new KeyValuePair<string, string>(Path.GetFileNameWithoutExtension(file), file))
-                .ToList();
+        //    var retZipFiles = zipFiles
+        //        .Where(file => Path.GetExtension(file).ToLower() == ".zip")
+        //        .Select(file => new KeyValuePair<string, string>(Path.GetFileNameWithoutExtension(file), file))
+        //        .ToList();
 
-            foreach (var batch in mrdfReceivedPrintBatches)
-            {
-                batch.ReceivedFileList.AddRange(retZipFiles.Where(zipfile => zipfile.Key.StartsWith(batch.PatternBatchCode, StringComparison.CurrentCultureIgnoreCase)).Select(zipfile => zipfile.Value));
-            }
+        //    foreach (var batch in mrdfReceivedPrintBatches)
+        //    {
+        //        batch.ReceivedFileList.AddRange(retZipFiles.Where(zipfile => zipfile.Key.StartsWith(batch.PrintBatchName, StringComparison.CurrentCultureIgnoreCase)).Select(zipfile => zipfile.Value));
+        //    }
 
-            var downloadableFiles = mrdfReceivedPrintBatches.Where(c => c.ReceivedFileList != null && c.ReceivedFileList.Count > 0).ToList();
+        //    var downloadableFiles = mrdfReceivedPrintBatches.Where(c => c.ReceivedFileList != null && c.ReceivedFileList.Count > 0).ToList();
 
-            if (downloadableFiles.Count == 0)
-            {
-                log.Debug("Return PDFs zip files are not available for download.");
-            }
-            else
-            {
-                foreach (var downloadableBatch in downloadableFiles)
-                {
-                    log.Debug("Downloading return PDFs zip For Batch-ID : " + downloadableBatch.PrintBatchId.ToString());
-                    foreach (string fileName in downloadableBatch.ReceivedFileList)
-                    {
-                        log.Debug("Downloading PCI Return PDF Job Started For Batch {0}".Fill(Path.GetFileNameWithoutExtension(fileName)));
+        //    if (downloadableFiles.Count == 0)
+        //    {
+        //        log.Debug("Return PDFs zip files are not available for download.");
+        //    }
+        //    else
+        //    {
+        //        foreach (var downloadableBatch in downloadableFiles)
+        //        {
+        //            log.Debug("Downloading return PDFs zip For Batch-ID : " + downloadableBatch.PrintTrailBatchId.ToString());
+        //            foreach (string fileName in downloadableBatch.ReceivedFileList)
+        //            {
+        //                log.Debug("Downloading PCI Return PDF Job Started For Batch {0}".Fill(Path.GetFileNameWithoutExtension(fileName)));
 
-                        //Reason for creating ReturnPDFs in PCI root folder because we are currenly processing return MRDF file in same root folder and naming convention of its zip file is same as return PDFs' zip file.
-                        string localPDFsZipFilePath = Path.Combine(Common.PCIRootReturnPDFsZipFolder, fileName);
+        //                //Reason for creating ReturnPDFs in PCI root folder because we are currenly processing return MRDF file in same root folder and naming convention of its zip file is same as return PDFs' zip file.
+        //                string localPDFsZipFilePath = Path.Combine(Common.PCIRootReturnPDFsZipFolder, fileName);
 
-                        string remoteZipPath = Path.Combine(Common.PCI_SFT_ReturnPDFDir, fileName);
-                        DateTime zipReceivedOn = sftSite.LastModifiedTimeOfFile(remoteZipPath);
+        //                string remoteZipPath = Path.Combine(Common.PCI_SFT_ReturnPDFDir, fileName);
+        //                DateTime zipReceivedOn = sftSite.LastModifiedTimeOfFile(remoteZipPath);
 
-                        sftSite.DownloadFile(localPDFsZipFilePath, remoteZipPath, Common.Remove_PDF_Of_PCI_SFT, false);
+        //                sftSite.DownloadFile(localPDFsZipFilePath, remoteZipPath, Common.Remove_PDF_Of_PCI_SFT, false);
 
-                        IdentifyAndMoveZip(localPDFsZipFilePath, zipReceivedOn, downloadableBatch.PrintBatchId);
-                    }
-                }
-            }
-        }
+        //                IdentifyAndMoveZip(localPDFsZipFilePath, zipReceivedOn, downloadableBatch.PrintTrailBatchId);
+        //            }
+        //        }
+        //    }
+        //}
 
-        private static void IdentifyAndMoveZip(string localPDFsZipFilePath, DateTime zipReceivedOn, int printBatchId)
-        {
-            BatchSummary bs = DAL.GetBatchSummaryById(printBatchId);
+        //private static void IdentifyAndMoveZip(string localPDFsZipFilePath, DateTime zipReceivedOn, int printBatchId)
+        //{
+        //    BatchSummary bs = DAL.GetBatchSummaryById(printBatchId);
 
-            if (bs != null)
-            {
-                Client app = DAL.GetClientAppDetailsById(bs.ClientId);
-                BatchInfo bi = new BatchInfo(bs, app);
+        //    if (bs != null)
+        //    {
+        //        Client app = DAL.GetClientAppDetailsById(bs.ClientId);
+        //        BatchInfo bi = new BatchInfo(bs, app);
 
-                var docTypesMaps = DAL.GetDocTypeDetailsByAppId(app.Id).Where(x => x.DocTypeId == bi.BatchSummary.DocTypeId).First();
-                if (docTypesMaps != null)
-                    bi.InitializeDocTypeMaps(docTypesMaps, bi.BatchSummary.PrintBatch, bi.Client.AppCode, bi.Client.CustCode);
+        //        var docTypesMaps = DAL.GetDocTypeDetailsByAppId(app.Id).Where(x => x.DocTypeId == bi.BatchSummary.DocTypeId).First();
+        //        if (docTypesMaps != null)
+        //            bi.InitializeDocTypeMaps(docTypesMaps, bi.BatchSummary.PrintBatch, bi.Client.AppCode, bi.Client.CustCode);
 
-                if (!Directory.Exists(bi.BatchRepo))
-                {
-                    string errorMsg = string.Format("Local directory does not exists for the batch : {0} for {1}", printBatchId, localPDFsZipFilePath);
-                    log.ErrorFormat(errorMsg);
-                }
-                else
-                {
-                    if (!Directory.Exists(bi.PCIResponseReturnPDFsPath))
-                        Directory.CreateDirectory(bi.PCIResponseReturnPDFsPath);
+        //        if (!Directory.Exists(bi.BatchRepo))
+        //        {
+        //            string errorMsg = string.Format("Local directory does not exists for the batch : {0} for {1}", printBatchId, localPDFsZipFilePath);
+        //            log.ErrorFormat(errorMsg);
+        //        }
+        //        else
+        //        {
+        //            if (!Directory.Exists(bi.PCIResponseReturnPDFsPath))
+        //                Directory.CreateDirectory(bi.PCIResponseReturnPDFsPath);
 
-                    string batchFolderZipFilePath = Path.Combine(bi.PCIResponseReturnPDFsPath, Path.GetFileName(localPDFsZipFilePath));
+        //            string batchFolderZipFilePath = Path.Combine(bi.PCIResponseReturnPDFsPath, Path.GetFileName(localPDFsZipFilePath));
 
-                    if (File.Exists(batchFolderZipFilePath))
-                        File.Delete(batchFolderZipFilePath);
+        //            if (File.Exists(batchFolderZipFilePath))
+        //                File.Delete(batchFolderZipFilePath);
 
-                    //This will move zip file from root folder of pci response folder also.
-                    File.Move(localPDFsZipFilePath, batchFolderZipFilePath);
+        //            //This will move zip file from root folder of pci response folder also.
+        //            File.Move(localPDFsZipFilePath, batchFolderZipFilePath);
 
-                    //After moving to return pdf
-                    using (ZipArchive archive = ZipFile.OpenRead(batchFolderZipFilePath))
-                    {
-                        foreach (ZipArchiveEntry entry in archive.Entries)
-                        {
-                            if (entry.FullName.ToUpper().EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
-                            {
-                                entry.ExtractToFile(Path.Combine(bi.PCIResponseReturnPDFsPath, Path.GetFileName(entry.FullName)), true);
-                            }
-                        }
-                    }
+        //            //After moving to return pdf
+        //            using (ZipArchive archive = ZipFile.OpenRead(batchFolderZipFilePath))
+        //            {
+        //                foreach (ZipArchiveEntry entry in archive.Entries)
+        //                {
+        //                    if (entry.FullName.ToUpper().EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+        //                    {
+        //                        entry.ExtractToFile(Path.Combine(bi.PCIResponseReturnPDFsPath, Path.GetFileName(entry.FullName)), true);
+        //                    }
+        //                }
+        //            }
 
-                    log.DebugFormat("Return PDFs zip is moved in proper batch folder : {0} after batch identified.", printBatchId);
-                }
-            }
-        }
+        //            log.DebugFormat("Return PDFs zip is moved in proper batch folder : {0} after batch identified.", printBatchId);
+        //        }
+        //    }
+        //}
         #endregion
-
     }
 }

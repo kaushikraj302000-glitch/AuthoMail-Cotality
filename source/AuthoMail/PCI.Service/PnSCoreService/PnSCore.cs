@@ -97,7 +97,6 @@ namespace PCI.Service
                     batchSummary.BatchIdentifier = pnsRequest.BatchIdentifier;
                     batchSummary.PrintLocation = pnsRequest.PrintLocation.IsNullOrEmpty() ? Common.PrintLocationPCI : pnsRequest.PrintLocation;
 
-                    //Ensure that the DocTypeCode is valid
                     var docTypes = DAL.GetDocTypeDetailsByAppId(clientDetail.Id);
                     if (docTypes == null)
                     {
@@ -114,7 +113,15 @@ namespace PCI.Service
                     }
                     batchSummary.DocTypeId = pnsRequest.DocTypeId;
 
-                    bi.InitializeDocTypeMaps(validDocType, bi.BatchSummary.PrintBatch, bi.Client.AppCode, clientDetail.CustCode);
+                    //Ensure that the DocTypeCode is valid
+                    var printTrail = DAL.GetPrintTrailDetailByPrintTrailId(pnsRequest.PrintTrailId);
+                    if (printTrail == null)
+                    {
+                        var msg = "Client does not have allocated print trail.";
+                        ReportInvalidBatch(bi, msg);
+                        continue;
+                    }
+                    batchSummary.PrintTrailId = pnsRequest.PrintTrailId;
 
                     // Update database
                     DAL.UpdatePnSRequestDataInBatchSummary(batchSummary);
@@ -164,7 +171,7 @@ namespace PCI.Service
                         }
                     }
 
-                    ProcessPDFsForPCI(pnsRequest, bi);
+                    ProcessPDFsForPCI(pnsRequest, bi, validDocType);
 
                     DAL.LogBatchTimeLine(batchId, LogBatchTimeLine.PCIBatchPrepEnd, Common.GetCurrentTime());
                 }
@@ -304,7 +311,7 @@ namespace PCI.Service
             return validationResult;
         }
 
-        private static void ProcessPDFsForPCI(PnSRequest pnsRequest, BatchInfo bi)
+        private static void ProcessPDFsForPCI(PnSRequest pnsRequest, BatchInfo bi, DocType docType)
         {
             log.Debug("Started merging PDFs");
             var mrdfReq = new List<MRDFRequest>();
@@ -323,20 +330,19 @@ namespace PCI.Service
                     UniqueId = mailPiece.UniqueId,
                     PDFFileName = mailPiece.PDFFileName,
                     DivertVS3 = mailPiece.PerformQC ? 1 : 0,
-                    Address1 = "Job: {0} Seq: {1}".Fill(bi.BatchSummary.PrintBatch, pieceIdFormat.Fill(pieceId))
+                    Address1 = "Job: {0} Seq: {1}".Fill(bi.BatchSummary.PrintBatch, pieceIdFormat.Fill(pieceId)),
+                    Feeder4_Sel = mailPiece.IsBRE ? 1 : 0
                 };
 
                 var rawPdfPath = Path.Combine(bi.PnSRequestPDFsPath, mailPiece.PDFFileName);
                 var processedPdfPath = Path.Combine(bi.PCIRequestPath, mailPiece.PDFFileName);
 
-
-                var pageCountBySize = ProcessPDFWithBarcodeOnRotatedAndOrientation(rawPdfPath, processedPdfPath, mrdf, mailPiece, bi.DocType);
+                var pageCountBySize = ProcessPDFWithBarcodeOnRotatedAndOrientation(rawPdfPath, processedPdfPath, mrdf, mailPiece, docType);
 
                 DAL.InsertPageSizeWisePageCounts(pageCountBySize, mrdf.UniqueId);
 
                 // Sending total number of pages instead of total sheets in input MRDF
                 mrdf.TotalSheets = mrdf.TotalPages;
-
 
                 // Fix sequence in case of errors
                 if (mrdf.HasError)
@@ -473,23 +479,8 @@ namespace PCI.Service
                 ReportInvalidMailPieces(bi, "Some PDFs could not be processed. Check detailed description.", mailPackageReport);
             }
 
-            var mrdfData = DAL.GetMRDFRequestDataByJobId(bi.BatchSummary.PrintBatch, MailPieceStatus.InProgress.ToString());
-
-            var mrdfContent = new StringBuilder();
-
-            foreach (DataRow row in mrdfData.Rows)
-            {
-                foreach (var f in MRDFRequestSchema)
-                {
-                    mrdfContent.AppendFormat(f.DataFormat, row[f.FieldName]);
-                }
-                mrdfContent.AppendLine();
-            }
-
-            File.WriteAllText(bi.RequestMRDFPath, mrdfContent.ToString());
-
-            DAL.UpdateBatchPipeLineStatus(bi.BatchSummary.PrintBatch, BatchPipelineStatus.Prepped, Common.GetCurrentTime());
             DAL.UpdateBatchStatus(bi.BatchSummary.PrintBatch, BatchStatus.InProgress.ToString());
+            DAL.UpdateBatchPipeLineStatus(bi.BatchSummary.PrintBatch, BatchPipelineStatus.Prepped, Common.GetCurrentTime());
             log.Debug("Completed preparing PCI jobs");
         }
 
@@ -769,232 +760,232 @@ namespace PCI.Service
             if (submittedPrintBatches.Count == 0)
             {
                 log.Debug("Processing PCI Response job queue is empty.");
+                return;
             }
-            else
+
+            //Looping Distinct BatchId because in PrintBatchId will have same PrintBatchIDs( mainly beacause of Reprint functionality )
+            foreach (var printTrailBatchId in submittedPrintBatches.Select(x => x.PrintTrailBatchId))
             {
-                //Looping Distinct BatchId because in PrintBatchId will have same PrintBatchIDs( mainly beacause of Reprint functionality )
-                foreach (var batchId in submittedPrintBatches.Select(x => x.PrintBatchId).Distinct())
+                var printTrailBatchDetail = DAL.GetPrintBatchDetailByPrintBatchTrailId(printTrailBatchId);
+
+                var bundlingRootPath = Path.Combine(Common.BundlingRootFolder, printTrailBatchId.ToString(), Common.BundlingResponseFolderName);
+
+                //Check if directory exist or not
+                if (!Directory.Exists(bundlingRootPath))
                 {
-                    BatchSummary batchSummary = DAL.GetBatchSummaryById(batchId);
-                    Client clApp = DAL.GetClientAppDetailsById(batchSummary.ClientId);
+                    log.Error("PCIResponsePath is not found for Batch-ID : {0}".Fill(printTrailBatchDetail.PrintBatchName));
+                    continue;
+                }
 
-                    var bi = new BatchInfo(batchSummary, clApp);
+                #region By Pass PCI
+                //If we are bypass PCI then we will generate PCI response over here.
+                //if (bi.Client.SimulatePCI && (Common.ApplicationEnvironment == Env.Internal || Common.ApplicationEnvironment == Env.Staging || Common.ApplicationEnvironment == Env.QA))
+                //{
+                //    var mrdfResData = DAL.GetMRDFResponseDummyDataByJobId(bi.BatchSummary.PrintBatch);
 
-                    log.Debug("PCI Response Process Job Started For Batch {0}".Fill(bi.BatchName));
+                //    var mrdfResContent = new StringBuilder();
+                //    var mrdfs = new List<string>();
+                //    foreach (DataRow row in mrdfResData.Rows)
+                //    {
+                //        string mrd = string.Empty;
 
-                    var docTypesMaps = DAL.GetDocTypeDetailsByAppId(clApp.Id).Where(x => x.DocTypeId == bi.BatchSummary.DocTypeId).Single();
+                //        foreach (var f in DAL.GetMRDFRequestSchema())
+                //        {
+                //            mrd += string.Format(f.DataFormat, row[f.FieldName]);
+                //        }
 
-                    if (docTypesMaps != null)
-                        bi.InitializeDocTypeMaps(docTypesMaps, bi.BatchSummary.PrintBatch, bi.Client.AppCode, bi.Client.CustCode);
+                //        foreach (var f in DAL.GetMRDFResponseSchema())
+                //        {
+                //            if (f.StartPosition < 800)
+                //            {
+                //                mrd = mrd.Remove(f.StartPosition, f.Length);
+                //                mrd = mrd.Insert(f.StartPosition, string.Format(f.DataFormat, row[f.FieldName]));
+                //            }
+                //            else
+                //            {
+                //                mrd += string.Format(f.DataFormat, row[f.FieldName]);
+                //            }
+                //        }
+                //        mrdfs.Add(mrd.Remove(mrd.Length - 1, 1));
+                //    }
+                //    File.WriteAllLines(bi.ResponseMRDFPath, mrdfs.ToArray());
+                //}
+                #endregion
 
-                    //Check if directory exist or not
-                    if (!Directory.Exists(Path.Combine(bi.PCIResponsePath)))
+                //Check for OUT files only
+                List<string> outFileList = Directory.GetFiles(Path.Combine(bundlingRootPath), "*.out").ToList();
+                if (outFileList.Count == 0)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    log.Debug("Print Trail Batch-Id : " + printTrailBatchId.ToString() + " have out file(s) to process.");
+
+                    //Get MRDF Request Data List
+                    var mrdfRequestData = DAL.GetMRDFRequestDataByPrintTrailId(printTrailBatchId);
+
+                    foreach (string outFilePath in outFileList)
                     {
-                        log.Error("PCIResponsePath is not found for Batch-ID : {0}".Fill(bi.BatchSummary.PrintBatch));
-                        continue;
-                    }
+                        bool isSuspend = false;
+                        bool isREPFile = false;
 
-                    #region By Pass PCI
-                    //If we are bypass PCI then we will generate PCI response over here.
-                    if (bi.Client.SimulatePCI && (Common.ApplicationEnvironment == Env.Internal || Common.ApplicationEnvironment == Env.Staging || Common.ApplicationEnvironment == Env.QA))
-                    {
-                        var mrdfResData = DAL.GetMRDFResponseDummyDataByJobId(bi.BatchSummary.PrintBatch);
+                        string outFileName = Path.GetFileName(outFilePath);
 
-                        var mrdfResContent = new StringBuilder();
-                        var mrdfs = new List<string>();
-                        foreach (DataRow row in mrdfResData.Rows)
+                        ////This logic is used for checking if outfile name is starting with <CustCode>-<REPXXXXXXX>.
+                        //if (Path.GetFileNameWithoutExtension(outFilePath).StartsWith(bi.Client.CustCode + "-" + "REP", StringComparison.CurrentCultureIgnoreCase))
+                        //{
+                        //    isREPFile = true;
+                        //}
+
+                        //Read Out file from PCIResponse path
+                        string[] mrdfOut = File.ReadAllLines(outFilePath);
+
+                        var suspensionReason = "";
+
+                        if (mrdfOut.Length == 0)
                         {
-                            string mrd = string.Empty;
+                            suspensionReason = "Batch is suspended due to return file contains no records.";
+                            PCINotificationEmail(printTrailBatchDetail.PrintBatchName, suspensionReason, outFileName);
 
-                            foreach (var f in DAL.GetMRDFRequestSchema())
-                            {
-                                mrd += string.Format(f.DataFormat, row[f.FieldName]);
-                            }
+                            //Renaming file so that if we want to continue by reverting status and want to process new file then system will not pick up that file again and again
+                            File.Move(outFilePath, Path.Combine(bundlingRootPath, outFileName + ".Suspended"));
 
-                            foreach (var f in DAL.GetMRDFResponseSchema())
-                            {
-                                if (f.StartPosition < 800)
-                                {
-                                    mrd = mrd.Remove(f.StartPosition, f.Length);
-                                    mrd = mrd.Insert(f.StartPosition, string.Format(f.DataFormat, row[f.FieldName]));
-                                }
-                                else
-                                {
-                                    mrd += string.Format(f.DataFormat, row[f.FieldName]);
-                                }
-                            }
-                            mrdfs.Add(mrd.Remove(mrd.Length - 1, 1));
-                        }
-                        File.WriteAllLines(bi.ResponseMRDFPath, mrdfs.ToArray());
-                    }
-                    #endregion
-
-                    //Check for OUT files only
-                    List<string> outFileList = Directory.GetFiles(Path.Combine(bi.PCIResponsePath), "*.out").ToList();
-                    if (outFileList.Count == 0)
-                    {
-                        continue;
-                    }
-                    try
-                    {
-                        log.Debug("Batch-Id : " + batchId.ToString() + " have out file(s) to process.");
-
-                        //Get MRDF Request Data List
-                        var mrdfRequestData = DAL.GetMRDFRequestDataByJobId(bi.BatchSummary.PrintBatch).AsEnumerable();
-
-                        foreach (string outFilePath in outFileList)
-                        {
-                            bool isSuspend = false;
-                            bool isREPFile = false;
-
-                            string outFileName = Path.GetFileName(outFilePath);
-
-                            //This logic is used for checking if outfile name is starting with <CustCode>-<REPXXXXXXX>.
-                            if (Path.GetFileNameWithoutExtension(outFilePath).StartsWith(bi.Client.CustCode + "-" + "REP", StringComparison.CurrentCultureIgnoreCase))
-                            {
-                                isREPFile = true;
-                            }
-
-                            //Read Out file from PCIResponse path
-                            string[] mrdfOut = File.ReadAllLines(outFilePath);
-
-                            var suspensionReason = "";
-
-                            if (mrdfOut.Length == 0)
-                            {
-                                suspensionReason = "Batch is suspended due to return file contains no records.";
-                                PCINotificationEmail(bi.BatchSummary, suspensionReason, outFileName, bi.Client.BusinessUnit);
-
-                                //Renaming file so that if we want to continue by reverting status and want to process new file then system will not pick up that file again and again
-                                File.Move(outFilePath, Path.Combine(bi.PCIResponsePath, outFileName + ".Suspended"));
-
-                                break;
-                            }
-
-                            List<PCIFieldData> fieldDataCollection = new List<PCIFieldData>();
-
-
-                            foreach (string record in mrdfOut)
-                            {
-                                if (record.Length != Common.MRDFResponseLength)
-                                {
-                                    isSuspend = true;
-                                    suspensionReason = "Record length is '{0}'. It should be '{1}' as per the MRDF response schema. ".Fill(record.Length, Common.MRDFResponseLength);
-                                    break;
-                                }
-
-                                var pciFields = ParseMRDFResponse(record, isREPFile);
-                                string mrdfJobId = pciFields.Single(x => x.FieldName == "JobId").StrValue.TrimStart('0').Trim();
-                                if (mrdfJobId != bi.BatchSummary.PrintBatch.ToString())
-                                {
-                                    isSuspend = true;
-                                    suspensionReason = "Batch is suspended due to invalid JobId : {0}".Fill(mrdfJobId);
-                                    break;
-                                }
-
-                                string mrdfPieceId = pciFields.Single(x => x.FieldName == "PieceId").StrValue.TrimStart('0').Trim();
-                                var maxPieceId = mrdfRequestData.Max(x => x.Field<int>("PieceId"));
-                                int pieceId;
-                                bool isPieceIdValid = int.TryParse(mrdfPieceId, out pieceId);
-                                if (!(isPieceIdValid && pieceId > 0 && pieceId <= maxPieceId))
-                                {
-                                    isSuspend = true;
-                                    suspensionReason = "Batch is suspended due to invalid PieceId : {0}".Fill(mrdfPieceId);
-                                    break;
-                                }
-
-                                fieldDataCollection.Add(new PCIFieldData() { PCIFieldColl = pciFields, PieceId = pieceId });
-                            }
-
-                            if (isSuspend)
-                            {
-                                SuspendBatchAndSendPCIMail(bi.BatchSummary, suspensionReason, outFileName, bi.Client.BusinessUnit);
-                                //Renaming files so that if we want to continue by reverting status then system will not pick up that file again and again
-                                File.Move(outFilePath, Path.Combine(bi.PCIResponsePath, outFileName + ".Suspended"));
-                                break;
-                            }
-
-                            //Get MRDF Response Piece ID
-
-                            // Persist MRDF response
-                            DAL.InsertMRDFResponseData(bi.BatchSummary.PrintBatch, fieldDataCollection);
-
-                            #region Response Validation
-
-                            var resPieceIdData = fieldDataCollection.Select(c => c.PieceId).ToList();
-                            var mrdfResponseData = DAL.GetMRDFResponseDataByJobId(bi.BatchSummary.PrintBatch).AsEnumerable();
-
-                            string validationErrors = null;
-
-                            resPieceIdData.ForEach(pieceId =>
-                            {
-                                var errors = ValidateMRDFResponse(mrdfRequestData, mrdfResponseData, pieceId, batchSummary.SubmittedOn);
-
-                                if (!errors.IsNullOrWhiteSpace())
-                                {
-                                    validationErrors += Environment.NewLine + errors;
-                                }
-                            });
-
-                            if (!validationErrors.IsNullOrWhiteSpace())
-                            {
-                                SuspendBatchAndSendPCIMail(bi.BatchSummary, validationErrors, outFileName, bi.Client.BusinessUnit);
-
-                                //Renaming file so that if we want to continue by reverting status and want to process new file then system will not pick up that file again and again
-                                File.Move(outFilePath, Path.Combine(bi.PCIResponsePath, outFileName + ".Suspended"));
-                                break;
-                            }
-                            #endregion
-
-                            // Update MRDF request based on MRDF response - MailPieceStatus : Shipped, PulledBack, Error, ErrId, ErrDesc
-
-                            #region Update MRDF Request MailPieceStatus
-
-                            DAL.UpdateMRDFRequestStatusFromResponse(mrdfResponseData, resPieceIdData);
-
-                            #endregion
-
-
-                            //If out file is processed successfully than create .Complete File So that if any new file come in it than it will not process it again and again
-                            string processedFilePath = Path.Combine(bi.PCIResponsePath, Path.GetFileName(outFilePath) + ".complete");
-                            if (File.Exists(processedFilePath))
-                                File.Delete(processedFilePath);
-                            File.Move(outFilePath, processedFilePath);
-
+                            break;
                         }
 
-                        #region Final Update After Receiving All MRDF Response
+                        List<PCIFieldData> fieldDataCollection = new List<PCIFieldData>();
 
-                        mrdfRequestData = DAL.GetMRDFRequestDataByJobId(bi.BatchSummary.PrintBatch).AsEnumerable();
-                        //Here checking that whatever piece ids in mrdf we sent to PCI, all are received or not. if some fot them are remaining (means remaining count is not 0) than we are not going to generate report.
+                        foreach (string record in mrdfOut)
+                        {
+                            if (record.Length != Common.MRDFResponseLength)
+                            {
+                                isSuspend = true;
+                                suspensionReason = "Record length is '{0}'. It should be '{1}' as per the MRDF response schema. ".Fill(record.Length, Common.MRDFResponseLength);
+                                break;
+                            }
 
-                        var inProgressMailPieces = mrdfRequestData.Where(row => row.Field<string>("MailPieceStatus") == MailPieceStatus.InProgress.ToString());
+                            var pciFields = ParseMRDFResponse(record, isREPFile);
+                            string mrdfJobId = pciFields.Single(x => x.FieldName == "JobId").StrValue.TrimStart('0').Trim();
+                            if (mrdfJobId != printTrailBatchDetail.Id.ToString())
+                            {
+                                isSuspend = true;
+                                suspensionReason = "Batch is suspended due to invalid JobId : {0}".Fill(mrdfJobId);
+                                break;
+                            }
 
-                        if (inProgressMailPieces.Count() > 0)
-                            continue;
+                            string mrdfPieceId = pciFields.Single(x => x.FieldName == "PieceId").StrValue.TrimStart('0').Trim();
+                            var maxPieceId = mrdfRequestData.Max(x => x.PieceId);
+                            int pieceId;
+                            bool isPieceIdValid = int.TryParse(mrdfPieceId, out pieceId);
+                            if (!(isPieceIdValid && pieceId > 0 && pieceId <= maxPieceId))
+                            {
+                                isSuspend = true;
+                                suspensionReason = "Batch is suspended due to invalid PieceId : {0}".Fill(mrdfPieceId);
+                                break;
+                            }
 
+                            fieldDataCollection.Add(new PCIFieldData() { PCIFieldColl = pciFields, PieceId = pieceId });
+                        }
 
-                        //First update MRDF Received status because we have received all MRDF responses
-                        DAL.UpdateBatchPipeLineStatus(bi.BatchSummary.PrintBatch, BatchPipelineStatus.MRDFReceived, Common.GetCurrentTime());
+                        if (isSuspend)
+                        {
+                            SuspendBatchAndSendPCIMail(printTrailBatchDetail.PrintBatchName, suspensionReason, outFileName);
+                            //Renaming files so that if we want to continue by reverting status then system will not pick up that file again and again
+                            File.Move(outFilePath, Path.Combine(bundlingRootPath, outFileName + ".Suspended"));
+                            break;
+                        }
+
+                        //Get MRDF Response Piece ID
+
+                        // Persist MRDF response
+                        DAL.InsertMRDFResponseData(printTrailBatchDetail.Id, fieldDataCollection);
+
+                        #region Response Validation
+
+                        var resPieceIdData = fieldDataCollection.Select(c => c.PieceId).ToList();
+                        var mrdfResponseData = DAL.GetMRDFResponseDataByPrintTrailBatchId(printTrailBatchId).AsEnumerable();
+
+                        string validationErrors = null;
+
+                        resPieceIdData.ForEach(pieceId =>
+                        {
+                            var errors = ValidateMRDFResponse(mrdfRequestData, mrdfResponseData, pieceId, printTrailBatchDetail.SubmittedOn.Value);
+
+                            if (!errors.IsNullOrWhiteSpace())
+                            {
+                                validationErrors += Environment.NewLine + errors;
+                            }
+                        });
+
+                        if (!validationErrors.IsNullOrWhiteSpace())
+                        {
+                            SuspendBatchAndSendPCIMail(printTrailBatchDetail.PrintBatchName, validationErrors, outFileName);
+
+                            //Renaming file so that if we want to continue by reverting status and want to process new file then system will not pick up that file again and again
+                            File.Move(outFilePath, Path.Combine(bundlingRootPath, outFileName + ".Suspended"));
+                            break;
+                        }
+                        #endregion
+
+                        // Update MRDF request based on MRDF response - MailPieceStatus : Shipped, PulledBack, Error, ErrId, ErrDesc
+
+                        #region Update MRDF Request MailPieceStatus
+
+                        DAL.UpdateMRDFRequestStatusFromResponse(mrdfResponseData, resPieceIdData);
 
                         #endregion
+
+
+                        //If out file is processed successfully than create .Complete File So that if any new file come in it than it will not process it again and again
+                        string processedFilePath = Path.Combine(bundlingRootPath, Path.GetFileName(outFilePath) + ".complete");
+                        if (File.Exists(processedFilePath))
+                            File.Delete(processedFilePath);
+                        File.Move(outFilePath, processedFilePath);
+
                     }
-                    catch (Exception ex)
+
+                    #region Final Update After Receiving All MRDF Response
+
+                    mrdfRequestData = DAL.GetMRDFRequestDataByPrintTrailId(printTrailBatchId);
+                    //Here checking that whatever piece ids in mrdf we sent to PCI, all are received or not. if some fot them are remaining (means remaining count is not 0) than we are not going to generate report.
+
+                    var inProgressMailPieces = mrdfRequestData.Where(row => row.MailPieceStatus == MailPieceStatus.InProgress.ToString());
+
+                    if (inProgressMailPieces.Count() > 0)
+                        continue;
+
+                    //First update MRDF Received status because we have received all MRDF responses
+                    DAL.UpdatePrintTrailBatchStatus(printTrailBatchId, BatchPipelineStatus.MRDFReceived, Common.GetCurrentTime());
+
+                    var jobIds = mrdfRequestData.Select(p => p.JobId).Distinct().ToList();
+                    foreach (var jobId in jobIds)
                     {
-                        log.Error("Error occured while processing mrdf out file {0}".Fill(Path.GetFileName(bi.ResponseMRDFPath)), ex);
+                        var inProgressMailPiecesForJob = DAL.GetMRDFRequestDataByJobId(jobId).AsEnumerable().Where(row => row.Field<string>("MailPieceStatus") == MailPieceStatus.InProgress.ToString());
 
-                        string validationErrors = "Batch suspended due to error while processing OUT file :  " + Environment.NewLine + ex.ToString();
+                        if (inProgressMailPiecesForJob.Count() > 0)
+                            continue;
 
-                        SuspendBatchAndSendInternalMail(bi.BatchSummary, validationErrors);
+                        DAL.UpdateBatchPipeLineStatus(jobId, BatchPipelineStatus.MRDFReceived, Common.GetCurrentTime());
                     }
+                    #endregion
+                }
+                catch (Exception ex)
+                {
+                    log.Error("Error occured while processing mrdf out file {0}".Fill(Path.GetFileName(printTrailBatchDetail.PrintBatchName)), ex);
+
+                    string validationErrors = "Batch suspended due to error while processing OUT file :  " + Environment.NewLine + ex.ToString();
+
+                    SuspendBatchAndSendInternalMail(printTrailBatchId, validationErrors);
                 }
             }
             log.Debug("ended preparing pns response");
         }
 
-        private static string ValidateMRDFResponse(IEnumerable<DataRow> reqMRDF, IEnumerable<DataRow> resMRDF, int pieceId, DateTime submittedOn)
+        private static string ValidateMRDFResponse(List<MailPieceDetail> reqMRDF, IEnumerable<DataRow> resMRDF, int pieceId, DateTime submittedOn)
         {
-            var req = reqMRDF.Single(row => row.Field<int>("PieceId") == pieceId);
+            var req = reqMRDF.Single(row => row.PieceId == pieceId);
             var res = resMRDF.Single(row => row.Field<int>("PieceId") == pieceId);
 
             var errors = ValidateMRDFResponse(req, res, submittedOn).ToList();
@@ -1016,13 +1007,13 @@ namespace PCI.Service
             return null;
         }
 
-        private static IEnumerable<string> ValidateMRDFResponse(DataRow req, DataRow res, DateTime submittedOn)
+        private static IEnumerable<string> ValidateMRDFResponse(MailPieceDetail req, DataRow res, DateTime submittedOn)
         {
-            if (!req.Field<string>("PDFFileName").Trim().Equals(res.Field<string>("PDFFileName").Trim(), StringComparison.CurrentCultureIgnoreCase))
-                yield return "PDFFileName : Request({0}), Response({1})".Fill(req.Field<string>("PDFFileName").Trim(), res.Field<string>("PDFFileName").Trim());
+            if (!req.PDFFileName.Trim().Equals(res.Field<string>("PDFFileName").Trim(), StringComparison.CurrentCultureIgnoreCase))
+                yield return "PDFFileName : Request({0}), Response({1})".Fill(req.PDFFileName.Trim(), res.Field<string>("PDFFileName").Trim());
 
-            if (req.Field<int>("TotalSheets") != res.Field<int>("TotalSheets"))
-                yield return "TotalSheets : Request({0}), Response({1})".Fill(req.Field<int>("TotalSheets"), res.Field<int>("TotalSheets"));
+            if (req.TotalSheets != res.Field<int>("TotalSheets"))
+                yield return "TotalSheets : Request({0}), Response({1})".Fill(req.TotalSheets, res.Field<int>("TotalSheets"));
 
             if (res.Field<string>("Disposition").Trim() == "6")
                 yield return "Disposition : Response(6)";
@@ -1065,26 +1056,26 @@ namespace PCI.Service
             return mrdfResponseFields;
         }
 
-        private static void SuspendBatchAndSendPCIMail(BatchSummary batchSummary, string suspensionReason, string outFileName, string buName)
+        private static void SuspendBatchAndSendPCIMail(string printFileName, string suspensionReason, string outFileName)
         {
-            DAL.LogBatchTimeLine(batchSummary.PrintBatch, LogBatchTimeLine.ReportPrepEnd, Common.GetCurrentTime());
+            //DAL.LogBatchTimeLine(batchSummary.PrintBatch, LogBatchTimeLine.ReportPrepEnd, Common.GetCurrentTime());
 
-            batchSummary.ValidationErrors = batchSummary.ValidationErrors + Environment.NewLine + suspensionReason;
-            batchSummary.ValidationErrors = batchSummary.ValidationErrors.Trim();
+            //batchSummary.ValidationErrors = batchSummary.ValidationErrors + Environment.NewLine + suspensionReason;
+            //batchSummary.ValidationErrors = batchSummary.ValidationErrors.Trim();
 
-            DAL.UpdatePnSRequestDataInBatchSummary(batchSummary);
-            //This is need to be updated first and then quickly change it to suspend
-            DAL.UpdateBatchPipeLineStatus(batchSummary.PrintBatch, BatchPipelineStatus.ReportPrepped, Common.GetCurrentTime());
-            //suspend entire batch
-            DAL.UpdateBatchPipeLineStatus(batchSummary.PrintBatch, BatchPipelineStatus.Suspended, Common.GetCurrentTime());
+            //DAL.UpdatePnSRequestDataInBatchSummary(batchSummary);
+            ////This is need to be updated first and then quickly change it to suspend
+            //DAL.UpdateBatchPipeLineStatus(batchSummary.PrintBatch, BatchPipelineStatus.ReportPrepped, Common.GetCurrentTime());
+            ////suspend entire batch
+            //DAL.UpdateBatchPipeLineStatus(batchSummary.PrintBatch, BatchPipelineStatus.Suspended, Common.GetCurrentTime());
 
-            PCINotificationEmail(batchSummary, suspensionReason, outFileName, buName);
+            PCINotificationEmail(printFileName, suspensionReason, outFileName);
 
         }
 
-        public static void PCINotificationEmail(BatchSummary batchSummary, string suspensionReason, string outFileName, string buName)
+        public static void PCINotificationEmail(string printFileName, string suspensionReason, string outFileName)
         {
-            MailUtility.SendInvalidMRDFOutFoundNotificationPCIEmail(batchSummary, buName, outFileName, suspensionReason);
+            MailUtility.SendInvalidMRDFOutFoundNotificationPCIEmail(printFileName, outFileName, suspensionReason);
         }
         #endregion
 
@@ -1093,7 +1084,6 @@ namespace PCI.Service
         public static void GeneratePnSResponse()
         {
             log.Debug("Started Generating PnSResponse");
-
 
             List<int> batchIds = DAL.GetNextBatchIdByJobName(JobTypes.PnSCoreService, OperationTypes.ProcessMRDF);
 
@@ -1115,11 +1105,6 @@ namespace PCI.Service
 
                 try
                 {
-                    var docTypesMaps = DAL.GetDocTypeDetailsByAppId(clientDetail.Id).Where(x => x.DocTypeId == bi.BatchSummary.DocTypeId).Single();
-
-                    if (docTypesMaps != null)
-                        bi.InitializeDocTypeMaps(docTypesMaps, bi.BatchSummary.PrintBatch, bi.Client.AppCode, bi.Client.CustCode);
-
                     //Check if directory exist or not
                     if (!Directory.Exists(Path.Combine(bi.PnSResponsePath)))
                     {
@@ -1184,7 +1169,7 @@ namespace PCI.Service
                     var containsReprint = mailPieceReport.Where(mp => mp.ErrId == (int)ErrorTypes.Reprint).ToList();
                     if (containsReprint.Count > 0)
                     {
-                        SuspendBatchAndSendInternalMail(bi.BatchSummary, "Batch is suspended because response mrdf contains reprint codes.");
+                        SuspendBatchAndSendInternalMail(bi.BatchSummary.PrintBatch, "Batch is suspended because response mrdf contains reprint codes.");
                         continue;
                     }
                     #endregion
@@ -1195,7 +1180,7 @@ namespace PCI.Service
 
                     if (!isQCPerformed)
                     {
-                        SuspendBatchAndSendInternalMail(bi.BatchSummary, "Batch is suspended because QC Divert is not confirmed.");
+                        SuspendBatchAndSendInternalMail(bi.BatchSummary.PrintBatch, "Batch is suspended because QC Divert is not confirmed.");
                         continue;
                     }
                     #endregion
@@ -1215,93 +1200,93 @@ namespace PCI.Service
             }
         }
 
-        private static void SuspendBatchAndSendInternalMail(BatchSummary batchSummary, string suspensionReason)
+        private static void SuspendBatchAndSendInternalMail(int printTrailBatchId, string suspensionReason)
         {
-            DAL.LogBatchTimeLine(batchSummary.PrintBatch, LogBatchTimeLine.ReportPrepEnd, Common.GetCurrentTime());
+            //DAL.LogBatchTimeLine(batchSummary.PrintBatch, LogBatchTimeLine.ReportPrepEnd, Common.GetCurrentTime());
 
-            batchSummary.ValidationErrors = batchSummary.ValidationErrors + Environment.NewLine + suspensionReason;
+            //batchSummary.ValidationErrors = batchSummary.ValidationErrors + Environment.NewLine + suspensionReason;
 
-            DAL.UpdatePnSRequestDataInBatchSummary(batchSummary);
-            //This is need to be updated first and then quickly change it to suspend
-            DAL.UpdateBatchPipeLineStatus(batchSummary.PrintBatch, BatchPipelineStatus.ReportPrepped, Common.GetCurrentTime());
-            //suspend entire batch
-            DAL.UpdateBatchPipeLineStatus(batchSummary.PrintBatch, BatchPipelineStatus.Suspended, Common.GetCurrentTime());
+            //DAL.UpdatePnSRequestDataInBatchSummary(batchSummary);
+            ////This is need to be updated first and then quickly change it to suspend
+            //DAL.UpdateBatchPipeLineStatus(batchSummary.PrintBatch, BatchPipelineStatus.ReportPrepped, Common.GetCurrentTime());
+            ////suspend entire batch
+            //DAL.UpdateBatchPipeLineStatus(batchSummary.PrintBatch, BatchPipelineStatus.Suspended, Common.GetCurrentTime());
 
-            MailUtility.SendBatchSuspendedNotificationInternalEmail(batchSummary.PrintBatch, suspensionReason);
+            MailUtility.SendBatchSuspendedNotificationInternalEmail(printTrailBatchId, suspensionReason);
         }
         #endregion
 
         #region Process Return PDFs information
-        public static void ProcessPCIReturnPDFsInfo()
-        {
-            log.Debug("Started processing return pdfs information");
+        //public static void ProcessPCIReturnPDFsInfo()
+        //{
+        //    log.Debug("Started processing return pdfs information");
 
-            List<SubmittedBatches> receivedPDFs;
-            receivedPDFs = DAL.GetMRDFReceivedBatches();
-            if (receivedPDFs.Count == 0)
-            {
-                log.Debug("Process PCI return PDFs job queue is empty.");
-                return;
-            }
+        //    List<SubmittedBatches> receivedPDFs;
+        //    receivedPDFs = DAL.GetMRDFReceivedBatches();
+        //    if (receivedPDFs.Count == 0)
+        //    {
+        //        log.Debug("Process PCI return PDFs job queue is empty.");
+        //        return;
+        //    }
 
-            //Looping Distinct BatchId because in PrintBatchId will have same PrintBatchIDs( mainly beacause of Reprint functionality )
-            foreach (var batchId in receivedPDFs.Select(x => x.PrintBatchId).Distinct())
-            {
-                BatchSummary batchSummary = DAL.GetBatchSummaryById(batchId);
-                Client clApp = DAL.GetClientAppDetailsById(batchSummary.ClientId);
+        //    //Looping Distinct BatchId because in PrintBatchId will have same PrintBatchIDs( mainly beacause of Reprint functionality )
+        //    foreach (var batchId in receivedPDFs.Select(x => x.PrintTrailBatchId).Distinct())
+        //    {
+        //        BatchSummary batchSummary = DAL.GetBatchSummaryById(batchId);
+        //        Client clApp = DAL.GetClientAppDetailsById(batchSummary.ClientId);
 
-                var bi = new BatchInfo(batchSummary, clApp);
+        //        var bi = new BatchInfo(batchSummary, clApp);
 
-                log.Debug("PCI return PDFs Job Started For Batch {0}".Fill(bi.BatchName));
+        //        log.Debug("PCI return PDFs Job Started For Batch {0}".Fill(bi.BatchName));
 
-                var docTypesMaps = DAL.GetDocTypeDetailsByAppId(clApp.Id).Where(x => x.DocTypeId == bi.BatchSummary.DocTypeId).Single();
+        //        var docTypesMaps = DAL.GetDocTypeDetailsByAppId(clApp.Id).Where(x => x.DocTypeId == bi.BatchSummary.DocTypeId).Single();
 
-                if (docTypesMaps != null)
-                    bi.InitializeDocTypeMaps(docTypesMaps, bi.BatchSummary.PrintBatch, bi.Client.AppCode, bi.Client.CustCode);
+        //        if (docTypesMaps != null)
+        //            bi.InitializeDocTypeMaps(docTypesMaps, bi.BatchSummary.PrintBatch, bi.Client.AppCode, bi.Client.CustCode);
 
-                //Check if directory exist or not
-                if (!Directory.Exists(Path.Combine(bi.PCIResponseReturnPDFsPath)))
-                {
-                    log.Error("PCIResponse return PDFs path is not found for Batch-ID : {0}".Fill(bi.BatchSummary.PrintBatch));
-                    continue;
-                }
+        //        //Check if directory exist or not
+        //        if (!Directory.Exists(Path.Combine(bi.PCIResponseReturnPDFsPath)))
+        //        {
+        //            log.Error("PCIResponse return PDFs path is not found for Batch-ID : {0}".Fill(bi.BatchSummary.PrintBatch));
+        //            continue;
+        //        }
 
-                //Check for pdf files only
-                List<string> pdfFileList = Directory.GetFiles(Path.Combine(bi.PCIResponseReturnPDFsPath), "*.pdf").ToList();
-                if (pdfFileList.Count == 0)
-                {
-                    continue;
-                }
-                try
-                {
-                    log.Debug("Batch-Id : " + batchId.ToString() + " have pdf file(s) to process.");
+        //        //Check for pdf files only
+        //        List<string> pdfFileList = Directory.GetFiles(Path.Combine(bi.PCIResponseReturnPDFsPath), "*.pdf").ToList();
+        //        if (pdfFileList.Count == 0)
+        //        {
+        //            continue;
+        //        }
+        //        try
+        //        {
+        //            log.Debug("Batch-Id : " + batchId.ToString() + " have pdf file(s) to process.");
 
-                    //Get Only submitted MRDF Request Data to the PCI 
-                    var mrdfRequestData = DAL.GetMRDFRequestDataByJobId(bi.BatchSummary.PrintBatch, "INTERNAL").AsEnumerable().Select(c => new { JobId = c.Field<int>("JobId"), MailPieceId = c.Field<int>("PieceId"), FileName = c.Field<int>("JobId").ToString() + "-" + c.Field<int>("PieceId").ToString() + "-" + c.Field<string>("PDFFileName"), IsReceived = c.Field<bool>("IsPDFReceived") }).ToList();
+        //            //Get Only submitted MRDF Request Data to the PCI 
+        //            var mrdfRequestData = DAL.GetMRDFRequestDataByJobId(bi.BatchSummary.PrintBatch, "INTERNAL").AsEnumerable().Select(c => new { JobId = c.Field<int>("JobId"), MailPieceId = c.Field<int>("PieceId"), FileName = c.Field<int>("JobId").ToString() + "-" + c.Field<int>("PieceId").ToString() + "-" + c.Field<string>("PDFFileName"), IsReceived = c.Field<bool>("IsPDFReceived") }).ToList();
 
-                    mrdfRequestData.ForEach(a =>
-                    {
-                        if (File.Exists(Path.Combine(bi.PCIResponseReturnPDFsPath, a.FileName)))
-                        {
-                            DAL.UpdateFileReceivedStatus(a.JobId, a.MailPieceId);
-                        }
-                    });
+        //            mrdfRequestData.ForEach(a =>
+        //            {
+        //                if (File.Exists(Path.Combine(bi.PCIResponseReturnPDFsPath, a.FileName)))
+        //                {
+        //                    DAL.UpdateFileReceivedStatus(a.JobId, a.MailPieceId);
+        //                }
+        //            });
 
-                    var updatedMrdfRequestData = DAL.GetMRDFRequestDataByJobId(bi.BatchSummary.PrintBatch, "INTERNAL").AsEnumerable().ToList();
+        //            var updatedMrdfRequestData = DAL.GetMRDFRequestDataByJobId(bi.BatchSummary.PrintBatch, "INTERNAL").AsEnumerable().ToList();
 
-                    if (updatedMrdfRequestData.Count == updatedMrdfRequestData.Where(c => c.Field<bool>("IsPDFReceived") == true).Count())
-                    {
-                        DAL.UpdateFileReceivedBatchStatus(bi.BatchSummary.PrintBatch, Common.GetCurrentTime());
-                    }
-                }
-                catch (Exception ex)
-                {
-                    var msg = "Error occured while processing return pdf searching file {0} with Error {1}".Fill(Path.GetFileName(bi.PCIResponseReturnPDFsPath), ex.Message);
-                    log.Error(msg, ex);
-                    MailUtility.SendUnexpectedNotificationEmail(msg);
-                }
-            }
-        }
+        //            if (updatedMrdfRequestData.Count == updatedMrdfRequestData.Where(c => c.Field<bool>("IsPDFReceived") == true).Count())
+        //            {
+        //                DAL.UpdateFileReceivedBatchStatus(bi.BatchSummary.PrintBatch, Common.GetCurrentTime());
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            var msg = "Error occured while processing return pdf searching file {0} with Error {1}".Fill(Path.GetFileName(bi.PCIResponseReturnPDFsPath), ex.Message);
+        //            log.Error(msg, ex);
+        //            MailUtility.SendUnexpectedNotificationEmail(msg);
+        //        }
+        //    }
+        //}
         #endregion
     }
 }
