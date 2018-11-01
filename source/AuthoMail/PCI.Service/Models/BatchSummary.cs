@@ -44,6 +44,7 @@ namespace PCI.Service
         public int? DocTypeId { get; set; }
         public string PrintFileName { get; set; }
         public string PrintLocation { get; set; }
+        public int PrintTrailId { get; set; }
     }
 
     public class BatchInfo
@@ -66,7 +67,6 @@ namespace PCI.Service
 
         public BatchSummary BatchSummary { get; private set; }
         public Client Client { get; private set; }
-        public DocType DocType { get; private set; }
 
         public BatchInfo(BatchSummary batchSummary, Client client)
         {
@@ -87,12 +87,12 @@ namespace PCI.Service
                 (batchSummary.JobName.Length - (client.AppCode.Length + 1)));
 
             //Combined path
-            BatchRepo = Path.Combine(Common.PCIRootFolder, client.AppCode, "{0}-{1}".Fill(batchSummary.PrintBatch, client.AppCode));
+            BatchRepo = Path.Combine(Common.PCIRootFolder, client.AppCode, "{0}".Fill(batchSummary.PrintBatch));
 
-            PnSRequestPath = Path.Combine(BatchRepo, "PnSRequest");
-            PCIRequestPath = Path.Combine(BatchRepo, "PCIRequest");
-            PCIResponsePath = Path.Combine(BatchRepo, "PCIResponse");
-            PnSResponsePath = Path.Combine(BatchRepo, "PnSResponse");
+            PnSRequestPath = Path.Combine(BatchRepo, Common.PnSRequestFolderName);
+            PCIRequestPath = Path.Combine(BatchRepo, Common.PCIRequestFolderName);
+            PCIResponsePath = Path.Combine(BatchRepo, Common.PCIResponseFolderName);
+            PnSResponsePath = Path.Combine(BatchRepo, Common.PnSResponseFolderName);
 
 
             RequestXmlPath = Path.Combine(PnSRequestPath, "{0}.xml".Fill(BatchName));
@@ -102,34 +102,52 @@ namespace PCI.Service
             //Used for storing PCI returned pdf to pns shared path for showing that pdfs to AuthoMail website
             PCIResponseReturnPDFsPath = Path.Combine(Common.PnS_SFT_RootDir, "PCIReturnedPDFs", client.AppCode, batchSummary.PrintBatch.ToString());
         }
-
-        public void InitializeDocTypeMaps(DocType docType, int printBatch, string appCode, string custID)
-        {
-            DocType = docType;
-            BatchZipFilePath = Path.Combine(PCIRequestPath, "{0}-{1}-{2}-{3}.zip".Fill(custID, printBatch, appCode, docType.DocTypeCode.Trim()));
-
-            var pciName = "{0}-{1}-{2}-{3}".Fill(custID, printBatch, appCode, docType.DocTypeCode.Trim());
-            SummaryPath = Path.Combine(PCIRequestPath, "{0}.txt".Fill(pciName));
-            RequestMRDFPath = Path.Combine(PCIRequestPath, "{0}.dat".Fill(pciName));
-            MergedPDFPath = Path.Combine(PCIRequestPath, "{0}.pdf".Fill(pciName));
-            ResponseMRDFPath = Path.Combine(PCIResponsePath, "{0}.out".Fill(pciName));
-        }
-
     }
 
     public class SubmittedBatches
     {
-        public int PrintBatchId { get; set; }
-        public string PatternBatchCode { get; set; }
+        public int PrintTrailBatchId { get; set; }
+        public string PrintBatchName { get; set; }
         public List<string> ReceivedFileList { get; set; }
     }
 
-    public class MailPieceReceivedOnData
+    public class MailPieceDetail : MRDFRequest
     {
+        public int ClientId { get; set; }
+        public string AppCode { get; set; }
+        public int DocTypeId { get; set; }
         public int MailPieceId { get; set; }
+        public string ShippingCarrier { get; set; }
+        public string ShippingServiceType { get; set; }
         public DateTime EffectiveReceivedOnEst { get; set; }
-        public Guid UniqueId { get; set; }
-        public string MailPieceFileName { get; set; }
+        public int SequenceNo { get; set; }
+
+        //Extra fields which will be used for generating MRDF Request
+        public string InputWeight { get; set; }
+        public string Feeder3_Sel { get; set; }
+        public string Feeder5_Sel { get; set; }
+        public string LowCap_Sel { get; set; }
+        public string NoSeal_Sel { get; set; }
+        public string Feeder2_Sel { get; set; }
+        public string ZipMark_Sel { get; set; }
+        public string Address2 { get; set; }
+        public string Zip5 { get; set; }
+        public string Zip4 { get; set; }
+        public string Zip2 { get; set; }
+        public string DivertVS2 { get; set; }
+        public string DivertVS4 { get; set; }
+        public string ReturnLogoBitMap { get; set; }
+        public string ReturnLine1 { get; set; }
+        public string ReturnLine2 { get; set; }
+        public string ReturnLine3 { get; set; }
+        public string ReturnLine4 { get; set; }
+        public string ReturnLine5 { get; set; }
+        public string ReturnLine6 { get; set; }
+        public string GroupNumber { get; set; }
+        public string SocialSecNumber { get; set; }
+        public string CheckAmount { get; set; }
+        public string PassThru { get; set; }
+        public string EndofRecord { get; set; }
     }
 
     public class DallasBatch
@@ -150,5 +168,32 @@ namespace PCI.Service
         public TimeSpan EndTime { get; set; }
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
+    }
+
+    public class PrintTrailDetail
+    {
+        public int PrintTrailId { get; set; }
+        public int PrintVendorId { get; set; }
+        public int SFTChannelId { get; set; }
+        public string PrintVendorName { get; set; }
+        public string BusinessCode { get; set; }
+        public string TrailName { get; set; }
+        public string Protocol { get; set; }
+        public string Host { get; set; }
+        public string UserName { get; set; }
+        public string Password { get; set; }
+        public string ToADEDir { get; set; }
+        public string FromADEDir { get; set; }
+    }
+
+    public class PrintTrailBatch
+    {
+        public int Id { get; set; }
+        public int PrintTrailId { get; set; }
+        public string PrintBatchName { get; set; }
+        public bool IsSubmitted { get; set; }
+        public DateTime? SubmittedOn { get; set; }
+        public bool IsMRDFReceived { get; set; }
+        public DateTime? MRDFReceivedOn { get; set; }
     }
 }

@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace PCI.Service
 {
-    class MRDFRequest
+    public class MRDFRequest
     {
         public int JobId { get; set; }
+        public int PrintTrailBatchId { get; set; }
         public int PieceId { get; set; }
         public DateTime Date { get; set; }
         public int TotalSheets { get; set; }
@@ -21,9 +22,10 @@ namespace PCI.Service
         public string ErrDesc { get; set; }
         public string Expansion { get; set; }
         public int DivertVS3 { get; set; }
+        public int Feeder4_Sel { get; set; }
         public bool HasError
         {
             get { return !ErrDesc.IsNullOrWhiteSpace(); }
-        }        
+        }
     }
 }

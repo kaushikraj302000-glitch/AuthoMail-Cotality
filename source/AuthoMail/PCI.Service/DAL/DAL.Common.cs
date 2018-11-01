@@ -86,7 +86,34 @@ namespace PCI.Service
             var dallasTimings = db.ExecuteDataSet("usp_GetDallasBatchTimingsPnS", estToday);
             return dallasTimings.DataTableAccessor<DallasBatchTiming>(false).ToList();
         }
+
+        public static int UpdatePrintTrailBatchStatus(int printTrailBatchId, string pipeLineStatus, DateTime timestamp)
+        {
+            return db.ExecuteSqlNonQuery("UPDATE [PnS].[PrintTrailBatches] SET {0}On = @p1 WHERE Id = @p2".Fill(pipeLineStatus), timestamp, printTrailBatchId);
+        }
+
+        public static PrintTrailDetail GetPrintTrailDetailByPrintTrailId(int printTrailId)
+        {
+            var printTrailDetail = db.ExecuteDataSet("usp_GetPrintTrailDetailByPrintTrailId", printTrailId);
+            return printTrailDetail.DataTableAccessor<PrintTrailDetail>(false).Single();
+        }
+
+        public static PrintTrailDetail GetPrintTrailDetailByPrintTrailName(string printTrailName)
+        {
+            var printTrailDetail = db.ExecuteDataSet("usp_GetPrintTrailDetailByPrintTrailName", printTrailName);
+            return printTrailDetail.DataTableAccessor<PrintTrailDetail>(false).Single();
+        }
+
+        public static int GetMailBatchesReceivedCount(DateTime startDateTime, DateTime endDateTime, string status)
+        {
+            string query = @"SELECT COUNT(*) FROM [AM].[PrintBatches] PB INNER JOIN AM.MailBatches B ON PB.MailBatchId = B.Id INNER JOIN PnS.BatchSummary BS ON PB.UniqueId = BS.BatchIdentifier WHERE B.ReceivedOn >=@p1 AND B.ReceivedOn <=@p2";
+
+            if (status == "Received")
+                query += " AND B.IsReceived=1";
+            else
+                query += "AND (B.IsPrepped = 1 OR B.IsReportPrepped = 1 OR B.IsReportedBack = 1) AND (BS.IsPrepped = 1 OR BS.IsReportPrepped = 1 OR BS.IsReportedBack = 1)";
+
+            return db.ExecuteSqlScalar<int>(query, startDateTime, endDateTime);
+        }
     }
-
-
 }

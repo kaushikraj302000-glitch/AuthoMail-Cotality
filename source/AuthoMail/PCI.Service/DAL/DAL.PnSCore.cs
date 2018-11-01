@@ -24,12 +24,12 @@ namespace PCI.Service
                 slaDays = batchSummary.SLADays;
             }
 
-            return db.ExecuteSqlNonQuery(@"UPDATE [PnS].[BatchSummary] SET ValidationStatus=@p1, OnValidationErrors=@p2, ValidationErrors=@p3, JulianDate=@p4, Images=@p5, dueDate=@p6,  slaDays=@p7, BatchIdentifier=@p8, DocTypeId=@p9, PrintFileName=@p10,PrintLocation=@p11  WHERE PrintBatch = @p12", batchSummary.ValidationStatus, batchSummary.OnValidationErrors, batchSummary.ValidationErrors, batchSummary.JulianDate, batchSummary.Images, dueDate, slaDays, batchSummary.BatchIdentifier, batchSummary.DocTypeId, batchSummary.PrintFileName, batchSummary.PrintLocation, batchSummary.PrintBatch);
+            return db.ExecuteSqlNonQuery(@"UPDATE [PnS].[BatchSummary] SET ValidationStatus=@p1, OnValidationErrors=@p2, ValidationErrors=@p3, JulianDate=@p4, Images=@p5, dueDate=@p6,  slaDays=@p7, BatchIdentifier=@p8, PrintTrailId=@p9, PrintFileName=@p10,PrintLocation=@p11, DocTypeId=@p12  WHERE PrintBatch = @p13", batchSummary.ValidationStatus, batchSummary.OnValidationErrors, batchSummary.ValidationErrors, batchSummary.JulianDate, batchSummary.Images, dueDate, slaDays, batchSummary.BatchIdentifier, batchSummary.PrintTrailId, batchSummary.PrintFileName, batchSummary.PrintLocation, batchSummary.DocTypeId, batchSummary.PrintBatch);
         }
 
         public static void UpdateBatchSummaryData(List<PCIField> batchSummarySchema, BatchSummary batchSummary)
         {
-            var usedColumns = new[] { "PrintFileName", "JulianDate", "Images", "DueDate", "SLADays", "ValidationStatus", "OnValidationErrors", "ValidationErrors", "BatchIdentifier", "DocTypeId", "PrintLocation" };
+            var usedColumns = new[] { "PrintFileName", "JulianDate", "Images", "DueDate", "SLADays", "ValidationStatus", "OnValidationErrors", "ValidationErrors", "BatchIdentifier", "PrintTrailId", "PrintLocation", "DocTypeId" };
 
             var skippedColumns = new[] { "PrintBatch", "ClientId", "JobName" };
 
@@ -46,7 +46,7 @@ namespace PCI.Service
 
             var defaultValues = defaultedColumns.Select(c => c.Value).ToList();
 
-            var usedColumnValues = new object[] { batchSummary.PrintBatch, batchSummary.PrintFileName, batchSummary.JulianDate, batchSummary.Images, batchSummary.DueDate, batchSummary.SLADays, batchSummary.ValidationStatus, batchSummary.OnValidationErrors, batchSummary.ValidationErrors, batchSummary.BatchIdentifier, batchSummary.DocTypeId, batchSummary.PrintLocation };
+            var usedColumnValues = new object[] { batchSummary.PrintBatch, batchSummary.PrintFileName, batchSummary.JulianDate, batchSummary.Images, batchSummary.DueDate, batchSummary.SLADays, batchSummary.ValidationStatus, batchSummary.OnValidationErrors, batchSummary.ValidationErrors, batchSummary.BatchIdentifier, batchSummary.PrintTrailId, batchSummary.PrintLocation, batchSummary.DocTypeId };
 
             var allValues = usedColumnValues.Concat(defaultValues).ToArray();
 
@@ -99,7 +99,7 @@ namespace PCI.Service
 
         public static void InsertMRDFRequestData(List<PCIField> mrdfRequestSchema, List<MRDFRequest> mrdfRequest)
         {
-            var usedColumns = new[] { "JobId", "PieceId", "Date", "TotalSheets", "Address1", "UniqueId", "PDFFileName", "MailPieceStatus", "ErrId", "ErrDesc", "Expansion", "DivertVS3" };
+            var usedColumns = new[] { "JobId", "PieceId", "Date", "TotalSheets", "Address1", "UniqueId", "PDFFileName", "MailPieceStatus", "ErrId", "ErrDesc", "Expansion", "DivertVS3", "Feeder4_Sel" };
             var defaultedColumns = mrdfRequestSchema
                 .Where(f => !usedColumns.Contains(f.FieldName)).ToList();
 
@@ -120,7 +120,7 @@ namespace PCI.Service
 
             foreach (var mrdf in mrdfRequest)
             {
-                var usedColumnValues = new object[] { mrdf.JobId, mrdf.PieceId, mrdf.Date, mrdf.TotalSheets, mrdf.Address1, mrdf.UniqueId, mrdf.PDFFileName, mrdf.MailPieceStatus, mrdf.ErrId, mrdf.ErrDesc, mrdf.Expansion, mrdf.DivertVS3 };
+                var usedColumnValues = new object[] { mrdf.JobId, mrdf.PieceId, mrdf.Date, mrdf.TotalSheets, mrdf.Address1, mrdf.UniqueId, mrdf.PDFFileName, mrdf.MailPieceStatus, mrdf.ErrId, mrdf.ErrDesc, mrdf.Expansion, mrdf.DivertVS3, mrdf.Feeder4_Sel };
 
                 var values = usedColumnValues.Concat(defaultValues);
 
@@ -133,7 +133,7 @@ namespace PCI.Service
         public static DataTable GetMRDFRequestDataByJobId(int jobId, string mailPieceStatus = "ALL")//To Get All Values define "ALL", Records without pdf level errors use "INTERNAL"
         {
             return db.ExecuteDataSet("usp_GetMRDFRequestDataByJobId", jobId, mailPieceStatus).Tables[0];
-        }
+        }        
 
         public static DataTable GetMRDFResponseDummyDataByJobId(int jobId)//To Get All Values define "ALL", Records without pdf level errors use "INTERNAL"
         {
@@ -174,7 +174,7 @@ namespace PCI.Service
                 string errorUpdate = res.Field<string>("Disposition").Trim() == "7" ?
                     ", ErrId=7, ErrDesc='System was unable to print or ship this mailpiece. It has to be resent after necessary amendments.'" : "";
 
-                var updateSql = "UPDATE [PnS].[MRDFRequest] SET MailPieceStatus=@p1{0} WHERE JobId=@p2 AND PieceId=@p3".Fill(errorUpdate);
+                var updateSql = "UPDATE [PnS].[MRDFRequest] SET MailPieceStatus=@p1{0} WHERE PrintTrailBatchId=@p2 AND PieceId=@p3".Fill(errorUpdate);
 
                 db.ExecuteSqlNonQuery(updateSql, GetMailPieceStatus(res.Field<string>("Disposition").Trim()).ToString(),
                     res.Field<int>("JobId"),
@@ -259,6 +259,12 @@ namespace PCI.Service
         public static DataTable GetPullBackRequestDataByJobId(int jobId)
         {
             var ds = db.ExecuteDataSet("usp_GetPullBackRequestDataByJobId", jobId);
+            return ds.Tables[0];
+        }
+
+        public static DataTable GetMRDFResponseDataByPrintTrailBatchId(int printTrailBatchId)
+        {
+            var ds = db.ExecuteDataSet("usp_GetMRDFResponseDataByPrintTrailBatchId", printTrailBatchId);
             return ds.Tables[0];
         }
     }

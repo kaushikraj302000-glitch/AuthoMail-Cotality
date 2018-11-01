@@ -21,6 +21,7 @@ namespace PCI.Service
         public static bool Remove_PDF_Of_PCI_SFT { get; private set; }
 
         public static string PCIRootFolder { get; set; }
+        public static string BundlingRootFolder { get; set; }
 
         public static string PCIRootReturnPDFsZipFolder { get; set; }
 
@@ -71,6 +72,14 @@ namespace PCI.Service
         public static string PrintLocationCL { get; private set; }
         public static string PrintLocationPCI { get; private set; }
 
+        public static string BundlingRequestFolderName { get; private set; }
+        public static string BundlingResponseFolderName { get; private set; }
+
+        public static string PnSRequestFolderName { get; private set; }
+        public static string PnSResponseFolderName { get; private set; }
+        public static string PCIRequestFolderName { get; private set; }
+        public static string PCIResponseFolderName { get; private set; }
+
         public static string UnexpectedEmail_Subject { get; private set; }
         public static string UnexpectedEmail_ToEmail { get; private set; }
         public static string UnexpectedEmail_CcEmail { get; private set; }
@@ -84,6 +93,16 @@ namespace PCI.Service
 
             PCIRootFolder = Path.GetFullPath(ConfigurationManager.AppSettings["PCIRootFolder"]);
             PCIRootFolder.CreateDirectoryIfNotExist();
+
+            BundlingRootFolder = Path.Combine(Path.GetFullPath(ConfigurationManager.AppSettings["PCIRootFolder"]), "BundlingRoot");
+            BundlingRootFolder.CreateDirectoryIfNotExist();
+            BundlingRequestFolderName = "Request";
+            BundlingResponseFolderName = "Response";
+
+            PnSRequestFolderName = "PnSRequest";
+            PnSResponseFolderName = "PnSResponse";
+            PCIRequestFolderName = "PCIRequest";
+            PCIResponseFolderName = "PCIResponse";
 
             PCIRootReturnPDFsZipFolder = Path.GetFullPath(ConfigurationManager.AppSettings["PCIRootReturnPDFsZipFolder"]);
             PCIRootReturnPDFsZipFolder.CreateDirectoryIfNotExist();
