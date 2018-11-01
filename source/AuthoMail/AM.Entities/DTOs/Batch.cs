@@ -80,6 +80,7 @@ namespace AM.Entities
         public int PrintTrailId { get; set; }
         public string AppCode { get; set; }
         public string PrintLocation { get; set; }
+        public int DocTypeId { get; set; }
         public List<MailPieceDTO> MailPieces { get; set; }
     }
 
