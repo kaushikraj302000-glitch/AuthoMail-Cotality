@@ -106,12 +106,12 @@ namespace PCI.Service
 
         public static int GetMailBatchesReceivedCount(DateTime startDateTime, DateTime endDateTime, string status)
         {
-            string query = @"SELECT COUNT(*) FROM [AM].[PrintBatches] PB INNER JOIN AM.MailBatches B ON PB.MailBatchId = B.Id INNER JOIN PnS.BatchSummary BS ON PB.UniqueId = BS.BatchIdentifier WHERE B.ReceivedOn >=@p1 AND B.ReceivedOn <=@p2";
+            string query = @"SELECT COUNT(*) FROM [AM].[PrintBatches] PB LEFT OUTER JOIN AM.MailBatches B ON PB.MailBatchId = B.Id LEFT OUTER JOIN PnS.BatchSummary BS ON PB.UniqueId = BS.BatchIdentifier WHERE B.ReceivedOn >=@p1 AND B.ReceivedOn <=@p2";
 
             if (status == "Received")
                 query += " AND B.IsReceived=1";
             else
-                query += "AND (B.IsPrepped = 1 OR B.IsReportPrepped = 1 OR B.IsReportedBack = 1) AND (BS.IsPrepped = 1 OR BS.IsReportPrepped = 1 OR BS.IsReportedBack = 1)";
+                query += " AND (B.IsPrepped = 1 OR B.IsReportPrepped = 1 OR B.IsReportedBack = 1) AND (BS.IsPrepped = 1 OR BS.IsReportPrepped = 1 OR BS.IsReportedBack = 1)";
 
             return db.ExecuteSqlScalar<int>(query, startDateTime, endDateTime);
         }

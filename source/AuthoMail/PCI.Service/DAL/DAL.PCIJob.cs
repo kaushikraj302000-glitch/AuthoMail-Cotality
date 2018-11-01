@@ -132,8 +132,8 @@ namespace PCI.Service
 
         public static PrintTrailBatch GetPrintBatchDetailByPrintBatchTrailId(int printTrailBatchId)
         {
-            var printTrailBatchDetail = db.ExecuteDataSet("usp_GetPrintBatchDetailByPrintBatchTrailId").Tables[0];
-            return printTrailBatchDetail.AsEnumerable().Select(pt => new PrintTrailBatch() { Id = pt.Field<int>("Id"), PrintBatchName = pt.Field<string>("PrintFileName"), PrintTrailId = pt.Field<int>("PrintTrailId"), SubmittedOn = pt.Field<DateTime?>("SubmittedOn"), MRDFReceivedOn = pt.Field<DateTime?>("MRDFReceivedOn"), IsSubmitted = pt.Field<bool>("IsSubmitted"), IsMRDFReceived = pt.Field<bool>("IsMRDFReceived") }).SingleOrDefault();
+            var printTrailBatchDetail = db.ExecuteDataSet("usp_GetPrintBatchDetailByPrintBatchTrailId", printTrailBatchId).Tables[0];
+            return printTrailBatchDetail.AsEnumerable().Select(pt => new PrintTrailBatch() { Id = pt.Field<int>("Id"), PrintBatchName = pt.Field<string>("PrintBatchName"), PrintTrailId = pt.Field<int>("PrintTrailId"), SubmittedOn = pt.Field<DateTime?>("SubmittedOn"), MRDFReceivedOn = pt.Field<DateTime?>("MRDFReceivedOn"), IsSubmitted = pt.Field<bool>("IsSubmitted"), IsMRDFReceived = pt.Field<bool>("IsMRDFReceived") }).SingleOrDefault();
         }
     }
 }

@@ -128,9 +128,9 @@ namespace PCI.Service
 
             receivedCount = DAL.GetMailBatchesReceivedCount(Common.EstToUtc(startDateTime), Common.EstToUtc(endDateTime), "Received");
             completedCount = DAL.GetMailBatchesReceivedCount(Common.EstToUtc(startDateTime), Common.EstToUtc(endDateTime), "Completed");
-
             return receivedCount == completedCount;
         }
+
         private static void CreateZipAndUploadPCIBatch(List<MailPieceDetail> mailPieceDetails, PrintTrailBatch printTrailBatchDetail, string zipFilePath, string mrdfFilePath)
         {
             var mrdfContent = new StringBuilder();
