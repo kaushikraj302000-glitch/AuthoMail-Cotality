@@ -19,6 +19,7 @@ CREATE TABLE [Common].[PrintTrails](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[TrailName] [varchar](255) NULL,
 	[PrintVendorId] [int] NOT NULL,
+	[SimulateTrail] BIT NULL,
  CONSTRAINT [PK_PrintTrails_Id] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
@@ -67,6 +68,9 @@ CREATE TABLE [PnS].[PrintTrailBatches](
 	[PrintTrailId] [int] NOT NULL,
 	[IsSubmitted]  AS (case when [SubmittedOn] IS NULL then (0) else (1) end),
 	[IsMRDFReceived]  AS (case when [MRDFReceivedOn] IS NULL then (0) else (1) end),
+	[SuspendedOn] [datetime] NULL,
+	[IsSuspended]  AS (case when [SuspendedOn] IS NULL then (0) else (1) end), 
+	[ValidationErrors] VARCHAR(255) NULL,
  CONSTRAINT [PK_PrintTrailBatches_Id] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
@@ -145,24 +149,29 @@ GO
 
 ALTER TABLE [PnS].[MRDFResponse] CHECK CONSTRAINT [FK_MRDFResponse_BatchSummary]
 GO
+
+ALTER TABLE [Common].[Clients] DROP CONSTRAINT [DF__Clients__Simulat__7E850515]
+ALTER TABLE [Common].[Clients]
+Drop COLUMN SimulatePCI
+
 -- Mapping Data
 INSERT INTO Common.PrintVendors([Name],[SFTChannelId],[BusinessCode]) Values ('Fort Mill, SC',1,'002416')
 INSERT INTO Common.PrintVendors([Name],[SFTChannelId],[BusinessCode]) Values ('Dallas CL',1,'ADE')
 
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId])  Values ('ALASKA-GENERIC-9X12',1)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId])  Values ('ALASKA-GENERIC-PRI',1)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId])  Values ('CITIVM-GENERIC-PRI',1)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId])  Values ('CITIVM-GENERIC-9X12',1)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId])  Values ('HSBC-GENERIC-9X12',2)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId])  Values ('HSBC-GENERIC-PRI',2)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId])  Values ('DALLAS-90days-CERT',1)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId])  Values ('DALLAS-GENERIC-10',1)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId])  Values ('DALLAS-Statements-10',1)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId])  Values ('RPS-GENERIC-6X9',1)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId])  Values ('RPS-GENERIC-9X12',1)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId])  Values ('USAA-GENERIC-10',1)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId])  Values ('USAA-GENERIC-FEDEX',2)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId])  Values ('USAA-GENERIC-PRI',2)
+INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('ALASKA-GENERIC-9X12',1,0)
+INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('ALASKA-GENERIC-PRI',1,0)
+INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('CITIVM-GENERIC-PRI',1,0)
+INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('CITIVM-GENERIC-9X12',1,0)
+INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('HSBC-GENERIC-9X12',2,0)
+INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('HSBC-GENERIC-PRI',2,0)
+INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('DALLAS-90days-CERT',1,0)
+INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('DALLAS-GENERIC-10',1,0)
+INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('DALLAS-Statements-10',1,0)
+INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('RPS-GENERIC-6X9',1,0)
+INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('RPS-GENERIC-9X12',1,0)
+INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('USAA-GENERIC-10',1,0)
+INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('USAA-GENERIC-FEDEX',2,0)
+INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('USAA-GENERIC-PRI',2,0)
 
 
 

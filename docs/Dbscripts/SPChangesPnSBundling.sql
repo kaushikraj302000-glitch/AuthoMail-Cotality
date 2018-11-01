@@ -58,17 +58,15 @@ END
 GO
 
 
-/****** Object:  StoredProcedure [dbo].[usp_GetMRDFResponseDataByPrintTrailBatchId]    Script Date: 11/1/2018 6:42:06 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetMRDFResponseDataByPrintTrailBatchId]    Script Date: 11/1/2018 11:29:29 PM ******/
 SET ANSI_NULLS ON
 GO
-
 SET QUOTED_IDENTIFIER ON
 GO
 
 
-
 CREATE PROCEDURE [dbo].[usp_GetMRDFResponseDataByPrintTrailBatchId]
-@jobId int
+@printTrailBatchId int
 AS
 BEGIN
  -- SET NOCOUNT ON added to prevent extra result sets from
@@ -79,7 +77,7 @@ BEGIN
  , Disposition, Input_Fed, Feeder3_Fed, Feeder4_Fed, Feeder5_Fed, ComputedWeight, MeterDate
  , StatusSource, PostageMetered, WeightMeasured, ExitLocation, TotalSheets, PDFFileName, PackageTrackingNumber 
  FROM [Pns].[MRDFResponse] MS 
- WHERE MS.JobId=@jobId
+ WHERE MS.JobId=@printTrailBatchId
 END
 
 /****** Object:  StoredProcedure [dbo].[usp_GetSubmittedBatches]    Script Date: 11/1/2018 6:43:01 PM ******/
@@ -131,30 +129,6 @@ END
 
 GO
 
-/****** Object:  StoredProcedure [dbo].[usp_GetMRDFResponseDataByPrintTrailBatchId]    Script Date: 11/1/2018 6:44:19 PM ******/
-SET ANSI_NULLS ON
-GO
-
-SET QUOTED_IDENTIFIER ON
-GO
-
-
-
-CREATE PROCEDURE [dbo].[usp_GetMRDFResponseDataByPrintTrailBatchId]
-@jobId int
-AS
-BEGIN
- -- SET NOCOUNT ON added to prevent extra result sets from
- -- interfering with SELECT statements.
- SET NOCOUNT ON;
- 
- SELECT JobId, PieceId, Date, Feeder2_Fed, OperatorId, MachineId, ProcessingTimeStamp, DetailedErrorId
- , Disposition, Input_Fed, Feeder3_Fed, Feeder4_Fed, Feeder5_Fed, ComputedWeight, MeterDate
- , StatusSource, PostageMetered, WeightMeasured, ExitLocation, TotalSheets, PDFFileName, PackageTrackingNumber 
- FROM [Pns].[MRDFResponse] MS 
- WHERE MS.JobId=@jobId
-END
-
 
 /****** Object:  StoredProcedure [dbo].[usp_GetPrintTrailDetailByPrintTrailId]    Script Date: 11/1/2018 6:45:37 PM ******/
 SET ANSI_NULLS ON
@@ -176,7 +150,7 @@ BEGIN
 	-- interfering with SELECT statements.
 	SET NOCOUNT ON;
 	
-	SELECT TOP 1 PT.id as PrintTrailId, PT.PrintVendorId,PT.TrailName,
+	SELECT TOP 1 PT.id as PrintTrailId, PT.PrintVendorId,PT.TrailName, PT.SimulateTrail,
 	PV.Name as PrintVendorName,PV.BusinessCode ,PV.SFTChannelId,
 	SC.Protocol,SC.Host,SC.UserName,SC.[Password],SC.ToADEDir,SC.FromADEDir 
 	FROM Common.PrintTrails PT
@@ -207,7 +181,7 @@ BEGIN
 	-- interfering with SELECT statements.
 	SET NOCOUNT ON;
 	
-	SELECT TOP 1 PT.id as PrintTrailId, PT.PrintVendorId,PT.TrailName,
+	SELECT TOP 1 PT.id as PrintTrailId, PT.PrintVendorId,PT.TrailName, PT.SimulateTrail,
 	PV.Name as PrintVendorName,PV.BusinessCode ,PV.SFTChannelId,
 	SC.Protocol,SC.Host,SC.UserName,SC.[Password],SC.ToADEDir,SC.FromADEDir 
 	FROM Common.PrintTrails PT
@@ -218,3 +192,140 @@ END
 
 GO
 
+/****** Object:  StoredProcedure [dbo].[usp_GetMRDFResponseDummyDataByPrintTrailBatchId]    Script Date: 11/1/2018 11:34:20 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+
+
+CREATE PROCEDURE [dbo].[usp_GetMRDFResponseDummyDataByPrintTrailBatchId]
+@printTrailBatchId int
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+	SELECT Req.PrintTrailBatchId as JobId, Req.PieceId, Req.[Date], Req.TotalSheets, Req.InputWeight, Req.Feeder3_Sel, Req.Feeder4_Sel
+		, Req.Feeder5_Sel, Req.LowCap_Sel, Req.NoSeal_Sel, Req.Feeder2_Sel, Req.ZipMark_Sel, Req.Address1, Req.Address2
+		, Req.Zip5, Req.Zip4, Req.Zip2, Req.DivertVS2, Req.DivertVS3
+		, Req.DivertVS4, Req.ReturnLogoBitMap, Req.ReturnLine1, Req.ReturnLine2, Req.ReturnLine3, Req.ReturnLine4
+		, Req.ReturnLine5, Req.ReturnLine6, Req.GroupNumber, Req.SocialSecNumber, Req.CheckAmount, Req.PassThru
+		, Req.Expansion, Req.EndofRecord, Req.UniqueId, Req.PDFFileName, Req.ErrId, Req.ErrDesc, Req.MailPieceStatus, Req.IsPDFReceived 
+		, Req.Feeder2_Sel as Feeder2_Fed
+		,NULL AS PackageTrackingNumber
+		,'RichardP' as OperatorId,'PCI09   ' as MachineId
+		,(CONVERT(VARCHAR(8), [dbo].[ufn_UTCToEST](GETUTCDATE()), 112)+REPLACE(CONVERT(VARCHAR(8), [dbo].[ufn_UTCToEST](GETUTCDATE()), 108),':','')) as ProcessingTimeStamp
+		,'4691 ' as DetailedErrorId,'00' as Input_Fed,'0' as Feeder3_Fed,'0' as Feeder4_Fed,'0' as Feeder5_Fed
+		,CASE WHEN P.IsPullBackRequested=1 AND P.PulledBackOn IS NULL THEN '4 ' WHEN P.IsQCRequested=1 THEN '8 ' ELSE '5 ' END as Disposition
+		,'0.00 ' as ComputedWeight, '00000000' as MeterDate,'Mailrun_Files            ' as StatusSource
+		,'0.0000' as PostageMetered,'000 ' as WeightMeasured,'Mailrun_Files            ' as ExitLocation
+		FROM [PnS].[MRDFRequest] Req
+		INNER JOIN [AM].[MailPieces] P ON P.UniqueId=Req.UniqueId
+		WHERE Req.PrintTrailBatchId = @printTrailBatchId AND Req.MailPieceStatus='InProgress'
+END
+
+
+/****** Object:  StoredProcedure [dbo].[usp_GetMRDFRequestDataByPrintTrailBatchId]    Script Date: 11/1/2018 11:35:02 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+CREATE PROCEDURE [dbo].[usp_GetMRDFRequestDataByPrintTrailBatchId]
+@printTrailBatchId int,
+@mailPieceStatus varchar(255)
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+	If(@mailPieceStatus='ALL')
+	BEGIN
+		SELECT JobId, PieceId, [Date], TotalSheets, InputWeight, Feeder3_Sel, Feeder4_Sel
+		, Feeder5_Sel, LowCap_Sel, NoSeal_Sel, Feeder2_Sel, ZipMark_Sel, Address1, Address2
+		, Zip5, Zip4, Zip2, DivertVS2, DivertVS3
+		, DivertVS4, ReturnLogoBitMap, ReturnLine1, ReturnLine2, ReturnLine3, ReturnLine4
+		, ReturnLine5, ReturnLine6, GroupNumber, SocialSecNumber, CheckAmount, PassThru
+		, Expansion, EndofRecord, UniqueId, PDFFileName,ErrId, ErrDesc, MailPieceStatus, IsPDFReceived,PrintTrailBatchId 
+		FROM [PnS].[MRDFRequest] WHERE PrintTrailBatchId = @printTrailBatchId
+	END
+	ELSE If(@mailPieceStatus='INTERNAL')--This will be used for getting only submitted records to PCI
+	BEGIN
+		SELECT JobId, PieceId, [Date], TotalSheets, InputWeight, Feeder3_Sel, Feeder4_Sel
+		, Feeder5_Sel, LowCap_Sel, NoSeal_Sel, Feeder2_Sel, ZipMark_Sel, Address1, Address2
+		, Zip5, Zip4, Zip2, DivertVS2, DivertVS3
+		, DivertVS4, ReturnLogoBitMap, ReturnLine1, ReturnLine2, ReturnLine3, ReturnLine4
+		, ReturnLine5, ReturnLine6, GroupNumber, SocialSecNumber, CheckAmount, PassThru
+		, Expansion, EndofRecord, UniqueId, PDFFileName,ErrId, ErrDesc, MailPieceStatus, IsPDFReceived,PrintTrailBatchId 
+		FROM [PnS].[MRDFRequest] WHERE PrintTrailBatchId = @printTrailBatchId AND ErrId NOT IN (-1,-2,-3)
+	END
+	ELSE
+	BEGIN
+		SELECT JobId, PieceId, [Date], TotalSheets, InputWeight, Feeder3_Sel, Feeder4_Sel
+		, Feeder5_Sel, LowCap_Sel, NoSeal_Sel, Feeder2_Sel, ZipMark_Sel, Address1, Address2
+		, Zip5, Zip4, Zip2, DivertVS2, DivertVS3
+		, DivertVS4, ReturnLogoBitMap, ReturnLine1, ReturnLine2, ReturnLine3, ReturnLine4
+		, ReturnLine5, ReturnLine6, GroupNumber, SocialSecNumber, CheckAmount, PassThru
+		, Expansion, EndofRecord, UniqueId, PDFFileName,ErrId, ErrDesc, MailPieceStatus, IsPDFReceived,PrintTrailBatchId 
+		FROM [PnS].[MRDFRequest] WHERE PrintTrailBatchId = @printTrailBatchId AND ISNULL(MailPieceStatus,'')=@mailPieceStatus
+	END
+END
+GO
+
+
+/****** Object:  StoredProcedure [dbo].[usp_GetAllClientAppDetail]    Script Date: 11/1/2018 11:35:31 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER PROCEDURE [dbo].[usp_GetAllClientAppDetail]
+	-- Add the parameters for the stored procedure here
+	
+AS
+BEGIN
+	SELECT 
+	C.Id, C.Name, C.AppCode, C.BusinessUnit, C.IsAMActive, C.IsPnSActive, C.ModifiedOn, C.ModifiedBy
+	, C.CreatedOn, C.CreatedBy, C.TimeZone
+	,B.Id As BUId
+	,B.CustCode
+	,B.[BusinessUnit]
+  FROM [Common].[Clients] C INNER JOIN [Common].[BusinessUnit] B ON B.Id = C.BusinessUnit
+END
+
+
+/****** Object:  StoredProcedure [dbo].[usp_GetClientAppDetailsById]    Script Date: 11/1/2018 11:35:48 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER PROCEDURE [dbo].[usp_GetClientAppDetailsById]
+	-- Add the parameters for the stored procedure here
+	@appId int
+AS
+BEGIN
+	SELECT C.[Id]
+	  ,B.Id AS BUId
+	  ,B.BusinessUnit
+	  ,B.CustCode
+      ,[AppCode]
+      ,[Name]
+	  ,[TimeZone]
+      ,[IsAMActive]
+	  ,[IsPnSActive]
+      ,[ModifiedOn]
+      ,[ModifiedBy]
+      ,[CreatedOn]
+      ,[CreatedBy]
+  FROM [Common].[Clients] C
+  INNER JOIN Common.BusinessUnit B ON B.Id=C.BusinessUnit
+  WHERE C.Id = @appId
+END
