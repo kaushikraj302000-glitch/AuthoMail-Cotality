@@ -593,7 +593,7 @@ namespace AM.Core
             using (IDocTypeService docTypeSvc = new DocTypeService())
             {
                 List<PrintBatch> printBatches = new List<PrintBatch>();
-                
+
                 var docTypes = validMailPieces.Select(row => row.DocTypeId.Value).Distinct();
                 foreach (var docTypeId in docTypes)
                 {
@@ -605,6 +605,7 @@ namespace AM.Core
                     foreach (var printTrailId in printTrailIds)
                     {
                         PrintBatch printBatch = new PrintBatch();
+                        printBatch.MailBatchId = mailBatchData.MailBatch.Id;
                         printBatch.AppCode = clientSvc.GetClientById(docType.ClientId).AppCode;
                         printBatch.UniqueId = Guid.NewGuid();
                         printBatch.DocTypeId = docType.Id;
@@ -641,7 +642,7 @@ namespace AM.Core
                         printBatches.Add(printBatch);
                     }
                 }
-                
+
                 string pnsRootFolder = Config.Core_PnS_SFT_RootDir;
 
                 foreach (var printBatchData in printBatches)
