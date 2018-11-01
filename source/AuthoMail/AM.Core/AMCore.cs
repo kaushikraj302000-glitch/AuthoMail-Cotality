@@ -42,7 +42,6 @@ namespace AM.Core
 
                 foreach (MailBatchDTO mailBatch in mailBatches)
                 {
-                    SmartDocs doc = new SmartDocs();
                     Client client = clientSvc.GetClientById(mailBatch.ClientId);
                     MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
 
@@ -63,6 +62,9 @@ namespace AM.Core
                             string outputFilePath = Path.Combine(mbi.PnSRequestPath, "{0}_{1}".Fill(mailPieceId, mailPiece.FileName));
                             string coverLetterPdfPath = string.Empty;
                             string endPagePdfPath = string.Empty;
+                            string endPageTemplatePath = string.Empty;
+
+                            SmartDocResponse response;
 
                             #region From Address
                             string fromAddress = string.Empty;
@@ -192,15 +194,20 @@ namespace AM.Core
                             //Folder structure and file naming convention should be Root/AppCode/AppCode_DocTypeCode_SeqNo.pdf
                             string coverLetterTemplatePath = docTypeLetter == null ? string.Empty : Path.Combine(Config.Core_CoverTemplateFolder, client.AppCode, docTypeLetter.CoverLetterTemplatePath);
 
+                            SmartDocs doc = new SmartDocs();
+
                             if (docType.ShippingCarrier == Carrier.USPS.ToString())
                             {
+                                endPageTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, Config.Core_USPSEndPageTemplatePath);
+
                                 if (docType.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS.ToString())
                                 {
                                     eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name);
-                                    coverLetterPdfPath = doc.GenerateEVSCoverLetter(client.AppCode, commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq);
+
+                                    response = doc.GenerateEVSCoverLetter(client.AppCode, commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq);
 
                                     //if we have service changed to priority then we are updating doctypeid in database also
-                                    if (doc.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY)
+                                    if (response.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY)
                                     {
                                         string priorityDocType = mailPiece.DocumentOrPackageType + Config.Monitor_PriorityMailingText;
                                         docType = docTypeSvc.GetDocTypeByDocTypeName(client.Id, priorityDocType);
@@ -217,19 +224,16 @@ namespace AM.Core
                                 }
                                 else
                                 {
-                                    if (!string.IsNullOrEmpty(coverLetterTemplatePath))
-                                    {
-                                        //Create Cover letter with IMBarcode - USPS First Class
-                                        coverLetterPdfPath = doc.GenerateUSPSIMBCoverLetter(client.AppCode, coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
-                                    }
+                                    //Create Cover letter with IMBarcode - USPS First Class
+                                    response = doc.GenerateUSPSIMBCoverLetter(client.AppCode, coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
                                 }
 
-                                if (!string.IsNullOrEmpty(doc.ExceptionDetail))
+                                if (response.HasError)
                                 {
                                     mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
                                     mailPiece.TotalPages = 0;
                                     mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                                    mailPiece.ErrorDesc = doc.ExceptionDetail;
+                                    mailPiece.ErrorDesc = response.ExceptionDetail;
                                     mailPiece.DueDate = null;
                                     mailPiece.PrintLocation = null;
                                     mailPiece.PrintTrailId = null;
@@ -237,22 +241,13 @@ namespace AM.Core
                                     continue;
                                 }
 
-                                mailPiece.TrackingNo = doc.TrackingCode;
-                                mailPiece.ShippingCost = doc.PostageCost;
-
-                                //For now reverse barcoding will be mail piece id
-                                if (mailPiece.PrintLocation == Config.Common_PrintLocationCL)
-                                {
-                                    //Using different end page for USPS packages
-                                    string endPageUSPSTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, Config.Core_USPSEndPageTemplatePath);
-
-                                    mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((mailPiece.TrackingNo).Reverse().ToArray()) + "*");
-
-                                    endPagePdfPath = doc.GenerateLastPageWithBarcode(endPageUSPSTemplatePath, mbi.PnSRequestPath, mailPieceData);
-                                }
+                                coverLetterPdfPath = response.CoverLetterPath;
+                                mailPiece.TrackingNo = response.TrackingCode;
+                                mailPiece.ShippingCost = response.PostageCost;
                             }
                             else if (docType.ShippingCarrier == Carrier.FedEx.ToString())
                             {
+                                endPageTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, Config.Core_FedExEndPageTemplatePath);
                                 #region  Call FedEx web service and get create shipping label
 
                                 FedExAccountInfo fedExAccInfo = fedExSvc.GetFedExAccountDetailsByAccountCode(docType.ShippingAccountCode);
@@ -285,39 +280,47 @@ namespace AM.Core
                                 {
                                     coverLetterPdfPath = createFedExLabel.GeneratedFedExLabelPath;
                                     mailPiece.TrackingNo = Path.GetFileNameWithoutExtension(coverLetterPdfPath);
-
-                                    if (mailPiece.PrintLocation == Config.Common_PrintLocationCL)
-                                    {
-                                        //Using different end page for FedEx packages
-                                        string endPageFedExTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, Config.Core_FedExEndPageTemplatePath);
-
-                                        mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((mailPiece.TrackingNo).Reverse().ToArray()) + "*");
-
-                                        endPagePdfPath = doc.GenerateLastPageWithBarcode(endPageFedExTemplatePath, mbi.PnSRequestPath, mailPieceData);
-                                    }
                                 }
 
                                 #endregion
                             }
 
-                            if (File.Exists(coverLetterPdfPath))
+                            //For now reverse barcoding will be mail piece id
+                            if (mailPiece.PrintLocation == Config.Common_PrintLocationCL)
                             {
-                                int pageCount = doc.GenerateDoc(coverLetterPdfPath, pdfFilePath, outputFilePath, docType.ContentScalePercent, endPagePdfPath);
-                                if (pageCount > 0)
+                                mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((mailPiece.TrackingNo).Reverse().ToArray()) + "*");
+
+                                response = doc.GenerateLastPageWithBarcode(endPageTemplatePath, mbi.PnSRequestPath, mailPieceData);
+
+                                if (response.HasError)
                                 {
-                                    mailPiece.TotalPages = pageCount;
-                                }
-                                else
-                                {
-                                    mailPiece.ErrorCode = OutComeCodes.Invalid_PDF_File;
+                                    mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
                                     mailPiece.TotalPages = 0;
-                                    mailPiece.DueDate = null;
-                                    mailPiece.PrintTrailId = null;
-                                    mailPiece.PrintLocation = null;
                                     mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                                    mailPiece.ErrorDesc = doc.ExceptionDetail;
+                                    mailPiece.ErrorDesc = response.ExceptionDetail;
+                                    mailPiece.DueDate = null;
+                                    mailPiece.PrintLocation = null;
+                                    mailPiece.PrintTrailId = null;
+                                    mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                    continue;
                                 }
+                                endPagePdfPath = response.CoverLetterPath;
                             }
+
+                            response = doc.GenerateDoc(coverLetterPdfPath, pdfFilePath, outputFilePath, docType.ContentScalePercent, endPagePdfPath);
+
+                            if (response.HasError)
+                            {
+                                mailPiece.ErrorCode = OutComeCodes.Invalid_PDF_File;
+                                mailPiece.TotalPages = 0;
+                                mailPiece.DueDate = null;
+                                mailPiece.PrintTrailId = null;
+                                mailPiece.PrintLocation = null;
+                                mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                mailPiece.ErrorDesc = response.ExceptionDetail;
+                            }
+
+                            mailPiece.TotalPages = response.TotalPages;
                             mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                         }
                         catch (Exception ex)

@@ -23,17 +23,11 @@ namespace AM.Core
         private Font arial = FontFactory.GetFont("Arial", 12.5f);
         private Font arialBold = FontFactory.GetFont("Arial", 12f, Font.BOLD);
 
-        public string ExceptionDetail { get; private set; }
-        public string TrackingCode { get; private set; }
-        public ServiceType ShippingServiceType { get; private set; }
-        public decimal PostageCost { get; private set; }
-
-        public string GenerateUSPSIMBCoverLetter(string appCode, string coverTemplatePDFPath, string outputDir, Dictionary<string, string> mailPieceData)
+        public SmartDocResponse GenerateUSPSIMBCoverLetter(string appCode, string coverTemplatePDFPath, string outputDir, Dictionary<string, string> mailPieceData)
         {
             appCode = Config.Common_Environment == Env.Prod ? appCode : "TEST";
 
-            TrackingCode = string.Empty;
-            ExceptionDetail = string.Empty;
+            SmartDocResponse response = new SmartDocResponse();
 
             string coverLetterPDFPath = Path.Combine(outputDir, string.Format("CoverLetter_{0}.pdf", mailPieceData["MailPieceId"]));
 
@@ -45,13 +39,14 @@ namespace AM.Core
             if (IMBarcode.Status == true)
             {
                 mailPieceData.Add("Barcode", IMBarcode.BarcodeString);
-                TrackingCode = IMBarcode.TrackingCode;
+                response.TrackingCode = IMBarcode.TrackingCode;
                 mailPieceData.Add("FrontBarcode", "*" + IMBarcode.TrackingCode + "*");
             }
             else
             {
-                ExceptionDetail = "Error occured while generating IMBarcode :" + IMBarcode.ErrorMessage;
-                return "";
+                response.HasError = true;
+                response.ExceptionDetail = "Error occured while generating IMBarcode :" + IMBarcode.ErrorMessage;
+                return response;
             }
 
             try
@@ -60,19 +55,21 @@ namespace AM.Core
 
                 if (!File.Exists(coverLetterPDFPath))
                 {
-                    ExceptionDetail = "Unable to generate cover letter.";
-                    return "";
+                    response.HasError = true;
+                    response.ExceptionDetail = "Unable to generate cover letter.";
+                    return response;
                 }
-
+                response.CoverLetterPath = coverLetterPDFPath;
             }
             catch (Exception ex)
             {
                 var msg = "Error occured while generating cover letter for MailPiece-Id : {0}".Fill(mailPieceData["MailPieceId"]);
                 log.Error(msg, ex);
-                ExceptionDetail = msg;
-                return "";
+                response.HasError = true;
+                response.ExceptionDetail = msg;
+                return response;
             }
-            return coverLetterPDFPath;
+            return response;
 
             #endregion
         }
@@ -106,44 +103,11 @@ namespace AM.Core
             }
         }
 
-        public string GenerateUSPSCoverLetter(string appCode, string coverTemplatePDFPath, string outputDir, Dictionary<string, string> mailPieceData)
+        public SmartDocResponse GenerateEVSCoverLetter(string appCode, string sysUserId, string outputDir, string mailPieceId, eVSLabelRequest eVSReq)
         {
-            TrackingCode = null;
-            ExceptionDetail = string.Empty;
+            SmartDocResponse response = new SmartDocResponse();
 
-            string coverLetterPDFPath = Path.Combine(outputDir, string.Format("CoverLetter_{0}.pdf", mailPieceData["MailPieceId"]));
-
-            #region Generate Cover Letter
-
-            try
-            {
-                PdfFormFiller(coverTemplatePDFPath, coverLetterPDFPath, mailPieceData);
-
-                if (!File.Exists(coverLetterPDFPath))
-                {
-                    ExceptionDetail = "Unable to generate cover letter.";
-                    return "";
-                }
-                //For now barcode scanning will work on MailPiece id on both side
-                //TrackingCode = mailPieceData["MailPieceId"];
-            }
-            catch (Exception ex)
-            {
-                var msg = "Error occured while generating cover letter for MailPiece-Id : {0}".Fill(mailPieceData["MailPieceId"]);
-                log.Error(msg, ex);
-                ExceptionDetail = msg;
-                return "";
-            }
-            return coverLetterPDFPath;
-
-            #endregion
-        }
-
-        public string GenerateEVSCoverLetter(string appCode, string sysUserId, string outputDir, string mailPieceId, eVSLabelRequest eVSReq)
-        {
-            TrackingCode = null;
-            ExceptionDetail = string.Empty;
-            ShippingServiceType = eVSReq.ServiceType.Value;
+            response.ShippingServiceType = eVSReq.ServiceType.Value;
 
             string coverLetterPDFPath = Path.Combine(outputDir, string.Format("eVSCoverLetter_{0}.pdf", mailPieceId));
 
@@ -166,41 +130,42 @@ namespace AM.Core
 
                         if (eVSRes.HasError)
                         {
-                            ExceptionDetail = "Error occured while generating eVS label for MailPiece-Id:{0} with Exception : {1}".Fill(mailPieceId, eVSRes.Error.Description);
-                            return "";
+                            response.HasError = true;
+                            response.ExceptionDetail = "Error occured while generating eVS label for MailPiece-Id:{0} with Exception : {1}".Fill(mailPieceId, eVSRes.Error.Description);
+                            return response;
                         }
                     }
-
-                    ShippingServiceType = eVSReq.ServiceType.Value;
+                    response.ShippingServiceType = eVSReq.ServiceType.Value;
 
                     File.WriteAllBytes(coverLetterPDFPath, Convert.FromBase64String(eVSRes.LabelImageString));
+                    response.CoverLetterPath = coverLetterPDFPath;
                 }
 
-                TrackingCode = eVSRes.TrackingNumber;
-                PostageCost = eVSRes.Postage;
+                response.TrackingCode = eVSRes.TrackingNumber;
+                response.PostageCost = eVSRes.Postage;
             }
             catch (Exception ex)
             {
                 var msg = "Error occured while generating cover letter for MailPiece-Id : {0} with Error : {1}".Fill(mailPieceId, ex.Message);
                 log.Error(msg, ex);
-                ExceptionDetail = msg;
-                return "";
+                response.HasError = true;
+                response.ExceptionDetail = msg;
+                return response;
             }
-            return coverLetterPDFPath;
+            return response;
 
             #endregion
         }
 
-        public int GenerateDoc(string coverLetterPDFPath, string pdfAttachmentPath, string outputDocumentPath, float contentScalePercent, string endPagePDFPath = "")
+        public SmartDocResponse GenerateDoc(string coverLetterPDFPath, string pdfAttachmentPath, string outputDocumentPath, float contentScalePercent, string endPagePDFPath = "")
         {
+            SmartDocResponse response = new SmartDocResponse();
+
             string outputDirPath = Path.GetDirectoryName(outputDocumentPath);
             string flattenPDFPath = Path.Combine(outputDirPath, "Flatten_" + Path.GetFileName(pdfAttachmentPath));
             string shrinkPDFPath = Path.Combine(outputDirPath, "Shrinked_" + Path.GetFileName(pdfAttachmentPath));
 
             string mergeReadyFilePath = flattenPDFPath;
-
-            int totalPage = 0;
-            ExceptionDetail = string.Empty;
 
             try
             {
@@ -251,38 +216,53 @@ namespace AM.Core
                 }
                 #endregion
 
-                totalPage = PdfUtil.GetPageCount(outputDocumentPath);
+                response.TotalPages = PdfUtil.GetPageCount(outputDocumentPath);
             }
             catch (Exception ex)
             {
                 var msg = "Error occured while generating final document '{0}.pdf'".Fill(Path.GetFileNameWithoutExtension(outputDocumentPath));
 
                 log.Error(msg, ex);
-                ExceptionDetail = msg;
+                response.HasError = true;
+                response.ExceptionDetail = msg;
+                return response;
             }
 
-            return totalPage;
+            return response;
         }
 
-        public string GenerateLastPageWithBarcode(string endPageTemplatePath, string outputDocumentPath, Dictionary<string, string> mailPieceData)
+        public SmartDocResponse GenerateLastPageWithBarcode(string endPageTemplatePath, string outputDocumentPath, Dictionary<string, string> mailPieceData)
         {
-            ExceptionDetail = string.Empty;
+            SmartDocResponse response = new SmartDocResponse();
 
             string endPagePDFPath = Path.Combine(outputDocumentPath, string.Format("EndPage_{0}.pdf", mailPieceData["MailPieceId"]));
             try
             {
                 PdfFormFiller(endPageTemplatePath, endPagePDFPath, mailPieceData);
+                response.CoverLetterPath = endPagePDFPath;
             }
             catch (Exception ex)
             {
                 var msg = "Error occured while generating end page document '{0}.pdf'".Fill(Path.GetFileNameWithoutExtension(outputDocumentPath));
 
                 log.Error(msg, ex);
-                ExceptionDetail = msg;
-                endPagePDFPath = string.Empty;
+                response.HasError = true;
+                response.ExceptionDetail = msg;
+                return response;
             }
 
-            return endPagePDFPath;
+            return response;
         }
+    }
+
+    public class SmartDocResponse
+    {
+        public string CoverLetterPath { get; set; }
+        public string TrackingCode { get; set; }
+        public ServiceType ShippingServiceType { get; set; }
+        public decimal PostageCost { get; set; }
+        public int TotalPages { get; set; }
+        public bool HasError { get; set; }
+        public string ExceptionDetail { get; set; }
     }
 }
