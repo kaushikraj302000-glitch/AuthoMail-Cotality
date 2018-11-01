@@ -593,52 +593,55 @@ namespace AM.Core
             using (IDocTypeService docTypeSvc = new DocTypeService())
             {
                 List<PrintBatch> printBatches = new List<PrintBatch>();
-
-                #region QC Request Logic
-                //var docTypes = validMailPieces.Select(row => row.DocTypeId.Value).Distinct();
-                //foreach (var docTypeId in docTypes)
-                //{
-                //    DocType docType = docTypeSvc.GetDocTypeById(docTypeId);
-                //    var docTypeWiseMailPieces = validMailPieces.Where(d => d.DocTypeId == docTypeId).ToList();
-                //    if (docType.QCPercent > 0)
-                //    {
-                //        double qcCount = 0;
-                //        float qcPercentage = docType.QCPercent / 100;
-                //        qcCount = Math.Ceiling(docTypeWiseMailPieces.Count * qcPercentage);
-
-                //        var randomIndexes = new List<int>();
-                //        while (randomIndexes.Count < qcCount)
-                //        {
-                //            var index = random.Next(0, docTypeWiseMailPieces.Count - 1);
-                //            if (!randomIndexes.Contains(index))
-                //            {
-                //                randomIndexes.Add(index);
-                //            }
-                //        }
-
-                //        randomIndexes.ForEach(index =>
-                //        {
-                //            docTypeWiseMailPieces[index].IsQCRequested = true;
-                //        });
-                //    }
-                //}
-                #endregion
-
-                var printTrails = validMailPieces.Select(row => row.PrintTrailId.Value).Distinct();
-
-                foreach (var printTrailId in printTrails)
+                
+                var docTypes = validMailPieces.Select(row => row.DocTypeId.Value).Distinct();
+                foreach (var docTypeId in docTypes)
                 {
-                    var printTrailWiseMailPieces = validMailPieces.Where(c => c.PrintTrailId == printTrailId).ToList();
+                    DocType docType = docTypeSvc.GetDocTypeById(docTypeId);
+                    var filteredMailPiecesDocTypeWise = validMailPieces.Where(c => c.DocTypeId == docTypeId).ToList();
 
-                    PrintBatch printBatch = new PrintBatch();
-                    printBatch.AppCode = clientSvc.GetClientById(mailBatchData.MailBatch.ClientId).AppCode;
-                    printBatch.UniqueId = Guid.NewGuid();
-                    printBatch.PrintTrailId = printTrailId;
-                    printBatch.PrintLocation = commonSvc.GetPrintVendorDetailsByPrintTrailId(printTrailId).Name;
-                    printBatch.MailPieces = printTrailWiseMailPieces;
-                    printBatches.Add(printBatch);
+                    var printTrailIds = filteredMailPiecesDocTypeWise.Select(c => c.PrintTrailId).Distinct();
+
+                    foreach (var printTrailId in printTrailIds)
+                    {
+                        PrintBatch printBatch = new PrintBatch();
+                        printBatch.AppCode = clientSvc.GetClientById(docType.ClientId).AppCode;
+                        printBatch.UniqueId = Guid.NewGuid();
+                        printBatch.DocTypeId = docType.Id;
+                        printBatch.PrintTrailId = printTrailId.Value;
+                        printBatch.PrintLocation = commonSvc.GetPrintVendorDetailsByPrintTrailId(printTrailId.Value).Name;
+                        var filteredMailPiecesByPrintTrailId = filteredMailPiecesDocTypeWise.Where(c => c.PrintTrailId == printTrailId).ToList();
+
+                        #region QC Request Logic
+                        if (docType.QCPercent > 0)
+                        {
+                            double qcCount = 0;
+                            float qcPercentage = docType.QCPercent / 100;
+                            qcCount = Math.Ceiling(filteredMailPiecesByPrintTrailId.Count * qcPercentage);
+
+                            var randomIndexes = new List<int>();
+                            while (randomIndexes.Count < qcCount)
+                            {
+                                var index = random.Next(0, filteredMailPiecesByPrintTrailId.Count - 1);
+                                if (!randomIndexes.Contains(index))
+                                {
+                                    randomIndexes.Add(index);
+                                }
+                            }
+
+                            randomIndexes.ForEach(index =>
+                            {
+                                filteredMailPiecesByPrintTrailId[index].IsQCRequested = true;
+                            });
+                        }
+                        #endregion
+
+                        printBatch.MailPieces = filteredMailPiecesByPrintTrailId;
+
+                        printBatches.Add(printBatch);
+                    }
                 }
-
+                
                 string pnsRootFolder = Config.Core_PnS_SFT_RootDir;
 
                 foreach (var printBatchData in printBatches)
@@ -661,6 +664,7 @@ namespace AM.Core
                     request.AppCode = printBatchData.AppCode;
                     request.BatchIdentifier = printBatchData.UniqueId;
                     request.BatchName = batchName;
+                    request.DocTypeId = printBatchData.DocTypeId;
                     request.PrintTrailId = printBatchData.PrintTrailId;
                     request.DueDate = printBatchData.MailPieces.OrderBy(x => x.DueDate).Select(x => x.DueDate).Distinct().First().Value.Date;
                     request.PrintLocation = printBatchData.PrintLocation;
