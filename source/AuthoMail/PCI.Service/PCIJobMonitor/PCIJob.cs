@@ -13,6 +13,7 @@ using System.Text.RegularExpressions;
 using PCI.Lib;
 using System.Data;
 using System.Threading;
+using System.Transactions;
 
 namespace PCI.Service
 {
@@ -101,19 +102,32 @@ namespace PCI.Service
 
                     //Reason for maintaining this time because it should reflect same for 
                     var currentTime = Common.GetCurrentTime();
-
-                    DAL.UpdatePrintTrailBatchStatus(printTrailBatchDetail.Id, BatchPipelineStatus.Submitted, currentTime);
-
-                    var jobIds = mailPieceDetails.Select(b => b.JobId).Distinct();
-                    foreach (var jobId in jobIds)
+                    using (TransactionScope scope = new TransactionScope())
                     {
-                        var mrdfRequest = DAL.GetMRDFRequestDataByJobId(jobId);
-                        var validReq = mrdfRequest.AsEnumerable().Count(req => req.Field<string>("MailPieceStatus") == MailPieceStatus.InProgress.ToString());
-                        var invalidReq = mrdfRequest.AsEnumerable().Count(req => req.Field<string>("MailPieceStatus") == MailPieceStatus.Error.ToString());
-
-                        if (mrdfRequest.Rows.Count == (validReq + invalidReq))
+                        try
                         {
-                            DAL.UpdateBatchPipeLineStatus(jobId, BatchPipelineStatus.Submitted, currentTime);
+                            DAL.UpdatePrintTrailBatchStatus(printTrailBatchDetail.Id, BatchPipelineStatus.Submitted, currentTime);
+
+                            var jobIds = mailPieceDetails.Select(b => b.JobId).Distinct();
+                            foreach (var jobId in jobIds)
+                            {
+                                var mrdfRequest = DAL.GetMRDFRequestDataByJobId(jobId);
+                                var validReq = mrdfRequest.AsEnumerable().Count(req => req.Field<string>("MailPieceStatus") == MailPieceStatus.InProgress.ToString());
+                                var invalidReq = mrdfRequest.AsEnumerable().Count(req => req.Field<string>("MailPieceStatus") == MailPieceStatus.Error.ToString());
+
+                                if (mrdfRequest.Rows.Count == (validReq + invalidReq))
+                                {
+                                    DAL.UpdateBatchPipeLineStatus(jobId, BatchPipelineStatus.Submitted, currentTime);
+                                }
+                            }
+
+                            scope.Complete();
+                        }
+                        catch (Exception ex)
+                        {
+                            var msg = "Error occured while updating submitted status for print trail batch id {0}".Fill(printTrailBatchDetail.Id);
+                            log.Error(msg, ex);
+                            MailUtility.SendUnexpectedNotificationEmail(msg + "<br/> Error Message is {0}".Fill(ex));
                         }
                     }
                 }

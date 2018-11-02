@@ -13,6 +13,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
 using System.Xml;
 using System.Xml.Schema;
 
@@ -962,18 +963,26 @@ namespace PCI.Service
 
                     var currentTime = Common.GetCurrentTime();
 
-                    //First update MRDF Received status because we have received all MRDF responses
-                    DAL.UpdatePrintTrailBatchStatus(printTrailBatchId, BatchPipelineStatus.MRDFReceived, currentTime);
-
-                    var jobIds = mrdfRequestData.Select(p => p.Field<int>("JobId")).Distinct().ToList();
-                    foreach (var jobId in jobIds)
+                    using (TransactionScope scope = new TransactionScope())
                     {
-                        var inProgressMailPiecesForJob = DAL.GetMRDFRequestDataByJobId(jobId).AsEnumerable().Where(row => row.Field<string>("MailPieceStatus") == MailPieceStatus.InProgress.ToString());
+                        try
+                        {
+                            //First update MRDF Received status because we have received all MRDF responses
+                            DAL.UpdatePrintTrailBatchStatus(printTrailBatchId, BatchPipelineStatus.MRDFReceived, currentTime);
 
-                        if (inProgressMailPiecesForJob.Count() > 0)
-                            continue;
-
-                        DAL.UpdateBatchPipeLineStatus(jobId, BatchPipelineStatus.MRDFReceived, currentTime);
+                            var jobIds = mrdfRequestData.Select(p => p.Field<int>("JobId")).Distinct().ToList();
+                            foreach (var jobId in jobIds)
+                            {
+                                DAL.UpdateBatchPipeLineStatus(jobId, BatchPipelineStatus.MRDFReceived, currentTime);
+                            }
+                            scope.Complete();
+                        }
+                        catch (Exception ex)
+                        {
+                            var msg = "Error occured while updating submitted status for print trail batch id {0}".Fill(printTrailBatchDetail.Id);
+                            log.Error(msg, ex);
+                            MailUtility.SendUnexpectedNotificationEmail(msg + "<br/> Error Message is {0}".Fill(ex));
+                        }
                     }
                     #endregion
                 }
