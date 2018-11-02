@@ -34,7 +34,15 @@ namespace AM.Services
         }
         public List<PullBackRequestForm> GetPullBackData(List<string> mpIds)
         {
-            string qry = string.Format(";WITH printTrailBatch AS (SELECT Id,PrintBatchName,SubmittedOn,PrintTrailId FROM PnS.PrintTrailBatches),mrdfReq AS (SELECT PrintTrailBatchId,PieceId,[UniqueId],PDFFileName FROM PnS.MRDFRequest),printTrail AS (SELECT Id,TrailName,PrintVendorId FROM Common.PrintTrails),printVendor AS (SELECT Id,Name FROM Common.PrintVendors),docTypePrintTrailMaps AS (SELECT DocTypeId,PrintTrailId FROM Common.DocTypePrintTrailMaps),docTypes AS (SELECT Id,DocTypeCode FROM AM.DocTypes WHERE IsActive = 1),mailPieces AS (SELECT UniqueId,ClientId,RcptFirstName,RcptLastName FROM AM.MailPieces),Client AS(SELECT Id,Name FROM Common.Clients),RESULT AS (SELECT PTB.PrintBatchName,PMR.PDFFileName,PTB.SubmittedOn,PMR.PrintTrailBatchId,PMR.PieceId,AMP.RcptFirstName,AMP.RcptLastName,CC.Name,PV.Name as PrintLocation,AD.DocTypeCode FROM printTrailBatch PTB INNER JOIN mrdfReq PMR ON PTB.Id = PMR.PrintTrailBatchId INNER JOIN printTrail PT ON PTB.PrintTrailId = PT.Id INNER JOIN printVendor PV ON PT.PrintVendorId = PV.Id INNER JOIN docTypePrintTrailMaps DPM ON PTB.PrintTrailId = DPM.PrintTrailId INNER JOIN AM.DocTypes AD ON DPM.DocTypeId = AD.Id INNER JOIN mailPieces AMP ON PMR.UniqueId = AMP.UniqueId INNER JOIN  Client CC ON AMP.ClientId = CC.Id WHERE PMR.[UniqueId] IN @mailPieceIds)(SELECT PrintBatchName,SubmittedOn,PrintTrailBatchId AS PrintBatch,PieceId = STUFF((SELECT DISTINCT ', '+ CAST(pRES.PieceId AS VARCHAR(255)) + ':'+pRES.PDFFileName+ ':'+pRES.RcptFirstName+' '+pRES.RcptLastName FROM RESULT pRES WHERE pRES.PrintTrailBatchId = RES.PrintTrailBatchId FOR XML PATH('')),1,1,''),Name,PrintLocation,DocTypeCode FROM RESULT RES GROUP BY RES.PrintTrailBatchId,PrintBatchName,SubmittedOn,Name,PrintLocation,DocTypeCode)");
+            string qry = @";WITH 
+                           printTrailBatch AS (SELECT Id,PrintBatchName,SubmittedOn,PrintTrailId FROM PnS.PrintTrailBatches),
+                           mrdfReq AS (SELECT PrintTrailBatchId,PieceId,[UniqueId],PDFFileName FROM PnS.MRDFRequest),
+                           printTrail AS (SELECT Id,TrailName,PrintVendorId FROM Common.PrintTrails),
+                           printVendor AS (SELECT Id,Name FROM Common.PrintVendors),
+                           mailPieces AS (SELECT UniqueId,ClientId,RcptFirstName,RcptLastName,DocTypeId FROM AM.MailPieces),
+                           Client AS(SELECT Id,Name FROM Common.Clients),
+                           RESULT AS (SELECT PTB.PrintBatchName,PMR.PDFFileName,PTB.SubmittedOn,PMR.PrintTrailBatchId,PMR.PieceId,AMP.RcptFirstName,AMP.RcptLastName,CC.Name,PV.Name as PrintLocation FROM printTrailBatch PTB INNER JOIN mrdfReq PMR ON PTB.Id = PMR.PrintTrailBatchId INNER JOIN printTrail PT ON PTB.PrintTrailId = PT.Id INNER JOIN printVendor PV ON PT.PrintVendorId = PV.Id INNER JOIN mailPieces AMP ON PMR.UniqueId = AMP.UniqueId INNER JOIN  Client CC ON AMP.ClientId = CC.Id WHERE PMR.[UniqueId] IN @mailPieceIds)
+                           (SELECT PrintBatchName,SubmittedOn,PrintTrailBatchId AS PrintBatch,PieceId = STUFF((SELECT DISTINCT ', '+ CAST(pRES.PieceId AS VARCHAR(255)) + ':'+pRES.PDFFileName+ ':'+pRES.RcptFirstName+' '+pRES.RcptLastName FROM RESULT pRES WHERE pRES.PrintTrailBatchId = RES.PrintTrailBatchId FOR XML PATH('')),1,1,''),Name,PrintLocation FROM RESULT RES GROUP BY RES.PrintTrailBatchId,PrintBatchName,SubmittedOn,Name,PrintLocation)";
 
             var data = db.Query<PullBackRequestForm>(qry, new { mailPieceIds = mpIds }).ToList();
             return data;
@@ -121,7 +129,7 @@ namespace AM.Services
                         dataForPullBackForm.Add("JobNumber", item.PrintBatch.ToString());
                         //dataForPullBackForm.Add("PackagesToPull", string.Format("{0} : {1}, {2}", item.PrintBatch.ToString(), item.PieceId.ToString(),item.PDFFileName.ToString()));
                         dataForPullBackForm.Add("PackagesToPull", string.Format("{0}", item.PieceId.ToString()));
-                        dataForPullBackForm.Add("Coordinator", string.Format("AuthoMail, ADE, {0}-{1}", item.Name, item.DocTypeCode));
+                        dataForPullBackForm.Add("Coordinator", string.Format("AuthoMail, ADE"));
                         dataForPullBackForm.Add("PkgInstruction", string.Empty);
                         dataForPullBackForm.Add("Comments", string.Empty);
 
