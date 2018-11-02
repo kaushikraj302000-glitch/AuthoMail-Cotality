@@ -350,7 +350,7 @@ SELECT m.Id,m.BusinessFriendlyIdValue as LoanNumber,m.ClientId, m.PrintLocation,
 b.PrintBatch,b.IsSubmitted,b.PipelineStatus,preq.PrintBatchName,b.JobName,preq.SubmittedOn,--b.SubmittedOn,
 req.PieceId,req.PrintTrailBatchId, req.JobId,req.[Date] as MRDFReqDate,req.PDFFileName, req.UniqueId,req.MailPieceStatus, res.ProcessingTimeStamp,
 d.ShippingServiceType,d.ShippingCarrier,d.IsBRE,
-c.AppCode,c.Name as ClientName,(select BatchName from db where EffectiveReceivedOnEst between StartDate AND EndDate AND ShippingCarrier=d.ShippingCarrier AND ShippingServiceType=d.ShippingServiceType) BatchName
+c.AppCode,c.Name as ClientName,(select BatchName from db where EffectiveReceivedOnEst between StartDate AND EndDate AND ShippingCarrier=d.ShippingCarrier AND ShippingServiceType=d.ShippingServiceType AND AppCode=c.AppCode) BatchName
 FROM [AM].[MailPieces] m
 LEFT OUTER JOIN PnS.MRDFRequest req ON m.UniqueId = req.UniqueId
 LEFT OUTER JOIN PnS.BatchSummary b ON req.JobId = b.PrintBatch
