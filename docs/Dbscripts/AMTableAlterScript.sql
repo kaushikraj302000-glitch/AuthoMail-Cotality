@@ -1,3 +1,59 @@
+
+-- create MRDFResponseHistory TABLE
+
+CREATE TABLE [PnS].[MRDFResponseHistory](
+ [JobId] [int] NOT NULL,
+ [PieceId] [int] NOT NULL,
+ [Date] [date] NULL,
+ [Feeder2_Fed] [int] NULL,
+ [OperatorId] [varchar](50) NULL,
+ [MachineId] [varchar](50) NULL,
+ [ProcessingTimeStamp] [datetime] NULL,
+ [DetailedErrorId] [varchar](50) NULL,
+ [Disposition] [varchar](50) NULL,
+ [Input_Fed] [varchar](50) NULL,
+ [Feeder3_Fed] [varchar](50) NULL,
+ [Feeder4_Fed] [varchar](50) NULL,
+ [Feeder5_Fed] [varchar](50) NULL,
+ [ComputedWeight] [decimal](4, 3) NULL,
+ [MeterDate] [varchar](50) NULL,
+ [StatusSource] [varchar](50) NULL,
+ [PostageMetered] [decimal](4, 3) NULL,
+ [WeightMeasured] [decimal](4, 3) NULL,
+ [ExitLocation] [varchar](50) NULL,
+ [TotalSheets] [int] NULL,
+ [PDFFileName] [varchar](255) NULL,
+ [PackageTrackingNumber] [varchar](50) NULL,
+ CONSTRAINT [PK_MRDFResponseHistory] PRIMARY KEY CLUSTERED 
+(
+ [JobId] ASC,
+ [PieceId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+SET ANSI_PADDING OFF
+GO
+
+ALTER TABLE [PnS].[MRDFResponseHistory]  WITH CHECK ADD  CONSTRAINT [FK_MRDFResponseHistory_BatchSummary] FOREIGN KEY([JobId])
+REFERENCES [PnS].[BatchSummary] ([PrintBatch])
+GO
+
+ALTER TABLE [PnS].[MRDFResponseHistory] CHECK CONSTRAINT [FK_MRDFResponseHistory_BatchSummary]
+GO
+
+
+ --/* Insert data from table MRDFResponse to MRDFResponseHistory*/
+  INSERT INTO [PnS].[MRDFResponseHistory]
+  SELECT [JobId] ,[PieceId] ,[Date] ,[Feeder2_Fed] ,[OperatorId] ,[MachineId] ,[ProcessingTimeStamp] ,[DetailedErrorId] ,[Disposition] ,[Input_Fed] ,[Feeder3_Fed] ,[Feeder4_Fed] ,[Feeder5_Fed] ,[ComputedWeight] ,[MeterDate] ,[StatusSource] ,[PostageMetered] ,[WeightMeasured] ,[ExitLocation] ,[TotalSheets] ,[PDFFileName] ,[PackageTrackingNumber] FROM [PnS].[MRDFResponse]
+ --/* delete data from MRDFResponse after move into MRDFResponseHistory*/
+  delete  from [PnS].[MRDFResponse]
+  
+
+  
+
+
 CREATE TABLE [Common].[PrintVendors](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[Name] [varchar](255) NULL,
@@ -134,6 +190,8 @@ GO
 /****** Object:  Index [PK_MRDFResponse]    Script Date: 11/1/2018 6:54:55 PM ******/
 ALTER TABLE [PnS].[MRDFResponse] DROP CONSTRAINT [PK_MRDFResponse]
 GO
+ALTER TABLE [PnS].[MRDFResponse] DROP CONSTRAINT [FK_MRDFResponse_BatchSummary]
+GO
 
 /****** Object:  Index [PK_MRDFResponse]    Script Date: 11/1/2018 6:54:55 PM ******/
 ALTER TABLE [PnS].[MRDFResponse] ADD  CONSTRAINT [PK_MRDFResponse] PRIMARY KEY CLUSTERED 
@@ -143,11 +201,11 @@ ALTER TABLE [PnS].[MRDFResponse] ADD  CONSTRAINT [PK_MRDFResponse] PRIMARY KEY C
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)
 GO
 
-ALTER TABLE [PnS].[MRDFResponse]  WITH CHECK ADD  CONSTRAINT [FK_MRDFResponse_BatchSummary] FOREIGN KEY([JobId])
+ALTER TABLE [PnS].[MRDFResponse]  WITH CHECK ADD  CONSTRAINT [FK_MRDFResponse_PrintTrailBatches] FOREIGN KEY([JobId])
 REFERENCES [PnS].[PrintTrailBatches] ([Id])
 GO
 
-ALTER TABLE [PnS].[MRDFResponse] CHECK CONSTRAINT [FK_MRDFResponse_BatchSummary]
+ALTER TABLE [PnS].[MRDFResponse] CHECK CONSTRAINT [FK_MRDFResponse_PrintTrailBatches]
 GO
 
 ALTER TABLE [Common].[Clients] DROP CONSTRAINT [DF__Clients__Simulat__7E850515]
@@ -172,7 +230,6 @@ INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Val
 INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('USAA-GENERIC-10',1,0)
 INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('USAA-GENERIC-FEDEX',2,0)
 INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('USAA-GENERIC-PRI',2,0)
-
 
 
 

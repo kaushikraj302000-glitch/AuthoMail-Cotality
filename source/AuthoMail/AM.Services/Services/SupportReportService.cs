@@ -43,7 +43,7 @@ group by bs.PrintBatch,bs.PrintLocation,bs.SubmittedOn,bs.JobName,bs.PrintFileNa
 
         public List<MailPieceByPrintBatch> GetMailPiecebyPrintBatch(int printBatch, int clientId)
         {
-            string query = "select rq.PieceId,rq.PDFFileName,rq.UniqueId,rq.MailPieceStatus,rs.ProcessingTimeStamp,rs.Disposition from PnS.BatchSummary bs inner join [PnS].[MRDFRequest] rq on bs.PrintBatch=rq.JobId left outer join [PnS].[MRDFResponse] rs on rq.PieceId=rs.PieceId and rq.JobId=rs.JobId where bs.ClientId=@clientId and bs.PrintBatch=@printBatch";
+            string query = "select rq.PieceId,rq.PDFFileName,rq.UniqueId,rq.MailPieceStatus,rs.ProcessingTimeStamp,rs.Disposition from PnS.BatchSummary bs inner join [PnS].[MRDFRequest] rq on bs.PrintBatch=rq.JobId left outer join [PnS].[MRDFResponse] rs on rq.PieceId=rs.PieceId and rq.PrintTrailBatchId=rs.JobId where bs.ClientId=@clientId and bs.PrintBatch=@printBatch";
             return db.Query<MailPieceByPrintBatch>(query, new { printBatch = printBatch, clientId = clientId }).ToList();
         }
 
@@ -64,7 +64,7 @@ group by bs.PrintBatch,bs.PrintLocation,bs.SubmittedOn,bs.JobName,bs.PrintFileNa
 
         public List<MailPieceByPrintBatch> GetMailPieceWithBatchSummaryByPrintBatch(int printBatch, int clientId)
         {
-            string query = "select rq.PieceId,rq.PDFFileName,rq.UniqueId,rq.MailPieceStatus,rs.ProcessingTimeStamp,rs.Disposition,m.Id as MailPieceId,m.BusinessFriendlyIdValue as LoanNumber,m.DocumentOrPackageType,m.EffectiveReceivedOnEst, d.ShippingCarrier,d.ShippingServiceType,m.ShippingStatus,m.ErrorCode,m.ErrorDesc,m.PrintedOn,m.ShippedOn,m.TotalPages,m.PrintLocation from PnS.BatchSummary bs inner join [PnS].[MRDFRequest] rq on bs.PrintBatch=rq.JobId left outer join PnS.MRDFResponse rs on rq.PieceId=rs.PieceId and rq.JobId=rs.JobId inner join AM.MailPieces m on rq.UniqueId=m.UniqueId inner join AM.DocTypes d on m.DocTypeId=d.Id where bs.ClientId=@clientId and bs.PrintBatch=@printBatch";
+            string query = "select rq.PieceId,rq.PDFFileName,rq.UniqueId,rq.MailPieceStatus,rs.ProcessingTimeStamp,rs.Disposition,m.Id as MailPieceId,m.BusinessFriendlyIdValue as LoanNumber,m.DocumentOrPackageType,m.EffectiveReceivedOnEst, d.ShippingCarrier,d.ShippingServiceType,m.ShippingStatus,m.ErrorCode,m.ErrorDesc,m.PrintedOn,m.ShippedOn,m.TotalPages,m.PrintLocation from PnS.BatchSummary bs inner join [PnS].[MRDFRequest] rq on bs.PrintBatch=rq.JobId left outer join PnS.MRDFResponse rs on rq.PieceId=rs.PieceId and rq.PrintTrailBatchId=rs.JobId inner join AM.MailPieces m on rq.UniqueId=m.UniqueId inner join AM.DocTypes d on m.DocTypeId=d.Id where bs.ClientId=@clientId and bs.PrintBatch=@printBatch";
             return db.Query<MailPieceByPrintBatch>(query, new { printBatch = printBatch, clientId = clientId }).ToList();
         }
 
