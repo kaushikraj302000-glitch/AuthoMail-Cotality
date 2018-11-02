@@ -601,7 +601,32 @@ namespace AM.Core
                 foreach (var docTypeId in docTypes)
                 {
                     DocType docType = docTypeSvc.GetDocTypeById(docTypeId);
+                   
                     var filteredMailPiecesDocTypeWise = validMailPieces.Where(c => c.DocTypeId == docTypeId).ToList();
+                    
+                    #region QC Request Logic
+                    if (docType.QCPercent > 0)
+                    {
+                        double qcCount = 0;
+                        float qcPercentage = docType.QCPercent / 100;
+                        qcCount = Math.Ceiling(filteredMailPiecesDocTypeWise.Count * qcPercentage);
+
+                        var randomIndexes = new List<int>();
+                        while (randomIndexes.Count < qcCount)
+                        {
+                            var index = random.Next(0, filteredMailPiecesDocTypeWise.Count - 1);
+                            if (!randomIndexes.Contains(index))
+                            {
+                                randomIndexes.Add(index);
+                            }
+                        }
+
+                        randomIndexes.ForEach(index =>
+                        {
+                            filteredMailPiecesDocTypeWise[index].IsQCRequested = true;
+                        });
+                    }
+                    #endregion
 
                     var printTrailIds = filteredMailPiecesDocTypeWise.Select(c => c.PrintTrailId).Distinct();
 
@@ -614,33 +639,7 @@ namespace AM.Core
                         printBatch.DocTypeId = docType.Id;
                         printBatch.PrintTrailId = printTrailId.Value;
                         printBatch.PrintLocation = commonSvc.GetPrintVendorDetailsByPrintTrailId(printTrailId.Value).Name;
-                        var filteredMailPiecesByPrintTrailId = filteredMailPiecesDocTypeWise.Where(c => c.PrintTrailId == printTrailId).ToList();
-
-                        #region QC Request Logic
-                        if (docType.QCPercent > 0)
-                        {
-                            double qcCount = 0;
-                            float qcPercentage = docType.QCPercent / 100;
-                            qcCount = Math.Ceiling(filteredMailPiecesByPrintTrailId.Count * qcPercentage);
-
-                            var randomIndexes = new List<int>();
-                            while (randomIndexes.Count < qcCount)
-                            {
-                                var index = random.Next(0, filteredMailPiecesByPrintTrailId.Count - 1);
-                                if (!randomIndexes.Contains(index))
-                                {
-                                    randomIndexes.Add(index);
-                                }
-                            }
-
-                            randomIndexes.ForEach(index =>
-                            {
-                                filteredMailPiecesByPrintTrailId[index].IsQCRequested = true;
-                            });
-                        }
-                        #endregion
-
-                        printBatch.MailPieces = filteredMailPiecesByPrintTrailId;
+                        printBatch.MailPieces = filteredMailPiecesDocTypeWise.Where(c => c.PrintTrailId == printTrailId).ToList();
 
                         printBatches.Add(printBatch);
                     }
