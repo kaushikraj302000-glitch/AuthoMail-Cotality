@@ -110,19 +110,22 @@ namespace PCI.Service
             return mrdfReqs;
         }
 
-        public static int InsertPrintTrailBatchDetail(PrintTrailBatch printTrailBatchDetail, List<MailPieceDetail> mailPieceDetails)
+        public static int InsertPrintTrailBatchDetail(PrintTrailBatch printTrailBatchDetail)
         {
             var printTrailBatchId = db.ExecuteSqlScalar<int>(@"INSERT INTO [PnS].[PrintTrailBatches]([PrintBatchName],[SubmittedOn],[MRDFReceivedOn],[PrintTrailId]) OUTPUT INSERTED.Id VALUES(@p1,@p2,@p3,@p4)", printTrailBatchDetail.PrintBatchName, printTrailBatchDetail.SubmittedOn, printTrailBatchDetail.MRDFReceivedOn, printTrailBatchDetail.PrintTrailId);
 
+            return printTrailBatchId;
+        }
+
+        public static int UpdatedPrintTrailBatchIdInMRDFRequest(int printTrailBatchId, List<MailPieceDetail> mailPieceDetails)
+        {
             foreach (var mailPiece in mailPieceDetails)
             {
-
-                db.ExecuteSqlNonQuery(@"UPDATE [PnS].[MRDFRequest] SET [PrintTrailBatchId]= @p1,[PieceId] = @p2 WHERE JobId = @p3 AND PieceId = @p4", printTrailBatchId, mailPiece.SequenceNo, mailPiece.JobId, mailPiece.PieceId);
+                db.ExecuteSqlNonQuery(@"UPDATE [PnS].[MRDFRequest] SET [PrintTrailBatchId]= @p1,[PieceId] = @p2, [Address1]=@p3 WHERE JobId = @p4 AND PieceId = @p5", printTrailBatchId, mailPiece.SequenceNo, mailPiece.Address1, mailPiece.JobId, mailPiece.PieceId);
             }
-            //For divert primary key issue we are using starting number as 90001 and then we will change that numbering again
-            db.ExecuteSqlNonQuery(@"UPDATE [PnS].[MRDFRequest] SET [PieceId] = ([PieceId]-90000) WHERE PrintTrailBatchId = @p1", printTrailBatchId);
 
-            return printTrailBatchId;
+            //For divert primary key issue we are using starting number as 90001 and then we will change that numbering again
+            return db.ExecuteSqlNonQuery(@"UPDATE [PnS].[MRDFRequest] SET [PieceId] = ([PieceId]-90000) WHERE PrintTrailBatchId = @p1", printTrailBatchId);
         }
 
         public static int UpdatePrintTrailBatchDetail(PrintTrailBatch printTrailBatchDetail)

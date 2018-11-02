@@ -604,9 +604,9 @@ namespace AM.Core
                 foreach (var docTypeId in docTypes)
                 {
                     DocType docType = docTypeSvc.GetDocTypeById(docTypeId);
-                   
+
                     var filteredMailPiecesDocTypeWise = validMailPieces.Where(c => c.DocTypeId == docTypeId).ToList();
-                    
+
                     #region QC Request Logic
                     if (docType.QCPercent > 0)
                     {
@@ -863,11 +863,11 @@ namespace AM.Core
 
                         //Updates PrintBatches Status values
                         commonSvc.UpdatePrintBatchStatus(printBatch.PrintBatchId, pnsResponse.BatchStatus.ToString(), pnsResponse.StatusDescription);
-                        
+
                         //TODO : use channel code instead of Ids
                         //TODO : rename Core_DirectReportBackChannelIds to Core_IncreamentalReportingChannels
 
-                        int[] increamentalReportingChannels = Array.ConvertAll(Config.Core_IncreamentalReportingChannels.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries), s => int.Parse(s));
+                        int[] increamentalReportingChannels = Array.ConvertAll(Config.Core_DirectReportBackChannelIds.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries), s => int.Parse(s));
 
                         if (increamentalReportingChannels.Contains(printBatch.SFTChannelId))
                         {
