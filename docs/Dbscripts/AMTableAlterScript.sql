@@ -1,3 +1,59 @@
+
+-- create MRDFResponseHistory TABLE
+
+CREATE TABLE [PnS].[MRDFResponseHistory](
+ [JobId] [int] NOT NULL,
+ [PieceId] [int] NOT NULL,
+ [Date] [date] NULL,
+ [Feeder2_Fed] [int] NULL,
+ [OperatorId] [varchar](50) NULL,
+ [MachineId] [varchar](50) NULL,
+ [ProcessingTimeStamp] [datetime] NULL,
+ [DetailedErrorId] [varchar](50) NULL,
+ [Disposition] [varchar](50) NULL,
+ [Input_Fed] [varchar](50) NULL,
+ [Feeder3_Fed] [varchar](50) NULL,
+ [Feeder4_Fed] [varchar](50) NULL,
+ [Feeder5_Fed] [varchar](50) NULL,
+ [ComputedWeight] [decimal](4, 3) NULL,
+ [MeterDate] [varchar](50) NULL,
+ [StatusSource] [varchar](50) NULL,
+ [PostageMetered] [decimal](4, 3) NULL,
+ [WeightMeasured] [decimal](4, 3) NULL,
+ [ExitLocation] [varchar](50) NULL,
+ [TotalSheets] [int] NULL,
+ [PDFFileName] [varchar](255) NULL,
+ [PackageTrackingNumber] [varchar](50) NULL,
+ CONSTRAINT [PK_MRDFResponseHistory] PRIMARY KEY CLUSTERED 
+(
+ [JobId] ASC,
+ [PieceId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+SET ANSI_PADDING OFF
+GO
+
+ALTER TABLE [PnS].[MRDFResponseHistory]  WITH CHECK ADD  CONSTRAINT [FK_MRDFResponseHistory_BatchSummary] FOREIGN KEY([JobId])
+REFERENCES [PnS].[BatchSummary] ([PrintBatch])
+GO
+
+ALTER TABLE [PnS].[MRDFResponseHistory] CHECK CONSTRAINT [FK_MRDFResponseHistory_BatchSummary]
+GO
+
+
+ --/* Insert data from table MRDFResponse to MRDFResponseHistory*/
+  INSERT INTO [PnS].[MRDFResponseHistory]
+  SELECT [JobId] ,[PieceId] ,[Date] ,[Feeder2_Fed] ,[OperatorId] ,[MachineId] ,[ProcessingTimeStamp] ,[DetailedErrorId] ,[Disposition] ,[Input_Fed] ,[Feeder3_Fed] ,[Feeder4_Fed] ,[Feeder5_Fed] ,[ComputedWeight] ,[MeterDate] ,[StatusSource] ,[PostageMetered] ,[WeightMeasured] ,[ExitLocation] ,[TotalSheets] ,[PDFFileName] ,[PackageTrackingNumber] FROM [PnS].[MRDFResponse]
+ --/* delete data from MRDFResponse after move into MRDFResponseHistory*/
+  delete  from [PnS].[MRDFResponse]
+  
+
+  
+
+
 CREATE TABLE [Common].[PrintVendors](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[Name] [varchar](255) NULL,
@@ -175,30 +231,3 @@ INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Val
 
 
 
-
---Create Schema_MRDFResponseHistory table for maintain History
-
-CREATE TABLE [PnS].[Schema_MRDFResponseHistory](
- [Id] [int] NOT NULL,
- [FieldName] [nvarchar](255) NULL,
- [Type] [nvarchar](255) NULL,
- [StartPosition] [int] NOT NULL,
- [Length] [int] NOT NULL,
- [IsActive] [bit] NOT NULL,
- [Description] [nvarchar](2000) NULL,
- [SampleValue] [nvarchar](255) NULL,
- [DataType] [nvarchar](255) NULL,
- [DataFormatTemplate] [nvarchar](255) NULL,
- CONSTRAINT [PK_SchemaMRDFResponseHistory] PRIMARY KEY CLUSTERED 
-(
- [Id] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-) ON [PRIMARY]
-
-GO
--- Insert data from table Schema_MRDFResponse to Schema_MRDFResponseHistory
--- INSERT INTO [PnS].[Schema_MRDFResponseHistory]
--- SELECT * FROM [PnS].[Schema_MRDFResponse]
-
--- delete data from table Schema_MRDFResponse after move into Schema_MRDFResponseHistory
--- delete  from [PnS].[Schema_MRDFResponse]
