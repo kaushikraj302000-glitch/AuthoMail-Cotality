@@ -23,10 +23,9 @@ END
 SET ANSI_NULLS ON
 
 
-/****** Object:  StoredProcedure [dbo].[usp_GetMRDFRequestDataByPrintTrailId]    Script Date: 11/1/2018 6:40:56 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetMRDFRequestDataByPrintTrailId]    Script Date: 11/2/2018 9:23:03 PM ******/
 SET ANSI_NULLS ON
 GO
-
 SET QUOTED_IDENTIFIER ON
 GO
 
@@ -35,7 +34,7 @@ GO
 -- Create date: 10/31/2018
 -- Description:	Get all the mrdf request details by print trails id
 -- =============================================
-CREATE PROCEDURE [dbo].[usp_GetMRDFRequestDataByPrintTrailId] 
+ALTER PROCEDURE [dbo].[usp_GetMRDFRequestDataByPrintTrailId] 
 @printTrailId INT
 AS
 BEGIN
@@ -50,12 +49,10 @@ BEGIN
 	INNER JOIN AM.MailPieces MP ON REQ.UniqueId=MP.UniqueId
 	INNER JOIN AM.DocTypes D ON MP.DocTypeId=D.Id
 	INNER JOIN Common.Clients C ON C.Id=MP.ClientId
-	WHERE BS.PipelineStatus='Prepped' AND  IsPrepped = 1 AND IsSubmitted = 0 AND REQ.MailPieceStatus='InProgress'
+	WHERE BS.PipelineStatus='Prepped' AND  IsPrepped = 1 AND IsSubmitted = 0
 	AND BS.PrintTrailId=@printTrailId
 	
 END
-
-GO
 
 
 /****** Object:  StoredProcedure [dbo].[usp_GetMRDFResponseDataByPrintTrailBatchId]    Script Date: 11/1/2018 11:29:29 PM ******/
