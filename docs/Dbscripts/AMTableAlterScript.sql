@@ -1,3 +1,31 @@
+--Create Schema_MRDFResponseHistory table for maintain History
+
+CREATE TABLE [PnS].[Schema_MRDFResponseHistory](
+	[Id] [int] NOT NULL,
+	[FieldName] [nvarchar](255) NULL,
+	[Type] [nvarchar](255) NULL,
+	[StartPosition] [int] NOT NULL,
+	[Length] [int] NOT NULL,
+	[IsActive] [bit] NOT NULL,
+	[Description] [nvarchar](2000) NULL,
+	[SampleValue] [nvarchar](255) NULL,
+	[DataType] [nvarchar](255) NULL,
+	[DataFormatTemplate] [nvarchar](255) NULL,
+ CONSTRAINT [PK_SchemaMRDFResponseHistory] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+-- Insert data from table Schema_MRDFResponse to Schema_MRDFResponseHistory
+-- INSERT INTO [PnS].[Schema_MRDFResponseHistory]
+-- SELECT * FROM [PnS].[Schema_MRDFResponse]
+
+-- delete data from table Schema_MRDFResponse after move into Schema_MRDFResponseHistory
+-- delete  from [PnS].[Schema_MRDFResponse]
+
+
 CREATE TABLE [Common].[PrintVendors](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[Name] [varchar](255) NULL,
