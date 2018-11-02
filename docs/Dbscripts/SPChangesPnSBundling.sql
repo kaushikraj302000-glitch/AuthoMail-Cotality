@@ -192,17 +192,15 @@ END
 
 GO
 
-/****** Object:  StoredProcedure [dbo].[usp_GetMRDFResponseDummyDataByPrintTrailBatchId]    Script Date: 11/1/2018 11:34:20 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetMRDFResponseDummyDataByPrintTrailBatchId]    Script Date: 11/2/2018 8:23:17 PM ******/
 SET ANSI_NULLS ON
 GO
-
 SET QUOTED_IDENTIFIER ON
 GO
 
 
 
-
-CREATE PROCEDURE [dbo].[usp_GetMRDFResponseDummyDataByPrintTrailBatchId]
+ALTER PROCEDURE [dbo].[usp_GetMRDFResponseDummyDataByPrintTrailBatchId]
 @printTrailBatchId int
 AS
 BEGIN
@@ -224,10 +222,12 @@ BEGIN
 		,CASE WHEN P.IsPullBackRequested=1 AND P.PulledBackOn IS NULL THEN '4 ' WHEN P.IsQCRequested=1 THEN '8 ' ELSE '5 ' END as Disposition
 		,'0.00 ' as ComputedWeight, '00000000' as MeterDate,'Mailrun_Files            ' as StatusSource
 		,'0.0000' as PostageMetered,'000 ' as WeightMeasured,'Mailrun_Files            ' as ExitLocation
+		,Req.PrintTrailBatchId
 		FROM [PnS].[MRDFRequest] Req
 		INNER JOIN [AM].[MailPieces] P ON P.UniqueId=Req.UniqueId
 		WHERE Req.PrintTrailBatchId = @printTrailBatchId AND Req.MailPieceStatus='InProgress'
 END
+
 
 
 /****** Object:  StoredProcedure [dbo].[usp_GetMRDFRequestDataByPrintTrailBatchId]    Script Date: 11/1/2018 11:35:02 PM ******/
@@ -498,3 +498,33 @@ declare	@jobid int,
 			ROLLBACK
 	END CATCH
 END
+
+
+/****** Object:  View [dbo].[view_MRDFResponseData]    Script Date: 11/2/2018 9:02:52 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+ALTER VIEW [dbo].[view_MRDFResponseData] AS
+SELECT REQ.JobId
+,REQ.PieceId
+,ISNULL(REQ.ErrId,0) AS ErrId 
+,REQ.ErrDesc
+,RES.ProcessingTimeStamp AS ShippedOn 
+,REQ.UniqueId
+,REQ.PDFFileName
+,REQ.MailPieceStatus
+,ISNULL(RES.TotalSheets,0) AS TotalSheets
+,REQ.DivertVS3
+,RES.Disposition 
+,ISNULL(RES.WeightMeasured,0.00) AS WeightMeasured 
+,ISNULL(RES.PostageMetered,0.00) AS PostageCost 
+,RES.PackageTrackingNumber 
+FROM [PnS].MRDFRequest REQ
+LEFT JOIN [PnS].MRDFResponse RES
+ON REQ.PrintTrailBatchId =RES.JobId AND REQ.PieceId =RES.PieceId
+
+GO
