@@ -539,7 +539,7 @@ namespace AM.Core
         #endregion
 
         #region SubmitBatchesDocTypeWise
-        internal static void SubmitBatchesDocTypeWiseToPrintVendor(string arg)
+        internal static void SubmitBatchesDocTypeWiseToPrintVendor()
         {
             using (IMailBatchService mailBatchSvc = new MailBatchService())
             using (IClientService clientSvc = new ClientService())
@@ -566,10 +566,13 @@ namespace AM.Core
                         var validPieces = mailPiecesList.Count(c => c.ErrorCode == OutComeCodes.No_Error && c.PrintBatchId != null);
                         var errorPieces = mailPiecesList.Count(c => c.ErrorCode != OutComeCodes.No_Error && c.PrintBatchId == null);
 
-                        if (mailPiecesList.Count == (validPieces + errorPieces))
+                        if (mailPiecesList.Count != (validPieces + errorPieces))
                         {
-                            commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
+                            return;
                         }
+
+                        //TODO : Logic add for checking submitted
+                        //TODO : Also add logic for received response, check incremental reporting also
                     }
                     catch (Exception ex)
                     {
@@ -688,7 +691,6 @@ namespace AM.Core
                         mailPieceData.TotalPages = piece.TotalPages;
                         mailPieceData.PerformQC = piece.IsQCRequested;
                         mailPieceData.PDFFileName = fileName;
-                        mailPieceData.IsBRE = docTypeSvc.GetDocTypeById(piece.DocTypeId.Value).IsBRE;
                         mailPackage.Add(mailPieceData);
                     }
                     request.MailPackageData = mailPackage;
@@ -861,10 +863,13 @@ namespace AM.Core
 
                         //Updates PrintBatches Status values
                         commonSvc.UpdatePrintBatchStatus(printBatch.PrintBatchId, pnsResponse.BatchStatus.ToString(), pnsResponse.StatusDescription);
+                        
+                        //TODO : use channel code instead of Ids
+                        //TODO : rename Core_DirectReportBackChannelIds to Core_IncreamentalReportingChannels
 
-                        int[] reportPreppedChannelIds = Array.ConvertAll(Config.Core_DirectReportBackChannelIds.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries), s => int.Parse(s));
+                        int[] increamentalReportingChannels = Array.ConvertAll(Config.Core_IncreamentalReportingChannels.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries), s => int.Parse(s));
 
-                        if (reportPreppedChannelIds.Contains(printBatch.SFTChannelId))
+                        if (increamentalReportingChannels.Contains(printBatch.SFTChannelId))
                         {
                             string amResponsePath = Path.Combine(Config.Common_AuthoMailRootFolder, printBatch.AppCode, Util.AMResponseFolderName, printBatch.PrintBatchId.ToString());
 
@@ -889,6 +894,8 @@ namespace AM.Core
 
                             mailBatchSvc.UpdatePrintBatchPipelineStatus(printBatch.PrintBatchId, BatchPipelineStatus.ReportPrepped, Common.Now);
                         }
+
+                        //TODO : Code change for filter on mailbatch directly
 
                         //because of removed MailBatchId we need to check each mailpieces' response is received or not, if received all response we are updating batch status of MailBatch.
                         var mailBatcheIds = printBatchMailPieces.Select(b => b.MailBatchId).Distinct().ToList();
@@ -919,7 +926,7 @@ namespace AM.Core
                                 commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ShippingResponseReceived, Common.Now);
 
                                 //Update overall ReportPrepped only if SFTChannel is mentioned for Direct response
-                                if (reportPreppedChannelIds.Contains(printBatch.SFTChannelId))
+                                if (increamentalReportingChannels.Contains(printBatch.SFTChannelId))
                                     commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportPrepped, Common.Now);
                             }
                         }
