@@ -33,6 +33,5 @@ namespace AM.Services
         public string PieceId { get; set; }
         public string Name { get; set; }
         public string PrintLocation { get; set; }
-        public string DocTypeCode { get; set; }
     }
 }
