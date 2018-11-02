@@ -331,9 +331,6 @@ BEGIN
 END
 ----------------------------------------------------------------------------------------
 
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
 GO
 alter FUNCTION [dbo].[ufn_GetDallasBatchDetails]
 (
@@ -367,11 +364,10 @@ AND m.EffectiveReceivedOnEst >=(select MIN(StartDate) from db)
 select * from q where BatchName is not null 
 )
 -----------------------------------------------------------------------
-Go
-SET ANSI_NULLS ON
+/****** Object:  StoredProcedure [dbo].[SP_RegisterScan]    Script Date: 8/6/2018 10:39:18 AM ******/
+
 GO
-SET QUOTED_IDENTIFIER ON
-GO
+
 alter PROCEDURE [dbo].[SP_RegisterScan]
 	-- Add the parameters for the stored procedure here
 @trackno varchar(255),
@@ -477,13 +473,20 @@ declare	@jobid int,
 				where PieceId = @pieceid and PrintTrailBatchId=@PrintTrailBatchId and JobId=@jobid
 
 				-- Check if we are yet to received response for any mail pieces
-				--select @inprogresscnt= count(*) from [PnS].[MRDFRequest] where MailPieceStatus='InProgress' and JobId=@jobid
-			select @inprogresscnt= count(*) from [PnS].[MRDFRequest] where MailPieceStatus='InProgress' and JobId=@jobid
-				-- If responses are received for entire batch, then update batch status to received
-				if(@inprogresscnt = 0)
-				begin
-					update PnS.BatchSummary set PipelineStatus = 'MRDFReceived', MRDFReceivedOn = GETUTCDATE() where PrintBatch = @jobid
-				end
+			--select @inprogresscnt= count(*) from [PnS].[MRDFRequest] where MailPieceStatus='InProgress' and JobId=@jobid
+			--	-- If responses are received for entire batch, then update batch status to received
+			--	if(@inprogresscnt = 0)
+			--	begin
+			--		update PnS.BatchSummary set PipelineStatus = 'MRDFReceived', MRDFReceivedOn = GETUTCDATE() where PrintBatch = @jobid
+			--	end
+
+			select @inprogresscnt= count(*) from [PnS].[MRDFRequest] where MailPieceStatus='InProgress' and PrintTrailBatchId=@PrintTrailBatchId
+			if(@inprogresscnt = 0)
+			begin
+				update PnS.PrintTrailBatches 
+				set MRDFReceivedOn=GETUTCDATE()
+				where Id=@PrintTrailBatchId
+			end
 			
 		--End Transaction
 		COMMIT
