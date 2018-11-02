@@ -496,7 +496,7 @@ namespace AM.Console
                         //Calculate Due Date for Mail Pieces doc type wise
                         mailPiece.DueDate = Channel.GetDueDate(docType, effectiveEstReceivedOn);
                         //Set print location where mail piece will go for print and ship
-                        mailPiece.PrintTrailId = Channel.GetPrintLocation(docType, effectiveEstReceivedOn, client);
+                        mailPiece.PrintTrailId = Channel.GetPrintTrail(docType, effectiveEstReceivedOn, client);
                         mailPiece.PrintLocation = commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value).Name;
                         //This field will be used for monitoring data
                         mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, mailPiece.PrintLocation, mailBatch.ReceivedOn.Value, sweepTimings);
@@ -656,7 +656,7 @@ namespace AM.Console
             return dueDate.EstToUtc();
         }
 
-        public static int GetPrintLocation(DocType docType, DateTime estEffectiveReceivedOn, Client client)
+        public static int GetPrintTrail(DocType docType, DateTime estEffectiveReceivedOn, Client client)
         {
             DocTypePrintTrailMap docTypePrintTrail;
 

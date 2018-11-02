@@ -232,4 +232,23 @@ INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Val
 INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('USAA-GENERIC-PRI',2,0)
 
 
+-- DocTypeTrail Map Data
+INSERT INTO [Common].[DocTypePrintTrailMaps]([DocTypeId],[PrintTrailId],[BizDayStartTime],[BizDayEndTime]
+           ,[SatStartTime],[SatEndTime],[SunStartTime],[SunEndTime])
+SELECT Id,(SELECT Id FROM Common.PrintTrails WHERE TrailName='USAA-GENERIC-FEDEX'),'00:00:00','23:59:59','00:00:00','23:59:59',NULL,NULL FROM AM.DocTypes WHERE ClientId=(SELECT Id FROM Common.Clients WHERE AppCode='USAA') AND ShippingCarrier='FedEx'
+INSERT INTO [Common].[DocTypePrintTrailMaps]([DocTypeId],[PrintTrailId],[BizDayStartTime],[BizDayEndTime]
+           ,[SatStartTime],[SatEndTime],[SunStartTime],[SunEndTime])
+SELECT Id,(SELECT Id FROM Common.PrintTrails WHERE TrailName='USAA-GENERIC-PRI'),'00:00:00','23:59:59','00:00:00','23:59:59',NULL,NULL FROM AM.DocTypes WHERE ClientId=(SELECT Id FROM Common.Clients WHERE AppCode='USAA') AND ShippingCarrier='USPS' AND ShippingServiceType IN ('PRIORITY','PRIORITY_EXPRESS')
+INSERT INTO [Common].[DocTypePrintTrailMaps]([DocTypeId],[PrintTrailId],[BizDayStartTime],[BizDayEndTime]
+           ,[SatStartTime],[SatEndTime],[SunStartTime],[SunEndTime])
+SELECT Id,(SELECT Id FROM Common.PrintTrails WHERE TrailName='USAA-GENERIC-10'),'00:00:00','23:59:59','00:00:00','23:59:59',NULL,NULL FROM AM.DocTypes WHERE ClientId=(SELECT ID FROM Common.Clients WHERE AppCode='USAA') AND ShippingCarrier='USPS' AND ShippingServiceType = 'IMB'
+--->HSBC
+INSERT INTO [Common].[DocTypePrintTrailMaps]([DocTypeId],[PrintTrailId],[BizDayStartTime],[BizDayEndTime]
+           ,[SatStartTime],[SatEndTime],[SunStartTime],[SunEndTime])
+SELECT Id,(SELECT Id FROM Common.PrintTrails WHERE TrailName='HSBC-GENERIC-9X12'),'00:00:00','23:59:59','00:00:00','23:59:59',NULL,NULL FROM AM.DocTypes WHERE ClientId=(SELECT ID FROM Common.Clients WHERE AppCode='HSBC') AND ShippingCarrier='USPS' AND ShippingServiceType = 'IMB'
+--->ALASKA
+INSERT INTO [Common].[DocTypePrintTrailMaps]([DocTypeId],[PrintTrailId],[BizDayStartTime],[BizDayEndTime]
+           ,[SatStartTime],[SatEndTime],[SunStartTime],[SunEndTime])
+SELECT Id,(SELECT Id FROM Common.PrintTrails WHERE TrailName='ALASKA-GENERIC-9X12'),'00:00:00','23:59:59','00:00:00','23:59:59',NULL,NULL FROM AM.DocTypes WHERE ClientId=(SELECT ID FROM Common.Clients WHERE AppCode='ALASKA') AND ShippingCarrier='USPS' AND ShippingServiceType = 'IMB'
+
 
