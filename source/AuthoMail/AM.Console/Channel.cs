@@ -773,7 +773,7 @@ namespace AM.Console
                         string documentOrPackageType = mailPiece.DocumentOrPackageType;
 
                         //Document Or Package Type validation
-                        var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPiece.ClientId, documentOrPackageType);
+                        var docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value);
 
                         var addressResponse = addressResponses.Single(c => c.Id.ToLower() == mailPiece.UniqueId.ToString().ToLower());
 
