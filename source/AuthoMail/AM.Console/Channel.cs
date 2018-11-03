@@ -496,7 +496,7 @@ namespace AM.Console
                         //Calculate Due Date for Mail Pieces doc type wise
                         mailPiece.DueDate = Channel.GetDueDate(docType, effectiveEstReceivedOn);
                         //Set print location where mail piece will go for print and ship
-                        mailPiece.PrintTrailId = Channel.GetPrintTrail(docType, effectiveEstReceivedOn, client);
+                        mailPiece.PrintTrailId = Channel.GetPrintTrail(docType, effectiveEstReceivedOn);
                         mailPiece.PrintLocation = commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value).Name;
                         //This field will be used for monitoring data
                         mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, mailPiece.PrintLocation, mailBatch.ReceivedOn.Value, sweepTimings);
@@ -656,7 +656,7 @@ namespace AM.Console
             return dueDate.EstToUtc();
         }
 
-        public static int GetPrintTrail(DocType docType, DateTime estEffectiveReceivedOn, Client client)
+        public static int GetPrintTrail(DocType docType, DateTime estEffectiveReceivedOn)
         {
             DocTypePrintTrailMap docTypePrintTrail;
 
@@ -773,37 +773,42 @@ namespace AM.Console
                         string documentOrPackageType = mailPiece.DocumentOrPackageType;
 
                         //Document Or Package Type validation
-                        var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPiece.ClientId, documentOrPackageType);
+                        var docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value);
 
                         var addressResponse = addressResponses.Single(c => c.Id.ToLower() == mailPiece.UniqueId.ToString().ToLower());
 
-                        if (docType != null)
-                        {
-                            if (docType.ShippingCarrier == Carrier.FedEx.ToString())
-                            {
-                                if (!(addressResponse.AddressTypes.All(c => c == AddressType.DHAM)))
-                                {
-                                    documentOrPackageType = documentOrPackageType + Config.Monitor_ExpressMailingText;
-
-                                    docType = docTypeSvc.GetDocTypeByDocTypeName(mailPiece.ClientId, documentOrPackageType);
-                                }
-                            }
-                            mailPiece.RcptAddressTypes = string.Join(",", addressResponse.AddressTypes);
-                            mailPiece.DocTypeId = docType.Id;
-                        }
+                        mailPiece.RcptAddressTypes = string.Join(",", addressResponse.AddressTypes);
 
                         if (addressResponse.AddressTypes.Any(addr => addr == AddressType.INVALID))
                         {
                             mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                             mailPiece.ErrorCode = OutComeCodes.Mailing_Address_Missing_Or_Invalid;
                             mailPiece.ErrorDesc = !string.IsNullOrEmpty(addressResponse.VerifierDesc) ? addressResponse.VerifierDesc : addressResponse.Error.Description;
+                            mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                            continue;
                         }
-                        else if (docType == null)
+
+                        if (docType.ShippingCarrier == Carrier.FedEx.ToString())
                         {
-                            mailPiece.ErrorCode = OutComeCodes.Invalid_PackageType;
-                            mailPiece.ErrorDesc = "The specified document or package type '{0}' is not configured.".Fill(mailPiece.DocumentOrPackageType);
-                            mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                            if (!(addressResponse.AddressTypes.All(c => c == AddressType.DHAM)))
+                            {
+                                documentOrPackageType = documentOrPackageType + Config.Monitor_ExpressMailingText;
+
+                                docType = docTypeSvc.GetDocTypeByDocTypeName(mailPiece.ClientId, documentOrPackageType);
+
+                                if (docType == null)
+                                {
+                                    mailPiece.ErrorCode = OutComeCodes.Invalid_PackageType;
+                                    mailPiece.ErrorDesc = "The specified document or package type '{0}' is not configured.".Fill(mailPiece.DocumentOrPackageType);
+                                    mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                    mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                    continue;
+                                }
+                                
+                                mailPiece.DocTypeId = docType.Id;
+                            }
                         }
+
                         mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                     }
                 }

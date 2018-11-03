@@ -539,7 +539,7 @@ namespace AM.Core
         #endregion
 
         #region SubmitBatchesDocTypeWise
-        internal static void SubmitBatchesDocTypeWiseToPrintVendor(string arg)
+        internal static void SubmitBatchesDocTypeWiseToPrintVendor()
         {
             using (IMailBatchService mailBatchSvc = new MailBatchService())
             using (IClientService clientSvc = new ClientService())
@@ -566,10 +566,13 @@ namespace AM.Core
                         var validPieces = mailPiecesList.Count(c => c.ErrorCode == OutComeCodes.No_Error && c.PrintBatchId != null);
                         var errorPieces = mailPiecesList.Count(c => c.ErrorCode != OutComeCodes.No_Error && c.PrintBatchId == null);
 
-                        if (mailPiecesList.Count == (validPieces + errorPieces))
+                        if (mailPiecesList.Count != (validPieces + errorPieces))
                         {
-                            commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
+                            return;
                         }
+
+                        //TODO : Logic add for checking submitted
+                        //TODO : Also add logic for received response, check incremental reporting also
                     }
                     catch (Exception ex)
                     {
@@ -601,7 +604,32 @@ namespace AM.Core
                 foreach (var docTypeId in docTypes)
                 {
                     DocType docType = docTypeSvc.GetDocTypeById(docTypeId);
+
                     var filteredMailPiecesDocTypeWise = validMailPieces.Where(c => c.DocTypeId == docTypeId).ToList();
+
+                    #region QC Request Logic
+                    if (docType.QCPercent > 0)
+                    {
+                        double qcCount = 0;
+                        float qcPercentage = docType.QCPercent / 100;
+                        qcCount = Math.Ceiling(filteredMailPiecesDocTypeWise.Count * qcPercentage);
+
+                        var randomIndexes = new List<int>();
+                        while (randomIndexes.Count < qcCount)
+                        {
+                            var index = random.Next(0, filteredMailPiecesDocTypeWise.Count - 1);
+                            if (!randomIndexes.Contains(index))
+                            {
+                                randomIndexes.Add(index);
+                            }
+                        }
+
+                        randomIndexes.ForEach(index =>
+                        {
+                            filteredMailPiecesDocTypeWise[index].IsQCRequested = true;
+                        });
+                    }
+                    #endregion
 
                     var printTrailIds = filteredMailPiecesDocTypeWise.Select(c => c.PrintTrailId).Distinct();
 
@@ -614,33 +642,7 @@ namespace AM.Core
                         printBatch.DocTypeId = docType.Id;
                         printBatch.PrintTrailId = printTrailId.Value;
                         printBatch.PrintLocation = commonSvc.GetPrintVendorDetailsByPrintTrailId(printTrailId.Value).Name;
-                        var filteredMailPiecesByPrintTrailId = filteredMailPiecesDocTypeWise.Where(c => c.PrintTrailId == printTrailId).ToList();
-
-                        #region QC Request Logic
-                        if (docType.QCPercent > 0)
-                        {
-                            double qcCount = 0;
-                            float qcPercentage = docType.QCPercent / 100;
-                            qcCount = Math.Ceiling(filteredMailPiecesByPrintTrailId.Count * qcPercentage);
-
-                            var randomIndexes = new List<int>();
-                            while (randomIndexes.Count < qcCount)
-                            {
-                                var index = random.Next(0, filteredMailPiecesByPrintTrailId.Count - 1);
-                                if (!randomIndexes.Contains(index))
-                                {
-                                    randomIndexes.Add(index);
-                                }
-                            }
-
-                            randomIndexes.ForEach(index =>
-                            {
-                                filteredMailPiecesByPrintTrailId[index].IsQCRequested = true;
-                            });
-                        }
-                        #endregion
-
-                        printBatch.MailPieces = filteredMailPiecesByPrintTrailId;
+                        printBatch.MailPieces = filteredMailPiecesDocTypeWise.Where(c => c.PrintTrailId == printTrailId).ToList();
 
                         printBatches.Add(printBatch);
                     }
@@ -689,7 +691,6 @@ namespace AM.Core
                         mailPieceData.TotalPages = piece.TotalPages;
                         mailPieceData.PerformQC = piece.IsQCRequested;
                         mailPieceData.PDFFileName = fileName;
-                        mailPieceData.IsBRE = docTypeSvc.GetDocTypeById(piece.DocTypeId.Value).IsBRE;
                         mailPackage.Add(mailPieceData);
                     }
                     request.MailPackageData = mailPackage;
@@ -863,9 +864,12 @@ namespace AM.Core
                         //Updates PrintBatches Status values
                         commonSvc.UpdatePrintBatchStatus(printBatch.PrintBatchId, pnsResponse.BatchStatus.ToString(), pnsResponse.StatusDescription);
 
-                        int[] reportPreppedChannelIds = Array.ConvertAll(Config.Core_DirectReportBackChannelIds.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries), s => int.Parse(s));
+                        //TODO : use channel code instead of Ids
+                        //TODO : rename Core_DirectReportBackChannelIds to Core_IncreamentalReportingChannels
 
-                        if (reportPreppedChannelIds.Contains(printBatch.SFTChannelId))
+                        int[] increamentalReportingChannels = Array.ConvertAll(Config.Core_DirectReportBackChannelIds.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries), s => int.Parse(s));
+
+                        if (increamentalReportingChannels.Contains(printBatch.SFTChannelId))
                         {
                             string amResponsePath = Path.Combine(Config.Common_AuthoMailRootFolder, printBatch.AppCode, Util.AMResponseFolderName, printBatch.PrintBatchId.ToString());
 
@@ -890,6 +894,8 @@ namespace AM.Core
 
                             mailBatchSvc.UpdatePrintBatchPipelineStatus(printBatch.PrintBatchId, BatchPipelineStatus.ReportPrepped, Common.Now);
                         }
+
+                        //TODO : Code change for filter on mailbatch directly
 
                         //because of removed MailBatchId we need to check each mailpieces' response is received or not, if received all response we are updating batch status of MailBatch.
                         var mailBatcheIds = printBatchMailPieces.Select(b => b.MailBatchId).Distinct().ToList();
@@ -920,7 +926,7 @@ namespace AM.Core
                                 commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ShippingResponseReceived, Common.Now);
 
                                 //Update overall ReportPrepped only if SFTChannel is mentioned for Direct response
-                                if (reportPreppedChannelIds.Contains(printBatch.SFTChannelId))
+                                if (increamentalReportingChannels.Contains(printBatch.SFTChannelId))
                                     commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportPrepped, Common.Now);
                             }
                         }

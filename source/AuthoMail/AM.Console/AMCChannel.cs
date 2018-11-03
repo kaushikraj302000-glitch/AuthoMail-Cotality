@@ -65,6 +65,7 @@ namespace AM.Console
                 DateTime lastModifiedTime = Common.Now;
                 if (channelType == ChannelType.Trigger)
                 {
+                    //TODO : Implement check for zip exist or not
                     lastModifiedTime = sftSite.LastModifiedTimeOfFile(triggerFilePath);
                 }
 
@@ -390,8 +391,9 @@ namespace AM.Console
             sftSite.Connect();
 
             sftSite.UploadFile(invalidBatchPath, remoteFilePath);
+            if (sftSite.IsFileAvailable(Path.Combine(SFTChannel.ToADEDir, mbi.BatchName + ".zip")))
+                MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, mbi.BatchName + ".zip"));
 
-            MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, mbi.BatchName + ".zip"));
             MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, mbi.BatchName + "_Complete.go"));
 
             if (sftSite.IsConnected)
