@@ -74,6 +74,14 @@ namespace PCI.Service
                     printTrailBatchDetail.PrintBatchName = "{0}-{1}-{2}".Fill(printTrailDetail.BusinessCode, printTrailBatchDetail.Id, printTrailDetail.TrailName);
                     DAL.UpdatePrintTrailBatchDetail(printTrailBatchDetail);
 
+                    //NOTE: Bundling folder structure will be like : BundlingRoot/PrintTrailBatchId/Request & Response
+                    var pciRequestPath = Path.Combine(Common.BundlingRootFolder, printTrailBatchDetail.Id.ToString(), Common.BundlingRequestFolderName);
+                    var pciResponsePath = Path.Combine(Common.BundlingRootFolder, printTrailBatchDetail.Id.ToString(), Common.BundlingResponseFolderName);
+
+                    pciRequestPath.CreateDirectoryIfNotExist();
+                    Thread.Sleep(1000);
+                    pciResponsePath.CreateDirectoryIfNotExist();
+
                     if (Common.ApplicationEnvironment == Env.Prod || printTrailDetail.SimulateTrail == false)
                     {
                         if (printTrailDetail.PrintVendorName == Common.PrintLocationCL)
@@ -82,14 +90,6 @@ namespace PCI.Service
                         }
                         else
                         {
-                            //NOTE: Bundling folder structure will be like : BundlingRoot/PrintTrailBatchId/Request & Response
-                            var pciRequestPath = Path.Combine(Common.BundlingRootFolder, printTrailBatchDetail.Id.ToString(), Common.BundlingRequestFolderName);
-                            var pciResponsePath = Path.Combine(Common.BundlingRootFolder, printTrailBatchDetail.Id.ToString(), Common.BundlingResponseFolderName);
-
-                            pciRequestPath.CreateDirectoryIfNotExist();
-                            Thread.Sleep(1000);
-                            pciResponsePath.CreateDirectoryIfNotExist();
-
                             var zipFilePath = Path.Combine(pciRequestPath, printTrailBatchDetail.PrintBatchName + ".zip");
                             var mrdfFilePath = Path.Combine(pciRequestPath, printTrailBatchDetail.PrintBatchName + ".dat");
 
