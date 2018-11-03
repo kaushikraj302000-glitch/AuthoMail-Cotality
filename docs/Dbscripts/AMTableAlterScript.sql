@@ -166,6 +166,12 @@ GO
 ALTER TABLE [AM].[PrintBatches] CHECK CONSTRAINT [FK_PrintBatches_PrintTrails]
 GO
 
+ --/* Insert seed batchsummary ID in PrintTrailBatches*/
+
+declare @seedid int
+set @seedid = (select max(printbatch) from [pns].[batchsummary])
+dbcc checkident ('PnS.PrintTrailBatches', RESEED,@seedid)
+
 ALTER TABLE [PnS].[BatchSummary]
 ADD [PrintTrailId] [int] NULL
 
