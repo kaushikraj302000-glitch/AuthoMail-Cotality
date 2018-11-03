@@ -114,6 +114,8 @@ namespace PCI.Service
                     }
                     batchSummary.DocTypeId = pnsRequest.DocTypeId;
 
+                    //TODO: Mapping validation with DocTypeId also
+
                     //Ensure that the DocTypeCode is valid
                     var printTrail = DAL.GetPrintTrailDetailByPrintTrailId(pnsRequest.PrintTrailId);
                     if (printTrail == null)
@@ -332,7 +334,7 @@ namespace PCI.Service
                     PDFFileName = mailPiece.PDFFileName,
                     DivertVS3 = mailPiece.PerformQC ? 1 : 0,
                     Address1 = "Job: {0} Seq: {1}".Fill(bi.BatchSummary.PrintBatch, pieceIdFormat.Fill(pieceId)),
-                    Feeder4_Sel = mailPiece.IsBRE ? 1 : 0
+                    Feeder4_Sel = docType.IsBRE ? 1 : 0
                 };
 
                 var rawPdfPath = Path.Combine(bi.PnSRequestPDFsPath, mailPiece.PDFFileName);
@@ -770,14 +772,7 @@ namespace PCI.Service
                 var printTrailBatchDetail = DAL.GetPrintBatchDetailByPrintBatchTrailId(printTrailBatchId);
 
                 var bundlingRootPath = Path.Combine(Common.BundlingRootFolder, printTrailBatchId.ToString(), Common.BundlingResponseFolderName);
-
-                //Check if directory exist or not
-                if (!Directory.Exists(bundlingRootPath))
-                {
-                    log.Error("PCIResponsePath is not found for Batch-ID : {0}".Fill(printTrailBatchDetail.PrintBatchName));
-                    continue;
-                }
-
+                
                 #region By Pass PCI
                 var printTrailDetail = DAL.GetPrintTrailDetailByPrintTrailId(printTrailBatchDetail.PrintTrailId);
                 //If we are bypass PCI then we will generate PCI response over here.

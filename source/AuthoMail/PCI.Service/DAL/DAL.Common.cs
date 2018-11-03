@@ -104,16 +104,27 @@ namespace PCI.Service
             return printTrailDetail.DataTableAccessor<PrintTrailDetail>(false).Single();
         }
 
-        public static int GetMailBatchesReceivedCount(DateTime startDateTime, DateTime endDateTime, string status)
+        public static bool CheckAllBatchStatusCompleted(DateTime startDateTime, DateTime endDateTime)
         {
-            string query = @"SELECT COUNT(*) FROM [AM].[PrintBatches] PB LEFT OUTER JOIN AM.MailBatches B ON PB.MailBatchId = B.Id LEFT OUTER JOIN PnS.BatchSummary BS ON PB.UniqueId = BS.BatchIdentifier WHERE B.ReceivedOn >=@p1 AND B.ReceivedOn <=@p2";
+            int receivedCount = db.ExecuteSqlScalar<int>("SELECT COUNT(*) FROM [AM].[MailBatches] B WHERE B.ReceivedOn BETWEEN @p1 AND @p2 AND B.IsReceived=1", startDateTime, endDateTime);
 
-            if (status == "Received")
-                query += " AND B.IsReceived=1";
-            else
-                query += " AND (B.IsPrepped = 1 OR B.IsReportPrepped = 1 OR B.IsReportedBack = 1) AND (BS.IsPrepped = 1 OR BS.IsReportPrepped = 1 OR BS.IsReportedBack = 1)";
+            int amPreppedOrReportedCount = db.ExecuteSqlScalar<int>("SELECT COUNT(*) FROM [AM].[MailBatches] B WHERE B.ReceivedOn BETWEEN @p1 AND @p2 AND ( B.IsPrepped=1 OR B.IsReportedBack=1 OR B.IsReportPrepped=1)", startDateTime, endDateTime);
 
-            return db.ExecuteSqlScalar<int>(query, startDateTime, endDateTime);
+            if (receivedCount != amPreppedOrReportedCount)
+                return false;
+
+            int pnsPreppedCount = db.ExecuteSqlScalar<int>(@"WITH
+            AMPrepped as
+            (SELECT UniqueId FROM [AM].[PrintBatches] WHERE MailBatchId IN (SELECT Id FROM [AM].[MailBatches] B WHERE B.ReceivedOn BETWEEN @p1 AND @p2 AND ( B.IsPrepped=1 ))),
+            PnSPrepped as
+            (SELECT BatchIdentifier FROM [PnS].[BatchSummary] WHERE ReceivedOn BETWEEN @p1 AND @p2 AND ( IsPrepped=1 ))
+            select Count(*) from (
+            select UniqueId from AMPrepped 
+            except
+            select BatchIdentifier from PnSPrepped 
+            ) t", startDateTime, endDateTime);
+
+            return pnsPreppedCount == 0;
         }
     }
 }

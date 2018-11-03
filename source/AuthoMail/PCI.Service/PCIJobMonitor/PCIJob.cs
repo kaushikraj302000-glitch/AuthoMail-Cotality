@@ -31,8 +31,10 @@ namespace PCI.Service
         #region SubmitBatch To PCI or Corelogic
         public static void SubmitBatchToPCI(string printTrailNames)
         {
-            string[] printTrails = printTrailNames.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
+            //TODO : Sequence Change 
+            string[] printTrails = printTrailNames.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            var pieceIdFormat = MRDFRequestSchema.Single(f => f.FieldName == "PieceId").DataFormat;
             foreach (string printTrailName in printTrails)
             {
                 DateTime startDateTime = Common.EstToday;
@@ -40,7 +42,7 @@ namespace PCI.Service
                 DateTime endDateTime = new DateTime(toDateTime.Year, toDateTime.Month, toDateTime.Day, toDateTime.Hour, toDateTime.Minute, 0);
 
                 //Waiting Code for AuthoMail as well as BatchSummary
-                while (!CheckAllBatchStatusCompleted(startDateTime, endDateTime))
+                while (!DAL.CheckAllBatchStatusCompleted(startDateTime, endDateTime))
                 {
                     Thread.Sleep(6000);
                 }
@@ -58,21 +60,58 @@ namespace PCI.Service
                 try
                 {
                     //For divert primary key issue we are using starting number as 90001
-                    var pieceId = 90001;
-
-                    mailPieceDetails.ForEach(mp =>
-                    {
-                        mp.SequenceNo = pieceId++;
-                    });
-
+                    var sequenceNo = 90001;
                     PrintTrailBatch printTrailBatchDetail = new PrintTrailBatch()
                     {
                         PrintTrailId = printTrailDetail.PrintTrailId
                     };
 
-                    printTrailBatchDetail.Id = DAL.InsertPrintTrailBatchDetail(printTrailBatchDetail, mailPieceDetails);
-                    printTrailBatchDetail.PrintBatchName = "{0}-{1}-{2}".Fill(printTrailDetail.BusinessCode, printTrailBatchDetail.Id, printTrailDetail.TrailName);
-                    DAL.UpdatePrintTrailBatchDetail(printTrailBatchDetail);
+                    using (TransactionScope scope = new TransactionScope())
+                    {
+                        try
+                        {
+                            printTrailBatchDetail.Id = DAL.InsertPrintTrailBatchDetail(printTrailBatchDetail);
+
+                            mailPieceDetails.ForEach(mp =>
+                            {
+                                if (mp.MailPieceStatus == MailPieceStatus.PulledBack.ToString() || mp.MailPieceStatus == MailPieceStatus.Error.ToString())
+                                    mp.SequenceNo = -1;
+                                else
+                                {
+                                    mp.SequenceNo = sequenceNo++;
+                                    mp.Address1 = "Job: {0} Seq: {1}".Fill(printTrailBatchDetail.Id, pieceIdFormat.Fill(mp.SequenceNo));
+                                }
+                            });
+
+                            var maxSequenceNo = mailPieceDetails.Max(p => p.SequenceNo);
+
+                            mailPieceDetails.ForEach(mrdf =>
+                            {
+                                if (mrdf.SequenceNo == -1)
+                                {
+                                    mrdf.SequenceNo = ++maxSequenceNo;
+                                    mrdf.Address1 = "Job: {0} Seq: {1}".Fill(printTrailBatchDetail.Id, pieceIdFormat.Fill(mrdf.SequenceNo));
+                                }
+                            });
+
+                            DAL.UpdatedPrintTrailBatchIdInMRDFRequest(printTrailBatchDetail.Id, mailPieceDetails);
+
+                            printTrailBatchDetail.PrintBatchName = "{0}-{1}-{2}".Fill(printTrailDetail.BusinessCode, printTrailBatchDetail.Id, printTrailDetail.TrailName);
+
+                            DAL.UpdatePrintTrailBatchDetail(printTrailBatchDetail);
+
+                            scope.Complete();
+                        }
+                        catch (Exception ex)
+                        {
+                            var msg = "Error occured while updating print trail batch id in mrdfrequest for PrintTrail - {0}".Fill(printTrailDetail.TrailName);
+                            log.Error(msg, ex);
+                            MailUtility.SendUnexpectedNotificationEmail(msg + "<br/> Error Message is {0}".Fill(ex));
+                            continue;
+                        }
+                    }
+
+                    var validMailPieceDetails = mailPieceDetails.Where(mp => mp.MailPieceStatus == MailPieceStatus.InProgress.ToString()).ToList();
 
                     //NOTE: Bundling folder structure will be like : BundlingRoot/PrintTrailBatchId/Request & Response
                     var pciRequestPath = Path.Combine(Common.BundlingRootFolder, printTrailBatchDetail.Id.ToString(), Common.BundlingRequestFolderName);
@@ -86,17 +125,17 @@ namespace PCI.Service
                     {
                         if (printTrailDetail.PrintVendorName == Common.PrintLocationCL)
                         {
-                            UploadBatchesToInternalPrintAndShip(mailPieceDetails);
+                            UploadBatchesToInternalPrintAndShip(validMailPieceDetails);
                         }
                         else
                         {
                             var zipFilePath = Path.Combine(pciRequestPath, printTrailBatchDetail.PrintBatchName + ".zip");
                             var mrdfFilePath = Path.Combine(pciRequestPath, printTrailBatchDetail.PrintBatchName + ".dat");
 
-                            CreateZipAndUploadPCIBatch(mailPieceDetails, printTrailBatchDetail, zipFilePath, mrdfFilePath);
+                            CreateZipAndUploadPCIBatch(validMailPieceDetails, printTrailBatchDetail, zipFilePath, mrdfFilePath);
 
                             //After complete uploading send email to printing team
-                            MailUtility.SendBatchSubmittedNotificationEmail(printTrailDetail.PrintVendorName, zipFilePath, mailPieceDetails.Count, mailPieceDetails.Sum(c => c.TotalPages));
+                            MailUtility.SendBatchSubmittedNotificationEmail(printTrailDetail.PrintVendorName, zipFilePath, validMailPieceDetails.Count, validMailPieceDetails.Sum(c => c.TotalPages));
                         }
                     }
 
@@ -111,16 +150,8 @@ namespace PCI.Service
                             var jobIds = mailPieceDetails.Select(b => b.JobId).Distinct();
                             foreach (var jobId in jobIds)
                             {
-                                var mrdfRequest = DAL.GetMRDFRequestDataByJobId(jobId);
-                                var validReq = mrdfRequest.AsEnumerable().Count(req => req.Field<string>("MailPieceStatus") == MailPieceStatus.InProgress.ToString());
-                                var invalidReq = mrdfRequest.AsEnumerable().Count(req => req.Field<string>("MailPieceStatus") == MailPieceStatus.Error.ToString());
-
-                                if (mrdfRequest.Rows.Count == (validReq + invalidReq))
-                                {
-                                    DAL.UpdateBatchPipeLineStatus(jobId, BatchPipelineStatus.Submitted, currentTime);
-                                }
+                                DAL.UpdateBatchPipeLineStatus(jobId, BatchPipelineStatus.Submitted, currentTime);
                             }
-
                             scope.Complete();
                         }
                         catch (Exception ex)
@@ -140,16 +171,6 @@ namespace PCI.Service
                     continue;
                 }
             }
-        }
-
-        private static bool CheckAllBatchStatusCompleted(DateTime startDateTime, DateTime endDateTime)
-        {
-            int receivedCount = 0;
-            int completedCount = 0;
-
-            receivedCount = DAL.GetMailBatchesReceivedCount(Common.EstToUtc(startDateTime), Common.EstToUtc(endDateTime), "Received");
-            completedCount = DAL.GetMailBatchesReceivedCount(Common.EstToUtc(startDateTime), Common.EstToUtc(endDateTime), "Completed");
-            return receivedCount == completedCount;
         }
 
         private static void CreateZipAndUploadPCIBatch(List<MailPieceDetail> mailPieceDetails, PrintTrailBatch printTrailBatchDetail, string zipFilePath, string mrdfFilePath)

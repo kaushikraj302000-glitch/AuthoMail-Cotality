@@ -23,10 +23,9 @@ END
 SET ANSI_NULLS ON
 
 
-/****** Object:  StoredProcedure [dbo].[usp_GetMRDFRequestDataByPrintTrailId]    Script Date: 11/1/2018 6:40:56 PM ******/
+/****** Object:  StoredProcedure [dbo].[usp_GetMRDFRequestDataByPrintTrailId]    Script Date: 11/2/2018 9:23:03 PM ******/
 SET ANSI_NULLS ON
 GO
-
 SET QUOTED_IDENTIFIER ON
 GO
 
@@ -35,7 +34,7 @@ GO
 -- Create date: 10/31/2018
 -- Description:	Get all the mrdf request details by print trails id
 -- =============================================
-CREATE PROCEDURE [dbo].[usp_GetMRDFRequestDataByPrintTrailId] 
+ALTER PROCEDURE [dbo].[usp_GetMRDFRequestDataByPrintTrailId] 
 @printTrailId INT
 AS
 BEGIN
@@ -50,12 +49,10 @@ BEGIN
 	INNER JOIN AM.MailPieces MP ON REQ.UniqueId=MP.UniqueId
 	INNER JOIN AM.DocTypes D ON MP.DocTypeId=D.Id
 	INNER JOIN Common.Clients C ON C.Id=MP.ClientId
-	WHERE BS.PipelineStatus='Prepped' AND  IsPrepped = 1 AND IsSubmitted = 0 AND REQ.MailPieceStatus='InProgress'
+	WHERE BS.PipelineStatus='Prepped' AND  IsPrepped = 1 AND IsSubmitted = 0
 	AND BS.PrintTrailId=@printTrailId
 	
 END
-
-GO
 
 
 /****** Object:  StoredProcedure [dbo].[usp_GetMRDFResponseDataByPrintTrailBatchId]    Script Date: 11/1/2018 11:29:29 PM ******/
@@ -473,19 +470,19 @@ declare	@jobid int,
 				where PieceId = @pieceid and PrintTrailBatchId=@PrintTrailBatchId and JobId=@jobid
 
 				-- Check if we are yet to received response for any mail pieces
-			--select @inprogresscnt= count(*) from [PnS].[MRDFRequest] where MailPieceStatus='InProgress' and JobId=@jobid
-			--	-- If responses are received for entire batch, then update batch status to received
-			--	if(@inprogresscnt = 0)
-			--	begin
-			--		update PnS.BatchSummary set PipelineStatus = 'MRDFReceived', MRDFReceivedOn = GETUTCDATE() where PrintBatch = @jobid
-			--	end
+			
 
 			select @inprogresscnt= count(*) from [PnS].[MRDFRequest] where MailPieceStatus='InProgress' and PrintTrailBatchId=@PrintTrailBatchId
 			if(@inprogresscnt = 0)
 			begin
+			-- Update in PrintTrailBatch of mrdfreceivedon when all response is received.
 				update PnS.PrintTrailBatches 
 				set MRDFReceivedOn=GETUTCDATE()
 				where Id=@PrintTrailBatchId
+				--Update Batchsummary pipeline status when all mailpieces's response is received
+				update PnS.BatchSummary 
+				set PipelineStatus = 'MRDFReceived', MRDFReceivedOn = GETUTCDATE() 
+				where PrintBatch in (select distinct JobId from PnS.MRDFRequest where PrintTrailBatchId=@PrintTrailBatchId)
 			end
 			
 		--End Transaction
