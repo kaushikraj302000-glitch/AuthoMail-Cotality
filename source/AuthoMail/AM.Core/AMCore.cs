@@ -571,6 +571,7 @@ namespace AM.Core
                             return;
                         }
 
+                        commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
                         //TODO : Logic add for checking submitted
                         //TODO : Also add logic for received response, check incremental reporting also
                     }
