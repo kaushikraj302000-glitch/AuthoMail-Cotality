@@ -482,7 +482,7 @@ declare	@jobid int,
 				--Update Batchsummary pipeline status when all mailpieces's response is received
 				update PnS.BatchSummary 
 				set PipelineStatus = 'MRDFReceived', MRDFReceivedOn = GETUTCDATE() 
-				where PrintBatch = (select JobId from PnS.MRDFRequest where PrintTrailBatchId=@PrintTrailBatchId)
+				where PrintBatch in (select JobId from PnS.MRDFRequest where PrintTrailBatchId=@PrintTrailBatchId)
 			end
 			
 		--End Transaction
