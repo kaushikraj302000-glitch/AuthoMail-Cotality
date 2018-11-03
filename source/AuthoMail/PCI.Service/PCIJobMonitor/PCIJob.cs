@@ -37,17 +37,22 @@ namespace PCI.Service
             var pieceIdFormat = MRDFRequestSchema.Single(f => f.FieldName == "PieceId").DataFormat;
             foreach (string printTrailName in printTrails)
             {
-                DateTime startDateTime = Common.EstToday;
-                DateTime toDateTime = Common.UtcToEst(Common.GetCurrentTime());
-                DateTime endDateTime = new DateTime(toDateTime.Year, toDateTime.Month, toDateTime.Day, toDateTime.Hour, toDateTime.Minute, 0);
 
-                //Waiting Code for AuthoMail as well as BatchSummary
-                while (!DAL.CheckAllBatchStatusCompleted(startDateTime, endDateTime))
-                {
-                    Thread.Sleep(6000);
-                }
 
                 var printTrailDetail = DAL.GetPrintTrailDetailByPrintTrailName(printTrailName);
+
+                if (printTrailDetail.PrintVendorName == Common.PrintLocationPCI)
+                {
+                    DateTime startDateTime = Common.EstToday;
+                    DateTime toDateTime = Common.UtcToEst(Common.GetCurrentTime());
+                    DateTime endDateTime = new DateTime(toDateTime.Year, toDateTime.Month, toDateTime.Day, toDateTime.Hour, toDateTime.Minute, 0);
+
+                    //Waiting Code for AuthoMail as well as BatchSummary
+                    while (!DAL.CheckAllBatchStatusCompleted(startDateTime, endDateTime))
+                    {
+                        Thread.Sleep(6000);
+                    }
+                }
 
                 var mailPieceDetails = DAL.GetMRDFRequestDataByPrintTrailId(printTrailDetail.PrintTrailId);
 
