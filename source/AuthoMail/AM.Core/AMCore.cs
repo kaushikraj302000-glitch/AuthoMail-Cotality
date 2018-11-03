@@ -926,8 +926,9 @@ namespace AM.Core
 
                                 commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ShippingResponseReceived, Common.Now);
 
+                                var pulledBackCount = mailPiecesData.Where(m => m.ShippingStatus == ShippingStatus.PulledBack.ToString() && m.PrintBatchId == null).Count();
                                 //Update overall ReportPrepped only if SFTChannel is mentioned for Direct response
-                                if (increamentalReportingChannels.Contains(printBatch.SFTChannelId))
+                                if (increamentalReportingChannels.Contains(printBatch.SFTChannelId) && pulledBackCount == 0)
                                     commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportPrepped, Common.Now);
                             }
                         }
@@ -990,7 +991,7 @@ namespace AM.Core
                     Deliverable deliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Delivery);
 
                     MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
-
+                    SFTChannel sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelId(mbi.MailBatch.SFTChannelId);
                     List<MailPieces> mailPieces;
                     using (IReportService reportSvc = new ReportService())
                     {
@@ -1002,10 +1003,42 @@ namespace AM.Core
                         {
                             bool isReportGenerated = false;
 
-                            isReportGenerated = GenerateFinalReports(mbi, mailPieces, deliverable);
+
+                            isReportGenerated = GenerateFinalReports(mbi, mailPieces, deliverable, sftChannel);
+
 
                             if (isReportGenerated)
                                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
+
+                            //NOTE: Suppose Batch is fully pulledback by client then as per incremental reporting it will not work then we have to update all status for that print batches of mailbatchid.
+                            if (isReportGenerated && sftChannel.Code.Split('_')[0].ToUpper() == "AMC")
+                            {
+                                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannel.Protocol), sftChannel.Host, sftChannel.UserName, sftChannel.Password, 300000);
+                                sftSite.Connect();
+
+                                var deliveryReportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.txt").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-")).ToList();
+
+                                foreach (string filePath in deliveryReportList)
+                                {
+                                    string fileName = Path.GetFileName(filePath);
+                                    string ftpUploadPath = Path.Combine(deliverable.UploadPath, fileName);
+                                    sftSite.UploadFile(filePath, ftpUploadPath);
+                                }
+
+                                if (deliveryReportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-")) > 0)
+                                {
+                                    string deliveryGoFilePath = Path.Combine(mbi.AMResponsePath, "DlvrReport.go");
+                                    string ftpDeliveryGoUploadPath = Path.Combine(deliverable.UploadPath, "DlvrReport.go");
+                                    File.WriteAllText(deliveryGoFilePath, string.Empty);
+
+                                    sftSite.UploadFile(deliveryGoFilePath, ftpDeliveryGoUploadPath);
+                                }
+
+                                if (sftSite.IsConnected)
+                                    sftSite.Disconnect();
+
+                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
+                            }
 
                             //TODO: Remove after proper naming convention
                             Thread.Sleep(1000);
@@ -1023,21 +1056,16 @@ namespace AM.Core
             log.Debug("Report prepped job is completed.");
         }
 
-        private static bool GenerateFinalReports(MailBatchInfo mbi, List<MailPieces> mailPiecesData, Deliverable deliverable, List<MailPieces> mailPieces = null)
+        private static bool GenerateFinalReports(MailBatchInfo mbi, List<MailPieces> mailPiecesData, Deliverable deliverable, SFTChannel sftChannel)
         {
             bool isReportGenerated = false;
-            SFTChannel sftChannel;
-            using (IClientService clientSvc = new ClientService())
-            {
-                sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelId(mbi.MailBatch.SFTChannelId);
-            }
 
             switch (sftChannel.Code.Split('_')[0].ToUpper())
             {
                 case "AMC":
                     using (IAMCService amcSvc = new AMCService())
                     {
-                        StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(mailPieces);
+                        StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(mailPiecesData.Where(m => m.ShippingStatus == ShippingStatus.PulledBack.ToString() && m.PrintBatchId == null).ToList());
 
                         if (deliveryReport != null)
                         {
@@ -1051,7 +1079,7 @@ namespace AM.Core
                             isReportGenerated = true;
                         }
 
-                        StringBuilder errorReport = amcSvc.AMCErrorReport(mailPieces);
+                        StringBuilder errorReport = amcSvc.AMCErrorReport(mailPiecesData);
 
                         if (errorReport != null)
                         {
