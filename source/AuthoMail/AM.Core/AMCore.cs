@@ -1065,7 +1065,16 @@ namespace AM.Core
                 case "AMC":
                     using (IAMCService amcSvc = new AMCService())
                     {
-                        StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(mailPiecesData.Where(m => m.ShippingStatus == ShippingStatus.PulledBack.ToString() && m.PrintBatchId == null).ToList());
+                        List<MailPieces> mailPieces = null;
+                        if (mbi.MailBatch.BatchStatus == ShippingStatus.PulledBack.ToString())
+                        {
+                            mailPieces = mailPiecesData;
+                        }
+                        else
+                        {
+                            mailPieces = mailPiecesData.Where(m => m.ShippingStatus == ShippingStatus.PulledBack.ToString() && m.PrintBatchId == null).ToList();
+                        }
+                        StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(mailPieces);
 
                         if (deliveryReport != null)
                         {
