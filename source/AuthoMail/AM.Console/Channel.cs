@@ -186,7 +186,7 @@ namespace AM.Console
             using (IReportService reportSvc = new ReportService())
             {
                 SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelCode(channelCode + "_" + Config.Common_Environment);
-                var reportPreppedBatches = mailBatchSvc.GetReportPreppedPrintBatchDetails();
+                var reportPreppedBatches = mailBatchSvc.GetReportPreppedPrintBatchDetails().Where(c => c.SFTChannelId == sftChannelDetails.Id).ToList();
                 SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
                 sftSite.Connect();
                 foreach (var item in reportPreppedBatches)
@@ -804,7 +804,7 @@ namespace AM.Console
                                     mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                                     continue;
                                 }
-                                
+
                                 mailPiece.DocTypeId = docType.Id;
                             }
                         }
