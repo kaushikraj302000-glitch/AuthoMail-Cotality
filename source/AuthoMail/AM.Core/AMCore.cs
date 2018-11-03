@@ -420,7 +420,7 @@ namespace AM.Core
                 eVSCustomsFormsData customesData = new eVSCustomsFormsData()
                 {
                     ShippingContents = new List<ItemDetail>()
-                    { 
+                    {
                         new ItemDetail()
                         {
                             CountryOfOrigin = "United States", Description = "Loan Document", Quantity = 1, NetPounds = 3, NetOunces = 0, Value = 10
@@ -565,8 +565,9 @@ namespace AM.Core
                         var mailPiecesList = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatch.Id);
                         var validPieces = mailPiecesList.Count(c => c.ErrorCode == OutComeCodes.No_Error && c.PrintBatchId != null);
                         var errorPieces = mailPiecesList.Count(c => c.ErrorCode != OutComeCodes.No_Error && c.PrintBatchId == null);
+                        var earlyPulledBackPieces = mailPiecesList.Count(c => c.ErrorCode == OutComeCodes.No_Error && c.PrintBatchId == null && c.IsPulledBack);
 
-                        if (mailPiecesList.Count != (validPieces + errorPieces))
+                        if (mailPiecesList.Count != (validPieces + errorPieces + earlyPulledBackPieces))
                         {
                             return;
                         }
