@@ -1040,7 +1040,7 @@ namespace AM.Core
                                 if (sftSite.IsConnected)
                                     sftSite.Disconnect();
 
-                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
+                                //commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
                             }
 
                             //TODO: Remove after proper naming convention
