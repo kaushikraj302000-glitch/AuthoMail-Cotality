@@ -136,10 +136,10 @@ namespace AM.Web.Controllers
         }
 
         [HttpPost]
-        public ActionResult DailySummaryChartDetails(string status, string date, int docTypeId)
+        public ActionResult DailySummaryChartDetails(string status, string date, string DocTypeCode)
         {
             var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-            var model = chartDataSvc.GetBatchByDocTypeIdAndStatus(exactDate, status, User.Identity.GetClientId().Value, docTypeId);
+            var model = chartDataSvc.GetBatchByDocTypeIdAndStatus(exactDate, status, User.Identity.GetClientId().Value, DocTypeCode);
             return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
 

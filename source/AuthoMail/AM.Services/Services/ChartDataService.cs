@@ -18,7 +18,7 @@ namespace AM.Services
         List<MailPieces> GetMailPieceByBatchId(int batchId, int clientId);
         //----------------Daily Summary Chart By DocType----------------------------------------------------------------//
         List<DailySummaryChartVM> GetDailySummaryChartByDocType(DateTime date, int clientId);
-        List<BatchListByChartData> GetBatchByDocTypeIdAndStatus(DateTime date, string status, int clientId, int docTypeId);
+        List<BatchListByChartData> GetBatchByDocTypeIdAndStatus(DateTime date, string status, int clientId, string DocTypeCode);
         //----------------End Daily Summary Chart-----------------------------------------------------------------------//
         //--------------Chart for all clients-----------------------------------------------------//
         List<WeeklyChart> GetWeeklyChartData();
@@ -251,8 +251,10 @@ namespace AM.Services
         }
 
 
-        public List<BatchListByChartData> GetBatchByDocTypeIdAndStatus(DateTime date, string status, int clientId, int docTypeId)
+        public List<BatchListByChartData> GetBatchByDocTypeIdAndStatus(DateTime date, string status, int clientId, string DocTypeCode)
         {
+            int docTypeId = db.QuerySingleOrDefault<int>("select id from AM.DocTypes where DocTypeCode=@DocTypeCode", new { DocTypeCode = DocTypeCode });
+
             string query = "select b.Id as [BatchId],b.ClientBatchId,b.[UniqueId] as [BatchUniqueId],b.BatchName,b.BatchStatus,b.DocumentOrPackageType,b.ReceivedOn,b.ValidationErrors, c.TimeZone as [ClientTimeZone],Count(m.Id) as MailPieceCount from AM.MailPieces m inner join AM.MailBatches b on m.MailBatchId=b.Id inner join Common.Clients c on b.ClientId=c.Id where m.ShippingStatus=@status and m.ClientId=@clientId and m.DocTypeId=@docTypeId and b.ReceivedOn between @startDate and @endDate group by b.Id ,b.ClientBatchId,b.[UniqueId],b.BatchName,b.BatchStatus,b.DocumentOrPackageType,b.ReceivedOn,b.ValidationErrors, c.TimeZone";
             var data = db.Query<BatchListByChartData>(query, new { startDate = date.ToStartDateTime().EstToUtc(), endDate = date.ToEndDateTime().EstToUtc(), status = status, clientId = clientId, docTypeId = docTypeId }).ToList();
             return data;

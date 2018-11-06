@@ -62,40 +62,40 @@
 
                             @if (ViewBag.BusinessId.Count == 1)
                             {
-                            <label for="BusinessFriendlyIdValue">@ViewBag.BusinessId[0]</label>
-                            <div class="input-group">
-                                <i class="fa fa-search left-icon"></i>
-                                <input class="form-control" name="loanNumber" placeholder="@ViewBag.BusinessId[0]" required id="BusinessFriendlyIdValue">
-                                <input type="hidden" value="@ViewBag.BusinessId[0]" name="BusinessFriendlyIdName" id="BusinessFriendlyIdName" />
-                            </div>
-                            <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
+                                <label for="BusinessFriendlyIdValue">@ViewBag.BusinessId[0]</label>
+                                <div class="input-group">
+                                    <i class="fa fa-search left-icon"></i>
+                                    <input class="form-control" name="loanNumber" placeholder="@ViewBag.BusinessId[0]" required id="BusinessFriendlyIdValue">
+                                    <input type="hidden" value="@ViewBag.BusinessId[0]" name="BusinessFriendlyIdName" id="BusinessFriendlyIdName" />
+                                </div>
+                                <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
                             }
                             else if (ViewBag.BusinessId.Count > 1)
                             {
-                            <label for="BusinessFriendlyIdName">Select Business ID</label>
-                            <div class="input-group">
+                                <label for="BusinessFriendlyIdName">Select Business ID</label>
+                                <div class="input-group">
 
-                                <select id="BusinessFriendlyIdName" class="selectpicker" data-live-search="true" data-live-search-placeholder="Search Business ID">
-                                    <option value="">Select BusinessId</option>
-                                    @foreach (var item in ViewBag.BusinessId)
+                                    <select id="BusinessFriendlyIdName" class="selectpicker" data-live-search="true" data-live-search-placeholder="Search Business ID">
+                                        <option value="">Select BusinessId</option>
+                                        @foreach (var item in ViewBag.BusinessId)
                                         {
-                                    <option value="@item.ToString()">@item.ToString()</option>
+                                            <option value="@item.ToString()">@item.ToString()</option>
                                         }
-                                </select>
-                                <input class="form-control" name="BusinessFriendlyIdValue" placeholder="" required id="BusinessFriendlyIdValue">
+                                    </select>
+                                    <input class="form-control" name="BusinessFriendlyIdValue" placeholder="" required id="BusinessFriendlyIdValue">
 
-                            </div>
-                            <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdNameError">This field is required.</div>
-                            <div class="text-red pull-right" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
+                                </div>
+                                <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdNameError">This field is required.</div>
+                                <div class="text-red pull-right" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
                             }
                             else
                             {
-                            <style>
-                                #pullback {
-                                    display: none;
-                                }
-                            </style>
-                            <div class='alert alert-yellow'><span>No business friendly id found!</span></div>
+                                <style>
+                                    #pullback {
+                                        display: none;
+                                    }
+                                </style>
+                                <div class='alert alert-yellow'><span>No business friendly id found!</span></div>
                             }
 
 
@@ -1215,7 +1215,7 @@
             // Instantiate and draw the chart.
             var chart = new google.visualization.BarChart(document.getElementById(div));
 
-            //google.visualization.events.addListener(chart, 'select', selectHandler);
+            google.visualization.events.addListener(chart, 'select', selectHandler);
             chart.draw(view, options);
 
             function selectHandler() {
@@ -1223,19 +1223,10 @@
                 if (selectedItem) {
                     var status = data.getColumnLabel(selectedItem.column);
                     if (selectedItem.row != null) {
-                //        if (div == "todayChart") {
-                //            var batchId = parseInt(data.getValue(selectedItem.row, 5));
-                //            var clientBatchId = data.getValue(selectedItem.row, 0);
-                //            if (batchId != 0) {
-                //                var receivedOn = data.getValue(selectedItem.row, 6);
-                //                GetChartDataByStatusAndBatchIds(status, batchId, clientBatchId, receivedOn);
-                //            }
-                //        }
-                //        if (div == "weeklyChart") {
-                //            var dates = data.getValue(selectedItem.row, 6);
-                //            GetChartDataByStatusAndDate(status, moment(dates).format("MM/DD/YYYY"));
-                //        }
-                   }
+                        var docTypeCode = data.getValue(selectedItem.row, 0);
+                        console.log(status);
+                        console.log(docTypeCode);
+                    }
 
                 }
             }
