@@ -48,7 +48,7 @@ namespace PCI.Service
                     DateTime endDateTime = new DateTime(toDateTime.Year, toDateTime.Month, toDateTime.Day, toDateTime.Hour, toDateTime.Minute, 0);
 
                     //Waiting Code for AuthoMail as well as BatchSummary
-                    while (!DAL.CheckAllBatchStatusCompleted(startDateTime, endDateTime))
+                    while (!DAL.CheckBatchesInQueue(startDateTime, endDateTime))
                     {
                         Thread.Sleep(6000);
                     }

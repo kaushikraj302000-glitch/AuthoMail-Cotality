@@ -24,7 +24,7 @@
     }
 </style>
 <div class="row">
-    <div class="col-md-6">
+    @*<div class="col-md-6">
         <div class="panel panel-default ">
             <div class="panel-heading">
                 <div class="panel-title">
@@ -33,6 +33,20 @@
             </div>
             <div class="panel-body panel-gray" style="padding:2% 2% 2% 2% !important;" id="todayBody">
                 <div id="todayChart"></div>
+            </div>
+
+        </div>
+    </div>*@
+
+    <div class="col-md-6">
+        <div class="panel panel-default ">
+            <div class="panel-heading">
+                <div class="panel-title">
+                    Daily Summary Details
+                </div>
+            </div>
+            <div class="panel-body panel-gray" style="padding:2% 2% 2% 2% !important;">
+                <div id="DailySummaryByDocType"></div>
             </div>
 
         </div>
@@ -62,40 +76,40 @@
 
                             @if (ViewBag.BusinessId.Count == 1)
                             {
-                            <label for="BusinessFriendlyIdValue">@ViewBag.BusinessId[0]</label>
-                            <div class="input-group">
-                                <i class="fa fa-search left-icon"></i>
-                                <input class="form-control" name="loanNumber" placeholder="@ViewBag.BusinessId[0]" required id="BusinessFriendlyIdValue">
-                                <input type="hidden" value="@ViewBag.BusinessId[0]" name="BusinessFriendlyIdName" id="BusinessFriendlyIdName" />
-                            </div>
-                            <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
+                                <label for="BusinessFriendlyIdValue">@ViewBag.BusinessId[0]</label>
+                                <div class="input-group">
+                                    <i class="fa fa-search left-icon"></i>
+                                    <input class="form-control" name="loanNumber" placeholder="@ViewBag.BusinessId[0]" required id="BusinessFriendlyIdValue">
+                                    <input type="hidden" value="@ViewBag.BusinessId[0]" name="BusinessFriendlyIdName" id="BusinessFriendlyIdName" />
+                                </div>
+                                <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
                             }
                             else if (ViewBag.BusinessId.Count > 1)
                             {
-                            <label for="BusinessFriendlyIdName">Select Business ID</label>
-                            <div class="input-group">
+                                <label for="BusinessFriendlyIdName">Select Business ID</label>
+                                <div class="input-group">
 
-                                <select id="BusinessFriendlyIdName" class="selectpicker" data-live-search="true" data-live-search-placeholder="Search Business ID">
-                                    <option value="">Select BusinessId</option>
-                                    @foreach (var item in ViewBag.BusinessId)
+                                    <select id="BusinessFriendlyIdName" class="selectpicker" data-live-search="true" data-live-search-placeholder="Search Business ID">
+                                        <option value="">Select BusinessId</option>
+                                        @foreach (var item in ViewBag.BusinessId)
                                         {
-                                    <option value="@item.ToString()">@item.ToString()</option>
+                                            <option value="@item.ToString()">@item.ToString()</option>
                                         }
-                                </select>
-                                <input class="form-control" name="BusinessFriendlyIdValue" placeholder="" required id="BusinessFriendlyIdValue">
+                                    </select>
+                                    <input class="form-control" name="BusinessFriendlyIdValue" placeholder="" required id="BusinessFriendlyIdValue">
 
-                            </div>
-                            <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdNameError">This field is required.</div>
-                            <div class="text-red pull-right" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
+                                </div>
+                                <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdNameError">This field is required.</div>
+                                <div class="text-red pull-right" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
                             }
                             else
                             {
-                            <style>
-                                #pullback {
-                                    display: none;
-                                }
-                            </style>
-                            <div class='alert alert-yellow'><span>No business friendly id found!</span></div>
+                                <style>
+                                    #pullback {
+                                        display: none;
+                                    }
+                                </style>
+                                <div class='alert alert-yellow'><span>No business friendly id found!</span></div>
                             }
 
 
@@ -116,19 +130,7 @@
     </div>
     <div class="clearfix"></div>
 
-    <div class="col-md-6">
-        <div class="panel panel-default ">
-            <div class="panel-heading">
-                <div class="panel-title">
-                    Daily Summary Details
-                </div>
-            </div>
-            <div class="panel-body panel-gray" style="padding:2% 2% 2% 2% !important;">
-                <div id="DailySummaryByDocType"></div>
-            </div>
-
-        </div>
-    </div>
+    
 </div>
 <div class="clearfix"></div>
 
@@ -418,6 +420,47 @@
             });
         };
         var commonmsg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
+        function GetChartDataByStatusAndDocTypeCode(status, docTypeCode) {
+            var el = $("#batchModal").find('.modal-body');
+            $("#batchModalHeader").html("Batch Summary of "+docTypeCode);
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "Home/DailySummaryChartDetails",
+                data: JSON.stringify({ status: status, docTypeCode: docTypeCode }),
+                contentType: "application/json; charset=utf-8",
+                success: function (response) {
+                    //console.log(response);
+                    if (response.Success) {
+                        if (response.Object != null) {
+                            if (response.Object.model.length > 0) {
+                                var data = FormatObject(response.Object.model);
+                                //console.log(data);
+                                $("#batchModalModalBody").html("");
+                                //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                                BindTemplate(data, "#WeeklyChartBody", "#WeeklyChartbodyContent", "#WeeklyChartTableContent", "#batchModalModalBody");
+                                window.clui.tooltipInit();
+                            }
+                            else {
+                                el.html(" <div class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                            }
+                        }
+                    }
+                    else {
+                        el.html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + response.ErrorMessage + "</span></div>");
+                    }
+                    $("#batchModal").modal("show");
+                    setModalHeight("batchModal");
+
+
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    el.html("<div class='alert alert-red'><span>" + commonmsg + "</span></div>");
+                    $("#batchModal").modal("show");
+                }
+
+            });
+        }
+
         function GetChartDataByStatusAndBatchIds(status, ids, clientBatchId, receivedOn) {
             var el = $("#batchMailPieceModal").find('.modal-body');
             el.html("");
@@ -619,7 +662,7 @@
                     }
                     ////console.log(chartData);
 
-                    drawChart(chartData, "todayChart", 'MailPiece Status', 467, 534);
+                  //  drawChart(chartData, "todayChart", 'MailPiece Status', 467, 534);//uncomment if need to start Today chart
 
 
 
@@ -1215,7 +1258,7 @@
             // Instantiate and draw the chart.
             var chart = new google.visualization.BarChart(document.getElementById(div));
 
-            //google.visualization.events.addListener(chart, 'select', selectHandler);
+            google.visualization.events.addListener(chart, 'select', selectHandler);
             chart.draw(view, options);
 
             function selectHandler() {
@@ -1223,19 +1266,11 @@
                 if (selectedItem) {
                     var status = data.getColumnLabel(selectedItem.column);
                     if (selectedItem.row != null) {
-                //        if (div == "todayChart") {
-                //            var batchId = parseInt(data.getValue(selectedItem.row, 5));
-                //            var clientBatchId = data.getValue(selectedItem.row, 0);
-                //            if (batchId != 0) {
-                //                var receivedOn = data.getValue(selectedItem.row, 6);
-                //                GetChartDataByStatusAndBatchIds(status, batchId, clientBatchId, receivedOn);
-                //            }
-                //        }
-                //        if (div == "weeklyChart") {
-                //            var dates = data.getValue(selectedItem.row, 6);
-                //            GetChartDataByStatusAndDate(status, moment(dates).format("MM/DD/YYYY"));
-                //        }
-                   }
+                        var docTypeCode = data.getValue(selectedItem.row, 0);
+                        console.log(status);
+                        console.log(docTypeCode);
+                        GetChartDataByStatusAndDocTypeCode(status, docTypeCode);
+                    }
 
                 }
             }
