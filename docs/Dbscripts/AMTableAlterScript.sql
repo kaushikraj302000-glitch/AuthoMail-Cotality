@@ -215,7 +215,7 @@ GO
 ALTER TABLE [PnS].[MRDFResponse] CHECK CONSTRAINT [FK_MRDFResponse_PrintTrailBatches]
 GO
 
-ALTER TABLE [Common].[Clients] DROP CONSTRAINT [DF__Clients__Simulat__7E850515]
+ALTER TABLE [Common].[Clients] DROP CONSTRAINT [DF__Clients__Simulat__383A4359]
 ALTER TABLE [Common].[Clients]
 Drop COLUMN SimulatePCI
 
