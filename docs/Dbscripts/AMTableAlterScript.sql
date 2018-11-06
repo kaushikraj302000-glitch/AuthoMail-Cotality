@@ -71,6 +71,7 @@ REFERENCES [Common].[SFTChannels] ([Id])
 ALTER TABLE [Common].[PrintVendors] CHECK CONSTRAINT [FK_PrintVendors_SFTChannels]
 
 
+
 CREATE TABLE [Common].[PrintTrails](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[TrailName] [varchar](255) NULL,
@@ -257,4 +258,11 @@ INSERT INTO [Common].[DocTypePrintTrailMaps]([DocTypeId],[PrintTrailId],[BizDayS
            ,[SatStartTime],[SatEndTime],[SunStartTime],[SunEndTime])
 SELECT Id,(SELECT Id FROM Common.PrintTrails WHERE TrailName='ALASKA-GENERIC-9X12'),'00:00:00','23:59:59','00:00:00','23:59:59',NULL,NULL FROM AM.DocTypes WHERE ClientId=(SELECT ID FROM Common.Clients WHERE AppCode='ALASKA') AND ShippingCarrier='USPS' AND ShippingServiceType = 'IMB'
 
+Go
+CREATE UNIQUE NONCLUSTERED INDEX [IX_PrintVendor_TrailName] ON [Common].[PrintTrails]
+(
+ [TrailName] ASC,
+ [PrintVendorId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)
 
+GO
