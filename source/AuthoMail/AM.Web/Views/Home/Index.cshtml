@@ -25,18 +25,18 @@
 </style>
 <div class="row">
     @*<div class="col-md-6">
-        <div class="panel panel-default ">
-            <div class="panel-heading">
-                <div class="panel-title">
-                    Today's Batch Details
+            <div class="panel panel-default ">
+                <div class="panel-heading">
+                    <div class="panel-title">
+                        Today's Batch Details
+                    </div>
                 </div>
-            </div>
-            <div class="panel-body panel-gray" style="padding:2% 2% 2% 2% !important;" id="todayBody">
-                <div id="todayChart"></div>
-            </div>
+                <div class="panel-body panel-gray" style="padding:2% 2% 2% 2% !important;" id="todayBody">
+                    <div id="todayChart"></div>
+                </div>
 
-        </div>
-    </div>*@
+            </div>
+        </div>*@
 
     <div class="col-md-6">
         <div class="panel panel-default ">
@@ -130,7 +130,7 @@
     </div>
     <div class="clearfix"></div>
 
-    
+
 </div>
 <div class="clearfix"></div>
 
@@ -421,8 +421,9 @@
         };
         var commonmsg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
         function GetChartDataByStatusAndDocTypeCode(status, docTypeCode) {
-            var el = $("#batchModal").find('.modal-body');
-            $("#batchModalHeader").html("Batch Summary of "+docTypeCode);
+            var el = $("#batchMailPieceModal").find('.modal-body');
+            el.html("");
+
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Home/DailySummaryChartDetails",
@@ -433,11 +434,12 @@
                     if (response.Success) {
                         if (response.Object != null) {
                             if (response.Object.model.length > 0) {
-                                var data = FormatObject(response.Object.model);
+                                var data = FormatObjectToday(response.Object.model);
                                 //console.log(data);
-                                $("#batchModalModalBody").html("");
+                                $("#batchMailPieceModalBody").html("");
                                 //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
-                                BindTemplate(data, "#WeeklyChartBody", "#WeeklyChartbodyContent", "#WeeklyChartTableContent", "#batchModalModalBody");
+                                BindTemplate(data, "#ChartMailPieceBody", "#ChartMailPiecebodyContent", "#ChartMailPieceTableContent", "#batchMailPieceModalBody");
+                                $("#batchMailPieceModalHeader").html("Mailpiece Summary of " + docTypeCode);
                                 window.clui.tooltipInit();
                             }
                             else {
@@ -448,14 +450,15 @@
                     else {
                         el.html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + response.ErrorMessage + "</span></div>");
                     }
-                    $("#batchModal").modal("show");
-                    setModalHeight("batchModal");
+                    $("#batchMailPieceModal").modal("show");
+                    setModalHeight("batchMailPieceModal");
 
 
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     el.html("<div class='alert alert-red'><span>" + commonmsg + "</span></div>");
-                    $("#batchModal").modal("show");
+                    $("#batchMailPieceModal").modal("show");
+                    setModalHeight("batchMailPieceModal");
                 }
 
             });
@@ -662,7 +665,7 @@
                     }
                     ////console.log(chartData);
 
-                  //  drawChart(chartData, "todayChart", 'MailPiece Status', 467, 534);//uncomment if need to start Today chart
+                    //  drawChart(chartData, "todayChart", 'MailPiece Status', 467, 534);//uncomment if need to start Today chart
 
 
 
@@ -1267,8 +1270,8 @@
                     var status = data.getColumnLabel(selectedItem.column);
                     if (selectedItem.row != null) {
                         var docTypeCode = data.getValue(selectedItem.row, 0);
-                        console.log(status);
-                        console.log(docTypeCode);
+                        // console.log(status);
+                        //console.log(docTypeCode);
                         GetChartDataByStatusAndDocTypeCode(status, docTypeCode);
                     }
 
