@@ -96,25 +96,16 @@ namespace AM.Web.Controllers
                     }
                     else if (item.AMBatchPipelineStatus == "SubmittedToShipping" && item.PCIBatchPrepEnd.HasValue)
                     {
-                        if (item.PnSMailPieceStatus == "InProgress" && (item.PnSBatchPipelineStatus == "Prepped" || item.PnSBatchPipelineStatus == "Submitted"))
+                        if (item.PrintTrailBatchId == null)
+                        {
+                            int row1 = pullBackSvc.InsertPullBackRequestData(item.MailPieceUniqueId.ToString(), User.Identity.GetClientId().Value, "PulledBack", string.IsNullOrEmpty(User.Identity.GetUserId().ToString()) ? string.Empty : User.Identity.GetUserId().ToString());
+                            int row = pullBackSvc.UpdatePullBackRequestedOn(item.MailPieceUniqueId.ToString(), string.IsNullOrEmpty(User.Identity.GetUserId().ToString()) ? string.Empty : User.Identity.GetUserId().ToString(), "PulledBack");
+                            pullBackSvc.UpdateAMBatchStatus(item.MailPieceUniqueId.ToString());
+                            mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.MailPieceUniqueId.ToString(), Message = Config.Web_Msg_API_PB_PulledBackSuccess, MailPieceStatus = "PulledBack", PullBackRequestedOn = Common.Now, PulledBackRequestedBy = (User.Identity) == null ? string.Empty : User.Identity.Name, Success = true });
+                        }
+                        else if (item.PnSMailPieceStatus == "InProgress" && (item.PrintTrailBatchId != null))
                         {
                             mailPieceIdsToPullback.Add(item.MailPieceUniqueId.ToString());
-                        }
-                        else
-                        {
-                            int seconds = 0;
-                            do
-                            {
-                                //wait for 2 seconds while batch is being prepped.
-                                Thread.Sleep(2000);
-                                string pnsBatchPipelineStatus = pullBackSvc.GetPnSBatchPipelineStatusByPrintBatchId(item.PrintBatch);
-                                if (item.PnSMailPieceStatus == "InProgress" && (pnsBatchPipelineStatus == "Prepped" || pnsBatchPipelineStatus == "Submitted"))
-                                {
-                                    mailPieceIdsToPullback.Add(item.MailPieceUniqueId.ToString());
-                                    break;
-                                }
-                                seconds++;
-                            } while (seconds != 15);
                         }
                     }
                 }
