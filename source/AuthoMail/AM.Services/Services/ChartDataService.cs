@@ -262,7 +262,25 @@ namespace AM.Services
                 inner join [AM].[DocTypes] d ON m.DocTypeId=d.Id
                 where b.ClientId=@clientId
                 and m.ShippingStatus=@status and b.ReceivedOn between @startDate and @endDate and d.DocTypeCode=@DocTypeCode";
-            var data = db.Query<MailPieces>(query, new { startDate = date.ToStartDateTime().EstToUtc(), endDate = date.ToEndDateTime().EstToUtc(), status = status, clientId = clientId, DocTypeCode = DocTypeCode }).ToList();
+            //var data = db.Query<MailPieces>(query, new { startDate = date.ToStartDateTime().EstToUtc(), endDate = date.ToEndDateTime().EstToUtc(), status = status, clientId = clientId, DocTypeCode = DocTypeCode }).ToList();
+            //return data;
+
+            var data = db.Query<MailPieces, MailBatches, Clients, DocTypes, MailPieces>(query,
+                (m, b, c, d) =>
+                {
+                    m.MailBatches = b;
+                    m.Clients = c;
+                    m.DocTypes = d;
+                    return m;
+                },
+                new
+                {
+                    startDate = date.ToStartDateTime().EstToUtc(),
+                    endDate = date.ToEndDateTime().EstToUtc(),
+                    status = status,
+                    clientId = clientId,
+                    DocTypeCode = DocTypeCode
+                }).ToList();
             return data;
 
         }
