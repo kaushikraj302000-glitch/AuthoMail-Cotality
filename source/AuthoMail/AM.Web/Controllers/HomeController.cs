@@ -139,8 +139,8 @@ namespace AM.Web.Controllers
         public ActionResult DailySummaryChartDetails(string status, string docTypeCode)
         {
             var estToday = DateTime.UtcNow.UtcToEst().Date;
-            var model = chartDataSvc.GetBatchByDocTypeIdAndStatus(estToday, status, User.Identity.GetClientId().Value, docTypeCode);
-            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+            var model = chartDataSvc.GetMailPiecesByDocTypeIdAndStatus(estToday, status, User.Identity.GetClientId().Value, docTypeCode);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.MailBatches.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
 
         [AllowAnonymous]
