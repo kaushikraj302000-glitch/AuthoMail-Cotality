@@ -447,7 +447,7 @@ declare	@jobid int,
 		end
 		select @mailpieceid= Id,@pieceid=PieceId,@jobid=JobId,@mrdfreqdate=MRDFReqDate,@ispullbackrequested =IsPullBackRequested,@isqcrequested=IsQCRequested,@totalsheet=TotalSheets,@pdffilename=PDFFileName,@jobName=JobName,@serviceType=ShippingServiceType,@clientAppCode=AppCode,@clientName=ClientName,@bt=BatchName,@PrintTrailBatchId=PrintTrailBatchId
 		from dbo.ufn_GetDallasBatchDetails(@EstDate)
-		where TrackingNo=@trackno and PrintLocation=@printlocationcl and IsSubmitted=1 and ShippingStatus='InProgress'--filter by inprogress
+		where TrackingNo=@trackno and PrintLocation=@printlocationcl and IsSubmitted=1 and MailPieceStatus='InProgress'
 
 		if(@mailpieceid IS NULL) 
 		begin
