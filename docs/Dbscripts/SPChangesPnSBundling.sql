@@ -5,8 +5,11 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'usp_GetBatchSummaryById')
+DROP PROCEDURE [dbo].[usp_GetBatchSummaryById]
+GO
 
-ALTER PROCEDURE [dbo].[usp_GetBatchSummaryById]
+CREATE PROCEDURE [dbo].[usp_GetBatchSummaryById]
 	-- Add the parameters for the stored procedure here
 	@batchId int
 AS
@@ -34,7 +37,11 @@ GO
 -- Create date: 10/31/2018
 -- Description:	Get all the mrdf request details by print trails id
 -- =============================================
-ALTER PROCEDURE [dbo].[usp_GetMRDFRequestDataByPrintTrailId] 
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'usp_GetMRDFRequestDataByPrintTrailId')
+DROP PROCEDURE [dbo].[usp_GetMRDFRequestDataByPrintTrailId]
+GO
+
+CREATE PROCEDURE [dbo].[usp_GetMRDFRequestDataByPrintTrailId] 
 @printTrailId INT
 AS
 BEGIN
@@ -61,7 +68,9 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'usp_GetMRDFResponseDataByPrintTrailBatchId')
+DROP PROCEDURE [dbo].[usp_GetMRDFResponseDataByPrintTrailBatchId]
+GO
 CREATE PROCEDURE [dbo].[usp_GetMRDFResponseDataByPrintTrailBatchId]
 @printTrailBatchId int
 AS
@@ -84,8 +93,11 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'usp_GetSubmittedBatches')
+DROP PROCEDURE [dbo].[usp_GetSubmittedBatches]
+GO
 
-ALTER PROCEDURE [dbo].[usp_GetSubmittedBatches]
+CREATE PROCEDURE [dbo].[usp_GetSubmittedBatches]
 AS
 BEGIN
 
@@ -111,6 +123,9 @@ GO
 -- Create date: 10/31/2018
 -- Description:	Get PrintTrailBatch details
 -- =============================================
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'usp_GetPrintBatchDetailByPrintBatchTrailId')
+DROP PROCEDURE [dbo].[usp_GetPrintBatchDetailByPrintBatchTrailId]
+GO
 CREATE PROCEDURE [dbo].[usp_GetPrintBatchDetailByPrintBatchTrailId]
 @printTrailBatchId INT
 AS
@@ -139,6 +154,9 @@ GO
 -- Create date: 10/31/2018
 -- Description:	Get Print Trail details by 
 -- =============================================
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'usp_GetPrintTrailDetailByPrintTrailId')
+DROP PROCEDURE [dbo].[usp_GetPrintTrailDetailByPrintTrailId]
+GO
 CREATE PROCEDURE [dbo].[usp_GetPrintTrailDetailByPrintTrailId] 
 @printTrailId INT
 AS
@@ -170,6 +188,9 @@ GO
 -- Create date: 10/31/2018
 -- Description:	Get Print Trail details by 
 -- =============================================
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'usp_GetPrintTrailDetailByPrintTrailName')
+DROP PROCEDURE [dbo].[usp_GetPrintTrailDetailByPrintTrailName]
+GO
 CREATE PROCEDURE [dbo].[usp_GetPrintTrailDetailByPrintTrailName] 
 @printTrailName VARCHAR(255)
 AS
@@ -196,8 +217,10 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-
-ALTER PROCEDURE [dbo].[usp_GetMRDFResponseDummyDataByPrintTrailBatchId]
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'usp_GetMRDFResponseDummyDataByPrintTrailBatchId')
+DROP PROCEDURE [dbo].[usp_GetMRDFResponseDummyDataByPrintTrailBatchId]
+GO
+CREATE PROCEDURE [dbo].[usp_GetMRDFResponseDummyDataByPrintTrailBatchId]
 @printTrailBatchId int
 AS
 BEGIN
@@ -234,7 +257,9 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'usp_GetMRDFRequestDataByPrintTrailBatchId')
+DROP PROCEDURE [dbo].[usp_GetMRDFRequestDataByPrintTrailBatchId]
+GO
 CREATE PROCEDURE [dbo].[usp_GetMRDFRequestDataByPrintTrailBatchId]
 @printTrailBatchId int,
 @mailPieceStatus varchar(255)
@@ -282,8 +307,10 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-
-ALTER PROCEDURE [dbo].[usp_GetAllClientAppDetail]
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'usp_GetAllClientAppDetail')
+DROP PROCEDURE [dbo].[usp_GetAllClientAppDetail]
+GO
+CREATE PROCEDURE [dbo].[usp_GetAllClientAppDetail]
 	-- Add the parameters for the stored procedure here
 	
 AS
@@ -304,7 +331,11 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-ALTER PROCEDURE [dbo].[usp_GetClientAppDetailsById]
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'usp_GetClientAppDetailsById')
+DROP PROCEDURE [dbo].[usp_GetClientAppDetailsById]
+GO
+
+CREATE PROCEDURE [dbo].[usp_GetClientAppDetailsById]
 	-- Add the parameters for the stored procedure here
 	@appId int
 AS
@@ -327,9 +358,12 @@ BEGIN
   WHERE C.Id = @appId
 END
 ----------------------------------------------------------------------------------------
-
 GO
-alter FUNCTION [dbo].[ufn_GetDallasBatchDetails]
+IF EXISTS (SELECT * FROM sys.objects WHERE type IN ( N'FN', N'IF', N'TF', N'FS', N'FT' ) AND  name = 'ufn_GetDallasBatchDetails')
+DROP FUNCTION [dbo].[ufn_GetDallasBatchDetails]
+GO
+
+CREATE FUNCTION [dbo].[ufn_GetDallasBatchDetails]
 (
 @EstDate DATE
 )
@@ -364,8 +398,10 @@ select * from q where BatchName is not null
 /****** Object:  StoredProcedure [dbo].[SP_RegisterScan]    Script Date: 8/6/2018 10:39:18 AM ******/
 
 GO
-
-alter PROCEDURE [dbo].[SP_RegisterScan]
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'SP_RegisterScan')
+DROP PROCEDURE [dbo].[SP_RegisterScan]
+GO
+CREATE PROCEDURE [dbo].[SP_RegisterScan]
 	-- Add the parameters for the stored procedure here
 @trackno varchar(255),
 @clientCode varchar(128),
@@ -411,7 +447,7 @@ declare	@jobid int,
 		end
 		select @mailpieceid= Id,@pieceid=PieceId,@jobid=JobId,@mrdfreqdate=MRDFReqDate,@ispullbackrequested =IsPullBackRequested,@isqcrequested=IsQCRequested,@totalsheet=TotalSheets,@pdffilename=PDFFileName,@jobName=JobName,@serviceType=ShippingServiceType,@clientAppCode=AppCode,@clientName=ClientName,@bt=BatchName,@PrintTrailBatchId=PrintTrailBatchId
 		from dbo.ufn_GetDallasBatchDetails(@EstDate)
-		where TrackingNo=@trackno and PrintLocation=@printlocationcl and IsSubmitted=1 and ShippingStatus='InProgress'--filter by inprogress
+		where TrackingNo=@trackno and PrintLocation=@printlocationcl and IsSubmitted=1 and MailPieceStatus='InProgress'
 
 		if(@mailpieceid IS NULL) 
 		begin
@@ -504,8 +540,10 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-
-ALTER VIEW [dbo].[view_MRDFResponseData] AS
+IF EXISTS(select * FROM sys.views where name = 'view_MRDFResponseData')
+DROP VIEW [dbo].[view_MRDFResponseData]
+GO
+CREATE VIEW [dbo].[view_MRDFResponseData] AS
 SELECT REQ.JobId
 ,REQ.PieceId
 ,ISNULL(REQ.ErrId,0) AS ErrId 
@@ -527,7 +565,10 @@ ON REQ.PrintTrailBatchId =RES.JobId AND REQ.PieceId =RES.PieceId
 GO
 
 
-ALTER PROCEDURE [dbo].[usp_GetPullBackRequestDataByJobId]
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'usp_GetPullBackRequestDataByJobId')
+DROP PROCEDURE [dbo].[usp_GetPullBackRequestDataByJobId]
+GO
+CREATE PROCEDURE [dbo].[usp_GetPullBackRequestDataByJobId]
 @jobId int
 AS
 BEGIN
@@ -553,5 +594,104 @@ BEGIN
 	
 
 	COMMIT TRAN
+
+END
+
+Go
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'SP_GetPendingScanning')
+DROP PROCEDURE [dbo].[SP_GetPendingScanning]
+GO
+CREATE PROCEDURE [dbo].[SP_GetPendingScanning]
+	@appcode varchar(128),
+	@EstDate DATE
+AS
+BEGIN
+	declare @clientid int
+	set @appcode = replace(@appcode, 'AUT','')
+	select @clientid=Id from Common.Clients where AppCode=@appcode;
+
+	select TrackingNo,LoanNumber,SubmittedOn,PDFFileName as [FileName],JobName,PrintBatchName,MailPieceStatus,BatchName,DueDate 
+	from dbo.ufn_GetDallasBatchDetails(@EstDate)
+	where ClientId=@clientid and PrintLocation=(select Value from [Common].[SystemSettings] where Id		='Common_PrintLocationCL') and MailPieceStatus='InProgress' and ProcessingTimeStamp is null and IsSubmitted=1
+
+END
+
+
+GO
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'SP_GetScannedMailPieces')
+DROP PROCEDURE [dbo].[SP_GetScannedMailPieces]
+GO
+CREATE PROCEDURE [dbo].[SP_GetScannedMailPieces]
+	@appcode varchar(128),
+	@batchName varchar(255),
+	@startDate datetime,
+	@endDate datetime,
+	@EstDate DATE
+	
+AS
+BEGIN
+	declare @printlocationcl varchar(1024), @clientid int
+	set @appcode=REPLACE(@appcode,'AUT','')
+	-- Get ClientId
+	select @clientid=Id from Common.Clients where AppCode=@appcode;
+	-- Get PrintLocation
+	select @printlocationcl=Value from [Common].[SystemSettings] where Id ='Common_PrintLocationCL';
+
+	select TrackingNo,
+	(case when IsPullBackRequested = 1 then 'Pulledback' when IsQCRequested = 1 then 'QC' else 'Valid' end) as [Code],JobName,PrintBatchName
+	from dbo.ufn_GetDallasBatchDetails(@EstDate)
+	where Printlocation=@printlocationcl and ClientId=@clientId and BatchName=@batchName and MailPieceStatus <> 'InProgress'	and ProcessingTimeStamp between @startDate and @endDate and IsSubmitted=1
+
+END
+
+
+GO
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'SP_GetScanReportData')
+DROP PROCEDURE [dbo].[SP_GetScanReportData]
+GO
+CREATE PROCEDURE [dbo].[SP_GetScanReportData]
+	@loanNumber varchar(255),
+	@trackingNo varchar(255),
+	@appcode varchar(128),
+	@EstDate DATE,
+	@substartdate datetime,
+	@subenddate datetime,
+	@scanstartDate datetime,
+	@scanendDate datetime
+AS
+BEGIN
+	declare @printlocationcl varchar(255),@clientid int
+	-- Get Print location 
+	select @printlocationcl = Value from [Common].[SystemSettings] where Id ='Common_PrintLocationCL'
+	-- Assign Client id value
+	set @appcode = replace(@appcode, 'AUT','')
+	select @clientid=Id from Common.Clients where AppCode=@appcode;
+	
+	select JobName,PrintBatchName,BatchName,TrackingNo as BarcodeValue,TotalPages,ProcessingTimeStamp as ShippedOn,LoanNumber,MailPieceStatus,SubmittedOn as ReceivedOn from dbo.ufn_GetDallasBatchDetails(@EstDate)
+	where ClientId=@clientId and PrintLocation=@printlocationcl and ProcessingTimeStamp is not null and IsSubmitted=1
+	and SubmittedOn between ISNULL(@substartdate,SubmittedOn) and ISNULL(@subenddate,SubmittedOn)
+	and ProcessingTimeStamp between ISNULL(@scanstartDate,ProcessingTimeStamp) and ISNULL(@scanendDate,ProcessingTimeStamp)
+	and TrackingNo = ISNULL(@trackingNo,TrackingNo)
+	and LoanNumber = ISNULL(@loanNumber,LoanNumber)
+	order by SubmittedOn asc
+
+END
+GO
+
+IF EXISTS (SELECT * FROM sys.objects WHERE type IN ( N'FN', N'IF', N'TF', N'FS', N'FT' ) AND  name = 'ufn_UTCToEST')
+DROP FUNCTION [dbo].[ufn_UTCToEST]
+GO
+
+CREATE FUNCTION [dbo].[ufn_UTCToEST]
+(
+ @UTCDate DATETIME
+)
+RETURNS DATETIME
+AS
+BEGIN
+ 
+
+ -- Return the result of the function
+ RETURN DATEADD(HOUR,-4,@UTCDate)
 
 END
