@@ -77,6 +77,7 @@ namespace PCI.Service
 
                             mailPieceDetails.ForEach(mp =>
                             {
+                                mp.PrintTrailBatchId = printTrailBatchDetail.Id;
                                 if (mp.MailPieceStatus == MailPieceStatus.PulledBack.ToString() || mp.MailPieceStatus == MailPieceStatus.Error.ToString())
                                     mp.SequenceNo = -1;
                                 else
@@ -186,7 +187,7 @@ namespace PCI.Service
                 {
                     if (f.FieldName == "JobId")
                     {
-                        mrdfContent.AppendFormat(f.DataFormat, row.GetType().GetProperty("PrintTrailBatchId").GetValue(row, null));
+                        mrdfContent.AppendFormat(f.DataFormat, row.PrintTrailBatchId);
                     }
                     else
                     {
