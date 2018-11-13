@@ -115,7 +115,7 @@ namespace PCI.Service
                         }
                     }
 
-                    var validMailPieceDetails = mailPieceDetails.Where(mp => mp.MailPieceStatus == MailPieceStatus.InProgress.ToString()).ToList();
+                    var validMailPieceDetails = DAL.GetMRDFRequestListByPrintTrailBatchId(printTrailBatchDetail.Id);
 
                     //NOTE: Bundling folder structure will be like : BundlingRoot/PrintTrailBatchId/Request & Response
                     var pciRequestPath = Path.Combine(Common.BundlingRootFolder, printTrailBatchDetail.Id.ToString(), Common.BundlingRequestFolderName);
