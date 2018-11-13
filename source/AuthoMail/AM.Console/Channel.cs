@@ -101,14 +101,13 @@ namespace AM.Console
         public static void ReportBack(string channelCode)
         {
             log.Debug("ReportedBack job is started.");
-
+            //TODO: Comma separated channels for Increamental reports
             switch (channelCode)
             {
                 case "AMC":
-                    ProcessAMCReportedBack(channelCode);
+                    ProcessIncreamentalReportedBack(channelCode);
+                    ProcessGeneralReportedBack(channelCode);
                     break;
-                case "HSBC":
-                case "ALASKA":
                 default:
                     ProcessGeneralReportedBack(channelCode);
                     break;
@@ -123,16 +122,15 @@ namespace AM.Console
             using (IClientService clientSvc = new ClientService())
             using (ICommonService commonSvc = new CommonService())
             {
-                List<MailBatchDTO> reportPreppedBatches = mailBatchSvc.GetBatchesByPipelineStatusAndClientId(BatchPipelineStatus.ReportPrepped);
-                if (reportPreppedBatches == null)
+                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelCode(channelCode + "_" + Config.Common_Environment);
+
+                List<MailBatchDTO> reportPreppedBatches = mailBatchSvc.GetBatchesByPipelineStatusAndClientId(BatchPipelineStatus.ReportPrepped).Where(ch => ch.SFTChannelId == sftChannelDetails.Id).ToList();
+
+                if (reportPreppedBatches == null || reportPreppedBatches.Count == 0)
                 {
                     log.Debug("Uploading report job queue is empty.");
                     return;
                 }
-
-                SFTChannel channel = clientSvc.GetSFTChannelDetailsBySFTChannelCode(channelCode + "_" + Config.Common_Environment);
-
-                reportPreppedBatches = reportPreppedBatches.Where(b => b.SFTChannelId == channel.Id).ToList();
 
                 foreach (var batch in reportPreppedBatches)
                 {
@@ -148,7 +146,6 @@ namespace AM.Console
                         mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
                     }
 
-                    SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(batch.SFTChannelId);
                     if (sftChannelDetails != null)
                     {
                         try
@@ -157,27 +154,32 @@ namespace AM.Console
                             sftSite.Connect();
 
                             //TODO: Remove switch case after proper logic implementation of deliverables
-                            UploadReportsToClients(mbi, sftSite, deliverables, mailPieces);
+                            bool isUploaded = UploadReportsToClients(mbi, sftSite, deliverables, mailPieces);
 
-                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
+                            if (isUploaded)
+                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
 
                             if (sftSite.IsConnected)
                                 sftSite.Disconnect();
                         }
                         catch (Exception ex)
                         {
-                            log.Error(ex);
+                            var msg = "Error occured while report uploading for MailBatchId - {0} with Error " + Environment.NewLine + "{1}".Fill(batch.Id, ex.Message);
+                            log.Error(msg, ex);
+                            MailUtility.SendUnexpectedExceptionEmail(msg);
                         }
                     }
                     else
                     {
-                        log.Error("SFT site is not available or not enabled to upload reports.");
+                        var msg = "SFT site is not available or not enabled to upload reports.";
+                        log.Error(msg);
+                        MailUtility.SendUnexpectedExceptionEmail(msg);
                     }
                 }
             }
         }
 
-        private static void ProcessAMCReportedBack(string channelCode)
+        private static void ProcessIncreamentalReportedBack(string channelCode)
         {
             using (IMailBatchService mailBatchSvc = new MailBatchService())
             using (IMailPieceService mailPieceSvc = new MailPieceService())
@@ -189,46 +191,25 @@ namespace AM.Console
                 var reportPreppedBatches = mailBatchSvc.GetReportPreppedPrintBatchDetails().Where(c => c.SFTChannelId == sftChannelDetails.Id).ToList();
                 SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
                 sftSite.Connect();
-                foreach (var item in reportPreppedBatches)
+                foreach (var preppedPrintBatch in reportPreppedBatches)
                 {
                     try
                     {
-                        Client client = clientSvc.GetClientByAppCode(item.AppCode);
+                        Client client = clientSvc.GetClientByAppCode(preppedPrintBatch.AppCode);
 
                         Deliverable deliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Delivery);
 
-                        string localReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, client.AppCode, Util.AMResponseFolderName, item.PrintBatchId.ToString());
+                        string localReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, client.AppCode, Util.AMResponseFolderName, preppedPrintBatch.PrintBatchId.ToString());
+                        //Here we are passing localReportPath as PrintBatches folder structure AMRoot/AMResponses/PrintBatchId
+                        UploadReportsToAMC(deliverable, localReportPath, sftSite);
 
-                        //TODO: Remove switch case after proper logic implementation of deliverables
-                        UploadReportsToAMC(deliverable, localReportPath, sftSite, false);
-
-                        mailBatchSvc.UpdatePrintBatchPipelineStatus(item.PrintBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
-
-                        var mailBatchIds = reportSvc.GetMailPiecesDataFromPrintBatchId(item.PrintBatchId).Select(b => b.MailBatchId).Distinct().ToList();
-
-                        foreach (int mailBatchId in mailBatchIds)
-                        {
-                            var mailBatch = mailBatchSvc.GetMailBatchDetailByBatchId(mailBatchId);
-                            var mailPieceCount = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatchId).Count(status => status.ShippingStatus == ShippingStatus.InProgress.ToString());
-
-                            if (mailPieceCount > 0 || mailBatch.PipelineStatus == BatchPipelineStatus.ReportedBack)
-                                continue;
-
-                            MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
-                            var mailPieceData = reportSvc.GetMailPiecesDataFromMailBatchId(mailBatchId);
-
-                            string errorReportLocalPath = Path.Combine(Config.Common_AuthoMailRootFolder, client.AppCode, mailBatchId.ToString(), Util.AMResponseFolderName);
-                            GenerateErrorReport(mailBatchId, mailPieceData, errorReportLocalPath);
-                            UploadReportsToAMC(deliverable, errorReportLocalPath, sftSite, true);
-
-
-                            GenerateAndSendProductionSummaryNotification(mbi, mailPieceData, deliverable);
-                            commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
-                        }
+                        mailBatchSvc.UpdatePrintBatchPipelineStatus(preppedPrintBatch.PrintBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
                     }
                     catch (Exception ex)
                     {
-                        log.Error(ex);
+                        var msg = "Error occured while increamental report uploading for PrintBatchId - {0} with Error " + Environment.NewLine + "{1}".Fill(preppedPrintBatch.PrintBatchId, ex.Message);
+                        log.Error(msg, ex);
+                        MailUtility.SendUnexpectedExceptionEmail(msg);
                     }
                 }
 
@@ -324,63 +305,84 @@ namespace AM.Console
             }
         }
 
-        private static void UploadReportsToAMC(Deliverable deliverable, string localReportPath, SFTUtil sftSite, bool isErrorReport)
+        private static void UploadReportsToAMC(Deliverable deliverable, string localReportPath, SFTUtil sftSite)
         {
             string uploadPath = deliverable.UploadPath;
-            if (sftSite.IsDownloadDirectoryAvailable(uploadPath))
+
+            var deliveryReportList = Directory.EnumerateFiles(localReportPath, "*.txt").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-")).ToList();
+
+            foreach (string filePath in deliveryReportList)
             {
-                //TODO: Replace *.csv in place of *.txt if we don't move new naming convention and tab delimited reports to production environment
-                if (isErrorReport)
-                {
-                    var errorReportList = Directory.EnumerateFiles(localReportPath, "*.txt").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Error-")).ToList();
+                string fileName = Path.GetFileName(filePath);
+                string ftpUploadPath = Path.Combine(uploadPath, fileName);
+                sftSite.UploadFile(filePath, ftpUploadPath);
 
-                    foreach (string filePath in errorReportList)
-                    {
-                        string fileName = Path.GetFileName(filePath);
-                        string ftpUploadPath = Path.Combine(uploadPath, fileName);
-                        sftSite.UploadFile(filePath, ftpUploadPath);
-                    }
-
-                    if (errorReportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Error-")) > 0)
-                    {
-                        string errorGoFilePath = Path.Combine(localReportPath, "ErrReport.go");
-                        string ftpErrorGoUploadPath = Path.Combine(uploadPath, "ErrReport.go");
-                        File.WriteAllText(errorGoFilePath, string.Empty);
-
-                        sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
-                    }
-                    return;
-                }
-
-                var deliveryReportList = Directory.EnumerateFiles(localReportPath, "*.txt").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-")).ToList();
-
-
-                foreach (string filePath in deliveryReportList)
-                {
-                    string fileName = Path.GetFileName(filePath);
-                    string ftpUploadPath = Path.Combine(uploadPath, fileName);
-                    sftSite.UploadFile(filePath, ftpUploadPath);
-                }
-
-                if (deliveryReportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-")) > 0)
-                {
-                    string deliveryGoFilePath = Path.Combine(localReportPath, "DlvrReport.go");
-                    string ftpDeliveryGoUploadPath = Path.Combine(uploadPath, "DlvrReport.go");
-                    File.WriteAllText(deliveryGoFilePath, string.Empty);
-
-                    sftSite.UploadFile(deliveryGoFilePath, ftpDeliveryGoUploadPath);
-                }
+                //After upload change extention as a Complete
+                File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
             }
-            else
+
+            if (deliveryReportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-")) > 0)
             {
-                log.Error("Upload path does not exist for Client-{0} and SFT Channel Path-'{1}'".Fill("AMC", uploadPath));
+                string deliveryGoFilePath = Path.Combine(localReportPath, "DlvrReport.go");
+                string ftpDeliveryGoUploadPath = Path.Combine(uploadPath, "DlvrReport.go");
+                File.WriteAllText(deliveryGoFilePath, string.Empty);
+
+                sftSite.UploadFile(deliveryGoFilePath, ftpDeliveryGoUploadPath);
+            }
+
+            var errorReportList = Directory.EnumerateFiles(localReportPath, "*.txt").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Error-")).ToList();
+
+            foreach (string filePath in deliveryReportList)
+            {
+                string fileName = Path.GetFileName(filePath);
+                string ftpUploadPath = Path.Combine(uploadPath, fileName);
+                sftSite.UploadFile(filePath, ftpUploadPath);
+
+                //After upload change extention as a Complete
+                File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
+            }
+
+            if (errorReportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Error-")) > 0)
+            {
+                string deliveryGoFilePath = Path.Combine(localReportPath, "ErrReport.go");
+                string ftpDeliveryGoUploadPath = Path.Combine(uploadPath, "ErrReport.go");
+                File.WriteAllText(deliveryGoFilePath, string.Empty);
+
+                sftSite.UploadFile(deliveryGoFilePath, ftpDeliveryGoUploadPath);
             }
         }
 
-        private static void UploadReportsToClients(MailBatchInfo mbi, SFTUtil sftSite, List<Deliverable> deliverables, List<MailPieces> mailPieceData)
+        private static bool UploadReportsToClients(MailBatchInfo mbi, SFTUtil sftSite, List<Deliverable> deliverables, List<MailPieces> mailPieceData)
         {
+            bool isUploaded = false;
             switch (mbi.Client.AppCode)
             {
+                case "AMC":
+                    var deliverableAMC = deliverables.Single(c => c.ReportType == ReportTypes.Delivery);
+
+                    var mailPieceCount = mailPieceData.Count(status => status.ShippingStatus == ShippingStatus.InProgress.ToString());
+
+                    if (mailPieceCount > 0)
+                        return isUploaded;
+
+                    //NOTE : Here we have to check printbatches table for that MailBatchId because we can not updated reported back status until all print batches status are getting changed to ReportedBack.
+                    int remainingPrintBatchReportedBackCount = 0;
+                    using (IMailBatchService mailBatchSvc = new MailBatchService())
+                    {
+                        remainingPrintBatchReportedBackCount = mailBatchSvc.RemainingPrintBatchesReportedBackCount(mbi.MailBatch.Id);
+                    }
+
+                    if (remainingPrintBatchReportedBackCount > 0)
+                        return isUploaded;
+
+                    string reportPath = Path.Combine(Config.Common_AuthoMailRootFolder, mbi.Client.AppCode, mbi.MailBatch.Id.ToString(), Util.AMResponseFolderName);
+
+                    //Here we are passing localReportPath as MailBatch folder structure AMRoot/USAA/MailBatchId/AMResponses
+                    UploadReportsToAMC(deliverableAMC, reportPath, sftSite);
+
+                    GenerateAndSendProductionSummaryNotification(mbi, mailPieceData, deliverableAMC);
+                    isUploaded = true;
+                    break;
                 case "ALASKA":
 
                     var reportToMail = new List<string>();
@@ -411,7 +413,9 @@ namespace AM.Console
                             }
                         }
                     }
+
                     MailUtility.SendProductionNotificationEmail(mbi, mailPieceData, reportToMail, emailChannel);
+                    isUploaded = true;
                     break;
                 case "HSBC":
                 case "AMTEST":
@@ -443,12 +447,15 @@ namespace AM.Console
                             }
                         }
                     }
+
                     MailUtility.SendProductionNotificationEmail(mbi, mailPieceData, reportToMailHSBC, emailChannelHSBC);
+                    isUploaded = true;
                     break;
                 default:
                     throw new Exception("Invalid App Code");
 
             }
+            return isUploaded;
         }
         #endregion
 
