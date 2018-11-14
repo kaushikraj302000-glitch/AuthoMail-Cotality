@@ -332,7 +332,7 @@ namespace AM.Console
 
             var errorReportList = Directory.EnumerateFiles(localReportPath, "*.txt").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Error-")).ToList();
 
-            foreach (string filePath in deliveryReportList)
+            foreach (string filePath in errorReportList)
             {
                 string fileName = Path.GetFileName(filePath);
                 string ftpUploadPath = Path.Combine(uploadPath, fileName);
@@ -344,11 +344,11 @@ namespace AM.Console
 
             if (errorReportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Error-")) > 0)
             {
-                string deliveryGoFilePath = Path.Combine(localReportPath, "ErrReport.go");
-                string ftpDeliveryGoUploadPath = Path.Combine(uploadPath, "ErrReport.go");
-                File.WriteAllText(deliveryGoFilePath, string.Empty);
+                string errorGoFilePath = Path.Combine(localReportPath, "ErrReport.go");
+                string ftpErrorGoUploadPath = Path.Combine(uploadPath, "ErrReport.go");
+                File.WriteAllText(errorGoFilePath, string.Empty);
 
-                sftSite.UploadFile(deliveryGoFilePath, ftpDeliveryGoUploadPath);
+                sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
             }
         }
 
