@@ -59,7 +59,7 @@ namespace AM.Services
             if (status == "PulledBack")
             {
                 string qry = string.Format(@"UPDATE AM.MailPieces SET ShippingStatus = @shippingStatus, PullBackRequestedOn = @utcDate, PulledBackOn = @pulledbackUtcDate,PulledBackRequestedBy = @UserId WHERE UniqueId = @id");
-                data = db.Execute(qry, new { shippingStatus = status, utcDate = DateTime.UtcNow, pulledbackUtcDate = DateTime.UtcNow, UserId = string.IsNullOrEmpty(userId) ? DBNull.Value.ToString() : userId, id = mpId});
+                data = db.Execute(qry, new { shippingStatus = status, utcDate = DateTime.UtcNow, pulledbackUtcDate = DateTime.UtcNow, UserId = string.IsNullOrEmpty(userId) ? DBNull.Value.ToString() : userId, id = mpId });
             }
             return data;
         }
@@ -120,7 +120,7 @@ namespace AM.Services
             {
                 foreach (var item in pullBackData)
                 {
-                    if (item.PrintLocation == Config.Common_PrintLocationPCI)
+                    if (item.PrintLocation == "Fort Mill, SC")
                     {
                         Dictionary<string, string> dataForPullBackForm = new Dictionary<string, string>();
                         DateTime eastern = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, Config.Web_API_PB_ClientTimeZone);
