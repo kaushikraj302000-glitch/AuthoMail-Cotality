@@ -154,7 +154,7 @@ namespace AM.Console
                             sftSite.Connect();
 
                             //TODO: Remove switch case after proper logic implementation of deliverables
-                            bool isUploaded = UploadReportsToClients(mbi, sftSite, deliverables, mailPieces);
+                            bool isUploaded = UploadReportsToClients(mbi, sftSite, deliverables, mailPieces, sftChannelDetails);
 
                             if (isUploaded)
                                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
@@ -207,7 +207,7 @@ namespace AM.Console
                     }
                     catch (Exception ex)
                     {
-                        var msg = "Error occured while increamental report uploading for PrintBatchId - {0} with Error " + Environment.NewLine + "{1}".Fill(preppedPrintBatch.PrintBatchId, ex.Message);
+                        var msg = "Error occured while increamental report uploading for PrintBatchId - {0} with Error : {1}".Fill(preppedPrintBatch.PrintBatchId, ex.Message);
                         log.Error(msg, ex);
                         MailUtility.SendUnexpectedExceptionEmail(msg);
                     }
@@ -352,10 +352,10 @@ namespace AM.Console
             }
         }
 
-        private static bool UploadReportsToClients(MailBatchInfo mbi, SFTUtil sftSite, List<Deliverable> deliverables, List<MailPieces> mailPieceData)
+        private static bool UploadReportsToClients(MailBatchInfo mbi, SFTUtil sftSite, List<Deliverable> deliverables, List<MailPieces> mailPieceData, SFTChannel sftChannelDetail)
         {
             bool isUploaded = false;
-            switch (mbi.Client.AppCode)
+            switch (sftChannelDetail.Code.Split('_')[0])
             {
                 case "AMC":
                     var deliverableAMC = deliverables.Single(c => c.ReportType == ReportTypes.Delivery);
@@ -452,7 +452,7 @@ namespace AM.Console
                     isUploaded = true;
                     break;
                 default:
-                    throw new Exception("Invalid App Code");
+                    throw new Exception("Invalid Channel Code");
 
             }
             return isUploaded;
