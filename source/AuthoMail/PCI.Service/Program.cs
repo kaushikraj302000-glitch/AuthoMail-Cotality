@@ -50,7 +50,7 @@ namespace PCI.Service
                         break;
                     case "PCIJob":
                         var printTrails = args.Length > 1 ? args[1] : "";
-                        PCIJobMonitor.SubmitBatchToPCI(printTrails);
+                        PCIJobMonitor.SubmitBatchToPrintVendor(printTrails);
                         PCIJobMonitor.GetResponseMRDF();
                         //PCIJobMonitor.GetReturnPDFsZip();
                         break;

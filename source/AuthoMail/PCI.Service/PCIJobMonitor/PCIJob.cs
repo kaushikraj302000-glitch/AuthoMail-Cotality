@@ -29,7 +29,7 @@ namespace PCI.Service
         }
 
         #region SubmitBatch To PCI or Corelogic
-        public static void SubmitBatchToPCI(string printTrailNames)
+        public static void SubmitBatchToPrintVendor(string printTrailNames)
         {
 
             //TODO : Sequence Change 
@@ -37,8 +37,6 @@ namespace PCI.Service
             var pieceIdFormat = MRDFRequestSchema.Single(f => f.FieldName == "PieceId").DataFormat;
             foreach (string printTrailName in printTrails)
             {
-
-
                 var printTrailDetail = DAL.GetPrintTrailDetailByPrintTrailName(printTrailName);
 
                 if (printTrailDetail.PrintVendorName == Common.PrintLocationPCI)
@@ -79,12 +77,13 @@ namespace PCI.Service
 
                             mailPieceDetails.ForEach(mp =>
                             {
+                                mp.PrintTrailBatchId = printTrailBatchDetail.Id;
                                 if (mp.MailPieceStatus == MailPieceStatus.PulledBack.ToString() || mp.MailPieceStatus == MailPieceStatus.Error.ToString())
                                     mp.SequenceNo = -1;
                                 else
                                 {
                                     mp.SequenceNo = sequenceNo++;
-                                    mp.Address1 = "Job: {0} Seq: {1}".Fill(printTrailBatchDetail.Id, pieceIdFormat.Fill(mp.SequenceNo));
+                                    mp.Address1 = "Job: {0} Seq: {1}".Fill(printTrailBatchDetail.Id, pieceIdFormat.Fill(mp.SequenceNo - 90000));
                                 }
                             });
 
@@ -95,7 +94,7 @@ namespace PCI.Service
                                 if (mrdf.SequenceNo == -1)
                                 {
                                     mrdf.SequenceNo = ++maxSequenceNo;
-                                    mrdf.Address1 = "Job: {0} Seq: {1}".Fill(printTrailBatchDetail.Id, pieceIdFormat.Fill(mrdf.SequenceNo));
+                                    mrdf.Address1 = "Job: {0} Seq: {1}".Fill(printTrailBatchDetail.Id, pieceIdFormat.Fill(mrdf.SequenceNo - 90000));
                                 }
                             });
 
@@ -116,7 +115,7 @@ namespace PCI.Service
                         }
                     }
 
-                    var validMailPieceDetails = mailPieceDetails.Where(mp => mp.MailPieceStatus == MailPieceStatus.InProgress.ToString()).ToList();
+                    var validMailPieceDetails = DAL.GetMRDFRequestListByPrintTrailBatchId(printTrailBatchDetail.Id);
 
                     //NOTE: Bundling folder structure will be like : BundlingRoot/PrintTrailBatchId/Request & Response
                     var pciRequestPath = Path.Combine(Common.BundlingRootFolder, printTrailBatchDetail.Id.ToString(), Common.BundlingRequestFolderName);
@@ -188,7 +187,7 @@ namespace PCI.Service
                 {
                     if (f.FieldName == "JobId")
                     {
-                        mrdfContent.AppendFormat(f.DataFormat, row.GetType().GetProperty("PrintTrailBatchId").GetValue(row, null));
+                        mrdfContent.AppendFormat(f.DataFormat, row.PrintTrailBatchId);
                     }
                     else
                     {
@@ -453,9 +452,7 @@ namespace PCI.Service
 
                 File.Move(localMRDFResponseFilePath, Path.Combine(bundlingRootPath, Path.GetFileName(localMRDFResponseFilePath)));
 
-                File.Delete(localMRDFResponseFilePath);
                 log.DebugFormat("Response MRDF moved in proper batch folder : {0} after batch identified.", printTrailBatchId);
-
             }
         }
 

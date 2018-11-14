@@ -926,13 +926,6 @@ namespace AM.Core
                                 }
 
                                 commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ShippingResponseReceived, Common.Now);
-
-
-                                // ReportPrepped status is now being updated by ReportPreppedProcess()
-                                //var pulledBackCount = mailPiecesData.Where(m => m.ShippingStatus == ShippingStatus.PulledBack.ToString() && m.PrintBatchId == null).Count();
-                                ////Update overall ReportPrepped only if SFTChannel is mentioned for Direct response
-                                //if (increamentalReportingChannels.Contains(printBatch.SFTChannelId) && pulledBackCount == 0)
-                                //    commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportPrepped, Common.Now);
                             }
                         }
                     }
@@ -1000,51 +993,17 @@ namespace AM.Core
                     {
                         mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
                     }
+
                     if (mailPieces != null)
                     {
                         try
                         {
                             bool isReportGenerated = false;
 
-
                             isReportGenerated = GenerateFinalReports(mbi, mailPieces, deliverable, sftChannel);
-
 
                             if (isReportGenerated)
                                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
-
-                            //NOTE: Suppose Batch is fully pulledback by client then as per incremental reporting it will not work then we have to update all status for that print batches of mailbatchid.
-                            if (isReportGenerated && sftChannel.Code.Split('_')[0].ToUpper() == "AMC")
-                            {
-                                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannel.Protocol), sftChannel.Host, sftChannel.UserName, sftChannel.Password, 300000);
-                                sftSite.Connect();
-
-                                var deliveryReportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.txt").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-")).ToList();
-
-                                foreach (string filePath in deliveryReportList)
-                                {
-                                    string fileName = Path.GetFileName(filePath);
-                                    string ftpUploadPath = Path.Combine(deliverable.UploadPath, fileName);
-                                    sftSite.UploadFile(filePath, ftpUploadPath);
-                                }
-
-                                if (deliveryReportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-")) > 0)
-                                {
-                                    string deliveryGoFilePath = Path.Combine(mbi.AMResponsePath, "DlvrReport.go");
-                                    string ftpDeliveryGoUploadPath = Path.Combine(deliverable.UploadPath, "DlvrReport.go");
-                                    File.WriteAllText(deliveryGoFilePath, string.Empty);
-
-                                    sftSite.UploadFile(deliveryGoFilePath, ftpDeliveryGoUploadPath);
-                                }
-
-                                if (sftSite.IsConnected)
-                                    sftSite.Disconnect();
-
-
-                                GenerateAndSendProductionSummaryNotification(mbi, mailPieces, deliverable);
-                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
-
-                            }
 
                             //TODO: Remove after proper naming convention
                             Thread.Sleep(1000);
@@ -1094,33 +1053,26 @@ namespace AM.Core
                                     string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
 
                                     File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
+
                                 }
                             }
 
                             isReportGenerated = true;
+
+                            StringBuilder errorReport = amcSvc.AMCErrorReport(mailPiecesData);
+
+                            if (errorReport != null)
+                            {
+                                string errorReportFileName = "Error-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+
+                                //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
+                                //string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                                string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+
+                                File.WriteAllText(errorReportPath, errorReport.ToString());
+                                isReportGenerated = true;
+                            }
                         }
-                        //if (mbi.MailBatch.BatchStatus == ShippingStatus.PulledBack.ToString())
-                        //{
-                        //    mailPieces = mailPiecesData;
-                        //}
-                        //else
-                        //{
-                        //    
-                        //}
-
-                        //StringBuilder errorReport = amcSvc.AMCErrorReport(mailPiecesData);
-
-                        //if (errorReport != null)
-                        //{
-                        //    string errorReportFileName = "Error-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
-
-                        //    //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
-                        //    //string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
-                        //    string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-
-                        //    File.WriteAllText(errorReportPath, errorReport.ToString());
-                        //    isReportGenerated = true;
-                        //}
                     }
                     break;
                 case "ALASKA":
