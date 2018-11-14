@@ -723,21 +723,3 @@ BEGIN
 
 END
 GO
-
-IF EXISTS (SELECT * FROM sys.objects WHERE type IN ( N'FN', N'IF', N'TF', N'FS', N'FT' ) AND  name = 'ufn_UTCToEST')
-DROP FUNCTION [dbo].[ufn_UTCToEST]
-GO
-
-CREATE FUNCTION [dbo].[ufn_UTCToEST]
-(
- @UTCDate DATETIME
-)
-RETURNS DATETIME
-AS
-BEGIN
- 
-
- -- Return the result of the function
- RETURN DATEADD(HOUR,-4,@UTCDate)
-
-END
