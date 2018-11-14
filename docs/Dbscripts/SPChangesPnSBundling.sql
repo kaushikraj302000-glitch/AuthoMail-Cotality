@@ -596,6 +596,51 @@ BEGIN
 	COMMIT TRAN
 
 END
+Go
+
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'usp_UpdateAMMailBatchesStatus')
+DROP PROCEDURE [dbo].[usp_UpdateAMMailBatchesStatus]
+GO
+
+CREATE PROCEDURE [dbo].[usp_UpdateAMMailBatchesStatus] 
+	-- Add the parameters for the stored procedure here
+	@MailPieceUniqueId uniqueidentifier,
+	@shippingResponseReceievedOn datetime
+AS
+BEGIN
+	DECLARE @mailBatchId int
+	DECLARE @totalMailPieces int
+	DECLARE @totalPulledBackMailPieces int
+	DECLARE @printBatchId int
+	DECLARE @totalPulledBackPrintBatchesMailPieces int
+	DECLARE @totalPrintBatchesMailPieces int
+	
+	SELECT @mailBatchId = MailBatchId,@printBatchId = PrintBatchId FROM AM.MailPieces WHERE UniqueId = @MailPieceUniqueId
+
+	SELECT @totalMailPieces = COUNT(*) FROM AM.MailPieces WHERE MailBatchId = @mailBatchId
+
+	--Print @totalMailPieces
+
+	SELECT @totalPulledBackMailPieces = COUNT(*) FROM AM.MailPieces WHERE MailBatchId = @mailBatchId AND IsPulledBack = 1
+
+	SELECT @totalPulledBackPrintBatchesMailPieces = COUNT(*) FROM AM.MailPieces WHERE PrintBatchId = @printBatchId AND IsPulledBack = 1
+	--PRINT @totalPulledBackMailPieces
+	SELECT @totalPrintBatchesMailPieces = COUNT(*) FROM AM.MailPieces WHERE PrintBatchId = @printBatchId
+	
+	IF (@totalPrintBatchesMailPieces = @totalPulledBackPrintBatchesMailPieces)
+	BEGIN
+		UPDATE AM.PrintBatches SET BatchStatus = 'PulledBack',ShippingResponseReceivedOn = @shippingResponseReceievedOn,ReportPreppedOn = @shippingResponseReceievedOn,ReportedBackOn = @shippingResponseReceievedOn WHERE Id = @printBatchId	
+	END
+
+	IF (@totalMailPieces = @totalPulledBackMailPieces)
+	BEGIN	
+		UPDATE AM.MailBatches SET BatchStatus = 'PulledBack',ShippingResponseReceivedOn = @shippingResponseReceievedOn,PipelineStatus = 'ShippingResponseReceived' WHERE Id = @mailBatchId
+		
+	END
+
+	UPDATE AM.MailPieces SET PrintBatchId = null WHERE UniqueId = @MailPieceUniqueId
+END
+
 
 Go
 IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'SP_GetPendingScanning')
