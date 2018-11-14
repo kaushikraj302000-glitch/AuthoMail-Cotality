@@ -31,7 +31,7 @@ namespace PCI.Service
 
                     StringBuilder sb = new StringBuilder(File.ReadAllText(Common.SubmitBatchEmailTemplate));
                     sb = sb.Replace("<%FileName%>", Path.GetFileName(fileName));
-                    sb = sb.Replace("<%PrintLocation%>", printVendorCode;
+                    sb = sb.Replace("<%PrintLocation%>", printVendorCode);
                     sb = sb.Replace("<%yyyymmdd%>", Common.UtcToEst(Common.GetCurrentTime()).ToString("MM/dd/yyyy"));
                     sb = sb.Replace("<%hhmm%>", Common.UtcToEst(Common.GetCurrentTime()).ToString("hh:mm tt") + " EST");
                     sb = sb.Replace("<%TotalMailPieces%>", mailPiecesCount.ToString());
