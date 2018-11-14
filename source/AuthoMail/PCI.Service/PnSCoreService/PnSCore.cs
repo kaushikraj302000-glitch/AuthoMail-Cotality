@@ -772,7 +772,7 @@ namespace PCI.Service
                 var printTrailBatchDetail = DAL.GetPrintBatchDetailByPrintBatchTrailId(printTrailBatchId);
 
                 var bundlingRootPath = Path.Combine(Common.BundlingRootFolder, printTrailBatchId.ToString(), Common.BundlingResponseFolderName);
-                
+
                 #region By Pass PCI
                 var printTrailDetail = DAL.GetPrintTrailDetailByPrintTrailId(printTrailBatchDetail.PrintTrailId);
                 //If we are bypass PCI then we will generate PCI response over here.
@@ -805,12 +805,17 @@ namespace PCI.Service
                             }
                             else
                             {
-                                mrd += string.Format(f.DataFormat, row[f.FieldName]);
+                                if (f.FieldName == "ProcessingTimeStamp")
+                                    mrd += string.Format(f.DataFormat, Common.UtcToEst(DateTime.Parse(row["ProcessingTimeStamp"].ToString())));
+                                else
+                                    mrd += string.Format(f.DataFormat, row[f.FieldName]);
                             }
                         }
                         mrdfs.Add(mrd.Remove(mrd.Length - 1, 1));
                     }
-                    File.WriteAllLines(mrdfOutFilePath, mrdfs.ToArray());
+
+                    if (mrdfResData.Rows.Count > 0)
+                        File.WriteAllLines(mrdfOutFilePath, mrdfs.ToArray());
                 }
                 #endregion
 

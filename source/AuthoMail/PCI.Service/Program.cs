@@ -49,9 +49,18 @@ namespace PCI.Service
                         //PnSCoreService.ProcessPCIReturnPDFsInfo();
                         break;
                     case "PCIJob":
-                        var printTrails = args.Length > 1 ? args[1] : "";
-                        PCIJobMonitor.SubmitBatchToPrintVendor(printTrails);
-                        PCIJobMonitor.GetResponseMRDF();
+                        var isBundle = args.Length > 2 ? true : false;
+                        if (isBundle)
+                        {
+                            //NOTE : Total 3 arguments will be passed for bundling PCIJob Bundle [PrintTrailNames]
+                            PCIJobMonitor.SubmitBatchToPrintVendor(args[2]);
+                        }
+                        else
+                        {
+                            //NOTE : Total 2 arguments will be passed for regular flow PCIJob [PrintTrailNames]
+                            PCIJobMonitor.SubmitBatchToPrintVendor(args[1]);
+                            PCIJobMonitor.GetResponseMRDF();
+                        }
                         //PCIJobMonitor.GetReturnPDFsZip();
                         break;
                     default:
