@@ -46,7 +46,7 @@ namespace AM.Services
             {
                 try
                 {
-                    timings = commonSvc.GetPCIBundleSweepTimings();
+                    timings = commonSvc.GetSweepTimings();
                 }
                 catch (Exception)
                 {
@@ -221,7 +221,10 @@ namespace AM.Services
     public class Sweep
     {
         public int SrNo { get; set; }
+        public string AppCode { get; set; }
+        public string VendorCode { get; set; }
         public string WeekDayType { get; set; }
+        public string SweepType { get; set; }
         public TimeSpan SweepTime { get; set; }
     }
 }
