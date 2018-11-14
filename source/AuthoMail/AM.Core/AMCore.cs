@@ -286,7 +286,7 @@ namespace AM.Core
                             }
 
                             //For now reverse barcoding will be mail piece id
-                            if (mailPiece.PrintLocation == Config.Common_PrintLocationCL)
+                            if (commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value).VendorCode == "CL_DALLAS")
                             {
                                 mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((mailPiece.TrackingNo).Reverse().ToArray()) + "*");
 
@@ -944,20 +944,24 @@ namespace AM.Core
         {
             if (mailPiece.ShippedOn <= mailPiece.DueDate)
                 return MissedSLAReason.NA;
-
+            string vendorCode;
             BatchSummary pnsBatchSummary;
             using (IMailPieceService mailPieceSvc = new MailPieceService())
             {
                 pnsBatchSummary = mailPieceSvc.GetBatchSummaryDetailByUniqueId(mailPiece.UniqueId);
             }
+            using (ICommonService commonSvc = new CommonService())
+            {
+                vendorCode = commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value).VendorCode;
+            }
 
             if ((pnsBatchSummary.SubmittedOn - mailPiece.MaxSubmissionTime.Value).TotalMinutes > Config.Common_ProcessingBufferTime)
                 return MissedSLAReason.AM;
 
-            if (mailPiece.PrintLocation == Config.Common_PrintLocationCL)
+            if (vendorCode == "CL_DALLAS")
                 return MissedSLAReason.DALLAS_CL;
 
-            if (mailPiece.PrintLocation == Config.Common_PrintLocationPCI)
+            if (vendorCode == "PCI")
                 return MissedSLAReason.PCI;
 
             return MissedSLAReason.AM;

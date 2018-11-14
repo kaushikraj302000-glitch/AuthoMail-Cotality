@@ -279,9 +279,20 @@ namespace AM.Services
 
         public List<PCISubmittedBatchDetail> GetPCIReconReport(DateTime effectiveStartDate, DateTime effectiveEndDate)
         {
-            string query = "[dbo].[usp_GetPCIReconReport] @StartDate, @EndDate";
+            string query = @"SELECT * FROM 
+(
+	--USAA,ALASKA
+	SELECT DISTINCT B.PrintBatch,B.PrintFileName,B.SubmittedOn,B.DueDate,D.ShippingCarrier,D.ShippingServiceType,COUNT(*) AS PackageCount,SUM(M.TotalPages) as TotalPages FROM PnS.BatchSummary B INNER JOIN PnS.MRDFRequest REQ ON REQ.JobId=B.PrintBatch INNER JOIN AM.MailPieces M ON M.UniqueId=REQ.UniqueId INNER JOIN AM.DocTypes D ON D.Id=B.DocTypeId WHERE B.PrintLocation='Fort Mill, SC' AND B.ClientId IN (101,102,104) AND M.EffectiveReceivedOnEst >= @StartDate AND M.EffectiveReceivedOnEst < @EndDate GROUP BY B.PrintBatch,B.PrintFileName,B.SubmittedOn,B.DueDate,D.ShippingCarrier,D.ShippingServiceType,B.Images
+	UNION
+	--CONDOSAFE,RPS,CITI,Dallas
+	SELECT DISTINCT B.PrintBatch,B.PrintFileName,B.SubmittedOn,B.DueDate,D.ShippingCarrier,D.ShippingServiceType,COUNT(*) AS PackageCount,B.Images as TotalPages FROM PnS.BatchSummary B INNER JOIN PnS.MRDFRequest REQ ON REQ.JobId=B.PrintBatch
+	INNER JOIN AM.DocTypes D ON D.Id=B.DocTypeId
+	WHERE B.ClientId IN (103,107,109,110) AND CAST(B.SubmittedOn as DATE) = @StartDateUtc
+	GROUP BY B.PrintBatch,B.PrintFileName,B.SubmittedOn,B.DueDate,D.ShippingCarrier,D.ShippingServiceType,B.Images
+)X
+ORDER BY X.PRINTBATCH";
 
-            return db.Query<PCISubmittedBatchDetail>(query, new { StartDate = effectiveStartDate, EndDate = effectiveEndDate }).ToList();
+            return db.Query<PCISubmittedBatchDetail>(query, new { StartDate = effectiveStartDate, EndDate = effectiveEndDate, StartDateUtc = effectiveStartDate.EstToUtc().Date }).ToList();
         }
     }
 }

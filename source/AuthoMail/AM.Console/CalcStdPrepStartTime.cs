@@ -23,7 +23,7 @@ namespace AM.Console
 
                 foreach (var item in calcStdPrepStartTimeList)
                 {
-                    if (item.ReceivedOn < bundleStartDate || item.PrintLocation == Config.Common_PrintLocationCL)
+                    if (item.ReceivedOn < bundleStartDate || item.PrintLocation == "Dallas CL")
                     {
                         item.StdSubmissionTime = item.ReceivedOn;
                     }

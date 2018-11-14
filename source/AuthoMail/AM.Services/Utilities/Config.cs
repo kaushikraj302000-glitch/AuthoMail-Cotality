@@ -19,8 +19,6 @@ namespace AM.Services
         [Description("To indicate on which environment job is running.")]
         public static string Common_Environment { get; private set; }
         public static string Common_AuthoMailRootFolder { get; private set; }
-        public static string Common_PrintLocationPCI { get; private set; }
-        public static string Common_PrintLocationCL { get; private set; }
         public static List<Holiday> Common_Holidays { get; private set; }
         public static int Common_ProcessingBufferTime { get; private set; }
 
@@ -31,15 +29,8 @@ namespace AM.Services
         public static string Monitor_ExpressMailingText { get; set; }
         public static string Monitor_PriorityMailingText { get; set; }
         public static string Monitor_AMC_ReportDateFormat { get; private set; }
-        public static string Monitor_DSEmail_Subject { get; private set; }
         public static string Monitor_DSEmailTemplate { get; private set; }
-        public static string Monitor_DS_Email_To { get; private set; }
-        public static string Monitor_DS_Email_Cc { get; private set; }
-
-        public static string Monitor_PSEmail_Subject { get; private set; }
         public static string Monitor_PSEmailTemplate { get; private set; }
-        public static string Monitor_PS_Email_To { get; private set; }
-        public static string Monitor_PS_Email_Cc { get; private set; }
 
         public static string Monitor_PSNoDataEmailSubject { get; private set; }
         public static string Monitor_PSNoDataEmailTemplate { get; private set; }
@@ -47,12 +38,7 @@ namespace AM.Services
         public static string Monitor_ExceptionEmail_Subject { get; private set; }
         public static string Monitor_Exception_Email_To { get; private set; }
         public static string Monitor_Exception_Email_Cc { get; private set; }
-        [Description("This is unique customer identifier")]
-        public static string Monitor_USAACustIdentifier { get; set; }
-        public static string Monitor_AMCDirPath { get; set; }
 
-        public static string Monitor_InternalPrintAndShipTiming { get; private set; }
-        public static List<InternalClientWisePnSTimings> Monitor_InternalPnSClientTimings { get; private set; }
 
         //Core
         public static string Core_PnS_SFT_RootDir { get; private set; }
@@ -60,7 +46,6 @@ namespace AM.Services
         public static string Core_CountryCode { get; private set; }
         public static int Core_NoofTime_AttemptFedexService { get; private set; }
         public static int Core_FedexServiceAttemptInterval { get; private set; }
-        public static string Core_BundleSweepClientChannelIds { get; private set; }
         public static string Core_DirectReportBackChannelIds { get; private set; }
         public static string Core_USPSEndPageTemplatePath { get; private set; }
         public static string Core_FedExEndPageTemplatePath { get; private set; }
@@ -210,23 +195,7 @@ namespace AM.Services
             using (ICommonService commonSvc = new CommonService())
             {
                 Common_Holidays = commonSvc.GetHolidayList();
-            }
-
-            #region Internal Printing Timings Client Wise
-
-            // Here Format of String Should be AppCode,StartTiming-EndTiming|AnotherAppCode,StartTiming-EndTiming|So on...
-
-            var clientwiseTimings = Config.Monitor_InternalPrintAndShipTiming.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-            List<InternalClientWisePnSTimings> timings = new List<InternalClientWisePnSTimings>();
-            clientwiseTimings.ForEach(t =>
-            {
-                string[] clientTimings = t.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-                string[] timing = clientTimings[1].Split(new char[] { '-' }, StringSplitOptions.RemoveEmptyEntries);
-                timings.Add(new InternalClientWisePnSTimings() { AppCode = clientTimings[0], StartTime = TimeSpan.Parse(timing[0]), EndTime = TimeSpan.Parse(timing[1]) });
-            });
-
-            Config.Monitor_InternalPnSClientTimings = timings;
-            #endregion
+            }            
         }
 
         private static void InitializeProperties<T>()

@@ -222,7 +222,7 @@ Drop COLUMN SimulatePCI
 
 -- Mapping Data
 INSERT INTO Common.PrintVendors([Name],[SFTChannelId],[BusinessCode],[VendorCode]) Values ('Fort Mill, SC',1,'002416','PCI')
-INSERT INTO Common.PrintVendors([Name],[SFTChannelId],[BusinessCode],[VendorCode]) Values ('Dallas CL',1,'ADE','CoreLogic Dallas')
+INSERT INTO Common.PrintVendors([Name],[SFTChannelId],[BusinessCode],[VendorCode]) Values ('Dallas CL',1,'ADE','CL_DALLAS')
 
 INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('ALASKA-GENERIC-9X12',(select Id from [Common].[PrintVendors] where Name ='Fort Mill, SC'),0)
 INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('ALASKA-GENERIC-PRI',(select Id from [Common].[PrintVendors] where Name ='Fort Mill, SC'),0)
@@ -267,3 +267,17 @@ CREATE UNIQUE NONCLUSTERED INDEX [IX_PrintVendor_TrailName] ON [Common].[PrintTr
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)
 
 GO
+--Removed Unused System Settings
+DELETE FROM Common.SystemSettings WHERE Id IN (
+'Monitor_DSEmail_Subject',
+'Monitor_DS_Email_To',
+'Monitor_DS_Email_Cc',
+'Monitor_PSEmail_Subject',
+'Monitor_PS_Email_To',
+'Monitor_PS_Email_Cc',
+'Monitor_USAACustIdentifier',
+'Monitor_AMCDirPath',
+'Monitor_InternalPrintAndShipTiming',
+'Common_PrintLocationCL',
+'Common_PrintLocationPCI',
+'Core_BundleSweepClientChannelIds')
