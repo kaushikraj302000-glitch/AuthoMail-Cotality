@@ -59,6 +59,7 @@ CREATE TABLE [Common].[PrintVendors](
 	[Name] [varchar](255) NULL,
 	[SFTChannelId] [int] NULL,
 	[BusinessCode] [varchar](255) NULL,
+	[VendorCode] [varchar](255) NULL,
  CONSTRAINT [PK_PrintVendors_Id] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
@@ -220,8 +221,8 @@ ALTER TABLE [Common].[Clients]
 Drop COLUMN SimulatePCI
 
 -- Mapping Data
-INSERT INTO Common.PrintVendors([Name],[SFTChannelId],[BusinessCode]) Values ('Fort Mill, SC',1,'002416')
-INSERT INTO Common.PrintVendors([Name],[SFTChannelId],[BusinessCode]) Values ('Dallas CL',1,'ADE')
+INSERT INTO Common.PrintVendors([Name],[SFTChannelId],[BusinessCode],[VendorCode]) Values ('Fort Mill, SC',1,'002416','PCI')
+INSERT INTO Common.PrintVendors([Name],[SFTChannelId],[BusinessCode],[VendorCode]) Values ('Dallas CL',1,'ADE','CoreLogic Dallas')
 
 INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('ALASKA-GENERIC-9X12',(select Id from [Common].[PrintVendors] where Name ='Fort Mill, SC'),0)
 INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('ALASKA-GENERIC-PRI',(select Id from [Common].[PrintVendors] where Name ='Fort Mill, SC'),0)
