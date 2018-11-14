@@ -477,7 +477,7 @@ namespace AM.Console
                     return;
                 }
 
-                var sweepTimings = commonSvc.GetPCIBundleSweepTimings();
+                var sweepTimings = commonSvc.GetSweepTimings();
 
                 foreach (var mailBatch in validatedBatches)
                 {
@@ -504,9 +504,10 @@ namespace AM.Console
                         mailPiece.DueDate = Channel.GetDueDate(docType, effectiveEstReceivedOn);
                         //Set print location where mail piece will go for print and ship
                         mailPiece.PrintTrailId = Channel.GetPrintTrail(docType, effectiveEstReceivedOn);
-                        mailPiece.PrintLocation = commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value).Name;
-                        //This field will be used for monitoring data
-                        mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, mailPiece.PrintLocation, mailBatch.ReceivedOn.Value, sweepTimings);
+                        var printVendorDetails = commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value);
+                        mailPiece.PrintLocation = printVendorDetails.Name;
+                        //This field will be used for monitoring data    
+                        mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, mailBatch.ReceivedOn.Value, sweepTimings);
                         mailPiece.MaxSubmissionTime = Channel.GetMaximumSubmissionTime(docType, effectiveEstReceivedOn);
                         mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                     }
