@@ -281,7 +281,8 @@ namespace PCI.Service
 
         public static List<MailPieceDetail> GetMRDFRequestListByPrintTrailBatchId(int printTrailBatchId)//To Get All Values define "ALL", Records without pdf level errors use "INTERNAL"
         {
-            var data = DAL.GetMRDFRequestDataByPrintTrailBatchId(printTrailBatchId, MailPieceStatus.InProgress.ToString());//Here we will create view instaed of SP
+            var data = DAL.GetMRDFRequestDataByPrintTrailBatchId(printTrailBatchId, MailPieceStatus.InProgress.ToString());
+
             List<MailPieceDetail> mrdfReqs = new List<MailPieceDetail>();
             foreach (DataRow row in data.Rows)
             {

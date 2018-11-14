@@ -39,7 +39,7 @@ namespace PCI.Service
             {
                 var printTrailDetail = DAL.GetPrintTrailDetailByPrintTrailName(printTrailName);
 
-                if (printTrailDetail.PrintVendorName == Common.PrintLocationPCI)
+                if (printTrailDetail.VendorCode == "PCI")
                 {
                     DateTime startDateTime = Common.EstToUtc(Common.EstToday);
                     DateTime toDateTime = Common.GetCurrentTime();
@@ -83,7 +83,6 @@ namespace PCI.Service
                                 else
                                 {
                                     mp.SequenceNo = sequenceNo++;
-                                    mp.Address1 = "Job: {0} Seq: {1}".Fill(printTrailBatchDetail.Id, pieceIdFormat.Fill(mp.SequenceNo - 90000));
                                 }
                             });
 
@@ -94,7 +93,6 @@ namespace PCI.Service
                                 if (mrdf.SequenceNo == -1)
                                 {
                                     mrdf.SequenceNo = ++maxSequenceNo;
-                                    mrdf.Address1 = "Job: {0} Seq: {1}".Fill(printTrailBatchDetail.Id, pieceIdFormat.Fill(mrdf.SequenceNo - 90000));
                                 }
                             });
 
@@ -127,7 +125,7 @@ namespace PCI.Service
 
                     if (Common.ApplicationEnvironment == Env.Prod || printTrailDetail.SimulateTrail == false)
                     {
-                        if (printTrailDetail.PrintVendorName == Common.PrintLocationCL)
+                        if (printTrailDetail.VendorCode == "CL_DALLAS")
                         {
                             UploadBatchesToInternalPrintAndShip(validMailPieceDetails);
                         }
@@ -139,7 +137,7 @@ namespace PCI.Service
                             CreateZipAndUploadPCIBatch(validMailPieceDetails, printTrailBatchDetail, zipFilePath, mrdfFilePath);
 
                             //After complete uploading send email to printing team
-                            MailUtility.SendBatchSubmittedNotificationEmail(printTrailDetail.PrintVendorName, zipFilePath, validMailPieceDetails.Count, validMailPieceDetails.Sum(c => c.TotalPages));
+                            MailUtility.SendBatchSubmittedNotificationEmail(printTrailDetail.VendorCode, zipFilePath, validMailPieceDetails.Count, validMailPieceDetails.Sum(c => c.TotalPages));
                         }
                     }
 

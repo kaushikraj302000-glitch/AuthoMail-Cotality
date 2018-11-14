@@ -96,7 +96,7 @@ namespace PCI.Service
                     batchSummary.OnValidationErrors = pnsRequest.OnValidationErrors.ToString();
                     batchSummary.SLADays = pnsRequest.SLADays;
                     batchSummary.BatchIdentifier = pnsRequest.BatchIdentifier;
-                    batchSummary.PrintLocation = pnsRequest.PrintLocation.IsNullOrEmpty() ? Common.PrintLocationPCI : pnsRequest.PrintLocation;
+                    batchSummary.PrintLocation = pnsRequest.PrintLocation;
 
                     var docTypes = DAL.GetDocTypeDetailsByAppId(clientDetail.Id);
                     if (docTypes == null)

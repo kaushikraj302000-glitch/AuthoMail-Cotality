@@ -169,7 +169,7 @@ namespace PCI.Service
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
     }
-
+    
     public class PrintTrailDetail
     {
         public int PrintTrailId { get; set; }
@@ -177,6 +177,7 @@ namespace PCI.Service
         public int SFTChannelId { get; set; }
         public string PrintVendorName { get; set; }
         public string BusinessCode { get; set; }
+        public string VendorCode { get; set; }
         public string TrailName { get; set; }
         public bool SimulateTrail { get; set; }
         public string Protocol { get; set; }

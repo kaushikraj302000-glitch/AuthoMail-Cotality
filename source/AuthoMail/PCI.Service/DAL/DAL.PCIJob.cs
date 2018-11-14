@@ -121,11 +121,14 @@ namespace PCI.Service
         {
             foreach (var mailPiece in mailPieceDetails)
             {
-                db.ExecuteSqlNonQuery(@"UPDATE [PnS].[MRDFRequest] SET [PrintTrailBatchId]= @p1,[PieceId] = @p2, [Address1]=@p3 WHERE JobId = @p4 AND PieceId = @p5", printTrailBatchId, mailPiece.SequenceNo, mailPiece.Address1, mailPiece.JobId, mailPiece.PieceId);
+                db.ExecuteSqlNonQuery(@"UPDATE [PnS].[MRDFRequest] SET [PrintTrailBatchId]= @p1,[PieceId] = @p2 WHERE JobId = @p3 AND PieceId = @p4", printTrailBatchId, mailPiece.SequenceNo, mailPiece.JobId, mailPiece.PieceId);
             }
 
             //For divert primary key issue we are using starting number as 90001 and then we will change that numbering again
-            return db.ExecuteSqlNonQuery(@"UPDATE [PnS].[MRDFRequest] SET [PieceId] = ([PieceId]-90000) WHERE PrintTrailBatchId = @p1", printTrailBatchId);
+            db.ExecuteSqlNonQuery(@"UPDATE [PnS].[MRDFRequest] SET [PieceId] = ([PieceId]-90000), Address1 =  WHERE PrintTrailBatchId = @p1", printTrailBatchId);
+
+            //Here we are updating address fields with only sequence number and jobid in address1 field.
+            return db.ExecuteSqlNonQuery(@"UPDATE [PnS].[MRDFRequest] SET Address1 = REPLACE(REPLACE('Job: {0} Seq: {1}','{0}',PrintTrailBatchId ), '{1}' ,PieceId) WHERE PrintTrailBatchId = @p1 AND MailPieceStatus='InProgress'", printTrailBatchId);            
         }
 
         public static int UpdatePrintTrailBatchDetail(PrintTrailBatch printTrailBatchDetail)
