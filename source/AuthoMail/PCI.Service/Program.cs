@@ -53,12 +53,12 @@ namespace PCI.Service
                         if (isBundle)
                         {
                             //NOTE : Total 3 arguments will be passed for bundling PCIJob Bundle [PrintTrailNames]
-                            PCIJobMonitor.SubmitBatchToPrintVendor(args[2]);
+                            PCIJobMonitor.SubmitBatchToPrintVendor(isBundle, args[2]);
                         }
                         else
                         {
                             //NOTE : Total 2 arguments will be passed for regular flow PCIJob [PrintTrailNames]
-                            PCIJobMonitor.SubmitBatchToPrintVendor(args[1]);
+                            PCIJobMonitor.SubmitBatchToPrintVendor(isBundle, args[1]);
                             PCIJobMonitor.GetResponseMRDF();
                         }
                         //PCIJobMonitor.GetReturnPDFsZip();

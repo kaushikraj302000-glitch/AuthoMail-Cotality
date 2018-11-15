@@ -29,29 +29,31 @@ namespace PCI.Service
         }
 
         #region SubmitBatch To PCI or Corelogic
-        public static void SubmitBatchToPrintVendor(string printTrailNames)
+        public static void SubmitBatchToPrintVendor(bool isBundle, string printTrailNames)
         {
 
             //TODO : Sequence Change 
             string[] printTrails = printTrailNames.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             var pieceIdFormat = MRDFRequestSchema.Single(f => f.FieldName == "PieceId").DataFormat;
+
+            if (isBundle)
+            {
+                DateTime startDateTime = Common.EstToUtc(Common.EstToday);
+                DateTime toDateTime = Common.GetCurrentTime();
+                DateTime endDateTime = new DateTime(toDateTime.Year, toDateTime.Month, toDateTime.Day, toDateTime.Hour, toDateTime.Minute, 0);
+
+                //Waiting Code for AuthoMail as well as BatchSummary
+                while (!DAL.CheckBatchesInQueue(startDateTime, endDateTime))
+                {
+                    log.Debug("Waiting to Complete Process");
+                    Thread.Sleep(6000);
+                }
+            }
+
             foreach (string printTrailName in printTrails)
             {
                 var printTrailDetail = DAL.GetPrintTrailDetailByPrintTrailName(printTrailName);
-
-                if (printTrailDetail.VendorCode == "PCI")
-                {
-                    DateTime startDateTime = Common.EstToUtc(Common.EstToday);
-                    DateTime toDateTime = Common.GetCurrentTime();
-                    DateTime endDateTime = new DateTime(toDateTime.Year, toDateTime.Month, toDateTime.Day, toDateTime.Hour, toDateTime.Minute, 0);
-
-                    //Waiting Code for AuthoMail as well as BatchSummary
-                    while (!DAL.CheckBatchesInQueue(startDateTime, endDateTime))
-                    {
-                        Thread.Sleep(6000);
-                    }
-                }
-
+                
                 var mailPieceDetails = DAL.GetMRDFRequestDataByPrintTrailId(printTrailDetail.PrintTrailId);
 
                 if (mailPieceDetails == null || mailPieceDetails.Count == 0)
@@ -210,13 +212,14 @@ namespace PCI.Service
                 //make an entry for mrdf file after making entries of files into zip
                 newFile.CreateEntryFromFile(mrdfFilePath, Path.GetFileName(mrdfFilePath));
             }
-
             SFTUtil sftSite = new SFTUtil(Common.PCI_SFT_Protocol, Common.PCI_SFT_Host, Common.PCI_SFT_Username, Common.PCI_SFT_Password,
                 300000);
 
             sftSite.Connect();
 
+            log.DebugFormat("Uploading started For PrintTrailBatchId : {0}", printTrailBatchDetail.Id);
             UploadFileOnPCISFTSite(zipFilePath, sftSite, Common.PCI_SFT_SubmitDir);
+            log.DebugFormat("Uploading completed For PrintTrailBatchId : {0}", printTrailBatchDetail.Id);
 
             sftSite.Disconnect();
         }
@@ -246,7 +249,7 @@ namespace PCI.Service
 
             sw.Stop();
             var time = sw.Elapsed;
-            log.DebugFormat("Total time spent : {0} For Batch : ", time, Path.GetFileNameWithoutExtension(localFilePath));
+            log.DebugFormat("Total time spent : {0} For Batch : {1}", time, Path.GetFileNameWithoutExtension(localFilePath));
         }
 
         private static void UploadFileOnInternalPrintingSFTSite(string pciRootPath, SFTUtil sftSite, List<MailPieceDetail> mailPiecesDetails)
