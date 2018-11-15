@@ -125,7 +125,7 @@ namespace PCI.Service
             }
 
             //For divert primary key issue we are using starting number as 90001 and then we will change that numbering again
-            db.ExecuteSqlNonQuery(@"UPDATE [PnS].[MRDFRequest] SET [PieceId] = ([PieceId]-90000), Address1 =  WHERE PrintTrailBatchId = @p1", printTrailBatchId);
+            db.ExecuteSqlNonQuery(@"UPDATE [PnS].[MRDFRequest] SET [PieceId] = ([PieceId]-90000)  WHERE PrintTrailBatchId = @p1", printTrailBatchId);
 
             //Here we are updating address fields with only sequence number and jobid in address1 field.
             return db.ExecuteSqlNonQuery(@"UPDATE [PnS].[MRDFRequest] SET Address1 = REPLACE(REPLACE('Job: {0} Seq: {1}','{0}',PrintTrailBatchId ), '{1}' ,PieceId) WHERE PrintTrailBatchId = @p1 AND MailPieceStatus='InProgress'", printTrailBatchId);            

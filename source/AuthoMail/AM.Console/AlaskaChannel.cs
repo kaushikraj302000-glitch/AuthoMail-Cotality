@@ -64,37 +64,47 @@ namespace AM.Console
 
             foreach (string xmlFile in xmlFileNames)
             {
-                string xmlFilePath = Path.Combine(SFTChannel.ToADEDir, xmlFile + ".xml");
-
-                //Download and Insert the batch in database first always.
-                string batchName = xmlFile;
-
-                //Here we consider Batch name as Document or Package type at batch level
-                string shortBatchName = batchName.Replace("PSManifest", "");
-                string documentOrPackageType = shortBatchName.Substring(0, shortBatchName.IndexOf("["));
-
-                MailBatchDTO mailBatch = new MailBatchDTO();
-                mailBatch.ClientId = client.Id;
-                mailBatch.BatchName = batchName;
-                mailBatch.SFTChannelId = SFTChannel.Id;
-                mailBatch.ClientBatchId = batchName;
-                mailBatch.UniqueId = Guid.NewGuid();
-                mailBatch.Priority = Priority.Medium.ToString();
-                mailBatch.DocumentOrPackageType = documentOrPackageType;
-
-                //Insert New Batch Entry
-                mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
-
-                DateTime lastModifiedTime = Common.Now;
-                if (channelType == ChannelType.Trigger)
+                try
                 {
-                    lastModifiedTime = sftSite.LastModifiedTimeOfFile(xmlFilePath);
+                    string xmlFilePath = Path.Combine(SFTChannel.ToADEDir, xmlFile + ".xml");
+
+                    //Download and Insert the batch in database first always.
+                    string batchName = xmlFile;
+
+                    //Here we consider Batch name as Document or Package type at batch level
+                    string shortBatchName = batchName.Replace("PSManifest", "");
+                    string documentOrPackageType = shortBatchName.Substring(0, shortBatchName.IndexOf("["));
+
+                    MailBatchDTO mailBatch = new MailBatchDTO();
+                    mailBatch.ClientId = client.Id;
+                    mailBatch.BatchName = batchName;
+                    mailBatch.SFTChannelId = SFTChannel.Id;
+                    mailBatch.ClientBatchId = batchName;
+                    mailBatch.UniqueId = Guid.NewGuid();
+                    mailBatch.Priority = Priority.Medium.ToString();
+                    mailBatch.DocumentOrPackageType = documentOrPackageType;
+
+                    //Insert New Batch Entry
+                    mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
+
+                    DateTime lastModifiedTime = Common.Now;
+                    if (channelType == ChannelType.Trigger)
+                    {
+                        lastModifiedTime = sftSite.LastModifiedTimeOfFile(xmlFilePath);
+                    }
+
+                    //Update Pipeline Status of Batch Received
+                    commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, lastModifiedTime);
+
+                    commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.InProgress.ToString());
                 }
-
-                //Update Pipeline Status of Batch Received
-                commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, lastModifiedTime);
-
-                commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.InProgress.ToString());
+                catch (Exception ex)
+                {
+                    var msg = "Error occured in EnumerateBatches Method For BatchName: {0} with Error : {1}".Fill(xmlFile, ex.Message);
+                    log.Error(msg, ex);
+                    MailUtility.SendUnexpectedExceptionEmail(msg);
+                    continue;
+                }
             }
 
             if (sftSite.IsConnected)
@@ -137,12 +147,11 @@ namespace AM.Console
             SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
             sftSite.Connect();
 
-            foreach (var batch in downloadBatches)
+            foreach (var mailBatch in downloadBatches)
             {
-                MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
-
                 try
                 {
+                    MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
                     #region Create directory structure.
 
                     mbi.BatchRepo.CleanDirectory();
@@ -176,10 +185,9 @@ namespace AM.Console
                 }
                 catch (Exception ex)
                 {
-                    var error = "Error occured while downloading {0} batch from SFT site for Batch-Id : {1}".Fill(mbi.BatchName, mbi.MailBatch.Id) + Environment.NewLine + ex.ToString();
-
-                    log.Error(error);
-                    MailUtility.SendUnexpectedExceptionEmail(error);
+                    var msg = "Error occured in DownloadBatches Method For Mail Batch Id: {0} with Error : {1}".Fill(mailBatch.Id, ex.Message);
+                    log.Error(msg, ex);
+                    MailUtility.SendUnexpectedExceptionEmail(msg);
                     continue;
                 }
             }
@@ -203,228 +211,238 @@ namespace AM.Console
 
             foreach (var mailBatch in downloadBatches)
             {
-                MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
-
-                Deliverable deliverables = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Error);
-
-                ClientBusinessIdentifier clientBusinessIdDetails = commonSvc.GetBusinessIdNameFromClientId(client.Id);
-
-                var xmlFilePath = Path.Combine(mbi.AMRequestPath, mbi.BatchName + ".xml");
-
-                XmlDocument mailBatchXML = new XmlDocument();
-                XmlNodeList mailPieceNodes = null;
-
                 try
                 {
-                    mailBatchXML.LoadXml(File.ReadAllText(xmlFilePath));
-                    mailPieceNodes = mailBatchXML.DocumentElement.ChildNodes;
-                }
-                catch (XmlException ex)
-                {
-                    var msg = "'{0}.xml' is not a valid XML document.".Fill(mbi.BatchName);
-                    log.Error(msg, ex);
+                    MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
 
-                    ReportInvalidBatch(mbi, msg, deliverables);
+                    Deliverable deliverables = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Error);
 
-                    continue;
-                }
-                catch (Exception ex)
-                {
-                    var msg = "'{0}.xml' is not a valid XML document.".Fill(mbi.BatchName);
-                    log.Error(msg, ex);
-                    ReportInvalidBatch(mbi, ex.Message, deliverables);
-                    continue;
-                }
+                    ClientBusinessIdentifier clientBusinessIdDetails = commonSvc.GetBusinessIdNameFromClientId(client.Id);
 
-                if (mailPieceNodes == null || mailPieceNodes.Count == 0)
-                {
-                    ReportInvalidBatch(mbi, "'{0}.xml' does not contain any valid node(s).".Fill(mbi.BatchName), deliverables);
+                    var xmlFilePath = Path.Combine(mbi.AMRequestPath, mbi.BatchName + ".xml");
 
-                    continue;
-                }
-
-                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
-                sftSite.Connect();
-
-                List<string> fileListToMoveOrDelete = new List<string>();
-
-                foreach (XmlNode mailPieceNode in mailPieceNodes)
-                {
-                    MailPieceDTO mailPieceDTO = new MailPieceDTO();
-                    MailPieceCustomInfo mailPieceCustomInfo = null;
-                    List<MailPieceCustomInfo> mailPieceCustomInfoList = new List<MailPieceCustomInfo>();
+                    XmlDocument mailBatchXML = new XmlDocument();
+                    XmlNodeList mailPieceNodes = null;
 
                     try
                     {
-                        mailPieceDTO.ClientId = client.Id;
-                        mailPieceDTO.UniqueId = Guid.NewGuid();
-                        mailPieceDTO.MailBatchId = mbi.MailBatch.Id;
-                        mailPieceDTO.ShippingStatus = ShippingStatus.InProgress.ToString();
+                        mailBatchXML.LoadXml(File.ReadAllText(xmlFilePath));
+                        mailPieceNodes = mailBatchXML.DocumentElement.ChildNodes;
+                    }
+                    catch (XmlException ex)
+                    {
+                        var msg = "'{0}.xml' is not a valid XML document.".Fill(mbi.BatchName);
+                        log.Error(msg, ex);
 
-                        ALKRespaControl node = XmlUtil.Deserialize<ALKRespaControl>(mailPieceNode.OuterXml);
+                        ReportInvalidBatch(mbi, msg, deliverables);
 
-                        mailPieceDTO.BusinessFriendlyIdName = clientBusinessIdDetails.BusinessIdName;
-                        mailPieceDTO.BusinessFriendlyIdValue = node.LoanNbr;
-                        mailPieceDTO.RcptFirstName = node.BorrowerFirstName;
-                        mailPieceDTO.RcptLastName = node.BorrowerLastName;
-                        mailPieceDTO.DocumentOrPackageType = mbi.MailBatch.DocumentOrPackageType;
-                        mailPieceDTO.FileName = node.File;
-
-                        mailPieceDTO.RcptAddressStreet = node.Address;
-                        mailPieceDTO.RcptAddrOptionalLine1BelowStreet = node.Address2;
-                        mailPieceDTO.RcptAddressCity = node.City;
-                        mailPieceDTO.RcptAddressState = node.State;
-                        mailPieceDTO.RcptAddressZIP = node.Zip;
-                        mailPieceDTO.IsRcptInfoSpecified = true;
-
-                        if (node.ReturnInfo == null || node.ReturnInfo.Address == null)
-                        {
-                            mailPieceDTO.IsReturnInfoSpecified = false;
-                        }
-                        else
-                        {
-                            mailPieceDTO.IsReturnInfoSpecified = true;
-                            mailPieceDTO.RetRcptAddrOptionalLine1AboveStreet = node.ReturnInfo.Address.Line1;
-                            mailPieceDTO.RetRcptAddrOptionalLine2AboveStreet = node.ReturnInfo.Address.Line2;
-                            mailPieceDTO.RetRcptAddressStreet = node.ReturnInfo.Address.Line3;
-                            mailPieceDTO.RetRcptAddressCity = node.ReturnInfo.Address.City;
-                            mailPieceDTO.RetRcptAddressState = node.ReturnInfo.Address.State;
-                            mailPieceDTO.RetRcptAddressZIP = node.ReturnInfo.Address.Zip;
-                        }
-
-                        if (node.StatusID != null)
-                        {
-                            mailPieceCustomInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "StatusID", DataType = DataType.String, Value = node.StatusID };
-                            mailPieceCustomInfoList.Add(mailPieceCustomInfo);
-                        }
-
-
-                        MailPieceValidationResult validationResult = ValidateRespaControlNode(mailPieceNode);
-                        if (validationResult.Code == OutComeCodes.No_Error)
-                        {
-                            //Now Check mentioned file is exist on sft or not that needs to be verified
-                            string sftFilePath = Path.Combine(SFTChannel.ToADEDir, mailPieceDTO.FileName);
-                            string localFilePath = Path.Combine(mbi.AMRequestPath, mailPieceDTO.FileName);
-
-                            //Document Or Package Type validation
-                            var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType);
-
-                            if (docType != null)
-                                mailPieceDTO.DocTypeId = docType.Id;
-
-                            if (docType == null)
-                            {
-                                mailPieceDTO.PrintLocation = null;
-                                mailPieceDTO.ErrorCode = OutComeCodes.Invalid_PackageType;
-                                mailPieceDTO.ErrorDesc = "The specified document or package type '{0}' is not configured.".Fill(mailPieceDTO.DocumentOrPackageType);
-                                mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
-                            }
-                            else if (!sftSite.IsFileAvailable(sftFilePath))
-                            {
-                                mailPieceDTO.PrintLocation = null;
-                                mailPieceDTO.ErrorCode = OutComeCodes.Missing_PDF_File;
-                                mailPieceDTO.ErrorDesc = "Pdf attachment is not available.";
-                                mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
-                            }
-                            else
-                            {
-                                if (!File.Exists(localFilePath))
-                                {
-                                    //Downloading matching file name from client SFT
-                                    sftSite.DownloadFile(sftFilePath, localFilePath);
-                                }
-
-                                //Creating collection for moving or deleting files because it may have same file for multiple nodes so can't move or delete at these level.
-                                fileListToMoveOrDelete.Add(sftFilePath);
-
-                                mailPieceDTO.ErrorCode = OutComeCodes.No_Error;
-                            }
-                        }
-                        else
-                        {
-                            mailPieceDTO.PrintLocation = null;
-                            mailPieceDTO.ErrorCode = validationResult.Code;
-                            mailPieceDTO.ErrorDesc = validationResult.ErrorMessage;
-                            mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
-                        }
+                        continue;
                     }
                     catch (Exception ex)
                     {
-                        var msg = "Unable to process node for batch {0}.".Fill(mbi.BatchName);
-
+                        var msg = "'{0}.xml' is not a valid XML document.".Fill(mbi.BatchName);
                         log.Error(msg, ex);
-
-                        mailPieceDTO.ErrorCode = OutComeCodes.Unknown_Error;
-                        mailPieceDTO.ErrorDesc = msg + Environment.NewLine + ex.Message;
-                        mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
-                        mailPieceDTO.PrintLocation = null;
+                        ReportInvalidBatch(mbi, ex.Message, deliverables);
+                        continue;
                     }
 
+                    if (mailPieceNodes == null || mailPieceNodes.Count == 0)
+                    {
+                        ReportInvalidBatch(mbi, "'{0}.xml' does not contain any valid node(s).".Fill(mbi.BatchName), deliverables);
 
-                    try
-                    {
-                        mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfoList);
+                        continue;
                     }
-                    catch (SqlException ex)
+
+                    SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
+                    sftSite.Connect();
+
+                    List<string> fileListToMoveOrDelete = new List<string>();
+
+                    foreach (XmlNode mailPieceNode in mailPieceNodes)
                     {
-                        //2601 error code used for duplicate unique key insert 
-                        if (ex.Number == 2601)
+                        MailPieceDTO mailPieceDTO = new MailPieceDTO();
+                        MailPieceCustomInfo mailPieceCustomInfo = null;
+                        List<MailPieceCustomInfo> mailPieceCustomInfoList = new List<MailPieceCustomInfo>();
+
+                        try
                         {
-                            var msg = "{0} key id is duplicate in package info node.".Fill(mailPieceDTO.UniqueId);
+                            mailPieceDTO.ClientId = client.Id;
+                            mailPieceDTO.UniqueId = Guid.NewGuid();
+                            mailPieceDTO.MailBatchId = mbi.MailBatch.Id;
+                            mailPieceDTO.ShippingStatus = ShippingStatus.InProgress.ToString();
+
+                            ALKRespaControl node = XmlUtil.Deserialize<ALKRespaControl>(mailPieceNode.OuterXml);
+
+                            mailPieceDTO.BusinessFriendlyIdName = clientBusinessIdDetails.BusinessIdName;
+                            mailPieceDTO.BusinessFriendlyIdValue = node.LoanNbr;
+                            mailPieceDTO.RcptFirstName = node.BorrowerFirstName;
+                            mailPieceDTO.RcptLastName = node.BorrowerLastName;
+                            mailPieceDTO.DocumentOrPackageType = mbi.MailBatch.DocumentOrPackageType;
+                            mailPieceDTO.FileName = node.File;
+
+                            mailPieceDTO.RcptAddressStreet = node.Address;
+                            mailPieceDTO.RcptAddrOptionalLine1BelowStreet = node.Address2;
+                            mailPieceDTO.RcptAddressCity = node.City;
+                            mailPieceDTO.RcptAddressState = node.State;
+                            mailPieceDTO.RcptAddressZIP = node.Zip;
+                            mailPieceDTO.IsRcptInfoSpecified = true;
+
+                            if (node.ReturnInfo == null || node.ReturnInfo.Address == null)
+                            {
+                                mailPieceDTO.IsReturnInfoSpecified = false;
+                            }
+                            else
+                            {
+                                mailPieceDTO.IsReturnInfoSpecified = true;
+                                mailPieceDTO.RetRcptAddrOptionalLine1AboveStreet = node.ReturnInfo.Address.Line1;
+                                mailPieceDTO.RetRcptAddrOptionalLine2AboveStreet = node.ReturnInfo.Address.Line2;
+                                mailPieceDTO.RetRcptAddressStreet = node.ReturnInfo.Address.Line3;
+                                mailPieceDTO.RetRcptAddressCity = node.ReturnInfo.Address.City;
+                                mailPieceDTO.RetRcptAddressState = node.ReturnInfo.Address.State;
+                                mailPieceDTO.RetRcptAddressZIP = node.ReturnInfo.Address.Zip;
+                            }
+
+                            if (node.StatusID != null)
+                            {
+                                mailPieceCustomInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "StatusID", DataType = DataType.String, Value = node.StatusID };
+                                mailPieceCustomInfoList.Add(mailPieceCustomInfo);
+                            }
+
+
+                            MailPieceValidationResult validationResult = ValidateRespaControlNode(mailPieceNode);
+                            if (validationResult.Code == OutComeCodes.No_Error)
+                            {
+                                //Now Check mentioned file is exist on sft or not that needs to be verified
+                                string sftFilePath = Path.Combine(SFTChannel.ToADEDir, mailPieceDTO.FileName);
+                                string localFilePath = Path.Combine(mbi.AMRequestPath, mailPieceDTO.FileName);
+
+                                //Document Or Package Type validation
+                                var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType);
+
+                                if (docType != null)
+                                    mailPieceDTO.DocTypeId = docType.Id;
+
+                                if (docType == null)
+                                {
+                                    mailPieceDTO.PrintLocation = null;
+                                    mailPieceDTO.ErrorCode = OutComeCodes.Invalid_PackageType;
+                                    mailPieceDTO.ErrorDesc = "The specified document or package type '{0}' is not configured.".Fill(mailPieceDTO.DocumentOrPackageType);
+                                    mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
+                                }
+                                else if (!sftSite.IsFileAvailable(sftFilePath))
+                                {
+                                    mailPieceDTO.PrintLocation = null;
+                                    mailPieceDTO.ErrorCode = OutComeCodes.Missing_PDF_File;
+                                    mailPieceDTO.ErrorDesc = "Pdf attachment is not available.";
+                                    mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
+                                }
+                                else
+                                {
+                                    if (!File.Exists(localFilePath))
+                                    {
+                                        //Downloading matching file name from client SFT
+                                        sftSite.DownloadFile(sftFilePath, localFilePath);
+                                    }
+
+                                    //Creating collection for moving or deleting files because it may have same file for multiple nodes so can't move or delete at these level.
+                                    fileListToMoveOrDelete.Add(sftFilePath);
+
+                                    mailPieceDTO.ErrorCode = OutComeCodes.No_Error;
+                                }
+                            }
+                            else
+                            {
+                                mailPieceDTO.PrintLocation = null;
+                                mailPieceDTO.ErrorCode = validationResult.Code;
+                                mailPieceDTO.ErrorDesc = validationResult.ErrorMessage;
+                                mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            var msg = "Unable to process node for batch {0}.".Fill(mbi.BatchName);
 
                             log.Error(msg, ex);
-                            mailPieceDTO.UniqueId = Guid.NewGuid();
+
+                            mailPieceDTO.ErrorCode = OutComeCodes.Unknown_Error;
+                            mailPieceDTO.ErrorDesc = msg + Environment.NewLine + ex.Message;
+                            mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
+                            mailPieceDTO.PrintLocation = null;
+                        }
+
+
+                        try
+                        {
                             mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfoList);
                         }
+                        catch (SqlException ex)
+                        {
+                            //2601 error code used for duplicate unique key insert 
+                            if (ex.Number == 2601)
+                            {
+                                var msg = "{0} key id is duplicate in package info node.".Fill(mailPieceDTO.UniqueId);
+
+                                log.Error(msg, ex);
+                                mailPieceDTO.UniqueId = Guid.NewGuid();
+                                mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfoList);
+                            }
+                        }
                     }
-                }
 
-                //Based on post download action pdf file will get move or delete from that location
-                if (SFTChannel.PostDownloadAction == PostDownloadAction.Archive)
-                {
-                    foreach (var sftFilePath in fileListToMoveOrDelete.Distinct())
+                    //Based on post download action pdf file will get move or delete from that location
+                    if (SFTChannel.PostDownloadAction == PostDownloadAction.Archive)
                     {
-                        string archiveFTPPDFFilePath = Path.Combine(SFTChannel.ArchiveDir, Path.GetFileName(sftFilePath));
+                        foreach (var sftFilePath in fileListToMoveOrDelete.Distinct())
+                        {
+                            string archiveFTPPDFFilePath = Path.Combine(SFTChannel.ArchiveDir, Path.GetFileName(sftFilePath));
 
-                        sftSite.MoveFile(sftFilePath, archiveFTPPDFFilePath);
-                    }
-                }
-                else
-                {
-                    foreach (var sftFilePath in fileListToMoveOrDelete.Distinct())
-                    {
-                        sftSite.DeleteFile(sftFilePath);
-                    }
-                }
-
-                if (sftSite.IsConnected)
-                    sftSite.Disconnect();
-
-                //After processing all nodes of a batch for validation status
-                var mailPieceData = mailPieceSvc.GetMailPiecesByMailBatchId(mbi.MailBatch.Id);
-                if (mailPieceData != null)
-                {
-                    var validMailPieces = mailPieceData.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
-
-                    if (validMailPieces.Count == 0)
-                    {
-                        mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid.ToString();
-                        mbi.MailBatch.ValidationErrors = "Xml does not contain any valid respacontrol nodes.";
-                        commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
-                    }
-                    else if (validMailPieces.Count < mailPieceData.Count)
-                    {
-                        mbi.MailBatch.ValidationStatus = BatchValidationStatus.PartiallyValid.ToString();
+                            sftSite.MoveFile(sftFilePath, archiveFTPPDFFilePath);
+                        }
                     }
                     else
                     {
-                        mbi.MailBatch.ValidationStatus = BatchValidationStatus.Valid.ToString();
+                        foreach (var sftFilePath in fileListToMoveOrDelete.Distinct())
+                        {
+                            sftSite.DeleteFile(sftFilePath);
+                        }
                     }
 
-                    commonSvc.UpdateBatchValidationStatus(mbi.MailBatch.Id, mbi.MailBatch.ValidationStatus, mbi.MailBatch.ValidationErrors);
-                }
+                    if (sftSite.IsConnected)
+                        sftSite.Disconnect();
 
-                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
+                    //After processing all nodes of a batch for validation status
+                    var mailPieceData = mailPieceSvc.GetMailPiecesByMailBatchId(mbi.MailBatch.Id);
+                    if (mailPieceData != null)
+                    {
+                        var validMailPieces = mailPieceData.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
+
+                        if (validMailPieces.Count == 0)
+                        {
+                            mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid.ToString();
+                            mbi.MailBatch.ValidationErrors = "Xml does not contain any valid respacontrol nodes.";
+                            commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
+                        }
+                        else if (validMailPieces.Count < mailPieceData.Count)
+                        {
+                            mbi.MailBatch.ValidationStatus = BatchValidationStatus.PartiallyValid.ToString();
+                        }
+                        else
+                        {
+                            mbi.MailBatch.ValidationStatus = BatchValidationStatus.Valid.ToString();
+                        }
+
+                        commonSvc.UpdateBatchValidationStatus(mbi.MailBatch.Id, mbi.MailBatch.ValidationStatus, mbi.MailBatch.ValidationErrors);
+                    }
+
+                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
+                }
+                catch (Exception ex)
+                {
+                    var msg = "Error occured in ValidateBatches Method For Mail Batch Id: {0} with Error : {1}".Fill(mailBatch.Id, ex.Message);
+                    log.Error(msg, ex);
+                    MailUtility.SendUnexpectedExceptionEmail(msg);
+                    continue;
+                }
             }
         }
 
@@ -503,83 +521,93 @@ namespace AM.Console
                 return;
             }
 
-            foreach (var batch in validatedBatches)
+            foreach (var mailBatch in validatedBatches)
             {
-                Deliverable reportDeliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Error);
+                try
+                {
+                    Deliverable reportDeliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Error);
 
-                MailBatchInfo mbi = new MailBatchInfo(batch, client, Config.Common_AuthoMailRootFolder);
-                List<MailPieces> mailPieces;
-                using (IReportService reportSvc = new ReportService())
-                {
-                    mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
-                }
-                if (mailPieces != null)
-                {
-                    try
+                    MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
+                    List<MailPieces> mailPieces;
+                    using (IReportService reportSvc = new ReportService())
                     {
-                        string errorReportFileName = "ER_{0}.csv".Fill(mbi.BatchName);
-
-                        //Regex regEx = new Regex(@"{(.+?)}");
-
-                        //var param = regEx.Matches(errorReportFileName);
-                        //for (int i = 0; i < param.Count; i++)
-                        //{
-                        //    string propertyName = param[i].Groups[1].Value;
-
-                        //    errorReportFileName = errorReportFileName.Replace("{" + propertyName + "}", mbi.MailBatch.GetValueOfPropertyFromPropertyName(propertyName).ToString());
-                        //}
-
-                        string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-
-                        if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.Invalid)
+                        mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
+                    }
+                    if (mailPieces != null)
+                    {
+                        try
                         {
-                            StringBuilder errorData = alaskaSvc.AlaskaErrorReport(mailPieces, mbi.Client.TimeZone, reportDeliverable.Delimeter);
-                            if (errorData != null)
+                            string errorReportFileName = "ER_{0}.csv".Fill(mbi.BatchName);
+
+                            //Regex regEx = new Regex(@"{(.+?)}");
+
+                            //var param = regEx.Matches(errorReportFileName);
+                            //for (int i = 0; i < param.Count; i++)
+                            //{
+                            //    string propertyName = param[i].Groups[1].Value;
+
+                            //    errorReportFileName = errorReportFileName.Replace("{" + propertyName + "}", mbi.MailBatch.GetValueOfPropertyFromPropertyName(propertyName).ToString());
+                            //}
+
+                            string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+
+                            if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.Invalid)
                             {
-                                File.WriteAllText(errorReportPath, errorData.ToString());
-                            }
-
-                            // Batch status Prepped
-                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
-                        }
-                        else if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.PartiallyValid)
-                        {
-                            StringBuilder errorData = alaskaSvc.AlaskaErrorReport(mailPieces, mbi.Client.TimeZone, reportDeliverable.Delimeter);
-
-                            if (errorData != null)
-                            {
-                                File.WriteAllText(errorReportPath, errorData.ToString());
-
-                                if (reportDeliverable.IsSFTUploadRequired)
+                                StringBuilder errorData = alaskaSvc.AlaskaErrorReport(mailPieces, mbi.Client.TimeZone, reportDeliverable.Delimeter);
+                                if (errorData != null)
                                 {
-                                    SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
-                                    sftSite.Connect();
-
-                                    var ftpUploadPath = Path.Combine(reportDeliverable.UploadPath, errorReportFileName);
-
-                                    sftSite.UploadFile(errorReportPath, ftpUploadPath);
-
-                                    if (sftSite.IsConnected)
-                                        sftSite.Disconnect();
+                                    File.WriteAllText(errorReportPath, errorData.ToString());
                                 }
-                            }
-                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
-                        }
-                        else
-                        {
-                            // Batch is valid
-                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
-                        }
 
-                        if (reportDeliverable.EmailChannel != null)
+                                // Batch status Prepped
+                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
+                            }
+                            else if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.PartiallyValid)
+                            {
+                                StringBuilder errorData = alaskaSvc.AlaskaErrorReport(mailPieces, mbi.Client.TimeZone, reportDeliverable.Delimeter);
+
+                                if (errorData != null)
+                                {
+                                    File.WriteAllText(errorReportPath, errorData.ToString());
+
+                                    if (reportDeliverable.IsSFTUploadRequired)
+                                    {
+                                        SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
+                                        sftSite.Connect();
+
+                                        var ftpUploadPath = Path.Combine(reportDeliverable.UploadPath, errorReportFileName);
+
+                                        sftSite.UploadFile(errorReportPath, ftpUploadPath);
+
+                                        if (sftSite.IsConnected)
+                                            sftSite.Disconnect();
+                                    }
+                                }
+                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
+                            }
+                            else
+                            {
+                                // Batch is valid
+                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
+                            }
+
+                            if (reportDeliverable.EmailChannel != null)
+                            {
+                                MailUtility.SendDownloadNotificationEmail(mbi, mailPieces, errorReportPath, reportDeliverable.EmailChannel);
+                            }
+                        }
+                        catch (Exception ex)
                         {
-                            MailUtility.SendDownloadNotificationEmail(mbi, mailPieces, errorReportPath, reportDeliverable.EmailChannel);
+                            log.Error("Error occured while acknowleding for Batch-Id : {0}".Fill(mbi.BatchName), ex);
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        log.Error("Error occured while acknowleding for Batch-Id : {0}".Fill(mbi.BatchName), ex);
-                    }
+                }
+                catch (Exception ex)
+                {
+                    var msg = "Error occured in AcknowledgeBatches Method For Mail Batch Id: {0} with Error : {1}".Fill(mailBatch.Id, ex.Message);
+                    log.Error(msg, ex);
+                    MailUtility.SendUnexpectedExceptionEmail(msg);
+                    continue;
                 }
             }
 
