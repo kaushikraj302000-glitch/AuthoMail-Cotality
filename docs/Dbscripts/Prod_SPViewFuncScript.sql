@@ -67,15 +67,15 @@ AS
 begin
  --ALASKA
  insert into @T (SrNo,AppCode,VendorCode,WeekDayType,SweepType,SweepTime) 
- values (1,'ALASKA','PCI','Weekday','Continues','00:00:00')
+ values (1,'ALASKA','PCI','Weekday','Continuous','00:00:00')
  insert into @T (SrNo,AppCode,VendorCode,WeekDayType,SweepType,SweepTime) 
- values (1,'ALASKA','PCI','Saturday','Continues','00:00:00')
+ values (1,'ALASKA','PCI','Saturday','Continuous','00:00:00')
  
  --USAA
  insert into @T (SrNo,AppCode,VendorCode,WeekDayType,SweepType,SweepTime) 
- values (1,'USAA','CL_DALLAS','Weekday','Continues','00:00:00')
+ values (1,'USAA','CL_DALLAS','Weekday','Continuous','00:00:00')
  insert into @T (SrNo,AppCode,VendorCode,WeekDayType,SweepType,SweepTime) 
- values (1,'USAA','CL_DALLAS','Saturday','Continues','00:00:00')
+ values (1,'USAA','CL_DALLAS','Saturday','Continuous','00:00:00')
 
  insert into @T (SrNo,AppCode,VendorCode,WeekDayType,SweepType,SweepTime) 
  values (1,'USAA','PCI','Weekday','OnSchedule','15:00:00')
@@ -93,9 +93,9 @@ begin
  
  --HSBC
  insert into @T (SrNo,AppCode,VendorCode,WeekDayType,SweepType,SweepTime) 
- values (1,'HSBC','CL_DALLAS','Weekday','Continues','00:00:00')
+ values (1,'HSBC','CL_DALLAS','Weekday','Continuous','00:00:00')
  insert into @T (SrNo,AppCode,VendorCode,WeekDayType,SweepType,SweepTime) 
- values (1,'HSBC','CL_DALLAS','Saturday','Continues','00:00:00')
+ values (1,'HSBC','CL_DALLAS','Saturday','Continuous','00:00:00')
  return
 end
 Go
