@@ -23,6 +23,7 @@ namespace AM.Services
         public string ShippingServiceType { get; set; }
         public int? ClientId { get; set; }
         public string PrintLocation { get; set; }
+        public string VendorCode { get; set; }
         public DateTime? MaxSubmissionTime { get; set; }
         public double MinRemainingHours
         {
@@ -37,7 +38,7 @@ namespace AM.Services
         {
             using (ICommonService commonSvc = new CommonService())
             {
-                return commonSvc.GetStandardSubmissionTime(this.AppCode, this.PrintLocation, this.ReceivedOn, sweepTimings).Add(new TimeSpan(0, bufferTime, 0));
+                return commonSvc.GetStandardSubmissionTime(this.AppCode, this.VendorCode, this.ReceivedOn, sweepTimings).Add(new TimeSpan(0, bufferTime, 0));
             }
         }
     }
