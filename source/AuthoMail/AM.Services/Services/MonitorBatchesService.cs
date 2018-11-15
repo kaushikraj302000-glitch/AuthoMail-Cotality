@@ -50,7 +50,7 @@ namespace AM.Services
                 }
                 catch (Exception)
                 {
-                    isProcessDelay = false;
+                    isProcessDelay = true;
                 }
             }
 
@@ -68,7 +68,7 @@ namespace AM.Services
             }
             catch (Exception)
             {
-                isReceivedDelay = false;
+                isReceivedDelay = true;
             }
             try
             {
@@ -100,7 +100,7 @@ namespace AM.Services
             }
             catch (Exception)
             {
-                isProcessDelay = false;
+                isProcessDelay = true;
             }
 
             try
@@ -116,7 +116,7 @@ namespace AM.Services
             }
             catch (Exception)
             {
-                isReportBackDelay = false;
+                isReportBackDelay = true;
             }
 
             try
@@ -132,7 +132,7 @@ namespace AM.Services
             }
             catch (Exception)
             {
-                isPrinterDelay = false;
+                isPrinterDelay = true;
             }
 
             return new MonitorReport { DelayedBatches = delayedBatches, DelayedMailPieces = delayedMailPieces, IsReceivedDelay = isReceivedDelay, DelayedAMReportBackBatches = delayedAMReportedBackBatches, DelayedPrinterBatches = delayedPrinterBatches, DelayedAMReportBackMailPieces = delayedReportedBackMailPiecesByAM, DelayedPrinterMailPieces = delayedMailPiecesByPrinter, LastBatchReceivedOn = lastBatchReceivedOn.ReceivedOn, IsProcessDelay = isProcessDelay, IsPrinterDelay = isPrinterDelay, IsReportBackDelay = isReportBackDelay };
