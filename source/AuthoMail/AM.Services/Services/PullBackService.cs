@@ -38,11 +38,11 @@ namespace AM.Services
                            printTrailBatch AS (SELECT Id,PrintBatchName,SubmittedOn,PrintTrailId FROM PnS.PrintTrailBatches),
                            mrdfReq AS (SELECT PrintTrailBatchId,PieceId,[UniqueId],PDFFileName FROM PnS.MRDFRequest),
                            printTrail AS (SELECT Id,TrailName,PrintVendorId FROM Common.PrintTrails),
-                           printVendor AS (SELECT Id,Name FROM Common.PrintVendors),
-                           mailPieces AS (SELECT UniqueId,ClientId,RcptFirstName,RcptLastName,DocTypeId FROM AM.MailPieces),
+                           printVendor AS (SELECT Id,Name,VendorCode FROM Common.PrintVendors),
+                           mailPieces AS (SELECT UniqueId,ClientId,RcptFirstName,RcptLastName,DocTypeId,PrintTrailId FROM AM.MailPieces),
                            Client AS(SELECT Id,Name FROM Common.Clients),
-                           RESULT AS (SELECT PTB.PrintBatchName,PMR.PDFFileName,PTB.SubmittedOn,PMR.PrintTrailBatchId,PMR.PieceId,AMP.RcptFirstName,AMP.RcptLastName,CC.Name,PV.Name as PrintLocation FROM printTrailBatch PTB INNER JOIN mrdfReq PMR ON PTB.Id = PMR.PrintTrailBatchId INNER JOIN printTrail PT ON PTB.PrintTrailId = PT.Id INNER JOIN printVendor PV ON PT.PrintVendorId = PV.Id INNER JOIN mailPieces AMP ON PMR.UniqueId = AMP.UniqueId INNER JOIN  Client CC ON AMP.ClientId = CC.Id WHERE PMR.[UniqueId] IN @mailPieceIds)
-                           (SELECT PrintBatchName+'.zip' as PrintFileName,SubmittedOn,PrintTrailBatchId AS PrintBatch,PieceId = STUFF((SELECT DISTINCT ', '+ CAST(pRES.PieceId AS VARCHAR(255)) + ':'+pRES.PDFFileName+ ':'+pRES.RcptFirstName+' '+pRES.RcptLastName FROM RESULT pRES WHERE pRES.PrintTrailBatchId = RES.PrintTrailBatchId FOR XML PATH('')),1,1,''),Name,PrintLocation FROM RESULT RES GROUP BY RES.PrintTrailBatchId,PrintBatchName,SubmittedOn,Name,PrintLocation)";
+                           RESULT AS (SELECT PTB.PrintBatchName,PMR.PDFFileName,PTB.SubmittedOn,PMR.PrintTrailBatchId,PMR.PieceId,AMP.RcptFirstName,AMP.RcptLastName,CC.Name,PV.VendorCode FROM printTrailBatch PTB INNER JOIN mrdfReq PMR ON PTB.Id = PMR.PrintTrailBatchId INNER JOIN mailPieces AMP ON PMR.UniqueId = AMP.UniqueId INNER JOIN printTrail PT ON AMP.PrintTrailId = PT.Id INNER JOIN printVendor PV ON PT.PrintVendorId = PV.Id INNER JOIN  Client CC ON AMP.ClientId = CC.Id WHERE PMR.[UniqueId] IN @mailPieceIds)
+                           (SELECT PrintBatchName+'.zip' as PrintFileName,SubmittedOn,PrintTrailBatchId AS PrintBatch,PieceId = STUFF((SELECT DISTINCT ', '+ CAST(pRES.PieceId AS VARCHAR(255)) + ':'+pRES.PDFFileName+ ':'+pRES.RcptFirstName+' '+pRES.RcptLastName FROM RESULT pRES WHERE pRES.PrintTrailBatchId = RES.PrintTrailBatchId FOR XML PATH('')),1,1,''),Name,VendorCode FROM RESULT RES GROUP BY RES.PrintTrailBatchId,PrintBatchName,SubmittedOn,Name,VendorCode)";
 
             var data = db.Query<PullBackRequestForm>(qry, new { mailPieceIds = mpIds }).ToList();
             return data;
@@ -120,7 +120,7 @@ namespace AM.Services
             {
                 foreach (var item in pullBackData)
                 {
-                    if (item.PrintLocation == "Fort Mill, SC")
+                    if (item.VendorCode == "PCI")
                     {
                         Dictionary<string, string> dataForPullBackForm = new Dictionary<string, string>();
                         DateTime eastern = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, Config.Web_API_PB_ClientTimeZone);
