@@ -214,15 +214,15 @@ BEGIN
 	-- interfering with SELECT statements.
 	SET NOCOUNT ON;
 
-	SELECT REQ.*,MP.Id as MailPieceId,MP.EffectiveReceivedOnEst, BS.ClientId,MP.DocTypeId,D.ShippingCarrier,
-	D.ShippingServiceType,C.AppCode
-	FROM PnS.MRDFRequest REQ
-	INNER JOIN PnS.BatchSummary BS ON REQ.JobId=BS.PrintBatch
-	INNER JOIN AM.MailPieces MP ON REQ.UniqueId=MP.UniqueId
-	INNER JOIN AM.DocTypes D ON MP.DocTypeId=D.Id
-	INNER JOIN Common.Clients C ON C.Id=MP.ClientId
-	WHERE BS.PipelineStatus='Prepped' AND  IsPrepped = 1 AND IsSubmitted = 0
-	AND BS.PrintTrailId=@printTrailId
+	SELECT REQ.*,MP.Id as MailPieceId,MP.EffectiveReceivedOnEst, BS.ClientId,BS.DocTypeId,D.ShippingCarrier,
+ D.ShippingServiceType,C.AppCode
+ FROM PnS.MRDFRequest REQ
+ INNER JOIN PnS.BatchSummary BS ON REQ.JobId=BS.PrintBatch
+ LEFT OUTER JOIN AM.MailPieces MP ON REQ.UniqueId=MP.UniqueId
+ INNER JOIN AM.DocTypes D ON BS.DocTypeId=D.Id
+ INNER JOIN Common.Clients C ON C.Id=BS.ClientId
+ WHERE BS.PipelineStatus='Prepped' AND  IsPrepped = 1 AND IsSubmitted = 0
+ AND BS.PrintTrailId=@printTrailId
 	
 END
 GO
@@ -817,3 +817,20 @@ ON REQ.PrintTrailBatchId =RES.JobId AND REQ.PieceId =RES.PieceId
 GO
 
 -- End View --
+
+
+-- Remove SystemSettings --
+DELETE FROM Common.SystemSettings WHERE Id IN (
+'Monitor_DSEmail_Subject',
+'Monitor_DS_Email_To',
+'Monitor_DS_Email_Cc',
+'Monitor_PSEmail_Subject',
+'Monitor_PS_Email_To',
+'Monitor_PS_Email_Cc',
+'Monitor_USAACustIdentifier',
+'Monitor_AMCDirPath',
+'Monitor_InternalPrintAndShipTiming',
+'Common_PrintLocationCL',
+'Common_PrintLocationPCI',
+'Core_BundleSweepClientChannelIds')
+-- End SystemSettings --
