@@ -82,9 +82,9 @@ namespace AM.Services
                 var pendingInProgressMailPieces = pendingMPsToSubmit.Where(m => (m.ShippingStatus == ShippingStatus.InProgress.ToString())).ToList();
                 var delayedEmptyPrintLocation = pendingInProgressMailPieces.Where(p => p.PrintLocation.IsNullOrEmpty()).ToList();
 
-                var delayedDallasMailPieces = pendingInProgressMailPieces.Where(p => p.PrintLocation == "Dallas CL").ToList();
+                var delayedDallasMailPieces = pendingInProgressMailPieces.Where(p => p.VendorCode == "CL_DALLAS").ToList();
 
-                var delayedPCIMailPieces = pendingInProgressMailPieces.Where(mp => mp.PrintLocation == "Fort Mill, SC" && Common.Now > mp.GetEstimatedSubmittedOn(timings, cutOffMinutes + 15)).ToList();
+                var delayedPCIMailPieces = pendingInProgressMailPieces.Where(mp => mp.VendorCode == "PCI" && Common.Now > mp.GetEstimatedSubmittedOn(timings, cutOffMinutes + 15)).ToList();
 
                 delayedMailPieces = delayedDallasMailPieces.Concat(delayedEmptyPrintLocation).Concat(delayedShippedMailPieces).Concat(delayedPulledBackMailPieces).Concat(delayedErrorMailPieces).Concat(clientIdNullMailPieces).Concat(shippingStatusNullMailPieces).Concat(delayedPCIMailPieces).ToList();
 

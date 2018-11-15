@@ -166,14 +166,14 @@ namespace AM.Web.Controllers
         [HttpGet, Route("getamstatusdetail")]
         public JsonResult AMStatusDetail()
         {
-
             try
-            {                
+            {
                 return Json(AMAlert.Instance.GetGlobalStatus, JsonRequestBehavior.AllowGet);
             }
-            catch (Exception)
-            {               
-                return Json(GetData(), JsonRequestBehavior.AllowGet);
+            catch (Exception ex)
+            {
+                throw ex;
+                //return Json(GetData(), JsonRequestBehavior.AllowGet);
             }
         }
         [HttpGet, Route("getamstatus")]
@@ -183,10 +183,11 @@ namespace AM.Web.Controllers
             {
                 return Json(AMAlert.Instance.GetAMHealth, JsonRequestBehavior.AllowGet);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                var _model = GetData();
-                return Json(new AMHealth { AlertLevel = _model.AlertLevel, IsAMDelay = _model.IsAMDelay, LastUpdatedOn = _model.LastUpdatedOn }, JsonRequestBehavior.AllowGet);
+                throw ex;
+                //var _model = GetData();
+                //return Json(new AMHealth { AlertLevel = _model.AlertLevel, IsAMDelay = _model.IsAMDelay, LastUpdatedOn = _model.LastUpdatedOn }, JsonRequestBehavior.AllowGet);
             }
         }
         private AMGlobalStatus GetData()

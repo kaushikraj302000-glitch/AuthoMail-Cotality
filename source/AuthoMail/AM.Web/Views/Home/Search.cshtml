@@ -735,7 +735,7 @@
                 this.RcptNameFormatted = this.FirstName + " " + this.LastName;
                 this.CityFormatted = this.City + " " + this.State + " " + this.ZIP;
                 var status = "";
-                this.View = '<a class="viewdetails" style="cursor:pointer" onclick="ViewDetails(this)" data-mailpieceid="' + this.UniqueId + '">' + this.BusinessIdValue + '</a>';
+                this.View = '<a class="viewdetails" style="cursor:pointer" onclick="ViewDetails(this)" data-mailpieceid="' + this.UniqueId + '">' + this.BusinessIdValue!=null?this.BusinessIdValue:"Not Found" + '</a>';
                 this.ErrorDesc = this.ErrorDesc != null ? this.ErrorDesc.replace(/"/g, '\'') : "";
                 switch (this.Status) {
 

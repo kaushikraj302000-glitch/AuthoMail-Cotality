@@ -47,6 +47,60 @@ select * from q where BatchName is not null
 GO
 
 
+IF EXISTS (SELECT * FROM sys.objects WHERE type IN ( N'FN', N'IF', N'TF', N'FS', N'FT' ) AND  name = 'ufn_GetSweepTimings')
+DROP FUNCTION [dbo].[ufn_GetSweepTimings]
+GO
+CREATE FUNCTION [dbo].[ufn_GetSweepTimings] 
+( 
+ 
+)
+RETURNS @T TABLE
+(
+ SrNo int,
+ AppCode VARCHAR(20),
+ VendorCode VARCHAR(20),
+ WeekDayType varchar(10),
+ SweepType VARCHAR(20),
+ SweepTime time 
+) 
+AS
+begin
+ --ALASKA
+ insert into @T (SrNo,AppCode,VendorCode,WeekDayType,SweepType,SweepTime) 
+ values (1,'ALASKA','PCI','Weekday','Continues','00:00:00')
+ insert into @T (SrNo,AppCode,VendorCode,WeekDayType,SweepType,SweepTime) 
+ values (1,'ALASKA','PCI','Saturday','Continues','00:00:00')
+ 
+ --USAA
+ insert into @T (SrNo,AppCode,VendorCode,WeekDayType,SweepType,SweepTime) 
+ values (1,'USAA','CL_DALLAS','Weekday','Continues','00:00:00')
+ insert into @T (SrNo,AppCode,VendorCode,WeekDayType,SweepType,SweepTime) 
+ values (1,'USAA','CL_DALLAS','Saturday','Continues','00:00:00')
+
+ insert into @T (SrNo,AppCode,VendorCode,WeekDayType,SweepType,SweepTime) 
+ values (1,'USAA','PCI','Weekday','OnSchedule','15:00:00')
+ insert into @T (SrNo,AppCode,VendorCode,WeekDayType,SweepType,SweepTime) 
+ values (2,'USAA','PCI','Weekday','OnSchedule','19:30:00')
+ insert into @T (SrNo,AppCode,VendorCode,WeekDayType,SweepType,SweepTime) 
+ values (3,'USAA','PCI','Weekday','OnSchedule','20:00:00')
+ 
+ insert into @T (SrNo,AppCode,VendorCode,WeekDayType,SweepType,SweepTime) 
+ values (1,'USAA','PCI','Saturday','OnSchedule','15:00:00')
+ insert into @T (SrNo,AppCode,VendorCode,WeekDayType,SweepType,SweepTime) 
+ values (2,'USAA','PCI','Saturday','OnSchedule','19:30:00')
+ insert into @T (SrNo,AppCode,VendorCode,WeekDayType,SweepType,SweepTime) 
+ values (3,'USAA','PCI','Saturday','OnSchedule','20:00:00')
+ 
+ --HSBC
+ insert into @T (SrNo,AppCode,VendorCode,WeekDayType,SweepType,SweepTime) 
+ values (1,'HSBC','CL_DALLAS','Weekday','Continues','00:00:00')
+ insert into @T (SrNo,AppCode,VendorCode,WeekDayType,SweepType,SweepTime) 
+ values (1,'HSBC','CL_DALLAS','Saturday','Continues','00:00:00')
+ return
+end
+Go
+
+
 -- End Functions --
 /*==========================================================================================*/
 
@@ -240,7 +294,7 @@ BEGIN
 	SET NOCOUNT ON;
 	
 	SELECT TOP 1 PT.id as PrintTrailId, PT.PrintVendorId,PT.TrailName, PT.SimulateTrail,
-	PV.Name as PrintVendorName,PV.BusinessCode ,PV.SFTChannelId,
+	PV.Name as PrintVendorName,PV.BusinessCode,PV.VendorCode ,PV.SFTChannelId,
 	SC.Protocol,SC.Host,SC.UserName,SC.[Password],SC.ToADEDir,SC.FromADEDir 
 	FROM Common.PrintTrails PT
 	INNER JOIN Common.PrintVendors PV ON PV.Id=PT.PrintVendorId
@@ -261,7 +315,7 @@ BEGIN
 	SET NOCOUNT ON;
 	
 	SELECT TOP 1 PT.id as PrintTrailId, PT.PrintVendorId,PT.TrailName, PT.SimulateTrail,
-	PV.Name as PrintVendorName,PV.BusinessCode ,PV.SFTChannelId,
+	PV.Name as PrintVendorName,PV.BusinessCode,PV.VendorCode ,PV.SFTChannelId,
 	SC.Protocol,SC.Host,SC.UserName,SC.[Password],SC.ToADEDir,SC.FromADEDir 
 	FROM Common.PrintTrails PT
 	INNER JOIN Common.PrintVendors PV ON PV.Id=PT.PrintVendorId
@@ -565,7 +619,7 @@ declare	@jobid int,
 		end
 		select @mailpieceid= Id,@pieceid=PieceId,@jobid=JobId,@mrdfreqdate=MRDFReqDate,@ispullbackrequested =IsPullBackRequested,@isqcrequested=IsQCRequested,@totalsheet=TotalSheets,@pdffilename=PDFFileName,@jobName=JobName,@serviceType=ShippingServiceType,@clientAppCode=AppCode,@clientName=ClientName,@bt=BatchName,@PrintTrailBatchId=PrintTrailBatchId
 		from dbo.ufn_GetDallasBatchDetails(@EstDate)
-		where TrackingNo=@trackno and PrintLocation=@printlocationcl and IsSubmitted=1 and MailPieceStatus='InProgress'
+		where TrackingNo=@trackno and PrintLocation=@printlocationcl and IsSubmitted=1 and ShippingStatus='InProgress'
 
 		if(@mailpieceid IS NULL) 
 		begin
@@ -712,6 +766,25 @@ BEGIN
 
 END
 
+GO
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'uspalert_GetDelayedBatchesToSubmit')
+DROP PROCEDURE [dbo].[uspalert_GetDelayedBatchesToSubmit]
+GO
+CREATE PROCEDURE [dbo].[uspalert_GetDelayedBatchesToSubmit] 	
+	@cutOffMinutes int
+AS
+BEGIN
+ select mp.Id,mb.Id as MailBatchId,rq.UniqueId,bs.IsSubmitted,c.AppCode,mb.BatchName,mb.ReceivedOn,mb.PipelineStatus,mp.ShippingStatus,d.DocTypeCode,d.ShippingCarrier,d.ShippingServiceType,mp.ClientId,pv.Name as PrintLocation,pv.VendorCode from AM.MailPieces mp
+ inner join AM.MailBatches mb on mp.MailBatchId=mb.Id
+ left outer join Common.PrintTrails pt on mp.PrintTrailId = pt.Id
+ left outer join Common.PrintVendors pv on pt.PrintVendorId = pv.Id
+ left outer join Common.Clients c on mb.ClientId=c.Id
+ left outer join PnS.MRDFRequest rq on mp.UniqueId=rq.UniqueId
+ left outer join PnS.BatchSummary bs on rq.JobId=bs.PrintBatch
+ left outer join AM.DocTypes d on mp.DocTypeId = d.Id
+ where mb.ReceivedOn between DATEADD(day,-7,GETUTCDATE()) and DATEADD(minute,-@cutOffMinutes,GETUTCDATE()) and (mp.ShippingStatus is null or (mp.ShippingStatus in ('InProgress','Shipped') and (rq.UniqueId is null or ISNULL(bs.IsSubmitted,0)=0)) or (mp.ShippingStatus = 'Error' and mp.ErrorDesc IS NULL) or (mp.ShippingStatus = 'PulledBack' and not exists (select Id from AM.PullBackRequests where MailPieceId = mp.Id)) or (mb.ClientId IS NULL))
+ 
+END
 
 -- End Stored Procedure --
 /*==========================================================================================*/

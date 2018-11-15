@@ -39,9 +39,9 @@ namespace AM.Monitor
 
             if (pendingBatchesToReportBack.Count > 0)
             {
-                PrepEmailBody_PendingBatchesToReportBack(monitorSvc, pendingBatchesToReportBack.Where(p => p.PrintLocation == "Fort Mill, SC").ToList(), monitor_PrintBatch, monitor_AppCode, monitor_JobName, monitor_Pipelinestatus, monitor_ReceivedOn, monitor_DownloadedOn, monitor_PreppedOn, new StringBuilder(File.ReadAllText(Path.GetFullPath(ConfigurationManager.AppSettings["MonitorEmailReportedBackTemplate"]))), ConfigurationManager.AppSettings["Monitor_ReportedBack_Email_ToPCI"], ConfigurationManager.AppSettings["Monitor_ReportedBack_Email_SubjectPCI"]);
+                PrepEmailBody_PendingBatchesToReportBack(monitorSvc, pendingBatchesToReportBack.Where(p => p.VendorCode == "PCI").ToList(), monitor_PrintBatch, monitor_AppCode, monitor_JobName, monitor_Pipelinestatus, monitor_ReceivedOn, monitor_DownloadedOn, monitor_PreppedOn, new StringBuilder(File.ReadAllText(Path.GetFullPath(ConfigurationManager.AppSettings["MonitorEmailReportedBackTemplate"]))), ConfigurationManager.AppSettings["Monitor_ReportedBack_Email_ToPCI"], ConfigurationManager.AppSettings["Monitor_ReportedBack_Email_SubjectPCI"]);
 
-                PrepEmailBody_PendingBatchesToReportBack(monitorSvc, pendingBatchesToReportBack.Where(p => p.PrintLocation == "Dallas CL").ToList(), monitor_PrintBatch, monitor_AppCode, monitor_JobName, monitor_Pipelinestatus, monitor_ReceivedOn, monitor_DownloadedOn, monitor_PreppedOn, new StringBuilder(File.ReadAllText(Path.GetFullPath(ConfigurationManager.AppSettings["MonitorEmailReportedBackTemplate"]))), ConfigurationManager.AppSettings["Monitor_ReportedBack_Email_ToDallas"], ConfigurationManager.AppSettings["Monitor_ReportedBack_Email_SubjectDALLAS"]);
+                PrepEmailBody_PendingBatchesToReportBack(monitorSvc, pendingBatchesToReportBack.Where(p => p.VendorCode == "CL_DALLAS").ToList(), monitor_PrintBatch, monitor_AppCode, monitor_JobName, monitor_Pipelinestatus, monitor_ReceivedOn, monitor_DownloadedOn, monitor_PreppedOn, new StringBuilder(File.ReadAllText(Path.GetFullPath(ConfigurationManager.AppSettings["MonitorEmailReportedBackTemplate"]))), ConfigurationManager.AppSettings["Monitor_ReportedBack_Email_ToDallas"], ConfigurationManager.AppSettings["Monitor_ReportedBack_Email_SubjectDALLAS"]);
             }
         }
 

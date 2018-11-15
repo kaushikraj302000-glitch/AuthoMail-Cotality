@@ -33,6 +33,6 @@ namespace AM.Services
         public int PrintBatch { get; set; }
         public string PieceId { get; set; }
         public string Name { get; set; }
-        public string PrintLocation { get; set; }
+        public string VendorCode { get; set; }
     }
 }
