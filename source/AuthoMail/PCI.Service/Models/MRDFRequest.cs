@@ -9,7 +9,7 @@ namespace PCI.Service
     public class MRDFRequest
     {
         public int JobId { get; set; }
-        public int PrintTrailBatchId { get; set; }
+        public int? PrintTrailBatchId { get; set; }
         public int PieceId { get; set; }
         public DateTime Date { get; set; }
         public int TotalSheets { get; set; }

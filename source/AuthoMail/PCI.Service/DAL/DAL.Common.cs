@@ -117,7 +117,7 @@ namespace PCI.Service
             AMPrepped as
             (SELECT UniqueId FROM [AM].[PrintBatches] WHERE MailBatchId IN (SELECT Id FROM [AM].[MailBatches] B WHERE B.ReceivedOn BETWEEN @p1 AND @p2 AND ( B.IsPrepped=1 ))),
             PnSPrepped as
-            (SELECT BatchIdentifier FROM [PnS].[BatchSummary] WHERE ReceivedOn BETWEEN @p1 AND @p2 AND ( IsPrepped=1  OR IsReportPrepped = 1 OR IsReportedBack = 1))
+            (SELECT BatchIdentifier FROM [PnS].[BatchSummary] WHERE ReceivedOn BETWEEN @p1 AND @p2 AND ( IsPrepped=1  OR IsSubmitted = 1 OR IsReportPrepped = 1 OR IsReportedBack = 1))
             select Count(*) from (
             select UniqueId from AMPrepped 
             except

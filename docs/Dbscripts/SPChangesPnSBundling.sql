@@ -49,13 +49,13 @@ BEGIN
 	-- interfering with SELECT statements.
 	SET NOCOUNT ON;
 
-	SELECT REQ.*,MP.Id as MailPieceId,MP.EffectiveReceivedOnEst, BS.ClientId,MP.DocTypeId,D.ShippingCarrier,
+	SELECT REQ.*,MP.Id as MailPieceId,MP.EffectiveReceivedOnEst, BS.ClientId,BS.DocTypeId,D.ShippingCarrier,
 	D.ShippingServiceType,C.AppCode
 	FROM PnS.MRDFRequest REQ
 	INNER JOIN PnS.BatchSummary BS ON REQ.JobId=BS.PrintBatch
-	INNER JOIN AM.MailPieces MP ON REQ.UniqueId=MP.UniqueId
-	INNER JOIN AM.DocTypes D ON MP.DocTypeId=D.Id
-	INNER JOIN Common.Clients C ON C.Id=MP.ClientId
+	LEFT OUTER JOIN AM.MailPieces MP ON REQ.UniqueId=MP.UniqueId
+	INNER JOIN AM.DocTypes D ON BS.DocTypeId=D.Id
+	INNER JOIN Common.Clients C ON C.Id=BS.ClientId
 	WHERE BS.PipelineStatus='Prepped' AND  IsPrepped = 1 AND IsSubmitted = 0
 	AND BS.PrintTrailId=@printTrailId
 	

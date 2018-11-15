@@ -53,7 +53,7 @@ namespace PCI.Service
             foreach (string printTrailName in printTrails)
             {
                 var printTrailDetail = DAL.GetPrintTrailDetailByPrintTrailName(printTrailName);
-                
+
                 var mailPieceDetails = DAL.GetMRDFRequestDataByPrintTrailId(printTrailDetail.PrintTrailId);
 
                 if (mailPieceDetails == null || mailPieceDetails.Count == 0)
@@ -277,15 +277,15 @@ namespace PCI.Service
                     {
                         AppCode = t.AppCode,
                         BatchName = t.BatchName,
-                        StartDate = effectiveReceivedOnEst.Date + t.StartTime,
-                        EndDate = effectiveReceivedOnEst.Date + t.EndTime,
+                        StartDate = effectiveReceivedOnEst.Value.Date + t.StartTime,
+                        EndDate = effectiveReceivedOnEst.Value.Date + t.EndTime,
                         ShippingCarrier = t.ShippingCarrier,
                         ShippingServiceType = t.ShippingServiceType
                     });
 
                     var currentBatch = dallasBatches.Single(b => (b.AppCode == client.AppCode && effectiveReceivedOnEst >= b.StartDate && effectiveReceivedOnEst <= b.EndDate) && b.ShippingCarrier == mailPiece.ShippingCarrier && b.ShippingServiceType == mailPiece.ShippingServiceType);
 
-                    string submitDir = Path.Combine(Common.CL_SFT_SubmitDir, client.AppCode, effectiveReceivedOnEst.Date.ToString("MMddyyyy"), currentBatch.BatchName, currentBatch.ShippingCarrier + "_" + currentBatch.ShippingServiceType + folderBRE);
+                    string submitDir = Path.Combine(Common.CL_SFT_SubmitDir, client.AppCode, effectiveReceivedOnEst.Value.Date.ToString("MMddyyyy"), currentBatch.BatchName, currentBatch.ShippingCarrier + "_" + currentBatch.ShippingServiceType + folderBRE);
 
                     if (!sftSite.IsDirectoryAvailable(submitDir))
                         sftSite.CreateDirectory(submitDir);

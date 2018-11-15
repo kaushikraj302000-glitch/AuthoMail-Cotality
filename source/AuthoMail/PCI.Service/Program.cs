@@ -26,6 +26,7 @@ namespace PCI.Service
                     log = LogManager.GetLogger("PCI.Service.PnSCoreService");
                     break;
                 case "PCIJob":
+                case "DownloadPrinterReport":
                     log = LogManager.GetLogger("PCI.Service.PCIJobMonitor");
                     break;
                 default:
@@ -59,8 +60,10 @@ namespace PCI.Service
                         {
                             //NOTE : Total 2 arguments will be passed for regular flow PCIJob [PrintTrailNames]
                             PCIJobMonitor.SubmitBatchToPrintVendor(isBundle, args[1]);
-                            PCIJobMonitor.GetResponseMRDF();
                         }
+                        break;
+                    case "DownloadPrinterReport":
+                        PCIJobMonitor.GetResponseMRDF();
                         //PCIJobMonitor.GetReturnPDFsZip();
                         break;
                     default:

@@ -116,10 +116,10 @@ namespace PCI.Service
         public int ClientId { get; set; }
         public string AppCode { get; set; }
         public int DocTypeId { get; set; }
-        public int MailPieceId { get; set; }
+        public int? MailPieceId { get; set; }
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
-        public DateTime EffectiveReceivedOnEst { get; set; }
+        public DateTime? EffectiveReceivedOnEst { get; set; }
         public int SequenceNo { get; set; }
 
         //Extra fields which will be used for generating MRDF Request

@@ -74,8 +74,8 @@ namespace PCI.Service
                     TotalSheets = row.Field<int>("TotalSheets"),
                     Feeder4_Sel = int.Parse(row.Field<string>("Feeder4_Sel")),
                     UniqueId = row.Field<Guid>("UniqueId"),
-                    MailPieceId = row.Field<int>("MailPieceId"),
-                    EffectiveReceivedOnEst = row.Field<DateTime>("EffectiveReceivedOnEst"),
+                    MailPieceId = row.Field<int?>("MailPieceId"),
+                    EffectiveReceivedOnEst = row.Field<DateTime?>("EffectiveReceivedOnEst"),
                     ShippingCarrier = row.Field<string>("ShippingCarrier"),
                     ShippingServiceType = row.Field<string>("ShippingServiceType"),
                     //Extra Properties to map for MRDF Request
