@@ -72,7 +72,7 @@ namespace PCI.Service
                     PieceId = row.Field<int>("PieceId"),
                     TotalPages = row.Field<int>("TotalSheets"),
                     TotalSheets = row.Field<int>("TotalSheets"),
-                    Feeder4_Sel = int.Parse(row.Field<string>("Feeder4_Sel")),
+                    Feeder3_Sel = int.Parse(row.Field<string>("Feeder3_Sel")),
                     UniqueId = row.Field<Guid>("UniqueId"),
                     MailPieceId = row.Field<int?>("MailPieceId"),
                     EffectiveReceivedOnEst = row.Field<DateTime?>("EffectiveReceivedOnEst"),
@@ -80,7 +80,7 @@ namespace PCI.Service
                     ShippingServiceType = row.Field<string>("ShippingServiceType"),
                     //Extra Properties to map for MRDF Request
                     InputWeight = row.Field<string>("InputWeight"),
-                    Feeder3_Sel = row.Field<string>("Feeder3_Sel"),
+                    Feeder4_Sel = row.Field<string>("Feeder4_Sel"),
                     Feeder5_Sel = row.Field<string>("Feeder5_Sel"),
                     LowCap_Sel = row.Field<string>("LowCap_Sel"),
                     NoSeal_Sel = row.Field<string>("NoSeal_Sel"),

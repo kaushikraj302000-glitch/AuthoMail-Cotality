@@ -334,7 +334,7 @@ namespace PCI.Service
                     PDFFileName = mailPiece.PDFFileName,
                     DivertVS3 = mailPiece.PerformQC ? 1 : 0,
                     Address1 = "Job: {0} Seq: {1}".Fill(bi.BatchSummary.PrintBatch, pieceIdFormat.Fill(pieceId)),
-                    Feeder4_Sel = docType.IsBRE ? 1 : 0
+                    Feeder3_Sel = docType.IsBRE ? 1 : 0
                 };
 
                 var rawPdfPath = Path.Combine(bi.PnSRequestPDFsPath, mailPiece.PDFFileName);
@@ -1203,7 +1203,7 @@ namespace PCI.Service
                 }
                 catch (Exception ex)
                 {
-                    var msg = "Error occured while generating PnSResponse file {0} with Error {1}".Fill(Path.GetFileName(bi.ResponseMRDFPath), ex.Message);
+                    var msg = "Error occured while generating PnSResponse for Print Batch Id : {0} with Error : {1}".Fill(bi.BatchSummary.PrintBatch, ex.Message);
                     log.Error(msg, ex);
 
                     MailUtility.SendUnexpectedNotificationEmail(msg);
