@@ -334,7 +334,7 @@ namespace PCI.Service
                     PDFFileName = mailPiece.PDFFileName,
                     DivertVS3 = mailPiece.PerformQC ? 1 : 0,
                     Address1 = "Job: {0} Seq: {1}".Fill(bi.BatchSummary.PrintBatch, pieceIdFormat.Fill(pieceId)),
-                    Feeder3_Sel = docType.IsBRE ? 1 : 0
+                    Feeder4_Sel = docType.IsBRE ? 1 : 0
                 };
 
                 var rawPdfPath = Path.Combine(bi.PnSRequestPDFsPath, mailPiece.PDFFileName);

@@ -22,7 +22,7 @@ namespace PCI.Service
         public string ErrDesc { get; set; }
         public string Expansion { get; set; }
         public int DivertVS3 { get; set; }
-        public int Feeder3_Sel { get; set; }
+        public int Feeder4_Sel { get; set; }
         public bool HasError
         {
             get { return !ErrDesc.IsNullOrWhiteSpace(); }

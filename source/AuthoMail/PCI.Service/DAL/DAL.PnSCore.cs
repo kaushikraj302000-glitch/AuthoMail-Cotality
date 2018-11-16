@@ -120,7 +120,7 @@ namespace PCI.Service
 
             foreach (var mrdf in mrdfRequest)
             {
-                var usedColumnValues = new object[] { mrdf.JobId, mrdf.PieceId, mrdf.Date, mrdf.TotalSheets, mrdf.Address1, mrdf.UniqueId, mrdf.PDFFileName, mrdf.MailPieceStatus, mrdf.ErrId, mrdf.ErrDesc, mrdf.Expansion, mrdf.DivertVS3, mrdf.Feeder3_Sel };
+                var usedColumnValues = new object[] { mrdf.JobId, mrdf.PieceId, mrdf.Date, mrdf.TotalSheets, mrdf.Address1, mrdf.UniqueId, mrdf.PDFFileName, mrdf.MailPieceStatus, mrdf.ErrId, mrdf.ErrDesc, mrdf.Expansion, mrdf.DivertVS3, mrdf.Feeder4_Sel };
 
                 var values = usedColumnValues.Concat(defaultValues);
 
@@ -304,7 +304,7 @@ namespace PCI.Service
                     PieceId = row.Field<int>("PieceId"),
                     TotalPages = row.Field<int>("TotalSheets"),
                     TotalSheets = row.Field<int>("TotalSheets"),
-                    Feeder3_Sel = int.Parse(row.Field<string>("Feeder3_Sel")),
+                    Feeder4_Sel = int.Parse(row.Field<string>("Feeder4_Sel")),
                     UniqueId = row.Field<Guid>("UniqueId"),
                     MailPieceId = row.Field<int?>("MailPieceId"),
                     EffectiveReceivedOnEst = row.Field<DateTime?>("EffectiveReceivedOnEst"),
@@ -312,7 +312,7 @@ namespace PCI.Service
                     ShippingServiceType = row.Field<string>("ShippingServiceType"),
                     //Extra Properties to map for MRDF Request
                     InputWeight = row.Field<string>("InputWeight"),
-                    Feeder4_Sel = row.Field<string>("Feeder4_Sel"),
+                    Feeder3_Sel = row.Field<string>("Feeder3_Sel"),
                     Feeder5_Sel = row.Field<string>("Feeder5_Sel"),
                     LowCap_Sel = row.Field<string>("LowCap_Sel"),
                     NoSeal_Sel = row.Field<string>("NoSeal_Sel"),

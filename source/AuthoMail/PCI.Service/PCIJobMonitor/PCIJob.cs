@@ -270,7 +270,7 @@ namespace PCI.Service
                     string localFilePath = Path.Combine(pciRootPath, client.AppCode, mailPiece.JobId.ToString(), Common.PCIRequestFolderName, mailPiece.PDFFileName);
                     //NOTE : Here Feeder4_Sel field of MRDFRequest table contains detail about mail packages is BRE or not and Because of that we have used this over here.
 
-                    string folderBRE = mailPiece.Feeder3_Sel == 1 ? "_BRE" : "";
+                    string folderBRE = mailPiece.Feeder4_Sel == 1 ? "_BRE" : "";
                     var effectiveReceivedOnEst = mailPiece.EffectiveReceivedOnEst;
 
                     var dallasBatches = batchTimings.Select(t => new DallasBatch

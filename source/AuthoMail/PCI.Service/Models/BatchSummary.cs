@@ -124,7 +124,7 @@ namespace PCI.Service
 
         //Extra fields which will be used for generating MRDF Request
         public string InputWeight { get; set; }
-        public string Feeder4_Sel { get; set; }
+        public string Feeder3_Sel { get; set; }
         public string Feeder5_Sel { get; set; }
         public string LowCap_Sel { get; set; }
         public string NoSeal_Sel { get; set; }
