@@ -101,6 +101,123 @@ end
 Go
 
 
+IF EXISTS (SELECT * FROM sys.objects WHERE type IN ( N'FN', N'IF', N'TF', N'FS', N'FT' ) AND  name = 'ufn_GetDallasBatchTimings')
+DROP FUNCTION [dbo].[ufn_GetDallasBatchTimings]
+GO
+ CREATE FUNCTION [dbo].[ufn_GetDallasBatchTimings]
+ (
+ @EstDate DATE
+ )
+ RETURNS @BatchTimings TABLE 
+ (
+  AppCode VARCHAR(255),
+  BatchName VARCHAR(255),
+  StartTime VARCHAR(255),
+  EndTime VARCHAR(255),
+  ShippingCarrier VARCHAR(255),
+  ShippingServiceType VARCHAR(255)
+ )
+ AS
+ BEGIN
+  
+  DECLARE @DayofWeek INT = DATEPART(dw,@EstDate)
+
+  IF(@DayofWeek=7)
+  BEGIN
+   INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+   VALUES ('USAA','10AM','00:00:00','11:00:00','FedEx','PRIORITY_OVERNIGHT')   
+   INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+   VALUES ('USAA','01PM','11:00:01','14:00:00','FedEx','PRIORITY_OVERNIGHT')
+
+   INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+   VALUES ('USAA','10AM','00:00:00','11:00:00','USPS','PRIORITY_EXPRESS')   
+   INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+   VALUES ('USAA','01PM','11:00:01','14:00:00','USPS','PRIORITY_EXPRESS')
+
+   INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+   VALUES ('USAA','10AM','00:00:00','11:00:00','USPS','PRIORITY')  
+   INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+   VALUES ('USAA','01PM','11:00:01','14:00:00','USPS','PRIORITY')
+  END
+  ELSE
+  BEGIN
+   
+   INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+   VALUES ('USAA','12PM','00:00:00','13:00:00','FedEx','PRIORITY_OVERNIGHT')
+   INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+   VALUES ('USAA','05PM','13:00:01','18:00:00','FedEx','PRIORITY_OVERNIGHT')
+   INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+   VALUES ('USAA','06PM','18:00:01','19:00:00','FedEx','PRIORITY_OVERNIGHT')
+   INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+   VALUES ('USAA','07PM','19:00:01','20:00:00','FedEx','PRIORITY_OVERNIGHT')
+
+   INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+   VALUES ('USAA','12PM','00:00:00','13:00:00','USPS','PRIORITY_EXPRESS')
+   INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+   VALUES ('USAA','05PM','13:00:01','18:00:00','USPS','PRIORITY_EXPRESS')
+
+   INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+   VALUES ('USAA','12PM','00:00:00','13:00:00','USPS','PRIORITY')
+   INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+   VALUES ('USAA','05PM','13:00:01','18:00:00','USPS','PRIORITY')
+
+   INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+   VALUES ('HSBC','12PM','00:00:00','13:00:00','USPS','IMB')
+   INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+   VALUES ('HSBC','05PM','13:00:01','18:00:00','USPS','IMB')
+   INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+   VALUES ('HSBC','06PM','18:00:01','19:00:00','USPS','IMB')
+   INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+   VALUES ('HSBC','07PM','19:00:01','20:00:00','USPS','IMB')
+  END
+  
+  RETURN
+ END
+ Go
+
+
+ IF EXISTS (SELECT * FROM sys.objects WHERE type IN ( N'FN', N'IF', N'TF', N'FS', N'FT' ) AND  name = 'ufn_GetDallasBatches')
+DROP FUNCTION [dbo].[ufn_GetDallasBatches]
+GO
+
+ CREATE FUNCTION [dbo].[ufn_GetDallasBatches]
+ (
+ @EstDate DATE
+ )
+ RETURNS @sweep TABLE 
+ (
+  AppCode VARCHAR(255),
+  BatchName varchar(255),
+  StartDate datetime,
+  EndDate datetime,
+  ShippingCarrier varchar(255),
+  ShippingServiceType varchar(255)
+ )
+ AS
+ BEGIN
+  DECLARE @todayDate DATE
+  SELECT @todayDate=@EstDate
+  
+  INSERT INTO @sweep (AppCode, BatchName,StartDate,EndDate,ShippingCarrier,ShippingServiceType) 
+  SELECT AppCode, BatchName,cast(@todayDate AS DATETIME)+cast(StartTime AS DATETIME),cast(@todayDate AS DATETIME)+cast(EndTime AS DATETIME),ShippingCarrier,ShippingServiceType from [dbo].[ufn_GetDallasBatchTimings](@EstDate)  
+  
+  
+  INSERT INTO @sweep (AppCode, BatchName,StartDate,EndDate,ShippingCarrier,ShippingServiceType) 
+  VALUES ('USAA','Backlog',DateAdd(day,-7, cast(@todayDate AS DATETIME)),DateAdd(second,-1, cast(@todayDate AS DATETIME)),'FedEx','PRIORITY_OVERNIGHT')
+  
+  INSERT INTO @sweep (AppCode, BatchName,StartDate,EndDate,ShippingCarrier,ShippingServiceType) 
+  VALUES ('USAA','Backlog',DateAdd(day,-7, cast(@todayDate AS DATETIME)),DateAdd(second,-1, cast(@todayDate AS DATETIME)),'USPS','PRIORITY_EXPRESS')
+
+  INSERT INTO @sweep (AppCode, BatchName,StartDate,EndDate,ShippingCarrier,ShippingServiceType) 
+  VALUES ('USAA','Backlog',DateAdd(day,-7, cast(@todayDate AS DATETIME)),DateAdd(second,-1, cast(@todayDate AS DATETIME)),'USPS','PRIORITY')
+
+  INSERT INTO @sweep (AppCode, BatchName,StartDate,EndDate,ShippingCarrier,ShippingServiceType) 
+  VALUES ('HSBC','Backlog',DateAdd(day,-7, cast(@todayDate AS DATETIME)),DateAdd(second,-1, cast(@todayDate AS DATETIME)),'USPS','IMB')
+
+  RETURN
+ END
+ Go
+
 -- End Functions --
 /*==========================================================================================*/
 
@@ -180,7 +297,6 @@ BEGIN
 		
 	END
 
-	UPDATE AM.MailPieces SET PrintBatchId = null WHERE UniqueId = @MailPieceUniqueId
 END
 
 GO
@@ -391,14 +507,14 @@ BEGIN
 	END
 	ELSE
 	BEGIN
-		SELECT REQ.*,MP.Id as MailPieceId,MP.EffectiveReceivedOnEst, BS.ClientId,MP.DocTypeId,D.ShippingCarrier,
-		D.ShippingServiceType,C.AppCode
-		FROM PnS.MRDFRequest REQ
-		INNER JOIN PnS.BatchSummary BS ON REQ.JobId=BS.PrintBatch
-		INNER JOIN AM.MailPieces MP ON REQ.UniqueId=MP.UniqueId
-		INNER JOIN AM.DocTypes D ON MP.DocTypeId=D.Id
-		INNER JOIN Common.Clients C ON C.Id=MP.ClientId
-		WHERE REQ.PrintTrailBatchId=@printTrailBatchId AND ISNULL(MailPieceStatus,'')=@mailPieceStatus
+		SELECT REQ.*,MP.Id as MailPieceId,MP.EffectiveReceivedOnEst, BS.ClientId,BS.DocTypeId,D.ShippingCarrier,
+  D.ShippingServiceType,C.AppCode
+  FROM PnS.MRDFRequest REQ
+  INNER JOIN PnS.BatchSummary BS ON REQ.JobId=BS.PrintBatch
+  LEFT OUTER JOIN AM.MailPieces MP ON REQ.UniqueId=MP.UniqueId
+  INNER JOIN AM.DocTypes D ON BS.DocTypeId=D.Id
+  INNER JOIN Common.Clients C ON C.Id=BS.ClientId
+  WHERE REQ.PrintTrailBatchId=@printTrailBatchId AND ISNULL(MailPieceStatus,'')=@mailPieceStatus 
 	END
 END
 GO
@@ -786,6 +902,28 @@ BEGIN
  
 END
 
+Go
+
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'usp_GetDocTypeDetailsByAppId')
+DROP PROCEDURE [dbo].[usp_GetDocTypeDetailsByAppId]
+GO
+
+ CREATE PROCEDURE [dbo].[usp_GetDocTypeDetailsByAppId]
+  @clientId int
+ AS
+ BEGIN
+  -- SET NOCOUNT ON added to prevent extra result sets from
+  -- interfering with SELECT statements.
+  SET NOCOUNT ON;
+  
+  SELECT D.ClientId,D.[PrintSize],D.[ContentScalePercent],D.[QCPercent],D.[ClientEmails],D.[SupportEmails]
+  ,D.[Description] as DocTypeDesc,D.DocTypeCode,D.IsActive,D.ModifiedOn
+  ,D.CreatedOn,D.Id AS DocTypeId,D.ShippingCarrier,D.ShippingServiceType,D.IsBRE
+  FROM AM.DocTypes D
+  INNER JOIN Common.Clients C ON C.Id=D.ClientId
+  WHERE C.Id=@clientId
+  
+ END
 -- End Stored Procedure --
 /*==========================================================================================*/
 
@@ -818,19 +956,3 @@ GO
 
 -- End View --
 
-
--- Remove SystemSettings --
-DELETE FROM Common.SystemSettings WHERE Id IN (
-'Monitor_DSEmail_Subject',
-'Monitor_DS_Email_To',
-'Monitor_DS_Email_Cc',
-'Monitor_PSEmail_Subject',
-'Monitor_PS_Email_To',
-'Monitor_PS_Email_Cc',
-'Monitor_USAACustIdentifier',
-'Monitor_AMCDirPath',
-'Monitor_InternalPrintAndShipTiming',
-'Common_PrintLocationCL',
-'Common_PrintLocationPCI',
-'Core_BundleSweepClientChannelIds')
--- End SystemSettings --
