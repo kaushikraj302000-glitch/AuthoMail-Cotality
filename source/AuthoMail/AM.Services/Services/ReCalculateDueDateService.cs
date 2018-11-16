@@ -32,13 +32,13 @@ namespace AM.Services
 
         public List<Recal> GetCalcListOfMailPieces()
         {
-            string q = "select M.Id,M.UniqueId,B.ReceivedOn,M.ClientId,C.AppCode,M.SLADays,M.DueDate,M.ShippingStatus,M.DocTypeId,M.PrintLocation,M.ShippedOn,M.EffectiveReceivedOnEst,D.BizdayCutOff,D.SatCutOff,M.MissedSLAReason,M.StdSubmissionTime,M.MaxSubmissionTime from AM.MailPieces M inner join AM.MailBatches B on M.MailbatchId = B.Id inner join AM.DocTypes D on M.DocTypeId = D.Id inner join Common.Clients C on M.ClientId = C.Id Where DueDate IS NOT NULL and M.EffectiveReceivedOnEst IS NOT NULL and M.PrintLocation is not null";
+            string q = "select M.Id,M.UniqueId,B.ReceivedOn,M.ClientId,C.AppCode,PV.VendorCode,M.SLADays,M.DueDate,M.ShippingStatus,M.DocTypeId,M.PrintLocation,M.ShippedOn,M.EffectiveReceivedOnEst,D.BizdayCutOff,D.SatCutOff,M.MissedSLAReason,M.StdSubmissionTime,M.MaxSubmissionTime from AM.MailPieces M inner join AM.MailBatches B on M.MailbatchId = B.Id inner join AM.DocTypes D on M.DocTypeId = D.Id inner join Common.PrintTrails PT on M.PrintTrailId = PT.Id inner join Common.PrintVendors PV on PT.PrintVendorId = PV.Id inner join Common.Clients C on M.ClientId = C.Id Where DueDate IS NOT NULL and M.EffectiveReceivedOnEst IS NOT NULL and M.PrintLocation is not null";
             return db.Query<Recal>(q).ToList();
         }
 
         public List<Sweep> GetSweepTimings()
         {
-            return db.Query<Sweep>("select * from ufn_GetPCIBundleSweepTimings()").ToList();
+            return db.Query<Sweep>("select * from ufn_GetSweepTimings()").ToList();
         }
 
         public int UpdateSubmissionTime(int id, DateTime stdSubmissionTime, DateTime maxSubmissionTime, string missedSLAReason)
@@ -54,6 +54,7 @@ namespace AM.Services
         public Guid UniqueId { get; set; }
         public int DocTypeId { get; set; }
         public string AppCode { get; set; }
+        public string VendorCode { get; set; }
         public DateTime? DueDate { get; set; }
         public DateTime ReceivedOn { get; set; }
         public string ShippingStatus { get; set; }
