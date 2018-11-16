@@ -60,6 +60,9 @@ namespace AM.Services
             {
                 string qry = string.Format(@"UPDATE AM.MailPieces SET ShippingStatus = @shippingStatus, PullBackRequestedOn = @utcDate, PulledBackOn = @pulledbackUtcDate,PulledBackRequestedBy = @UserId WHERE UniqueId = @id");
                 data = db.Execute(qry, new { shippingStatus = status, utcDate = DateTime.UtcNow, pulledbackUtcDate = DateTime.UtcNow, UserId = string.IsNullOrEmpty(userId) ? DBNull.Value.ToString() : userId, id = mpId });
+                UpdateAMBatchStatus(mpId.ToString());
+                db.Execute(@"UPDATE AM.MailPieces SET PrintBatchId = null WHERE UniqueId = @MailPieceUniqueId", new { MailPieceUniqueId = mpId });
+                db.Execute(@"UPDATE PnS.MRDFRequest SET MailPieceStatus = 'PulledBack', ErrId = '-4', ErrDesc = 'Mail piece was pulled back by client directly.' , TotalSheets = 0 WHERE UniqueId = @MailPieceUniqueId", new { MailPieceUniqueId = mpId });
             }
             return data;
         }
