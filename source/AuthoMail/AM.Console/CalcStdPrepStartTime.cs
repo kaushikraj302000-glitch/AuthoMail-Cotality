@@ -23,6 +23,17 @@ namespace AM.Console
 
                 foreach (var item in calcStdPrepStartTimeList)
                 {
+                    item.StdSubmissionTime = cSvc.GetStandardSubmissionTime(item.AppCode, item.VendorCode, item.ReceivedOn, timings);
+                    if (item.EffectiveReceivedOnEst.Value.DayOfWeek == DayOfWeek.Saturday)
+                    {
+                        item.MaxSubmissionTime = (item.EffectiveReceivedOnEst.Value.Date + TimeSpan.Parse(item.SatCutOff)).EstToUtc();
+                    }
+                    else
+                    {
+                        item.MaxSubmissionTime = (item.EffectiveReceivedOnEst.Value.Date + TimeSpan.Parse(item.BizdayCutOff)).EstToUtc();
+                    }
+                    rSvc.UpdateSubmissionTime(item.Id, item.StdSubmissionTime.Value, item.MaxSubmissionTime.Value, null);
+                    continue;
                     if (item.ReceivedOn < bundleStartDate || item.PrintLocation == "Dallas CL")
                     {
                         item.StdSubmissionTime = item.ReceivedOn;

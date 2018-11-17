@@ -156,42 +156,28 @@ namespace AM.Services
 
         public DateTime GetStandardSubmissionTime(string appCode, string vendorCode, DateTime receivedOn, List<Sweep> sweepTimings)
         {
-            var continuousSweepCount = sweepTimings.Where(s => s.AppCode == appCode && s.VendorCode == vendorCode && s.SweepType == "Continuous").ToList();
-            if (receivedOn.DayOfWeek == DayOfWeek.Saturday)
-                continuousSweepCount = continuousSweepCount.Where(c => c.WeekDayType == "Saturday").ToList();
-            else
-                continuousSweepCount = continuousSweepCount.Where(c => c.WeekDayType == "Weekday").ToList();
+            var revisedReceivedOnEst = receivedOn.UtcToEst();
+            var weekDayType = revisedReceivedOnEst.DayOfWeek == DayOfWeek.Saturday ? "Saturday" : "Weekday";
+            var continuousSweeps = sweepTimings.Where(s => s.AppCode == appCode && s.VendorCode == vendorCode && s.WeekDayType == weekDayType && s.SweepType == "Continuous").ToList();
 
-            var bundlingSweepCount = sweepTimings.Where(s => s.AppCode == appCode && s.VendorCode == vendorCode && s.SweepType == "OnSchedule").ToList();
 
-            if (continuousSweepCount.Count > 0)
+            if (continuousSweeps.Count > 0)
                 return receivedOn;
-            else if (bundlingSweepCount.Count > 0)
+
+            var bundlingSweeps = sweepTimings.Where(s => s.AppCode == appCode && s.VendorCode == vendorCode && s.WeekDayType == weekDayType && s.SweepType == "OnSchedule").OrderBy(t => t.SrNo).ToList();
+            if (bundlingSweeps.Count > 0)
             {
-                var revisedReceivedOnEst = receivedOn.UtcToEst();
-
-                sweepTimings = sweepTimings.OrderBy(t => t.SrNo).ToList();
-
-                if (revisedReceivedOnEst.DayOfWeek == DayOfWeek.Saturday)
-                {
-                    sweepTimings = sweepTimings.Where(s => s.WeekDayType == "Saturday").ToList();
-                }
-                else
-                {
-                    sweepTimings = sweepTimings.Where(s => s.WeekDayType == "Weekday").ToList();
-                }
-
                 // adjust for sunday
                 revisedReceivedOnEst = revisedReceivedOnEst.DayOfWeek == DayOfWeek.Sunday ? revisedReceivedOnEst.AddDays(1).Date : revisedReceivedOnEst;
 
-                var applicableSweep = sweepTimings.FirstOrDefault(s => s.SweepTime >= revisedReceivedOnEst.TimeOfDay);
+                var applicableSweep = bundlingSweeps.FirstOrDefault(s => s.SweepTime >= revisedReceivedOnEst.TimeOfDay);
 
                 if (applicableSweep == null)
                 {
                     revisedReceivedOnEst = revisedReceivedOnEst.AddDays(1);
                     // adjust for sunday
                     revisedReceivedOnEst = revisedReceivedOnEst.DayOfWeek == DayOfWeek.Sunday ? revisedReceivedOnEst.AddDays(1).Date : revisedReceivedOnEst;
-                    applicableSweep = sweepTimings.First();
+                    applicableSweep = bundlingSweeps.First();
                 }
 
                 var standardSubmissionTime = (revisedReceivedOnEst.Date + applicableSweep.SweepTime).EstToUtc();
@@ -200,7 +186,7 @@ namespace AM.Services
             }
             else
             {
-                throw new Exception();
+                throw new Exception(string.Format("Sweep timings are not defined for AppCode: {0}, VendorCode: {1}", appCode, vendorCode));
             }
         }
 
