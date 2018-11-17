@@ -206,6 +206,7 @@ namespace PCI.Service
 
         private static void ReportInvalidBatch(BatchInfo bi, string msg, List<MailPieceReport> mailPackageReport, Exception ex)
         {
+            msg = msg + " For Print Batch Id {0}".Fill(bi.BatchSummary.PrintBatch);
             log.Error(msg, ex);
 
             MailUtility.SendUnexpectedNotificationEmail(msg);
