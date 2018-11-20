@@ -273,8 +273,16 @@ BEGIN
 	DECLARE @printBatchId int
 	DECLARE @totalPulledBackPrintBatchesMailPieces int
 	DECLARE @totalPrintBatchesMailPieces int
-	
+	DECLARE @batchSummaryId int
+	DECLARE @printbatchUniqueId uniqueidentifier
+	DECLARE @totalBatchSummaryMailPieces int
+	DECLARE @totalPulledBackBatchSummaryMailPieces int
+
 	SELECT @mailBatchId = MailBatchId,@printBatchId = PrintBatchId FROM AM.MailPieces WHERE UniqueId = @MailPieceUniqueId
+	
+	SELECT @printbatchUniqueId = UniqueId FROM AM.PrintBatches WHERE Id = @printBatchId
+
+	SELECT @batchSummaryId = PrintBatch FROM PnS.BatchSummary WHERE BatchIdentifier = @printbatchUniqueId
 
 	SELECT @totalMailPieces = COUNT(*) FROM AM.MailPieces WHERE MailBatchId = @mailBatchId
 
@@ -283,18 +291,27 @@ BEGIN
 	SELECT @totalPulledBackMailPieces = COUNT(*) FROM AM.MailPieces WHERE MailBatchId = @mailBatchId AND IsPulledBack = 1
 
 	SELECT @totalPulledBackPrintBatchesMailPieces = COUNT(*) FROM AM.MailPieces WHERE PrintBatchId = @printBatchId AND IsPulledBack = 1
-	--PRINT @totalPulledBackMailPieces
-	SELECT @totalPrintBatchesMailPieces = COUNT(*) FROM AM.MailPieces WHERE PrintBatchId = @printBatchId
 	
+	SELECT @totalPrintBatchesMailPieces = COUNT(*) FROM AM.MailPieces WHERE PrintBatchId = @printBatchId
+
+	SELECT @totalBatchSummaryMailPieces = COUNT(*) FROM PnS.MrdfRequest WHERE JobId = @batchSummaryId
+
+	SELECT @totalPulledBackBatchSummaryMailPieces = COUNT(*) FROM PnS.MrdfRequest WHERE JobId = @batchSummaryId AND MailPieceStatus = 'PulledBack'
+	
+	
+	IF (@totalBatchSummaryMailPieces = @totalPulledBackBatchSummaryMailPieces and @totalBatchSummaryMailPieces <> 0)
+	BEGIN	
+		UPDATE PnS.BatchSummary SET BatchStatus = 'PulledBack',ReportPreppedOn = @shippingResponseReceievedOn,ReportedBackOn = @shippingResponseReceievedOn,PipelineStatus = 'ReportedBack' WHERE PrintBatch = @batchSummaryId
+	END
+		
 	IF (@totalPrintBatchesMailPieces = @totalPulledBackPrintBatchesMailPieces)
 	BEGIN
 		UPDATE AM.PrintBatches SET BatchStatus = 'PulledBack',ShippingResponseReceivedOn = @shippingResponseReceievedOn,ReportPreppedOn = @shippingResponseReceievedOn,ReportedBackOn = @shippingResponseReceievedOn WHERE Id = @printBatchId	
 	END
-
+	
 	IF (@totalMailPieces = @totalPulledBackMailPieces)
 	BEGIN	
-		UPDATE AM.MailBatches SET BatchStatus = 'PulledBack',ShippingResponseReceivedOn = @shippingResponseReceievedOn,PipelineStatus = 'ShippingResponseReceived' WHERE Id = @mailBatchId
-		
+		UPDATE AM.MailBatches SET BatchStatus = 'PulledBack',ShippingResponseReceivedOn = @shippingResponseReceievedOn,PipelineStatus = 'ShippingResponseReceived' WHERE Id = @mailBatchId		
 	END
 
 END
@@ -937,7 +954,7 @@ BEGIN
  -- interfering with SELECT statements.
  SET NOCOUNT ON;
  
- SELECT JobId, PostageCost, ErrId, case when ShippedOn is null and errid = -4 then CAST('1753-1-1' AS DATETIME) else ShippedOn end as ShippedOn, WeightMeasured, Disposition
+ SELECT JobId, PostageCost, ErrId, case when ShippedOn is null and errid = -4 then CAST('1753-1-1' AS DATETIME) else ShippedOn end as ShippedOn, WeightMeasured,case when errid = -4 then '4' else Disposition end as Disposition
  , PieceId, UniqueId, PDFFileName, ErrDesc, MailPieceStatus,TotalSheets,DivertVS3, PackageTrackingNumber 
  FROM view_MRDFResponseData V WHERE V.JobId=@jobId --AND ErrId <> -4
 END
