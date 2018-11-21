@@ -22,7 +22,16 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
+
+PRINT N'Update ShippingServiceType'
+
+UPDATE AM.DocTypes
+SET
+ShippingServiceType='IMB'
+WHERE ShippingCarrier='USPS' AND ShippingServiceType='USPS'
+
 PRINT N'Inserting master data into Common.PrintVendors'
+
 ------Code goes here-----
 INSERT INTO Common.PrintVendors([Name],[SFTChannelId],[BusinessCode],[VendorCode]) Values ('Fort Mill, SC',1,'002416','PCI')
 INSERT INTO Common.PrintVendors([Name],[SFTChannelId],[BusinessCode],[VendorCode]) Values ('Dallas CL',1,'ADE','CL_DALLAS')
