@@ -180,6 +180,8 @@ namespace AM.Services
         #region Support
         [Description("Default emails for getting notification from registration request.")]
         public static string Web_RegistrationDefaultEmails { get; private set; }
+        [Description("Default BCC emails for getting notification from registration flow.")]
+        public static string Web_RegistrationBCCEmails { get; private set; }
         [Description("Notify about AuthoMail health every elapsed minutes.")]
         public static int Web_API_AlertElapsedMinute { get; set; }
         #endregion Support

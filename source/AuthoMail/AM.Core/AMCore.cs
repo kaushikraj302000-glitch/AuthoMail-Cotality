@@ -283,6 +283,12 @@ namespace AM.Core
                                         coverLetterPdfPath = createFedExLabel.GeneratedFedExLabelPath;
                                         mailPiece.TrackingNo = Path.GetFileNameWithoutExtension(coverLetterPdfPath);
                                     }
+                                    else
+                                    {
+                                        //NOTE : If result false then mark as an error and update status for that mail piece
+                                        mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                        continue;
+                                    }
 
                                     #endregion
                                 }

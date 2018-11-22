@@ -567,28 +567,28 @@ namespace AM.Console
 
                                 if (mailPieceNode.SelectSingleNode("./x:ShippingMethod", nsManager) != null)
                                 {
-                                    customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "ShippingMethod", DataType = DataType.String, Value = mailPieceNode.SelectSingleNode("./x:ShippingMethod/text()", nsManager).Value };
+                                    customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "ShippingMethod", DataType = DataType.String, Value = mailPieceNode.SelectSingleNode("./x:ShippingMethod/text()", nsManager) == null ? string.Empty : mailPieceNode.SelectSingleNode("./x:ShippingMethod/text()", nsManager).Value };
 
                                     mailPieceCustomInfo.Add(customInfo);
                                 }
 
                                 if (mailPieceNode.SelectSingleNode("./x:CustomerIdentifier", nsManager) != null)
                                 {
-                                    customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "CustomerIdentifier", DataType = DataType.String, Value = mailPieceNode.SelectSingleNode("./x:CustomerIdentifier/text()", nsManager).Value };
+                                    customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "CustomerIdentifier", DataType = DataType.String, Value = mailPieceNode.SelectSingleNode("./x:CustomerIdentifier/text()", nsManager) == null ? string.Empty : mailPieceNode.SelectSingleNode("./x:CustomerIdentifier/text()", nsManager).Value };
 
                                     mailPieceCustomInfo.Add(customInfo);
                                 }
 
                                 if (mailPieceNode.SelectSingleNode("./x:RequestId", nsManager) != null)
                                 {
-                                    customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "RequestId", DataType = DataType.String, Value = mailPieceNode.SelectSingleNode("./x:RequestId/text()", nsManager).Value };
+                                    customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "RequestId", DataType = DataType.String, Value = mailPieceNode.SelectSingleNode("./x:RequestId/text()", nsManager) == null ? string.Empty : mailPieceNode.SelectSingleNode("./x:RequestId/text()", nsManager).Value };
 
                                     mailPieceCustomInfo.Add(customInfo);
                                 }
 
                                 if (mailPieceNode.SelectSingleNode("./x:ReceivedDate", nsManager) != null)
                                 {
-                                    customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "ReceivedDate", DataType = DataType.DateTime, Value = mailPieceNode.SelectSingleNode("./x:ReceivedDate/text()", nsManager).Value };
+                                    customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "ReceivedDate", DataType = DataType.DateTime, Value = mailPieceNode.SelectSingleNode("./x:ReceivedDate/text()", nsManager) == null ? null : mailPieceNode.SelectSingleNode("./x:ReceivedDate/text()", nsManager).Value };
 
                                     mailPieceCustomInfo.Add(customInfo);
                                 }
@@ -598,7 +598,7 @@ namespace AM.Console
                                 {
                                     if (shippingCredElement.SelectSingleNode("./x:ClientCode", nsManager) != null)
                                     {
-                                        customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "ShippingCredCode", DataType = DataType.String, Value = shippingCredElement.SelectSingleNode("./x:ClientCode/text()", nsManager).Value };
+                                        customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "ShippingCredCode", DataType = DataType.String, Value = shippingCredElement.SelectSingleNode("./x:ClientCode/text()", nsManager) == null ? string.Empty : shippingCredElement.SelectSingleNode("./x:ClientCode/text()", nsManager).Value };
 
                                         mailPieceCustomInfo.Add(customInfo);
                                     }
@@ -645,7 +645,7 @@ namespace AM.Console
                         }
                         catch (Exception ex)
                         {
-                            var msg = "Unable to process package info node.".Fill(mbi.BatchName);
+                            var msg = "Unable to process package info node for mail batch {0}".Fill(mbi.BatchName);
 
                             log.Error(msg, ex);
 
