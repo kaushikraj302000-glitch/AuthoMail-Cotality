@@ -108,23 +108,23 @@ namespace PCI.Service
         {
             int receivedCount = db.ExecuteSqlScalar<int>("SELECT COUNT(*) FROM [AM].[MailBatches] B WHERE B.ReceivedOn BETWEEN @p1 AND @p2 AND B.IsReceived=1", startDateTime, endDateTime);
 
-            int amPreppedOrReportedCount = db.ExecuteSqlScalar<int>("SELECT COUNT(*) FROM [AM].[MailBatches] B WHERE B.ReceivedOn BETWEEN @p1 AND @p2 AND ( B.IsPrepped=1 OR B.IsReportedBack=1 OR B.IsReportPrepped=1)", startDateTime, endDateTime);
+            int amSubmittedOrReportedCount = db.ExecuteSqlScalar<int>("SELECT COUNT(*) FROM [AM].[MailBatches] B WHERE B.ReceivedOn BETWEEN @p1 AND @p2 AND ( B.IsSubmittedToShipping=1 OR B.IsReportedBack=1 OR B.IsReportPrepped=1)", startDateTime, endDateTime);
 
-            if (receivedCount != amPreppedOrReportedCount)
+            if (receivedCount != amSubmittedOrReportedCount)
                 return false;
 
-            int pnsPreppedCount = db.ExecuteSqlScalar<int>(@"WITH
-            AMPrepped as
-            (SELECT UniqueId FROM [AM].[PrintBatches] WHERE MailBatchId IN (SELECT Id FROM [AM].[MailBatches] B WHERE B.ReceivedOn BETWEEN @p1 AND @p2 AND ( B.IsPrepped=1 ))),
+            int pendingBatchCount = db.ExecuteSqlScalar<int>(@"WITH
+            AMSubmitted as
+            (SELECT UniqueId FROM [AM].[PrintBatches] WHERE MailBatchId IN (SELECT Id FROM [AM].[MailBatches] B WHERE B.ReceivedOn BETWEEN @p1 AND @p2 AND ( B.IsSubmittedToShipping=1 ))),
             PnSPrepped as
-            (SELECT BatchIdentifier FROM [PnS].[BatchSummary] WHERE ReceivedOn BETWEEN @p1 AND @p2 AND ( IsPrepped=1  OR IsSubmitted = 1 OR IsReportPrepped = 1 OR IsReportedBack = 1))
+            (SELECT BatchIdentifier FROM [PnS].[BatchSummary] WHERE ReceivedOn >= @p1 AND ( IsPrepped=1  OR IsSubmitted = 1 OR IsReportPrepped = 1 OR IsReportedBack = 1))
             select Count(*) from (
-            select UniqueId from AMPrepped 
+            select UniqueId from AMSubmitted 
             except
             select BatchIdentifier from PnSPrepped 
             ) t", startDateTime, endDateTime);
 
-            return pnsPreppedCount == 0;
+            return pendingBatchCount == 0;
         }
     }
 }
