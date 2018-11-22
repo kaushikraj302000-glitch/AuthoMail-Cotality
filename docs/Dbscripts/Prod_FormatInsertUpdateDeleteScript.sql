@@ -118,6 +118,10 @@ PRINT N'Delete data from Common.SystemSettings'
 'Monitor_InternalPrintAndShipEndTime')
 
 GO
+
+PRINT N'Insert data key Web_RegistrationBCCEmails into Common.SystemSettings'
+INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Web_RegistrationBCCEmails', N'String', 'avala@corelogic.com,sgolvelkar@corelogic.com', 'Default BCC emails for getting notification from registration flow', 0, 'avala@corelogic.com,sgolvelkar@corelogic.com', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+GO
 ----------Modifying code ends here--------------------------------
  
 IF @@ERROR<>0 AND @@TRANCOUNT>0 ROLLBACK TRANSACTION
