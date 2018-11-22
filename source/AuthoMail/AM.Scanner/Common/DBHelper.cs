@@ -37,14 +37,18 @@ namespace AM.Scanner.Common
                 // DbCommand cmd = db.GetStoredProcCommand(Common.SP_RegisterScan, barcode, username, machineName);
                 var estToday = DateTime.UtcNow.UtcToEst().Date;
                 string query = string.Format("{0} @barcode, @clientCode, @operatorid, @machineid, @batchName, @estDate", Common.SP_RegisterScan);
-                var registerScanData = db.QuerySingleOrDefault<RegisterScanDetails>(query, new { barcode = barcode, clientCode = clientCode, operatorid = username, machineid = machineName, batchName = batchName, estDate = estToday});
+                var registerScanData = db.QuerySingleOrDefault<RegisterScanDetails>(query, new { barcode = barcode, clientCode = clientCode, operatorid = username, machineid = machineName, batchName = batchName, estDate = estToday });
                 db.Dispose();
-                var scanCountData = GetScanStats(clientCode);
+                var batchWiseCount = GetRecentBatchesStats(clientCode).Single(b => b.BatchName == batchName);
+
+                var scanCountData = new ScanDetails();// GetScanStats(clientCode);
                 scanCountData.JobName = registerScanData.JobName;
                 scanCountData.Code = registerScanData.Code;
                 scanCountData.Message = registerScanData.Message;
                 scanCountData.AppCode = clientCode;
                 scanCountData.TrackingNo = registerScanData.TrackingNo;
+                scanCountData.ScanCount = Convert.ToInt32(batchWiseCount.ScannedLoans);
+                scanCountData.TotalCount = Convert.ToInt32(batchWiseCount.TotalLoans);
                 return scanCountData;
 
             }
@@ -74,7 +78,7 @@ namespace AM.Scanner.Common
                 throw e;
             }
         }
-        public static List<RegisterScanDetails> GetScannedMailPieces(string clientCode,string batchName)
+        public static List<RegisterScanDetails> GetScannedMailPieces(string clientCode, string batchName)
         {
             try
             {
@@ -84,7 +88,7 @@ namespace AM.Scanner.Common
                 // EST Week
                 var startDate = (estToday + new TimeSpan(0, 0, 0)).EstToUtc();
                 var endDate = (estToday + new TimeSpan(23, 59, 59)).EstToUtc();
-                var scannedMailPieceList = db.Query<RegisterScanDetails>(scanCountQuery, new { appcode = clientCode, batchName = batchName, startDate = startDate, endDate = endDate, estDate=estToday}).ToList();
+                var scannedMailPieceList = db.Query<RegisterScanDetails>(scanCountQuery, new { appcode = clientCode, batchName = batchName, startDate = startDate, endDate = endDate, estDate = estToday }).ToList();
                 db.Dispose();
                 return scannedMailPieceList;
 
@@ -105,7 +109,7 @@ namespace AM.Scanner.Common
                 // EST Week
                 var startDate = (estToday + new TimeSpan(0, 0, 0)).EstToUtc();
                 var endDate = (estToday + new TimeSpan(23, 59, 59)).EstToUtc();
-                var batchList = db.Query<GetAllBatchCountDetails>(scanCountQuery, new { appcode = clientCode, estDate=estToday, startDate = startDate, endDate = endDate }).ToList();
+                var batchList = db.Query<GetAllBatchCountDetails>(scanCountQuery, new { appcode = clientCode, estDate = estToday, startDate = startDate, endDate = endDate }).ToList();
                 db.Dispose();
                 return batchList;
 
@@ -160,7 +164,7 @@ namespace AM.Scanner.Common
                 var batchList = db.Query<PendingScanning>(query, new { appcode = clientCode, estDate = estToday }).ToList();
                 db.Dispose();
                 return batchList;
-                
+
             }
             catch (Exception)
             {
@@ -168,9 +172,9 @@ namespace AM.Scanner.Common
             }
         }
 
-        public static USPSScanDetails RegisterUSPSScan(int mailPieceId,string trackingNo, string clientCode)
+        public static USPSScanDetails RegisterUSPSScan(int mailPieceId, string trackingNo, string clientCode)
         {
-            
+
             try
             {
                 DbConnection db = Create(clientCode);
