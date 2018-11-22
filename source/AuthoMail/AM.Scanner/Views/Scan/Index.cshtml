@@ -173,7 +173,7 @@
             </div>
         </div>@*margin-left: 33%;*@
         <div class="pull-left " style="margin-top:-3%;margin-left:12.3%;">
-            <h2 class="text-center alert alert-info">Batch Name : <span id="batchNameDisplay"> --</span></h2>
+            <h2 class="text-center alert alert-info"><span title="Client Name" id="cliencodeDisplay"> --</span> : <span title="Batch Name" id="batchNameDisplay"> --</span> </h2>
         </div>
         <div class="clearfix">
         </div>
@@ -400,6 +400,7 @@
                 clientCode = getParameterByName('clientCode');
                 batchName = getParameterByName('batchName');
                 $("#batchNameDisplay").text(batchName);
+                $("#cliencodeDisplay").text(clientCode);
                 notStartWithClientCode = "Barcode must be start with " + clientCode + ". Please scan again.";
 
                 var cnt = 0;
@@ -543,7 +544,7 @@
                                 data: { barcode: code2Value, clientCode: clientCode, batchName: batchName },
                                 success: function (response) {
                                     var object = response;
-                                    // console.log(object)
+                                     //console.log(object)
 
                                     var code = object.model.Code;
                                     var trackingNo = object.model.TrackingNo;
