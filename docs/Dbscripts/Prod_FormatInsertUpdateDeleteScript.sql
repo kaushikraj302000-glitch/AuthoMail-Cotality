@@ -38,18 +38,15 @@ INSERT INTO Common.PrintVendors([Name],[SFTChannelId],[BusinessCode],[VendorCode
 
 PRINT N'Inserting master data into Common.PrintTrails'
 
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('ALASKA-GENERIC-9X12',(select Id from [Common].[PrintVendors] where Name ='Fort Mill, SC'),0)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('ALASKA-GENERIC-PRI',(select Id from [Common].[PrintVendors] where Name ='Fort Mill, SC'),0)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('CITIVM-GENERIC-PRI',(select Id from [Common].[PrintVendors] where Name ='Fort Mill, SC'),0)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('CITIVM-GENERIC-9X12',(select Id from [Common].[PrintVendors] where Name ='Fort Mill, SC'),0)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('HSBC-GENERIC-9X12',(select Id from [Common].[PrintVendors] where Name ='Dallas CL'),0)
+INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('ALASKA-GENERIC',(select Id from [Common].[PrintVendors] where Name ='Fort Mill, SC'),0)
+INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('CITIVM-GENERIC',(select Id from [Common].[PrintVendors] where Name ='Fort Mill, SC'),0)
+INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('HSBC-GENERIC',(select Id from [Common].[PrintVendors] where Name ='Dallas CL'),0)
 INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('DALLAS-90days-CERT',(select Id from [Common].[PrintVendors] where Name ='Fort Mill, SC'),0)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('DALLAS-GENERIC-10',(select Id from [Common].[PrintVendors] where Name ='Fort Mill, SC'),0)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('DALLAS-Statements-10',(select Id from [Common].[PrintVendors] where Name ='Fort Mill, SC'),0)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('RPS-GENERIC-6X9',(select Id from [Common].[PrintVendors] where Name ='Fort Mill, SC'),0)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('RPS-GENERIC-9X12',(select Id from [Common].[PrintVendors] where Name ='Fort Mill, SC'),0)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('USAA-GENERIC-10',(select Id from [Common].[PrintVendors] where Name ='Fort Mill, SC'),0)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('USAA-GENSAME-10',(select Id from [Common].[PrintVendors] where Name ='Fort Mill, SC'),0)
+INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('DALLAS-GENERIC',(select Id from [Common].[PrintVendors] where Name ='Fort Mill, SC'),0)
+INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('DALLAS-Statements',(select Id from [Common].[PrintVendors] where Name ='Fort Mill, SC'),0)
+INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('RPS-GENERIC',(select Id from [Common].[PrintVendors] where Name ='Fort Mill, SC'),0)
+INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('USAA-GENERIC',(select Id from [Common].[PrintVendors] where Name ='Fort Mill, SC'),0)
+INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('USAA-GENSAME',(select Id from [Common].[PrintVendors] where Name ='Fort Mill, SC'),0)
 INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('USAA-GENERIC-FEDEX',(select Id from [Common].[PrintVendors] where Name ='Dallas CL'),0)
 INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('USAA-GENERIC-PRI',(select Id from [Common].[PrintVendors] where Name ='Dallas CL'),0)
 
@@ -62,28 +59,28 @@ SELECT Id,(SELECT Id FROM Common.PrintTrails WHERE TrailName='USAA-GENERIC-FEDEX
 INSERT INTO [Common].[DocTypePrintTrailMaps]([DocTypeId],[PrintTrailId],[BizDayStartTime],[BizDayEndTime],[SatStartTime],[SatEndTime],[SunStartTime],[SunEndTime])
 SELECT Id,(SELECT Id FROM Common.PrintTrails WHERE TrailName='USAA-GENERIC-PRI'),'00:00:00','23:59:59','00:00:00','23:59:59',NULL,NULL FROM AM.DocTypes WHERE ClientId=(SELECT Id FROM Common.Clients WHERE AppCode='USAA') AND ShippingCarrier='USPS' AND ShippingServiceType IN ('PRIORITY','PRIORITY_EXPRESS')
 INSERT INTO [Common].[DocTypePrintTrailMaps]([DocTypeId],[PrintTrailId],[BizDayStartTime],[BizDayEndTime],[SatStartTime],[SatEndTime],[SunStartTime],[SunEndTime])
-SELECT Id,(SELECT Id FROM Common.PrintTrails WHERE TrailName='USAA-GENSAME-10'),'00:00:00','23:59:59','00:00:00','23:59:59',NULL,NULL FROM AM.DocTypes WHERE ClientId=(SELECT ID FROM Common.Clients WHERE AppCode='USAA') AND DocTypeCode IN ('CreditDisclosures_B1','CreditDisclosures_B2','CreditDisclosures_B3','CreditDisclosures_B4','CreditDisclosures_B5','CreditDisclosures_B6','CreditDisclosures_B7','CreditDisclosures_B8')
+SELECT Id,(SELECT Id FROM Common.PrintTrails WHERE TrailName='USAA-GENSAME'),'00:00:00','23:59:59','00:00:00','23:59:59',NULL,NULL FROM AM.DocTypes WHERE ClientId=(SELECT ID FROM Common.Clients WHERE AppCode='USAA') AND DocTypeCode IN ('CreditDisclosures_B1','CreditDisclosures_B2','CreditDisclosures_B3','CreditDisclosures_B4','CreditDisclosures_B5','CreditDisclosures_B6','CreditDisclosures_B7','CreditDisclosures_B8')
 INSERT INTO [Common].[DocTypePrintTrailMaps]([DocTypeId],[PrintTrailId],[BizDayStartTime],[BizDayEndTime],[SatStartTime],[SatEndTime],[SunStartTime],[SunEndTime])
-SELECT Id,(SELECT Id FROM Common.PrintTrails WHERE TrailName='USAA-GENERIC-10'),'00:00:00','23:59:59','00:00:00','23:59:59',NULL,NULL FROM AM.DocTypes WHERE ClientId=(SELECT ID FROM Common.Clients WHERE AppCode='USAA') AND ShippingCarrier='USPS' AND ShippingServiceType = 'IMB' AND DocTypeCode NOT IN ('CreditDisclosures_B1','CreditDisclosures_B2','CreditDisclosures_B3','CreditDisclosures_B4','CreditDisclosures_B5','CreditDisclosures_B6','CreditDisclosures_B7','CreditDisclosures_B8')
+SELECT Id,(SELECT Id FROM Common.PrintTrails WHERE TrailName='USAA-GENERIC'),'00:00:00','23:59:59','00:00:00','23:59:59',NULL,NULL FROM AM.DocTypes WHERE ClientId=(SELECT ID FROM Common.Clients WHERE AppCode='USAA') AND ShippingCarrier='USPS' AND ShippingServiceType = 'IMB' AND DocTypeCode NOT IN ('CreditDisclosures_B1','CreditDisclosures_B2','CreditDisclosures_B3','CreditDisclosures_B4','CreditDisclosures_B5','CreditDisclosures_B6','CreditDisclosures_B7','CreditDisclosures_B8')
 --->HSBC
 INSERT INTO [Common].[DocTypePrintTrailMaps]([DocTypeId],[PrintTrailId],[BizDayStartTime],[BizDayEndTime],[SatStartTime],[SatEndTime],[SunStartTime],[SunEndTime])
-SELECT Id,(SELECT Id FROM Common.PrintTrails WHERE TrailName='HSBC-GENERIC-9X12'),'00:00:00','23:59:59','00:00:00','23:59:59',NULL,NULL FROM AM.DocTypes WHERE ClientId=(SELECT ID FROM Common.Clients WHERE AppCode='HSBC') AND ShippingCarrier='USPS' AND ShippingServiceType = 'IMB'
+SELECT Id,(SELECT Id FROM Common.PrintTrails WHERE TrailName='HSBC-GENERIC'),'00:00:00','23:59:59','00:00:00','23:59:59',NULL,NULL FROM AM.DocTypes WHERE ClientId=(SELECT ID FROM Common.Clients WHERE AppCode='HSBC') AND ShippingCarrier='USPS' AND ShippingServiceType = 'IMB'
 --->ALASKA
 INSERT INTO [Common].[DocTypePrintTrailMaps]([DocTypeId],[PrintTrailId],[BizDayStartTime],[BizDayEndTime],[SatStartTime],[SatEndTime],[SunStartTime],[SunEndTime])
-SELECT Id,(SELECT Id FROM Common.PrintTrails WHERE TrailName='ALASKA-GENERIC-9X12'),'00:00:00','23:59:59','00:00:00','23:59:59',NULL,NULL FROM AM.DocTypes WHERE ClientId=(SELECT ID FROM Common.Clients WHERE AppCode='ALASKA') AND ShippingCarrier='USPS' AND ShippingServiceType = 'IMB'
+SELECT Id,(SELECT Id FROM Common.PrintTrails WHERE TrailName='ALASKA-GENERIC'),'00:00:00','23:59:59','00:00:00','23:59:59',NULL,NULL FROM AM.DocTypes WHERE ClientId=(SELECT ID FROM Common.Clients WHERE AppCode='ALASKA') AND ShippingCarrier='USPS' AND ShippingServiceType = 'IMB'
 --->CITI
 INSERT INTO [Common].[DocTypePrintTrailMaps]([DocTypeId],[PrintTrailId],[BizDayStartTime],[BizDayEndTime],[SatStartTime],[SatEndTime],[SunStartTime],[SunEndTime])
-SELECT Id,(SELECT Id FROM Common.PrintTrails WHERE TrailName='CITIVM-GENERIC-9X12'),'00:00:00','23:59:59','00:00:00','23:59:59',NULL,NULL FROM AM.DocTypes WHERE ClientId=(SELECT ID FROM Common.Clients WHERE AppCode='CITIVM')
+SELECT Id,(SELECT Id FROM Common.PrintTrails WHERE TrailName='CITIVM-GENERIC'),'00:00:00','23:59:59','00:00:00','23:59:59',NULL,NULL FROM AM.DocTypes WHERE ClientId=(SELECT ID FROM Common.Clients WHERE AppCode='CITIVM')
 --->RPS
 INSERT INTO [Common].[DocTypePrintTrailMaps]([DocTypeId],[PrintTrailId],[BizDayStartTime],[BizDayEndTime],[SatStartTime],[SatEndTime],[SunStartTime],[SunEndTime])
-SELECT Id,(SELECT Id FROM Common.PrintTrails WHERE TrailName='RPS-GENERIC-9X12'),'00:00:00','23:59:59','00:00:00','23:59:59',NULL,NULL FROM AM.DocTypes WHERE ClientId=(SELECT ID FROM Common.Clients WHERE AppCode='RPS')
+SELECT Id,(SELECT Id FROM Common.PrintTrails WHERE TrailName='RPS-GENERIC'),'00:00:00','23:59:59','00:00:00','23:59:59',NULL,NULL FROM AM.DocTypes WHERE ClientId=(SELECT ID FROM Common.Clients WHERE AppCode='RPS')
 --->DALLAS
 INSERT INTO [Common].[DocTypePrintTrailMaps]([DocTypeId],[PrintTrailId],[BizDayStartTime],[BizDayEndTime],[SatStartTime],[SatEndTime],[SunStartTime],[SunEndTime])
 SELECT Id,(SELECT Id FROM Common.PrintTrails WHERE TrailName='DALLAS-90days-CERT'),'00:00:00','23:59:59','00:00:00','23:59:59',NULL,NULL FROM AM.DocTypes WHERE ClientId=(SELECT ID FROM Common.Clients WHERE AppCode='DALLAS') AND DocTypeCode = '90days'
 INSERT INTO [Common].[DocTypePrintTrailMaps]([DocTypeId],[PrintTrailId],[BizDayStartTime],[BizDayEndTime],[SatStartTime],[SatEndTime],[SunStartTime],[SunEndTime])
-SELECT Id,(SELECT Id FROM Common.PrintTrails WHERE TrailName='DALLAS-GENERIC-10'),'00:00:00','23:59:59','00:00:00','23:59:59',NULL,NULL FROM AM.DocTypes WHERE ClientId=(SELECT ID FROM Common.Clients WHERE AppCode='DALLAS') AND DocTypeCode IN ('30days','60days','120days','AnnualPrivacyNotice','Escrow')
+SELECT Id,(SELECT Id FROM Common.PrintTrails WHERE TrailName='DALLAS-GENERIC'),'00:00:00','23:59:59','00:00:00','23:59:59',NULL,NULL FROM AM.DocTypes WHERE ClientId=(SELECT ID FROM Common.Clients WHERE AppCode='DALLAS') AND DocTypeCode IN ('30days','60days','120days','AnnualPrivacyNotice','Escrow')
 INSERT INTO [Common].[DocTypePrintTrailMaps]([DocTypeId],[PrintTrailId],[BizDayStartTime],[BizDayEndTime],[SatStartTime],[SatEndTime],[SunStartTime],[SunEndTime])
-SELECT Id,(SELECT Id FROM Common.PrintTrails WHERE TrailName='DALLAS-Statements-10'),'00:00:00','23:59:59','00:00:00','23:59:59',NULL,NULL FROM AM.DocTypes WHERE ClientId=(SELECT ID FROM Common.Clients WHERE AppCode='DALLAS') AND DocTypeCode = 'Statements'
+SELECT Id,(SELECT Id FROM Common.PrintTrails WHERE TrailName='DALLAS-Statements'),'00:00:00','23:59:59','00:00:00','23:59:59',NULL,NULL FROM AM.DocTypes WHERE ClientId=(SELECT ID FROM Common.Clients WHERE AppCode='DALLAS') AND DocTypeCode = 'Statements'
 
 PRINT N'Inserting data into PnS.MRDFResponseHistory from PnS.MRDFResponse'
 
