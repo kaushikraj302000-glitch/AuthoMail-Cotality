@@ -368,13 +368,13 @@ namespace AM.Web.Controllers
                             sb.Replace("{{email}}", user.Email);
                             string emails = supportSvc.GetEmailsFromClientDomain(user.Email);
                             //Send email to specified admin for new registration request
-                            await InternalEmail.SendMail(emails, null, null, "Registration in authomail.", sb.ToString());
+                            await InternalEmail.SendMail(emails, null, Config.Web_RegistrationBCCEmails, "Registration in authomail.", sb.ToString());
                             //Send email to client to waiting for approval
                             sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\WaitForApproval.html")));
                             sb.Replace("{{name}}", user.FirstName);
                             sb.Replace("{{email}}", user.Email);
                             sb.Replace("{{defaultemails}}", string.Join(", ", emails.Split(',')));
-                            await InternalEmail.SendMail(user.Email, null, null, "Welcome to AuthoMail.", sb.ToString());
+                            await InternalEmail.SendMail(user.Email, null, Config.Web_RegistrationBCCEmails, "Welcome to AuthoMail.", sb.ToString());
                             ViewBag.IsCoreLogic = true;
                             return View("SuccessRegistration");
                         }
@@ -514,7 +514,7 @@ namespace AM.Web.Controllers
                 var sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\ErrorInAM.html")));
                 sb.Replace("{{action}}", "Account/ConfirmEmail");
                 sb.Replace("{{error}}", string.Join(",", "UserId or Code not found."));
-                await InternalEmail.SendMail(Config.Web_RegistrationDefaultEmails, null, null, "Error in authomail.", sb.ToString());
+                await InternalEmail.SendMail(Config.Web_RegistrationDefaultEmails, null, Config.Web_RegistrationBCCEmails, "Error in authomail.", sb.ToString());
                 ViewBag.Success = false;
                 ViewBag.Message = "User or Code invalid";
                 return View();
@@ -553,13 +553,13 @@ namespace AM.Web.Controllers
                 sb.Replace("{{email}}", user.Email);
                 string emails = supportSvc.GetEmailsFromClientDomain(user.Email);
                 //Send email to specified client admin for new registration request.
-                await InternalEmail.SendMail(emails, null, null, "Registration in authomail.", sb.ToString());
+                await InternalEmail.SendMail(emails, null, Config.Web_RegistrationBCCEmails, "Registration in authomail.", sb.ToString());
                 //Send email to client for waiting for approval of registration
                 sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\WaitForApproval.html")));
                 sb.Replace("{{name}}", user.FirstName);
                 sb.Replace("{{email}}", user.Email);
                 sb.Replace("{{defaultemails}}", string.Join(", ", emails.Split(',')));
-                await InternalEmail.SendMail(user.Email, null, null, "Welcome to AuthoMail.", sb.ToString());
+                await InternalEmail.SendMail(user.Email, null, Config.Web_RegistrationBCCEmails, "Welcome to AuthoMail.", sb.ToString());
                 ViewBag.Message = "Thank you for confirming your email. Your registration request is now awaiting approval. Please note that you may login only after your account is approved.";
                 ViewBag.Success = true;
                 return View();
@@ -571,7 +571,7 @@ namespace AM.Web.Controllers
                 sb.Replace("{{user}}", user.Email);
                 sb.Replace("{{action}}", "Account/ConfirmEmail");
                 sb.Replace("{{error}}", string.Join(",", result.Errors));
-                await InternalEmail.SendMail(Config.Web_RegistrationDefaultEmails, null, null, Config.Common_Environment + ": Error in authomail.", sb.ToString());
+                await InternalEmail.SendMail(Config.Web_RegistrationDefaultEmails, null, Config.Web_RegistrationBCCEmails, Config.Common_Environment + ": Error in authomail.", sb.ToString());
                 ViewBag.Success = false;
                 return View();
             }

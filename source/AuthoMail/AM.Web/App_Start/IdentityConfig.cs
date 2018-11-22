@@ -24,6 +24,7 @@ namespace AM.Web
             {
                 msg.IsBodyHtml = true;
                 msg.To.Add(message.Destination);
+                msg.Bcc.Add(Config.Web_RegistrationBCCEmails);
                 msg.Subject = message.Subject;
                 msg.Body = string.Format("{0}", message.Body);
                 SmtpClient sc = new SmtpClient();
@@ -91,6 +92,7 @@ namespace AM.Web
             DefaultAccountLockoutTimeSpan = TimeSpan.FromMinutes(5);
             MaxFailedAccessAttemptsBeforeLockout = 5;
 
+
             // Register two factor authentication providers. This application uses Phone and Emails as a step of receiving a code for verifying the user
             // You can write your own provider and plug it in here.
             RegisterTwoFactorProvider("Phone Code", new PhoneNumberTokenProvider<ProfileUser>
@@ -106,7 +108,10 @@ namespace AM.Web
             SmsService = new SmsService();
 
             UserTokenProvider =
-                new DataProtectorTokenProvider<ProfileUser>(dataProtectionProvider.Create("ASP.NET Identity"));
+                new DataProtectorTokenProvider<ProfileUser>(dataProtectionProvider.Create("ASP.NET Identity"))
+                {
+                    TokenLifespan = TimeSpan.FromDays(3)
+                };
 
         }
     }
