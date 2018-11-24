@@ -254,7 +254,6 @@ namespace PCI.Service
 
         private static void UploadFileOnInternalPrintingSFTSite(string pciRootPath, SFTUtil sftSite, List<MailPieceDetail> mailPiecesDetails)
         {
-            var batchTimings = DAL.GetDallasBatchTimings(Common.EstToday);
 
             //Reason for doing this because we can avoid multiple call from database for each mail piece it may contains multiple clients for same print trails
 
@@ -267,6 +266,9 @@ namespace PCI.Service
 
                 foreach (MailPieceDetail mailPiece in mailPiecesByClient)
                 {
+                    //Here we are calling batch timings based on effective received on est date only.
+                    var batchTimings = DAL.GetDallasBatchTimings(mailPiece.EffectiveReceivedOnEst.Value.Date);
+
                     string localFilePath = Path.Combine(pciRootPath, client.AppCode, mailPiece.JobId.ToString(), Common.PCIRequestFolderName, mailPiece.PDFFileName);
                     //NOTE : Here Feeder4_Sel field of MRDFRequest table contains detail about mail packages is BRE or not and Because of that we have used this over here.
 
