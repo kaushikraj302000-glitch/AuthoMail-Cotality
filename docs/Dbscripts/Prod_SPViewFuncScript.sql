@@ -93,9 +93,11 @@ begin
  
  --HSBC
  insert into @T (SrNo,AppCode,VendorCode,WeekDayType,SweepType,SweepTime) 
- values (1,'HSBC','CL_DALLAS','Weekday','Continuous','00:00:00')
+ values (1,'HSBC','PCI','Weekday','OnSchedule','15:00:00')
  insert into @T (SrNo,AppCode,VendorCode,WeekDayType,SweepType,SweepTime) 
- values (1,'HSBC','CL_DALLAS','Saturday','Continuous','00:00:00')
+ values (2,'HSBC','PCI','Weekday','OnSchedule','19:30:00')
+ insert into @T (SrNo,AppCode,VendorCode,WeekDayType,SweepType,SweepTime) 
+ values (3,'HSBC','PCI','Weekday','OnSchedule','20:00:00')
  return
 end
 Go
@@ -161,14 +163,14 @@ GO
    INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
    VALUES ('USAA','05PM','13:00:01','18:00:00','USPS','PRIORITY')
 
-   INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
-   VALUES ('HSBC','12PM','00:00:00','13:00:00','USPS','IMB')
-   INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
-   VALUES ('HSBC','05PM','13:00:01','18:00:00','USPS','IMB')
-   INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
-   VALUES ('HSBC','06PM','18:00:01','19:00:00','USPS','IMB')
-   INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
-   VALUES ('HSBC','07PM','19:00:01','20:00:00','USPS','IMB')
+   -- INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+   -- VALUES ('HSBC','12PM','00:00:00','13:00:00','USPS','IMB')
+   -- INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+   -- VALUES ('HSBC','05PM','13:00:01','18:00:00','USPS','IMB')
+   -- INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+   -- VALUES ('HSBC','06PM','18:00:01','19:00:00','USPS','IMB')
+   -- INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+   -- VALUES ('HSBC','07PM','19:00:01','20:00:00','USPS','IMB')
   END
   
   RETURN
@@ -211,8 +213,8 @@ GO
   INSERT INTO @sweep (AppCode, BatchName,StartDate,EndDate,ShippingCarrier,ShippingServiceType) 
   VALUES ('USAA','Backlog',DateAdd(day,-7, cast(@todayDate AS DATETIME)),DateAdd(second,-1, cast(@todayDate AS DATETIME)),'USPS','PRIORITY')
 
-  INSERT INTO @sweep (AppCode, BatchName,StartDate,EndDate,ShippingCarrier,ShippingServiceType) 
-  VALUES ('HSBC','Backlog',DateAdd(day,-7, cast(@todayDate AS DATETIME)),DateAdd(second,-1, cast(@todayDate AS DATETIME)),'USPS','IMB')
+  -- INSERT INTO @sweep (AppCode, BatchName,StartDate,EndDate,ShippingCarrier,ShippingServiceType) 
+  -- VALUES ('HSBC','Backlog',DateAdd(day,-7, cast(@todayDate AS DATETIME)),DateAdd(second,-1, cast(@todayDate AS DATETIME)),'USPS','IMB')
 
   RETURN
  END
