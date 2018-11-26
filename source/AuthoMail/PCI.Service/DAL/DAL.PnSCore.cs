@@ -99,7 +99,7 @@ namespace PCI.Service
 
         public static void InsertMRDFRequestData(List<PCIField> mrdfRequestSchema, List<MRDFRequest> mrdfRequest)
         {
-            var usedColumns = new[] { "JobId", "PieceId", "Date", "TotalSheets", "Address1", "UniqueId", "PDFFileName", "MailPieceStatus", "ErrId", "ErrDesc", "Expansion", "DivertVS3", "Feeder3_Sel" };
+            var usedColumns = new[] { "JobId", "PieceId", "Date", "TotalSheets", "Address1", "UniqueId", "PDFFileName", "MailPieceStatus", "ErrId", "ErrDesc", "Expansion", "DivertVS3", "Feeder4_Sel" };
             var defaultedColumns = mrdfRequestSchema
                 .Where(f => !usedColumns.Contains(f.FieldName)).ToList();
 
