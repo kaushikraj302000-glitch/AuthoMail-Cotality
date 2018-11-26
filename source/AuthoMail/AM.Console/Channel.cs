@@ -365,7 +365,7 @@ namespace AM.Console
         private static bool UploadReportsToClients(MailBatchInfo mbi, SFTUtil sftSite, List<Deliverable> deliverables, List<MailPieces> mailPieceData, SFTChannel sftChannelDetail)
         {
             bool isUploaded = false;
-            switch (sftChannelDetail.Code.Split('_')[0])
+            switch (sftChannelDetail.Code.Split('_')[0].ToUpper())
             {
                 case "AMC":
                     var deliverableAMC = deliverables.Single(c => c.ReportType == ReportTypes.Delivery);
