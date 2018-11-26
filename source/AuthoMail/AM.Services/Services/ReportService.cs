@@ -22,7 +22,7 @@ namespace AM.Services
         List<MailPieces> GetFedExPickedUpReport(DateTime todayEffectiveDate, int isPickedUp = -1);
         List<MailPieces> GetMailPiecesDataFromPrintBatchId(int printBatchId);
         List<MailPieces> GetMailPiecesDataFromMailBatchId(int mailBatchId);
-        List<PCISubmittedBatchDetail> GetPCIReconReport(DateTime effectiveStartDate, DateTime effectiveEndDate);
+        List<PCISubmittedBatchDetail> GetPCIReconReport(DateTime startDate, DateTime endDate);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -277,22 +277,19 @@ namespace AM.Services
             return data;
         }
 
-        public List<PCISubmittedBatchDetail> GetPCIReconReport(DateTime effectiveStartDate, DateTime effectiveEndDate)
+        public List<PCISubmittedBatchDetail> GetPCIReconReport(DateTime startDate, DateTime endDate)
         {
-            string query = @"SELECT * FROM 
-(
-	--USAA,ALASKA
-	SELECT DISTINCT B.PrintBatch,B.PrintFileName,B.SubmittedOn,B.DueDate,D.ShippingCarrier,D.ShippingServiceType,COUNT(*) AS PackageCount,SUM(M.TotalPages) as TotalPages FROM PnS.BatchSummary B INNER JOIN PnS.MRDFRequest REQ ON REQ.JobId=B.PrintBatch INNER JOIN AM.MailPieces M ON M.UniqueId=REQ.UniqueId INNER JOIN AM.DocTypes D ON D.Id=B.DocTypeId WHERE B.PrintLocation='Fort Mill, SC' AND B.ClientId IN (101,102,104) AND M.EffectiveReceivedOnEst >= @StartDate AND M.EffectiveReceivedOnEst < @EndDate GROUP BY B.PrintBatch,B.PrintFileName,B.SubmittedOn,B.DueDate,D.ShippingCarrier,D.ShippingServiceType,B.Images
-	UNION
-	--CONDOSAFE,RPS,CITI,Dallas
-	SELECT DISTINCT B.PrintBatch,B.PrintFileName,B.SubmittedOn,B.DueDate,D.ShippingCarrier,D.ShippingServiceType,COUNT(*) AS PackageCount,B.Images as TotalPages FROM PnS.BatchSummary B INNER JOIN PnS.MRDFRequest REQ ON REQ.JobId=B.PrintBatch
-	INNER JOIN AM.DocTypes D ON D.Id=B.DocTypeId
-	WHERE B.ClientId IN (103,107,109,110) AND CAST(B.SubmittedOn as DATE) = @StartDateUtc
-	GROUP BY B.PrintBatch,B.PrintFileName,B.SubmittedOn,B.DueDate,D.ShippingCarrier,D.ShippingServiceType,B.Images
-)X
-ORDER BY X.PRINTBATCH";
+            string query = @"SELECT PT.Id as PrintTrailBatchId,PT.[PrintBatchName],PT.SubmittedOn,MAX(BS.DueDate) AS DueDate,D.ShippingCarrier,D.ShippingServiceType,COUNT(*) AS PackageCount,SUM(REQ.TotalSheets) AS TotalPages 
+FROM PnS.PrintTrailBatches PT 
+INNER JOIN PnS.MRDFRequest REQ ON PT.Id=REQ.PrintTrailBatchId
+INNER JOIN PnS.BatchSummary BS ON REQ.JobId=BS.PrintBatch
+INNER JOIN Common.PrintTrails PTS ON BS.PrintTrailId=PTS.Id
+LEFT OUTER JOIN AM.DocTypes D ON BS.DocTypeId=D.Id
+WHERE PT.SubmittedOn >= @StartDate AND  PT.SubmittedOn < @EndDate AND BS.PrintLocation='Fort Mill, SC' AND REQ.MailPieceStatus <> 'Error'
+GROUP BY PT.Id,PT.PrintBatchName,PT.SubmittedOn,D.ShippingCarrier,D.ShippingServiceType
+ORDER BY PrintTrailBatchId";
 
-            return db.Query<PCISubmittedBatchDetail>(query, new { StartDate = effectiveStartDate, EndDate = effectiveEndDate, StartDateUtc = effectiveStartDate.EstToUtc().Date }).ToList();
+            return db.Query<PCISubmittedBatchDetail>(query, new { StartDate = startDate, EndDate = endDate }).ToList();
         }
     }
 }
