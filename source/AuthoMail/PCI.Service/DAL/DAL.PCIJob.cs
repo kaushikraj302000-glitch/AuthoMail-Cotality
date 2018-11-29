@@ -10,9 +10,9 @@ namespace PCI.Service
 {
     partial class DAL
     {
-        public static List<SubmittedBatches> GetSubmittedBatches()
+        public static List<SubmittedBatches> GetSubmittedBatches(string printVendorCode)
         {
-            var submittedBatches = db.ExecuteDataSet("usp_GetSubmittedBatches").Tables[0];
+            var submittedBatches = db.ExecuteDataSet("usp_GetSubmittedBatches", printVendorCode).Tables[0];
             List<SubmittedBatches> printBatches = submittedBatches.AsEnumerable().Select(x => new SubmittedBatches
             {
                 PrintTrailBatchId = x.Field<int>("PrintTrailBatchId"),
@@ -78,6 +78,7 @@ namespace PCI.Service
                     EffectiveReceivedOnEst = row.Field<DateTime?>("EffectiveReceivedOnEst"),
                     ShippingCarrier = row.Field<string>("ShippingCarrier"),
                     ShippingServiceType = row.Field<string>("ShippingServiceType"),
+                    MailPieceDueDate = row.Field<DateTime>("MailPieceDueDate"),
                     //Extra Properties to map for MRDF Request
                     InputWeight = row.Field<string>("InputWeight"),
                     Feeder3_Sel = row.Field<string>("Feeder3_Sel"),
@@ -128,7 +129,7 @@ namespace PCI.Service
             db.ExecuteSqlNonQuery(@"UPDATE [PnS].[MRDFRequest] SET [PieceId] = ([PieceId]-90000)  WHERE PrintTrailBatchId = @p1", printTrailBatchId);
 
             //Here we are updating address fields with only sequence number and jobid in address1 field.
-            return db.ExecuteSqlNonQuery(@"UPDATE [PnS].[MRDFRequest] SET Address1 = REPLACE(REPLACE('Job: {0} Seq: {1}','{0}',PrintTrailBatchId ), '{1}' ,PieceId) WHERE PrintTrailBatchId = @p1 AND MailPieceStatus='InProgress'", printTrailBatchId);            
+            return db.ExecuteSqlNonQuery(@"UPDATE [PnS].[MRDFRequest] SET Address1 = REPLACE(REPLACE('Job: {0} Seq: {1}','{0}',PrintTrailBatchId ), '{1}' ,PieceId) WHERE PrintTrailBatchId = @p1 AND MailPieceStatus='InProgress'", printTrailBatchId);
         }
 
         public static int UpdatePrintTrailBatchDetail(PrintTrailBatch printTrailBatchDetail)

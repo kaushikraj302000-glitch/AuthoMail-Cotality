@@ -755,12 +755,12 @@ namespace PCI.Service
         #endregion
 
         #region ProcessPCIResponse
-        public static void ProcessPCIResponse()
+        public static void ProcessPCIResponse(string printVendorCodes)
         {
             log.Debug("Started Processing PCI Response");
 
             List<SubmittedBatches> submittedPrintBatches;
-            submittedPrintBatches = DAL.GetSubmittedBatches();
+            submittedPrintBatches = DAL.GetSubmittedBatches("");
             if (submittedPrintBatches.Count == 0)
             {
                 log.Debug("Processing PCI Response job queue is empty.");

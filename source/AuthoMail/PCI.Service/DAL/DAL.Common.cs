@@ -126,5 +126,11 @@ namespace PCI.Service
 
             return pendingBatchCount == 0;
         }
+        public static PrintVendor GetPrintVendorDetailByVendorCode(string printVendorCode)
+        {
+            var printTrailDetail = db.ExecuteDataSet(CommandType.Text, "SELECT PV.Id, PV.Name, PV.SFTChannelId, PV.BusinessCode, PV.VendorCode, SC.Protocol, SC.Host, SC.UserName, SC.[Password], SC.ToADEDir, SC.FromADEDir, SC.ArchiveDir, SC.PostDownloadAction FROM Common.PrintVendors PV INNER JOIN Common.SFTChannels SC ON PV.SFTChannelId=SC.Id WHERE PV.VendorCode='{0}'".Fill(printVendorCode));
+
+            return printTrailDetail.DataTableAccessor<PrintVendor>(false).Single();
+        }
     }
 }

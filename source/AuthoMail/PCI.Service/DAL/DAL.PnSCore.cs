@@ -310,6 +310,7 @@ namespace PCI.Service
                     EffectiveReceivedOnEst = row.Field<DateTime?>("EffectiveReceivedOnEst"),
                     ShippingCarrier = row.Field<string>("ShippingCarrier"),
                     ShippingServiceType = row.Field<string>("ShippingServiceType"),
+                    MailPieceDueDate = row.Field<DateTime>("MailPieceDueDate"),
                     //Extra Properties to map for MRDF Request
                     InputWeight = row.Field<string>("InputWeight"),
                     Feeder3_Sel = row.Field<string>("Feeder3_Sel"),

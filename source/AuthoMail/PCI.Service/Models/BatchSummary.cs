@@ -121,6 +121,7 @@ namespace PCI.Service
         public string ShippingServiceType { get; set; }
         public DateTime? EffectiveReceivedOnEst { get; set; }
         public int SequenceNo { get; set; }
+        public DateTime MailPieceDueDate { get; set; }
 
         //Extra fields which will be used for generating MRDF Request
         public string InputWeight { get; set; }
@@ -169,7 +170,7 @@ namespace PCI.Service
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
     }
-    
+
     public class PrintTrailDetail
     {
         public int PrintTrailId { get; set; }

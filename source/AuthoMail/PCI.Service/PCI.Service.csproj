@@ -48,6 +48,10 @@
       <HintPath>..\packages\EnterpriseLibrary.Data.6.0.1304.0\lib\NET45\Microsoft.Practices.EnterpriseLibrary.Data.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Nordis.Lib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>PCILib\Nordis.Lib.dll</HintPath>
+    </Reference>
     <Reference Include="PCI.Lib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>PCILib\PCI.Lib.dll</HintPath>
@@ -225,6 +229,7 @@
     <Content Include="DB Script\Test Batch CleanUp Query.sql" />
     <Content Include="DB Script\Views\view_MRDFResponseData.sql" />
     <Content Include="PCIJobMonitor\PCIJobNotes.txt" />
+    <Content Include="PCILib\Nordis.Lib.dll" />
     <Content Include="PCILib\PCI.Lib.dll" />
     <Content Include="Resources\Notes.txt" />
     <Content Include="Templates\SubmitBatch.html" />
