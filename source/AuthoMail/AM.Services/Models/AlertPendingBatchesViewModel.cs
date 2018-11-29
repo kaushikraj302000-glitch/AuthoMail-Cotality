@@ -25,6 +25,7 @@ namespace AM.Services
         public string PrintLocation { get; set; }
         public string VendorCode { get; set; }
         public DateTime? MaxSubmissionTime { get; set; }
+        public string MissedSLAReason { get; set; }
         public double MinRemainingHours
         {
             get
