@@ -40,7 +40,7 @@ PRINT N'Inserting master data into Common.PrintTrails'
 
 INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('ALASKA-GENERIC',(select Id from [Common].[PrintVendors] where Name ='Fort Mill, SC'),0)
 INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('CITIVM-GENERIC',(select Id from [Common].[PrintVendors] where Name ='Fort Mill, SC'),0)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('HSBC-GENERIC',(select Id from [Common].[PrintVendors] where Name ='Dallas CL'),0)
+INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('HSBC-GENERIC',(select Id from [Common].[PrintVendors] where Name ='Fort Mill, SC'),0)
 INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('DALLAS-90days-CERT',(select Id from [Common].[PrintVendors] where Name ='Fort Mill, SC'),0)
 INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('DALLAS-GENERIC',(select Id from [Common].[PrintVendors] where Name ='Fort Mill, SC'),0)
 INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('DALLAS-Statements',(select Id from [Common].[PrintVendors] where Name ='Fort Mill, SC'),0)
