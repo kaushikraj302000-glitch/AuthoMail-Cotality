@@ -105,7 +105,7 @@ namespace AM.Services
 
             try
             {
-                delayedReportedBackMailPiecesByAM = db.Query<PendingMailPieceInfo>("Select MP.Id,MP.MailBatchId,C.AppCode,MP.ClientId,MB.BatchName,MB.ReceivedOn,MB.PipelineStatus,MP.PrintLocation from AM.MailPieces MP inner join Common.Clients C on MP.ClientId = C.Id inner join AM.MailBatches MB on MP.MailBatchId = MB.Id inner join PnS.MrdfRequest MR on MP.UniqueId = MR.UniqueId inner join PnS.BatchSummary BS on MR.JobId = BS.PrintBatch where BS.IsSubmitted = 1 and MP.SLADays < 0 and BS.IsReportedBack = 1 and BS.PipelineStatus <> 'Cancelled' and MB.IsReportedBack = 0").ToList();
+                delayedReportedBackMailPiecesByAM = db.Query<PendingMailPieceInfo>("Select MP.Id,MP.MailBatchId,C.AppCode,MP.ClientId,MB.BatchName,MB.ReceivedOn,MB.PipelineStatus,MP.PrintLocation,MP.ShippingStatus,MP.Uniqueid,d.DocTypeCode,d.ShippingCarrier,d.ShippingServiceType,MP.MissedSLAReason from AM.MailPieces MP inner join AM.DocTypes d on MP.DocTypeId=d.Id inner join Common.Clients C on MP.ClientId = C.Id inner join AM.MailBatches MB on MP.MailBatchId = MB.Id inner join PnS.MrdfRequest MR on MP.UniqueId = MR.UniqueId inner join PnS.BatchSummary BS on MR.JobId = BS.PrintBatch where BS.IsSubmitted = 1 and MP.SLADays < 0 and BS.IsReportedBack = 0 and BS.PipelineStatus <> 'Cancelled'").ToList();
 
                 delayedAMReportedBackBatches = delayedReportedBackMailPiecesByAM.GroupBy(mp => new { mp.MailBatchId, mp.AppCode, mp.BatchName, mp.ClientId, mp.PipelineStatus, mp.ReceivedOn }).Select(g => new BatchInfo { Id = g.Key.MailBatchId, AppCode = g.Key.AppCode, BatchName = g.Key.BatchName, ClientId = g.Key.ClientId, PipelineStatus = g.Key.PipelineStatus, ReceivedOn = g.Key.ReceivedOn, DelayedMailPieces = g.ToList() }).ToList();
 
@@ -121,7 +121,7 @@ namespace AM.Services
 
             try
             {
-                delayedMailPiecesByPrinter = db.Query<PendingMailPieceInfo>("Select MP.Id,MP.MailBatchId,C.AppCode,MP.ClientId,MB.BatchName,MB.ReceivedOn,MB.PipelineStatus,MP.PrintLocation from AM.MailPieces MP inner join Common.Clients C on MP.ClientId = C.Id inner join AM.MailBatches MB on MP.MailBatchId = MB.Id inner join PnS.MrdfRequest MR on MP.UniqueId = MR.UniqueId inner join PnS.BatchSummary BS on MR.JobId = BS.PrintBatch where BS.IsSubmitted = 1 and MP.SLADays < 0 and BS.IsReportedBack = 0 and BS.PipelineStatus <> 'Cancelled'").ToList();
+                delayedMailPiecesByPrinter = db.Query<PendingMailPieceInfo>("Select MP.Id,MP.MailBatchId,C.AppCode,MP.ClientId,MB.BatchName,MB.ReceivedOn,MB.PipelineStatus,MP.PrintLocation,MP.ShippingStatus,MP.Uniqueid,d.DocTypeCode,d.ShippingCarrier,d.ShippingServiceType from AM.MailPieces MP inner join AM.DocTypes d on MP.DocTypeId=d.Id inner join Common.Clients C on MP.ClientId = C.Id inner join AM.MailBatches MB on MP.MailBatchId = MB.Id inner join PnS.MrdfRequest MR on MP.UniqueId = MR.UniqueId inner join PnS.BatchSummary BS on MR.JobId = BS.PrintBatch where BS.IsSubmitted = 1 and MP.SLADays < 0 and BS.IsReportedBack = 0 and BS.PipelineStatus <> 'Cancelled'").ToList();
 
                 delayedPrinterBatches = delayedMailPiecesByPrinter.GroupBy(mp => new { mp.MailBatchId, mp.AppCode, mp.BatchName, mp.ClientId, mp.PipelineStatus, mp.ReceivedOn }).Select(g => new BatchInfo { Id = g.Key.MailBatchId, AppCode = g.Key.AppCode, BatchName = g.Key.BatchName, ClientId = g.Key.ClientId, PipelineStatus = g.Key.PipelineStatus, ReceivedOn = g.Key.ReceivedOn, DelayedMailPieces = g.ToList() }).ToList();
 
