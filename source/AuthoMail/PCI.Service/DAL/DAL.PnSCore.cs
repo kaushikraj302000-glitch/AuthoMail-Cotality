@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Nordis.Lib;
 
 namespace PCI.Service
 {
@@ -165,11 +166,27 @@ namespace PCI.Service
             }
         }
 
-        public static void UpdateMRDFRequestStatusFromResponse(EnumerableRowCollection<DataRow> mrdfResponseData, List<int> resPieceIds)
+        public static void InsertXMLResponseData(BatchResponse batchResponse)
+        {
+            if (batchResponse.PackagesReport.Count == 0)
+                return;           
+
+            foreach (var res in batchResponse.PackagesReport)
+            {
+                var sql = @"DELETE FROM [PnS].[MRDFResponse] Where JobId=@p1 and PieceId=@p2";
+                db.ExecuteSqlNonQuery(sql,batchResponse.JobId, res.PieceId);
+                
+                sql = @"INSERT INTO PnS.MRDFResponse (JobId,PieceId,ProcessingTimeStamp,Disposition,PostageMetered,WeightMeasured,TotalSheets,PDFFileName) VALUES (@p1,@p2,@p3,@p4,@p5,@p6,@p7,@p8)";
+
+                db.ExecuteSqlNonQuery(sql, batchResponse.JobId, res.PieceId, res.PrintStatus == PrintStatus.Shipped ? res.ShippedOn : res.PrintStatus == PrintStatus.PulledBack ? res.PulledBackOn : DateTime.MinValue, res.PrintStatus == PrintStatus.Shipped ? '5' : res.PrintStatus == PrintStatus.PulledBack ? '4' : '7',res.Postage,res.WeightMeasured,res.TotalSheets,res.PDFFileName);
+            }
+        }
+
+        public static void UpdateMRDFRequestStatusFromResponse(EnumerableRowCollection<DataRow> printVendorResponseData, List<int> resPieceIds)
         {
             foreach (var pieceId in resPieceIds)
             {
-                var res = mrdfResponseData.Single(row => row.Field<int>("PieceId") == pieceId);
+                var res = printVendorResponseData.Single(row => row.Field<int>("PieceId") == pieceId);
 
                 string errorUpdate = res.Field<string>("Disposition").Trim() == "7" ?
                     ", ErrId=7, ErrDesc='System was unable to print or ship this mailpiece. It has to be resent after necessary amendments.'" : "";
