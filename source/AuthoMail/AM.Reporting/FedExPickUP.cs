@@ -39,7 +39,18 @@ namespace AM.Reporting
                         StringBuilder fedExReport = GetFedExReport(mailPieces);
                         string fedExReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, "FedExReport", "FedExReport_{0}.csv".Fill(todayEffectiveDate.ToString("MMddyyyyhhmmtt")));
                         File.WriteAllText(fedExReportPath, fedExReport.ToString());
-                        SendReportToCLTeam(fedExReportPath, todayEffectiveDate);
+
+                        string fedExNotPickedReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, "FedExReport", "FedExNotPickedReport_{0}.csv".Fill(todayEffectiveDate.ToString("MMddyyyyhhmmtt")));
+                        var notPickedMailPieces = mailPieces.Where(m => m.IsPickedUp == 0).ToList();
+                        string tableBody = "FedEx Status Report For : {0} <br/><br/>".Fill(todayEffectiveDate.ToString("MM/dd/yyyy"));
+                        if (notPickedMailPieces != null && notPickedMailPieces.Count > 0)
+                        {
+                            tableBody += GenerateNotPickedEmailBody(notPickedMailPieces);
+                            StringBuilder fedExNotPicekdReport = GetFedExReport(notPickedMailPieces);
+                            File.WriteAllText(fedExNotPickedReportPath, fedExNotPicekdReport.ToString());
+                        }
+
+                        SendReportToCLTeam(fedExReportPath, fedExNotPickedReportPath, tableBody, todayEffectiveDate);
                     }
                 }
             }
@@ -47,6 +58,18 @@ namespace AM.Reporting
             {
                 log.Error("Error occured while checkign for FedEx packages picked up or not", ex);
             }
+        }
+
+        private static string GenerateNotPickedEmailBody(List<MailPieces> notPickedMailPieces)
+        {
+            string bodyContent = @"<center><b>Not Picked Up Loans Details</b></center><br/><table border='1'><tbody><%REPLACE%></tbody></table>";
+            StringBuilder fullContent = new StringBuilder();
+            fullContent.AppendLine(@"<tr><td>Loan Number</td><td>Borrower Name</td><td>Document Type</td><td>Received On</td><td>Tracking Number</td><td>Due Date</td><td>Shipped On</td></tr>");
+            foreach (var mailPiece in notPickedMailPieces)
+            {
+                fullContent.AppendLine(@"<tr><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td><td>{5}</td><td>{6}</td></tr>".Fill(mailPiece.BusinessFriendlyIdValue, mailPiece.RcptFirstName + " " + mailPiece.RcptLastName, mailPiece.DocumentOrPackageType, mailPiece.MailBatches.ReceivedOn.Value.UtcToEst(), mailPiece.TrackingNo, mailPiece.DueDate.Value.UtcToEst(), mailPiece.ShippedOn.HasValue ? mailPiece.ShippedOn.Value.UtcToEst().ToString() : ""));
+            }
+            return bodyContent.Replace("<%REPLACE%>", fullContent.ToString());
         }
 
         private static StringBuilder GetFedExReport(List<MailPieces> mailPieces)
@@ -77,7 +100,7 @@ namespace AM.Reporting
             return mailPiecesReport;
         }
 
-        private static bool SendReportToCLTeam(string fedExReportPath, DateTime todayDate)
+        private static bool SendReportToCLTeam(string fedExReportPath, string fedExNotPickedReportPath, string tableBody, DateTime todayDate)
         {
             bool isEmailSent = false;
 
@@ -87,15 +110,21 @@ namespace AM.Reporting
                 {
                     using (MailMessage msg = new MailMessage())
                     {
-                        msg.IsBodyHtml = false;
+                        msg.IsBodyHtml = true;
                         msg.To.Add(AppConfig.FedExReport_Email_To);
                         msg.CC.Add(AppConfig.FedExReport_Email_Cc);
                         msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, "USAA", AppConfig.FedExReportSubject);
                         msg.Priority = MailPriority.Normal;
-                        msg.Body = "FedEx Status Report For : {0}".Fill(todayDate.ToString("MM/dd/yyyy"));
+
+                        string bodyTags = @"<!DOCTYPE html><html xmlns='http://www.w3.org/1999/xhtml'><head><meta http-equiv='Content-Style-Type' content='text/css'></head><body><center><%REPLACE%></center></body></html>";
+
+                        msg.Body = bodyTags.Replace("<%REPLACE%>", tableBody);
 
                         if (File.Exists(fedExReportPath))
                             msg.Attachments.Add(new Attachment(fedExReportPath));
+
+                        if (File.Exists(fedExNotPickedReportPath))
+                            msg.Attachments.Add(new Attachment(fedExNotPickedReportPath));
 
                         smtpClient.Send(msg);
                         isEmailSent = true;
