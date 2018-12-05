@@ -12,7 +12,7 @@ namespace AM.Services
     {
         //Remove Method(make sure below method in use)
         //List<MailPieces> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo);
-        List<SearchViewModel> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo);
+        List<SearchViewModel> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo);
         MailPieces GetMailPieceByUniqueId(Guid uniqueId);
         List<MailPieces> GetAllData(int clientId);
 
@@ -22,19 +22,92 @@ namespace AM.Services
     }
     public class SearchService : ServiceBase, ISearchService
     {
-        //public List<MailPieces> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo)
+        public List<SearchViewModel> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo)
+        {
+            string query = @"SELECT 
+	 m.BusinessFriendlyIdValue as BusinessIdValue,m.ShippingStatus as [Status],m.UniqueId,
+	 m.RcptFirstName as FirstName,m.RcptLastName as LastName,m.RcptAddressCity as [City],m.RcptAddressZip as ZIP,
+	 m.RcptAddressState as [State],m.ShippedOn,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,
+	 b.ReceivedOn,m.DocTypeId,
+	 d.DocTypeCode as DocType,d.ShippingServiceType as ShippingMethod,d.ShippingCarrier,
+	 ch.Title as Channel
+	 FROM  [AM].[MailBatches] b,[Common].[SFTChannels] ch,[Common].[Clients] c,[AM].[MailPieces] m
+	 LEFT OUTER JOIN [Profile].[Users] u ON m.PulledBackRequestedBy=u.Id	 
+	 LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id
+	 WHERE m.MailBatchId=b.Id AND b.SFTChannelId=ch.Id AND m.ClientId=c.Id AND m.ClientId=@clientId";
+            DynamicParameters parameter = new DynamicParameters();
+            parameter.Add("@clientId", clientId);
+            if (!string.IsNullOrWhiteSpace(businessFriendlyIdName))
+            {
+                query = string.Format("{0} and m.BusinessFriendlyIdName=@BusinessFriendlyIdName", query);
+                parameter.Add("@BusinessFriendlyIdName", businessFriendlyIdName);
+            }
+            if (!string.IsNullOrWhiteSpace(businessFriendlyIdValue))
+            {
+                query = string.Format("{0} and m.businessFriendlyIdValue=@businessFriendlyIdValue", query);
+                parameter.Add("@businessFriendlyIdValue", businessFriendlyIdValue);
+            }
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                query = string.Format("{0} and m.ShippingStatus=@ShippingStatus", query);
+                parameter.Add("@ShippingStatus", status);
+            }
+            if (!string.IsNullOrWhiteSpace(channel))
+            {
+                query = string.Format("{0} and ch.Code=@Code", query);
+                parameter.Add("@Code", channel);
+            }
+            if (!string.IsNullOrWhiteSpace(clientBatchId))
+            {
+                query = string.Format("{0} and b.ClientBatchId=@ClientBatchId", query);
+                parameter.Add("@ClientBatchId", clientBatchId);
+            }
+            if (!string.IsNullOrWhiteSpace(trackingNo))
+            {
+                query = string.Format("{0} and m.TrackingNo=@TrackingNo", query);
+                parameter.Add("@TrackingNo", trackingNo);
+            }
+            if (mailBatchId.HasValue)
+            {
+                query = string.Format("{0} and m.MailBatchId=@MailBatchId", query);
+                parameter.Add("@MailBatchId", mailBatchId);
+            }
+            if (startDate.HasValue && endDate.HasValue)
+            {
+                query = string.Format("{0} and b.ReceivedOn BETWEEN @startDate and @endDate", query);
+                parameter.Add("@startDate", startDate.Value.ToStartDateTime().EstToUtc());
+                parameter.Add("@endDate", endDate.Value.ToEndDateTime().EstToUtc());
+            }
+            if (docType != null && docType.Count > 0)
+            {
+                query = string.Format("{0} and m.DocTypeId in (@docTypeId)", query);
+                parameter.Add("@DocTypeId", docType, dbType: DbType.Int16);
+            }
+
+            var data = db.Query<SearchViewModel>(query, parameter).ToList();
+            return data;
+            //var data = db.Query<SearchViewModel>(query,
+            //     new
+            //     {
+            //         clientId = clientId,
+            //         businessFriendlyIdName = businessFriendlyIdName.IsNullOrWhiteSpace() ? null : businessFriendlyIdName,
+            //         businessFriendlyIdValue = businessFriendlyIdValue.IsNullOrWhiteSpace() ? null : businessFriendlyIdValue,
+            //         startDate = startDate.ToStartDateTime().EstToUtc(),
+            //         endDate = endDate.ToEndDateTime().EstToUtc(),
+            //         docType = docType.IsNullOrWhiteSpace() ? null : docType,
+            //         shippingStatus = status.IsNullOrWhiteSpace() ? null : status,
+            //         channel = channel.IsNullOrWhiteSpace() ? null : channel,
+            //         clientBatchId = clientBatchId.IsNullOrWhiteSpace() ? null : clientBatchId,
+            //         trackingNo = trackingNo.IsNullOrWhiteSpace() ? null : trackingNo,
+            //         mailBatchId = mailBatchId
+            //     }
+            //     ).ToList();
+        }
+
+        //public List<SearchViewModel> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo)
         //{
         //    string query = "[dbo].[uspweb_MailPieceSearch] @clientId, @businessFriendlyIdName, @businessFriendlyIdValue, @startDate, @endDate, @docType, @shippingStatus, @channel,@clientBatchId,@mailBatchId,@trackingNo";
-        //    var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, Users, DocTypes, MailPieces>(query,
-        //         (b, s, c, m, u, d) =>
-        //         {
-        //             m.Clients = c;
-        //             m.MailBatches = b;
-        //             b.SFTChannels = s;
-        //             m.DocTypes = d;
-        //             m.Users = u;
-        //             return m;
-        //         },
+        //    var data = db.Query<SearchViewModel>(query,
         //         new
         //         {
         //             clientId = clientId,
@@ -52,28 +125,6 @@ namespace AM.Services
         //         ).ToList();
         //    return data;
         //}
-
-        public List<SearchViewModel> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo)
-        {
-            string query = "[dbo].[uspweb_MailPieceSearch] @clientId, @businessFriendlyIdName, @businessFriendlyIdValue, @startDate, @endDate, @docType, @shippingStatus, @channel,@clientBatchId,@mailBatchId,@trackingNo";
-            var data = db.Query<SearchViewModel>(query,
-                 new
-                 {
-                     clientId = clientId,
-                     businessFriendlyIdName = businessFriendlyIdName.IsNullOrWhiteSpace() ? null : businessFriendlyIdName,
-                     businessFriendlyIdValue = businessFriendlyIdValue.IsNullOrWhiteSpace() ? null : businessFriendlyIdValue,
-                     startDate = startDate.ToStartDateTime().EstToUtc(),
-                     endDate = endDate.ToEndDateTime().EstToUtc(),
-                     docType = docType.IsNullOrWhiteSpace() ? null : docType,
-                     shippingStatus = status.IsNullOrWhiteSpace() ? null : status,
-                     channel = channel.IsNullOrWhiteSpace() ? null : channel,
-                     clientBatchId = clientBatchId.IsNullOrWhiteSpace() ? null : clientBatchId,
-                     trackingNo = trackingNo.IsNullOrWhiteSpace() ? null : trackingNo,
-                     mailBatchId = mailBatchId
-                 }
-                 ).ToList();
-            return data;
-        }
 
 
         public MailPieces GetMailPieceByUniqueId(Guid uniqueId)
