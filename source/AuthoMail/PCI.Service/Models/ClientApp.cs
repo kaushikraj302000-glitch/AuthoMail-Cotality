@@ -20,4 +20,21 @@ namespace PCI.Service
         public string BusinessUnit { get; set; }
         public string CustCode { get; set; }
     }
+
+    public class PrintVendor
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string VendorCode { get; set; }
+        public int SFTChannelId { get; set; }
+        public string Protocol { get; set; }
+        public string Host { get; set; }
+        public string UserName { get; set; }
+        public string Password { get; set; }
+        public string FromADEDir { get; set; }
+        public string ToADEDir { get; set; }
+        public string BusinessCode { get; set; }
+        public string ArchiveDir { get; set; }
+        public string PostDownloadAction { get; set; }
+    }
 }

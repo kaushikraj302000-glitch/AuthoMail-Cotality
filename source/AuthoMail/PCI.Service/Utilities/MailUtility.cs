@@ -22,8 +22,8 @@ namespace PCI.Service
                 {
                     msg.IsBodyHtml = true;
 
-                    msg.To.Add(printVendorCode == "CL_DALLAS" ? Common.Email_ToCL : Common.Email_ToPCI);
-                    msg.CC.Add(printVendorCode == "CL_DALLAS" ? Common.Email_CcCL : Common.Email_CcPCI);
+                    msg.To.Add(printVendorCode == "NORDIS" ? Common.Email_ToCL : Common.Email_ToPCI);
+                    msg.CC.Add(printVendorCode == "NORDIS" ? Common.Email_CcCL : Common.Email_CcPCI);
                     //Here subject string contains "Batch Submitted To {Location} : {FileName} at {Time} Total Files : {FileCount} Total Page Count : {PageCount}"
                     msg.Subject = Common.SubmitBatchEmailSubject.Fill(printVendorCode, Path.GetFileName(fileName), Common.UtcToEst(Common.GetCurrentTime()).ToString("MM/dd/yyyy hh:mm tt") + " EST", mailPiecesCount, totalPages);
 

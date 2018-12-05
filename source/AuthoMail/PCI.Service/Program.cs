@@ -45,7 +45,7 @@ namespace PCI.Service
                         break;
                     case "PnSCore":
                         PnSCoreService.PrepPCIJobs();
-                        PnSCoreService.ProcessPCIResponse();
+                        PnSCoreService.ProcessPCIResponse(args.Length > 1 ? args[1] : "");
                         PnSCoreService.GeneratePnSResponse();
                         //PnSCoreService.ProcessPCIReturnPDFsInfo();
                         break;
@@ -63,7 +63,7 @@ namespace PCI.Service
                         }
                         break;
                     case "DownloadPrinterReport":
-                        PCIJobMonitor.GetResponseMRDF();
+                        PCIJobMonitor.GetPrintVendorResponse(args.Length > 1 ? args[1] : "");
                         //PCIJobMonitor.GetReturnPDFsZip();
                         break;
                     default:
