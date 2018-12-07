@@ -14,8 +14,7 @@ namespace AM.Services
         List<MailPieces> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel);
         List<MailPieces> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel);
         List<MailPieces> GetSummaryControlReport(int clientId, DateTime startDate, DateTime endDate, string channel);
-        List<MailPieces> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime date, int? batchId, string docType, string filterBy);
-        //List<MailPieces> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel);
+        List<MailPieces> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime startDate, DateTime endDate, int? batchId, string docType, string filterBy);
         List<MonthlyReconReportViewModel> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel);
         List<ChannelCodeTitle> GetChannelTitle(int clientId);
         List<PullBackRequests> GetPullbackRequestReport(int clientId, DateTime startDate, DateTime endDate);
@@ -100,7 +99,7 @@ namespace AM.Services
             return data;
         }
 
-        public List<MailPieces> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime date, int? batchId, string docType, string filterBy)
+        public List<MailPieces> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime startDate,DateTime endDate, int? batchId, string docType, string filterBy)
         {
             string query = "[dbo].[uspweb_ErrorReportSLA] @clientId, @startDateRec, @endDateRec, @startDateDue, @endDateDue, @batchId, @docType";
             bool isReceived = filterBy == "ByReceivedOn" ? true : false;
@@ -120,10 +119,10 @@ namespace AM.Services
                     clientId = clientId,
                     batchId = batchId,
                     docType = docType.IsNullOrWhiteSpace() ? null : docType,
-                    startDateRec = isReceived ? (date.ToStartDateTime()).EstToUtc() : dt,
-                    endDateRec = isReceived ? (date.ToEndDateTime()).EstToUtc() : dt,
-                    startDateDue = isReceived ? dt : (date.ToStartDateTime()).EstToUtc(),
-                    endDateDue = isReceived ? dt : (date.ToEndDateTime()).EstToUtc()
+                    startDateRec = isReceived ? (startDate.ToStartDateTime()).EstToUtc() : dt,
+                    endDateRec = isReceived ? (endDate.ToEndDateTime()).EstToUtc() : dt,
+                    startDateDue = isReceived ? dt : (startDate.ToStartDateTime()).EstToUtc(),
+                    endDateDue = isReceived ? dt : (endDate.ToEndDateTime()).EstToUtc()
                 }
                 ).ToList();
             return data;

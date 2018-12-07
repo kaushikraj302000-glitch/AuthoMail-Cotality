@@ -230,6 +230,22 @@ namespace AM.Services
         public bool IsAMActive { get; set; }
         public bool IsPnSActive { get; set; }
         public string TimeZone { get; set; }
+        public string Address { get; set; }
+        public string Contact1Name { get; set; }
+        public string Contact1Phone { get; set; }
+        public string Contact1Email { get; set; }
+        public string Contact2Name { get; set; }
+        public string Contact2Phone { get; set; }
+        public string Contact2Email { get; set; }
+        public string Contact3Name { get; set; }
+        public string Contact3Phone { get; set; }
+        public string Contact3Email { get; set; }
+        public string ITContactName { get; set; }
+        public string ITContactPhone { get; set; }
+        public string ITContactEmail { get; set; }
+        public string BillingContactName { get; set; }
+        public string BillingContactPhone { get; set; }
+        public string BillingContactEmail { get; set; }
         public DateTime? ModifiedOn { get; set; }
         public string ModifiedBy { get; set; }
         public DateTime? CreatedOn { get; set; }
