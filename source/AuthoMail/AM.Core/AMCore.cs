@@ -73,7 +73,7 @@ namespace AM.Core
                                 if (mailPiece.IsReturnInfoSpecified)
                                 {
                                     //This is compulsary
-                                    //fromAddress = mailPiece.RetRcptFirstName + " " + mailPiece.RetRcptLastName + "\n";
+                                    fromAddress = mailPiece.RetRcptFirstName + " " + mailPiece.RetRcptLastName + "\n";
 
                                     if (!string.IsNullOrEmpty(mailPiece.RetRcptOrganization))
                                         fromAddress += mailPiece.RetRcptOrganization + "\n";
@@ -97,7 +97,7 @@ namespace AM.Core
                                 }
                                 else if (mbi.MailBatch.IsReturnInfoSpecified)
                                 {
-                                    //fromAddress = mbi.MailBatch.RetRcptFirstName + " " + mbi.MailBatch.RetRcptLastName + "\n";
+                                    fromAddress = mbi.MailBatch.RetRcptFirstName + " " + mbi.MailBatch.RetRcptLastName + "\n";
 
                                     if (!string.IsNullOrEmpty(mbi.MailBatch.RetRcptOrganization))
                                         fromAddress += mbi.MailBatch.RetRcptOrganization + "\n";
@@ -120,7 +120,7 @@ namespace AM.Core
                                 }
                                 else if (docType.IsReturnInfoSpecified)
                                 {
-                                    //fromAddress = docType.RetRcptFirstName + " " + docType.RetRcptLastName + "\n";
+                                    fromAddress = docType.RetRcptFirstName + " " + docType.RetRcptLastName + "\n";
 
                                     if (!string.IsNullOrEmpty(docType.RetRcptOrganization))
                                         fromAddress += docType.RetRcptOrganization + "\n";
