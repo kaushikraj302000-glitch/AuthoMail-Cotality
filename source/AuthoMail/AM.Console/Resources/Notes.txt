@@ -18,7 +18,7 @@
 -	Christmas Day -12/25
 -	New Year's Day - 01/01/2019
 
-3) Updated CutOff Timings (Mail 08/30 : Correction RE: USAA SLA Report Request - Pre JIRA Request)
+3) Updated CutOff Timings (Mail 08/30 : Correction RE: USAA SLA Report Request - Pre JIRA Request & RE: USAA Client Communication/ Authomail Logic Change)
 	Shipping Type			Monday – Friday Cut-off		Saturday Cut-off
 	USPS_First Class		7 PM CST/ 8 PM EST			7 PM CST/ 8 PM EST
 	FedEx					7 PM CST/ 8 PM EST			1 PM CST/2 PM EST
