@@ -24,7 +24,7 @@ namespace AM.Services
     {
         public List<SearchViewModel> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo)
         {
-            string query = @"SELECT 
+            string query = @"SELECT Top 1000
 	 m.BusinessFriendlyIdValue as BusinessIdValue,m.ShippingStatus as [Status],m.UniqueId,
 	 m.RcptFirstName as FirstName,m.RcptLastName as LastName,m.RcptAddressCity as [City],m.RcptAddressZip as ZIP,
 	 m.RcptAddressState as [State],m.ShippedOn,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,
@@ -80,8 +80,8 @@ namespace AM.Services
             }
             if (docType != null && docType.Count > 0)
             {
-                query = string.Format("{0} and m.DocTypeId in (@docTypeId)", query);
-                parameter.Add("@DocTypeId", docType, dbType: DbType.Int16);
+                query = string.Format("{0} and m.DocTypeId in @docTypeId", query);
+                parameter.Add("@DocTypeId", docType);
             }
 
             var data = db.Query<SearchViewModel>(query, parameter).ToList();
@@ -145,7 +145,7 @@ namespace AM.Services
                      uniqueId = uniqueId
                  }).ToList().First();
 
-            var mreq = db.QuerySingleOrDefault<MRDFRequests>("select r.*,b.PrintFileName from PnS.MRDFRequest r inner join PnS.BatchSummary b on r.JobId=b.PrintBatch where r.UniqueId=@uniqueId", new { uniqueId = mp.UniqueId });
+            var mreq = db.QuerySingleOrDefault<MRDFRequests>("select r.*,p.PrintBatchName as PrintFileName from PnS.MRDFRequest r inner join PnS.PrintTrailBatches p on r.PrintTrailBatchId=p.Id where r.UniqueId=@uniqueId", new { uniqueId = mp.UniqueId });
             if (mreq != null) mp.MRDFRequests = mreq;
             return mp;
         }
