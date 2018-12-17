@@ -94,7 +94,7 @@
                         <div class="col-md-@(ViewBag.BusinessId.Count > 1?"4":"3")">
                             <div class="form-group">
                                 <label for="DocType">Document Type</label>
-                                @Html.DropDownList("DocType", ViewBag.DocType as SelectList, "Select Document Type", htmlAttributes: new { @class = "selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Document Type" })
+                                @Html.DropDownList("DocType", ViewBag.DocType as SelectList, "Select Document Type", htmlAttributes: new { @class = "selectpicker", @multiple="multiple", @data_live_search = "true", @data_live_search_placeholder = "Search Document Type" })
                             </div>
 
                         </div>

@@ -86,7 +86,7 @@ namespace AM.Web.Controllers
         }
 
         [HttpPost]
-        public ActionResult _GetSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string receivedOnStart, string receivedOnEnd, string status, string channel, string docType, string trackingNumber, string clientBatchId, string batchId)
+        public ActionResult _GetSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string receivedOnStart, string receivedOnEnd, string status, string channel, List<int> docType, string trackingNumber, string clientBatchId, string batchId)
         {
             try
             {
