@@ -79,8 +79,8 @@ namespace AM.Web.Controllers
 
             var data = repoSvc.GetMonthlyReconReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate, channel);
             //var model=Mapper.Map<List<MonthlyReconReportViewModel>>(data);
-            return Json(JsonResponseFactory.SuccessResponse(new { model = data.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
-
+           return Json(JsonResponseFactory.SuccessResponse(new { model = data.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+            
         }
 
         public ActionResult DownloadMonthlyReconReport(string startDate, string endDate, string channel, string fileName)
@@ -126,11 +126,12 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult _GetErrorsSLAReport(string date, string filterBy, string docType)
+        public ActionResult _GetErrorsSLAReport(string startDate, string endDate, string filterBy, string docType)
         {
-            var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-            //Update startDate and endDate Todo
-            var data = repoSvc.GetSLAMissErrorReportByDateOrBatch(User.Identity.GetClientId().Value, exactDate, exactDate, null, docType, filterBy);
+            var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            //Update startDate and endDate
+            var data = repoSvc.GetSLAMissErrorReportByDateOrBatch(User.Identity.GetClientId().Value,exactStartDate,exactEndDate, null, docType, filterBy);
             var reportViewModel = GetBatchNameAndTime(data);
             var model = Mapper.Map<List<ErrorSLAReportViewModel>>(data);
             return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
