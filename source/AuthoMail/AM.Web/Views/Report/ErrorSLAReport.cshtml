@@ -3,13 +3,15 @@
 }
 
 <style>
-     .col-md-1, .col-md-2, .col-md-3 {
+    .col-md-1, .col-md-2, .col-md-3 {
         padding-left: 10px !important;
         padding-right: 10px !important;
     }
-      .show-calendar {
+
+    .show-calendar {
         width: 484px !important;
     }
+
     #dateFilter .bootstrap-select, #DocTypeSize .bootstrap-select {
         width: 100% !important;
     }
@@ -100,19 +102,20 @@
     <table class="table table-responsive" style="overflow-x:scroll">
         <thead>
             <tr>
-                <th>Document Type</th>
                 <th>@Html.Action("GetHeadingForBusinessId", "Common")</th>
-                <th>File Name</th>
+                <th>Status</th>
+                <th>Borrower Name</th>
+                <th>City</th>
                 <th>Received Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Due Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Shipped Date <span class="fontcapitalize">(Local)</span></th>
+                <th>Document Type</th>
+                <th>Channel</th>
                 <th>Shipping Carrier / Service type</th>
-                <th>First Name</th>
-                <th>Last Name</th>
-                <th>Recipient Street Address</th>
-                <th>Recipient City</th>
-                <th>Recipient State</th>
-                <th>Recipient Zip</th>
+                <th>Tracking Number</th>
+                <th>SLA</th>
+                <th class="ErrorCode">Error Code</th>
+                <th class="ErrorText">Error Text</th>
                 <th class="BatchId">BatchId</th>
             </tr>
         </thead>
@@ -123,19 +126,20 @@
     <table>
         <tbody id="SLABody">
             <tr class="row-small">
-                <td><span>{DocType}</span></td>
                 <td><span>{BusinessIdValue}</span></td>
-                <td><span>{FileName}</span></td>
+                <td><span>{ShippingStatusFormatted}</span></td>
+                <td><span>{FirstName} {LastName}</span></td>
+                <td><span>{City} {State} {ZIP}</span></td>
                 <td><span>{ReceivedOnFormatted}</span></td>
                 <td><span>{DueDateFormatted}</span></td>
                 <td><span>{ShippedOnFormatted}</span></td>
-                <td>{ShippingCarrier} / {ShippingMethod}</td>
-                <td><span>{FirstName}</span></td>
-                <td><span>{LastName}</span></td>
-                <td><span>{Address}</span></td>
-                <td><span>{City}</span></td>
-                <td><span>{State}</span></td>
-                <td><span>{ZIP}</span></td>
+                <td><span>{DocType}</span></td>
+                <td><span>{Channel}</span></td>
+                <td><span>{ShippingCarrier} / {ShippingMethod}</span></td>
+                <td><span>{TrackingNo}</span></td>
+                <td><span>{SLAStatus}</span></td>
+                <td><span>{ErrorDescPopover}</span></td>
+                <td><span>{ErrorDesc}</span></td>
                 <td>{BatchId}</td>
             </tr>
         </tbody>
@@ -185,7 +189,7 @@
                 },
                 "columnDefs": [
                         {
-                            "targets": ["BatchId"],
+                            "targets": ["BatchId", "ErrorText"],
                             "visible": false,
                             "searchable": true
                         },
@@ -206,7 +210,7 @@
                     filename: filename,
                     title: title,
                     exportOptions: {
-                        columns: "thead th:not(.BatchId)",//[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                        columns: ["thead th:not(.BatchId)", ".ErrorCode", ".ErrorText"],//[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                     }
 
                 }
@@ -307,10 +311,42 @@
         }
         function FormatObject(Model) {
             $(Model).each(function () {
+                var trackingNo = "";
+                if (this.TrackingNo == null || this.TrackingNo == "") {
+                    trackingNo = "--";
+                }
+                else {
+                    trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/track/' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
+                }
+                this.TrackingNo = trackingNo;
                 this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
                 this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
+                this.ErrorDesc = this.ErrorDesc != null ? this.ErrorDesc.replace(/"/g, '\'') : "";
+                var eddDesc = '<span id="popoverError" data-toggle="popover" data-original-title="Error Code: <ErrorCode>" data-html="true" data-content="<dataContent>" data-placement="left"><a> <ErrorCode> </a></span>'.replace(/<ErrorCode>/g, this.ErrorCode).replace("<dataContent>", this.ErrorDesc == null ? "--" : this.ErrorDesc);
+                this.ErrorDescPopover = this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>' : eddDesc;
+                var status = "";
+                var errormsg = this.ErrorDesc == null ? '@AM.Services.Config.Web_Msg_NoErrorDescription' : this.ErrorDesc;
+                switch (this.Status) {
+
+                    case "PulledBack":
+                        status = '<span class="label medium label-yellow">' + this.Status + '</span>';
+
+                        break;
+                    case "Error":
+                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error Code: <ErrorCode>" data-html="true" data-content="<dataContent>" data-placement="left"><Status></span>'.replace(/<ErrorCode>/g, this.ErrorCode).replace('<dataContent>', this.ErrorDesc == null ? "--" : this.ErrorDesc).replace('<Status>', this.Status);
+                        break;
+                    case "Shipped":
+                        status = '<span class="label medium label-success">' + this.Status + '</span>';
+                        break;
+                    case "InProgress":
+                        status = '<span class="label medium label-blue">' + this.Status + '</span>';
+                        break;
+
+                }
+                this.ShippingStatusFormatted = status;
             });
+            console.log(Model);
             return Model;
         }
         $("#filterData").click(function () {

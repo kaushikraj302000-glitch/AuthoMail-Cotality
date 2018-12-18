@@ -17,6 +17,6 @@ namespace AM.Web.Models
         public string State { get; set; }
         public string ZIP { get; set; }
         public DateTime? ReceivedOn { get; set; }
-        public string SLAStatus { get; set; }
+        
     }
 }
