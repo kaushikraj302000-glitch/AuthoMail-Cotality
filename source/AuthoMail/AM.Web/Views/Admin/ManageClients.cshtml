@@ -44,6 +44,22 @@
                 <th>IsAMActive</th>
                 <th>IsPnSActive</th>
                 <th>Timezone</th>
+                <th>Address</th>
+                <th>Contact1 Name</th>
+                <th>Contact1 Phone</th>
+                <th>Contact1 Email</th>
+                <th>Contact2 Name</th>
+                <th>Contact2 Phone</th>
+                <th>Contact2 Email</th>
+                <th>Contact3 Name</th>
+                <th>Contact3 Phone</th>
+                <th>Contact3 Email</th>
+                <th>IT Contact Name</th>
+                <th>IT Contact Phone</th>
+                <th>IT Contact Email</th>
+                <th>Billing Contact Name</th>
+                <th>Billing Contact Phone</th>
+                <th>Billing Contact Email</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -60,6 +76,22 @@
                 <td><span>{IsAMActiveFormatted}</span></td>
                 <td><span>{IsPnSActiveFormatted}</span></td>
                 <td><span>{TimeZone}</span></td>
+                <td><span>{Address}</span></td>
+                <td><span>{Contact1Name}</span></td>
+                <td><span>{Contact1Phone}</span></td>
+                <td><span>{Contact1Email}</span></td>
+                <td><span>{Contact2Name}</span></td>
+                <td><span>{Contact2Phone}</span></td>
+                <td><span>{Contact2Email}</span></td>
+                <td><span>{Contact3Name}</span></td>
+                <td><span>{Contact3Phone}</span></td>
+                <td><span>{Contact3Email}</span></td>
+                <td><span>{ITContactName}</span></td>
+                <td><span>{ITContactPhone}</span></td>
+                <td><span>{ITContactEmail}</span></td>
+                <td><span>{BillingContactName}</span></td>
+                <td><span>{BillingContactPhone}</span></td>
+                <td><span>{BillingContactEmail}</span></td>
                 <td>{Action}{CoverLetter}</td>
             </tr>
         </tbody>
@@ -68,7 +100,7 @@
 
 
 <div class="modal fade" id="AddEditModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal-header" style="margin-top:2%;margin-bottom:2%;">
@@ -130,7 +162,7 @@
         $(document).ready(function () {
 
             GetClients();
-           
+
 
         });
 
@@ -176,7 +208,7 @@
                         url: baseUrl + "Admin/_AddCoverLetter",
                         processData: false,  // tell jQuery not to process the data
                         contentType: false,
-                        data:formData,
+                        data: formData,
                         success: function (response) {
                             //console.log(response);
                             if (response.Success) {
@@ -219,7 +251,6 @@
                         required: true,
                         lettersonly: true,
                         maxlength: 255
-
                     },
                     BusinessUnit: {
                         required: true
@@ -232,7 +263,65 @@
                         required: true,
                         lettersonly: true,
                         maxlength: 255
-                    }
+                    },
+                    Contact1Name: {
+                        required: true,
+                        lettersonly: true,
+                        maxlength: 255
+                    },
+                    Contact1Phone: {
+                        required: true,
+                        phoneUS: true
+                    },
+                    Contact1Email: {
+                        required: true,
+                        email: true
+                    },
+                    Contact2Name: {
+                        lettersonly: true,
+                        maxlength: 255
+                    },
+                    Contact2Phone: {
+                        phoneUS: true
+                    },
+                    Contact2Email: {
+                        email: true
+                    },
+                    Contact3Name: {
+                        lettersonly: true,
+                        maxlength: 255
+                    },
+                    Contact3Phone: {
+                        phoneUS: true
+                    },
+                    Contact3Email: {
+                        email: true
+                    },
+                    ITContactName: {
+                        required: true,
+                        lettersonly: true
+                    },
+                    ITContactPhone: {
+                        required: true,
+                        phoneUS: true
+                    },
+                    ITContactEmail: {
+                        required: true,
+                        email: true
+                    },
+                    BillingContactName: {
+                        required: true,
+                        lettersonly: true,
+                    },
+                    BillingContactPhone: {
+                        required: true,
+                        phoneUS: true
+                    },
+                    BillingContactEmail: {
+                        required: true,
+                        email: true
+                    },
+
                 },
                 submitHandler: function (form) { // for demo
                     var Id = $("#AddEditModal").find(".modal-header").find("#Id").val();
@@ -467,7 +556,7 @@
 
                 //        },
                 //],
-                //"scrollX": true,
+                "scrollX": true,
                 buttons: [
                     //{
                     //    extend: 'colvis',
