@@ -167,7 +167,14 @@ namespace AM.Services
         public List<MailPieceCustomInfoTest> MailPieceCustomInfoTest { get; set; }
         public MRDFRequests MRDFRequests { get; set; }
         public int? PrintTrailId { get; set; }
-
+        public string SLAStatus
+        {
+            get
+            {
+                return (this.ShippingStatus == AM.Entities.ShippingStatus.InProgress.ToString() || this.ShippingStatus == AM.Entities.ShippingStatus.Shipped.ToString()) ?
+                    this.SLADays >= 0 ? this.ShippingStatus == AM.Entities.ShippingStatus.InProgress.ToString() ? this.ShippingStatus : "SLA Met" : "Missed SLA" : this.ShippingStatus;
+            }
+        }
     }
     public class MailBatches
     {

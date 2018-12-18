@@ -42,6 +42,7 @@ namespace AM.Services
             var delayedPrinterBatches = new List<BatchInfo>();
             var delayedReportedBackMailPiecesByAM = new List<PendingMailPieceInfo>();
             var delayedMailPiecesByPrinter = new List<PendingMailPieceInfo>();
+            var delayedPickUpMailPieces = new List<PendingMailPieceInfo>();
             using (ICommonService commonSvc = new CommonService())
             {
                 try
@@ -86,7 +87,10 @@ namespace AM.Services
 
                 var delayedPCIMailPieces = pendingInProgressMailPieces.Where(mp => mp.VendorCode == "PCI" && Common.Now > mp.GetEstimatedSubmittedOn(timings, cutOffMinutes + 15)).ToList();
 
-                delayedMailPieces = delayedDallasMailPieces.Concat(delayedEmptyPrintLocation).Concat(delayedShippedMailPieces).Concat(delayedPulledBackMailPieces).Concat(delayedErrorMailPieces).Concat(clientIdNullMailPieces).Concat(shippingStatusNullMailPieces).Concat(delayedPCIMailPieces).ToList();
+                //Delayed PickUp MailPieces
+                 delayedPickUpMailPieces = pendingInProgressMailPieces.Where(mp => mp.MailPieceStatus == ShippingStatus.Shipped.ToString()).ToList();
+
+                delayedMailPieces = delayedDallasMailPieces.Concat(delayedEmptyPrintLocation).Concat(delayedShippedMailPieces).Concat(delayedPulledBackMailPieces).Concat(delayedErrorMailPieces).Concat(clientIdNullMailPieces).Concat(shippingStatusNullMailPieces).Concat(delayedPCIMailPieces).Concat(delayedPickUpMailPieces).ToList();
 
                 delayedBatches = delayedMailPieces
                     .GroupBy(mp => new { mp.MailBatchId, mp.AppCode, mp.BatchName, mp.ClientId, mp.PipelineStatus, mp.ReceivedOn })
@@ -135,7 +139,7 @@ namespace AM.Services
                 isPrinterDelay = true;
             }
 
-            return new MonitorReport { DelayedBatches = delayedBatches, DelayedMailPieces = delayedMailPieces, IsReceivedDelay = isReceivedDelay, DelayedAMReportBackBatches = delayedAMReportedBackBatches, DelayedPrinterBatches = delayedPrinterBatches, DelayedAMReportBackMailPieces = delayedReportedBackMailPiecesByAM, DelayedPrinterMailPieces = delayedMailPiecesByPrinter, LastBatchReceivedOn = lastBatchReceivedOn.ReceivedOn, IsProcessDelay = isProcessDelay, IsPrinterDelay = isPrinterDelay, IsReportBackDelay = isReportBackDelay };
+            return new MonitorReport { DelayedBatches = delayedBatches, DelayedMailPieces = delayedMailPieces, IsReceivedDelay = isReceivedDelay, DelayedAMReportBackBatches = delayedAMReportedBackBatches, DelayedPrinterBatches = delayedPrinterBatches, DelayedAMReportBackMailPieces = delayedReportedBackMailPiecesByAM, DelayedPrinterMailPieces = delayedMailPiecesByPrinter, LastBatchReceivedOn = lastBatchReceivedOn.ReceivedOn, IsProcessDelay = isProcessDelay, IsPrinterDelay = isPrinterDelay, IsReportBackDelay = isReportBackDelay, PickUpDelayedMailPieces = delayedPickUpMailPieces };
         }
 
         public List<dynamic> GetPendingBatchesToReportBack()

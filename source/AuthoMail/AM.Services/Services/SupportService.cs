@@ -207,6 +207,15 @@ namespace AM.Services
             if (client.AppCode.IsNullOrWhiteSpace()) return GetKeyValue(false, "AppCode is required.");
             if (client.TimeZone.IsNullOrWhiteSpace()) return GetKeyValue(false, "TimeZone is required.");
             if (client.BusinessUnit == 0) return GetKeyValue(false, "BusinessUnit is required.");
+            if (client.Contact1Name.IsNullOrWhiteSpace()) return GetKeyValue(false, "Contact1 Name is required.");
+            if (client.Contact1Phone.IsNullOrWhiteSpace()) return GetKeyValue(false, "Contact1 Phone is required.");
+            if (client.Contact1Email.IsNullOrWhiteSpace()) return GetKeyValue(false, "Contact1 Email is required.");
+            if (client.ITContactName.IsNullOrWhiteSpace()) return GetKeyValue(false, "ITContact Name is required.");
+            if (client.ITContactEmail.IsNullOrWhiteSpace()) return GetKeyValue(false, "ITContact Email is required.");
+            if (client.ITContactPhone.IsNullOrWhiteSpace()) return GetKeyValue(false, "ITContact Phone is required.");
+            if (client.BillingContactName.IsNullOrWhiteSpace()) return GetKeyValue(false, "BillingContact Name is required.");
+            if (client.BillingContactEmail.IsNullOrWhiteSpace()) return GetKeyValue(false, "BillingContact Email is required.");
+            if (client.BillingContactPhone.IsNullOrWhiteSpace()) return GetKeyValue(false, "BillingContact Phone is required.");
             if (client.Id == 0)
             {
                 string query = "INSERT INTO [Common].[Clients] ([Name], [AppCode], [BusinessUnit], [IsAMActive], [IsPnSActive], [TimeZone], [ModifiedOn], [CreatedOn], [CreatedBy] ,[ModifiedBy],[Address] ,[Contact1Name] ,[Contact1Phone] ,[Contact1Email] ,[Contact2Name] ,[Contact2Phone] ,[Contact2Email] ,[Contact3Name] ,[Contact3Phone] ,[Contact3Email] ,[ITContactName] ,[ITContactPhone] ,[ITContactEmail] ,[BillingContactName] ,[BillingContactPhone] ,[BillingContactEmail]) VALUES (@name,@appCode,@businessUnit,@isAMActive,@isPnSActive,@timeZone,@modifiedOn,@createdOn,@createdBy,@modifiedBy,@Address ,@Contact1Name ,@Contact1Phone ,@Contact1Email ,@Contact2Name ,@Contact2Phone ,@Contact2Email ,@Contact3Name ,@Contact3Phone ,@Contact3Email ,@ITContactName ,@ITContactPhone ,@ITContactEmail ,@BillingContactName ,@BillingContactPhone ,@BillingContactEmail)";
