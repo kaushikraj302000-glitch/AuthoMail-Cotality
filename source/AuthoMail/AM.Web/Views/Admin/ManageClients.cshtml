@@ -60,7 +60,7 @@
                 <th>Billing Contact Name</th>
                 <th>Billing Contact Phone</th>
                 <th>Billing Contact Email</th>
-                <th>Action</th>
+                <th style="min-width:99px;">Action</th>
             </tr>
         </thead>
         <tbody id="ClientbodyContent"></tbody>
@@ -165,6 +165,29 @@
 
 
         });
+        function Clients(Id, Name, AppCode, BusinessUnit, TimeZone, Contact1Name, Contact1Phone, Contact1Email, Contact2Name, Contact2Phone, Contact2Email, Contact3Name, Contact3Phone, Contact3Email, ITContactName, ITContactPhone, ITContactEmail, BillingContactName, BillingContactPhone, BillingContactEmail, Address) {
+            this.Id = Id;
+            this.Name = Name;
+            this.AppCode = AppCode;
+            this.BusinessUnit = BusinessUnit;
+            this.TimeZone = TimeZone;
+            this.Contact1Name = Contact1Name;
+            this.Contact1Phone = Contact1Phone;
+            this.Contact1Email = Contact1Email;
+            this.Contact2Name = Contact2Name;
+            this.Contact2Phone = Contact2Phone;
+            this.Contact2Email = Contact2Email
+            this.Contact3Name = Contact3Name;
+            this.Contact3Phone = Contact3Phone;
+            this.Contact3Email = Contact3Email;
+            this.ITContactName = ITContactName;
+            this.ITContactPhone = ITContactPhone;
+            this.ITContactEmail = ITContactEmail;
+            this.BillingContactName = BillingContactName;
+            this.BillingContactPhone = BillingContactPhone;
+            this.BillingContactEmail = BillingContactEmail;
+            this.Address = Address;
+        }
 
         function ValidateCoverLetter() {
             window.clui.selectInit();
@@ -329,8 +352,25 @@
                     var appCode = $("#AddEditModal").find(".modal-header").find("#AppCode").val();
                     var businessUnit = $("#AddEditModal").find(".modal-header").find("#BusinessUnit").val();
                     var timezone = $("#AddEditModal").find(".modal-header").find("#TimeZone").val();
-                    var ClientObj = new Clients(Id, name, appCode, businessUnit, timezone);
-                    //console.log(ClientObj);
+                    var Contact1Name = $("#AddEditModal").find(".modal-header").find("#Contact1Name").val();
+                    var Contact1Phone = $("#AddEditModal").find(".modal-header").find("#Contact1Phone").val();
+                    var Contact1Email = $("#AddEditModal").find(".modal-header").find("#Contact1Email").val();
+                    var Contact2Name = $("#AddEditModal").find(".modal-header").find("#Contact2Name").val();
+                    var Contact2Phone = $("#AddEditModal").find(".modal-header").find("#Contact2Phone").val();
+                    var Contact2Email = $("#AddEditModal").find(".modal-header").find("#Contact2Email").val();
+                    var Contact3Name = $("#AddEditModal").find(".modal-header").find("#Contact3Name").val();
+                    var Contact3Phone = $("#AddEditModal").find(".modal-header").find("#Contact3Phone").val();
+                    var Contact3Email = $("#AddEditModal").find(".modal-header").find("#Contact3Email").val();
+                    var ITContactName = $("#AddEditModal").find(".modal-header").find("#ITContactName").val();
+                    var ITContactPhone = $("#AddEditModal").find(".modal-header").find("#ITContactPhone").val();
+                    var ITContactEmail = $("#AddEditModal").find(".modal-header").find("#ITContactEmail").val();
+                    var BillingContactName = $("#AddEditModal").find(".modal-header").find("#BillingContactName").val();
+                    var BillingContactPhone = $("#AddEditModal").find(".modal-header").find("#BillingContactPhone").val();
+                    var BillingContactEmail = $("#AddEditModal").find(".modal-header").find("#BillingContactEmail").val();
+                    var Address = $("#AddEditModal").find(".modal-header").find("#Address").val();
+                    var ClientObj = new Clients(Id, name, appCode, businessUnit, timezone, Contact1Name, Contact1Phone, Contact1Email, Contact2Name, Contact2Phone, Contact2Email, Contact3Name, Contact3Phone, Contact3Email, ITContactName, ITContactPhone, ITContactEmail, BillingContactName, BillingContactPhone, BillingContactEmail, Address);
+                    console.log(ClientObj);
+                   
                     $("#AddEditModal").modal("hide");
                     var el = $("#myModal").find(".modal-body");
                     el.empty();
@@ -370,14 +410,7 @@
                 }
             });
         }
-        function Clients(Id, Name, AppCode, BusinessUnit, TimeZone) {
-            this.Id = Id;
-            this.Name = Name;
-            this.AppCode = AppCode;
-            this.BusinessUnit = BusinessUnit;
-            this.TimeZone = TimeZone;
-        }
-
+       
         var GetClients = function () {
             //$("#ClientList").hide();
             var el = $('#ClientList');

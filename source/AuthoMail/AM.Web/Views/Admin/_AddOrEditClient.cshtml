@@ -3,7 +3,7 @@
 <h2 id="myModalLabel">@(Model.Id == 0 ? Html.Raw("Add Client Details") : Html.Raw("Edit Client Details"))</h2>
 
 <hr />
-<form id="clientform" action="#">
+<form id="clientform" action="#" method="post">
     <input type="hidden" name="Id" id="Id" value="@Model.Id" />
     <div class="row">
         <div class="col-md-4">
