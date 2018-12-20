@@ -18,6 +18,7 @@ namespace AM.Reporting
         public static string FedExReport_Email_Cc { get; private set; }
         public static string FedExReportSubject { get; private set; }
         public static string FedExAccountCode { get; private set; }
+        public static TimeSpan FedExFullReportTiming { get; private set; }
 
         public static string PCIReconEMailTo { get; private set; }
         public static string PCIReconEMailCc { get; private set; }
@@ -35,6 +36,7 @@ namespace AM.Reporting
             FedExReport_Email_Cc = ConfigurationManager.AppSettings["FedExReport_Email_Cc"].Trim();
             FedExReportSubject = ConfigurationManager.AppSettings["FedExReportSubject"].Trim();
             FedExAccountCode = ConfigurationManager.AppSettings["FedExAccountCode"].Trim();
+            FedExFullReportTiming = TimeSpan.Parse(ConfigurationManager.AppSettings["FedExFullReportTiming"].Trim());
 
             PCIReconEMailTo = ConfigurationManager.AppSettings["PCIReconEMailTo"].Trim();
             PCIReconEMailCc = ConfigurationManager.AppSettings["PCIReconEMailCc"].Trim();
