@@ -187,9 +187,14 @@ namespace AM.Core
                 {
                     PdfUtil.MergePDFs(coverLetterPDFPath, mergeReadyFilePath, endPagePDFPath, outputDocumentPath);
                 }
-                else
+                else if (!string.IsNullOrEmpty(coverLetterPDFPath))
                 {
                     PdfUtil.MergePDFs(coverLetterPDFPath, mergeReadyFilePath, outputDocumentPath);
+                }
+                else
+                {
+                    //Here we are just renaming file as a output document because we are not merging any cover letter for it
+                    File.Move(mergeReadyFilePath, outputDocumentPath);
                 }
 
                 #endregion
