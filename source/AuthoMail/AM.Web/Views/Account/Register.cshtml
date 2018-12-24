@@ -494,6 +494,7 @@
 
                     $('#registerform').submit(function (event) {
                         event.preventDefault();
+                        //console.log("email next");
                         return false;
                     });
                 }
@@ -561,6 +562,7 @@
 
                     $('#registerform').submit(function (event) {
                         event.preventDefault();
+                        //console.log("registerform not valid")
                         return false;
                     });
                 }
@@ -572,8 +574,12 @@
             });
 
             $('#registerform').submit(function (event) {
-                if ($('#registerform').valid()) return true;
-                return false;
+                if ($('#registerform').valid()) {
+                    return true;
+                } else {
+                    //console.log("submit false")
+                    return false;
+                }
             });
             //$("#registerCL").click(function () {
             //    alert("click");
