@@ -47,7 +47,7 @@ namespace AM.Entities
     public class MailPiece
     {
         [XmlAttribute]
-        public Guid Id { get; set; }
+        public Guid? Id { get; set; }
 
         [XmlAttribute]
         public string BusinessFriendlyIdName { get; set; }
