@@ -104,16 +104,33 @@ namespace PCI.Service
             return printTrailDetail.DataTableAccessor<PrintTrailDetail>(false).Single();
         }
 
-        public static int GetMailBatchesReceivedCount(DateTime startDateTime, DateTime endDateTime, string status)
+        public static bool CheckBatchesInQueue(DateTime startDateTime, DateTime endDateTime)
         {
-            string query = @"SELECT COUNT(*) FROM [AM].[PrintBatches] PB LEFT OUTER JOIN AM.MailBatches B ON PB.MailBatchId = B.Id LEFT OUTER JOIN PnS.BatchSummary BS ON PB.UniqueId = BS.BatchIdentifier WHERE B.ReceivedOn >=@p1 AND B.ReceivedOn <=@p2";
+            int receivedCount = db.ExecuteSqlScalar<int>("SELECT COUNT(*) FROM [AM].[MailBatches] B WHERE B.ReceivedOn BETWEEN @p1 AND @p2 AND B.IsReceived=1", startDateTime, endDateTime);
 
-            if (status == "Received")
-                query += " AND B.IsReceived=1";
-            else
-                query += " AND (B.IsPrepped = 1 OR B.IsReportPrepped = 1 OR B.IsReportedBack = 1) AND (BS.IsPrepped = 1 OR BS.IsReportPrepped = 1 OR BS.IsReportedBack = 1)";
+            int amSubmittedOrReportedCount = db.ExecuteSqlScalar<int>("SELECT COUNT(*) FROM [AM].[MailBatches] B WHERE B.ReceivedOn BETWEEN @p1 AND @p2 AND ( B.IsSubmittedToShipping=1 OR B.IsReportedBack=1 OR B.IsReportPrepped=1)", startDateTime, endDateTime);
 
-            return db.ExecuteSqlScalar<int>(query, startDateTime, endDateTime);
+            if (receivedCount != amSubmittedOrReportedCount)
+                return false;
+
+            int pendingBatchCount = db.ExecuteSqlScalar<int>(@"WITH
+            AMSubmitted as
+            (SELECT UniqueId FROM [AM].[PrintBatches] WHERE MailBatchId IN (SELECT Id FROM [AM].[MailBatches] B WHERE B.ReceivedOn BETWEEN @p1 AND @p2 AND ( B.IsSubmittedToShipping=1 ))),
+            PnSPrepped as
+            (SELECT BatchIdentifier FROM [PnS].[BatchSummary] WHERE ReceivedOn >= @p1 AND ( IsPrepped=1  OR IsSubmitted = 1 OR IsReportPrepped = 1 OR IsReportedBack = 1))
+            select Count(*) from (
+            select UniqueId from AMSubmitted 
+            except
+            select BatchIdentifier from PnSPrepped 
+            ) t", startDateTime, endDateTime);
+
+            return pendingBatchCount == 0;
+        }
+        public static PrintVendor GetPrintVendorDetailByVendorCode(string printVendorCode)
+        {
+            var printTrailDetail = db.ExecuteDataSet(CommandType.Text, "SELECT PV.Id, PV.Name, PV.SFTChannelId, PV.BusinessCode, PV.VendorCode, SC.Protocol, SC.Host, SC.UserName, SC.[Password], SC.ToADEDir, SC.FromADEDir, SC.ArchiveDir, SC.PostDownloadAction FROM Common.PrintVendors PV INNER JOIN Common.SFTChannels SC ON PV.SFTChannelId=SC.Id WHERE PV.VendorCode='{0}'".Fill(printVendorCode));
+
+            return printTrailDetail.DataTableAccessor<PrintVendor>(false).Single();
         }
     }
 }

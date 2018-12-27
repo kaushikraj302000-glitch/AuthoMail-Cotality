@@ -1,36 +1,76 @@
---Create Schema_MRDFResponseHistory table for maintain History
 
-CREATE TABLE [PnS].[Schema_MRDFResponseHistory](
-	[Id] [int] NOT NULL,
-	[FieldName] [nvarchar](255) NULL,
-	[Type] [nvarchar](255) NULL,
-	[StartPosition] [int] NOT NULL,
-	[Length] [int] NOT NULL,
-	[IsActive] [bit] NOT NULL,
-	[Description] [nvarchar](2000) NULL,
-	[SampleValue] [nvarchar](255) NULL,
-	[DataType] [nvarchar](255) NULL,
-	[DataFormatTemplate] [nvarchar](255) NULL,
- CONSTRAINT [PK_SchemaMRDFResponseHistory] PRIMARY KEY CLUSTERED 
+-- create MRDFResponseHistory TABLE
+
+CREATE TABLE [PnS].[MRDFResponseHistory](
+ [JobId] [int] NOT NULL,
+ [PieceId] [int] NOT NULL,
+ [Date] [date] NULL,
+ [Feeder2_Fed] [int] NULL,
+ [OperatorId] [varchar](50) NULL,
+ [MachineId] [varchar](50) NULL,
+ [ProcessingTimeStamp] [datetime] NULL,
+ [DetailedErrorId] [varchar](50) NULL,
+ [Disposition] [varchar](50) NULL,
+ [Input_Fed] [varchar](50) NULL,
+ [Feeder3_Fed] [varchar](50) NULL,
+ [Feeder4_Fed] [varchar](50) NULL,
+ [Feeder5_Fed] [varchar](50) NULL,
+ [ComputedWeight] [decimal](4, 3) NULL,
+ [MeterDate] [varchar](50) NULL,
+ [StatusSource] [varchar](50) NULL,
+ [PostageMetered] [decimal](4, 3) NULL,
+ [WeightMeasured] [decimal](4, 3) NULL,
+ [ExitLocation] [varchar](50) NULL,
+ [TotalSheets] [int] NULL,
+ [PDFFileName] [varchar](255) NULL,
+ [PackageTrackingNumber] [varchar](50) NULL,
+ CONSTRAINT [PK_MRDFResponseHistory] PRIMARY KEY CLUSTERED 
 (
-	[Id] ASC
+ [JobId] ASC,
+ [PieceId] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY]
 
 GO
--- Insert data from table Schema_MRDFResponse to Schema_MRDFResponseHistory
--- INSERT INTO [PnS].[Schema_MRDFResponseHistory]
--- SELECT * FROM [PnS].[Schema_MRDFResponse]
 
--- delete data from table Schema_MRDFResponse after move into Schema_MRDFResponseHistory
--- delete  from [PnS].[Schema_MRDFResponse]
+SET ANSI_PADDING OFF
+GO
 
+ALTER TABLE [PnS].[MRDFResponseHistory]  WITH CHECK ADD  CONSTRAINT [FK_MRDFResponseHistory_BatchSummary] FOREIGN KEY([JobId])
+REFERENCES [PnS].[BatchSummary] ([PrintBatch])
+GO
+
+ALTER TABLE [PnS].[MRDFResponseHistory] CHECK CONSTRAINT [FK_MRDFResponseHistory_BatchSummary]
+GO
+
+
+  
+
+-----CHANGES FOR BRE
+ALTER TABLE [AM].[DocTypes]
+ADD [IsBRE] BIT NULL 
+
+Go
+
+UPDATE [AM].[DocTypes]
+SET
+IsBRE=0
+
+Go
+
+ALTER TABLE [AM].[DocTypes]
+ALTER COLUMN [IsBRE] BIT NOT NULL 
+
+ALTER TABLE [AM].[DocTypes] ADD  CONSTRAINT [DF_DocTypes_IsBRE]  DEFAULT ((0)) FOR [IsBRE]
+  
+  Go
 
 CREATE TABLE [Common].[PrintVendors](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[Name] [varchar](255) NULL,
 	[SFTChannelId] [int] NULL,
 	[BusinessCode] [varchar](255) NULL,
+	[VendorCode] [varchar](255) NULL,
  CONSTRAINT [PK_PrintVendors_Id] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
@@ -41,6 +81,7 @@ ALTER TABLE [Common].[PrintVendors]  WITH CHECK ADD  CONSTRAINT [FK_PrintVendors
 REFERENCES [Common].[SFTChannels] ([Id])
 
 ALTER TABLE [Common].[PrintVendors] CHECK CONSTRAINT [FK_PrintVendors_SFTChannels]
+
 
 
 CREATE TABLE [Common].[PrintTrails](
@@ -138,6 +179,15 @@ GO
 ALTER TABLE [AM].[PrintBatches] CHECK CONSTRAINT [FK_PrintBatches_PrintTrails]
 GO
 
+ --/* Insert seed batchsummary ID in PrintTrailBatches*/
+
+declare @seedid int
+set @seedid = (select max(printbatch) from [pns].[batchsummary])
+if(@seedid is not null)
+begin
+	dbcc checkident ('PnS.PrintTrailBatches', RESEED,@seedid)
+end
+
 ALTER TABLE [PnS].[BatchSummary]
 ADD [PrintTrailId] [int] NULL
 
@@ -162,6 +212,8 @@ GO
 /****** Object:  Index [PK_MRDFResponse]    Script Date: 11/1/2018 6:54:55 PM ******/
 ALTER TABLE [PnS].[MRDFResponse] DROP CONSTRAINT [PK_MRDFResponse]
 GO
+ALTER TABLE [PnS].[MRDFResponse] DROP CONSTRAINT [FK_MRDFResponse_BatchSummary]
+GO
 
 /****** Object:  Index [PK_MRDFResponse]    Script Date: 11/1/2018 6:54:55 PM ******/
 ALTER TABLE [PnS].[MRDFResponse] ADD  CONSTRAINT [PK_MRDFResponse] PRIMARY KEY CLUSTERED 
@@ -171,36 +223,24 @@ ALTER TABLE [PnS].[MRDFResponse] ADD  CONSTRAINT [PK_MRDFResponse] PRIMARY KEY C
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)
 GO
 
-ALTER TABLE [PnS].[MRDFResponse]  WITH CHECK ADD  CONSTRAINT [FK_MRDFResponse_BatchSummary] FOREIGN KEY([JobId])
+ALTER TABLE [PnS].[MRDFResponse]  WITH CHECK ADD  CONSTRAINT [FK_MRDFResponse_PrintTrailBatches] FOREIGN KEY([JobId])
 REFERENCES [PnS].[PrintTrailBatches] ([Id])
 GO
 
-ALTER TABLE [PnS].[MRDFResponse] CHECK CONSTRAINT [FK_MRDFResponse_BatchSummary]
+ALTER TABLE [PnS].[MRDFResponse] CHECK CONSTRAINT [FK_MRDFResponse_PrintTrailBatches]
 GO
 
-ALTER TABLE [Common].[Clients] DROP CONSTRAINT [DF__Clients__Simulat__7E850515]
+ALTER TABLE [Common].[Clients] DROP CONSTRAINT [DF__Clients__Simulat__36B12243]
 ALTER TABLE [Common].[Clients]
 Drop COLUMN SimulatePCI
 
--- Mapping Data
-INSERT INTO Common.PrintVendors([Name],[SFTChannelId],[BusinessCode]) Values ('Fort Mill, SC',1,'002416')
-INSERT INTO Common.PrintVendors([Name],[SFTChannelId],[BusinessCode]) Values ('Dallas CL',1,'ADE')
-
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('ALASKA-GENERIC-9X12',1,0)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('ALASKA-GENERIC-PRI',1,0)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('CITIVM-GENERIC-PRI',1,0)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('CITIVM-GENERIC-9X12',1,0)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('HSBC-GENERIC-9X12',2,0)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('HSBC-GENERIC-PRI',2,0)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('DALLAS-90days-CERT',1,0)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('DALLAS-GENERIC-10',1,0)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('DALLAS-Statements-10',1,0)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('RPS-GENERIC-6X9',1,0)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('RPS-GENERIC-9X12',1,0)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('USAA-GENERIC-10',1,0)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('USAA-GENERIC-FEDEX',2,0)
-INSERT INTO Common.PrintTrails([TrailName],[PrintVendorId],[SimulateTrail])  Values ('USAA-GENERIC-PRI',2,0)
 
 
+Go
+CREATE UNIQUE NONCLUSTERED INDEX [IX_PrintVendor_TrailName] ON [Common].[PrintTrails]
+(
+ [TrailName] ASC,
+ [PrintVendorId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)
 
-
+GO

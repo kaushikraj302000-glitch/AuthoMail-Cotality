@@ -9,6 +9,7 @@ namespace AM.Services
     public class PullBackViewModel
     {
         public Guid MailPieceUniqueId { get; set; }
+        public int? PrintTrailBatchId { get; set; }
         public int PrintBatch { get; set; }
         public string AMBatchPipelineStatus { get; set; }
         public string PnSBatchPipelineStatus { get; set; }
@@ -32,7 +33,6 @@ namespace AM.Services
         public int PrintBatch { get; set; }
         public string PieceId { get; set; }
         public string Name { get; set; }
-        public string PrintLocation { get; set; }
-        public string DocTypeCode { get; set; }
+        public string VendorCode { get; set; }
     }
 }

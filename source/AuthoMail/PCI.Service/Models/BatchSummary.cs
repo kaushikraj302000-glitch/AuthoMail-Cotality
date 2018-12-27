@@ -116,11 +116,12 @@ namespace PCI.Service
         public int ClientId { get; set; }
         public string AppCode { get; set; }
         public int DocTypeId { get; set; }
-        public int MailPieceId { get; set; }
+        public int? MailPieceId { get; set; }
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
-        public DateTime EffectiveReceivedOnEst { get; set; }
+        public DateTime? EffectiveReceivedOnEst { get; set; }
         public int SequenceNo { get; set; }
+        public DateTime MailPieceDueDate { get; set; }
 
         //Extra fields which will be used for generating MRDF Request
         public string InputWeight { get; set; }
@@ -177,6 +178,7 @@ namespace PCI.Service
         public int SFTChannelId { get; set; }
         public string PrintVendorName { get; set; }
         public string BusinessCode { get; set; }
+        public string VendorCode { get; set; }
         public string TrailName { get; set; }
         public bool SimulateTrail { get; set; }
         public string Protocol { get; set; }

@@ -10,9 +10,9 @@ namespace PCI.Service
 {
     partial class DAL
     {
-        public static List<SubmittedBatches> GetSubmittedBatches()
+        public static List<SubmittedBatches> GetSubmittedBatches(string printVendorCode)
         {
-            var submittedBatches = db.ExecuteDataSet("usp_GetSubmittedBatches").Tables[0];
+            var submittedBatches = db.ExecuteDataSet("usp_GetSubmittedBatches", printVendorCode).Tables[0];
             List<SubmittedBatches> printBatches = submittedBatches.AsEnumerable().Select(x => new SubmittedBatches
             {
                 PrintTrailBatchId = x.Field<int>("PrintTrailBatchId"),
@@ -74,10 +74,11 @@ namespace PCI.Service
                     TotalSheets = row.Field<int>("TotalSheets"),
                     Feeder4_Sel = int.Parse(row.Field<string>("Feeder4_Sel")),
                     UniqueId = row.Field<Guid>("UniqueId"),
-                    MailPieceId = row.Field<int>("MailPieceId"),
-                    EffectiveReceivedOnEst = row.Field<DateTime>("EffectiveReceivedOnEst"),
+                    MailPieceId = row.Field<int?>("MailPieceId"),
+                    EffectiveReceivedOnEst = row.Field<DateTime?>("EffectiveReceivedOnEst"),
                     ShippingCarrier = row.Field<string>("ShippingCarrier"),
                     ShippingServiceType = row.Field<string>("ShippingServiceType"),
+                    MailPieceDueDate = row.Field<DateTime>("MailPieceDueDate"),
                     //Extra Properties to map for MRDF Request
                     InputWeight = row.Field<string>("InputWeight"),
                     Feeder3_Sel = row.Field<string>("Feeder3_Sel"),
@@ -110,19 +111,25 @@ namespace PCI.Service
             return mrdfReqs;
         }
 
-        public static int InsertPrintTrailBatchDetail(PrintTrailBatch printTrailBatchDetail, List<MailPieceDetail> mailPieceDetails)
+        public static int InsertPrintTrailBatchDetail(PrintTrailBatch printTrailBatchDetail)
         {
             var printTrailBatchId = db.ExecuteSqlScalar<int>(@"INSERT INTO [PnS].[PrintTrailBatches]([PrintBatchName],[SubmittedOn],[MRDFReceivedOn],[PrintTrailId]) OUTPUT INSERTED.Id VALUES(@p1,@p2,@p3,@p4)", printTrailBatchDetail.PrintBatchName, printTrailBatchDetail.SubmittedOn, printTrailBatchDetail.MRDFReceivedOn, printTrailBatchDetail.PrintTrailId);
 
+            return printTrailBatchId;
+        }
+
+        public static int UpdatedPrintTrailBatchIdInMRDFRequest(int printTrailBatchId, List<MailPieceDetail> mailPieceDetails)
+        {
             foreach (var mailPiece in mailPieceDetails)
             {
-
                 db.ExecuteSqlNonQuery(@"UPDATE [PnS].[MRDFRequest] SET [PrintTrailBatchId]= @p1,[PieceId] = @p2 WHERE JobId = @p3 AND PieceId = @p4", printTrailBatchId, mailPiece.SequenceNo, mailPiece.JobId, mailPiece.PieceId);
             }
-            //For divert primary key issue we are using starting number as 90001 and then we will change that numbering again
-            db.ExecuteSqlNonQuery(@"UPDATE [PnS].[MRDFRequest] SET [PieceId] = ([PieceId]-90000) WHERE PrintTrailBatchId = @p1", printTrailBatchId);
 
-            return printTrailBatchId;
+            //For divert primary key issue we are using starting number as 90001 and then we will change that numbering again
+            db.ExecuteSqlNonQuery(@"UPDATE [PnS].[MRDFRequest] SET [PieceId] = ([PieceId]-90000)  WHERE PrintTrailBatchId = @p1", printTrailBatchId);
+
+            //Here we are updating address fields with only sequence number and jobid in address1 field.
+            return db.ExecuteSqlNonQuery(@"UPDATE [PnS].[MRDFRequest] SET Address1 = REPLACE(REPLACE('Job: {0} Seq: {1}','{0}',PrintTrailBatchId ), '{1}' ,PieceId) WHERE PrintTrailBatchId = @p1 AND MailPieceStatus='InProgress'", printTrailBatchId);
         }
 
         public static int UpdatePrintTrailBatchDetail(PrintTrailBatch printTrailBatchDetail)

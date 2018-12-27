@@ -100,8 +100,8 @@ namespace AM.Entities
 
     public class PCISubmittedBatchDetail
     {
-        public int PrintBatch { get; set; }
-        public string PrintFileName { get; set; }
+        public int PrintTrailBatchId { get; set; }
+        public string PrintBatchName { get; set; }
         public DateTime DueDate { get; set; }
         public DateTime SubmittedOn { get; set; }
         public string ShippingCarrier { get; set; }

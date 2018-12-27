@@ -22,8 +22,9 @@ namespace AM.Reporting
                 List<MailPieces> mailPieces = new List<MailPieces>();
                 using (IReportService reportSvc = new ReportService())
                 {
+                    DateTime todayEffectiveDateTime = Common.Now.UtcToEst();
                     //Here we are passing dates in EST format because we are looking for est dates column
-                    DateTime todayEffectiveDate = Common.EstToday;
+                    DateTime todayEffectiveDate = todayEffectiveDateTime.Date;
 
                     mailPieces = reportSvc.GetFedExPickedUpReport(todayEffectiveDate, 0);
                     if (mailPieces != null && mailPieces.Count > 0)
@@ -36,10 +37,26 @@ namespace AM.Reporting
                     mailPieces = reportSvc.GetFedExPickedUpReport(todayEffectiveDate);
                     if (mailPieces != null && mailPieces.Count > 0)
                     {
+                        string fedExReportPath = string.Empty;
+                        string tableBody = string.Empty;
+                        if (Common.EstToday + AppConfig.FedExFullReportTiming >= todayEffectiveDateTime)
+                        {
+                            tableBody = "FedEx Not Picked Up Status Report For : {0} <br/><br/>".Fill(todayEffectiveDateTime.ToString("MM/dd/yyyy hh:mm"));
+
+                            mailPieces = mailPieces.Where(mp => mp.IsPickedUp == 0).ToList();
+                            fedExReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, "FedExReport", "FedExReport_NotPicked_{0}.csv".Fill(todayEffectiveDateTime.ToString("MMddyyyyhhmm")));
+                            tableBody += GenerateNotPickedEmailBody(mailPieces);
+                        }
+                        else
+                        {
+                            tableBody = "FedEx Status Report For : {0} <br/><br/>".Fill(todayEffectiveDateTime.ToString("MM/dd/yyyy"));
+                            fedExReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, "FedExReport", "FedExReport_FullReport_{0}.csv".Fill(todayEffectiveDateTime.ToString("MMddyyyyhhmmtt")));
+                        }
+
                         StringBuilder fedExReport = GetFedExReport(mailPieces);
-                        string fedExReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, "FedExReport", "FedExReport_{0}.csv".Fill(todayEffectiveDate.ToString("MMddyyyyhhmmtt")));
                         File.WriteAllText(fedExReportPath, fedExReport.ToString());
-                        SendReportToCLTeam(fedExReportPath, todayEffectiveDate);
+
+                        SendReportToCLTeam(fedExReportPath, tableBody, todayEffectiveDateTime);
                     }
                 }
             }
@@ -47,6 +64,18 @@ namespace AM.Reporting
             {
                 log.Error("Error occured while checkign for FedEx packages picked up or not", ex);
             }
+        }
+
+        private static string GenerateNotPickedEmailBody(List<MailPieces> notPickedMailPieces)
+        {
+            string bodyContent = @"<center><b>Not Picked Up Loans Details</b></center><br/><table border='1'><tbody><%REPLACE%></tbody></table>";
+            StringBuilder fullContent = new StringBuilder();
+            fullContent.AppendLine(@"<tr><td>Loan Number</td><td>Borrower Name</td><td>Document Type</td><td>Received On</td><td>Tracking Number</td><td>Due Date</td><td>Shipped On</td></tr>");
+            foreach (var mailPiece in notPickedMailPieces)
+            {
+                fullContent.AppendLine(@"<tr><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td><td>{5}</td><td>{6}</td></tr>".Fill(mailPiece.BusinessFriendlyIdValue, mailPiece.RcptFirstName + " " + mailPiece.RcptLastName, mailPiece.DocumentOrPackageType, mailPiece.MailBatches.ReceivedOn.Value.UtcToEst(), mailPiece.TrackingNo, mailPiece.DueDate.Value.UtcToEst(), mailPiece.ShippedOn.HasValue ? mailPiece.ShippedOn.Value.UtcToEst().ToString() : ""));
+            }
+            return bodyContent.Replace("<%REPLACE%>", fullContent.ToString());
         }
 
         private static StringBuilder GetFedExReport(List<MailPieces> mailPieces)
@@ -77,7 +106,7 @@ namespace AM.Reporting
             return mailPiecesReport;
         }
 
-        private static bool SendReportToCLTeam(string fedExReportPath, DateTime todayDate)
+        private static bool SendReportToCLTeam(string fedExReportPath, string tableBody, DateTime todayDate)
         {
             bool isEmailSent = false;
 
@@ -87,12 +116,15 @@ namespace AM.Reporting
                 {
                     using (MailMessage msg = new MailMessage())
                     {
-                        msg.IsBodyHtml = false;
+                        msg.IsBodyHtml = true;
                         msg.To.Add(AppConfig.FedExReport_Email_To);
                         msg.CC.Add(AppConfig.FedExReport_Email_Cc);
-                        msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, "USAA", AppConfig.FedExReportSubject);
+                        msg.Subject = "{0} : {1} {2} {3}".Fill(Config.Common_Environment, "USAA", AppConfig.FedExReportSubject, todayDate.ToString("MM-dd-yyyy hh:mm"));
                         msg.Priority = MailPriority.Normal;
-                        msg.Body = "FedEx Status Report For : {0}".Fill(todayDate.ToString("MM/dd/yyyy"));
+
+                        string bodyTags = @"<!DOCTYPE html><html xmlns='http://www.w3.org/1999/xhtml'><head><meta http-equiv='Content-Style-Type' content='text/css'></head><body><center><%REPLACE%></center></body></html>";
+
+                        msg.Body = bodyTags.Replace("<%REPLACE%>", tableBody);
 
                         if (File.Exists(fedExReportPath))
                             msg.Attachments.Add(new Attachment(fedExReportPath));

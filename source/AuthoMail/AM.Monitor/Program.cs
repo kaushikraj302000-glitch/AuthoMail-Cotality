@@ -18,7 +18,7 @@ namespace AM.Monitor
         /// </summary>
         /// <param name="args"></param>
         static void Main(string[] args)
-        {            
+        {
             MonitorBatchesService monitorSvc = new MonitorBatchesService();
             var monitorReport = monitorSvc.GetPendingBatchesToSubmit(Int32.Parse(ConfigurationManager.AppSettings["Alert_CutOffMinutes"]));
             var delayedBatchesList = monitorReport.DelayedBatches;
@@ -39,9 +39,9 @@ namespace AM.Monitor
 
             if (pendingBatchesToReportBack.Count > 0)
             {
-                PrepEmailBody_PendingBatchesToReportBack(monitorSvc, pendingBatchesToReportBack.Where(p => p.PrintLocation == Config.Common_PrintLocationPCI).ToList(), monitor_PrintBatch, monitor_AppCode, monitor_JobName, monitor_Pipelinestatus, monitor_ReceivedOn, monitor_DownloadedOn, monitor_PreppedOn, new StringBuilder(File.ReadAllText(Path.GetFullPath(ConfigurationManager.AppSettings["MonitorEmailReportedBackTemplate"]))), ConfigurationManager.AppSettings["Monitor_ReportedBack_Email_ToPCI"], ConfigurationManager.AppSettings["Monitor_ReportedBack_Email_SubjectPCI"]);
+                PrepEmailBody_PendingBatchesToReportBack(monitorSvc, pendingBatchesToReportBack.Where(p => p.VendorCode == "PCI").ToList(), monitor_PrintBatch, monitor_AppCode, monitor_JobName, monitor_Pipelinestatus, monitor_ReceivedOn, monitor_DownloadedOn, monitor_PreppedOn, new StringBuilder(File.ReadAllText(Path.GetFullPath(ConfigurationManager.AppSettings["MonitorEmailReportedBackTemplate"]))), ConfigurationManager.AppSettings["Monitor_ReportedBack_Email_ToPCI"], ConfigurationManager.AppSettings["Monitor_ReportedBack_Email_SubjectPCI"]);
 
-                PrepEmailBody_PendingBatchesToReportBack(monitorSvc, pendingBatchesToReportBack.Where(p => p.PrintLocation == Config.Common_PrintLocationCL).ToList(), monitor_PrintBatch, monitor_AppCode, monitor_JobName, monitor_Pipelinestatus, monitor_ReceivedOn, monitor_DownloadedOn, monitor_PreppedOn, new StringBuilder(File.ReadAllText(Path.GetFullPath(ConfigurationManager.AppSettings["MonitorEmailReportedBackTemplate"]))), ConfigurationManager.AppSettings["Monitor_ReportedBack_Email_ToDallas"], ConfigurationManager.AppSettings["Monitor_ReportedBack_Email_SubjectDALLAS"]);
+                PrepEmailBody_PendingBatchesToReportBack(monitorSvc, pendingBatchesToReportBack.Where(p => p.VendorCode == "CL_DALLAS").ToList(), monitor_PrintBatch, monitor_AppCode, monitor_JobName, monitor_Pipelinestatus, monitor_ReceivedOn, monitor_DownloadedOn, monitor_PreppedOn, new StringBuilder(File.ReadAllText(Path.GetFullPath(ConfigurationManager.AppSettings["MonitorEmailReportedBackTemplate"]))), ConfigurationManager.AppSettings["Monitor_ReportedBack_Email_ToDallas"], ConfigurationManager.AppSettings["Monitor_ReportedBack_Email_SubjectDALLAS"]);
             }
         }
 

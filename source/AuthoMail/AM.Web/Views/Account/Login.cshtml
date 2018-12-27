@@ -12,7 +12,7 @@
                 <div class="left-block cl-columns">
                     <h1 class="app-logo">AuthoMail</h1>
                     <br>
-                    @using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "cl-form-login", role = "form" }))
+                    @using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "cl-form-login", @role = "form" }))
                     {
                         @Html.AntiForgeryToken()
 
@@ -31,7 +31,7 @@
                             <div class="form-group">
                                 @Html.LabelFor(m => m.Password)
                                 <span class="pull-right" tabindex="4">@Html.ActionLink("Forgot Password?", "ForgotPassword", "Account", new { @class = "forgot" })</span>
-                                @Html.PasswordFor(m => m.Password, new { @class = "form-control", @tabindex = "2" })
+                                @Html.PasswordFor(m => m.Password, new { @class = "form-control", @tabindex = "2", @autocomplete = "false" })
                                 @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
 
                             </div>

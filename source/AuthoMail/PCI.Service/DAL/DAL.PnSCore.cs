@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Nordis.Lib;
 
 namespace PCI.Service
 {
@@ -165,11 +166,27 @@ namespace PCI.Service
             }
         }
 
-        public static void UpdateMRDFRequestStatusFromResponse(EnumerableRowCollection<DataRow> mrdfResponseData, List<int> resPieceIds)
+        public static void InsertXMLResponseData(BatchResponse batchResponse)
+        {
+            if (batchResponse.PackagesReport.Count == 0)
+                return;           
+
+            foreach (var res in batchResponse.PackagesReport)
+            {
+                var sql = @"DELETE FROM [PnS].[MRDFResponse] Where JobId=@p1 and PieceId=@p2";
+                db.ExecuteSqlNonQuery(sql,batchResponse.JobId, res.PieceId);
+                
+                sql = @"INSERT INTO PnS.MRDFResponse (JobId,PieceId,ProcessingTimeStamp,Disposition,PostageMetered,WeightMeasured,TotalSheets,PDFFileName) VALUES (@p1,@p2,@p3,@p4,@p5,@p6,@p7,@p8)";
+
+                db.ExecuteSqlNonQuery(sql, batchResponse.JobId, res.PieceId, res.PrintStatus == PrintStatus.Shipped ? res.ShippedOn : res.PrintStatus == PrintStatus.PulledBack ? res.PulledBackOn : DateTime.MinValue, res.PrintStatus == PrintStatus.Shipped ? '5' : res.PrintStatus == PrintStatus.PulledBack ? '4' : '7',res.Postage,res.WeightMeasured,res.TotalSheets,res.PDFFileName);
+            }
+        }
+
+        public static void UpdateMRDFRequestStatusFromResponse(EnumerableRowCollection<DataRow> printVendorResponseData, List<int> resPieceIds)
         {
             foreach (var pieceId in resPieceIds)
             {
-                var res = mrdfResponseData.Single(row => row.Field<int>("PieceId") == pieceId);
+                var res = printVendorResponseData.Single(row => row.Field<int>("PieceId") == pieceId);
 
                 string errorUpdate = res.Field<string>("Disposition").Trim() == "7" ?
                     ", ErrId=7, ErrDesc='System was unable to print or ship this mailpiece. It has to be resent after necessary amendments.'" : "";
@@ -277,6 +294,70 @@ namespace PCI.Service
         {
             var ds = db.ExecuteDataSet("usp_GetMRDFRequestDataByPrintTrailBatchId", printTrailBatchId, mailPieceStatus);//Here we will create view instaed of SP
             return ds.Tables[0];
+        }
+
+        public static List<MailPieceDetail> GetMRDFRequestListByPrintTrailBatchId(int printTrailBatchId)//To Get All Values define "ALL", Records without pdf level errors use "INTERNAL"
+        {
+            var data = DAL.GetMRDFRequestDataByPrintTrailBatchId(printTrailBatchId, MailPieceStatus.InProgress.ToString());
+
+            List<MailPieceDetail> mrdfReqs = new List<MailPieceDetail>();
+            foreach (DataRow row in data.Rows)
+            {
+                mrdfReqs.Add(new MailPieceDetail()
+                {
+                    PrintTrailBatchId = row.Field<int?>("PrintTrailBatchId"),
+                    ClientId = row.Field<int>("ClientId"),
+                    AppCode = row.Field<string>("AppCode"),
+                    DocTypeId = row.Field<int>("DocTypeId"),
+                    Address1 = row.Field<string>("Address1"),
+                    Date = row.Field<DateTime>("Date"),
+                    DivertVS3 = int.Parse(row.Field<string>("DivertVS3")),
+                    ErrDesc = row.Field<string>("ErrDesc"),
+                    ErrId = row.Field<int>("ErrId"),
+                    Expansion = row.Field<string>("Expansion"),
+                    JobId = row.Field<int>("JobId"),
+                    MailPieceStatus = row.Field<string>("MailPieceStatus"),
+                    PDFFileName = row.Field<string>("PDFFileName"),
+                    PieceId = row.Field<int>("PieceId"),
+                    TotalPages = row.Field<int>("TotalSheets"),
+                    TotalSheets = row.Field<int>("TotalSheets"),
+                    Feeder4_Sel = int.Parse(row.Field<string>("Feeder4_Sel")),
+                    UniqueId = row.Field<Guid>("UniqueId"),
+                    MailPieceId = row.Field<int?>("MailPieceId"),
+                    EffectiveReceivedOnEst = row.Field<DateTime?>("EffectiveReceivedOnEst"),
+                    ShippingCarrier = row.Field<string>("ShippingCarrier"),
+                    ShippingServiceType = row.Field<string>("ShippingServiceType"),
+                    MailPieceDueDate = row.Field<DateTime>("MailPieceDueDate"),
+                    //Extra Properties to map for MRDF Request
+                    InputWeight = row.Field<string>("InputWeight"),
+                    Feeder3_Sel = row.Field<string>("Feeder3_Sel"),
+                    Feeder5_Sel = row.Field<string>("Feeder5_Sel"),
+                    LowCap_Sel = row.Field<string>("LowCap_Sel"),
+                    NoSeal_Sel = row.Field<string>("NoSeal_Sel"),
+                    Feeder2_Sel = row.Field<string>("Feeder2_Sel"),
+                    ZipMark_Sel = row.Field<string>("ZipMark_Sel"),
+                    Address2 = row.Field<string>("Address2"),
+                    Zip5 = row.Field<string>("Zip5"),
+                    Zip4 = row.Field<string>("Zip4"),
+                    Zip2 = row.Field<string>("Zip2"),
+                    DivertVS2 = row.Field<string>("DivertVS2"),
+                    DivertVS4 = row.Field<string>("DivertVS4"),
+                    ReturnLogoBitMap = row.Field<string>("ReturnLogoBitMap"),
+                    ReturnLine1 = row.Field<string>("ReturnLine1"),
+                    ReturnLine2 = row.Field<string>("ReturnLine2"),
+                    ReturnLine3 = row.Field<string>("ReturnLine3"),
+                    ReturnLine4 = row.Field<string>("ReturnLine4"),
+                    ReturnLine5 = row.Field<string>("ReturnLine5"),
+                    ReturnLine6 = row.Field<string>("ReturnLine6"),
+                    GroupNumber = row.Field<string>("GroupNumber"),
+                    SocialSecNumber = row.Field<string>("SocialSecNumber"),
+                    CheckAmount = row.Field<string>("CheckAmount"),
+                    PassThru = row.Field<string>("PassThru"),
+                    EndofRecord = row.Field<string>("EndofRecord")
+                });
+            }
+
+            return mrdfReqs;
         }
     }
 }

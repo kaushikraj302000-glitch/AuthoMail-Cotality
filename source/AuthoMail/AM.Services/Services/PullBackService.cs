@@ -28,13 +28,21 @@ namespace AM.Services
     {
         public List<PullBackViewModel> GetMailPieceData(List<string> mpIds)
         {
-            string qry = string.Format("SELECT AMMP.MailBatchId,AMMP.[UniqueId] as MailPieceUniqueId,PB.PrintBatch,AMMB.PipelineStatus AS AMBatchPipelineStatus,PB.PipelineStatus AS PnSBatchPipelineStatus,AMMP.ShippingStatus AS AMMailPieceStatus,PM.MailPieceStatus AS PnSMailPieceStatus,AMMP.PrintLocation,AMMP.ErrorDesc AS AMErrorDescription,PM.ErrDesc AS PnSErrorDescription,PLBT.PCIBatchPrepEnd,AMMP.IsPullBackRequested,AMMP.PullBackRequestedOn,AMMP.IsPulledBack,AMMP.PulledBackOn,PU.UserName FROM AM.MailPieces AMMP  LEFT OUTER JOIN PnS.MRDFRequest PM ON AMMP.[UniqueId] = PM.UniqueId  INNER JOIN AM.MailBatches AMMB ON AMMB.Id = AMMP.MailBatchId LEFT OUTER JOIN PnS.BatchSummary PB ON PB.PrintBatch = PM.JobId LEFT OUTER JOIN PnS.LogBatchTimeLine PLBT ON PLBT.BatchId = PB.PrintBatch LEFT OUTER JOIN [Profile].Users PU ON PU.Id = AMMP.PulledBackRequestedBy  WHERE AMMP.[UniqueId] IN @mailPieceIds");
+            string qry = string.Format("SELECT AMMP.MailBatchId,AMMP.[UniqueId] as MailPieceUniqueId,PM.PrintTrailBatchId,PB.PrintBatch,AMMB.PipelineStatus AS AMBatchPipelineStatus,PB.PipelineStatus AS PnSBatchPipelineStatus,AMMP.ShippingStatus AS AMMailPieceStatus,PM.MailPieceStatus AS PnSMailPieceStatus,AMMP.PrintLocation,AMMP.ErrorDesc AS AMErrorDescription,PM.ErrDesc AS PnSErrorDescription,PLBT.PCIBatchPrepEnd,AMMP.IsPullBackRequested,AMMP.PullBackRequestedOn,AMMP.IsPulledBack,AMMP.PulledBackOn,PU.UserName FROM AM.MailPieces AMMP  LEFT OUTER JOIN PnS.MRDFRequest PM ON AMMP.[UniqueId] = PM.UniqueId  INNER JOIN AM.MailBatches AMMB ON AMMB.Id = AMMP.MailBatchId LEFT OUTER JOIN PnS.BatchSummary PB ON PB.PrintBatch = PM.JobId LEFT OUTER JOIN PnS.LogBatchTimeLine PLBT ON PLBT.BatchId = PB.PrintBatch LEFT OUTER JOIN [Profile].Users PU ON PU.Id = AMMP.PulledBackRequestedBy  WHERE AMMP.[UniqueId] IN @mailPieceIds");
             var data = db.Query<PullBackViewModel>(qry, new { mailPieceIds = mpIds }).ToList();
             return data;
         }
         public List<PullBackRequestForm> GetPullBackData(List<string> mpIds)
         {
-            string qry = string.Format(";WITH batchSummary AS (SELECT PrintFileName,SubmittedOn,ClientId,PrintBatch,PrintLocation,DocTypeId  FROM PnS.BatchSummary),docTypes AS (SELECT Id,DocTypeCode FROM AM.DocTypes WHERE IsActive = 1),mrdfReq AS(SELECT JobId,PieceId,[UniqueId],PDFFileName FROM PnS.MRDFRequest),mailPieces AS (SELECT UniqueId,RcptFirstName,RcptLastName FROM AM.MailPieces),Client AS(SELECT Id,Name FROM Common.Clients),RESULT AS(SELECT PBS.PrintFileName,PMR.PDFFileName,PBS.SubmittedOn,PMR.JobId,PMR.PieceId,AMP.RcptFirstName,AMP.RcptLastName,CC.Name,PBS.PrintLocation,AD.DocTypeCode FROM batchSummary PBS INNER JOIN AM.DocTypes AD ON AD.Id = PBS.DocTypeId INNER JOIN mrdfReq PMR ON PBS.PrintBatch = PMR.JobId INNER JOIN mailPieces AMP ON PMR.UniqueId = AMP.UniqueId INNER JOIN  Client CC ON PBS.ClientId = CC.Id WHERE PMR.[UniqueId] IN @mailPieceIds)(SELECT PrintFileName,SubmittedOn,JobId AS PrintBatch,PieceId = STUFF((SELECT DISTINCT ', '+ CAST(pRES.PieceId AS VARCHAR(255)) + ':'+pRES.PDFFileName+ ':'+pRES.RcptFirstName+' '+pRES.RcptLastName FROM RESULT pRES WHERE pRES.JobId = RES.JobId FOR XML PATH('')),1,1,''),Name,PrintLocation,DocTypeCode FROM RESULT RES GROUP BY RES.JobId,PrintFileName,SubmittedOn,Name,PrintLocation,DocTypeCode)");
+            string qry = @";WITH 
+                           printTrailBatch AS (SELECT Id,PrintBatchName,SubmittedOn,PrintTrailId FROM PnS.PrintTrailBatches),
+                           mrdfReq AS (SELECT PrintTrailBatchId,PieceId,[UniqueId],PDFFileName FROM PnS.MRDFRequest),
+                           printTrail AS (SELECT Id,TrailName,PrintVendorId FROM Common.PrintTrails),
+                           printVendor AS (SELECT Id,Name,VendorCode FROM Common.PrintVendors),
+                           mailPieces AS (SELECT UniqueId,ClientId,RcptFirstName,RcptLastName,DocTypeId,PrintTrailId FROM AM.MailPieces),
+                           Client AS(SELECT Id,Name FROM Common.Clients),
+                           RESULT AS (SELECT PTB.PrintBatchName,PMR.PDFFileName,PTB.SubmittedOn,PMR.PrintTrailBatchId,PMR.PieceId,AMP.RcptFirstName,AMP.RcptLastName,CC.Name,PV.VendorCode FROM printTrailBatch PTB INNER JOIN mrdfReq PMR ON PTB.Id = PMR.PrintTrailBatchId INNER JOIN mailPieces AMP ON PMR.UniqueId = AMP.UniqueId INNER JOIN printTrail PT ON AMP.PrintTrailId = PT.Id INNER JOIN printVendor PV ON PT.PrintVendorId = PV.Id INNER JOIN  Client CC ON AMP.ClientId = CC.Id WHERE PMR.[UniqueId] IN @mailPieceIds)
+                           (SELECT PrintBatchName+'.zip' as PrintFileName,SubmittedOn,PrintTrailBatchId AS PrintBatch,PieceId = STUFF((SELECT DISTINCT ', '+ CAST(pRES.PieceId AS VARCHAR(255)) + ':'+pRES.PDFFileName+ ':'+pRES.RcptFirstName+' '+pRES.RcptLastName FROM RESULT pRES WHERE pRES.PrintTrailBatchId = RES.PrintTrailBatchId FOR XML PATH('')),1,1,''),Name,VendorCode FROM RESULT RES GROUP BY RES.PrintTrailBatchId,PrintBatchName,SubmittedOn,Name,VendorCode)";
 
             var data = db.Query<PullBackRequestForm>(qry, new { mailPieceIds = mpIds }).ToList();
             return data;
@@ -52,6 +60,9 @@ namespace AM.Services
             {
                 string qry = string.Format(@"UPDATE AM.MailPieces SET ShippingStatus = @shippingStatus, PullBackRequestedOn = @utcDate, PulledBackOn = @pulledbackUtcDate,PulledBackRequestedBy = @UserId WHERE UniqueId = @id");
                 data = db.Execute(qry, new { shippingStatus = status, utcDate = DateTime.UtcNow, pulledbackUtcDate = DateTime.UtcNow, UserId = string.IsNullOrEmpty(userId) ? DBNull.Value.ToString() : userId, id = mpId });
+                UpdateAMBatchStatus(mpId.ToString());
+                db.Execute(@"UPDATE AM.MailPieces SET PrintBatchId = null WHERE UniqueId = @MailPieceUniqueId", new { MailPieceUniqueId = mpId });
+                db.Execute(@"UPDATE PnS.MRDFRequest SET MailPieceStatus = 'PulledBack', ErrId = '-4', ErrDesc = 'Mail piece was pulled back by client directly.' , TotalSheets = 0 WHERE UniqueId = @MailPieceUniqueId", new { MailPieceUniqueId = mpId });
             }
             return data;
         }
@@ -112,7 +123,7 @@ namespace AM.Services
             {
                 foreach (var item in pullBackData)
                 {
-                    if (item.PrintLocation == Config.Common_PrintLocationPCI)
+                    if (item.VendorCode == "PCI")
                     {
                         Dictionary<string, string> dataForPullBackForm = new Dictionary<string, string>();
                         DateTime eastern = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, Config.Web_API_PB_ClientTimeZone);
@@ -121,7 +132,7 @@ namespace AM.Services
                         dataForPullBackForm.Add("JobNumber", item.PrintBatch.ToString());
                         //dataForPullBackForm.Add("PackagesToPull", string.Format("{0} : {1}, {2}", item.PrintBatch.ToString(), item.PieceId.ToString(),item.PDFFileName.ToString()));
                         dataForPullBackForm.Add("PackagesToPull", string.Format("{0}", item.PieceId.ToString()));
-                        dataForPullBackForm.Add("Coordinator", string.Format("AuthoMail, ADE, {0}-{1}", item.Name, item.DocTypeCode));
+                        dataForPullBackForm.Add("Coordinator", string.Format("AuthoMail, ADE"));
                         dataForPullBackForm.Add("PkgInstruction", string.Empty);
                         dataForPullBackForm.Add("Comments", string.Empty);
 

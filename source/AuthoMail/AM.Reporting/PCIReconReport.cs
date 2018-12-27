@@ -23,15 +23,15 @@ namespace AM.Reporting
                 List<PCISubmittedBatchDetail> pciSubmittedBatchDetails;
                 using (IReportService reportSvc = new ReportService())
                 {
-                    DateTime effectiveStartDate = Common.Now.UtcToEst().Date;
-                    DateTime effectiveEndDate = effectiveStartDate.AddDays(1);
+                    DateTime startDate = Common.EstToday.EstToUtc();
+                    DateTime endDate = startDate.AddDays(1);
 
                     //NOTE : Please change UTC to EST code when Daylight saving is off in service call
-                    pciSubmittedBatchDetails = reportSvc.GetPCIReconReport(effectiveStartDate, effectiveEndDate);
+                    pciSubmittedBatchDetails = reportSvc.GetPCIReconReport(startDate, endDate);
 
                     if (pciSubmittedBatchDetails.Count > 0)
                     {
-                        SendEmailNotificationToPCI(pciSubmittedBatchDetails, effectiveStartDate);
+                        SendEmailNotificationToPCI(pciSubmittedBatchDetails, startDate);
                     }
                 }
                 log.Debug("PCI recon report Execution Completed at {0} Est".Fill(Common.Now.UtcToEst()));
@@ -42,7 +42,7 @@ namespace AM.Reporting
             }
         }
 
-        private static void SendEmailNotificationToPCI(List<PCISubmittedBatchDetail> pciSubmittedBatchDetails, DateTime effectiveCurrentTime)
+        private static void SendEmailNotificationToPCI(List<PCISubmittedBatchDetail> pciSubmittedBatchDetails, DateTime currentTime)
         {
             var columnName = String.Join(",", "BatchID", "Batch Name", "Submitted On (Est)", "Due Date (Est)", "Carrier", "Service Type", "Package Count", "Total Pages");
 
@@ -51,13 +51,13 @@ namespace AM.Reporting
             reconReport.AppendLine();
             foreach (var batch in pciSubmittedBatchDetails)
             {
-                var line = String.Join(",", batch.PrintBatch, batch.PrintFileName, batch.SubmittedOn.UtcToEst(), batch.DueDate.UtcToEst().ToShortDateString(), batch.ShippingCarrier, batch.ShippingServiceType, batch.PackageCount, batch.TotalPages);
+                var line = String.Join(",", batch.PrintTrailBatchId, batch.PrintBatchName, batch.SubmittedOn.UtcToEst(), batch.DueDate.UtcToEst().ToShortDateString(), batch.ShippingCarrier, batch.ShippingServiceType, batch.PackageCount, batch.TotalPages);
                 reconReport.AppendLine(line);
             }
-            string reportFilePath = Path.Combine(AppConfig.PCIReconReportPath, "PCIReconReport_" + effectiveCurrentTime.ToString("MMddyyyy") + ".csv");
+            string reportFilePath = Path.Combine(AppConfig.PCIReconReportPath, "PCIReconReport_" + currentTime.UtcToEst().ToString("MMddyyyy") + ".csv");
             File.WriteAllText(reportFilePath, reconReport.ToString());
 
-            SendReportToCLTeam(reportFilePath, effectiveCurrentTime);
+            SendReportToCLTeam(reportFilePath, currentTime);
         }
 
         private static bool SendReportToCLTeam(string reconReportPath, DateTime todayCutOffTime)

@@ -165,8 +165,6 @@ namespace PCI.Service
             DatabaseFactory.SetDatabaseProviderFactory(new DatabaseProviderFactory());
 
             ApplicationEnvironment = DAL.GetSystemSettingsValue("Common_Environment");
-            PrintLocationCL = DAL.GetSystemSettingsValue("Common_PrintLocationCL");
-            PrintLocationPCI = DAL.GetSystemSettingsValue("Common_PrintLocationPCI");
 
             Email_SMTPClient = new SmtpClient();
 

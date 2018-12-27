@@ -42,15 +42,16 @@ namespace AM.Services
             var delayedPrinterBatches = new List<BatchInfo>();
             var delayedReportedBackMailPiecesByAM = new List<PendingMailPieceInfo>();
             var delayedMailPiecesByPrinter = new List<PendingMailPieceInfo>();
+            var delayedPickUpMailPieces = new List<PendingMailPieceInfo>();
             using (ICommonService commonSvc = new CommonService())
             {
                 try
                 {
-                    timings = commonSvc.GetPCIBundleSweepTimings();
+                    timings = commonSvc.GetSweepTimings();
                 }
                 catch (Exception)
                 {
-                    isProcessDelay = false;
+                    isProcessDelay = true;
                 }
             }
 
@@ -68,7 +69,7 @@ namespace AM.Services
             }
             catch (Exception)
             {
-                isReceivedDelay = false;
+                isReceivedDelay = true;
             }
             try
             {
@@ -82,11 +83,14 @@ namespace AM.Services
                 var pendingInProgressMailPieces = pendingMPsToSubmit.Where(m => (m.ShippingStatus == ShippingStatus.InProgress.ToString())).ToList();
                 var delayedEmptyPrintLocation = pendingInProgressMailPieces.Where(p => p.PrintLocation.IsNullOrEmpty()).ToList();
 
-                var delayedDallasMailPieces = pendingInProgressMailPieces.Where(p => p.PrintLocation == Config.Common_PrintLocationCL).ToList();
+                var delayedDallasMailPieces = pendingInProgressMailPieces.Where(p => p.VendorCode == "CL_DALLAS").ToList();
 
-                var delayedPCIMailPieces = pendingInProgressMailPieces.Where(mp => mp.PrintLocation == Config.Common_PrintLocationPCI && Common.Now > mp.GetEstimatedSubmittedOn(timings, cutOffMinutes + 15)).ToList();
+                var delayedPCIMailPieces = pendingInProgressMailPieces.Where(mp => mp.VendorCode == "PCI" && Common.Now > mp.GetEstimatedSubmittedOn(timings, cutOffMinutes + 15)).ToList();
 
-                delayedMailPieces = delayedDallasMailPieces.Concat(delayedEmptyPrintLocation).Concat(delayedShippedMailPieces).Concat(delayedPulledBackMailPieces).Concat(delayedErrorMailPieces).Concat(clientIdNullMailPieces).Concat(shippingStatusNullMailPieces).Concat(delayedPCIMailPieces).ToList();
+                //Delayed PickUp MailPieces
+                 delayedPickUpMailPieces = pendingInProgressMailPieces.Where(mp => mp.MailPieceStatus == ShippingStatus.Shipped.ToString()).ToList();
+
+                delayedMailPieces = delayedDallasMailPieces.Concat(delayedEmptyPrintLocation).Concat(delayedShippedMailPieces).Concat(delayedPulledBackMailPieces).Concat(delayedErrorMailPieces).Concat(clientIdNullMailPieces).Concat(shippingStatusNullMailPieces).Concat(delayedPCIMailPieces).Concat(delayedPickUpMailPieces).ToList();
 
                 delayedBatches = delayedMailPieces
                     .GroupBy(mp => new { mp.MailBatchId, mp.AppCode, mp.BatchName, mp.ClientId, mp.PipelineStatus, mp.ReceivedOn })
@@ -100,12 +104,12 @@ namespace AM.Services
             }
             catch (Exception)
             {
-                isProcessDelay = false;
+                isProcessDelay = true;
             }
 
             try
             {
-                delayedReportedBackMailPiecesByAM = db.Query<PendingMailPieceInfo>("Select MP.Id,MP.MailBatchId,C.AppCode,MP.ClientId,MB.BatchName,MB.ReceivedOn,MB.PipelineStatus,MP.PrintLocation from AM.MailPieces MP inner join Common.Clients C on MP.ClientId = C.Id inner join AM.MailBatches MB on MP.MailBatchId = MB.Id inner join PnS.MrdfRequest MR on MP.UniqueId = MR.UniqueId inner join PnS.BatchSummary BS on MR.JobId = BS.PrintBatch where BS.IsSubmitted = 1 and MP.SLADays < 0 and BS.IsReportedBack = 1 and BS.PipelineStatus <> 'Cancelled' and MB.IsReportedBack = 0").ToList();
+                delayedReportedBackMailPiecesByAM = db.Query<PendingMailPieceInfo>("Select MP.Id,MP.MailBatchId,C.AppCode,MP.ClientId,MB.BatchName,MB.ReceivedOn,MB.PipelineStatus,MP.PrintLocation,MP.ShippingStatus,MP.Uniqueid,d.DocTypeCode,d.ShippingCarrier,d.ShippingServiceType,MP.MissedSLAReason from AM.MailPieces MP inner join AM.DocTypes d on MP.DocTypeId=d.Id inner join Common.Clients C on MP.ClientId = C.Id inner join AM.MailBatches MB on MP.MailBatchId = MB.Id inner join PnS.MrdfRequest MR on MP.UniqueId = MR.UniqueId inner join PnS.BatchSummary BS on MR.JobId = BS.PrintBatch where BS.IsSubmitted = 1 and MP.SLADays < 0 and BS.IsReportedBack = 0 and BS.PipelineStatus <> 'Cancelled'").ToList();
 
                 delayedAMReportedBackBatches = delayedReportedBackMailPiecesByAM.GroupBy(mp => new { mp.MailBatchId, mp.AppCode, mp.BatchName, mp.ClientId, mp.PipelineStatus, mp.ReceivedOn }).Select(g => new BatchInfo { Id = g.Key.MailBatchId, AppCode = g.Key.AppCode, BatchName = g.Key.BatchName, ClientId = g.Key.ClientId, PipelineStatus = g.Key.PipelineStatus, ReceivedOn = g.Key.ReceivedOn, DelayedMailPieces = g.ToList() }).ToList();
 
@@ -116,12 +120,12 @@ namespace AM.Services
             }
             catch (Exception)
             {
-                isReportBackDelay = false;
+                isReportBackDelay = true;
             }
 
             try
             {
-                delayedMailPiecesByPrinter = db.Query<PendingMailPieceInfo>("Select MP.Id,MP.MailBatchId,C.AppCode,MP.ClientId,MB.BatchName,MB.ReceivedOn,MB.PipelineStatus,MP.PrintLocation from AM.MailPieces MP inner join Common.Clients C on MP.ClientId = C.Id inner join AM.MailBatches MB on MP.MailBatchId = MB.Id inner join PnS.MrdfRequest MR on MP.UniqueId = MR.UniqueId inner join PnS.BatchSummary BS on MR.JobId = BS.PrintBatch where BS.IsSubmitted = 1 and MP.SLADays < 0 and BS.IsReportedBack = 0 and BS.PipelineStatus <> 'Cancelled'").ToList();
+                delayedMailPiecesByPrinter = db.Query<PendingMailPieceInfo>("Select MP.Id,MP.MailBatchId,C.AppCode,MP.ClientId,MB.BatchName,MB.ReceivedOn,MB.PipelineStatus,MP.PrintLocation,MP.ShippingStatus,MP.Uniqueid,d.DocTypeCode,d.ShippingCarrier,d.ShippingServiceType from AM.MailPieces MP inner join AM.DocTypes d on MP.DocTypeId=d.Id inner join Common.Clients C on MP.ClientId = C.Id inner join AM.MailBatches MB on MP.MailBatchId = MB.Id inner join PnS.MrdfRequest MR on MP.UniqueId = MR.UniqueId inner join PnS.BatchSummary BS on MR.JobId = BS.PrintBatch where BS.IsSubmitted = 1 and MP.SLADays < 0 and BS.IsReportedBack = 0 and BS.PipelineStatus <> 'Cancelled'").ToList();
 
                 delayedPrinterBatches = delayedMailPiecesByPrinter.GroupBy(mp => new { mp.MailBatchId, mp.AppCode, mp.BatchName, mp.ClientId, mp.PipelineStatus, mp.ReceivedOn }).Select(g => new BatchInfo { Id = g.Key.MailBatchId, AppCode = g.Key.AppCode, BatchName = g.Key.BatchName, ClientId = g.Key.ClientId, PipelineStatus = g.Key.PipelineStatus, ReceivedOn = g.Key.ReceivedOn, DelayedMailPieces = g.ToList() }).ToList();
 
@@ -132,10 +136,10 @@ namespace AM.Services
             }
             catch (Exception)
             {
-                isPrinterDelay = false;
+                isPrinterDelay = true;
             }
 
-            return new MonitorReport { DelayedBatches = delayedBatches, DelayedMailPieces = delayedMailPieces, IsReceivedDelay = isReceivedDelay, DelayedAMReportBackBatches = delayedAMReportedBackBatches, DelayedPrinterBatches = delayedPrinterBatches, DelayedAMReportBackMailPieces = delayedReportedBackMailPiecesByAM, DelayedPrinterMailPieces = delayedMailPiecesByPrinter, LastBatchReceivedOn = lastBatchReceivedOn.ReceivedOn, IsProcessDelay = isProcessDelay, IsPrinterDelay = isPrinterDelay, IsReportBackDelay = isReportBackDelay };
+            return new MonitorReport { DelayedBatches = delayedBatches, DelayedMailPieces = delayedMailPieces, IsReceivedDelay = isReceivedDelay, DelayedAMReportBackBatches = delayedAMReportedBackBatches, DelayedPrinterBatches = delayedPrinterBatches, DelayedAMReportBackMailPieces = delayedReportedBackMailPiecesByAM, DelayedPrinterMailPieces = delayedMailPiecesByPrinter, LastBatchReceivedOn = lastBatchReceivedOn.ReceivedOn, IsProcessDelay = isProcessDelay, IsPrinterDelay = isPrinterDelay, IsReportBackDelay = isReportBackDelay, PickUpDelayedMailPieces = delayedPickUpMailPieces };
         }
 
         public List<dynamic> GetPendingBatchesToReportBack()
@@ -221,7 +225,10 @@ namespace AM.Services
     public class Sweep
     {
         public int SrNo { get; set; }
+        public string AppCode { get; set; }
+        public string VendorCode { get; set; }
         public string WeekDayType { get; set; }
+        public string SweepType { get; set; }
         public TimeSpan SweepTime { get; set; }
     }
 }

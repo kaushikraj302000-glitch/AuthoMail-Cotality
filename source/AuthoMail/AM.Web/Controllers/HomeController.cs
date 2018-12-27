@@ -86,14 +86,14 @@ namespace AM.Web.Controllers
         }
 
         [HttpPost]
-        public ActionResult _GetSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string receivedOnStart, string receivedOnEnd, string status, string channel, string docType, string trackingNumber, string clientBatchId, string batchId)
+        public ActionResult _GetSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string receivedOnStart, string receivedOnEnd, string status, string channel, List<int> docType, string trackingNumber, string clientBatchId, string batchId)
         {
             try
             {
 
                 int? mailBatchId = batchId.IsNullOrWhiteSpace() ? (int?)null : Convert.ToInt32(batchId);
-                var exactStartDate = DateTime.ParseExact(receivedOnStart, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-                var exactEndDate = DateTime.ParseExact(receivedOnEnd, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+                var exactStartDate =receivedOnStart!=string.Empty ? DateTime.ParseExact(receivedOnStart, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces):(DateTime?)null;
+                var exactEndDate = receivedOnEnd != string.Empty ? DateTime.ParseExact(receivedOnEnd, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces) : (DateTime?)null;
                 var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, exactStartDate, exactEndDate, docType, status, channel, clientBatchId, mailBatchId, trackingNumber);
 
                 //var model = Mapper.Map<List<SearchViewModel>>(data);
@@ -136,10 +136,11 @@ namespace AM.Web.Controllers
         }
 
         [HttpPost]
-        public ActionResult DailySummaryChartDetails(string status, string date, int docTypeId)
+        public ActionResult DailySummaryChartDetails(string status, string docTypeCode)
         {
-            var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-            var model = chartDataSvc.GetBatchByDocTypeIdAndStatus(exactDate, status, User.Identity.GetClientId().Value, docTypeId);
+            var estToday = DateTime.UtcNow.UtcToEst().Date;
+            var data = chartDataSvc.GetMailPiecesByDocTypeIdAndStatus(estToday, status, User.Identity.GetClientId().Value, docTypeCode);
+            var model = Mapper.Map<List<MailPieceViewModel>>(data);
             return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
 
@@ -165,14 +166,14 @@ namespace AM.Web.Controllers
         [HttpGet, Route("getamstatusdetail")]
         public JsonResult AMStatusDetail()
         {
-
             try
-            {                
+            {
                 return Json(AMAlert.Instance.GetGlobalStatus, JsonRequestBehavior.AllowGet);
             }
-            catch (Exception)
-            {               
-                return Json(GetData(), JsonRequestBehavior.AllowGet);
+            catch (Exception ex)
+            {
+                throw ex;
+                //return Json(GetData(), JsonRequestBehavior.AllowGet);
             }
         }
         [HttpGet, Route("getamstatus")]
@@ -182,10 +183,11 @@ namespace AM.Web.Controllers
             {
                 return Json(AMAlert.Instance.GetAMHealth, JsonRequestBehavior.AllowGet);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                var _model = GetData();
-                return Json(new AMHealth { AlertLevel = _model.AlertLevel, IsAMDelay = _model.IsAMDelay, LastUpdatedOn = _model.LastUpdatedOn }, JsonRequestBehavior.AllowGet);
+                throw ex;
+                //var _model = GetData();
+                //return Json(new AMHealth { AlertLevel = _model.AlertLevel, IsAMDelay = _model.IsAMDelay, LastUpdatedOn = _model.LastUpdatedOn }, JsonRequestBehavior.AllowGet);
             }
         }
         private AMGlobalStatus GetData()

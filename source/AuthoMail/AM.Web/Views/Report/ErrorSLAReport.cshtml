@@ -1,8 +1,17 @@
 ﻿@{
-    ViewBag.Title = "ErrorsSLAReport";
+    ViewBag.Title = "SLA Report";
 }
 
 <style>
+    .col-md-1, .col-md-2, .col-md-3 {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+    }
+
+    .show-calendar {
+        width: 484px !important;
+    }
+
     #dateFilter .bootstrap-select, #DocTypeSize .bootstrap-select {
         width: 100% !important;
     }
@@ -17,7 +26,7 @@
         <div class="panel-heading" id="headingOne">
             <a role="button" data-toggle="collapse" data-parent="#accordion" href="#metaItem1">
                 <div class="panel-title">
-                    Error Report - SLA
+                    SLA Report
                     <div class="collapsed-icon pull-right">
                         <i class="fa fa-caret-left"></i>
                     </div>
@@ -29,44 +38,45 @@
         </div>
         <div id="metaItem1" class="panel-collapse collapse in">
             <div class="panel-body">
-                <div class="col-md-3" id="dateFilter">
-                    <div class="form-group">
-                        <label for="Status">Select Date Type</label>
-                        <select class="selectpicker" id="filterBy">
-                            <option value="ByDueDate">By Due Date</option>
-                            <option value="ByReceivedOn">By Received Date</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="date"><span id="ByDate">Due Date</span> (EST)</label>
-                        <div class="input-group date" id="datepicker4">
-                            <input type="text" class="form-control" id="date">
-                            <span class="input-group-addon">
-                                <i class="fa fa-calendar"></i>
-                            </span>
+                <div class="row">
+                    <div class="col-md-3" id="dateFilter">
+                        <div class="form-group">
+                            <label for="Status">Select Date Type</label>
+                            <select class="selectpicker" id="filterBy">
+                                <option value="ByDueDate">By Due Date</option>
+                                <option value="ByReceivedOn">By Received Date</option>
+                            </select>
                         </div>
                     </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="date"><span id="ByDate">Due Date</span> (EST)</label>
+                            <div class="input-group daterange" id="datepicker4">
+                                <input type="text" class="form-control" id="date">
+                                <span class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </span>
+                            </div>
+                        </div>
 
-                </div>
-                <div class="col-md-3" id="DocTypeSize">
-                    <div class="form-group">
-                        <label for="DocType">Document Type</label>
-                        @Html.DropDownList("DocType", ViewBag.DocType as SelectList, "Select Document Type", htmlAttributes: new { @class = "selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Document Type" })
                     </div>
+                    <div class="col-md-3" id="DocTypeSize">
+                        <div class="form-group">
+                            <label for="DocType">Document Type</label>
+                            @Html.DropDownList("DocType", ViewBag.DocType as SelectList, "Select Document Type", htmlAttributes: new { @class = "selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Document Type" })
+                        </div>
 
-                </div>
-                <div class="col-md-1">
-                    <div class="form-group ">
-                        <label for="input1"></label>
-                        <button type="button" id="filterData" class="btn btn-primary" style=" padding-top: 6%;">
-                            <span class="sr-only">Filter</span>
-                            <i class="fa fa-arrow-right fa-2x"></i>
-                        </button>
+                    </div>
+                    <div class="col-md-1">
+                        <div class="form-group ">
+                            <label for="input1"></label>
+                            <button type="button" id="filterData" class="btn btn-primary" style=" padding-top: 6%;">
+                                <span class="sr-only">Filter</span>
+                                <i class="fa fa-arrow-right fa-2x"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
@@ -92,19 +102,20 @@
     <table class="table table-responsive" style="overflow-x:scroll">
         <thead>
             <tr>
-                <th>Document Type</th>
                 <th>@Html.Action("GetHeadingForBusinessId", "Common")</th>
-                <th>File Name</th>
+                <th>Status</th>
+                <th>Borrower Name</th>
+                <th>City</th>
                 <th>Received Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Due Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Shipped Date <span class="fontcapitalize">(Local)</span></th>
+                <th>Document Type</th>
+                <th>Channel</th>
                 <th>Shipping Carrier / Service type</th>
-                <th>First Name</th>
-                <th>Last Name</th>
-                <th>Recipient Street Address</th>
-                <th>Recipient City</th>
-                <th>Recipient State</th>
-                <th>Recipient Zip</th>
+                <th>Tracking Number</th>
+                <th>SLA</th>
+                <th class="ErrorCode">Error Code</th>
+                <th class="ErrorText">Error Text</th>
                 <th class="BatchId">BatchId</th>
             </tr>
         </thead>
@@ -115,19 +126,20 @@
     <table>
         <tbody id="SLABody">
             <tr class="row-small">
-                <td><span>{DocType}</span></td>
                 <td><span>{BusinessIdValue}</span></td>
-                <td><span>{FileName}</span></td>
+                <td><span>{ShippingStatusFormatted}</span></td>
+                <td><span>{FirstName} {LastName}</span></td>
+                <td><span>{City} {State} {ZIP}</span></td>
                 <td><span>{ReceivedOnFormatted}</span></td>
                 <td><span>{DueDateFormatted}</span></td>
                 <td><span>{ShippedOnFormatted}</span></td>
-                <td>{ShippingCarrier} / {ShippingMethod}</td>
-                <td><span>{FirstName}</span></td>
-                <td><span>{LastName}</span></td>
-                <td><span>{Address}</span></td>
-                <td><span>{City}</span></td>
-                <td><span>{State}</span></td>
-                <td><span>{ZIP}</span></td>
+                <td><span>{DocType}</span></td>
+                <td><span>{Channel}</span></td>
+                <td><span>{ShippingCarrier} / {ShippingMethod}</span></td>
+                <td><span>{TrackingNo}</span></td>
+                <td><span>{SLAStatus}</span></td>
+                <td><span>{ErrorDescPopover}</span></td>
+                <td><span>{ErrorDesc}</span></td>
                 <td>{BatchId}</td>
             </tr>
         </tbody>
@@ -158,8 +170,8 @@
                 'container': 'body'
             });
             var table = $('#sample_2');
-            var filename = "ErrorReportSLA";
-            var title = "Error Report - SLA ";
+            var filename = "SLAReport";
+            var title = "SLA Report";
             var oTable = table.dataTable({
 
                 "language": {
@@ -177,7 +189,7 @@
                 },
                 "columnDefs": [
                         {
-                            "targets": ["BatchId"],
+                            "targets": ["BatchId", "ErrorText"],
                             "visible": false,
                             "searchable": true
                         },
@@ -198,7 +210,7 @@
                     filename: filename,
                     title: title,
                     exportOptions: {
-                        columns: "thead th:not(.BatchId)",//[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                        columns: ["thead th:not(.BatchId)", ".ErrorCode", ".ErrorText"],//[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                     }
 
                 }
@@ -237,16 +249,18 @@
         function FilterData() {
             $("#SLAHeader").hide();
             $("#SLABatchList").hide();
-            var date = $("#date").val();
+            var selectedData = $("#date").val().split('-');
+            var startDate = moment(selectedData[0].trim()).format("MM/DD/YY");
+            var endDate = moment(selectedData[1].trim()).format("MM/DD/YY");
+            $("#headerdate").html(startDate + " to " + endDate + " EST");
             var el = $('#SLABatchList');
-            $("#headerdate").html(date + " EST");
             $("#loading").show();
             var el = $('#SLABatchList');
             el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Report/_GetErrorsSLAReport",
-                data: JSON.stringify({ date: date, filterBy: $("#filterBy").val(), docType: $("#DocType").val() }),
+                data: JSON.stringify({ startDate: startDate, endDate: endDate, filterBy: $("#filterBy").val(), docType: $("#DocType").val() }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     //console.log(response);
@@ -297,10 +311,42 @@
         }
         function FormatObject(Model) {
             $(Model).each(function () {
+                var trackingNo = "";
+                if (this.TrackingNo == null || this.TrackingNo == "") {
+                    trackingNo = "--";
+                }
+                else {
+                    trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/track/' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
+                }
+                this.TrackingNo = trackingNo;
                 this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
                 this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
+                this.ErrorDesc = this.ErrorDesc != null ? this.ErrorDesc.replace(/"/g, '\'') : "";
+                var eddDesc = '<span id="popoverError" data-toggle="popover" data-original-title="Error Code: <ErrorCode>" data-html="true" data-content="<dataContent>" data-placement="left"><a> <ErrorCode> </a></span>'.replace(/<ErrorCode>/g, this.ErrorCode).replace("<dataContent>", this.ErrorDesc == null ? "--" : this.ErrorDesc);
+                this.ErrorDescPopover = this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>' : eddDesc;
+                var status = "";
+                var errormsg = this.ErrorDesc == null ? '@AM.Services.Config.Web_Msg_NoErrorDescription' : this.ErrorDesc;
+                switch (this.Status) {
+
+                    case "PulledBack":
+                        status = '<span class="label medium label-yellow">' + this.Status + '</span>';
+
+                        break;
+                    case "Error":
+                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error Code: <ErrorCode>" data-html="true" data-content="<dataContent>" data-placement="left"><Status></span>'.replace(/<ErrorCode>/g, this.ErrorCode).replace('<dataContent>', this.ErrorDesc == null ? "--" : this.ErrorDesc).replace('<Status>', this.Status);
+                        break;
+                    case "Shipped":
+                        status = '<span class="label medium label-success">' + this.Status + '</span>';
+                        break;
+                    case "InProgress":
+                        status = '<span class="label medium label-blue">' + this.Status + '</span>';
+                        break;
+
+                }
+                this.ShippingStatusFormatted = status;
             });
+            console.log(Model);
             return Model;
         }
         $("#filterData").click(function () {

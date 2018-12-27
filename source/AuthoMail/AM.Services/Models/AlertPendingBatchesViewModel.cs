@@ -18,12 +18,15 @@ namespace AM.Services
         public DateTime ReceivedOn { get; set; }
         public string PipelineStatus { get; set; }
         public string ShippingStatus { get; set; }
+        public string MailPieceStatus { get; set; }
         public string DocTypeCode { get; set; }
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
         public int? ClientId { get; set; }
         public string PrintLocation { get; set; }
+        public string VendorCode { get; set; }
         public DateTime? MaxSubmissionTime { get; set; }
+        public string MissedSLAReason { get; set; }
         public double MinRemainingHours
         {
             get
@@ -37,7 +40,7 @@ namespace AM.Services
         {
             using (ICommonService commonSvc = new CommonService())
             {
-                return commonSvc.GetStandardSubmissionTime(this.AppCode, this.PrintLocation, this.ReceivedOn, sweepTimings).Add(new TimeSpan(0, bufferTime, 0));
+                return commonSvc.GetStandardSubmissionTime(this.AppCode, this.VendorCode, this.ReceivedOn, sweepTimings).Add(new TimeSpan(0, bufferTime, 0));
             }
         }
     }
@@ -59,6 +62,7 @@ namespace AM.Services
         public List<BatchInfo> DelayedPrinterBatches { get; set; }
         public List<PendingMailPieceInfo> DelayedAMReportBackMailPieces { get; set; }
         public List<PendingMailPieceInfo> DelayedPrinterMailPieces { get; set; }
+        public List<PendingMailPieceInfo> PickUpDelayedMailPieces { get; set; }
         public bool IsReceivedDelay { get; set; }
         public bool IsProcessDelay
         {
@@ -96,7 +100,14 @@ namespace AM.Services
                 return this.IsReceivedDelay || this.IsProcessDelay || this.IsReportBackDelay;
             }
         }
-        private bool IsCritical { get { return this.IsReceivedDelay || this.IsProcessDelay; } }
+        public bool IsPickUpDelay
+        {
+            get
+            {
+                return (PickUpDelayedMailPieces == null || PickUpDelayedMailPieces.Count() == 0) ? false : true;
+            }
+        }
+        private bool IsCritical { get { return this.IsReceivedDelay || this.IsProcessDelay || this.IsPickUpDelay; } }
         private bool IsWarning { get { return this.IsReportBackDelay || this.IsPrinterDelay; } }
         public string AlertLevel
         {

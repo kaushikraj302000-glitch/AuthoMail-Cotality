@@ -94,7 +94,7 @@
                         <div class="col-md-@(ViewBag.BusinessId.Count > 1?"4":"3")">
                             <div class="form-group">
                                 <label for="DocType">Document Type</label>
-                                @Html.DropDownList("DocType", ViewBag.DocType as SelectList, "Select Document Type", htmlAttributes: new { @class = "selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Document Type" })
+                                @Html.DropDownList("DocType", ViewBag.DocType as SelectList, "Select Document Type", htmlAttributes: new { @class = "selectpicker", @multiple="multiple", @data_live_search = "true", @data_live_search_placeholder = "Search Document Type" })
                             </div>
 
                         </div>
@@ -124,8 +124,8 @@
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label for="receivedOn">Received  On (EST)</label>
-                                <div class="input-group daterange" id="datepicker4">
-                                    <input type="text" class="form-control" id="receivedOn">
+                                <div class="input-group " id="datepicker4">
+                                    <input type="text" class="form-control" placeholder="Select Date" id="receivedOn">
                                     <span class="input-group-addon">
                                         <i class="fa fa-calendar"></i>
                                     </span>
@@ -559,7 +559,19 @@
 
     <script type="text/javascript">
         $(document).ready(function () {
-            window.clui.dateTimePickerInit();
+            //window.clui.dateTimePickerInit();
+            var dateTemplate = '<div class="daterangepicker dropdown-menu">' + '<div class="calendar left">' + '<div class="calendar-table"></div>' + '</div>' + '<div class="calendar right">' + '<div class="calendar-table"></div>' + '</div>' + '<div class="ranges">' + '<div class="range_inputs">' + '<button class="applyBtn" disabled="disabled" type="button"></button> ' + '<button class="cancelBtn" type="button"></button>' + '</div>' + '</div>' + '</div>';
+            $("#receivedOn").daterangepicker({
+                autoApply: true,
+                template: dateTemplate,
+                showCustomRangeLabel: false,
+                autoUpdateInput: false
+            });
+
+            $('#receivedOn').on('apply.daterangepicker', function (ev, picker) {
+                $(this).val(picker.startDate.format('MM/DD/YYYY') + ' - ' + picker.endDate.format('MM/DD/YYYY'));
+            });
+
             FilterData();
             $('#searchform').validate({ // initialize the plugin
                 errorElement: "span",
@@ -735,7 +747,7 @@
                 this.RcptNameFormatted = this.FirstName + " " + this.LastName;
                 this.CityFormatted = this.City + " " + this.State + " " + this.ZIP;
                 var status = "";
-                this.View = '<a class="viewdetails" style="cursor:pointer" onclick="ViewDetails(this)" data-mailpieceid="' + this.UniqueId + '">' + this.BusinessIdValue + '</a>';
+                this.View = '<a class="viewdetails" style="cursor:pointer" onclick="ViewDetails(this)" data-mailpieceid="' + this.UniqueId + '">' + (this.BusinessIdValue != null ? this.BusinessIdValue : "Not Found") + '</a>';
                 this.ErrorDesc = this.ErrorDesc != null ? this.ErrorDesc.replace(/"/g, '\'') : "";
                 switch (this.Status) {
 
@@ -851,11 +863,17 @@
             $("#searchHeader").hide();
             $("#searchMailPieceList").hide();
             var el = $('#searchMailPieceList');
-            var selectedData = $("#receivedOn").val().split('-');
+            var startDate = ""; 
+            var endDate = ""; 
+            if ($("#receivedOn").val() != "") {
+                var selectedData = $("#receivedOn").val().split('-');
+                startDate = moment(selectedData[0].trim()).format("MM/DD/YY");
+                endDate = moment(selectedData[1].trim()).format("MM/DD/YY");
+                console.log(selectedData)
+                $("#headerdate").html(startDate + " to " + endDate + " EST");
+            }
             $("#loading").show();
-            var startDate = moment(selectedData[0].trim()).format("MM/DD/YY");
-            var endDate = moment(selectedData[1].trim()).format("MM/DD/YY");
-            $("#headerdate").html(startDate + " to " + endDate + " EST");
+            //$("#headerdate").html(startDate + " to " + endDate + " EST");
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Home/_GetSearchData",
@@ -933,6 +951,7 @@
             $("#BatchId").val("");
             $("#TrackingNumber").val("");
             $('.selectpicker').selectpicker('refresh');
+            $("#receivedOn").val("");
         });
     </script>
 }

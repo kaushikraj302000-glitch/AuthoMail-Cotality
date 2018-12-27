@@ -80,3 +80,20 @@ A.A.
 - UNDERSTAND SLA terms for USAA, how to load it in DB
 - how to make other apps use the same database?
 - find PnS production location, FAGOSFTP???
+
+
+
+Sapan's feedback:
+picked up
+enroute
+delivered
+
+label, traking number
+
+show doctype wise chart (milan)
+
+condosafe,
+
+
+BSM alert ( when site down) azeem
+DR

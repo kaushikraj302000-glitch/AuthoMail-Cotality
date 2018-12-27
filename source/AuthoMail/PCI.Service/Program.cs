@@ -26,6 +26,7 @@ namespace PCI.Service
                     log = LogManager.GetLogger("PCI.Service.PnSCoreService");
                     break;
                 case "PCIJob":
+                case "DownloadPrinterReport":
                     log = LogManager.GetLogger("PCI.Service.PCIJobMonitor");
                     break;
                 default:
@@ -44,14 +45,25 @@ namespace PCI.Service
                         break;
                     case "PnSCore":
                         PnSCoreService.PrepPCIJobs();
-                        PnSCoreService.ProcessPCIResponse();
+                        PnSCoreService.ProcessPCIResponse(args.Length > 1 ? args[1] : "");
                         PnSCoreService.GeneratePnSResponse();
                         //PnSCoreService.ProcessPCIReturnPDFsInfo();
                         break;
                     case "PCIJob":
-                        var printTrails = args.Length > 1 ? args[1] : "";
-                        PCIJobMonitor.SubmitBatchToPCI(printTrails);
-                        PCIJobMonitor.GetResponseMRDF();
+                        var isBundle = args.Length > 2 ? true : false;
+                        if (isBundle)
+                        {
+                            //NOTE : Total 3 arguments will be passed for bundling PCIJob Bundle [PrintTrailNames]
+                            PCIJobMonitor.SubmitBatchToPrintVendor(isBundle, args[2]);
+                        }
+                        else
+                        {
+                            //NOTE : Total 2 arguments will be passed for regular flow PCIJob [PrintTrailNames]
+                            PCIJobMonitor.SubmitBatchToPrintVendor(isBundle, args[1]);
+                        }
+                        break;
+                    case "DownloadPrinterReport":
+                        PCIJobMonitor.GetPrintVendorResponse(args.Length > 1 ? args[1] : "");
                         //PCIJobMonitor.GetReturnPDFsZip();
                         break;
                     default:

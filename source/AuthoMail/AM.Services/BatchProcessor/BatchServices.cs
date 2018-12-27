@@ -27,7 +27,7 @@ namespace AM.Services
         List<SubmittedBatch> GetReportPreppedPrintBatchDetails();
         int GetMailBatchesReceivedCount(DateTime startTime, DateTime endTime, string status);
         int UpdatePrintBatchPipelineStatus(int printBatchId, string pipeLineStatus, DateTime timestamp);
-        bool GetReportedBackPrintBatchesFromMailBatchId(int mailBatchId);
+        int RemainingPrintBatchesReportedBackCount(int mailBatchId);
     }
     public class MailBatchService : ServiceBase, IMailBatchService //It implements Interfaces 
     {
@@ -209,7 +209,7 @@ namespace AM.Services
         public List<SubmittedBatch> GetReportPreppedPrintBatchDetails()
         {
             //Sql Query
-            string query = @"SELECT DISTINCT PB.Id AS PrintBatchId, PB.AppCode +'_'+ CONVERT(VARCHAR(10),PB.Id) AS SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode,MB.SFTChannelId FROM AM.PrintBatches PB INNER JOIN AM.MailPieces MP ON PB.Id=MP.PrintBatchId INNER JOIN AM.MailBatches MB ON MP.MailBatchId=MB.Id WHERE PB.IsSubmittedToShipping=1 AND PB.IsReportPrepped=1 AND PB.IsReportedBack=0";
+            string query = @"SELECT DISTINCT PB.Id AS PrintBatchId, PB.AppCode +'_'+ CONVERT(VARCHAR(10),PB.Id) AS SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode,MB.SFTChannelId FROM AM.PrintBatches PB INNER JOIN AM.MailBatches MB ON PB.MailBatchId=MB.Id WHERE PB.IsSubmittedToShipping=1 AND PB.IsReportPrepped=1 AND PB.IsReportedBack=0";
 
             return db.Query<SubmittedBatch>(query, null).ToList();
         }
@@ -233,14 +233,11 @@ namespace AM.Services
             return db.Execute(query, new { TimeStamp = timestamp, Id = printBatchId });
         }
 
-        public bool GetReportedBackPrintBatchesFromMailBatchId(int mailBatchId)
+        public int RemainingPrintBatchesReportedBackCount(int mailBatchId)
         {
-            string query = @"SELECT COUNT(*) FROM AM.MailPieces P INNER JOIN AM.PrintBatches PB ON P.PrintBatchId=PB.Id WHERE P.MailBatchId=@MailBatchId AND PB.IsReportedBack=0";
+            string query = @"SELECT COUNT(*) FROM AM.PrintBatches PB WHERE PB.MailBatchId=@MailBatchId AND PB.IsReportedBack=0";
 
-            int count = db.ExecuteScalar<int>(query, new { MailBatchId = mailBatchId });
-            if (count == 0)
-                return true;
-            return false;
+            return db.ExecuteScalar<int>(query, new { MailBatchId = mailBatchId });
         }
     }
 }

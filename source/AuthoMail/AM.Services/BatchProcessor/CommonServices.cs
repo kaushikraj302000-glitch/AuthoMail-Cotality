@@ -26,8 +26,8 @@ namespace AM.Services
         List<Holiday> GetHolidayList();
         string GetSystemUserId();
         List<DallasBatch> GetDallasBatches(DateTime estToday);
-        DateTime GetStandardSubmissionTime(string appCode, string printLocation, DateTime receivedOn, List<Sweep> pciSweepTimings);
-        List<Sweep> GetPCIBundleSweepTimings();
+        DateTime GetStandardSubmissionTime(string appCode, string vendorCode, DateTime receivedOn, List<Sweep> sweepTimings);
+        List<Sweep> GetSweepTimings();
         List<DocTypePrintTrailMap> GetTrailMapDetailsByDocTypeId(int docTypeId);
         PrintVendor GetPrintVendorDetailsByPrintTrailId(int printTrailId);
     }
@@ -154,45 +154,45 @@ namespace AM.Services
             return db.Query<DallasBatch>(query, new { EstToday = estToday }).ToList();
         }
 
-        public DateTime GetStandardSubmissionTime(string appCode, string printLocation, DateTime receivedOn, List<Sweep> pciSweepTimings)
+        public DateTime GetStandardSubmissionTime(string appCode, string vendorCode, DateTime receivedOn, List<Sweep> sweepTimings)
         {
-            if (printLocation == Config.Common_PrintLocationCL || appCode == "ALASKA")
+            var revisedReceivedOnEst = receivedOn.UtcToEst();
+            var weekDayType = revisedReceivedOnEst.DayOfWeek == DayOfWeek.Saturday ? "Saturday" : "Weekday";
+            var continuousSweeps = sweepTimings.Where(s => s.AppCode == appCode && s.VendorCode == vendorCode && s.WeekDayType == weekDayType && s.SweepType == "Continuous").ToList();
+
+
+            if (continuousSweeps.Count > 0)
                 return receivedOn;
 
-            var revisedReceivedOnEst = receivedOn.UtcToEst();
-
-            pciSweepTimings = pciSweepTimings.OrderBy(t => t.SrNo).ToList();
-
-            if (revisedReceivedOnEst.DayOfWeek == DayOfWeek.Saturday)
+            var bundlingSweeps = sweepTimings.Where(s => s.AppCode == appCode && s.VendorCode == vendorCode && s.WeekDayType == weekDayType && s.SweepType == "OnSchedule").OrderBy(t => t.SrNo).ToList();
+            if (bundlingSweeps.Count > 0)
             {
-                pciSweepTimings = pciSweepTimings.Where(s => s.WeekDayType == "Saturday").ToList();
+                // adjust for sunday
+                revisedReceivedOnEst = revisedReceivedOnEst.DayOfWeek == DayOfWeek.Sunday ? revisedReceivedOnEst.AddDays(1).Date : revisedReceivedOnEst;
+
+                var applicableSweep = bundlingSweeps.FirstOrDefault(s => s.SweepTime >= revisedReceivedOnEst.TimeOfDay);
+
+                if (applicableSweep == null)
+                {
+                    revisedReceivedOnEst = revisedReceivedOnEst.AddDays(1);
+                    // adjust for sunday
+                    revisedReceivedOnEst = revisedReceivedOnEst.DayOfWeek == DayOfWeek.Sunday ? revisedReceivedOnEst.AddDays(1).Date : revisedReceivedOnEst;
+                    applicableSweep = bundlingSweeps.First();
+                }
+
+                var standardSubmissionTime = (revisedReceivedOnEst.Date + applicableSweep.SweepTime).EstToUtc();
+
+                return standardSubmissionTime;
             }
             else
             {
-                pciSweepTimings = pciSweepTimings.Where(s => s.WeekDayType == "Weekday").ToList();
+                throw new Exception(string.Format("Sweep timings are not defined for AppCode: {0}, VendorCode: {1}", appCode, vendorCode));
             }
-
-            // adjust for sunday
-            revisedReceivedOnEst = revisedReceivedOnEst.DayOfWeek == DayOfWeek.Sunday ? revisedReceivedOnEst.AddDays(1).Date : revisedReceivedOnEst;
-
-            var applicableSweep = pciSweepTimings.FirstOrDefault(s => s.SweepTime >= revisedReceivedOnEst.TimeOfDay);
-
-            if (applicableSweep == null)
-            {
-                revisedReceivedOnEst = revisedReceivedOnEst.AddDays(1);
-                // adjust for sunday
-                revisedReceivedOnEst = revisedReceivedOnEst.DayOfWeek == DayOfWeek.Sunday ? revisedReceivedOnEst.AddDays(1).Date : revisedReceivedOnEst;
-                applicableSweep = pciSweepTimings.First();
-            }
-
-            var standardSubmissionTime = (revisedReceivedOnEst.Date + applicableSweep.SweepTime).EstToUtc();
-
-            return standardSubmissionTime;
         }
 
-        public List<Sweep> GetPCIBundleSweepTimings()
+        public List<Sweep> GetSweepTimings()
         {
-            return db.Query<Sweep>("SELECT * from ufn_GetPCIBundleSweepTimings()").ToList();
+            return db.Query<Sweep>("SELECT * from ufn_GetSweepTimings()").ToList();
         }
 
         public List<DocTypePrintTrailMap> GetTrailMapDetailsByDocTypeId(int docTypeId)

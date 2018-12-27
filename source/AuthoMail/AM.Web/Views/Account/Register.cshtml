@@ -118,12 +118,12 @@
                             </div>
                             <div class="form-group">
                                 <label for="login-email">First Name</label>
-                                <input type="hidden" id="FirstName"  name="FirstName" class="form-control" />
+                                <input type="hidden" name="FirstName" class="form-control" />
                                 <label id="FirstNameCL" style=" background-color:#eee;text-transform: capitalize;" class="form-control"></label>
                             </div>
                             <div class="form-group">
                                 <label for="login-email">Last Name</label>
-                                <input type="hidden" id="LastName"  name="LastName" class="form-control" />
+                                <input type="hidden" name="LastName" class="form-control" />
                                 <label id="LastNameCL" style=" background-color:#eee;text-transform: capitalize;" class="form-control"></label>
                             </div>
                             <div class="form-group">
@@ -451,7 +451,7 @@
             $('#Password').on("keypress", function (e) {
                 //e.preventDefault();
                 if (e.keyCode == 13) {
-                    
+
                     if ($("#IsCorelogicEmail").val() == "true") {
                         //$("#passwordnext").click(); // prevent the button click from happening
                         return false;
@@ -494,6 +494,7 @@
 
                     $('#registerform').submit(function (event) {
                         event.preventDefault();
+                        //console.log("email next");
                         return false;
                     });
                 }
@@ -554,13 +555,14 @@
                             });
                         }
                         NextPassword(this);
-                        
+
                     }
                 }
                 else {
 
                     $('#registerform').submit(function (event) {
                         event.preventDefault();
+                        //console.log("registerform not valid")
                         return false;
                     });
                 }
@@ -571,7 +573,14 @@
 
             });
 
-
+            $('#registerform').submit(function (event) {
+                if ($('#registerform').valid()) {
+                    return true;
+                } else {
+                    //console.log("submit false")
+                    return false;
+                }
+            });
             //$("#registerCL").click(function () {
             //    alert("click");
             //    $("#DisplayName").rules('add', {

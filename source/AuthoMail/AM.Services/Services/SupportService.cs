@@ -207,29 +207,30 @@ namespace AM.Services
             if (client.AppCode.IsNullOrWhiteSpace()) return GetKeyValue(false, "AppCode is required.");
             if (client.TimeZone.IsNullOrWhiteSpace()) return GetKeyValue(false, "TimeZone is required.");
             if (client.BusinessUnit == 0) return GetKeyValue(false, "BusinessUnit is required.");
+            if (client.Contact1Name.IsNullOrWhiteSpace()) return GetKeyValue(false, "Contact1 Name is required.");
+            if (client.Contact1Phone.IsNullOrWhiteSpace()) return GetKeyValue(false, "Contact1 Phone is required.");
+            if (client.Contact1Email.IsNullOrWhiteSpace()) return GetKeyValue(false, "Contact1 Email is required.");
+            if (client.ITContactName.IsNullOrWhiteSpace()) return GetKeyValue(false, "ITContact Name is required.");
+            if (client.ITContactEmail.IsNullOrWhiteSpace()) return GetKeyValue(false, "ITContact Email is required.");
+            if (client.ITContactPhone.IsNullOrWhiteSpace()) return GetKeyValue(false, "ITContact Phone is required.");
+            if (client.BillingContactName.IsNullOrWhiteSpace()) return GetKeyValue(false, "BillingContact Name is required.");
+            if (client.BillingContactEmail.IsNullOrWhiteSpace()) return GetKeyValue(false, "BillingContact Email is required.");
+            if (client.BillingContactPhone.IsNullOrWhiteSpace()) return GetKeyValue(false, "BillingContact Phone is required.");
             if (client.Id == 0)
             {
-                string query = "INSERT INTO [Common].[Clients] ([Name], [AppCode], [BusinessUnit], [IsAMActive], [IsPnSActive], [TimeZone], [ModifiedOn], [CreatedOn], [CreatedBy] ,[ModifiedBy]) VALUES (@name,@appCode,@businessUnit,@isAMActive,@isPnSActive,@timeZone,@modifiedOn,@createdOn,@createdBy,@modifiedBy)";
-                int result = db.Execute(query, new
-                {
-                    name = client.Name,
-                    appcode = client.AppCode,
-                    businessUnit = client.BusinessUnit,
-                    isAMActive = client.IsAMActive,
-                    isPnSActive = client.IsPnSActive,
-                    timeZone = client.TimeZone,
-                    modifiedOn = DateTime.UtcNow,
-                    createdOn = DateTime.UtcNow,
-                    createdBy = userId,
-                    modifiedBy = userId
-                });
+                string query = "INSERT INTO [Common].[Clients] ([Name], [AppCode], [BusinessUnit], [IsAMActive], [IsPnSActive], [TimeZone], [ModifiedOn], [CreatedOn], [CreatedBy] ,[ModifiedBy],[Address] ,[Contact1Name] ,[Contact1Phone] ,[Contact1Email] ,[Contact2Name] ,[Contact2Phone] ,[Contact2Email] ,[Contact3Name] ,[Contact3Phone] ,[Contact3Email] ,[ITContactName] ,[ITContactPhone] ,[ITContactEmail] ,[BillingContactName] ,[BillingContactPhone] ,[BillingContactEmail]) VALUES (@name,@appCode,@businessUnit,@isAMActive,@isPnSActive,@timeZone,@modifiedOn,@createdOn,@createdBy,@modifiedBy,@Address ,@Contact1Name ,@Contact1Phone ,@Contact1Email ,@Contact2Name ,@Contact2Phone ,@Contact2Email ,@Contact3Name ,@Contact3Phone ,@Contact3Email ,@ITContactName ,@ITContactPhone ,@ITContactEmail ,@BillingContactName ,@BillingContactPhone ,@BillingContactEmail)";
+                client.ModifiedOn = client.CreatedOn = DateTime.UtcNow;
+                client.ModifiedBy = client.CreatedBy = userId;
+                int result = db.Execute(query, client);
                 return result > 0 ? GetKeyValue(true, "Client successfully created.")
                     : GetKeyValue(false, "Invalid action performed.");
             }
             else
             {
-                string query = "UPDATE [Common].[Clients] SET Name=@name,AppCode=@appCode,BusinessUnit=@businessUnit,TimeZone=@timeZone,ModifiedBy=@modifiedBy,ModifiedOn=@modifiedOn WHERE Id=@id";
-                int result = db.Execute(query, new { name = client.Name, appCode = client.AppCode, businessUnit = client.BusinessUnit, timeZone = client.TimeZone, modifiedBy = userId, modifiedOn = DateTime.UtcNow, id = client.Id });
+                string query = "UPDATE [Common].[Clients] SET Name=@Name,AppCode=@AppCode,BusinessUnit=@BusinessUnit,TimeZone=@TimeZone,ModifiedBy=@ModifiedBy,ModifiedOn=@ModifiedOn,Address=@Address ,Contact1Name=@Contact1Name ,Contact1Phone=@Contact1Phone ,Contact1Email=@Contact1Email ,Contact2Name=@Contact2Name ,Contact2Phone=@Contact2Phone ,Contact2Email=@Contact2Email ,Contact3Name=@Contact3Name ,Contact3Phone=@Contact3Phone ,Contact3Email=@Contact3Email ,ITContactName=@ITContactName ,ITContactPhone=@ITContactPhone ,ITContactEmail=@ITContactEmail ,BillingContactName=@BillingContactName ,BillingContactPhone=@BillingContactPhone ,BillingContactEmail=@BillingContactEmail WHERE Id=@Id";
+                client.ModifiedBy = userId;
+                client.ModifiedOn = DateTime.UtcNow;
+                int result = db.Execute(query, client);
                 return result > 0 ? GetKeyValue(true, "Client updated successfully.")
                     : GetKeyValue(false, "Invalid action performed.");
             }

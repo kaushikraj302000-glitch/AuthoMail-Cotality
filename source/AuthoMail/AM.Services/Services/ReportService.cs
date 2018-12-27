@@ -14,15 +14,14 @@ namespace AM.Services
         List<MailPieces> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel);
         List<MailPieces> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel);
         List<MailPieces> GetSummaryControlReport(int clientId, DateTime startDate, DateTime endDate, string channel);
-        List<MailPieces> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime date, int? batchId, string docType, string filterBy);
-        //List<MailPieces> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel);
+        List<MailPieces> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime startDate, DateTime endDate, int? batchId, string docType, string filterBy);
         List<MonthlyReconReportViewModel> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel);
         List<ChannelCodeTitle> GetChannelTitle(int clientId);
         List<PullBackRequests> GetPullbackRequestReport(int clientId, DateTime startDate, DateTime endDate);
         List<MailPieces> GetFedExPickedUpReport(DateTime todayEffectiveDate, int isPickedUp = -1);
         List<MailPieces> GetMailPiecesDataFromPrintBatchId(int printBatchId);
         List<MailPieces> GetMailPiecesDataFromMailBatchId(int mailBatchId);
-        List<PCISubmittedBatchDetail> GetPCIReconReport(DateTime effectiveStartDate, DateTime effectiveEndDate);
+        List<PCISubmittedBatchDetail> GetPCIReconReport(DateTime startDate, DateTime endDate);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -100,7 +99,7 @@ namespace AM.Services
             return data;
         }
 
-        public List<MailPieces> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime date, int? batchId, string docType, string filterBy)
+        public List<MailPieces> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime startDate,DateTime endDate, int? batchId, string docType, string filterBy)
         {
             string query = "[dbo].[uspweb_ErrorReportSLA] @clientId, @startDateRec, @endDateRec, @startDateDue, @endDateDue, @batchId, @docType";
             bool isReceived = filterBy == "ByReceivedOn" ? true : false;
@@ -120,10 +119,10 @@ namespace AM.Services
                     clientId = clientId,
                     batchId = batchId,
                     docType = docType.IsNullOrWhiteSpace() ? null : docType,
-                    startDateRec = isReceived ? (date.ToStartDateTime()).EstToUtc() : dt,
-                    endDateRec = isReceived ? (date.ToEndDateTime()).EstToUtc() : dt,
-                    startDateDue = isReceived ? dt : (date.ToStartDateTime()).EstToUtc(),
-                    endDateDue = isReceived ? dt : (date.ToEndDateTime()).EstToUtc()
+                    startDateRec = isReceived ? (startDate.ToStartDateTime()).EstToUtc() : dt,
+                    endDateRec = isReceived ? (endDate.ToEndDateTime()).EstToUtc() : dt,
+                    startDateDue = isReceived ? dt : (startDate.ToStartDateTime()).EstToUtc(),
+                    endDateDue = isReceived ? dt : (endDate.ToEndDateTime()).EstToUtc()
                 }
                 ).ToList();
             return data;
@@ -277,11 +276,19 @@ namespace AM.Services
             return data;
         }
 
-        public List<PCISubmittedBatchDetail> GetPCIReconReport(DateTime effectiveStartDate, DateTime effectiveEndDate)
+        public List<PCISubmittedBatchDetail> GetPCIReconReport(DateTime startDate, DateTime endDate)
         {
-            string query = "[dbo].[usp_GetPCIReconReport] @StartDate, @EndDate";
+            string query = @"SELECT PT.Id as PrintTrailBatchId,PT.[PrintBatchName],PT.SubmittedOn,MAX(BS.DueDate) AS DueDate,D.ShippingCarrier,D.ShippingServiceType,COUNT(*) AS PackageCount,SUM(REQ.TotalSheets) AS TotalPages 
+FROM PnS.PrintTrailBatches PT 
+INNER JOIN PnS.MRDFRequest REQ ON PT.Id=REQ.PrintTrailBatchId
+INNER JOIN PnS.BatchSummary BS ON REQ.JobId=BS.PrintBatch
+INNER JOIN Common.PrintTrails PTS ON BS.PrintTrailId=PTS.Id
+LEFT OUTER JOIN AM.DocTypes D ON BS.DocTypeId=D.Id
+WHERE PT.SubmittedOn >= @StartDate AND  PT.SubmittedOn < @EndDate AND BS.PrintLocation='Fort Mill, SC' AND REQ.MailPieceStatus <> 'Error'
+GROUP BY PT.Id,PT.PrintBatchName,PT.SubmittedOn,D.ShippingCarrier,D.ShippingServiceType
+ORDER BY PrintTrailBatchId";
 
-            return db.Query<PCISubmittedBatchDetail>(query, new { StartDate = effectiveStartDate, EndDate = effectiveEndDate }).ToList();
+            return db.Query<PCISubmittedBatchDetail>(query, new { StartDate = startDate, EndDate = endDate }).ToList();
         }
     }
 }
