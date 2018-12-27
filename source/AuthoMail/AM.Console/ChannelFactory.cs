@@ -33,16 +33,8 @@ namespace AM.Console
                     return new HSBCChannel(channelCode, channelType);
 
                 //// AuthoMail XML schema
-                //case "AmeriHome":
-                //case "USAA":
-                //    // XML client code , get id
-                //    return new GeneralChannel(channelCode);
-
-                //case "BatchReporting":
-
-                //    break;
                 default:
-                    return null;
+                    return new GeneralChannel(channelCode, channelType);
             }
         }
     }
