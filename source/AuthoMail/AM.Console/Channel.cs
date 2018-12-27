@@ -749,6 +749,10 @@ namespace AM.Console
                     {
                         Client client = clientSvc.GetClientById(mailBatch.ClientId);
 
+                        //System will not validate address for those client who just providing print ready documents and want to print documents only. 
+                        if (client.IsPrintReady)
+                            continue;
+
                         var mailPieceData = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatch.Id);
 
                         List<MailPieceDTO> validMailPieces = mailPieceData.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
