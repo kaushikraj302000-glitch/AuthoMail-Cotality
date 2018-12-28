@@ -107,6 +107,7 @@ namespace AM.Services
                             Description = String.Join(Environment.NewLine, validationErrors)
                         };
 
+                        response.Id = request.Id;
                         response.AddressTypes.Add(AddressType.INVALID);
                     }
                     else
