@@ -547,7 +547,37 @@ namespace AM.Core
                         }
                         break;
                     default:
-                        throw new Exception("Invalid App Code");
+                        using (IGeneralService generalSvc = new GeneralService())
+                        {
+                            string errorGoFileName = "ErrReport.go";
+                            string errorGoFilePath = Path.Combine(mbi.AMResponsePath, errorGoFileName);
+
+                            string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+
+                            string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+
+                            StringBuilder errorData = generalSvc.GeneralErrorReport(mailPieces, deliverable.Delimeter);
+                            if (errorData != null)
+                            {
+                                File.WriteAllText(errorReportPath, errorData.ToString());
+
+                                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannel.Protocol), sftChannel.Host, sftChannel.UserName, sftChannel.Password, 300000);
+                                sftSite.Connect();
+
+                                sftSite.UploadFile(errorReportPath, Path.Combine(deliverable.UploadPath, errorReportFileName));
+
+                                // Upload Error.GO file after uploading error report
+                                File.WriteAllText(errorGoFilePath, string.Empty);
+
+                                sftSite.UploadFile(errorGoFilePath, Path.Combine(deliverable.UploadPath, errorGoFileName));
+
+                                if (sftSite.IsConnected)
+                                    sftSite.Disconnect();
+
+                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
+                            }
+                        }
+                        break;
                 }
             }
         }
@@ -1155,7 +1185,46 @@ namespace AM.Core
                     }
                     break;
                 default:
-                    throw new Exception("Invalid App Code");
+                    using (IGeneralService generalSvc = new GeneralService())
+                    {
+                        List<MailPieces> mailPieces = null;
+                        var inProgressMailPiece = mailPiecesData.Where(m => m.ShippingStatus == ShippingStatus.InProgress.ToString()).Count();
+
+                        if (inProgressMailPiece == 0)
+                        {
+                            mailPieces = mailPiecesData.Where(m => m.ShippingStatus == ShippingStatus.PulledBack.ToString() && m.PrintBatchId == null).ToList();
+
+                            if (mailPieces.Count > 0)
+                            {
+                                StringBuilder deliveryReport = generalSvc.GeneralDeliveryReport(mailPieces, deliverable.Delimeter);
+
+                                if (deliveryReport != null)
+                                {
+                                    string deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+
+                                    string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
+
+                                    File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
+
+                                }
+                            }
+
+                            isReportGenerated = true;
+
+                            StringBuilder errorReport = generalSvc.GeneralErrorReport(mailPiecesData, deliverable.Delimeter);
+
+                            if (errorReport != null)
+                            {
+                                string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+
+                                string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+
+                                File.WriteAllText(errorReportPath, errorReport.ToString());
+                                isReportGenerated = true;
+                            }
+                        }
+                    }
+                    break;
             }
             return isReportGenerated;
         }
