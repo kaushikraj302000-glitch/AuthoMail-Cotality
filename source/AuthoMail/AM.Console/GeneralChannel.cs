@@ -522,10 +522,16 @@ namespace AM.Console
                             mailPieceDTO.BusinessFriendlyIdValue = requests.BusinessFriendlyIdValue;
                             mailPieceDTO.DocumentOrPackageType = requests.DocumentOrPackageType == null ? mailBatch.DocumentOrPackageType : requests.DocumentOrPackageType;
                             mailPieceDTO.UniqueId = requests.Id == null || requests.Id == Guid.Empty ? Guid.NewGuid() : requests.Id;
-                            
+
                             mailPieceDTO.FileName = requests.DocumentOrPackage.Name;
                             mailPieceDTO.FilePattern = requests.DocumentOrPackage.Pattern;
-                           
+                            if (!string.IsNullOrEmpty(requests.DocumentOrPackage.Pattern))
+                            {
+                                var file = Directory.EnumerateFiles(mbi.AMRequestPath, "*" + mailPieceDTO.FilePattern + "*.pdf").SingleOrDefault();
+
+                                mailPieceDTO.FileName = Path.GetFileName(file);
+                            }
+
                             if (!string.IsNullOrEmpty(requests.DocumentOrPackage.Base64String))
                             {
                                 string filePath = Path.Combine(mbi.AMRequestPath, mailPieceDTO.UniqueId.ToString() + ".pdf");
@@ -587,6 +593,7 @@ namespace AM.Console
                             if (requests.ReturnInfo == null)
                             {
                                 mailPieceDTO.IsReturnInfoSpecified = false;
+                                //if at mail piece level system didn't find return info then it will check for MailBatch level if exist system will use that in mail piece level 
                                 if (mailBatch.IsReturnInfoSpecified)
                                 {
                                     mailPieceDTO.RetRcptFirstName = mailBatch.RetRcptFirstName;
@@ -618,8 +625,8 @@ namespace AM.Console
                                 {
                                     mailPieceDTO.IsReturnInfoSpecified = true;
                                     mailPieceDTO.RetRcptFirstName = requests.ReturnInfo.Recipient.FirstName;
-
                                     mailPieceDTO.RetRcptLastName = requests.ReturnInfo.Recipient.LastName;
+
                                     mailPieceDTO.RetRcptMiddleName = requests.ReturnInfo.Recipient.MiddleName;
                                     mailPieceDTO.RetRcptOrganization = requests.ReturnInfo.Recipient.Organization;
                                     mailPieceDTO.RetRcptPrefix = requests.ReturnInfo.Recipient.Prefix;
@@ -660,40 +667,28 @@ namespace AM.Console
                             MailPieceValidationResult schemaValidationResult = ValidateMailPieceNode(mailPieceNode);
                             if (schemaValidationResult.Code == OutComeCodes.No_Error)
                             {
-                                // System will check for client specific validations
-                                MailPieceValidationResult clientSpecificValidationResult = ValidateClientSpecificRules(mailPieceNode);
-                                if (clientSpecificValidationResult.Code == OutComeCodes.No_Error)
+                                //System will check for common validations
+                                MailPieceValidationResult commonValidationResult = ValidateCommonValidation(mailPieceDTO, mbi);
+                                if (commonValidationResult.Code == OutComeCodes.No_Error)
                                 {
-                                    //in last system will check for general validations
-                                    string filePath = Path.Combine(mbi.AMRequestPath, mailPieceDTO.FileName);
-
-                                    string documentOrPackageType = mailPieceDTO.DocumentOrPackageType;
-
-                                    //Document Or Package Type validation
-                                    var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType);
-
-                                    if (docType == null)
+                                    // System will check for client specific validations
+                                    MailPieceValidationResult clientSpecificValidationResult = ValidateClientSpecificRules(mailPieceDTO, mbi);
+                                    if (clientSpecificValidationResult.Code == OutComeCodes.No_Error)
                                     {
-                                        mailPieceDTO.ErrorCode = OutComeCodes.Invalid_PackageType;
-                                        mailPieceDTO.ErrorDesc = "The specified document or package type '{0}' is not configured.".Fill(mailPieceDTO.DocumentOrPackageType);
-                                        mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
-                                    }
-                                    else if (!File.Exists(filePath))
-                                    {
-                                        mailPieceDTO.ErrorCode = OutComeCodes.Missing_PDF_File;
-                                        mailPieceDTO.ErrorDesc = "Pdf file is not available for this package.";
-                                        mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
+                                        mailPieceDTO.ErrorCode = OutComeCodes.No_Error;
+                                        mailPieceDTO.ErrorDesc = "";
                                     }
                                     else
                                     {
-                                        mailPieceDTO.ErrorCode = OutComeCodes.No_Error;
-                                        mailPieceDTO.DocTypeId = docType.Id;
+                                        mailPieceDTO.ErrorCode = clientSpecificValidationResult.Code;
+                                        mailPieceDTO.ErrorDesc = clientSpecificValidationResult.ErrorMessage;
+                                        mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                                     }
                                 }
                                 else
                                 {
-                                    mailPieceDTO.ErrorCode = clientSpecificValidationResult.Code;
-                                    mailPieceDTO.ErrorDesc = clientSpecificValidationResult.ErrorMessage;
+                                    mailPieceDTO.ErrorCode = commonValidationResult.Code;
+                                    mailPieceDTO.ErrorDesc = commonValidationResult.ErrorMessage;
                                     mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                                 }
                             }
@@ -774,7 +769,57 @@ namespace AM.Console
             log.Debug("Validate job queue is completed.");
         }
 
-        private MailPieceValidationResult ValidateClientSpecificRules(XmlNode mailPieceNode)
+        private MailPieceValidationResult ValidateCommonValidation(MailPieceDTO mailPieceDTO, MailBatchInfo mbi)
+        {
+            //in last system will check for general validations
+            string filePath = Path.Combine(mbi.AMRequestPath, mailPieceDTO.FileName);
+
+            string documentOrPackageType = mailPieceDTO.DocumentOrPackageType;
+
+            //Document Or Package Type validation
+            var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType);
+
+            if (docType == null)
+            {
+                return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = "The specified document or package type '{0}' is not configured.".Fill(mailPieceDTO.DocumentOrPackageType) };
+            }
+            else if (!File.Exists(filePath))
+            {
+                return new MailPieceValidationResult() { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file is not available for this package." };
+            }
+            else
+            {
+                mailPieceDTO.DocTypeId = docType.Id;
+                //if at mail piece level or at mail batch level, system didn't find return info then it will check for MailBatch level if exist system will use that in mail piece level 
+                if (!mailPieceDTO.IsReturnInfoSpecified || !mbi.MailBatch.IsReturnInfoSpecified)
+                {
+                    mailPieceDTO.RetRcptFirstName = docType.RetRcptFirstName;
+                    mailPieceDTO.RetRcptLastName = docType.RetRcptLastName;
+
+                    mailPieceDTO.RetRcptMiddleName = docType.RetRcptMiddleName;
+                    mailPieceDTO.RetRcptOrganization = docType.RetRcptOrganization;
+                    mailPieceDTO.RetRcptPrefix = docType.RetRcptPrefix;
+                    mailPieceDTO.RetRcptSuffix = docType.RetRcptSuffix;
+                    mailPieceDTO.RetRcptPhone = docType.RetRcptPhone;
+
+                    mailPieceDTO.RetRcptAddrOptionalLine1AboveStreet = docType.RetRcptAddrOptionalLine1AboveStreet;
+                    mailPieceDTO.RetRcptAddrOptionalLine2AboveStreet = docType.RetRcptAddrOptionalLine2AboveStreet;
+
+                    mailPieceDTO.RetRcptAddressStreet = docType.RetRcptAddressStreet;
+                    mailPieceDTO.RetRcptAddressAptOrSuiteOrOther = docType.RetRcptAddressAptOrSuiteOrOther;
+
+                    mailPieceDTO.RetRcptAddrOptionalLine1BelowStreet = docType.RetRcptAddrOptionalLine1BelowStreet;
+                    mailPieceDTO.RetRcptAddrOptionalLine2BelowStreet = docType.RetRcptAddrOptionalLine2BelowStreet;
+
+                    mailPieceDTO.RetRcptAddressCity = docType.RetRcptAddressCity;
+                    mailPieceDTO.RetRcptAddressState = docType.RetRcptAddressState;
+                    mailPieceDTO.RetRcptAddressZIP = docType.RetRcptAddressZIP;
+                }
+                return new MailPieceValidationResult() { Code = OutComeCodes.No_Error };
+            }
+        }
+
+        private MailPieceValidationResult ValidateClientSpecificRules(MailPieceDTO mailPieceDTO, MailBatchInfo mbi)
         {
             //temparary Code
             return new MailPieceValidationResult() { Code = OutComeCodes.No_Error };
