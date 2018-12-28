@@ -245,6 +245,9 @@ namespace PCI.Service
 
             File.WriteAllText(mrdfFilePath, mrdfContent.ToString());
 
+            if (File.Exists(zipFilePath))
+                File.Delete(zipFilePath);
+
             using (ZipArchive newFile = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
             {
                 foreach (var mailPiece in mailPieceDetails)
@@ -258,7 +261,7 @@ namespace PCI.Service
                 //make an entry for mrdf file after making entries of files into zip
                 newFile.CreateEntryFromFile(mrdfFilePath, Path.GetFileName(mrdfFilePath));
             }
-            SFTUtil sftSite = new SFTUtil(printTrailDetail.Protocol.ParseEnum<SFT_ProtocolType>(), Common.PCI_SFT_Host, Common.PCI_SFT_Username, Common.PCI_SFT_Password,
+            SFTUtil sftSite = new SFTUtil(printTrailDetail.Protocol.ParseEnum<SFT_ProtocolType>(), printTrailDetail.Host, printTrailDetail.UserName, printTrailDetail.Password,
                 300000);
 
             sftSite.Connect();
@@ -335,7 +338,7 @@ namespace PCI.Service
 
                     string submitDir = Path.Combine(printTrailDetail.FromADEDir, client.AppCode, effectiveReceivedOnEst.Value.Date.ToString("MMddyyyy"), currentBatch.BatchName, currentBatch.ShippingCarrier + "_" + currentBatch.ShippingServiceType + folderBRE);
 
-                    if (!sftSite.IsDirectoryAvailable(submitDir))
+                    if (!sftSite.IsDownloadDirectoryAvailable(submitDir))
                         sftSite.CreateDirectory(submitDir);
 
                     sftSite.UploadFile(localFilePath, Path.Combine(submitDir, mailPiece.PDFFileName));
