@@ -43,4 +43,10 @@ namespace AM.Services
         public string Title { get; set; }
         public int ProjectRequestLookupFormId { get; set; }
     }
+    public class ProjectRequestValueMapping
+    {
+        public int ProjectRequestId { get; set; }
+        public int ProjectRequestLookupFormValueId { get; set; }
+        public string Value { get; set; }
+    }
 }
