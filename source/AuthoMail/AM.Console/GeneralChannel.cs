@@ -346,14 +346,16 @@ namespace AM.Console
 
             string remoteFilePath = Path.Combine(deliverable.UploadPath, invalidBatchFileName);
 
-            SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
+            var mailBatchSFTChannel = clientSvc.GetSFTChannelDetailsBySFTChannelId(mailBatch.SFTChannelId);
+
+            SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(mailBatchSFTChannel.Protocol), mailBatchSFTChannel.Host, mailBatchSFTChannel.UserName, mailBatchSFTChannel.Password, 300000);
             sftSite.Connect();
 
             sftSite.UploadFile(invalidBatchPath, remoteFilePath);
-            if (sftSite.IsFileAvailable(Path.Combine(SFTChannel.ToADEDir, mbi.BatchName + ".zip")))
-                MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, mbi.BatchName + ".zip"));
+            if (sftSite.IsFileAvailable(Path.Combine(mailBatchSFTChannel.ToADEDir, mbi.BatchName + ".zip")))
+                MoveBatchToBackupDir(sftSite, Path.Combine(mailBatchSFTChannel.ToADEDir, mbi.BatchName + ".zip"));
 
-            MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, mbi.BatchName + ".go"));
+            MoveBatchToBackupDir(sftSite, Path.Combine(mailBatchSFTChannel.ToADEDir, mbi.BatchName + ".go"));
 
             if (sftSite.IsConnected)
                 sftSite.Disconnect();
@@ -733,18 +735,18 @@ namespace AM.Console
 
                     //TODO: Do we need to check all mail pieces are valid, partially valid or failed and update batch status according to that?
 
-                    var data = mailPieceSvc.GetMailPiecesByMailBatchId(mbi.MailBatch.Id);
-                    if (data != null)
+                    var mailPieceList = mailPieceSvc.GetMailPiecesByMailBatchId(mbi.MailBatch.Id);
+                    if (mailPieceList != null)
                     {
-                        var validMailPieces = data.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
+                        var validMailPieces = mailPieceList.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
 
                         if (validMailPieces.Count == 0)
                         {
                             mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid.ToString();
-                            mbi.MailBatch.ValidationErrors = "Xml does not contain any valid package info nodes.";
+                            mbi.MailBatch.ValidationErrors = "Xml does not contain any valid mail piece nodes.";
                             commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
                         }
-                        else if (validMailPieces.Count < data.Count)
+                        else if (validMailPieces.Count < mailPieceList.Count)
                         {
                             mbi.MailBatch.ValidationStatus = BatchValidationStatus.PartiallyValid.ToString();
                         }
