@@ -130,6 +130,7 @@
     <Compile Include="Services\HomeService.cs" />
     <Compile Include="Services\MonitorBatchesService.cs" />
     <Compile Include="Services\MRDFResponseService.cs" />
+    <Compile Include="Services\ProjectRequestService.cs" />
     <Compile Include="Services\PullBackService.cs" />
     <Compile Include="Services\ReCalculateDueDateService.cs" />
     <Compile Include="Services\ReportService.cs" />
