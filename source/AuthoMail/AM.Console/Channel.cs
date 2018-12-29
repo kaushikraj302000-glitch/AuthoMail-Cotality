@@ -98,18 +98,24 @@ namespace AM.Console
         /// <summary>
         /// Sends batch level reports of all batches which are queued as ReportPrepped
         /// </summary>
-        public static void ReportBack(string channelCode)
+        public static void ReportBack(string[] channelCodes, string reportType)
         {
             log.Debug("ReportedBack job is started.");
             //TODO: Comma separated channels for Increamental reports
-            switch (channelCode)
+            switch (reportType)
             {
-                case "AMC":
-                    ProcessIncreamentalReportedBack(channelCode);
-                    ProcessGeneralReportedBack(channelCode);
+                case "Incremental":
+                    foreach (var channelCode in channelCodes)
+                    {
+                        ProcessIncreamentalReportedBack(channelCode);
+                        ProcessGeneralReportedBack(channelCode);
+                    }
                     break;
                 default:
-                    ProcessGeneralReportedBack(channelCode);
+                    foreach (var channelCode in channelCodes)
+                    {
+                        ProcessGeneralReportedBack(channelCode);
+                    }
                     break;
             }
 
@@ -462,7 +468,54 @@ namespace AM.Console
                     isUploaded = true;
                     break;
                 default:
-                    throw new Exception("Invalid Channel Code");
+                    string uploadDeliveryPath = deliverables.Where(d => d.ReportType == ReportTypes.Delivery).Single().UploadPath;
+
+                    var deliveryReportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.txt").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-")).ToList();
+
+                    foreach (string filePath in deliveryReportList)
+                    {
+                        string fileName = Path.GetFileName(filePath);
+                        string ftpUploadPath = Path.Combine(uploadDeliveryPath, fileName);
+                        sftSite.UploadFile(filePath, ftpUploadPath);
+
+                        //After upload change extention as a Complete
+                        File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
+
+                        isUploaded = true;
+                    }
+
+                    if (deliveryReportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-")) > 0)
+                    {
+                        string deliveryGoFilePath = Path.Combine(mbi.AMResponsePath, "DlvrReport.go");
+                        string ftpDeliveryGoUploadPath = Path.Combine(uploadDeliveryPath, "DlvrReport.go");
+                        File.WriteAllText(deliveryGoFilePath, string.Empty);
+
+                        sftSite.UploadFile(deliveryGoFilePath, ftpDeliveryGoUploadPath);
+                    }
+
+                    string uploadErrorPath = deliverables.Where(d => d.ReportType == ReportTypes.Error).Single().UploadPath;
+                    var errorReportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.txt").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Error-")).ToList();
+
+                    foreach (string filePath in errorReportList)
+                    {
+                        string fileName = Path.GetFileName(filePath);
+                        string ftpUploadPath = Path.Combine(uploadErrorPath, fileName);
+                        sftSite.UploadFile(filePath, ftpUploadPath);
+
+                        //After upload change extention as a Complete
+                        File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
+                        isUploaded = true;
+                    }
+
+                    if (errorReportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Error-")) > 0)
+                    {
+                        string errorGoFilePath = Path.Combine(mbi.AMResponsePath, "ErrReport.go");
+                        string ftpErrorGoUploadPath = Path.Combine(uploadErrorPath, "ErrReport.go");
+                        File.WriteAllText(errorGoFilePath, string.Empty);
+
+                        sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
+                    }
+                    break;
 
             }
             return isUploaded;

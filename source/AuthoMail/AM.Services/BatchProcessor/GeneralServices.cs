@@ -19,7 +19,10 @@ namespace AM.Services
     {
         public StringBuilder GeneralErrorReport(List<MailPieces> mailPieces, string separator)
         {
-            var columnName = String.Join(separator, "BatchID", "ID", "Package Name", "Loan Number", "File Name", "Date Received", "First Name", "Last Name", "Recipient Street Address", "Recipient City", "Recipient State", "Recipient Zip", "Error Code", "Error Text", "Shipping Method", "Customer Identifier", "RequestID");
+            if (separator == "\\t")
+                separator = "\t";
+
+            var columnName = String.Join(@separator, "BatchID", "ID", "Package Name", "Loan Number", "File Name", "Date Received", "First Name", "Last Name", "Recipient Street Address", "Recipient City", "Recipient State", "Recipient Zip", "Error Code", "Error Text", "Shipping Method");
 
             StringBuilder errorReport = new StringBuilder(columnName);
 
@@ -39,11 +42,7 @@ namespace AM.Services
                 {
                     DocType docType = mailPiece.DocTypeId.HasValue ? docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value) : null;
 
-                    var custId = mailPiece.MailPieceCustomInfoTest.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").SingleOrDefault();
-
-                    var requestId = mailPiece.MailPieceCustomInfoTest.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").SingleOrDefault();
-
-                    var line = String.Join(separator,
+                    var line = String.Join(@separator,
                        mailPiece.MailBatches.BatchName == null ? string.Empty : mailPiece.MailBatches.BatchName,
                         mailPiece.ErrorCode == OutComeCodes.Invalid_DuplicateKey ? Guid.Parse(mailPiece.ErrorDesc.Substring(0, mailPiece.ErrorDesc.IndexOf(" ")).Trim()) : mailPiece.UniqueId,
                             mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType,
@@ -58,9 +57,7 @@ namespace AM.Services
                             mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
                             OutComeCodes.GetAMCMappingCode(mailPiece.ErrorCode),
                             mailPiece.ErrorDesc == null ? string.Empty : mailPiece.ErrorDesc.Replace("\r\n", " "),
-                            docType == null ? string.Empty : docType.ShippingCarrier,
-                            custId == null ? string.Empty : custId.Value,
-                            requestId == null ? string.Empty : requestId.Value
+                            docType == null ? string.Empty : docType.ShippingCarrier
                         );
 
                     errorReport.AppendLine(line);
@@ -72,7 +69,9 @@ namespace AM.Services
 
         public StringBuilder GeneralDeliveryReport(List<MailPieces> mailPieces, string separator)
         {
-            var columnName = String.Join(separator, "BatchID", "ID", "Package Name", "Loan Number", "File Name", "Date Received", "Date Printed", "Date Mailed", "Client Code", "Tracking Number", "Shipping Method", "Customer Identifier", "First Name", "Last Name", "Recipient Street Address", "Recipient City", "Recipient State", "Recipient Zip", "RequestID", "Pages Shipped");
+            if (separator == "\\t")
+                separator = "\t";
+            var columnName = String.Join(separator, "BatchID", "ID", "Package Name", "Loan Number", "File Name", "Date Received", "Date Printed", "Date Mailed", "Tracking Number", "Shipping Method", "First Name", "Last Name", "Recipient Street Address", "Recipient City", "Recipient State", "Recipient Zip", "Pages Shipped");
 
             StringBuilder deliveryReport = new StringBuilder(columnName);
 
@@ -92,13 +91,8 @@ namespace AM.Services
                 {
                     DocType docType = mailPiece.DocTypeId.HasValue ? docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value) : null;
 
-                    var shippingCredCode = mailPiece.MailPieceCustomInfoTest.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingCredCode").SingleOrDefault();
 
-                    var custId = mailPiece.MailPieceCustomInfoTest.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").SingleOrDefault();
-
-                    var requestId = mailPiece.MailPieceCustomInfoTest.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "RequestId").SingleOrDefault();
-
-                    var line = String.Join(separator,
+                    var line = String.Join(@separator,
                         mailPiece.MailBatches.BatchName == null ? string.Empty : mailPiece.MailBatches.BatchName,
                             mailPiece.UniqueId,
                             mailPiece.DocumentOrPackageType == null ? string.Empty : mailPiece.DocumentOrPackageType,
@@ -107,17 +101,14 @@ namespace AM.Services
                             mailPiece.MailBatches.ReceivedOn == null ? string.Empty : mailPiece.MailBatches.ReceivedOn.Value.ToString(Config.Monitor_AMC_ReportDateFormat),
                             mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? Config.Monitor_AMCPulledBackDate : mailPiece.PrintedOn.Value.ToString(Config.Monitor_AMC_ReportDateFormat),
                             mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? Config.Monitor_AMCPulledBackDate : mailPiece.ShippedOn.Value.ToString(Config.Monitor_AMC_ReportDateFormat),
-                            shippingCredCode == null ? string.Empty : shippingCredCode.Value,
                             mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? string.Empty : mailPiece.TrackingNo,
                             docType == null ? string.Empty : docType.ShippingCarrier,
-                            custId == null ? string.Empty : custId.Value,
                             mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName,
                             mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName,
                             mailPiece.RcptAddressStreet == null ? string.Empty : string.IsNullOrEmpty(mailPiece.RcptAddressAptOrSuiteOrOther) ? mailPiece.RcptAddressStreet : mailPiece.RcptAddressStreet + " " + mailPiece.RcptAddressAptOrSuiteOrOther,
                             mailPiece.RcptAddressCity == null ? string.Empty : mailPiece.RcptAddressCity,
                             mailPiece.RcptAddressState == null ? string.Empty : mailPiece.RcptAddressState,
                             mailPiece.RcptAddressZIP == null ? string.Empty : mailPiece.RcptAddressZIP,
-                            requestId == null ? string.Empty : requestId.Value,
                             mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? 0 : mailPiece.TotalPages);
 
                     deliveryReport.AppendLine(line);

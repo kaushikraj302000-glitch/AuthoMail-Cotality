@@ -1187,41 +1187,37 @@ namespace AM.Core
                 default:
                     using (IGeneralService generalSvc = new GeneralService())
                     {
-                        List<MailPieces> mailPieces = null;
                         var inProgressMailPiece = mailPiecesData.Where(m => m.ShippingStatus == ShippingStatus.InProgress.ToString()).Count();
 
-                        if (inProgressMailPiece == 0)
+                        if (inProgressMailPiece > 0)
+                            return false;
+
+
+                        StringBuilder deliveryReport = generalSvc.GeneralDeliveryReport(mailPiecesData, deliverable.Delimeter);
+
+                        if (deliveryReport != null)
                         {
-                            mailPieces = mailPiecesData.Where(m => m.ShippingStatus == ShippingStatus.PulledBack.ToString() && m.PrintBatchId == null).ToList();
+                            string deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
 
-                            if (mailPieces.Count > 0)
-                            {
-                                StringBuilder deliveryReport = generalSvc.GeneralDeliveryReport(mailPieces, deliverable.Delimeter);
+                            string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
 
-                                if (deliveryReport != null)
-                                {
-                                    string deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
-
-                                    string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
-
-                                    File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
-
-                                }
-                            }
+                            File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
 
                             isReportGenerated = true;
+                        }
 
-                            StringBuilder errorReport = generalSvc.GeneralErrorReport(mailPiecesData, deliverable.Delimeter);
 
-                            if (errorReport != null)
-                            {
-                                string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                        StringBuilder errorReport = generalSvc.GeneralErrorReport(mailPiecesData, deliverable.Delimeter);
 
-                                string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+                        if (errorReport != null)
+                        {
+                            string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
 
-                                File.WriteAllText(errorReportPath, errorReport.ToString());
-                                isReportGenerated = true;
-                            }
+                            string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+
+                            File.WriteAllText(errorReportPath, errorReport.ToString());
+
+                            isReportGenerated = true;
                         }
                     }
                     break;
