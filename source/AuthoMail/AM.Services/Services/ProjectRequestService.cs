@@ -10,7 +10,8 @@ namespace AM.Services
     public interface IProjectRequestService : IDisposable
     {
         List<ProjectRequestLookupForm> SchemaProjectRequestLookupForm();
-        KeyValuePair<bool, string> SaveProjectRequest(ProjectRequest projectRequest, List<ProjectRequestValueMapping> values);
+        KeyValuePair<bool, string> SaveProjectRequest(ProjectRequest projectRequest);
+        ProjectRequest ProjectRequestFindById(int Id);
     }
     public class ProjectRequestService : ServiceBase, IProjectRequestService
     {
@@ -39,7 +40,7 @@ inner join AM.ProjectRequestLookupFormValue v on p.Id=v.ProjectRequestLookupForm
         }
 
 
-        public KeyValuePair<bool, string> SaveProjectRequest(ProjectRequest projectRequest, List<ProjectRequestValueMapping> values)
+        public KeyValuePair<bool, string> SaveProjectRequest(ProjectRequest projectRequest)
         {
             //Validation
             db.Open();
@@ -54,10 +55,10 @@ inner join AM.ProjectRequestLookupFormValue v on p.Id=v.ProjectRequestLookupForm
 
                         int id = db.Query<int>(query, projectRequest).Single();
 
-                        values.ForEach(v => v.ProjectRequestId = id);
+                        projectRequest.ProjectRequestValueMappingList.ForEach(v => v.ProjectRequestId = id);
 
                         string sql = "INSERT INTO AM.ProjectRequestValueMapping (ProjectRequestId ,ProjectRequestLookupFormValueId ,Value) VALUES (@ProjectRequestId ,@ProjectRequestLookupFormValueId ,@Value)";
-                        db.Execute(sql, values);
+                        db.Execute(sql, projectRequest.ProjectRequestValueMappingList);
                     }
                     else
                     {
@@ -65,10 +66,10 @@ inner join AM.ProjectRequestLookupFormValue v on p.Id=v.ProjectRequestLookupForm
                         db.Execute(query, projectRequest);
 
                         db.Execute("delete from AM.ProjectRequestValueMapping where ProjectRequestId=@ProjectRequestId", new { ProjectRequestId = projectRequest.Id });
-                        values.ForEach(v => v.ProjectRequestId = projectRequest.Id);
+                        projectRequest.ProjectRequestValueMappingList.ForEach(v => v.ProjectRequestId = projectRequest.Id);
 
                         string sql = "INSERT INTO AM.ProjectRequestValueMapping (ProjectRequestId ,ProjectRequestLookupFormValueId ,Value) VALUES (@ProjectRequestId ,@ProjectRequestLookupFormValueId ,@Value)";
-                        db.Execute(sql, values);
+                        db.Execute(sql, projectRequest.ProjectRequestValueMappingList);
                     }
                     t.Commit();
                     return new KeyValuePair<bool, string>(true, "Saved successful.");
@@ -79,6 +80,31 @@ inner join AM.ProjectRequestLookupFormValue v on p.Id=v.ProjectRequestLookupForm
                     return new KeyValuePair<bool, string>(false, ex.Message);
                 }
             }
+        }
+
+
+        public ProjectRequest ProjectRequestFindById(int Id)
+        {
+            string query = @"select * from AM.ProjectRequest p
+left outer join AM.ProjectRequestValueMapping v on p.Id=v.ProjectRequestId
+where p.Id=@Id";
+            var orderDictionary = new Dictionary<int, ProjectRequest>();
+
+            var projectRequest = db.Query<ProjectRequest, ProjectRequestValueMapping, ProjectRequest>(
+                query, (p, v) =>
+                {
+                    ProjectRequest pr;
+                    if (!orderDictionary.TryGetValue(p.Id, out pr))
+                    {
+                        pr = p;
+                        pr.ProjectRequestValueMappingList = new List<ProjectRequestValueMapping>();
+                        orderDictionary.Add(pr.Id, pr);
+                    }
+                    pr.ProjectRequestValueMappingList.Add(v);
+                    return pr;
+                }
+                ).Distinct().Single();
+            return projectRequest;
         }
     }
 }
