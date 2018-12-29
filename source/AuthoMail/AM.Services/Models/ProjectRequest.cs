@@ -28,6 +28,7 @@ namespace AM.Services
         public bool IsScanInAuthoMailDallas { get; set; }
         public string AdditionalInfo { get; set; }
         public List<ProjectRequestLookupForm> ProjectRequestLookupFormList { get; set; }
+        public List<ProjectRequestValueMapping> ProjectRequestValueMappingList { get; set; }
     }
 
     public class ProjectRequestLookupForm
