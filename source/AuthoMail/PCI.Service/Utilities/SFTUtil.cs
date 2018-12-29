@@ -15,7 +15,6 @@ namespace PCI.Service.Utilities
     public class SFTUtil
     {
         private NetworkCredential Credentials { get; set; }
-        private static readonly ILog log = LogManager.GetLogger(typeof(PnSJobMonitor));
 
         public SFTUtil(SFT_ProtocolType protocol, string hostURL, string username, string password, int keepAliveInterval)
         {
@@ -35,6 +34,7 @@ namespace PCI.Service.Utilities
 
         private string GetUrl(string givenUrl)
         {
+
             if (givenUrl.IsNullOrWhiteSpace())
             {
                 throw new Exception("Invalid URL.");
@@ -80,7 +80,18 @@ namespace PCI.Service.Utilities
             }
             else
             {
-                return givenUrl;
+                if (givenUrl.StartsWith("\\"))
+                {
+                    return givenUrl;
+                }
+                else if (givenUrl.StartsWith("/"))
+                {
+                    return HostURL + givenUrl;
+                }
+                else
+                {
+                    throw new Exception("Invalid URL.");
+                }
             }
         }
 
@@ -106,9 +117,9 @@ namespace PCI.Service.Utilities
                         throw new Exception("Please provide valid Host or root UNC path.");
                     }
                 }
-                catch (Exception err)
+                catch (Exception ex)
                 {
-                    throw new Exception("Unable to connect to provided UNC path. \n{0}".Fill(err.ToString()));
+                    throw new Exception("Unable to connect to provided UNC path. \n{0}".Fill(ex.ToString()));
                 }
             }
             else
@@ -123,9 +134,8 @@ namespace PCI.Service.Utilities
                     {
                         SFTP_Client.Connect();
                     }
-                    catch (SshOperationTimeoutException err)
+                    catch (SshOperationTimeoutException)
                     {
-                        log.Error(err);
                         SFTP_Client = new SftpClient(HostURL, Username, Password);
                         SFTP_Client.KeepAliveInterval = TimeSpan.FromSeconds(KeepAliveInterval);
                         SFTP_Client.ConnectionInfo.Timeout = TimeSpan.FromSeconds(KeepAliveInterval);
@@ -155,7 +165,7 @@ namespace PCI.Service.Utilities
             }
         }
 
-        public bool IsDirectoryAvailable(string downloadDirectoryPath)
+        public bool IsDownloadDirectoryAvailable(string downloadDirectoryPath)
         {
             if (Protocol == SFT_ProtocolType.ftp)
             {
@@ -217,6 +227,36 @@ namespace PCI.Service.Utilities
             }
         }
 
+        public bool IsFileAvailable(string serverFilePath)
+        {
+            if (Protocol == SFT_ProtocolType.ftp)
+            {
+                FTP_WebRequest = (FtpWebRequest)FtpWebRequest.Create(GetUrl(serverFilePath));
+                FTP_WebRequest.Credentials = Credentials;
+                FTP_WebRequest.Method = WebRequestMethods.Ftp.DownloadFile;
+
+                try
+                {
+                    using (FtpWebResponse FTP_WebResponse = (FtpWebResponse)FTP_WebRequest.GetResponse())
+                    {
+                        return true;
+                    }
+                }
+                catch (WebException)
+                {
+                    return false;
+                }
+            }
+            else if (Protocol == SFT_ProtocolType.unc)
+            {
+                return File.Exists(GetUrl(serverFilePath));
+            }
+            else
+            {
+                return SFTP_Client.Exists(GetUrl(serverFilePath));
+            }
+        }
+
         public void DeleteFile(string remoteFilePath)
         {
             if (Protocol == SFT_ProtocolType.ftp)
@@ -233,7 +273,7 @@ namespace PCI.Service.Utilities
                 using (FtpWebResponse FTP_WebResponse = (FtpWebResponse)FTP_WebRequest.GetResponse())
                 {
                     string response = FTP_WebResponse.StatusDescription;
-                    if (response.Contains("250 File deleted successfully"))
+                    if (response.Contains("File deleted successfully"))
                     {
                         return;
                     }
@@ -245,7 +285,7 @@ namespace PCI.Service.Utilities
             }
             else if (Protocol == SFT_ProtocolType.unc)
             {
-                File.Delete(remoteFilePath);
+                File.Delete(GetUrl(remoteFilePath));
             }
             else
             {
@@ -254,45 +294,6 @@ namespace PCI.Service.Utilities
                     SFTP_Client.Connect();
                 }
                 SFTP_Client.DeleteFile(GetUrl(remoteFilePath));
-            }
-        }
-        public void DeleteDirectory(string remoteDirectoryPath)
-        {
-            if (Protocol == SFT_ProtocolType.ftp)
-            {
-                FTP_WebRequest = (FtpWebRequest)WebRequest.Create(GetUrl(remoteDirectoryPath));
-
-                FTP_WebRequest.Credentials = Credentials;
-
-                FTP_WebRequest.UseBinary = true;
-                FTP_WebRequest.UsePassive = true;
-
-                FTP_WebRequest.Method = WebRequestMethods.Ftp.RemoveDirectory;
-
-                using (FtpWebResponse FTP_WebResponse = (FtpWebResponse)FTP_WebRequest.GetResponse())
-                {
-                    string response = FTP_WebResponse.StatusDescription;
-                    if (response.Contains("deleted successfully"))
-                    {
-                        return;
-                    }
-                    else
-                    {
-                        throw new Exception("Unable to delete the remote file; please try again.");
-                    }
-                }
-            }
-            else if (Protocol == SFT_ProtocolType.unc)
-            {
-                Directory.Delete(remoteDirectoryPath, true);
-            }
-            else
-            {
-                if (!SFTP_Client.IsConnected)
-                {
-                    SFTP_Client.Connect();
-                }
-                SFTP_Client.DeleteDirectory(GetUrl(remoteDirectoryPath));
             }
         }
 
@@ -326,7 +327,7 @@ namespace PCI.Service.Utilities
             }
             else if (Protocol == SFT_ProtocolType.unc)
             {
-                File.Copy(localFilePath, remoteFilePath, true);
+                File.Copy(localFilePath, GetUrl(remoteFilePath), true);
             }
             else
             {
@@ -351,7 +352,7 @@ namespace PCI.Service.Utilities
             }
         }
 
-        public void DownloadFile(string localFilePath, string remoteFilePath, bool deleteRemoteFile = false, bool closeConnection = false)
+        public void DownloadFile(string remoteFilePath, string localFilePath, bool deleteRemoteFile = false, bool closeConnection = false)
         {
             if (Protocol == SFT_ProtocolType.ftp)
             {
@@ -378,7 +379,7 @@ namespace PCI.Service.Utilities
             }
             else if (Protocol == SFT_ProtocolType.unc)
             {
-                File.Copy(remoteFilePath, localFilePath, true);
+                File.Copy(GetUrl(remoteFilePath), localFilePath, true);
             }
             else
             {
@@ -484,11 +485,11 @@ namespace PCI.Service.Utilities
                     SFTP_Client.Connect();
                 }
 
-                return SFTP_Client.GetLastWriteTimeUtc(remoteFilePath);
+                return SFTP_Client.GetLastWriteTimeUtc(GetUrl(remoteFilePath));
             }
             else
             {
-                return File.GetLastWriteTimeUtc(remoteFilePath);
+                return File.GetLastWriteTimeUtc(GetUrl(remoteFilePath));
             }
         }
 
@@ -536,7 +537,8 @@ namespace PCI.Service.Utilities
             }
             else
             {
-                return Directory.GetFileSystemEntries(remoteUrl).Select(f => Path.GetFileName(f)).ToList();
+                var fullDirectoryPath = GetUrl(remoteUrl);
+                return Directory.GetFileSystemEntries(fullDirectoryPath).Select(f => Path.GetFileName(f)).ToList();
             }
         }
 
@@ -561,12 +563,12 @@ namespace PCI.Service.Utilities
             }
             else if (Protocol == SFT_ProtocolType.unc)
             {
-                string destinationRemoteDir = Path.GetDirectoryName(destinationRemotePath);
-                if (!Directory.Exists(destinationRemotePath))
-                {
-                    Directory.CreateDirectory(destinationRemoteDir);
-                }
-                File.Move(sourceRemotePath, destinationRemotePath);
+                string destinationFilePath = GetUrl(destinationRemotePath);
+
+                if (File.Exists(destinationFilePath))
+                    File.Delete(destinationFilePath);
+
+                File.Move(GetUrl(sourceRemotePath), GetUrl(destinationRemotePath));
             }
             else
             {
@@ -578,38 +580,104 @@ namespace PCI.Service.Utilities
                 SftpFile sourceFile = SFTP_Client.Get(GetUrl(sourceRemotePath));
                 if (sourceFile != null && sourceFile.IsRegularFile)
                 {
+                    //If file is already in archive folder then first we will delete it. then move it.
+                    if (SFTP_Client.Exists(GetUrl(destinationRemotePath)))
+                    {
+                        SFTP_Client.DeleteFile(GetUrl(destinationRemotePath));
+                    }
+
                     sourceFile.MoveTo(GetUrl(destinationRemotePath));
                 }
             }
-        }
+        }       
 
-        public bool IsFileAvailable(string serverFilePath)
+        public void DeleteDirectory(string remoteDirPath)
         {
             if (Protocol == SFT_ProtocolType.ftp)
             {
-                FTP_WebRequest = (FtpWebRequest)FtpWebRequest.Create(GetUrl(serverFilePath));
-                FTP_WebRequest.Credentials = Credentials;
-                FTP_WebRequest.Method = WebRequestMethods.Ftp.DownloadFile;
+                FTP_WebRequest = (FtpWebRequest)WebRequest.Create(GetUrl(remoteDirPath));
 
-                try
+                FTP_WebRequest.Credentials = Credentials;
+
+                FTP_WebRequest.UseBinary = true;
+                FTP_WebRequest.UsePassive = true;
+
+                FTP_WebRequest.Method = WebRequestMethods.Ftp.RemoveDirectory;
+
+                using (FtpWebResponse FTP_WebResponse = (FtpWebResponse)FTP_WebRequest.GetResponse())
                 {
-                    using (FtpWebResponse FTP_WebResponse = (FtpWebResponse)FTP_WebRequest.GetResponse())
+                    string response = FTP_WebResponse.StatusDescription;
+                    if (response.Contains("deleted successfully"))
                     {
-                        return true;
+                        return;
                     }
-                }
-                catch (WebException)
-                {
-                    return false;
+                    else
+                    {
+                        throw new Exception("Unable to delete the remote file; please try again.");
+                    }
                 }
             }
             else if (Protocol == SFT_ProtocolType.unc)
             {
-                return File.Exists(serverFilePath);
+                var directoryPath = GetUrl(remoteDirPath);
+                if (Directory.Exists(directoryPath))
+                    Directory.Delete(directoryPath, true);
             }
             else
             {
-                return SFTP_Client.Exists(serverFilePath);
+                if (!SFTP_Client.IsConnected)
+                {
+                    SFTP_Client.Connect();
+                }
+                SFTP_Client.DeleteDirectory(GetUrl(remoteDirPath));
+            }
+        }
+
+        private void DeleteAllFiles(string remoteDirPath)
+        {
+            List<string> availableFiles = ListDirectory(remoteDirPath);
+            foreach (string remoteFile in availableFiles)
+            {
+                DeleteFile(GetUrl("{0}/{1}".Fill(remoteDirPath, remoteFile)));
+            }
+        }
+
+        public void MoveDirectory(string remoteDirPath, string archiveRemotePath)
+        {
+            if (Protocol == SFT_ProtocolType.ftp)
+            {
+                var files = ListDirectory(remoteDirPath);
+
+                foreach (var remoteFile in files)
+                {
+                    MoveFile(GetUrl("{0}/{1}".Fill(remoteDirPath, remoteFile)), GetUrl("{0}/{1}".Fill(archiveRemotePath, remoteFile)));
+                }
+            }
+            else if (Protocol == SFT_ProtocolType.unc)
+            {
+                if (!Directory.Exists(archiveRemotePath))
+                {
+                    Directory.CreateDirectory(archiveRemotePath);
+                }
+                Directory.Move(remoteDirPath, archiveRemotePath);
+            }
+            else
+            {
+                if (!SFTP_Client.IsConnected)
+                {
+                    SFTP_Client.Connect();
+                }
+
+                var files = ListDirectory(remoteDirPath);
+
+                foreach (var remoteFile in files)
+                {
+                    SftpFile sourceFile = SFTP_Client.Get(GetUrl("{0}/{1}".Fill(remoteDirPath, remoteFile)));
+                    if (sourceFile != null && sourceFile.IsRegularFile)
+                    {
+                        sourceFile.MoveTo(GetUrl("{0}/{1}".Fill(archiveRemotePath, remoteFile)));
+                    }
+                }
             }
         }
 
@@ -636,9 +704,7 @@ namespace PCI.Service.Utilities
             }
             else if (Protocol == SFT_ProtocolType.unc)
             {
-                if (File.Exists(NewRemotePath))
-                    File.Delete(NewRemotePath);
-                File.Move(OldRemotePath, NewRemotePath);
+                File.Move(GetUrl(OldRemotePath), GetUrl(NewRemotePath));
             }
             else
             {
@@ -647,7 +713,7 @@ namespace PCI.Service.Utilities
                     SFTP_Client.Connect();
                 }
 
-                SFTP_Client.RenameFile(OldRemotePath, NewRemotePath);
+                SFTP_Client.RenameFile(GetUrl(OldRemotePath), GetUrl(NewRemotePath));
 
                 if (closeConnection)
                 {
@@ -655,6 +721,7 @@ namespace PCI.Service.Utilities
                 }
             }
         }
+
         public void Disconnect()
         {
             if (Protocol == SFT_ProtocolType.sftp)
@@ -672,5 +739,4 @@ namespace PCI.Service.Utilities
     {
         ftp, sftp, unc
     }
-
 }

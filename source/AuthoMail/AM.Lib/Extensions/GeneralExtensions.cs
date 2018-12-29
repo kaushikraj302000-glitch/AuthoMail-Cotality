@@ -188,6 +188,9 @@ namespace AM.Lib
 
         public static string SeparateZip4And5(this string value, int number)
         {
+            if (string.IsNullOrEmpty(value))
+                return "";
+
             string[] zipCode = value.Split(new[] { '-' }, StringSplitOptions.RemoveEmptyEntries);
             if (zipCode.Length > 0)
             {

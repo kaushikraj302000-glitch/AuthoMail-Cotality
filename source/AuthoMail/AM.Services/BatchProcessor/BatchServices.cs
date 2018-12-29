@@ -13,6 +13,7 @@ namespace AM.Services
     public interface IMailBatchService : IDisposable
     {
         int InsertBatchDetails(MailBatchDTO mailBatch);
+        int InsertBatchDetails(MailBatchDTO mailBatch, List<MailBatchCustomInfo> mailBatchCustomInfo);
         List<MailBatchDTO> InsertBatchDetails(List<MailBatchDTO> mailBatches);
         int DeleteBatchDetails(int mailBatchId);
         int UpdateBatchDetails(MailBatchDTO mailBatch);
@@ -33,9 +34,25 @@ namespace AM.Services
     {
         public int InsertBatchDetails(MailBatchDTO mailBatch)
         {
-            string query = @"INSERT INTO [AM].[MailBatches](UniqueId, ClientId, DocumentOrPackageType, SFTChannelId, ClientBatchId, BatchName, [Priority]) Output Inserted.Id VALUES (@UniqueId, @ClientId, @DocumentOrPackageType, @SFTChannelId, @ClientBatchId, @BatchName, @Priority)";
+            string query = @"INSERT INTO [AM].[MailBatches](UniqueId, ClientId, SFTChannelId, ClientBatchId, ReceivedOn, BatchName, DocumentOrPackageType, Priority, BatchStatus, ValidationStatus, ValidationErrors, PipelineStatus, IsReturnInfoSpecified, RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RetRcptSuffix, RetRcptPhone, RetRcptOrganization, RetRcptAddrOptionalLine1AboveStreet, RetRcptAddrOptionalLine2AboveStreet, RetRcptAddressStreet, RetRcptAddressAptOrSuiteOrOther, RetRcptAddrOptionalLine1BelowStreet, RetRcptAddrOptionalLine2BelowStreet, RetRcptAddressCity, RetRcptAddressState, RetRcptAddressZIP) Output Inserted.Id VALUES (@UniqueId, @ClientId, @SFTChannelId, @ClientBatchId, @ReceivedOn, @BatchName, @DocumentOrPackageType, @Priority, @BatchStatus, @ValidationStatus, @ValidationErrors, @PipelineStatus, @IsReturnInfoSpecified, @RetRcptPrefix, @RetRcptFirstName, @RetRcptMiddleName, @RetRcptLastName, @RetRcptSuffix, @RetRcptPhone, @RetRcptOrganization, @RetRcptAddrOptionalLine1AboveStreet, @RetRcptAddrOptionalLine2AboveStreet, @RetRcptAddressStreet, @RetRcptAddressAptOrSuiteOrOther, @RetRcptAddrOptionalLine1BelowStreet, @RetRcptAddrOptionalLine2BelowStreet, @RetRcptAddressCity, @RetRcptAddressState, @RetRcptAddressZIP)";
 
             return db.ExecuteScalar<int>(query, mailBatch);
+        }
+
+        public int InsertBatchDetails(MailBatchDTO mailBatch, List<MailBatchCustomInfo> mailBatchCustomInfo)
+        {
+            int mailBatchId = InsertBatchDetails(mailBatch);
+
+            mailBatchCustomInfo.ForEach(mp =>
+            {
+                mp.MailBatchId = mailBatchId;
+            });
+
+            string query = @"INSERT INTO [AM].[MailBatchCustomInfo]([MailBatchId], [Key], [DataType], [Value]) VALUES (@MailBatchId, @Key, @DataType, @Value)";
+
+            db.Execute(query, mailBatchCustomInfo);
+
+            return mailBatchId;
         }
 
         public List<MailBatchDTO> InsertBatchDetails(List<MailBatchDTO> mailBatches)

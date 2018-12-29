@@ -8,7 +8,7 @@ using System.Xml.Serialization;
 namespace AM.Entities
 {
     [Serializable]
-    [XmlRoot(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0")]
+    [XmlRootAttribute(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0", IsNullable = false)]
     public class MailBatch
     {
         [XmlAttribute]
@@ -35,19 +35,24 @@ namespace AM.Entities
         [XmlElement(ElementName = "ShippingInfo")]
         public ShippingInfo ShippingInfo { get; set; }
 
-        [XmlArrayItem]
+        [XmlArrayItem(IsNullable = false)]
         public List<MailPiece> MailPieces { get; set; }
 
-        [XmlArrayItem]
+        [XmlArrayItem(IsNullable = true)]
         public List<Metadata> CustomInfo { get; set; }
     }
 
     [Serializable]
-    [XmlType(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0")]
+    [XmlType(TypeName = "MailPiece")]
+    [XmlRootAttribute(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0", IsNullable = true)]
     public class MailPiece
     {
         [XmlAttribute]
         public Guid Id { get; set; }
+        public bool ShouldSerializeId()
+        {
+            return Id != null;
+        }
 
         [XmlAttribute]
         public string BusinessFriendlyIdName { get; set; }
@@ -85,7 +90,7 @@ namespace AM.Entities
             return ShippingInfo != null;
         }
 
-        [XmlArrayItem]
+        [XmlArrayItem(IsNullable = true)]
         public List<Metadata> CustomInfo { get; set; }
     }
 

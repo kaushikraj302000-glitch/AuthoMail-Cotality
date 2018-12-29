@@ -33,7 +33,6 @@ namespace AM.Console
                         item.MaxSubmissionTime = (item.EffectiveReceivedOnEst.Value.Date + TimeSpan.Parse(item.BizdayCutOff)).EstToUtc();
                     }
                     rSvc.UpdateSubmissionTime(item.Id, item.StdSubmissionTime.Value, item.MaxSubmissionTime.Value, null);
-                    continue;
                     if (item.ReceivedOn < bundleStartDate || item.PrintLocation == "Dallas CL")
                     {
                         item.StdSubmissionTime = item.ReceivedOn;
