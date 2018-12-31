@@ -21,6 +21,7 @@ namespace AM.Services
         MailPieceDTO GetMailPieceDataFromTrackingNo(string trackingNo);
         List<DallasMailPieceData> GetDallasMailPiecesByTimingsAndClient(string sweepName);
         BatchSummary GetBatchSummaryDetailByUniqueId(Guid uniqueId);
+        int UpdateEnvelopeInventory(DocType docType);
     }
     public class MailPieceService : ServiceBase, IMailPieceService //It implements Interfaces 
     {
@@ -115,6 +116,20 @@ namespace AM.Services
             string query = @"SELECT * FROM [PnS].[BatchSummary] WHERE PrintBatch = (SELECT JobId FROM [PnS].[MRDFRequest] WHERE UniqueId=@UniqueId)";
 
             return db.QuerySingle<BatchSummary>(query, new { UniqueId = uniqueId });
+        }
+
+        public int UpdateEnvelopeInventory(DocType docType)
+        {
+            string query = @"UPDATE [Common].[Envelopes] SET [CurrentQuantity] = [CurrentQuantity]-1 WHERE Id IN ({0})";
+            if (docType.IsBRE)
+            {
+                query = query.Fill("@EnvelopeId, @BREEnvelopeId");
+            }
+            else
+            {
+                query = query.Fill("@EnvelopeId");
+            }
+            return db.Execute(query, new { EnvelopeId = docType.EnvelopeId, BREEnvelopeId = docType.BREEnvelopeId });
         }
     }
 }
