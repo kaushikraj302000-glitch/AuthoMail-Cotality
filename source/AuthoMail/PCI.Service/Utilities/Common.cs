@@ -66,8 +66,12 @@ namespace PCI.Service
         public static int MRDFResponseLength { get; private set; }
 
         public static string NoRecordsInMRDFSubject { get; private set; }
-        public static string MRDFIssue_Email_To { get; private set; }
-        public static string MRDFIssue_Email_Cc { get; private set; }
+        public static string PCI_Issue_Email_To { get; private set; }
+        public static string PCI_Issue_Email_Cc { get; private set; }
+
+        public static string NORDIS_Issue_Email_To { get; private set; }
+        public static string NORDIS_Issue_Email_Cc { get; private set; }
+
         public static string ApplicationEnvironment { get; private set; }
         public static string PrintLocationCL { get; private set; }
         public static string PrintLocationPCI { get; private set; }
@@ -186,8 +190,11 @@ namespace PCI.Service
             SuspendBatchEmailSubject = ConfigurationManager.AppSettings["SuspendBatchEmailSubject"];
 
             NoRecordsInMRDFSubject = ConfigurationManager.AppSettings["NoRecordsInMRDFSubject"];
-            MRDFIssue_Email_To = ConfigurationManager.AppSettings["MRDFIssue_Email_To"];
-            MRDFIssue_Email_Cc = ConfigurationManager.AppSettings["MRDFIssue_Email_Cc"];
+            PCI_Issue_Email_To = ConfigurationManager.AppSettings["PCI_Issue_Email_To"];
+            PCI_Issue_Email_Cc = ConfigurationManager.AppSettings["PCI_Issue_Email_Cc"];
+
+            NORDIS_Issue_Email_To = ConfigurationManager.AppSettings["NORDIS_Issue_Email_To"];
+            NORDIS_Issue_Email_Cc = ConfigurationManager.AppSettings["NORDIS_Issue_Email_Cc"];
 
             UnexpectedEmail_Subject = ConfigurationManager.AppSettings["UnexpectedEmail_Subject"];
             UnexpectedEmail_ToEmail = ConfigurationManager.AppSettings["UnexpectedEmail_ToEmail"];

@@ -10,9 +10,9 @@ namespace PCI.Service
 {
     partial class DAL
     {
-        public static List<SubmittedBatches> GetSubmittedBatches(string printVendorCode)
+        public static List<SubmittedBatches> GetSubmittedBatches()
         {
-            var submittedBatches = db.ExecuteDataSet("usp_GetSubmittedBatches", printVendorCode).Tables[0];
+            var submittedBatches = db.ExecuteDataSet("usp_GetSubmittedBatches").Tables[0];
             List<SubmittedBatches> printBatches = submittedBatches.AsEnumerable().Select(x => new SubmittedBatches
             {
                 PrintTrailBatchId = x.Field<int>("PrintTrailBatchId"),
@@ -134,7 +134,7 @@ namespace PCI.Service
 
         public static int UpdatePrintTrailBatchDetail(PrintTrailBatch printTrailBatchDetail)
         {
-            return db.ExecuteSqlNonQuery(@"UPDATE [PnS].[PrintTrailBatches] SET [PrintBatchName]= @p1,[SubmittedOn] = @p2,[MRDFReceivedOn] = @p3 WHERE Id = @p4", printTrailBatchDetail.PrintBatchName, printTrailBatchDetail.SubmittedOn, printTrailBatchDetail.MRDFReceivedOn, printTrailBatchDetail.Id);
+            return db.ExecuteSqlNonQuery(@"UPDATE [PnS].[PrintTrailBatches] SET [PrintBatchName]= @p1,[SubmittedOn] = @p2,[MRDFReceivedOn] = @p3,[ValidationErrors]=@p4 WHERE Id = @p5", printTrailBatchDetail.PrintBatchName, printTrailBatchDetail.SubmittedOn, printTrailBatchDetail.MRDFReceivedOn, printTrailBatchDetail.ValidationErrors, printTrailBatchDetail.Id);
         }
 
         public static PrintTrailBatch GetPrintBatchDetailByPrintBatchTrailId(int printTrailBatchId)

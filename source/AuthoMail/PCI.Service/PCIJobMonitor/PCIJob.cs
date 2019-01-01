@@ -335,8 +335,9 @@ namespace PCI.Service
                     });
 
                     var currentBatch = dallasBatches.Single(b => (b.AppCode == client.AppCode && effectiveReceivedOnEst >= b.StartDate && effectiveReceivedOnEst <= b.EndDate) && b.ShippingCarrier == mailPiece.ShippingCarrier && b.ShippingServiceType == mailPiece.ShippingServiceType);
-
-                    string submitDir = Path.Combine(printTrailDetail.FromADEDir, client.AppCode, effectiveReceivedOnEst.Value.Date.ToString("MMddyyyy"), currentBatch.BatchName, currentBatch.ShippingCarrier + "_" + currentBatch.ShippingServiceType + folderBRE);
+                    
+                    //Here for HSBC System is separating packages which have pages more than 65 pages with priority folder
+                    string submitDir = Path.Combine(Common.CL_SFT_SubmitDir, client.AppCode, effectiveReceivedOnEst.Value.Date.ToString("MMddyyyy"), currentBatch.BatchName, currentBatch.ShippingCarrier + "_" + currentBatch.ShippingServiceType + folderBRE, client.AppCode == "HSBC" && mailPiece.TotalPages >= 65 ? "PRIORITY" : "");
 
                     if (!sftSite.IsDownloadDirectoryAvailable(submitDir))
                         sftSite.CreateDirectory(submitDir);
@@ -359,7 +360,7 @@ namespace PCI.Service
             {
                 var printVendorDetail = DAL.GetPrintVendorDetailByVendorCode(printVendorCode);
                 List<SubmittedBatches> submittedPrintBatches;
-                submittedPrintBatches = DAL.GetSubmittedBatches(printVendorCode);
+                submittedPrintBatches = DAL.GetSubmittedBatches();
                 if (submittedPrintBatches.Count == 0)
                 {
                     log.Debug("Print vendor - {0}'s job queue is empty.".Fill(printVendorCode));

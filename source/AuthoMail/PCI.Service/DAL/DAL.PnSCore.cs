@@ -169,16 +169,16 @@ namespace PCI.Service
         public static void InsertXMLResponseData(BatchResponse batchResponse)
         {
             if (batchResponse.PackagesReport.Count == 0)
-                return;           
+                return;
 
             foreach (var res in batchResponse.PackagesReport)
             {
                 var sql = @"DELETE FROM [PnS].[MRDFResponse] Where JobId=@p1 and PieceId=@p2";
-                db.ExecuteSqlNonQuery(sql,batchResponse.JobId, res.PieceId);
-                
+                db.ExecuteSqlNonQuery(sql, batchResponse.JobId, res.PieceId);
+
                 sql = @"INSERT INTO PnS.MRDFResponse (JobId,PieceId,ProcessingTimeStamp,Disposition,PostageMetered,WeightMeasured,TotalSheets,PDFFileName) VALUES (@p1,@p2,@p3,@p4,@p5,@p6,@p7,@p8)";
 
-                db.ExecuteSqlNonQuery(sql, batchResponse.JobId, res.PieceId, res.PrintStatus == PrintStatus.Shipped ? res.ShippedOn : res.PrintStatus == PrintStatus.PulledBack ? res.PulledBackOn : DateTime.MinValue, res.PrintStatus == PrintStatus.Shipped ? '5' : res.PrintStatus == PrintStatus.PulledBack ? '4' : '7',res.Postage,res.WeightMeasured,res.TotalSheets,res.PDFFileName);
+                db.ExecuteSqlNonQuery(sql, batchResponse.JobId, res.PieceId, res.PrintStatus == PrintStatus.Shipped ? Common.EstToUtc(res.ShippedOn) : res.PrintStatus == PrintStatus.PulledBack ? Common.EstToUtc(res.PulledBackOn) : DateTime.MinValue, res.PrintStatus == PrintStatus.Shipped ? '5' : res.PrintStatus == PrintStatus.PulledBack ? '4' : '7', res.Postage, res.WeightMeasured, res.TotalSheets, res.PDFFileName);
             }
         }
 

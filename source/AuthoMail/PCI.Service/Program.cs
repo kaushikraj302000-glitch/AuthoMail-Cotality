@@ -45,7 +45,7 @@ namespace PCI.Service
                         break;
                     case "PnSCore":
                         PnSCoreService.PrepPCIJobs();
-                        PnSCoreService.ProcessPCIResponse(args.Length > 1 ? args[1] : "");
+                        PnSCoreService.ProcessPCIResponse();
                         PnSCoreService.GeneratePnSResponse();
                         //PnSCoreService.ProcessPCIReturnPDFsInfo();
                         break;

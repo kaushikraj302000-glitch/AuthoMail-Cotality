@@ -128,7 +128,7 @@ namespace PCI.Service
 
                 #endregion
 
-                sftSite.DownloadFile(bi.RequestXmlPath, requestXMLRemotePath);//, Common.RemoveBatchFiles_PnS_SFT, false);
+                sftSite.DownloadFile(requestXMLRemotePath, bi.RequestXmlPath);//, Common.RemoveBatchFiles_PnS_SFT, false);
 
                 sftSite.DownloadDirectory(bi.PnSRequestPDFsPath, batchPDFsDirRemotePath);//, Common.RemoveBatchFiles_PnS_SFT, false);
 

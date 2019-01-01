@@ -419,7 +419,7 @@ namespace PCI.Service.Utilities
                 List<string> remoteFiles = Directory.GetFiles(remoteDirPath).ToList();
                 foreach (string remoteFile in remoteFiles)
                 {
-                    DownloadFile(Path.Combine(localDirPath, Path.GetFileName(remoteFile)), remoteFile, deleteRemoteFile);
+                    DownloadFile(remoteFile, Path.Combine(localDirPath, Path.GetFileName(remoteFile)), deleteRemoteFile);
                 }
                 foreach (string remoteFile in remoteFiles)
                 {
@@ -589,7 +589,7 @@ namespace PCI.Service.Utilities
                     sourceFile.MoveTo(GetUrl(destinationRemotePath));
                 }
             }
-        }       
+        }
 
         public void DeleteDirectory(string remoteDirPath)
         {
