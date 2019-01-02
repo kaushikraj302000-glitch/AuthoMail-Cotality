@@ -20,11 +20,13 @@ namespace AM.Services
         {
             var orderDictionary = new Dictionary<int, ProjectRequestLookupForm>();
             string query = @"select * from AM.ProjectRequestLookupForm p 
+  inner join AM.ProjectRequestFormHeaders h on p.ProjectRequestFormHeadersHeaderCode=h.HeaderCode
 inner join AM.ProjectRequestLookupFormValue v on p.Id=v.ProjectRequestLookupFormId";
-            var list = db.Query<ProjectRequestLookupForm, ProjectRequestLookupFormValue, ProjectRequestLookupForm>(
+            var list = db.Query<ProjectRequestLookupForm, ProjectRequestFormHeaders, ProjectRequestLookupFormValue, ProjectRequestLookupForm>(
                 query,
-                (p, v) =>
+                (p, h, v) =>
                 {
+                    p.ProjectRequestFormHeaders = h;
                     ProjectRequestLookupForm prlf;
                     if (!orderDictionary.TryGetValue(p.Id, out prlf))
                     {
@@ -33,9 +35,10 @@ inner join AM.ProjectRequestLookupFormValue v on p.Id=v.ProjectRequestLookupForm
                         orderDictionary.Add(prlf.Id, prlf);
                     }
                     prlf.ProjectRequestLookupFormValueList.Add(v);
+                    //prlf.ProjectRequestFormHeaders = h;
                     return prlf;
-                }
-                ).Distinct().ToList();
+                },splitOn:"ProjectRequestFormHeadersHeaderCode,Id"
+                ).Distinct().OrderBy(h => h.ProjectRequestFormHeaders.AlphaSeqCode).ToList();
             return list;
         }
 

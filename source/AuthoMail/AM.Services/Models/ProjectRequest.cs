@@ -30,12 +30,26 @@ namespace AM.Services
         public List<ProjectRequestLookupForm> ProjectRequestLookupFormList { get; set; }
         public List<ProjectRequestValueMapping> ProjectRequestValueMappingList { get; set; }
     }
-
+    public class ProjectRequestFormHeaders
+    {
+        public string HeaderCode { get; set; }
+        public string HeaderTitle { get; set; }
+        public string AlphaSeqCode { get; set; }
+    }
     public class ProjectRequestLookupForm
     {
         public int Id { get; set; }
         public string Name { get; set; }
         public string FieldName { get; set; }
+        public string DisplayHeader
+        {
+            get
+            {
+                if (ProjectRequestFormHeaders == null) return null;
+                return string.Format("{0}. {1}", this.ProjectRequestFormHeaders.AlphaSeqCode, this.ProjectRequestFormHeaders.HeaderTitle);
+            }
+        }
+        public ProjectRequestFormHeaders ProjectRequestFormHeaders { get; set; }
         public List<ProjectRequestLookupFormValue> ProjectRequestLookupFormValueList { get; set; }
     }
     public class ProjectRequestLookupFormValue
