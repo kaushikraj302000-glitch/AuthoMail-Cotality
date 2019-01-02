@@ -81,7 +81,7 @@ namespace PCI.Service
             return isEmailSent;
         }
 
-        public static bool SendInvalidMRDFOutFoundNotificationPCIEmail(string printFileName, string fileName, string errorMsg)
+        public static bool SendInvalidResponseFoundNotification(string printFileName, string fileName, string errorMsg, string printVendorCode)
         {
             bool isEmailSent = false;
 
@@ -90,13 +90,13 @@ namespace PCI.Service
                 using (MailMessage msg = new MailMessage())
                 {
                     msg.IsBodyHtml = true;
-                    msg.To.Add(Common.MRDFIssue_Email_To);
-                    msg.CC.Add(Common.MRDFIssue_Email_Cc);
-                    msg.Subject = Common.NoRecordsInMRDFSubject;
+                    msg.To.Add(printVendorCode == "PCI" ? Common.PCI_Issue_Email_To : Common.NORDIS_Issue_Email_To);
+                    msg.CC.Add(printVendorCode == "PCI" ? Common.PCI_Issue_Email_Cc : Common.NORDIS_Issue_Email_Cc);
+                    msg.Subject = printVendorCode == "PCI" ? Common.NoRecordsInMRDFSubject : Common.NoRecordsInMRDFSubject + " NORDIS";
                     msg.Priority = MailPriority.High;
 
                     StringBuilder sb = new StringBuilder(File.ReadAllText(Common.SuspendBatchEmailTemplate));
-                    sb = sb.Replace("<%Reason%>", errorMsg + "<br/><br/>Batch Name: {0} <br/><br/>".Fill(Path.GetFileNameWithoutExtension(printFileName)) + "MRDF OUT File Name : {0}".Fill(fileName));
+                    sb = sb.Replace("<%Reason%>", errorMsg + "<br/><br/>Batch Name: {0} <br/><br/>".Fill(Path.GetFileNameWithoutExtension(printFileName)) + "OUT File Name : {0}".Fill(fileName));
 
                     msg.Body = sb.ToString();
                     Common.Email_SMTPClient.Send(msg);

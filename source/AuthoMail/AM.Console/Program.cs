@@ -39,8 +39,16 @@ namespace AM.Console
                 }
                 else if (args[0] == "BatchReporting")
                 {
-                    string channelCode = string.IsNullOrEmpty(args[1]) ? string.Empty : args[1] ;
-                    Channel.ReportBack(channelCode);
+                    //This will be used as How system will report back to the client. means based on response of printbatches table or full response so Here user needs to pass "Incremental" Or "Full" then comma separated SFTChannel codes
+                    string reportType = args.Length > 2 ? args[1] : string.Empty;
+
+                    if (string.IsNullOrEmpty(reportType))
+                        return;
+
+
+                    string[] channelList = args[2].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+                    Channel.ReportBack(channelList, reportType);
                 }
                 else
                 {
