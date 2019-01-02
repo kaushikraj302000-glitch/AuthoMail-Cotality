@@ -35,9 +35,8 @@ inner join AM.ProjectRequestLookupFormValue v on p.Id=v.ProjectRequestLookupForm
                         orderDictionary.Add(prlf.Id, prlf);
                     }
                     prlf.ProjectRequestLookupFormValueList.Add(v);
-                    //prlf.ProjectRequestFormHeaders = h;
                     return prlf;
-                },splitOn:"ProjectRequestFormHeadersHeaderCode,Id"
+                }, splitOn: "ProjectRequestFormHeadersHeaderCode,Id"
                 ).Distinct().OrderBy(h => h.ProjectRequestFormHeaders.AlphaSeqCode).ToList();
             return list;
         }
