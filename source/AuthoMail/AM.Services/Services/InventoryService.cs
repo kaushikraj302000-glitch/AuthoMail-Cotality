@@ -14,6 +14,8 @@ namespace AM.Services
         List<Envelopes> GetEnvelopes();
         EnvelopeTransactions FindByIdEnvelopeTransactions(int Id);
         KeyValuePair<bool, string> SaveEnvelopesTrasaction(EnvelopeTransactions envtran);
+        List<EnvelopeTransactions> GetAllEnvelopeTransactions();
+        List<Envelopes> IsEnvelopeStockLess();
     }
     public class InventoryService : ServiceBase, IInventoryService
     {
@@ -35,7 +37,7 @@ namespace AM.Services
                 var envelope = FindByCodeEnvelope(envelopes.Id);
                 if (envelope == null)
                 {
-                    string sql = "INSERT INTO [Common].[Envelopes] ([Id] ,[TotalQuantity] ,[CurrentQuantity] ,[IsBREEnvelope])      VALUES(@Id, varchar(255) ,@TotalQuantity ,@CurrentQuantity ,@IsBREEnvelope)";
+                    string sql = "INSERT INTO [Common].[Envelopes] ([Id] ,[TotalQuantity] ,[CurrentQuantity] ,[IsBREEnvelope])      VALUES(@Id ,@TotalQuantity ,@CurrentQuantity ,@IsBREEnvelope)";
                     db.Execute(sql, envelopes);
                     return new KeyValuePair<bool, string>(true, "Saved successfully");
                 }
@@ -59,16 +61,60 @@ namespace AM.Services
         }
         public KeyValuePair<bool, string> SaveEnvelopesTrasaction(EnvelopeTransactions envtran)
         {
-            if (envtran.Id == 0)
+
+            db.Open();
+            using (var t = db.BeginTransaction())
             {
+                try
+                {
+                    if (envtran.Id == 0)
+                    {
+                        string query = @"INSERT INTO [Common].[EnvelopeTransactions] ([EnvelopeId] ,[Description] ,[ReceivedOn] ,[ReceivedQuantity] ,[UnitPrice]) 
+VALUES (@EnvelopeId ,@Description ,@ReceivedOn ,@ReceivedQua ,@UnitPrice);";
+                        envtran.ReceivedOn = DateTime.UtcNow;
+                        db.Execute(query, envtran);
 
+                        query = "UPDATE [Common].[Envelopes]  SET [TotalQuantity] = [TotalQuantity] + (@TotalQuantity) WHERE Id=@Id";
+                        db.Execute(query, new { TotalQuantity = envtran.ReceivedQuantity, Id = envtran.EnvelopeId });
+                    }
+                    else
+                    {
+                        string query = "UPDATE [Common].[EnvelopeTransactions] SET [EnvelopeId] = @EnvelopeId ,[Description] = @Description ,[ReceivedQuantity] = @ReceivedQuantity ,[UnitPrice] = @UnitPrice  WHERE Id=@Id";
+                        db.Execute(query, envtran);
+                        var oldEnvelopeTransaction = FindByIdEnvelopeTransactions(envtran.Id);
+                        var oldEnvelope = FindByCodeEnvelope(envtran.EnvelopeId);
+                        envtran.ReceivedQuantity = oldEnvelope.TotalQuantity - oldEnvelopeTransaction.ReceivedQuantity + envtran.ReceivedQuantity;
+                        query = "UPDATE [Common].[Envelopes]  SET [TotalQuantity] = [TotalQuantity] + (@TotalQuantity) WHERE Id=@Id";
+                        db.Execute(query, new { TotalQuantity = envtran.ReceivedQuantity, Id = envtran.EnvelopeId });
+                    }
+                    t.Commit();
+                    return new KeyValuePair<bool, string>(true, "Saved successfully");
+                }
+                catch (Exception ex)
+                {
+                    t.Rollback();
+                    return new KeyValuePair<bool, string>(false, ex.Message);
+                }
             }
-            else
+
+
+        }
+        public List<EnvelopeTransactions> GetAllEnvelopeTransactions()
+        {
+            string query = "select * from Common.EnvelopeTransactions";
+            return db.Query<EnvelopeTransactions>(query).ToList();
+        }
+
+
+        public List<Envelopes> IsEnvelopeStockLess()
+        {
+            var newList = new List<Envelopes>();
+            var list = GetEnvelopes();
+            foreach (var item in list)
             {
-
+                
             }
-
-            throw new NotImplementedException();
+            return newList;
         }
     }
 }
