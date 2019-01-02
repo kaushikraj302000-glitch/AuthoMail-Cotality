@@ -88,7 +88,7 @@ namespace AM.Services
                 var delayedPCIMailPieces = pendingInProgressMailPieces.Where(mp => mp.VendorCode == "PCI" && Common.Now > mp.GetEstimatedSubmittedOn(timings, cutOffMinutes + 15)).ToList();
 
                 //Delayed PickUp MailPieces
-                 delayedPickUpMailPieces = pendingInProgressMailPieces.Where(mp => mp.MailPieceStatus == ShippingStatus.Shipped.ToString()).ToList();
+                delayedPickUpMailPieces = pendingMPsToSubmit.Where(mp => mp.MailPieceStatus == ShippingStatus.Shipped.ToString()).ToList();
 
                 delayedMailPieces = delayedDallasMailPieces.Concat(delayedEmptyPrintLocation).Concat(delayedShippedMailPieces).Concat(delayedPulledBackMailPieces).Concat(delayedErrorMailPieces).Concat(clientIdNullMailPieces).Concat(shippingStatusNullMailPieces).Concat(delayedPCIMailPieces).Concat(delayedPickUpMailPieces).ToList();
 

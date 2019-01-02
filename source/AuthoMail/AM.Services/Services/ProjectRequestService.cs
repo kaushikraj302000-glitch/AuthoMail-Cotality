@@ -54,22 +54,27 @@ inner join AM.ProjectRequestLookupFormValue v on p.Id=v.ProjectRequestLookupForm
                     SELECT CAST(SCOPE_IDENTITY() as int)";
 
                         int id = db.Query<int>(query, projectRequest).Single();
+                        if (projectRequest.ProjectRequestValueMappingList != null)
+                        {
+                            projectRequest.ProjectRequestValueMappingList.ForEach(v => v.ProjectRequestId = id);
 
-                        projectRequest.ProjectRequestValueMappingList.ForEach(v => v.ProjectRequestId = id);
-
-                        string sql = "INSERT INTO AM.ProjectRequestValueMapping (ProjectRequestId ,ProjectRequestLookupFormValueId ,Value) VALUES (@ProjectRequestId ,@ProjectRequestLookupFormValueId ,@Value)";
-                        db.Execute(sql, projectRequest.ProjectRequestValueMappingList);
+                            string sql = "INSERT INTO AM.ProjectRequestValueMapping (ProjectRequestId ,ProjectRequestLookupFormValueId ,Value) VALUES (@ProjectRequestId ,@ProjectRequestLookupFormValueId ,@Value)";
+                            db.Execute(sql, projectRequest.ProjectRequestValueMappingList);
+                        }
                     }
                     else
                     {
                         string query = @"UPDATE AM.ProjectRequest SET ClientName = @ClientName ,SubmittedOn = @SubmittedOn ,SubmittedBy = @SubmittedBy ,UATStartOn = @UATStartOn ,ProdStartOn = @ProdStartOn ,Description = @Description ,ESTSweepTime = @ESTSweepTime ,TransmittedTime = @TransmittedTime ,EstimatedPagesPerPackage = @EstimatedPagesPerPackage ,EstimatedPackagesDaily = @EstimatedPackagesDaily ,EstimatedPackagesMonthly = @EstimatedPackagesMonthly ,EstimatedPackagesAnnually = @EstimatedPackagesAnnually ,IsBRERequired = @IsBRERequired ,IsCustomerSupplyEnvelope = @IsCustomerSupplyEnvelope ,IsCustomerProvideArtworkEnvelope = @IsCustomerProvideArtworkEnvelope ,IsClientPostageAccount = @IsClientPostageAccount ,IsScanInAuthoMailDallas = @IsScanInAuthoMailDallas ,AdditionalInfo = @AdditionalInfo WHERE Id=@Id";
                         db.Execute(query, projectRequest);
+                        if (projectRequest.ProjectRequestValueMappingList != null)
+                        {
+                            db.Execute("delete from AM.ProjectRequestValueMapping where ProjectRequestId=@ProjectRequestId", new { ProjectRequestId = projectRequest.Id });
 
-                        db.Execute("delete from AM.ProjectRequestValueMapping where ProjectRequestId=@ProjectRequestId", new { ProjectRequestId = projectRequest.Id });
-                        projectRequest.ProjectRequestValueMappingList.ForEach(v => v.ProjectRequestId = projectRequest.Id);
+                            projectRequest.ProjectRequestValueMappingList.ForEach(v => v.ProjectRequestId = projectRequest.Id);
 
-                        string sql = "INSERT INTO AM.ProjectRequestValueMapping (ProjectRequestId ,ProjectRequestLookupFormValueId ,Value) VALUES (@ProjectRequestId ,@ProjectRequestLookupFormValueId ,@Value)";
-                        db.Execute(sql, projectRequest.ProjectRequestValueMappingList);
+                            string sql = "INSERT INTO AM.ProjectRequestValueMapping (ProjectRequestId ,ProjectRequestLookupFormValueId ,Value) VALUES (@ProjectRequestId ,@ProjectRequestLookupFormValueId ,@Value)";
+                            db.Execute(sql, projectRequest.ProjectRequestValueMappingList);
+                        }
                     }
                     t.Commit();
                     return new KeyValuePair<bool, string>(true, "Saved successful.");
