@@ -37,13 +37,13 @@ namespace AM.Services
                 var envelope = FindByCodeEnvelope(envelopes.Id);
                 if (envelope == null)
                 {
-                    string sql = "INSERT INTO [Common].[Envelopes] ([Id] ,[TotalQuantity] ,[CurrentQuantity] ,[IsBREEnvelope])      VALUES(@Id ,@TotalQuantity ,@CurrentQuantity ,@IsBREEnvelope)";
+                    string sql = "INSERT INTO [Common].[Envelopes] ([Id] ,[CurrentQuantity] ,[IsBREEnvelope])      VALUES(@Id ,@CurrentQuantity ,@IsBREEnvelope)";
                     db.Execute(sql, envelopes);
                     return new KeyValuePair<bool, string>(true, "Saved successfully");
                 }
                 else
                 {
-                    string sql = "UPDATE [Common].[Envelopes]  SET [TotalQuantity] = @TotalQuantity, [CurrentQuantity] = @CurrentQuantity, [IsBREEnvelope] = @IsBREEnvelope  WHERE Id=@Id";
+                    string sql = "UPDATE [Common].[Envelopes]  SET [CurrentQuantity] = @CurrentQuantity, [IsBREEnvelope] = @IsBREEnvelope  WHERE Id=@Id";
                     db.Execute(sql, envelopes);
                     return new KeyValuePair<bool, string>(true, "Saved successfully");
                 }
@@ -74,8 +74,8 @@ VALUES (@EnvelopeId ,@Description ,@ReceivedOn ,@ReceivedQua ,@UnitPrice);";
                         envtran.ReceivedOn = DateTime.UtcNow;
                         db.Execute(query, envtran);
 
-                        query = "UPDATE [Common].[Envelopes]  SET [TotalQuantity] = [TotalQuantity] + (@TotalQuantity) WHERE Id=@Id";
-                        db.Execute(query, new { TotalQuantity = envtran.ReceivedQuantity, Id = envtran.EnvelopeId });
+                        query = "UPDATE [Common].[Envelopes]  SET [CurrentQuantity] = [CurrentQuantity] + (@CurrentQuantity) WHERE Id=@Id";
+                        db.Execute(query, new { CurrentQuantity = envtran.ReceivedQuantity, Id = envtran.EnvelopeId });
                     }
                     else
                     {
@@ -83,9 +83,9 @@ VALUES (@EnvelopeId ,@Description ,@ReceivedOn ,@ReceivedQua ,@UnitPrice);";
                         db.Execute(query, envtran);
                         var oldEnvelopeTransaction = FindByIdEnvelopeTransactions(envtran.Id);
                         var oldEnvelope = FindByCodeEnvelope(envtran.EnvelopeId);
-                        envtran.ReceivedQuantity = oldEnvelope.TotalQuantity - oldEnvelopeTransaction.ReceivedQuantity + envtran.ReceivedQuantity;
-                        query = "UPDATE [Common].[Envelopes]  SET [TotalQuantity] = [TotalQuantity] + (@TotalQuantity) WHERE Id=@Id";
-                        db.Execute(query, new { TotalQuantity = envtran.ReceivedQuantity, Id = envtran.EnvelopeId });
+                        envtran.ReceivedQuantity = oldEnvelope.CurrentQuantity - oldEnvelopeTransaction.ReceivedQuantity + envtran.ReceivedQuantity;
+                        query = "UPDATE [Common].[Envelopes]  SET [CurrentQuantity] = [CurrentQuantity] + (@CurrentQuantity) WHERE Id=@Id";
+                        db.Execute(query, new { CurrentQuantity = envtran.ReceivedQuantity, Id = envtran.EnvelopeId });
                     }
                     t.Commit();
                     return new KeyValuePair<bool, string>(true, "Saved successfully");

@@ -68,7 +68,6 @@ namespace AM.Services
     public class Envelopes
     {
         public string Id { get; set; }
-        public int TotalQuantity { get; set; }
         public int CurrentQuantity { get; set; }
         public bool IsBREEnvelope { get; set; }
     }
