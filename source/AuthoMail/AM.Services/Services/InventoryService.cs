@@ -5,17 +5,28 @@ using System.Text;
 using System.Threading.Tasks;
 using Dapper;
 
-namespace AM.Services.Services
+namespace AM.Services
 {
     public interface IInventoryService : IDisposable
     {
         KeyValuePair<bool, string> SaveEnvelopes(Envelopes envelopes);
-        KeyValuePair<bool, string> SaveEnvelopesTrasaction(EnvelopeTransactions envtran);
         Envelopes FindByCodeEnvelope(string envelopeCode);
         List<Envelopes> GetEnvelopes();
+        EnvelopeTransactions FindByIdEnvelopeTransactions(int Id);
+        KeyValuePair<bool, string> SaveEnvelopesTrasaction(EnvelopeTransactions envtran);
     }
     public class InventoryService : ServiceBase, IInventoryService
     {
+
+        public Envelopes FindByCodeEnvelope(string envelopeCode)
+        {
+            return db.QuerySingleOrDefault<Envelopes>("select * from Common.Envelopes where Id=@envelopeCode", new { envelopeCode = envelopeCode });
+        }
+
+        public List<Envelopes> GetEnvelopes()
+        {
+            return db.Query<Envelopes>("select * from Common.Envelopes").ToList();
+        }
 
         public KeyValuePair<bool, string> SaveEnvelopes(Envelopes envelopes)
         {
@@ -39,23 +50,17 @@ namespace AM.Services.Services
             {
                 return new KeyValuePair<bool, string>(false, ex.Message);
             }
-
         }
 
-
+        public EnvelopeTransactions FindByIdEnvelopeTransactions(int Id)
+        {
+            string query = "select * from Common.EnvelopeTransactions where Id=@Id";
+            return db.QuerySingleOrDefault<EnvelopeTransactions>(query, new { Id = Id });
+        }
         public KeyValuePair<bool, string> SaveEnvelopesTrasaction(EnvelopeTransactions envtran)
         {
+            var envelopeTransaction = FindByIdEnvelopeTransactions(envtran.Id);
             throw new NotImplementedException();
-        }
-
-        public Envelopes FindByCodeEnvelope(string envelopeCode)
-        {
-            return db.QuerySingleOrDefault<Envelopes>("select * from Common.Envelopes where Id=@envelopeCode", new { envelopeCode = envelopeCode });
-        }
-
-        public List<Envelopes> GetEnvelopes()
-        {
-            return db.Query<Envelopes>("select * from Common.Envelopes").ToList();
         }
     }
 }
