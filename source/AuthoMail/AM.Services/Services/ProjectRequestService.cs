@@ -9,7 +9,8 @@ namespace AM.Services
 {
     public interface IProjectRequestService : IDisposable
     {
-        List<ProjectRequestLookupForm> SchemaProjectRequestLookupForm();
+        //List<ProjectRequestLookupForm> SchemaProjectRequestLookupForm(int projectRequestId);
+        ProjectRequest SchemaProjectRequestLookupForm(int projectRequestId);
         KeyValuePair<bool, string> SaveProjectRequest(ProjectRequest projectRequest);
         ProjectRequest ProjectRequestFindById(int Id);
     }
