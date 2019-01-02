@@ -64,4 +64,22 @@ namespace AM.Services
         public int ProjectRequestLookupFormValueId { get; set; }
         public string Value { get; set; }
     }
+
+    public class Envelopes
+    {
+        public string Id { get; set; }
+        public int TotalQuantity { get; set; }
+        public int CurrentQuantity { get; set; }
+        public bool IsBREEnvelope { get; set; }
+    }
+    public class EnvelopeTransactions
+    {
+        public int Id { get; set; }
+        public string EnvelopeId { get; set; }
+        public string Description { get; set; }
+        public DateTime ReceivedOn { get; set; }
+        public int ReceivedQuantity { get; set; }
+        public decimal UnitPrice { get; set; }
+        public Envelopes Envelopes { get; set; }
+    }
 }
