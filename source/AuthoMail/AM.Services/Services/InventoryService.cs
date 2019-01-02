@@ -59,7 +59,15 @@ namespace AM.Services
         }
         public KeyValuePair<bool, string> SaveEnvelopesTrasaction(EnvelopeTransactions envtran)
         {
-            var envelopeTransaction = FindByIdEnvelopeTransactions(envtran.Id);
+            if (envtran.Id == 0)
+            {
+
+            }
+            else
+            {
+
+            }
+
             throw new NotImplementedException();
         }
     }
