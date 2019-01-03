@@ -218,7 +218,7 @@ namespace AM.Services
         public List<SubmittedBatch> GetResponseReceivedPrintBatchDetails()
         {
             //Sql Query
-            string query = @"SELECT DISTINCT PB.Id AS PrintBatchId, PB.AppCode +'_'+ CONVERT(VARCHAR(10),PB.Id) AS SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode,MB.SFTChannelId FROM AM.PrintBatches PB INNER JOIN AM.MailPieces MP ON PB.Id=MP.PrintBatchId INNER JOIN AM.MailBatches MB ON MP.MailBatchId=MB.Id WHERE PB.IsSubmittedToShipping=1 AND PB.IsShippingResponseReceived=1 AND PB.BatchStatus=@BatchStatus";
+            string query = @"SELECT DISTINCT PB.Id AS PrintBatchId,PB.MailBatchId, PB.AppCode +'_'+ CONVERT(VARCHAR(10),PB.Id) AS SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode,MB.SFTChannelId FROM AM.PrintBatches PB INNER JOIN AM.MailBatches MB ON PB.MailBatchId=MB.Id WHERE PB.IsSubmittedToShipping=1 AND PB.IsShippingResponseReceived=1 AND PB.BatchStatus=@BatchStatus";
 
             return db.Query<SubmittedBatch>(query, new { BatchStatus = BatchStatus.InProgress.ToString() }).ToList();
         }
@@ -226,7 +226,7 @@ namespace AM.Services
         public List<SubmittedBatch> GetReportPreppedPrintBatchDetails()
         {
             //Sql Query
-            string query = @"SELECT DISTINCT PB.Id AS PrintBatchId, PB.AppCode +'_'+ CONVERT(VARCHAR(10),PB.Id) AS SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode,MB.SFTChannelId FROM AM.PrintBatches PB INNER JOIN AM.MailBatches MB ON PB.MailBatchId=MB.Id WHERE PB.IsSubmittedToShipping=1 AND PB.IsReportPrepped=1 AND PB.IsReportedBack=0";
+            string query = @"SELECT DISTINCT PB.Id AS PrintBatchId,PB.MailBatchId, PB.AppCode +'_'+ CONVERT(VARCHAR(10),PB.Id) AS SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode,MB.SFTChannelId FROM AM.PrintBatches PB INNER JOIN AM.MailBatches MB ON PB.MailBatchId=MB.Id WHERE PB.IsSubmittedToShipping=1 AND PB.IsReportPrepped=1 AND PB.IsReportedBack=0";
 
             return db.Query<SubmittedBatch>(query, null).ToList();
         }

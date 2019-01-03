@@ -88,6 +88,7 @@ namespace AM.Entities
     public class SubmittedBatch
     {
         public int PrintBatchId { get; set; }
+        public int MailBatchId { get; set; }
         public Guid UniqueId { get; set; }
         public int DocTypeId { get; set; }
         public int SFTChannelId { get; set; }

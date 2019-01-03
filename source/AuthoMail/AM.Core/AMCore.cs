@@ -292,6 +292,29 @@ namespace AM.Core
 
                                     #endregion
                                 }
+                                else
+                                {
+                                    if (commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value).VendorCode == "CL_DALLAS")
+                                    {
+                                        coverLetterTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, Config.Core_FrontPageTemplatePath);
+                                        response = doc.GenerateFrontBarcodeCoverLetter(coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
+                                        if (response.HasError)
+                                        {
+                                            mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
+                                            mailPiece.TotalPages = 0;
+                                            mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                            mailPiece.ErrorDesc = response.ExceptionDetail;
+                                            mailPiece.DueDate = null;
+                                            mailPiece.PrintLocation = null;
+                                            mailPiece.PrintTrailId = null;
+                                            mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                            continue;
+                                        }
+
+                                        mailPiece.TrackingNo = mailPiece.Id.ToString();
+                                        coverLetterPdfPath = response.CoverLetterPath;
+                                    }
+                                }
 
                                 //For now reverse barcoding will be mail piece id
                                 if (commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value).VendorCode == "CL_DALLAS")
@@ -329,7 +352,7 @@ namespace AM.Core
                                 }
 
                                 mailPiece.TotalPages = response.TotalPages;
-                                mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);                               
+                                mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                             }
                             catch (Exception ex)
                             {
@@ -503,20 +526,7 @@ namespace AM.Core
                             {
                                 File.WriteAllText(errorReportPath, errorData.ToString());
 
-                                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannel.Protocol), sftChannel.Host, sftChannel.UserName, sftChannel.Password, 300000);
-                                sftSite.Connect();
-
-                                sftSite.UploadFile(errorReportPath, Path.Combine(deliverable.UploadPath, errorReportFileName));
-
-                                // Upload Error.GO file after uploading error report
-                                File.WriteAllText(errorGoFilePath, string.Empty);
-
-                                sftSite.UploadFile(errorGoFilePath, Path.Combine(deliverable.UploadPath, errorGoFileName));
-
-                                if (sftSite.IsConnected)
-                                    sftSite.Disconnect();
-
-                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
+                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
                             }
                         }
                         break;
@@ -561,20 +571,7 @@ namespace AM.Core
                             {
                                 File.WriteAllText(errorReportPath, errorData.ToString());
 
-                                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannel.Protocol), sftChannel.Host, sftChannel.UserName, sftChannel.Password, 300000);
-                                sftSite.Connect();
-
-                                sftSite.UploadFile(errorReportPath, Path.Combine(deliverable.UploadPath, errorReportFileName));
-
-                                // Upload Error.GO file after uploading error report
-                                File.WriteAllText(errorGoFilePath, string.Empty);
-
-                                sftSite.UploadFile(errorGoFilePath, Path.Combine(deliverable.UploadPath, errorGoFileName));
-
-                                if (sftSite.IsConnected)
-                                    sftSite.Disconnect();
-
-                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
+                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
                             }
                         }
                         break;
@@ -912,67 +909,82 @@ namespace AM.Core
                         //Updates PrintBatches Status values
                         commonSvc.UpdatePrintBatchStatus(printBatch.PrintBatchId, pnsResponse.BatchStatus.ToString(), pnsResponse.StatusDescription);
 
-                        //TODO : use channel code instead of Ids
-                        //TODO : rename Core_DirectReportBackChannelIds to Core_IncreamentalReportingChannels
+                        string[] increamentalReportingChannels = Config.Core_DirectReportBackChannelCodes.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
-                        int[] increamentalReportingChannels = Array.ConvertAll(Config.Core_DirectReportBackChannelIds.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries), s => int.Parse(s));
+                        string channelCode = clientSvc.GetSFTChannelDetailsBySFTChannelId(printBatch.SFTChannelId).Code;
 
-                        if (increamentalReportingChannels.Contains(printBatch.SFTChannelId))
+                        MailBatches mailBatch = reportSvc.GetMailBatchDataFromMailBatchId(printBatch.MailBatchId);
+
+                        if (increamentalReportingChannels.Contains(channelCode))
                         {
                             string amResponsePath = Path.Combine(Config.Common_AuthoMailRootFolder, printBatch.AppCode, Util.AMResponseFolderName, printBatch.PrintBatchId.ToString());
 
                             amResponsePath.CreateDirectoryIfNotExist();
 
-                            using (IAMCService amcSvc = new AMCService())
+                            switch (channelCode.Split('_')[0].ToUpper())
                             {
-                                StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(printBatchMailPieces);
+                                case "AMC":
+                                    using (IAMCService amcSvc = new AMCService())
+                                    {
+                                        StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(printBatchMailPieces);
 
-                                if (deliveryReport != null)
-                                {
-                                    string deliveryReportFileName = "Delivery-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+                                        if (deliveryReport != null)
+                                        {
+                                            string deliveryReportFileName = "Delivery-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
 
-                                    //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
-                                    //string deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
-                                    string deliveryReportPath = Path.Combine(amResponsePath, deliveryReportFileName);
+                                            //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
+                                            //string deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                                            string deliveryReportPath = Path.Combine(amResponsePath, deliveryReportFileName);
 
-                                    File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
-                                }
+                                            File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
+                                        }
+                                    }
+                                    Thread.Sleep(1000);
+
+
+                                    break;
+                                default:
+                                    var deliverables = commonSvc.GetDeliverableByReportType(mailBatch.ClientId.Value, ReportTypes.Delivery);
+                                    using (IGeneralService generalSvc = new GeneralService())
+                                    {
+                                        StringBuilder deliveryReport = generalSvc.GeneralDeliveryReport(printBatchMailPieces, deliverables.Delimeter);
+
+                                        if (deliveryReport != null)
+                                        {
+                                            string deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(mailBatch.BatchName, mailBatch.Clients.AppCode, mailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                                            string deliveryReportPath = Path.Combine(amResponsePath, deliveryReportFileName);
+
+                                            File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
+                                        }
+                                    }
+                                    break;
                             }
-                            Thread.Sleep(1000);
-
                             mailBatchSvc.UpdatePrintBatchPipelineStatus(printBatch.PrintBatchId, BatchPipelineStatus.ReportPrepped, Common.Now);
                         }
 
-                        //TODO : Code change for filter on mailbatch directly
+                        var mailPiecesData = mailPieceSvc.GetMailPiecesByMailBatchId(printBatch.MailBatchId);
+                        var pendingMailPieces = mailPiecesData.Count(data => data.ShippingStatus == ShippingStatus.InProgress.ToString());
 
-                        //because of removed MailBatchId we need to check each mailpieces' response is received or not, if received all response we are updating batch status of MailBatch.
-                        var mailBatcheIds = printBatchMailPieces.Select(b => b.MailBatchId).Distinct().ToList();
-                        foreach (var mailBatchId in mailBatcheIds)
+                        if (pendingMailPieces == 0)
                         {
-                            var mailPiecesData = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatchId);
-                            var pendingMailPieces = mailPiecesData.Count(data => data.ShippingStatus == ShippingStatus.InProgress.ToString());
-
-                            if (pendingMailPieces == 0)
+                            if (mailPiecesData.All(data => data.ShippingStatus == ShippingStatus.Shipped.ToString()))
                             {
-                                if (mailPiecesData.All(data => data.ShippingStatus == ShippingStatus.Shipped.ToString()))
-                                {
-                                    commonSvc.UpdateBatchStatus(mailBatchId, AM.Entities.BatchStatus.ShippedAll.ToString());
-                                }
-                                else if (mailPiecesData.All(data => data.ShippingStatus == ShippingStatus.PulledBack.ToString()))
-                                {
-                                    commonSvc.UpdateBatchStatus(mailBatchId, AM.Entities.BatchStatus.PulledBack.ToString());
-                                }
-                                else if (mailPiecesData.All(data => data.ShippingStatus == ShippingStatus.Error.ToString()))
-                                {
-                                    commonSvc.UpdateBatchStatus(mailBatchId, AM.Entities.BatchStatus.Failed.ToString());
-                                }
-                                else
-                                {
-                                    commonSvc.UpdateBatchStatus(mailBatchId, AM.Entities.BatchStatus.ShippedPartial.ToString());
-                                }
-
-                                commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ShippingResponseReceived, Common.Now);
+                                commonSvc.UpdateBatchStatus(printBatch.MailBatchId, AM.Entities.BatchStatus.ShippedAll.ToString());
                             }
+                            else if (mailPiecesData.All(data => data.ShippingStatus == ShippingStatus.PulledBack.ToString()))
+                            {
+                                commonSvc.UpdateBatchStatus(printBatch.MailBatchId, AM.Entities.BatchStatus.PulledBack.ToString());
+                            }
+                            else if (mailPiecesData.All(data => data.ShippingStatus == ShippingStatus.Error.ToString()))
+                            {
+                                commonSvc.UpdateBatchStatus(printBatch.MailBatchId, AM.Entities.BatchStatus.Failed.ToString());
+                            }
+                            else
+                            {
+                                commonSvc.UpdateBatchStatus(printBatch.MailBatchId, AM.Entities.BatchStatus.ShippedPartial.ToString());
+                            }
+
+                            commonSvc.UpdateBatchPipeLineStatus(printBatch.MailBatchId, BatchPipelineStatus.ShippingResponseReceived, Common.Now);
                         }
                     }
                     catch (Exception ex)
@@ -1036,7 +1048,7 @@ namespace AM.Core
                     {
                         Client client = clientSvc.GetClientById(mailBatch.ClientId);
 
-                        Deliverable deliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Delivery);
+                        List<Deliverable> deliverables = commonSvc.GetDeliverablesByClientId(client.Id);
 
                         MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
                         SFTChannel sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelId(mbi.MailBatch.SFTChannelId);
@@ -1052,7 +1064,7 @@ namespace AM.Core
                             {
                                 bool isReportGenerated = false;
 
-                                isReportGenerated = GenerateFinalReports(mbi, mailPieces, deliverable, sftChannel);
+                                isReportGenerated = GenerateFinalReports(mbi, mailPieces, deliverables, sftChannel);
 
                                 if (isReportGenerated)
                                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
@@ -1081,64 +1093,17 @@ namespace AM.Core
             log.Debug("Report prepped job is completed.");
         }
 
-        private static bool GenerateFinalReports(MailBatchInfo mbi, List<MailPieces> mailPiecesData, Deliverable deliverable, SFTChannel sftChannel)
+        private static bool GenerateFinalReports(MailBatchInfo mbi, List<MailPieces> mailPiecesData, List<Deliverable> deliverables, SFTChannel sftChannel)
         {
             bool isReportGenerated = false;
-
-            switch (sftChannel.Code.Split('_')[0].ToUpper())
+            string sftChannelCode = sftChannel.Code.Split('_')[0].ToUpper();
+            switch (sftChannelCode)
             {
-                case "AMC":
-                    using (IAMCService amcSvc = new AMCService())
-                    {
-                        List<MailPieces> mailPieces = null;
-                        var inProgressMailPiece = mailPiecesData.Where(m => m.ShippingStatus == ShippingStatus.InProgress.ToString()).Count();
-
-                        //TODO : akshar. check all print batches are prepped.
-
-                        //var printBatchPrepped = mailPiecesData.Where(p)
-                        if (inProgressMailPiece == 0)
-                        {
-                            mailPieces = mailPiecesData.Where(m => m.ShippingStatus == ShippingStatus.PulledBack.ToString() && m.PrintBatchId == null).ToList();
-
-                            if (mailPieces.Count > 0)
-                            {
-                                StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(mailPieces);
-
-                                if (deliveryReport != null)
-                                {
-                                    string deliveryReportFileName = "Delivery-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
-
-                                    //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
-                                    //string deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
-                                    string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
-
-                                    File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
-
-                                }
-                            }
-
-                            isReportGenerated = true;
-
-                            StringBuilder errorReport = amcSvc.AMCErrorReport(mailPiecesData);
-
-                            if (errorReport != null)
-                            {
-                                string errorReportFileName = "Error-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
-
-                                //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
-                                //string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
-                                string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-
-                                File.WriteAllText(errorReportPath, errorReport.ToString());
-                                isReportGenerated = true;
-                            }
-                        }
-                    }
-                    break;
                 case "ALASKA":
                     using (IAlaskaService alaskaSvc = new AlaskaService())
                     {
-                        StringBuilder deliveryReport = alaskaSvc.AlaskaDeliveryReport(mailPiecesData, mbi.Client.TimeZone, deliverable.Delimeter);
+                        var deliverayReportDeliverable = deliverables.Single(r => r.ReportType == ReportTypes.Delivery);
+                        StringBuilder deliveryReport = alaskaSvc.AlaskaDeliveryReport(mailPiecesData, mbi.Client.TimeZone, deliverayReportDeliverable.Delimeter);
 
                         if (deliveryReport != null)
                         {
@@ -1149,7 +1114,8 @@ namespace AM.Core
                             isReportGenerated = true;
                         }
 
-                        StringBuilder errorReport = alaskaSvc.AlaskaErrorReport(mailPiecesData, mbi.Client.TimeZone, deliverable.Delimeter);
+                        var errorReportDeliverable = deliverables.Single(r => r.ReportType == ReportTypes.Error);
+                        StringBuilder errorReport = alaskaSvc.AlaskaErrorReport(mailPiecesData, mbi.Client.TimeZone, errorReportDeliverable.Delimeter);
 
                         if (errorReport != null)
                         {
@@ -1162,10 +1128,10 @@ namespace AM.Core
                     }
                     break;
                 case "HSBC":
-                case "AMTEST":
                     using (IHSBCService hsbcSvc = new HSBCService())
                     {
-                        StringBuilder deliveryReport = hsbcSvc.HSBCDeliveryReport(mailPiecesData, mbi.Client.TimeZone, deliverable.Delimeter);
+                        var deliverayReportDeliverable = deliverables.Single(r => r.ReportType == ReportTypes.Delivery);
+                        StringBuilder deliveryReport = hsbcSvc.HSBCDeliveryReport(mailPiecesData, mbi.Client.TimeZone, deliverayReportDeliverable.Delimeter);
 
                         string deliveryReportFileName = "{0}.DeliveryReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
                         string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
@@ -1173,7 +1139,8 @@ namespace AM.Core
                         File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
 
 
-                        StringBuilder errorReport = hsbcSvc.HSBCErrorReport(mailPiecesData, mbi.Client.TimeZone, deliverable.Delimeter);
+                        var errorReportDeliverable = deliverables.Single(r => r.ReportType == ReportTypes.Delivery);
+                        StringBuilder errorReport = hsbcSvc.HSBCErrorReport(mailPiecesData, mbi.Client.TimeZone, errorReportDeliverable.Delimeter);
 
                         string errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
                         string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
@@ -1184,41 +1151,79 @@ namespace AM.Core
                         isReportGenerated = true;
                     }
                     break;
+                case "AMC":
+                case "AMTEST":
                 default:
-                    using (IGeneralService generalSvc = new GeneralService())
+                    List<MailPieces> mailPieces = null;
+                    var inProgressMailPiece = mailPiecesData.Where(m => m.ShippingStatus == ShippingStatus.InProgress.ToString()).Count();
+
+                    if (inProgressMailPiece == 0)
                     {
-                        var inProgressMailPiece = mailPiecesData.Where(m => m.ShippingStatus == ShippingStatus.InProgress.ToString()).Count();
+                        mailPieces = mailPiecesData.Where(m => m.ShippingStatus == ShippingStatus.PulledBack.ToString() && m.PrintBatchId == null).ToList();
 
-                        if (inProgressMailPiece > 0)
-                            return false;
-
-
-                        StringBuilder deliveryReport = generalSvc.GeneralDeliveryReport(mailPiecesData, deliverable.Delimeter);
-
-                        if (deliveryReport != null)
+                        if (mailPieces.Count > 0)
                         {
-                            string deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                            switch (sftChannelCode)
+                            {
+                                case "AMC":
+                                    using (IAMCService amcSvc = new AMCService())
+                                    {
+                                        StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(mailPieces);
 
-                            string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
+                                        if (deliveryReport != null)
+                                        {
+                                            string deliveryReportFileName = "Delivery-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
 
-                            File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
+                                            //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
+                                            //string deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                                            string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
 
-                            isReportGenerated = true;
+                                            File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
+                                        }
+
+                                        StringBuilder errorReport = amcSvc.AMCErrorReport(mailPiecesData);
+
+                                        if (errorReport != null)
+                                        {
+                                            string errorReportFileName = "Error-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+
+                                            //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
+                                            //string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                                            string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+
+                                            File.WriteAllText(errorReportPath, errorReport.ToString());
+                                        }
+                                    }
+                                    break;
+                                default:
+                                    using (IGeneralService generalSvc = new GeneralService())
+                                    {
+                                        var deliverayReportDeliverable = deliverables.Single(r => r.ReportType == ReportTypes.Delivery);
+                                        StringBuilder deliveryReport = generalSvc.GeneralDeliveryReport(mailPieces, deliverayReportDeliverable.Delimeter);
+
+                                        if (deliveryReport != null)
+                                        {
+                                            string deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                                            string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
+
+                                            File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
+                                        }
+
+                                        var errorReportDeliverable = deliverables.Single(r => r.ReportType == ReportTypes.Delivery);
+                                        StringBuilder errorReport = generalSvc.GeneralErrorReport(mailPiecesData, errorReportDeliverable.Delimeter);
+
+                                        if (errorReport != null)
+                                        {
+                                            string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                                            string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+
+                                            File.WriteAllText(errorReportPath, errorReport.ToString());
+                                        }
+                                    }
+                                    break;
+                            }
                         }
-
-
-                        StringBuilder errorReport = generalSvc.GeneralErrorReport(mailPiecesData, deliverable.Delimeter);
-
-                        if (errorReport != null)
-                        {
-                            string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
-
-                            string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-
-                            File.WriteAllText(errorReportPath, errorReport.ToString());
-
-                            isReportGenerated = true;
-                        }
+                        isReportGenerated = true;
                     }
                     break;
             }

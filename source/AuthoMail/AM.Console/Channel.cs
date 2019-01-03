@@ -208,11 +208,11 @@ namespace AM.Console
                     {
                         Client client = clientSvc.GetClientByAppCode(preppedPrintBatch.AppCode);
 
-                        Deliverable deliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Delivery);
+                        List<Deliverable> deliverables = commonSvc.GetDeliverablesByClientId(client.Id);
 
                         string localReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, client.AppCode, Util.AMResponseFolderName, preppedPrintBatch.PrintBatchId.ToString());
                         //Here we are passing localReportPath as PrintBatches folder structure AMRoot/AMResponses/PrintBatchId
-                        UploadReportsToAMC(deliverable, localReportPath, sftSite);
+                        UploadReportsToIncrementalClients(deliverables, localReportPath, sftSite);
 
                         mailBatchSvc.UpdatePrintBatchPipelineStatus(preppedPrintBatch.PrintBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
                     }
@@ -229,7 +229,7 @@ namespace AM.Console
             }
         }
 
-        private static void GenerateAndSendProductionSummaryNotification(MailBatchInfo mbi, List<MailPieces> mailPieces, Deliverable deliverable)
+        private static void GenerateAndSendProductionSummaryNotification(MailBatchInfo mbi, List<MailPieces> mailPieces, List<Deliverable> deliverables)
         {
             string errorReportPath = string.Empty;
             string errorReportFileName = string.Empty;
@@ -238,12 +238,15 @@ namespace AM.Console
             string deliveryReportFileName = string.Empty;
             StringBuilder deliveryReportData = new StringBuilder();
             var reportToMail = new List<string>();
+            var deliveryReportDeliverable = deliverables.SingleOrDefault(rt => rt.ReportType == ReportTypes.Delivery);
+            var errorReportDeliverable = deliverables.SingleOrDefault(rt => rt.ReportType == ReportTypes.Error);
             switch (mbi.Client.AppCode)
             {
                 case "HSBC":
                     using (IHSBCService hsbcSvc = new HSBCService())
                     {
-                        StringBuilder deliveryReport = hsbcSvc.HSBCDeliveryReport(mailPieces, mbi.Client.TimeZone, deliverable.Delimeter);
+
+                        StringBuilder deliveryReport = hsbcSvc.HSBCDeliveryReport(mailPieces, mbi.Client.TimeZone, deliveryReportDeliverable.Delimeter);
 
                         deliveryReportFileName = "{0}.DeliveryReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
                         deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
@@ -251,7 +254,7 @@ namespace AM.Console
                         File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
                         reportToMail.Add(deliveryReportPath);
 
-                        StringBuilder errorReport = hsbcSvc.HSBCErrorReport(mailPieces, mbi.Client.TimeZone, deliverable.Delimeter);
+                        StringBuilder errorReport = hsbcSvc.HSBCErrorReport(mailPieces, mbi.Client.TimeZone, errorReportDeliverable.Delimeter);
 
                         errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
                         errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
@@ -294,7 +297,7 @@ namespace AM.Console
                     break;
             }
 
-            MailUtility.SendProductionNotificationEmail(mbi, mailPieces, reportToMail, deliverable.EmailChannel);
+            MailUtility.SendProductionNotificationEmail(mbi, mailPieces, reportToMail, deliveryReportDeliverable.EmailChannel);
         }
 
         private static void GenerateErrorReport(int mailBatchId, List<MailPieces> mailPieceData, string localErrorReportPath)
@@ -316,16 +319,16 @@ namespace AM.Console
             }
         }
 
-        private static void UploadReportsToAMC(Deliverable deliverable, string localReportPath, SFTUtil sftSite)
+        private static void UploadReportsToIncrementalClients(List<Deliverable> deliverables, string localReportPath, SFTUtil sftSite)
         {
-            string uploadPath = deliverable.UploadPath;
+            string deliveryUploadPath = deliverables.SingleOrDefault(up => up.ReportType == ReportTypes.Delivery).UploadPath;
 
             var deliveryReportList = Directory.EnumerateFiles(localReportPath, "*.txt").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-")).ToList();
 
             foreach (string filePath in deliveryReportList)
             {
                 string fileName = Path.GetFileName(filePath);
-                string ftpUploadPath = Path.Combine(uploadPath, fileName);
+                string ftpUploadPath = Path.Combine(deliveryUploadPath, fileName);
                 sftSite.UploadFile(filePath, ftpUploadPath);
 
                 //After upload change extention as a Complete
@@ -335,18 +338,19 @@ namespace AM.Console
             if (deliveryReportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-")) > 0)
             {
                 string deliveryGoFilePath = Path.Combine(localReportPath, "DlvrReport.go");
-                string ftpDeliveryGoUploadPath = Path.Combine(uploadPath, "DlvrReport.go");
+                string ftpDeliveryGoUploadPath = Path.Combine(deliveryUploadPath, "DlvrReport.go");
                 File.WriteAllText(deliveryGoFilePath, string.Empty);
 
                 sftSite.UploadFile(deliveryGoFilePath, ftpDeliveryGoUploadPath);
             }
 
+            string errorUploadPath = deliverables.SingleOrDefault(up => up.ReportType == ReportTypes.Error).UploadPath;
             var errorReportList = Directory.EnumerateFiles(localReportPath, "*.txt").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Error-")).ToList();
 
             foreach (string filePath in errorReportList)
             {
                 string fileName = Path.GetFileName(filePath);
-                string ftpUploadPath = Path.Combine(uploadPath, fileName);
+                string ftpUploadPath = Path.Combine(errorUploadPath, fileName);
                 sftSite.UploadFile(filePath, ftpUploadPath);
 
                 //After upload change extention as a Complete
@@ -356,7 +360,7 @@ namespace AM.Console
             if (errorReportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Error-")) > 0)
             {
                 string errorGoFilePath = Path.Combine(localReportPath, "ErrReport.go");
-                string ftpErrorGoUploadPath = Path.Combine(uploadPath, "ErrReport.go");
+                string ftpErrorGoUploadPath = Path.Combine(errorUploadPath, "ErrReport.go");
                 File.WriteAllText(errorGoFilePath, string.Empty);
 
                 sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
@@ -369,8 +373,6 @@ namespace AM.Console
             switch (sftChannelDetail.Code.Split('_')[0].ToUpper())
             {
                 case "AMC":
-                    var deliverableAMC = deliverables.Single(c => c.ReportType == ReportTypes.Delivery);
-
                     var mailPieceCount = mailPieceData.Count(status => status.ShippingStatus == ShippingStatus.InProgress.ToString());
 
                     if (mailPieceCount > 0)
@@ -389,9 +391,9 @@ namespace AM.Console
                     string reportPath = Path.Combine(Config.Common_AuthoMailRootFolder, mbi.Client.AppCode, mbi.MailBatch.Id.ToString(), Util.AMResponseFolderName);
 
                     //Here we are passing localReportPath as MailBatch folder structure AMRoot/USAA/MailBatchId/AMResponses
-                    UploadReportsToAMC(deliverableAMC, reportPath, sftSite);
+                    UploadReportsToIncrementalClients(deliverables, reportPath, sftSite);
 
-                    GenerateAndSendProductionSummaryNotification(mbi, mailPieceData, deliverableAMC);
+                    GenerateAndSendProductionSummaryNotification(mbi, mailPieceData, deliverables);
                     isUploaded = true;
                     break;
                 case "ALASKA":
@@ -429,7 +431,6 @@ namespace AM.Console
                     isUploaded = true;
                     break;
                 case "HSBC":
-                case "AMTEST":
                     var reportToMailHSBC = new List<string>();
                     //TODO: handle multiple channel code implementation
                     var emailChannelHSBC = deliverables.SingleOrDefault(x => x.ReportType == ReportTypes.Delivery).EmailChannel;
@@ -462,6 +463,7 @@ namespace AM.Console
                     MailUtility.SendProductionNotificationEmail(mbi, mailPieceData, reportToMailHSBC, emailChannelHSBC);
                     isUploaded = true;
                     break;
+                case "AMTEST":
                 default:
                     string uploadDeliveryPath = deliverables.Where(d => d.ReportType == ReportTypes.Delivery).Single().UploadPath;
 

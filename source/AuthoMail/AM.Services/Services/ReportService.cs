@@ -22,6 +22,7 @@ namespace AM.Services
         List<MailPieces> GetMailPiecesDataFromPrintBatchId(int printBatchId);
         List<MailPieces> GetMailPiecesDataFromMailBatchId(int mailBatchId);
         List<PCISubmittedBatchDetail> GetPCIReconReport(DateTime startDate, DateTime endDate);
+        MailBatches GetMailBatchDataFromMailBatchId(int mailBatchId);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -99,7 +100,7 @@ namespace AM.Services
             return data;
         }
 
-        public List<MailPieces> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime startDate,DateTime endDate, int? batchId, string docType, string filterBy)
+        public List<MailPieces> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime startDate, DateTime endDate, int? batchId, string docType, string filterBy)
         {
             string query = "[dbo].[uspweb_ErrorReportSLA] @clientId, @startDateRec, @endDateRec, @startDateDue, @endDateDue, @batchId, @docType";
             bool isReceived = filterBy == "ByReceivedOn" ? true : false;
@@ -289,6 +290,26 @@ GROUP BY PT.Id,PT.PrintBatchName,PT.SubmittedOn,D.ShippingCarrier,D.ShippingServ
 ORDER BY PrintTrailBatchId";
 
             return db.Query<PCISubmittedBatchDetail>(query, new { StartDate = startDate, EndDate = endDate }).ToList();
+        }
+
+        public MailBatches GetMailBatchDataFromMailBatchId(int mailBatchId)
+        {
+            string query = @"SELECT * FROM AM.MailBatches B INNER JOIN Common.SFTChannels S ON S.Id=B.SFTChannelId INNER JOIN Common.Clients C ON B.ClientId=C.Id WHERE B.Id=@MailBatchId";
+
+            var data = db.Query<MailBatches, SFTChannels, Clients, MailBatches>(query,
+                (mb, s, c) =>
+                {
+
+                    mb.SFTChannels = s;
+                    mb.Clients = c;
+
+                    return mb;
+                },
+                new
+                {
+                    MailBatchId = mailBatchId
+                });
+            return data.SingleOrDefault();
         }
     }
 }
