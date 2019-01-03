@@ -1,0 +1,32 @@
+﻿@model AM.Services.Envelopes
+
+<h2 id="myModalLabel">@(string.IsNullOrWhiteSpace(Model.Id) ? Html.Raw("Add Envelope Details") : Html.Raw("Edit Envelope Details"))</h2>
+
+<hr />
+<form id="envelopeform" action="#">
+    <div class="form-group">
+        <label for="Description">Name</label>
+        <div class="input-group">
+            <input type="text" id="Id" class="form-control" name="Id" value="@Model.Id" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="Description">Current Quantity</label>
+        <div class="input-group">
+            <input type="text" id="CurrentQuantity" class="form-control" name="CurrentQuantity" value="@Model.CurrentQuantity" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="Description">Is BRE Envelope?</label>
+        <div class="input-group">
+            <div class="toggle-container">
+                <input id="IsBREEnvelope" class="cl-toggle toggle-orange"  type="checkbox" @(Model.IsBREEnvelope ? "checked" : "") name="toggle-demo" /><label for="IsBREEnvelope">IsBREEnvelope</label>
+            </div>
+        </div>
+
+    </div>
+    <hr />
+    <button type="submit" class="btn btn-primary" id="Save"><i class="fa fa-save"></i> Save</button>
+    <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> Cancel</button>
+</form>
+

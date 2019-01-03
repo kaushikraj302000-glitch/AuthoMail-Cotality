@@ -1,0 +1,379 @@
+﻿@model  AM.Services.ProjectRequest
+@{
+    ViewBag.Title = "Project Setup";
+}
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <div class="panel-title">
+            <i class="fa fa-cog"></i> Project Setup
+        </div>
+    </div>
+    <div class="panel-body">
+        <form id="projetSetup" action="#" method="post">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="Value">Name of Project</label>
+                        <div class="input-group">
+                            <input type="text" name="Name" value="" placeholder="Name of Project" class="form-control" id="Name" maxlength="255" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="Description">Submitter</label>
+                        <div class="input-group">
+                            <input type="text" name="Submitter" value="" placeholder="Submitter" class="form-control" id="Submitter" maxlength="255" />
+                        </div>
+                    </div>
+                    
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="date">Submit Date</label>
+                        <div class="input-group date" id="datepicker4">
+                            <input type="text" class="form-control" id="submitdate">
+                            <span class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="date">Project Start Date</label>
+                        <div class="input-group date" id="datepicker4">
+                            <input type="text" class="form-control" id="startdate">
+                            <span class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="Description">Project Description</label>
+                        <div class="input-group">
+                            <textarea id="ProjectDescription"  class="form-control"></textarea>
+                        </div>
+                        <span for="BusinessUnit" class="error" style="display:none;">This field is required.</span>
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+                
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            A.  File Transmission & Types
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="Value">Files transmitted via</label>
+                                <div class="input-group">
+                                    <select class="selectpicker form-control">
+                                        <option value="ClientFTP">Client FTP</option>
+                                        <option value="CoreLogicFTP">CoreLogic FTP</option>
+                                        <option value="ClientSystem"> CL Pull from Client System Imaging</option>
+                                        <option value="ClientFTP">Client FTP</option>
+                                        <option value="ClientFTP">Client FTP</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="">
+                                   Times of day (EST) will the sweeps take place?
+                                </label>
+                                <div class="input-group">
+                                    <select class="selectpicker form-control">
+                                        <option value="2X">2X</option>
+                                        <option value="4X">4X</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="">
+                                    Type of Files
+                                </label>
+                                <div class="input-group">
+                                    <select class="selectpicker form-control">
+                                        <option value="PDF">PDF</option>
+                                        <option value="HP">HP</option>
+                                        <option value="TIFF">TIFF</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            B.  File Receipt & Service Levels
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="Value">Transmitted File Time</label>
+                                <div class='input-group date' id='datetimepicker3'>
+                                    <input type='text' class="form-control" />
+                                    <span class="input-group-addon">
+                                        <span class="fa fa-clock-o"></span>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="">
+                                    Service Level
+                                </label>
+                                <div class="input-group">
+                                    <select class="selectpicker form-control">
+                                        <option value="SameDay">Same Day</option>
+                                        <option value="24Hours">24 Hours</option>
+                                        <option value="48Hours">48 Hours</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="">
+                                    Estimated # Pages per Package
+                                </label>
+                                <div class="input-group">
+                                    <input type="text" name="Name" value="" placeholder="Pages per Package" class="form-control" id="Name" maxlength="255" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="">
+                                    Estimated # of Packages Per Day
+                                </label>
+                                <div class="input-group">
+                                    <input type="text" name="Name" value="" placeholder="Packages Per Day" class="form-control" id="Name" maxlength="255" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="">
+                                    Estimated # of Packages Per Month
+                                </label>
+                                <div class="input-group">
+                                    <input type="text" name="Name" value="" placeholder="Packages Per Month" class="form-control" id="Name" maxlength="255" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="">
+                                    Estimated # of Packages Annually
+                                </label>
+                                <div class="input-group">
+                                    <input type="text" name="Name" value="" placeholder="Packages Annually" class="form-control" id="Name" maxlength="255" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            C.  Daily Print Schedule
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="col-md-8">
+                            <div class="form-group">
+                                <label for="Value"></label>
+                                <div class="input-group">
+                                    <select class="selectpicker form-control" multiple="multiple">
+                                        @foreach (var day in System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.DayNames)
+                                        {
+                                            <option value="@day.ToString()">@day.ToString()</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            D.  Project Requirements:  Paper & Print  (Check all that apply)
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="col-md-8">
+                            <div class="form-group">
+                                <label for="Value"></label>
+                                <div class="input-group">
+                                    <select class="selectpicker form-control" >
+                                        <option value="MixedMedia">Mixed Media</option>
+                                        <option value="LetterOnly">Letter Only</option>
+                                        <option value="LegalOnly">Legal Only</option>
+                                        <option value="Stapled">Stapled</option>
+                                        <option value="24Paper">24# Paper</option>
+                                        <option value="InsertRequired">Insert Required</option>
+                                        <option value="White">White</option>
+                                        <option value="ColorSpecify">Color (please specify)</option>
+                                        <option value="Print1-sided">Print 1-sided</option>
+                                        <option value="Print2-sided">Print 2-sided</option>
+                                        <option value="B&W">B&W</option>
+                                        <option value="Color">Color</option>
+                                        <option value="B&W&Color">B&W & Color</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            E.  How are packages to be sent for the customer
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="col-md-8">
+                            <div class="form-group">
+                                <label for="Value"></label>
+                                <div class="input-group">
+                                    <select class="selectpicker form-control">
+                                        <option value=" Mailed-USPS">Mailed-USPS *</option>
+                                        <option value="FederalExpress">Federal Express</option>
+                                        <option value="CertifiedUSPS">Certified USPS</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            F.  Envelopes
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="Value">Type of envelope</label>
+                                <div class="input-group">
+                                    <select class="selectpicker form-control" multiple="multiple">
+                                        <option value="#10"># 10 </option>
+                                        <option value="6 x 9.5">6 x 9.5</option>
+                                        <option value="9 x 12">9 x 12</option>
+                                        <option value="10 x 12">10 x 12</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                
+                                <label for="Value"> Sample envelope(s) attached?</label>
+                                <div class="input-group">
+                                    <input type="checkbox" name="name" value=" " />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                
+                                <label for="Value">  Standard Window</label>
+                                <div class="input-group">
+                                    <input type="checkbox" name="name" value=" " />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                               
+                                <label for="Value">  Custom Window(s)</label>
+                                <div class="input-group">
+                                    <input type="checkbox" name="name" value=" " />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="clearfix"></div>
+                        
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="Value">Does it need a Business Reply Mail envelope included?</label>
+                                <div class="input-group">
+                                    <select class="selectpicker form-control" multiple="multiple">
+                                        <option value="No">No</option>
+                                        <option value="#9 Business Reply Mail"> #9 Business Reply Mail</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="Value">Will customer supply their  envelopes?</label>
+                                <div class="input-group">
+                                    <select class="selectpicker form-control" multiple="multiple">
+                                        <option value="No">No</option>
+                                        <option value="#9 Business Reply Mail"> #9 Business Reply Mail</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="Value">Will customer provide artwork for the envelope(s)?</label>
+                                <div class="input-group">
+                                    <select class="selectpicker form-control" >
+                                        <option value="No">No</option>
+                                        <option value="#9 Business Reply Mail"> #9 Business Reply Mail</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12 text-center margin-bottom-15">
+                <button type="submit" class="btn btn-primary" id="Save"><i class="fa fa-save"></i> Save</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> Cancel</button>
+            </div>
+            
+        </form>
+    </div>
+</div>
+@section Scripts{
+    @Styles.Render("~/bundles/datatablescss")
+    @Scripts.Render("~/bundles/datatables")
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            window.clui.dateTimePickerInit();
+            //var dateTemplate = '<div class="daterangepicker dropdown-menu">' + '<div class="calendar left">' + '<div class="calendar-table"></div>' + '</div>' + '<div class="calendar right">' + '<div class="calendar-table"></div>' + '</div>' + '<div class="ranges">' + '<div class="range_inputs">' + '<button class="applyBtn" disabled="disabled" type="button"></button> ' + '<button class="cancelBtn" type="button"></button>' + '</div>' + '</div>' + '</div>';
+            //$("#receivedOn").daterangepicker({
+            //    autoApply: true,
+            //    template: dateTemplate,
+            //    showCustomRangeLabel: false,
+            //    autoUpdateInput: false
+            //});
+
+            //$('#receivedOn').on('apply.daterangepicker', function (ev, picker) {
+            //    $(this).val(picker.startDate.format('MM/DD/YYYY') + ' - ' + picker.endDate.format('MM/DD/YYYY'));
+            //});
+            
+            
+        });
+    </script>
+}
