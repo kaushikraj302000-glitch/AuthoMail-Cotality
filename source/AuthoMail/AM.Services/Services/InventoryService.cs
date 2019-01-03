@@ -36,13 +36,13 @@ namespace AM.Services
                 var envelope = FindByCodeEnvelope(envelopes.Id);
                 if (envelope == null)
                 {
-                    string sql = "INSERT INTO [Common].[Envelopes] ([Id] ,[CurrentQuantity] ,[IsBREEnvelope])      VALUES(@Id ,@CurrentQuantity ,@IsBREEnvelope)";
+                    string sql = "INSERT INTO [Common].[Envelopes] ([Id],[CurrentQuantity] ,[IsBREEnvelope]) VALUES(@Id ,0 ,@IsBREEnvelope)";
                     db.Execute(sql, envelopes);
                     return new KeyValuePair<bool, string>(true, "Saved successfully");
                 }
                 else
                 {
-                    string sql = "UPDATE [Common].[Envelopes]  SET [CurrentQuantity] = @CurrentQuantity, [IsBREEnvelope] = @IsBREEnvelope  WHERE Id=@Id";
+                    string sql = "UPDATE [Common].[Envelopes]  SET [IsBREEnvelope] = @IsBREEnvelope  WHERE Id=@Id";
                     db.Execute(sql, envelopes);
                     return new KeyValuePair<bool, string>(true, "Saved successfully");
                 }
@@ -105,6 +105,6 @@ VALUES (@EnvelopeId ,@Description ,@ReceivedOn ,@ReceivedQua ,@UnitPrice);";
         }
 
 
-       
+
     }
 }
