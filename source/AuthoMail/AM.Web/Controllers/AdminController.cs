@@ -18,12 +18,14 @@ namespace AM.Web.Controllers
         ISupportService supportSvc;
         IHomeService homeSvc;
         IConfigService confSvc;
-        public AdminController(AMUserManager userManager, ISupportService supportSvc, IHomeService homeSvc, IConfigService confSvc)
+        IInventoryService inventorySvc;
+        public AdminController(AMUserManager userManager, ISupportService supportSvc, IHomeService homeSvc, IConfigService confSvc, IInventoryService inventorySvc)
         {
             UserManager = userManager;
             this.supportSvc = supportSvc;
             this.homeSvc = homeSvc;
             this.confSvc = confSvc;
+            this.inventorySvc = inventorySvc;
         }
         // GET: Admin
         #region SignUp Request
@@ -598,6 +600,63 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse(ex.Message), JsonRequestBehavior.AllowGet);
             }
         }
+        #endregion
+
+        #region Project Setup
+        public ActionResult ProjectSetup()
+        {
+            return View();
+        }
+        #endregion
+
+        #region Manage Envelope
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult GetEnvelopes()
+        {
+            try
+            {
+                var model = inventorySvc.GetEnvelopes();
+
+                return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult GetEnvelopeByName(string id)
+        {
+
+            if (!string.IsNullOrWhiteSpace(id))
+            {
+                Envelopes envelop = inventorySvc.FindByCodeEnvelope(id);
+                return PartialView("_AddOrEditEnvelope", envelop);
+            }
+            else
+            {
+                return PartialView("_AddOrEditEnvelope", new Envelopes());
+            }
+        }
+        [Authorize(Roles = AMRoles.Admin)]
+        public ActionResult ManageEnvelopes()
+        {
+            return View();
+        }
+
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult CreateOrEditEnvelope(Envelopes envelopes)
+        {
+            try
+            {
+                return Json(JsonResponseFactory.SuccessResponse(inventorySvc.SaveEnvelopes(envelopes)), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message), JsonRequestBehavior.AllowGet);
+            }
+        }
+
         #endregion
     }
 }
