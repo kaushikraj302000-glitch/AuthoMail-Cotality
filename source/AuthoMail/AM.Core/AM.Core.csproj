@@ -100,6 +100,9 @@
     <None Include="CoverTemplates\BOTW\BOTW_USPS_Generic_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="CoverTemplates\BarcodedFrontPageTemplate.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="CoverTemplates\FedExBarcodedEndPageTemplate.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

@@ -122,6 +122,8 @@ namespace PCI.Service
         public DateTime? EffectiveReceivedOnEst { get; set; }
         public int SequenceNo { get; set; }
         public DateTime MailPieceDueDate { get; set; }
+        public string EnvelopeId { get; set; }
+        public string BREEnvelopeId { get; set; }
 
         //Extra fields which will be used for generating MRDF Request
         public string InputWeight { get; set; }

@@ -23,6 +23,7 @@ namespace AM.Services
         List<MailPieces> GetMailPiecesDataFromMailBatchId(int mailBatchId);
         List<PCISubmittedBatchDetail> GetPCIReconReport(DateTime startDate, DateTime endDate);
         List<EnvelopeTransactions> SupplyInventoryReport(List<string> envelopes);
+        MailBatches GetMailBatchDataFromMailBatchId(int mailBatchId);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -309,6 +310,26 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
                     return t;
                 },
                 parameter).ToList();
+        }
+
+        public MailBatches GetMailBatchDataFromMailBatchId(int mailBatchId)
+        {
+            string query = @"SELECT * FROM AM.MailBatches B INNER JOIN Common.SFTChannels S ON S.Id=B.SFTChannelId INNER JOIN Common.Clients C ON B.ClientId=C.Id WHERE B.Id=@MailBatchId";
+
+            var data = db.Query<MailBatches, SFTChannels, Clients, MailBatches>(query,
+                (mb, s, c) =>
+                {
+
+                    mb.SFTChannels = s;
+                    mb.Clients = c;
+
+                    return mb;
+                },
+                new
+                {
+                    MailBatchId = mailBatchId
+                });
+            return data.SingleOrDefault();
         }
     }
 }

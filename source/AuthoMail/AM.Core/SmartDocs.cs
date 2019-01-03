@@ -258,6 +258,38 @@ namespace AM.Core
 
             return response;
         }
+
+        public SmartDocResponse GenerateFrontBarcodeCoverLetter(string coverTemplatePDFPath, string outputDir, Dictionary<string, string> mailPieceData)
+        {
+            SmartDocResponse response = new SmartDocResponse();
+
+            string coverLetterPDFPath = Path.Combine(outputDir, string.Format("CoverLetter_{0}.pdf", mailPieceData["MailPieceId"]));
+
+            #region Generate Cover Letter
+            try
+            {
+                PdfFormFiller(coverTemplatePDFPath, coverLetterPDFPath, mailPieceData);
+
+                if (!File.Exists(coverLetterPDFPath))
+                {
+                    response.HasError = true;
+                    response.ExceptionDetail = "Unable to generate cover letter.";
+                    return response;
+                }
+                response.CoverLetterPath = coverLetterPDFPath;
+            }
+            catch (Exception ex)
+            {
+                var msg = "Error occured while generating cover letter for MailPiece-Id : {0}".Fill(mailPieceData["MailPieceId"]);
+                log.Error(msg, ex);
+                response.HasError = true;
+                response.ExceptionDetail = msg;
+                return response;
+            }
+            return response;
+
+            #endregion
+        }
     }
 
     public class SmartDocResponse
