@@ -14,7 +14,6 @@ namespace AM.Entities
         public int BusinessUnit { get; set; }
         public bool IsAMActive { get; set; }
         public bool IsPnSActive { get; set; }
-        public bool IsPrintReady { get; set; }
         public string TimeZone { get; set; }
     }
 
