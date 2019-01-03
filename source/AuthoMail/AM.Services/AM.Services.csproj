@@ -129,6 +129,7 @@
     <Compile Include="Services\ChartDataService.cs" />
     <Compile Include="Services\ConfigService.cs" />
     <Compile Include="Services\HomeService.cs" />
+    <Compile Include="Services\InventoryService.cs" />
     <Compile Include="Services\MonitorBatchesService.cs" />
     <Compile Include="Services\MRDFResponseService.cs" />
     <Compile Include="Services\ProjectRequestService.cs" />
