@@ -15,7 +15,6 @@ namespace AM.Services
         EnvelopeTransactions FindByIdEnvelopeTransactions(int Id);
         KeyValuePair<bool, string> SaveEnvelopesTrasaction(EnvelopeTransactions envtran);
         List<EnvelopeTransactions> GetAllEnvelopeTransactions();
-        List<Envelopes> IsEnvelopeStockLess();
     }
     public class InventoryService : ServiceBase, IInventoryService
     {
@@ -106,15 +105,6 @@ VALUES (@EnvelopeId ,@Description ,@ReceivedOn ,@ReceivedQua ,@UnitPrice);";
         }
 
 
-        public List<Envelopes> IsEnvelopeStockLess()
-        {
-            var newList = new List<Envelopes>();
-            var list = GetEnvelopes();
-            foreach (var item in list)
-            {
-                
-            }
-            return newList;
-        }
+       
     }
 }
