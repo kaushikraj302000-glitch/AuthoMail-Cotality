@@ -125,6 +125,8 @@ namespace PCI.Service
                     Thread.Sleep(1000);
                     pciResponsePath.CreateDirectoryIfNotExist();
 
+
+
                     if (Common.ApplicationEnvironment == Env.Prod || printTrailDetail.SimulateTrail == false)
                     {
                         if (printTrailDetail.VendorCode == "CL_DALLAS")
@@ -152,6 +154,18 @@ namespace PCI.Service
                             MailUtility.SendBatchSubmittedNotificationEmail(printTrailDetail.VendorCode, zipFilePath, validMailPieceDetails.Count, validMailPieceDetails.Sum(c => c.TotalPages));
                         }
                     }
+                    //Get total counts of envelope / BRE envelopes used for valid mail pieces.
+                    Dictionary<string, int> envelopeDic = new Dictionary<string, int>();
+                    var envelopes = validMailPieceDetails.GroupBy(c => c.EnvelopeId);
+                    var breEnvelopes = validMailPieceDetails.GroupBy(c => c.BREEnvelopeId);
+                    foreach (var env in envelopes.Where(e => e.Key != null))
+                    {
+                        envelopeDic.Add(env.Key, validMailPieceDetails.Count(mp => mp.EnvelopeId == env.Key));
+                    }
+                    foreach (var breEnv in breEnvelopes.Where(e => e.Key != null))
+                    {
+                        envelopeDic.Add(breEnv.Key, validMailPieceDetails.Count(mp => mp.BREEnvelopeId == breEnv.Key));
+                    }
 
                     //Reason for maintaining this time because it should reflect same for 
                     var currentTime = Common.GetCurrentTime();
@@ -166,6 +180,10 @@ namespace PCI.Service
                             {
                                 DAL.UpdateBatchPipeLineStatus(jobId, BatchPipelineStatus.Submitted, currentTime);
                             }
+
+                            //After Updating status of Batch System is going to update envelope inventory stock.
+                            DAL.UpdateEnvelopeInventory(envelopeDic);
+
                             scope.Complete();
                         }
                         catch (Exception ex)
@@ -335,7 +353,7 @@ namespace PCI.Service
                     });
 
                     var currentBatch = dallasBatches.Single(b => (b.AppCode == client.AppCode && effectiveReceivedOnEst >= b.StartDate && effectiveReceivedOnEst <= b.EndDate) && b.ShippingCarrier == mailPiece.ShippingCarrier && b.ShippingServiceType == mailPiece.ShippingServiceType);
-                    
+
                     //Here for HSBC System is separating packages which have pages more than 65 pages with priority folder
                     string submitDir = Path.Combine(Common.CL_SFT_SubmitDir, client.AppCode, effectiveReceivedOnEst.Value.Date.ToString("MMddyyyy"), currentBatch.BatchName, currentBatch.ShippingCarrier + "_" + currentBatch.ShippingServiceType + folderBRE, client.AppCode == "HSBC" && mailPiece.TotalPages >= 65 ? "PRIORITY" : "");
 

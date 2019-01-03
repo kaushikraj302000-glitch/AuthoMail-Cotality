@@ -132,5 +132,14 @@ namespace PCI.Service
 
             return printTrailDetail.DataTableAccessor<PrintVendor>(false).Single();
         }
+
+        public static int UpdateEnvelopeInventory(Dictionary<string, int> envelopeInventory)
+        {
+            foreach (var envelope in envelopeInventory)
+            {
+                db.ExecuteSqlNonQuery("UPDATE [Common].[Envelopes] SET CurrentStock = CurrentStock-{0} WHERE Id IN (@p1)".Fill(envelope.Value), envelope.Key);
+            }
+            return 1;
+        }
     }
 }

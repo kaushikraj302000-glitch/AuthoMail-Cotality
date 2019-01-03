@@ -328,6 +328,8 @@ namespace PCI.Service
                     ShippingCarrier = row.Field<string>("ShippingCarrier"),
                     ShippingServiceType = row.Field<string>("ShippingServiceType"),
                     MailPieceDueDate = row.Field<DateTime>("MailPieceDueDate"),
+                    EnvelopeId = row.Field<string>("EnvelopeId"),
+                    BREEnvelopeId = row.Field<string>("BREEnvelopeId"),
                     //Extra Properties to map for MRDF Request
                     InputWeight = row.Field<string>("InputWeight"),
                     Feeder3_Sel = row.Field<string>("Feeder3_Sel"),
