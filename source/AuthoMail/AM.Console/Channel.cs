@@ -55,7 +55,6 @@ namespace AM.Console
                 this.EnumerateBatches();
                 this.DownloadBatches();
                 this.ValidateBatches();
-                this.ValidateAddress();
                 this.CalculateDueDateAndPrintLocation();
                 this.AcknowledgeBatches();
             }
@@ -81,10 +80,6 @@ namespace AM.Console
         /// Validates all batches which are queued as Downloaded
         /// </summary>
         protected abstract void ValidateBatches();
-        /// <summary>
-        /// Validates address types
-        /// </summary>
-        protected abstract void ValidateAddress();
         /// <summary>
         /// Calculate effective receivedon date, printlocation and due date all valid batches which are queued as ValidateBatches
         /// </summary>
@@ -779,7 +774,7 @@ namespace AM.Console
         #endregion
 
         #region AddressType Validation
-        public static void ValidateAddressType(int sftChannelId)
+        public static void ValidateAddressType(List<MailPieceDTO> validMailPieces)
         {
             log.Debug("Address type validation job is started.");
             using (IMailBatchService mailBatchSvc = new MailBatchService())
@@ -788,124 +783,98 @@ namespace AM.Console
             using (ICommonService commonSvc = new CommonService())
             using (IClientService clientSvc = new ClientService())
             {
-
-                List<MailBatchDTO> validatedBatches = mailBatchSvc.GetBatchesByPipelineStatusAndSFTChannelId(BatchPipelineStatus.Validated, sftChannelId);
-                if (validatedBatches.Count == 0)
+                try
                 {
-                    log.Debug("Address type validation job queue is empty.");
-                    return;
-                }
-
-                foreach (var mailBatch in validatedBatches)
-                {
-                    try
+                    #region Address Validation Logic
+                    //Get validate Addresses for each records
+                    List<AddressResponse> addressResponses = new List<AddressResponse>();
+                    List<AddressRequest> addressRequestes = new List<AddressRequest>();
+                    foreach (var mailPiece in validMailPieces)
                     {
-                        Client client = clientSvc.GetClientById(mailBatch.ClientId);
+                        AddressRequest addressRequest = new AddressRequest() { Id = mailPiece.UniqueId.ToString(), StreetAddress = mailPiece.RcptAddressStreet + " " + mailPiece.RcptAddrOptionalLine1BelowStreet, City = mailPiece.RcptAddressCity, State = mailPiece.RcptAddressState, Zip4 = mailPiece.RcptAddressZIP.SeparateZip4And5(4), Zip5 = mailPiece.RcptAddressZIP.SeparateZip4And5(5) };
 
-                        //System will not validate address for those client who just providing print ready documents and want to print documents only. 
-                        if (client.IsPrintReady)
-                            continue;
+                        addressRequestes.Add(addressRequest);
+                    }
 
-                        var mailPieceData = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatch.Id);
+                    int requestAddressCount = addressRequestes.Count;
+                    int maxAddressVerification = 5;
+                    int verifiedAddressCount = 0;
+                    double loopCount = Math.Ceiling(requestAddressCount / (float)maxAddressVerification);
 
-                        List<MailPieceDTO> validMailPieces = mailPieceData.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
+                    for (double i = 0; i < loopCount; i++)
+                    {
+                        var takenAddressesList = addressRequestes.Skip(verifiedAddressCount).Take(maxAddressVerification).ToList();
+                        VerifierAddressRequest verifierAddRequest = new VerifierAddressRequest() { AddressRequests = takenAddressesList };
+                        verifiedAddressCount += maxAddressVerification;
+                        VerifierAddressResponse verifierAddResponse;
 
-                        if (validMailPieces.Count == 0)
+                        using (IUSPSService uspsSvc = new USPSService())
                         {
-                            continue;
+                            verifierAddResponse = uspsSvc.VerifyAddressAsync(commonSvc.GetSystemUserId(), verifierAddRequest).Result;
                         }
 
-                        #region Address Validation Logic
-                        //Get validate Addresses for each records
-                        List<AddressResponse> addressResponses = new List<AddressResponse>();
-                        List<AddressRequest> addressRequestes = new List<AddressRequest>();
-                        foreach (var mailPiece in validMailPieces)
+                        if (verifierAddResponse != null)
                         {
-                            AddressRequest addressRequest = new AddressRequest() { Id = mailPiece.UniqueId.ToString(), StreetAddress = mailPiece.RcptAddressStreet + " " + mailPiece.RcptAddrOptionalLine1BelowStreet, City = mailPiece.RcptAddressCity, State = mailPiece.RcptAddressState, Zip4 = mailPiece.RcptAddressZIP.SeparateZip4And5(4), Zip5 = mailPiece.RcptAddressZIP.SeparateZip4And5(5) };
+                            //if any error at VerifierAddressResponse level then throw unexpected error and exit from loop
+                            if (verifierAddResponse.HasError)
+                            {
+                                throw new Exception("Error occured while validating Addresses : {0}".Fill(verifierAddResponse.Error));
+                            }
 
-                            addressRequestes.Add(addressRequest);
+                            addressResponses.AddRange(verifierAddResponse.AddressResponses);
                         }
+                    }
+                    #endregion
+                    foreach (MailPieceDTO mailPiece in validMailPieces)
+                    {
+                        string documentOrPackageType = mailPiece.DocumentOrPackageType;
 
-                        int requestAddressCount = addressRequestes.Count;
-                        int maxAddressVerification = 5;
-                        int verifiedAddressCount = 0;
-                        double loopCount = Math.Ceiling(requestAddressCount / (float)maxAddressVerification);
+                        //Document Or Package Type validation
+                        var docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value);
 
-                        for (double i = 0; i < loopCount; i++)
+                        var addressResponse = addressResponses.Single(c => c.Id.ToLower() == mailPiece.UniqueId.ToString().ToLower());
+
+                        mailPiece.RcptAddressTypes = string.Join(",", addressResponse.AddressTypes);
+
+                        if (addressResponse.AddressTypes.Any(addr => addr == AddressType.INVALID))
                         {
-                            var takenAddressesList = addressRequestes.Skip(verifiedAddressCount).Take(maxAddressVerification).ToList();
-                            VerifierAddressRequest verifierAddRequest = new VerifierAddressRequest() { AddressRequests = takenAddressesList };
-                            verifiedAddressCount += maxAddressVerification;
-                            VerifierAddressResponse verifierAddResponse;
-
-                            using (IUSPSService uspsSvc = new USPSService())
-                            {
-                                verifierAddResponse = uspsSvc.VerifyAddressAsync(commonSvc.GetSystemUserId(), verifierAddRequest).Result;
-                            }
-
-                            if (verifierAddResponse != null)
-                            {
-                                //if any error at VerifierAddressResponse level then throw unexpected error and exit from loop
-                                if (verifierAddResponse.HasError)
-                                {
-                                    throw new Exception("Error occured while validating Addresses : {0}".Fill(verifierAddResponse.Error));
-                                }
-
-                                addressResponses.AddRange(verifierAddResponse.AddressResponses);
-                            }
-                        }
-                        #endregion
-                        foreach (MailPieceDTO mailPiece in validMailPieces)
-                        {
-                            string documentOrPackageType = mailPiece.DocumentOrPackageType;
-
-                            //Document Or Package Type validation
-                            var docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value);
-
-                            var addressResponse = addressResponses.Single(c => c.Id.ToLower() == mailPiece.UniqueId.ToString().ToLower());
-
-                            mailPiece.RcptAddressTypes = string.Join(",", addressResponse.AddressTypes);
-
-                            if (addressResponse.AddressTypes.Any(addr => addr == AddressType.INVALID))
-                            {
-                                mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                                mailPiece.ErrorCode = OutComeCodes.Mailing_Address_Missing_Or_Invalid;
-                                mailPiece.ErrorDesc = !string.IsNullOrEmpty(addressResponse.VerifierDesc) ? addressResponse.VerifierDesc : addressResponse.Error.Description;
-                                mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
-                                continue;
-                            }
-
-                            if (docType.ShippingCarrier == Carrier.FedEx.ToString())
-                            {
-                                if (!(addressResponse.AddressTypes.All(c => c == AddressType.DHAM)))
-                                {
-                                    documentOrPackageType = documentOrPackageType + Config.Monitor_ExpressMailingText;
-
-                                    docType = docTypeSvc.GetDocTypeByDocTypeName(mailPiece.ClientId, documentOrPackageType);
-
-                                    if (docType == null)
-                                    {
-                                        mailPiece.ErrorCode = OutComeCodes.Invalid_PackageType;
-                                        mailPiece.ErrorDesc = "The specified document or package type '{0}' is not configured.".Fill(mailPiece.DocumentOrPackageType);
-                                        mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                                        mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
-                                        continue;
-                                    }
-
-                                    mailPiece.DocTypeId = docType.Id;
-                                }
-                            }
-
+                            mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                            mailPiece.ErrorCode = OutComeCodes.Mailing_Address_Missing_Or_Invalid;
+                            mailPiece.ErrorDesc = !string.IsNullOrEmpty(addressResponse.VerifierDesc) ? addressResponse.VerifierDesc : addressResponse.Error.Description;
                             mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                            continue;
                         }
+
+                        if (docType.ShippingCarrier == Carrier.FedEx.ToString())
+                        {
+                            if (!(addressResponse.AddressTypes.All(c => c == AddressType.DHAM)))
+                            {
+                                documentOrPackageType = documentOrPackageType + Config.Monitor_ExpressMailingText;
+
+                                docType = docTypeSvc.GetDocTypeByDocTypeName(mailPiece.ClientId, documentOrPackageType);
+
+                                if (docType == null)
+                                {
+                                    mailPiece.ErrorCode = OutComeCodes.Invalid_PackageType;
+                                    mailPiece.ErrorDesc = "The specified document or package type '{0}' is not configured.".Fill(mailPiece.DocumentOrPackageType);
+                                    mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                    mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                    continue;
+                                }
+
+                                mailPiece.DocTypeId = docType.Id;
+                            }
+                        }
+
+                        mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                     }
-                    catch (Exception ex)
-                    {
-                        var msg = "Error occured in ValidateAddress Method For Mail Batch Id: {0} with Error : {1}".Fill(mailBatch.Id, ex.Message);
-                        log.Error(msg, ex);
-                        MailUtility.SendUnexpectedExceptionEmail(msg);
-                        continue;
-                    }
+                }
+                catch (Exception ex)
+                {
+                    var msg = "Error occured in ValidateAddress Method For Mail Batch Id: {0} with Error : {1}".Fill(validMailPieces.Select(c => c.MailBatchId).Distinct().SingleOrDefault(), ex.Message);
+                    log.Error(msg, ex);
+                    MailUtility.SendUnexpectedExceptionEmail(msg);
+                    throw ex;
                 }
             }
             log.Debug("Address type validation job is completed.");

@@ -677,10 +677,14 @@ namespace AM.Console
 
                     //TODO: Do we need to check all mail pieces are valid, partially valid or failed and update batch status according to that?
 
-                    var data = mailPieceSvc.GetMailPiecesByMailBatchId(mbi.MailBatch.Id);
-                    if (data != null)
+                    var mailPieceData = mailPieceSvc.GetMailPiecesByMailBatchId(mbi.MailBatch.Id);
+                    if (mailPieceData != null)
                     {
-                        var validMailPieces = data.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
+                        var validMailPieces = mailPieceData.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
+
+                        //Here System will validate Addresses for valid mail pieces
+                        if (validMailPieces.Count > 0)
+                            Channel.ValidateAddressType(validMailPieces);
 
                         if (validMailPieces.Count == 0)
                         {
@@ -688,7 +692,7 @@ namespace AM.Console
                             mbi.MailBatch.ValidationErrors = "Xml does not contain any valid package info nodes.";
                             commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
                         }
-                        else if (validMailPieces.Count < data.Count)
+                        else if (validMailPieces.Count < mailPieceData.Count)
                         {
                             mbi.MailBatch.ValidationStatus = BatchValidationStatus.PartiallyValid.ToString();
                         }
@@ -711,11 +715,6 @@ namespace AM.Console
                 }
             }
             log.Debug("Validate job queue is completed.");
-        }
-
-        protected override void ValidateAddress()
-        {
-            Channel.ValidateAddressType(SFTChannel.Id);
         }
 
         protected override void CalculateDueDateAndPrintLocation()

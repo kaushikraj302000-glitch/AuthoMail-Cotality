@@ -81,7 +81,8 @@
     <Compile Include="CalcStdPrepStartTime.cs" />
     <Compile Include="Channel.cs" />
     <Compile Include="ChannelFactory.cs" />
-    <Compile Include="GeneralChannel.cs" />
+    <Compile Include="PrintReadyChannel.cs" />
+    <Compile Include="AMSchemaChannel.cs" />
     <Compile Include="HSBCChannel.cs" />
     <Compile Include="HSBCSchema.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -92,7 +93,7 @@
     <Compile Include="Purging.cs" />
     <Compile Include="ReCalculateDueDate.cs" />
     <Compile Include="Schema.cs" />
-    <Compile Include="TestHSBCChannel.cs" />
+    <Compile Include="TestChannel.cs" />
     <Compile Include="Utilities\Common.cs" />
     <Compile Include="Utilities\MailUtility.cs" />
     <Compile Include="Utilities\PdfUtil.cs" />

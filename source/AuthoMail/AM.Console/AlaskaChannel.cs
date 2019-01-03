@@ -410,11 +410,17 @@ namespace AM.Console
                     if (sftSite.IsConnected)
                         sftSite.Disconnect();
 
+
+
                     //After processing all nodes of a batch for validation status
                     var mailPieceData = mailPieceSvc.GetMailPiecesByMailBatchId(mbi.MailBatch.Id);
                     if (mailPieceData != null)
                     {
                         var validMailPieces = mailPieceData.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
+                       
+                        //Here System will validate Addresses for valid mail pieces
+                        if (validMailPieces.Count > 0)
+                            Channel.ValidateAddressType(validMailPieces);
 
                         if (validMailPieces.Count == 0)
                         {
@@ -444,11 +450,6 @@ namespace AM.Console
                     continue;
                 }
             }
-        }
-
-        protected override void ValidateAddress()
-        {
-            Channel.ValidateAddressType(SFTChannel.Id);
         }
 
         protected override void CalculateDueDateAndPrintLocation()

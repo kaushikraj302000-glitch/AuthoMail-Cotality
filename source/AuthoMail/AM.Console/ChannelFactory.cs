@@ -15,6 +15,7 @@ namespace AM.Console
             string channelType = channelCommands[1];
 
             string channelCode;
+            bool isPrintReady = channelPrefix.Split('|')[0] == "PRINTREADY" ? true : false;
 
             // Each channel is tied to one and ONLY one XML schema
             channelCode = channelPrefix + "_" + Config.Common_Environment;
@@ -27,14 +28,19 @@ namespace AM.Console
                     return new AlaskaChannel(channelCode, channelType);
 
                 case "AMTEST":
-                    return new TestHSBCChannel(channelCode, channelType);
+                    return new TestChannel(channelCode, channelType);
 
                 case "HSBC":
                     return new HSBCChannel(channelCode, channelType);
 
-                //// AuthoMail XML schema
+                // AuthoMail XML schema
+                //Parameter for Print Ready Client should be like PRINTREADY|AppCode Sweep/Trigger
+                //Parameter for regular Client should be like AppCode Sweep/Trigger
                 default:
-                    return new GeneralChannel(channelCode, channelType);
+                    if (isPrintReady)
+                        return new PrintReadyChannel(channelCode, channelType);
+                    else
+                        return new AMSchemaChannel(channelCode, channelType);
             }
         }
     }

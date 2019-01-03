@@ -19,7 +19,7 @@ using System.Xml.Schema;
 
 namespace AM.Console
 {
-    class GeneralChannel : Channel
+    class AMSchemaChannel : Channel
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -29,13 +29,13 @@ namespace AM.Console
 
         private static XmlSchemaSet schemas;
 
-        static GeneralChannel()
+        static AMSchemaChannel()
         {
             schemas = new XmlSchemaSet();
             schemas.Add("http://schemas.corelogic.com/ade/authomail/v1.18.0", XmlReader.Create(new StringReader(Resources.AMMailPieceSchema)));
         }
 
-        public GeneralChannel(string channelCode, string channelType)
+        public AMSchemaChannel(string channelCode, string channelType)
             : base(channelCode)
         {
             generalSvc = GetService<GeneralService>();
@@ -740,6 +740,10 @@ namespace AM.Console
                     {
                         var validMailPieces = mailPieceList.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
 
+                        //Here System will validate Addresses for valid mail pieces
+                        if (validMailPieces.Count > 0)
+                            Channel.ValidateAddressType(validMailPieces);
+
                         if (validMailPieces.Count == 0)
                         {
                             mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid.ToString();
@@ -851,7 +855,7 @@ namespace AM.Console
 
             string errorMsg = sbErrorMessage.ToString();
 
-            if (errorMsg.Contains("Address") || errorMsg.Contains("City") || errorMsg.Contains("State") || errorMsg.Contains("Zip"))
+            if (errorMsg.Contains("Street") || errorMsg.Contains("City") || errorMsg.Contains("State") || errorMsg.Contains("Zip"))
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Recipient address details are missing or invalid in package." };
 
             if (errorMsg.Contains("Recipient") || errorMsg.Contains("FirstName") || errorMsg.Contains("LastName"))
@@ -863,11 +867,6 @@ namespace AM.Console
             yield break;
         }
         #endregion
-
-        protected override void ValidateAddress()
-        {
-            Channel.ValidateAddressType(SFTChannel.Id);
-        }
 
         protected override void CalculateDueDateAndPrintLocation()
         {

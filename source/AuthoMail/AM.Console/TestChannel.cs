@@ -12,9 +12,9 @@ using System.Xml.Schema;
 
 namespace AM.Console
 {
-    class TestHSBCChannel : HSBCChannel
+    class TestChannel : AMSchemaChannel
     {
-        public TestHSBCChannel(string channelCode, string channelType)
+        public TestChannel(string channelCode, string channelType)
             : base(channelCode, channelType)
         {
 

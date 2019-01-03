@@ -410,6 +410,10 @@ namespace AM.Console
                 {
                     var validMailPieces = mailPieceData.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
 
+                    //Here System will validate Addresses for valid mail pieces
+                    if (validMailPieces.Count > 0)
+                        Channel.ValidateAddressType(validMailPieces);
+
                     if (validMailPieces.Count == 0)
                     {
                         mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid.ToString();
@@ -430,11 +434,6 @@ namespace AM.Console
 
                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
             }
-        }
-
-        protected override void ValidateAddress()
-        {
-            Channel.ValidateAddressType(SFTChannel.Id);
         }
 
         protected override void CalculateDueDateAndPrintLocation()
