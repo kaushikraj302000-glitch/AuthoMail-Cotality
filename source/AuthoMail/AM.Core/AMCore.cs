@@ -329,11 +329,7 @@ namespace AM.Core
                                 }
 
                                 mailPiece.TotalPages = response.TotalPages;
-                                mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
-
-                                //Here System is updating envelope inventory for valid mail piece
-                                if (mailPiece.ShippingStatus == ShippingStatus.InProgress.ToString())
-                                    mailPieceSvc.UpdateEnvelopeInventory(docType);
+                                mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);                               
                             }
                             catch (Exception ex)
                             {
