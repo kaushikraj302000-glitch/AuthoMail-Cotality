@@ -59,6 +59,7 @@
                                 {Process}
                                 {Printer}
                                 {Reporting}
+                                {Pickedup}
                             </th>
                         </tr>
                         <tr class="row-small">
@@ -88,6 +89,10 @@
                         <tr class="row-small">
                             <th>Delayed AM ReportBack MailPieces</th>
                             <th>{DelayedAMReportBackMailPieces}</th>
+                        </tr>
+                        <tr class="row-small">
+                            <th>Delayed PickUp MailPieces</th>
+                            <th>{DelayedPickUpMailPieces}</th>
                         </tr>
                         <tr class="row-small">
                             <th>Last UpdatedOn</th>
@@ -172,6 +177,7 @@
                     DelayedAMReportBackMailPieces: data.DelayedAMReportBackMailPieces,
                     DelayedPrinterBatches: data.DelayedPrinterBatches,
                     DelayedPrinterMailPieces: data.DelayedPrinterMailPieces,
+                    DelayedPickUpMailPieces: data.DelayedPickUpMailPieces,
                     TATTitle: data.MinHour < 1 ? 'Few SLA are already missed.' : data.MinHour == data.MaxHour ? 'Turnaround time  {0} hours.'.replace('{0}', data.MinHour) : 'Turnaround time {0} to {1} hours.'.replace('{0}', data.MinHour).replace('{1}', data.MaxHour),
                     LastBatchReceivedOn: data.LastBatchReceivedOn != null ? moment(data.LastBatchReceivedOn).format("MM/DD/YY HH:mm:ss") : '--',
                     LastUpdatedOn: data.LastUpdatedOn != null ? moment(data.LastUpdatedOn).format("MM/DD/YY HH:mm:ss") : '--',
@@ -183,12 +189,13 @@
                     Download: data.IsReceivedDelay ? '<label class="label label-red medium">Download</label>' : '<label class="label label-green medium">Download</label>',
                     IsProcessDelay: data.IsProcessDelay,
                     Process: data.IsProcessDelay ? '<label class="label label-red medium">Process</label>' : '<label class="label label-green medium">Process</label>',
+                    Pickedup: data.DelayedPickUpMailPieces > 0 ? '<label class="label label-red medium">Pickup</label>' : '<label class="label label-green medium">Pickup</label>',
                     Status: data.Status,
                     IsAMDelay: data.IsAMDelay
                 });
             }
             var tabData = $('#tabledata').html();
-            var AMHealthDetail = function () {                
+            var AMHealthDetail = function () {
                 $.ajax({
                     type: "GET",
                     url: baseUrl + "AuthoMailHealth/getamstatusdetail",

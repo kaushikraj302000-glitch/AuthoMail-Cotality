@@ -932,9 +932,9 @@
                     } else {
                         $("#reportingmailpiecebody").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                         }
-                    if (response.PickUpDelayedMailPieces.length > 0) {
-                        reportingbatches = response.PickUpDelayedMailPieces;
-                        var mdata = FormatObjectMP(response.PickUpDelayedMailPieces);
+                    if (response.DelayedMPickUpailPieces.length > 0) {
+                        reportingbatches = response.DelayedMPickUpailPieces;
+                        var mdata = FormatObjectMP(response.DelayedMPickUpailPieces);
                         BindTemplateWithDataTable(mdata, "", "#pickupmailpiecesbody", "#pickupmailpiecesbodyContent", "#pickupmailpiecesContent", "#pickupmailpiecebody", 'reportingDelayedMPsDatatable', 'reportingdelayedmailpieces', 'Pickup Delayed MailPieces', true);
                         } else {
                         $("#pickupmailpiecebody").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
