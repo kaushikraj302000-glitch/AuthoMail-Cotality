@@ -1,7 +1,7 @@
 ﻿@model AM.Services.Envelopes
 
 <h2 id="myModalLabel">@(string.IsNullOrWhiteSpace(Model.Id) ? Html.Raw("Add Envelope Details") : Html.Raw("Edit Envelope Details"))</h2>
-
+<input type="hidden" id="isInsert" value="@(string.IsNullOrWhiteSpace(Model.Id) ? "true" : "false")" />
 <hr />
 <form id="envelopeform" action="#">
     <div class="form-group">
@@ -20,7 +20,7 @@
         <label for="Description">Is BRE Envelope?</label>
         <div class="input-group">
             <div class="toggle-container">
-                <input id="IsBREEnvelope" class="cl-toggle toggle-orange"  type="checkbox" @(Model.IsBREEnvelope ? "checked" : "") name="toggle-demo" /><label for="IsBREEnvelope">IsBREEnvelope</label>
+                <input id="IsBREEnvelope" class="cl-toggle toggle-orange" type="checkbox" @(Model.IsBREEnvelope ? "checked" : "") name="toggle-demo" /><label for="IsBREEnvelope">IsBREEnvelope</label>
             </div>
         </div>
 
