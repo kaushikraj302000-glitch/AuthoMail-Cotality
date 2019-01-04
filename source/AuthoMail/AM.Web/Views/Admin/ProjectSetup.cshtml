@@ -280,10 +280,11 @@
                         </div>
                         <div class="col-md-3">
                             <div class="form-group">
-                                
                                 <label for="Value"> Sample envelope(s) attached?</label>
                                 <div class="input-group">
-                                    <input type="checkbox" name="name" value=" " />
+                                    <div class="toggle-container">
+                                        <input id="IsBREEnvelope" class="cl-toggle toggle-orange" type="checkbox" name="toggle-demo" /><label for="IsBREEnvelope">attached</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -292,7 +293,9 @@
                                 
                                 <label for="Value">  Standard Window</label>
                                 <div class="input-group">
-                                    <input type="checkbox" name="name" value=" " />
+                                    <div class="toggle-container">
+                                        <input id="IsBREEnvelope" class="cl-toggle toggle-orange" type="checkbox" name="toggle-demo" /><label for="IsBREEnvelope">attached</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -301,7 +304,9 @@
                                
                                 <label for="Value">  Custom Window(s)</label>
                                 <div class="input-group">
-                                    <input type="checkbox" name="name" value=" " />
+                                    <div class="toggle-container">
+                                        <input id="IsBREEnvelope" class="cl-toggle toggle-orange" type="checkbox" name="toggle-demo" /><label for="IsBREEnvelope">attached</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -323,11 +328,9 @@
                             <div class="form-group">
                                 <label for="Value">Will customer supply their  envelopes?</label>
                                 <div class="input-group">
-                                    <select class="selectpicker form-control" multiple="multiple">
-                                        <option value="No">No</option>
-                                        <option value="#9 Business Reply Mail"> #9 Business Reply Mail</option>
-                                        <option value="Other">Other</option>
-                                    </select>
+                                    <div class="toggle-container">
+                                        <input id="IsBREEnvelope" class="cl-toggle toggle-orange" type="checkbox" name="toggle-demo" /><label for="IsBREEnvelope">attached</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -335,16 +338,57 @@
                             <div class="form-group">
                                 <label for="Value">Will customer provide artwork for the envelope(s)?</label>
                                 <div class="input-group">
-                                    <select class="selectpicker form-control" >
-                                        <option value="No">No</option>
-                                        <option value="#9 Business Reply Mail"> #9 Business Reply Mail</option>
-                                        <option value="Other">Other</option>
-                                    </select>
+                                    <div class="toggle-container">
+                                        <input id="IsBREEnvelope" class="cl-toggle toggle-orange" type="checkbox" name="toggle-demo" /><label for="IsBREEnvelope">attached</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            G.  Postage
+                        </div>
+                    </div>
+                    <div class="panel-body">
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="Value">Do  you have an active general permit number  if USPS is the preferred shipping method</label>
+                                <div class="input-group">
+                                    <div class="toggle-container">
+                                        <input id="IsBREEnvelope1" class="cl-toggle toggle-orange" type="checkbox" name="toggle-demo" /><label for="IsBREEnvelope1">attached</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            H.  Scanning / AuthoMail
+                        </div>
+                    </div>
+                    <div class="panel-body">
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="Value">Do these packages need to be scanned to AuthoMail?</label>
+                                <div class="input-group">
+                                    <div class="toggle-container">
+                                        <input id="IsBREEnvel" class="cl-toggle toggle-orange" type="checkbox" name="toggle-demo" /><label for="IsBREEnvel">attached</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                
             </div>
             <div class="col-md-12 text-center margin-bottom-15">
                 <button type="submit" class="btn btn-primary" id="Save"><i class="fa fa-save"></i> Save</button>

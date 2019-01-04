@@ -658,5 +658,57 @@ namespace AM.Web.Controllers
         }
 
         #endregion
+
+        #region Manage Envelope Transactions
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult GetEnvelopeTransactions()
+        {
+            try
+            {
+                var model = inventorySvc.GetAllEnvelopeTransactions();
+
+                return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult GetEnvelopeTransactionsByName(int id)
+        {
+
+            if (id != 0)
+            {
+                EnvelopeTransactions envelopTransactions = inventorySvc.FindByIdEnvelopeTransactions(id);
+                ViewBag.Envelopes = new SelectList(inventorySvc.GetEnvelopes(), "Id", "Id", envelopTransactions.EnvelopeId);
+                return PartialView("_AddOrEditEnvelopeTransactions", envelopTransactions);
+            }
+            else
+            {
+                ViewBag.Envelopes = new SelectList(inventorySvc.GetEnvelopes(), "Id", "Id");
+                return PartialView("_AddOrEditEnvelopeTransactions", new EnvelopeTransactions());
+            }
+        }
+        [Authorize(Roles = AMRoles.Admin)]
+        public ActionResult ManageEnvelopeTransactions()
+        {
+            return View();
+        }
+
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult CreateOrEditEnvelopeTransactions(EnvelopeTransactions envelopeTransactions)
+        {
+            try
+            {
+                return Json(JsonResponseFactory.SuccessResponse(inventorySvc.SaveEnvelopesTrasaction(envelopeTransactions)), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message), JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        #endregion
     }
 }
