@@ -71,20 +71,20 @@ namespace AM.Services
                         string query = @"INSERT INTO [Common].[EnvelopeTransactions] ([EnvelopeId] ,[Description] ,[ReceivedOn] ,[ReceivedQuantity] ,[UnitPrice]) 
 VALUES (@EnvelopeId ,@Description ,@ReceivedOn ,@ReceivedQua ,@UnitPrice);";
                         envtran.ReceivedOn = DateTime.UtcNow;
-                        db.Execute(query, envtran);
+                        db.Execute(query, envtran, transaction: t);
 
                         query = "UPDATE [Common].[Envelopes]  SET [CurrentQuantity] = [CurrentQuantity] + (@CurrentQuantity) WHERE Id=@Id";
-                        db.Execute(query, new { CurrentQuantity = envtran.ReceivedQuantity, Id = envtran.EnvelopeId });
+                        db.Execute(query, new { CurrentQuantity = envtran.ReceivedQuantity, Id = envtran.EnvelopeId }, transaction: t);
                     }
                     else
                     {
                         string query = "UPDATE [Common].[EnvelopeTransactions] SET [EnvelopeId] = @EnvelopeId ,[Description] = @Description ,[ReceivedQuantity] = @ReceivedQuantity ,[UnitPrice] = @UnitPrice  WHERE Id=@Id";
-                        db.Execute(query, envtran);
+                        db.Execute(query, envtran, transaction: t);
                         var oldEnvelopeTransaction = FindByIdEnvelopeTransactions(envtran.Id);
                         var oldEnvelope = FindByCodeEnvelope(envtran.EnvelopeId);
                         envtran.ReceivedQuantity = oldEnvelope.CurrentQuantity - oldEnvelopeTransaction.ReceivedQuantity + envtran.ReceivedQuantity;
                         query = "UPDATE [Common].[Envelopes]  SET [CurrentQuantity] = [CurrentQuantity] + (@CurrentQuantity) WHERE Id=@Id";
-                        db.Execute(query, new { CurrentQuantity = envtran.ReceivedQuantity, Id = envtran.EnvelopeId });
+                        db.Execute(query, new { CurrentQuantity = envtran.ReceivedQuantity, Id = envtran.EnvelopeId }, transaction: t);
                     }
                     t.Commit();
                     return new KeyValuePair<bool, string>(true, "Saved successfully");
