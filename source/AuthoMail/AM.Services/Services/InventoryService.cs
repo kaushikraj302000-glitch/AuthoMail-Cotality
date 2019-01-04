@@ -60,7 +60,13 @@ namespace AM.Services
         }
         public KeyValuePair<bool, string> SaveEnvelopesTrasaction(EnvelopeTransactions envtran)
         {
-
+            EnvelopeTransactions oldEnvelopeTransaction = null;
+            Envelopes oldEnvelope = null;
+            if (envtran.Id != 0)
+            {
+                oldEnvelopeTransaction = FindByIdEnvelopeTransactions(envtran.Id);
+                oldEnvelope = FindByCodeEnvelope(envtran.EnvelopeId);
+            }
             db.Open();
             using (var t = db.BeginTransaction())
             {
@@ -69,7 +75,7 @@ namespace AM.Services
                     if (envtran.Id == 0)
                     {
                         string query = @"INSERT INTO [Common].[EnvelopeTransactions] ([EnvelopeId] ,[Description] ,[ReceivedOn] ,[ReceivedQuantity] ,[UnitPrice]) 
-VALUES (@EnvelopeId ,@Description ,@ReceivedOn ,@ReceivedQua ,@UnitPrice);";
+VALUES (@EnvelopeId ,@Description ,@ReceivedOn ,@ReceivedQuantity ,@UnitPrice);";
                         envtran.ReceivedOn = DateTime.UtcNow;
                         db.Execute(query, envtran, transaction: t);
 
@@ -80,8 +86,7 @@ VALUES (@EnvelopeId ,@Description ,@ReceivedOn ,@ReceivedQua ,@UnitPrice);";
                     {
                         string query = "UPDATE [Common].[EnvelopeTransactions] SET [EnvelopeId] = @EnvelopeId ,[Description] = @Description ,[ReceivedQuantity] = @ReceivedQuantity ,[UnitPrice] = @UnitPrice  WHERE Id=@Id";
                         db.Execute(query, envtran, transaction: t);
-                        var oldEnvelopeTransaction = FindByIdEnvelopeTransactions(envtran.Id);
-                        var oldEnvelope = FindByCodeEnvelope(envtran.EnvelopeId);
+
                         envtran.ReceivedQuantity = oldEnvelope.CurrentQuantity - oldEnvelopeTransaction.ReceivedQuantity + envtran.ReceivedQuantity;
                         query = "UPDATE [Common].[Envelopes]  SET [CurrentQuantity] = [CurrentQuantity] + (@CurrentQuantity) WHERE Id=@Id";
                         db.Execute(query, new { CurrentQuantity = envtran.ReceivedQuantity, Id = envtran.EnvelopeId }, transaction: t);

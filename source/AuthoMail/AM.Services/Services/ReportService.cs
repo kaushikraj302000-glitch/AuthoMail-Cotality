@@ -322,7 +322,6 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
 
                     mb.SFTChannels = s;
                     mb.Clients = c;
-
                     return mb;
                 },
                 new
