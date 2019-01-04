@@ -88,7 +88,7 @@ VALUES (@EnvelopeId ,@Description ,@ReceivedOn ,@ReceivedQuantity ,@UnitPrice);"
                         db.Execute(query, envtran, transaction: t);
 
                         envtran.ReceivedQuantity = oldEnvelope.CurrentQuantity - oldEnvelopeTransaction.ReceivedQuantity + envtran.ReceivedQuantity;
-                        query = "UPDATE [Common].[Envelopes]  SET [CurrentQuantity] = [CurrentQuantity] + (@CurrentQuantity) WHERE Id=@Id";
+                        query = "UPDATE [Common].[Envelopes]  SET [CurrentQuantity] =@CurrentQuantity WHERE Id=@Id";
                         db.Execute(query, new { CurrentQuantity = envtran.ReceivedQuantity, Id = envtran.EnvelopeId }, transaction: t);
                     }
                     t.Commit();

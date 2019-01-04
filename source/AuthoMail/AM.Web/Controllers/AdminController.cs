@@ -645,10 +645,16 @@ namespace AM.Web.Controllers
         }
 
         [Authorize(Roles = AMRoles.Admin), HttpPost]
-        public ActionResult CreateOrEditEnvelope(Envelopes envelopes)
+        public ActionResult CreateOrEditEnvelope(Envelopes envelopes, bool IsInsert)
         {
             try
             {
+                if (IsInsert)
+                {
+                    var env = inventorySvc.FindByCodeEnvelope(envelopes.Id);
+                    if (env != null) return Json(JsonResponseFactory.ErrorResponse("Envelope already exists."), JsonRequestBehavior.AllowGet);
+                }
+
                 return Json(JsonResponseFactory.SuccessResponse(inventorySvc.SaveEnvelopes(envelopes)), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
