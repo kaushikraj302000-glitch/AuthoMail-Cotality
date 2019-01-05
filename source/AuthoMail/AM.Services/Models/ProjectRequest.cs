@@ -36,6 +36,21 @@ namespace AM.Services
         public bool IsCustomerProvideArtworkEnvelope { get; set; }
         public bool IsClientPostageAccount { get; set; }
         public bool IsScanInAuthoMailDallas { get; set; }
+
+        public string FilesTransmittedOther { get; set; }
+        public string TypeOfFilesOther { get; set; }
+        public string PaperAndPrintDetails { get; set; }
+        public string ShippingMailingDetail { get; set; }
+        public string MailingEnvelopeDetail { get; set; }
+        public string BusinessReplyMailEnvelopeDetail { get; set; }
+        public string ListOfDocTypesAndPages { get; set; }
+        public string PDFSample { get; set; }
+        public bool InsertRequired { get; set; }
+        public bool BookletRequired { get; set; }
+        public bool BusinessReplyMailEnvelopeRequired { get; set; }
+        public bool OtherMaterialRequired { get; set; }
+        public string InsertMaterialOrderedBy { get; set; }
+
         public string AdditionalInfo { get; set; }
         public DateTime CreatedOn { get; set; }
         public string CreatedBy { get; set; }

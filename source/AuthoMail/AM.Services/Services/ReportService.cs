@@ -295,6 +295,7 @@ ORDER BY PrintTrailBatchId";
 
         public List<EnvelopeTransactions> SupplyInventoryReport(List<string> envelopes)
         {
+            envelopes.RemoveAll(e => e == "");
             string query = @"select * from Common.EnvelopeTransactions et
 inner join Common.Envelopes e on et.EnvelopeId=e.Id";
             DynamicParameters parameter = new DynamicParameters();
