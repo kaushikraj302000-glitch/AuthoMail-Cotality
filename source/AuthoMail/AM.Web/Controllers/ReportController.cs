@@ -17,10 +17,12 @@ namespace AM.Web.Controllers
     {
         IHomeService homeSvc;
         IReportService repoSvc;
-        public ReportController(IHomeService homeSvc, IReportService repoSvc)
+        IInventoryService invSvc;
+        public ReportController(IHomeService homeSvc, IReportService repoSvc, IInventoryService invSvc)
         {
             this.homeSvc = homeSvc;
             this.repoSvc = repoSvc;
+            this.invSvc = invSvc;
         }
         public ActionResult SummaryControlReport()
         {
@@ -79,8 +81,8 @@ namespace AM.Web.Controllers
 
             var data = repoSvc.GetMonthlyReconReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate, channel);
             //var model=Mapper.Map<List<MonthlyReconReportViewModel>>(data);
-           return Json(JsonResponseFactory.SuccessResponse(new { model = data.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
-            
+            return Json(JsonResponseFactory.SuccessResponse(new { model = data.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+
         }
 
         public ActionResult DownloadMonthlyReconReport(string startDate, string endDate, string channel, string fileName)
@@ -131,7 +133,7 @@ namespace AM.Web.Controllers
             var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
             var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
             //Update startDate and endDate
-            var data = repoSvc.GetSLAMissErrorReportByDateOrBatch(User.Identity.GetClientId().Value,exactStartDate,exactEndDate, null, docType, filterBy);
+            var data = repoSvc.GetSLAMissErrorReportByDateOrBatch(User.Identity.GetClientId().Value, exactStartDate, exactEndDate, null, docType, filterBy);
             var reportViewModel = GetBatchNameAndTime(data);
             var model = Mapper.Map<List<ErrorSLAReportViewModel>>(data);
             return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
@@ -172,6 +174,17 @@ namespace AM.Web.Controllers
             var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
             var model = repoSvc.GetPullbackRequestReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate);
             return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.RequestedOn) }), JsonRequestBehavior.AllowGet);
+        }
+        public ActionResult SupplyInventoryReport()
+        {
+            ViewBag.Envelopes = new SelectList(invSvc.GetEnvelopes(), "Id", "Id");
+            return View();
+        }
+        [HttpPost]
+        public ActionResult _SupplyInventoryReport(List<string> envelopes)
+        {
+            var model = repoSvc.SupplyInventoryReport(envelopes);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
         }
     }
 }

@@ -23,9 +23,9 @@
     .nav-pills li a {
         padding: 2px 10px;
     }
-    .tab-content
-    {
-        margin-top:5px;
+
+    .tab-content {
+        margin-top: 5px;
     }
 </style>
 <div class="panel-group">
@@ -124,19 +124,19 @@
                     <div class="tab-pane" id="pickupbody">
                         <ul class="nav nav-pills">
                             <li class="active">
-                                <a href="#pickupmailpiecebody" data-toggle="tab">Mailpiece</a>
+                                <a href="#pickupmailpiecebodymain" data-toggle="tab">Mailpiece</a>
                             </li>
-                           
+
                         </ul>
                         <div class="tab-content clearfix">
-                            <div class="tab-pane active" id="pickupmailpiecebody">
+                            <div class="tab-pane active" id="pickupmailpiecebodymain">
                                 <div class="alert-blue alert text-center">
                                     <span>Please Wait...</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
+
                 </div>
             </div>
 
@@ -531,413 +531,412 @@
     @Styles.Render("~/bundles/datatablescss")
     @Scripts.Render("~/bundles/datatables")
     <script type="text/javascript">
-    var primaryobj = {};
-    var processbatches = {};
-    var processmailpieces = {};
-    var printerbatches = {};
-    var printermailpieces = {};
-    var reportingbatches = {};
-    var reportingmailpieces = {};
+        var primaryobj = {};
+        var processbatches = {};
+        var processmailpieces = {};
+        var printerbatches = {};
+        var printermailpieces = {};
+        var reportingbatches = {};
+        var reportingmailpieces = {};
 
-    $(document).ready(function () {
-        window.clui.dateTimePickerInit();
-        FilterData();
-    });
-    var GetBatchByClient = function () {
-        $('.viewbatch').unbind('click');
-        $('.viewbatch').bind('click', function (e) {
-            var appCode = $(this).data('appcode');
-            var table = $('#sample_2').DataTable();
-            table.columns(2).search(appCode).draw();
-            if ($(this).hasClass('check')) {
-                $(this).removeClass('check');
-                var ht = $(this).html();
-                $(this).html(ht.replace('<i class="fa fa-check"></i>', ''));
-                table.columns(2).search('').draw();
-            }
-            else {
-                $.each($('#ClientWiseBatchCount').find('.check'), function (i, v) {
-                    if ($(v).data('appcode') != appCode) {
-                        $(v).removeClass('check');
-                        $(v).html($(v).html().replace('<i class="fa fa-check"></i>', ''));
-                    }
-                });
-                $(this).addClass('check');
-                var ht = $(this).html();
-                $(this).html(ht + ' <i class="fa fa-check"></i>');
+        $(document).ready(function () {
+            window.clui.dateTimePickerInit();
+            FilterData();
+        });
+        var GetBatchByClient = function () {
+            $('.viewbatch').unbind('click');
+            $('.viewbatch').bind('click', function (e) {
+                var appCode = $(this).data('appcode');
+                var table = $('#sample_2').DataTable();
                 table.columns(2).search(appCode).draw();
-            }
-        });
-    }
-    var GetMailPiecesByClient = function () {
-        $('.viewmps').unbind('click');
-        $('.viewmps').bind('click', function (e) {
-            var appCode = $(this).data('appcode');
-            var table = $('#DelayedMPsDatatable').DataTable();
-            if ($(this).hasClass('check')) {
-                $(this).removeClass('check');
-                var ht = $(this).html();
-                $(this).html(ht.replace('<i class="fa fa-check"></i>', ''));
-                table.columns(2).search('').draw();
-            }
-            else {
-                $.each($('#ClientWiseMailPieceCount').find('.check'), function (i, v) {
-                    if ($(v).data('appcode') != appCode) {
-                        $(v).removeClass('check');
-                        $(v).html($(v).html().replace('<i class="fa fa-check"></i>', ''));
-                    }
-                });
-                $(this).addClass('check');
-                var ht = $(this).html();
-                $(this).html(ht + ' <i class="fa fa-check"></i>');
-                table.columns(2).search(appCode).draw();
-            }
-        });
-    }
-    function applyDataTable() {
-        $('[data-toggle="popover"]').popover({
-            'trigger': 'hover',
-            'placement': 'auto left',
-            'container': 'body'
-        });
-        var table = $('#sample_2');
-        var filename = "DelayedMailBatches";
-        var title = "Delayed MailBatches";
-        var oTable = table.dataTable({
-
-            "language": {
-                "aria": {
-                    "sortAscending": ": activate to sort column ascending",
-                    "sortDescending": ": activate to sort column descending"
-                },
-                "emptyTable": "No data available in table",
-                "info": "Showing _START_ to _END_ of _TOTAL_ entries",
-                "infoEmpty": "No entries found",
-                "infoFiltered": "(filtered1 from _MAX_ total entries)",
-                "lengthMenu": "_MENU_ entries",
-                "search": "<b>Search:</b>",
-                "zeroRecords": "No matching records found"
-            },
-            "columnDefs": [
-                    {
-                        "targets": ["Id"],
-                        "visible": false,
-                        "searchable": true
-                    },
-            ],
-            "scrollX": false,
-            buttons: [
-                //{
-                //    extend: 'colvis',
-                //    text: 'Select Fields',
-                //    className: 'btn purple pull-left',
-                //    columns: ':not(.noVis)'
-                //},
-            {
-                extend: 'csv',
-                text: '<i class="fa fa-file-excel-o fa-2x"></i>',
-                className: 'btn btn-primary',
-                filename: 'DelayedBatches',
-                title: 'Delayed Batches',
-                exportOptions: {
-                    //columns: "thead th:not(.BatchId)",
+                if ($(this).hasClass('check')) {
+                    $(this).removeClass('check');
+                    var ht = $(this).html();
+                    $(this).html(ht.replace('<i class="fa fa-check"></i>', ''));
+                    table.columns(2).search('').draw();
                 }
-
-            }],
-
-            "order": [
-                [0, 'asc']
-            ],
-            "lengthMenu": [
-                [5, 10, 25, 50, 100, -1],
-                [5, 10, 25, 50, 100, "All"] // change per page values here
-            ],
-            // set the initial value
-            "pageLength": 5,
-
-            "dom": "<'row' <'col-md-12'B>><'row'<'col-md-6 col-sm-12'l><'col-md-6 col-sm-12'f>r><'table-scrollable't><'row'<'col-md-5 col-sm-12'i><'col-md-7 col-sm-12'p>>", // horizobtal scrollable datatable
-
-
-        });
-    }
-    function applyDataTableWithId(tableId, filename, title, scroll) {
-        scroll = scroll == null ? true : scroll;
-        $('[data-toggle="popover"]').popover({
-            'trigger': 'hover',
-            'placement': 'auto left',
-            'container': 'body'
-        });
-        var table = $('#' + tableId);
-        var filename = filename;
-        var title = title;
-        var oTable = table.dataTable({
-
-            "language": {
-                "aria": {
-                    "sortAscending": ": activate to sort column ascending",
-                    "sortDescending": ": activate to sort column descending"
-                },
-                "emptyTable": "No data available in table",
-                "info": "Showing _START_ to _END_ of _TOTAL_ entries",
-                "infoEmpty": "No entries found",
-                "infoFiltered": "(filtered1 from _MAX_ total entries)",
-                "lengthMenu": "_MENU_ entries",
-                "search": "<b>Search:</b>",
-                "zeroRecords": "No matching records found"
-            },
-            "columnDefs": [
-                    {
-                        "targets": ["Id"],
-                        "visible": false,
-                        "searchable": true
-                    },
-            ],
-            "scrollX": scroll,
-            buttons: [
-                //{
-                //    extend: 'colvis',
-                //    text: 'Select Fields',
-                //    className: 'btn purple pull-left',
-                //    columns: ':not(.noVis)'
-                //},
-            {
-                extend: 'csv',
-                text: '<i class="fa fa-file-excel-o fa-2x"></i>',
-                className: 'btn btn-primary',
-                filename: filename,
-                title: title,
-                exportOptions: {
-                    //columns: "thead th:not(.BatchId)",
-                }
-
-            }
-
-
-            ],
-
-            "order": [
-                [0, 'asc']
-            ],
-            "lengthMenu": [
-                [5, 10, 25, 50, 100, -1],
-                [5, 10, 25, 50, 100, "All"] // change per page values here
-            ],
-            // set the initial value
-            "pageLength": 5,
-
-            "dom": "<'row' <'col-md-12'B>><'row'<'col-md-6 col-sm-12'l><'col-md-6 col-sm-12'f>r><'table-scrollable't><'row'<'col-md-5 col-sm-12'i><'col-md-7 col-sm-12'p>>", // horizobtal scrollable datatable
-
-
-        });
-        //$('.selectpicker').selectpicker('refresh');
-        //$('#BatchList').on('change', function () {
-        //    var oTable = $('#sample_2').dataTable();
-        //    var filterColumn = oTable.api().column(".BatchId").index();
-        //    var selected = $(this).find("option:selected").val();
-        //    if (!selected) {
-
-        //        oTable.fnFilter('', filterColumn, true);
-        //    } else {
-        //        oTable.fnFilter("^" + parseInt(selected) + "$", filterColumn, true); //Exact value, column, reg
-        //    }
-        //});
-    }
-    function FormatObject(Model) {
-        $(Model).each(function () {
-            this.ShortMailBatchName = shortName(this.BatchName);
-            this.BatchId = '<a  data-batchid="' + this.Id + '" onclick="ViewDetails(' + this.Id + ')" class="btn btn-transparent-blue btn-sm" >' + this.Id + '</a>';
-            // this.TotalPages = this.Status == "Shipped" ? this.TotalPages : 0;
-            this.ReceivedOn = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
-            this.TotalDelayedMailPieces = this.DelayedMailPieces.length;
-            this.ClientId = this.ClientId == null ? '--' : this.ClientId;
-            this.UniqueId = this.UniqueId == null ? "--" : this.UniqueId;
-        });
-
-        return Model;
-    }
-    function FormatObjectMP(Model) {
-        $(Model).each(function () {
-            this.ClientId = this.ClientId == null ? '--' : this.ClientId;
-            this.UniqueId = this.UniqueId == null ? '--' : this.UniqueId;
-            this.AppCode = this.AppCode == null ? '--' : this.AppCode;
-            this.ReceivedOn = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
-            this.BatchName = this.BatchName == null ? '--' : this.BatchName;
-            this.PipelineStatus = this.PipelineStatus == null ? '--' : this.PipelineStatus;
-            this.DocTypeCode = this.DocTypeCode == null ? '--' : this.DocTypeCode;
-            this.ShippingCarrier = this.ShippingCarrier == null ? '--' : this.ShippingCarrier;
-            this.ShippingServiceType = this.ShippingServiceType == null ? '--' : this.ShippingServiceType;
-            this.PrintLocation = this.PrintLocation == null ? '--' : this.PrintLocation;
-            switch (this.ShippingStatus) {
-
-                case "PulledBack":
-                    status = '<span class="label medium label-yellow">' + this.ShippingStatus + '</span>';
-                    break;
-                case "Error":
-                    status = '<span class="label medium label-red">' + this.ShippingStatus + '</span>';
-                    break;
-                case "Shipped":
-                    status = '<span class="label medium label-success">' + this.ShippingStatus + '</span>';
-                    break;
-                case "InProgress":
-                    status = '<span class="label medium label-blue">' + this.ShippingStatus + '</span>';
-                    break;
-                default:
-                    status = '--';
-
-            }
-            this.ShippingStatus = status;
-        });
-
-        return Model;
-    }
-    function FormatMailPieceObject(Model) {
-        $(Model).each(function () {
-            this.ReceivedOn = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
-            this.UniqueId = this.UniqueId == null ? "--" : this.UniqueId;
-
-            switch (this.ShippingStatus) {
-
-                case "PulledBack":
-                    status = '<span class="label medium label-yellow">' + this.ShippingStatus + '</span>';
-
-                    break;
-                case "Error":
-                    status = '<span class="label medium label-red">' + this.ShippingStatus + '</span>';
-                    break;
-                case "Shipped":
-                    status = '<span class="label medium label-success">' + this.ShippingStatus + '</span>';
-                    break;
-                case "InProgress":
-                    status = '<span class="label medium label-blue">' + this.ShippingStatus + '</span>';
-                    break;
-                default:
-                    status = '--';
-
-            }
-            this.ShippingStatus = status;
-        });
-        return Model;
-    }
-    function shortName(str) {
-        if (typeof str != 'undefined' && str != null && str != "")
-            return str.length > 31 ? str.substring(0, 31) + '...' : str;
-    }
-    function FilterData() {
-        $("#supportHeader").hide();
-        //$("#supportMailBatchesList").hide();
-        var el = $('#supportMailBatchesList');
-        $("#loading").show();
-        $.ajax({
-            type: "GET",
-            url: baseUrl + "api/alert/GetDelayedBatches",
-            data: { cutOff: 30 },
-            contentType: "application/json; charset=utf-8",
-            success: function (response) {
-                console.log(JSON.stringify(response));
-                if (response != null) {
-                    //if (response.Status == 'red') {
-                    //    $('#statustitle').addClass('text-danger');
-                    //    $('#statustitle').html('<i class="fa fa-exclamation-triangle"></i> ' + $('#statustitle').html());
-                    //}
-                    //else {
-                    //    $('#statustitle').addClass('text-success');
-                    //    $('#statustitle').html('<i class="fa fa-check-circle"></i> ' + $('#statustitle').html());
-                    //}
-                    //if (response.MinHour != 0) {
-                    //    $('#remainingminmaxtime').html($('#remainingminmaxtime').html().replace("{0}", response.MinHour).replace("{1}", response.MaxHour));
-                    //    $('#remainingminmaxtime').removeClass('hidden');
-                    //    $('#remainingminmaxtime').show();
-                    //}
-                    //else {
-                    //    $('#remainingminmaxtime').hide();
-                    //}
-                    $("#loading").hide();
-                    $("#supportHeader").show();
-                    //$("#supportMailBatchesList").show();
-                    //All Mail Batches
-                    primaryobj = response;
-                    if (response.DelayedBatches.length > 0) {
-                        processbatches = response.DelayedBatches;
-                        var data = FormatObject(response.DelayedBatches);
-                        BindTemplateWithDataTable(data, "#supportBody", "#supportbodyContent", "#supportTableContent", "#processbatchbody", 'DelayedBatchDatatable', 'delayedbatches', 'Delayed Batches', false);
-                        window.clui.tooltipInit();
-                    }
-                    else {
-                        $("#processbatchbody").html(" <div style='margin-bottom:10px;' class='alert alert-green'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
-                    }
-                    //if (response.AppCodeCountByBatch != null && response.AppCodeCountByBatch.length > 0) {
-                    //    var dispText = "";
-                    //    $.each(response.AppCodeCountByBatch, function (i, v) {
-                    //        var lbl = '<button class="btn btn-primary btn-sm viewbatch" data-appcode=' + v['AppCode'] + ' style="margin-left:5px">' + v['AppCode'] + '  <span class="label label-blue"style="margin:0px;background-color:white;color:black">' + v['Total'] + '</span></button>';
-                    //        dispText = dispText + lbl;
-                    //    });
-                    //    $('#ClientWiseBatchCount').html(dispText);
-                    //    GetBatchByClient();
-                    //}
-                    //All MailPieces
-                    if (response.DelayedMailPieces.length > 0) {
-                        processmailpieces = response.DelayedMailPieces;
-                        var mdata = FormatObjectMP(response.DelayedMailPieces);
-                        BindTemplateWithDataTable(mdata, "#delayedmailpiecesbody", "#delayedbatchmailpiecesbodyContent", "#delayedbatchmailpiecesContent", "#processmailpiecebody", 'DelayedMPsDatatable', 'delayedmailpieces', 'Delayed MailPieces', true);
-                    } else {
-                        $("#processmailpiecebody").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
-                    }
-                    //if (response.AppCodeCountByMailPiece != null && response.AppCodeCountByMailPiece.length > 0) {
-                    //    var dispText = "";
-                    //    $.each(response.AppCodeCountByMailPiece, function (i, v) {
-                    //        var lbl = '<button class="btn btn-primary btn-sm viewmps" data-appcode=' + v['AppCode'] + ' style="margin-left:5px">' + v['AppCode'] + '  <span class="label label-blue"style="margin:0px;background-color:white;color:black">' + v['Total'] + '</span></button>';
-                    //        dispText = dispText + lbl;
-                    //    });
-                    //    $('#ClientWiseMailPieceCount').html(dispText);
-                    //    GetMailPiecesByClient();
-                    //}
-
-
-
-                    //Printer  //Batch
-                    if (response.DelayedPrinterBatches.length > 0) {
-                        printerbatches = response.DelayedPrinterBatches;
-                        var data = FormatObject(response.DelayedPrinterBatches);
-                        //BindTemplate(data, "#supportBody", "#supportbodyContent", "#supportTableContent", "#printerbatchbody");
-                        BindTemplateWithDataTable(data, "#supportBodyPrinter", "#supportbodyContentPrinter", "#supportTableContentPrinter", "#printerbatchbody", 'PrinterDelayedBatchesDatatable', 'PrinterdelayedBatches', 'Printer Delayed Batches', false);
-                        window.clui.tooltipInit();
-                    }
-                    else {
-                        $("#printerbatchbody").html(" <div style='margin-bottom:10px;' class='alert alert-green'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
-                    }
-                    //Printer //MailPieces
-                    if (response.DelayedPrinterMailPieces.length > 0) {
-                        printermailpieces = response.DelayedMailPieces;
-                        var mdata = FormatObjectMP(response.DelayedPrinterMailPieces);
-                        BindTemplateWithDataTable(mdata, "#delayedmailpiecesbodyPrinter", "#delayedbatchmailpiecesbodyContentPrinter", "#delayedbatchmailpiecesContentPrinter", "#printermailpiecebody", 'PrinterDelayedMPsDatatable', 'Printerdelayedmailpieces', 'Printer Delayed MailPieces', true);
-                    } else {
-                        $("#printermailpiecebody").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
-                    }
-
-                    //reporting  //Batch
-                    if (response.DelayedAMReportBackBatches.length > 0) {
-                        reportingbatches = response.DelayedAMReportBackBatches;
-                        var data = FormatObject(response.DelayedAMReportBackBatches);
-                        BindTemplateWithDataTable(data, "#supportBodyReport", "#supportbodyContentReport", "#supportTableContentReport", "#reportingbatchbody", 'ReportingDelayedBatchesDatatable', 'Reportingdelayedmailpieces', 'Reporting Delayed Batches', false);
-                        window.clui.tooltipInit();
-                    }
-                    else {
-                        $("#reportingbatchbody").html(" <div style='margin-bottom:10px;' class='alert alert-green'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
-                    }
-                    //reporting //MailPieces
-                    if (response.DelayedAMReportBackMailPieces.length > 0) {
-                        reportingbatches = response.DelayedAMReportBackMailPieces;
-                        var mdata = FormatObjectMP(response.DelayedAMReportBackMailPieces);
-                        BindTemplateWithDataTable(mdata, "#delayedmailpiecesbodyReport", "#delayedbatchmailpiecesbodyContentReport", "#delayedbatchmailpiecesContentReport", "#reportingmailpiecebody", 'reportingDelayedMPsDatatable', 'reportingdelayedmailpieces', 'reporting Delayed MailPieces', true);
-                    } else {
-                        $("#reportingmailpiecebody").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                else {
+                    $.each($('#ClientWiseBatchCount').find('.check'), function (i, v) {
+                        if ($(v).data('appcode') != appCode) {
+                            $(v).removeClass('check');
+                            $(v).html($(v).html().replace('<i class="fa fa-check"></i>', ''));
                         }
-                    if (response.PickUpDelayedMailPieces.length > 0) {
-                        reportingbatches = response.PickUpDelayedMailPieces;
-                        var mdata = FormatObjectMP(response.PickUpDelayedMailPieces);
-                        BindTemplateWithDataTable(mdata, "", "#pickupmailpiecesbody", "#pickupmailpiecesbodyContent", "#pickupmailpiecesContent", "#pickupmailpiecebody", 'reportingDelayedMPsDatatable', 'reportingdelayedmailpieces', 'Pickup Delayed MailPieces', true);
+                    });
+                    $(this).addClass('check');
+                    var ht = $(this).html();
+                    $(this).html(ht + ' <i class="fa fa-check"></i>');
+                    table.columns(2).search(appCode).draw();
+                }
+            });
+        }
+        var GetMailPiecesByClient = function () {
+            $('.viewmps').unbind('click');
+            $('.viewmps').bind('click', function (e) {
+                var appCode = $(this).data('appcode');
+                var table = $('#DelayedMPsDatatable').DataTable();
+                if ($(this).hasClass('check')) {
+                    $(this).removeClass('check');
+                    var ht = $(this).html();
+                    $(this).html(ht.replace('<i class="fa fa-check"></i>', ''));
+                    table.columns(2).search('').draw();
+                }
+                else {
+                    $.each($('#ClientWiseMailPieceCount').find('.check'), function (i, v) {
+                        if ($(v).data('appcode') != appCode) {
+                            $(v).removeClass('check');
+                            $(v).html($(v).html().replace('<i class="fa fa-check"></i>', ''));
+                        }
+                    });
+                    $(this).addClass('check');
+                    var ht = $(this).html();
+                    $(this).html(ht + ' <i class="fa fa-check"></i>');
+                    table.columns(2).search(appCode).draw();
+                }
+            });
+        }
+        function applyDataTable() {
+            $('[data-toggle="popover"]').popover({
+                'trigger': 'hover',
+                'placement': 'auto left',
+                'container': 'body'
+            });
+            var table = $('#sample_2');
+            var filename = "DelayedMailBatches";
+            var title = "Delayed MailBatches";
+            var oTable = table.dataTable({
+
+                "language": {
+                    "aria": {
+                        "sortAscending": ": activate to sort column ascending",
+                        "sortDescending": ": activate to sort column descending"
+                    },
+                    "emptyTable": "No data available in table",
+                    "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+                    "infoEmpty": "No entries found",
+                    "infoFiltered": "(filtered1 from _MAX_ total entries)",
+                    "lengthMenu": "_MENU_ entries",
+                    "search": "<b>Search:</b>",
+                    "zeroRecords": "No matching records found"
+                },
+                "columnDefs": [
+                        {
+                            "targets": ["Id"],
+                            "visible": false,
+                            "searchable": true
+                        },
+                ],
+                "scrollX": false,
+                buttons: [
+                    //{
+                    //    extend: 'colvis',
+                    //    text: 'Select Fields',
+                    //    className: 'btn purple pull-left',
+                    //    columns: ':not(.noVis)'
+                    //},
+                {
+                    extend: 'csv',
+                    text: '<i class="fa fa-file-excel-o fa-2x"></i>',
+                    className: 'btn btn-primary',
+                    filename: 'DelayedBatches',
+                    title: 'Delayed Batches',
+                    exportOptions: {
+                        //columns: "thead th:not(.BatchId)",
+                    }
+
+                }],
+
+                "order": [
+                    [0, 'asc']
+                ],
+                "lengthMenu": [
+                    [5, 10, 25, 50, 100, -1],
+                    [5, 10, 25, 50, 100, "All"] // change per page values here
+                ],
+                // set the initial value
+                "pageLength": 5,
+
+                "dom": "<'row' <'col-md-12'B>><'row'<'col-md-6 col-sm-12'l><'col-md-6 col-sm-12'f>r><'table-scrollable't><'row'<'col-md-5 col-sm-12'i><'col-md-7 col-sm-12'p>>", // horizobtal scrollable datatable
+
+
+            });
+        }
+        function applyDataTableWithId(tableId, filename, title, scroll) {
+            scroll = scroll == null ? true : scroll;
+            $('[data-toggle="popover"]').popover({
+                'trigger': 'hover',
+                'placement': 'auto left',
+                'container': 'body'
+            });
+            var table = $('#' + tableId);
+            var filename = filename;
+            var title = title;
+            var oTable = table.dataTable({
+
+                "language": {
+                    "aria": {
+                        "sortAscending": ": activate to sort column ascending",
+                        "sortDescending": ": activate to sort column descending"
+                    },
+                    "emptyTable": "No data available in table",
+                    "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+                    "infoEmpty": "No entries found",
+                    "infoFiltered": "(filtered1 from _MAX_ total entries)",
+                    "lengthMenu": "_MENU_ entries",
+                    "search": "<b>Search:</b>",
+                    "zeroRecords": "No matching records found"
+                },
+                "columnDefs": [
+                        {
+                            "targets": ["Id"],
+                            "visible": false,
+                            "searchable": true
+                        },
+                ],
+                "scrollX": scroll,
+                buttons: [
+                    //{
+                    //    extend: 'colvis',
+                    //    text: 'Select Fields',
+                    //    className: 'btn purple pull-left',
+                    //    columns: ':not(.noVis)'
+                    //},
+                {
+                    extend: 'csv',
+                    text: '<i class="fa fa-file-excel-o fa-2x"></i>',
+                    className: 'btn btn-primary',
+                    filename: filename,
+                    title: title,
+                    exportOptions: {
+                        //columns: "thead th:not(.BatchId)",
+                    }
+
+                }
+
+
+                ],
+
+                "order": [
+                    [0, 'asc']
+                ],
+                "lengthMenu": [
+                    [5, 10, 25, 50, 100, -1],
+                    [5, 10, 25, 50, 100, "All"] // change per page values here
+                ],
+                // set the initial value
+                "pageLength": 5,
+
+                "dom": "<'row' <'col-md-12'B>><'row'<'col-md-6 col-sm-12'l><'col-md-6 col-sm-12'f>r><'table-scrollable't><'row'<'col-md-5 col-sm-12'i><'col-md-7 col-sm-12'p>>", // horizobtal scrollable datatable
+
+
+            });
+            //$('.selectpicker').selectpicker('refresh');
+            //$('#BatchList').on('change', function () {
+            //    var oTable = $('#sample_2').dataTable();
+            //    var filterColumn = oTable.api().column(".BatchId").index();
+            //    var selected = $(this).find("option:selected").val();
+            //    if (!selected) {
+
+            //        oTable.fnFilter('', filterColumn, true);
+            //    } else {
+            //        oTable.fnFilter("^" + parseInt(selected) + "$", filterColumn, true); //Exact value, column, reg
+            //    }
+            //});
+        }
+        function FormatObject(Model) {
+            $(Model).each(function () {
+                this.ShortMailBatchName = shortName(this.BatchName);
+                this.BatchId = '<a  data-batchid="' + this.Id + '" onclick="ViewDetails(' + this.Id + ')" class="btn btn-transparent-blue btn-sm" >' + this.Id + '</a>';
+                // this.TotalPages = this.Status == "Shipped" ? this.TotalPages : 0;
+                this.ReceivedOn = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                this.TotalDelayedMailPieces = this.DelayedMailPieces.length;
+                this.ClientId = this.ClientId == null ? '--' : this.ClientId;
+                this.UniqueId = this.UniqueId == null ? "--" : this.UniqueId;
+            });
+
+            return Model;
+        }
+        function FormatObjectMP(Model) {
+            $(Model).each(function () {
+                this.ClientId = this.ClientId == null ? '--' : this.ClientId;
+                this.UniqueId = this.UniqueId == null ? '--' : this.UniqueId;
+                this.AppCode = this.AppCode == null ? '--' : this.AppCode;
+                this.ReceivedOn = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                this.BatchName = this.BatchName == null ? '--' : this.BatchName;
+                this.PipelineStatus = this.PipelineStatus == null ? '--' : this.PipelineStatus;
+                this.DocTypeCode = this.DocTypeCode == null ? '--' : this.DocTypeCode;
+                this.ShippingCarrier = this.ShippingCarrier == null ? '--' : this.ShippingCarrier;
+                this.ShippingServiceType = this.ShippingServiceType == null ? '--' : this.ShippingServiceType;
+                this.PrintLocation = this.PrintLocation == null ? '--' : this.PrintLocation;
+                switch (this.ShippingStatus) {
+
+                    case "PulledBack":
+                        status = '<span class="label medium label-yellow">' + this.ShippingStatus + '</span>';
+                        break;
+                    case "Error":
+                        status = '<span class="label medium label-red">' + this.ShippingStatus + '</span>';
+                        break;
+                    case "Shipped":
+                        status = '<span class="label medium label-success">' + this.ShippingStatus + '</span>';
+                        break;
+                    case "InProgress":
+                        status = '<span class="label medium label-blue">' + this.ShippingStatus + '</span>';
+                        break;
+                    default:
+                        status = '--';
+
+                }
+                this.ShippingStatus = status;
+            });
+
+            return Model;
+        }
+        function FormatMailPieceObject(Model) {
+            $(Model).each(function () {
+                this.ReceivedOn = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                this.UniqueId = this.UniqueId == null ? "--" : this.UniqueId;
+
+                switch (this.ShippingStatus) {
+
+                    case "PulledBack":
+                        status = '<span class="label medium label-yellow">' + this.ShippingStatus + '</span>';
+
+                        break;
+                    case "Error":
+                        status = '<span class="label medium label-red">' + this.ShippingStatus + '</span>';
+                        break;
+                    case "Shipped":
+                        status = '<span class="label medium label-success">' + this.ShippingStatus + '</span>';
+                        break;
+                    case "InProgress":
+                        status = '<span class="label medium label-blue">' + this.ShippingStatus + '</span>';
+                        break;
+                    default:
+                        status = '--';
+
+                }
+                this.ShippingStatus = status;
+            });
+            return Model;
+        }
+        function shortName(str) {
+            if (typeof str != 'undefined' && str != null && str != "")
+                return str.length > 31 ? str.substring(0, 31) + '...' : str;
+        }
+        function FilterData() {
+            $("#supportHeader").hide();
+            //$("#supportMailBatchesList").hide();
+            var el = $('#supportMailBatchesList');
+            $("#loading").show();
+            $.ajax({
+                type: "GET",
+                url: baseUrl + "api/alert/GetDelayedBatches",
+                data: { cutOff: 30 },
+                contentType: "application/json; charset=utf-8",
+                success: function (response) {
+                    if (response != null) {
+                        //if (response.Status == 'red') {
+                        //    $('#statustitle').addClass('text-danger');
+                        //    $('#statustitle').html('<i class="fa fa-exclamation-triangle"></i> ' + $('#statustitle').html());
+                        //}
+                        //else {
+                        //    $('#statustitle').addClass('text-success');
+                        //    $('#statustitle').html('<i class="fa fa-check-circle"></i> ' + $('#statustitle').html());
+                        //}
+                        //if (response.MinHour != 0) {
+                        //    $('#remainingminmaxtime').html($('#remainingminmaxtime').html().replace("{0}", response.MinHour).replace("{1}", response.MaxHour));
+                        //    $('#remainingminmaxtime').removeClass('hidden');
+                        //    $('#remainingminmaxtime').show();
+                        //}
+                        //else {
+                        //    $('#remainingminmaxtime').hide();
+                        //}
+                        $("#loading").hide();
+                        $("#supportHeader").show();
+                        //$("#supportMailBatchesList").show();
+                        //All Mail Batches
+                        primaryobj = response;
+                        if (response.DelayedBatches.length > 0) {
+                            processbatches = response.DelayedBatches;
+                            var data = FormatObject(response.DelayedBatches);
+                            BindTemplateWithDataTable(data, "#supportBody", "#supportbodyContent", "#supportTableContent", "#processbatchbody", 'DelayedBatchDatatable', 'delayedbatches', 'Delayed Batches', false);
+                            window.clui.tooltipInit();
+                        }
+                        else {
+                            $("#processbatchbody").html(" <div style='margin-bottom:10px;' class='alert alert-green'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                        }
+                        //if (response.AppCodeCountByBatch != null && response.AppCodeCountByBatch.length > 0) {
+                        //    var dispText = "";
+                        //    $.each(response.AppCodeCountByBatch, function (i, v) {
+                        //        var lbl = '<button class="btn btn-primary btn-sm viewbatch" data-appcode=' + v['AppCode'] + ' style="margin-left:5px">' + v['AppCode'] + '  <span class="label label-blue"style="margin:0px;background-color:white;color:black">' + v['Total'] + '</span></button>';
+                        //        dispText = dispText + lbl;
+                        //    });
+                        //    $('#ClientWiseBatchCount').html(dispText);
+                        //    GetBatchByClient();
+                        //}
+                        //All MailPieces
+                        if (response.DelayedMailPieces.length > 0) {
+                            processmailpieces = response.DelayedMailPieces;
+                            var mdata = FormatObjectMP(response.DelayedMailPieces);
+                            BindTemplateWithDataTable(mdata, "#delayedmailpiecesbody", "#delayedbatchmailpiecesbodyContent", "#delayedbatchmailpiecesContent", "#processmailpiecebody", 'DelayedMPsDatatable', 'delayedmailpieces', 'Delayed MailPieces', true);
                         } else {
-                        $("#pickupmailpiecebody").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                            $("#processmailpiecebody").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                        }
+                        //if (response.AppCodeCountByMailPiece != null && response.AppCodeCountByMailPiece.length > 0) {
+                        //    var dispText = "";
+                        //    $.each(response.AppCodeCountByMailPiece, function (i, v) {
+                        //        var lbl = '<button class="btn btn-primary btn-sm viewmps" data-appcode=' + v['AppCode'] + ' style="margin-left:5px">' + v['AppCode'] + '  <span class="label label-blue"style="margin:0px;background-color:white;color:black">' + v['Total'] + '</span></button>';
+                        //        dispText = dispText + lbl;
+                        //    });
+                        //    $('#ClientWiseMailPieceCount').html(dispText);
+                        //    GetMailPiecesByClient();
+                        //}
+
+
+
+                        //Printer  //Batch
+                        if (response.DelayedPrinterBatches.length > 0) {
+                            printerbatches = response.DelayedPrinterBatches;
+                            var data = FormatObject(response.DelayedPrinterBatches);
+                            //BindTemplate(data, "#supportBody", "#supportbodyContent", "#supportTableContent", "#printerbatchbody");
+                            BindTemplateWithDataTable(data, "#supportBodyPrinter", "#supportbodyContentPrinter", "#supportTableContentPrinter", "#printerbatchbody", 'PrinterDelayedBatchesDatatable', 'PrinterdelayedBatches', 'Printer Delayed Batches', false);
+                            window.clui.tooltipInit();
+                        }
+                        else {
+                            $("#printerbatchbody").html(" <div style='margin-bottom:10px;' class='alert alert-green'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                        }
+                        //Printer //MailPieces
+                        if (response.DelayedPrinterMailPieces.length > 0) {
+                            printermailpieces = response.DelayedMailPieces;
+                            var mdata = FormatObjectMP(response.DelayedPrinterMailPieces);
+                            BindTemplateWithDataTable(mdata, "#delayedmailpiecesbodyPrinter", "#delayedbatchmailpiecesbodyContentPrinter", "#delayedbatchmailpiecesContentPrinter", "#printermailpiecebody", 'PrinterDelayedMPsDatatable', 'Printerdelayedmailpieces', 'Printer Delayed MailPieces', true);
+                        } else {
+                            $("#printermailpiecebody").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                        }
+
+                        //reporting  //Batch
+                        if (response.DelayedAMReportBackBatches.length > 0) {
+                            reportingbatches = response.DelayedAMReportBackBatches;
+                            var data = FormatObject(response.DelayedAMReportBackBatches);
+                            BindTemplateWithDataTable(data, "#supportBodyReport", "#supportbodyContentReport", "#supportTableContentReport", "#reportingbatchbody", 'ReportingDelayedBatchesDatatable', 'Reportingdelayedmailpieces', 'Reporting Delayed Batches', false);
+                            window.clui.tooltipInit();
+                        }
+                        else {
+                            $("#reportingbatchbody").html(" <div style='margin-bottom:10px;' class='alert alert-green'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                        }
+                        //reporting //MailPieces
+                        if (response.DelayedAMReportBackMailPieces.length > 0) {
+                            reportingbatches = response.DelayedAMReportBackMailPieces;
+                            var mdata = FormatObjectMP(response.DelayedAMReportBackMailPieces);
+                            BindTemplateWithDataTable(mdata, "#delayedmailpiecesbodyReport", "#delayedbatchmailpiecesbodyContentReport", "#delayedbatchmailpiecesContentReport", "#reportingmailpiecebody", 'reportingDelayedMPsDatatable', 'reportingdelayedmailpieces', 'reporting Delayed MailPieces', true);
+                        } else {
+                            $("#reportingmailpiecebody").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                        }
+                        if (response.DelayedMPickUpailPieces.length > 0) {
+                            reportingbatches = response.DelayedMPickUpailPieces;
+                            var mdata = FormatObjectMP(response.DelayedMPickUpailPieces);
+                            BindTemplateWithDataTable(mdata, "#pickupmailpiecesbody", "#pickupmailpiecesbodyContent", "#pickupmailpiecesContent", "#pickupmailpiecebodymain", 'pickupMPsDatatable', 'pickupmailpieces', 'Pickup Delayed MailPieces', true);
+                        } else {
+                            $("#pickupmailpiecebodymain").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                         }
 
                     }
@@ -948,67 +947,67 @@
                     $("#supportHeader").show();
                     $("#supportMailBatchesList").show();
                     var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
-                $("#supportMailBatchesList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
-            }
+                    $("#supportMailBatchesList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
+                }
 
-        });
-    }
+            });
+        }
 
-    function ViewDetails(obj) {
-        var batchId = $(obj).data("batchid");
+        function ViewDetails(obj) {
+            var batchId = $(obj).data("batchid");
 
-        $("#databind").html("");
-        $("#ViewInfo").modal("show");
-        $("#loadingModal").show();
-        var MPs = {};
-        var isFind = false;
-        jQuery.grep(primaryobj.DelayedBatches, function (i, v) {
-            if (i['Id'] == obj) {
-                MPs = i['DelayedMailPieces'];
-                isFind = true;
-            }
-        });
-        if (!isFind) {
-            jQuery.grep(primaryobj.DelayedPrinterBatches, function (i, v) {
+            $("#databind").html("");
+            $("#ViewInfo").modal("show");
+            $("#loadingModal").show();
+            var MPs = {};
+            var isFind = false;
+            jQuery.grep(primaryobj.DelayedBatches, function (i, v) {
                 if (i['Id'] == obj) {
                     MPs = i['DelayedMailPieces'];
                     isFind = true;
                 }
             });
-        }
-        if (!isFind) {
-            jQuery.grep(primaryobj.DelayedAMReportBackBatches, function (i, v) {
-                if (i['Id'] == obj) {
-                    MPs = i['DelayedMailPieces'];
-                    isFind = true;
-                }
+            if (!isFind) {
+                jQuery.grep(primaryobj.DelayedPrinterBatches, function (i, v) {
+                    if (i['Id'] == obj) {
+                        MPs = i['DelayedMailPieces'];
+                        isFind = true;
+                    }
+                });
+            }
+            if (!isFind) {
+                jQuery.grep(primaryobj.DelayedAMReportBackBatches, function (i, v) {
+                    if (i['Id'] == obj) {
+                        MPs = i['DelayedMailPieces'];
+                        isFind = true;
+                    }
+                });
+            }
+            $("#loadingModal").hide();
+            $("#showerror").hide();
+            var data = FormatMailPieceObject(MPs);
+            BindTemplateWithOutDatatable(MPs, "#delayedmailpiecesbodymodal", "#delayedbatchmailpiecesbodyContentmodal", "#delayedbatchmailpiecesContentmodal", "#databind");
+            $('[data-toggle="popover"]').popover({
+                'trigger': 'hover',
+                'placement': 'auto left',
+                'container': 'body'
             });
-        }
-        $("#loadingModal").hide();
-        $("#showerror").hide();
-        var data = FormatMailPieceObject(MPs);
-        BindTemplateWithOutDatatable(MPs, "#delayedmailpiecesbodymodal", "#delayedbatchmailpiecesbodyContentmodal", "#delayedbatchmailpiecesContentmodal", "#databind");
-        $('[data-toggle="popover"]').popover({
-            'trigger': 'hover',
-            'placement': 'auto left',
-            'container': 'body'
-        });
-        window.clui.tooltipInit();
-        $("#ViewInfo").modal("show");
-        setModalHeight("ViewInfo");
-
-    }
-    function setModalHeight(id) {
-        var count = $("#" + id).find("tr").length;//.find(".modal-body").height();
-        if (count > 5) {
-            $("#" + id).find(".modal-body").height(window.screen.height - 450);
-            $("#" + id).find(".modal-body").css("overflow-y", "scroll");
-        }
-        else {
-            $("#" + id).find(".modal-body").height('auto');
+            window.clui.tooltipInit();
+            $("#ViewInfo").modal("show");
+            setModalHeight("ViewInfo");
 
         }
+        function setModalHeight(id) {
+            var count = $("#" + id).find("tr").length;//.find(".modal-body").height();
+            if (count > 5) {
+                $("#" + id).find(".modal-body").height(window.screen.height - 450);
+                $("#" + id).find(".modal-body").css("overflow-y", "scroll");
+            }
+            else {
+                $("#" + id).find(".modal-body").height('auto');
 
-    }
+            }
+
+        }
     </script>
 }
