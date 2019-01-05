@@ -2,6 +2,15 @@
 @{
     ViewBag.Title = "Project Setup";
 }
+@{
+    var fileTransmittedViaList = new List<string> { "Client FTP", "CoreLogic FTP", "CL Pull from Client System Imaging", "Other" };
+    var typeOfFilesList = new List<string> { "PDF", "HP", "TIFF", "Other" };
+    var serviceLevelList = new List<string> { "SameDay", "24Hours", "48hours", "Other" };
+    var projectRequirements =new List<string>{ "Mixed Media","Letter Only","Legal Only","Stapled","24# Paper","Insert Required","White","Color (please specify)","Print 1-sided","Print 2-sided","B&W","Color","B&W & Color"};
+    var packagesSentToCustomerList = new List<string> { "Mailed-USPS", "Federal Express", "Certified USPS", "Other" };
+    var envelopeList = new List<string> { "# 10", "6 x 9.5", "9 x 12", "10 x 12", "Standard Window", "Custom Window(s)", "Other" };
+    var businessReplyMailEnvelopeList = new List<string> { "#9 Business Reply Mail", "Other" };
+}
 <div class="panel panel-default">
     <div class="panel-heading">
         <div class="panel-title">
@@ -13,33 +22,33 @@
             <div class="row">
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label for="Value">Name of Project</label>
+                        <label for="ClientName">Name of Project</label>
                         <div class="input-group">
-                            <input type="text" name="Name" value="" placeholder="Name of Project" class="form-control" id="Name" maxlength="255" />
+                            <input type="text" name="ClientName" value="@Model.ClientName" required placeholder="Name of Project" class="form-control" id="ClientName" maxlength="255" />
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="Description">Submitter</label>
+                        <label for="SubmittedBy">Submitter</label>
                         <div class="input-group">
-                            <input type="text" name="Submitter" value="" placeholder="Submitter" class="form-control" id="Submitter" maxlength="255" />
+                            <input type="text" name="SubmittedBy" value="@Model.SubmittedBy" required placeholder="Submitter" class="form-control" id="SubmittedBy" maxlength="255" />
                         </div>
                     </div>
-                    
+
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label for="date">Submit Date</label>
+                        <label for="SubmittedOn">Submit Date</label>
                         <div class="input-group date" id="datepicker4">
-                            <input type="text" class="form-control" id="submitdate">
+                            <input type="text" class="form-control" name="SubmittedOn" value="@Model.SubmittedOn" id="SubmittedOn" required>
                             <span class="input-group-addon">
                                 <i class="fa fa-calendar"></i>
                             </span>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="date">Project Start Date</label>
+                        <label for="ProdStartOn">Project Start Date</label>
                         <div class="input-group date" id="datepicker4">
-                            <input type="text" class="form-control" id="startdate">
+                            <input type="text" class="form-control" id="ProdStartOn" name="ProdStartOn" value="@Model.ProdStartOn" required>
                             <span class="input-group-addon">
                                 <i class="fa fa-calendar"></i>
                             </span>
@@ -50,13 +59,13 @@
                     <div class="form-group">
                         <label for="Description">Project Description</label>
                         <div class="input-group">
-                            <textarea id="ProjectDescription"  class="form-control"></textarea>
+                            <textarea id="Description" name="Description" class="form-control">@Model.Description</textarea>
                         </div>
-                        <span for="BusinessUnit" class="error" style="display:none;">This field is required.</span>
+                        <span for="Description" class="error" style="display:none;">This field is required.</span>
                     </div>
                 </div>
                 <div class="clearfix"></div>
-                
+
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <div class="panel-title">
@@ -66,47 +75,58 @@
                     <div class="panel-body">
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label for="Value">Files transmitted via</label>
+                                <label for="FileTransmittedVia">Files transmitted via</label>
                                 <div class="input-group">
-                                    <select class="selectpicker form-control">
-                                        <option value="ClientFTP">Client FTP</option>
-                                        <option value="CoreLogicFTP">CoreLogic FTP</option>
-                                        <option value="ClientSystem"> CL Pull from Client System Imaging</option>
-                                        <option value="ClientFTP">Client FTP</option>
-                                        <option value="ClientFTP">Client FTP</option>
+                                    <select id="FileTransmittedVia" data-live-search="true" data-live-search-placeholder="Search Files transmitted via" class="form-control selectpicker other" name="FileTransmittedVia">
+                                        <option>Select Files transmitted via</option>
+                                        @Html.Partial("_Lookup", new AM.Web.Models.LookupViewModel() { Value = Model.FileTransmittedVia, LookupList = fileTransmittedViaList })
                                     </select>
+                                    <input type="text" name="FileTransmittedVia" value="@Model.FileTransmittedVia" class="form-control othertextbox" />
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label for="">
-                                   Times of day (EST) will the sweeps take place?
-                                </label>
-                                <div class="input-group">
-                                    <select class="selectpicker form-control">
-                                        <option value="2X">2X</option>
-                                        <option value="4X">4X</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="">
+                                <label for="TypeOfFiles">
                                     Type of Files
                                 </label>
                                 <div class="input-group">
-                                    <select class="selectpicker form-control">
-                                        <option value="PDF">PDF</option>
-                                        <option value="HP">HP</option>
-                                        <option value="TIFF">TIFF</option>
-                                        <option value="Other">Other</option>
+                                    <select id="TypeOfFiles" data-live-search="true" data-live-search-placeholder="Search Type of Files" class="form-control selectpicker  other" name="TypeOfFiles">
+                                        <option>Select Type of Files</option>
+                                        @Html.Partial("_Lookup", new AM.Web.Models.LookupViewModel() { Value = Model.TypeOfFiles, LookupList = typeOfFilesList })
+                                    </select>
+                                    <input type="text" name="TypeOfFiles" value="@Model.TypeOfFiles" class="form-control othertextbox" />
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="clearfix"></div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="NoOfEstSweepTimes">
+                                    How many times will Corelogic be sweeping the SFTP?
+                                </label>
+                                <div class="input-group">
+                                    <select class="selectpicker form-control" name="NoOfEstSweepTimes" id="NoOfEstSweepTimes">
+                                        <option value="">Select Times of day</option>
+                                        <option @(Model.NoOfEstSweepTimes=="2X" ? "selected" :"" ) value="2X">2X</option>
+                                        <option @(Model.NoOfEstSweepTimes=="4X" ? "selected" :"" ) value="4X">4X</option>
                                     </select>
                                 </div>
                             </div>
-                            
                         </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="ESTSweepTime">
+                                    What times of day (EST) will the sweeps take place?
+                                </label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="ESTSweepTime" value="@Model.ESTSweepTime" />
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="clearfix"></div>
                     </div>
                 </div>
                 <div class="panel panel-default">
@@ -118,61 +138,60 @@
                     <div class="panel-body">
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label for="Value">Transmitted File Time</label>
-                                <div class='input-group date' id='datetimepicker3'>
-                                    <input type='text' class="form-control" />
+                                <label for="TransmittedTime">Transmitted File Time</label>
+                                <div class='input-group'>
+                                    <input type='text' class="form-control" value="@Model.TransmittedTime" name="TransmittedTime" id='datetimepicker3' />
                                     <span class="input-group-addon">
                                         <span class="fa fa-clock-o"></span>
                                     </span>
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="">
+                                <label for="ServiceLevel">
                                     Service Level
                                 </label>
                                 <div class="input-group">
-                                    <select class="selectpicker form-control">
-                                        <option value="SameDay">Same Day</option>
-                                        <option value="24Hours">24 Hours</option>
-                                        <option value="48Hours">48 Hours</option>
-                                        <option value="Other">Other</option>
+                                    <select id="ServiceLevel" data-live-search="true" data-live-search-placeholder="Search Service Level" class="form-control selectpicker other" name="ServiceLevel">
+                                        <option value="">Select Service Level</option>
+                                        @Html.Partial("_Lookup", new AM.Web.Models.LookupViewModel() { Value = Model.ServiceLevel, LookupList = serviceLevelList })
                                     </select>
+                                    <input type="text" name="ServiceLevel" value="@Model.ServiceLevel" class="form-control othertextbox" />
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label for="">
+                                <label for="EstimatedPagesPerPackage">
                                     Estimated # Pages per Package
                                 </label>
                                 <div class="input-group">
-                                    <input type="text" name="Name" value="" placeholder="Pages per Package" class="form-control" id="Name" maxlength="255" />
+                                    <input type="number" min="0" name="EstimatedPagesPerPackage" value="@Model.EstimatedPagesPerPackage" placeholder="Pages per Package" class="form-control" id="EstimatedPagesPerPackage" />
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="">
+                                <label for="EstimatedPackagesDaily">
                                     Estimated # of Packages Per Day
                                 </label>
                                 <div class="input-group">
-                                    <input type="text" name="Name" value="" placeholder="Packages Per Day" class="form-control" id="Name" maxlength="255" />
+                                    <input type="number" min="0" name="EstimatedPackagesDaily" value="@Model.EstimatedPackagesDaily" placeholder="Packages Per Day" class="form-control" id="EstimatedPackagesDaily" />
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label for="">
+                                <label for="EstimatedPackagesMonthly">
                                     Estimated # of Packages Per Month
                                 </label>
                                 <div class="input-group">
-                                    <input type="text" name="Name" value="" placeholder="Packages Per Month" class="form-control" id="Name" maxlength="255" />
+                                    <input type="number" min="0" name="EstimatedPackagesMonthly" value="@Model.EstimatedPackagesMonthly" placeholder="Packages Per Month" class="form-control" id="EstimatedPackagesMonthly" />
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="">
+                                <label for="EstimatedPackagesAnnually">
                                     Estimated # of Packages Annually
                                 </label>
                                 <div class="input-group">
-                                    <input type="text" name="Name" value="" placeholder="Packages Annually" class="form-control" id="Name" maxlength="255" />
+                                    <input type="number" min="0" name="EstimatedPackagesAnnually" value="@Model.EstimatedPackagesAnnually" placeholder="Packages Annually" class="form-control" id="EstimatedPackagesAnnually" />
                                 </div>
                             </div>
                         </div>
@@ -187,18 +206,22 @@
                     <div class="panel-body">
                         <div class="col-md-8">
                             <div class="form-group">
-                                <label for="Value"></label>
+                                <label for="DailyPrintSchedule"></label>
                                 <div class="input-group">
-                                    <select class="selectpicker form-control" multiple="multiple">
+                                    <select class="selectpicker form-control" multiple="multiple" name="DailyPrintSchedule">
                                         @foreach (var day in System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.DayNames)
-                                        {
-                                            <option value="@day.ToString()">@day.ToString()</option>
-                                        }
+                                                    {
+                                                    var lst = Model.DailyPrintSchedule == null ? new List
+                                                    <string>
+                                                        () : Model.DailyPrintSchedule.Split(',').ToList();
+                                                        string sel = lst.Any(l => l == day) ? "selected" : "";
+                                            <option @sel value="@day.ToString()">@day.ToString()</option>
+                                                        }
                                     </select>
                                 </div>
                             </div>
                         </div>
-                        
+
                     </div>
                 </div>
                 <div class="panel panel-default">
@@ -210,22 +233,16 @@
                     <div class="panel-body">
                         <div class="col-md-8">
                             <div class="form-group">
-                                <label for="Value"></label>
+                                <label for="PaperPrintRequirements"></label>
                                 <div class="input-group">
-                                    <select class="selectpicker form-control" >
-                                        <option value="MixedMedia">Mixed Media</option>
-                                        <option value="LetterOnly">Letter Only</option>
-                                        <option value="LegalOnly">Legal Only</option>
-                                        <option value="Stapled">Stapled</option>
-                                        <option value="24Paper">24# Paper</option>
-                                        <option value="InsertRequired">Insert Required</option>
-                                        <option value="White">White</option>
-                                        <option value="ColorSpecify">Color (please specify)</option>
-                                        <option value="Print1-sided">Print 1-sided</option>
-                                        <option value="Print2-sided">Print 2-sided</option>
-                                        <option value="B&W">B&W</option>
-                                        <option value="Color">Color</option>
-                                        <option value="B&W&Color">B&W & Color</option>
+                                    <select class="selectpicker form-control" multiple="multiple" name="PaperPrintRequirements" id="PaperPrintRequirements">
+                                        @foreach (var item in projectRequirements)
+                                        {
+                                            var lst = Model.PaperPrintRequirements == null ? new List<string>
+                                                () : Model.PaperPrintRequirements.Split(',').ToList();
+                                            string sel = lst.Any(l => l == item) ? "selected" : "";
+                                            <option @sel value="@item.ToString()">@item.ToString()</option>
+                                        }
                                     </select>
                                 </div>
                             </div>
@@ -242,14 +259,13 @@
                     <div class="panel-body">
                         <div class="col-md-8">
                             <div class="form-group">
-                                <label for="Value"></label>
+                                <label for="PackagesSentToCustomer"></label>
                                 <div class="input-group">
-                                    <select class="selectpicker form-control">
-                                        <option value=" Mailed-USPS">Mailed-USPS *</option>
-                                        <option value="FederalExpress">Federal Express</option>
-                                        <option value="CertifiedUSPS">Certified USPS</option>
-                                        <option value="Other">Other</option>
+                                    <select id="PackagesSentToCustomer" data-live-search="true" data-live-search-placeholder="Search Packages" class="form-control selectpicker  other" name="PackagesSentToCustomer">
+                                        <option value="">Select Packages</option>
+                                        @Html.Partial("_Lookup", new AM.Web.Models.LookupViewModel() { Value = Model.PackagesSentToCustomer, LookupList = packagesSentToCustomerList })
                                     </select>
+                                    <input type="text" name="PackagesSentToCustomer" value="@Model.PackagesSentToCustomer" class="form-control othertextbox" />
                                 </div>
                             </div>
                         </div>
@@ -263,87 +279,67 @@
                         </div>
                     </div>
                     <div class="panel-body">
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label for="Value">Type of envelope</label>
                                 <div class="input-group">
-                                    <select class="selectpicker form-control" multiple="multiple">
-                                        <option value="#10"># 10 </option>
-                                        <option value="6 x 9.5">6 x 9.5</option>
-                                        <option value="9 x 12">9 x 12</option>
-                                        <option value="10 x 12">10 x 12</option>
-                                        <option value="Other">Other</option>
+                                    <select id="Envelopes" data-live-search="true" data-live-search-placeholder="Search Envelopes" class="form-control selectpicker  other" name="Envelopes">
+                                        <option value="">Select Envelopes</option>
+                                        @Html.Partial("_Lookup", new AM.Web.Models.LookupViewModel() { Value = Model.Envelopes, LookupList = envelopeList })
                                     </select>
+                                    <input type="text" name="Envelopes" value="@Model.Envelopes" class="form-control othertextbox" />
                                 </div>
                             </div>
-                            
+
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <div class="form-group">
-                                <label for="Value"> Sample envelope(s) attached?</label>
+                                <label for="IsSampleEnvelopeAttached"> Sample envelope(s) attached?</label>
                                 <div class="input-group">
                                     <div class="toggle-container">
-                                        <input id="IsBREEnvelope" class="cl-toggle toggle-orange" type="checkbox" name="toggle-demo" /><label for="IsBREEnvelope">attached</label>
+                                        <input id="IsSampleEnvelopeAttached" @(Model.IsSampleEnvelopeAttached ? "checked" : "") class="cl-toggle toggle-orange" type="checkbox" name="IsSampleEnvelopeAttached" /><label for="IsSampleEnvelopeAttached">IsSampleEnvelopeAttached</label>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <div class="form-group">
-                                
-                                <label for="Value">  Standard Window</label>
+                                <label for="IsCustomerSupplyEnvelope">Will customer supply their  envelopes?</label>
                                 <div class="input-group">
                                     <div class="toggle-container">
-                                        <input id="IsBREEnvelope" class="cl-toggle toggle-orange" type="checkbox" name="toggle-demo" /><label for="IsBREEnvelope">attached</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                               
-                                <label for="Value">  Custom Window(s)</label>
-                                <div class="input-group">
-                                    <div class="toggle-container">
-                                        <input id="IsBREEnvelope" class="cl-toggle toggle-orange" type="checkbox" name="toggle-demo" /><label for="IsBREEnvelope">attached</label>
+                                        <input id="IsCustomerSupplyEnvelope" @(Model.IsCustomerSupplyEnvelope ? "checked" : "") class="cl-toggle toggle-orange" type="checkbox" name="IsCustomerSupplyEnvelope" /><label for="IsCustomerSupplyEnvelope">IsCustomerSupplyEnvelope</label>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="clearfix"></div>
-                        
-                        <div class="col-md-3">
+                        <div class="col-md-6">
                             <div class="form-group">
-                                <label for="Value">Does it need a Business Reply Mail envelope included?</label>
+                                <label for="BusinessReplyMailEnvelope">Does it need a Business Reply Mail envelope included?</label>
                                 <div class="input-group">
-                                    <select class="selectpicker form-control" multiple="multiple">
+                                    <select class="selectpicker form-control other" name="BusinessReplyMailEnvelope" id="BusinessReplyMailEnvelope">
                                         <option value="No">No</option>
-                                        <option value="#9 Business Reply Mail"> #9 Business Reply Mail</option>
-                                        <option value="Other">Other</option>
+                                        @Html.Partial("_Lookup", new AM.Web.Models.LookupViewModel() { Value = Model.BusinessReplyMailEnvelope, LookupList = businessReplyMailEnvelopeList  })
                                     </select>
+                                    <input type="text" name="BusinessReplyMailEnvelope" value="@Model.BusinessReplyMailEnvelope" class="form-control othertextbox" />
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-6">
                             <div class="form-group">
-                                <label for="Value">Will customer supply their  envelopes?</label>
+                                <label for="IsCustomerProvideArtworkEnvelope">Will customer provide artwork for the envelope(s)?</label>
                                 <div class="input-group">
                                     <div class="toggle-container">
-                                        <input id="IsBREEnvelope" class="cl-toggle toggle-orange" type="checkbox" name="toggle-demo" /><label for="IsBREEnvelope">attached</label>
+                                        <input id="IsCustomerProvideArtworkEnvelope" @(Model.IsCustomerProvideArtworkEnvelope ? "checked" : "") class="cl-toggle toggle-orange" type="checkbox" name="IsCustomerProvideArtworkEnvelope" /><label for="IsCustomerProvideArtworkEnvelope">IsCustomerProvideArtworkEnvelope</label>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="Value">Will customer provide artwork for the envelope(s)?</label>
-                                <div class="input-group">
-                                    <div class="toggle-container">
-                                        <input id="IsBREEnvelope" class="cl-toggle toggle-orange" type="checkbox" name="toggle-demo" /><label for="IsBREEnvelope">attached</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        
+                       
+
+                        
+                        
                     </div>
                 </div>
                 <div class="panel panel-default">
@@ -356,10 +352,10 @@
 
                         <div class="col-md-12">
                             <div class="form-group">
-                                <label for="Value">Do  you have an active general permit number  if USPS is the preferred shipping method</label>
+                                <label for="IsClientPostageAccount">Do  you have an active general permit number  if USPS is the preferred shipping method</label>
                                 <div class="input-group">
                                     <div class="toggle-container">
-                                        <input id="IsBREEnvelope1" class="cl-toggle toggle-orange" type="checkbox" name="toggle-demo" /><label for="IsBREEnvelope1">attached</label>
+                                        <input id="IsClientPostageAccount" @(Model.IsClientPostageAccount ? "checked" : "") class="cl-toggle toggle-orange" type="checkbox" name="IsClientPostageAccount" /><label for="IsClientPostageAccount">attached</label>
                                     </div>
                                 </div>
                             </div>
@@ -377,10 +373,10 @@
 
                         <div class="col-md-12">
                             <div class="form-group">
-                                <label for="Value">Do these packages need to be scanned to AuthoMail?</label>
+                                <label for="IsScanInAuthoMailDallas">Do these packages need to be scanned to AuthoMail?</label>
                                 <div class="input-group">
                                     <div class="toggle-container">
-                                        <input id="IsBREEnvel" class="cl-toggle toggle-orange" type="checkbox" name="toggle-demo" /><label for="IsBREEnvel">attached</label>
+                                        <input id="IsScanInAuthoMailDallas" @(Model.IsScanInAuthoMailDallas ? "checked" : "") class="cl-toggle toggle-orange" type="checkbox" name="IsScanInAuthoMailDallas" /><label for="IsScanInAuthoMailDallas">attached</label>
                                     </div>
                                 </div>
                             </div>
@@ -392,36 +388,157 @@
                 <div class="alert alert-blue text-center fa-2x margin-bottom-15">
                     Please use this area to expand on "Other" requirements or to provide additional detailed information.
                 </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            Additional Detailed Information
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="Value">Files transmitted (Other)</label>
+                                <div class="input-group">
+                                    <div class="toggle-container">
+                                        <textarea class="form-control"  cols="40"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="Value">Types of Files (Other)</label>
+                                <div class="input-group">
+                                    <div class="toggle-container">
+                                        <textarea class="form-control" cols="40"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="Value">Paper & Print</label>
+                                <div class="input-group">
+                                    <div class="toggle-container">
+                                        <textarea class="form-control" cols="40"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="Value">Shipping / Mailing </label>
+                                <div class="input-group">
+                                    <div class="toggle-container">
+                                        <textarea class="form-control" cols="40"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="Value">Mailing Envelope</label>
+                                <div class="input-group">
+                                    <div class="toggle-container">
+                                        <textarea class="form-control" cols="40"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="Value">Business Reply Mail Envelope</label>
+                                <div class="input-group">
+                                    <div class="toggle-container">
+                                        <textarea class="form-control" cols="40"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="Value">Additional information</label>
+                                <div class="input-group">
+                                    <div class="toggle-container">
+                                        <textarea class="form-control" cols="40"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="Value">List of  Doc Types  and how many pages will each file contain</label>
+                                <div class="input-group">
+                                    <div class="toggle-container">
+                                        <textarea class="form-control" cols="40"></textarea>
+                                    </div>
+                                </div>
+                            </div>
 
+
+                        </div>
+
+                        <div class="col-md-12 margin-top-15 margin-bottom-15">
+                            <div class="form-group">
+                                <label for="Value">Will Inserts be requried ? &nbsp;</label><div class="toggle-container">
+                                    <input id="IsBREEnvelope" class="cl-toggle toggle-orange" type="checkbox" name="toggle-demo" /><label for="IsBREEnvelope">attached</label>
+                                </div>
+                                <div class="input-group">
+
+                                </div>
+                                <div id="">
+                                    <div class="toggle-container">
+                                        <input id="IsBREEnvelope" class="cl-toggle toggle-orange" type="checkbox" name="toggle-demo" /><label for="IsBREEnvelope">attached</label>
+                                    </div>
+                                    <label for="Value">Are booklets required?</label><br />
+                                    <div class="toggle-container">
+                                        <input id="IsBREEnvelope" class="cl-toggle toggle-orange" type="checkbox" name="toggle-demo" /><label for="IsBREEnvelope">attached</label>
+                                    </div>
+                                    <label for="Value">Are Business Reply Mail envelopes required?</label><br />
+                                    <div class="toggle-container">
+                                        <input id="IsBREEnvelope" class="cl-toggle toggle-orange" type="checkbox" name="toggle-demo" /><label for="IsBREEnvelope">attached</label>
+                                    </div>
+                                    <label for="Value">Are any other materials required?</label><br />
+                                    <div class="toggle-container">
+                                        <input id="IsBREEnvelope" class="cl-toggle toggle-orange" type="checkbox" name="toggle-demo" /><label for="IsBREEnvelope">attached</label>
+                                    </div>
+                                    <label for="Value">Will any inserted materials need to be ordered by Corelogic or provided by client?</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="Value">Provide pdf sample (print ready format) of each document that CoreLogic will be printing and shipping and samples of envelopes if any.</label>
+                                <div class="input-group">
+                                    <div class="toggle-container">
+                                        <textarea class="form-control" cols="70"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="col-md-12 text-center margin-bottom-15">
                 <button type="submit" class="btn btn-primary" id="Save"><i class="fa fa-save"></i> Save</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> Cancel</button>
             </div>
-            
+
         </form>
     </div>
 </div>
 @section Scripts{
     @Styles.Render("~/bundles/datatablescss")
     @Scripts.Render("~/bundles/datatables")
-
     <script type="text/javascript">
         $(document).ready(function () {
             window.clui.dateTimePickerInit();
-            //var dateTemplate = '<div class="daterangepicker dropdown-menu">' + '<div class="calendar left">' + '<div class="calendar-table"></div>' + '</div>' + '<div class="calendar right">' + '<div class="calendar-table"></div>' + '</div>' + '<div class="ranges">' + '<div class="range_inputs">' + '<button class="applyBtn" disabled="disabled" type="button"></button> ' + '<button class="cancelBtn" type="button"></button>' + '</div>' + '</div>' + '</div>';
-            //$("#receivedOn").daterangepicker({
-            //    autoApply: true,
-            //    template: dateTemplate,
-            //    showCustomRangeLabel: false,
-            //    autoUpdateInput: false
-            //});
+            $('#datetimepicker3').timepicker({
+            });
+            $.each($(".other"), function (indexInArray, valueOfElement) {
+                if ($(this).val() == "Other") {
+                    $(this).siblings(".othertextbox").show();
+                } else {
+                    $(this).siblings(".othertextbox").hide();
+                }
+            });
 
-            //$('#receivedOn').on('apply.daterangepicker', function (ev, picker) {
-            //    $(this).val(picker.startDate.format('MM/DD/YYYY') + ' - ' + picker.endDate.format('MM/DD/YYYY'));
-            //});
-            
-            
+        });
+        $('.selectpicker').on('change', function () {
+            if ($(this).val() == "Other") {
+                console.log($(this).parent(".othertextbox"))
+                $(this).closest(".input-group").find(".othertextbox").show();
+            } else {
+                $(this).closest(".input-group").find(".othertextbox").hide();
+            }
         });
     </script>
 }

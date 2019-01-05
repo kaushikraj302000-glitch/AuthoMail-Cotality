@@ -605,7 +605,7 @@ namespace AM.Web.Controllers
         #region Project Setup
         public ActionResult ProjectSetup()
         {
-            return View();
+            return View(new ProjectRequest() {FileTransmittedVia="Client FTP" });
         }
         #endregion
 
