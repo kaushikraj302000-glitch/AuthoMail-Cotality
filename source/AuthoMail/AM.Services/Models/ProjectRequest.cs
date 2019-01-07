@@ -26,7 +26,9 @@ namespace AM.Services
         public int? EstimatedPackagesMonthly { get; set; }
         public int? EstimatedPackagesAnnually { get; set; }
         public string DailyPrintSchedule { get; set; }
+        public List<string> DailyPrintScheduleList { get; set; }
         public string PaperPrintRequirements { get; set; }
+        public List<string> PaperPrintRequirementsList { get; set; }
         public string PackagesSentToCustomer { get; set; }
         public bool IsSampleEnvelopeAttached { get; set; }
         public string Envelopes { get; set; }
