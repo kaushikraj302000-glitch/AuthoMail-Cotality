@@ -17,8 +17,6 @@ namespace PCI.Service
     {
         public static bool Remove_ImmediateErrFiles { get; private set; }
         public static bool RemoveBatchFiles_PnS_SFT { get; private set; }
-        public static bool Remove_MRDFOUT_Of_PCI_SFT { get; private set; }
-        public static bool Remove_PDF_Of_PCI_SFT { get; private set; }
 
         public static string PCIRootFolder { get; set; }
         public static string BundlingRootFolder { get; set; }
@@ -26,28 +24,11 @@ namespace PCI.Service
         public static string PCIRootReturnPDFsZipFolder { get; set; }
 
         public static SFT_ProtocolType PnS_SFT_Protocol { get; private set; }
-        public static SFT_ProtocolType PCI_SFT_Protocol { get; private set; }
-        public static SFT_ProtocolType CL_SFT_Protocol { get; private set; }
 
         public static string PnS_SFT_HostURL { get; private set; }
         public static string PnS_SFT_UserName { get; private set; }
         public static string PnS_SFT_Password { get; private set; }
         public static string PnS_SFT_RootDir { get; private set; }
-
-        public static string PCI_SFT_Host { get; private set; }
-        public static string PCI_SFT_Username { get; private set; }
-        public static string PCI_SFT_Password { get; private set; }
-        public static string PCI_SFT_SubmitDir { get; private set; }
-        public static string PCI_SFT_ResponseDir { get; private set; }
-        public static string PCI_SFT_ReturnPDFDir { get; private set; }
-
-        public static string CL_SFT_Host { get; private set; }
-        public static string CL_SFT_Username { get; private set; }
-        public static string CL_SFT_Password { get; private set; }
-        public static string CL_SFT_SubmitDir { get; private set; }
-        public static string CL_SFT_ReturnPDFDir { get; private set; }
-
-        public static int PollingInterval { get; private set; }
 
         public static SmtpClient Email_SMTPClient { get; private set; }
         public static string Email_ToPCI { get; private set; }
@@ -92,8 +73,6 @@ namespace PCI.Service
         {
             Remove_ImmediateErrFiles = ConfigurationManager.AppSettings["Remove_ImmediateErrFiles"].Trim() == "0" ? false : true;
             RemoveBatchFiles_PnS_SFT = ConfigurationManager.AppSettings["RemoveBatchFiles_PnS_SFT"].Trim() == "0" ? false : true;
-            Remove_MRDFOUT_Of_PCI_SFT = ConfigurationManager.AppSettings["Remove_MRDFOUT_Of_PCI_SFT"].Trim() == "0" ? false : true;
-            Remove_PDF_Of_PCI_SFT = ConfigurationManager.AppSettings["Remove_PDF_Of_PCI_SFT"].Trim() == "0" ? false : true;
 
             PCIRootFolder = Path.GetFullPath(ConfigurationManager.AppSettings["PCIRootFolder"]);
             PCIRootFolder.CreateDirectoryIfNotExist();
@@ -123,49 +102,11 @@ namespace PCI.Service
                 default: throw new Exception("Please provide valid protocol for 'PnS_SFT_Protocol_Value'.");
             }
 
-            string PCI_SFT_Protocol_Value = ConfigurationManager.AppSettings["PCI_SFT_Protocol_Value"].Trim().ToLower();
-            switch (PCI_SFT_Protocol_Value)
-            {
-                case "ftp": PCI_SFT_Protocol = SFT_ProtocolType.ftp;
-                    break;
-                case "sftp": PCI_SFT_Protocol = SFT_ProtocolType.sftp;
-                    break;
-                case "unc": PCI_SFT_Protocol = SFT_ProtocolType.unc;
-                    break;
-                default: throw new Exception("Please provide valid protocol for 'PCI_SFT_Protocol_Value'.");
-            }
-
-            string CL_SFT_Protocol_Value = ConfigurationManager.AppSettings["CL_SFT_Protocol_Value"].Trim().ToLower();
-            switch (CL_SFT_Protocol_Value)
-            {
-                case "ftp": CL_SFT_Protocol = SFT_ProtocolType.ftp;
-                    break;
-                case "sftp": CL_SFT_Protocol = SFT_ProtocolType.sftp;
-                    break;
-                case "unc": CL_SFT_Protocol = SFT_ProtocolType.unc;
-                    break;
-                default: throw new Exception("Please provide valid protocol for 'CL_SFT_Protocol_Value'.");
-            }
-
             PnS_SFT_HostURL = ConfigurationManager.AppSettings["PnS_SFT_HostURL"];
             PnS_SFT_UserName = ConfigurationManager.AppSettings["PnS_SFT_UserName"];
             PnS_SFT_Password = ConfigurationManager.AppSettings["PnS_SFT_Password"];
             PnS_SFT_RootDir = ConfigurationManager.AppSettings["PnS_SFT_RootDir"];
 
-            PCI_SFT_Host = ConfigurationManager.AppSettings["PCI_SFT_Host"];
-            PCI_SFT_Username = ConfigurationManager.AppSettings["PCI_SFT_Username"];
-            PCI_SFT_Password = ConfigurationManager.AppSettings["PCI_SFT_Password"];
-            PCI_SFT_SubmitDir = ConfigurationManager.AppSettings["PCI_SFT_SubmitDir"];
-            PCI_SFT_ResponseDir = ConfigurationManager.AppSettings["PCI_SFT_ResponseDir"];
-            PCI_SFT_ReturnPDFDir = ConfigurationManager.AppSettings["PCI_SFT_ReturnPDFDir"];
-
-            CL_SFT_Host = ConfigurationManager.AppSettings["CL_SFT_Host"];
-            CL_SFT_Username = ConfigurationManager.AppSettings["CL_SFT_Username"];
-            CL_SFT_Password = ConfigurationManager.AppSettings["CL_SFT_Password"];
-            CL_SFT_SubmitDir = ConfigurationManager.AppSettings["CL_SFT_SubmitDir"];
-            CL_SFT_ReturnPDFDir = ConfigurationManager.AppSettings["CL_SFT_ReturnPDFDir"];
-
-            PollingInterval = int.Parse(ConfigurationManager.AppSettings["PollingInterval"]) * 1000;
             DatabaseFactory.SetDatabaseProviderFactory(new DatabaseProviderFactory());
 
             ApplicationEnvironment = DAL.GetSystemSettingsValue("Common_Environment");

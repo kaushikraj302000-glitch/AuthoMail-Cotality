@@ -19,13 +19,15 @@ namespace AM.Web.Controllers
         IHomeService homeSvc;
         IConfigService confSvc;
         IInventoryService inventorySvc;
-        public AdminController(AMUserManager userManager, ISupportService supportSvc, IHomeService homeSvc, IConfigService confSvc, IInventoryService inventorySvc)
+        IProjectRequestService projectRequestSvc;
+        public AdminController(AMUserManager userManager, ISupportService supportSvc, IHomeService homeSvc, IConfigService confSvc, IInventoryService inventorySvc, IProjectRequestService projectRequestSvc)
         {
             UserManager = userManager;
             this.supportSvc = supportSvc;
             this.homeSvc = homeSvc;
             this.confSvc = confSvc;
             this.inventorySvc = inventorySvc;
+            this.projectRequestSvc = projectRequestSvc;
         }
         // GET: Admin
         #region SignUp Request
@@ -603,9 +605,45 @@ namespace AM.Web.Controllers
         #endregion
 
         #region Project Setup
-        public ActionResult ProjectSetup()
+
+        public ActionResult AllProjectSetupDetails()
         {
-            return View(new ProjectRequest() {FileTransmittedVia="Client FTP" });
+            return View(projectRequestSvc.GetAllProjectRequest());
+        }
+        public ActionResult ProjectSetup(int id)
+        {
+            if (id == 0)
+            {
+                return View(new ProjectRequest());
+            }
+            else
+            {
+                var model = projectRequestSvc.ProjectRequestFindById(id);
+                return View(model);
+            }
+        }
+        [HttpPost]
+        public ActionResult ProjectSetup(ProjectRequest projectRequest)
+        {
+
+            try
+            {
+                var model = projectRequestSvc.SaveProjectRequest(projectRequest, User.Identity.GetUserId());
+                if (model.Key)
+                {
+                    return RedirectToAction("AllProjectSetupDetails");
+                }
+                else
+                {
+                    ModelState.AddModelError("", model.Value);
+                    return View(projectRequest);
+                }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+                return View(projectRequest);
+            }
         }
         #endregion
 
