@@ -47,7 +47,10 @@ namespace AM.Services
 
         public ProjectRequest ProjectRequestFindById(int Id)
         {
-            return db.QuerySingle<ProjectRequest>("select * from AM.ProjectRequest where p.Id=@Id", new { Id = Id });
+            return db.QuerySingle<ProjectRequest>(@"select p.*,c.UserName as CreatedBy,m.UserName as ModifiedBy from AM.ProjectRequest p
+inner join profile.users c on p.CreatedBy=c.Id
+inner join profile.users m on p.ModifiedBy=m.Id
+where p.Id=@Id", new { Id = Id });
         }
 
 
