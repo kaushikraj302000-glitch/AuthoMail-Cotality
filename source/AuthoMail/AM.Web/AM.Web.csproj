@@ -231,6 +231,7 @@
     <Compile Include="Models\ErrorReportViewModel.cs" />
     <Compile Include="Models\ErrorSLAReportViewModel.cs" />
     <Compile Include="Models\ExcelHelper.cs" />
+    <Compile Include="Models\LookupViewModel.cs" />
     <Compile Include="Models\MailPieceCommonViewModel.cs" />
     <Compile Include="Models\MailPieceDetailsViewModel.cs" />
     <Compile Include="Models\MailPieceViewModel.cs" />
@@ -329,6 +330,10 @@
     <Content Include="clui\images\sso-image.jpg" />
     <Content Include="clui\images\corelogic.png" />
     <Content Include="clui\images\1sso-image.jpg" />
+    <Content Include="Content\bootstrap-timepicker\bootstrap-timepicker.css" />
+    <Content Include="Content\bootstrap-timepicker\bootstrap-timepicker.js" />
+    <Content Include="Content\bootstrap-timepicker\bootstrap-timepicker.min.css" />
+    <Content Include="Content\bootstrap-timepicker\bootstrap-timepicker.min.js" />
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\datatables\datatable.js" />
@@ -515,6 +520,7 @@
     <Content Include="Views\Admin\_AddOrEditEnvelope.cshtml" />
     <Content Include="Views\Admin\_AddOrEditEnvelopeTransactions.cshtml" />
     <Content Include="Views\Admin\ManageEnvelopeTransactions.cshtml" />
+    <Content Include="Views\Admin\_Lookup.cshtml" />
     <Content Include="Views\Report\SupplyInventoryReport.cshtml" />
   </ItemGroup>
   <ItemGroup>
