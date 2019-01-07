@@ -777,13 +777,12 @@ namespace PCI.Service
 
                 var printTrailDetail = DAL.GetPrintTrailDetailByPrintTrailId(printTrailBatchDetail.PrintTrailId);
 
-                #region By Pass PCI
+                #region By Pass Print Vendors
                 //If we are bypass PCI then we will generate PCI response over here.
                 if (printTrailDetail.SimulateTrail == true && (Common.ApplicationEnvironment == Env.Internal || Common.ApplicationEnvironment == Env.Staging || Common.ApplicationEnvironment == Env.QA))
                 {
                     var mrdfResData = DAL.GetMRDFResponseDummyDataByPrintTrailBatchId(printTrailBatchId);
-
-                    #region PCI
+                    
                     switch (printTrailDetail.VendorCode)
                     {
                         case "PCI":
@@ -849,7 +848,6 @@ namespace PCI.Service
                                 File.WriteAllText(xmlOutFilePath, batchResponse.ToXml());
                             break;
                     }
-                    #endregion
                 }
                 #endregion
 

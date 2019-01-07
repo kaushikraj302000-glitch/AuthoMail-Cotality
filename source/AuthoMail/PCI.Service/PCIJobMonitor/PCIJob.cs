@@ -355,7 +355,7 @@ namespace PCI.Service
                     var currentBatch = dallasBatches.Single(b => (b.AppCode == client.AppCode && effectiveReceivedOnEst >= b.StartDate && effectiveReceivedOnEst <= b.EndDate) && b.ShippingCarrier == mailPiece.ShippingCarrier && b.ShippingServiceType == mailPiece.ShippingServiceType);
 
                     //Here for HSBC System is separating packages which have pages more than 65 pages with priority folder
-                    string submitDir = Path.Combine(Common.CL_SFT_SubmitDir, client.AppCode, effectiveReceivedOnEst.Value.Date.ToString("MMddyyyy"), currentBatch.BatchName, currentBatch.ShippingCarrier + "_" + currentBatch.ShippingServiceType + folderBRE, client.AppCode == "HSBC" && mailPiece.TotalPages >= 65 ? "PRIORITY" : "");
+                    string submitDir = Path.Combine(printTrailDetail.FromADEDir, client.AppCode, effectiveReceivedOnEst.Value.Date.ToString("MMddyyyy"), currentBatch.BatchName, currentBatch.ShippingCarrier + "_" + currentBatch.ShippingServiceType + folderBRE, client.AppCode == "HSBC" && mailPiece.TotalPages >= 65 ? "PRIORITY" : "");
 
                     if (!sftSite.IsDownloadDirectoryAvailable(submitDir))
                         sftSite.CreateDirectory(submitDir);
@@ -451,7 +451,7 @@ namespace PCI.Service
 
                     string localPrintVendorResponseZipFilePath = Path.Combine(Common.PCIRootFolder, filePath);
                     string localPrintVendorResponseFilePath = Path.Combine(Common.PCIRootFolder, "{0}.{1}".Fill(Path.GetFileNameWithoutExtension(localPrintVendorResponseZipFilePath), printVendorResponseFileExtention));
-                    string remoteVendorResponsePath = Path.Combine(Common.PCI_SFT_ResponseDir, filePath);
+                    string remoteVendorResponsePath = Path.Combine(printVendorDetail.ToADEDir, filePath);
 
                     DateTime responseReceivedOn = sftSite.LastModifiedTimeOfFile(remoteVendorResponsePath);
                     DateTime responseDownloadStartTime = Common.GetCurrentTime();
