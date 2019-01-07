@@ -107,5 +107,7 @@ namespace AM.Services
         public int ReceivedQuantity { get; set; }
         public decimal UnitPrice { get; set; }
         public Envelopes Envelopes { get; set; }
+        public int StockUsed { get; set; }
+        public int InStock { get; set; }
     }
 }
