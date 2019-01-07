@@ -19,9 +19,7 @@ namespace AM.Services
         public KeyValuePair<bool, string> SaveProjectRequest(ProjectRequest projectRequest, string user)
         {
             //Validation
-            db.Open();
-            using (var t = db.BeginTransaction())
-            {
+            
                 try
                 {
                     if (projectRequest.Id != 0)
@@ -38,15 +36,13 @@ namespace AM.Services
                         projectRequest.ModifiedOn = DateTime.UtcNow;
                         db.Execute(query, projectRequest);
                     }
-                    t.Commit();
                     return new KeyValuePair<bool, string>(true, "Saved successful.");
                 }
                 catch (Exception ex)
                 {
-                    t.Rollback();
                     return new KeyValuePair<bool, string>(false, ex.Message);
                 }
-            }
+            
         }
 
         public ProjectRequest ProjectRequestFindById(int Id)
