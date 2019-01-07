@@ -22,6 +22,7 @@ namespace AM.Services
         List<MailPieces> GetMailPiecesDataFromPrintBatchId(int printBatchId);
         List<MailPieces> GetMailPiecesDataFromMailBatchId(int mailBatchId);
         List<PCISubmittedBatchDetail> GetPCIReconReport(DateTime startDate, DateTime endDate);
+        List<EnvelopeTransactions> SupplyInventoryReport(List<string> envelopes);
         MailBatches GetMailBatchDataFromMailBatchId(int mailBatchId);
     }
     public class ReportService : ServiceBase, IReportService
@@ -288,8 +289,28 @@ LEFT OUTER JOIN AM.DocTypes D ON BS.DocTypeId=D.Id
 WHERE PT.SubmittedOn >= @StartDate AND  PT.SubmittedOn < @EndDate AND BS.PrintLocation='Fort Mill, SC' AND REQ.MailPieceStatus <> 'Error'
 GROUP BY PT.Id,PT.PrintBatchName,PT.SubmittedOn,D.ShippingCarrier,D.ShippingServiceType
 ORDER BY PrintTrailBatchId";
-
             return db.Query<PCISubmittedBatchDetail>(query, new { StartDate = startDate, EndDate = endDate }).ToList();
+        }
+
+
+        public List<EnvelopeTransactions> SupplyInventoryReport(List<string> envelopes)
+        {
+            envelopes.RemoveAll(e => e == "");
+            string query = @"select * from Common.EnvelopeTransactions et
+inner join Common.Envelopes e on et.EnvelopeId=e.Id";
+            DynamicParameters parameter = new DynamicParameters();
+            if (envelopes != null && envelopes.Count > 0)
+            {
+                query = string.Format("{0} where e.Id in @envelopes", query);
+                parameter.Add("@envelopes", envelopes);
+            }
+            return db.Query<EnvelopeTransactions, Envelopes, EnvelopeTransactions>(query,
+                (t, e) =>
+                {
+                    t.Envelopes = e;
+                    return t;
+                },
+                parameter).ToList();
         }
 
         public MailBatches GetMailBatchDataFromMailBatchId(int mailBatchId)
@@ -302,7 +323,6 @@ ORDER BY PrintTrailBatchId";
 
                     mb.SFTChannels = s;
                     mb.Clients = c;
-
                     return mb;
                 },
                 new

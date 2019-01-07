@@ -19,13 +19,15 @@ namespace AM.Web.Controllers
         IHomeService homeSvc;
         IConfigService confSvc;
         IInventoryService inventorySvc;
-        public AdminController(AMUserManager userManager, ISupportService supportSvc, IHomeService homeSvc, IConfigService confSvc, IInventoryService inventorySvc)
+        IProjectRequestService projectRequestSvc;
+        public AdminController(AMUserManager userManager, ISupportService supportSvc, IHomeService homeSvc, IConfigService confSvc, IInventoryService inventorySvc, IProjectRequestService projectRequestSvc)
         {
             UserManager = userManager;
             this.supportSvc = supportSvc;
             this.homeSvc = homeSvc;
             this.confSvc = confSvc;
             this.inventorySvc = inventorySvc;
+            this.projectRequestSvc = projectRequestSvc;
         }
         // GET: Admin
         #region SignUp Request
@@ -603,9 +605,45 @@ namespace AM.Web.Controllers
         #endregion
 
         #region Project Setup
-        public ActionResult ProjectSetup()
+
+        public ActionResult AllProjectSetupDetails()
         {
-            return View();
+            return View(projectRequestSvc.GetAllProjectRequest());
+        }
+        public ActionResult ProjectSetup(int id)
+        {
+            if (id == 0)
+            {
+                return View(new ProjectRequest());
+            }
+            else
+            {
+                var model = projectRequestSvc.ProjectRequestFindById(id);
+                return View(model);
+            }
+        }
+        [HttpPost]
+        public ActionResult ProjectSetup(ProjectRequest projectRequest)
+        {
+
+            try
+            {
+                var model = projectRequestSvc.SaveProjectRequest(projectRequest, User.Identity.GetUserId());
+                if (model.Key)
+                {
+                    return RedirectToAction("AllProjectSetupDetails");
+                }
+                else
+                {
+                    ModelState.AddModelError("", model.Value);
+                    return View(projectRequest);
+                }
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("", e.Message);
+                return View(projectRequest);
+            }
         }
         #endregion
 
@@ -645,11 +683,69 @@ namespace AM.Web.Controllers
         }
 
         [Authorize(Roles = AMRoles.Admin), HttpPost]
-        public ActionResult CreateOrEditEnvelope(Envelopes envelopes)
+        public ActionResult CreateOrEditEnvelope(Envelopes envelopes, bool IsInsert)
         {
             try
             {
+                if (IsInsert)
+                {
+                    var env = inventorySvc.FindByCodeEnvelope(envelopes.Id);
+                    if (env != null) return Json(JsonResponseFactory.ErrorResponse("Envelope already exists."), JsonRequestBehavior.AllowGet);
+                }
+
                 return Json(JsonResponseFactory.SuccessResponse(inventorySvc.SaveEnvelopes(envelopes)), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message), JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        #endregion
+
+        #region Manage Envelope Transactions
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult GetEnvelopeTransactions()
+        {
+            try
+            {
+                var model = inventorySvc.GetAllEnvelopeTransactions();
+
+                return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult GetEnvelopeTransactionsByName(int id)
+        {
+
+            if (id != 0)
+            {
+                EnvelopeTransactions envelopTransactions = inventorySvc.FindByIdEnvelopeTransactions(id);
+                ViewBag.Envelopes = new SelectList(inventorySvc.GetEnvelopes(), "Id", "Id", envelopTransactions.EnvelopeId);
+                return PartialView("_AddOrEditEnvelopeTransactions", envelopTransactions);
+            }
+            else
+            {
+                ViewBag.Envelopes = new SelectList(inventorySvc.GetEnvelopes(), "Id", "Id");
+                return PartialView("_AddOrEditEnvelopeTransactions", new EnvelopeTransactions());
+            }
+        }
+        [Authorize(Roles = AMRoles.Admin)]
+        public ActionResult ManageEnvelopeTransactions()
+        {
+            return View();
+        }
+
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult CreateOrEditEnvelopeTransactions(EnvelopeTransactions envelopeTransactions)
+        {
+            try
+            {
+                return Json(JsonResponseFactory.SuccessResponse(inventorySvc.SaveEnvelopesTrasaction(envelopeTransactions)), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
             {

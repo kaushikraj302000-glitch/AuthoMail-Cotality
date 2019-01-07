@@ -33,7 +33,9 @@ namespace AM.Web
                 "~/clui/dist/js/components/table.js",
                 "~/clui/dist/js/vendor/moment.js",
                 "~/clui/dist/js/vendor/jsondateextensions.js",
-                "~/clui/dist/js/components/init.js"//,
+                "~/clui/dist/js/components/init.js",
+                "~/Content/bootstrap-timepicker/bootstrap-timepicker.js"
+
                         ));
             //cl vendor
             bundles.Add(new ScriptBundle("~/bundles/clvendorjs").Include(
@@ -73,7 +75,7 @@ namespace AM.Web
             bundles.Add(new ScriptBundle("~/bundles/datatables").Include(
               "~/Content/datatables/datatable.js",
               "~/Content/datatables/datatables.min.js",
-              "~/Content/datatables/plugins/bootstrap/datatables.bootstrap.js"//,
+              "~/Content/datatables/plugins/bootstrap/datatables.bootstrap.js"
                 //"~/Content/datatables/table-datatables-managed.js"
               ));
 
@@ -89,7 +91,10 @@ namespace AM.Web
                       "~/clui/dist/css/components/page-title.css",
                       "~/clui/dist/css/components/panel.css",
                       "~/clui/dist/css/customui.css",
-                      "~/clui/dist/css/components/table.css"));
+                      "~/clui/dist/css/components/table.css",
+                      "~/Content/bootstrap-timepicker/bootstrap-timepicker.css"
+
+                      ));
 
             bundles.Add(new StyleBundle("~/bundles/datatablescss").Include(
                 //"~/Content/datatables/datatables.min.css",
