@@ -6,7 +6,7 @@
     var fileTransmittedViaList = new List<string> { "Client FTP", "CoreLogic FTP", "CL Pull from Client System Imaging", "Other" };
     var typeOfFilesList = new List<string> { "PDF", "HP", "TIFF", "Other" };
     var serviceLevelList = new List<string> { "SameDay", "24Hours", "48hours", "Other" };
-    var projectRequirements =new List<string>{ "Mixed Media","Letter Only","Legal Only","Stapled","24# Paper","Insert Required","White","Color (please specify)","Print 1-sided","Print 2-sided","B&W","Color","B&W & Color"};
+    var projectRequirements = new List<string> { "Mixed Media", "Letter Only", "Legal Only", "Stapled", "24# Paper", "Insert Required", "White", "Color (please specify)", "Print 1-sided", "Print 2-sided", "B&W", "Color", "B&W & Color" };
     var packagesSentToCustomerList = new List<string> { "Mailed-USPS", "Federal Express", "Certified USPS", "Other" };
     var envelopeList = new List<string> { "# 10", "6 x 9.5", "9 x 12", "10 x 12", "Standard Window", "Custom Window(s)", "Other" };
     var businessReplyMailEnvelopeList = new List<string> { "#9 Business Reply Mail", "Other" };
@@ -20,6 +20,7 @@
     <div class="panel-body">
         <form id="projetSetup" action="#" method="post">
             <div class="row">
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="ClientName">Name of Project</label>
@@ -78,11 +79,12 @@
                                 <label for="FileTransmittedVia">Files transmitted via</label>
                                 <div class="input-group">
                                     <select id="FileTransmittedVia" data-live-search="true" data-live-search-placeholder="Search Files transmitted via" class="form-control selectpicker other" name="FileTransmittedVia">
-                                        <option>Select Files transmitted via</option>
+                                        <option value="">Select Files transmitted via</option>
                                         @Html.Partial("_Lookup", new AM.Web.Models.LookupViewModel() { Value = Model.FileTransmittedVia, LookupList = fileTransmittedViaList })
                                     </select>
                                     <input type="text" name="FileTransmittedVia" value="@Model.FileTransmittedVia" class="form-control othertextbox" />
                                 </div>
+                                <span for="FileTransmittedVia" class="error" style="display:none;">This field is required.</span>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -92,11 +94,12 @@
                                 </label>
                                 <div class="input-group">
                                     <select id="TypeOfFiles" data-live-search="true" data-live-search-placeholder="Search Type of Files" class="form-control selectpicker  other" name="TypeOfFiles">
-                                        <option>Select Type of Files</option>
+                                        <option value="">Select Type of Files</option>
                                         @Html.Partial("_Lookup", new AM.Web.Models.LookupViewModel() { Value = Model.TypeOfFiles, LookupList = typeOfFilesList })
                                     </select>
                                     <input type="text" name="TypeOfFiles" value="@Model.TypeOfFiles" class="form-control othertextbox" />
                                 </div>
+                                <span for="TypeOfFiles" class="error" style="display:none;">This field is required.</span>
                             </div>
 
                         </div>
@@ -109,10 +112,11 @@
                                 <div class="input-group">
                                     <select class="selectpicker form-control" name="NoOfEstSweepTimes" id="NoOfEstSweepTimes">
                                         <option value="">Select Times of day</option>
-                                        <option @(Model.NoOfEstSweepTimes=="2X" ? "selected" :"" ) value="2X">2X</option>
-                                        <option @(Model.NoOfEstSweepTimes=="4X" ? "selected" :"" ) value="4X">4X</option>
+                                        <option @(Model.NoOfEstSweepTimes == "2X" ? "selected" : "") value="2X">2X</option>
+                                        <option @(Model.NoOfEstSweepTimes == "4X" ? "selected" : "") value="4X">4X</option>
                                     </select>
                                 </div>
+                                <span for="NoOfEstSweepTimes" class="error" style="display:none;">This field is required.</span>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -157,6 +161,7 @@
                                     </select>
                                     <input type="text" name="ServiceLevel" value="@Model.ServiceLevel" class="form-control othertextbox" />
                                 </div>
+                                <span for="ServiceLevel" class="error" style="display:none;">This field is required.</span>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -208,17 +213,19 @@
                             <div class="form-group">
                                 <label for="DailyPrintSchedule"></label>
                                 <div class="input-group">
-                                    <select class="selectpicker form-control" multiple="multiple" name="DailyPrintSchedule">
+                                    <select class="selectpicker form-control" multiple="multiple" id="DailyPrintSchedule" name="DailyPrintSchedule">
                                         @foreach (var day in System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.DayNames)
-                                                    {
-                                                    var lst = Model.DailyPrintSchedule == null ? new List
-                                                    <string>
-                                                        () : Model.DailyPrintSchedule.Split(',').ToList();
-                                                        string sel = lst.Any(l => l == day) ? "selected" : "";
+                                        {
+                                            var lst = Model.DailyPrintSchedule == null ? new List
+                                            <string>
+                                                () : Model.DailyPrintSchedule.Split(',').ToList();
+                                            string sel = lst.Any(l => l == day) ? "selected" : "";
                                             <option @sel value="@day.ToString()">@day.ToString()</option>
-                                                        }
+                                        }
                                     </select>
+
                                 </div>
+                                <span for="DailyPrintSchedule" class="error" style="display:none;">This field is required.</span>
                             </div>
                         </div>
 
@@ -245,6 +252,7 @@
                                         }
                                     </select>
                                 </div>
+                                <span for="PaperPrintRequirements" class="error" style="display:none;">This field is required.</span>
                             </div>
                         </div>
 
@@ -267,6 +275,7 @@
                                     </select>
                                     <input type="text" name="PackagesSentToCustomer" value="@Model.PackagesSentToCustomer" class="form-control othertextbox" />
                                 </div>
+                                <span for="PackagesSentToCustomer" class="error" style="display:none;">This field is required.</span>
                             </div>
                         </div>
 
@@ -289,6 +298,7 @@
                                     </select>
                                     <input type="text" name="Envelopes" value="@Model.Envelopes" class="form-control othertextbox" />
                                 </div>
+                                <span for="Envelopes" class="error" style="display:none;">This field is required.</span>
                             </div>
 
                         </div>
@@ -319,7 +329,7 @@
                                 <div class="input-group">
                                     <select class="selectpicker form-control other" name="BusinessReplyMailEnvelope" id="BusinessReplyMailEnvelope">
                                         <option value="No">No</option>
-                                        @Html.Partial("_Lookup", new AM.Web.Models.LookupViewModel() { Value = Model.BusinessReplyMailEnvelope, LookupList = businessReplyMailEnvelopeList  })
+                                        @Html.Partial("_Lookup", new AM.Web.Models.LookupViewModel() { Value = Model.BusinessReplyMailEnvelope, LookupList = businessReplyMailEnvelopeList })
                                     </select>
                                     <input type="text" name="BusinessReplyMailEnvelope" value="@Model.BusinessReplyMailEnvelope" class="form-control othertextbox" />
                                 </div>
@@ -335,11 +345,11 @@
                                 </div>
                             </div>
                         </div>
-                        
-                       
 
-                        
-                        
+
+
+
+
                     </div>
                 </div>
                 <div class="panel panel-default">
@@ -400,7 +410,7 @@
                                 <label for="Value">Files transmitted (Other)</label>
                                 <div class="input-group">
                                     <div class="toggle-container">
-                                        <textarea class="form-control"  cols="40"></textarea>
+                                        <textarea class="form-control" name="FilesTransmittedOther" cols="40">@Model.FilesTransmittedOther</textarea>
                                     </div>
                                 </div>
                             </div>
@@ -408,7 +418,7 @@
                                 <label for="Value">Types of Files (Other)</label>
                                 <div class="input-group">
                                     <div class="toggle-container">
-                                        <textarea class="form-control" cols="40"></textarea>
+                                        <textarea class="form-control" name="TypeOfFilesOther" cols="40">@Model.TypeOfFilesOther</textarea>
                                     </div>
                                 </div>
                             </div>
@@ -416,7 +426,7 @@
                                 <label for="Value">Paper & Print</label>
                                 <div class="input-group">
                                     <div class="toggle-container">
-                                        <textarea class="form-control" cols="40"></textarea>
+                                        <textarea class="form-control" name="PaperAndPrintDetails" cols="40">@Model.PaperAndPrintDetails</textarea>
                                     </div>
                                 </div>
                             </div>
@@ -426,7 +436,7 @@
                                 <label for="Value">Shipping / Mailing </label>
                                 <div class="input-group">
                                     <div class="toggle-container">
-                                        <textarea class="form-control" cols="40"></textarea>
+                                        <textarea class="form-control" name="ShippingMailingDetail" cols="40">@Model.ShippingMailingDetail</textarea>
                                     </div>
                                 </div>
                             </div>
@@ -434,7 +444,7 @@
                                 <label for="Value">Mailing Envelope</label>
                                 <div class="input-group">
                                     <div class="toggle-container">
-                                        <textarea class="form-control" cols="40"></textarea>
+                                        <textarea class="form-control" name="MailingEnvelopeDetail" cols="40">@Model.MailingEnvelopeDetail</textarea>
                                     </div>
                                 </div>
                             </div>
@@ -442,7 +452,7 @@
                                 <label for="Value">Business Reply Mail Envelope</label>
                                 <div class="input-group">
                                     <div class="toggle-container">
-                                        <textarea class="form-control" cols="40"></textarea>
+                                        <textarea class="form-control" name="BusinessReplyMailEnvelopeDetail" cols="40">@Model.BusinessReplyMailEnvelopeDetail</textarea>
                                     </div>
                                 </div>
                             </div>
@@ -452,7 +462,7 @@
                                 <label for="Value">Additional information</label>
                                 <div class="input-group">
                                     <div class="toggle-container">
-                                        <textarea class="form-control" cols="40"></textarea>
+                                        <textarea class="form-control" name="AdditionalInfo" cols="40">@Model.AdditionalInfo</textarea>
                                     </div>
                                 </div>
                             </div>
@@ -460,7 +470,7 @@
                                 <label for="Value">List of  Doc Types  and how many pages will each file contain</label>
                                 <div class="input-group">
                                     <div class="toggle-container">
-                                        <textarea class="form-control" cols="40"></textarea>
+                                        <textarea class="form-control" name="ListOfDocTypesAndPages" cols="40">@Model.ListOfDocTypesAndPages</textarea>
                                     </div>
                                 </div>
                             </div>
@@ -470,36 +480,39 @@
 
                         <div class="col-md-12 margin-top-15 margin-bottom-15">
                             <div class="form-group">
-                                <label for="Value">Will Inserts be requried ? &nbsp;</label><div class="toggle-container">
-                                    <input id="IsBREEnvelope" class="cl-toggle toggle-orange" type="checkbox" name="toggle-demo" /><label for="IsBREEnvelope">attached</label>
+                                <label for="InsertRequired">Will Inserts be requried ? &nbsp;</label><div class="toggle-container">
+                                    <input id="InsertRequired" @(Model.InsertRequired ? "checked" : "") class="cl-toggle toggle-orange" type="checkbox" name="InsertRequired" /><label for="InsertRequired">InsertRequired</label>
                                 </div>
-                                <div class="input-group">
 
-                                </div>
-                                <div id="">
+                                <div id="IsInsertRequired">
                                     <div class="toggle-container">
-                                        <input id="IsBREEnvelope" class="cl-toggle toggle-orange" type="checkbox" name="toggle-demo" /><label for="IsBREEnvelope">attached</label>
+                                        <input id="BookletRequired" @(Model.BookletRequired ? "checked" : "") class="cl-toggle toggle-orange" type="checkbox" name="BookletRequired" /><label for="BookletRequired">attached</label>
                                     </div>
-                                    <label for="Value">Are booklets required?</label><br />
+                                    <label for="BookletRequired">Are booklets required?</label><br />
+
                                     <div class="toggle-container">
-                                        <input id="IsBREEnvelope" class="cl-toggle toggle-orange" type="checkbox" name="toggle-demo" /><label for="IsBREEnvelope">attached</label>
+                                        <input id="BusinessReplyMailEnvelopeRequired" @(Model.BusinessReplyMailEnvelopeRequired ? "checked" : "") class="cl-toggle toggle-orange" type="checkbox" name="BusinessReplyMailEnvelopeRequired" /><label for="BusinessReplyMailEnvelopeRequired">BusinessReplyMailEnvelopeRequired</label>
                                     </div>
-                                    <label for="Value">Are Business Reply Mail envelopes required?</label><br />
+                                    <label for="BusinessReplyMailEnvelopeRequired">Are Business Reply Mail envelopes required?</label><br />
+
                                     <div class="toggle-container">
-                                        <input id="IsBREEnvelope" class="cl-toggle toggle-orange" type="checkbox" name="toggle-demo" /><label for="IsBREEnvelope">attached</label>
+                                        <input id="OtherMaterialRequired" @(Model.OtherMaterialRequired ? "checked" : "") class="cl-toggle toggle-orange" type="checkbox" name="OtherMaterialRequired" /><label for="OtherMaterialRequired">attached</label>
                                     </div>
-                                    <label for="Value">Are any other materials required?</label><br />
-                                    <div class="toggle-container">
-                                        <input id="IsBREEnvelope" class="cl-toggle toggle-orange" type="checkbox" name="toggle-demo" /><label for="IsBREEnvelope">attached</label>
+                                    <label for="OtherMaterialRequired">Are any other materials required?</label><br />
+
+                                    <div class="form-group">
+                                        <label for="InsertMaterialOrderedBy">Will any inserted materials need to be ordered by Corelogic or provided by client?</label>
+                                        <div class="input-group">
+                                            <input type="text" name="InsertMaterialOrderedBy" value="@Model.InsertMaterialOrderedBy" placeholder="" class="form-control" id="InsertMaterialOrderedBy" maxlength="255" />
+                                        </div>
                                     </div>
-                                    <label for="Value">Will any inserted materials need to be ordered by Corelogic or provided by client?</label>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label for="Value">Provide pdf sample (print ready format) of each document that CoreLogic will be printing and shipping and samples of envelopes if any.</label>
                                 <div class="input-group">
                                     <div class="toggle-container">
-                                        <textarea class="form-control" cols="70"></textarea>
+                                        <textarea class="form-control" name="PDFSample" cols="70">@Model.PDFSample</textarea>
                                     </div>
                                 </div>
                             </div>
@@ -519,6 +532,7 @@
     @Styles.Render("~/bundles/datatablescss")
     @Scripts.Render("~/bundles/datatables")
     <script type="text/javascript">
+        
         $(document).ready(function () {
             window.clui.dateTimePickerInit();
             $('#datetimepicker3').timepicker({
@@ -530,7 +544,50 @@
                     $(this).siblings(".othertextbox").hide();
                 }
             });
+            $('#projetSetup').validate({ // initialize the plugin
+                errorElement: "span",
+                rules: {
+                    ClientName: {
+                        required: true,
+                        maxlength: 255
 
+                    },
+                    SubmittedBy: {
+                        required: true,
+                        maxlength: 255
+                    },
+                    FileTransmittedVia: {
+                        required: true
+                    },
+                    TypeOfFiles: {
+                        required: true
+                    },
+                    NoOfEstSweepTimes: {
+                        required: true
+                    },
+                    ESTSweepTime: {
+                        required: true
+                    },
+                    ServiceLevel: {
+                        required: true
+                    },
+                    DailyPrintSchedule: {
+                        required: true
+                    },
+                    PaperPrintRequirements: {
+                        required: true
+                    },
+                    PackagesSentToCustomer: {
+                        required: true
+                    },
+                    Envelopes: {
+                        required: true
+                    }
+                },
+                submitHandler: function (form) { // for demo
+                    form.serialize();
+                }
+            });
         });
         $('.selectpicker').on('change', function () {
             if ($(this).val() == "Other") {
