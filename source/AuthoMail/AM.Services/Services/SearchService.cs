@@ -27,7 +27,7 @@ namespace AM.Services
             string query = @"SELECT Top 1000
 	 m.BusinessFriendlyIdValue as BusinessIdValue,m.ShippingStatus as [Status],m.UniqueId,
 	 m.RcptFirstName as FirstName,m.RcptLastName as LastName,m.RcptAddressCity as [City],m.RcptAddressZip as ZIP,
-	 m.RcptAddressState as [State],m.ShippedOn,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,
+	 m.RcptAddressState as [State],CASE WHEN d.ShippingCarrier ='FedEx' THEN m.PickedUpOn ELSE m.ShippedOn END as ShippedOn,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,
 	 b.ReceivedOn,m.DocTypeId,
 	 d.DocTypeCode as DocType,d.ShippingServiceType as ShippingMethod,d.ShippingCarrier,
 	 ch.Title as Channel

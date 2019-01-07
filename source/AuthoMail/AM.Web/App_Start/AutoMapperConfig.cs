@@ -65,6 +65,7 @@ namespace AM.Web
                   .ForMember(d => d.FirstName, o => o.MapFrom(s => s.RcptFirstName))
                   .ForMember(d => d.LastName, o => o.MapFrom(s => s.RcptLastName))
                   .ForMember(d => d.State, o => o.MapFrom(s => s.RcptAddressState))
+                  .ForMember(d => d.ShippedOnMap, o => o.MapFrom(s => s.ShippedOn))
                   .ForMember(d => d.City, o => o.MapFrom(s => s.RcptAddressCity))
                   .ForMember(d => d.ZIP, o => o.MapFrom(s => s.RcptAddressZIP))
                   .ForMember(d => d.Channel, o => o.MapFrom(s => s.MailBatches != null ? (s.MailBatches.SFTChannels.Title != null ? s.MailBatches.SFTChannels.Title : "") : null))

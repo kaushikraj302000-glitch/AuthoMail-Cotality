@@ -184,7 +184,10 @@ namespace AM.Web.Controllers
         public ActionResult _SupplyInventoryReport(List<string> envelopes)
         {
             var model = repoSvc.SupplyInventoryReport(envelopes);
-            //model.ForEach(m=>m.StockUsed=model.Where(s=>s.EnvelopeId==m.EnvelopeId).Select(c=>c.Envelopes.CurrentQuantity).Sum());
+            foreach (var item in model)
+            {
+                item.StockUsed = model.Where(m => m.EnvelopeId == item.EnvelopeId).Sum(m => m.ReceivedQuantity) - item.Envelopes.CurrentQuantity;
+            }
             return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
         }
     }
