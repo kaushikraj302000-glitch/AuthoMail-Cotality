@@ -15,10 +15,17 @@ namespace AM.Console
             string channelType = channelCommands[1];
 
             string channelCode;
-            bool isPrintReady = channelPrefix.Split('|')[0] == "PRINTREADY" ? true : false;
+            string[] channelPrefixData = channelPrefix.Split('|');
 
-            // Each channel is tied to one and ONLY one XML schema
-            channelCode = channelPrefix + "_" + Config.Common_Environment;
+            bool isPrintReady = channelPrefixData[0] == "PRINTREADY" ? true : false;
+            if (isPrintReady)
+            {
+                channelCode = channelPrefixData[1] + "_" + Config.Common_Environment;
+            }
+            else
+                // Each channel is tied to one and ONLY one XML schema
+                channelCode = channelPrefix + "_" + Config.Common_Environment;
+
             switch (channelPrefix)
             {
                 case "AMC":

@@ -184,7 +184,7 @@ namespace AM.Core
 
                 #region Merge Final Document
 
-                if (endPagePDFPaths != null)
+                if (endPagePDFPaths.Count > 0)
                 {
                     mergePdfCollection.AddRange(coverLetterPDFPaths);
                     mergePdfCollection.Add(mergeReadyFilePath);
@@ -193,7 +193,7 @@ namespace AM.Core
 
                     PdfUtil.MergePDFs(mergePdfCollection.ToArray());
                 }
-                else if (coverLetterPDFPaths != null)
+                else if (coverLetterPDFPaths.Count > 0)
                 {
                     mergePdfCollection.AddRange(coverLetterPDFPaths);
                     mergePdfCollection.Add(mergeReadyFilePath);
