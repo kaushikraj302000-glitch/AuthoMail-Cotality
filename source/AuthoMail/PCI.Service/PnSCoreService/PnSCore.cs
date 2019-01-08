@@ -782,10 +782,35 @@ namespace PCI.Service
                 if (printTrailDetail.SimulateTrail == true && (Common.ApplicationEnvironment == Env.Internal || Common.ApplicationEnvironment == Env.Staging || Common.ApplicationEnvironment == Env.QA))
                 {
                     var mrdfResData = DAL.GetMRDFResponseDummyDataByPrintTrailBatchId(printTrailBatchId);
-                    
+
                     switch (printTrailDetail.VendorCode)
                     {
-                        case "PCI":
+                        case "NORDIS":
+                            var xmlOutFilePath = Path.Combine(bundlingRootPath, printTrailBatchDetail.PrintBatchName + ".xml");
+                            BatchResponse batchResponse = new BatchResponse();
+                            batchResponse.JobId = printTrailBatchId;
+                            List<PackageReport> packagesReport = new List<PackageReport>();
+                            foreach (DataRow resData in mrdfResData.Rows)
+                            {
+
+                                var rpt = new PackageReport();
+
+                                rpt.PieceId = resData.Field<int>("PieceId");
+                                rpt.PDFFileName = resData.Field<string>("PDFFileName");
+                                rpt.PrintStatus = resData.Field<string>("PrintStatus").ParseEnum<PrintStatus>();
+                                rpt.PulledBackOn = resData.Field<string>("PrintStatus").ParseEnum<PrintStatus>() == PrintStatus.PulledBack ? Common.UtcToEst(resData.Field<DateTime>("ProcessingTimeStamp")) : DateTime.MinValue;
+                                rpt.ShippedOn = resData.Field<string>("PrintStatus").ParseEnum<PrintStatus>() == PrintStatus.Shipped ? Common.UtcToEst(resData.Field<DateTime>("ProcessingTimeStamp")) : DateTime.MinValue;
+                                rpt.TotalSheets = resData.Field<int>("TotalSheets");
+                                rpt.Postage = Decimal.Parse(resData.Field<string>("PostageMetered"));
+                                packagesReport.Add(rpt);
+                            }
+
+                            batchResponse.PackagesReport = packagesReport;
+
+                            if (packagesReport.Count > 0)
+                                File.WriteAllText(xmlOutFilePath, batchResponse.ToXml());
+                            break;
+                        default:
                             var mrdfOutFilePath = Path.Combine(bundlingRootPath, printTrailBatchDetail.PrintBatchName + ".OUT");
                             var mrdfResContent = new StringBuilder();
                             var mrdfs = new List<string>();
@@ -822,31 +847,7 @@ namespace PCI.Service
                             if (mrdfResData.Rows.Count > 0)
                                 File.WriteAllLines(mrdfOutFilePath, mrdfs.ToArray());
                             break;
-                        default:
-                            var xmlOutFilePath = Path.Combine(bundlingRootPath, printTrailBatchDetail.PrintBatchName + ".xml");
-                            BatchResponse batchResponse = new BatchResponse();
-                            batchResponse.JobId = printTrailBatchId;
-                            List<PackageReport> packagesReport = new List<PackageReport>();
-                            foreach (DataRow resData in mrdfResData.Rows)
-                            {
 
-                                var rpt = new PackageReport();
-
-                                rpt.PieceId = resData.Field<int>("PieceId");
-                                rpt.PDFFileName = resData.Field<string>("PDFFileName");
-                                rpt.PrintStatus = resData.Field<string>("PrintStatus").ParseEnum<PrintStatus>();
-                                rpt.PulledBackOn = resData.Field<string>("PrintStatus").ParseEnum<PrintStatus>() == PrintStatus.PulledBack ? Common.UtcToEst(resData.Field<DateTime>("ProcessingTimeStamp")) : DateTime.MinValue;
-                                rpt.ShippedOn = resData.Field<string>("PrintStatus").ParseEnum<PrintStatus>() == PrintStatus.Shipped ? Common.UtcToEst(resData.Field<DateTime>("ProcessingTimeStamp")) : DateTime.MinValue;
-                                rpt.TotalSheets = resData.Field<int>("TotalSheets");
-                                rpt.Postage = Decimal.Parse(resData.Field<string>("PostageMetered"));
-                                packagesReport.Add(rpt);
-                            }
-
-                            batchResponse.PackagesReport = packagesReport;
-
-                            if (packagesReport.Count > 0)
-                                File.WriteAllText(xmlOutFilePath, batchResponse.ToXml());
-                            break;
                     }
                 }
                 #endregion
@@ -854,15 +855,13 @@ namespace PCI.Service
                 List<string> responseFileList = new List<string>();
                 switch (printTrailDetail.VendorCode)
                 {
-                    case "PCI":
-                        //Check for OUT files only
-                        responseFileList = Directory.GetFiles(Path.Combine(bundlingRootPath), "*.out").ToList();
-                        break;
                     case "NORDIS":
                         //Check for XML files only
                         responseFileList = Directory.GetFiles(Path.Combine(bundlingRootPath), "*.xml").ToList();
                         break;
                     default:
+                        //Check for OUT files only
+                        responseFileList = Directory.GetFiles(Path.Combine(bundlingRootPath), "*.out").ToList();
                         break;
                 }
 
@@ -897,65 +896,6 @@ namespace PCI.Service
                         //}
                         switch (printTrailDetail.VendorCode)
                         {
-                            case "PCI":
-                                //Read Out file from PCIResponse path
-                                string[] mrdfOut = File.ReadAllLines(responseFilePath);
-
-                                if (mrdfOut.Length == 0)
-                                {
-                                    suspensionReason = "Batch is suspended due to return file contains no records.";
-                                    PrintVendorNotificationEmail(printTrailBatchDetail.PrintBatchName, suspensionReason, outFileName, printTrailDetail.VendorCode);
-
-                                    //Renaming file so that if we want to continue by reverting status and want to process new file then system will not pick up that file again and again
-                                    File.Move(responseFilePath, Path.Combine(bundlingRootPath, outFileName + ".Suspended"));
-
-                                    break;
-                                }
-
-                                foreach (string record in mrdfOut)
-                                {
-                                    if (record.Length != Common.MRDFResponseLength)
-                                    {
-                                        isSuspend = true;
-                                        suspensionReason = "Record length is '{0}'. It should be '{1}' as per the MRDF response schema. ".Fill(record.Length, Common.MRDFResponseLength);
-                                        break;
-                                    }
-
-                                    var pciFields = ParseMRDFResponse(record, isREPFile);
-                                    string mrdfJobId = pciFields.Single(x => x.FieldName == "JobId").StrValue.TrimStart('0').Trim();
-                                    if (mrdfJobId != printTrailBatchDetail.Id.ToString())
-                                    {
-                                        isSuspend = true;
-                                        suspensionReason = "Batch is suspended due to invalid JobId : {0}".Fill(mrdfJobId);
-                                        break;
-                                    }
-
-                                    mrdfPieceId = pciFields.Single(x => x.FieldName == "PieceId").StrValue.TrimStart('0').Trim();
-
-                                    isPieceIdValid = int.TryParse(mrdfPieceId, out pieceId);
-                                    if (!(isPieceIdValid && pieceId > 0 && pieceId <= maxPieceId))
-                                    {
-                                        isSuspend = true;
-                                        suspensionReason = "Batch is suspended due to invalid PieceId : {0}".Fill(mrdfPieceId);
-                                        break;
-                                    }
-
-                                    fieldDataCollection.Add(new PCIFieldData() { PCIFieldColl = pciFields, PieceId = pieceId });
-                                }
-
-
-                                if (isSuspend)
-                                {
-                                    SuspendBatchAndSendMailToPrintVendor(printTrailBatchDetail, suspensionReason, outFileName, printTrailDetail.VendorCode);
-                                    //Renaming files so that if we want to continue by reverting status then system will not pick up that file again and again
-                                    File.Move(responseFilePath, Path.Combine(bundlingRootPath, outFileName + ".Suspended"));
-                                    break;
-                                }
-
-                                // Persist MRDF response
-                                DAL.InsertMRDFResponseData(printTrailBatchDetail.Id, fieldDataCollection);
-                                resPieceIdData = fieldDataCollection.Select(c => c.PieceId).ToList();
-                                break;
                             case "NORDIS":
                                 BatchResponse pnsResponse = null;
                                 //string suspensionReason = "";
@@ -1040,10 +980,65 @@ namespace PCI.Service
                                 resPieceIdData = pnsResponse.PackagesReport.Select(c => c.PieceId).ToList();
                                 break;
                             default:
+                                //Read Out file from PCIResponse path
+                                string[] mrdfOut = File.ReadAllLines(responseFilePath);
+
+                                if (mrdfOut.Length == 0)
+                                {
+                                    suspensionReason = "Batch is suspended due to return file contains no records.";
+                                    PrintVendorNotificationEmail(printTrailBatchDetail.PrintBatchName, suspensionReason, outFileName, printTrailDetail.VendorCode);
+
+                                    //Renaming file so that if we want to continue by reverting status and want to process new file then system will not pick up that file again and again
+                                    File.Move(responseFilePath, Path.Combine(bundlingRootPath, outFileName + ".Suspended"));
+
+                                    break;
+                                }
+
+                                foreach (string record in mrdfOut)
+                                {
+                                    if (record.Length != Common.MRDFResponseLength)
+                                    {
+                                        isSuspend = true;
+                                        suspensionReason = "Record length is '{0}'. It should be '{1}' as per the MRDF response schema. ".Fill(record.Length, Common.MRDFResponseLength);
+                                        break;
+                                    }
+
+                                    var pciFields = ParseMRDFResponse(record, isREPFile);
+                                    string mrdfJobId = pciFields.Single(x => x.FieldName == "JobId").StrValue.TrimStart('0').Trim();
+                                    if (mrdfJobId != printTrailBatchDetail.Id.ToString())
+                                    {
+                                        isSuspend = true;
+                                        suspensionReason = "Batch is suspended due to invalid JobId : {0}".Fill(mrdfJobId);
+                                        break;
+                                    }
+
+                                    mrdfPieceId = pciFields.Single(x => x.FieldName == "PieceId").StrValue.TrimStart('0').Trim();
+
+                                    isPieceIdValid = int.TryParse(mrdfPieceId, out pieceId);
+                                    if (!(isPieceIdValid && pieceId > 0 && pieceId <= maxPieceId))
+                                    {
+                                        isSuspend = true;
+                                        suspensionReason = "Batch is suspended due to invalid PieceId : {0}".Fill(mrdfPieceId);
+                                        break;
+                                    }
+
+                                    fieldDataCollection.Add(new PCIFieldData() { PCIFieldColl = pciFields, PieceId = pieceId });
+                                }
+
+
+                                if (isSuspend)
+                                {
+                                    SuspendBatchAndSendMailToPrintVendor(printTrailBatchDetail, suspensionReason, outFileName, printTrailDetail.VendorCode);
+                                    //Renaming files so that if we want to continue by reverting status then system will not pick up that file again and again
+                                    File.Move(responseFilePath, Path.Combine(bundlingRootPath, outFileName + ".Suspended"));
+                                    break;
+                                }
+
+                                // Persist MRDF response
+                                DAL.InsertMRDFResponseData(printTrailBatchDetail.Id, fieldDataCollection);
+                                resPieceIdData = fieldDataCollection.Select(c => c.PieceId).ToList();
                                 break;
                         }
-
-
 
                         #region Response Validation
 
