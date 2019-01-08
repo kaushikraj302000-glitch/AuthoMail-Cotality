@@ -628,6 +628,8 @@ namespace AM.Web.Controllers
 
             try
             {
+                projectRequest.DailyPrintSchedule=string.Join(",",projectRequest.DailyPrintScheduleList);
+                projectRequest.PaperPrintRequirements=string.Join(",",projectRequest.PaperPrintRequirementsList);
                 var model = projectRequestSvc.SaveProjectRequest(projectRequest, User.Identity.GetUserId());
                 if (model.Key)
                 {

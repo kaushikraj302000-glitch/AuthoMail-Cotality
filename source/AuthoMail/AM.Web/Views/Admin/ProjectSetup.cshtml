@@ -9,12 +9,18 @@
     var projectRequirements = new List<string> { "Mixed Media", "Letter Only", "Legal Only", "Stapled", "24# Paper", "Insert Required", "White", "Color (please specify)", "Print 1-sided", "Print 2-sided", "B&W", "Color", "B&W & Color" };
     var packagesSentToCustomerList = new List<string> { "Mailed-USPS", "Federal Express", "Certified USPS", "Other" };
     var envelopeList = new List<string> { "# 10", "6 x 9.5", "9 x 12", "10 x 12", "Standard Window", "Custom Window(s)", "Other" };
-    var businessReplyMailEnvelopeList = new List<string> { "#9 Business Reply Mail", "Other" };
+    var businessReplyMailEnvelopeList = new List<string> { "No", "#9 Business Reply Mail", "Other" };
 }
+<style>
+    .bootstrap-select {
+        max-width: 690px !important;
+    }
+</style>
 <div class="panel panel-default">
     <div class="panel-heading">
         <div class="panel-title">
             <i class="fa fa-cog"></i> Project Setup
+            <a href="~/Admin/AllProjectSetupDetails" class="btn btn-warning pull-right"><i class="fa fa-arrow-left"></i> Back</a>
         </div>
     </div>
     <div class="panel-body">
@@ -78,7 +84,7 @@
                             <div class="form-group">
                                 <label for="FileTransmittedVia">Files transmitted via</label>
                                 <div class="input-group">
-                                    <select id="FileTransmittedVia" data-live-search="true" data-live-search-placeholder="Search Files transmitted via" class="form-control selectpicker other" name="FileTransmittedVia">
+                                    <select id="FileTransmittedVia" data-live-search="true" data-live-search-placeholder="Search Files transmitted via" class="form-control selectpicker other" name="FileTransmittedViaSelect">
                                         <option value="">Select Files transmitted via</option>
                                         @Html.Partial("_Lookup", new AM.Web.Models.LookupViewModel() { Value = Model.FileTransmittedVia, LookupList = fileTransmittedViaList })
                                     </select>
@@ -93,7 +99,7 @@
                                     Type of Files
                                 </label>
                                 <div class="input-group">
-                                    <select id="TypeOfFiles" data-live-search="true" data-live-search-placeholder="Search Type of Files" class="form-control selectpicker  other" name="TypeOfFiles">
+                                    <select id="TypeOfFiles" data-live-search="true" data-live-search-placeholder="Search Type of Files" class="form-control selectpicker  other" name="TypeOfFilesSelect">
                                         <option value="">Select Type of Files</option>
                                         @Html.Partial("_Lookup", new AM.Web.Models.LookupViewModel() { Value = Model.TypeOfFiles, LookupList = typeOfFilesList })
                                     </select>
@@ -155,7 +161,7 @@
                                     Service Level
                                 </label>
                                 <div class="input-group">
-                                    <select id="ServiceLevel" data-live-search="true" data-live-search-placeholder="Search Service Level" class="form-control selectpicker other" name="ServiceLevel">
+                                    <select id="ServiceLevel" data-live-search="true" data-live-search-placeholder="Search Service Level" class="form-control selectpicker other" name="ServiceLevelSelect">
                                         <option value="">Select Service Level</option>
                                         @Html.Partial("_Lookup", new AM.Web.Models.LookupViewModel() { Value = Model.ServiceLevel, LookupList = serviceLevelList })
                                     </select>
@@ -213,7 +219,7 @@
                             <div class="form-group">
                                 <label for="DailyPrintSchedule"></label>
                                 <div class="input-group">
-                                    <select class="selectpicker form-control" multiple="multiple" id="DailyPrintSchedule" name="DailyPrintSchedule">
+                                    <select class="selectpicker form-control" multiple="multiple" id="DailyPrintSchedule" name="DailyPrintScheduleList">
                                         @foreach (var day in System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.DayNames)
                                         {
                                             var lst = Model.DailyPrintSchedule == null ? new List
@@ -242,7 +248,7 @@
                             <div class="form-group">
                                 <label for="PaperPrintRequirements"></label>
                                 <div class="input-group">
-                                    <select class="selectpicker form-control" multiple="multiple" name="PaperPrintRequirements" id="PaperPrintRequirements">
+                                    <select class="selectpicker form-control" multiple="multiple" name="PaperPrintRequirementsList" id="PaperPrintRequirements">
                                         @foreach (var item in projectRequirements)
                                         {
                                             var lst = Model.PaperPrintRequirements == null ? new List<string>
@@ -269,7 +275,7 @@
                             <div class="form-group">
                                 <label for="PackagesSentToCustomer"></label>
                                 <div class="input-group">
-                                    <select id="PackagesSentToCustomer" data-live-search="true" data-live-search-placeholder="Search Packages" class="form-control selectpicker  other" name="PackagesSentToCustomer">
+                                    <select id="PackagesSentToCustomer" data-live-search="true" data-live-search-placeholder="Search Packages" class="form-control selectpicker  other" name="PackagesSentToCustomerSelect">
                                         <option value="">Select Packages</option>
                                         @Html.Partial("_Lookup", new AM.Web.Models.LookupViewModel() { Value = Model.PackagesSentToCustomer, LookupList = packagesSentToCustomerList })
                                     </select>
@@ -292,7 +298,7 @@
                             <div class="form-group">
                                 <label for="Value">Type of envelope</label>
                                 <div class="input-group">
-                                    <select id="Envelopes" data-live-search="true" data-live-search-placeholder="Search Envelopes" class="form-control selectpicker  other" name="Envelopes">
+                                    <select id="Envelopes" data-live-search="true" data-live-search-placeholder="Search Envelopes" class="form-control selectpicker  other" name="EnvelopesSelect">
                                         <option value="">Select Envelopes</option>
                                         @Html.Partial("_Lookup", new AM.Web.Models.LookupViewModel() { Value = Model.Envelopes, LookupList = envelopeList })
                                     </select>
@@ -327,8 +333,7 @@
                             <div class="form-group">
                                 <label for="BusinessReplyMailEnvelope">Does it need a Business Reply Mail envelope included?</label>
                                 <div class="input-group">
-                                    <select class="selectpicker form-control other" name="BusinessReplyMailEnvelope" id="BusinessReplyMailEnvelope">
-                                        <option value="No">No</option>
+                                    <select class="selectpicker form-control other" name="BusinessReplyMailEnvelopeSelect" id="BusinessReplyMailEnvelope">
                                         @Html.Partial("_Lookup", new AM.Web.Models.LookupViewModel() { Value = Model.BusinessReplyMailEnvelope, LookupList = businessReplyMailEnvelopeList })
                                     </select>
                                     <input type="text" name="BusinessReplyMailEnvelope" value="@Model.BusinessReplyMailEnvelope" class="form-control othertextbox" />
@@ -484,7 +489,7 @@
                                     <input id="InsertRequired" @(Model.InsertRequired ? "checked" : "") class="cl-toggle toggle-orange" type="checkbox" name="InsertRequired" /><label for="InsertRequired">InsertRequired</label>
                                 </div>
 
-                                <div id="IsInsertRequired">
+                                <div id="IsInsertRequired" style="display:@(Model.InsertRequired ?"block":"none");">
                                     <div class="toggle-container">
                                         <input id="BookletRequired" @(Model.BookletRequired ? "checked" : "") class="cl-toggle toggle-orange" type="checkbox" name="BookletRequired" /><label for="BookletRequired">attached</label>
                                     </div>
@@ -512,7 +517,7 @@
                                 <label for="Value">Provide pdf sample (print ready format) of each document that CoreLogic will be printing and shipping and samples of envelopes if any.</label>
                                 <div class="input-group">
                                     <div class="toggle-container">
-                                        <textarea class="form-control" name="PDFSample" cols="70">@Model.PDFSample</textarea>
+                                        <textarea class="form-control" name="PDFSample" cols="150">@Model.PDFSample</textarea>
                                     </div>
                                 </div>
                             </div>
@@ -532,7 +537,7 @@
     @Styles.Render("~/bundles/datatablescss")
     @Scripts.Render("~/bundles/datatables")
     <script type="text/javascript">
-        
+
         $(document).ready(function () {
             window.clui.dateTimePickerInit();
             $('#datetimepicker3').timepicker({
@@ -559,7 +564,13 @@
                     FileTransmittedVia: {
                         required: true
                     },
+                    FileTransmittedViaSelect: {
+                        required: true
+                    },
                     TypeOfFiles: {
+                        required: true
+                    },
+                    TypeOfFilesSelect: {
                         required: true
                     },
                     NoOfEstSweepTimes: {
@@ -571,31 +582,53 @@
                     ServiceLevel: {
                         required: true
                     },
-                    DailyPrintSchedule: {
+                    ServiceLevelSelect: {
                         required: true
                     },
-                    PaperPrintRequirements: {
+                    DailyPrintScheduleList: {
+                        required: true
+                    },
+                    PaperPrintRequirementsList: {
                         required: true
                     },
                     PackagesSentToCustomer: {
                         required: true
                     },
+                    PackagesSentToCustomerSelect: {
+                        required: true
+                    },
                     Envelopes: {
+                        required: true
+                    },
+                    EnvelopesSelect: {
                         required: true
                     }
                 },
                 submitHandler: function (form) { // for demo
-                    form.serialize();
+                   
                 }
             });
         });
         $('.selectpicker').on('change', function () {
             if ($(this).val() == "Other") {
-                console.log($(this).parent(".othertextbox"))
+                console.log($(this).closest(".input-group").find(".othertextbox").val())
+                $(this).closest(".input-group").find(".othertextbox").val("");
                 $(this).closest(".input-group").find(".othertextbox").show();
             } else {
+                $(this).closest(".input-group").find(".othertextbox").val($(this).val());
                 $(this).closest(".input-group").find(".othertextbox").hide();
             }
         });
+        $(".cl-toggle").click(function () {
+            var value = $(this).is(":checked") ? "true" : "false";
+            //$(this).va();
+            $(this).val(value)
+            console.log($(this).prop("id"));
+            if ($(this).prop("id") == "InsertRequired") {
+                $("#IsInsertRequired").toggle();
+            }
+
+        });
+
     </script>
 }

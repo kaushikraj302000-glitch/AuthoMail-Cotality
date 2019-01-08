@@ -157,8 +157,9 @@ namespace AM.Core
             #endregion
         }
 
-        public SmartDocResponse GenerateDoc(string coverLetterPDFPath, string pdfAttachmentPath, string outputDocumentPath, float contentScalePercent, string endPagePDFPath = "")
+        public SmartDocResponse GenerateDoc(List<string> coverLetterPDFPaths, string pdfAttachmentPath, string outputDocumentPath, float contentScalePercent, List<string> endPagePDFPaths = null)
         {
+            List<string> mergePdfCollection = new List<string>();
             SmartDocResponse response = new SmartDocResponse();
 
             string outputDirPath = Path.GetDirectoryName(outputDocumentPath);
@@ -183,13 +184,22 @@ namespace AM.Core
 
                 #region Merge Final Document
 
-                if (!string.IsNullOrEmpty(endPagePDFPath))
+                if (endPagePDFPaths != null)
                 {
-                    PdfUtil.MergePDFs(coverLetterPDFPath, mergeReadyFilePath, endPagePDFPath, outputDocumentPath);
+                    mergePdfCollection.AddRange(coverLetterPDFPaths);
+                    mergePdfCollection.Add(mergeReadyFilePath);
+                    mergePdfCollection.AddRange(endPagePDFPaths);
+                    mergePdfCollection.Add(outputDocumentPath);
+
+                    PdfUtil.MergePDFs(mergePdfCollection.ToArray());
                 }
-                else if (!string.IsNullOrEmpty(coverLetterPDFPath))
+                else if (coverLetterPDFPaths != null)
                 {
-                    PdfUtil.MergePDFs(coverLetterPDFPath, mergeReadyFilePath, outputDocumentPath);
+                    mergePdfCollection.AddRange(coverLetterPDFPaths);
+                    mergePdfCollection.Add(mergeReadyFilePath);
+                    mergePdfCollection.Add(outputDocumentPath);
+
+                    PdfUtil.MergePDFs(mergePdfCollection.ToArray());
                 }
                 else
                 {
@@ -200,9 +210,12 @@ namespace AM.Core
                 #endregion
 
                 #region Remove Extra Document After Merging
-                if (File.Exists(coverLetterPDFPath))
+                foreach (var coverLetterPDFPath in coverLetterPDFPaths)
                 {
-                    File.Delete(coverLetterPDFPath);
+                    if (File.Exists(coverLetterPDFPath))
+                    {
+                        File.Delete(coverLetterPDFPath);
+                    }
                 }
 
                 if (File.Exists(flattenPDFPath))
@@ -215,9 +228,12 @@ namespace AM.Core
                     File.Delete(shrinkPDFPath);
                 }
 
-                if (File.Exists(endPagePDFPath))
+                foreach (var endPagePDFPath in endPagePDFPaths)
                 {
-                    File.Delete(endPagePDFPath);
+                    if (File.Exists(endPagePDFPath))
+                    {
+                        File.Delete(endPagePDFPath);
+                    }
                 }
                 #endregion
 
