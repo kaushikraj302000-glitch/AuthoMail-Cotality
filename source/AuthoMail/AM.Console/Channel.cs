@@ -229,7 +229,7 @@ namespace AM.Console
             }
         }
 
-        private static void GenerateAndSendProductionSummaryNotification(MailBatchInfo mbi, List<MailPieces> mailPieces, List<Deliverable> deliverables)
+        private static void GenerateAndSendProductionSummaryNotification(MailBatchInfo mbi, List<MailPieces> mailPieces, List<Deliverable> deliverables, SFTChannel sftChannelDetail)
         {
             string errorReportPath = string.Empty;
             string errorReportFileName = string.Empty;
@@ -240,7 +240,7 @@ namespace AM.Console
             var reportToMail = new List<string>();
             var deliveryReportDeliverable = deliverables.SingleOrDefault(rt => rt.ReportType == ReportTypes.Delivery);
             var errorReportDeliverable = deliverables.SingleOrDefault(rt => rt.ReportType == ReportTypes.Error);
-            switch (mbi.Client.AppCode)
+            switch (sftChannelDetail.Code.Split('_')[0])
             {
                 case "HSBC":
                     using (IHSBCService hsbcSvc = new HSBCService())
@@ -488,7 +488,7 @@ namespace AM.Console
                     //Here we are passing localReportPath as MailBatch folder structure AMRoot/USAA/MailBatchId/AMResponses
                     UploadReportsToIncrementalClients(deliverables, reportPath, sftSite);
 
-                    GenerateAndSendProductionSummaryNotification(mbi, mailPieceData, deliverables);
+                    GenerateAndSendProductionSummaryNotification(mbi, mailPieceData, deliverables, sftChannelDetail);
                     isUploaded = true;
                     break;
 
