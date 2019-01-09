@@ -104,7 +104,7 @@ namespace AM.Services
         public string ModifiedBy { get; set; }
         public DateTime ModifiedOn { get; set; }
     }
-    public class EnvelopeTransactions
+    public class EnvelopeInventory
     {
         public int Id { get; set; }
         public string EnvelopeId { get; set; }
