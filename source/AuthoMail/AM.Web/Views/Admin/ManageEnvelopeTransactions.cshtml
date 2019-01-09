@@ -293,7 +293,7 @@
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Admin/CreateOrEditEnvelopeTransactions",
-                data: { envelopeTransactions: envelopeTransactions },
+                data: { envelopeInventory: envelopeTransactions },
                 success: function (response) {
                     if (response.Success) {
                         if (response.Object != null) {

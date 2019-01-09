@@ -695,7 +695,7 @@ namespace AM.Web.Controllers
                     if (env != null) return Json(JsonResponseFactory.ErrorResponse("Envelope already exists."), JsonRequestBehavior.AllowGet);
                 }
 
-                return Json(JsonResponseFactory.SuccessResponse(inventorySvc.SaveEnvelopes(envelopes)), JsonRequestBehavior.AllowGet);
+                return Json(JsonResponseFactory.SuccessResponse(inventorySvc.SaveEnvelopes(envelopes,User.Identity.GetUserId())), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
             {
@@ -711,7 +711,7 @@ namespace AM.Web.Controllers
         {
             try
             {
-                var model = inventorySvc.GetAllEnvelopeTransactions();
+                var model = inventorySvc.GetAllEnvelopeInventory();
 
                 return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
             }
@@ -723,17 +723,16 @@ namespace AM.Web.Controllers
         [Authorize(Roles = AMRoles.Admin), HttpGet]
         public ActionResult GetEnvelopeTransactionsByName(int id)
         {
-
             if (id != 0)
             {
-                EnvelopeTransactions envelopTransactions = inventorySvc.FindByIdEnvelopeTransactions(id);
+                EnvelopeInventory envelopTransactions = inventorySvc.FindByIdEnvelopeInventory(id);
                 ViewBag.Envelopes = new SelectList(inventorySvc.GetEnvelopes(), "Id", "Id", envelopTransactions.EnvelopeId);
                 return PartialView("_AddOrEditEnvelopeTransactions", envelopTransactions);
             }
             else
             {
                 ViewBag.Envelopes = new SelectList(inventorySvc.GetEnvelopes(), "Id", "Id");
-                return PartialView("_AddOrEditEnvelopeTransactions", new EnvelopeTransactions());
+                return PartialView("_AddOrEditEnvelopeTransactions", new EnvelopeInventory());
             }
         }
         [Authorize(Roles = AMRoles.Admin)]
@@ -743,11 +742,11 @@ namespace AM.Web.Controllers
         }
 
         [Authorize(Roles = AMRoles.Admin), HttpPost]
-        public ActionResult CreateOrEditEnvelopeTransactions(EnvelopeTransactions envelopeTransactions)
+        public ActionResult CreateOrEditEnvelopeTransactions(EnvelopeInventory envelopeInventory)
         {
             try
             {
-                return Json(JsonResponseFactory.SuccessResponse(inventorySvc.SaveEnvelopesTrasaction(envelopeTransactions)), JsonRequestBehavior.AllowGet);
+                return Json(JsonResponseFactory.SuccessResponse(inventorySvc.SaveEnvelopeInventory(envelopeInventory, User.Identity.GetUserId())), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
             {
