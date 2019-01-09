@@ -695,7 +695,7 @@ namespace AM.Web.Controllers
                     if (env != null) return Json(JsonResponseFactory.ErrorResponse("Envelope already exists."), JsonRequestBehavior.AllowGet);
                 }
 
-                return Json(JsonResponseFactory.SuccessResponse(inventorySvc.SaveEnvelopes(envelopes)), JsonRequestBehavior.AllowGet);
+                return Json(JsonResponseFactory.SuccessResponse(inventorySvc.SaveEnvelopes(envelopes,User.Identity.GetUserId())), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
             {
@@ -747,7 +747,7 @@ namespace AM.Web.Controllers
         {
             try
             {
-                return Json(JsonResponseFactory.SuccessResponse(inventorySvc.SaveEnvelopesTrasaction(envelopeTransactions)), JsonRequestBehavior.AllowGet);
+                return Json(JsonResponseFactory.SuccessResponse(inventorySvc.SaveEnvelopesTrasaction(envelopeTransactions, User.Identity.GetUserId())), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
             {

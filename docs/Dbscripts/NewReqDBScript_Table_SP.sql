@@ -1,3 +1,66 @@
+CREATE TABLE [Common].[Envelopes](
+ [Id] [VARCHAR](255) UNIQUE NOT NULL,
+ [CurrentQuantity] [INT] NULL,
+ [IsBREEnvelope] [bit] NOT NULL,
+ CONSTRAINT [PK_Envelopes] PRIMARY KEY CLUSTERED 
+(
+ [Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+ALTER TABLE [AM].[DocTypes]
+ADD [EnvelopeId] VARCHAR(255) NULL,[BREEnvelopeId] VARCHAR(255) NULL
+
+ALTER TABLE [AM].[DocTypes]  WITH CHECK ADD CONSTRAINT [FK_DocTypes_Envelope] FOREIGN KEY([EnvelopeId])
+REFERENCES [Common].[Envelopes] ([Id])
+GO
+
+ALTER TABLE [AM].[DocTypes]  WITH CHECK ADD CONSTRAINT [FK_DocTypes_BREEnvelope] FOREIGN KEY([BREEnvelopeId])
+REFERENCES [Common].[Envelopes] ([Id])
+GO
+
+ALTER TABLE [AM].[DocTypes] CHECK CONSTRAINT [FK_DocTypes_Envelope]
+ALTER TABLE [AM].[DocTypes] CHECK CONSTRAINT [FK_DocTypes_BREEnvelope]
+GO
+
+CREATE TABLE [Common].[EnvelopeInventory](
+ [Id] [INT] IDENTITY(10000,1) NOT NULL,
+ [EnvelopeId] VARCHAR(255) NULL,
+ [Description] [varchar](2048) NULL,
+ [ReceivedOn] [datetime] NULL,
+ [ReceivedQuantity] [INT] NOT NULL,
+ [UnitPrice] [DECIMAL](5,2) NULL,
+ CONSTRAINT [PK_EnvelopeInventory] PRIMARY KEY CLUSTERED 
+(
+ [Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+ALTER TABLE [Common].[Envelopes]
+ADD [CreatedBy] NVARCHAR(128) not null,[ModifiedBy] NVARCHAR(128) not null,[CreatedOn] datetime not null,[ModifiedOn] datetime not null
+
+ALTER TABLE [Common].[Envelopes]  WITH CHECK ADD CONSTRAINT [FK_CreatedBy_Envelopes_Users] FOREIGN KEY([CreatedBy])
+REFERENCES [Profile].[Users] ([Id])
+GO
+ALTER TABLE [Common].[Envelopes]  WITH CHECK ADD CONSTRAINT [FK_ModifiedBy_Envelopes_Users] FOREIGN KEY([ModifiedBy])
+REFERENCES [Profile].[Users] ([Id])
+GO
+
+ALTER TABLE [Common].[EnvelopeInventory]
+ADD [CreatedBy] NVARCHAR(128) not null,[ModifiedBy] NVARCHAR(128) not null,[CreatedOn] datetime not null,[ModifiedOn] datetime not null
+
+ALTER TABLE [Common].[EnvelopeInventory]  WITH CHECK ADD CONSTRAINT [FK_CreatedBy_EnvelopeTransaction_Users] FOREIGN KEY([CreatedBy])
+REFERENCES [Profile].[Users] ([Id])
+GO
+ALTER TABLE [Common].[EnvelopeInventory]  WITH CHECK ADD CONSTRAINT [FK_ModifiedBy_EnvelopeTransaction_Users] FOREIGN KEY([ModifiedBy])
+REFERENCES [Profile].[Users] ([Id])
+GO
+
+
 create table [AM].[ProjectRequest]
 (
 	Id [int] identity(1,1) not null primary key,

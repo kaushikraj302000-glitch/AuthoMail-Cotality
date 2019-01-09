@@ -99,6 +99,10 @@ namespace AM.Services
         public string Id { get; set; }
         public int CurrentQuantity { get; set; }
         public bool IsBREEnvelope { get; set; }
+        public string CreatedBy { get; set; }
+        public DateTime CreatedOn { get; set; }
+        public string ModifiedBy { get; set; }
+        public DateTime ModifiedOn { get; set; }
     }
     public class EnvelopeTransactions
     {
@@ -110,5 +114,9 @@ namespace AM.Services
         public decimal UnitPrice { get; set; }
         public Envelopes Envelopes { get; set; }
         public int StockUsed { get; set; }
+        public string CreatedBy { get; set; }
+        public DateTime CreatedOn { get; set; }
+        public string ModifiedBy { get; set; }
+        public DateTime ModifiedOn { get; set; }
     }
 }

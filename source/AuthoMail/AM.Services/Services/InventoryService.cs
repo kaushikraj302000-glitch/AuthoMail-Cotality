@@ -9,11 +9,11 @@ namespace AM.Services
 {
     public interface IInventoryService : IDisposable
     {
-        KeyValuePair<bool, string> SaveEnvelopes(Envelopes envelopes);
+        KeyValuePair<bool, string> SaveEnvelopes(Envelopes envelopes, string userId);
         Envelopes FindByCodeEnvelope(string envelopeCode);
         List<Envelopes> GetEnvelopes();
         EnvelopeTransactions FindByIdEnvelopeTransactions(int Id);
-        KeyValuePair<bool, string> SaveEnvelopesTrasaction(EnvelopeTransactions envtran);
+        KeyValuePair<bool, string> SaveEnvelopesTrasaction(EnvelopeTransactions envtran, string userId);
         List<EnvelopeTransactions> GetAllEnvelopeTransactions();
     }
     public class InventoryService : ServiceBase, IInventoryService
@@ -21,28 +21,37 @@ namespace AM.Services
 
         public Envelopes FindByCodeEnvelope(string envelopeCode)
         {
-            return db.QuerySingleOrDefault<Envelopes>("select * from Common.Envelopes where Id=@envelopeCode", new { envelopeCode = envelopeCode });
+            return db.QuerySingleOrDefault<Envelopes>(@"select e.*,c.UserName as CreatedBy,m.UserName as ModifiedBy from Common.Envelopes e
+inner join Profile.Users c on e.CreatedBy=c.Id
+inner join Profile.Users m on e.ModifiedBy=m.Id
+where Id=@envelopeCode", new { envelopeCode = envelopeCode });
         }
 
         public List<Envelopes> GetEnvelopes()
         {
-            return db.Query<Envelopes>("select * from Common.Envelopes").ToList();
+            return db.Query<Envelopes>(@"select e.*,c.UserName as CreatedBy,m.UserName as ModifiedBy from Common.Envelopes e
+inner join Profile.Users c on e.CreatedBy=c.Id
+inner join Profile.Users m on e.ModifiedBy=m.Id").ToList();
         }
 
-        public KeyValuePair<bool, string> SaveEnvelopes(Envelopes envelopes)
+        public KeyValuePair<bool, string> SaveEnvelopes(Envelopes envelopes, string userId)
         {
             try
             {
                 var envelope = FindByCodeEnvelope(envelopes.Id);
                 if (envelope == null)
                 {
-                    string sql = "INSERT INTO [Common].[Envelopes] ([Id],[CurrentQuantity] ,[IsBREEnvelope]) VALUES(@Id ,0 ,@IsBREEnvelope)";
+                    string sql = "INSERT INTO [Common].[Envelopes] ([Id],[CurrentQuantity] ,[IsBREEnvelope],[CreatedBy],[ModifiedBy],[CreatedOn],[ModifiedOn]) VALUES(@Id ,0 ,@IsBREEnvelope,@CreatedBy,@ModifiedBy,@CreatedOn,ModifiedOn)";
+                    envelopes.CreatedBy = envelopes.ModifiedBy = userId;
+                    envelopes.CreatedOn = envelopes.ModifiedOn = DateTime.UtcNow;
                     db.Execute(sql, envelopes);
                     return new KeyValuePair<bool, string>(true, "Saved successfully");
                 }
                 else
                 {
-                    string sql = "UPDATE [Common].[Envelopes]  SET [IsBREEnvelope] = @IsBREEnvelope  WHERE Id=@Id";
+                    string sql = "UPDATE [Common].[Envelopes]  SET [IsBREEnvelope] = @IsBREEnvelope,[ModifiedBy]=@ModifiedBy,[ModifiedOn]=@ModifiedOn WHERE Id=@Id";
+                    envelopes.ModifiedBy = userId;
+                    envelopes.ModifiedOn = DateTime.UtcNow;
                     db.Execute(sql, envelopes);
                     return new KeyValuePair<bool, string>(true, "Saved successfully");
                 }
@@ -55,10 +64,13 @@ namespace AM.Services
 
         public EnvelopeTransactions FindByIdEnvelopeTransactions(int Id)
         {
-            string query = "select * from Common.EnvelopeTransactions where Id=@Id";
+            string query = @"select e.*,c.UserName as CreatedBy,m.UserName as ModifiedBy from Common.EnvelopeTransactions e
+inner join Profile.Users c on e.CreatedBy=c.Id
+inner join Profile.Users m on e.ModifiedBy=m.Id
+where Id=@Id";
             return db.QuerySingleOrDefault<EnvelopeTransactions>(query, new { Id = Id });
         }
-        public KeyValuePair<bool, string> SaveEnvelopesTrasaction(EnvelopeTransactions envtran)
+        public KeyValuePair<bool, string> SaveEnvelopesTrasaction(EnvelopeTransactions envtran, string userId)
         {
             EnvelopeTransactions oldEnvelopeTransaction = null;
             Envelopes oldEnvelope = null;
@@ -74,9 +86,11 @@ namespace AM.Services
                 {
                     if (envtran.Id == 0)
                     {
-                        string query = @"INSERT INTO [Common].[EnvelopeTransactions] ([EnvelopeId] ,[Description] ,[ReceivedOn] ,[ReceivedQuantity] ,[UnitPrice]) 
-VALUES (@EnvelopeId ,@Description ,@ReceivedOn ,@ReceivedQuantity ,@UnitPrice);";
+                        string query = @"INSERT INTO [Common].[EnvelopeTransactions] ([EnvelopeId] ,[Description] ,[ReceivedOn] ,[ReceivedQuantity] ,[UnitPrice],[CreatedBy],[ModifiedBy],[CreatedOn],[ModifiedOn]) 
+VALUES (@EnvelopeId ,@Description ,@ReceivedOn ,@ReceivedQuantity ,@UnitPrice,@CreatedBy,@ModifiedBy,@CreatedOn,ModifiedOn);";
                         envtran.ReceivedOn = DateTime.UtcNow;
+                        envtran.CreatedBy = envtran.ModifiedBy = userId;
+                        envtran.CreatedOn = envtran.ModifiedOn = DateTime.UtcNow;
                         db.Execute(query, envtran, transaction: t);
 
                         query = "UPDATE [Common].[Envelopes]  SET [CurrentQuantity] = [CurrentQuantity] + (@CurrentQuantity) WHERE Id=@Id";
@@ -84,7 +98,9 @@ VALUES (@EnvelopeId ,@Description ,@ReceivedOn ,@ReceivedQuantity ,@UnitPrice);"
                     }
                     else
                     {
-                        string query = "UPDATE [Common].[EnvelopeTransactions] SET [EnvelopeId] = @EnvelopeId ,[Description] = @Description ,[ReceivedQuantity] = @ReceivedQuantity ,[UnitPrice] = @UnitPrice  WHERE Id=@Id";
+                        string query = "UPDATE [Common].[EnvelopeTransactions] SET [EnvelopeId] = @EnvelopeId ,[Description] = @Description ,[ReceivedQuantity] = @ReceivedQuantity ,[UnitPrice] = @UnitPrice,[ModifiedBy]=@ModifiedBy,[ModifiedOn]=@ModifiedOn  WHERE Id=@Id";
+                        envtran.ModifiedBy = userId;
+                        envtran.ModifiedOn = DateTime.UtcNow;
                         db.Execute(query, envtran, transaction: t);
 
                         envtran.ReceivedQuantity = oldEnvelope.CurrentQuantity - oldEnvelopeTransaction.ReceivedQuantity + envtran.ReceivedQuantity;
@@ -105,7 +121,9 @@ VALUES (@EnvelopeId ,@Description ,@ReceivedOn ,@ReceivedQuantity ,@UnitPrice);"
         }
         public List<EnvelopeTransactions> GetAllEnvelopeTransactions()
         {
-            string query = "select * from Common.EnvelopeTransactions";
+            string query = @"select e.*,c.UserName as CreatedBy,m.UserName as ModifiedBy from Common.EnvelopeTransactionse
+inner join Profile.Users c on e.CreatedBy=c.Id
+inner join Profile.Users m on e.ModifiedBy=m.Id";
             return db.Query<EnvelopeTransactions>(query).ToList();
         }
 
