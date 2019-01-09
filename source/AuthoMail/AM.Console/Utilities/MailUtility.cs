@@ -29,6 +29,8 @@ namespace AM.Console
                         msg.IsBodyHtml = true;
                         msg.To.Add(deliverable.EmailChannel.To);
                         msg.CC.Add(deliverable.EmailChannel.Cc);
+                        if (!string.IsNullOrEmpty(deliverable.EmailChannel.Bcc))
+                            msg.Bcc.Add(deliverable.EmailChannel.Bcc);
                         msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, client.AppCode, deliverable.EmailChannel.Subject);
                         msg.Priority = MailPriority.Normal;
                         msg.Body = string.Format("No batch available today till cutOffTime {0}.", cutOffTime.UtcToClientTimeZone(client.TimeZone).ToString("HH:mm"));
@@ -82,6 +84,8 @@ namespace AM.Console
                         msg.IsBodyHtml = true;
                         msg.To.Add(emailChannel.To);
                         msg.CC.Add(emailChannel.Cc);
+                        if (!string.IsNullOrEmpty(emailChannel.Bcc))
+                            msg.Bcc.Add(emailChannel.Bcc);
                         msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, mbi.Client.AppCode, emailChannel.Subject);
                         msg.Priority = MailPriority.Normal;
 
@@ -151,6 +155,8 @@ namespace AM.Console
                         msg.IsBodyHtml = true;
                         msg.To.Add(emailChannel.To);
                         msg.CC.Add(emailChannel.Cc);
+                        if (!string.IsNullOrEmpty(emailChannel.Bcc))
+                            msg.Bcc.Add(emailChannel.Bcc);
                         msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, mbi.Client.AppCode, emailChannel.Subject);
                         msg.Priority = MailPriority.Normal;
 

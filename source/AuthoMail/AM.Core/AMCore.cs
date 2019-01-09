@@ -190,49 +190,114 @@ namespace AM.Core
 
                                 List<DocTypeCoverLetter> docTypeLetters = docTypeSvc.GetDocumentCoverLetterTemplates(docType.Id).OrderBy(o => o.SeqId).ToList();
 
-                                var frontCoverLetters = docTypeLetters.Where(seq => seq.SeqId <= 10000);
-                                var rearCoverLetters = docTypeLetters.Where(seq => seq.SeqId > 10000);
+                                var frontCoverLetters = docTypeLetters.Where(seq => seq.SeqId <= 100);
+                                var rearCoverLetters = docTypeLetters.Where(seq => seq.SeqId > 100);
 
                                 SmartDocs doc = new SmartDocs();
 
-                                foreach (var docTypeLetter in frontCoverLetters)
+                                var docTypeLetter = frontCoverLetters.SingleOrDefault();
+                                //foreach (var docTypeLetter in frontCoverLetters)
+                                //{
+                                //Folder structure and file naming convention should be Root/AppCode/AppCode_DocTypeCode_SeqNo.pdf
+                                string coverLetterTemplatePath = docTypeLetter == null ? string.Empty : Path.Combine(Config.Core_CoverTemplateFolder, client.AppCode, docTypeLetter.CoverLetterTemplatePath);
+
+
+                                if (docType.ShippingCarrier == Carrier.USPS.ToString())
                                 {
-                                    //Folder structure and file naming convention should be Root/AppCode/AppCode_DocTypeCode_SeqNo.pdf
-                                    string coverLetterTemplatePath = docTypeLetter == null ? string.Empty : Path.Combine(Config.Core_CoverTemplateFolder, client.AppCode, docTypeLetter.CoverLetterTemplatePath);
-
-
-                                    if (docType.ShippingCarrier == Carrier.USPS.ToString())
+                                    if (docType.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS.ToString())
                                     {
-                                        endPageTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, Config.Core_USPSEndPageTemplatePath);
+                                        eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name);
 
-                                        if (docType.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS.ToString())
+                                        response = doc.GenerateEVSCoverLetter(client.AppCode, commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq);
+
+                                        //if we have service changed to priority then we are updating doctypeid in database also
+                                        if (response.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY)
                                         {
-                                            eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name);
+                                            string priorityDocType = mailPiece.DocumentOrPackageType + Config.Monitor_PriorityMailingText;
+                                            docType = docTypeSvc.GetDocTypeByDocTypeName(client.Id, priorityDocType);
 
-                                            response = doc.GenerateEVSCoverLetter(client.AppCode, commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq);
-
-                                            //if we have service changed to priority then we are updating doctypeid in database also
-                                            if (response.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY)
+                                            if (docType != null)
                                             {
-                                                string priorityDocType = mailPiece.DocumentOrPackageType + Config.Monitor_PriorityMailingText;
-                                                docType = docTypeSvc.GetDocTypeByDocTypeName(client.Id, priorityDocType);
-
-                                                if (docType != null)
-                                                {
-                                                    mailPiece.DocTypeId = docType.Id;
-                                                }
-                                                else
-                                                {
-                                                    throw new Exception("Priority document type does not exist.");
-                                                }
+                                                mailPiece.DocTypeId = docType.Id;
                                             }
+                                            else
+                                            {
+                                                throw new Exception("Priority document type does not exist.");
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        //Create Cover letter with IMBarcode - USPS First Class
+                                        response = doc.GenerateUSPSIMBCoverLetter(client.AppCode, coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
+                                    }
+
+                                    if (response.HasError)
+                                    {
+                                        mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
+                                        mailPiece.TotalPages = 0;
+                                        mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                        mailPiece.ErrorDesc = response.ExceptionDetail;
+                                        mailPiece.DueDate = null;
+                                        mailPiece.PrintLocation = null;
+                                        mailPiece.PrintTrailId = null;
+                                        mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                        continue;
+                                    }
+
+                                    coverLetterPdfPaths.Add(response.CoverLetterPath);
+                                    mailPiece.TrackingNo = response.TrackingCode;
+                                    mailPiece.ShippingCost = response.PostageCost;
+                                }
+                                else if (docType.ShippingCarrier == Carrier.FedEx.ToString())
+                                {
+                                    #region  Call FedEx web service and get create shipping label
+
+                                    FedExAccountInfo fedExAccInfo = fedExSvc.GetFedExAccountDetailsByAccountCode(docType.ShippingAccountCode);
+
+                                    CreateFedExLabel createFedExLabel = new CreateFedExLabel();
+                                    bool result = false;
+                                    while (attemptCount < Config.Core_NoofTime_AttemptFedexService)
+                                    {
+                                        result = createFedExLabel.Create(mailPiece, fedExAccInfo, docType, mbi);
+                                        if (result)
+                                        {
+                                            break;
+                                        }
+                                        else if (!result && (mailPiece.ErrorDesc.Contains("General Failure") || mailPiece.ErrorDesc.Contains("Unknown_Error")))
+                                        {
+                                            System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
+                                            attemptCount++;
                                         }
                                         else
                                         {
-                                            //Create Cover letter with IMBarcode - USPS First Class
-                                            response = doc.GenerateUSPSIMBCoverLetter(client.AppCode, coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
+                                            mailPiece.TotalPages = 0;
+                                            mailPiece.PrintLocation = null;
+                                            mailPiece.PrintTrailId = null;
+                                            mailPiece.DueDate = null;
+                                            break;
                                         }
+                                    }
 
+                                    if (result)
+                                    {
+                                        coverLetterPdfPaths.Add(createFedExLabel.GeneratedFedExLabelPath);
+                                        mailPiece.TrackingNo = Path.GetFileNameWithoutExtension(createFedExLabel.GeneratedFedExLabelPath);
+                                    }
+                                    else
+                                    {
+                                        //NOTE : If result false then mark as an error and update status for that mail piece
+                                        mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                        continue;
+                                    }
+
+                                    #endregion
+                                }
+                                else
+                                {
+                                    if (!string.IsNullOrEmpty(coverLetterTemplatePath))
+                                    {
+                                        response = doc.GenerateFrontBarcodeCoverLetter(coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
                                         if (response.HasError)
                                         {
                                             mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
@@ -246,82 +311,16 @@ namespace AM.Core
                                             continue;
                                         }
 
+                                        mailPiece.TrackingNo = mailPiece.Id.ToString();
                                         coverLetterPdfPaths.Add(response.CoverLetterPath);
-                                        mailPiece.TrackingNo = response.TrackingCode;
-                                        mailPiece.ShippingCost = response.PostageCost;
                                     }
-                                    else if (docType.ShippingCarrier == Carrier.FedEx.ToString())
-                                    {
-                                        endPageTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, Config.Core_FedExEndPageTemplatePath);
-                                        #region  Call FedEx web service and get create shipping label
 
-                                        FedExAccountInfo fedExAccInfo = fedExSvc.GetFedExAccountDetailsByAccountCode(docType.ShippingAccountCode);
-
-                                        CreateFedExLabel createFedExLabel = new CreateFedExLabel();
-                                        bool result = false;
-                                        while (attemptCount < Config.Core_NoofTime_AttemptFedexService)
-                                        {
-                                            result = createFedExLabel.Create(mailPiece, fedExAccInfo, docType, mbi);
-                                            if (result)
-                                            {
-                                                break;
-                                            }
-                                            else if (!result && (mailPiece.ErrorDesc.Contains("General Failure") || mailPiece.ErrorDesc.Contains("Unknown_Error")))
-                                            {
-                                                System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
-                                                attemptCount++;
-                                            }
-                                            else
-                                            {
-                                                mailPiece.TotalPages = 0;
-                                                mailPiece.PrintLocation = null;
-                                                mailPiece.PrintTrailId = null;
-                                                mailPiece.DueDate = null;
-                                                break;
-                                            }
-                                        }
-
-                                        if (result)
-                                        {
-                                            coverLetterPdfPaths.Add(createFedExLabel.GeneratedFedExLabelPath);
-                                            mailPiece.TrackingNo = Path.GetFileNameWithoutExtension(createFedExLabel.GeneratedFedExLabelPath);
-                                        }
-                                        else
-                                        {
-                                            //NOTE : If result false then mark as an error and update status for that mail piece
-                                            mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
-                                            continue;
-                                        }
-
-                                        #endregion
-                                    }
-                                    else
-                                    {
-                                        if (docTypeLetter.SeqId == -1)
-                                        {
-                                            coverLetterTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, Config.Core_FrontPageTemplatePath);
-                                            response = doc.GenerateFrontBarcodeCoverLetter(coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
-                                            if (response.HasError)
-                                            {
-                                                mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
-                                                mailPiece.TotalPages = 0;
-                                                mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                                                mailPiece.ErrorDesc = response.ExceptionDetail;
-                                                mailPiece.DueDate = null;
-                                                mailPiece.PrintLocation = null;
-                                                mailPiece.PrintTrailId = null;
-                                                mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
-                                                continue;
-                                            }
-
-                                            mailPiece.TrackingNo = mailPiece.Id.ToString();
-                                            coverLetterPdfPaths.Add(response.CoverLetterPath);
-                                        }
-                                    }
                                 }
+                                //}
 
                                 foreach (var rearCoverLetter in rearCoverLetters)
                                 {
+                                    endPageTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, client.AppCode, rearCoverLetter.CoverLetterTemplatePath);
                                     //For now reverse barcoding will be mail piece id
                                     mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((mailPiece.TrackingNo).Reverse().ToArray()) + "*");
 

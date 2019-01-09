@@ -286,7 +286,7 @@ INNER JOIN PnS.MRDFRequest REQ ON PT.Id=REQ.PrintTrailBatchId
 INNER JOIN PnS.BatchSummary BS ON REQ.JobId=BS.PrintBatch
 INNER JOIN Common.PrintTrails PTS ON BS.PrintTrailId=PTS.Id
 LEFT OUTER JOIN AM.DocTypes D ON BS.DocTypeId=D.Id
-WHERE PT.SubmittedOn >= @StartDate AND  PT.SubmittedOn < @EndDate AND BS.PrintLocation='Fort Mill, SC' AND REQ.MailPieceStatus <> 'Error'
+WHERE PT.SubmittedOn >= @StartDate AND  PT.SubmittedOn < @EndDate AND BS.PrintLocation='Fort Mill, SC' AND REQ.MailPieceStatus NOT IN ('Error','PulledBack')
 GROUP BY PT.Id,PT.PrintBatchName,PT.SubmittedOn,D.ShippingCarrier,D.ShippingServiceType
 ORDER BY PrintTrailBatchId";
             return db.Query<PCISubmittedBatchDetail>(query, new { StartDate = startDate, EndDate = endDate }).ToList();

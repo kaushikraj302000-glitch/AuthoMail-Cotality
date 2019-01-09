@@ -263,7 +263,7 @@ namespace AM.Console
                         reportToMail.Add(errorReportPath);
                     }
                     break;
-                default:
+                case "AMC":
                     using (IAMCService amcSvc = new AMCService())
                     {
                         StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(mailPieces);
@@ -288,6 +288,32 @@ namespace AM.Console
 
                             //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
                             //string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                            errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+
+                            File.WriteAllText(errorReportPath, errorReport.ToString());
+                            reportToMail.Add(errorReportPath);
+                        }
+                    }
+                    break;
+                default:
+                    using (IGeneralService generalSvc = new GeneralService())
+                    {
+                        StringBuilder deliveryReport = generalSvc.GeneralDeliveryReport(mailPieces, deliveryReportDeliverable.Delimeter);
+
+                        if (deliveryReport != null)
+                        {
+                            deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                            deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
+
+                            File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
+                            reportToMail.Add(deliveryReportPath);
+                        }
+
+                        StringBuilder errorReport = generalSvc.GeneralErrorReport(mailPieces, errorReportDeliverable.Delimeter);
+
+                        if (errorReport != null)
+                        {
+                            errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
                             errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 
                             File.WriteAllText(errorReportPath, errorReport.ToString());
@@ -372,30 +398,6 @@ namespace AM.Console
             bool isUploaded = false;
             switch (sftChannelDetail.Code.Split('_')[0].ToUpper())
             {
-                case "AMC":
-                    var mailPieceCount = mailPieceData.Count(status => status.ShippingStatus == ShippingStatus.InProgress.ToString());
-
-                    if (mailPieceCount > 0)
-                        return isUploaded;
-
-                    //NOTE : Here we have to check printbatches table for that MailBatchId because we can not updated reported back status until all print batches status are getting changed to ReportedBack.
-                    int remainingPrintBatchReportedBackCount = 0;
-                    using (IMailBatchService mailBatchSvc = new MailBatchService())
-                    {
-                        remainingPrintBatchReportedBackCount = mailBatchSvc.RemainingPrintBatchesReportedBackCount(mbi.MailBatch.Id);
-                    }
-
-                    if (remainingPrintBatchReportedBackCount > 0)
-                        return isUploaded;
-
-                    string reportPath = Path.Combine(Config.Common_AuthoMailRootFolder, mbi.Client.AppCode, mbi.MailBatch.Id.ToString(), Util.AMResponseFolderName);
-
-                    //Here we are passing localReportPath as MailBatch folder structure AMRoot/USAA/MailBatchId/AMResponses
-                    UploadReportsToIncrementalClients(deliverables, reportPath, sftSite);
-
-                    GenerateAndSendProductionSummaryNotification(mbi, mailPieceData, deliverables);
-                    isUploaded = true;
-                    break;
                 case "ALASKA":
 
                     var reportToMail = new List<string>();
@@ -464,54 +466,30 @@ namespace AM.Console
                     isUploaded = true;
                     break;
                 case "AMTEST":
+                case "AMC":
                 default:
-                    string uploadDeliveryPath = deliverables.Where(d => d.ReportType == ReportTypes.Delivery).Single().UploadPath;
+                    var mailPieceCount = mailPieceData.Count(status => status.ShippingStatus == ShippingStatus.InProgress.ToString());
 
-                    var deliveryReportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.txt").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-")).ToList();
+                    if (mailPieceCount > 0)
+                        return isUploaded;
 
-                    foreach (string filePath in deliveryReportList)
+                    //NOTE : Here we have to check printbatches table for that MailBatchId because we can not updated reported back status until all print batches status are getting changed to ReportedBack.
+                    int remainingPrintBatchReportedBackCount = 0;
+                    using (IMailBatchService mailBatchSvc = new MailBatchService())
                     {
-                        string fileName = Path.GetFileName(filePath);
-                        string ftpUploadPath = Path.Combine(uploadDeliveryPath, fileName);
-                        sftSite.UploadFile(filePath, ftpUploadPath);
-
-                        //After upload change extention as a Complete
-                        File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
-
-                        isUploaded = true;
+                        remainingPrintBatchReportedBackCount = mailBatchSvc.RemainingPrintBatchesReportedBackCount(mbi.MailBatch.Id);
                     }
 
-                    if (deliveryReportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-")) > 0)
-                    {
-                        string deliveryGoFilePath = Path.Combine(mbi.AMResponsePath, "DlvrReport.go");
-                        string ftpDeliveryGoUploadPath = Path.Combine(uploadDeliveryPath, "DlvrReport.go");
-                        File.WriteAllText(deliveryGoFilePath, string.Empty);
+                    if (remainingPrintBatchReportedBackCount > 0)
+                        return isUploaded;
 
-                        sftSite.UploadFile(deliveryGoFilePath, ftpDeliveryGoUploadPath);
-                    }
+                    string reportPath = Path.Combine(Config.Common_AuthoMailRootFolder, mbi.Client.AppCode, mbi.MailBatch.Id.ToString(), Util.AMResponseFolderName);
 
-                    string uploadErrorPath = deliverables.Where(d => d.ReportType == ReportTypes.Error).Single().UploadPath;
-                    var errorReportList = Directory.EnumerateFiles(mbi.AMResponsePath, "*.txt").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Error-")).ToList();
+                    //Here we are passing localReportPath as MailBatch folder structure AMRoot/USAA/MailBatchId/AMResponses
+                    UploadReportsToIncrementalClients(deliverables, reportPath, sftSite);
 
-                    foreach (string filePath in errorReportList)
-                    {
-                        string fileName = Path.GetFileName(filePath);
-                        string ftpUploadPath = Path.Combine(uploadErrorPath, fileName);
-                        sftSite.UploadFile(filePath, ftpUploadPath);
-
-                        //After upload change extention as a Complete
-                        File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
-                        isUploaded = true;
-                    }
-
-                    if (errorReportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Error-")) > 0)
-                    {
-                        string errorGoFilePath = Path.Combine(mbi.AMResponsePath, "ErrReport.go");
-                        string ftpErrorGoUploadPath = Path.Combine(uploadErrorPath, "ErrReport.go");
-                        File.WriteAllText(errorGoFilePath, string.Empty);
-
-                        sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
-                    }
+                    GenerateAndSendProductionSummaryNotification(mbi, mailPieceData, deliverables);
+                    isUploaded = true;
                     break;
 
             }
