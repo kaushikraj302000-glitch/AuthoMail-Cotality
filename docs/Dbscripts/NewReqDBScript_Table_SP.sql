@@ -1,3 +1,5 @@
+Print 'CREATE TABLE [Common].[Envelopes]'
+Go
 CREATE TABLE [Common].[Envelopes](
  [Id] [VARCHAR](255) UNIQUE NOT NULL,
  [CurrentQuantity] [INT] NULL,
@@ -9,14 +11,16 @@ CREATE TABLE [Common].[Envelopes](
 ) ON [PRIMARY]
 
 GO
-
+Print 'Add [EnvelopeId],[BREEnvelopeId] columns in doctypes'
 ALTER TABLE [AM].[DocTypes]
 ADD [EnvelopeId] VARCHAR(255) NULL,[BREEnvelopeId] VARCHAR(255) NULL
 
+print 'Add FK in EnvelopeId column'
 ALTER TABLE [AM].[DocTypes]  WITH CHECK ADD CONSTRAINT [FK_DocTypes_Envelope] FOREIGN KEY([EnvelopeId])
 REFERENCES [Common].[Envelopes] ([Id])
 GO
 
+print 'Add FK in [BREEnvelopeId] column'
 ALTER TABLE [AM].[DocTypes]  WITH CHECK ADD CONSTRAINT [FK_DocTypes_BREEnvelope] FOREIGN KEY([BREEnvelopeId])
 REFERENCES [Common].[Envelopes] ([Id])
 GO
@@ -25,6 +29,7 @@ ALTER TABLE [AM].[DocTypes] CHECK CONSTRAINT [FK_DocTypes_Envelope]
 ALTER TABLE [AM].[DocTypes] CHECK CONSTRAINT [FK_DocTypes_BREEnvelope]
 GO
 
+Print 'CREATE TABLE [Common].[EnvelopeInventory]'
 CREATE TABLE [Common].[EnvelopeInventory](
  [Id] [INT] IDENTITY(10000,1) NOT NULL,
  [EnvelopeId] VARCHAR(255) NULL,
@@ -40,6 +45,8 @@ CREATE TABLE [Common].[EnvelopeInventory](
 
 GO
 
+print 'add creation and modification columns in envelopes'
+Go
 ALTER TABLE [Common].[Envelopes]
 ADD [CreatedBy] NVARCHAR(128) not null,[ModifiedBy] NVARCHAR(128) not null,[CreatedOn] datetime not null,[ModifiedOn] datetime not null
 
@@ -49,7 +56,8 @@ GO
 ALTER TABLE [Common].[Envelopes]  WITH CHECK ADD CONSTRAINT [FK_ModifiedBy_Envelopes_Users] FOREIGN KEY([ModifiedBy])
 REFERENCES [Profile].[Users] ([Id])
 GO
-
+print 'add creation and modification columns in envelopes'
+Go
 ALTER TABLE [Common].[EnvelopeInventory]
 ADD [CreatedBy] NVARCHAR(128) not null,[ModifiedBy] NVARCHAR(128) not null,[CreatedOn] datetime not null,[ModifiedOn] datetime not null
 
@@ -60,7 +68,7 @@ ALTER TABLE [Common].[EnvelopeInventory]  WITH CHECK ADD CONSTRAINT [FK_Modified
 REFERENCES [Profile].[Users] ([Id])
 GO
 
-
+print 'create table [AM].[ProjectRequest]'
 create table [AM].[ProjectRequest]
 (
 	Id [int] identity(1,1) not null primary key,
@@ -116,6 +124,8 @@ create table [AM].[ProjectRequest]
 ) 
 
 Go
+print 'procedure [uspalert_GetDelayedBatchesToSubmit]'
+Go
 IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'uspalert_GetDelayedBatchesToSubmit')
 DROP PROCEDURE [dbo].[uspalert_GetDelayedBatchesToSubmit] 
 GO
@@ -136,7 +146,8 @@ BEGIN
 END
 
 Go
-
+print 'procedure [uspweb_MonthlyReconReport]'
+Go
 IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'uspweb_MonthlyReconReport')
 DROP PROCEDURE [dbo].[uspweb_MonthlyReconReport]
 GO
@@ -162,3 +173,30 @@ AS
 	AND m.ShippingStatus=@shippingStatus
 
 	Go
+	print '[uspweb_ErrorReportSLA]'
+Go
+	IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'uspweb_ErrorReportSLA')
+DROP PROCEDURE [dbo].[uspweb_ErrorReportSLA]
+GO
+CREATE PROCEDURE [dbo].[uspweb_ErrorReportSLA]
+	@clientId int,
+	@startDateRec datetime,
+	@endDateRec datetime,
+	@startDateDue datetime,
+	@endDateDue datetime,
+	@batchId int,
+	@docType varchar(128)
+AS
+BEGIN
+
+select *	
+	from [AM].[MailBatches] b, [Common].[SFTChannels] ch, [Common].[Clients] c,[AM].[MailPieces] m
+	left outer join [AM].[DocTypes] d on m.DocTypeId=d.Id
+	where m.MailBatchId=b.Id and c.Id=b.ClientId and ch.Id=b.SFTChannelId AND m.ClientId=@clientId --AND m.SLADays < 0
+	AND ISNULL(b.ReceivedOn,0) BETWEEN ISNULL(@startDateRec, ISNULL(b.ReceivedOn, 0)) AND ISNULL(@endDateRec, ISNULL(b.ReceivedOn, 0))
+	AND ISNULL(m.DueDate,0) BETWEEN ISNULL(@startDateDue, ISNULL(m.DueDate, 0)) AND ISNULL(@endDateDue, ISNULL(m.DueDate, 0))
+	AND ISNULL(m.MailBatchId, '') = ISNULL(@batchId, ISNULL(m.MailBatchId, ''))
+	AND ISNULL(m.DocTypeId, '') = ISNULL(@docType, ISNULL(m.DocTypeId, ''))
+	--AND m.ShippingStatus IN ('InProgress','Shipped')
+	--AND ISNULL(m.ShippingStatus, '') IN (ISNULL('''InProgress'',''Shipped''', ISNULL(m.ShippingStatus, '')))
+	END
