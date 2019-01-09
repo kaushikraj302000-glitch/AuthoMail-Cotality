@@ -1,3 +1,4 @@
+print 'start execution'
 Print 'CREATE TABLE [Common].[Envelopes]'
 Go
 CREATE TABLE [Common].[Envelopes](
@@ -200,3 +201,6 @@ select *
 	--AND m.ShippingStatus IN ('InProgress','Shipped')
 	--AND ISNULL(m.ShippingStatus, '') IN (ISNULL('''InProgress'',''Shipped''', ISNULL(m.ShippingStatus, '')))
 	END
+
+	Go
+	print 'End execution'
