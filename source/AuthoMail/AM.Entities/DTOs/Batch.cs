@@ -110,4 +110,14 @@ namespace AM.Entities
         public int PackageCount { get; set; }
         public int TotalPages { get; set; }
     }
+
+    public class DALLASSubmittedBatchDetail
+    {
+        public string AppCode { get; set; }
+        public string ShippingCarrier { get; set; }
+        public string ShippingServiceType { get; set; }
+        public DateTime DueDate { get; set; }
+        public int PackageCount { get; set; }
+        public int TotalPages { get; set; }
+    }
 }

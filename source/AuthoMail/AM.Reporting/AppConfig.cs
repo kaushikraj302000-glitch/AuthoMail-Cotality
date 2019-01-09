@@ -24,6 +24,10 @@ namespace AM.Reporting
         public static string PCIReconEMailCc { get; private set; }
         public static string PCIReconEMailSubject { get; private set; }
         public static string PCIReconReportPath { get; private set; }
+        public static string DALLASReconEMailTo { get; private set; }
+        public static string DALLASReconEMailCc { get; private set; }
+        public static string DALLASReconEMailSubject { get; private set; }
+        public static string DALLASReconReportPath { get; private set; }
 
         static AppConfig()
         {
@@ -42,6 +46,11 @@ namespace AM.Reporting
             PCIReconEMailCc = ConfigurationManager.AppSettings["PCIReconEMailCc"].Trim();
             PCIReconEMailSubject = ConfigurationManager.AppSettings["PCIReconEMailSubject"].Trim();
             PCIReconReportPath = ConfigurationManager.AppSettings["PCIReconReportPath"].Trim();
+
+            DALLASReconEMailTo = ConfigurationManager.AppSettings["DALLASReconEMailTo"].Trim();
+            DALLASReconEMailCc = ConfigurationManager.AppSettings["DALLASReconEMailCc"].Trim();
+            DALLASReconEMailSubject = ConfigurationManager.AppSettings["DALLASReconEMailSubject"].Trim();
+            DALLASReconReportPath = ConfigurationManager.AppSettings["DALLASReconReportPath"].Trim();
         }
     }
 }

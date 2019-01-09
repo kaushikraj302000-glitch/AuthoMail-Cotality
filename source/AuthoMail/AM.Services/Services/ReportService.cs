@@ -22,6 +22,7 @@ namespace AM.Services
         List<MailPieces> GetMailPiecesDataFromPrintBatchId(int printBatchId);
         List<MailPieces> GetMailPiecesDataFromMailBatchId(int mailBatchId);
         List<PCISubmittedBatchDetail> GetPCIReconReport(DateTime startDate, DateTime endDate);
+        List<DALLASSubmittedBatchDetail> GetDALLASReconReport(DateTime startDate, DateTime endDate);       
         List<EnvelopeInventory> SupplyInventoryReport(List<string> envelopes);
         MailBatches GetMailBatchDataFromMailBatchId(int mailBatchId);
     }
@@ -292,6 +293,16 @@ ORDER BY PrintTrailBatchId";
             return db.Query<PCISubmittedBatchDetail>(query, new { StartDate = startDate, EndDate = endDate }).ToList();
         }
 
+        public List<DALLASSubmittedBatchDetail> GetDALLASReconReport(DateTime startDate, DateTime endDate)
+        {
+            string query = @"SELECT C.AppCode,D.ShippingCarrier,D.ShippingServiceType,MIN(P.DueDate) as DueDate,COUNT(*) AS PackageCount,SUM(P.TotalPages) AS TotalPages FROM AM.MailPieces P
+INNER JOIN AM.DocTypes D ON P.DocTypeId=D.Id
+INNER JOIN Common.Clients C ON P.ClientId=C.Id
+WHERE P.ShippingStatus NOT IN ('Error','PulledBack') AND P.EffectiveReceivedOnEst >= @StartDate AND P.EffectiveReceivedOnEst < @EndDate
+AND P.PrintLocation='Dallas CL'
+GROUP BY C.AppCode,D.ShippingCarrier,D.ShippingServiceType";
+            return db.Query<DALLASSubmittedBatchDetail>(query, new { StartDate = startDate, EndDate = endDate }).ToList();
+        }
 
         public List<EnvelopeInventory> SupplyInventoryReport(List<string> envelopes)
         {
