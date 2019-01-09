@@ -22,8 +22,8 @@ namespace AM.Services
         List<MailPieces> GetMailPiecesDataFromPrintBatchId(int printBatchId);
         List<MailPieces> GetMailPiecesDataFromMailBatchId(int mailBatchId);
         List<PCISubmittedBatchDetail> GetPCIReconReport(DateTime startDate, DateTime endDate);
-        List<DALLASSubmittedBatchDetail> GetDALLASReconReport(DateTime startDate, DateTime endDate);
-        List<EnvelopeTransactions> SupplyInventoryReport(List<string> envelopes);
+        List<DALLASSubmittedBatchDetail> GetDALLASReconReport(DateTime startDate, DateTime endDate);       
+        List<EnvelopeInventory> SupplyInventoryReport(List<string> envelopes);
         MailBatches GetMailBatchDataFromMailBatchId(int mailBatchId);
     }
     public class ReportService : ServiceBase, IReportService
@@ -304,7 +304,7 @@ GROUP BY C.AppCode,D.ShippingCarrier,D.ShippingServiceType";
             return db.Query<DALLASSubmittedBatchDetail>(query, new { StartDate = startDate, EndDate = endDate }).ToList();
         }
 
-        public List<EnvelopeTransactions> SupplyInventoryReport(List<string> envelopes)
+        public List<EnvelopeInventory> SupplyInventoryReport(List<string> envelopes)
         {
             envelopes.RemoveAll(e => e == "");
             string query = @"select * from Common.EnvelopeTransactions et
@@ -315,7 +315,7 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
                 query = string.Format("{0} where e.Id in @envelopes", query);
                 parameter.Add("@envelopes", envelopes);
             }
-            return db.Query<EnvelopeTransactions, Envelopes, EnvelopeTransactions>(query,
+            return db.Query<EnvelopeInventory, Envelopes, EnvelopeInventory>(query,
                 (t, e) =>
                 {
                     t.Envelopes = e;

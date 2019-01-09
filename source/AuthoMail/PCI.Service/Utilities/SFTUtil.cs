@@ -217,12 +217,12 @@ namespace PCI.Service.Utilities
             }
             else if (Protocol == SFT_ProtocolType.unc)
             {
-                Directory.CreateDirectory(directoryPath);
+                Directory.CreateDirectory(GetUrl(directoryPath));
                 return true;
             }
             else
             {
-                SFTP_Client.CreateDirectory(directoryPath);
+                SFTP_Client.CreateDirectory(GetUrl(directoryPath));
                 return true;
             }
         }
