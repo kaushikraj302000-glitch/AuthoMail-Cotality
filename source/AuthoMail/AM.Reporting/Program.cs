@@ -34,6 +34,9 @@ namespace AM.Reporting
                     case "PCIRecon":
                         PCIReconReport.GeneratePCIReconReport();
                         break;
+                    case "DALLASRecon":
+                        DALLASReconReport.GenerateDALLASReconReport();
+                        break;
                     default:
                         break;
                 }

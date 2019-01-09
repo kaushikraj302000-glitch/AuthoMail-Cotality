@@ -58,6 +58,7 @@
     <Compile Include="CheckFedExTrackingInfo.cs" />
     <Compile Include="AppConfig.cs" />
     <Compile Include="DallasNotification.cs" />
+    <Compile Include="DALLASReconReport.cs" />
     <Compile Include="FedExPickUP.cs" />
     <Compile Include="HSBCChannel.cs" />
     <Compile Include="PCIReconReport.cs" />
@@ -133,6 +134,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="DALLASReconReport\" />
     <Folder Include="PCIReconReport\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
