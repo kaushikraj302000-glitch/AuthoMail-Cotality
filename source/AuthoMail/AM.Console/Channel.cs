@@ -167,7 +167,7 @@ namespace AM.Console
                             }
                             catch (Exception ex)
                             {
-                                var msg = "Error occured while report uploading for MailBatchId - {0} with Error " + Environment.NewLine + "{1}".Fill(mailBatch.Id, ex.Message);
+                                var msg = "Error occured while report uploading for MailBatchId - {0} with Error : {1}".Fill(mailBatch.Id, ex.Message);
                                 log.Error(msg, ex);
                                 MailUtility.SendUnexpectedExceptionEmail(msg);
                             }
