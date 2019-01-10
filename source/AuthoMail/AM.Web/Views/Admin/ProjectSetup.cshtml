@@ -604,8 +604,9 @@
                         required: true
                     }
                 },
-                submitHandler: function (form) { // for demo
-                   
+                submitHandler: function (e) { // for demo
+                    e.preventDefault();
+                    $("#projetSetup").submit();
                 }
             });
         });
