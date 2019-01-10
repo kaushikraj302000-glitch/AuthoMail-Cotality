@@ -966,7 +966,7 @@ namespace PCI.Service
 
                                 if (isSuspend)
                                 {
-                                    SuspendBatchAndSendMailToPrintVendor(printTrailBatchDetail, suspensionReason, outFileName, printTrailDetail.VendorCode);
+                                    SuspendBatchAndSendMailToPrintVendor(printTrailBatchDetail, suspensionReason, outFileName, printTrailDetail.VendorCode, false);
                                     //Renaming files so that if we want to continue by reverting status then system will not pick up that file again and again
                                     File.Move(responseFilePath, Path.Combine(bundlingRootPath, outFileName + ".Suspended"));
                                     break;
@@ -1028,7 +1028,7 @@ namespace PCI.Service
 
                                 if (isSuspend)
                                 {
-                                    SuspendBatchAndSendMailToPrintVendor(printTrailBatchDetail, suspensionReason, outFileName, printTrailDetail.VendorCode);
+                                    SuspendBatchAndSendMailToPrintVendor(printTrailBatchDetail, suspensionReason, outFileName, printTrailDetail.VendorCode, false);
                                     //Renaming files so that if we want to continue by reverting status then system will not pick up that file again and again
                                     File.Move(responseFilePath, Path.Combine(bundlingRootPath, outFileName + ".Suspended"));
                                     break;
@@ -1059,7 +1059,7 @@ namespace PCI.Service
 
                         if (!validationErrors.IsNullOrWhiteSpace())
                         {
-                            SuspendBatchAndSendMailToPrintVendor(printTrailBatchDetail, validationErrors, outFileName, printTrailDetail.VendorCode);
+                            SuspendBatchAndSendMailToPrintVendor(printTrailBatchDetail, validationErrors, outFileName, printTrailDetail.VendorCode, false);
 
                             //Renaming file so that if we want to continue by reverting status and want to process new file then system will not pick up that file again and again
                             File.Move(responseFilePath, Path.Combine(bundlingRootPath, outFileName + ".Suspended"));
@@ -1125,7 +1125,7 @@ namespace PCI.Service
 
                     string validationErrors = "Batch suspended due to error while processing OUT file :  " + Environment.NewLine + ex.ToString();
 
-                    SuspendBatchAndSendInternalMail(printTrailBatchId, validationErrors);
+                    SuspendBatchAndSendMailToPrintVendor(printTrailBatchDetail, validationErrors, "", printTrailDetail.VendorCode, true);
                 }
             }
             log.Debug("ended preparing pns response");
@@ -1204,7 +1204,7 @@ namespace PCI.Service
             return mrdfResponseFields;
         }
 
-        private static void SuspendBatchAndSendMailToPrintVendor(PrintTrailBatch printTrailBatchDetail, string suspensionReason, string outFileName, string printVendorCode)
+        private static void SuspendBatchAndSendMailToPrintVendor(PrintTrailBatch printTrailBatchDetail, string suspensionReason, string outFileName, string printVendorCode, bool isOnlyInternal)
         {
             //DAL.LogBatchTimeLine(batchSummary.PrintBatch, LogBatchTimeLine.ReportPrepEnd, Common.GetCurrentTime());
 
@@ -1215,7 +1215,12 @@ namespace PCI.Service
             //suspend entire batch
             DAL.UpdatePrintTrailBatchStatus(printTrailBatchDetail.Id, BatchPipelineStatus.Suspended, Common.GetCurrentTime());
 
-            PrintVendorNotificationEmail(printTrailBatchDetail.PrintBatchName, suspensionReason, outFileName, printVendorCode);
+            if (isOnlyInternal)
+            {
+                MailUtility.SendBatchSuspendedNotificationInternalEmail(printTrailBatchDetail.Id, suspensionReason);
+            }
+            else
+                PrintVendorNotificationEmail(printTrailBatchDetail.PrintBatchName, suspensionReason, outFileName, printVendorCode);
         }
 
         public static void PrintVendorNotificationEmail(string printBatchName, string suspensionReason, string outFileName, string printVendorCode)
@@ -1314,7 +1319,7 @@ namespace PCI.Service
                     var containsReprint = mailPieceReport.Where(mp => mp.ErrId == (int)ErrorTypes.Reprint).ToList();
                     if (containsReprint.Count > 0)
                     {
-                        SuspendBatchAndSendInternalMail(bi.BatchSummary.PrintBatch, "Batch is suspended because response mrdf contains reprint codes.");
+                        SuspendBatchAndSendInternalMail(bi.BatchSummary, "Batch is suspended because response mrdf contains reprint codes.");
                         continue;
                     }
                     #endregion
@@ -1325,7 +1330,7 @@ namespace PCI.Service
 
                     if (!isQCPerformed)
                     {
-                        SuspendBatchAndSendInternalMail(bi.BatchSummary.PrintBatch, "Batch is suspended because QC Divert is not confirmed.");
+                        SuspendBatchAndSendInternalMail(bi.BatchSummary, "Batch is suspended because QC Divert is not confirmed.");
                         continue;
                     }
                     #endregion
@@ -1345,19 +1350,19 @@ namespace PCI.Service
             }
         }
 
-        private static void SuspendBatchAndSendInternalMail(int printBatchId, string suspensionReason)
+        private static void SuspendBatchAndSendInternalMail(BatchSummary batchSummary, string suspensionReason)
         {
-            //DAL.LogBatchTimeLine(batchSummary.PrintBatch, LogBatchTimeLine.ReportPrepEnd, Common.GetCurrentTime());
+            DAL.LogBatchTimeLine(batchSummary.PrintBatch, LogBatchTimeLine.ReportPrepEnd, Common.GetCurrentTime());
 
-            //batchSummary.ValidationErrors = batchSummary.ValidationErrors + Environment.NewLine + suspensionReason;
+            batchSummary.ValidationErrors = batchSummary.ValidationErrors + Environment.NewLine + suspensionReason;
 
-            //DAL.UpdatePnSRequestDataInBatchSummary(batchSummary);
-            ////This is need to be updated first and then quickly change it to suspend
-            //DAL.UpdateBatchPipeLineStatus(batchSummary.PrintBatch, BatchPipelineStatus.ReportPrepped, Common.GetCurrentTime());
-            ////suspend entire batch
-            //DAL.UpdateBatchPipeLineStatus(batchSummary.PrintBatch, BatchPipelineStatus.Suspended, Common.GetCurrentTime());
+            DAL.UpdatePnSRequestDataInBatchSummary(batchSummary);
+            //This is need to be updated first and then quickly change it to suspend
+            DAL.UpdateBatchPipeLineStatus(batchSummary.PrintBatch, BatchPipelineStatus.ReportPrepped, Common.GetCurrentTime());
+            //suspend entire batch
+            DAL.UpdateBatchPipeLineStatus(batchSummary.PrintBatch, BatchPipelineStatus.Suspended, Common.GetCurrentTime());
 
-            MailUtility.SendBatchSuspendedNotificationInternalEmail(printBatchId, suspensionReason);
+            MailUtility.SendBatchSuspendedNotificationInternalEmail(batchSummary.PrintBatch, suspensionReason);
         }
         #endregion
 
