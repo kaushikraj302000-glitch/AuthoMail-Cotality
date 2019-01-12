@@ -307,7 +307,7 @@ GROUP BY C.AppCode,D.ShippingCarrier,D.ShippingServiceType";
         public List<EnvelopeInventory> SupplyInventoryReport(List<string> envelopes)
         {
             envelopes.RemoveAll(e => e == "");
-            string query = @"select * from Common.EnvelopeTransactions et
+            string query = @"select * from Common.EnvelopeInventory et
 inner join Common.Envelopes e on et.EnvelopeId=e.Id";
             DynamicParameters parameter = new DynamicParameters();
             if (envelopes != null && envelopes.Count > 0)
