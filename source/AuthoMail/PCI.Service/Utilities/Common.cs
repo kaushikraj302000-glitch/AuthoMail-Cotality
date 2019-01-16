@@ -84,7 +84,7 @@ namespace PCI.Service
             DatabaseFactory.SetDatabaseProviderFactory(new DatabaseProviderFactory());
 
             ApplicationEnvironment = DAL.GetSystemSettingsValue("Common_Environment");
-            PnS_SFTChannelCode = ConfigurationManager.AppSettings["PnS_SFT_RootDir"].Trim() + "_" + ApplicationEnvironment;
+            PnS_SFTChannelCode = ConfigurationManager.AppSettings["PnS_SFTChannelCode"].Trim() + "_" + ApplicationEnvironment;
             Email_SMTPClient = new SmtpClient();
 
             Email_ToPCI = ConfigurationManager.AppSettings["Email_ToPCI"];
