@@ -16,19 +16,11 @@ namespace PCI.Service
     public static class Common
     {
         public static bool Remove_ImmediateErrFiles { get; private set; }
-        public static bool RemoveBatchFiles_PnS_SFT { get; private set; }
 
         public static string PCIRootFolder { get; set; }
         public static string BundlingRootFolder { get; set; }
-
         public static string PCIRootReturnPDFsZipFolder { get; set; }
-
-        public static SFT_ProtocolType PnS_SFT_Protocol { get; private set; }
-
-        public static string PnS_SFT_HostURL { get; private set; }
-        public static string PnS_SFT_UserName { get; private set; }
-        public static string PnS_SFT_Password { get; private set; }
-        public static string PnS_SFT_RootDir { get; private set; }
+        public static string PnS_SFTChannelCode { get; private set; }
 
         public static SmtpClient Email_SMTPClient { get; private set; }
         public static string Email_ToPCI { get; private set; }
@@ -72,7 +64,6 @@ namespace PCI.Service
         static Common()
         {
             Remove_ImmediateErrFiles = ConfigurationManager.AppSettings["Remove_ImmediateErrFiles"].Trim() == "0" ? false : true;
-            RemoveBatchFiles_PnS_SFT = ConfigurationManager.AppSettings["RemoveBatchFiles_PnS_SFT"].Trim() == "0" ? false : true;
 
             PCIRootFolder = Path.GetFullPath(ConfigurationManager.AppSettings["PCIRootFolder"]);
             PCIRootFolder.CreateDirectoryIfNotExist();
@@ -90,27 +81,10 @@ namespace PCI.Service
             PCIRootReturnPDFsZipFolder = Path.GetFullPath(ConfigurationManager.AppSettings["PCIRootReturnPDFsZipFolder"]);
             PCIRootReturnPDFsZipFolder.CreateDirectoryIfNotExist();
 
-            string PnS_SFT_Protocol_Value = ConfigurationManager.AppSettings["PnS_SFT_Protocol_Value"].Trim().ToLower();
-            switch (PnS_SFT_Protocol_Value)
-            {
-                case "ftp": PnS_SFT_Protocol = SFT_ProtocolType.ftp;
-                    break;
-                case "sftp": PnS_SFT_Protocol = SFT_ProtocolType.sftp;
-                    break;
-                case "unc": PnS_SFT_Protocol = SFT_ProtocolType.unc;
-                    break;
-                default: throw new Exception("Please provide valid protocol for 'PnS_SFT_Protocol_Value'.");
-            }
-
-            PnS_SFT_HostURL = ConfigurationManager.AppSettings["PnS_SFT_HostURL"];
-            PnS_SFT_UserName = ConfigurationManager.AppSettings["PnS_SFT_UserName"];
-            PnS_SFT_Password = ConfigurationManager.AppSettings["PnS_SFT_Password"];
-            PnS_SFT_RootDir = ConfigurationManager.AppSettings["PnS_SFT_RootDir"];
-
             DatabaseFactory.SetDatabaseProviderFactory(new DatabaseProviderFactory());
 
             ApplicationEnvironment = DAL.GetSystemSettingsValue("Common_Environment");
-
+            PnS_SFTChannelCode = ConfigurationManager.AppSettings["PnS_SFT_RootDir"].Trim() + "_" + ApplicationEnvironment;
             Email_SMTPClient = new SmtpClient();
 
             Email_ToPCI = ConfigurationManager.AppSettings["Email_ToPCI"];

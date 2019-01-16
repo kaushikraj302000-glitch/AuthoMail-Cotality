@@ -126,6 +126,7 @@ namespace PCI.Service
 
             return pendingBatchCount == 0;
         }
+
         public static PrintVendor GetPrintVendorDetailByVendorCode(string printVendorCode)
         {
             var printTrailDetail = db.ExecuteDataSet(CommandType.Text, "SELECT PV.Id, PV.Name, PV.SFTChannelId, PV.BusinessCode, PV.VendorCode, SC.Protocol, SC.Host, SC.UserName, SC.[Password], SC.ToADEDir, SC.FromADEDir, SC.ArchiveDir, SC.PostDownloadAction FROM Common.PrintVendors PV INNER JOIN Common.SFTChannels SC ON PV.SFTChannelId=SC.Id WHERE PV.VendorCode='{0}'".Fill(printVendorCode));
@@ -140,6 +141,13 @@ namespace PCI.Service
                 db.ExecuteSqlNonQuery("UPDATE [Common].[Envelopes] SET CurrentQuantity = CurrentQuantity-{0} WHERE Id IN (@p1)".Fill(envelope.Value), envelope.Key);
             }
             return 1;
+        }
+
+        public static SFTChannel GetSFTChannelDetailsByCode(string sftChannelCode)
+        {
+            var sftChannelDetail = db.ExecuteDataSet(CommandType.Text, "SELECT Id, Code,Description,Title, Protocol, Host, UserName, [Password], ToADEDir, FromADEDir, ArchiveDir, PostDownloadAction FROM Common.SFTChannels WHERE Code='{0}'".Fill(sftChannelCode));
+
+            return sftChannelDetail.DataTableAccessor<SFTChannel>(false).Single();
         }
     }
 }
