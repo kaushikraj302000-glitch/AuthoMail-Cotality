@@ -33,7 +33,7 @@ GO
 Print 'CREATE TABLE [Common].[EnvelopeInventory]'
 CREATE TABLE [Common].[EnvelopeInventory](
  [Id] [INT] IDENTITY(10000,1) NOT NULL,
- [EnvelopeId] VARCHAR(255) NULL,
+ [EnvelopeId] VARCHAR(255) NOT NULL,
  [Description] [varchar](2048) NULL,
  [ReceivedOn] [datetime] NULL,
  [ReceivedQuantity] [INT] NOT NULL,
@@ -62,11 +62,14 @@ Go
 ALTER TABLE [Common].[EnvelopeInventory]
 ADD [CreatedBy] NVARCHAR(128) not null,[ModifiedBy] NVARCHAR(128) not null,[CreatedOn] datetime not null,[ModifiedOn] datetime not null
 
-ALTER TABLE [Common].[EnvelopeInventory]  WITH CHECK ADD CONSTRAINT [FK_CreatedBy_EnvelopeTransaction_Users] FOREIGN KEY([CreatedBy])
+ALTER TABLE [Common].[EnvelopeInventory]  WITH CHECK ADD CONSTRAINT [FK_CreatedBy_EnvelopeInventory_Users] FOREIGN KEY([CreatedBy])
 REFERENCES [Profile].[Users] ([Id])
 GO
-ALTER TABLE [Common].[EnvelopeInventory]  WITH CHECK ADD CONSTRAINT [FK_ModifiedBy_EnvelopeTransaction_Users] FOREIGN KEY([ModifiedBy])
+ALTER TABLE [Common].[EnvelopeInventory]  WITH CHECK ADD CONSTRAINT [FK_ModifiedBy_EnvelopeInventory_Users] FOREIGN KEY([ModifiedBy])
 REFERENCES [Profile].[Users] ([Id])
+Go
+ALTER TABLE [Common].[EnvelopeInventory]  WITH CHECK ADD CONSTRAINT [FK_EnvelopeId_EnvelopeInventory_Users] FOREIGN KEY([EnvelopeId])
+REFERENCES [Common].[Envelopes] ([Id])
 GO
 
 print 'create table [AM].[ProjectRequest]'
