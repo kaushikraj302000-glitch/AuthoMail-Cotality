@@ -416,7 +416,7 @@ namespace PCI.Service.Utilities
             }
             else if (Protocol == SFT_ProtocolType.unc)
             {
-                List<string> remoteFiles = Directory.GetFiles(remoteDirPath).ToList();
+                List<string> remoteFiles = Directory.GetFiles(GetUrl(remoteDirPath)).ToList();
                 foreach (string remoteFile in remoteFiles)
                 {
                     DownloadFile(remoteFile, Path.Combine(localDirPath, Path.GetFileName(remoteFile)), deleteRemoteFile);
@@ -655,11 +655,12 @@ namespace PCI.Service.Utilities
             }
             else if (Protocol == SFT_ProtocolType.unc)
             {
-                if (!Directory.Exists(archiveRemotePath))
+                var archiveRemoteFullPath = GetUrl(archiveRemotePath);
+                if (!Directory.Exists(archiveRemoteFullPath))
                 {
-                    Directory.CreateDirectory(archiveRemotePath);
+                    Directory.CreateDirectory(archiveRemoteFullPath);
                 }
-                Directory.Move(remoteDirPath, archiveRemotePath);
+                Directory.Move(remoteDirPath, archiveRemoteFullPath);
             }
             else
             {
