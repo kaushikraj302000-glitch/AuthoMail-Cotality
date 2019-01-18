@@ -16,7 +16,7 @@ namespace PCI.Service
     public static class Common
     {
         public static bool Remove_ImmediateErrFiles { get; private set; }
-
+        public static string FontPathDir { get; private set; }
         public static string PCIRootFolder { get; set; }
         public static string BundlingRootFolder { get; set; }
         public static string PCIRootReturnPDFsZipFolder { get; set; }
@@ -64,7 +64,7 @@ namespace PCI.Service
         static Common()
         {
             Remove_ImmediateErrFiles = ConfigurationManager.AppSettings["Remove_ImmediateErrFiles"].Trim() == "0" ? false : true;
-
+            FontPathDir = ConfigurationManager.AppSettings["FontsDirPath"].Trim();
             PCIRootFolder = Path.GetFullPath(ConfigurationManager.AppSettings["PCIRootFolder"]);
             PCIRootFolder.CreateDirectoryIfNotExist();
 

@@ -173,15 +173,19 @@ namespace PCI.Service
 
             foreach (var res in batchResponse.PackagesReport)
             {
+                int pieceId = GetRequestPieceId(batchResponse.JobId, res.PieceId);
                 var sql = @"DELETE FROM [PnS].[MRDFResponse] Where JobId=@p1 and PieceId=@p2";
-                db.ExecuteSqlNonQuery(sql, batchResponse.JobId, res.PieceId);
+                db.ExecuteSqlNonQuery(sql, batchResponse.JobId, pieceId);
 
                 sql = @"INSERT INTO PnS.MRDFResponse (JobId,PieceId,ProcessingTimeStamp,Disposition,PostageMetered,WeightMeasured,TotalSheets,PDFFileName) VALUES (@p1,@p2,@p3,@p4,@p5,@p6,@p7,@p8)";
 
-                db.ExecuteSqlNonQuery(sql, batchResponse.JobId, res.PieceId, res.PrintStatus == PrintStatus.Shipped ? Common.EstToUtc(res.ShippedOn) : res.PrintStatus == PrintStatus.PulledBack ? Common.EstToUtc(res.PulledBackOn) : DateTime.MinValue, res.PrintStatus == PrintStatus.Shipped ? '5' : res.PrintStatus == PrintStatus.PulledBack ? '4' : '7', res.Postage, res.WeightMeasured, res.TotalSheets, res.PDFFileName);
+                db.ExecuteSqlNonQuery(sql, batchResponse.JobId, pieceId, res.PrintStatus == PrintStatus.Shipped ? Common.EstToUtc(res.ShippedOn) : res.PrintStatus == PrintStatus.PulledBack ? Common.EstToUtc(res.PulledBackOn) : DateTime.MinValue, res.PrintStatus == PrintStatus.Shipped ? '5' : res.PrintStatus == PrintStatus.PulledBack ? '4' : '7', res.Postage, res.WeightMeasured, res.TotalSheets, res.PDFFileName);
             }
         }
-
+        public static int GetRequestPieceId(int printTrailBatchId, int mailPieceId)
+        {
+            return db.ExecuteSqlScalar<int>("SELECT Req.PieceId FROM PnS.MRDFRequest Req INNER JOIN AM.MailPieces MP ON Req.UniqueId=MP.UniqueId WHERE Req.PrintTrailBatchId=@p1 AND MP.MailPieceId=@p2", printTrailBatchId, mailPieceId);
+        }
         public static void UpdateMRDFRequestStatusFromResponse(EnumerableRowCollection<DataRow> printVendorResponseData, List<int> resPieceIds)
         {
             foreach (var pieceId in resPieceIds)
