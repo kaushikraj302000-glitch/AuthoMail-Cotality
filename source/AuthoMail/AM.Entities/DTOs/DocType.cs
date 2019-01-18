@@ -57,6 +57,7 @@ namespace AM.Entities
         public string ShippingSpecialService { get; set; }
         public string EnvelopeId { get; set; }
         public string BREEnvelopeId { get; set; }
+        public int NoOfCopies { get; set; }
     }
 
     public class DocTypeCoverLetter
