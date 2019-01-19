@@ -99,7 +99,7 @@ namespace AM.Reporting
                     mailPiece.MailBatches.ReceivedOn.Value.UtcToEst(),
                     mailPiece.DocumentOrPackageType,
                     mailPiece.IsPickedUp == 1 ? "Picked Up" : "Not Picked",
-                    mailPiece.PickedUpOn);
+                    mailPiece.PickedUpOn.HasValue ? mailPiece.PickedUpOn.Value.UtcToEst() : mailPiece.PickedUpOn);
                 mailPiecesReport.AppendLine(line);
             }
 
