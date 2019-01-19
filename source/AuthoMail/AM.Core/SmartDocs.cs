@@ -214,8 +214,15 @@ namespace AM.Core
                         mergePdfCollection.Add(mergeReadyFilePath);
                     }
                     mergePdfCollection.Add(outputDocumentPath);
-                    //Here we are just renaming file as a output document because we are not merging any cover letter for it
-                    PdfUtil.MergePDFs(mergePdfCollection.ToArray());
+                    if (mergePdfCollection.Count == 2)
+                    {
+                        File.Move(mergePdfCollection[0], mergePdfCollection[1]);
+                    }
+                    else
+                    {
+                        //Here we are just renaming file as a output document because we are not merging any cover letter for it
+                        PdfUtil.MergePDFs(mergePdfCollection.ToArray());
+                    }
                 }
 
                 #endregion
