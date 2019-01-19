@@ -149,5 +149,10 @@ namespace PCI.Service
 
             return sftChannelDetail.DataTableAccessor<SFTChannel>(false).Single();
         }
+
+        public static int GetMailPieceIdFromGuid(Guid uniqueId)
+        {
+            return db.ExecuteSqlScalar<int>("SELECT TOP 1 Id FROM AM.MailPieces WHERE UniqueId=@p1 ORDER BY Id DESC", uniqueId);
+        }
     }
 }

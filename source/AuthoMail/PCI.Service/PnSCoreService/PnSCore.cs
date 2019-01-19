@@ -24,7 +24,7 @@ namespace PCI.Service
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(PnSCoreService));
         private static Database db = DatabaseFactory.CreateDatabase();
-                
+
         public static BaseFont arial = BaseFont.CreateFont(Path.Combine(Common.FontPathDir, "ARIAL.TTF"), BaseFont.CP1252, true);
 
         private static List<PCIField> BatchSummarySchema { get; set; }
@@ -716,32 +716,33 @@ namespace PCI.Service
 
                             //If we have print vendor as "NORDIS" then we will put sequence number in each package each page. at one of side like Bottom Right or Top Right or it may change as per requirments.
 
-                            //NOTE: Please comment one of region based on requirement
-                            if (printTrailDetail.PrintVendorName == "NORDIS")
+                            //NOTE: Please comment one of Sequence Number region based on requirement
+                            if (printTrailDetail.VendorCode == "NORDIS")
                             {
+                                int mailPieceId = DAL.GetMailPieceIdFromGuid(mailPiece.UniqueId);
                                 var dr = writer.DirectContent;
-                                var chunk = new Chunk("000001", new iTextSharp.text.Font(arial, 8));
+                                var chunk = new Chunk(mailPieceId.ToString(), new iTextSharp.text.Font(arial, 8));
                                 chunk.SetCharacterSpacing(1);
                                 var seqNo = new Phrase(chunk);
 
                                 #region Top-Right Sequence Number
-                                //With Verticle Seq
-                                if (rotation == 90)
-                                {
-                                    ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, BarcodeInfo.TopMargin.ToPoint(), page.ScaledHeight - BarcodeInfo.RightMargin.ToPoint(), rotation + 90);
-                                }
-                                else if (rotation == 180)
-                                {
-                                    ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, BarcodeInfo.RightMargin.ToPoint(), BarcodeInfo.TopMargin.ToPoint(), rotation + 90);
-                                }
-                                else if (rotation == 270)
-                                {
-                                    ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, page.ScaledWidth - BarcodeInfo.TopMargin.ToPoint(), BarcodeInfo.RightMargin.ToPoint(), rotation + 90);
-                                }
-                                else
-                                {
-                                    ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, page.ScaledWidth - BarcodeInfo.RightMargin.ToPoint(), page.ScaledHeight - BarcodeInfo.TopMargin.ToPoint(), rotation + 90);
-                                }
+                                ////With Verticle Seq
+                                //if (rotation == 90)
+                                //{
+                                //    ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, BarcodeInfo.TopMargin.ToPoint(), page.ScaledHeight - BarcodeInfo.RightMargin.ToPoint(), rotation + 90);
+                                //}
+                                //else if (rotation == 180)
+                                //{
+                                //    ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, BarcodeInfo.RightMargin.ToPoint(), BarcodeInfo.TopMargin.ToPoint(), rotation + 90);
+                                //}
+                                //else if (rotation == 270)
+                                //{
+                                //    ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, page.ScaledWidth - BarcodeInfo.TopMargin.ToPoint(), BarcodeInfo.RightMargin.ToPoint(), rotation + 90);
+                                //}
+                                //else
+                                //{
+                                //    ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, page.ScaledWidth - BarcodeInfo.RightMargin.ToPoint(), page.ScaledHeight - BarcodeInfo.TopMargin.ToPoint(), rotation + 90);
+                                //}
                                 #endregion
 
                                 #region Bottom-Right Sequence Number
@@ -847,7 +848,7 @@ namespace PCI.Service
 
                                 var rpt = new PackageReport();
 
-                                rpt.PieceId = resData.Field<int>("PieceId");
+                                rpt.PieceId = resData.Field<int>("MailPieceId");
                                 rpt.PDFFileName = resData.Field<string>("PDFFileName");
                                 rpt.PrintStatus = resData.Field<string>("PrintStatus").ParseEnum<PrintStatus>();
                                 rpt.PulledBackOn = resData.Field<string>("PrintStatus").ParseEnum<PrintStatus>() == PrintStatus.PulledBack ? Common.UtcToEst(resData.Field<DateTime>("ProcessingTimeStamp")) : DateTime.MinValue;

@@ -184,7 +184,7 @@ namespace PCI.Service
         }
         public static int GetRequestPieceId(int printTrailBatchId, int mailPieceId)
         {
-            return db.ExecuteSqlScalar<int>("SELECT Req.PieceId FROM PnS.MRDFRequest Req INNER JOIN AM.MailPieces MP ON Req.UniqueId=MP.UniqueId WHERE Req.PrintTrailBatchId=@p1 AND MP.MailPieceId=@p2", printTrailBatchId, mailPieceId);
+            return db.ExecuteSqlScalar<int>("SELECT Req.PieceId FROM PnS.MRDFRequest Req INNER JOIN AM.MailPieces MP ON Req.UniqueId=MP.UniqueId WHERE Req.PrintTrailBatchId=@p1 AND MP.Id=@p2", printTrailBatchId, mailPieceId);
         }
         public static void UpdateMRDFRequestStatusFromResponse(EnumerableRowCollection<DataRow> printVendorResponseData, List<int> resPieceIds)
         {
