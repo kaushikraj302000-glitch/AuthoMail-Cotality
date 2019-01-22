@@ -31,7 +31,7 @@ namespace AM.Reporting
 
                     if (dallasSubmittedBatchDetails.Count > 0)
                     {
-                        SendEmailNotificationToPCI(dallasSubmittedBatchDetails, startDate);
+                        SendEmailNotificationToDALLAS(dallasSubmittedBatchDetails, startDate);
                     }
                 }
                 log.Debug("DALLAS recon report Execution Completed at {0} Est".Fill(Common.Now.UtcToEst()));
@@ -42,7 +42,7 @@ namespace AM.Reporting
             }
         }
 
-        private static void SendEmailNotificationToPCI(List<DALLASSubmittedBatchDetail> dallasSubmittedBatchDetails, DateTime currentTime)
+        private static void SendEmailNotificationToDALLAS(List<DALLASSubmittedBatchDetail> dallasSubmittedBatchDetails, DateTime currentTime)
         {
             var columnName = String.Join(",", "Client", "Carrier", "Service Type", "Package Count", "Total Pages");
 
@@ -54,7 +54,7 @@ namespace AM.Reporting
                 var line = String.Join(",", batch.AppCode, batch.ShippingCarrier, batch.ShippingServiceType, batch.PackageCount, batch.TotalPages);
                 reconReport.AppendLine(line);
             }
-            string reportFilePath = Path.Combine(AppConfig.PCIReconReportPath, "DALLASReconReport_" + currentTime.ToString("MMddyyyy") + ".csv");
+            string reportFilePath = Path.Combine(AppConfig.DALLASReconReportPath, "DALLASReconReport_" + currentTime.ToString("MMddyyyy") + ".csv");
             File.WriteAllText(reportFilePath, reconReport.ToString());
 
             SendReportToCLTeam(reportFilePath, currentTime);
