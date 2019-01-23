@@ -144,19 +144,7 @@ namespace AM.Web.Controllers
             return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
 
-        [AllowAnonymous]
-        public ActionResult About()
-        {
-            ViewBag.Message = "Your application description page.";
-
-            return View();
-        }
-
-        public ActionResult Contact()
-        {
-            ViewBag.Message = "Your contact page.";
-            return View();
-        }
+        
         [AllowAnonymous, Route("37f9ac3e-40b3-4ae8-ac9a-d84634638065")]
         public ActionResult AMHealth()
         {
