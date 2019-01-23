@@ -19,8 +19,8 @@ namespace PCI.Service
 
         public static void GetNewPnSBatch()
         {
-            SFTUtil sftSite = new SFTUtil(Common.PnS_SFT_Protocol, Common.PnS_SFT_HostURL, Common.PnS_SFT_UserName, Common.PnS_SFT_Password,
-                    300000);
+            SFTChannel sftChannel = DAL.GetSFTChannelDetailsByCode(Common.PnS_SFTChannelCode);
+            SFTUtil sftSite = new SFTUtil(sftChannel.Protocol.ParseEnum<SFT_ProtocolType>(), sftChannel.Host, sftChannel.UserName, sftChannel.Password, 300000);
             sftSite.Connect();
 
             // If at least one batch found from any of the client then re-check for all clients; if for all clients no batch found then end.
@@ -33,7 +33,7 @@ namespace PCI.Service
 
                 foreach (var client in clients)
                 {
-                    bool isOneNewBatchFound = CheckForNewPnSBatch(client, sftSite);
+                    bool isOneNewBatchFound = CheckForNewPnSBatch(client, sftSite, sftChannel);
                     if (isOneNewBatchFound)
                     {
                         // at least one batch found.
@@ -59,12 +59,12 @@ namespace PCI.Service
 
         #region Sub-Methods for downloading new PnS batch
 
-        private static bool CheckForNewPnSBatch(Client clientInfo, SFTUtil sftSite)
+        private static bool CheckForNewPnSBatch(Client clientInfo, SFTUtil sftSite, SFTChannel sftChannel)
         {
             List<string> availableSFTFiles;
             List<string> availableBatches;
 
-            availableSFTFiles = sftSite.ListDirectory(string.Format("{0}/{1}", Common.PnS_SFT_RootDir, clientInfo.AppCode));
+            availableSFTFiles = sftSite.ListDirectory(string.Format("{0}/{1}", sftChannel.ToADEDir, clientInfo.AppCode));
             availableBatches = availableSFTFiles.Where(x => x.ToLower().EndsWith(".go")).ToList();
 
             if (availableBatches.Count > 0)
@@ -77,7 +77,7 @@ namespace PCI.Service
                 {
                     log.Debug("Downloading Started For Batch {0}".Fill(Path.GetFileNameWithoutExtension(goFile)));
                     string clientBatchName = Path.GetFileNameWithoutExtension(goFile);
-                    string appDirRemotePath = "{0}/{1}".Fill(Common.PnS_SFT_RootDir, clientInfo.AppCode);
+                    string appDirRemotePath = "{0}/{1}".Fill(sftChannel.ToADEDir, clientInfo.AppCode);
                     string batchPDFsDirRemotePath = "{0}/{1}".Fill(appDirRemotePath, clientBatchName);
                     string requestXMLRemotePath = "{0}/{1}.xml".Fill(appDirRemotePath, clientBatchName);
 
@@ -98,7 +98,7 @@ namespace PCI.Service
 
                         BatchInfo bi = new BatchInfo(batchSummary, clientInfo);
 
-                        DownloadPDFsAndCreateNewBatch(bi, appDirRemotePath, requestXMLRemotePath, sftSite);
+                        DownloadPDFsAndCreateNewBatch(bi, appDirRemotePath, requestXMLRemotePath, sftSite, sftChannel);
                     }
                 }
 
@@ -110,7 +110,7 @@ namespace PCI.Service
             return false;
         }
 
-        private static void DownloadPDFsAndCreateNewBatch(BatchInfo bi, string appDirRemotePath, string requestXMLRemotePath, SFTUtil sftSite)
+        private static void DownloadPDFsAndCreateNewBatch(BatchInfo bi, string appDirRemotePath, string requestXMLRemotePath, SFTUtil sftSite, SFTChannel sftChannel)
         {
             string batchPDFsDirRemotePath = "{0}/{1}".Fill(appDirRemotePath, bi.BatchName);
 
@@ -134,17 +134,7 @@ namespace PCI.Service
 
                 #region Remove batch from PnS SFT site and update status.
 
-                //Uncomment removePDFsDir,removeRemoteXML related lines in production
-                //RemovalOperationResult removePDFsDir = session.RemoveFiles("{0}/*".Fill( batchPDFsFolderRemotePath));
-                //RemovalOperationResult removeRemoteXML = session.RemoveFiles(session.EscapeFileMask( "{0}/{1}.xml".Fill(appDirRemotePath, batchName)));
-                //RemovalOperationResult removeRemoteGo = session.RemoveFiles(session.EscapeFileMask("{0}/{1}.go".Fill(appDirRemotePath, bi.BatchSummary.PrintBatch)));
-
-                //removePDFsDir.Check();
-                //removeRemoteXML.Check();
-                //removeRemoteGo.Check();
-
-                // Comment below line in production.
-                if (Common.RemoveBatchFiles_PnS_SFT)
+                if (sftChannel.PostDownloadAction == "Delete")
                 {
                     sftSite.DeleteFile("{0}/{1}.xml".Fill(appDirRemotePath, bi.BatchName));
                     sftSite.DeleteFile("{0}/{1}.go".Fill(appDirRemotePath, bi.BatchName));
@@ -190,14 +180,15 @@ namespace PCI.Service
             {
                 log.DebugFormat("{0} immediate error report(s) found to upload.", errFilesWithAppCode.Count);
 
-                SFTUtil sftSite = new SFTUtil(Common.PnS_SFT_Protocol, Common.PnS_SFT_HostURL, Common.PnS_SFT_UserName, Common.PnS_SFT_Password, 300000);
+                SFTChannel sftChannel = DAL.GetSFTChannelDetailsByCode(Common.PnS_SFTChannelCode);
+                SFTUtil sftSite = new SFTUtil(sftChannel.Protocol.ParseEnum<SFT_ProtocolType>(), sftChannel.Host, sftChannel.UserName, sftChannel.Password, 300000);
 
                 // Connect                    
                 sftSite.Connect();
 
                 foreach (var errFile in errFilesWithAppCode)
                 {
-                    UploadImmediateErrReport(errFile.Value.TrimStart('.'), errFile.Key, sftSite);
+                    UploadImmediateErrReport(errFile.Value.TrimStart('.'), errFile.Key, sftSite, sftChannel);
                 }
 
                 sftSite.Disconnect();
@@ -206,7 +197,7 @@ namespace PCI.Service
 
         #region Sub-Methods for uploading immediate error report.
 
-        private static void UploadImmediateErrReport(string appCode, string ieReportTriggerFile, SFTUtil sftSite)
+        private static void UploadImmediateErrReport(string appCode, string ieReportTriggerFile, SFTUtil sftSite, SFTChannel sftChannel)
         {
             string batchName = Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(ieReportTriggerFile));
             string immediateErrorReportPath = Path.Combine(Common.PCIRootFolder, "{0}-res.xml".Fill(batchName));
@@ -216,7 +207,7 @@ namespace PCI.Service
 
             if (File.Exists(immediateErrorReportPath))
             {
-                string ieReportRemoteDirPath = "{0}/{1}".Fill(Common.PnS_SFT_RootDir, appCode);
+                string ieReportRemoteDirPath = "{0}/{1}".Fill(sftChannel.ToADEDir, appCode);
                 UploadFileOnSFTSite(immediateErrorReportPath, ieReportRemoteDirPath, Common.Remove_ImmediateErrFiles, sftSite);
                 UploadFileOnSFTSite(sftTriggerFilePath, ieReportRemoteDirPath, Common.Remove_ImmediateErrFiles, sftSite);
 
@@ -256,7 +247,8 @@ namespace PCI.Service
                 return;
             }
 
-            SFTUtil sftSite = new SFTUtil(Common.PnS_SFT_Protocol, Common.PnS_SFT_HostURL, Common.PnS_SFT_UserName, Common.PnS_SFT_Password, 300000);
+            SFTChannel sftChannel = DAL.GetSFTChannelDetailsByCode(Common.PnS_SFTChannelCode);
+            SFTUtil sftSite = new SFTUtil(sftChannel.Protocol.ParseEnum<SFT_ProtocolType>(), sftChannel.Host, sftChannel.UserName, sftChannel.Password, 300000);
 
             sftSite.Connect();
 
@@ -277,7 +269,7 @@ namespace PCI.Service
                         sftSite.Connect();
                     }
 
-                    string batchRemoteDirPath = "{0}/{1}".Fill(Common.PnS_SFT_RootDir, bi.Client.AppCode);
+                    string batchRemoteDirPath = "{0}/{1}".Fill(sftChannel.ToADEDir, bi.Client.AppCode);
                     string xmlReportPath = Path.Combine(bi.PnSResponsePath, "{0}-res.xml".Fill(bi.BatchName));
                     string finalTriggerPath = Path.Combine(bi.PnSResponsePath, "{0}.rpt".Fill(bi.BatchName));
 

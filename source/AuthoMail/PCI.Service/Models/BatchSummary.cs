@@ -54,7 +54,7 @@ namespace PCI.Service
         public string PnSRequestPath { get; private set; }
         public string PCIRequestPath { get; private set; }
         public string PCIResponsePath { get; private set; }
-        public string PCIResponseReturnPDFsPath { get; private set; }
+        //public string PCIResponseReturnPDFsPath { get; private set; }
         public string PnSResponsePath { get; private set; }
         public string PnSRequestPDFsPath { get; private set; }
         public string BatchName { get; private set; }
@@ -100,7 +100,7 @@ namespace PCI.Service
             PnSRequestPDFsPath = Path.Combine(PnSRequestPath, BatchName);
 
             //Used for storing PCI returned pdf to pns shared path for showing that pdfs to AuthoMail website
-            PCIResponseReturnPDFsPath = Path.Combine(Common.PnS_SFT_RootDir, "PCIReturnedPDFs", client.AppCode, batchSummary.PrintBatch.ToString());
+            //PCIResponseReturnPDFsPath = Path.Combine(Common.PnS_SFT_RootDir, "PCIReturnedPDFs", client.AppCode, batchSummary.PrintBatch.ToString());
         }
     }
 

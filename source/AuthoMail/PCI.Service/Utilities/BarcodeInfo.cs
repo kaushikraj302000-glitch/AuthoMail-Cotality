@@ -39,6 +39,11 @@ namespace PCI.Service
         public static float LeftMargin { get; private set; }
         public static float RightMargin { get; private set; }
 
+        public static float BarcodeTopMargin { get; private set; }
+        public static float BarcodeBottomMargin { get; private set; }
+        public static float BarcodeLeftMargin { get; private set; }
+        public static float BarcodeRightMargin { get; private set; }
+
         static BarcodeInfo()
         {
             TopMargin = float.Parse(ConfigurationManager.AppSettings["TopMargin"]);
@@ -48,6 +53,11 @@ namespace PCI.Service
             TemplateSize = Convert.ToInt32(ConfigurationManager.AppSettings["TemplateSize"]);
             ActualSizeInch = float.Parse(ConfigurationManager.AppSettings["ActualSizeInch"]);
             WhiteSpace = Convert.ToInt32(ConfigurationManager.AppSettings["WhiteSpace"]);
+
+            BarcodeTopMargin = float.Parse(ConfigurationManager.AppSettings["BarcodeTopMargin"]);
+            BarcodeBottomMargin = float.Parse(ConfigurationManager.AppSettings["BarcodeBottomMargin"]);
+            BarcodeLeftMargin = float.Parse(ConfigurationManager.AppSettings["BarcodeLeftMargin"]);
+            BarcodeRightMargin = float.Parse(ConfigurationManager.AppSettings["BarcodeRightMargin"]);
         }
     }
 }

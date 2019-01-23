@@ -59,7 +59,7 @@ namespace AM.Core
                                 DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value);
 
                                 int mailPieceId = mailPiece.Id;
-
+                                
                                 string pdfFilePath = Path.Combine(mbi.AMRequestPath, mailPiece.FileName);
                                 string outputFilePath = Path.Combine(mbi.PnSRequestPath, "{0}_{1}".Fill(mailPieceId, mailPiece.FileName));
                                 List<string> coverLetterPdfPaths = new List<string>();
@@ -342,7 +342,7 @@ namespace AM.Core
                                     endLetterPdfPaths.Add(response.CoverLetterPath);
                                 }
 
-                                response = doc.GenerateDoc(coverLetterPdfPaths, pdfFilePath, outputFilePath, docType.ContentScalePercent, endLetterPdfPaths);
+                                response = doc.GenerateDoc(coverLetterPdfPaths, pdfFilePath, outputFilePath, docType.ContentScalePercent, docType.NoOfCopies, endLetterPdfPaths);
 
                                 if (response.HasError)
                                 {

@@ -210,7 +210,7 @@ namespace PCI.Service
             List<PackageData> packageData = new List<PackageData>();
             foreach (MailPieceDetail package in mailPieceDetails)
             {
-                packageData.Add(new PackageData() { PieceId = package.PieceId, PDFFileName = package.PDFFileName, DueDate = package.MailPieceDueDate, TotalSheets = package.TotalSheets, BRERequired = package.Feeder4_Sel == 1 ? true : false, QCReqd = package.DivertVS3 == 1 ? true : false });
+                packageData.Add(new PackageData() { PieceId = package.MailPieceId.Value, PDFFileName = package.PDFFileName, DueDate = package.MailPieceDueDate, TotalSheets = package.TotalSheets, BRERequired = package.Feeder4_Sel == 1 ? true : false, QCReqd = package.DivertVS3 == 1 ? true : false, ClientId = package.ClientId });
             }
             BatchRequest batchRequestXml = new BatchRequest() { JobId = printTrailBatchDetail.Id, PackagesData = packageData };
 

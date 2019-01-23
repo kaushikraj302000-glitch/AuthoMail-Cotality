@@ -157,7 +157,7 @@ namespace AM.Core
             #endregion
         }
 
-        public SmartDocResponse GenerateDoc(List<string> coverLetterPDFPaths, string pdfAttachmentPath, string outputDocumentPath, float contentScalePercent, List<string> endPagePDFPaths = null)
+        public SmartDocResponse GenerateDoc(List<string> coverLetterPDFPaths, string pdfAttachmentPath, string outputDocumentPath, float contentScalePercent, int noOfCopies, List<string> endPagePDFPaths = null)
         {
             List<string> mergePdfCollection = new List<string>();
             SmartDocResponse response = new SmartDocResponse();
@@ -187,7 +187,10 @@ namespace AM.Core
                 if (endPagePDFPaths.Count > 0)
                 {
                     mergePdfCollection.AddRange(coverLetterPDFPaths);
-                    mergePdfCollection.Add(mergeReadyFilePath);
+                    for (int i = 0; i < noOfCopies; i++)
+                    {
+                        mergePdfCollection.Add(mergeReadyFilePath);
+                    }
                     mergePdfCollection.AddRange(endPagePDFPaths);
                     mergePdfCollection.Add(outputDocumentPath);
 
@@ -196,15 +199,30 @@ namespace AM.Core
                 else if (coverLetterPDFPaths.Count > 0)
                 {
                     mergePdfCollection.AddRange(coverLetterPDFPaths);
-                    mergePdfCollection.Add(mergeReadyFilePath);
+                    for (int i = 0; i < noOfCopies; i++)
+                    {
+                        mergePdfCollection.Add(mergeReadyFilePath);
+                    }
                     mergePdfCollection.Add(outputDocumentPath);
 
                     PdfUtil.MergePDFs(mergePdfCollection.ToArray());
                 }
                 else
                 {
-                    //Here we are just renaming file as a output document because we are not merging any cover letter for it
-                    File.Move(mergeReadyFilePath, outputDocumentPath);
+                    for (int i = 0; i < noOfCopies; i++)
+                    {
+                        mergePdfCollection.Add(mergeReadyFilePath);
+                    }
+                    mergePdfCollection.Add(outputDocumentPath);
+                    if (mergePdfCollection.Count == 2)
+                    {
+                        File.Move(mergePdfCollection[0], mergePdfCollection[1]);
+                    }
+                    else
+                    {
+                        //Here we are just renaming file as a output document because we are not merging any cover letter for it
+                        PdfUtil.MergePDFs(mergePdfCollection.ToArray());
+                    }
                 }
 
                 #endregion

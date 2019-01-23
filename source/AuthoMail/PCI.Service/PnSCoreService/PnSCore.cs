@@ -25,6 +25,8 @@ namespace PCI.Service
         private static readonly ILog log = LogManager.GetLogger(typeof(PnSCoreService));
         private static Database db = DatabaseFactory.CreateDatabase();
 
+        public static BaseFont arial = BaseFont.CreateFont(Path.Combine(Common.FontPathDir, "ARIAL.TTF"), BaseFont.CP1252, true);
+
         private static List<PCIField> BatchSummarySchema { get; set; }
         private static List<PCIField> MRDFRequestSchema { get; set; }
         private static List<PCIField> MRDFResponseSchema { get; set; }
@@ -322,7 +324,7 @@ namespace PCI.Service
             var mrdfReq = new List<MRDFRequest>();
             var pieceIdFormat = MRDFRequestSchema.Single(f => f.FieldName == "PieceId").DataFormat;
             var totalSheetFormat = MRDFRequestSchema.Single(f => f.FieldName == "TotalSheets").DataFormat;
-
+            var printTrailDetail = DAL.GetPrintTrailDetailByPrintTrailId(pnsRequest.PrintTrailId);
             // Resize and Barcode all PDFs
             var pieceId = 1;
             foreach (var mailPiece in pnsRequest.MailPackageData)
@@ -342,7 +344,7 @@ namespace PCI.Service
                 var rawPdfPath = Path.Combine(bi.PnSRequestPDFsPath, mailPiece.PDFFileName);
                 var processedPdfPath = Path.Combine(bi.PCIRequestPath, mailPiece.PDFFileName);
 
-                var pageCountBySize = ProcessPDFWithBarcodeOnRotatedAndOrientation(rawPdfPath, processedPdfPath, mrdf, mailPiece, docType);
+                var pageCountBySize = ProcessPDFWithBarcodeOnRotatedAndOrientation(rawPdfPath, processedPdfPath, mrdf, mailPiece, docType, printTrailDetail);
 
                 DAL.InsertPageSizeWisePageCounts(pageCountBySize, mrdf.UniqueId);
 
@@ -558,7 +560,7 @@ namespace PCI.Service
             return size;
         }
 
-        private static Dictionary<string, int> ProcessPDFWithBarcodeOnRotatedAndOrientation(string src, string dest, MRDFRequest mrdf, MailPieceData mailPiece, DocType docType)
+        private static Dictionary<string, int> ProcessPDFWithBarcodeOnRotatedAndOrientation(string src, string dest, MRDFRequest mrdf, MailPieceData mailPiece, DocType docType, PrintTrailDetail printTrailDetail)
         {
             try
             {
@@ -712,6 +714,57 @@ namespace PCI.Service
                             //writer.DirectContent.AddImage(image2);
                             #endregion
 
+                            //If we have print vendor as "NORDIS" then we will put sequence number in each package each page. at one of side like Bottom Right or Top Right or it may change as per requirments.
+
+                            //NOTE: Please comment one of Sequence Number region based on requirement
+                            if (printTrailDetail.VendorCode == "NORDIS")
+                            {
+                                int mailPieceId = DAL.GetMailPieceIdFromGuid(mailPiece.UniqueId);
+                                var dr = writer.DirectContent;
+                                var chunk = new Chunk(mailPieceId.ToString(), new iTextSharp.text.Font(arial, 8));
+                                chunk.SetCharacterSpacing(1);
+                                var seqNo = new Phrase(chunk);
+
+                                #region Top-Right Sequence Number
+                                ////With Verticle Seq
+                                //if (rotation == 90)
+                                //{
+                                //    ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, BarcodeInfo.TopMargin.ToPoint(), page.ScaledHeight - BarcodeInfo.RightMargin.ToPoint(), rotation + 90);
+                                //}
+                                //else if (rotation == 180)
+                                //{
+                                //    ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, BarcodeInfo.RightMargin.ToPoint(), BarcodeInfo.TopMargin.ToPoint(), rotation + 90);
+                                //}
+                                //else if (rotation == 270)
+                                //{
+                                //    ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, page.ScaledWidth - BarcodeInfo.TopMargin.ToPoint(), BarcodeInfo.RightMargin.ToPoint(), rotation + 90);
+                                //}
+                                //else
+                                //{
+                                //    ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, page.ScaledWidth - BarcodeInfo.RightMargin.ToPoint(), page.ScaledHeight - BarcodeInfo.TopMargin.ToPoint(), rotation + 90);
+                                //}
+                                #endregion
+
+                                #region Bottom-Right Sequence Number
+                                if (rotation == 90)
+                                {
+                                    ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, page.ScaledWidth - BarcodeInfo.BottomMargin.ToPoint(), page.ScaledHeight - BarcodeInfo.LeftMargin.ToPoint(), rotation);
+                                }
+                                else if (rotation == 180)
+                                {
+                                    ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, BarcodeInfo.LeftMargin.ToPoint(), page.ScaledHeight - BarcodeInfo.BottomMargin.ToPoint(), rotation);
+                                }
+                                else if (rotation == 270)
+                                {
+                                    ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, BarcodeInfo.BottomMargin.ToPoint(), BarcodeInfo.LeftMargin.ToPoint(), rotation);
+                                }
+                                else
+                                {
+                                    ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, page.ScaledWidth - BarcodeInfo.LeftMargin.ToPoint(), BarcodeInfo.BottomMargin.ToPoint(), rotation);
+                                }
+                                #endregion
+                            }
+
                             document.NewPage();
                         }
                         document.Close();
@@ -795,7 +848,7 @@ namespace PCI.Service
 
                                 var rpt = new PackageReport();
 
-                                rpt.PieceId = resData.Field<int>("PieceId");
+                                rpt.PieceId = resData.Field<int>("MailPieceId");
                                 rpt.PDFFileName = resData.Field<string>("PDFFileName");
                                 rpt.PrintStatus = resData.Field<string>("PrintStatus").ParseEnum<PrintStatus>();
                                 rpt.PulledBackOn = resData.Field<string>("PrintStatus").ParseEnum<PrintStatus>() == PrintStatus.PulledBack ? Common.UtcToEst(resData.Field<DateTime>("ProcessingTimeStamp")) : DateTime.MinValue;
@@ -953,15 +1006,13 @@ namespace PCI.Service
                                     suspensionReason = "PrintTrailBatch {0} is suspended due to invalid JobId : {1}".Fill(printTrailBatchId, pnsResponse.JobId);
                                     break;
                                 }
+                                var mismatchedMailPieceId = pnsResponse.PackagesReport.Select(c => c.PieceId).Except(mrdfRequestData.Select(c => c.Field<int?>("MailPieceId").Value)).ToList();
 
-                                foreach (var mailPiece in pnsResponse.PackagesReport)
+                                if (mismatchedMailPieceId.Count > 0)
                                 {
-                                    if (!(mailPiece.PieceId > 0 && mailPiece.PieceId <= maxPieceId))
-                                    {
-                                        isSuspend = true;
-                                        suspensionReason = "PrintTrailBatch {0} is suspended due to invalid PieceId : {1}".Fill(printTrailBatchId, mailPiece.PieceId);
-                                        break;
-                                    }
+                                    isSuspend = true;
+                                    suspensionReason = "PrintTrailBatch {0} is suspended due to invalid PieceId : {1}".Fill(printTrailBatchId, string.Join(",", mismatchedMailPieceId));
+                                    break;
                                 }
 
                                 if (isSuspend)
@@ -977,7 +1028,8 @@ namespace PCI.Service
                                 DAL.InsertXMLResponseData(pnsResponse);
 
                                 //Insert Reponse data end
-                                resPieceIdData = pnsResponse.PackagesReport.Select(c => c.PieceId).ToList();
+                                //Here we are getting PieceId of MRDFRequest due to mapping issue with mailPieceId
+                                resPieceIdData = pnsResponse.PackagesReport.Select(c => DAL.GetRequestPieceId(pnsResponse.JobId, c.PieceId)).ToList();
                                 break;
                             default:
                                 //Read Out file from PCIResponse path
@@ -1049,7 +1101,7 @@ namespace PCI.Service
 
                         resPieceIdData.ForEach(pId =>
                         {
-                            var errors = ValidatePrintVendorResponse(mrdfRequestData, printVendorResponseData, pId, printTrailBatchDetail.SubmittedOn.Value);
+                            var errors = ValidatePrintVendorResponse(mrdfRequestData, printVendorResponseData, pId, printTrailBatchDetail.SubmittedOn.Value, printTrailDetail.VendorCode);
 
                             if (!errors.IsNullOrWhiteSpace())
                             {
@@ -1131,7 +1183,7 @@ namespace PCI.Service
             log.Debug("ended preparing pns response");
         }
 
-        private static string ValidatePrintVendorResponse(IEnumerable<DataRow> reqMRDF, IEnumerable<DataRow> resMRDF, int pieceId, DateTime submittedOn)
+        private static string ValidatePrintVendorResponse(IEnumerable<DataRow> reqMRDF, IEnumerable<DataRow> resMRDF, int pieceId, DateTime submittedOn, string printVendorCode)
         {
             var req = reqMRDF.Single(row => row.Field<int>("PieceId") == pieceId);
             var res = resMRDF.Single(row => row.Field<int>("PieceId") == pieceId);
@@ -1140,7 +1192,7 @@ namespace PCI.Service
 
             if (errors.Count > 0)
             {
-                var errDesc = "Errors in PieceId : {0}".Fill(pieceId);
+                var errDesc = "Errors in PieceId : {0}".Fill(printVendorCode == "NORDIS" ? res.Field<int?>("MailPieceId").Value : pieceId);
 
                 errors.ForEach(e =>
                 {
