@@ -15,8 +15,10 @@ namespace AM.Scanner.Controllers
     {
         // GET: Scan
         //HttpCookie scanDocument = new HttpCookie("scannedDocument");
+        readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         public ActionResult Index(string clientCode, string batchTime)
         {
+            logger.Info("RegisterScan");
             return View();
         }
         public string GetIPAddress()
