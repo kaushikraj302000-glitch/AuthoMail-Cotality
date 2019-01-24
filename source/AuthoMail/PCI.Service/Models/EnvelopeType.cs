@@ -12,6 +12,7 @@ namespace PCI.Service
         public string DocTypeCode { get; set; }
         public string DocTypeDesc { get; set; }
         public string PrintSize { get; set; }
+        public string PrintFormat { get; set; }
         public string ContentScalePercent { get; set; }
         public string ClientEmails { get; set; }
         public string SupportEmails { get; set; }

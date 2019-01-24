@@ -349,7 +349,14 @@ namespace PCI.Service
                 DAL.InsertPageSizeWisePageCounts(pageCountBySize, mrdf.UniqueId);
 
                 // Sending total number of pages instead of total sheets in input MRDF
-                mrdf.TotalSheets = mrdf.TotalPages;
+                if (docType.PrintFormat == "Duplex")
+                {
+                    mrdf.TotalSheets = Convert.ToInt32(Math.Ceiling(mrdf.TotalPages / 2f));
+                }
+                else
+                {
+                    mrdf.TotalSheets = mrdf.TotalPages;
+                }
 
                 // Fix sequence in case of errors
                 if (mrdf.HasError)
