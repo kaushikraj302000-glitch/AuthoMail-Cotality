@@ -12,12 +12,14 @@ namespace AM.Scanner.Common
 {
     public class DBHelper
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         internal static DbConnection Create(string connectionStringName)
         {
             var cs = ConfigurationManager.ConnectionStrings[connectionStringName];
 
             if (cs == null)
             {
+                log.Error(string.Format("Connection string with name '{0}' does not exist.", connectionStringName));
                 throw new ArgumentException("Connection string with name '{0}' does not exist.", connectionStringName);
             }
 
@@ -38,8 +40,8 @@ namespace AM.Scanner.Common
                 var estToday = DateTime.UtcNow.UtcToEst().Date;
                 string query = string.Format("{0} @barcode, @clientCode, @operatorid, @machineid, @batchName, @estDate", Common.SP_RegisterScan);
                 var registerScanData = db.QuerySingleOrDefault<RegisterScanDetails>(query, new { barcode = barcode, clientCode = clientCode, operatorid = username, machineid = machineName, batchName = batchName, estDate = estToday });
+                var batchWiseCount =GetRecentBatchesListStats(clientCode,db).Single(b => b.BatchName == batchName);
                 db.Dispose();
-                var batchWiseCount = GetRecentBatchesStats(clientCode).Single(b => b.BatchName == batchName);
 
                 var scanCountData = new ScanDetails();// GetScanStats(clientCode);
                 scanCountData.JobName = registerScanData.JobName;
@@ -54,6 +56,7 @@ namespace AM.Scanner.Common
             }
             catch (Exception e)
             {
+                log.Error(e.Message.ToString());
                 throw e;
             }
         }
@@ -75,6 +78,7 @@ namespace AM.Scanner.Common
             }
             catch (Exception e)
             {
+                log.Error(e.Message.ToString());
                 throw e;
             }
         }
@@ -95,6 +99,7 @@ namespace AM.Scanner.Common
             }
             catch (Exception e)
             {
+                log.Error(e.Message.ToString());
                 throw e;
             }
         }
@@ -104,22 +109,27 @@ namespace AM.Scanner.Common
             try
             {
                 DbConnection db = Create(clientCode);
-                string scanCountQuery = string.Format("{0} @appcode, @estDate, @startdate, @enddate", Common.SP_GetRecentBatchesStats);
-                var estToday = DateTime.UtcNow.UtcToEst().Date;
-                // EST Week
-                var startDate = (estToday + new TimeSpan(0, 0, 0)).EstToUtc();
-                var endDate = (estToday + new TimeSpan(23, 59, 59)).EstToUtc();
-                var batchList = db.Query<GetAllBatchCountDetails>(scanCountQuery, new { appcode = clientCode, estDate = estToday, startDate = startDate, endDate = endDate }).ToList();
+                var batchList = GetRecentBatchesListStats(clientCode, db);
                 db.Dispose();
                 return batchList;
 
             }
             catch (Exception e)
             {
+                log.Error(e.Message.ToString());
                 throw e;
             }
         }
-
+        public static List<GetAllBatchCountDetails> GetRecentBatchesListStats(string clientCode,DbConnection db)
+        {
+            string scanCountQuery = string.Format("{0} @appcode, @estDate, @startdate, @enddate", Common.SP_GetRecentBatchesStats);
+            var estToday = DateTime.UtcNow.UtcToEst().Date;
+            // EST Week
+            var startDate = (estToday + new TimeSpan(0, 0, 0)).EstToUtc();
+            var endDate = (estToday + new TimeSpan(23, 59, 59)).EstToUtc();
+            var batchList = db.Query<GetAllBatchCountDetails>(scanCountQuery, new { appcode = clientCode, estDate = estToday, startDate = startDate, endDate = endDate }).ToList();
+            return batchList;
+        }
         public static List<ScanedDocument> GetScanReportData(string clientCode, string barcodeValue, string loanNumber, string printOnFrom, string printOnTo, string shippedOnFrom, string shippedOnTo)
         {
             try
@@ -148,8 +158,9 @@ namespace AM.Scanner.Common
                 return batchList;
 
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                log.Error(e.Message.ToString());
                 return null;
             }
         }
@@ -166,8 +177,9 @@ namespace AM.Scanner.Common
                 return batchList;
 
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                log.Error(e.Message.ToString());
                 return null;
             }
         }
@@ -189,6 +201,7 @@ namespace AM.Scanner.Common
             }
             catch (Exception e)
             {
+                log.Error(e.Message.ToString());
                 throw e;
             }
         }

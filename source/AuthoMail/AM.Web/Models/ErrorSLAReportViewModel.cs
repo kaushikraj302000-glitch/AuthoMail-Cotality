@@ -17,7 +17,7 @@ namespace AM.Web.Models
         {
             get
             {
-                return string.IsNullOrWhiteSpace(this.ShippingCarrier) ? this.ShippedOnMap : this.ShippingCarrier.ToLower() == "fedex" ? this.PickedUpOn : this.ShippedOnMap;
+                return string.IsNullOrWhiteSpace(this.ShippingCarrier) ? this.ShippedOnMap : this.ShippingCarrier.ToLower() == "fedex" ? this.PickedUpOn == null ? this.ShippedOnMap : this.PickedUpOn : this.ShippedOnMap;
             }
         }
         public string ShippingMethod { get; set; }
