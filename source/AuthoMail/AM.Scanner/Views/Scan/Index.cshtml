@@ -280,7 +280,7 @@
                 if (e.which == 13) {
                     if ($("#generalmodal").hasClass('in')) {
                         $(".okclick").click();
-                        
+
                     }
                 }
             });
@@ -400,7 +400,7 @@
                 clientCode = getParameterByName('clientCode');
                 batchName = getParameterByName('batchName');
                 $("#batchNameDisplay").text(batchName);
-                $("#cliencodeDisplay").text(clientCode.replace("AUT",""));
+                $("#cliencodeDisplay").text(clientCode.replace("AUT", ""));
                 notStartWithClientCode = "Barcode must be start with " + clientCode + ". Please scan again.";
 
                 var cnt = 0;
@@ -544,18 +544,19 @@
                                 data: { barcode: code2Value, clientCode: clientCode, batchName: batchName },
                                 success: function (response) {
                                     var object = response;
-                                     //console.log(object)
+                                    //console.log(object)
 
                                     var code = object.model.Code;
                                     var trackingNo = object.model.TrackingNo;
                                     var message = object.model.Message;
                                     if (code == "Valid" || code == "QC" || code == "Pulledback") {
-                                        totalfiles = object.model.TotalCount;
-                                        $("#todayscount").text(object.model.ScanCount + "/" + totalfiles);
+                                        //totalfiles = object.model.TotalCount;
+                                        totalScanned = parseInt(totalScanned) + 1;
+                                        $("#todayscount").text(totalScanned + "/" + totalfiles);
                                         if (message == null || message == "") {
                                             message = successmsg;
                                         }
-                                        UpdateProgressCount(object.model.ScanCount, totalfiles);
+                                        UpdateProgressCount(totalScanned, totalfiles);
                                         //check//$('#pie_totalscancount').asPieProgress('go', String(piePreInt + "%"));
                                         //console.log(object.model);
                                         $("#message").empty();
@@ -604,7 +605,7 @@
                                         //    //$("#okModal").focus();
                                         //}
                                         //else
-                                        if (totalfiles == object.model.ScanCount) {
+                                        if (totalfiles == totalScanned) {
                                             $("#modalTitle").removeClass("alert alert-danger");
                                             $("#modalTitle").text(modalsuccess);
                                             $("#modalTitle").addClass("alert alert-success");
@@ -617,7 +618,7 @@
                                             return;
                                         }
 
-                                       
+
 
                                     }
                                     else if (code == "Rescan") {
