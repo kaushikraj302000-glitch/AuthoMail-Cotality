@@ -176,6 +176,7 @@
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\CLAuthentication.cs" />
     <Compile Include="Models\ClientDetails.cs" />
+    <Compile Include="Models\PerfTimerLogger.cs" />
     <Compile Include="Models\ReportViewModel.cs" />
     <Compile Include="Models\ScanDetails.cs">
       <SubType>Code</SubType>
