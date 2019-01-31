@@ -40,7 +40,7 @@ namespace AM.Scanner.Common
                 var estToday = DateTime.UtcNow.UtcToEst().Date;
                 string query = string.Format("{0} @barcode, @clientCode, @operatorid, @machineid, @batchName, @estDate", Common.SP_RegisterScan);
                 var registerScanData = db.QuerySingleOrDefault<RegisterScanDetails>(query, new { barcode = barcode, clientCode = clientCode, operatorid = username, machineid = machineName, batchName = batchName, estDate = estToday });
-                var batchWiseCount =GetRecentBatchesListStats(clientCode,db).Single(b => b.BatchName == batchName);
+               // var batchWiseCount =GetRecentBatchesListStats(clientCode,db).Single(b => b.BatchName == batchName);
                 db.Dispose();
 
                 var scanCountData = new ScanDetails();// GetScanStats(clientCode);
@@ -49,8 +49,8 @@ namespace AM.Scanner.Common
                 scanCountData.Message = registerScanData.Message;
                 scanCountData.AppCode = clientCode;
                 scanCountData.TrackingNo = registerScanData.TrackingNo;
-                scanCountData.ScanCount = Convert.ToInt32(batchWiseCount.ScannedLoans);
-                scanCountData.TotalCount = Convert.ToInt32(batchWiseCount.TotalLoans);
+                //scanCountData.ScanCount = Convert.ToInt32(batchWiseCount.ScannedLoans);
+                //scanCountData.TotalCount = Convert.ToInt32(batchWiseCount.TotalLoans);
                 return scanCountData;
 
             }
