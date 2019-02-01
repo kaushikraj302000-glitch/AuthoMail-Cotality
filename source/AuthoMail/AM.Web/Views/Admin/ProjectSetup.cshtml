@@ -6,9 +6,9 @@
     var fileTransmittedViaList = new List<string> { "Client FTP", "CoreLogic FTP", "CL Pull from Client System Imaging", "Other" };
     var typeOfFilesList = new List<string> { "PDF", "HP", "TIFF", "Other" };
     var serviceLevelList = new List<string> { "SameDay", "24Hours", "48hours", "Other" };
-    var projectRequirements = new List<string> { "Mixed Media", "Letter Only", "Legal Only", "Stapled", "24# Paper", "Insert Required", "White", "Color (please specify)", "Print 1-sided", "Print 2-sided", "B&W", "Color", "B&W & Color" };
+    var projectRequirements = new List<string> { "Mixed Media", "Letter Only", "Legal Only", "Stapled", "Not Stapled", "24# Paper", "Insert Required", "White", "Color (please specify)", "Print 1-sided", "Print 2-sided", "B&W", "Color", "B&W & Color" };
     var packagesSentToCustomerList = new List<string> { "Mailed-USPS", "Federal Express", "Certified USPS", "Other" };
-    var envelopeList = new List<string> { "# 10", "6 x 9.5", "9 x 12", "10 x 12", "Standard Window", "Custom Window(s)", "Other" };
+    var envelopeList = new List<string> { "# 10", "6 x 9.5", "9 x 12", "10 x 12","10 x 13", "Standard Window", "Custom Window(s)", "Other" };
     var businessReplyMailEnvelopeList = new List<string> { "No", "#9 Business Reply Mail", "Other" };
 }
 <style>
@@ -173,7 +173,7 @@
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label for="EstimatedPagesPerPackage">
-                                    Estimated # Pages per Package
+                                    Estimated Pages per Package
                                 </label>
                                 <div class="input-group">
                                     <input type="number" min="0" name="EstimatedPagesPerPackage" value="@Model.EstimatedPagesPerPackage" placeholder="Pages per Package" class="form-control" id="EstimatedPagesPerPackage" />

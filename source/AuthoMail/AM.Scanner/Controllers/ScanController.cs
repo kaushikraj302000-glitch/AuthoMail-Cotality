@@ -23,35 +23,43 @@ namespace AM.Scanner.Controllers
         }
         public string GetIPAddress()
         {
-            IPHostEntry Host = default(IPHostEntry);
-            string Hostname = null;
-            Hostname = System.Environment.MachineName;
-            Host = Dns.GetHostEntry(Hostname);
-            string ip = string.Empty;
-            foreach (IPAddress IP in Host.AddressList)
+            using (new PerfTimerLogger("GetIPAddress[ScanController]: "))
             {
-                if (IP.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                IPHostEntry Host = default(IPHostEntry);
+                string Hostname = null;
+                Hostname = System.Environment.MachineName;
+                Host = Dns.GetHostEntry(Hostname);
+                string ip = string.Empty;
+                foreach (IPAddress IP in Host.AddressList)
                 {
-                    ip = Convert.ToString(IP);
+                    if (IP.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                    {
+                        ip = Convert.ToString(IP);
+                    }
                 }
+                return ip;
             }
-            return ip;
         }
 
         [HttpPost]
         public ActionResult RegisterScan(string barcode, string clientCode, string batchName)
         {
-            string machineName = GetIPAddress();
-            ScanDetails scanDetails = DBHelper.RegisterScan(barcode, clientCode, User.Identity.Name, machineName, batchName);
-            return Json(new { model = scanDetails }, JsonRequestBehavior.AllowGet);
+            using (new PerfTimerLogger("RegisterScan[ScanController]: "))
+            {
+                string machineName = GetIPAddress();
+                ScanDetails scanDetails = DBHelper.RegisterScan(barcode, clientCode, User.Identity.Name, machineName, batchName);
+                return Json(new { model = scanDetails }, JsonRequestBehavior.AllowGet);
+            }
         }
 
         [HttpGet]
         public ActionResult GetScannedDocuments(string clientCode, string batchName)
         {
-
-            var getScannedList = DBHelper.GetScannedMailPieces(clientCode, batchName);
-            return Json(new { model = getScannedList }, JsonRequestBehavior.AllowGet);
+            using (new PerfTimerLogger("GetScannedDocuments[ScanController]: "))
+            {
+                var getScannedList = DBHelper.GetScannedMailPieces(clientCode, batchName);
+                return Json(new { model = getScannedList }, JsonRequestBehavior.AllowGet);
+            }
             //if (Request.Cookies["scannedDocument"] != null && !string.IsNullOrEmpty(Request.Cookies["scannedDocument"].Value))
             //{
             //    string getClientCode = Request.Cookies["scannedDocument"].Value.Split('$')[0].ToString().Trim();
@@ -70,31 +78,33 @@ namespace AM.Scanner.Controllers
 
         public ActionResult GetScanCountByBatchName(string clientCode, string batchName)
         {
-            var model = DBHelper.GetRecentBatchesStats(clientCode.Trim());
-            ScanDetails scanDetails = new ScanDetails();
-            scanDetails.AppCode = clientCode;
-            if (model != null)
+            using (new PerfTimerLogger("GetScanCountByBatchName[ScanController]: "))
             {
-                var batchWiseCount = model.Where(s => s.BatchName == batchName).FirstOrDefault();
-                if (batchWiseCount != null)
+                var model = DBHelper.GetRecentBatchesStats(clientCode.Trim());
+                ScanDetails scanDetails = new ScanDetails();
+                scanDetails.AppCode = clientCode;
+                if (model != null)
                 {
-                    scanDetails.ScanCount = Convert.ToInt32(batchWiseCount.ScannedLoans);
-                    scanDetails.TotalCount = Convert.ToInt32(batchWiseCount.TotalLoans);
+                    var batchWiseCount = model.Where(s => s.BatchName == batchName).FirstOrDefault();
+                    if (batchWiseCount != null)
+                    {
+                        scanDetails.ScanCount = Convert.ToInt32(batchWiseCount.ScannedLoans);
+                        scanDetails.TotalCount = Convert.ToInt32(batchWiseCount.TotalLoans);
+                    }
+                    else
+                    {
+                        scanDetails.ScanCount = 0;
+                        scanDetails.TotalCount = 0;
+                    }
+
                 }
                 else
                 {
                     scanDetails.ScanCount = 0;
                     scanDetails.TotalCount = 0;
                 }
-
+                return Json(scanDetails, JsonRequestBehavior.AllowGet);
             }
-            else
-            {
-                scanDetails.ScanCount = 0;
-                scanDetails.TotalCount = 0;
-            }
-            return Json(scanDetails, JsonRequestBehavior.AllowGet);
-
         }
         //[HttpGet]
         //public ActionResult NextBatch()

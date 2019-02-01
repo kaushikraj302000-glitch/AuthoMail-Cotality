@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
-
+using AM.Scanner.Models;
 namespace AM.Scanner.Controllers
 {
     [Authorize]
@@ -24,8 +24,11 @@ namespace AM.Scanner.Controllers
         [HttpGet]
         public ActionResult GetScanCount(string clientCode)
         {
-            var model = DBHelper.GetScanStats(clientCode.Trim());
-            return Json(model, JsonRequestBehavior.AllowGet);
+            using (new PerfTimerLogger("GetScanCount[HomeController]: "))
+            {
+                var model = DBHelper.GetScanStats(clientCode.Trim());
+                return Json(model, JsonRequestBehavior.AllowGet);
+            }
         }
 
         public ActionResult About()

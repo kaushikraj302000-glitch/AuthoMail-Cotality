@@ -42,32 +42,35 @@ namespace AM.Scanner.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Login(LoginViewModel model)
         {
-            if (ModelState.IsValid)
+            using (new PerfTimerLogger("Login[AccountController]: "))
             {
-                string environment = ConfigurationManager.AppSettings["Environment"];
-                if (!String.IsNullOrWhiteSpace(environment) && environment.Equals("UAT", StringComparison.CurrentCultureIgnoreCase))
+                if (ModelState.IsValid)
                 {
-                    if (model.Username.Equals("Admin", StringComparison.CurrentCultureIgnoreCase) && model.Password == "Admin@123")
+                    string environment = ConfigurationManager.AppSettings["Environment"];
+                    if (!String.IsNullOrWhiteSpace(environment) && environment.Equals("UAT", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        Session["DisplayName"] = "Admin";
-                        FormsAuthentication.SetAuthCookie("Admin", false);
-                        return RedirectToAction("Index", "Home");
+                        if (model.Username.Equals("Admin", StringComparison.CurrentCultureIgnoreCase) && model.Password == "Admin@123")
+                        {
+                            Session["DisplayName"] = "Admin";
+                            FormsAuthentication.SetAuthCookie("Admin", false);
+                            return RedirectToAction("Index", "Home");
+                        }
                     }
-                }
 
-                model.Username = model.Username.IndexOf('@') != -1 ? model.Username.Split('@').First() : model.Username;
-                var result = CLAuthentication.LdapLogin(model.Username, model.Password);
-                if (!result.Key)
-                {
-                    ModelState.AddModelError("", result.Value);
-                    return View(model);
+                    model.Username = model.Username.IndexOf('@') != -1 ? model.Username.Split('@').First() : model.Username;
+                    var result = CLAuthentication.LdapLogin(model.Username, model.Password);
+                    if (!result.Key)
+                    {
+                        ModelState.AddModelError("", result.Value);
+                        return View(model);
+                    }
+                    var nm = result.Value.Split('|');
+                    Session["DisplayName"] = nm[0];
+                    FormsAuthentication.SetAuthCookie(model.Username, false);
+                    return RedirectToAction("Index", "Home");
                 }
-                var nm = result.Value.Split('|');
-                Session["DisplayName"] = nm[0];
-                FormsAuthentication.SetAuthCookie(model.Username, false);
-                return RedirectToAction("Index", "Home");
+                return View(model);
             }
-            return View(model);
         }
         //private ActionResult RedirectToLocal(string returnUrl)
         //{
@@ -80,8 +83,11 @@ namespace AM.Scanner.Controllers
         [HttpPost]
         public ActionResult LogOff()
         {
-            FormsAuthentication.SignOut();
-            return RedirectToAction("Login", "Account");
+            using (new PerfTimerLogger("LogOff[AccountController]: "))
+            {
+                FormsAuthentication.SignOut();
+                return RedirectToAction("Login", "Account");
+            }
         }
 
     }

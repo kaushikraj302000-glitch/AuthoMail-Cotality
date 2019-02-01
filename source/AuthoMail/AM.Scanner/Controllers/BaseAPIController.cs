@@ -10,7 +10,7 @@ using System.Web.Http;
 
 namespace AM.Scanner.Controllers
 {
-    
+
     [RoutePrefix("api/report")]
     [Authorize]
     public class BaseAPIController : ApiController
@@ -19,24 +19,33 @@ namespace AM.Scanner.Controllers
         [Route("ScanedDocumentList")]
         public List<ScanedDocument> ScanedDocumentList(string clientCode, string barcodeValue, string loanNumber, string printOnFrom, string printOnTo, string shippedOnFrom, string shippedOnTo)
         {
-            var model = DBHelper.GetScanReportData(clientCode, barcodeValue, loanNumber, printOnFrom, printOnTo, shippedOnFrom, shippedOnTo);
-            return model;
+            using (new PerfTimerLogger("ScanedDocumentList[BaseAPIController]: "))
+            {
+                var model = DBHelper.GetScanReportData(clientCode, barcodeValue, loanNumber, printOnFrom, printOnTo, shippedOnFrom, shippedOnTo);
+                return model;
+            }
         }
 
         [HttpGet]
         [Route("PendingScanningList")]
         public List<PendingScanning> PendingScanningList(string clientCode)
         {
-            var model = DBHelper.GetPendingScanning(clientCode);
-            return model;
+            using (new PerfTimerLogger("PendingScanningList[BaseAPIController]: "))
+            {
+                var model = DBHelper.GetPendingScanning(clientCode);
+                return model;
+            }
         }
 
         [HttpGet]
         [Route("GetAllBatchForScan")]
         public List<GetAllBatchCountDetails> GetAllBatchForScan(string clientCode)
         {
-            var model = DBHelper.GetRecentBatchesStats(clientCode.Trim());
-            return model;
+            using (new PerfTimerLogger("GetAllBatchForScan[BaseAPIController]: "))
+            {
+                var model = DBHelper.GetRecentBatchesStats(clientCode.Trim());
+                return model;
+            }
         }
     }
 }
