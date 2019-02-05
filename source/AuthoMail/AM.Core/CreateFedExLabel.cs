@@ -57,7 +57,7 @@ namespace AM.Core
                 else
                 {
                     //If we get saturday delivery failed then we just remove that special handling parameters.
-                    if (reply.Notifications[0].Message == "Saturday Delivery is not allowed.")
+                    if (reply.Notifications[0].Code == "8272" || reply.Notifications[0].Message == "Saturday Delivery is not allowed.")
                     {
                         request.RequestedShipment.SpecialServicesRequested = null;
                         reply = service.processShipment(request);
