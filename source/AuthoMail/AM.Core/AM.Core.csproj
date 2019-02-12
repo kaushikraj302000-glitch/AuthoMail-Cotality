@@ -115,6 +115,9 @@
     </None>
     <None Include="CoverTemplates\HSBC_FrontBarcode.pdf" />
     <None Include="CoverTemplates\HSBC_IMBWith_A_Barcode.pdf" />
+    <None Include="CoverTemplates\USAA\USAA_USPS_Generic_FrontBarcode_1.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="CoverTemplates\USAA\USAA_FedEx_EndPage_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
