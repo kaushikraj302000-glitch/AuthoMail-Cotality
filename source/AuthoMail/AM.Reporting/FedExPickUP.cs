@@ -49,8 +49,10 @@ namespace AM.Reporting
                         }
                         else
                         {
-                            tableBody = "FedEx Status Report For : {0} <br/><br/>".Fill(todayEffectiveDateTime.ToString("MM/dd/yyyy"));
+                            tableBody = "FedEx Picked Up Status Report For : {0} <br/><br/>".Fill(todayEffectiveDateTime.ToString("MM/dd/yyyy hh:mm"));
+                            
                             fedExReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, "FedExReport", "FedExReport_FullReport_{0}.csv".Fill(todayEffectiveDateTime.ToString("MMddyyyyhhmmtt")));
+                            tableBody += GenerateNotPickedEmailBody(mailPieces.Where(mp => mp.IsPickedUp == 0).ToList());
                         }
 
                         StringBuilder fedExReport = GetFedExReport(mailPieces);
