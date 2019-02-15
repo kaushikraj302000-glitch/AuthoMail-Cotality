@@ -16,11 +16,17 @@ namespace AM.Scanner.Controllers
         // GET: Scan
         //HttpCookie scanDocument = new HttpCookie("scannedDocument");
         readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private string machineName = string.Empty;
+        public ScanController()
+        {
+            this.machineName = GetIPAddress();
+        }
         public ActionResult Index(string clientCode, string batchTime)
         {
             logger.Info("RegisterScan");
             return View();
         }
+
         public string GetIPAddress()
         {
             using (new PerfTimerLogger("GetIPAddress[ScanController]: "))
@@ -46,7 +52,7 @@ namespace AM.Scanner.Controllers
         {
             using (new PerfTimerLogger("RegisterScan[ScanController]: "))
             {
-                string machineName = GetIPAddress();
+                //string machineName = GetIPAddress();
                 ScanDetails scanDetails = DBHelper.RegisterScan(barcode, clientCode, User.Identity.Name, machineName, batchName);
                 return Json(new { model = scanDetails }, JsonRequestBehavior.AllowGet);
             }
@@ -130,5 +136,13 @@ namespace AM.Scanner.Controllers
             USPSScanDetails scanDetails = DBHelper.RegisterUSPSScan(mailPieceId, trackingNo, clientCode);
             return Json(new { model = scanDetails }, JsonRequestBehavior.AllowGet);
         }
+
+        #region SingleScan
+        public ActionResult SingleScan(string clientCode, string batchTime)
+        {
+            logger.Info("RegisterScan SingleScan");
+            return View();
+        }
+        #endregion SingleScan
     }
 }

@@ -306,6 +306,7 @@
     <Content Include="Views\Reports\ScanedDocuments.cshtml" />
     <Content Include="Views\Reports\PendingScanning.cshtml" />
     <Content Include="Views\Scan\USPSScan.cshtml" />
+    <Content Include="Views\Scan\SingleScan.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
