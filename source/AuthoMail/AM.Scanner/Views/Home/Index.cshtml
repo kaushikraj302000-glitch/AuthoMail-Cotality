@@ -30,7 +30,7 @@
     .preclass:hover{
         background-color:#fff;
         border:1px solid #ff6a00;
-        
+
     }
     .report {
         border: 1px solid #72af46;
@@ -82,45 +82,45 @@
                 usecls = "col-md-3";
             }
             int cntbox = 0, x = 0, c = 0;
-           // bool Iscodestartend = true;
+            // bool Iscodestartend = true;
 
             foreach (var item in clientdetailsList)
             {
                 clientCodeList[cntbox] = item.ClientCode.Trim();
                 cntbox++;
 
-        <div class="@usecls">
-            <div class="panel-3d">
+                <div class="@usecls">
+                    <div class="panel-3d">
 
-                <div class="front">
+                        <div class="front">
 
-                    <div class="widget text-center">
-                        <div class="widget-body padding-none">
-                            <div>
-                                @*<a href="~/Scan/Index?clientCode=@item.ClientCode">  </a>*@
-                                    <div class="innerAll bg-@colorcode[x]">
-                                        <p id="box@(cntbox)" class="lead text-white strong margin-none">
-                                            @item.ClientName
-                                        </p>
-                                        <p><strong id="@(item.ClientCode.Trim())scanCount" class="text-large text-white">--/--</strong></p>
-                                        <div class="text-center" id="displaycount@(item.ClientCode.Trim())">
+                            <div class="widget text-center">
+                                <div class="widget-body padding-none">
+                                    <div>
+                                        @*<a href="~/Scan/Index?clientCode=@item.ClientCode">  </a>*@
+                                        <div class="innerAll bg-@colorcode[x]">
+                                            <p id="box@(cntbox)" class="lead text-white strong margin-none">
+                                                @item.ClientName
+                                            </p>
+                                            <p><strong id="@(item.ClientCode.Trim())scanCount" class="text-large text-white">--/--</strong></p>
+                                            <div class="text-center" id="displaycount@(item.ClientCode.Trim())">
+                                            </div>
                                         </div>
-                                    </div>
-                              
-                                <div class="reportLink">
-                                    <a href="~/Reports/ScanedDocuments?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">View Report</a>
-                                    @*<a href="~/Scan/Index?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">Start Scan</a>*@
-                                    @*<a href="~/Scan/USPSScan?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">USPS Scan</a>*@
-                                </div>
 
+                                        <div class="reportLink">
+                                            <a href="~/Reports/ScanedDocuments?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">View Report</a>
+                                            @*<a href="~/Scan/Index?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">Start Scan</a>*@
+                                            @*<a href="~/Scan/USPSScan?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">USPS Scan</a>*@
+                                        </div>
+
+                                    </div>
+                                </div>
                             </div>
+
                         </div>
                     </div>
-
                 </div>
-            </div>
-        </div>
-        
+
 
                 if (c < 3)
                 {
@@ -148,9 +148,9 @@
 
             }
 
-        <input type="hidden" name="ClientCodeList" id="ClientCodeList" value="@string.Join(" ,",clientCodeList)" />
+            <input type="hidden" name="ClientCodeList" id="ClientCodeList" value="@string.Join(" ,",clientCodeList)" />
 
-        <div class="clearfix"></div>
+            <div class="clearfix"></div>
         }
     </div>
 </div>
@@ -195,8 +195,8 @@
                 $("#" + clientCode.trim() + "scanCount").text(response.ScanCount + "/" + response.TotalCount);
 
             },
-            error: function (xhr,data) {
-               // console.log(xhr.status + " :" + xhr.responseText);
+            error: function (xhr, data) {
+                // console.log(xhr.status + " :" + xhr.responseText);
                 $("#" + clientCode.trim() + "scanCount").empty();
                 $("#" + clientCode.trim() + "scanCount").text("--/--");
             }
@@ -215,10 +215,11 @@
             success: function (data) {
                 // alert(JSON.stringify(data[0].ReceivedOn) + JSON.stringify(data[0].TotalLoans));
                 //debugger;
-               //console.log(data);
+                //console.log(data);
                 $("#displaycount" + clientCode).empty();
-
+                
                 for (var j = 0; j < data.length; j++) {
+                    
                     // alert(JSON.stringify(data[j].ReceivedOn) + " " + JSON.stringify(data[j].ScannedLoans) + " " + JSON.stringify(data[j].TotalLoans));
                     // alert(clientCode);
                     var localTime = moment.utc(data[j].ReceivedOn).toDate();
@@ -231,7 +232,7 @@
 
                     // alert(localTime);
                     if (j % 2 == 0) {
-                       // $("#displaycount" + clientCode).append("<pre data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + data[j].BatchName + "' class='pull-left preclass'><strong  id='dispaly" + clientCode + i + "' class='text-larger'>" + localTime + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre>");
+                        // $("#displaycount" + clientCode).append("<pre data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + data[j].BatchName + "' class='pull-left preclass'><strong  id='dispaly" + clientCode + i + "' class='text-larger'>" + localTime + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre>");
                         $("#displaycount" + clientCode).append("<a href='Scan/Index?clientCode=" + clientCode + "&batchName=" + data[j].BatchName + "'><pre class='pull-left preclass'><strong  id='dispaly" + clientCode + i + "' class='text-larger'>" + data[j].BatchName + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre></a>");
 
                     }
@@ -239,16 +240,20 @@
                         $("#displaycount" + clientCode).append("<a href='Scan/Index?clientCode=" + clientCode + "&batchName=" + data[j].BatchName + "'><pre  class='pull-right preclass'><strong id='dispaly" + clientCode + i + "' class='text-larger'>" + data[j].BatchName + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre></a>");
 
                         //$("#displaycount" + clientCode).append("<pre data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + data[j].BatchName + "'  class='pull-right preclass'><strong id='dispaly" + clientCode + i + "' class='text-larger'>" + localTime + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre>");
-
-
                     }
+                }
+                if (clientCode == 'USAA' || clientCode == 'AUTUSAA') {
+                    var btName = "USAA Adverse Action 07PM";
+                    $("#displaycount" + clientCode).append("<a href='Scan/SingleScan?clientCode=" + clientCode + "&batchName=07PM'><pre  class='pull-right preclass'><strong class='text-larger'>" + btName + "</></strong></pre></a>");
+                    btName = "USAA Adverse Action Backlog";
+                    $("#displaycount" + clientCode).append("<a href='Scan/SingleScan?clientCode=" + clientCode + "&batchName=Backlog'><pre  class='pull-right preclass'><strong class='text-larger'>" + btName + "</></strong></pre></a>");
                 }
 
                 $("#displaycount" + clientCode).append("<div class='clearfix'></div>");
                 $('[data-toggle="tooltip"]').tooltip();
 
             },
-            error: function (xhr,data) {
+            error: function (xhr, data) {
                 //console.log(xhr.status+" :"+xhr.responseText);
             }
         });
