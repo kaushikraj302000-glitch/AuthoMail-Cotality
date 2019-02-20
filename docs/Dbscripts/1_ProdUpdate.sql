@@ -14,7 +14,7 @@ CREATE TABLE [Common].[Envelopes](
 GO
 Print 'Add [EnvelopeId],[BREEnvelopeId] columns in doctypes'
 ALTER TABLE [AM].[DocTypes]
-ADD [EnvelopeId] VARCHAR(255) NULL,[BREEnvelopeId] VARCHAR(255) NULL
+ADD [EnvelopeId] VARCHAR(255) NULL,[BREEnvelopeId] VARCHAR(255) NULL,NoOfCopies INT NULL
 
 print 'Add FK in EnvelopeId column'
 ALTER TABLE [AM].[DocTypes]  WITH CHECK ADD CONSTRAINT [FK_DocTypes_Envelope] FOREIGN KEY([EnvelopeId])
@@ -29,7 +29,14 @@ GO
 ALTER TABLE [AM].[DocTypes] CHECK CONSTRAINT [FK_DocTypes_Envelope]
 ALTER TABLE [AM].[DocTypes] CHECK CONSTRAINT [FK_DocTypes_BREEnvelope]
 GO
+UPDATE AM.DocTypes
+SET NoOfCopies=1
 
+GO
+ALTER TABLE AM.DocTypes
+ALTER COLUMN NoOfCopies INT NOT NULL
+
+GO
 Print 'CREATE TABLE [Common].[EnvelopeInventory]'
 CREATE TABLE [Common].[EnvelopeInventory](
  [Id] [INT] IDENTITY(10000,1) NOT NULL,
@@ -164,7 +171,9 @@ CREATE PROCEDURE [dbo].[uspweb_MonthlyReconReport]
 AS
 	select m.Id as MailPieceId,m.BusinessFriendlyIdValue as BusinessIdValue,m.[FileName],m.RcptFirstName as FirstName,m.RcptLastName as LastName
 	,m.RcptAddressStreet as [Address],m.RcptAddressCity as City, m.RcptAddressState as [State],m.RcptAddressZIP as Zip,
-	b.ReceivedOn,m.PrintLocation,m.ShippingStatus as [Status],m.TrackingNo,m.TotalPages,m.PrintedOn,CASE WHEN d.ShippingCarrier ='FedEx' THEN m.PickedUpOn ELSE m.ShippedOn END as ShippedOn,
+	b.ReceivedOn,m.PrintLocation,m.ShippingStatus as [Status],m.TrackingNo,m.TotalPages,m.PrintedOn,m.ShippedOn,
+	m.PickedUpOn,d.ShippingCarrier,
+	--CASE WHEN d.ShippingCarrier ='FedEx' THEN m.PickedUpOn ELSE null END as PickedUpOn,
 	d.DocTypeCode as DocType,d.ShippingServiceType as ShippingMethod,
 	ch.Title as Channel,c.AppCode,
 	r.JobId,r.PieceId
@@ -206,4 +215,17 @@ select *
 	END
 
 	Go
-	print 'End execution'
+	
+
+	print 'Add contact columns in clients'
+	ALTER TABLE [Common].[Clients]
+ADD [Address] nvarchar(255),[Contact1Name] varchar(255),[Contact1Phone] varchar(255),[Contact1Email] varchar(255),
+[Contact2Name] varchar(255),[Contact2Phone] varchar(255),[Contact2Email] varchar(255),[Contact3Name] varchar(255),
+[Contact3Phone] varchar(255),[Contact3Email] varchar(255),[ITContactName] varchar(255),[ITContactPhone] varchar(255),
+[ITContactEmail] varchar(255),[BillingContactName] varchar(255),[BillingContactPhone] varchar(255),[BillingContactEmail] varchar(255)
+Go
+
+
+
+
+print 'End execution'

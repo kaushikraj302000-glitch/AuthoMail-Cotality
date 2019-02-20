@@ -452,6 +452,7 @@ namespace AM.Services
         public int TotalPages { get; set; }
         public DateTime? PrintedOn { get; set; }
         public DateTime? ShippedOn { get; set; }
+        public DateTime? PickedUpOn { get; set; }
         public string AppCode { get; set; }
         public int? JobId { get; set; }
         public int? PieceId { get; set; }
