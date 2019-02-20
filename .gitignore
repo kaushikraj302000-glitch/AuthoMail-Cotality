@@ -191,3 +191,5 @@ ModelManifest.xml
 /source/AuthoMail/.vs
 /source/AMRoot/HSBC
 /source/AuthoMail/AM.Monitor/Logs.txt
+/source/AuthoMail/AM.Scanner/Properties/PublishProfiles/Scanner.pubxml
+/source/AuthoMail/AM.Scanner/logs/log.txt
