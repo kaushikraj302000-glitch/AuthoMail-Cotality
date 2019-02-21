@@ -77,6 +77,12 @@ begin
  values (1,'RPS','PCI','Saturday','OnSchedule','15:00:00')
  insert into @T (SrNo,AppCode,VendorCode,WeekDayType,SweepType,SweepTime) 
  values (2,'RPS','PCI','Saturday','OnSchedule','19:30:00')
+
+ --BOTW
+ insert into @T (SrNo,AppCode,VendorCode,WeekDayType,SweepType,SweepTime) 
+ values (1,'BOTW','CL_DALLAS','Weekday','Continuous','00:00:00')
+ insert into @T (SrNo,AppCode,VendorCode,WeekDayType,SweepType,SweepTime) 
+ values (1,'BOTW','CL_DALLAS','Saturday','Continuous','00:00:00')
  
  return
 end
@@ -326,6 +332,11 @@ GO
    VALUES ('USAA','10AM','00:00:00','11:00:00','USPS','PRIORITY')  
    INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
    VALUES ('USAA','01PM','11:00:01','14:00:00','USPS','PRIORITY')
+
+   INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+   VALUES ('BOTW','10AM','00:00:00','11:00:00','USPS','IMB')  
+   INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+   VALUES ('BOTW','01PM','11:00:01','14:00:00','USPS','IMB')
   END
   ELSE
   BEGIN
@@ -369,7 +380,7 @@ GO
    INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
    VALUES ('BOTW','06PM','18:00:01','19:00:00','USPS','IMB')
    INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
-   VALUES ('BOTW','07PM','19:00:01','20:00:00','USPS','IMB')
+   VALUES ('BOTW','07PM','19:00:01','19:30:00','USPS','IMB')
   END
   
   RETURN
