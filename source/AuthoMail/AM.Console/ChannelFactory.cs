@@ -15,7 +15,7 @@ namespace AM.Console
             string channelType = channelCommands[1];
 
             string channelCode;
-            string[] channelPrefixData = channelPrefix.Split('|');
+            string[] channelPrefixData = channelPrefix.Split('~');
 
             bool isPrintReady = channelPrefixData[0] == "PRINTREADY" ? true : false;
             if (isPrintReady)
