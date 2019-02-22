@@ -141,6 +141,12 @@ DELETE FROM [Common].[SystemSettings] WHERE Id IN ('Core_DirectReportBackChannel
 ---- DELETE EXTRA ENTRIES FROM AM.DocTypeCoverLetters
 DELETE FROM AM.DocTypeCoverLetters WHERE DocTypeId IN (select Id from AM.DocTypes WHERE ShippingServiceType<>'IMB')
 
+---- UPDATE Cover Letter for Adverse Action Packages
+UPDATE AM.DocTypeCoverLetters 
+SET
+CoverLetterTemplatePath='USAA_USPS_Generic_FrontBarcode_1.pdf'
+WHERE DocTypeId IN (Select Id from AM.DocTypes WHERE ClientId=(select Id from Common.Clients WHERE AppCode='USAA') AND DocTypeCode IN ('AdverseActionPackage','AdverseAction_B1', 'AdverseAction_B2', 'AdverseAction_B3', 'AdverseAction_B4', 'AdverseAction_B5', 'AdverseAction_B6', 'AdverseAction_B7', 'AdverseAction_B8'))
+
 ---- INSERT END PAGE In AM.DocTypeCoverLetters
 
 -- USAA
@@ -170,12 +176,17 @@ SET
 WHERE DocTypeId IN (Select Id from AM.DocTypes WHERE ClientId=(select Id from Common.Clients WHERE AppCode='USAA') AND DocTypeCode IN ('AdverseActionPackage','AdverseAction_B1', 'AdverseAction_B2', 'AdverseAction_B3', 'AdverseAction_B4', 'AdverseAction_B5', 'AdverseAction_B6', 'AdverseAction_B7', 'AdverseAction_B8'))
 
 INSERT INTO [Common].[DocTypePrintTrailMaps]([DocTypeId],[PrintTrailId],[BizDayStartTime],[BizDayEndTime],[SatStartTime],[SatEndTime],[SunStartTime],[SunEndTime])
-SELECT Id,8,'20:00:01','23:59:59','20:00:01','23:59:59',NULL,NULL from AM.DocTypes WHERE ClientId=(select Id from Common.Clients
+SELECT Id,(SELECT Id FROM Common.PrintTrails WHERE TrailName='USAA-GENERIC'),'20:00:01','23:59:59','20:00:01','23:59:59',NULL,NULL from AM.DocTypes WHERE ClientId=(select Id from Common.Clients
 WHERE AppCode='USAA') AND DocTypeCode IN ('AdverseActionPackage','AdverseAction_B1', 'AdverseAction_B2', 'AdverseAction_B3', 'AdverseAction_B4', 'AdverseAction_B5', 'AdverseAction_B6', 'AdverseAction_B7', 'AdverseAction_B8')
 
 INSERT INTO [Common].[DocTypePrintTrailMaps]([DocTypeId],[PrintTrailId],[BizDayStartTime],[BizDayEndTime],[SatStartTime],[SatEndTime],[SunStartTime],[SunEndTime])
-SELECT Id,11,'15:00:01','20:00:00','15:00:01','20:00:00',NULL,NULL from AM.DocTypes WHERE ClientId=(select Id from Common.Clients
+SELECT Id,(SELECT Id FROM Common.PrintTrails WHERE TrailName='USAA-GENSAME'),'15:00:01','20:00:00','15:00:01','20:00:00',NULL,NULL from AM.DocTypes WHERE ClientId=(select Id from Common.Clients
 WHERE AppCode='USAA') AND DocTypeCode IN ('AdverseActionPackage','AdverseAction_B1', 'AdverseAction_B2', 'AdverseAction_B3', 'AdverseAction_B4', 'AdverseAction_B5', 'AdverseAction_B6', 'AdverseAction_B7', 'AdverseAction_B8')
+
+UPDATE Common.PrintTrails
+SET
+PrintVendorId=(SELECT Id FROM Common.PrintVendors WHERE VendorCode='CL_DALLAS')
+WHERE TrailName='USAA-GENSAME'
 
 UPDATE Common.Clients SET IsAMActive=1,IsPnSActive=1 WHERE Id in ((SELECT Id FROM Common.Clients WHERE AppCode='CITIVM'),(SELECT Id FROM Common.Clients WHERE AppCode='RPS'))
 
