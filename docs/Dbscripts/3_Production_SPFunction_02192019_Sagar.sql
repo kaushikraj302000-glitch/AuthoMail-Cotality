@@ -334,13 +334,14 @@ GO
    VALUES ('USAA','01PM','11:00:01','14:00:00','USPS','PRIORITY')
 
    INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
-   VALUES ('BOTW','10AM','00:00:00','11:00:00','USPS','IMB')  
-   INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
-   VALUES ('BOTW','01PM','11:00:01','14:00:00','USPS','IMB')
+   VALUES ('USAA','07PM','15:00:01','20:00:00','USPS','IMB')
   END
   ELSE
   BEGIN
    
+   INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
+   VALUES ('USAA','07PM','15:00:01','20:00:00','USPS','IMB')
+
    INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
    VALUES ('USAA','12PM','00:00:00','13:00:00','FedEx','PRIORITY_OVERNIGHT')
    INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
@@ -380,7 +381,7 @@ GO
    INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
    VALUES ('BOTW','06PM','18:00:01','19:00:00','USPS','IMB')
    INSERT INTO @BatchTimings (AppCode, BatchName,StartTime,EndTime,ShippingCarrier,ShippingServiceType) 
-   VALUES ('BOTW','07PM','19:00:01','19:30:00','USPS','IMB')
+   VALUES ('BOTW','07PM','19:00:01','20:00:00','USPS','IMB')
   END
   
   RETURN
@@ -431,6 +432,9 @@ GO
 
   INSERT INTO @sweep (AppCode, BatchName,StartDate,EndDate,ShippingCarrier,ShippingServiceType) 
   VALUES ('USAA','Backlog',DateAdd(day,-7, cast(@todayDate AS DATETIME)),DateAdd(second,-1, cast(@todayDate AS DATETIME)),'USPS','PRIORITY')
+
+   INSERT INTO @sweep (AppCode, BatchName,StartDate,EndDate,ShippingCarrier,ShippingServiceType) 
+  VALUES ('USAA','Backlog',DateAdd(day,-7, cast(@todayDate AS DATETIME)),DateAdd(second,-1, cast(@todayDate AS DATETIME)),'USPS','IMB')
 
   INSERT INTO @sweep (AppCode, BatchName,StartDate,EndDate,ShippingCarrier,ShippingServiceType) 
   VALUES ('HSBC','Backlog',DateAdd(day,-7, cast(@todayDate AS DATETIME)),DateAdd(second,-1, cast(@todayDate AS DATETIME)),'USPS','IMB')

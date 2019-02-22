@@ -15,50 +15,6 @@ BEGIN TRANSACTION
 
 PRINT N'Start execution'
 ----------------------------------------------------------------------------
----- SETUP BOTW CLIENT
-
-INSERT [Common].[Clients] ([Name], [AppCode], [BusinessUnit], [IsAMActive], [IsPnSActive], [TimeZone], [ModifiedOn], [CreatedOn], [CreatedBy], [ModifiedBy]) VALUES (N'Bank Of The West', N'BOTW', 1, 0, 0, N'Eastern Standard Time', GETUTCDATE(), GETUTCDATE(), N'66f8d3e7-b66a-48d9-911f-d3914f1b3a11', N'66f8d3e7-b66a-48d9-911f-d3914f1b3a11')
-
-
--- CLIENT SFT CHANNEL MAP
-INSERT INTO [Common].[ClientSFTChannels] (ClientId,SFTChannelId) VALUES ((SELECT Id FROM Common.Clients WHERE AppCode='BOTW'),(SELECT ID FROM Common.SFTChannels WHERE Code='AMC_PROD'))
-
--- Client Domain
-INSERT INTO [Common].[ClientDomains] ([ClientId],[AllowedDomain])VALUES((SELECT Id FROM Common.Clients WHERE AppCode='BOTW'),'bankofthewest.com')
-
---AMC Customer Id
-INSERT INTO [AM].[ClientAMCCustIdMap](AMCCustId,ClientId) VALUES('180',(SELECT Id FROM Common.Clients WHERE AppCode='BOTW'))
-
--- Client Business Identifier
-INSERT INTO [AM].[ClientBusinessIdentifiers](ClientId, BusinessIdName) VALUES ((SELECT Id FROM Common.Clients WHERE AppCode='BOTW'),'Loan Number')
-
--- EMAIL CHANNELS FOR CLIENT
-INSERT INTO [Common].[EmailChannels]([Title],[To],[Cc],[Bcc],[Subject],[BodyTemplate],[IsBodyHTML])VALUES('BOTW Download Reporting','sgolvelkar@corelogic.com','avala@corelogic.com,vmungara@corelogic.com',NULL,'Download Summary','HTML',0)
-
-INSERT INTO [Common].[EmailChannels]([Title],[To],[Cc],[Bcc],[Subject],[BodyTemplate],[IsBodyHTML])VALUES('BOTW Production Reporting','sgolvelkar@corelogic.com','avala@corelogic.com,vmungara@corelogic.com',NULL,'Production Summary','HTML',0)
-
--- DELIVERABLES FOR CLIENT
-INSERT INTO [Common].[Deliverables]([ClientId],[ReportName],[ReportType],[DeliveryType],[ReportQuery],[Delimeter],[FileNameExpression],[IsSFTUploadRequired],[UploadPath],[EmailChannelId],[ScheduleId])VALUES((SELECT Id FROM Common.Clients WHERE AppCode='BOTW'),'BOTW Error Report','Error','Batch','','\t','Error-{Now:yyyyMMdd}.csv',1,'/Reports',(SELECT Id FROM Common.EmailChannels WHERE Title='BOTW Download Reporting'),NULL)
-
-INSERT INTO [Common].[Deliverables]([ClientId],[ReportName],[ReportType],[DeliveryType],[ReportQuery],[Delimeter],[FileNameExpression],[IsSFTUploadRequired],[UploadPath],[EmailChannelId],[ScheduleId])VALUES((SELECT Id FROM Common.Clients WHERE AppCode='BOTW'),'BOTW Delivery Report','Delivery','Batch','','\t','Delivery-{Now:yyyyMMdd}.csv',1,'/Reports',(SELECT Id FROM Common.EmailChannels WHERE Title='BOTW Production Reporting'),NULL)
-
--- PRINT TRAIL FOR CLIENT
-INSERT INTO [Common].[PrintTrails](PrintVendorId,SimulateTrail,TrailName) VALUES ((SELECT Id FROM Common.PrintVendors WHERE VendorCode='CL_DALLAS'),0,'BOTW-GENERIC')
-
---DOCUMENT TYPES ENTRY
-INSERT [AM].[DocTypes] ([DocTypeCode], [ClientId], [PrintSize], [ContentScalePercent], [PrintFormat], [QCPercent], [ShippingCarrier], [ShippingServiceType], [ShippingAccountCode], [IsReturnInfoSpecified], [RetRcptPrefix], [RetRcptFirstName], [RetRcptMiddleName], [RetRcptLastName], [RetRcptSuffix], [RetRcptPhone], [RetRcptOrganization], [RetRcptAddrOptionalLine1AboveStreet], [RetRcptAddrOptionalLine2AboveStreet], [RetRcptAddressStreet], [RetRcptAddressAptOrSuiteOrOther], [RetRcptAddrOptionalLine1BelowStreet], [RetRcptAddrOptionalLine2BelowStreet], [RetRcptAddressCity], [RetRcptAddressState], [RetRcptAddressZIP], [ClientEmails], [ClientContactNo], [SupportEmails], [SupportContactNo], [IsActive], [ModifiedOn], [CreatedOn], [CreatedBy], [ModifiedBy], [Description], [BizdayCutOff], [BizdaySLAType], [BizdayTimeSpan], [SatCutOff], [SatSLAType], [SatTimeSpan], [SunCutOff], [SunSLAType], [SunTimeSpan], [ShippingSpecialService], [IsBRE], [EnvelopeId], [BREEnvelopeId], [NoOfCopies]) VALUES (N'InitialDisclosures', (SELECT Id FROM Common.Clients WHERE AppCode='BOTW'), N'LETTER-IP', 100, N'Simplex', 0, N'USPS', N'IMB', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, GETUTCDATE(), GETUTCDATE(), N'66f8d3e7-b66a-48d9-911f-d3914f1b3a11', N'66f8d3e7-b66a-48d9-911f-d3914f1b3a11', N'Initial Disclosures', N'19:30:00', N'FixedTime', N'00:23:59:59', N'14:00:00', N'FixedTime', N'00:23:59:59', NULL, N'NA', NULL, NULL,0,NULL,NULL,1)
-
-INSERT [AM].[DocTypes] ([DocTypeCode], [ClientId], [PrintSize], [ContentScalePercent], [PrintFormat], [QCPercent], [ShippingCarrier], [ShippingServiceType], [ShippingAccountCode], [IsReturnInfoSpecified], [RetRcptPrefix], [RetRcptFirstName], [RetRcptMiddleName], [RetRcptLastName], [RetRcptSuffix], [RetRcptPhone], [RetRcptOrganization], [RetRcptAddrOptionalLine1AboveStreet], [RetRcptAddrOptionalLine2AboveStreet], [RetRcptAddressStreet], [RetRcptAddressAptOrSuiteOrOther], [RetRcptAddrOptionalLine1BelowStreet], [RetRcptAddrOptionalLine2BelowStreet], [RetRcptAddressCity], [RetRcptAddressState], [RetRcptAddressZIP], [ClientEmails], [ClientContactNo], [SupportEmails], [SupportContactNo], [IsActive], [ModifiedOn], [CreatedOn], [CreatedBy], [ModifiedBy], [Description], [BizdayCutOff], [BizdaySLAType], [BizdayTimeSpan], [SatCutOff], [SatSLAType], [SatTimeSpan], [SunCutOff], [SunSLAType], [SunTimeSpan], [ShippingSpecialService], [IsBRE], [EnvelopeId], [BREEnvelopeId], [NoOfCopies]) VALUES (N'InitialDisclosures_Equity', (SELECT Id FROM Common.Clients WHERE AppCode='BOTW'), N'LETTER-IP', 100, N'Simplex', 0, N'USPS', N'IMB', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, GETUTCDATE(), GETUTCDATE(), N'66f8d3e7-b66a-48d9-911f-d3914f1b3a11', N'66f8d3e7-b66a-48d9-911f-d3914f1b3a11', N'Initial Disclosures - Equity', N'19:30:00', N'FixedTime', N'00:23:59:59', N'14:00:00', N'FixedTime', N'00:23:59:59', NULL, N'NA', NULL, NULL,0,NULL,NULL,1)
-
--- COVER LETTERS ENTRY
-INSERT [AM].[DocTypeCoverLetters] ([DocTypeId], [SeqId], [CoverLetterTemplatePath])
-SELECT Id,1,'BOTW_USPS_Generic_1.pdf' FROM AM.DocTypes WHERE ClientId = (SELECT Id FROM Common.Clients WHERE AppCode='BOTW')
-
--- DOCUMENT PRINT TRAIL MAPS
-INSERT INTO [Common].[DocTypePrintTrailMaps](DocTypeId, PrintTrailId, BizDayStartTime, BizDayEndTime, SatStartTime, SatEndTime, SunStartTime, SunEndTime)
-SELECT Id,(SELECT Id FROM Common.PrintTrails WHERE TrailName='BOTW-GENERIC'),'00:00:00','23:59:59','00:00:00','23:59:59',NULL,NULL From AM.DocTypes WHERE ClientId=(SELECT Id FROM Common.Clients WHERE AppCode='BOTW') AND DocTypeCode IN ('InitialDisclosures','InitialDisclosures_Equity')
-
-
 INSERT INTO [Common].[Envelopes]([Id],[CurrentQuantity],[IsBREEnvelope],CreatedBy,ModifiedBy,CreatedOn,ModifiedOn)
 VALUES('CL_S_9_12',0,0,'41513528-03ec-4fc5-a4bd-d00cf03f9ae4','41513528-03ec-4fc5-a4bd-d00cf03f9ae4',GETUTCDATE(),GETUTCDATE())
 INSERT INTO [Common].[Envelopes]([Id],[CurrentQuantity],[IsBREEnvelope],CreatedBy,ModifiedBy,CreatedOn,ModifiedOn)
@@ -98,9 +54,11 @@ UPDATE AM.DocTypes
 SET
 EnvelopeId=(select Id from Common.Envelopes WHERE Id='CL_S_6_9')
 WHERE ClientId in ((SELECT Id FROM Common.Clients WHERE AppCode='RPS'))
+
 --BOTW
 UPDATE AM.DocTypes
-SET EnvelopeId=(select Id from Common.Envelopes WHERE Id='BOTW_F_9_12'),
+SET 
+EnvelopeId=(select Id from Common.Envelopes WHERE Id='BOTW_F_9_12'),
 BREEnvelopeId=CASE WHEN IsBRE=1 THEN (select Id from Common.Envelopes WHERE Id='BOTW_B_10_13') ELSE NULL END
 WHERE ClientId IN ((SELECT Id FROM Common.Clients WHERE AppCode='BOTW'))
 
@@ -110,8 +68,6 @@ WHERE ClientId IN ((SELECT Id FROM Common.Clients WHERE AppCode='BOTW'))
 
 UPDATE AM.DocTypes
 SET
-[ShippingCarrier]='USPS',
-[ShippingServiceType]='IMB',
 [BizdayCutOff]='20:00:00',
 [BizdaySLAType]='FixedTime',
 [BizdayTimeSpan]='00:23:59:59',
@@ -204,7 +160,24 @@ INSERT INTO AM.DocTypeCoverLetters(DocTypeId,SeqId,CoverLetterTemplatePath)
 SELECT Id,101,'BOTW_USPS_EndPage_1.pdf' from AM.DocTypes WHERE ClientId=(SELECT id FROM Common.Clients WHERE AppCode='BOTW') AND Id IN (select DocTypeId
 FROM Common.DocTypePrintTrailMaps WHERE PrintTrailId=(SELECT Id FROM Common.PrintTrails WHERE TrailName='BOTW-GENERIC'))
 
-UPDATE Common.Clients SET IsAMActive=1,IsPnSActive=1 WHERE Id in ((SELECT Id FROM Common.Clients WHERE AppCode='CITIVM'),(SELECT Id FROM Common.Clients WHERE AppCode='RPS'),(SELECT Id FROM Common.Clients WHERE AppCode='BOTW'))
+-- USAA Adverse Action Print Trail Maps for Dallas
+UPDATE  [Common].[DocTypePrintTrailMaps] 
+SET
+[BizDayStartTime]='00:00:00',
+[BizDayEndTime]='15:00:00',
+[SatStartTime]='00:00:00',
+[SatEndTime]='15:00:00'
+WHERE DocTypeId IN (Select Id from AM.DocTypes WHERE ClientId=(select Id from Common.Clients WHERE AppCode='USAA') AND DocTypeCode IN ('AdverseActionPackage','AdverseAction_B1', 'AdverseAction_B2', 'AdverseAction_B3', 'AdverseAction_B4', 'AdverseAction_B5', 'AdverseAction_B6', 'AdverseAction_B7', 'AdverseAction_B8'))
+
+INSERT INTO [Common].[DocTypePrintTrailMaps]([DocTypeId],[PrintTrailId],[BizDayStartTime],[BizDayEndTime],[SatStartTime],[SatEndTime],[SunStartTime],[SunEndTime])
+SELECT Id,8,'20:00:01','23:59:59','20:00:01','23:59:59',NULL,NULL from AM.DocTypes WHERE ClientId=(select Id from Common.Clients
+WHERE AppCode='USAA') AND DocTypeCode IN ('AdverseActionPackage','AdverseAction_B1', 'AdverseAction_B2', 'AdverseAction_B3', 'AdverseAction_B4', 'AdverseAction_B5', 'AdverseAction_B6', 'AdverseAction_B7', 'AdverseAction_B8')
+
+INSERT INTO [Common].[DocTypePrintTrailMaps]([DocTypeId],[PrintTrailId],[BizDayStartTime],[BizDayEndTime],[SatStartTime],[SatEndTime],[SunStartTime],[SunEndTime])
+SELECT Id,11,'15:00:01','20:00:00','15:00:01','20:00:00',NULL,NULL from AM.DocTypes WHERE ClientId=(select Id from Common.Clients
+WHERE AppCode='USAA') AND DocTypeCode IN ('AdverseActionPackage','AdverseAction_B1', 'AdverseAction_B2', 'AdverseAction_B3', 'AdverseAction_B4', 'AdverseAction_B5', 'AdverseAction_B6', 'AdverseAction_B7', 'AdverseAction_B8')
+
+UPDATE Common.Clients SET IsAMActive=1,IsPnSActive=1 WHERE Id in ((SELECT Id FROM Common.Clients WHERE AppCode='CITIVM'),(SELECT Id FROM Common.Clients WHERE AppCode='RPS'))
 
 ------------------------------------------------------------------------------
 IF @@ERROR<>0 AND @@TRANCOUNT>0 ROLLBACK TRANSACTION
