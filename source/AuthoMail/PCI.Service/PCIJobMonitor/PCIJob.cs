@@ -458,7 +458,7 @@ namespace PCI.Service
 
                     bool responseDelete = printVendorDetail.PostDownloadAction == "Archive" ? false : true;
 
-                    sftSite.DownloadFile(localPrintVendorResponseZipFilePath, remoteVendorResponsePath, responseDelete, false);
+                    sftSite.DownloadFile(remoteVendorResponsePath, localPrintVendorResponseZipFilePath, responseDelete, false);
 
                     if (!responseDelete)
                     {
