@@ -1,4 +1,5 @@
-﻿using AM.Services;
+﻿using AM.Entities;
+using AM.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,8 +17,8 @@ namespace AM.Console
             {
                 //Testing Paths
                 //DirectoryInfo sourceAMRootDir = new DirectoryInfo(@"E:\Delete\AMRoot");
-                //string sourcePnSRootDir = @"E:\Delete\PCIRoot";
                 //string destAMDir = @"E:\Delete\AMTrash";
+                //DirectoryInfo sourcePnSRootDir = new DirectoryInfo(@"E:\Delete\PCIRoot");
                 //string destPCIDir = @"E:\Delete\PCITrash";
 
                 //Prod Paths
@@ -37,9 +38,31 @@ namespace AM.Console
                 {
                     if (!Directory.Exists(Path.Combine(destAMDir, dir.Name)))
                         Directory.CreateDirectory(Path.Combine(destAMDir, dir.Name));
+                    int days = 0;
+                    if (dir.Name == "ALASKA")
+                        days = 30;
+                    else if (dir.Name == "BOTW")
+                        days = 30;
+                    else if (dir.Name == "CITIVM")
+                        days = 30;
+                    else if (dir.Name == "HSBC")
+                        days = 90;
+                    else if (dir.Name == "RPS")
+                        days = 30;
+                    else if (dir.Name == "USAA")
+                        days = 21;
+                    else
+                        days = 30;
+                    DateTime startDate = Common.Today;
+                    do
+                    {
+                        startDate = startDate.AddDays(-1);
+                        days -= IsBusinessDay(startDate, Config.Common_Holidays, false, false) ? 1 : 0;
+                    } while (0 != days);
 
-                    var subdirs = dir.EnumerateDirectories().Where(d => d.LastWriteTime < Common.Today.AddMonths(-1)).ToList();
 
+                    var subdirs = dir.EnumerateDirectories().Where(d => d.LastWriteTime < startDate).ToList();
+                    
                     foreach (var subdir in subdirs)
                     {
                         if (Directory.Exists(Path.Combine(Path.Combine(destAMDir, dir.Name), subdir.Name)))
@@ -54,7 +77,29 @@ namespace AM.Console
                     if (!Directory.Exists(Path.Combine(destPCIDir, dir.Name)))
                         Directory.CreateDirectory(Path.Combine(destPCIDir, dir.Name));
 
-                    var subdirs = dir.EnumerateDirectories().Where(d => d.LastWriteTime < Common.Today.AddMonths(-2)).ToList();
+                    int days = 0;
+                    if (dir.Name == "ALASKA")
+                        days = 30;
+                    else if (dir.Name == "BOTW")
+                        days = 30;
+                    else if (dir.Name == "CITIVM")
+                        days = 30;
+                    else if (dir.Name == "HSBC")
+                        days = 90;
+                    else if (dir.Name == "RPS")
+                        days = 30;
+                    else if (dir.Name == "USAA")
+                        days = 21;
+                    else
+                        days = 30;
+                    DateTime startDate = Common.Today;
+                    do
+                    {
+                        startDate = startDate.AddDays(-1);
+                        days -= IsBusinessDay(startDate, Config.Common_Holidays, false, false) ? 1 : 0;
+                    } while (0 != days);
+
+                    var subdirs = dir.EnumerateDirectories().Where(d => d.LastWriteTime < startDate).ToList();
 
                     foreach (var subdir in subdirs)
                     {
@@ -64,6 +109,20 @@ namespace AM.Console
                     }
                 }
             }
+        }
+
+        private static bool IsBusinessDay(DateTime date, List<Holiday> holidays, bool isSatWorkDay, bool isSunWorkDay)
+        {
+            if (holidays.Select(c => c.HolidayDate).Contains(date.Date))
+                return false;
+
+            if (date.DayOfWeek == DayOfWeek.Saturday)
+                return isSatWorkDay;
+
+            if (date.DayOfWeek == DayOfWeek.Sunday)
+                return isSunWorkDay;
+
+            return true;
         }
 
     }
