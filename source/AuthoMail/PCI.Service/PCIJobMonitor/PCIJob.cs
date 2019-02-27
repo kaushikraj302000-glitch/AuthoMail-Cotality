@@ -378,7 +378,7 @@ namespace PCI.Service
             {
                 var printVendorDetail = DAL.GetPrintVendorDetailByVendorCode(printVendorCode);
                 List<SubmittedBatches> submittedPrintBatches;
-                submittedPrintBatches = DAL.GetSubmittedBatches();
+                submittedPrintBatches = DAL.GetSubmittedBatches(printVendorCode);
                 if (submittedPrintBatches.Count == 0)
                 {
                     log.Debug("Print vendor - {0}'s job queue is empty.".Fill(printVendorCode));
