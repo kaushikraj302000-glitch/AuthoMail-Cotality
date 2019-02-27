@@ -10,9 +10,9 @@ namespace PCI.Service
 {
     partial class DAL
     {
-        public static List<SubmittedBatches> GetSubmittedBatches()
+        public static List<SubmittedBatches> GetSubmittedBatches(string printVendorCode = "")
         {
-            var submittedBatches = db.ExecuteDataSet("usp_GetSubmittedBatches").Tables[0];
+            var submittedBatches = db.ExecuteDataSet("usp_GetSubmittedBatches", printVendorCode).Tables[0];
             List<SubmittedBatches> printBatches = submittedBatches.AsEnumerable().Select(x => new SubmittedBatches
             {
                 PrintTrailBatchId = x.Field<int>("PrintTrailBatchId"),

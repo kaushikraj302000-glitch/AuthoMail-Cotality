@@ -208,7 +208,7 @@ namespace AM.Core
                                     {
                                         eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name);
 
-                                        response = doc.GenerateEVSCoverLetter(client.AppCode, commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq);
+                                        response = doc.GenerateeVSPriorityExpressCoverLetter(client.AppCode, commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq);
 
                                         //if we have service changed to priority then we are updating doctypeid in database also
                                         if (response.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY)
@@ -225,6 +225,13 @@ namespace AM.Core
                                                 throw new Exception("Priority document type does not exist.");
                                             }
                                         }
+                                    }
+                                    else if (docType.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY.ToString())
+                                    {
+                                        eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name);
+                                        eVSReq.ServiceType = AM.USPSLib.ServiceType.PRIORITY;
+                                        response = doc.GenerateeVSPriorityCoverLetter(client.AppCode, commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq);
+
                                     }
                                     else
                                     {

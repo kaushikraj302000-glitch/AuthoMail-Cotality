@@ -103,7 +103,7 @@ namespace AM.Core
             }
         }
 
-        public SmartDocResponse GenerateEVSCoverLetter(string appCode, string sysUserId, string outputDir, string mailPieceId, eVSLabelRequest eVSReq)
+        public SmartDocResponse GenerateeVSPriorityExpressCoverLetter(string appCode, string sysUserId, string outputDir, string mailPieceId, eVSLabelRequest eVSReq)
         {
             SmartDocResponse response = new SmartDocResponse();
 
@@ -135,6 +135,53 @@ namespace AM.Core
                             return response;
                         }
                     }
+                    response.ShippingServiceType = eVSReq.ServiceType.Value;
+
+                    File.WriteAllBytes(coverLetterPDFPath, Convert.FromBase64String(eVSRes.LabelImageString));
+                    response.CoverLetterPath = coverLetterPDFPath;
+                }
+
+                response.TrackingCode = eVSRes.TrackingNumber;
+                response.PostageCost = eVSRes.Postage;
+            }
+            catch (Exception ex)
+            {
+                var msg = "Error occured while generating cover letter for MailPiece-Id : {0} with Error : {1}".Fill(mailPieceId, ex.Message);
+                log.Error(msg, ex);
+                response.HasError = true;
+                response.ExceptionDetail = msg;
+                return response;
+            }
+            return response;
+
+            #endregion
+        }
+
+        public SmartDocResponse GenerateeVSPriorityCoverLetter(string appCode, string sysUserId, string outputDir, string mailPieceId, eVSLabelRequest eVSReq)
+        {
+            SmartDocResponse response = new SmartDocResponse();
+
+            response.ShippingServiceType = eVSReq.ServiceType.Value;
+
+            string coverLetterPDFPath = Path.Combine(outputDir, string.Format("eVSCoverLetter_{0}.pdf", mailPieceId));
+
+            #region Generate Cover Letter
+
+            try
+            {
+                eVSLabelResponse eVSRes;
+
+                using (IUSPSService uspsSvc = new USPSService())
+                {
+                    eVSRes = uspsSvc.RequesteVSLabelAsync(sysUserId, eVSReq).Result;
+
+                    if (eVSRes.HasError)
+                    {
+                        response.HasError = true;
+                        response.ExceptionDetail = "Error occured while generating eVS label for MailPiece-Id:{0} with Exception : {1}".Fill(mailPieceId, eVSRes.Error.Description);
+                        return response;
+                    }
+
                     response.ShippingServiceType = eVSReq.ServiceType.Value;
 
                     File.WriteAllBytes(coverLetterPDFPath, Convert.FromBase64String(eVSRes.LabelImageString));
