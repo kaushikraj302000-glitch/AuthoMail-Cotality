@@ -417,7 +417,7 @@
                 /*  Updating Batch Count on every 12 Second using Ajax */
                 window.setInterval(function () {
                     GetScanCountByBatchName(clientCode, batchName);
-                }, 12000);
+                }, 60000);
                 /*  Updating Batch Count on every 12 Second using Ajax */
                 $("#code1").val("");
                 $("#code1").focus();
@@ -653,7 +653,7 @@
                                         //$("#code2").focus();
                                         $("#WrongCode").prepend("<div style='margin:2px;' class='form-group'><label class='lblAMC lbl-danger' disabled>" + code1Value + "</label></div>");
                                     }
-                                    GetScanCountByBatchName(clientCode, batchName);
+                                    //GetScanCountByBatchName(clientCode, batchName);
 
                                 },
                                 error: function (xhr, response) {

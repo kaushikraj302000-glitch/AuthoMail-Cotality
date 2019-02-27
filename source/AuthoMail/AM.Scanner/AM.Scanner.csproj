@@ -240,6 +240,9 @@
     <Content Include="assets\fonts\FontAwesome.otf" />
     <Content Include="assets\ReportTemplate.xlsx" />
     <Content Include="Content\datatables\images\Sorting icons.psd" />
+    <Content Include="log4net.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\dataTables.bootstrap.js" />
     <Content Include="Scripts\daterangepicker.js" />
