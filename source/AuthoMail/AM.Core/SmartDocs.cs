@@ -382,5 +382,6 @@ namespace AM.Core
         public int TotalPages { get; set; }
         public bool HasError { get; set; }
         public string ExceptionDetail { get; set; }
+        public string ExceptionCode { get; set; }
     }
 }

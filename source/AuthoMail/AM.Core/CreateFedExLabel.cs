@@ -22,14 +22,13 @@ namespace AM.Core
 
         public string GeneratedFedExLabelPath { get; private set; }
 
-        public bool Create(MailPieceDTO mailPiece, FedExAccountInfo fedExAccInfo, DocType docType, MailBatchInfo mbi)
+        public SmartDocResponse Create(MailPieceDTO mailPiece, FedExAccountInfo fedExAccInfo, DocType docType, MailBatchInfo mbi)
         {
+            SmartDocResponse response = new SmartDocResponse();
             //Here we are assigning No_Error because if we have any general failure or end point exception then we are trying again.
             mailPiece.ErrorCode = OutComeCodes.No_Error;
             mailPiece.ErrorDesc = null;
             mailPiece.ShippingStatus = ShippingStatus.InProgress.ToString();
-
-            bool isLabelGenerated = false;
 
             ProcessShipmentRequest request = CreateShipmentRequest(mailPiece, fedExAccInfo, docType);
             // Initialize the service
@@ -52,46 +51,49 @@ namespace AM.Core
                 // check if the call was successful
                 if ((reply.HighestSeverity != NotificationSeverityType.ERROR) && (reply.HighestSeverity != NotificationSeverityType.FAILURE))
                 {
-                    GenerateShipmentLabel(reply, mbi, ref isLabelGenerated);
+                    GenerateShipmentLabel(reply, mbi, ref response);
                 }
                 else
                 {
                     //If we get saturday delivery failed then we just remove that special handling parameters.
-                    if (reply.Notifications[0].Code == "8272" || reply.Notifications[0].Message == "Saturday Delivery is not allowed.")
+                    if (reply.Notifications[0].Code == "8272" || reply.Notifications[0].Message.Contains("Saturday Delivery is not allowed"))
                     {
                         request.RequestedShipment.SpecialServicesRequested = null;
                         reply = service.processShipment(request);
 
                         if ((reply.HighestSeverity != NotificationSeverityType.ERROR) && (reply.HighestSeverity != NotificationSeverityType.FAILURE))
                         {
-                            GenerateShipmentLabel(reply, mbi, ref isLabelGenerated);
-                            return isLabelGenerated;
+                            GenerateShipmentLabel(reply, mbi, ref response);
+                            return response;
                         }
                     }
+
                     List<Notification> notificaitons = new List<Notification>(reply.Notifications);
                     StringBuilder sbMessages = new StringBuilder(string.Format("Error occurred while generating FedEx label for client {0} and {1} : {2}<br/>", mbi.Client.AppCode, mailPiece.BusinessFriendlyIdName, mailPiece.BusinessFriendlyIdValue));
                     notificaitons.ForEach(n => sbMessages = sbMessages.AppendLine(n.Message));
+                    
                     log.Error(sbMessages.ToString());
-                    mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                    mailPiece.ErrorCode = OutComeCodes.Invalid_ShippingDetail;
 
-                    // TODO: Check other props of notification. Sometimes rarely in error message FedEx exception also comes. So, we have to replace all new lines in message with space.
-                    mailPiece.ErrorDesc = string.Format("{0}|{1}", OutComeCodes.Invalid_ShippingDetail, reply.Notifications[0].Message);
-                    isLabelGenerated = false;
+                    response.HasError = true;
+                    response.CoverLetterPath = "";
+                    response.ExceptionCode = reply.Notifications[0].Code;
+                    response.ExceptionDetail = reply.Notifications[0].Message;
                 }
             }
             catch (Exception ex)
             {
                 var error = "Error occured while generating FedEx label for MailPieceId : {0} And Exception : {1}".Fill(mailPiece.Id, ex);
                 log.Error(error);
-                mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
-                mailPiece.ErrorDesc = string.Format("{0}|{1}", OutComeCodes.Unknown_Error, ex.Message);
+               
                 SendUnexpectedExceptionEmail(error);
-                isLabelGenerated = false;
+
+                response.HasError = true;
+                response.CoverLetterPath = "";
+                response.ExceptionCode = OutComeCodes.Unknown_Error;
+                response.ExceptionDetail = string.Format("{0}|{1}", OutComeCodes.Unknown_Error, ex.Message); 
             }
 
-            return isLabelGenerated;
+            return response;
         }
 
         private void SendUnexpectedExceptionEmail(string exception)
@@ -288,7 +290,7 @@ namespace AM.Core
         }
 
         // FedEx shipping service will return the label in landscape orientation and with different margins etc.; so we will create PDF having content in center area from the image returned by FedEx shipping service.
-        private void GenerateShipmentLabel(ProcessShipmentReply reply, MailBatchInfo mbi, ref  bool isLabelGenerated)
+        private void GenerateShipmentLabel(ProcessShipmentReply reply, MailBatchInfo mbi, ref  SmartDocResponse response)
         {
             string LabelFileName = null;
             FileStream LabelFile = null;
@@ -321,7 +323,12 @@ namespace AM.Core
                 }
 
                 GeneratedFedExLabelPath = LabelFileName;
-                isLabelGenerated = true;
+
+                response.CoverLetterPath = LabelFileName;
+                response.ExceptionCode = OutComeCodes.No_Error;
+                response.ExceptionDetail = string.Empty;
+                response.HasError = false;
+                response.TrackingCode = packageDetail.TrackingIds[0].TrackingNumber;
             }
         }
     }
