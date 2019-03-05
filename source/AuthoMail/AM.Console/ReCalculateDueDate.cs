@@ -14,14 +14,15 @@ namespace AM.Console
         {
             using (IReCalculateDueDateService rSvc = new ReCalculateDueDateService())
             using (IDocTypeService docTypeSvc = new DocTypeService())
+            using (ICommonService commonSvc = new CommonService())
             {
                 var docTypeList = rSvc.GetDocTypeTest();
                 foreach (var item in docTypeList)
                 {
                     var docType = docTypeSvc.GetDocTypeById(item.DocTypeId);
-                    DateTime estEffectiveReceivedOn = Channel.GetEffectiveEstReceivedOn(docType, item.ReceivedOn);
-                    var dueDate = Channel.GetDueDate(docType, estEffectiveReceivedOn);                    
-                    rSvc.UpdateDueDateAndEftRecOnEST(item.Id, dueDate,estEffectiveReceivedOn);
+                    DateTime estEffectiveReceivedOn = commonSvc.GetEffectiveEstReceivedOn(docType, item.ReceivedOn);
+                    var dueDate = commonSvc.GetDueDate(docType, estEffectiveReceivedOn);
+                    rSvc.UpdateDueDateAndEftRecOnEST(item.Id, dueDate, estEffectiveReceivedOn);
                 }
             }
         }
