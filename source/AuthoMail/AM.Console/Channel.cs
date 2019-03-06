@@ -536,19 +536,18 @@ namespace AM.Console
                         {
                             DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value);
 
-                            //Here first we will calculate effective received on date and based on that we will calculate due date for that
-                            DateTime effectiveEstReceivedOn = Channel.GetEffectiveEstReceivedOn(docType, mailBatch.ReceivedOn.Value);
-                            //Here storing effective receivedon in UTC format as per rule
-                            mailPiece.EffectiveReceivedOnEst = effectiveEstReceivedOn;
+                            //Here first we will calculate effective received on date and based on that we will calculate due date,Print location, print trail id,etc. for that
+                            //Here storing effective receivedon in EST format
+                            mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(docType, mailBatch.ReceivedOn.Value);
                             //Calculate Due Date for Mail Pieces doc type wise
-                            mailPiece.DueDate = Channel.GetDueDate(docType, effectiveEstReceivedOn);
+                            mailPiece.DueDate = commonSvc.GetDueDate(docType, mailPiece.EffectiveReceivedOnEst.Value);
                             //Set print location where mail piece will go for print and ship
-                            mailPiece.PrintTrailId = Channel.GetPrintTrail(docType, effectiveEstReceivedOn);
+                            mailPiece.PrintTrailId = commonSvc.GetPrintTrail(docType, mailPiece.EffectiveReceivedOnEst.Value);
                             var printVendorDetails = commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value);
                             mailPiece.PrintLocation = printVendorDetails.Name;
                             //This field will be used for monitoring data    
                             mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, mailBatch.ReceivedOn.Value, sweepTimings);
-                            mailPiece.MaxSubmissionTime = Channel.GetMaximumSubmissionTime(docType, effectiveEstReceivedOn);
+                            mailPiece.MaxSubmissionTime = commonSvc.GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
                             mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                         }
                     }
@@ -564,193 +563,6 @@ namespace AM.Console
             log.Debug("Calculation of Due Date and Print location Job is ended.");
         }
 
-        private static DateTime GetMaximumSubmissionTime(DocType docType, DateTime effectiveReceivedOnEst)
-        {
-            DayOfWeek dayOfWeek = effectiveReceivedOnEst.DayOfWeek;
-
-            string cutOffTime = string.Empty;
-
-            switch (dayOfWeek)
-            {
-                case DayOfWeek.Saturday:
-                    cutOffTime = docType.SatCutOff;
-                    break;
-                case DayOfWeek.Sunday:
-                    cutOffTime = docType.SunCutOff;
-                    break;
-                default:
-                    cutOffTime = docType.BizdayCutOff;
-                    break;
-            }
-
-            var effectiveReceivedOnEstDate = effectiveReceivedOnEst.Date;
-            var maxSubmissionDateTime = effectiveReceivedOnEstDate + TimeSpan.Parse(cutOffTime);
-
-            return maxSubmissionDateTime.EstToUtc();
-        }
-
-        public static DateTime GetEffectiveEstReceivedOn(DocType docType, DateTime utcReceivedOn)
-        {
-            var estReceivedOn = utcReceivedOn.UtcToEst();
-            var estReceivedOnDate = estReceivedOn.Date;
-            var effectiveEstReceivedOn = estReceivedOn;
-
-            bool isSatWorkDay = docType.SatSLAType == SLAType.NA ? false : true;
-            bool isSunWorkDay = docType.SunSLAType == SLAType.NA ? false : true;
-
-            if (IsBusinessDay(estReceivedOn, Config.Common_Holidays, isSatWorkDay, isSunWorkDay))
-            {
-                DayOfWeek dayOfWeek = estReceivedOn.DayOfWeek;
-
-                string slaCutOff = string.Empty;
-                string slaType = string.Empty;
-
-                if (dayOfWeek == DayOfWeek.Saturday)
-                {
-                    slaCutOff = docType.SatCutOff;
-                    slaType = docType.SatSLAType;
-                }
-
-                if (dayOfWeek == DayOfWeek.Sunday)
-                {
-                    slaCutOff = docType.SunCutOff;
-                    slaType = docType.SunSLAType;
-                }
-
-                if (dayOfWeek != DayOfWeek.Sunday && dayOfWeek != DayOfWeek.Saturday)
-                {
-                    slaCutOff = docType.BizdayCutOff;
-                    slaType = docType.BizdaySLAType;
-                }
-
-                if (slaType == SLAType.FixedTime)
-                {
-                    var estSLACutOffDateTime = (estReceivedOnDate + TimeSpan.Parse(slaCutOff));
-
-                    if (estReceivedOn > estSLACutOffDateTime)
-                    {
-                        effectiveEstReceivedOn = GetNextWorkingDay(estReceivedOnDate, Config.Common_Holidays, isSatWorkDay, isSunWorkDay);
-                    }
-                }
-                else
-                {
-                    effectiveEstReceivedOn = estReceivedOn;
-                }
-            }
-            else
-            {
-                effectiveEstReceivedOn = GetNextWorkingDay(estReceivedOnDate, Config.Common_Holidays, isSatWorkDay, isSunWorkDay);
-            }
-
-            return effectiveEstReceivedOn;
-        }
-
-        private static DateTime GetNextWorkingDay(DateTime estDateTime, List<Holiday> HolidayList, bool isSatWorkDay, bool isSunWorkDay)
-        {
-            do
-            {
-                estDateTime = estDateTime.AddDays(1);
-            }
-            while (!IsBusinessDay(estDateTime, HolidayList, isSatWorkDay, isSunWorkDay));
-
-            return estDateTime;
-        }
-
-        public static DateTime GetDueDate(DocType docType, DateTime estEffectiveReceivedOn)
-        {
-            bool isSatWorkDay = docType.SatSLAType == SLAType.NA ? false : true;
-            bool isSunWorkDay = docType.SunSLAType == SLAType.NA ? false : true;
-
-            var estEffectiveReceivedOnDate = estEffectiveReceivedOn.Date;
-
-            DayOfWeek dayOfWeek = estEffectiveReceivedOnDate.DayOfWeek;
-
-            string slaTimeSpan = string.Empty;
-            string slaType = string.Empty;
-
-            DateTime dueDate = estEffectiveReceivedOn;
-
-            if (dayOfWeek == DayOfWeek.Saturday)
-            {
-                slaTimeSpan = docType.SatTimeSpan;
-                slaType = docType.SatSLAType;
-            }
-
-            if (dayOfWeek == DayOfWeek.Sunday)
-            {
-                slaTimeSpan = docType.SunTimeSpan;
-                slaType = docType.SunSLAType;
-            }
-
-            if (dayOfWeek != DayOfWeek.Sunday && dayOfWeek != DayOfWeek.Saturday)
-            {
-                slaTimeSpan = docType.BizdayTimeSpan;
-                slaType = docType.BizdaySLAType;
-            }
-
-            TimeSpan timeSpan = TimeSpan.Parse(slaTimeSpan);
-            if (slaType == SLAType.FixedTime)
-            {
-                //Here we are taking only time from full time span which includes dates
-                dueDate = estEffectiveReceivedOnDate + TimeSpan.Parse(string.Format("{0:hh\\:mm\\:ss}", timeSpan));
-
-                for (int i = 0; i < timeSpan.Days; i++)
-                {
-                    dueDate = GetNextWorkingDay(dueDate, Config.Common_Holidays, isSatWorkDay, isSunWorkDay);
-                }
-            }
-            else
-            {
-                dueDate = estEffectiveReceivedOn + TimeSpan.Parse(string.Format("{0:hh\\:mm\\:ss}", timeSpan));
-                for (int i = 0; i < timeSpan.Days; i++)
-                {
-                    dueDate = GetNextWorkingDay(dueDate, Config.Common_Holidays, isSatWorkDay, isSunWorkDay);
-                }
-            }
-
-
-            return dueDate.EstToUtc();
-        }
-
-        public static int GetPrintTrail(DocType docType, DateTime estEffectiveReceivedOn)
-        {
-            DocTypePrintTrailMap docTypePrintTrail;
-
-            using (ICommonService commonSvc = new CommonService())
-            {
-                List<DocTypePrintTrailMap> docTypePrintTrailMaps = commonSvc.GetTrailMapDetailsByDocTypeId(docType.Id);
-                var dayofWeek = estEffectiveReceivedOn.DayOfWeek;
-
-                if (dayofWeek == DayOfWeek.Saturday)
-                {
-                    docTypePrintTrail = docTypePrintTrailMaps.Single(c => estEffectiveReceivedOn.TimeOfDay >= c.SatStartTime && estEffectiveReceivedOn.TimeOfDay <= c.SatEndTime);
-                }
-                else if (dayofWeek == DayOfWeek.Sunday)
-                {
-                    docTypePrintTrail = docTypePrintTrailMaps.Single(c => estEffectiveReceivedOn.TimeOfDay >= c.SunStartTime && estEffectiveReceivedOn.TimeOfDay <= c.SunEndTime);
-                }
-                else
-                {
-                    docTypePrintTrail = docTypePrintTrailMaps.Single(c => estEffectiveReceivedOn.TimeOfDay >= c.BizDayStartTime && estEffectiveReceivedOn.TimeOfDay <= c.BizDayEndTime);
-                }
-            }
-
-            return docTypePrintTrail.PrintTrailId;
-        }
-
-        private static bool IsBusinessDay(DateTime dueDate, List<Holiday> holidays, bool isSatWorkDay, bool isSunWorkDay)
-        {
-            if (holidays.Select(c => c.HolidayDate).Contains(dueDate.Date))
-                return false;
-
-            if (dueDate.DayOfWeek == DayOfWeek.Saturday)
-                return isSatWorkDay;
-
-            if (dueDate.DayOfWeek == DayOfWeek.Sunday)
-                return isSunWorkDay;
-
-            return true;
-        }
         #endregion
 
         #region AddressType Validation
