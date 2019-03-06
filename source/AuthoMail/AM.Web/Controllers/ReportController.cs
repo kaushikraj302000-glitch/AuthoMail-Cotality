@@ -200,8 +200,16 @@ namespace AM.Web.Controllers
         [HttpGet]
         public JsonResult _ReportWizard(string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, List<string> status, string channel, List<string> shippingMethod, string trackingNo)
         {
-            var result = repoSvc.GetReportWizard(User.Identity.GetClientId().Value, businessFriendlyIdName, businessFriendlyIdValue, startDate, endDate, docType, status, channel, shippingMethod, trackingNo);
-            return Json(result, JsonRequestBehavior.AllowGet);
+
+            try
+            {
+                var result = repoSvc.GetReportWizard(User.Identity.GetClientId().Value, businessFriendlyIdName, businessFriendlyIdValue, startDate, endDate, docType, status, channel, shippingMethod, trackingNo);
+                return Json(JsonResponseFactory.SuccessResponse(new { model = result }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(ex.Message), JsonRequestBehavior.AllowGet);
+            }
         }
     }
 }
