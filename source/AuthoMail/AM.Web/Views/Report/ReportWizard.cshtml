@@ -141,7 +141,18 @@
                                 </div>
                             </div>
                         </div>
-
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="BatchId">Shipping Method</label>
+                                <select class="selectpicker" id="ShippingMethod">
+                                    <option value="">
+                                        Select Shipping Method
+                                    </option>
+                                    <option value="USPS">USPS</option>
+                                    <option value="FedEx">FedEx</option>
+                                </select>
+                            </div>
+                        </div>
 
                         <div class="col-md-1">
                             <div class="form-group ">
@@ -834,7 +845,7 @@
                 var selectedData = $("#receivedOn").val().split('-');
                 startDate = moment(selectedData[0].trim()).format("MM/DD/YY");
                 endDate = moment(selectedData[1].trim()).format("MM/DD/YY");
-                
+
                 $("#headerdate").html(startDate + " to " + endDate + " EST");
             } else {
                 $("#receivedOn").val("");
@@ -855,7 +866,7 @@
                     startDate: startDate,
                     endDate: endDate,
                     trackingNo: $("#TrackingNumber").val(),
-                    shippingMethod: null
+                    shippingMethod: $('#ShippingMethod').val()
                 }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
@@ -910,6 +921,7 @@
         $("#resetFilter").click(function () {
             $("#Status").val("");
             $("#DocType").val("");
+            $('#ShippingMethod').val("");
             $("#Channel").val("");
             $("#BusinessFriendlyIdValue").val("");
             $("#TrackingNumber").val("");
