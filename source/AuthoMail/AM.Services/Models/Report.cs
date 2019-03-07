@@ -71,4 +71,30 @@ namespace AM.Services
         public string ShippingServiceType { get; set; }
         public bool IsBRE { get; set; }
     }
+    public class ReportWizard
+    {
+        public int Id { get; set; }
+        public int BatchId { get; set; }
+        public string BatchName { get; set; }
+        public string Channel { get; set; }
+        public string DocumentOrPackageType { get; set; }
+        public string BusinessFriendlyIdName { get; set; }
+        public string BusinessFriendlyIdValue { get; set; }
+        public string TrackingNo { get; set; }
+        public DateTime? ReceivedOn { get; set; }
+        public DateTime? PrintedOn { get; set; }
+        public DateTime? MailedOn { get; set; }//Not available
+        public string FileName { get; set; }
+        public string ClientCode { get; set; }
+        public string ShippingMethod { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string RcptAddressStreet { get; set; }
+        public string City { get; set; }
+        public string State { get; set; }
+        public string ZIP { get; set; }
+        public string PrintLocation { get; set; }
+        public int PagesShipped { get; set; }
+
+    }
 }
