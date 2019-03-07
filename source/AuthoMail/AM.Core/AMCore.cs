@@ -297,7 +297,7 @@ namespace AM.Core
                                         }
                                         else
                                         {
-                                            if (response.HasError && (response.ExceptionCode == "3051" || response.ExceptionDetail.Contains("Recipient Postal Code not Served")))
+                                            if (response.HasError && (response.ExceptionCode == "3051" || response.ExceptionCode == "3049" || response.ExceptionCode == "3052" || response.ExceptionDetail.Contains("Recipient Postal Code not Served") || response.ExceptionDetail.Contains("Recipient Postal Code not found") || response.ExceptionDetail.Contains("Recipient Postal-State Mismatch")))
                                             {
                                                 //First try to generate eVS label with USPS Priority Express
                                                 string priorityExpressDocType = mailPiece.DocumentOrPackageType + Config.Monitor_ExpressMailingText;
