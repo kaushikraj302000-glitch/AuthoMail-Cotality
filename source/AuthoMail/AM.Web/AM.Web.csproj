@@ -521,6 +521,7 @@
     <Content Include="Views\Admin\_Lookup.cshtml" />
     <Content Include="Views\Report\SupplyInventoryReport.cshtml" />
     <Content Include="Views\Admin\AllProjectSetupDetails.cshtml" />
+    <Content Include="Views\Report\ReportWizard.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
