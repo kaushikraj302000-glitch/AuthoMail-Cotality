@@ -294,6 +294,11 @@ namespace AM.Core
                                         {
                                             System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
                                             attemptCount++;
+
+                                            //Setting as an error suppose FedEx is failing continueously then System will consider as an unknown error for that mail piece
+                                            mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                            mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
+                                            mailPiece.ErrorDesc = string.Format("{0}|{1}", OutComeCodes.Unknown_Error, response.ExceptionDetail);
                                         }
                                         else
                                         {
@@ -327,12 +332,8 @@ namespace AM.Core
                                                 if (response.HasError)
                                                 {
                                                     mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
-                                                    mailPiece.TotalPages = 0;
                                                     mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                                                     mailPiece.ErrorDesc = response.ExceptionDetail;
-                                                    mailPiece.DueDate = null;
-                                                    mailPiece.PrintLocation = null;
-                                                    mailPiece.PrintTrailId = null;
                                                     break;
                                                 }
 
@@ -357,19 +358,21 @@ namespace AM.Core
                                                 mailPiece.MaxSubmissionTime = commonSvc.GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
                                                 break;
                                             }
+
+
                                             mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                                             mailPiece.ErrorCode = OutComeCodes.Invalid_ShippingDetail;
                                             mailPiece.ErrorDesc = string.Format("{0}|{1}", OutComeCodes.Invalid_ShippingDetail, response.ExceptionDetail);
-                                            mailPiece.TotalPages = 0;
-                                            mailPiece.PrintLocation = null;
-                                            mailPiece.PrintTrailId = null;
-                                            mailPiece.DueDate = null;
                                             break;
                                         }
                                     }
 
                                     if (response.HasError)
                                     {
+                                        mailPiece.TotalPages = 0;
+                                        mailPiece.PrintLocation = null;
+                                        mailPiece.PrintTrailId = null;
+                                        mailPiece.DueDate = null;
                                         //NOTE : If result false then mark as an error and update status for that mail piece
                                         mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                                         continue;
