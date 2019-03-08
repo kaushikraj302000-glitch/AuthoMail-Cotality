@@ -96,6 +96,7 @@ namespace AM.Services
         public string ZIP { get; set; }
         public string PrintLocation { get; set; }
         public int PagesShipped { get; set; }
+        public string Status { get; set; }
 
     }
 }
