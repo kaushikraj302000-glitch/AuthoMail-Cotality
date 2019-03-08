@@ -73,9 +73,8 @@ namespace AM.Services
     }
     public class ReportWizard
     {
-        public int Id { get; set; }
-        public int BatchId { get; set; }
-        public string BatchName { get; set; }
+        public int MailPieceId { get; set; }
+        public int BatchId { get; set; }        
         public string Channel { get; set; }
         public string DocumentOrPackageType { get; set; }
         public string BusinessIdName { get; set; }
@@ -83,8 +82,7 @@ namespace AM.Services
         public string TrackingNo { get; set; }
         public DateTime? ReceivedOn { get; set; }
         public DateTime? PrintedOn { get; set; }
-        public DateTime? MailedOn { get { return this.ShippedOn; } }
-        public DateTime? ShippedOn { get; set; }
+        public DateTime? MailedOn { get; set; }
         public string FileName { get; set; }
         public string ClientCode { get; set; }
         public string ShippingMethod { get; set; }
