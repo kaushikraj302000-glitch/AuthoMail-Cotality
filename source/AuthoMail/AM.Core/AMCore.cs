@@ -294,6 +294,15 @@ namespace AM.Core
                                         {
                                             System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
                                             attemptCount++;
+
+                                            //Setting as an error suppose FedEx is failing continueously then System will consider as an unknown error for that mail piece
+                                            mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                            mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
+                                            mailPiece.ErrorDesc = string.Format("{0}|{1}", OutComeCodes.Unknown_Error, response.ExceptionDetail);
+                                            mailPiece.TotalPages = 0;
+                                            mailPiece.PrintLocation = null;
+                                            mailPiece.PrintTrailId = null;
+                                            mailPiece.DueDate = null;
                                         }
                                         else
                                         {
