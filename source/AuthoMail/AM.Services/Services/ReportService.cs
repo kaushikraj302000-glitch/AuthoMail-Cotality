@@ -351,7 +351,7 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
 	 m.RcptFirstName as FirstName,m.RcptLastName as LastName,m.RcptAddressCity as [City],m.RcptAddressZip as ZIP,m.RcptAddressStreet,
 	 m.RcptAddressState as [State], m.ShippedOn ,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,m.PrintedOn
 	 b,BatchName,b.Id as BatchId,b.ReceivedOn,m.DocTypeId,m.FileName,
-	 d.DocTypeCode as DocType,d.ShippingServiceType as ShippingMethod,d.ShippingCarrier,
+	 d.DocTypeCode as DocType,(d.ShippingServiceType + '-' + d.ShippingCarrier) as ShippingMethod,
      m.DocumentOrPackageType,
 	 ch.Title as Channel,
      c.AppCode as ClientCode
@@ -401,8 +401,13 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
             }
             if (shippingMethod != null && shippingMethod.Count > 0)
             {
-                query = string.Format("{0} and d.ShippingServiceType in @shippingMethod", query);
-                parameter.Add("@shippingMethod", shippingMethod);
+                List<string> shipMethod = new List<string>();
+                List<string> shipCarrier = new List<string>();
+                shippingMethod.ForEach(s => shipMethod.Add(s.Split('-').First()));
+                shippingMethod.ForEach(s => shipCarrier.Add(s.Split('-')[1]));
+                query = string.Format("{0} and d.ShippingServiceType in @shippingMethod and d.ShippingCarrier in @shippingCarrier", query);
+                parameter.Add("@shippingMethod", shipMethod);
+                parameter.Add("@shippingCarrier", shipCarrier);
             }
             var data = db.Query<ReportWizard>(query, parameter).ToList();
             return data;
