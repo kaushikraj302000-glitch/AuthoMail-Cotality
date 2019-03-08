@@ -144,11 +144,11 @@
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label for="BatchId">Shipping Method</label>
-                                <select class="selectpicker" id="ShippingMethod" multiple>
+                                <select class="selectpicker" id="ShippingMethod" multiple="multiple">
                                     <option value="USPS-IMB">USPS-IMB</option>
                                     <option value="USPS-PRIORITY">USPS-PRIORITY</option>
                                     <option value="USPS-PRIORITY_EXPRESS">USPS-PRIORITY_EXPRESS</option>
-                                    <option value="FedEx-PRIORITY_OVERNIGHT">FedEx-PRIORITY_OVERNIGHT</option>                                    
+                                    <option value="FedEx-PRIORITY_OVERNIGHT">FedEx-PRIORITY_OVERNIGHT</option>
                                 </select>
                             </div>
                         </div>
@@ -936,7 +936,7 @@
             var status= $("#Status").val();
             var channel= $("#Channel").val();
             var trackingNo= $("#TrackingNumber").val();
-            var shippingMethod = $('#ShippingMethod').val();
+            var shippingMethod = $('#ShippingMethod').val() == null ? [] : $('#ShippingMethod').val();
            
             var url = baseUrl + "Report/DownloadReportWizard?businessFriendlyIdName=<businessFriendlyIdName>&businessFriendlyIdValue=<businessFriendlyIdValue>&startDate=<startDate>&endDate=<endDate>&channel=<channel>&fileName=<fileName>&docType=<docType>&status=<status>&shippingMethod=<shippingMethod>&trackingNo=<trackingNo>".replace("<startDate>", startDate).replace("<endDate>", endDate).replace("<channel>", $("#Channel").val()).replace("<fileName>", "ReportWizard ").replace("<businessFriendlyIdName>", businessFriendlyIdName).replace("<businessFriendlyIdValue>", "businessFriendlyIdValue ").replace("<shippingMethod>", shippingMethod).replace("<trackingNo>", trackingNo).replace("<docType>", docType).replace("<status>", status).replace("<fileName>", "ReportWizard");
             window.location = url;

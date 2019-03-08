@@ -214,6 +214,7 @@ namespace AM.Web.Controllers
 
         public ActionResult DownloadReportWizard(string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo, string fileName)
         {
+            shippingMethod = shippingMethod[0] == "" ? null : shippingMethod;
             var result = repoSvc.GetReportWizard(User.Identity.GetClientId().Value, businessFriendlyIdName, businessFriendlyIdValue, startDate, endDate, docType, status, channel, shippingMethod, trackingNo);
             var dataTable = ExcelHelper.ToDataTable<ReportWizard>(result);
             var memoryStream = ExcelHelper.ExportDataSet(dataTable);
