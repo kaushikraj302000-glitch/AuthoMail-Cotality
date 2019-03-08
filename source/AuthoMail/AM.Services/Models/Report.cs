@@ -83,7 +83,8 @@ namespace AM.Services
         public string TrackingNo { get; set; }
         public DateTime? ReceivedOn { get; set; }
         public DateTime? PrintedOn { get; set; }
-        public DateTime? MailedOn { get; set; }//Not available
+        public DateTime? MailedOn { get { return this.ShippedOn; } }
+        public DateTime? ShippedOn { get; set; }
         public string FileName { get; set; }
         public string ClientCode { get; set; }
         public string ShippingMethod { get; set; }

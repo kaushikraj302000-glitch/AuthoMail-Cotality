@@ -144,12 +144,11 @@
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label for="BatchId">Shipping Method</label>
-                                <select class="selectpicker" id="ShippingMethod">
-                                    <option value="">
-                                        Select Shipping Method
-                                    </option>
-                                    <option value="USPS">USPS</option>
-                                    <option value="FedEx">FedEx</option>
+                                <select class="selectpicker" id="ShippingMethod" multiple>
+                                    <option value="USPS-IMB">USPS-IMB</option>
+                                    <option value="USPS-PRIORITY">USPS-PRIORITY</option>
+                                    <option value="USPS-PRIORITY_EXPRESS">USPS-PRIORITY_EXPRESS</option>
+                                    <option value="FedEx-PRIORITY_OVERNIGHT">FedEx-PRIORITY_OVERNIGHT</option>                                    
                                 </select>
                             </div>
                         </div>
@@ -194,21 +193,26 @@
     <table class="table table-responsive" style="overflow-x:scroll">
         <thead>
             <tr>
-                <th>@Html.Action("GetHeadingForBusinessId", "Common")</th>
-                <th>Status</th>
-                <th>Borrower Name</th>
-                <th>City</th>
-                @*<th>Zip</th>*@
-                <th class="TrackingNoHide">Tracking Number</th>
-                <th class="TrackingNo">Tracking Number</th>
-                <th>Received Date <span class="fontcapitalize">(Local)</span></th>
-                <th>Due Date <span class="fontcapitalize">(Local)</span></th>
-                <th>Shipped Date <span class="fontcapitalize">(Local)</span></th>
-                <th>Document Type</th>
+                <th>Batch Id</th>
+                <th>Mailpiece Id</th>
                 <th>Channel</th>
+                <td>Document Type</td>
+                <th>@Html.Action("GetHeadingForBusinessId", "Common")</th>
+                <th class="TrackingNoHide">Tracking Number</th>
+                <th>Date Received<span class="fontcapitalize">(Local)</span></th>
+                <th>Date Printed<span class="fontcapitalize">(Local)</span></th>
+                <th>Date Mailed<span class="fontcapitalize">(Local)</span></th>
+                <th>Shiping Status</th>
+                <th>File Name</th>
+                <th>Client Code</th>
                 <th>Shipping Carrier / Service type</th>
-                <th class="ErrorCode">Error Code</th>
-                <th class="ErrorText">Error Text</th>
+                <th>Name</th>                
+                <th>Recipient Street Address</th>
+                <th>Recipient City</th>
+                <th>Print Location</th>
+                <th>Pages Shipped</th>
+                @*<th class="ErrorCode">Error Code</th>
+                <th class="ErrorText">Error Text</th>*@
             </tr>
         </thead>
         <tbody id="SearchbodyContent"></tbody>
@@ -218,21 +222,27 @@
     <table>
         <tbody id="SearchBody">
             <tr class="row-small">
-                <td data-businessidvalue="{BusinessIdValue}"><span>{View}</span></td>
-                <td><span>{ShippingStatusFormatted}</span></td>
-                <td><span>{RcptNameFormatted}</span></td>
-                <td><span>{CityFormatted}</span></td>
-                <td><span>{TrackingNo}</span></td>
-                <td><span>{TrackingNoFormatted}</span></td>
-                @*<td><span>{ZIP}</span></td>*@
-                <td><span>{ReceivedOnFormatted}</span></td>
-                <td><span>{DueDateFormatted}</span></td>
-                <td><span>{ShippedOnFormatted}</span></td>
-                <td><span>{DocType}</span></td>
+                <td><span>{BatchId}</span></td>
+                <td><span>{Id}</span></td>
                 <td><span>{Channel}</span></td>
-                <td>{ShippingCarrier} / {ShippingMethod}</td>
-                <td>{ErrorCode}</td>
-                <td>{ErrorDesc}</td>
+                <td><span>{DocumentOrPackageType}</span></td>
+                <td data-businessidvalue="{BusinessIdValue}"><span>{View}</span></td>
+                <td><span>{TrackingNoFormatted}</span></td> 
+                @*<td><span>{TrackingNo}</span></td>*@
+                <td><span>{ReceivedOnFormatted}</span></td>
+                <td><span>{PrintedOnDateFormatted}</span></td>
+                <td><span>{ShippedOnFormatted}</span></td>                
+                <td><span>{ShippingStatusFormatted}</span></td>
+                <td><span>{FileName}</span></td>
+                <td><span>{ClientCode}</span></td>
+                <td><span>{ShippingMethod}-{ShippingCarrier}</span></td>
+                <td><span>{RcptNameFormatted}</span></td>
+                <td><span>{RcptAddressStreet}</span></td>
+                <td><span>{CityFormatted}</span></td>                
+                <td><span>{PrintLocation}</span></td>
+                <td><span>{PagesShipped}</span></td>
+                @*<td>{ErrorCode}</td>
+                <td>{ErrorDesc}</td>*@
             </tr>
         </tbody>
     </table>
@@ -731,7 +741,7 @@
                 //this.ReceivedOnFormatted = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
-                this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
+                //this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
                 this.RcptNameFormatted = this.FirstName + " " + this.LastName;
                 this.CityFormatted = this.City + " " + this.State + " " + this.ZIP;
                 var status = "";
