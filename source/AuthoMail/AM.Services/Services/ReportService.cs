@@ -25,7 +25,7 @@ namespace AM.Services
         List<DALLASSubmittedBatchDetail> GetDALLASReconReport(DateTime startDate, DateTime endDate);
         List<EnvelopeInventory> SupplyInventoryReport(List<string> envelopes);
         MailBatches GetMailBatchDataFromMailBatchId(int mailBatchId);
-        List<ReportWizard> GetReportWizard(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, List<string> status, string channel, List<string> shippingMethod, string trackingNo);
+        List<ReportWizard> GetReportWizard(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -345,7 +345,7 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
         }
 
 
-        public List<ReportWizard> GetReportWizard(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, List<string> status, string channel, List<string> shippingMethod, string trackingNo)
+        public List<ReportWizard> GetReportWizard(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo)
         {
             string query = @"SELECT m.Id,m.BusinessFriendlyIdValue as BusinessIdValue,m.BusinessFriendlyIdName as BusinessIdName,m.ShippingStatus as [Status],m.UniqueId,
 	 m.RcptFirstName as FirstName,m.RcptLastName as LastName,m.RcptAddressCity as [City],m.RcptAddressZip as ZIP,m.RcptAddressStreet,
@@ -371,9 +371,9 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
                 query = string.Format("{0} and m.businessFriendlyIdValue=@businessFriendlyIdValue", query);
                 parameter.Add("@businessFriendlyIdValue", businessFriendlyIdValue);
             }
-            if (status != null && status.Count() > 0)
+            if (!status.IsNullOrWhiteSpace())
             {
-                query = string.Format("{0} and m.ShippingStatus in @ShippingStatus", query);
+                query = string.Format("{0} and m.ShippingStatus = @ShippingStatus", query);
                 parameter.Add("@ShippingStatus", status);
             }
             if (!string.IsNullOrWhiteSpace(channel))

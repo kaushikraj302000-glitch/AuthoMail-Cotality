@@ -198,7 +198,7 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpGet]
-        public JsonResult _ReportWizard(string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, List<string> status, string channel, List<string> shippingMethod, string trackingNo)
+        public JsonResult _ReportWizard(string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo)
         {
 
             try
