@@ -347,7 +347,7 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
 
         public List<ReportWizard> GetReportWizard(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, List<string> status, string channel, List<string> shippingMethod, string trackingNo)
         {
-            string query = @"SELECT m.Id,m.BusinessFriendlyIdValue as BusinessIdValue,m.ShippingStatus as [Status],m.UniqueId,
+            string query = @"SELECT m.Id,m.BusinessFriendlyIdValue as BusinessIdValue,m.BusinessFriendlyIdName as BusinessIdName,m.ShippingStatus as [Status],m.UniqueId,
 	 m.RcptFirstName as FirstName,m.RcptLastName as LastName,m.RcptAddressCity as [City],m.RcptAddressZip as ZIP,m.RcptAddressStreet,
 	 m.RcptAddressState as [State], m.ShippedOn ,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,m.PrintedOn
 	 b,BatchName,b.Id as BatchId,b.ReceivedOn,m.DocTypeId,m.FileName,
