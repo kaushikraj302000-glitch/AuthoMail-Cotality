@@ -12,7 +12,8 @@ namespace AM.Services
     {
         //Remove Method(make sure below method in use)
         //List<MailPieces> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo);
-        List<SearchViewModel> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo);
+        List<SearchViewModel> GetMailPieceByParam
+            (int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo,List<string> errorList);
         MailPieces GetMailPieceByUniqueId(Guid uniqueId);
         List<MailPieces> GetAllData(int clientId);
 
@@ -22,7 +23,7 @@ namespace AM.Services
     }
     public class SearchService : ServiceBase, ISearchService
     {
-        public List<SearchViewModel> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo)
+        public List<SearchViewModel> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo,List<string> errorList)
         {
             string query = @"SELECT Top 1000
 	 m.BusinessFriendlyIdValue as BusinessIdValue,m.ShippingStatus as [Status],m.UniqueId,
@@ -82,6 +83,11 @@ namespace AM.Services
             {
                 query = string.Format("{0} and m.DocTypeId in @docTypeId", query);
                 parameter.Add("@DocTypeId", docType);
+            }
+            if (errorList != null && errorList.Count > 0)
+            {
+                query = string.Format("{0} and m.ErrorCode in @ErrorCode", query);
+                parameter.Add("@ErrorCode", errorList);
             }
 
             var data = db.Query<SearchViewModel>(query, parameter).ToList();

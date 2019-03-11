@@ -58,6 +58,7 @@ namespace AM.Entities
         public string EnvelopeId { get; set; }
         public string BREEnvelopeId { get; set; }
         public int NoOfCopies { get; set; }
+        public string PrintFormat { get; set; }
     }
 
     public class DocTypeCoverLetter
