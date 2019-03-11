@@ -443,6 +443,8 @@ namespace AM.Core
                                 }
 
                                 mailPiece.TotalPages = response.TotalPages;
+                                mailPiece.TotalSheets = docType.PrintFormat == "Duplex" ? Convert.ToInt32(Math.Ceiling(mailPiece.TotalPages / 2f)) : mailPiece.TotalPages;
+
                                 mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                             }
                             catch (Exception ex)
@@ -985,7 +987,6 @@ namespace AM.Core
                                         row.PrintedOn = mailPackage.PrintedOn;
                                         row.ShippedOn = mailPackage.ShippedOn;
                                         row.ShippingCost = mailPackage.PostageCost;
-                                        row.TotalSheets = mailPackage.TotalSheets;
                                         row.Weight = mailPackage.WeightMeasured;
                                         row.IsQCPerformed = mailPackage.IsQCPerformed;
                                         row.MissedSLAReason = GetMissedSLAReason(row);
