@@ -141,6 +141,23 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="ErrorCode">Error Code</label>
+                                <select class="selectpicker" id="ErrorCode" multiple="multiple">
+                                    <option value="Invalid_XML_File">Invalid_XML_File</option>
+                                    <option value="Missing_PDF_File">Missing_PDF_File</option>
+                                    <option value="Invalid_PackageType">Invalid_PackageType</option>
+                                    <option value="Mailing_Address_Missing_Or_Invalid">Mailing_Address_Missing_Or_Invalid</option>
+                                    <option value="Recipient_Details_Missing_Or_Invalid">Recipient_Details_Missing_Or_Invalid</option>
+                                    <option value="Unknown_Error">Unknown_Error</option>
+                                    <option value="Invalid_PackageType">Invalid_PackageType</option>
+                                    <option value="Invalid_ShippingDetail">Invalid_ShippingDetail</option>
+                                    <option value="Invalid_DuplicateKey">Invalid_DuplicateKey</option>
+                                    <option value="Mailing_Address_Missing_Or_Invalid">Mailing_Address_Missing_Or_Invalid</option>
+                                </select>
+                            </div>
+                        </div>
                         @if (User.IsInRole(AM.Entities.AMRoles.Admin))
                         {
                             <div class="col-md-3">
@@ -747,7 +764,7 @@
                 this.RcptNameFormatted = this.FirstName + " " + this.LastName;
                 this.CityFormatted = this.City + " " + this.State + " " + this.ZIP;
                 var status = "";
-                this.View = '<a class="viewdetails" style="cursor:pointer" onclick="ViewDetails(this)" data-mailpieceid="' + this.UniqueId + '">' + (this.BusinessIdValue != null ? this.BusinessIdValue : "Not Found") + '</a>';
+                this.View = (this.BusinessIdValue != null ? '<a class="viewdetails" style="cursor:pointer" onclick="ViewDetails(this)" data-mailpieceid="' + this.UniqueId + '">' + this.BusinessIdValue  + '</a>':"--");
                 this.ErrorDesc = this.ErrorDesc != null ? this.ErrorDesc.replace(/"/g, '\'') : "";
                 switch (this.Status) {
 
@@ -892,7 +909,8 @@
                     receivedOnEnd: endDate,
                     trackingNumber: $("#TrackingNumber").val(),
                     clientBatchId: $("#ClientBatchId").val(),
-                    batchId: $("#BatchId").val()
+                    batchId: $("#BatchId").val(),
+                    errorCode: $("#ErrorCode").val()
 
                 }),
                 contentType: "application/json; charset=utf-8",

@@ -197,8 +197,8 @@ namespace AM.Web.Controllers
             ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
             return View();
         }
-        [HttpGet]
-        public JsonResult _ReportWizard(string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, List<string> status, string channel, List<string> shippingMethod, string trackingNo)
+        [HttpPost]
+        public JsonResult _ReportWizard(string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo)
         {
 
             try
@@ -210,6 +210,20 @@ namespace AM.Web.Controllers
             {
                 return Json(JsonResponseFactory.ErrorResponse(ex.Message), JsonRequestBehavior.AllowGet);
             }
+        }
+
+        public ActionResult DownloadReportWizard(string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo, string fileName)
+        {
+            shippingMethod = shippingMethod[0] == "" ? null : shippingMethod;
+            var result = repoSvc.GetReportWizard(User.Identity.GetClientId().Value, businessFriendlyIdName, businessFriendlyIdValue, startDate, endDate, docType, status, channel, shippingMethod, trackingNo);
+            var dataTable = ExcelHelper.ToDataTable<ReportWizard>(result);
+            var memoryStream = ExcelHelper.ExportDataSet(dataTable);
+            memoryStream.Seek(0, SeekOrigin.Begin);
+
+            var fileNameArry = new string[] { fileName,DateTime.Now.ToString("MMddyyymmss") };
+            fileName = string.Join("_", fileNameArry.Where(s => s != "").ToArray());
+            fileName = string.Format("{0}.xlsx", fileName);
+            return File(memoryStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
     }
 }

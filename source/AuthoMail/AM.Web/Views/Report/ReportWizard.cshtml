@@ -42,7 +42,7 @@
             <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree">
                 <div class="panel-title">
 
-                    <i class="fa fa-search"></i> Search
+                    Report Wizard
                     <div class="collapsed-icon pull-right">
                         <i class="fa fa-caret-left"></i>
                     </div>
@@ -144,11 +144,11 @@
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label for="BatchId">Shipping Method</label>
-                                <select class="selectpicker" id="ShippingMethod" multiple>
+                                <select class="selectpicker" id="ShippingMethod" multiple="multiple">
                                     <option value="USPS-IMB">USPS-IMB</option>
                                     <option value="USPS-PRIORITY">USPS-PRIORITY</option>
                                     <option value="USPS-PRIORITY_EXPRESS">USPS-PRIORITY_EXPRESS</option>
-                                    <option value="FedEx-PRIORITY_OVERNIGHT">FedEx-PRIORITY_OVERNIGHT</option>                                    
+                                    <option value="FedEx-PRIORITY_OVERNIGHT">FedEx-PRIORITY_OVERNIGHT</option>
                                 </select>
                             </div>
                         </div>
@@ -156,20 +156,20 @@
                         <div class="col-md-1">
                             <div class="form-group ">
                                 <label for="filterData">  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-                                <button type="button" id="filterData" class="btn btn-primary" title="Search">
+                                <button type="button" id="filterData" class="btn btn-primary" style=" padding-top: 6%;">
                                     <span class="sr-only">Filter</span>
-                                    <i class="fa fa-search"></i>
+                                    <i class="fa fa-download"></i> Download Report
                                 </button>
                             </div>
                         </div>
-                        <div class="col-md-1" style=" margin-left: -2%;">
+                        @*<div class="col-md-1" style=" margin-left: -2%;">
                             <div class="form-group ">
                                 <label for="filterData"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
                                 <button type="button" id="resetFilter" title="Reset" class="btn btn-transparent-blue">
                                     <i class="fa fa-undo"></i>
                                 </button>
                             </div>
-                        </div>
+                        </div>*@
                     </div>
                 </form>
 
@@ -178,16 +178,16 @@
     </div>
 
 </div>
-<div class="panel panel-default">
+@*<div class="panel panel-default">
     <div class='alert alert-blue text-center' id="loading" style="display:none"><span> Loading... </span></div>
     <div class="panel-heading" id="searchHeader">
         <div class="panel-title">
-            Search Details : <span class="normaltext" id="headerdate"></span>
+            Report Wizard : <span class="normaltext" id="headerdate"></span>
 
         </div>
     </div>
     <div class="panel-body" id="searchMailPieceList"></div>
-</div>
+</div>*@
 <!--Search table html template code -->
 <div id="SearchTableContent" style="display:none">
     <table class="table table-responsive" style="overflow-x:scroll">
@@ -196,16 +196,17 @@
                 <th>Batch Id</th>
                 <th>Mailpiece Id</th>
                 <th>Channel</th>
-                <td>Document Type</td>
+                <th>Document Type</th>
                 <th>@Html.Action("GetHeadingForBusinessId", "Common")</th>
                 <th class="TrackingNoHide">Tracking Number</th>
+                <th class="TrackingNo">Tracking Number</th>
                 <th>Date Received<span class="fontcapitalize">(Local)</span></th>
                 <th>Date Printed<span class="fontcapitalize">(Local)</span></th>
                 <th>Date Mailed<span class="fontcapitalize">(Local)</span></th>
                 <th>Shiping Status</th>
                 <th>File Name</th>
                 <th>Client Code</th>
-                <th>Shipping Carrier / Service type</th>
+                <th>Shipping Method</th>
                 <th>Name</th>                
                 <th>Recipient Street Address</th>
                 <th>Recipient City</th>
@@ -227,15 +228,15 @@
                 <td><span>{Channel}</span></td>
                 <td><span>{DocumentOrPackageType}</span></td>
                 <td data-businessidvalue="{BusinessIdValue}"><span>{View}</span></td>
+                <td><span>{TrackingNo}</span></td>
                 <td><span>{TrackingNoFormatted}</span></td> 
-                @*<td><span>{TrackingNo}</span></td>*@
                 <td><span>{ReceivedOnFormatted}</span></td>
                 <td><span>{PrintedOnDateFormatted}</span></td>
                 <td><span>{ShippedOnFormatted}</span></td>                
                 <td><span>{ShippingStatusFormatted}</span></td>
                 <td><span>{FileName}</span></td>
                 <td><span>{ClientCode}</span></td>
-                <td><span>{ShippingMethod}-{ShippingCarrier}</span></td>
+                <td><span>{ShippingMethod}</span></td>
                 <td><span>{RcptNameFormatted}</span></td>
                 <td><span>{RcptAddressStreet}</span></td>
                 <td><span>{CityFormatted}</span></td>                
@@ -570,7 +571,7 @@
                 $(this).val(picker.startDate.format('MM/DD/YYYY') + ' - ' + picker.endDate.format('MM/DD/YYYY'));
             });
 
-            FilterData();
+            //FilterData();
             $('#searchform').validate({ // initialize the plugin
                 errorElement: "span",
                 rules: {
@@ -745,7 +746,7 @@
                 this.RcptNameFormatted = this.FirstName + " " + this.LastName;
                 this.CityFormatted = this.City + " " + this.State + " " + this.ZIP;
                 var status = "";
-                this.View = '<a class="viewdetails" style="cursor:pointer" onclick="ViewDetails(this)" data-mailpieceid="' + this.UniqueId + '">' + (this.BusinessIdValue != null ? this.BusinessIdValue : "Not Found") + '</a>';
+                this.View =(this.BusinessIdValue != null ? this.BusinessIdValue : "--");
                 this.ErrorDesc = this.ErrorDesc != null ? this.ErrorDesc.replace(/"/g, '\'') : "";
                 switch (this.Status) {
 
@@ -865,11 +866,11 @@
             }
             $("#loading").show();
             $.ajax({
-                type: "GET",
+                type: "POST",
                 url: baseUrl + "Report/_ReportWizard",
                 data: JSON.stringify({
-                    BusinessFriendlyIdName: $("#BusinessFriendlyIdName").val(),
-                    BusinessFriendlyIdValue: $("#BusinessFriendlyIdValue").val(),
+                    businessFriendlyIdName: $("#BusinessFriendlyIdName").val(),
+                    businessFriendlyIdValue: $("#BusinessFriendlyIdValue").val(),
                     docType: $("#DocType").val(),
                     status: $("#Status").val(),
                     channel: $("#Channel").val(),
@@ -915,7 +916,31 @@
         }
 
         $("#filterData").click(function () {
-            FilterData();
+            var startDate = "";
+            var endDate = "";
+            if ($("#receivedOn").val() != "") {
+                var selectedData = $("#receivedOn").val().split('-');
+                startDate = moment(selectedData[0].trim()).format("MM/DD/YY");
+                endDate = moment(selectedData[1].trim()).format("MM/DD/YY");
+
+                $("#headerdate").html(startDate + " to " + endDate + " EST");
+            } else {
+                $("#receivedOn").val("");
+                $("#headerdate").empty();
+                startDate = "";
+                endDate = "";
+            }
+            var businessFriendlyIdName = $("#BusinessFriendlyIdName").val();
+            var businessFriendlyIdValue= $("#BusinessFriendlyIdValue").val();
+            var docType= $("#DocType").val();
+            var status= $("#Status").val();
+            var channel= $("#Channel").val();
+            var trackingNo= $("#TrackingNumber").val();
+            var shippingMethod = $('#ShippingMethod').val() == null ? [] : $('#ShippingMethod').val();
+           
+            var url = baseUrl + "Report/DownloadReportWizard?businessFriendlyIdName=<businessFriendlyIdName>&businessFriendlyIdValue=<businessFriendlyIdValue>&startDate=<startDate>&endDate=<endDate>&channel=<channel>&fileName=<fileName>&docType=<docType>&status=<status>&shippingMethod=<shippingMethod>&trackingNo=<trackingNo>".replace("<startDate>", startDate).replace("<endDate>", endDate).replace("<channel>", $("#Channel").val()).replace("<fileName>", "ReportWizard ").replace("<businessFriendlyIdName>", businessFriendlyIdName).replace("<businessFriendlyIdValue>", businessFriendlyIdValue).replace("<shippingMethod>", shippingMethod).replace("<trackingNo>", trackingNo).replace("<docType>", docType).replace("<status>", status).replace("<fileName>", "ReportWizard");
+            window.location = url;
+            //FilterData();
             //if ($("#BatchId").val().trim() != "") {
             //    if ($("#searchform").valid()) {
             //        FilterData();
