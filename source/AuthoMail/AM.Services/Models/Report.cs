@@ -74,7 +74,7 @@ namespace AM.Services
     public class ReportWizard
     {
         public int MailPieceId { get; set; }
-        public int BatchId { get; set; }        
+        public string BatchId { get; set; }        
         public string Channel { get; set; }
         public string DocumentOrPackageType { get; set; }
         public string BusinessIdName { get; set; }
