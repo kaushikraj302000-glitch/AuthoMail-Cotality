@@ -13,6 +13,7 @@ using System.Net.Mail;
 using System.ServiceModel;
 using System.Text;
 using System.Threading.Tasks;
+using System.Net;
 
 namespace AM.Core
 {
@@ -46,6 +47,8 @@ namespace AM.Core
 
             try
             {
+                ServicePointManager.Expect100Continue = true;
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                 // Call the ship web service passing in a shipment request and returning a shipment reply
                 ProcessShipmentReply reply = service.processShipment(request);
                 // check if the call was successful
