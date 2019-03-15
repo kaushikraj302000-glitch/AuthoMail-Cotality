@@ -16,22 +16,27 @@ namespace AM.Console
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(MailUtility));
 
-        public static bool SendNoBatchReceivedNotificationEmail(Client client, DateTime cutOffTime, Deliverable deliverable)
+        public static bool SendNoBatchReceivedNotificationEmail(Client client, DateTime cutOffTime, EmailChannel emailChannel)
         {
             bool isEmailSent = false;
 
             try
             {
+                if (emailChannel == null)
+                {
+                    return true;
+                }
+
                 using (SmtpClient smtpClient = new SmtpClient())
                 {
                     using (MailMessage msg = new MailMessage())
                     {
                         msg.IsBodyHtml = true;
-                        msg.To.Add(deliverable.EmailChannel.To);
-                        msg.CC.Add(deliverable.EmailChannel.Cc);
-                        if (!string.IsNullOrEmpty(deliverable.EmailChannel.Bcc))
-                            msg.Bcc.Add(deliverable.EmailChannel.Bcc);
-                        msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, client.AppCode, deliverable.EmailChannel.Subject);
+                        msg.To.Add(emailChannel.To);
+                        msg.CC.Add(emailChannel.Cc);
+                        if (!string.IsNullOrEmpty(emailChannel.Bcc))
+                            msg.Bcc.Add(emailChannel.Bcc);
+                        msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, client.AppCode, emailChannel.Subject);
                         msg.Priority = MailPriority.Normal;
                         msg.Body = string.Format("No batch available today till cutOffTime {0}.", cutOffTime.UtcToClientTimeZone(client.TimeZone).ToString("HH:mm"));
                         smtpClient.Send(msg);
@@ -77,6 +82,11 @@ namespace AM.Console
 
             try
             {
+                if (emailChannel == null)
+                {
+                    return true;
+                }
+
                 using (SmtpClient smtpClient = new SmtpClient())
                 {
                     using (MailMessage msg = new MailMessage())
@@ -148,6 +158,11 @@ namespace AM.Console
 
             try
             {
+                if (emailChannel == null)
+                {
+                    return true;
+                }
+
                 using (SmtpClient smtpClient = new SmtpClient())
                 {
                     using (MailMessage msg = new MailMessage())
@@ -223,6 +238,11 @@ namespace AM.Console
 
             try
             {
+                if (emailChannel == null)
+                {
+                    return true;
+                }
+
                 using (SmtpClient smtpClient = new SmtpClient())
                 {
                     using (MailMessage msg = new MailMessage())
@@ -261,6 +281,11 @@ namespace AM.Console
 
             try
             {
+                if (emailChannel == null)
+                {
+                    return true;
+                }
+
                 using (SmtpClient smtpClient = new SmtpClient())
                 {
                     using (MailMessage msg = new MailMessage())
