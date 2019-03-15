@@ -77,8 +77,9 @@ namespace AM.Services
         public string BatchId { get; set; }        
         public string Channel { get; set; }
         public string DocumentOrPackageType { get; set; }
-        public string BusinessIdName { get; set; }
-        public string BusinessIdValue { get; set; }
+        //public string BusinessIdName { get; set; }
+        //public string BusinessIdValue { get; set; }
+        public string LoanNumber { get; set; }
         public string TrackingNo { get; set; }
         public DateTime? ReceivedOn { get; set; }
         public DateTime? PrintedOn { get; set; }

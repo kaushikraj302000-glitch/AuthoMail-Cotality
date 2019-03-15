@@ -173,6 +173,7 @@ namespace AM.Services
                         uspsRequestLog = db.ExecuteAsync("Update [API].[USPS] set USPSRequest = @USPSRequest, USPSRequestedOn = @USPSRequestedOn where Id = @Id", new { USPSRequest = uspsInputXML, USPSRequestedOn = Common.Now, Id = logId });
                     }
 
+                    Exception newEx = null;
                     try
                     {
                         var response = await uspsReq.ConfigureAwait(false);
@@ -191,7 +192,10 @@ namespace AM.Services
                     }
                     catch (Exception ex)
                     {
+                        log.Error("Verify hard fail while download", ex);
+
                         isGenericUSPSError = true;
+                        newEx = ex;
 
                         // Store exception details received while accessing USPS API in addresses collection
                         addresses.ForEach(add =>
@@ -199,13 +203,19 @@ namespace AM.Services
                             add.Error = new USPSError
                             {
                                 Source = ResponseSource.USPS,
-                                Description = ex.ToString()
+                                Description = uspsResponseString
                             };
                         });
 
-                        uspsResponseString = ex.ToString();
+                        //uspsResponseString = fullerror;
 
                         //SetResponseValues(addressResponses, idRegex, addresses, ex);
+                    }
+
+                    if (newEx != null)
+                    {
+                        string fullerror = "{0}{1}{2}".Fill(uspsResponseString, new string('-', 105), newEx.ToString());
+                        uspsResponseString = fullerror;
                     }
                 }
 

@@ -347,7 +347,7 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
 
         public List<ReportWizard> GetReportWizard(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo)
         {
-            string query = @"SELECT m.Id as MailPieceId,m.BusinessFriendlyIdValue as BusinessIdValue,m.BusinessFriendlyIdName as BusinessIdName,m.ShippingStatus as [Status],m.UniqueId,
+            string query = @"SELECT m.Id as MailPieceId,m.BusinessFriendlyIdValue as LoanNumber,m.ShippingStatus as [Status],m.UniqueId,
 	 m.RcptFirstName as FirstName,m.RcptLastName as LastName,m.RcptAddressCity as [City],m.RcptAddressZip as ZIP,m.RcptAddressStreet,
 	 m.RcptAddressState as [State], m.ShippedOn as MailedOn ,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,m.PrintedOn
 	 ,b.BatchName as BatchId,b.ReceivedOn,m.DocTypeId,m.FileName,
@@ -358,9 +358,9 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
 	 FROM  [AM].[MailBatches] b,[Common].[SFTChannels] ch,[Common].[Clients] c,[AM].[MailPieces] m
 	 LEFT OUTER JOIN [Profile].[Users] u ON m.PulledBackRequestedBy=u.Id	 
 	 LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id
-	 WHERE m.MailBatchId=b.Id AND b.SFTChannelId=ch.Id AND m.ClientId=c.Id AND m.ClientId=@clientId";
+	 WHERE m.MailBatchId=b.Id AND b.SFTChannelId=ch.Id AND m.ClientId=c.Id";
             DynamicParameters parameter = new DynamicParameters();
-            parameter.Add("@clientId", clientId);
+            //parameter.Add("@clientId", clientId);
             if (!string.IsNullOrWhiteSpace(businessFriendlyIdName) && !string.IsNullOrWhiteSpace(businessFriendlyIdValue))
             {
                 query = string.Format("{0} and m.BusinessFriendlyIdName=@BusinessFriendlyIdName and m.businessFriendlyIdValue=@businessFriendlyIdValue", query);                
