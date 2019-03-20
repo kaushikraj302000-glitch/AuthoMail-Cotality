@@ -56,7 +56,7 @@ namespace AM.Console
             xmlFileNames = GetXmlFileNames(sftSite);
             if (xmlFileNames.Count == 0)
             {
-                MailUtility.SendNoBatchReceivedNotificationEmail(client, Common.Now, deliverable);
+                MailUtility.SendNoBatchReceivedNotificationEmail(client, Common.Now, deliverable.EmailChannel);
                 return;
             }
 
