@@ -2095,14 +2095,18 @@ WHERE ClientId in ((SELECT Id FROM Common.Clients WHERE AppCode='CITIVM'),(SELEC
 
 2) Function updated ufn_GetSweepTimings Added Citi,RPS, Dallas
 
-USE [AuthoMail]
+/****** Object:  UserDefinedFunction [dbo].[ufn_GetSweepTimings]    Script Date: 2/19/2019 12:17:46 PM ******/
+DROP FUNCTION [dbo].[ufn_GetSweepTimings]
 GO
-/****** Object:  UserDefinedFunction [dbo].[ufn_GetSweepTimings]    Script Date: 2/7/2019 6:20:37 PM ******/
+
+/****** Object:  UserDefinedFunction [dbo].[ufn_GetSweepTimings]    Script Date: 2/19/2019 12:17:46 PM ******/
 SET ANSI_NULLS ON
 GO
+
 SET QUOTED_IDENTIFIER ON
 GO
-ALTER FUNCTION [dbo].[ufn_GetSweepTimings] 
+
+CREATE FUNCTION [dbo].[ufn_GetSweepTimings] 
 ( 
  
 )
@@ -2267,6 +2271,8 @@ GO
 ALTER TABLE [AM].[DocTypes] CHECK CONSTRAINT [FK_DocTypes_Envelope]
 ALTER TABLE [AM].[DocTypes] CHECK CONSTRAINT [FK_DocTypes_BREEnvelope]
 GO
+
+
 
 --USAA
 UPDATE AM.DocTypes

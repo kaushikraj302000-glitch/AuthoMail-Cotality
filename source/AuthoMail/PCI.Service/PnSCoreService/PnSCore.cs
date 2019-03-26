@@ -94,7 +94,7 @@ namespace PCI.Service
                     }
 
                     // Load PnSRequest into batch summary
-                    batchSummary.JulianDate = DateTime.Today.Year * 1000 + DateTime.Today.DayOfYear;
+                    batchSummary.JulianDate = Common.EstToday.Year * 1000 + Common.EstToday.DayOfYear;
                     batchSummary.DueDate = pnsRequest.DueDate;
                     batchSummary.OnValidationErrors = pnsRequest.OnValidationErrors.ToString();
                     batchSummary.SLADays = pnsRequest.SLADays;
@@ -333,7 +333,7 @@ namespace PCI.Service
                 {
                     JobId = bi.BatchSummary.PrintBatch,
                     PieceId = pieceId,
-                    Date = DateTime.Today,
+                    Date = Common.EstToday,
                     UniqueId = mailPiece.UniqueId,
                     PDFFileName = mailPiece.PDFFileName,
                     DivertVS3 = mailPiece.PerformQC ? 1 : 0,

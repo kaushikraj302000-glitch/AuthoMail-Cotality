@@ -58,7 +58,7 @@ namespace AM.Console
 
             if (xmlFileNames.Count == 0)
             {
-                MailUtility.SendNoBatchReceivedNotificationEmail(client, Common.Now, deliverable);
+                MailUtility.SendNoBatchReceivedNotificationEmail(client, Common.Now, deliverable.EmailChannel);
                 return;
             }
 
@@ -417,7 +417,7 @@ namespace AM.Console
                     if (mailPieceData != null)
                     {
                         var validMailPieces = mailPieceData.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
-                       
+
                         //Here System will validate Addresses for valid mail pieces
                         if (validMailPieces.Count > 0)
                             Channel.ValidateAddressType(validMailPieces);
