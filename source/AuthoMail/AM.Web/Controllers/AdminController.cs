@@ -15,6 +15,7 @@ using System.Data;
 using NPOI.XSSF.UserModel;
 using NPOI.SS.UserModel;
 using System.IO;
+using System.Globalization;
 namespace AM.Web.Controllers
 {
     [Authorize(Roles = AMRoles.Admin + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager)]
@@ -629,11 +630,13 @@ namespace AM.Web.Controllers
             }
         }
         [HttpPost]
-        public ActionResult ProjectSetup(ProjectRequest projectRequest)
+        public ActionResult ProjectSetup(ProjectRequest projectRequest, string SubmittedOn, string ProdStartOn)
         {
 
             try
             {
+                projectRequest.SubmittedOn = DateTime.ParseExact(SubmittedOn, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+                projectRequest.ProdStartOn = DateTime.ParseExact(ProdStartOn, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
                 projectRequest.DailyPrintSchedule = string.Join(",", projectRequest.DailyPrintScheduleList);
                 projectRequest.PaperPrintRequirements = string.Join(",", projectRequest.PaperPrintRequirementsList);
                 var model = projectRequestSvc.SaveProjectRequest(projectRequest, User.Identity.GetUserId());
