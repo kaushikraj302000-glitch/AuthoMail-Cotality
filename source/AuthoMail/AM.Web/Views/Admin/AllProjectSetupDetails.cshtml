@@ -53,15 +53,18 @@
                         <tr>
                             <td>@projectRequest.ClientName</td>
                             <td>@projectRequest.SubmittedBy</td>
-                            <td>@projectRequest.SubmittedOn.Value.ToShortDateString()</td>
-                            <td>@projectRequest.ProdStartOn.Value.ToShortDateString()</td>
-                            <td><a  href="~/Admin/ProjectSetup?id=@projectRequest.Id"><i class="padding-left-15 fa fa-edit text-blue" aria-hidden="true" title="Edit"><span class="sr-only">Edit</span></i></a></td>
+                            <td>@(projectRequest.SubmittedOn.HasValue ? projectRequest.SubmittedOn.Value.ToShortDateString() : "--")</td>
+                            <td>@(projectRequest.ProdStartOn.HasValue ? projectRequest.ProdStartOn.Value.ToShortDateString() : "--")</td>
+                            <td><a href="~/Admin/ProjectSetup?id=@projectRequest.Id"><i class="padding-left-15 fa fa-edit text-blue" aria-hidden="true" title="Edit"><span class="sr-only">Edit</span></i></a>
+                                <a href="~/Admin/DownloadProjectSetupExcelFile?id=@projectRequest.Id"><i class="padding-left-15 fa fa-file-excel-o text-blue" aria-hidden="true" title="Download Excel"><span class="sr-only">Download Excel</span></i></a>
+                                
+                            </td>
                         </tr>
                     }
                 </tbody>
             </table>
         }
-        
+
     </div>
 </div>
 
@@ -70,7 +73,7 @@
     @Scripts.Render("~/bundles/datatables")
 
     <script type="text/javascript">
-       
+
         $(document).ready(function () {
             applyDataTable();
         });
