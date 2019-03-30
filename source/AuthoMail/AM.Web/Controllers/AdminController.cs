@@ -630,7 +630,7 @@ namespace AM.Web.Controllers
             }
         }
         [HttpPost]
-        public ActionResult ProjectSetup(ProjectRequest projectRequest, string SubmittedOn, string ProdStartOn)
+        public ActionResult ProjectSetup(ProjectRequest projectRequest, string SubmittedOn, string ProdStartOn,HttpPostedFileBase file)
         {
 
             try

@@ -387,7 +387,7 @@ namespace AM.Web.Models
                 table.AddCell(ColspanCell(1));
                 table.AddCell(ColspanCell(1));
                 table.AddCell(LeftCell("Types of Files (Other):\n\n"));
-                table.AddCell(RightCell(model.TypeOfFiles));
+                table.AddCell(RightCell(model.TypeOfFilesOther));
                 table.AddCell(ColspanCell(1));
                 table.AddCell(ColspanCell(1));
                 table.AddCell(LeftCell("Paper & Print (Additional Details):\n\n"));
