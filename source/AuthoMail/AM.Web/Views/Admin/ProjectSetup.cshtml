@@ -6,7 +6,7 @@
     var fileTransmittedViaList = new List<string> { "Client FTP", "CoreLogic FTP", "CL Pull from Client System Imaging", "Other" };
     var typeOfFilesList = new List<string> { "PDF", "HP", "TIFF", "Other" };
     var serviceLevelList = new List<string> { "Same Day", "24 Hours", "48 Hours", "Other" };
-    var projectRequirements = new List<string> { "Mixed Media", "Letter Only", "Legal Only", "Stapled", "Not Stapled", "24# Paper", "Insert Required", "White", "Color (please specify)", "Print 1-sided", "Print 2-sided", "B&W", "Color", "B&W & Color" };
+    var projectRequirements = new List<string> { "Mixed Media", "Letter Only", "Legal Only", "Stapled", "Not Stapled", "24# Paper", "Insert Required", "White", "Color (specify)", "Print 1-sided", "Print 2-sided", "B&W", "Color", "B&W & Color" };
     var packagesSentToCustomerList = new List<string> { "Mailed-USPS", "Federal Express", "Certified USPS", "Other" };
     var envelopeList = new List<string> { "# 10", "6 x 9.5", "9 x 12", "10 x 12","10 x 13", "Standard Window", "Custom Window(s)", "Other" };
     var businessReplyMailEnvelopeList = new List<string> { "No", "#9 Business Reply Mail", "Other" };
@@ -46,7 +46,7 @@
                     <div class="form-group">
                         <label for="SubmittedOn">Submit Date</label>
                         <div class="input-group date" >
-                            <input type="text" class="form-control" name="SubmittedOn" value="@Model.SubmittedOn" id="SubmittedOn" required>
+                            <input type="text" class="form-control" name="SubmittedOn" value='@(Model.SubmittedOn.HasValue?Model.SubmittedOn.Value.ToString("MM/dd/yyyy"):null)' id="SubmittedOn" required>
                             <span class="input-group-addon">
                                 <i class="fa fa-calendar"></i>
                             </span>
@@ -55,7 +55,7 @@
                     <div class="form-group">
                         <label for="ProdStartOn">Project Start Date</label>
                         <div class="input-group date" >
-                            <input type="text" class="form-control" id="ProdStartOn" name="ProdStartOn" value="@Model.ProdStartOn" required>
+                            <input type="text" class="form-control" id="ProdStartOn" name="ProdStartOn" value='@(Model.ProdStartOn.HasValue ? Model.ProdStartOn.Value.ToString("MM/dd/yyyy") : null)' required>
                             <span class="input-group-addon">
                                 <i class="fa fa-calendar"></i>
                             </span>

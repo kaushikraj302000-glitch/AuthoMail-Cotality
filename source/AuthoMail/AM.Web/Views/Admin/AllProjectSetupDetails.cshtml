@@ -44,7 +44,7 @@
                         <th>Submitter</th>
                         <th>Submit Date</th>
                         <th>Project Start Date</th>
-                        <th style="min-width:99px;">Action</th>
+                        <th style="min-width:99px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -57,6 +57,8 @@
                             <td>@(projectRequest.ProdStartOn.HasValue ? projectRequest.ProdStartOn.Value.ToShortDateString() : "--")</td>
                             <td><a href="~/Admin/ProjectSetup?id=@projectRequest.Id"><i class="padding-left-15 fa fa-edit text-blue" aria-hidden="true" title="Edit"><span class="sr-only">Edit</span></i></a>
                                 <a href="~/Admin/DownloadProjectSetupExcelFile?id=@projectRequest.Id"><i class="padding-left-15 fa fa-file-excel-o text-blue" aria-hidden="true" title="Download Excel"><span class="sr-only">Download Excel</span></i></a>
+                                <a href="~/Admin/DownloadProjectSetupPdfFile?id=@projectRequest.Id"><i class="padding-left-15 fa fa-file-pdf-o text-blue" aria-hidden="true" title="Download Pdf"><span class="sr-only">Download Pdf</span></i></a>
+                                
                                 
                             </td>
                         </tr>

@@ -657,6 +657,20 @@ namespace AM.Web.Controllers
             }
         }
 
+        public ActionResult DownloadProjectSetupPdfFile(int id)
+        {
+            var model = projectRequestSvc.ProjectRequestFindById(id);
+            var memoryStream = new MemoryStream(PDFTemplate.CreatePdf(model));
+            var fileNameArry = new string[] { model.ClientName, DateTime.Now.ToString("MMddyyymmss") };
+            string fileName = string.Empty;
+            fileName = string.Join("_", fileNameArry.Where(s => s != "").ToArray());
+            // fileName = string.Format("{0}.pdf", fileName);
+            fileName = string.Format("{0}.pdf", fileName);
+            //memoryStream.Seek(0, SeekOrigin.Begin);
+            //return File(memoryStream, "application/pdf", fileName);
+            return File(memoryStream, "application/pdf", fileName);
+        }
+
         public ActionResult DownloadProjectSetupExcelFile(int id)
         {
             try
@@ -666,6 +680,7 @@ namespace AM.Web.Controllers
                 DataTable exportdt = new DataTable();
 
                 var model = projectRequestSvc.ProjectRequestFindById(id);
+
                 exportdt.Columns.Add("Key");
                 exportdt.Columns.Add("Value");
                 Type myType = model.GetType();
@@ -710,10 +725,10 @@ namespace AM.Web.Controllers
                 string fileName = string.Empty;
                 var fileNameArry = new string[] { model.ClientName, DateTime.Now.ToString("MMddyyymmss") };
                 fileName = string.Join("_", fileNameArry.Where(s => s != "").ToArray());
-               // fileName = string.Format("{0}.pdf", fileName);
+                // fileName = string.Format("{0}.pdf", fileName);
                 fileName = string.Format("{0}.xlsx", fileName);
                 //return File(memoryStream, "application/pdf", fileName);
-                 return File(memoryStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                return File(memoryStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
             }
             catch (Exception e)
             {
