@@ -71,6 +71,14 @@
       <HintPath>..\packages\Open-XML-SDK.2.8.1\lib\net40\DocumentFormat.OpenXml.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="ICSharpCode.SharpZipLib, Version=1.0.0.999, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpZipLib.1.0.0\lib\net45\ICSharpCode.SharpZipLib.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="itextsharp, Version=5.5.13.0, Culture=neutral, PublicKeyToken=8354ae6d2174ddca, processorArchitecture=MSIL">
+      <HintPath>..\packages\iTextSharp.5.5.13\lib\itextsharp.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
       <Private>True</Private>
@@ -84,6 +92,22 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="NPOI, Version=2.4.1.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
+      <HintPath>..\packages\NPOI.2.4.1\lib\net45\NPOI.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="NPOI.OOXML, Version=2.4.1.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
+      <HintPath>..\packages\NPOI.2.4.1\lib\net45\NPOI.OOXML.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="NPOI.OpenXml4Net, Version=2.4.1.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
+      <HintPath>..\packages\NPOI.2.4.1\lib\net45\NPOI.OpenXml4Net.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="NPOI.OpenXmlFormats, Version=2.4.1.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
+      <HintPath>..\packages\NPOI.2.4.1\lib\net45\NPOI.OpenXmlFormats.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.DirectoryServices" />
@@ -236,11 +260,13 @@
     <Compile Include="Models\MailPieceDetailsViewModel.cs" />
     <Compile Include="Models\MailPieceViewModel.cs" />
     <Compile Include="Models\MonthlyReconReportViewModel.cs" />
+    <Compile Include="Models\PDFTemplate.cs" />
     <Compile Include="Models\PullBackResponse.cs" />
     <Compile Include="Models\ReportViewModel.cs" />
     <Compile Include="Models\SearchViewModel.cs" />
     <Compile Include="Models\SummaryControlViewModel.cs" />
     <Compile Include="Models\TrackingInfoViewModel.cs" />
+    <Compile Include="Models\XLS.cs" />
     <Compile Include="Service References\USPSIMService\Reference.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -384,6 +410,17 @@
     <Content Include="clui\dist\fonts\Lato\Lato-Semibold.woff" />
     <Content Include="clui\dist\js\vendor\jquery.min.map" />
     <Content Include="Content\datatables\images\Sorting icons.psd" />
+    <Content Include="fonts\ARIAL.TTF" />
+    <Content Include="fonts\ARIALBD.TTF" />
+    <Content Include="fonts\CALIBRI.TTF" />
+    <Content Include="fonts\CALIBRIB.TTF" />
+    <Content Include="fonts\FREE3OF9.TTF" />
+    <Content Include="fonts\TIMES.TTF" />
+    <Content Include="fonts\TIMESBD.TTF" />
+    <Content Include="fonts\TIMESI.TTF" />
+    <Content Include="fonts\USPSIMBSTANDARD.TTF" />
+    <Content Include="fonts\VERDANA.TTF" />
+    <Content Include="fonts\ZapfDingbats.ttf" />
     <None Include="Properties\PublishProfiles\AuthoMail.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
@@ -522,9 +559,11 @@
     <Content Include="Views\Report\SupplyInventoryReport.cshtml" />
     <Content Include="Views\Admin\AllProjectSetupDetails.cshtml" />
     <Content Include="Views\Report\ReportWizard.cshtml" />
+    <Content Include="Template\Excel\ProjectSetupTemplate.xlsx" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="SamplePdfs\" />
     <Folder Include="Views\AccountApi\" />
     <Folder Include="Views\Base\" />
   </ItemGroup>

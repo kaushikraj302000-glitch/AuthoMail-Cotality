@@ -9,6 +9,13 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using System.Text;
 using System.Threading.Tasks;
+using AM.Web.Models;
+using System.Reflection;
+using System.Data;
+using NPOI.XSSF.UserModel;
+using NPOI.SS.UserModel;
+using System.IO;
+using System.Globalization;
 namespace AM.Web.Controllers
 {
     [Authorize(Roles = AMRoles.Admin + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager)]
@@ -623,16 +630,40 @@ namespace AM.Web.Controllers
             }
         }
         [HttpPost]
-        public ActionResult ProjectSetup(ProjectRequest projectRequest)
+        public ActionResult ProjectSetup(ProjectRequest projectRequest, string SubmittedOn, string ProdStartOn, List<HttpPostedFileBase> files)
         {
 
             try
             {
-                projectRequest.DailyPrintSchedule=string.Join(",",projectRequest.DailyPrintScheduleList);
-                projectRequest.PaperPrintRequirements=string.Join(",",projectRequest.PaperPrintRequirementsList);
+                projectRequest.SubmittedOn = DateTime.ParseExact(SubmittedOn, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+                projectRequest.ProdStartOn = DateTime.ParseExact(ProdStartOn, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+                projectRequest.DailyPrintSchedule = string.Join(",", projectRequest.DailyPrintScheduleList);
+                projectRequest.PaperPrintRequirements = string.Join(",", projectRequest.PaperPrintRequirementsList);
                 var model = projectRequestSvc.SaveProjectRequest(projectRequest, User.Identity.GetUserId());
                 if (model.Key)
                 {
+                    int id = Convert.ToInt32(model.Value);
+                    string subPath = string.Format("/SamplePdfs/{0}/",id.ToString()); // your code goes here
+
+                    bool exists = Directory.Exists(Server.MapPath(subPath));
+
+                    if (!exists)
+                        Directory.CreateDirectory(Server.MapPath(subPath));
+                    List<string> filesName = new List<string>();
+                    foreach (var file in files)
+                    {
+                        if (Path.GetExtension(file.FileName) == ".pdf")
+                        {
+                            string filePath = string.Format("{0}/{1}", subPath, file.FileName);
+                            file.SaveAs(Server.MapPath(filePath));
+                            filesName.Add(file.FileName);
+                        }
+                    }
+                    if (filesName.Count > 0)
+                    {
+                        string names = string.Join(",", filesName).ToString();
+                        projectRequestSvc.SaveProjectRequestFiles(id, names, User.Identity.GetUserId());
+                    }
                     return RedirectToAction("AllProjectSetupDetails");
                 }
                 else
@@ -645,6 +676,85 @@ namespace AM.Web.Controllers
             {
                 ModelState.AddModelError("", e.Message);
                 return View(projectRequest);
+            }
+        }
+
+        public ActionResult DownloadProjectSetupPdfFile(int id)
+        {
+            var model = projectRequestSvc.ProjectRequestFindById(id);
+            var memoryStream = new MemoryStream(PDFTemplate.CreatePdf(model));
+            var fileNameArry = new string[] { model.ClientName, DateTime.Now.ToString("MMddyyymmss") };
+            string fileName = string.Empty;
+            fileName = string.Join("_", fileNameArry.Where(s => s != "").ToArray());
+            // fileName = string.Format("{0}.pdf", fileName);
+            fileName = string.Format("{0}.pdf", fileName);
+            //memoryStream.Seek(0, SeekOrigin.Begin);
+            //return File(memoryStream, "application/pdf", fileName);
+            return File(memoryStream, "application/pdf", fileName);
+        }
+
+        public ActionResult DownloadProjectSetupExcelFile(int id)
+        {
+            try
+            {
+
+                XLS exportFile = new XLS(Server.MapPath("~/Template/Excel/ProjectSetupTemplate.xlsx"));
+                DataTable exportdt = new DataTable();
+
+                var model = projectRequestSvc.ProjectRequestFindById(id);
+
+                exportdt.Columns.Add("Key");
+                exportdt.Columns.Add("Value");
+                Type myType = model.GetType();
+                IList<PropertyInfo> props = new List<PropertyInfo>(myType.GetProperties());
+                foreach (PropertyInfo prop in props)
+                {
+                    object propValue = prop.GetValue(model, null);
+                    if (prop.PropertyType == typeof(DateTime?))
+                    {
+                        if (propValue != null)
+                        {
+                            var dt = (DateTime)propValue;
+                            exportdt.Rows.Add(new Object[] { prop.Name, dt.ToString("dd/MM/yyyy") });
+                        }
+                        else
+                        {
+                            exportdt.Rows.Add(new Object[] { prop.Name, propValue });
+                        }
+
+                    }
+                    else
+                    {
+                        exportdt.Rows.Add(new Object[] { prop.Name, propValue });
+                    }
+
+                }
+
+                exportFile.LoadData("Sheet1", exportdt, false, true, (j) =>
+                {
+
+                    //j.SetSheetHidden(j.GetSheetIndex("Sheet2"), SheetState.Hidden);
+                    j.GetSheet("Sheet2").ProtectSheet("Password");//password 
+                    j.SetSheetHidden(j.GetSheetIndex("Sheet1"), SheetState.VeryHidden);
+                    XSSFFormulaEvaluator.EvaluateAllFormulaCells(j);
+                });
+                var memoryStream = new MemoryStream();
+                //Workbook workbook = new Workbook();
+                //workbook.LoadFromFile(filename);
+                //workbook.SaveToFile("result.pdf", FileFormat.PDF);  
+                exportFile.SaveAs(memoryStream);
+                memoryStream.Seek(0, SeekOrigin.Begin);
+                string fileName = string.Empty;
+                var fileNameArry = new string[] { model.ClientName, DateTime.Now.ToString("MMddyyymmss") };
+                fileName = string.Join("_", fileNameArry.Where(s => s != "").ToArray());
+                // fileName = string.Format("{0}.pdf", fileName);
+                fileName = string.Format("{0}.xlsx", fileName);
+                //return File(memoryStream, "application/pdf", fileName);
+                return File(memoryStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            catch (Exception e)
+            {
+                return View("Error");
             }
         }
         #endregion
@@ -695,7 +805,7 @@ namespace AM.Web.Controllers
                     if (env != null) return Json(JsonResponseFactory.ErrorResponse("Envelope already exists."), JsonRequestBehavior.AllowGet);
                 }
 
-                return Json(JsonResponseFactory.SuccessResponse(inventorySvc.SaveEnvelopes(envelopes,User.Identity.GetUserId())), JsonRequestBehavior.AllowGet);
+                return Json(JsonResponseFactory.SuccessResponse(inventorySvc.SaveEnvelopes(envelopes, User.Identity.GetUserId())), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
             {

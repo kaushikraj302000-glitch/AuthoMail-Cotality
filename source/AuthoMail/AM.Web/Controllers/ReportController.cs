@@ -195,15 +195,16 @@ namespace AM.Web.Controllers
         {
             ViewBag.BusinessId = homeSvc.GetBusinessFriendlyIdNameByclientId(User.Identity.GetClientId().Value);
             ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
+            ViewBag.ClientId = new SelectList(homeSvc.GetAllActiveClient(), "Id", "Name");
             return View();
         }
         [HttpPost]
-        public JsonResult _ReportWizard(string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo)
+        public JsonResult _ReportWizard(List<int> clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo)
         {
 
             try
             {
-                var result = repoSvc.GetReportWizard(User.Identity.GetClientId().Value, businessFriendlyIdName, businessFriendlyIdValue, startDate, endDate, docType, status, channel, shippingMethod, trackingNo);
+                var result = repoSvc.GetReportWizard(clientId, businessFriendlyIdName, businessFriendlyIdValue, startDate, endDate, docType, status, channel, shippingMethod, trackingNo);
                 return Json(JsonResponseFactory.SuccessResponse(new { model = result }), JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
@@ -212,15 +213,17 @@ namespace AM.Web.Controllers
             }
         }
 
-        public ActionResult DownloadReportWizard(string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo, string fileName)
+        public ActionResult DownloadReportWizard(string clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, string docType, string status, string channel, List<string> shippingMethod, string trackingNo, string fileName)
         {
+            List<int> ClientId = string.IsNullOrEmpty(clientId) ? new List<int>() : clientId.Split(',').Select(Int32.Parse).ToList();
+            List<int> DocType = string.IsNullOrEmpty(docType) ? new List<int>() : docType.Split(',').Select(Int32.Parse).ToList();
             shippingMethod = shippingMethod[0] == "" ? null : shippingMethod;
-            var result = repoSvc.GetReportWizard(User.Identity.GetClientId().Value, businessFriendlyIdName, businessFriendlyIdValue, startDate, endDate, docType, status, channel, shippingMethod, trackingNo);
+            var result = repoSvc.GetReportWizard(ClientId, businessFriendlyIdName, businessFriendlyIdValue, startDate, endDate, DocType, status, channel, shippingMethod, trackingNo);
             var dataTable = ExcelHelper.ToDataTable<ReportWizard>(result);
             var memoryStream = ExcelHelper.ExportDataSet(dataTable);
             memoryStream.Seek(0, SeekOrigin.Begin);
 
-            var fileNameArry = new string[] { fileName,DateTime.Now.ToString("MMddyyymmss") };
+            var fileNameArry = new string[] { fileName, DateTime.Now.ToString("MMddyyymmss") };
             fileName = string.Join("_", fileNameArry.Where(s => s != "").ToArray());
             fileName = string.Format("{0}.xlsx", fileName);
             return File(memoryStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
