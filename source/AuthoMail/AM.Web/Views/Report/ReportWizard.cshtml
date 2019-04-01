@@ -152,7 +152,13 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="ClientId">Clients</label>
+                                @Html.DropDownList("ClientId", ViewBag.ClientId as SelectList, htmlAttributes: new { @class = "selectpicker", @multiple = "multiple", @data_live_search = "true", @data_live_search_placeholder = "Search Client" })
+                            </div>
 
+                        </div>
                         <div class="col-md-1">
                             <div class="form-group ">
                                 <label for="filterData">  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
@@ -864,21 +870,24 @@
                 startDate = "";
                 endDate = "";
             }
-            $("#loading").show();
+            $("#loading").show($("#ClientId").val());
+            console.log()
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Report/_ReportWizard",
                 data: JSON.stringify({
                     businessFriendlyIdName: $("#BusinessFriendlyIdName").val(),
                     businessFriendlyIdValue: $("#BusinessFriendlyIdValue").val(),
-                    docType: $("#DocType").val(),
+                    DocType: $("#DocType").val(),
                     status: $("#Status").val(),
                     channel: $("#Channel").val(),
                     startDate: startDate,
                     endDate: endDate,
                     trackingNo: $("#TrackingNumber").val(),
-                    shippingMethod: $('#ShippingMethod').val()
+                    shippingMethod: $('#ShippingMethod').val(),
+                    ClientId: $("#ClientId").val()
                 }),
+                dataType: 'json',
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     if (response.Success) {
@@ -937,8 +946,14 @@
             var channel= $("#Channel").val();
             var trackingNo= $("#TrackingNumber").val();
             var shippingMethod = $('#ShippingMethod').val() == null ? [] : $('#ShippingMethod').val();
-           
-            var url = baseUrl + "Report/DownloadReportWizard?businessFriendlyIdName=<businessFriendlyIdName>&businessFriendlyIdValue=<businessFriendlyIdValue>&startDate=<startDate>&endDate=<endDate>&channel=<channel>&fileName=<fileName>&docType=<docType>&status=<status>&shippingMethod=<shippingMethod>&trackingNo=<trackingNo>".replace("<startDate>", startDate).replace("<endDate>", endDate).replace("<channel>", $("#Channel").val()).replace("<fileName>", "ReportWizard ").replace("<businessFriendlyIdName>", businessFriendlyIdName).replace("<businessFriendlyIdValue>", businessFriendlyIdValue).replace("<shippingMethod>", shippingMethod).replace("<trackingNo>", trackingNo).replace("<docType>", docType).replace("<status>", status).replace("<fileName>", "ReportWizard");
+            var clientId = $("#ClientId").val();
+            if (docType==null) {
+                docType = "";
+            }
+            if (clientId==null) {
+                clientId = "";
+            }
+            var url = baseUrl + "Report/DownloadReportWizard?businessFriendlyIdName=<businessFriendlyIdName>&businessFriendlyIdValue=<businessFriendlyIdValue>&startDate=<startDate>&endDate=<endDate>&channel=<channel>&fileName=<fileName>&docType=<docType>&status=<status>&shippingMethod=<shippingMethod>&trackingNo=<trackingNo>&clientId=<clientId>".replace("<startDate>", startDate).replace("<endDate>", endDate).replace("<channel>", $("#Channel").val()).replace("<fileName>", "ReportWizard ").replace("<businessFriendlyIdName>", businessFriendlyIdName).replace("<businessFriendlyIdValue>", businessFriendlyIdValue).replace("<shippingMethod>", shippingMethod).replace("<trackingNo>", trackingNo).replace("<clientId>", clientId).replace("<docType>", docType).replace("<status>", status).replace("<fileName>", "ReportWizard");
             window.location = url;
             //FilterData();
             //if ($("#BatchId").val().trim() != "") {
@@ -956,6 +971,7 @@
         $("#resetFilter").click(function () {
             $("#Status").val("");
             $("#DocType").val("");
+            $("#ClientId").val("")
             $('#ShippingMethod').val("");
             $("#Channel").val("");
             $("#BusinessFriendlyIdValue").val("");
