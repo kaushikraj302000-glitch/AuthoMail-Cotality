@@ -70,8 +70,9 @@ where p.Id=@Id", new { Id = Id });
 set PDFSample=@pdfSample,ModifiedOn=@modifiedOn,ModifiedBy=@modifiedBy
 where Id=@id";
                 int rows = db.Execute(query, new { id = Id, pdfSample = files, modifiedOn = DateTime.UtcNow, modifiedBy = userId });
-
-                return new KeyValuePair<bool, string>(true, rows.ToString());
+                if (rows > 0)
+                    return new KeyValuePair<bool, string>(true, "Saved successful.");
+                return new KeyValuePair<bool, string>(false, "Services & Cost data not found.");
             }
             catch (Exception ex)
             {
