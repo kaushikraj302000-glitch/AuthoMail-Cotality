@@ -630,7 +630,7 @@ namespace AM.Web.Controllers
             }
         }
         [HttpPost]
-        public ActionResult ProjectSetup(ProjectRequest projectRequest, string SubmittedOn, string ProdStartOn,List<HttpPostedFileBase> file)
+        public ActionResult ProjectSetup(ProjectRequest projectRequest, string SubmittedOn, string ProdStartOn, List<HttpPostedFileBase> files)
         {
 
             try
@@ -642,6 +642,28 @@ namespace AM.Web.Controllers
                 var model = projectRequestSvc.SaveProjectRequest(projectRequest, User.Identity.GetUserId());
                 if (model.Key)
                 {
+                    int id = Convert.ToInt32(model.Value);
+                    string subPath = string.Format("/SamplePdfs/{0}/",id.ToString()); // your code goes here
+
+                    bool exists = Directory.Exists(Server.MapPath(subPath));
+
+                    if (!exists)
+                        Directory.CreateDirectory(Server.MapPath(subPath));
+                    List<string> filesName = new List<string>();
+                    foreach (var file in files)
+                    {
+                        if (Path.GetExtension(file.FileName) == ".pdf")
+                        {
+                            string filePath = string.Format("{0}/{1}", subPath, file.FileName);
+                            file.SaveAs(Server.MapPath(filePath));
+                            filesName.Add(file.FileName);
+                        }
+                    }
+                    if (filesName.Count > 0)
+                    {
+                        string names = string.Join(",", filesName).ToString();
+                        projectRequestSvc.SaveProjectRequestFiles(id, names, User.Identity.GetUserId());
+                    }
                     return RedirectToAction("AllProjectSetupDetails");
                 }
                 else
