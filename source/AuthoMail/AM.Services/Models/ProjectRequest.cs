@@ -47,6 +47,14 @@ namespace AM.Services
         public string BusinessReplyMailEnvelopeDetail { get; set; }
         public string ListOfDocTypesAndPages { get; set; }
         public string PDFSample { get; set; }
+        public List<string> PDFSampleList
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(this.PDFSample)) return null;
+                return this.PDFSample.Split(',').ToList();
+            }
+        }
         public bool InsertRequired { get; set; }
         public bool BookletRequired { get; set; }
         public bool BusinessReplyMailEnvelopeRequired { get; set; }
