@@ -66,7 +66,7 @@ where p.Id=@Id", new { Id = Id });
         {
             try
             {
-                string query = @"update from AM.ProjectRequest
+                string query = @"update AM.ProjectRequest
 set PDFSample=@pdfSample,ModifiedOn=@modifiedOn,ModifiedBy=@modifiedBy
 where Id=@id";
                 int rows = db.Execute(query, new { id = Id, pdfSample = files, modifiedOn = DateTime.UtcNow, modifiedBy = userId });
