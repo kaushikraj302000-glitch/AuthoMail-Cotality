@@ -5,8 +5,8 @@
 @{
     var fileTransmittedViaList = new List<string> { "Client FTP", "CoreLogic FTP", "CL Pull from Client System Imaging", "Other" };
     var typeOfFilesList = new List<string> { "PDF", "HP", "TIFF", "Other" };
-    var serviceLevelList = new List<string> { "SameDay", "24Hours", "48hours", "Other" };
-    var projectRequirements = new List<string> { "Mixed Media", "Letter Only", "Legal Only", "Stapled", "Not Stapled", "24# Paper", "Insert Required", "White", "Color (please specify)", "Print 1-sided", "Print 2-sided", "B&W", "Color", "B&W & Color" };
+    var serviceLevelList = new List<string> { "Same Day", "24 Hours", "48 Hours", "Other" };
+    var projectRequirements = new List<string> { "Mixed Media", "Letter Only", "Legal Only", "Stapled", "Not Stapled", "24# Paper", "Insert Required", "White", "Color (specify)", "Print 1-sided", "Print 2-sided", "B&W", "Color", "B&W & Color" };
     var packagesSentToCustomerList = new List<string> { "Mailed-USPS", "Federal Express", "Certified USPS", "Other" };
     var envelopeList = new List<string> { "# 10", "6 x 9.5", "9 x 12", "10 x 12","10 x 13", "Standard Window", "Custom Window(s)", "Other" };
     var businessReplyMailEnvelopeList = new List<string> { "No", "#9 Business Reply Mail", "Other" };
@@ -45,8 +45,8 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="SubmittedOn">Submit Date</label>
-                        <div class="input-group date" id="datepicker4">
-                            <input type="text" class="form-control" name="SubmittedOn" value="@Model.SubmittedOn" id="SubmittedOn" required>
+                        <div class="input-group date" >
+                            <input type="text" class="form-control" name="SubmittedOn" value='@(Model.SubmittedOn.HasValue?Model.SubmittedOn.Value.ToString("MM/dd/yyyy"):null)' id="SubmittedOn" required>
                             <span class="input-group-addon">
                                 <i class="fa fa-calendar"></i>
                             </span>
@@ -54,8 +54,8 @@
                     </div>
                     <div class="form-group">
                         <label for="ProdStartOn">Project Start Date</label>
-                        <div class="input-group date" id="datepicker4">
-                            <input type="text" class="form-control" id="ProdStartOn" name="ProdStartOn" value="@Model.ProdStartOn" required>
+                        <div class="input-group date" >
+                            <input type="text" class="form-control" id="ProdStartOn" name="ProdStartOn" value='@(Model.ProdStartOn.HasValue ? Model.ProdStartOn.Value.ToString("MM/dd/yyyy") : null)' required>
                             <span class="input-group-addon">
                                 <i class="fa fa-calendar"></i>
                             </span>
@@ -516,8 +516,25 @@
                             <div class="form-group">
                                 <label for="Value">Provide pdf sample (print ready format) of each document that CoreLogic will be printing and shipping and samples of envelopes if any.</label>
                                 <div class="input-group">
-                                    <div class="toggle-container">
-                                        <textarea class="form-control" name="PDFSample" cols="150">@Model.PDFSample</textarea>
+                                    <div class="upload-container">
+                                        <input type="file" name="file" accept="application/pdf" multiple="multiple" class="uploadInput">
+                                        <div class="upload-components">
+                                            <i class="fa fa-cloud-upload"></i>
+                                            <h2 class="uploadMessage">Drag and drop Pdf file here to upload, or click below</h2>
+                                            <h2 class="dragMessage">Drop Pdf File Here</h2>
+                                            <button type="button" class="btn btn-default"><i class="fa fa-upload"> </i> Upload File</button>
+                                            <div class="uploadProgress">
+                                                <h2 class="fileName"></h2>
+                                                <div class="progress">
+                                                    @*<div class="progress-bar progress-bar-upload" role="progressbar"
+                                                         aria-valuenow="20"
+                                                         aria-valuemin="0" aria-valuemax="100" value="20">
+                                                        <span class="sr-only">20% Complete</span>
+                                                    </div>*@
+                                                </div>
+                                                <h5 class="uploadingMessage">Uploading...</h5>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -537,9 +554,57 @@
     @Styles.Render("~/bundles/datatablescss")
     @Scripts.Render("~/bundles/datatables")
     <script type="text/javascript">
+        function uploadInit() {
+            $('.upload-container').each(function () {
+                var $upload = $(this).find('.upload-components'),
+                  droppedFiles = false,
+                  self = $(this);
 
+                // Hook up the "Upload File" button to the hidden file input.
+                $upload.find('.btn').on('click', function () {
+                    self.find('.uploadInput').click();
+                    self.on('change', function (e) {
+                        droppedFiles = e.target.files || e.dataTransfer.files;
+                        $(this).addClass('uploading');
+                        $(this).find('.fileName').html(droppedFiles[0].name);
+                        // This is how to set the progress bar position. We're randomly setting it here.
+                        $(this).find('.progress-bar').css('width', (Math.floor(Math.random() * 100) + 1) + '%');
+                    });
+                });
+
+                // This counter takes care of child events so they don't trigger dragleave/dragenter events and a lot of flickering.
+                var counter = 0;
+
+                $(this).on('drag dragstart dragend dragover dragenter dragleave drop', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }).on('dragover', function () {
+                    $(this).addClass('dragover');
+                }).on('dragenter', function () {
+                    counter++;
+                    $(this).addClass('dragover');
+                }).on('dragleave', function () {
+                    counter--;
+                    if (counter === 0) {
+                        $(this).removeClass('dragover');
+                    }
+                }).on('dragend drop', function () {
+                    $(this).removeClass('dragover');
+                }).on('drop', function (e) {
+                    droppedFiles = e.originalEvent.files || e.originalEvent.dataTransfer.files;
+                    $(this).addClass('uploading');
+                    $(this).find('.fileName').html(droppedFiles[0].name);
+
+                    // This is how to set the progress bar position. We're randomly setting it here.
+                    $(this).find('.progress-bar').css('width', (Math.floor(Math.random() * 100) + 1) + '%');
+
+                    //Do stuff with the file
+                });
+            });
+        }
         $(document).ready(function () {
             window.clui.dateTimePickerInit();
+            uploadInit();
             $('#datetimepicker3').timepicker({
             });
             $.each($(".other"), function (indexInArray, valueOfElement) {
