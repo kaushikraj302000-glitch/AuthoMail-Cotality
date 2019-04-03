@@ -630,7 +630,7 @@ namespace AM.Web.Controllers
             }
         }
         [HttpPost]
-        public ActionResult ProjectSetup(ProjectRequest projectRequest, string SubmittedOn, string ProdStartOn, List<HttpPostedFileBase> files)
+        public ActionResult ProjectSetup(ProjectRequest projectRequest, string SubmittedOn, string ProdStartOn, List<HttpPostedFileBase> files, List<string> fileNames)
         {
 
             try
@@ -643,27 +643,34 @@ namespace AM.Web.Controllers
                 if (model.Key)
                 {
                     int id = Convert.ToInt32(model.Value);
-                    string subPath = string.Format("/SamplePdfs/{0}/",id.ToString()); // your code goes here
+                    string subPath = string.Format("/SamplePdfs/{0}/", id.ToString());
 
                     bool exists = Directory.Exists(Server.MapPath(subPath));
 
                     if (!exists)
                         Directory.CreateDirectory(Server.MapPath(subPath));
                     List<string> filesName = new List<string>();
-                    foreach (var file in files)
+                    if (files != null && files[0] != null)
                     {
-                        if (Path.GetExtension(file.FileName) == ".pdf")
+                        foreach (var file in files)
                         {
-                            string filePath = string.Format("{0}/{1}", subPath, file.FileName);
-                            file.SaveAs(Server.MapPath(filePath));
-                            filesName.Add(file.FileName);
+                            if (Path.GetExtension(file.FileName) == ".pdf")
+                            {
+                                if (fileNames.Contains(file.FileName))
+                                {
+                                    string filePath = string.Format("{0}/{1}", subPath, file.FileName);
+                                    file.SaveAs(Server.MapPath(filePath));
+                                    filesName.Add(file.FileName);
+                                }
+                            }
+                        }
+                        if (filesName.Count > 0)
+                        {
+                            string names = string.Join(",", filesName).ToString();
+                            projectRequestSvc.SaveProjectRequestFiles(id, names, User.Identity.GetUserId());
                         }
                     }
-                    if (filesName.Count > 0)
-                    {
-                        string names = string.Join(",", filesName).ToString();
-                        projectRequestSvc.SaveProjectRequestFiles(id, names, User.Identity.GetUserId());
-                    }
+                    
                     return RedirectToAction("AllProjectSetupDetails");
                 }
                 else
@@ -676,6 +683,27 @@ namespace AM.Web.Controllers
             {
                 ModelState.AddModelError("", e.Message);
                 return View(projectRequest);
+            }
+        }
+        [HttpPost]
+        public ActionResult RemoveFile(int id, string fileName)
+        {
+            try
+            {
+                var model = projectRequestSvc.RemoveFileName(id, fileName, User.Identity.GetUserId());
+                if (model.Key)
+                {
+                    string file = string.Format("/SamplePdfs/{0}/{1}", id.ToString(), fileName);
+                    if (System.IO.File.Exists(Server.MapPath(file)))
+                    {
+                        System.IO.File.Delete(Server.MapPath(file));
+                    }
+                }
+                return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
             }
         }
 

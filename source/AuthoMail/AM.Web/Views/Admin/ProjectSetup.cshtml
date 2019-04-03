@@ -25,6 +25,7 @@
     </div>
     <div class="panel-body">
         <form id="projetSetup" action="#" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="fileNames" id="fileNames" />
             <div class="row">
                 @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                 <div class="col-md-4">
@@ -520,18 +521,17 @@
                                         <input type="file" name="files" accept="application/pdf" multiple="multiple" class="uploadInput">
                                         <div class="upload-components">
                                             <i class="fa fa-cloud-upload"></i>
-                                            <h2 class="uploadMessage">Drag and drop Pdf file here to upload, or click below</h2>
-                                            <h2 class="dragMessage">Drop Pdf File Here</h2>
+                                            <h2 class="uploadMessage">Acceptable file type is ".pdf" only.</h2>
                                             <button type="button" class="btn btn-default"><i class="fa fa-upload"> </i> Browse File</button>
                                             <div class="uploadProgress">
                                                 <h2 class="fileName"></h2>
-                                               
+
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <table id="fileupload" class="table table-bordered table-responsive margin-bottom-15" style="margin-bottom:2%;">
+                            <table id="browsefilesTable" class="table table-bordered table-responsive margin-bottom-15" style="margin-bottom:2%;">
                                 <thead>
                                     <tr>
                                         <th>Recently Upload Files</th>
@@ -544,9 +544,13 @@
                                     </tr>
                                 </tbody>
                             </table>
-                            <table id="fileupload" class="table table-bordered table-responsive">
+                            <table id="fileuploadTable" class="table table-bordered table-responsive">
                                 <thead>
                                     <tr>
+                                        <th colspan="2" class="text-center">Uploaded Files</th>
+                                    </tr>
+                                    <tr>
+
                                         <th>File Name</th>
                                         <th>Action</th>
                                     </tr>
@@ -561,12 +565,18 @@
                                     else
                                     {
                                         var pdfSamples = Model.PDFSample.Split(',').ToList();
-                                        foreach (var item in pdfSamples)
+                                        int cnt = 0;
+                                        foreach (var fileName in pdfSamples)
                                         {
-                                            <tr>
-                                                <td>@item</td>
-                                                <td data-filename="@item"><i class="fa fa-download"></i><i class="fa fa-remove"></i></td>
+                                            <tr id="@cnt">
+                                                <td>@fileName</td>
+                                                <td>
+                                                    <a title="Download File" href="~/SamplePdfs/@Model.Id/@fileName" class="btn btn-success"><i class="fa fa-download"></i></a>
+                                                    <button title="Remove File" type="button" class="btn btn-danger removefile" data-trid="@cnt" data-id="@Model.Id" data-filename="@fileName"><i class="fa fa-remove"></i></button>
+
+                                                </td>
                                             </tr>
+                                            cnt++;
                                         }
                                     }
                                 </tbody>
@@ -583,66 +593,52 @@
         </form>
     </div>
 </div>
+<div class="modal" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <div class="modal-header" style="margin-top:2%;margin-bottom:2%;">
+                <h2 id="myModalLabel">Are you sure you want delete <span id="filenametxt"></span>? </h2>
+                <hr />
+                <input type="hidden" name="FileName" id="FileName" />
+                <input type="hidden" name="Id" id="Id" />
+                <input type="hidden" name="trid" id="trid" />
+                <button type="button" class="btn btn-default" id="yesRemove"><i class="fa fa-check"></i> Yes</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal"><i class="fa fa-close"></i> No</button>
+            </div>
+
+        </div>
+    </div>
+</div>
 @section Scripts{
     @Styles.Render("~/bundles/datatablescss")
     @Scripts.Render("~/bundles/datatables")
     <script type="text/javascript">
-        function uploadInit() {
-            $('.upload-container').each(function () {
-                var $upload = $(this).find('.upload-components'),
-                  droppedFiles = false,
-                  self = $(this);
+    function uploadInit() {
+        $('.upload-container').each(function () {
+            var $upload = $(this).find('.upload-components'),
+              droppedFiles = false,
+              self = $(this);
 
-                // Hook up the "Upload File" button to the hidden file input.
-                $upload.find('.btn').on('click', function () {
-                    self.find('.uploadInput').click();
-                    self.on('change', function (e) {
-                        droppedFiles = e.target.files || e.dataTransfer.files;
-                        console.log(droppedFiles.length);
-                        $("#browsefiles").empty();
-                        for (var i = 0; i < droppedFiles.length; i++) {
-                            console.log(droppedFiles[i]+"ca;;ed")
-                            if (droppedFiles[i].name.split('.').pop().toLowerCase() == "pdf") {
-                                console.log(droppedFiles[i].name)
-                                $("#browsefiles").append("<tr><td>" + droppedFiles[i].name + "</td> <td data-filename=" + droppedFiles[i].name + "><i class='fa fa-remove'></i></td></tr>");
-                            } else {
-                                droppedFiles[i].remove()
-                                window.clui.globalAlert({
-                                    message: droppedFiles[i].name+" Acceptable file type is .pdf",
-                                    alertType: 'red',
-                                    timeout: 3000
-                                });
-                            }
-                        }
-                    });
-                });
-
-                // This counter takes care of child events so they don't trigger dragleave/dragenter events and a lot of flickering.
-                var counter = 0;
-
-                $(this).on('drag dragstart dragend dragover dragenter dragleave drop', function (e) {
-                   
-                }).on('dragover', function () {
-                    $(this).addClass('dragover');
-                }).on('dragenter', function () {
-                    counter++;
-                    $(this).addClass('dragover');
-                }).on('dragleave', function () {
-                    counter--;
-                    if (counter === 0) {
-                        $(this).removeClass('dragover');
+            // Hook up the "Upload File" button to the hidden file input.
+            $upload.find('.btn').on('click', function () {
+                self.find('.uploadInput').click();
+                self.on('change', function (e) {
+                    droppedFiles = e.target.files || e.dataTransfer.files;
+                    if (droppedFiles.length > 6) {
+                        window.clui.globalAlert({
+                            message: "Upload limits is 5.",
+                            alertType: 'red',
+                            timeout: 3000
+                        });
+                        return;
                     }
-                }).on('dragend drop', function () {
-                    $(this).removeClass('dragover');
-                }).on('drop', function (e) {
-                    droppedFiles = e.originalEvent.files || e.originalEvent.dataTransfer.files;
-                    console.log(droppedFiles.length);
                     $("#browsefiles").empty();
+                    var fileNames = [];
                     for (var i = 0; i < droppedFiles.length; i++) {
-                        console.log(droppedFiles[i] + "ca;;ed")
+                        fileNames.push(droppedFiles[i].name);
                         if (droppedFiles[i].name.split('.').pop().toLowerCase() == "pdf") {
-                            console.log(droppedFiles[i].name)
-                            $("#browsefiles").append("<tr><td>" + droppedFiles[i].name + "</td> <td data-filename=" + droppedFiles[i].name + "><i class='fa fa-remove'></i></td></tr>");
+                            $("#browsefiles").append("<tr><td>" + droppedFiles[i].name + "</td> <td><button type='button' title='Remove File' class='btn btn-danger recentremovefile' data-filename=" + droppedFiles[i].name + "><i class='fa fa-remove'></i></button></td></tr>");
                         } else {
                             window.clui.globalAlert({
                                 message: droppedFiles[i].name + " Acceptable file type is .pdf",
@@ -651,102 +647,205 @@
                             });
                         }
                     }
+                    $("#fileNames").val(fileNames);
+                    
                 });
             });
-        }
-        $(document).ready(function () {
-            window.clui.dateTimePickerInit();
-            uploadInit();
-            $('#datetimepicker3').timepicker({
-            });
-            $.each($(".other"), function (indexInArray, valueOfElement) {
-                if ($(this).val() == "Other") {
-                    $(this).siblings(".othertextbox").show();
-                } else {
-                    $(this).siblings(".othertextbox").hide();
-                }
-            });
-            $('#projetSetup').validate({ // initialize the plugin
-                errorElement: "span",
-                rules: {
-                    ClientName: {
-                        required: true,
-                        maxlength: 255
 
-                    },
-                    SubmittedBy: {
-                        required: true,
-                        maxlength: 255
-                    },
-                    FileTransmittedVia: {
-                        required: true
-                    },
-                    FileTransmittedViaSelect: {
-                        required: true
-                    },
-                    TypeOfFiles: {
-                        required: true
-                    },
-                    TypeOfFilesSelect: {
-                        required: true
-                    },
-                    NoOfEstSweepTimes: {
-                        required: true
-                    },
-                    ESTSweepTime: {
-                        required: true
-                    },
-                    ServiceLevel: {
-                        required: true
-                    },
-                    ServiceLevelSelect: {
-                        required: true
-                    },
-                    DailyPrintScheduleList: {
-                        required: true
-                    },
-                    PaperPrintRequirementsList: {
-                        required: true
-                    },
-                    PackagesSentToCustomer: {
-                        required: true
-                    },
-                    PackagesSentToCustomerSelect: {
-                        required: true
-                    },
-                    Envelopes: {
-                        required: true
-                    },
-                    EnvelopesSelect: {
-                        required: true
+            // This counter takes care of child events so they don't trigger dragleave/dragenter events and a lot of flickering.
+
+        });
+    }
+    $(document).ready(function () {
+        window.clui.dateTimePickerInit();
+        uploadInit();
+        $('#datetimepicker3').timepicker({
+        });
+        $.each($(".other"), function (indexInArray, valueOfElement) {
+            if ($(this).val() == "Other") {
+                $(this).siblings(".othertextbox").show();
+            } else {
+                $(this).siblings(".othertextbox").hide();
+            }
+        });
+        $('#projetSetup').validate({ // initialize the plugin
+            errorElement: "span",
+            rules: {
+                ClientName: {
+                    required: true,
+                    maxlength: 255
+
+                },
+                SubmittedBy: {
+                    required: true,
+                    maxlength: 255
+                },
+                FileTransmittedVia: {
+                    required: true
+                },
+                FileTransmittedViaSelect: {
+                    required: true
+                },
+                TypeOfFiles: {
+                    required: true
+                },
+                TypeOfFilesSelect: {
+                    required: true
+                },
+                NoOfEstSweepTimes: {
+                    required: true
+                },
+                ESTSweepTime: {
+                    required: true
+                },
+                ServiceLevel: {
+                    required: true
+                },
+                ServiceLevelSelect: {
+                    required: true
+                },
+                DailyPrintScheduleList: {
+                    required: true
+                },
+                PaperPrintRequirementsList: {
+                    required: true
+                },
+                PackagesSentToCustomer: {
+                    required: true
+                },
+                PackagesSentToCustomerSelect: {
+                    required: true
+                },
+                Envelopes: {
+                    required: true
+                },
+                EnvelopesSelect: {
+                    required: true
+                }
+            },
+            submitHandler: function (e) { // for demo
+                e.preventDefault();
+                $("#projetSetup").submit();
+            }
+        });
+
+        $(document).on("click", ".recentremovefile", function () {
+            var fileName = $(this).data("filename");
+            $(this).closest('tr').remove();
+            var fileNames = $("#fileNames").val().split(',');
+            fileNames = $.grep(fileNames, function (value) {
+                return value != fileName;
+            });
+            $("#fileNames").val(fileNames);
+            if ($("#browsefilesTable tbody tr").length == 0) {
+                $("#browsefiles").html('<tr><td colspan="2"><div class="alert alert-yellow">@AM.Services.Config.Web_Msg_NoRecordFound</div></td></tr>');
+            }
+
+        });
+        $(document).on("click", ".removefile", function () {
+            var fileName = $(this).data("filename");
+            var id = $(this).data("id");
+            var trid = $(this).data("trid");
+            $("#confirmModal").find("#FileName").val(fileName);
+            $("#confirmModal").find("#filenametxt").text(fileName);
+            $("#confirmModal").find("#Id").val(id);
+            $("#confirmModal").find("#trid").val(trid);
+            $("#confirmModal").modal("show");
+
+        });
+        $(document).on("click", "#yesRemove", function () {
+            var fileName = $("#confirmModal").find("#filenametxt").val();
+            var id = $("#confirmModal").find("#Id").val();
+            var trid = $("#confirmModal").find("#trid").val();
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "Admin/RemoveFile",
+                data: {
+                    id: id,
+                    fileName: fileName
+                },
+                //contentType: "application/json; charset=utf-8",
+                success: function (response) {
+                    console.log(response);
+                    if (response.Success) {
+                        if (response.Object != null) {
+                            if (response.Object.model != null) {
+
+                                if (response.Object.model.Key) {
+                                    $("#confirmModal").modal("hide");
+                                    $("#confirmModal").find("#FileName").val("");
+                                    $("#confirmModal").find("#filenametxt").text("");
+                                    $("#confirmModal").find("#Id").val("");
+                                    $("#confirmModal").find("#trid").val("");
+                                    $("#fileuploadTable").find("tr[id='" + trid + "']").remove();
+                                    if ($("#fileuploadTable tbody tr").length == 0) {
+                                        $("#fileupload").html('<tr><td colspan="2"><div class="alert alert-yellow">@AM.Services.Config.Web_Msg_NoRecordFound</div></td></tr>');
+                                        
+                                    }
+                                    window.clui.globalAlert({
+                                        message: response.Object.model.Value,
+                                        alertType: 'green',
+                                        timeout: 3000
+                                    });
+                                } else {
+                                    window.clui.globalAlert({
+                                        message: response.Object.model.Value,
+                                        alertType: 'red',
+                                        timeout: 3000
+                                    });
+
+                                }
+                                
+                                
+                                
+                            }
+                            else {
+                                window.clui.globalAlert({
+                                    message: '@AM.Services.Config.Web_Msg_Ajax_CommonError',
+                                    alertType: 'red',
+                                    timeout: 3000
+                                });
+
+                            }
+                        }
+                    } else {
+                        window.clui.globalAlert({
+                            message: response.ErrorMessage,
+                            alertType: 'red',
+                            timeout: 3000
+                        });
                     }
                 },
-                submitHandler: function (e) { // for demo
-                    e.preventDefault();
-                    $("#projetSetup").submit();
+                error: function (xhr, ajaxOptions, thrownError) {
+                    window.clui.globalAlert({
+                        message: '@AM.Services.Config.Web_Msg_Ajax_CommonError',
+                        alertType: 'red',
+                        timeout: 3000
+                    });
                 }
+
             });
         });
-        $('.selectpicker').on('change', function () {
-            if ($(this).val() == "Other") {
-                console.log($(this).closest(".input-group").find(".othertextbox").val())
-                $(this).closest(".input-group").find(".othertextbox").val("");
-                $(this).closest(".input-group").find(".othertextbox").show();
-            } else {
-                $(this).closest(".input-group").find(".othertextbox").val($(this).val());
-                $(this).closest(".input-group").find(".othertextbox").hide();
-            }
-        });
-        $(".cl-toggle").click(function () {
-            var value = $(this).is(":checked") ? "true" : "false";
-            //$(this).va();
-            $(this).val(value)
-            console.log($(this).prop("id"));
-            if ($(this).prop("id") == "InsertRequired") {
-                $("#IsInsertRequired").toggle();
-            }
+    });
+    $('.selectpicker').on('change', function () {
+        if ($(this).val() == "Other") {
+            console.log($(this).closest(".input-group").find(".othertextbox").val())
+            $(this).closest(".input-group").find(".othertextbox").val("");
+            $(this).closest(".input-group").find(".othertextbox").show();
+        } else {
+            $(this).closest(".input-group").find(".othertextbox").val($(this).val());
+            $(this).closest(".input-group").find(".othertextbox").hide();
+        }
+    });
+    $(".cl-toggle").click(function () {
+        var value = $(this).is(":checked") ? "true" : "false";
+        //$(this).va();
+        $(this).val(value)
+        console.log($(this).prop("id"));
+        if ($(this).prop("id") == "InsertRequired") {
+            $("#IsInsertRequired").toggle();
+        }
 
-        });
-
-    </script>
+    });
+</script>
 }
