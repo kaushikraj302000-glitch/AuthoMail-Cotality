@@ -84,6 +84,8 @@ where Id=@id";
 
         public KeyValuePair<bool, string> RemoveFileName(int Id, string fileName, string userId)
         {
+            if (string.IsNullOrWhiteSpace(fileName))
+                return new KeyValuePair<bool, string>(false, "Invalid file name.");
             var projectRequest = db.QuerySingleOrDefault<string>("select PDFSample from AM.ProjectRequest where Id=@Id", new { Id = Id });
             if (projectRequest == null) return new KeyValuePair<bool, string>(false, "Services & Cost data not found.");
             var fileList = projectRequest.Split(',').ToList();
