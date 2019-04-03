@@ -13,6 +13,7 @@ namespace AM.Services
         KeyValuePair<bool, string> SaveProjectRequestFiles(int Id, string files, string userId);
         ProjectRequest ProjectRequestFindById(int Id);
         List<ProjectRequest> GetAllProjectRequest();
+        KeyValuePair<bool, string> RemoveFileName(int Id, string fileName, string userId);
     }
     public class ProjectRequestService : ServiceBase, IProjectRequestService
     {
@@ -78,6 +79,17 @@ where Id=@id";
             {
                 return new KeyValuePair<bool, string>(false, ex.Message);
             }
+        }
+
+
+        public KeyValuePair<bool, string> RemoveFileName(int Id, string fileName, string userId)
+        {
+            var projectRequest = db.QuerySingleOrDefault<string>("select PDFSample from AM.ProjectRequest where Id=@Id", new { Id = Id });
+            if (projectRequest == null) return new KeyValuePair<bool, string>(false, "Services & Cost data not found.");
+            var fileList = projectRequest.Split(',').ToList();
+            fileList.RemoveAll(f => f == fileName);
+            string files = fileList == null || fileList.Count == 0 ? null : string.Join(",", fileList);
+            return SaveProjectRequestFiles(Id, files, userId);
         }
     }
 }
