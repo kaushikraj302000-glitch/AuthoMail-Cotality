@@ -625,7 +625,7 @@
                 self.find('.uploadInput').click();
                 self.on('change', function (e) {
                     droppedFiles = e.target.files || e.dataTransfer.files;
-                    if (droppedFiles.length > 6) {
+                    if (droppedFiles.length > 5) {
                         window.clui.globalAlert({
                             message: "Upload limits is 5.",
                             alertType: 'red',
