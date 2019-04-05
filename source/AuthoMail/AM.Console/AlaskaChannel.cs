@@ -420,7 +420,7 @@ namespace AM.Console
 
                         //Here System will validate Addresses for valid mail pieces
                         if (validMailPieces.Count > 0)
-                            Channel.ValidateAddressType(validMailPieces);
+                            Channel.ValidateAddressType(mailBatch, validMailPieces);
 
                         if (validMailPieces.Count == 0)
                         {

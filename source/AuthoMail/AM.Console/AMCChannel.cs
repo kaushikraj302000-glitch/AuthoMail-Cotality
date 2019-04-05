@@ -229,6 +229,7 @@ namespace AM.Console
                         mailBatch.ReceivedOn = receivedOn;
                         mailBatch.PipelineStatus = BatchPipelineStatus.Received;
                         mailBatch.BatchStatus = BatchStatus.InProgress.ToString();
+                        mailBatch.IsReturnInfoSpecified = false;
                         mailBatches.Add(mailBatch);
                     }
                 }
@@ -564,48 +565,49 @@ namespace AM.Console
 
                                     mailPieceDTO.RetRcptAddressZIP = returnAddressElement.SelectSingleNode("./x:Zip/text()", nsManager) == null ? null : returnAddressElement.SelectSingleNode("./x:Zip/text()", nsManager).Value;
                                 }
-
-                                if (mailPieceNode.SelectSingleNode("./x:ShippingMethod", nsManager) != null)
-                                {
-                                    customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "ShippingMethod", DataType = DataType.String, Value = mailPieceNode.SelectSingleNode("./x:ShippingMethod/text()", nsManager) == null ? string.Empty : mailPieceNode.SelectSingleNode("./x:ShippingMethod/text()", nsManager).Value };
-
-                                    mailPieceCustomInfo.Add(customInfo);
-                                }
-
-                                if (mailPieceNode.SelectSingleNode("./x:CustomerIdentifier", nsManager) != null)
-                                {
-                                    customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "CustomerIdentifier", DataType = DataType.String, Value = mailPieceNode.SelectSingleNode("./x:CustomerIdentifier/text()", nsManager) == null ? string.Empty : mailPieceNode.SelectSingleNode("./x:CustomerIdentifier/text()", nsManager).Value };
-
-                                    mailPieceCustomInfo.Add(customInfo);
-                                }
-
-                                if (mailPieceNode.SelectSingleNode("./x:RequestId", nsManager) != null)
-                                {
-                                    customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "RequestId", DataType = DataType.String, Value = mailPieceNode.SelectSingleNode("./x:RequestId/text()", nsManager) == null ? string.Empty : mailPieceNode.SelectSingleNode("./x:RequestId/text()", nsManager).Value };
-
-                                    mailPieceCustomInfo.Add(customInfo);
-                                }
-
-                                if (mailPieceNode.SelectSingleNode("./x:ReceivedDate", nsManager) != null)
-                                {
-                                    customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "ReceivedDate", DataType = DataType.DateTime, Value = mailPieceNode.SelectSingleNode("./x:ReceivedDate/text()", nsManager) == null ? null : mailPieceNode.SelectSingleNode("./x:ReceivedDate/text()", nsManager).Value };
-
-                                    mailPieceCustomInfo.Add(customInfo);
-                                }
-
-                                var shippingCredElement = mailPieceNode.SelectSingleNode("./x:ShippingCredentials", nsManager);
-                                if (shippingCredElement != null)
-                                {
-                                    if (shippingCredElement.SelectSingleNode("./x:ClientCode", nsManager) != null)
-                                    {
-                                        customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "ShippingCredCode", DataType = DataType.String, Value = shippingCredElement.SelectSingleNode("./x:ClientCode/text()", nsManager) == null ? string.Empty : shippingCredElement.SelectSingleNode("./x:ClientCode/text()", nsManager).Value };
-
-                                        mailPieceCustomInfo.Add(customInfo);
-                                    }
-                                }
                             }
                             else
                                 mailPieceDTO.IsReturnInfoSpecified = false;
+
+                            if (mailPieceNode.SelectSingleNode("./x:ShippingMethod", nsManager) != null)
+                            {
+                                customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "ShippingMethod", DataType = DataType.String, Value = mailPieceNode.SelectSingleNode("./x:ShippingMethod/text()", nsManager) == null ? string.Empty : mailPieceNode.SelectSingleNode("./x:ShippingMethod/text()", nsManager).Value };
+
+                                mailPieceCustomInfo.Add(customInfo);
+                            }
+
+                            if (mailPieceNode.SelectSingleNode("./x:CustomerIdentifier", nsManager) != null)
+                            {
+                                customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "CustomerIdentifier", DataType = DataType.String, Value = mailPieceNode.SelectSingleNode("./x:CustomerIdentifier/text()", nsManager) == null ? string.Empty : mailPieceNode.SelectSingleNode("./x:CustomerIdentifier/text()", nsManager).Value };
+
+                                mailPieceCustomInfo.Add(customInfo);
+                            }
+
+                            if (mailPieceNode.SelectSingleNode("./x:RequestId", nsManager) != null)
+                            {
+                                customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "RequestId", DataType = DataType.String, Value = mailPieceNode.SelectSingleNode("./x:RequestId/text()", nsManager) == null ? string.Empty : mailPieceNode.SelectSingleNode("./x:RequestId/text()", nsManager).Value };
+
+                                mailPieceCustomInfo.Add(customInfo);
+                            }
+
+                            if (mailPieceNode.SelectSingleNode("./x:ReceivedDate", nsManager) != null)
+                            {
+                                customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "ReceivedDate", DataType = DataType.DateTime, Value = mailPieceNode.SelectSingleNode("./x:ReceivedDate/text()", nsManager) == null ? null : mailPieceNode.SelectSingleNode("./x:ReceivedDate/text()", nsManager).Value };
+
+                                mailPieceCustomInfo.Add(customInfo);
+                            }
+
+                            var shippingCredElement = mailPieceNode.SelectSingleNode("./x:ShippingCredentials", nsManager);
+                            if (shippingCredElement != null)
+                            {
+                                if (shippingCredElement.SelectSingleNode("./x:ClientCode", nsManager) != null)
+                                {
+                                    customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = "ShippingCredCode", DataType = DataType.String, Value = shippingCredElement.SelectSingleNode("./x:ClientCode/text()", nsManager) == null ? string.Empty : shippingCredElement.SelectSingleNode("./x:ClientCode/text()", nsManager).Value };
+
+                                    mailPieceCustomInfo.Add(customInfo);
+                                }
+                            }
+
                             #endregion
 
                             MailPieceValidationResult validationResult = ValidatePackgeInfoNode(mailPieceNode);
@@ -630,10 +632,35 @@ namespace AM.Console
                                     mailPieceDTO.ErrorDesc = "Pdf file is not available for this package.";
                                     mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                                 }
+                                else if (!mailPieceDTO.IsReturnInfoSpecified && !mailBatch.IsReturnInfoSpecified && !docType.IsReturnInfoSpecified)
+                                {
+                                    mailPieceDTO.ErrorCode = OutComeCodes.Mailing_Address_Missing_Or_Invalid;
+                                    mailPieceDTO.ErrorDesc = "Return mailing address is not specified for this package.";
+                                    mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
+                                }
                                 else
                                 {
                                     mailPieceDTO.ErrorCode = OutComeCodes.No_Error;
                                     mailPieceDTO.DocTypeId = docType.Id;
+
+                                    if (!mailPieceDTO.IsReturnInfoSpecified && !mailBatch.IsReturnInfoSpecified && docType.IsReturnInfoSpecified)
+                                    {
+                                        mailPieceDTO.RetRcptFirstName = docType.RetRcptFirstName;
+
+                                        mailPieceDTO.RetRcptLastName = docType.RetRcptLastName;
+
+                                        mailPieceDTO.RetRcptPhone = docType.RetRcptPhone;
+
+                                        mailPieceDTO.RetRcptAddressStreet = docType.RetRcptAddressStreet;
+
+                                        mailPieceDTO.RetRcptAddrOptionalLine1BelowStreet = docType.RetRcptAddrOptionalLine1BelowStreet;
+
+                                        mailPieceDTO.RetRcptAddressCity = docType.RetRcptAddressCity;
+
+                                        mailPieceDTO.RetRcptAddressState = docType.RetRcptAddressState;
+
+                                        mailPieceDTO.RetRcptAddressZIP = docType.RetRcptAddressZIP;
+                                    }
                                 }
                             }
                             else
@@ -684,7 +711,7 @@ namespace AM.Console
 
                         //Here System will validate Addresses for valid mail pieces
                         if (validMailPieces.Count > 0)
-                            Channel.ValidateAddressType(validMailPieces);
+                            Channel.ValidateAddressType(mailBatch, validMailPieces);
 
                         if (validMailPieces.Count == 0)
                         {

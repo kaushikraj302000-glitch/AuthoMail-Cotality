@@ -742,7 +742,7 @@ namespace AM.Console
 
                         //Here System will validate Addresses for valid mail pieces
                         if (validMailPieces.Count > 0)
-                            Channel.ValidateAddressType(validMailPieces);
+                            Channel.ValidateAddressType(mailBatch, validMailPieces);
 
                         if (validMailPieces.Count == 0)
                         {
@@ -793,11 +793,15 @@ namespace AM.Console
             {
                 return new MailPieceValidationResult() { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file is not available for this package." };
             }
+            else if (!mailPieceDTO.IsReturnInfoSpecified && !mbi.MailBatch.IsReturnInfoSpecified && !docType.IsReturnInfoSpecified)
+            {
+                return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Return mailing address is not specified for this package." };
+            }
             else
             {
                 mailPieceDTO.DocTypeId = docType.Id;
                 //if at mail piece level or at mail batch level, system didn't find return info then it will check for MailBatch level if exist system will use that in mail piece level 
-                if (!mailPieceDTO.IsReturnInfoSpecified || !mbi.MailBatch.IsReturnInfoSpecified)
+                if (!mailPieceDTO.IsReturnInfoSpecified && !mbi.MailBatch.IsReturnInfoSpecified && docType.IsReturnInfoSpecified)
                 {
                     mailPieceDTO.RetRcptFirstName = docType.RetRcptFirstName;
                     mailPieceDTO.RetRcptLastName = docType.RetRcptLastName;
