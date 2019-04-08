@@ -212,7 +212,7 @@ namespace AM.Console
 
                         string localReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, client.AppCode, Util.AMResponseFolderName, preppedPrintBatch.PrintBatchId.ToString());
                         //Here we are passing localReportPath as PrintBatches folder structure AMRoot/AMResponses/PrintBatchId
-                        UploadReportsToIncrementalClients(deliverables, localReportPath, sftSite);
+                        UploadReportsToIncrementalClients(deliverables, localReportPath, sftSite, sftChannelDetails);
 
                         mailBatchSvc.UpdatePrintBatchPipelineStatus(preppedPrintBatch.PrintBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
                     }
@@ -345,7 +345,7 @@ namespace AM.Console
             }
         }
 
-        private static void UploadReportsToIncrementalClients(List<Deliverable> deliverables, string localReportPath, SFTUtil sftSite)
+        private static void UploadReportsToIncrementalClients(List<Deliverable> deliverables, string localReportPath, SFTUtil sftSite, SFTChannel sftChannelDetail)
         {
             string deliveryUploadPath = deliverables.SingleOrDefault(up => up.ReportType == ReportTypes.Delivery).UploadPath;
 
@@ -356,6 +356,12 @@ namespace AM.Console
                 string fileName = Path.GetFileName(filePath);
                 string ftpUploadPath = Path.Combine(deliveryUploadPath, fileName);
                 sftSite.UploadFile(filePath, ftpUploadPath);
+
+                //NOTE: Temparary Code for Duplicate Report Upload 
+                if (sftChannelDetail.Code.Contains("AMC") && sftSite.IsDownloadDirectoryAvailable(Config.Monitor_AMCBackupReportUploadPath))
+                {
+                    sftSite.UploadFile(filePath, Path.Combine(Config.Monitor_AMCBackupReportUploadPath, fileName));
+                }
 
                 //After upload change extention as a Complete
                 File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
@@ -378,6 +384,12 @@ namespace AM.Console
                 string fileName = Path.GetFileName(filePath);
                 string ftpUploadPath = Path.Combine(errorUploadPath, fileName);
                 sftSite.UploadFile(filePath, ftpUploadPath);
+
+                //NOTE: Temparary Code for Duplicate Report Upload 
+                if (sftChannelDetail.Code.Contains("AMC") && sftSite.IsDownloadDirectoryAvailable(Config.Monitor_AMCBackupReportUploadPath))
+                {
+                    sftSite.UploadFile(filePath, Path.Combine(Config.Monitor_AMCBackupReportUploadPath, fileName));
+                }
 
                 //After upload change extention as a Complete
                 File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
@@ -486,7 +498,7 @@ namespace AM.Console
                     string reportPath = Path.Combine(Config.Common_AuthoMailRootFolder, mbi.Client.AppCode, mbi.MailBatch.Id.ToString(), Util.AMResponseFolderName);
 
                     //Here we are passing localReportPath as MailBatch folder structure AMRoot/USAA/MailBatchId/AMResponses
-                    UploadReportsToIncrementalClients(deliverables, reportPath, sftSite);
+                    UploadReportsToIncrementalClients(deliverables, reportPath, sftSite, sftChannelDetail);
 
                     GenerateAndSendProductionSummaryNotification(mbi, mailPieceData, deliverables, sftChannelDetail);
                     isUploaded = true;

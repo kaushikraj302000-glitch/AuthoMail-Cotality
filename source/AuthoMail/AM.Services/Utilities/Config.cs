@@ -38,7 +38,7 @@ namespace AM.Services
         public static string Monitor_ExceptionEmail_Subject { get; private set; }
         public static string Monitor_Exception_Email_To { get; private set; }
         public static string Monitor_Exception_Email_Cc { get; private set; }
-
+        public static string Monitor_AMCBackupReportUploadPath { get; set; }
 
         //Core
         public static string Core_PnS_SFT_RootDir { get; private set; }
@@ -195,7 +195,7 @@ namespace AM.Services
             using (ICommonService commonSvc = new CommonService())
             {
                 Common_Holidays = commonSvc.GetHolidayList();
-            }            
+            }
         }
 
         private static void InitializeProperties<T>()
