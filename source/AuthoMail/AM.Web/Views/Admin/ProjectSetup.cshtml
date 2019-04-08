@@ -534,7 +534,7 @@
                             <table id="browsefilesTable" class="table table-bordered table-responsive margin-bottom-15" style="margin-bottom:2%;">
                                 <thead>
                                     <tr>
-                                        <th>Recently Upload Files</th>
+                                        <th>Recently Selected Files</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -622,6 +622,7 @@
 
             // Hook up the "Upload File" button to the hidden file input.
             $upload.find('.btn').on('click', function () {
+                $(".uploadInput").val("");
                 self.find('.uploadInput').click();
                 self.on('change', function (e) {
                     droppedFiles = e.target.files || e.dataTransfer.files;
@@ -631,7 +632,7 @@
                             alertType: 'red',
                             timeout: 3000
                         });
-                        return;
+                        return false;
                     }
                     $("#browsefiles").empty();
                     var fileNames = [];
@@ -641,10 +642,11 @@
                             $("#browsefiles").append("<tr><td>" + droppedFiles[i].name + "</td> <td><button type='button' title='Remove File' class='btn btn-danger recentremovefile' data-filename=" + droppedFiles[i].name + "><i class='fa fa-remove'></i></button></td></tr>");
                         } else {
                             window.clui.globalAlert({
-                                message: droppedFiles[i].name + " Acceptable file type is .pdf",
+                                message: " Acceptable file type is .pdf",
                                 alertType: 'red',
                                 timeout: 3000
                             });
+                            return false;
                         }
                     }
                     $("#fileNames").val(fileNames);
