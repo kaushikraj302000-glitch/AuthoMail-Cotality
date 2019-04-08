@@ -566,7 +566,7 @@ namespace AM.Console
         #endregion
 
         #region AddressType Validation
-        public static void ValidateAddressType(List<MailPieceDTO> validMailPieces)
+        public static void ValidateAddressType(MailBatchDTO mailBatch, List<MailPieceDTO> validMailPieces)
         {
             log.Debug("Address type validation job is started.");
             using (IMailBatchService mailBatchSvc = new MailBatchService())
@@ -655,6 +655,30 @@ namespace AM.Console
                                 }
 
                                 mailPiece.DocTypeId = docType.Id;
+
+                                if (!mailPiece.IsReturnInfoSpecified && !mailBatch.IsReturnInfoSpecified && docType.IsReturnInfoSpecified)
+                                {
+                                    mailPiece.RetRcptFirstName = docType.RetRcptFirstName;
+                                    mailPiece.RetRcptLastName = docType.RetRcptLastName;
+                                    mailPiece.RetRcptMiddleName = docType.RetRcptMiddleName;
+
+                                    mailPiece.RetRcptOrganization = docType.RetRcptOrganization;
+
+                                    mailPiece.RetRcptPrefix = docType.RetRcptPrefix;
+                                    mailPiece.RetRcptSuffix = docType.RetRcptSuffix;
+
+                                    mailPiece.RetRcptPhone = docType.RetRcptPhone;
+
+                                    mailPiece.RetRcptAddrOptionalLine1AboveStreet = docType.RetRcptAddrOptionalLine1AboveStreet;
+                                    mailPiece.RetRcptAddrOptionalLine2AboveStreet = docType.RetRcptAddrOptionalLine2AboveStreet;
+                                    mailPiece.RetRcptAddressStreet = docType.RetRcptAddressStreet;
+                                    mailPiece.RetRcptAddressAptOrSuiteOrOther = docType.RetRcptAddressAptOrSuiteOrOther;
+                                    mailPiece.RetRcptAddrOptionalLine1BelowStreet = docType.RetRcptAddrOptionalLine1BelowStreet;
+                                    mailPiece.RetRcptAddrOptionalLine2BelowStreet = docType.RetRcptAddrOptionalLine2BelowStreet;
+                                    mailPiece.RetRcptAddressCity = docType.RetRcptAddressCity;
+                                    mailPiece.RetRcptAddressState = docType.RetRcptAddressState;
+                                    mailPiece.RetRcptAddressZIP = docType.RetRcptAddressZIP;
+                                }
                             }
                         }
 

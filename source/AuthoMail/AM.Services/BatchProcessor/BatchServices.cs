@@ -60,7 +60,7 @@ namespace AM.Services
             //Insert batch record, mark batch as received and inprogress
             foreach (var mailBatch in mailBatches)
             {
-                string query = @"INSERT INTO [AM].[MailBatches](UniqueId, ClientId, DocumentOrPackageType, SFTChannelId, ClientBatchId, BatchName, [Priority],[ReceivedOn], [PipelineStatus], [BatchStatus]) Output Inserted.Id VALUES (@UniqueId, @ClientId, @DocumentOrPackageType, @SFTChannelId, @ClientBatchId, @BatchName, @Priority, @ReceivedOn, @PipelineStatus, @BatchStatus)";
+                string query = @"INSERT INTO [AM].[MailBatches](UniqueId, ClientId, DocumentOrPackageType, SFTChannelId, ClientBatchId, BatchName, [Priority],[ReceivedOn], [PipelineStatus], [BatchStatus], [IsReturnInfoSpecified]) Output Inserted.Id VALUES (@UniqueId, @ClientId, @DocumentOrPackageType, @SFTChannelId, @ClientBatchId, @BatchName, @Priority, @ReceivedOn, @PipelineStatus, @BatchStatus, @IsReturnInfoSpecified)";
 
                 mailBatch.Id = db.ExecuteScalar<int>(query, mailBatch);
             }
