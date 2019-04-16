@@ -45,7 +45,7 @@
                         });
                     </script>
                 }
-                else if (Model.TrackingDetailViewModel.ShippingCarrier == "USPS" && Model.TrackingDetailViewModel.ShippingServiceType == "PRIORITY_EXPRESS")
+                else if (Model.TrackingDetailViewModel.ShippingCarrier == "USPS" && (Model.TrackingDetailViewModel.ShippingServiceType == "PRIORITY_EXPRESS" || Model.TrackingDetailViewModel.ShippingServiceType == "PRIORITY"))
                 {
                     <div class="alert alert-blue"> Redirecting to USPS ... </div>
                     <script>
