@@ -46,9 +46,9 @@ namespace AM.Console
                     else if (dir.Name == "CITIVM")
                         days = 30;
                     else if (dir.Name == "HSBC")
-                        days = 90;
-                    else if (dir.Name == "RPS")
                         days = 30;
+                    else if (dir.Name == "RPS")
+                        days = 60;
                     else if (dir.Name == "USAA")
                         days = 21;
                     else

@@ -154,6 +154,11 @@ namespace AM.Services
                     string url = Config.Web_API_USPS_URL;
                     //string url = @"https://secure.shippingapis.com/ShippingAPI.dll";//["USPSAPI"];
 
+                    if (url.StartsWith("https", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+                    }
+
                     uspsInputXML = request.Serialize();
 
                     payload = new FormUrlEncodedContent(new[] 
@@ -173,7 +178,6 @@ namespace AM.Services
                         uspsRequestLog = db.ExecuteAsync("Update [API].[USPS] set USPSRequest = @USPSRequest, USPSRequestedOn = @USPSRequestedOn where Id = @Id", new { USPSRequest = uspsInputXML, USPSRequestedOn = Common.Now, Id = logId });
                     }
 
-                    Exception newEx = null;
                     try
                     {
                         var response = await uspsReq.ConfigureAwait(false);
@@ -195,7 +199,9 @@ namespace AM.Services
                         log.Error("Verify hard fail while download", ex);
 
                         isGenericUSPSError = true;
-                        newEx = ex;
+
+                        uspsResponseString = "{0}\r\n{1}\r\n{2}".Fill(uspsResponseString, new string('-', 105), ex.ToString());
+                        string err = "{0}\r\n{1}".Fill(ex.Message, uspsResponseString);
 
                         // Store exception details received while accessing USPS API in addresses collection
                         addresses.ForEach(add =>
@@ -203,19 +209,11 @@ namespace AM.Services
                             add.Error = new USPSError
                             {
                                 Source = ResponseSource.USPS,
-                                Description = uspsResponseString
+                                Description = err
                             };
                         });
 
-                        //uspsResponseString = fullerror;
-
                         //SetResponseValues(addressResponses, idRegex, addresses, ex);
-                    }
-
-                    if (newEx != null)
-                    {
-                        string fullerror = "{0}{1}{2}".Fill(uspsResponseString, new string('-', 105), newEx.ToString());
-                        uspsResponseString = fullerror;
                     }
                 }
 

@@ -41,7 +41,7 @@
   <xs:complexType name="ReturnInfo">
     <xs:sequence>
       <xs:element minOccurs="1" maxOccurs="1" name="FirstName" type="nonEmptyString" />
-      <xs:element minOccurs="1" maxOccurs="1" name="LastName" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="LastName" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="ReturnPhoneNo" type="usphoneno"/>
       <xs:element minOccurs="1" maxOccurs="1" name="Address" type="Address" />
     </xs:sequence>
