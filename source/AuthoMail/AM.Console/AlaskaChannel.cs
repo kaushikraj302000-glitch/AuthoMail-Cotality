@@ -377,6 +377,8 @@ namespace AM.Console
                         }
                         catch (SqlException ex)
                         {
+                            log.Error("Error occcured while inserting MailPiece details :", ex);
+                            MailUtility.SendUnexpectedExceptionEmail("Error occcured while inserting MailPiece details :" + ex.Message);
                             //2601 error code used for duplicate unique key insert 
                             if (ex.Number == 2601)
                             {
@@ -599,7 +601,9 @@ namespace AM.Console
                         }
                         catch (Exception ex)
                         {
-                            log.Error("Error occured while acknowleding for Batch-Id : {0}".Fill(mbi.BatchName), ex);
+                            var msg = "Error occured while acknowleding for Batch-Id : {0}".Fill(mbi.BatchName);
+                            log.Error(msg, ex);
+                            MailUtility.SendUnexpectedExceptionEmail(msg + ex.Message);
                         }
                     }
                 }
