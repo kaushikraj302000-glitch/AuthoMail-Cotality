@@ -3,13 +3,13 @@
     ViewBag.Title = "Project Setup";
 }
 @{
-    var fileTransmittedViaList = new List<string> { "Client FTP", "CoreLogic FTP", "CL Pull from Client System Imaging", "Other" };
+    var fileTransmittedViaList = new List<string> { "Client FTP", "CoreLogic FTP", "CL Pull from Client System Imaging", "Mortgage Cadence Integration", "Other" };
     var typeOfFilesList = new List<string> { "PDF", "HP", "TIFF", "Other" };
     var serviceLevelList = new List<string> { "Same Day", "24 Hours", "48 Hours", "Other" };
     var projectRequirements = new List<string> { "Mixed Media", "Letter Only", "Legal Only", "Stapled", "Not Stapled", "24# Paper", "Insert Required", "White", "Color (specify)", "Print 1-sided", "Print 2-sided", "B&W", "Color", "B&W & Color" };
     var packagesSentToCustomerList = new List<string> { "Mailed-USPS", "Federal Express", "Certified USPS", "Other" };
-    var envelopeList = new List<string> { "# 10", "6 x 9.5", "9 x 12", "10 x 12", "10 x 13", "Standard Window", "Custom Window(s)", "Other" };
-    var businessReplyMailEnvelopeList = new List<string> { "No", "#9 Business Reply Mail", "Other" };
+    var envelopeList = new List<string> { "# 10", "6 x 9.5", "9 x 12", "10 x 12", "10 x 13", "Other" };
+    var businessReplyMailEnvelopeList = new List<string> {"Yes", "No", "#9 Business Reply Mail", "Other" };
 }
 <style>
     .bootstrap-select {
@@ -151,10 +151,15 @@
                             <div class="form-group">
                                 <label for="TransmittedTime">Transmitted File Time</label>
                                 <div class='input-group'>
-                                    <input type='text' class="form-control" value="@Model.TransmittedTime" name="TransmittedTime" id='datetimepicker3' />
+                                    <select class="form-control selectpicker other" name="TransmittedTime">
+                                        <option>Select Transmitted Time</option>
+                                        <option value="AM" @{string TTsel = Model.TransmittedTime == "AM" ? "Selected" : "";} @TTsel>AM</option>
+                                        <option value="PM" @{TTsel = Model.TransmittedTime == "PM" ? "Selected" : "";} @TTsel>PM</option>
+                                    </select>
+                                    @*<input type='text' class="form-control" value="@Model.TransmittedTime" name="TransmittedTime" id='datetimepicker3' />
                                     <span class="input-group-addon">
                                         <span class="fa fa-clock-o"></span>
-                                    </span>
+                                    </span>*@
                                 </div>
                             </div>
                             <div class="form-group">
@@ -614,240 +619,240 @@
     @Styles.Render("~/bundles/datatablescss")
     @Scripts.Render("~/bundles/datatables")
     <script type="text/javascript">
-    function uploadInit() {
-        $('.upload-container').each(function () {
-            var $upload = $(this).find('.upload-components'),
-              droppedFiles = false,
-              self = $(this);
+        function uploadInit() {
+            $('.upload-container').each(function () {
+                var $upload = $(this).find('.upload-components'),
+                  droppedFiles = false,
+                  self = $(this);
 
-            // Hook up the "Upload File" button to the hidden file input.
-            $upload.find('.btn').on('click', function () {
-                $(".uploadInput").val("");
-                self.find('.uploadInput').click();
-                self.on('change', function (e) {
-                    droppedFiles = e.target.files || e.dataTransfer.files;
-                    if (droppedFiles.length > 5) {
-                        window.clui.globalAlert({
-                            message: "Upload limits is 5.",
-                            alertType: 'red',
-                            timeout: 3000
-                        });
-                        return false;
-                    }
-                    $("#browsefiles").empty();
-                    var fileNames = [];
-                    for (var i = 0; i < droppedFiles.length; i++) {
-                        fileNames.push(droppedFiles[i].name);
-                        if (droppedFiles[i].name.split('.').pop().toLowerCase() == "pdf") {
-                            $("#browsefiles").append("<tr><td>" + droppedFiles[i].name + "</td> <td><button type='button' title='Remove File' class='btn btn-danger recentremovefile' data-filename=" + droppedFiles[i].name + "><i class='fa fa-remove'></i></button></td></tr>");
-                        } else {
+                // Hook up the "Upload File" button to the hidden file input.
+                $upload.find('.btn').on('click', function () {
+                    $(".uploadInput").val("");
+                    self.find('.uploadInput').click();
+                    self.on('change', function (e) {
+                        droppedFiles = e.target.files || e.dataTransfer.files;
+                        if (droppedFiles.length > 5) {
                             window.clui.globalAlert({
-                                message: " Acceptable file type is .pdf",
+                                message: "Upload limits is 5.",
                                 alertType: 'red',
                                 timeout: 3000
                             });
                             return false;
                         }
-                    }
-                    $("#fileNames").val(fileNames);
-                    
+                        $("#browsefiles").empty();
+                        var fileNames = [];
+                        for (var i = 0; i < droppedFiles.length; i++) {
+                            fileNames.push(droppedFiles[i].name);
+                            if (droppedFiles[i].name.split('.').pop().toLowerCase() == "pdf") {
+                                $("#browsefiles").append("<tr><td>" + droppedFiles[i].name + "</td> <td><button type='button' title='Remove File' class='btn btn-danger recentremovefile' data-filename=" + droppedFiles[i].name + "><i class='fa fa-remove'></i></button></td></tr>");
+                            } else {
+                                window.clui.globalAlert({
+                                    message: " Acceptable file type is .pdf",
+                                    alertType: 'red',
+                                    timeout: 3000
+                                });
+                                return false;
+                            }
+                        }
+                        $("#fileNames").val(fileNames);
+
+                    });
                 });
+
+                // This counter takes care of child events so they don't trigger dragleave/dragenter events and a lot of flickering.
+
             });
-
-            // This counter takes care of child events so they don't trigger dragleave/dragenter events and a lot of flickering.
-
-        });
-    }
-    $(document).ready(function () {
-        window.clui.dateTimePickerInit();
-        uploadInit();
-        $('#datetimepicker3').timepicker({
-        });
-        $.each($(".other"), function (indexInArray, valueOfElement) {
-            if ($(this).val() == "Other") {
-                $(this).siblings(".othertextbox").show();
-            } else {
-                $(this).siblings(".othertextbox").hide();
-            }
-        });
-        $('#projetSetup').validate({ // initialize the plugin
-            errorElement: "span",
-            rules: {
-                ClientName: {
-                    required: true,
-                    maxlength: 255
-
-                },
-                SubmittedBy: {
-                    required: true,
-                    maxlength: 255
-                },
-                FileTransmittedVia: {
-                    required: true
-                },
-                FileTransmittedViaSelect: {
-                    required: true
-                },
-                TypeOfFiles: {
-                    required: true
-                },
-                TypeOfFilesSelect: {
-                    required: true
-                },
-                NoOfEstSweepTimes: {
-                    required: true
-                },
-                ESTSweepTime: {
-                    required: true
-                },
-                ServiceLevel: {
-                    required: true
-                },
-                ServiceLevelSelect: {
-                    required: true
-                },
-                DailyPrintScheduleList: {
-                    required: true
-                },
-                PaperPrintRequirementsList: {
-                    required: true
-                },
-                PackagesSentToCustomer: {
-                    required: true
-                },
-                PackagesSentToCustomerSelect: {
-                    required: true
-                },
-                Envelopes: {
-                    required: true
-                },
-                EnvelopesSelect: {
-                    required: true
+        }
+        $(document).ready(function () {
+            window.clui.dateTimePickerInit();
+            uploadInit();
+            $('#datetimepicker3').timepicker({
+            });
+            $.each($(".other"), function (indexInArray, valueOfElement) {
+                if ($(this).val() == "Other") {
+                    $(this).siblings(".othertextbox").show();
+                } else {
+                    $(this).siblings(".othertextbox").hide();
                 }
-            },
-            submitHandler: function (e) { // for demo
-                e.preventDefault();
-                $("#projetSetup").submit();
-            }
-        });
-
-        $(document).on("click", ".recentremovefile", function () {
-            var fileName = $(this).data("filename");
-            $(this).closest('tr').remove();
-            var fileNames = $("#fileNames").val().split(',');
-            fileNames = $.grep(fileNames, function (value) {
-                return value != fileName;
             });
-            $("#fileNames").val(fileNames);
-            if ($("#browsefilesTable tbody tr").length == 0) {
-                $("#browsefiles").html('<tr><td colspan="2"><div class="alert alert-yellow">@AM.Services.Config.Web_Msg_NoRecordFound</div></td></tr>');
-            }
+            $('#projetSetup').validate({ // initialize the plugin
+                errorElement: "span",
+                rules: {
+                    ClientName: {
+                        required: true,
+                        maxlength: 255
 
-        });
-        $(document).on("click", ".removefile", function () {
-            var fileName = $(this).data("filename");
-            var id = $(this).data("id");
-            var trid = $(this).data("trid");
-            $("#confirmModal").find("#FileName").val(fileName);
-            $("#confirmModal").find("#filenametxt").text(fileName);
-            $("#confirmModal").find("#Id").val(id);
-            $("#confirmModal").find("#trid").val(trid);
-            $("#confirmModal").modal("show");
-
-        });
-        $(document).on("click", "#yesRemove", function () {
-            var fileName = $("#confirmModal").find("#FileName").val();
-            var id = $("#confirmModal").find("#Id").val();
-            var trid = $("#confirmModal").find("#trid").val();
-            $.ajax({
-                type: "POST",
-                url: baseUrl + "Admin/RemoveFile",
-                data: {
-                    id: id,
-                    fileName: fileName
+                    },
+                    SubmittedBy: {
+                        required: true,
+                        maxlength: 255
+                    },
+                    FileTransmittedVia: {
+                        required: true
+                    },
+                    FileTransmittedViaSelect: {
+                        required: true
+                    },
+                    TypeOfFiles: {
+                        required: true
+                    },
+                    TypeOfFilesSelect: {
+                        required: true
+                    },
+                    NoOfEstSweepTimes: {
+                        required: true
+                    },
+                    ESTSweepTime: {
+                        required: true
+                    },
+                    ServiceLevel: {
+                        required: true
+                    },
+                    ServiceLevelSelect: {
+                        required: true
+                    },
+                    DailyPrintScheduleList: {
+                        required: true
+                    },
+                    PaperPrintRequirementsList: {
+                        required: true
+                    },
+                    PackagesSentToCustomer: {
+                        required: true
+                    },
+                    PackagesSentToCustomerSelect: {
+                        required: true
+                    },
+                    Envelopes: {
+                        required: true
+                    },
+                    EnvelopesSelect: {
+                        required: true
+                    }
                 },
-                //contentType: "application/json; charset=utf-8",
-                success: function (response) {
-                    console.log(response);
-                    if (response.Success) {
-                        if (response.Object != null) {
-                            if (response.Object.model != null) {
+                submitHandler: function (e) { // for demo
+                    e.preventDefault();
+                    $("#projetSetup").submit();
+                }
+            });
 
-                                if (response.Object.model.Key) {
-                                    $("#confirmModal").modal("hide");
-                                    $("#confirmModal").find("#FileName").val("");
-                                    $("#confirmModal").find("#filenametxt").text("");
-                                    $("#confirmModal").find("#Id").val("");
-                                    $("#confirmModal").find("#trid").val("");
-                                    $("#fileuploadTable").find("tr[id='" + trid + "']").remove();
-                                    if ($("#fileuploadTable tbody tr").length == 0) {
-                                        $("#fileupload").html('<tr><td colspan="2"><div class="alert alert-yellow">@AM.Services.Config.Web_Msg_NoRecordFound</div></td></tr>');
-                                        
+            $(document).on("click", ".recentremovefile", function () {
+                var fileName = $(this).data("filename");
+                $(this).closest('tr').remove();
+                var fileNames = $("#fileNames").val().split(',');
+                fileNames = $.grep(fileNames, function (value) {
+                    return value != fileName;
+                });
+                $("#fileNames").val(fileNames);
+                if ($("#browsefilesTable tbody tr").length == 0) {
+                    $("#browsefiles").html('<tr><td colspan="2"><div class="alert alert-yellow">@AM.Services.Config.Web_Msg_NoRecordFound</div></td></tr>');
+                }
+
+            });
+            $(document).on("click", ".removefile", function () {
+                var fileName = $(this).data("filename");
+                var id = $(this).data("id");
+                var trid = $(this).data("trid");
+                $("#confirmModal").find("#FileName").val(fileName);
+                $("#confirmModal").find("#filenametxt").text(fileName);
+                $("#confirmModal").find("#Id").val(id);
+                $("#confirmModal").find("#trid").val(trid);
+                $("#confirmModal").modal("show");
+
+            });
+            $(document).on("click", "#yesRemove", function () {
+                var fileName = $("#confirmModal").find("#FileName").val();
+                var id = $("#confirmModal").find("#Id").val();
+                var trid = $("#confirmModal").find("#trid").val();
+                $.ajax({
+                    type: "POST",
+                    url: baseUrl + "Admin/RemoveFile",
+                    data: {
+                        id: id,
+                        fileName: fileName
+                    },
+                    //contentType: "application/json; charset=utf-8",
+                    success: function (response) {
+                        console.log(response);
+                        if (response.Success) {
+                            if (response.Object != null) {
+                                if (response.Object.model != null) {
+
+                                    if (response.Object.model.Key) {
+                                        $("#confirmModal").modal("hide");
+                                        $("#confirmModal").find("#FileName").val("");
+                                        $("#confirmModal").find("#filenametxt").text("");
+                                        $("#confirmModal").find("#Id").val("");
+                                        $("#confirmModal").find("#trid").val("");
+                                        $("#fileuploadTable").find("tr[id='" + trid + "']").remove();
+                                        if ($("#fileuploadTable tbody tr").length == 0) {
+                                            $("#fileupload").html('<tr><td colspan="2"><div class="alert alert-yellow">@AM.Services.Config.Web_Msg_NoRecordFound</div></td></tr>');
+
+                                        }
+                                        window.clui.globalAlert({
+                                            message: response.Object.model.Value,
+                                            alertType: 'green',
+                                            timeout: 3000
+                                        });
+                                    } else {
+                                        window.clui.globalAlert({
+                                            message: response.Object.model.Value,
+                                            alertType: 'red',
+                                            timeout: 3000
+                                        });
+
                                     }
+
+
+
+                                }
+                                else {
                                     window.clui.globalAlert({
-                                        message: response.Object.model.Value,
-                                        alertType: 'green',
-                                        timeout: 3000
-                                    });
-                                } else {
-                                    window.clui.globalAlert({
-                                        message: response.Object.model.Value,
+                                        message: '@AM.Services.Config.Web_Msg_Ajax_CommonError',
                                         alertType: 'red',
                                         timeout: 3000
                                     });
 
                                 }
-                                
-                                
-                                
                             }
-                            else {
-                                window.clui.globalAlert({
-                                    message: '@AM.Services.Config.Web_Msg_Ajax_CommonError',
-                                    alertType: 'red',
-                                    timeout: 3000
-                                });
-
-                            }
+                        } else {
+                            window.clui.globalAlert({
+                                message: response.ErrorMessage,
+                                alertType: 'red',
+                                timeout: 3000
+                            });
                         }
-                    } else {
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
                         window.clui.globalAlert({
-                            message: response.ErrorMessage,
+                            message: '@AM.Services.Config.Web_Msg_Ajax_CommonError',
                             alertType: 'red',
                             timeout: 3000
                         });
                     }
-                },
-                error: function (xhr, ajaxOptions, thrownError) {
-                    window.clui.globalAlert({
-                        message: '@AM.Services.Config.Web_Msg_Ajax_CommonError',
-                        alertType: 'red',
-                        timeout: 3000
-                    });
-                }
 
+                });
             });
         });
-    });
-    $('.selectpicker').on('change', function () {
-        if ($(this).val() == "Other") {
-            console.log($(this).closest(".input-group").find(".othertextbox").val())
-            $(this).closest(".input-group").find(".othertextbox").val("");
-            $(this).closest(".input-group").find(".othertextbox").show();
-        } else {
-            $(this).closest(".input-group").find(".othertextbox").val($(this).val());
-            $(this).closest(".input-group").find(".othertextbox").hide();
-        }
-    });
-    $(".cl-toggle").click(function () {
-        var value = $(this).is(":checked") ? "true" : "false";
-        //$(this).va();
-        $(this).val(value)
-        console.log($(this).prop("id"));
-        if ($(this).prop("id") == "InsertRequired") {
-            $("#IsInsertRequired").toggle();
-        }
+        $('.selectpicker').on('change', function () {
+            if ($(this).val() == "Other") {
+                console.log($(this).closest(".input-group").find(".othertextbox").val())
+                $(this).closest(".input-group").find(".othertextbox").val("");
+                $(this).closest(".input-group").find(".othertextbox").show();
+            } else {
+                $(this).closest(".input-group").find(".othertextbox").val($(this).val());
+                $(this).closest(".input-group").find(".othertextbox").hide();
+            }
+        });
+        $(".cl-toggle").click(function () {
+            var value = $(this).is(":checked") ? "true" : "false";
+            //$(this).va();
+            $(this).val(value)
+            console.log($(this).prop("id"));
+            if ($(this).prop("id") == "InsertRequired") {
+                $("#IsInsertRequired").toggle();
+            }
 
-    });
-</script>
+        });
+    </script>
 }
