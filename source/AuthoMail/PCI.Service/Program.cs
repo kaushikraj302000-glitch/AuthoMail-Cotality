@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Practices.EnterpriseLibrary.Data;
 using log4net;
+using System.Configuration;
 
 namespace PCI.Service
 {
@@ -17,21 +18,15 @@ namespace PCI.Service
         static void Main(string[] args)
         {
 
-            switch (args[0])
-            {
-                case "PnSJob":
-                    log = LogManager.GetLogger("PCI.Service.PnSJobMonitor");
-                    break;
-                case "PnSCore":
-                    log = LogManager.GetLogger("PCI.Service.PnSCoreService");
-                    break;
-                case "PCIJob":
-                case "DownloadPrinterReport":
-                    log = LogManager.GetLogger("PCI.Service.PCIJobMonitor");
-                    break;
-                default:
-                    break;
-            }
+            //Code Added to create argument wise log file
+            var argString = String.Join(",", args);
+            log4net.LogicalThreadContext.Properties["args"] = argString;
+            log4net.Config.XmlConfigurator.ConfigureAndWatch(new System.IO.FileInfo(ConfigurationManager.AppSettings["log4net.Config"]));
+            var type = System.Reflection.MethodBase.GetCurrentMethod().DeclaringType;
+            log = log4net.LogManager.GetLogger(type);
+
+
+            log.InfoFormat("Command line arguments : {0}", String.Join(",", args));
 
             try
             {
