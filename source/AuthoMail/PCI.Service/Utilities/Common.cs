@@ -10,11 +10,13 @@ using PCI.Service.Utilities;
 using System.Net.Mail;
 using PCI.Service;
 using System.Data;
+using log4net;
 
 namespace PCI.Service
 {
     public static class Common
     {
+        private static readonly ILog log = LogManager.GetLogger(typeof(Common));
         public static bool Remove_ImmediateErrFiles { get; private set; }
         public static string FontPathDir { get; private set; }
         public static string PCIRootFolder { get; set; }
@@ -63,57 +65,65 @@ namespace PCI.Service
 
         static Common()
         {
-            Remove_ImmediateErrFiles = ConfigurationManager.AppSettings["Remove_ImmediateErrFiles"].Trim() == "0" ? false : true;
-            FontPathDir = ConfigurationManager.AppSettings["FontsDirPath"].Trim();
-            PCIRootFolder = Path.GetFullPath(ConfigurationManager.AppSettings["PCIRootFolder"]);
-            PCIRootFolder.CreateDirectoryIfNotExist();
+            try
+            {
+                Remove_ImmediateErrFiles = ConfigurationManager.AppSettings["Remove_ImmediateErrFiles"].Trim() == "0" ? false : true;
+                FontPathDir = ConfigurationManager.AppSettings["FontsDirPath"].Trim();
+                PCIRootFolder = Path.GetFullPath(ConfigurationManager.AppSettings["PCIRootFolder"]);
+                PCIRootFolder.CreateDirectoryIfNotExist();
 
-            BundlingRootFolder = Path.Combine(Path.GetFullPath(ConfigurationManager.AppSettings["PCIRootFolder"]), "BundlingRoot");
-            BundlingRootFolder.CreateDirectoryIfNotExist();
-            BundlingRequestFolderName = "Request";
-            BundlingResponseFolderName = "Response";
+                BundlingRootFolder = Path.Combine(Path.GetFullPath(ConfigurationManager.AppSettings["PCIRootFolder"]), "BundlingRoot");
+                BundlingRootFolder.CreateDirectoryIfNotExist();
+                BundlingRequestFolderName = "Request";
+                BundlingResponseFolderName = "Response";
 
-            PnSRequestFolderName = "PnSRequest";
-            PnSResponseFolderName = "PnSResponse";
-            PCIRequestFolderName = "PCIRequest";
-            PCIResponseFolderName = "PCIResponse";
+                PnSRequestFolderName = "PnSRequest";
+                PnSResponseFolderName = "PnSResponse";
+                PCIRequestFolderName = "PCIRequest";
+                PCIResponseFolderName = "PCIResponse";
 
-            PCIRootReturnPDFsZipFolder = Path.GetFullPath(ConfigurationManager.AppSettings["PCIRootReturnPDFsZipFolder"]);
-            PCIRootReturnPDFsZipFolder.CreateDirectoryIfNotExist();
+                PCIRootReturnPDFsZipFolder = Path.GetFullPath(ConfigurationManager.AppSettings["PCIRootReturnPDFsZipFolder"]);
+                PCIRootReturnPDFsZipFolder.CreateDirectoryIfNotExist();
 
-            DatabaseFactory.SetDatabaseProviderFactory(new DatabaseProviderFactory());
+                DatabaseFactory.SetDatabaseProviderFactory(new DatabaseProviderFactory());
 
-            ApplicationEnvironment = DAL.GetSystemSettingsValue("Common_Environment");
-            PnS_SFTChannelCode = ConfigurationManager.AppSettings["PnS_SFTChannelCode"].Trim() + "_" + ApplicationEnvironment;
-            Email_SMTPClient = new SmtpClient();
+                ApplicationEnvironment = DAL.GetSystemSettingsValue("Common_Environment");
+                PnS_SFTChannelCode = ConfigurationManager.AppSettings["PnS_SFTChannelCode"].Trim() + "_" + ApplicationEnvironment;
+                Email_SMTPClient = new SmtpClient();
 
-            Email_ToPCI = ConfigurationManager.AppSettings["Email_ToPCI"];
-            Email_CcPCI = ConfigurationManager.AppSettings["Email_CcPCI"];
+                Email_ToPCI = ConfigurationManager.AppSettings["Email_ToPCI"];
+                Email_CcPCI = ConfigurationManager.AppSettings["Email_CcPCI"];
 
-            Email_ToCL = ConfigurationManager.AppSettings["Email_ToCL"];
-            Email_CcCL = ConfigurationManager.AppSettings["Email_CcCL"];
+                Email_ToCL = ConfigurationManager.AppSettings["Email_ToCL"];
+                Email_CcCL = ConfigurationManager.AppSettings["Email_CcCL"];
 
-            SubmitBatchEmailTemplate = Path.GetFullPath(ConfigurationManager.AppSettings["SubmitBatchEmailTemplate"]);
+                SubmitBatchEmailTemplate = Path.GetFullPath(ConfigurationManager.AppSettings["SubmitBatchEmailTemplate"]);
 
-            SuspendEmail_To = ConfigurationManager.AppSettings["SuspendEmail_To"];
-            SuspendEmail_Cc = ConfigurationManager.AppSettings["SuspendEmail_Cc"];
-            SuspendBatchEmailTemplate = Path.GetFullPath(ConfigurationManager.AppSettings["SuspendBatchEmailTemplate"]);
+                SuspendEmail_To = ConfigurationManager.AppSettings["SuspendEmail_To"];
+                SuspendEmail_Cc = ConfigurationManager.AppSettings["SuspendEmail_Cc"];
+                SuspendBatchEmailTemplate = Path.GetFullPath(ConfigurationManager.AppSettings["SuspendBatchEmailTemplate"]);
 
-            MRDFResponseLength = int.Parse(ConfigurationManager.AppSettings["MRDFResponseLength"]);
+                MRDFResponseLength = int.Parse(ConfigurationManager.AppSettings["MRDFResponseLength"]);
 
-            SubmitBatchEmailSubject = ConfigurationManager.AppSettings["SubmitBatchEmailSubject"];
-            SuspendBatchEmailSubject = ConfigurationManager.AppSettings["SuspendBatchEmailSubject"];
+                SubmitBatchEmailSubject = ConfigurationManager.AppSettings["SubmitBatchEmailSubject"];
+                SuspendBatchEmailSubject = ConfigurationManager.AppSettings["SuspendBatchEmailSubject"];
 
-            NoRecordsInMRDFSubject = ConfigurationManager.AppSettings["NoRecordsInMRDFSubject"];
-            PCI_Issue_Email_To = ConfigurationManager.AppSettings["PCI_Issue_Email_To"];
-            PCI_Issue_Email_Cc = ConfigurationManager.AppSettings["PCI_Issue_Email_Cc"];
+                NoRecordsInMRDFSubject = ConfigurationManager.AppSettings["NoRecordsInMRDFSubject"];
+                PCI_Issue_Email_To = ConfigurationManager.AppSettings["PCI_Issue_Email_To"];
+                PCI_Issue_Email_Cc = ConfigurationManager.AppSettings["PCI_Issue_Email_Cc"];
 
-            NORDIS_Issue_Email_To = ConfigurationManager.AppSettings["NORDIS_Issue_Email_To"];
-            NORDIS_Issue_Email_Cc = ConfigurationManager.AppSettings["NORDIS_Issue_Email_Cc"];
+                NORDIS_Issue_Email_To = ConfigurationManager.AppSettings["NORDIS_Issue_Email_To"];
+                NORDIS_Issue_Email_Cc = ConfigurationManager.AppSettings["NORDIS_Issue_Email_Cc"];
 
-            UnexpectedEmail_Subject = ConfigurationManager.AppSettings["UnexpectedEmail_Subject"];
-            UnexpectedEmail_ToEmail = ConfigurationManager.AppSettings["UnexpectedEmail_ToEmail"];
-            UnexpectedEmail_CcEmail = ConfigurationManager.AppSettings["UnexpectedEmail_CcEmail"];
+                UnexpectedEmail_Subject = ConfigurationManager.AppSettings["UnexpectedEmail_Subject"];
+                UnexpectedEmail_ToEmail = ConfigurationManager.AppSettings["UnexpectedEmail_ToEmail"];
+                UnexpectedEmail_CcEmail = ConfigurationManager.AppSettings["UnexpectedEmail_CcEmail"];
+            }
+            catch (Exception ex)
+            {
+                log.Error("Error occured while initializing Common Properties :", ex);
+                MailUtility.SendUnexpectedNotificationEmail(ex.Message);
+            }
         }
 
         public static void CleanDirectory(string path)

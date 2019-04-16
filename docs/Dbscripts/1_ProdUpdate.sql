@@ -181,7 +181,7 @@ AS
 	LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id
 	LEFT OUTER JOIN [PnS].[MRDFRequest] r ON m.UniqueId = r.UniqueId AND r.IsPDFReceived=1
 	WHERE m.[MailBatchId]=b.Id AND c.Id=b.ClientId AND ch.Id=b.SFTChannelId AND m.ClientId=@clientId
-	AND b.ReceivedOn BETWEEN @startDate and @endDate
+	AND m.EffectiveReceivedOnEst BETWEEN @startDate and @endDate
 	AND ISNULL(ch.Code, '') = ISNULL(@channel, ISNULL(ch.Code, ''))
 	AND m.ShippingStatus=@shippingStatus
 
