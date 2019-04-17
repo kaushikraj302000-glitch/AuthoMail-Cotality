@@ -1,4 +1,5 @@
 ﻿using AM.Entities;
+using AM.Lib;
 using AM.Services;
 using System;
 using System.Collections.Generic;
@@ -11,6 +12,7 @@ namespace AM.Console
 {
     public class Purging
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         public static void StartPurging()
         {
             using (IReCalculateDueDateService rSvc = new ReCalculateDueDateService())
@@ -26,6 +28,11 @@ namespace AM.Console
                 string destAMDir = @"D:\MTC\Delete\AM";
                 DirectoryInfo sourcePnSRootDir = new DirectoryInfo(@"D:\MTC\PnSService\PCIRoot");
                 string destPCIDir = @"D:\MTC\Delete\PCI";
+
+                //DirectoryInfo sourceAMRootDir = new DirectoryInfo(@"\\10.212.24.57\d$\Production\AuthoMail\AMRoot");
+                //string destAMDir = @"\\10.212.24.57\D$\MTC\Delete\AM";
+                //DirectoryInfo sourcePnSRootDir = new DirectoryInfo(@"\\10.212.24.57\d$\MTC\PnSService\PCIRoot");
+                //string destPCIDir = @"\\10.212.24.57\D$\MTC\Delete\PCI";
 
                 //Staging Paths
                 //DirectoryInfo sourceAMRootDir = new DirectoryInfo(@"\\10.215.112.64\d$\MTC\AuthoMail\Monitor\AuthoMailRoot");
@@ -54,20 +61,29 @@ namespace AM.Console
                     else
                         days = 30;
                     DateTime startDate = Common.Today;
-                    do
+                    try
                     {
-                        startDate = startDate.AddDays(-1);
-                        days -= IsBusinessDay(startDate, Config.Common_Holidays, false, false) ? 1 : 0;
-                    } while (0 != days);
+                        do
+                        {
+                            startDate = startDate.AddDays(-1);
+                            days -= IsBusinessDay(startDate, Config.Common_Holidays, false, false) ? 1 : 0;
+                        } while (0 != days);
 
 
-                    var subdirs = dir.EnumerateDirectories().Where(d => d.LastWriteTime < startDate).ToList();
-                    
-                    foreach (var subdir in subdirs)
+                        var subdirs = dir.EnumerateDirectories().Where(d => d.LastWriteTime < startDate).ToList();
+
+                        foreach (var subdir in subdirs)
+                        {
+                            if (Directory.Exists(Path.Combine(Path.Combine(destAMDir, dir.Name), subdir.Name)))
+                                Directory.Delete(Path.Combine(Path.Combine(destAMDir, dir.Name), subdir.Name));
+                            Directory.Move(subdir.FullName, Path.Combine(Path.Combine(destAMDir, dir.Name), subdir.Name));
+                        }
+                    }
+                    catch (Exception ex)
                     {
-                        if (Directory.Exists(Path.Combine(Path.Combine(destAMDir, dir.Name), subdir.Name)))
-                            Directory.Delete(Path.Combine(Path.Combine(destAMDir, dir.Name), subdir.Name));
-                        Directory.Move(subdir.FullName, Path.Combine(Path.Combine(destAMDir, dir.Name), subdir.Name));
+                        var msg = "Error occured while PURGING AM ROOT files: {0} ".Fill(ex.Message);
+                        log.Error(msg, ex);
+                        MailUtility.SendUnexpectedExceptionEmail(msg);
                     }
                 }
 
@@ -85,27 +101,36 @@ namespace AM.Console
                     else if (dir.Name == "CITIVM")
                         days = 30;
                     else if (dir.Name == "HSBC")
-                        days = 90;
-                    else if (dir.Name == "RPS")
                         days = 30;
+                    else if (dir.Name == "RPS")
+                        days = 60;
                     else if (dir.Name == "USAA")
                         days = 21;
                     else
                         days = 30;
                     DateTime startDate = Common.Today;
-                    do
+                    try
                     {
-                        startDate = startDate.AddDays(-1);
-                        days -= IsBusinessDay(startDate, Config.Common_Holidays, false, false) ? 1 : 0;
-                    } while (0 != days);
+                        do
+                        {
+                            startDate = startDate.AddDays(-1);
+                            days -= IsBusinessDay(startDate, Config.Common_Holidays, false, false) ? 1 : 0;
+                        } while (0 != days);
 
-                    var subdirs = dir.EnumerateDirectories().Where(d => d.LastWriteTime < startDate).ToList();
+                        var subdirs = dir.EnumerateDirectories().Where(d => d.LastWriteTime < startDate).ToList();
 
-                    foreach (var subdir in subdirs)
+                        foreach (var subdir in subdirs)
+                        {
+                            if (Directory.Exists(Path.Combine(Path.Combine(destPCIDir, dir.Name), subdir.Name)))
+                                Directory.Delete(Path.Combine(Path.Combine(destPCIDir, dir.Name), subdir.Name));
+                            Directory.Move(subdir.FullName, Path.Combine(Path.Combine(destPCIDir, dir.Name), subdir.Name));
+                        }
+                    }
+                    catch (Exception ex)
                     {
-                        if (Directory.Exists(Path.Combine(Path.Combine(destPCIDir, dir.Name), subdir.Name)))
-                            Directory.Delete(Path.Combine(Path.Combine(destPCIDir, dir.Name), subdir.Name));
-                        Directory.Move(subdir.FullName, Path.Combine(Path.Combine(destPCIDir, dir.Name), subdir.Name));
+                        var msg = "Error occured while PURGING PCI Root files: {0} ".Fill(ex.Message);
+                        log.Error(msg, ex);
+                        MailUtility.SendUnexpectedExceptionEmail(msg);
                     }
                 }
             }
