@@ -703,7 +703,6 @@ namespace AM.Console
                                 mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfo);
                             }
                         }
-                        System.Console.Write("");
                     }
 
                     //TODO: Do we need to check all mail pieces are valid, partially valid or failed and update batch status according to that?
