@@ -223,11 +223,12 @@ namespace AM.Console
 
                     XmlDocument mailBatchXML = new XmlDocument();
                     XmlNodeList mailPieceNodes = null;
-
+                    int totalNodes = 0;
                     try
                     {
                         mailBatchXML.LoadXml(File.ReadAllText(xmlFilePath));
                         mailPieceNodes = mailBatchXML.DocumentElement.ChildNodes;
+                        totalNodes = mailPieceNodes.Count;
                     }
                     catch (XmlException ex)
                     {
@@ -438,6 +439,9 @@ namespace AM.Console
                         {
                             mbi.MailBatch.ValidationStatus = BatchValidationStatus.Valid.ToString();
                         }
+
+                        if (totalNodes != mailPieceData.Count)
+                            MailUtility.SendUnexpectedExceptionEmail("Mail pieces count and received xml count is mismatched for Batch-Id : {0}<br/>".Fill(mailBatch.Id) + "Mail Piece count is {0} and received xml nodes count is {1}".Fill(mailPieceData.Count, totalNodes));
 
                         commonSvc.UpdateBatchValidationStatus(mbi.MailBatch.Id, mbi.MailBatch.ValidationStatus, mbi.MailBatch.ValidationErrors);
                     }

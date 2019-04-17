@@ -472,13 +472,14 @@ namespace AM.Console
                     XmlDocument batchXML = new XmlDocument();
                     XmlNamespaceManager nsManager = null;
                     XmlNodeList mailPieceNodes = null;
-
+                    int totalNodes = 0;
                     try
                     {
                         batchXML.LoadXml(File.ReadAllText(xmlFilePath));
                         nsManager = new XmlNamespaceManager(batchXML.NameTable);
                         nsManager.AddNamespace("x", "http://schemas.corelogic.com/ade/authomail/v1.18.0");
                         mailPieceNodes = batchXML.DocumentElement.SelectSingleNode("./x:MailPieces", nsManager).ChildNodes;
+                        totalNodes = mailPieceNodes.Count;
                     }
                     catch (XmlException ex)
                     {
@@ -756,6 +757,9 @@ namespace AM.Console
                         {
                             mbi.MailBatch.ValidationStatus = BatchValidationStatus.Valid.ToString();
                         }
+
+                        if (totalNodes != mailPieceList.Count)
+                            MailUtility.SendUnexpectedExceptionEmail("Mail pieces count and received xml count is mismatched for Batch-Id : {0}<br/>".Fill(mailBatch.Id) + "Mail Piece count is {0} and received xml nodes count is {1}".Fill(mailPieceList.Count, totalNodes));
 
                         commonSvc.UpdateBatchValidationStatus(mbi.MailBatch.Id, mbi.MailBatch.ValidationStatus, mbi.MailBatch.ValidationErrors);
                     }
