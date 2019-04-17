@@ -164,8 +164,8 @@ namespace AM.Services
                 new
                 {
                     clientId = clientId,
-                    startDate = startDate.ToStartDateTime().EstToUtc(),
-                    endDate = endDate.ToEndDateTime().EstToUtc(),
+                    startDate = startDate.ToStartDateTime(),
+                    endDate = endDate.ToEndDateTime(),
                     channel = channel.IsNullOrWhiteSpace() ? null : channel,
                     shippingStatus = ShippingStatus.Shipped.ToString()
                 }).ToList();
