@@ -560,6 +560,13 @@ namespace AM.Console
                             //This field will be used for monitoring data    
                             mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, mailBatch.ReceivedOn.Value, sweepTimings);
                             mailPiece.MaxSubmissionTime = commonSvc.GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
+                            //TODO : Remove Below code after testing
+                            Random rdm = new Random();
+                            int rdmNum = rdm.Next(1000);
+                            if (rdmNum > 500)
+                            {
+                                throw new Exception("Randome number executed to check re-process is working or not.");
+                            }
                             mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                         }
                     }
