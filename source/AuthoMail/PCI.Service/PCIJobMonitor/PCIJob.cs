@@ -41,12 +41,16 @@ namespace PCI.Service
                 DateTime startDateTime = Common.EstToUtc(Common.EstToday);
                 DateTime toDateTime = Common.GetCurrentTime();
                 DateTime endDateTime = new DateTime(toDateTime.Year, toDateTime.Month, toDateTime.Day, toDateTime.Hour, toDateTime.Minute, 0);
-
+                int bundlingTime = 0;
                 //Waiting Code for AuthoMail as well as BatchSummary
                 while (!DAL.CheckBatchesInQueue(startDateTime, endDateTime))
                 {
                     log.Debug("Waiting to Complete Process");
                     Thread.Sleep(6000);
+                    bundlingTime += 6000;
+                    //NOTE: If bundling is continueously running for 18 minutes then system will continue further for submitting batches to print vendor.
+                    if (bundlingTime >= 1080000)
+                        break;
                 }
             }
 
