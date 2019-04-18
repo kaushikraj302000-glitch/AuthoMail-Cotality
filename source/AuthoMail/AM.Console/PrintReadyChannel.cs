@@ -763,7 +763,7 @@ namespace AM.Console
 
                         commonSvc.UpdateBatchValidationStatus(mbi.MailBatch.Id, mbi.MailBatch.ValidationStatus, mbi.MailBatch.ValidationErrors);
                     }
-
+                    Channel.CalculateDueDateAndPrintLocation(SFTChannel.Id);
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
                 }
                 catch (Exception ex)
@@ -870,10 +870,10 @@ namespace AM.Console
         }
         #endregion
 
-        protected override void CalculateDueDateAndPrintLocation()
-        {
-            Channel.CalculateDueDateAndPrintLocation(SFTChannel.Id);
-        }
+        //protected override void CalculateDueDateAndPrintLocation()
+        //{
+        //    Channel.CalculateDueDateAndPrintLocation(SFTChannel.Id);
+        //}
 
         protected override void AcknowledgeBatches()
         {

@@ -55,7 +55,7 @@ namespace AM.Console
                 this.EnumerateBatches();
                 this.DownloadBatches();
                 this.ValidateBatches();
-                this.CalculateDueDateAndPrintLocation();
+                //this.CalculateDueDateAndPrintLocation();
                 this.AcknowledgeBatches();
             }
             catch (Exception ex)
@@ -80,10 +80,10 @@ namespace AM.Console
         /// Validates all batches which are queued as Downloaded
         /// </summary>
         protected abstract void ValidateBatches();
-        /// <summary>
-        /// Calculate effective receivedon date, printlocation and due date all valid batches which are queued as ValidateBatches
-        /// </summary>
-        protected abstract void CalculateDueDateAndPrintLocation();
+        ///// <summary>
+        ///// Calculate effective receivedon date, printlocation and due date all valid batches which are queued as ValidateBatches
+        ///// </summary>
+        //protected abstract void CalculateDueDateAndPrintLocation();
         /// <summary>
         /// Acknowledge all batches which are queued as Validated
         /// </summary>
@@ -568,7 +568,7 @@ namespace AM.Console
                         var msg = "Error occured in CalculateDueDateAndPrintLocation Method For Mail Batch Id: {0} with Error : {1}".Fill(mailBatch.Id, ex.Message);
                         log.Error(msg, ex);
                         MailUtility.SendUnexpectedExceptionEmail(msg);
-                        continue;
+                        throw ex;
                     }
                 }
             }

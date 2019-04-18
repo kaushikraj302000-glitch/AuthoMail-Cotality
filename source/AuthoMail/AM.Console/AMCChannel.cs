@@ -740,7 +740,7 @@ namespace AM.Console
                     {
                         MailUtility.SendUnexpectedExceptionEmail("Mail Pieces list is null for Batch-Id {0}".Fill(mailBatch.Id));
                     }
-
+                    Channel.CalculateDueDateAndPrintLocation(SFTChannel.Id);
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
                 }
                 catch (Exception ex)
@@ -754,10 +754,10 @@ namespace AM.Console
             log.Debug("Validate job queue is completed.");
         }
 
-        protected override void CalculateDueDateAndPrintLocation()
-        {
-            Channel.CalculateDueDateAndPrintLocation(SFTChannel.Id);
-        }
+        //protected override void CalculateDueDateAndPrintLocation()
+        //{
+        //    Channel.CalculateDueDateAndPrintLocation(SFTChannel.Id);
+        //}
 
         protected override void AcknowledgeBatches()
         {
