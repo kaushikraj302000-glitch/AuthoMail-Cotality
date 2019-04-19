@@ -428,6 +428,9 @@ namespace AM.Console
             {
                 try
                 {
+                    //NOTE: Here system will delete if any existing records are there with MailBatchId in mail pieces table
+                    mailBatchSvc.DeleteMailPiecesDetailsByMailBatchId(mailBatch.Id);
+
                     Client client = clientSvc.GetClientById(mailBatch.ClientId);
 
                     MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
@@ -448,13 +451,14 @@ namespace AM.Console
                     XmlDocument batchXML = new XmlDocument();
                     XmlNamespaceManager nsManager = null;
                     XmlNodeList mailPieceNodes = null;
-
+                    int totalNodes = 0;
                     try
                     {
                         batchXML.LoadXml(File.ReadAllText(xmlFilePath));
                         nsManager = new XmlNamespaceManager(batchXML.NameTable);
                         nsManager.AddNamespace("x", "http://schemas.corelogic.com/2015/amc/v1/packages");
                         mailPieceNodes = batchXML.DocumentElement.ChildNodes;
+                        totalNodes = mailPieceNodes.Count;
                     }
                     catch (XmlException ex)
                     {
@@ -730,9 +734,16 @@ namespace AM.Console
                             mbi.MailBatch.ValidationStatus = BatchValidationStatus.Valid.ToString();
                         }
 
+                        if (totalNodes != mailPieceData.Count)
+                            MailUtility.SendUnexpectedExceptionEmail("Mail pieces count and received xml count is mismatched for Batch-Id : {0}<br/>".Fill(mailBatch.Id) + "Mail Piece count is {0} and received xml nodes count is {1}".Fill(mailPieceData.Count, totalNodes));
+
                         commonSvc.UpdateBatchValidationStatus(mbi.MailBatch.Id, mbi.MailBatch.ValidationStatus, mbi.MailBatch.ValidationErrors);
                     }
-
+                    else
+                    {
+                        MailUtility.SendUnexpectedExceptionEmail("Mail Pieces list is null for Batch-Id {0}".Fill(mailBatch.Id));
+                    }
+                    Channel.CalculateDueDateAndPrintLocation(mailBatch, mailPieceData);
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
                 }
                 catch (Exception ex)
@@ -740,16 +751,15 @@ namespace AM.Console
                     var msg = "Error occured in ValidateBatches Method For Mail Batch Id: {0} with Error : {1}".Fill(mailBatch.Id, ex.Message);
                     log.Error(msg, ex);
                     MailUtility.SendUnexpectedExceptionEmail(msg);
-                    continue;
                 }
             }
             log.Debug("Validate job queue is completed.");
         }
 
-        protected override void CalculateDueDateAndPrintLocation()
-        {
-            Channel.CalculateDueDateAndPrintLocation(SFTChannel.Id);
-        }
+        //protected override void CalculateDueDateAndPrintLocation()
+        //{
+        //    Channel.CalculateDueDateAndPrintLocation(SFTChannel.Id);
+        //}
 
         protected override void AcknowledgeBatches()
         {

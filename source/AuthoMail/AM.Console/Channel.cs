@@ -55,7 +55,7 @@ namespace AM.Console
                 this.EnumerateBatches();
                 this.DownloadBatches();
                 this.ValidateBatches();
-                this.CalculateDueDateAndPrintLocation();
+                //this.CalculateDueDateAndPrintLocation();
                 this.AcknowledgeBatches();
             }
             catch (Exception ex)
@@ -80,10 +80,10 @@ namespace AM.Console
         /// Validates all batches which are queued as Downloaded
         /// </summary>
         protected abstract void ValidateBatches();
-        /// <summary>
-        /// Calculate effective receivedon date, printlocation and due date all valid batches which are queued as ValidateBatches
-        /// </summary>
-        protected abstract void CalculateDueDateAndPrintLocation();
+        ///// <summary>
+        ///// Calculate effective receivedon date, printlocation and due date all valid batches which are queued as ValidateBatches
+        ///// </summary>
+        //protected abstract void CalculateDueDateAndPrintLocation();
         /// <summary>
         /// Acknowledge all batches which are queued as Validated
         /// </summary>
@@ -510,7 +510,7 @@ namespace AM.Console
         #endregion
 
         #region EffectiveReceivedOn DueDate PrintLocation Logic
-        public static void CalculateDueDateAndPrintLocation(int sftChannelId)
+        public static void CalculateDueDateAndPrintLocation(MailBatchDTO mailBatch, List<MailPieceDTO> mailPieces)
         {
             log.Debug("Calculation of Due Date and Print location job is started.");
             using (IMailBatchService mailBatchSvc = new MailBatchService())
@@ -519,57 +519,37 @@ namespace AM.Console
             using (ICommonService commonSvc = new CommonService())
             using (IClientService clientSvc = new ClientService())
             {
-
-                List<MailBatchDTO> validatedBatches = mailBatchSvc.GetBatchesByPipelineStatusAndSFTChannelId(BatchPipelineStatus.Validated, sftChannelId);
-                if (validatedBatches.Count == 0)
-                {
-                    log.Debug("Calculation of Due Date and Print location job queue is empty.");
-                    return;
-                }
-
                 var sweepTimings = commonSvc.GetSweepTimings();
 
-                foreach (var mailBatch in validatedBatches)
+
+                Client client = clientSvc.GetClientById(mailBatch.ClientId);
+
+                List<MailPieceDTO> validMailPieces = mailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
+
+                foreach (MailPieceDTO mailPiece in validMailPieces)
                 {
-                    try
+                    DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value);
+
+                    //Here first we will calculate effective received on date and based on that we will calculate due date,Print location, print trail id,etc. for that
+                    //Here storing effective receivedon in EST format
+                    mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(docType, mailBatch.ReceivedOn.Value);
+                    //Calculate Due Date for Mail Pieces doc type wise
+                    mailPiece.DueDate = commonSvc.GetDueDate(docType, mailPiece.EffectiveReceivedOnEst.Value);
+                    //Set print location where mail piece will go for print and ship
+                    mailPiece.PrintTrailId = commonSvc.GetPrintTrail(docType, mailPiece.EffectiveReceivedOnEst.Value);
+                    var printVendorDetails = commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value);
+                    mailPiece.PrintLocation = printVendorDetails.Name;
+                    //This field will be used for monitoring data    
+                    mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, mailBatch.ReceivedOn.Value, sweepTimings);
+                    mailPiece.MaxSubmissionTime = commonSvc.GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
+                    //TODO : Remove Below code after testing
+                    Random rdm = new Random();
+                    int rdmNum = rdm.Next(1000);
+                    if (rdmNum > 500)
                     {
-                        Client client = clientSvc.GetClientById(mailBatch.ClientId);
-
-                        var mailPieceData = mailPieceSvc.GetMailPiecesByMailBatchId(mailBatch.Id);
-
-                        List<MailPieceDTO> validMailPieces = mailPieceData.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
-
-                        if (validMailPieces.Count == 0)
-                        {
-                            continue;
-                        }
-
-                        foreach (MailPieceDTO mailPiece in validMailPieces)
-                        {
-                            DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value);
-
-                            //Here first we will calculate effective received on date and based on that we will calculate due date,Print location, print trail id,etc. for that
-                            //Here storing effective receivedon in EST format
-                            mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(docType, mailBatch.ReceivedOn.Value);
-                            //Calculate Due Date for Mail Pieces doc type wise
-                            mailPiece.DueDate = commonSvc.GetDueDate(docType, mailPiece.EffectiveReceivedOnEst.Value);
-                            //Set print location where mail piece will go for print and ship
-                            mailPiece.PrintTrailId = commonSvc.GetPrintTrail(docType, mailPiece.EffectiveReceivedOnEst.Value);
-                            var printVendorDetails = commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value);
-                            mailPiece.PrintLocation = printVendorDetails.Name;
-                            //This field will be used for monitoring data    
-                            mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, mailBatch.ReceivedOn.Value, sweepTimings);
-                            mailPiece.MaxSubmissionTime = commonSvc.GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
-                            mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
-                        }
+                        throw new Exception("Randome number executed to check re-process is working or not.");
                     }
-                    catch (Exception ex)
-                    {
-                        var msg = "Error occured in CalculateDueDateAndPrintLocation Method For Mail Batch Id: {0} with Error : {1}".Fill(mailBatch.Id, ex.Message);
-                        log.Error(msg, ex);
-                        MailUtility.SendUnexpectedExceptionEmail(msg);
-                        continue;
-                    }
+                    mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                 }
             }
             log.Debug("Calculation of Due Date and Print location Job is ended.");

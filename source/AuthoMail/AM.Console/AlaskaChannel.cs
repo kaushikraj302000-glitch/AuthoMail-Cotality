@@ -213,6 +213,9 @@ namespace AM.Console
             {
                 try
                 {
+                    //NOTE: Here system will delete if any existing records are there with MailBatchId in mail pieces table
+                    mailBatchSvc.DeleteMailPiecesDetailsByMailBatchId(mailBatch.Id);
+
                     MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
 
                     Deliverable deliverables = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Error);
@@ -223,11 +226,12 @@ namespace AM.Console
 
                     XmlDocument mailBatchXML = new XmlDocument();
                     XmlNodeList mailPieceNodes = null;
-
+                    int totalNodes = 0;
                     try
                     {
                         mailBatchXML.LoadXml(File.ReadAllText(xmlFilePath));
                         mailPieceNodes = mailBatchXML.DocumentElement.ChildNodes;
+                        totalNodes = mailPieceNodes.Count;
                     }
                     catch (XmlException ex)
                     {
@@ -439,9 +443,12 @@ namespace AM.Console
                             mbi.MailBatch.ValidationStatus = BatchValidationStatus.Valid.ToString();
                         }
 
+                        if (totalNodes != mailPieceData.Count)
+                            MailUtility.SendUnexpectedExceptionEmail("Mail pieces count and received xml count is mismatched for Batch-Id : {0}<br/>".Fill(mailBatch.Id) + "Mail Piece count is {0} and received xml nodes count is {1}".Fill(mailPieceData.Count, totalNodes));
+
                         commonSvc.UpdateBatchValidationStatus(mbi.MailBatch.Id, mbi.MailBatch.ValidationStatus, mbi.MailBatch.ValidationErrors);
                     }
-
+                    Channel.CalculateDueDateAndPrintLocation(mailBatch, mailPieceData);
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
                 }
                 catch (Exception ex)
@@ -454,10 +461,10 @@ namespace AM.Console
             }
         }
 
-        protected override void CalculateDueDateAndPrintLocation()
-        {
-            Channel.CalculateDueDateAndPrintLocation(SFTChannel.Id);
-        }
+        //protected override void CalculateDueDateAndPrintLocation()
+        //{
+        //    Channel.CalculateDueDateAndPrintLocation(SFTChannel.Id);
+        //}
 
         private MailPieceValidationResult ValidateRespaControlNode(XmlNode mailPieceNode)
         {

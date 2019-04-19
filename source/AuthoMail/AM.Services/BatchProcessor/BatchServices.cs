@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Dapper;
 using AM.Entities;
 using AM.Lib;
+using System.Data;
 
 namespace AM.Services
 {
@@ -15,7 +16,7 @@ namespace AM.Services
         int InsertBatchDetails(MailBatchDTO mailBatch);
         int InsertBatchDetails(MailBatchDTO mailBatch, List<MailBatchCustomInfo> mailBatchCustomInfo);
         List<MailBatchDTO> InsertBatchDetails(List<MailBatchDTO> mailBatches);
-        int DeleteBatchDetails(int mailBatchId);
+        int DeleteMailPiecesDetailsByMailBatchId(int mailBatchId);
         int UpdateBatchDetails(MailBatchDTO mailBatch);
         int MarkMailBatchAsInvalid(int id, string errorDesc);
         List<MailBatchDTO> GetBatchesByPipelineStatusAndClientId(string batchPipelineStatus, int? clientId = null);
@@ -68,16 +69,9 @@ namespace AM.Services
             return mailBatches;
         }
 
-        public int DeleteBatchDetails(int mailBatchId)
+        public int DeleteMailPiecesDetailsByMailBatchId(int mailBatchId)
         {
-            //Sql Query
-            string query = @"DELETE FROM [AM].[MailPieceCustomInfo] WHERE MailPieceId IN (SELECT Id FROM [AM].[MailPieces] WHERE MailBatchId=@Id)
-                            DELETE FROM [AM].[MailPieces] WHERE MailBatchId=@Id 
-                            DELETE FROM [AM].[LogBatchTimeLine] WHERE MailBatchId=@Id
-                            DELETE FROM [AM].[MailBatchCustomInfo] WHERE MailBatchId=@Id
-                            DELETE FROM [AM].[MailBatches] WHERE Id=@Id;";
-
-            return db.Execute(query, new { Id = mailBatchId });
+            return db.Execute("usp_DeleteMailPiecesDetailsByMailBatchId", new { mailBatchId = mailBatchId }, commandType: CommandType.StoredProcedure);
         }
 
         public int UpdateBatchDetails(MailBatchDTO mailBatch)
