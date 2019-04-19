@@ -433,8 +433,9 @@ namespace AM.Services
 
     public class MonthlyReconReportViewModel
     {
-        public int MailPieceId { get; set; }
-        public string BusinessIdValue { get; set; }
+        public Guid UniqueId { get; set; }
+        public string BatchName { get; set; }
+        public string LoanNumber { get; set; }
         public string FileName { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
@@ -442,29 +443,28 @@ namespace AM.Services
         public string City { get; set; }
         public string State { get; set; }
         public string ZIP { get; set; }
-        public DateTime? ReceivedOn { get; set; }
         public string DocType { get; set; }
         public string Channel { get; set; }
         public string PrintLocation { get; set; }
         public string ShippingMethod { get; set; }
-        public string Status { get; set; }
         public string TrackingNo { get; set; }
         public int TotalPages { get; set; }
-        public DateTime? PrintedOn { get; set; }
+        public DateTime? ReceivedOn { get; set; }
+        //public DateTime? PrintedOn { get; set; }
         public DateTime? ShippedOn { get; set; }
-        public DateTime? PickedUpOn { get; set; }
+        //public DateTime? PickedUpOn { get; set; }
+        public string Status { get; set; }
         public string AppCode { get; set; }
-        public int? JobId { get; set; }
-        public int? PieceId { get; set; }
-        public string ShippingStatus { get; set; }
+        //public int? JobId { get; set; }
+        //public int? PieceId { get; set; }
         public string ErrorDesc { get; set; }
-        public string PdfReceivedPath
-        {
-            get
-            {
-                if (this.JobId == null || this.PieceId == null) return null;
-                return string.Format(@"ReturnPdfs\{0}\{1}\{2}-{3}-{4}_{5}", this.AppCode, this.JobId, this.JobId, this.PieceId, this.MailPieceId, this.FileName);
-            }
-        }
+        //public string PdfReceivedPath
+        //{
+        //    get
+        //    {
+        //        if (this.JobId == null || this.PieceId == null) return null;
+        //        return string.Format(@"ReturnPdfs\{0}\{1}\{2}-{3}-{4}_{5}", this.AppCode, this.JobId, this.JobId, this.PieceId, this.MailPieceId, this.FileName);
+        //    }
+        //}
     }
 }
