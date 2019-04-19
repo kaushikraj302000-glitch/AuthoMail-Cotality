@@ -456,6 +456,8 @@ namespace AM.Services
         public string AppCode { get; set; }
         public int? JobId { get; set; }
         public int? PieceId { get; set; }
+        public string ShippingStatus { get; set; }
+        public string ErrorDesc { get; set; }
         public string PdfReceivedPath
         {
             get

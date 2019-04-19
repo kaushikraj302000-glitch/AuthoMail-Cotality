@@ -158,7 +158,7 @@ namespace AM.Services
         //}
         public List<MonthlyReconReportViewModel> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel)
         {
-            string query = "[dbo].[uspweb_MonthlyReconReport] @clientId, @startDate, @endDate, @channel,@shippingStatus";
+            string query = "[dbo].[uspweb_MonthlyReconReport] @clientId, @startDate, @endDate, @channel";
 
             var data = db.Query<MonthlyReconReportViewModel>(query,
                 new
@@ -167,7 +167,7 @@ namespace AM.Services
                     startDate = startDate.ToStartDateTime(),
                     endDate = endDate.ToEndDateTime(),
                     channel = channel.IsNullOrWhiteSpace() ? null : channel,
-                    shippingStatus = ShippingStatus.Shipped.ToString()
+                    //shippingStatus = ShippingStatus.Shipped.ToString()
                 }).ToList();
             return data;
         }
