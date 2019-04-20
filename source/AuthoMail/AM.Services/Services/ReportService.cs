@@ -18,7 +18,7 @@ namespace AM.Services
         List<MonthlyReconReportViewModel> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel);
         List<ChannelCodeTitle> GetChannelTitle(int clientId);
         List<PullBackRequests> GetPullbackRequestReport(int clientId, DateTime startDate, DateTime endDate);
-        List<MailPieces> GetFedExPickedUpReport(DateTime todayEffectiveDate, int isPickedUp = -1);
+        List<FedExReport> GetFedExPickedUpReport(DateTime todayEffectiveDate, int isPickedUp = -1);
         List<MailPieces> GetMailPiecesDataFromPrintBatchId(int printBatchId);
         List<MailPieces> GetMailPiecesDataFromMailBatchId(int mailBatchId);
         List<PCISubmittedBatchDetail> GetPCIReconReport(DateTime startDate, DateTime endDate);
@@ -172,23 +172,16 @@ namespace AM.Services
             return data;
         }
 
-        public List<MailPieces> GetFedExPickedUpReport(DateTime todayEffectiveDate, int isPickedUp)
+        public List<FedExReport> GetFedExPickedUpReport(DateTime todayEffectiveDate, int isPickedUp)
         {
             //Possible values are for isPickedUp parameter is : 1-for pickedup records, 0-for not pickedup records and default -1 for get all records
             string query = "[dbo].[uspweb_FedExPickedUpReport] @todayEffectiveDate, @isPickedUp";
 
-            var data = db.Query<MailPieces, MailBatches, DocTypes, MailPieces>(query,
-                (m, b, d) =>
-                {
-                    m.MailBatches = b;
-                    m.DocTypes = d;
-                    return m;
-                },
-                new
-                {
-                    isPickedUp = isPickedUp,
-                    todayEffectiveDate = todayEffectiveDate,
-                }).ToList();
+            var data = db.Query<FedExReport>(query, new
+            {
+                isPickedUp = isPickedUp,
+                todayEffectiveDate = todayEffectiveDate,
+            }).ToList();
             return data;
         }
 
@@ -367,10 +360,10 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
             }
             if (!string.IsNullOrWhiteSpace(businessFriendlyIdName) && !string.IsNullOrWhiteSpace(businessFriendlyIdValue))
             {
-                query = string.Format("{0} and m.BusinessFriendlyIdName=@BusinessFriendlyIdName and m.businessFriendlyIdValue=@businessFriendlyIdValue", query);                
+                query = string.Format("{0} and m.BusinessFriendlyIdName=@BusinessFriendlyIdName and m.businessFriendlyIdValue=@businessFriendlyIdValue", query);
                 parameter.Add("@BusinessFriendlyIdName", businessFriendlyIdName);
                 parameter.Add("@businessFriendlyIdValue", businessFriendlyIdValue);
-            }            
+            }
             if (!status.IsNullOrWhiteSpace())
             {
                 query = string.Format("{0} and m.ShippingStatus = @ShippingStatus", query);

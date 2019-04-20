@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="b1ad460f-47bb-43e4-a66c-bfaba6f09ea6" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
+<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="f698ec7e-b42a-4592-a946-68d23c7864e7" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
   <ClientOptions>
     <GenerateAsynchronousMethods>false</GenerateAsynchronousMethods>
     <GenerateTaskBasedAsynchronousMethod>true</GenerateTaskBasedAsynchronousMethod>
@@ -19,10 +19,10 @@
     <ServiceContractMappings />
   </ClientOptions>
   <MetadataSources>
-    <MetadataSource Address="C:\Users\sagar.g\Downloads\TrackService_v16_cs\cs\TrackWebServiceClient\Track\Web References\TrackServiceWebReference\TrackServiceDefinitions.wsdl" Protocol="file" SourceId="1" />
+    <MetadataSource Address="D:\AuthoMailGit\Repos\source\AuthoMail\AM.Reporting\Service References\TrackingShipmentService\TrackServiceDefinitions.wsdl" Protocol="file" SourceId="1" />
   </MetadataSources>
   <Metadata>
-    <MetadataFile FileName="TrackServiceDefinitions.wsdl" MetadataType="Wsdl" ID="3493212e-edfd-4668-a40b-601f591371aa" SourceId="1" SourceUrl="file:///C:/Users/sagar.g/Downloads/TrackService_v16_cs/cs/TrackWebServiceClient/Track/Web References/TrackServiceWebReference/TrackServiceDefinitions.wsdl" />
+    <MetadataFile FileName="TrackServiceDefinitions.wsdl" MetadataType="Wsdl" ID="c74eb0c7-95e2-4f1d-becc-d8a50f6035dd" SourceId="1" SourceUrl="file:///D:/AuthoMailGit/Repos/source/AuthoMail/AM.Reporting/Service References/TrackingShipmentService/TrackServiceDefinitions.wsdl" />
   </Metadata>
   <Extensions>
     <ExtensionFile FileName="configuration91.svcinfo" Name="configuration91.svcinfo" />
