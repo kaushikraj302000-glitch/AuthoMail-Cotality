@@ -13,7 +13,7 @@ namespace AM.Services
     public interface IFedExService : IDisposable
     {
         FedExAccountInfo GetFedExAccountDetailsByAccountCode(string accountCode);
-        void UpdateFedExTrackingInfo(DateTime effectiveReceivedDate, int isPickedUp);
+        void UpdateFedExTrackingInfo(DateTime effectiveReceivedDate);
     }
     public class FedExService : ServiceBase, IFedExService
     {
@@ -24,12 +24,12 @@ namespace AM.Services
             return db.QuerySingleOrDefault<FedExAccountInfo>(query, new { AccountCode = accountCode });
         }
 
-        public void UpdateFedExTrackingInfo(DateTime effectiveReceivedDate, int isPickedUp)//Value will be 0 for not picked up , 1 for picked up and -1 for both
+        public void UpdateFedExTrackingInfo(DateTime effectiveReceivedDate)//Value will be 0 for not picked up , 1 for picked up and -1 for both
         {
             List<MailPieces> mailPieces;
             using (IReportService reportSvc = new ReportService())
             {
-                mailPieces = reportSvc.GetFedExPickedUpReport(effectiveReceivedDate, isPickedUp);
+                mailPieces = reportSvc.GetFedExPickedUpReport(effectiveReceivedDate, 0);
             }
 
             if (mailPieces == null || mailPieces.Count == 0)
