@@ -139,7 +139,7 @@ namespace AM.Services
                 isPrinterDelay = true;
             }
 
-            return new MonitorReport { DelayedBatches = delayedBatches, DelayedMailPieces = delayedMailPieces, IsReceivedDelay = isReceivedDelay, DelayedAMReportBackBatches = delayedAMReportedBackBatches, DelayedPrinterBatches = delayedPrinterBatches, DelayedAMReportBackMailPieces = delayedReportedBackMailPiecesByAM, DelayedPrinterMailPieces = delayedMailPiecesByPrinter, LastBatchReceivedOn = lastBatchReceivedOn.ReceivedOn, IsProcessDelay = isProcessDelay, IsPrinterDelay = isPrinterDelay, IsReportBackDelay = isReportBackDelay, DelayedMPickUpailPieces = delayedPickUpMailPieces };
+            return new MonitorReport { DelayedBatches = delayedBatches, DelayedMailPieces = delayedMailPieces, IsReceivedDelay = isReceivedDelay, DelayedAMReportBackBatches = delayedAMReportedBackBatches, DelayedPrinterBatches = delayedPrinterBatches, DelayedAMReportBackMailPieces = delayedReportedBackMailPiecesByAM, DelayedPrinterMailPieces = delayedMailPiecesByPrinter, LastBatchReceivedOn = lastBatchReceivedOn.ReceivedOn, IsProcessDelay = isProcessDelay, IsPrinterDelay = isPrinterDelay, IsReportBackDelay = isReportBackDelay, DelayedPickUpMailPieces = delayedPickUpMailPieces };
         }
 
         public List<dynamic> GetPendingBatchesToReportBack()

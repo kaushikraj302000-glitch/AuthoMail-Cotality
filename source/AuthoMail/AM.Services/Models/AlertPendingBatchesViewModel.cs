@@ -62,7 +62,7 @@ namespace AM.Services
         public List<BatchInfo> DelayedPrinterBatches { get; set; }
         public List<PendingMailPieceInfo> DelayedAMReportBackMailPieces { get; set; }
         public List<PendingMailPieceInfo> DelayedPrinterMailPieces { get; set; }
-        public List<PendingMailPieceInfo> DelayedMPickUpailPieces { get; set; }
+        public List<PendingMailPieceInfo> DelayedPickUpMailPieces { get; set; }
         public bool IsReceivedDelay { get; set; }
         public bool IsProcessDelay
         {
@@ -104,10 +104,10 @@ namespace AM.Services
         {
             get
             {
-                return (DelayedMPickUpailPieces == null || DelayedMPickUpailPieces.Count() == 0) ? false : true;
+                return (DelayedPickUpMailPieces == null || DelayedPickUpMailPieces.Count() == 0) ? false : true;
             }
         }
-        private bool IsCritical { get { return this.IsReceivedDelay || this.IsProcessDelay || this.IsPickUpDelay; } }
+        private bool IsCritical { get { return this.IsReceivedDelay || this.IsProcessDelay; } }
         private bool IsWarning { get { return this.IsReportBackDelay || this.IsPrinterDelay; } }
         public string AlertLevel
         {
