@@ -19,7 +19,7 @@ namespace AM.Reporting
         {
             try
             {
-                List<MailPieces> mailPieces = new List<MailPieces>();
+                List<FedExReport> mailPieces = new List<FedExReport>();
                 using (IFedExService fedExTrackingSvc = new FedExService())
                 using (IReportService reportSvc = new ReportService())
                 {
@@ -65,37 +65,37 @@ namespace AM.Reporting
             }
         }
 
-        private static string GenerateNotPickedEmailBody(List<MailPieces> notPickedMailPieces)
+        private static string GenerateNotPickedEmailBody(List<FedExReport> notPickedMailPieces)
         {
             string bodyContent = @"<center><b>Not Picked Up Loans Details</b></center><br/><table border='1'><tbody><%REPLACE%></tbody></table>";
             StringBuilder fullContent = new StringBuilder();
             fullContent.AppendLine(@"<tr><td>Loan Number</td><td>Borrower Name</td><td>Document Type</td><td>Received On</td><td>Tracking Number</td><td>Due Date</td><td>Shipped On</td></tr>");
             foreach (var mailPiece in notPickedMailPieces)
             {
-                fullContent.AppendLine(@"<tr><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td><td>{5}</td><td>{6}</td></tr>".Fill(mailPiece.BusinessFriendlyIdValue, mailPiece.RcptFirstName + " " + mailPiece.RcptLastName, mailPiece.DocumentOrPackageType, mailPiece.MailBatches.ReceivedOn.Value.UtcToEst(), mailPiece.TrackingNo, mailPiece.DueDate.Value.UtcToEst(), mailPiece.ShippedOn.HasValue ? mailPiece.ShippedOn.Value.UtcToEst().ToString() : ""));
+                fullContent.AppendLine(@"<tr><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td><td>{5}</td><td>{6}</td></tr>".Fill(mailPiece.LoanNumber, (mailPiece.RcptLastName + " " + mailPiece.RcptFirstName).ToCsvString(), mailPiece.DocumentOrPackageType, mailPiece.ReceivedOn.Value.UtcToEst(), mailPiece.TrackingNo, mailPiece.DueDate.Value.UtcToEst(), mailPiece.ShippedOn.HasValue ? mailPiece.ShippedOn.Value.UtcToEst().ToString() : ""));
             }
             return bodyContent.Replace("<%REPLACE%>", fullContent.ToString());
         }
 
-        private static StringBuilder GetFedExReport(List<MailPieces> mailPieces)
+        private static StringBuilder GetFedExReport(List<FedExReport> mailPieces)
         {
             var columnName = String.Join(",", "Batch Name", "Loan Number", "Borrower Name", "Property Address", "Property City", "Property State", "Property Zip", "Tracking Number", "Received Date (Local)", "Document Type", "FedEx Status", "Status Time");
 
             //generate using report format and send it to CL team
             StringBuilder mailPiecesReport = new StringBuilder(columnName);
             mailPiecesReport.AppendLine();
-            foreach (MailPieces mailPiece in mailPieces)
+            foreach (FedExReport mailPiece in mailPieces)
             {
                 var line = String.Join(",",
-                    mailPiece.MailBatches.BatchName,
-                    mailPiece.BusinessFriendlyIdValue,
+                    mailPiece.BatchName,
+                    mailPiece.LoanNumber,
                     (mailPiece.RcptLastName + " " + mailPiece.RcptFirstName).ToCsvString(),
                     (mailPiece.RcptAddressStreet + " " + mailPiece.RcptAddressAptOrSuiteOrOther).ToCsvString(),
                     mailPiece.RcptAddressCity.ToCsvString(),
                     mailPiece.RcptAddressState,
                     mailPiece.RcptAddressZIP,
                     mailPiece.TrackingNo,
-                    mailPiece.MailBatches.ReceivedOn.Value.UtcToEst(),
+                    mailPiece.ReceivedOn.Value.UtcToEst(),
                     mailPiece.DocumentOrPackageType,
                     mailPiece.IsPickedUp == 1 ? "Picked Up" : "Not Picked",
                     mailPiece.PickedUpOn.HasValue ? mailPiece.PickedUpOn.Value.UtcToEst() : mailPiece.PickedUpOn);

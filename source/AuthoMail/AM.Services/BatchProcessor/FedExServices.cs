@@ -26,7 +26,7 @@ namespace AM.Services
 
         public void UpdateFedExTrackingInfo(DateTime effectiveReceivedDate)//Value will be 0 for not picked up , 1 for picked up and -1 for both
         {
-            List<MailPieces> mailPieces;
+            List<FedExReport> mailPieces;
             using (IReportService reportSvc = new ReportService())
             {
                 mailPieces = reportSvc.GetFedExPickedUpReport(effectiveReceivedDate, 0);
@@ -98,7 +98,7 @@ namespace AM.Services
             }
         }
 
-        private static TrackRequest CreateTrackRequest(List<MailPieces> takenMailPieces, FedExAccountInfo fedExAccountDetails)
+        private static TrackRequest CreateTrackRequest(List<FedExReport> takenMailPieces, FedExAccountInfo fedExAccountDetails)
         {
             TrackRequest request = new TrackRequest();
             //Credentials

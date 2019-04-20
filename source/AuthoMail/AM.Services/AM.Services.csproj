@@ -102,6 +102,7 @@
     <Compile Include="Models\eVSRequest.cs" />
     <Compile Include="Models\eVSCancelResponse.cs" />
     <Compile Include="Models\eVSResponse.cs" />
+    <Compile Include="Models\FedExReport.cs" />
     <Compile Include="Models\IeVSRequest.cs" />
     <Compile Include="Models\IeVSCancelResponse.cs" />
     <Compile Include="Models\IeVSResponse.cs" />
