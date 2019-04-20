@@ -20,18 +20,15 @@ namespace AM.Reporting
             try
             {
                 List<MailPieces> mailPieces = new List<MailPieces>();
+                using (IFedExService fedExTrackingSvc = new FedExService())
                 using (IReportService reportSvc = new ReportService())
                 {
                     DateTime todayEffectiveDateTime = Common.Now.UtcToEst();
                     //Here we are passing dates in EST format because we are looking for est dates column
                     DateTime todayEffectiveDate = todayEffectiveDateTime.Date;
 
-                    mailPieces = reportSvc.GetFedExPickedUpReport(todayEffectiveDate, 0);
-                    if (mailPieces != null && mailPieces.Count > 0)
-                    {
-                        CheckFedExTrackingInfo checkTrackingInfo = new CheckFedExTrackingInfo();
-                        checkTrackingInfo.GetTrackingInformation(mailPieces);
-                    }
+                    //UPDATE Pickupon list before generating reports.
+                    fedExTrackingSvc.UpdateFedExTrackingInfo(todayEffectiveDate, 0);
 
                     //Get all records after updating pickedup information and generate report
                     mailPieces = reportSvc.GetFedExPickedUpReport(todayEffectiveDate);
@@ -50,7 +47,7 @@ namespace AM.Reporting
                         else
                         {
                             tableBody = "FedEx Picked Up Status Report For : {0} <br/><br/>".Fill(todayEffectiveDateTime.ToString("MM/dd/yyyy hh:mm"));
-                            
+
                             fedExReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, "FedExReport", "FedExReport_FullReport_{0}.csv".Fill(todayEffectiveDateTime.ToString("MMddyyyyhhmmtt")));
                             tableBody += GenerateNotPickedEmailBody(mailPieces.Where(mp => mp.IsPickedUp == 0).ToList());
                         }

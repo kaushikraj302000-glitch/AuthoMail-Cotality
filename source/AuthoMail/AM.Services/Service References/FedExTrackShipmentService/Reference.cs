@@ -8,40 +8,40 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace AM.Reporting.TrackingShipmentService {
+namespace AM.Services.FedExTrackShipmentService {
     
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
-    [System.ServiceModel.ServiceContractAttribute(Namespace="http://fedex.com/ws/track/v16", ConfigurationName="TrackingShipmentService.TrackPortType")]
+    [System.ServiceModel.ServiceContractAttribute(Namespace="http://fedex.com/ws/track/v16", ConfigurationName="FedExTrackShipmentService.TrackPortType")]
     public interface TrackPortType {
         
         // CODEGEN: Generating message contract since the operation track is neither RPC nor document wrapped.
         [System.ServiceModel.OperationContractAttribute(Action="http://fedex.com/ws/track/v16/track", ReplyAction="*")]
         [System.ServiceModel.XmlSerializerFormatAttribute(SupportFaults=true)]
-        AM.Reporting.TrackingShipmentService.trackResponse track(AM.Reporting.TrackingShipmentService.trackRequest1 request);
+        AM.Services.FedExTrackShipmentService.trackResponse track(AM.Services.FedExTrackShipmentService.trackRequest1 request);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://fedex.com/ws/track/v16/track", ReplyAction="*")]
-        System.Threading.Tasks.Task<AM.Reporting.TrackingShipmentService.trackResponse> trackAsync(AM.Reporting.TrackingShipmentService.trackRequest1 request);
+        System.Threading.Tasks.Task<AM.Services.FedExTrackShipmentService.trackResponse> trackAsync(AM.Services.FedExTrackShipmentService.trackRequest1 request);
         
         // CODEGEN: Generating message contract since the operation getTrackingDocuments is neither RPC nor document wrapped.
         [System.ServiceModel.OperationContractAttribute(Action="http://fedex.com/ws/track/v16/getTrackingDocuments", ReplyAction="*")]
         [System.ServiceModel.XmlSerializerFormatAttribute(SupportFaults=true)]
-        AM.Reporting.TrackingShipmentService.getTrackingDocumentsResponse getTrackingDocuments(AM.Reporting.TrackingShipmentService.getTrackingDocumentsRequest1 request);
+        AM.Services.FedExTrackShipmentService.getTrackingDocumentsResponse getTrackingDocuments(AM.Services.FedExTrackShipmentService.getTrackingDocumentsRequest1 request);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://fedex.com/ws/track/v16/getTrackingDocuments", ReplyAction="*")]
-        System.Threading.Tasks.Task<AM.Reporting.TrackingShipmentService.getTrackingDocumentsResponse> getTrackingDocumentsAsync(AM.Reporting.TrackingShipmentService.getTrackingDocumentsRequest1 request);
+        System.Threading.Tasks.Task<AM.Services.FedExTrackShipmentService.getTrackingDocumentsResponse> getTrackingDocumentsAsync(AM.Services.FedExTrackShipmentService.getTrackingDocumentsRequest1 request);
         
         // CODEGEN: Generating message contract since the operation sendNotifications is neither RPC nor document wrapped.
         [System.ServiceModel.OperationContractAttribute(Action="http://fedex.com/ws/track/v16/sendNotifications", ReplyAction="*")]
         [System.ServiceModel.XmlSerializerFormatAttribute(SupportFaults=true)]
-        AM.Reporting.TrackingShipmentService.sendNotificationsResponse sendNotifications(AM.Reporting.TrackingShipmentService.sendNotificationsRequest1 request);
+        AM.Services.FedExTrackShipmentService.sendNotificationsResponse sendNotifications(AM.Services.FedExTrackShipmentService.sendNotificationsRequest1 request);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://fedex.com/ws/track/v16/sendNotifications", ReplyAction="*")]
-        System.Threading.Tasks.Task<AM.Reporting.TrackingShipmentService.sendNotificationsResponse> sendNotificationsAsync(AM.Reporting.TrackingShipmentService.sendNotificationsRequest1 request);
+        System.Threading.Tasks.Task<AM.Services.FedExTrackShipmentService.sendNotificationsResponse> sendNotificationsAsync(AM.Services.FedExTrackShipmentService.sendNotificationsRequest1 request);
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -157,7 +157,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -203,7 +203,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -249,7 +249,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -380,7 +380,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum CarrierCodeType {
@@ -405,7 +405,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -563,7 +563,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum NotificationEventType {
@@ -585,7 +585,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -743,7 +743,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum NotificationSeverityType {
@@ -765,7 +765,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -867,7 +867,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -913,7 +913,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -959,7 +959,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -1005,7 +1005,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -1086,7 +1086,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -1132,7 +1132,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum NotificationFormatType {
@@ -1145,7 +1145,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -1219,7 +1219,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum NotificationType {
@@ -1229,7 +1229,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -1275,7 +1275,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -1363,7 +1363,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum ShipmentNotificationRoleType {
@@ -1385,7 +1385,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -1459,7 +1459,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum ShipmentNotificationAggregationType {
@@ -1472,7 +1472,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -1714,7 +1714,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -1788,7 +1788,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -1834,7 +1834,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -1950,7 +1950,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum TrackingDocumentType {
@@ -1966,7 +1966,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum TrackingDocumentImageType {
@@ -1979,7 +1979,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -2067,7 +2067,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -2099,7 +2099,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -2201,7 +2201,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -2275,7 +2275,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum TrackingDocumentDispositionType {
@@ -2291,7 +2291,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -2365,7 +2365,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -2397,7 +2397,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum TrackingDocumentGroupingType {
@@ -2410,7 +2410,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -2442,7 +2442,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -2474,7 +2474,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -2548,7 +2548,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -2650,7 +2650,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -2878,7 +2878,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum OperatingCompanyType {
@@ -2921,7 +2921,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -2967,7 +2967,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum TrackIdentifierType {
@@ -3049,7 +3049,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -3095,7 +3095,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -3253,7 +3253,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum ArrivalLocationType {
@@ -3323,7 +3323,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -3397,7 +3397,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum DeliveryOptionType {
@@ -3416,7 +3416,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum EligibilityType {
@@ -3432,7 +3432,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -3520,7 +3520,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -3566,7 +3566,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -3640,7 +3640,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum AvailableImageType {
@@ -3653,7 +3653,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum ImageSizeType {
@@ -3666,7 +3666,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -3740,7 +3740,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum PieceCountLocationType {
@@ -3753,7 +3753,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -3799,7 +3799,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -3873,7 +3873,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum AppointmentWindowType {
@@ -3892,7 +3892,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -3952,7 +3952,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -4026,7 +4026,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum SpecialInstructionsStatusCode {
@@ -4057,7 +4057,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -4201,7 +4201,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum TrackDeliveryOptionType {
@@ -4226,7 +4226,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -4300,7 +4300,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum DistanceUnits {
@@ -4313,7 +4313,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -4373,7 +4373,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum TrackingDateOrTimestampType {
@@ -4407,7 +4407,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -4495,7 +4495,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum TrackChargesPaymentClassificationType {
@@ -4508,7 +4508,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum TrackPaymentType {
@@ -4539,7 +4539,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -4627,7 +4627,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum TrackSpecialHandlingType {
@@ -4961,7 +4961,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -5091,7 +5091,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum TrackAdvanceNotificationStatusType {
@@ -5104,7 +5104,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -5164,7 +5164,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum CustomsOptionType {
@@ -5201,7 +5201,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -5303,7 +5303,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum TrackReturnMovementStatusType {
@@ -5316,7 +5316,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum TrackReturnLabelType {
@@ -5329,7 +5329,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -5403,7 +5403,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -5533,7 +5533,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum NaftaPreferenceCriterionCode {
@@ -5558,7 +5558,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum NaftaProducerDeterminationCode {
@@ -5577,7 +5577,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum NaftaNetCostMethodCode {
@@ -5590,7 +5590,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -5636,7 +5636,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -5696,7 +5696,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -6022,7 +6022,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum CommodityPurposeType {
@@ -6035,7 +6035,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -6109,7 +6109,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum WeightUnits {
@@ -6122,7 +6122,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -6182,7 +6182,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -6256,7 +6256,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -6316,7 +6316,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum TrackChargeDetailType {
@@ -6326,7 +6326,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -6414,7 +6414,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum LinearUnits {
@@ -6427,7 +6427,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -6501,7 +6501,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum ServiceType {
@@ -6661,7 +6661,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -6735,7 +6735,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -6879,7 +6879,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -6925,7 +6925,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -6971,7 +6971,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -7059,7 +7059,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -7105,7 +7105,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -7179,7 +7179,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -7281,7 +7281,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -7341,7 +7341,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum StringBarcodeType {
@@ -7366,7 +7366,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -8532,7 +8532,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum PackagingType {
@@ -8572,7 +8572,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum PhysicalPackagingType {
@@ -8672,7 +8672,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum TrackDetailAttributeType {
@@ -8682,7 +8682,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum TrackPossessionStatusType {
@@ -8710,7 +8710,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum FedExLocationType {
@@ -8753,7 +8753,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum OfficeOrderDeliveryMethodType {
@@ -8772,7 +8772,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum TrackDeliveryLocationType {
@@ -8824,7 +8824,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -8982,7 +8982,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -9070,7 +9070,7 @@ namespace AM.Reporting.TrackingShipmentService {
     }
     
     /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3130.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.7.3221.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://fedex.com/ws/track/v16")]
     public enum TrackRequestProcessingOptionType {
@@ -9086,12 +9086,12 @@ namespace AM.Reporting.TrackingShipmentService {
     public partial class trackRequest1 {
         
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://fedex.com/ws/track/v16", Order=0)]
-        public AM.Reporting.TrackingShipmentService.TrackRequest TrackRequest;
+        public AM.Services.FedExTrackShipmentService.TrackRequest TrackRequest;
         
         public trackRequest1() {
         }
         
-        public trackRequest1(AM.Reporting.TrackingShipmentService.TrackRequest TrackRequest) {
+        public trackRequest1(AM.Services.FedExTrackShipmentService.TrackRequest TrackRequest) {
             this.TrackRequest = TrackRequest;
         }
     }
@@ -9103,12 +9103,12 @@ namespace AM.Reporting.TrackingShipmentService {
     public partial class trackResponse {
         
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://fedex.com/ws/track/v16", Order=0)]
-        public AM.Reporting.TrackingShipmentService.TrackReply TrackReply;
+        public AM.Services.FedExTrackShipmentService.TrackReply TrackReply;
         
         public trackResponse() {
         }
         
-        public trackResponse(AM.Reporting.TrackingShipmentService.TrackReply TrackReply) {
+        public trackResponse(AM.Services.FedExTrackShipmentService.TrackReply TrackReply) {
             this.TrackReply = TrackReply;
         }
     }
@@ -9120,12 +9120,12 @@ namespace AM.Reporting.TrackingShipmentService {
     public partial class getTrackingDocumentsRequest1 {
         
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://fedex.com/ws/track/v16", Order=0)]
-        public AM.Reporting.TrackingShipmentService.GetTrackingDocumentsRequest GetTrackingDocumentsRequest;
+        public AM.Services.FedExTrackShipmentService.GetTrackingDocumentsRequest GetTrackingDocumentsRequest;
         
         public getTrackingDocumentsRequest1() {
         }
         
-        public getTrackingDocumentsRequest1(AM.Reporting.TrackingShipmentService.GetTrackingDocumentsRequest GetTrackingDocumentsRequest) {
+        public getTrackingDocumentsRequest1(AM.Services.FedExTrackShipmentService.GetTrackingDocumentsRequest GetTrackingDocumentsRequest) {
             this.GetTrackingDocumentsRequest = GetTrackingDocumentsRequest;
         }
     }
@@ -9137,12 +9137,12 @@ namespace AM.Reporting.TrackingShipmentService {
     public partial class getTrackingDocumentsResponse {
         
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://fedex.com/ws/track/v16", Order=0)]
-        public AM.Reporting.TrackingShipmentService.GetTrackingDocumentsReply GetTrackingDocumentsReply;
+        public AM.Services.FedExTrackShipmentService.GetTrackingDocumentsReply GetTrackingDocumentsReply;
         
         public getTrackingDocumentsResponse() {
         }
         
-        public getTrackingDocumentsResponse(AM.Reporting.TrackingShipmentService.GetTrackingDocumentsReply GetTrackingDocumentsReply) {
+        public getTrackingDocumentsResponse(AM.Services.FedExTrackShipmentService.GetTrackingDocumentsReply GetTrackingDocumentsReply) {
             this.GetTrackingDocumentsReply = GetTrackingDocumentsReply;
         }
     }
@@ -9154,12 +9154,12 @@ namespace AM.Reporting.TrackingShipmentService {
     public partial class sendNotificationsRequest1 {
         
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://fedex.com/ws/track/v16", Order=0)]
-        public AM.Reporting.TrackingShipmentService.SendNotificationsRequest SendNotificationsRequest;
+        public AM.Services.FedExTrackShipmentService.SendNotificationsRequest SendNotificationsRequest;
         
         public sendNotificationsRequest1() {
         }
         
-        public sendNotificationsRequest1(AM.Reporting.TrackingShipmentService.SendNotificationsRequest SendNotificationsRequest) {
+        public sendNotificationsRequest1(AM.Services.FedExTrackShipmentService.SendNotificationsRequest SendNotificationsRequest) {
             this.SendNotificationsRequest = SendNotificationsRequest;
         }
     }
@@ -9171,23 +9171,23 @@ namespace AM.Reporting.TrackingShipmentService {
     public partial class sendNotificationsResponse {
         
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://fedex.com/ws/track/v16", Order=0)]
-        public AM.Reporting.TrackingShipmentService.SendNotificationsReply SendNotificationsReply;
+        public AM.Services.FedExTrackShipmentService.SendNotificationsReply SendNotificationsReply;
         
         public sendNotificationsResponse() {
         }
         
-        public sendNotificationsResponse(AM.Reporting.TrackingShipmentService.SendNotificationsReply SendNotificationsReply) {
+        public sendNotificationsResponse(AM.Services.FedExTrackShipmentService.SendNotificationsReply SendNotificationsReply) {
             this.SendNotificationsReply = SendNotificationsReply;
         }
     }
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
-    public interface TrackPortTypeChannel : AM.Reporting.TrackingShipmentService.TrackPortType, System.ServiceModel.IClientChannel {
+    public interface TrackPortTypeChannel : AM.Services.FedExTrackShipmentService.TrackPortType, System.ServiceModel.IClientChannel {
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
-    public partial class TrackPortTypeClient : System.ServiceModel.ClientBase<AM.Reporting.TrackingShipmentService.TrackPortType>, AM.Reporting.TrackingShipmentService.TrackPortType {
+    public partial class TrackPortTypeClient : System.ServiceModel.ClientBase<AM.Services.FedExTrackShipmentService.TrackPortType>, AM.Services.FedExTrackShipmentService.TrackPortType {
         
         public TrackPortTypeClient() {
         }
@@ -9209,72 +9209,72 @@ namespace AM.Reporting.TrackingShipmentService {
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-        AM.Reporting.TrackingShipmentService.trackResponse AM.Reporting.TrackingShipmentService.TrackPortType.track(AM.Reporting.TrackingShipmentService.trackRequest1 request) {
+        AM.Services.FedExTrackShipmentService.trackResponse AM.Services.FedExTrackShipmentService.TrackPortType.track(AM.Services.FedExTrackShipmentService.trackRequest1 request) {
             return base.Channel.track(request);
         }
         
-        public AM.Reporting.TrackingShipmentService.TrackReply track(AM.Reporting.TrackingShipmentService.TrackRequest TrackRequest) {
-            AM.Reporting.TrackingShipmentService.trackRequest1 inValue = new AM.Reporting.TrackingShipmentService.trackRequest1();
+        public AM.Services.FedExTrackShipmentService.TrackReply track(AM.Services.FedExTrackShipmentService.TrackRequest TrackRequest) {
+            AM.Services.FedExTrackShipmentService.trackRequest1 inValue = new AM.Services.FedExTrackShipmentService.trackRequest1();
             inValue.TrackRequest = TrackRequest;
-            AM.Reporting.TrackingShipmentService.trackResponse retVal = ((AM.Reporting.TrackingShipmentService.TrackPortType)(this)).track(inValue);
+            AM.Services.FedExTrackShipmentService.trackResponse retVal = ((AM.Services.FedExTrackShipmentService.TrackPortType)(this)).track(inValue);
             return retVal.TrackReply;
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-        System.Threading.Tasks.Task<AM.Reporting.TrackingShipmentService.trackResponse> AM.Reporting.TrackingShipmentService.TrackPortType.trackAsync(AM.Reporting.TrackingShipmentService.trackRequest1 request) {
+        System.Threading.Tasks.Task<AM.Services.FedExTrackShipmentService.trackResponse> AM.Services.FedExTrackShipmentService.TrackPortType.trackAsync(AM.Services.FedExTrackShipmentService.trackRequest1 request) {
             return base.Channel.trackAsync(request);
         }
         
-        public System.Threading.Tasks.Task<AM.Reporting.TrackingShipmentService.trackResponse> trackAsync(AM.Reporting.TrackingShipmentService.TrackRequest TrackRequest) {
-            AM.Reporting.TrackingShipmentService.trackRequest1 inValue = new AM.Reporting.TrackingShipmentService.trackRequest1();
+        public System.Threading.Tasks.Task<AM.Services.FedExTrackShipmentService.trackResponse> trackAsync(AM.Services.FedExTrackShipmentService.TrackRequest TrackRequest) {
+            AM.Services.FedExTrackShipmentService.trackRequest1 inValue = new AM.Services.FedExTrackShipmentService.trackRequest1();
             inValue.TrackRequest = TrackRequest;
-            return ((AM.Reporting.TrackingShipmentService.TrackPortType)(this)).trackAsync(inValue);
+            return ((AM.Services.FedExTrackShipmentService.TrackPortType)(this)).trackAsync(inValue);
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-        AM.Reporting.TrackingShipmentService.getTrackingDocumentsResponse AM.Reporting.TrackingShipmentService.TrackPortType.getTrackingDocuments(AM.Reporting.TrackingShipmentService.getTrackingDocumentsRequest1 request) {
+        AM.Services.FedExTrackShipmentService.getTrackingDocumentsResponse AM.Services.FedExTrackShipmentService.TrackPortType.getTrackingDocuments(AM.Services.FedExTrackShipmentService.getTrackingDocumentsRequest1 request) {
             return base.Channel.getTrackingDocuments(request);
         }
         
-        public AM.Reporting.TrackingShipmentService.GetTrackingDocumentsReply getTrackingDocuments(AM.Reporting.TrackingShipmentService.GetTrackingDocumentsRequest GetTrackingDocumentsRequest) {
-            AM.Reporting.TrackingShipmentService.getTrackingDocumentsRequest1 inValue = new AM.Reporting.TrackingShipmentService.getTrackingDocumentsRequest1();
+        public AM.Services.FedExTrackShipmentService.GetTrackingDocumentsReply getTrackingDocuments(AM.Services.FedExTrackShipmentService.GetTrackingDocumentsRequest GetTrackingDocumentsRequest) {
+            AM.Services.FedExTrackShipmentService.getTrackingDocumentsRequest1 inValue = new AM.Services.FedExTrackShipmentService.getTrackingDocumentsRequest1();
             inValue.GetTrackingDocumentsRequest = GetTrackingDocumentsRequest;
-            AM.Reporting.TrackingShipmentService.getTrackingDocumentsResponse retVal = ((AM.Reporting.TrackingShipmentService.TrackPortType)(this)).getTrackingDocuments(inValue);
+            AM.Services.FedExTrackShipmentService.getTrackingDocumentsResponse retVal = ((AM.Services.FedExTrackShipmentService.TrackPortType)(this)).getTrackingDocuments(inValue);
             return retVal.GetTrackingDocumentsReply;
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-        System.Threading.Tasks.Task<AM.Reporting.TrackingShipmentService.getTrackingDocumentsResponse> AM.Reporting.TrackingShipmentService.TrackPortType.getTrackingDocumentsAsync(AM.Reporting.TrackingShipmentService.getTrackingDocumentsRequest1 request) {
+        System.Threading.Tasks.Task<AM.Services.FedExTrackShipmentService.getTrackingDocumentsResponse> AM.Services.FedExTrackShipmentService.TrackPortType.getTrackingDocumentsAsync(AM.Services.FedExTrackShipmentService.getTrackingDocumentsRequest1 request) {
             return base.Channel.getTrackingDocumentsAsync(request);
         }
         
-        public System.Threading.Tasks.Task<AM.Reporting.TrackingShipmentService.getTrackingDocumentsResponse> getTrackingDocumentsAsync(AM.Reporting.TrackingShipmentService.GetTrackingDocumentsRequest GetTrackingDocumentsRequest) {
-            AM.Reporting.TrackingShipmentService.getTrackingDocumentsRequest1 inValue = new AM.Reporting.TrackingShipmentService.getTrackingDocumentsRequest1();
+        public System.Threading.Tasks.Task<AM.Services.FedExTrackShipmentService.getTrackingDocumentsResponse> getTrackingDocumentsAsync(AM.Services.FedExTrackShipmentService.GetTrackingDocumentsRequest GetTrackingDocumentsRequest) {
+            AM.Services.FedExTrackShipmentService.getTrackingDocumentsRequest1 inValue = new AM.Services.FedExTrackShipmentService.getTrackingDocumentsRequest1();
             inValue.GetTrackingDocumentsRequest = GetTrackingDocumentsRequest;
-            return ((AM.Reporting.TrackingShipmentService.TrackPortType)(this)).getTrackingDocumentsAsync(inValue);
+            return ((AM.Services.FedExTrackShipmentService.TrackPortType)(this)).getTrackingDocumentsAsync(inValue);
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-        AM.Reporting.TrackingShipmentService.sendNotificationsResponse AM.Reporting.TrackingShipmentService.TrackPortType.sendNotifications(AM.Reporting.TrackingShipmentService.sendNotificationsRequest1 request) {
+        AM.Services.FedExTrackShipmentService.sendNotificationsResponse AM.Services.FedExTrackShipmentService.TrackPortType.sendNotifications(AM.Services.FedExTrackShipmentService.sendNotificationsRequest1 request) {
             return base.Channel.sendNotifications(request);
         }
         
-        public AM.Reporting.TrackingShipmentService.SendNotificationsReply sendNotifications(AM.Reporting.TrackingShipmentService.SendNotificationsRequest SendNotificationsRequest) {
-            AM.Reporting.TrackingShipmentService.sendNotificationsRequest1 inValue = new AM.Reporting.TrackingShipmentService.sendNotificationsRequest1();
+        public AM.Services.FedExTrackShipmentService.SendNotificationsReply sendNotifications(AM.Services.FedExTrackShipmentService.SendNotificationsRequest SendNotificationsRequest) {
+            AM.Services.FedExTrackShipmentService.sendNotificationsRequest1 inValue = new AM.Services.FedExTrackShipmentService.sendNotificationsRequest1();
             inValue.SendNotificationsRequest = SendNotificationsRequest;
-            AM.Reporting.TrackingShipmentService.sendNotificationsResponse retVal = ((AM.Reporting.TrackingShipmentService.TrackPortType)(this)).sendNotifications(inValue);
+            AM.Services.FedExTrackShipmentService.sendNotificationsResponse retVal = ((AM.Services.FedExTrackShipmentService.TrackPortType)(this)).sendNotifications(inValue);
             return retVal.SendNotificationsReply;
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-        System.Threading.Tasks.Task<AM.Reporting.TrackingShipmentService.sendNotificationsResponse> AM.Reporting.TrackingShipmentService.TrackPortType.sendNotificationsAsync(AM.Reporting.TrackingShipmentService.sendNotificationsRequest1 request) {
+        System.Threading.Tasks.Task<AM.Services.FedExTrackShipmentService.sendNotificationsResponse> AM.Services.FedExTrackShipmentService.TrackPortType.sendNotificationsAsync(AM.Services.FedExTrackShipmentService.sendNotificationsRequest1 request) {
             return base.Channel.sendNotificationsAsync(request);
         }
         
-        public System.Threading.Tasks.Task<AM.Reporting.TrackingShipmentService.sendNotificationsResponse> sendNotificationsAsync(AM.Reporting.TrackingShipmentService.SendNotificationsRequest SendNotificationsRequest) {
-            AM.Reporting.TrackingShipmentService.sendNotificationsRequest1 inValue = new AM.Reporting.TrackingShipmentService.sendNotificationsRequest1();
+        public System.Threading.Tasks.Task<AM.Services.FedExTrackShipmentService.sendNotificationsResponse> sendNotificationsAsync(AM.Services.FedExTrackShipmentService.SendNotificationsRequest SendNotificationsRequest) {
+            AM.Services.FedExTrackShipmentService.sendNotificationsRequest1 inValue = new AM.Services.FedExTrackShipmentService.sendNotificationsRequest1();
             inValue.SendNotificationsRequest = SendNotificationsRequest;
-            return ((AM.Reporting.TrackingShipmentService.TrackPortType)(this)).sendNotificationsAsync(inValue);
+            return ((AM.Services.FedExTrackShipmentService.TrackPortType)(this)).sendNotificationsAsync(inValue);
         }
     }
 }

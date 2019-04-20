@@ -55,7 +55,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AMCChannel.cs" />
-    <Compile Include="CheckFedExTrackingInfo.cs" />
     <Compile Include="AppConfig.cs" />
     <Compile Include="DallasNotification.cs" />
     <Compile Include="DALLASReconReport.cs" />
@@ -64,11 +63,6 @@
     <Compile Include="PCIReconReport.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Service References\TrackingShipmentService\Reference.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -76,25 +70,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
-    <None Include="Service References\TrackingShipmentService\AM.Reporting.TrackingShipmentService.GetTrackingDocumentsReply.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\TrackingShipmentService\AM.Reporting.TrackingShipmentService.getTrackingDocumentsResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\TrackingShipmentService\AM.Reporting.TrackingShipmentService.SendNotificationsReply.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\TrackingShipmentService\AM.Reporting.TrackingShipmentService.sendNotificationsResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\TrackingShipmentService\AM.Reporting.TrackingShipmentService.TrackReply.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\TrackingShipmentService\AM.Reporting.TrackingShipmentService.trackResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\TrackingShipmentService\TrackServiceDefinitions.wsdl" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AM.Entities\AM.Entities.csproj">
@@ -109,24 +84,6 @@
       <Project>{a60d6e77-74fc-419c-bf13-a7684012d0a5}</Project>
       <Name>AM.Services</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Service References\" />
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadataStorage Include="Service References\TrackingShipmentService\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Service References\TrackingShipmentService\configuration91.svcinfo" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Service References\TrackingShipmentService\configuration.svcinfo" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Service References\TrackingShipmentService\Reference.svcmap">
-      <Generator>WCF Proxy Generator</Generator>
-      <LastGenOutput>Reference.cs</LastGenOutput>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="EmailTemplates\DallasNotification.html">
