@@ -16,14 +16,13 @@ namespace AM.Scanner.Controllers
         // GET: Scan
         //HttpCookie scanDocument = new HttpCookie("scannedDocument");
         readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        private string machineName = string.Empty;
+        //private string machineName = string.Empty;
         public ScanController()
         {
-            this.machineName = GetIPAddress();
+            
         }
         public ActionResult Index(string clientCode, string batchTime)
         {
-            logger.Info("RegisterScan");
             return View();
         }
 
@@ -31,19 +30,27 @@ namespace AM.Scanner.Controllers
         {
             using (new PerfTimerLogger("GetIPAddress[ScanController]: "))
             {
-                IPHostEntry Host = default(IPHostEntry);
-                string Hostname = null;
-                Hostname = System.Environment.MachineName;
-                Host = Dns.GetHostEntry(Hostname);
-                string ip = string.Empty;
-                foreach (IPAddress IP in Host.AddressList)
+                try
                 {
-                    if (IP.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                    IPHostEntry Host = default(IPHostEntry);
+                    string Hostname = null;
+                    Hostname = System.Environment.MachineName;
+                    Host = Dns.GetHostEntry(Hostname);
+                    string ip = string.Empty;
+                    foreach (IPAddress IP in Host.AddressList)
                     {
-                        ip = Convert.ToString(IP);
+                        if (IP.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                        {
+                            ip = Convert.ToString(IP);
+                        }
                     }
+                    return ip;
                 }
-                return ip;
+                catch (Exception e)
+                {
+                    logger.Error(e.Message);
+                    return string.Empty;
+                }
             }
         }
 
@@ -52,7 +59,7 @@ namespace AM.Scanner.Controllers
         {
             using (new PerfTimerLogger("RegisterScan[ScanController]: "))
             {
-                //string machineName = GetIPAddress();
+                string machineName = GetIPAddress();
                 ScanDetails scanDetails = DBHelper.RegisterScan(barcode, clientCode, User.Identity.Name, machineName, batchName);
                 return Json(new { model = scanDetails }, JsonRequestBehavior.AllowGet);
             }
