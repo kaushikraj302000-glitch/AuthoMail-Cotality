@@ -14,22 +14,19 @@ namespace AM.Scanner.Controllers
     public class ScanController : Controller
     {
         // GET: Scan
-        //HttpCookie scanDocument = new HttpCookie("scannedDocument");
         readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        private string machineName = string.Empty;
         public ScanController()
         {
-            this.machineName = GetIPAddress();
+
         }
         public ActionResult Index(string clientCode, string batchTime)
         {
-            logger.Info("RegisterScan");
             return View();
         }
 
         public string GetIPAddress()
         {
-            using (new PerfTimerLogger("GetIPAddress[ScanController]: "))
+            try
             {
                 IPHostEntry Host = default(IPHostEntry);
                 string Hostname = null;
@@ -45,6 +42,11 @@ namespace AM.Scanner.Controllers
                 }
                 return ip;
             }
+            catch (Exception e)
+            {
+                logger.Error(e.Message);
+                return string.Empty;
+            }
         }
 
         [HttpPost]
@@ -52,7 +54,7 @@ namespace AM.Scanner.Controllers
         {
             using (new PerfTimerLogger("RegisterScan[ScanController]: "))
             {
-                //string machineName = GetIPAddress();
+                string machineName = GetIPAddress();
                 ScanDetails scanDetails = DBHelper.RegisterScan(barcode, clientCode, User.Identity.Name, machineName, batchName);
                 return Json(new { model = scanDetails }, JsonRequestBehavior.AllowGet);
             }
@@ -66,20 +68,7 @@ namespace AM.Scanner.Controllers
                 var getScannedList = DBHelper.GetScannedMailPieces(clientCode, batchName);
                 return Json(new { model = getScannedList }, JsonRequestBehavior.AllowGet);
             }
-            //if (Request.Cookies["scannedDocument"] != null && !string.IsNullOrEmpty(Request.Cookies["scannedDocument"].Value))
-            //{
-            //    string getClientCode = Request.Cookies["scannedDocument"].Value.Split('$')[0].ToString().Trim();
-            //    string getBatchTime = Request.Cookies["scannedDocument"].Value.Split('$')[1].ToString().Trim();
-            //    if (getClientCode == clientCode && getBatchTime == batchTime)
-            //    {
-            //        return Json(new { model = Request.Cookies["scannedDocument"].Value }, JsonRequestBehavior.AllowGet);
-            //    }
-            //    else
-            //    {
-            //        return Json("ScanDocumentEmpty", JsonRequestBehavior.AllowGet);
-            //    }
-            //}
-            //return Json("ScanDocumentEmpty", JsonRequestBehavior.AllowGet);
+            
         }
 
         public ActionResult GetScanCountByBatchName(string clientCode, string batchName)
@@ -112,17 +101,6 @@ namespace AM.Scanner.Controllers
                 return Json(scanDetails, JsonRequestBehavior.AllowGet);
             }
         }
-        //[HttpGet]
-        //public ActionResult NextBatch()
-        //{
-        //    Response.Cookies.Remove("scannedDocument");
-        //    Response.Cookies.Remove("scannedDocument");
-        //    scanDocument = new HttpCookie("scannedDocument");
-        //    scanDocument.Expires = DateTime.Now.AddDays(-10);
-        //    scanDocument.Value = null;
-        //    Response.SetCookie(scanDocument);
-        //    return Json("ReloadPage", JsonRequestBehavior.AllowGet);
-        //}
 
         [HttpGet]
         public ActionResult USPSScan(string clientCode)

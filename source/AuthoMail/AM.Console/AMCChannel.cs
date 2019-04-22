@@ -428,6 +428,9 @@ namespace AM.Console
             {
                 try
                 {
+                    //NOTE: Here system will delete if any existing records are there with MailBatchId in mail pieces table
+                    mailBatchSvc.DeleteMailPiecesDetailsByMailBatchId(mailBatch.Id);
+
                     Client client = clientSvc.GetClientById(mailBatch.ClientId);
 
                     MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
@@ -740,7 +743,7 @@ namespace AM.Console
                     {
                         MailUtility.SendUnexpectedExceptionEmail("Mail Pieces list is null for Batch-Id {0}".Fill(mailBatch.Id));
                     }
-
+                    Channel.CalculateDueDateAndPrintLocation(mailBatch, mailPieceData);
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
                 }
                 catch (Exception ex)
@@ -748,16 +751,15 @@ namespace AM.Console
                     var msg = "Error occured in ValidateBatches Method For Mail Batch Id: {0} with Error : {1}".Fill(mailBatch.Id, ex.Message);
                     log.Error(msg, ex);
                     MailUtility.SendUnexpectedExceptionEmail(msg);
-                    continue;
                 }
             }
             log.Debug("Validate job queue is completed.");
         }
 
-        protected override void CalculateDueDateAndPrintLocation()
-        {
-            Channel.CalculateDueDateAndPrintLocation(SFTChannel.Id);
-        }
+        //protected override void CalculateDueDateAndPrintLocation()
+        //{
+        //    Channel.CalculateDueDateAndPrintLocation(SFTChannel.Id);
+        //}
 
         protected override void AcknowledgeBatches()
         {

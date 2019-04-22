@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<SavedWcfConfigurationInformation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Version="9.1" CheckSum="u23VGPv5VNMajdVGzQ1WbtpFbq8=">
+<SavedWcfConfigurationInformation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Version="9.1" CheckSum="l8YfjHHwBb/x3BVZja8M+qJ0Gcc=">
   <bindingConfigurations>
     <bindingConfiguration bindingType="basicHttpBinding" name="TrackServiceSoapBinding">
       <properties>
@@ -221,7 +221,7 @@
     </bindingConfiguration>
   </bindingConfigurations>
   <endpoints>
-    <endpoint name="TrackServicePort" contract="TrackingShipmentService.TrackPortType" bindingType="basicHttpBinding" address="https://wsbeta.fedex.com/web-services/track" bindingConfiguration="TrackServiceSoapBinding">
+    <endpoint name="TrackServicePort" contract="FedExTrackShipmentService.TrackPortType" bindingType="basicHttpBinding" address="https://wsbeta.fedex.com/web-services/track" bindingConfiguration="TrackServiceSoapBinding">
       <properties>
         <property path="/address" isComplexType="false" isExplicitlyDefined="true" clrType="System.Uri, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
           <serializedValue>https://wsbeta.fedex.com:443/web-services/track</serializedValue>
@@ -236,7 +236,7 @@
           <serializedValue>TrackServiceSoapBinding</serializedValue>
         </property>
         <property path="/contract" isComplexType="false" isExplicitlyDefined="true" clrType="System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-          <serializedValue>TrackingShipmentService.TrackPortType</serializedValue>
+          <serializedValue>FedExTrackShipmentService.TrackPortType</serializedValue>
         </property>
         <property path="/headers" isComplexType="true" isExplicitlyDefined="false" clrType="System.ServiceModel.Configuration.AddressHeaderCollectionElement, System.ServiceModel, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
           <serializedValue>System.ServiceModel.Configuration.AddressHeaderCollectionElement</serializedValue>

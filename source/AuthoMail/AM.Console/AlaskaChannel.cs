@@ -213,6 +213,9 @@ namespace AM.Console
             {
                 try
                 {
+                    //NOTE: Here system will delete if any existing records are there with MailBatchId in mail pieces table
+                    mailBatchSvc.DeleteMailPiecesDetailsByMailBatchId(mailBatch.Id);
+
                     MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
 
                     Deliverable deliverables = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Error);
@@ -445,7 +448,7 @@ namespace AM.Console
 
                         commonSvc.UpdateBatchValidationStatus(mbi.MailBatch.Id, mbi.MailBatch.ValidationStatus, mbi.MailBatch.ValidationErrors);
                     }
-
+                    Channel.CalculateDueDateAndPrintLocation(mailBatch, mailPieceData);
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
                 }
                 catch (Exception ex)
@@ -458,10 +461,10 @@ namespace AM.Console
             }
         }
 
-        protected override void CalculateDueDateAndPrintLocation()
-        {
-            Channel.CalculateDueDateAndPrintLocation(SFTChannel.Id);
-        }
+        //protected override void CalculateDueDateAndPrintLocation()
+        //{
+        //    Channel.CalculateDueDateAndPrintLocation(SFTChannel.Id);
+        //}
 
         private MailPieceValidationResult ValidateRespaControlNode(XmlNode mailPieceNode)
         {
