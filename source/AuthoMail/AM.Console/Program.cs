@@ -13,7 +13,7 @@ namespace AM.Console
     {
         private static log4net.ILog log;
         static void Main(string[] args)
-        {
+        {           
             //Code Added to create argument wise log file
             var argString = String.Join(",", args);
             log4net.LogicalThreadContext.Properties["args"] = argString;
@@ -49,6 +49,14 @@ namespace AM.Console
                     string[] channelList = args[2].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
                     Channel.ReportBack(channelList, reportType);
+                }
+                else if(args[0] == "Purging")
+                {
+                    Purging.StartPurging();
+                }
+                else if (args[0] == "Delete")
+                {
+                    Purging.DeleteFiles();
                 }
                 else
                 {

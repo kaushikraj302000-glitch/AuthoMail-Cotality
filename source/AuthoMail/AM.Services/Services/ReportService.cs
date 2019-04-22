@@ -18,7 +18,6 @@ namespace AM.Services
         List<MonthlyReconReportViewModel> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel);
         List<ChannelCodeTitle> GetChannelTitle(int clientId);
         List<PullBackRequests> GetPullbackRequestReport(int clientId, DateTime startDate, DateTime endDate);
-        List<FedExReport> GetFedExPickedUpReport(DateTime todayEffectiveDate, int isPickedUp = -1);
         List<MailPieces> GetMailPiecesDataFromPrintBatchId(int printBatchId);
         List<MailPieces> GetMailPiecesDataFromMailBatchId(int mailBatchId);
         List<PCISubmittedBatchDetail> GetPCIReconReport(DateTime startDate, DateTime endDate);
@@ -26,6 +25,7 @@ namespace AM.Services
         List<EnvelopeInventory> SupplyInventoryReport(List<string> envelopes);
         MailBatches GetMailBatchDataFromMailBatchId(int mailBatchId);
         List<ReportWizard> GetReportWizard(List<int> clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo);
+        List<FedExReport> GetFedExData(int[] isPickedUp = null);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -131,31 +131,7 @@ namespace AM.Services
                 ).ToList();
             return data;
         }
-
-        //public List<MailPieces> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel)
-        //{
-        //    string query = "[dbo].[uspweb_MonthlyReconReport] @clientId, @startDate, @endDate, @channel,@shippingStatus";
-
-        //    var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, MRDFRequests, MailPieces>(query,
-        //        (b, s, c, m, d, r) =>
-        //        {
-        //            m.Clients = c;
-        //            m.MailBatches = b;
-        //            b.SFTChannels = s;
-        //            m.DocTypes = d;
-        //            m.MRDFRequests = r;
-        //            return m;
-        //        },
-        //        new
-        //        {
-        //            clientId = clientId,
-        //            startDate = startDate.ToStartDateTime().EstToUtc(),
-        //            endDate = endDate.ToEndDateTime().EstToUtc(),
-        //            channel = channel.IsNullOrWhiteSpace() ? null : channel,
-        //            shippingStatus = ShippingStatus.Shipped.ToString()
-        //        }, splitOn: "Id,Id,Id,Id,Id,UniqueId").ToList();
-        //    return data;
-        //}
+        
         public List<MonthlyReconReportViewModel> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel)
         {
             string query = "[dbo].[uspweb_MonthlyReconReport] @clientId, @startDate, @endDate, @channel";
@@ -169,19 +145,6 @@ namespace AM.Services
                     channel = channel.IsNullOrWhiteSpace() ? null : channel,
                     //shippingStatus = ShippingStatus.Shipped.ToString()
                 }).ToList();
-            return data;
-        }
-
-        public List<FedExReport> GetFedExPickedUpReport(DateTime todayEffectiveDate, int isPickedUp)
-        {
-            //Possible values are for isPickedUp parameter is : 1-for pickedup records, 0-for not pickedup records and default -1 for get all records
-            string query = "[dbo].[uspweb_FedExPickedUpReport] @todayEffectiveDate, @isPickedUp";
-
-            var data = db.Query<FedExReport>(query, new
-            {
-                isPickedUp = isPickedUp,
-                todayEffectiveDate = todayEffectiveDate,
-            }).ToList();
             return data;
         }
 
@@ -337,7 +300,6 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
             return data.SingleOrDefault();
         }
 
-
         public List<ReportWizard> GetReportWizard(List<int> clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo)
         {
             string query = @"SELECT m.Id as MailPieceId,m.BusinessFriendlyIdValue as LoanNumber,m.ShippingStatus as [Status],m.UniqueId,
@@ -404,6 +366,56 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
             }
             var data = db.Query<ReportWizard>(query, parameter).ToList();
             return data;
+        }
+
+        public List<FedExReport> GetFedExData(int[] isPickedUp)
+        {
+            isPickedUp = isPickedUp ?? new int[0];
+            //Possible values are for isPickedUp parameter is : 1-for today's pickedup records, 0-for today's not pickedup records and default -1 for previous not pickedup records
+
+            string queryPreviousNotPickedUp = "SELECT *,'PreviousNotPickedUp' as PickUpStatus FROM [dbo].[view_FedExData] WHERE EffectiveReceivedOnEst < @todayEffectiveDate AND IsPickedUp=0";
+
+            string queryTodayNotPickedUp = "SELECT *,'TodayNotPickedUp' as PickUpStatus FROM [dbo].[view_FedExData] WHERE EffectiveReceivedOnEst >= @todayEffectiveDate AND EffectiveReceivedOnEst < DATEADD(DAY,1,@todayEffectiveDate) AND IsPickedUp=0";
+
+            string queryTodayPickedUp = "SELECT *,'TodayPickedUp' as PickUpStatus FROM [dbo].[view_FedExData] WHERE EffectiveReceivedOnEst >= @todayEffectiveDate AND EffectiveReceivedOnEst < DATEADD(DAY,1,@todayEffectiveDate) AND IsPickedUp=1";
+
+
+            if (isPickedUp.Any(i => i == 0) && isPickedUp.Any(i => i == -1))
+            {
+                //This will provide previous and today's not picked up records
+                var data = db.Query<FedExReport>(queryPreviousNotPickedUp + " UNION " + queryTodayNotPickedUp, new
+                {
+                    todayEffectiveDate = Common.EstToday,
+                }).ToList();
+                return data;
+            }
+            else if (isPickedUp.Any(i => i == 0) && isPickedUp.Any(i => i == 1))
+            {
+                //This will provide today's not picked up and picked up records
+                var data = db.Query<FedExReport>(queryTodayNotPickedUp + " UNION " + queryTodayPickedUp, new
+                {
+                    todayEffectiveDate = Common.EstToday,
+                }).ToList();
+                return data;
+            }
+            else if (isPickedUp.Any(i => i == 0))
+            {
+                //This will provide today's not picked up records
+                var data = db.Query<FedExReport>(queryTodayNotPickedUp, new
+                {
+                    todayEffectiveDate = Common.EstToday,
+                }).ToList();
+                return data;
+            }
+            else
+            {
+                //This will provide today's picked up records
+                var data = db.Query<FedExReport>(queryTodayPickedUp, new
+                {
+                    todayEffectiveDate = Common.EstToday,
+                }).ToList();
+                return data;
+            }
         }
     }
 }

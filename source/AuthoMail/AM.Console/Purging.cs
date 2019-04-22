@@ -13,38 +13,32 @@ namespace AM.Console
     public class Purging
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        //Testing Paths
+        //private static DirectoryInfo sourceAMRootDir = new DirectoryInfo(@"E:\Delete\AMRoot");
+        //private static DirectoryInfo destAMDir = new DirectoryInfo(@"E:\Delete\AMTrash");
+        //private static DirectoryInfo sourcePnSRootDir = new DirectoryInfo(@"E:\Delete\PCIRoot");
+        //private static DirectoryInfo destPCIDir = new DirectoryInfo(@"E:\Delete\PCITrash");
+
+        //PROD paths
+        private static DirectoryInfo sourceAMRootDir = new DirectoryInfo(@"\\10.212.24.57\d$\Production\AuthoMail\AMRoot");
+        private static DirectoryInfo destAMDir = new DirectoryInfo(@"\\10.212.24.57\D$\MTC\Delete\AM");
+        private static DirectoryInfo sourcePnSRootDir = new DirectoryInfo(@"\\10.212.24.57\d$\MTC\PnSService\PCIRoot");
+        private static DirectoryInfo destPCIDir = new DirectoryInfo(@"\\10.212.24.57\D$\MTC\Delete\PCI");
+
+        //Staging Paths
+        //private static DirectoryInfo sourceAMRootDir = new DirectoryInfo(@"\\10.215.112.64\d$\MTC\AuthoMail\Monitor\AuthoMailRoot");
+        //private static DirectoryInfo destAMDir = new DirectoryInfo(@"\\10.215.112.64\d$\MTC\Delete\AM");
+        //private static DirectoryInfo sourcePnSRootDir = new DirectoryInfo(@"\\10.215.112.64\d$\MTC\AuthoMail\PnSService\PCIRoot");
+        //private static DirectoryInfo destPCIDir = new DirectoryInfo(@"\\10.215.112.64\d$\MTC\Delete\PCI");
         public static void StartPurging()
         {
             using (IReCalculateDueDateService rSvc = new ReCalculateDueDateService())
             {
-                //Testing Paths
-                //DirectoryInfo sourceAMRootDir = new DirectoryInfo(@"E:\Delete\AMRoot");
-                //string destAMDir = @"E:\Delete\AMTrash";
-                //DirectoryInfo sourcePnSRootDir = new DirectoryInfo(@"E:\Delete\PCIRoot");
-                //string destPCIDir = @"E:\Delete\PCITrash";
-
-                //Prod Paths
-                DirectoryInfo sourceAMRootDir = new DirectoryInfo(@"D:\Production\AuthoMail\AMRoot");
-                string destAMDir = @"D:\MTC\Delete\AM";
-                DirectoryInfo sourcePnSRootDir = new DirectoryInfo(@"D:\MTC\PnSService\PCIRoot");
-                string destPCIDir = @"D:\MTC\Delete\PCI";
-
-                //DirectoryInfo sourceAMRootDir = new DirectoryInfo(@"\\10.212.24.57\d$\Production\AuthoMail\AMRoot");
-                //string destAMDir = @"\\10.212.24.57\D$\MTC\Delete\AM";
-                //DirectoryInfo sourcePnSRootDir = new DirectoryInfo(@"\\10.212.24.57\d$\MTC\PnSService\PCIRoot");
-                //string destPCIDir = @"\\10.212.24.57\D$\MTC\Delete\PCI";
-
-                //Staging Paths
-                //DirectoryInfo sourceAMRootDir = new DirectoryInfo(@"\\10.215.112.64\d$\MTC\AuthoMail\Monitor\AuthoMailRoot");
-                //string destAMDir = @"\\10.215.112.64\d$\MTC\Delete\AM";
-                //DirectoryInfo sourcePnSRootDir = new DirectoryInfo(@"\\10.215.112.64\d$\MTC\Deployment\PCIRoot");
-                //string destPCIDir = @"\\10.215.112.64\d$\MTC\Delete\PCI";
-
                 var amDirs = sourceAMRootDir.EnumerateDirectories("*.*", SearchOption.TopDirectoryOnly);
                 foreach (var dir in amDirs)
                 {
-                    if (!Directory.Exists(Path.Combine(destAMDir, dir.Name)))
-                        Directory.CreateDirectory(Path.Combine(destAMDir, dir.Name));
+                    if (!Directory.Exists(Path.Combine(destAMDir.FullName, dir.Name)))
+                        Directory.CreateDirectory(Path.Combine(destAMDir.FullName, dir.Name));
                     int days = 0;
                     if (dir.Name == "ALASKA")
                         days = 30;
@@ -74,9 +68,9 @@ namespace AM.Console
 
                         foreach (var subdir in subdirs)
                         {
-                            if (Directory.Exists(Path.Combine(Path.Combine(destAMDir, dir.Name), subdir.Name)))
-                                Directory.Delete(Path.Combine(Path.Combine(destAMDir, dir.Name), subdir.Name));
-                            Directory.Move(subdir.FullName, Path.Combine(Path.Combine(destAMDir, dir.Name), subdir.Name));
+                            if (Directory.Exists(Path.Combine(Path.Combine(destAMDir.FullName, dir.Name), subdir.Name)))
+                                Directory.Delete(Path.Combine(Path.Combine(destAMDir.FullName, dir.Name), subdir.Name));
+                            Directory.Move(subdir.FullName, Path.Combine(Path.Combine(destAMDir.FullName, dir.Name), subdir.Name));
                         }
                     }
                     catch (Exception ex)
@@ -90,8 +84,8 @@ namespace AM.Console
                 var pnsDirs = sourcePnSRootDir.EnumerateDirectories("*.*", SearchOption.TopDirectoryOnly);
                 foreach (var dir in pnsDirs)
                 {
-                    if (!Directory.Exists(Path.Combine(destPCIDir, dir.Name)))
-                        Directory.CreateDirectory(Path.Combine(destPCIDir, dir.Name));
+                    if (!Directory.Exists(Path.Combine(destPCIDir.FullName, dir.Name)))
+                        Directory.CreateDirectory(Path.Combine(destPCIDir.FullName, dir.Name));
 
                     int days = 0;
                     if (dir.Name == "ALASKA")
@@ -121,9 +115,9 @@ namespace AM.Console
 
                         foreach (var subdir in subdirs)
                         {
-                            if (Directory.Exists(Path.Combine(Path.Combine(destPCIDir, dir.Name), subdir.Name)))
-                                Directory.Delete(Path.Combine(Path.Combine(destPCIDir, dir.Name), subdir.Name));
-                            Directory.Move(subdir.FullName, Path.Combine(Path.Combine(destPCIDir, dir.Name), subdir.Name));
+                            if (Directory.Exists(Path.Combine(Path.Combine(destPCIDir.FullName, dir.Name), subdir.Name)))
+                                Directory.Delete(Path.Combine(Path.Combine(destPCIDir.FullName, dir.Name), subdir.Name));
+                            Directory.Move(subdir.FullName, Path.Combine(Path.Combine(destPCIDir.FullName, dir.Name), subdir.Name));
                         }
                     }
                     catch (Exception ex)
@@ -135,7 +129,7 @@ namespace AM.Console
                 }
             }
         }
-
+       
         private static bool IsBusinessDay(DateTime date, List<Holiday> holidays, bool isSatWorkDay, bool isSunWorkDay)
         {
             if (holidays.Select(c => c.HolidayDate).Contains(date.Date))
@@ -150,5 +144,16 @@ namespace AM.Console
             return true;
         }
 
+        public static void DeleteFiles()
+        {
+            foreach (DirectoryInfo amDir in destAMDir.GetDirectories())
+            {
+                amDir.Delete(true);
+            }
+            foreach (DirectoryInfo pciDir in destPCIDir.GetDirectories())
+            {
+                pciDir.Delete(true);
+            }
+        }
     }
 }

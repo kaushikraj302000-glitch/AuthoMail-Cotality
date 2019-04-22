@@ -28,10 +28,10 @@ namespace AM.Reporting
                     DateTime todayEffectiveDate = todayEffectiveDateTime.Date;
 
                     //UPDATE Pickupon list before generating reports.
-                    fedExTrackingSvc.UpdateFedExTrackingInfo(todayEffectiveDate);
+                    fedExTrackingSvc.UpdateFedExTrackingInfo();
 
                     //Get all records after updating pickedup information and generate report
-                    mailPieces = reportSvc.GetFedExPickedUpReport(todayEffectiveDate);
+                    mailPieces = reportSvc.GetFedExData(new int[] { 0, 1 });
                     if (mailPieces != null && mailPieces.Count > 0)
                     {
                         string fedExReportPath = string.Empty;

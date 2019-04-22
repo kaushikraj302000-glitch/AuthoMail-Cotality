@@ -15,18 +15,26 @@ namespace AM.Scanner.Common
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         internal static DbConnection Create(string connectionStringName)
         {
-            var cs = ConfigurationManager.ConnectionStrings[connectionStringName];
-
-            if (cs == null)
+            try
             {
-                log.Error(string.Format("Connection string with name '{0}' does not exist.", connectionStringName));
-                throw new ArgumentException("Connection string with name '{0}' does not exist.", connectionStringName);
-            }
+                var cs = ConfigurationManager.ConnectionStrings[connectionStringName];
 
-            var factory = DbProviderFactories.GetFactory(cs.ProviderName);
-            var connection = factory.CreateConnection();
-            connection.ConnectionString = cs.ConnectionString;
-            return connection;
+                if (cs == null)
+                {
+                    log.Error(string.Format("Connection string with name '{0}' does not exist.", connectionStringName));
+                    throw new ArgumentException("Connection string with name '{0}' does not exist.", connectionStringName);
+                }
+
+                var factory = DbProviderFactories.GetFactory(cs.ProviderName);
+                var connection = factory.CreateConnection();
+                connection.ConnectionString = cs.ConnectionString;
+                return connection;
+            }
+            catch (Exception e)
+            {
+                log.Error(e.Message.ToString());
+                return null;
+            }
         }
 
         public static ScanDetails RegisterScan(string barcode, string clientCode, string username, string machineName, string batchName)

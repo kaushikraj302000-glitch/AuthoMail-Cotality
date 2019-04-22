@@ -34,5 +34,6 @@ namespace AM.Services
         public string DocumentOrPackageType { get; set; }
         public int IsPickedUp { get; set; }
         public DateTime? PickedUpOn { get; set; }
+        public string PickUpStatus { get; set; }
     }
 }
