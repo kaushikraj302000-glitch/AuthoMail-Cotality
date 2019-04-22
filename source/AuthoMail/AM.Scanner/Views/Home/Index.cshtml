@@ -309,7 +309,7 @@
             GetAllBatchForScan(clientCode.trim(), i);
             /*  End Ajax  */
         }
-        /*  Updating Batch Count on every 12 Second using Ajax */
+        /*  Updating Batch Count on every 60 Second using Ajax */
         window.setInterval(function () {
             for (var i = 0; i < clientCodeList.length; i++) {
                 clientCode = clientCodeList[i];
@@ -318,7 +318,7 @@
                 GetAllBatchForScan(clientCode.trim(), i);
                 /*  End Ajax  */
             }
-        }, 12000);
+        }, 60000);
 
 
 
