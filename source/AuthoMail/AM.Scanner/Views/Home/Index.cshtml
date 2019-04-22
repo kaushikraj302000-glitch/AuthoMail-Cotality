@@ -27,11 +27,18 @@
         min-width: 42%;
         max-height: 43%;
     }
-    .preclass:hover{
-        background-color:#fff;
-        border:1px solid #ff6a00;
 
+        .preclass:hover {
+            background-color: #fff;
+            border: 1px solid #ff6a00;
+        }
+
+    .preclassok {
+        background-color: #72af46 !important;
+        border: 1px solid #fff !important;
+        color: #fff !important;
     }
+
     .report {
         border: 1px solid #72af46;
         color: #72af46;
@@ -45,13 +52,51 @@
     .reportLink {
         padding: 5px;
     }
+
+    .bg-primary {
+        border: 1px solid #cb4040 !important;
+        color: #cb4040 !important;
+        background-color: #fff !important;
+    }
+
+    .bg-info {
+        border: 1px solid #466baf !important;
+        color: #466baf !important;
+        background-color: #fff !important;
+    }
+
+    .bg-inverse {
+        border: 1px solid #424242 !important;
+        color: #424242 !important;
+        background-color: #fff !important;
+    }
+
+    .bg-warning {
+        border: 1px solid #0094ff !important;
+        color: #0094ff !important;
+        background-color: #fff !important;
+    }
+
+    .topbordernone {
+        border-top: none !important;
+    }
+
+    .btn-warning {
+        background: #0094ff !important;
+        border-color: #0094ff !important;
+        color: #fff !important;
+    }
+    .btn-warning:hover{
+        background: none !important;
+        color: #0094ff !important;
+    }
 </style>
 
 <div class="innerAll spacing-x2">
     <div class="row">
         @{
-            string[] colorcode = { "primary", "info", "success", "inverse" };
-
+            //string[] colorcode = { "primary", "info", "inverse", "warning" };
+            string[] colorcode = { "primary", "info", "inverse", "primary" };
             string[] ClientListWithName = System.Web.Configuration.WebConfigurationManager.AppSettings["ClientList"].Split('|');
             List<AM.Scanner.Models.ClientDetails> clientdetailsList = new List<AM.Scanner.Models.ClientDetails>();
             for (int i = 0; i < ClientListWithName.Length; i++)
@@ -99,15 +144,15 @@
                                     <div>
                                         @*<a href="~/Scan/Index?clientCode=@item.ClientCode">  </a>*@
                                         <div class="innerAll bg-@colorcode[x]">
-                                            <p id="box@(cntbox)" class="lead text-white strong margin-none">
+                                            <p id="box@(cntbox)" class="lead strong margin-none">
                                                 @item.ClientName
                                             </p>
-                                            <p><strong id="@(item.ClientCode.Trim())scanCount" class="text-large text-white">--/--</strong></p>
+                                            <p><strong id="@(item.ClientCode.Trim())scanCount" class="text-large">--/--</strong></p>
                                             <div class="text-center" id="displaycount@(item.ClientCode.Trim())">
                                             </div>
                                         </div>
 
-                                        <div class="reportLink">
+                                        <div class="reportLink bg-@colorcode[x] topbordernone">
                                             <a href="~/Reports/ScanedDocuments?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">View Report</a>
                                             @*<a href="~/Scan/Index?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">Start Scan</a>*@
                                             @*<a href="~/Scan/USPSScan?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">USPS Scan</a>*@
@@ -217,9 +262,9 @@
                 //debugger;
                 //console.log(data);
                 $("#displaycount" + clientCode).empty();
-                
+
                 for (var j = 0; j < data.length; j++) {
-                    
+
                     // alert(JSON.stringify(data[j].ReceivedOn) + " " + JSON.stringify(data[j].ScannedLoans) + " " + JSON.stringify(data[j].TotalLoans));
                     // alert(clientCode);
                     var localTime = moment.utc(data[j].ReceivedOn).toDate();
@@ -233,12 +278,20 @@
                     // alert(localTime);
                     if (j % 2 == 0) {
                         // $("#displaycount" + clientCode).append("<pre data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + data[j].BatchName + "' class='pull-left preclass'><strong  id='dispaly" + clientCode + i + "' class='text-larger'>" + localTime + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre>");
-                        $("#displaycount" + clientCode).append("<a href='Scan/Index?clientCode=" + clientCode + "&batchName=" + data[j].BatchName + "'><pre class='pull-left preclass'><strong  id='dispaly" + clientCode + i + "' class='text-larger'>" + data[j].BatchName + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre></a>");
+                        if (parseInt(data[j].ScannedLoans) == parseInt(data[j].TotalLoans)) {
+                            $("#displaycount" + clientCode).append("<a href='Scan/Index?clientCode=" + clientCode + "&batchName=" + data[j].BatchName + "'><pre class='pull-left preclass preclassok'><strong  id='dispaly" + clientCode + i + "' class='text-larger'>" + data[j].BatchName + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre></a>");
+                        } else {
+                            $("#displaycount" + clientCode).append("<a href='Scan/Index?clientCode=" + clientCode + "&batchName=" + data[j].BatchName + "'><pre class='pull-left preclass'><strong  id='dispaly" + clientCode + i + "' class='text-larger'>" + data[j].BatchName + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre></a>");
+                        }
+
 
                     }
                     else {
-                        $("#displaycount" + clientCode).append("<a href='Scan/Index?clientCode=" + clientCode + "&batchName=" + data[j].BatchName + "'><pre  class='pull-right preclass'><strong id='dispaly" + clientCode + i + "' class='text-larger'>" + data[j].BatchName + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre></a>");
-
+                        if (parseInt(data[j].ScannedLoans) == parseInt(data[j].TotalLoans)) {
+                            $("#displaycount" + clientCode).append("<a href='Scan/Index?clientCode=" + clientCode + "&batchName=" + data[j].BatchName + "'><pre  class='pull-right preclass preclassok'><strong id='dispaly" + clientCode + i + "' class='text-larger'>" + data[j].BatchName + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre></a>");
+                        } else {
+                            $("#displaycount" + clientCode).append("<a href='Scan/Index?clientCode=" + clientCode + "&batchName=" + data[j].BatchName + "'><pre  class='pull-right preclass'><strong id='dispaly" + clientCode + i + "' class='text-larger'>" + data[j].BatchName + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre></a>");
+                        }
                         //$("#displaycount" + clientCode).append("<pre data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + data[j].BatchName + "'  class='pull-right preclass'><strong id='dispaly" + clientCode + i + "' class='text-larger'>" + localTime + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre>");
                     }
                 }
@@ -272,7 +325,7 @@
             GetAllBatchForScan(clientCode.trim(), i);
             /*  End Ajax  */
         }
-        /*  Updating Batch Count on every 12 Second using Ajax */
+        /*  Updating Batch Count on every 60 Second using Ajax */
         window.setInterval(function () {
             for (var i = 0; i < clientCodeList.length; i++) {
                 clientCode = clientCodeList[i];
@@ -281,7 +334,7 @@
                 GetAllBatchForScan(clientCode.trim(), i);
                 /*  End Ajax  */
             }
-        }, 12000);
+        }, 60000);
 
 
 

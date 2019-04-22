@@ -76,8 +76,8 @@ namespace AM.USPSLib
             }
         }
 
-        [XmlIgnore]
-        public AddressRequest AddressRequest { get; private set; }
+
+        public AddressRequest AddressRequest { get; set; }
 
         public AddressResponse(AddressRequest request, int order)
         {
