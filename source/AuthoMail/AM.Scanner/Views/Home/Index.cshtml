@@ -71,15 +71,31 @@
         background-color: #fff !important;
     }
 
+    .bg-warning {
+        border: 1px solid #0094ff !important;
+        color: #0094ff !important;
+        background-color: #fff !important;
+    }
+
     .topbordernone {
         border-top: none !important;
+    }
+
+    .btn-warning {
+        background: #0094ff !important;
+        border-color: #0094ff !important;
+        color: #fff !important;
+    }
+    .btn-warning:hover{
+        background: none !important;
+        color: #0094ff !important;
     }
 </style>
 
 <div class="innerAll spacing-x2">
     <div class="row">
         @{
-            string[] colorcode = { "primary", "info", "inverse" };
+            string[] colorcode = { "primary", "info", "inverse", "warning" };
 
             string[] ClientListWithName = System.Web.Configuration.WebConfigurationManager.AppSettings["ClientList"].Split('|');
             List<AM.Scanner.Models.ClientDetails> clientdetailsList = new List<AM.Scanner.Models.ClientDetails>();
@@ -309,7 +325,7 @@
             GetAllBatchForScan(clientCode.trim(), i);
             /*  End Ajax  */
         }
-        /*  Updating Batch Count on every 12 Second using Ajax */
+        /*  Updating Batch Count on every 60 Second using Ajax */
         window.setInterval(function () {
             for (var i = 0; i < clientCodeList.length; i++) {
                 clientCode = clientCodeList[i];
@@ -318,7 +334,7 @@
                 GetAllBatchForScan(clientCode.trim(), i);
                 /*  End Ajax  */
             }
-        }, 12000);
+        }, 60000);
 
 
 
