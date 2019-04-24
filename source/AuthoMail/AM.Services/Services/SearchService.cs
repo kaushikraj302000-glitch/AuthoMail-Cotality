@@ -11,8 +11,8 @@ namespace AM.Services
     public interface ISearchService : IDisposable
     {
         //Remove Method(make sure below method in use)
-        //List<MailPieces> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo);
-        List<SearchViewModel> GetMailPieceByParam
+        //List<MailPieces> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo)
+        KeyValuePair<int, List<SearchViewModel>> GetMailPieceByParam
             (int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo, List<string> errorList);
         MailPieces GetMailPieceByUniqueId(Guid uniqueId);
         List<MailPieces> GetAllData(int clientId);
@@ -23,15 +23,9 @@ namespace AM.Services
     }
     public class SearchService : ServiceBase, ISearchService
     {
-        public List<SearchViewModel> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo, List<string> errorList)
+        public KeyValuePair<int, List<SearchViewModel>> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo, List<string> errorList)
         {
-            string query = @"SELECT 
-	 m.BusinessFriendlyIdValue as LoanNumber,m.ShippingStatus as [Status],m.UniqueId,
-	 m.RcptFirstName as FirstName,m.RcptLastName as LastName,m.RcptAddressCity as [City],m.RcptAddressZip as ZIP,
-	 m.RcptAddressState as [State],CASE WHEN d.ShippingCarrier ='FedEx' THEN isnull(m.PickedUpOn,m.ShippedOn) ELSE m.ShippedOn END as ShippedOn,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,
-	 b.ReceivedOn,m.DocTypeId,
-	 d.DocTypeCode as DocType,d.ShippingServiceType as ShippingMethod,d.ShippingCarrier,
-	 ch.Title as Channel
+            string query = @"SELECT {{fields}}
 	 FROM AM.MailPieces m
      inner join AM.MailBatches b on m.MailBatchId=b.Id
      inner join Common.SFTChannels ch on b.SFTChannelId=ch.Id
@@ -39,6 +33,12 @@ namespace AM.Services
 	 inner join AM.DocTypes d ON m.DocTypeId=d.Id
 	 left outer JOIN Profile.Users u ON m.PulledBackRequestedBy=u.Id	 
 	 WHERE m.ClientId=@clientId";
+            string fields = @"m.BusinessFriendlyIdValue as LoanNumber,m.ShippingStatus as [Status],m.UniqueId,
+	 m.RcptFirstName as FirstName,m.RcptLastName as LastName,m.RcptAddressCity as [City],m.RcptAddressZip as ZIP,
+	 m.RcptAddressState as [State],CASE WHEN d.ShippingCarrier ='FedEx' THEN isnull(m.PickedUpOn,m.ShippedOn) ELSE m.ShippedOn END as ShippedOn,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,
+	 b.ReceivedOn,m.DocTypeId,
+	 d.DocTypeCode as DocType,d.ShippingServiceType as ShippingMethod,d.ShippingCarrier,
+	 ch.Title as Channel";
             DynamicParameters parameter = new DynamicParameters();
             parameter.Add("@clientId", clientId);
             if (!string.IsNullOrWhiteSpace(businessFriendlyIdName))
@@ -95,9 +95,14 @@ namespace AM.Services
                 parameter.Add("@startDate", startDate.Value.ToStartDateTime().EstToUtc());
                 parameter.Add("@endDate", endDate.Value.ToEndDateTime().EstToUtc());
             }
-            query = string.Format("{0} order by b.ReceivedOn desc", query);
-            var data = db.Query<SearchViewModel>(query, parameter).ToList();
-            return data;
+            int count = db.ExecuteScalar<int>(query.Replace("{{fields}}", "count(m.Id)"), parameter);
+            if (count <= 10000)
+            {
+                query = string.Format("{0} order by b.ReceivedOn desc", query);
+                var data = db.Query<SearchViewModel>(query.Replace("{{fields}}", fields), parameter).ToList();
+                return new KeyValuePair<int, List<SearchViewModel>>(count, data);
+            }
+            return new KeyValuePair<int, List<SearchViewModel>>(count, null);
         }
 
         public MailPieces GetMailPieceByUniqueId(Guid uniqueId)
