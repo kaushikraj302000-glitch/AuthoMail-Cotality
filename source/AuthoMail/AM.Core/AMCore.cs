@@ -49,370 +49,341 @@ namespace AM.Core
 
                         var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
 
-                        List<MailPieceDTO> validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
+                        List<MailPieceDTO> validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString() && string.IsNullOrWhiteSpace(c.TrackingNo)).ToList();
 
                         foreach (MailPieceDTO mailPiece in validMailPieces)
                         {
                             int attemptCount = 0;
-                            try
+
+                            DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value);
+
+                            int mailPieceId = mailPiece.Id;
+
+                            string pdfFilePath = Path.Combine(mbi.AMRequestPath, mailPiece.FileName);
+                            string outputFilePath = Path.Combine(mbi.PnSRequestPath, "{0}_{1}".Fill(mailPieceId, mailPiece.FileName));
+                            List<string> coverLetterPdfPaths = new List<string>();
+                            List<string> endLetterPdfPaths = new List<string>();
+                            string endPageTemplatePath = string.Empty;
+
+                            SmartDocResponse response;
+
+                            #region From Address
+                            string fromAddress = string.Empty;
+                            if (mailPiece.IsReturnInfoSpecified)
                             {
-                                DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value);
+                                //This is compulsary
+                                fromAddress = mailPiece.RetRcptFirstName + " " + mailPiece.RetRcptLastName + "\n";
 
-                                int mailPieceId = mailPiece.Id;
+                                if (!string.IsNullOrEmpty(mailPiece.RetRcptOrganization))
+                                    fromAddress += mailPiece.RetRcptOrganization + "\n";
+                                if (!string.IsNullOrEmpty(mailPiece.RetRcptAddrOptionalLine1AboveStreet))
+                                    fromAddress += mailPiece.RetRcptAddrOptionalLine1AboveStreet + "\n";
+                                if (!string.IsNullOrEmpty(mailPiece.RetRcptAddrOptionalLine2AboveStreet))
+                                    fromAddress += mailPiece.RetRcptAddrOptionalLine2AboveStreet + "\n";
 
-                                string pdfFilePath = Path.Combine(mbi.AMRequestPath, mailPiece.FileName);
-                                string outputFilePath = Path.Combine(mbi.PnSRequestPath, "{0}_{1}".Fill(mailPieceId, mailPiece.FileName));
-                                List<string> coverLetterPdfPaths = new List<string>();
-                                List<string> endLetterPdfPaths = new List<string>();
-                                string endPageTemplatePath = string.Empty;
+                                //Because Street address is must field
+                                fromAddress += mailPiece.RetRcptAddressStreet + "\n";
 
-                                SmartDocResponse response;
+                                if (!string.IsNullOrEmpty(mailPiece.RetRcptAddrOptionalLine1BelowStreet))
+                                    fromAddress += mailPiece.RetRcptAddrOptionalLine1BelowStreet + "\n";
+                                if (!string.IsNullOrEmpty(mailPiece.RetRcptAddrOptionalLine2BelowStreet))
+                                    fromAddress += mailPiece.RetRcptAddrOptionalLine2BelowStreet + "\n";
+                                if (!string.IsNullOrEmpty(mailPiece.RetRcptAddressAptOrSuiteOrOther))
+                                    fromAddress += mailPiece.RetRcptAddressAptOrSuiteOrOther + "\n";
 
-                                #region From Address
-                                string fromAddress = string.Empty;
-                                if (mailPiece.IsReturnInfoSpecified)
+                                //Because City,state,zip are must field for all client
+                                fromAddress += mailPiece.RetRcptAddressCity + " " + mailPiece.RetRcptAddressState + " " + mailPiece.RetRcptAddressZIP;
+                            }
+                            else if (mbi.MailBatch.IsReturnInfoSpecified)
+                            {
+                                fromAddress = mbi.MailBatch.RetRcptFirstName + " " + mbi.MailBatch.RetRcptLastName + "\n";
+
+                                if (!string.IsNullOrEmpty(mbi.MailBatch.RetRcptOrganization))
+                                    fromAddress += mbi.MailBatch.RetRcptOrganization + "\n";
+                                if (!string.IsNullOrEmpty(mbi.MailBatch.RetRcptAddrOptionalLine1AboveStreet))
+                                    fromAddress += mbi.MailBatch.RetRcptAddrOptionalLine1AboveStreet + "\n";
+                                if (!string.IsNullOrEmpty(mailPiece.RetRcptAddrOptionalLine2AboveStreet))
+                                    fromAddress += mbi.MailBatch.RetRcptAddrOptionalLine2AboveStreet + "\n";
+
+                                //Because Street address is must field
+                                fromAddress += mbi.MailBatch.RetRcptAddressStreet + "\n";
+
+                                if (!string.IsNullOrEmpty(mbi.MailBatch.RetRcptAddrOptionalLine1BelowStreet))
+                                    fromAddress += mbi.MailBatch.RetRcptAddrOptionalLine1BelowStreet + "\n";
+                                if (!string.IsNullOrEmpty(mbi.MailBatch.RetRcptAddrOptionalLine2BelowStreet))
+                                    fromAddress += mbi.MailBatch.RetRcptAddrOptionalLine2BelowStreet + "\n";
+                                if (!string.IsNullOrEmpty(mbi.MailBatch.RetRcptAddressAptOrSuiteOrOther))
+                                    fromAddress += mbi.MailBatch.RetRcptAddressAptOrSuiteOrOther + "\n";
+
+                                fromAddress += mbi.MailBatch.RetRcptAddressCity + " " + mbi.MailBatch.RetRcptAddressState + " " + mbi.MailBatch.RetRcptAddressZIP;
+                            }
+                            else if (docType.IsReturnInfoSpecified)
+                            {
+                                fromAddress = docType.RetRcptFirstName + " " + docType.RetRcptLastName + "\n";
+
+                                if (!string.IsNullOrEmpty(docType.RetRcptOrganization))
+                                    fromAddress += docType.RetRcptOrganization + "\n";
+                                if (!string.IsNullOrEmpty(docType.RetRcptAddrOptionalLine1AboveStreet))
+                                    fromAddress += docType.RetRcptAddrOptionalLine1AboveStreet + "\n";
+                                if (!string.IsNullOrEmpty(docType.RetRcptAddrOptionalLine2AboveStreet))
+                                    fromAddress += docType.RetRcptAddrOptionalLine2AboveStreet + "\n";
+
+                                //Because Street address is must field
+                                fromAddress += docType.RetRcptAddressStreet + "\n";
+
+                                if (!string.IsNullOrEmpty(docType.RetRcptAddrOptionalLine1BelowStreet))
+                                    fromAddress += docType.RetRcptAddrOptionalLine1BelowStreet + "\n";
+                                if (!string.IsNullOrEmpty(docType.RetRcptAddrOptionalLine2BelowStreet))
+                                    fromAddress += docType.RetRcptAddrOptionalLine2BelowStreet + "\n";
+                                if (!string.IsNullOrEmpty(docType.RetRcptAddressAptOrSuiteOrOther))
+                                    fromAddress += docType.RetRcptAddressAptOrSuiteOrOther + "\n";
+
+                                fromAddress += docType.RetRcptAddressCity + " " + docType.RetRcptAddressState + " " + docType.RetRcptAddressZIP;
+                            }
+                            else
+                            {
+                                //TODO: Generate error
+                            }
+                            #endregion
+
+                            #region To Address
+                            string toAddress = string.Empty;
+                            if (mailPiece.IsRcptInfoSpecified)
+                            {
+                                //This is compulsary
+                                toAddress = mailPiece.RcptFirstName + " " + mailPiece.RcptLastName + "\n";
+
+                                if (!string.IsNullOrEmpty(mailPiece.RcptOrganization))
+                                    toAddress += mailPiece.RcptOrganization + "\n";
+                                if (!string.IsNullOrEmpty(mailPiece.RcptAddrOptionalLine1AboveStreet))
+                                    toAddress += mailPiece.RcptAddrOptionalLine1AboveStreet + "\n";
+                                if (!string.IsNullOrEmpty(mailPiece.RcptAddrOptionalLine2AboveStreet))
+                                    toAddress += mailPiece.RcptAddrOptionalLine2AboveStreet + "\n";
+
+                                //Because Street address is must field
+                                toAddress += mailPiece.RcptAddressStreet + "\n";
+
+                                if (!string.IsNullOrEmpty(mailPiece.RcptAddrOptionalLine1BelowStreet))
+                                    toAddress += mailPiece.RcptAddrOptionalLine1BelowStreet + "\n";
+                                if (!string.IsNullOrEmpty(mailPiece.RcptAddrOptionalLine2BelowStreet))
+                                    toAddress += mailPiece.RcptAddrOptionalLine2BelowStreet + "\n";
+                                if (!string.IsNullOrEmpty(mailPiece.RcptAddressAptOrSuiteOrOther))
+                                    toAddress += mailPiece.RcptAddressAptOrSuiteOrOther + "\n";
+
+                                //Because City,state,zip are must field for all client
+                                toAddress += mailPiece.RcptAddressCity + " " + mailPiece.RcptAddressState + " " + mailPiece.RcptAddressZIP;
+                            }
+                            #endregion
+
+                            #region Prepare dictionary of placeholders/tags to fill the PDF template.
+                            Dictionary<string, string> mailPieceData = new Dictionary<string, string>();
+                            mailPieceData.Add("FromAddress", fromAddress);
+                            mailPieceData.Add("ToAddress", toAddress);
+                            mailPieceData.Add("MailPieceId", mailPieceId.ToString());
+                            mailPieceData.Add("Date", Common.Now.UtcToEst().ToString("MMMM dd, yyyy"));//USAA Specific
+                            mailPieceData.Add("Free3OF9Barcode", "*" + mailPiece.Id.ToString() + "*");//Barcode for non-IMBarcode cover letter
+                            mailPieceData.Add("UniqueId", "*" + mailPieceId.ToString() + "*");//Humanreadable code which is used for barcode
+                            mailPieceData.Add("MailPieceZip", mailPiece.RcptAddressZIP);
+                            mailPieceData.Add("LoanNbr", mailPiece.BusinessFriendlyIdValue);
+                            #endregion
+
+                            List<DocTypeCoverLetter> docTypeLetters = docTypeSvc.GetDocumentCoverLetterTemplates(docType.Id).OrderBy(o => o.SeqId).ToList();
+
+                            var frontCoverLetters = docTypeLetters.Where(seq => seq.SeqId <= 100);
+                            var rearCoverLetters = docTypeLetters.Where(seq => seq.SeqId > 100);
+
+                            SmartDocs doc = new SmartDocs();
+
+                            var docTypeLetter = frontCoverLetters.SingleOrDefault();
+                            //foreach (var docTypeLetter in frontCoverLetters)
+                            //{
+                            //Folder structure and file naming convention should be Root/AppCode/AppCode_DocTypeCode_SeqNo.pdf
+                            string coverLetterTemplatePath = docTypeLetter == null ? string.Empty : Path.Combine(Config.Core_CoverTemplateFolder, client.AppCode, docTypeLetter.CoverLetterTemplatePath);
+
+
+                            if (docType.ShippingCarrier == Carrier.USPS.ToString())
+                            {
+                                if (docType.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS.ToString())
                                 {
-                                    //This is compulsary
-                                    fromAddress = mailPiece.RetRcptFirstName + " " + mailPiece.RetRcptLastName + "\n";
+                                    eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name);
 
-                                    if (!string.IsNullOrEmpty(mailPiece.RetRcptOrganization))
-                                        fromAddress += mailPiece.RetRcptOrganization + "\n";
-                                    if (!string.IsNullOrEmpty(mailPiece.RetRcptAddrOptionalLine1AboveStreet))
-                                        fromAddress += mailPiece.RetRcptAddrOptionalLine1AboveStreet + "\n";
-                                    if (!string.IsNullOrEmpty(mailPiece.RetRcptAddrOptionalLine2AboveStreet))
-                                        fromAddress += mailPiece.RetRcptAddrOptionalLine2AboveStreet + "\n";
+                                    response = doc.GenerateeVSPriorityExpressCoverLetter(client.AppCode, commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq);
 
-                                    //Because Street address is must field
-                                    fromAddress += mailPiece.RetRcptAddressStreet + "\n";
-
-                                    if (!string.IsNullOrEmpty(mailPiece.RetRcptAddrOptionalLine1BelowStreet))
-                                        fromAddress += mailPiece.RetRcptAddrOptionalLine1BelowStreet + "\n";
-                                    if (!string.IsNullOrEmpty(mailPiece.RetRcptAddrOptionalLine2BelowStreet))
-                                        fromAddress += mailPiece.RetRcptAddrOptionalLine2BelowStreet + "\n";
-                                    if (!string.IsNullOrEmpty(mailPiece.RetRcptAddressAptOrSuiteOrOther))
-                                        fromAddress += mailPiece.RetRcptAddressAptOrSuiteOrOther + "\n";
-
-                                    //Because City,state,zip are must field for all client
-                                    fromAddress += mailPiece.RetRcptAddressCity + " " + mailPiece.RetRcptAddressState + " " + mailPiece.RetRcptAddressZIP;
-                                }
-                                else if (mbi.MailBatch.IsReturnInfoSpecified)
-                                {
-                                    fromAddress = mbi.MailBatch.RetRcptFirstName + " " + mbi.MailBatch.RetRcptLastName + "\n";
-
-                                    if (!string.IsNullOrEmpty(mbi.MailBatch.RetRcptOrganization))
-                                        fromAddress += mbi.MailBatch.RetRcptOrganization + "\n";
-                                    if (!string.IsNullOrEmpty(mbi.MailBatch.RetRcptAddrOptionalLine1AboveStreet))
-                                        fromAddress += mbi.MailBatch.RetRcptAddrOptionalLine1AboveStreet + "\n";
-                                    if (!string.IsNullOrEmpty(mailPiece.RetRcptAddrOptionalLine2AboveStreet))
-                                        fromAddress += mbi.MailBatch.RetRcptAddrOptionalLine2AboveStreet + "\n";
-
-                                    //Because Street address is must field
-                                    fromAddress += mbi.MailBatch.RetRcptAddressStreet + "\n";
-
-                                    if (!string.IsNullOrEmpty(mbi.MailBatch.RetRcptAddrOptionalLine1BelowStreet))
-                                        fromAddress += mbi.MailBatch.RetRcptAddrOptionalLine1BelowStreet + "\n";
-                                    if (!string.IsNullOrEmpty(mbi.MailBatch.RetRcptAddrOptionalLine2BelowStreet))
-                                        fromAddress += mbi.MailBatch.RetRcptAddrOptionalLine2BelowStreet + "\n";
-                                    if (!string.IsNullOrEmpty(mbi.MailBatch.RetRcptAddressAptOrSuiteOrOther))
-                                        fromAddress += mbi.MailBatch.RetRcptAddressAptOrSuiteOrOther + "\n";
-
-                                    fromAddress += mbi.MailBatch.RetRcptAddressCity + " " + mbi.MailBatch.RetRcptAddressState + " " + mbi.MailBatch.RetRcptAddressZIP;
-                                }
-                                else if (docType.IsReturnInfoSpecified)
-                                {
-                                    fromAddress = docType.RetRcptFirstName + " " + docType.RetRcptLastName + "\n";
-
-                                    if (!string.IsNullOrEmpty(docType.RetRcptOrganization))
-                                        fromAddress += docType.RetRcptOrganization + "\n";
-                                    if (!string.IsNullOrEmpty(docType.RetRcptAddrOptionalLine1AboveStreet))
-                                        fromAddress += docType.RetRcptAddrOptionalLine1AboveStreet + "\n";
-                                    if (!string.IsNullOrEmpty(docType.RetRcptAddrOptionalLine2AboveStreet))
-                                        fromAddress += docType.RetRcptAddrOptionalLine2AboveStreet + "\n";
-
-                                    //Because Street address is must field
-                                    fromAddress += docType.RetRcptAddressStreet + "\n";
-
-                                    if (!string.IsNullOrEmpty(docType.RetRcptAddrOptionalLine1BelowStreet))
-                                        fromAddress += docType.RetRcptAddrOptionalLine1BelowStreet + "\n";
-                                    if (!string.IsNullOrEmpty(docType.RetRcptAddrOptionalLine2BelowStreet))
-                                        fromAddress += docType.RetRcptAddrOptionalLine2BelowStreet + "\n";
-                                    if (!string.IsNullOrEmpty(docType.RetRcptAddressAptOrSuiteOrOther))
-                                        fromAddress += docType.RetRcptAddressAptOrSuiteOrOther + "\n";
-
-                                    fromAddress += docType.RetRcptAddressCity + " " + docType.RetRcptAddressState + " " + docType.RetRcptAddressZIP;
-                                }
-                                else
-                                {
-                                    //TODO: Generate error
-                                }
-                                #endregion
-
-                                #region To Address
-                                string toAddress = string.Empty;
-                                if (mailPiece.IsRcptInfoSpecified)
-                                {
-                                    //This is compulsary
-                                    toAddress = mailPiece.RcptFirstName + " " + mailPiece.RcptLastName + "\n";
-
-                                    if (!string.IsNullOrEmpty(mailPiece.RcptOrganization))
-                                        toAddress += mailPiece.RcptOrganization + "\n";
-                                    if (!string.IsNullOrEmpty(mailPiece.RcptAddrOptionalLine1AboveStreet))
-                                        toAddress += mailPiece.RcptAddrOptionalLine1AboveStreet + "\n";
-                                    if (!string.IsNullOrEmpty(mailPiece.RcptAddrOptionalLine2AboveStreet))
-                                        toAddress += mailPiece.RcptAddrOptionalLine2AboveStreet + "\n";
-
-                                    //Because Street address is must field
-                                    toAddress += mailPiece.RcptAddressStreet + "\n";
-
-                                    if (!string.IsNullOrEmpty(mailPiece.RcptAddrOptionalLine1BelowStreet))
-                                        toAddress += mailPiece.RcptAddrOptionalLine1BelowStreet + "\n";
-                                    if (!string.IsNullOrEmpty(mailPiece.RcptAddrOptionalLine2BelowStreet))
-                                        toAddress += mailPiece.RcptAddrOptionalLine2BelowStreet + "\n";
-                                    if (!string.IsNullOrEmpty(mailPiece.RcptAddressAptOrSuiteOrOther))
-                                        toAddress += mailPiece.RcptAddressAptOrSuiteOrOther + "\n";
-
-                                    //Because City,state,zip are must field for all client
-                                    toAddress += mailPiece.RcptAddressCity + " " + mailPiece.RcptAddressState + " " + mailPiece.RcptAddressZIP;
-                                }
-                                #endregion
-
-                                #region Prepare dictionary of placeholders/tags to fill the PDF template.
-                                Dictionary<string, string> mailPieceData = new Dictionary<string, string>();
-                                mailPieceData.Add("FromAddress", fromAddress);
-                                mailPieceData.Add("ToAddress", toAddress);
-                                mailPieceData.Add("MailPieceId", mailPieceId.ToString());
-                                mailPieceData.Add("Date", Common.Now.UtcToEst().ToString("MMMM dd, yyyy"));//USAA Specific
-                                mailPieceData.Add("Free3OF9Barcode", "*" + mailPiece.Id.ToString() + "*");//Barcode for non-IMBarcode cover letter
-                                mailPieceData.Add("UniqueId", "*" + mailPieceId.ToString() + "*");//Humanreadable code which is used for barcode
-                                mailPieceData.Add("MailPieceZip", mailPiece.RcptAddressZIP);
-                                mailPieceData.Add("LoanNbr", mailPiece.BusinessFriendlyIdValue);
-                                #endregion
-
-                                List<DocTypeCoverLetter> docTypeLetters = docTypeSvc.GetDocumentCoverLetterTemplates(docType.Id).OrderBy(o => o.SeqId).ToList();
-
-                                var frontCoverLetters = docTypeLetters.Where(seq => seq.SeqId <= 100);
-                                var rearCoverLetters = docTypeLetters.Where(seq => seq.SeqId > 100);
-
-                                SmartDocs doc = new SmartDocs();
-
-                                var docTypeLetter = frontCoverLetters.SingleOrDefault();
-                                //foreach (var docTypeLetter in frontCoverLetters)
-                                //{
-                                //Folder structure and file naming convention should be Root/AppCode/AppCode_DocTypeCode_SeqNo.pdf
-                                string coverLetterTemplatePath = docTypeLetter == null ? string.Empty : Path.Combine(Config.Core_CoverTemplateFolder, client.AppCode, docTypeLetter.CoverLetterTemplatePath);
-
-
-                                if (docType.ShippingCarrier == Carrier.USPS.ToString())
-                                {
-                                    if (docType.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS.ToString())
+                                    //if we have service changed to priority then we are updating doctypeid and its reletad data in database also
+                                    if (response.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY)
                                     {
-                                        eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name);
+                                        string priorityDocType = mailPiece.DocumentOrPackageType + Config.Monitor_PriorityMailingText;
+                                        docType = docTypeSvc.GetDocTypeByDocTypeName(client.Id, priorityDocType);
 
-                                        response = doc.GenerateeVSPriorityExpressCoverLetter(client.AppCode, commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq);
-
-                                        //if we have service changed to priority then we are updating doctypeid and its reletad data in database also
-                                        if (response.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY)
+                                        if (docType != null)
                                         {
-                                            string priorityDocType = mailPiece.DocumentOrPackageType + Config.Monitor_PriorityMailingText;
-                                            docType = docTypeSvc.GetDocTypeByDocTypeName(client.Id, priorityDocType);
+                                            var sweepTimings = commonSvc.GetSweepTimings();
 
-                                            if (docType != null)
-                                            {
-                                                var sweepTimings = commonSvc.GetSweepTimings();
+                                            mailPiece.DocTypeId = docType.Id;
 
-                                                mailPiece.DocTypeId = docType.Id;
+                                            mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(docType, mailBatch.ReceivedOn.Value);
 
-                                                mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(docType, mailBatch.ReceivedOn.Value);
+                                            //Calculate Due Date for Mail Pieces doc type wise
+                                            mailPiece.DueDate = commonSvc.GetDueDate(docType, mailPiece.EffectiveReceivedOnEst.Value);
 
-                                                //Calculate Due Date for Mail Pieces doc type wise
-                                                mailPiece.DueDate = commonSvc.GetDueDate(docType, mailPiece.EffectiveReceivedOnEst.Value);
+                                            //Set print location where mail piece will go for print and ship
+                                            mailPiece.PrintTrailId = commonSvc.GetPrintTrail(docType, mailPiece.EffectiveReceivedOnEst.Value);
 
-                                                //Set print location where mail piece will go for print and ship
-                                                mailPiece.PrintTrailId = commonSvc.GetPrintTrail(docType, mailPiece.EffectiveReceivedOnEst.Value);
+                                            var printVendorDetails = commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value);
+                                            mailPiece.PrintLocation = printVendorDetails.Name;
 
-                                                var printVendorDetails = commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value);
-                                                mailPiece.PrintLocation = printVendorDetails.Name;
+                                            mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, mailBatch.ReceivedOn.Value, sweepTimings);
 
-                                                mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, mailBatch.ReceivedOn.Value, sweepTimings);
-
-                                                mailPiece.MaxSubmissionTime = commonSvc.GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
-                                            }
-                                            else
-                                            {
-                                                throw new Exception("Priority document type does not exist.");
-                                            }
-                                        }
-                                    }
-                                    else if (docType.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY.ToString())
-                                    {
-                                        eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name);
-                                        eVSReq.ServiceType = AM.USPSLib.ServiceType.PRIORITY;
-                                        response = doc.GenerateeVSPriorityCoverLetter(client.AppCode, commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq);
-
-                                    }
-                                    else
-                                    {
-                                        //Create Cover letter with IMBarcode - USPS First Class
-                                        response = doc.GenerateUSPSIMBCoverLetter(client.AppCode, coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
-                                    }
-
-                                    if (response.HasError)
-                                    {
-                                        mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
-                                        mailPiece.TotalPages = 0;
-                                        mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                                        mailPiece.ErrorDesc = response.ExceptionDetail;
-                                        mailPiece.DueDate = null;
-                                        mailPiece.PrintLocation = null;
-                                        mailPiece.PrintTrailId = null;
-                                        mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
-                                        continue;
-                                    }
-
-                                    coverLetterPdfPaths.Add(response.CoverLetterPath);
-                                    mailPiece.TrackingNo = response.TrackingCode;
-                                    mailPiece.ShippingCost = response.PostageCost;
-                                }
-                                else if (docType.ShippingCarrier == Carrier.FedEx.ToString())
-                                {
-                                    #region  Call FedEx web service and get create shipping label
-
-                                    FedExAccountInfo fedExAccInfo = fedExSvc.GetFedExAccountDetailsByAccountCode(docType.ShippingAccountCode);
-
-                                    CreateFedExLabel createFedExLabel = new CreateFedExLabel();
-                                    response = new SmartDocResponse();
-                                    while (attemptCount < Config.Core_NoofTime_AttemptFedexService)
-                                    {
-                                        response = createFedExLabel.Create(mailPiece, fedExAccInfo, docType, mbi);
-                                        if (!response.HasError)
-                                        {
-                                            coverLetterPdfPaths.Add(createFedExLabel.GeneratedFedExLabelPath);
-                                            mailPiece.TrackingNo = Path.GetFileNameWithoutExtension(createFedExLabel.GeneratedFedExLabelPath);
-                                            break;
-                                        }
-                                        else if (response.HasError && (response.ExceptionCode == "3022" || response.ExceptionCode == "1000" || response.ExceptionCode == "2998" || response.ExceptionCode == "Unknown_Error" || response.ExceptionDetail.Contains("General Failure")))
-                                        {
-                                            System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
-                                            attemptCount++;
-
-                                            //Setting as an error suppose FedEx is failing continueously then System will consider as an unknown error for that mail piece
-                                            mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                                            mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
-                                            mailPiece.ErrorDesc = string.Format("{0}|{1}", OutComeCodes.Unknown_Error, response.ExceptionDetail);
+                                            mailPiece.MaxSubmissionTime = commonSvc.GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
                                         }
                                         else
                                         {
-                                            if (response.HasError && (response.ExceptionCode == "3051" || response.ExceptionCode == "3049" || response.ExceptionCode == "3052" || response.ExceptionDetail.Contains("Recipient Postal Code not Served") || response.ExceptionDetail.Contains("Recipient Postal Code not found") || response.ExceptionDetail.Contains("Recipient Postal-State Mismatch")))
-                                            {
-                                                //First try to generate eVS label with USPS Priority Express
-                                                string priorityExpressDocType = mailPiece.DocumentOrPackageType + Config.Monitor_ExpressMailingText;
+                                            throw new Exception("Priority document type does not exist.");
+                                        }
+                                    }
+                                }
+                                else if (docType.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY.ToString())
+                                {
+                                    eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name);
+                                    eVSReq.ServiceType = AM.USPSLib.ServiceType.PRIORITY;
+                                    response = doc.GenerateeVSPriorityCoverLetter(client.AppCode, commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq);
 
-                                                docType = docTypeSvc.GetDocTypeByDocTypeName(client.Id, priorityExpressDocType);
+                                }
+                                else
+                                {
+                                    //Create Cover letter with IMBarcode - USPS First Class
+                                    response = doc.GenerateUSPSIMBCoverLetter(client.AppCode, coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
+                                }
+
+                                if (response.HasError)
+                                {
+                                    mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
+                                    mailPiece.TotalPages = 0;
+                                    mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                    mailPiece.ErrorDesc = response.ExceptionDetail;
+                                    mailPiece.DueDate = null;
+                                    mailPiece.PrintLocation = null;
+                                    mailPiece.PrintTrailId = null;
+                                    mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                    continue;
+                                }
+
+                                coverLetterPdfPaths.Add(response.CoverLetterPath);
+                                mailPiece.TrackingNo = response.TrackingCode;
+                                mailPiece.ShippingCost = response.PostageCost;
+                            }
+                            else if (docType.ShippingCarrier == Carrier.FedEx.ToString())
+                            {
+                                #region  Call FedEx web service and get create shipping label
+
+                                FedExAccountInfo fedExAccInfo = fedExSvc.GetFedExAccountDetailsByAccountCode(docType.ShippingAccountCode);
+
+                                CreateFedExLabel createFedExLabel = new CreateFedExLabel();
+                                response = new SmartDocResponse();
+                                while (attemptCount < Config.Core_NoofTime_AttemptFedexService)
+                                {
+                                    response = createFedExLabel.Create(mailPiece, fedExAccInfo, docType, mbi);
+                                    if (!response.HasError)
+                                    {
+                                        coverLetterPdfPaths.Add(createFedExLabel.GeneratedFedExLabelPath);
+                                        mailPiece.TrackingNo = Path.GetFileNameWithoutExtension(createFedExLabel.GeneratedFedExLabelPath);
+                                        break;
+                                    }
+                                    else if (response.HasError && (response.ExceptionCode == "3022" || response.ExceptionCode == "1000" || response.ExceptionCode == "2998" || response.ExceptionCode == "Unknown_Error" || response.ExceptionDetail.Contains("General Failure")))
+                                    {
+                                        System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
+                                        attemptCount++;
+
+                                        //Setting as an error suppose FedEx is failing continueously then System will consider as an unknown error for that mail piece
+                                        mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                        mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
+                                        mailPiece.ErrorDesc = string.Format("{0}|{1}", OutComeCodes.Unknown_Error, response.ExceptionDetail);
+                                    }
+                                    else
+                                    {
+                                        if (response.HasError && (response.ExceptionCode == "3051" || response.ExceptionCode == "3049" || response.ExceptionCode == "3052" || response.ExceptionDetail.Contains("Recipient Postal Code not Served") || response.ExceptionDetail.Contains("Recipient Postal Code not found") || response.ExceptionDetail.Contains("Recipient Postal-State Mismatch")))
+                                        {
+                                            //First try to generate eVS label with USPS Priority Express
+                                            string priorityExpressDocType = mailPiece.DocumentOrPackageType + Config.Monitor_ExpressMailingText;
+
+                                            docType = docTypeSvc.GetDocTypeByDocTypeName(client.Id, priorityExpressDocType);
+                                            if (docType != null)
+                                            {
+                                                mailPiece.DocTypeId = docType.Id;
+                                            }
+
+                                            eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name);
+
+                                            response = doc.GenerateeVSPriorityExpressCoverLetter(client.AppCode, commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq);
+
+                                            //if eVS has changed service to USPS Priority then AM is updating doctypeid in database
+                                            if (response.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY)
+                                            {
+                                                string priorityDocType = mailPiece.DocumentOrPackageType + Config.Monitor_PriorityMailingText;
+
+                                                docType = docTypeSvc.GetDocTypeByDocTypeName(client.Id, priorityDocType);
                                                 if (docType != null)
                                                 {
                                                     mailPiece.DocTypeId = docType.Id;
                                                 }
+                                            }
 
-                                                eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name);
-
-                                                response = doc.GenerateeVSPriorityExpressCoverLetter(client.AppCode, commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq);
-
-                                                //if eVS has changed service to USPS Priority then AM is updating doctypeid in database
-                                                if (response.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY)
-                                                {
-                                                    string priorityDocType = mailPiece.DocumentOrPackageType + Config.Monitor_PriorityMailingText;
-
-                                                    docType = docTypeSvc.GetDocTypeByDocTypeName(client.Id, priorityDocType);
-                                                    if (docType != null)
-                                                    {
-                                                        mailPiece.DocTypeId = docType.Id;
-                                                    }
-                                                }
-
-                                                if (response.HasError)
-                                                {
-                                                    mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
-                                                    mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                                                    mailPiece.ErrorDesc = response.ExceptionDetail;
-                                                    break;
-                                                }
-
-                                                var sweepTimings = commonSvc.GetSweepTimings();
-
-                                                coverLetterPdfPaths.Add(response.CoverLetterPath);
-                                                mailPiece.TrackingNo = response.TrackingCode;
-                                                mailPiece.ShippingCost = response.PostageCost;
-                                                mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(docType, mailBatch.ReceivedOn.Value);
-
-                                                //Calculate Due Date for Mail Pieces doc type wise
-                                                mailPiece.DueDate = commonSvc.GetDueDate(docType, mailPiece.EffectiveReceivedOnEst.Value);
-
-                                                //Set print location where mail piece will go for print and ship
-                                                mailPiece.PrintTrailId = commonSvc.GetPrintTrail(docType, mailPiece.EffectiveReceivedOnEst.Value);
-
-                                                var printVendorDetails = commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value);
-                                                mailPiece.PrintLocation = printVendorDetails.Name;
-
-                                                mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, mailBatch.ReceivedOn.Value, sweepTimings);
-
-                                                mailPiece.MaxSubmissionTime = commonSvc.GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
+                                            if (response.HasError)
+                                            {
+                                                mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
+                                                mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                                mailPiece.ErrorDesc = response.ExceptionDetail;
                                                 break;
                                             }
 
+                                            var sweepTimings = commonSvc.GetSweepTimings();
 
-                                            mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                                            mailPiece.ErrorCode = OutComeCodes.Invalid_ShippingDetail;
-                                            mailPiece.ErrorDesc = string.Format("{0}|{1}", OutComeCodes.Invalid_ShippingDetail, response.ExceptionDetail);
+                                            coverLetterPdfPaths.Add(response.CoverLetterPath);
+                                            mailPiece.TrackingNo = response.TrackingCode;
+                                            mailPiece.ShippingCost = response.PostageCost;
+                                            mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(docType, mailBatch.ReceivedOn.Value);
+
+                                            //Calculate Due Date for Mail Pieces doc type wise
+                                            mailPiece.DueDate = commonSvc.GetDueDate(docType, mailPiece.EffectiveReceivedOnEst.Value);
+
+                                            //Set print location where mail piece will go for print and ship
+                                            mailPiece.PrintTrailId = commonSvc.GetPrintTrail(docType, mailPiece.EffectiveReceivedOnEst.Value);
+
+                                            var printVendorDetails = commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value);
+                                            mailPiece.PrintLocation = printVendorDetails.Name;
+
+                                            mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, mailBatch.ReceivedOn.Value, sweepTimings);
+
+                                            mailPiece.MaxSubmissionTime = commonSvc.GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
                                             break;
                                         }
-                                    }
 
-                                    if (response.HasError)
-                                    {
-                                        mailPiece.TotalPages = 0;
-                                        mailPiece.PrintLocation = null;
-                                        mailPiece.PrintTrailId = null;
-                                        mailPiece.DueDate = null;
-                                        //NOTE : If result false then mark as an error and update status for that mail piece
-                                        mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
-                                        continue;
-                                    }
 
-                                    #endregion
+                                        mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                        mailPiece.ErrorCode = OutComeCodes.Invalid_ShippingDetail;
+                                        mailPiece.ErrorDesc = string.Format("{0}|{1}", OutComeCodes.Invalid_ShippingDetail, response.ExceptionDetail);
+                                        break;
+                                    }
                                 }
-                                else
+
+                                if (response.HasError)
                                 {
-                                    if (!string.IsNullOrEmpty(coverLetterTemplatePath))
-                                    {
-                                        response = doc.GenerateFrontBarcodeCoverLetter(coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
-                                        if (response.HasError)
-                                        {
-                                            mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
-                                            mailPiece.TotalPages = 0;
-                                            mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                                            mailPiece.ErrorDesc = response.ExceptionDetail;
-                                            mailPiece.DueDate = null;
-                                            mailPiece.PrintLocation = null;
-                                            mailPiece.PrintTrailId = null;
-                                            mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
-                                            continue;
-                                        }
-
-                                        mailPiece.TrackingNo = mailPiece.Id.ToString();
-                                        coverLetterPdfPaths.Add(response.CoverLetterPath);
-                                    }
-
+                                    mailPiece.TotalPages = 0;
+                                    mailPiece.PrintLocation = null;
+                                    mailPiece.PrintTrailId = null;
+                                    mailPiece.DueDate = null;
+                                    //NOTE : If result false then mark as an error and update status for that mail piece
+                                    mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                    continue;
                                 }
-                                //}
 
-                                foreach (var rearCoverLetter in rearCoverLetters)
+                                #endregion
+                            }
+                            else
+                            {
+                                if (!string.IsNullOrEmpty(coverLetterTemplatePath))
                                 {
-                                    endPageTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, client.AppCode, rearCoverLetter.CoverLetterTemplatePath);
-                                    //For now reverse barcoding will be mail piece id
-                                    mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((mailPiece.TrackingNo).Reverse().ToArray()) + "*");
-
-                                    response = doc.GenerateLastPageWithBarcode(endPageTemplatePath, mbi.PnSRequestPath, mailPieceData);
-
+                                    response = doc.GenerateFrontBarcodeCoverLetter(coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
                                     if (response.HasError)
                                     {
                                         mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
@@ -426,35 +397,55 @@ namespace AM.Core
                                         continue;
                                     }
 
-                                    endLetterPdfPaths.Add(response.CoverLetterPath);
+                                    mailPiece.TrackingNo = mailPiece.Id.ToString();
+                                    coverLetterPdfPaths.Add(response.CoverLetterPath);
                                 }
 
-                                response = doc.GenerateDoc(coverLetterPdfPaths, pdfFilePath, outputFilePath, docType.ContentScalePercent, docType.NoOfCopies, endLetterPdfPaths);
+                            }
+                            //}
+
+                            foreach (var rearCoverLetter in rearCoverLetters)
+                            {
+                                endPageTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, client.AppCode, rearCoverLetter.CoverLetterTemplatePath);
+                                //For now reverse barcoding will be mail piece id
+                                mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((mailPiece.TrackingNo).Reverse().ToArray()) + "*");
+
+                                response = doc.GenerateLastPageWithBarcode(endPageTemplatePath, mbi.PnSRequestPath, mailPieceData);
 
                                 if (response.HasError)
                                 {
-                                    mailPiece.ErrorCode = OutComeCodes.Invalid_PDF_File;
+                                    mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
                                     mailPiece.TotalPages = 0;
-                                    mailPiece.DueDate = null;
-                                    mailPiece.PrintTrailId = null;
-                                    mailPiece.PrintLocation = null;
                                     mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                                     mailPiece.ErrorDesc = response.ExceptionDetail;
+                                    mailPiece.DueDate = null;
+                                    mailPiece.PrintLocation = null;
+                                    mailPiece.PrintTrailId = null;
+                                    mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                    continue;
                                 }
 
-                                mailPiece.TotalPages = response.TotalPages;
-                                mailPiece.TotalSheets = docType.PrintFormat == "Duplex" ? Convert.ToInt32(Math.Ceiling(mailPiece.TotalPages / 2f)) : mailPiece.TotalPages;
-
-                                mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                endLetterPdfPaths.Add(response.CoverLetterPath);
                             }
-                            catch (Exception ex)
+
+                            response = doc.GenerateDoc(coverLetterPdfPaths, pdfFilePath, outputFilePath, docType.ContentScalePercent, docType.NoOfCopies, endLetterPdfPaths);
+
+                            if (response.HasError)
                             {
-                                log.Error("Error occured while processing mail pieces {0}".Fill(mailPiece.Id), ex);
-
-                                // Send email to support team
-                                SendUnexpectedExceptionEmail(ex.ToString());
-                                continue;
+                                mailPiece.ErrorCode = OutComeCodes.Invalid_PDF_File;
+                                mailPiece.TotalPages = 0;
+                                mailPiece.DueDate = null;
+                                mailPiece.PrintTrailId = null;
+                                mailPiece.PrintLocation = null;
+                                mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                mailPiece.ErrorDesc = response.ExceptionDetail;
                             }
+
+                            mailPiece.TotalPages = response.TotalPages;
+                            mailPiece.TotalSheets = docType.PrintFormat == "Duplex" ? Convert.ToInt32(Math.Ceiling(mailPiece.TotalPages / 2f)) : mailPiece.TotalPages;
+
+                            mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+
                         }
 
                         try
