@@ -29,7 +29,7 @@ namespace AM.Services
             List<FedExReport> mailPieces;
             using (IReportService reportSvc = new ReportService())
             {
-                mailPieces = reportSvc.GetFedExData(new int[] { -1, 0 });
+                mailPieces = reportSvc.GetFedExData(new int[] { -1 });
             }
 
             if (mailPieces == null || mailPieces.Count == 0)
@@ -77,7 +77,7 @@ namespace AM.Services
                 {
                     if (trackDetail.Events != null)
                     {
-                        var trackEvent = trackDetail.Events.Where(c => c.EventType == "PU").FirstOrDefault();
+                        var trackEvent = trackDetail.Events.Where(c => c.EventType == "PU" || c.EventType == "DL").FirstOrDefault();
                         if (trackEvent != null)
                         {
                             FedExPickedPackagesDetail pickupDetail = new FedExPickedPackagesDetail();

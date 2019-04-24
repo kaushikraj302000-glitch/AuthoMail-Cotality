@@ -407,6 +407,15 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
                 }).ToList();
                 return data;
             }
+            else if (isPickedUp.Any(i => i == -1))
+            {
+                //This will provide today's not picked up records
+                var data = db.Query<FedExReport>(queryPreviousNotPickedUp, new
+                {
+                    todayEffectiveDate = Common.EstToday,
+                }).ToList();
+                return data;
+            }
             else
             {
                 //This will provide today's picked up records
