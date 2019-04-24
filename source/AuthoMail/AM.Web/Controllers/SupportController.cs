@@ -15,10 +15,14 @@ namespace AM.Web.Controllers
     {
         ISupportReportService supportSvc;
         IChartDataService chartDataSvc;
-        public SupportController(ISupportReportService supportSvc, IChartDataService chartDataSvc)
+        IReportService reportSvc;
+        IFedExService fedexSvc;
+        public SupportController(ISupportReportService supportSvc, IChartDataService chartDataSvc, IReportService reportSvc, IFedExService fedexSvc)
         {
             this.supportSvc = supportSvc;
             this.chartDataSvc = chartDataSvc;
+            this.reportSvc = reportSvc;
+            this.fedexSvc = fedexSvc;
         }
         // GET: Support
         public ActionResult NotReportedBackOfBatchSummary()
@@ -157,6 +161,25 @@ namespace AM.Web.Controllers
         {
             var model = chartDataSvc.GetMailPieceByParam(batchId, status);
             return Json(model.OrderByDescending(s => s.MailBatches.Id).ToList(), JsonRequestBehavior.AllowGet);
+        }
+        [HttpPost]
+        public ActionResult GetPickedUpMailPieces()
+        {
+            var model = reportSvc.GetFedExData();
+            return Json(model, JsonRequestBehavior.AllowGet);
+        }
+        [HttpGet]
+        public ActionResult CallFedExService()
+        {
+            try
+            {
+                fedexSvc.UpdateFedExTrackingInfo();
+                return Json(true, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception)
+            {
+                return Json(false, JsonRequestBehavior.AllowGet);
+            }
         }
     }
 }

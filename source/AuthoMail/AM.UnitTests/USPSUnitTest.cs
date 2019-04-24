@@ -6,6 +6,7 @@ using System.Data;
 using AM.USPSLib;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace AM.UnitTests
 {
@@ -15,7 +16,7 @@ namespace AM.UnitTests
         [TestMethod]
         public void USPSVerifyAdress()
         {
-            XLS excel = new XLS(@"E:\Projects\CoreLogic\AuthoMail\source\AuthoMail\AM.UnitTests\bin\Release\USPSTestData\TestUspsAdd.xlsx");
+            XLS excel = new XLS(@"USPSTestData\TestUspsAdd.xlsx");
 
             var group = excel.GetData().AsEnumerable().Select((x, index) => new { x, index }).GroupBy(x => x.index / 5, y => y.x).Select(s => s.Select(item => new AddressRequest()
             {
@@ -58,10 +59,10 @@ namespace AM.UnitTests
 
                     res.Add(result);
 
-                    //Thread.Sleep(rdm.Next(1, 6) * 1000);
+                    Thread.Sleep(rdm.Next(1, 6) * 1000);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
 
