@@ -208,7 +208,7 @@
                                 </button>
                             </div>
                         </div>
-                        
+
                     </div>
                 </form>
 
@@ -584,375 +584,382 @@
     @Scripts.Render("~/bundles/datatables")
 
     <script type="text/javascript">
-    $(document).ready(function () {
-        //window.clui.dateTimePickerInit();
-        var dateTemplate = '<div class="daterangepicker dropdown-menu">' + '<div class="calendar left">' + '<div class="calendar-table"></div>' + '</div>' + '<div class="calendar right">' + '<div class="calendar-table"></div>' + '</div>' + '<div class="ranges">' + '<div class="range_inputs">' + '<button class="applyBtn" disabled="disabled" type="button"></button> ' + '<button class="cancelBtn" type="button"></button>' + '</div>' + '</div>' + '</div>';
-        $("#receivedOn").daterangepicker({
-            autoApply: true,
-            template: dateTemplate,
-            showCustomRangeLabel: false,
-            autoUpdateInput: false
-        });
+        $(document).ready(function () {
+            //window.clui.dateTimePickerInit();
+            var dateTemplate = '<div class="daterangepicker dropdown-menu">' + '<div class="calendar left">' + '<div class="calendar-table"></div>' + '</div>' + '<div class="calendar right">' + '<div class="calendar-table"></div>' + '</div>' + '<div class="ranges">' + '<div class="range_inputs">' + '<button class="applyBtn" disabled="disabled" type="button"></button> ' + '<button class="cancelBtn" type="button"></button>' + '</div>' + '</div>' + '</div>';
+            $("#receivedOn").daterangepicker({
+                autoApply: true,
+                template: dateTemplate,
+                showCustomRangeLabel: false,
+                autoUpdateInput: false
+            });
 
-        $('#receivedOn').on('apply.daterangepicker', function (ev, picker) {
-            $(this).val(picker.startDate.format('MM/DD/YYYY') + ' - ' + picker.endDate.format('MM/DD/YYYY'));
-        });
+            $('#receivedOn').on('apply.daterangepicker', function (ev, picker) {
+                $(this).val(picker.startDate.format('MM/DD/YYYY') + ' - ' + picker.endDate.format('MM/DD/YYYY'));
+            });
 
-        FilterData();
-        $('#searchform').validate({ // initialize the plugin
-            errorElement: "span",
-            rules: {
-                BatchId: {
-                    number: true,
-                    min: 1,
-                    maxlength: 8
-                }
-            }
-        });
-        // JSON.useDateParser(false);
-    });
-
-
-    function ViewDetails(obj) {
-        //alert("call");
-        var mailPieceId = $(obj).data("mailpieceid");
-        //console.log(mailPieceId);
-        $("#databind").html("");
-        $("#ViewInfo").modal("show");
-        $("#loadingModal").show();
-        $.ajax({
-            type: "GET",
-            url: baseUrl + "Home/GetMailPieceByUniqueId",
-            data: {
-                mailPieceId: mailPieceId
-            },
-            //contentType: "application/json; charset=utf-8",
-            success: function (response) {
-                //console.log(response);
-                if (response.Success) {
-                    if (response.Object != null) {
-                        if (response.Object.model != null) {
-                            $("#loadingModal").hide();
-                            var data = FormatMailPieceObject(response.Object.model);
-                            var bodyHtml = $("#templatemodal").html();
-                            $("#databind").html("");
-                            bodyHtml = bodyHtml.supplant(data);
-                            $("#databind").html(bodyHtml);
-                            $('[data-toggle="popover"]').popover({
-                                'trigger': 'hover',
-                                'placement': 'auto left',
-                                'container': 'body'
-                            });
-                            window.clui.tooltipInit();
-                        }
-                        else {
-                            $("#loadingModal").hide();
-                            $("#databind").html("");
-                            $("#showerror").show();
-                            $("#showerror").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>");
-
-                        }
+            FilterData();
+            $('#searchform').validate({ // initialize the plugin
+                errorElement: "span",
+                rules: {
+                    BatchId: {
+                        number: true,
+                        min: 1,
+                        maxlength: 8
                     }
-                } else {
-                    $("#loadingModal").hide();
-                    $("#databind").html("");
-                    $("#showerror").show();
-                    $("#searchMailPieceList").show();
-                    $("#showerror").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + response.ErrorMessage + "</span></div>");
-                    // $("#ViewInfo").modal("show");
                 }
-            },
-            error: function (xhr, ajaxOptions, thrownError) {
-                $("#showerror").show();
-                $("#loadingModal").hide();
-                var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
-                $("#showerror").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
-                $("#ViewInfo").modal("show");
-            }
-
+            });
+            // JSON.useDateParser(false);
         });
-        //$("#ViewInfo").find(".modal-body").text(mailPieceId);
 
-    }
-    function shortName(str) {
-        //console.log(str);
-        if (typeof str != 'undefined' && str != null && str != "")
-            return str.length > 31 ? str.substring(0, 31) + '...' : str;
-    }
-    function MakeYesNoLabel(isbool) {
-        var val = (isbool == true || isbool == 1) ? '<span  class="label medium label-yellow">Yes</span>' : '<span class="label medium label-success">No</span>';
-        return val;
-    }
-    function FormatMailPieceObject(Model) {
 
-        $(Model).each(function () {
-            //console.log(Model)
-            this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
-            this.IsPrinted = MakeYesNoLabel(this.IsPrinted);
-            this.IsShipped = MakeYesNoLabel(this.IsShipped);
-            this.IsQCRequested = MakeYesNoLabel(this.IsQCRequested);
-            this.IsQCPerformed = MakeYesNoLabel(this.IsQCPerformed);
-            this.IsPullBackRequested = MakeYesNoLabel(this.IsPullBackRequested);
-            this.IsPulledBack = MakeYesNoLabel(this.IsPulledBack);
-            this.IsRcptInfoSpecified = MakeYesNoLabel(this.IsRcptInfoSpecified);
-            this.SLADays = parseInt(this.SLADays / 86400);
-            this.ShortBatchName = shortName(this.BatchName);
-            this.ShortFileName = shortName(this.FileName);
-            this.ShortPrintFileName = shortName(this.PrintFileName);
-            this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
-            this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
-            this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
-            this.PulledBackOnFormatted = this.PulledBackOn == null ? "--" : moment(this.PulledBackOn).format("MM/DD/YY HH:mm:ss");
-            //this.RcptName = this.RcptFirstName + " " + this.RcptMiddleName + " " + this.RcptLastName;
-            this.RcptName = this.RcptName == null ? "" : this.RcptName.trim();
-            //this.RcptAddress = this.RcptAddrOptionalLine1AboveStreet + " " + this.RcptAddrOptionalLine2AboveStreet + " " + this.RcptAddressStreet + " " + this.RcptAddressAptOrSuiteOrOther + " " + this.RcptAddrOptionalLine1BelowStreet + " " + this.RcptAddrOptionalLine2BelowStreet + " " + this.RcptAddressCity + " " + this.RcptAddressState + " " + this.RcptAddressZIP;
-            var cityStateZip = this.RcptAddressCity + " " + this.RcptAddressState + " " + this.RcptAddressZIP;
-            this.RcptAddress = this.RcptAddress == null ? "" : this.RcptAddress.trim() + (cityStateZip != "" ? ", " + cityStateZip : "");
-            //this.CoRcptName = this.CoRcptPrefix + " " + this.CoRcptFirstName + " " + this.CoRcptMiddleName + " " + this.CoRcptLastName + " " + this.CoRcptSuffix;
-            //this.CoRcptName = this.CoRcptName.replace(/null/g, "").trim();
-            //this.CoRcptName = this.CoRcptName == "" ? "--" : this.CoRcptName;
-            //this.ReturnRcptName = this.RetRcptPrefix + " " + this.RetRcptFirstName + " " + this.RetRcptMiddleName + " " + this.RetRcptLastName + " " + this.RetRcptSuffix
-            var returnCityStateZip = this.RetRcptAddressCity + " " + this.RetRcptAddressState + " " + this.RetRcptAddressZIP;
-            this.RetRcptName = this.RetRcptName == null ? "" : this.RetRcptName.replace(/null/g, "").trim() + (returnCityStateZip != "" ? ", " + returnCityStateZip : "");
-            //this.ReturnRcptAddress = this.RetRcptAddrOptionalLine1AboveStreet + " " + this.RetRcptAddrOptionalLine2AboveStreet + " " + this.RetRcptAddressStreet + " " + this.RetRcptAddressAptOrSuiteOrOther + " " + this.RetRcptAddrOptionalLine1BelowStreet + " " + this.RetRcptAddrOptionalLine2BelowStreet + " " + this.RetRcptAddressCity + " " + this.RetRcptAddressState + " " + this.RetRcptAddressZIP;
-            this.RetRcptAddress = this.RetRcptAddress == null ? "" : this.RetRcptAddress.replace(/null/g, "").trim();
-            switch (this.ShippingStatus) {
-
-                case "PulledBack":
-                    status = '<span class="label medium label-yellow">' + this.ShippingStatus + '</span>';
-
-                    break;
-                case "Error":
-                    status = '<span class="label medium label-red">' + this.ShippingStatus + '</span>';
-                    //status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error Code: ' + this.ErrorCode + '" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.Status + '</span>';
-                    break;
-                case "Shipped":
-                    status = '<span class="label medium label-success">' + this.ShippingStatus + '</span>';
-                    break;
-                case "InProgress":
-                    status = '<span class="label medium label-blue">' + this.ShippingStatus + '</span>';
-                    break;
-
-            }
-            this.ShippingStatus = status;
-            var trackingNo = "";
-            if (this.TrackingNo == null || this.TrackingNo == "") {
-
-                trackingNo = "--";
-            }
-            else {
-                trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/track/' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
-
-                //if (this.DocTypes.ShippingServiceType == "USPS") {
-                //if (this.ShippingMethod == "USPS") {
-                //    if (this.TrackingNo.indexOf("00310901599685") == -1) {
-                //        trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="https://m.usps.com/m/TrackConfirmAction_detail?tLabels=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
-                //    } else {
-                //        trackingNo = '<button id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
-                //    }
-                //    //trackingNo = '<button id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.DocTypes.ShippingServiceType + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
-                //}
-                //else {
-                //    trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="http://www.fedex.com/Tracking?cntry_code=us&action=1&track=y&tracknumbers=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
-                //}
-            }
-            this.TrackingNoFormatted = trackingNo;
-            var eddDesc = '<span id="popoverError" data-toggle="popover" data-original-title="Error Code: <ErrorCode>" data-html="true" data-content="<dataContent>" data-placement="left"><a> <ErrorCode> </a></span>'.replace(/<ErrorCode>/g, this.ErrorCode).replace("<dataContent>", this.ErrorDesc == null ? "--" : this.ErrorDesc);
-            this.ErrorDescPopover = this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>' : eddDesc;
-        });
-        //console.log(Model);
-        return Model;
-    }
-    function FormatObject(Model) {
-        //console.log(Model);
-        $(Model).each(function () {
-            //this.ReceivedOnFormatted = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
-            this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
-            this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
-            this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
-            this.RcptNameFormatted = this.FirstName + " " + this.LastName;
-            this.CityFormatted = this.City + " " + this.State + " " + this.ZIP;
-            var status = "";
-            this.View = (this.LoanNumber != null ? '<a class="viewdetails" style="cursor:pointer" onclick="ViewDetails(this)" data-mailpieceid="' + this.UniqueId + '">' + this.LoanNumber + '</a>' : "--");
-            this.ErrorDesc = this.ErrorDesc != null ? this.ErrorDesc.replace(/"/g, '\'') : "";
-            switch (this.Status) {
-
-                case "PulledBack":
-                    status = '<span class="label medium label-yellow">' + this.Status + '</span>';
-
-                    break;
-                case "Error":
-                    status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error Code: ' + this.ErrorCode + '" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.Status + '</span>';
-                    break;
-                case "Shipped":
-                    status = '<span class="label medium label-success">' + this.Status + '</span>';
-                    break;
-                case "InProgress":
-                    status = '<span class="label medium label-blue">' + this.Status + '</span>';
-                    break;
-
-            }
-            this.ShippingStatusFormatted = status;
-            var trackingNo = "";
-            //console.log(this.TrackingNo + ":trackingNo");
-            if (this.TrackingNo == null || this.TrackingNo == "") {
-
-                trackingNo = "--";
-            }
-            else {
-                //trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/Track/' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
-                trackingNo = '<a id="' + this.TrackingNo + '" data-toggle="tooltip" data-container="body" data-placement="top" title="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" href="/track/' + this.TrackingNo + '" target="_blank"><i style="margin-top: 2px;" class="fa fa-map-marker fa-2x"></i> </a>';
-                //if (this.ShippingCarrier == "USPS" && this.ShippingMethod == "PRIORITY_EXPRESS") {
-
-                //    trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="https://m.usps.com/m/TrackConfirmAction_detail?tLabels=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
-                //} else if (this.ShippingCarrier == "USPS" && this.ShippingMethod == "USPS") {
-                //    trackingNo = '<button id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
-
-                //}
-                //else if (this.ShippingCarrier == "FedEx") {
-                //    trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="http://www.fedex.com/Tracking?cntry_code=us&action=1&track=y&tracknumbers=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
-                //} else {
-                //    trackingNo = "--";
-                //}
-            }
-            this.TrackingNoFormatted = trackingNo;
-            //this.TrackingNo == null ? "--" : '<button id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
-        });
-        return Model;
-    }
-    function applyDataTable() {
-        $('[data-toggle="popover"]').popover({
-            'trigger': 'hover',
-            'placement': 'auto right',
-            'container': 'body'
-        });
-        var table = $('#sample_2');
-        var filename = "Search";
-        var title = "Search";
-        var oTable = table.dataTable({
-
-            "language": {
-                "aria": {
-                    "sortAscending": ": activate to sort column ascending",
-                    "sortDescending": ": activate to sort column descending"
+        function ViewDetails(obj) {
+            //alert("call");
+            var mailPieceId = $(obj).data("mailpieceid");
+            //console.log(mailPieceId);
+            $("#databind").html("");
+            $("#ViewInfo").modal("show");
+            $("#loadingModal").show();
+            $.ajax({
+                type: "GET",
+                url: baseUrl + "Home/GetMailPieceByUniqueId",
+                data: {
+                    mailPieceId: mailPieceId
                 },
-                "emptyTable": "No data available in table",
-                "info": "Showing _START_ to _END_ of _TOTAL_ entries",
-                "infoEmpty": "No entries found",
-                "infoFiltered": "(filtered1 from _MAX_ total entries)",
-                "lengthMenu": "_MENU_ entries",
-                "search": "<b>Search:</b>",
-                "zeroRecords": "No matching records found"
-            },
-            "columnDefs": [
-                   {
-                       "targets": ["TrackingNoHide", "ErrorCode", "ErrorText", "BatchId"],
-                       "visible": false,
-                       "searchable": true
-                   },
-            ],
-            buttons: [
-              //{
-              //    extend: 'csv',
-              //    text: '<i class="fa fa-file-excel-o fa-2x"></i>',
-              //    className: 'btn btn-primary',
-              //    filename: filename,
-              //    title: title,
-              //    exportOptions: {
-              //        columns: ["thead th:not(.TrackingNo)", ".TrackingNoHide", ".ErrorCode", ".ErrorText"],
-              //    }
+                //contentType: "application/json; charset=utf-8",
+                success: function (response) {
+                    //console.log(response);
+                    if (response.Success) {
+                        if (response.Object != null) {
+                            if (response.Object.model != null) {
+                                $("#loadingModal").hide();
+                                var data = FormatMailPieceObject(response.Object.model);
+                                var bodyHtml = $("#templatemodal").html();
+                                $("#databind").html("");
+                                bodyHtml = bodyHtml.supplant(data);
+                                $("#databind").html(bodyHtml);
+                                $('[data-toggle="popover"]').popover({
+                                    'trigger': 'hover',
+                                    'placement': 'auto left',
+                                    'container': 'body'
+                                });
+                                window.clui.tooltipInit();
+                            }
+                            else {
+                                $("#loadingModal").hide();
+                                $("#databind").html("");
+                                $("#showerror").show();
+                                $("#showerror").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>");
 
-              //}
-
-            ],
-
-            "scrollX": true,
-
-            "order": [
-                [1, 'asc']
-            ],
-            "lengthMenu": [
-                [5, 10, 25, 50, 100, -1],
-                [5, 10, 25, 50, 100, "All"] // change per page values here
-            ],
-            // set the initial value
-            "pageLength": 5,
-
-            "dom": "<'row' <'col-md-12'B>><'row'<'col-md-6 col-sm-12'l><'col-md-6 col-sm-12'f>r><'table-scrollable't><'row'<'col-md-5 col-sm-12'i><'col-md-7 col-sm-12'p>>", // horizobtal scrollable datatable
-
-
-        });
-
-
-    }
-    function FilterData() {
-        $("#searchHeader").hide();
-        $("#searchMailPieceList").hide();
-        var el = $('#searchMailPieceList');
-        var startDate = "";
-        var endDate = "";
-        if ($("#receivedOn").val() != "") {
-            var selectedData = $("#receivedOn").val().split('-');
-            startDate = moment(selectedData[0].trim()).format("MM/DD/YY");
-            endDate = moment(selectedData[1].trim()).format("MM/DD/YY");
-            console.log(selectedData)
-            $("#headerdate").html(startDate + " to " + endDate + " EST");
-        } else {
-            $("#receivedOn").val("");
-            $("#headerdate").empty();
-            startDate = "";
-            endDate = "";
-        }
-        $("#loading").show();
-        //$("#headerdate").html(startDate + " to " + endDate + " EST");
-        $.ajax({
-            type: "POST",
-            url: baseUrl + "Home/_GetSearchData",
-            data: JSON.stringify({
-                BusinessFriendlyIdName: $("#BusinessFriendlyIdName").val(),
-                BusinessFriendlyIdValue: $("#BusinessFriendlyIdValue").val(),
-                DocType: $("#DocType").val(),
-                Status: $("#Status").val(),
-                Channel: $("#Channel").val(),
-                receivedOnStart: startDate,
-                receivedOnEnd: endDate,
-                trackingNumber: $("#TrackingNumber").val(),
-                clientBatchId: $("#ClientBatchId").val(),
-                batchId: $("#BatchId").val(),
-                errorCode: $("#ErrorCode").val()
-
-            }),
-            contentType: "application/json; charset=utf-8",
-            success: function (response) {
-                // //console.log(response);
-                if (response.Success) {
-                    $("#loading").hide();
-                    $("#searchHeader").show();
-                    $("#searchMailPieceList").show();
-                    if (response.Object != null) {
-                        //console.log(response.Object.model.length);
-                        if (response.Object.model.length > 0) {
-                            $("#searchMailPieceList").html("");
-                            var data = FormatObject(response.Object.model);
-                            BindTemplate(data, "#SearchBody", "#SearchbodyContent", "#SearchTableContent", "#searchMailPieceList");
-                            window.clui.tooltipInit();
+                            }
                         }
-                        else {
-                            $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
-                        }
+                    } else {
+                        $("#loadingModal").hide();
+                        $("#databind").html("");
+                        $("#showerror").show();
+                        $("#searchMailPieceList").show();
+                        $("#showerror").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + response.ErrorMessage + "</span></div>");
+                        // $("#ViewInfo").modal("show");
                     }
-                } else {
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    $("#showerror").show();
+                    $("#loadingModal").hide();
+                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
+                    $("#showerror").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
+                    $("#ViewInfo").modal("show");
+                }
+
+            });
+            //$("#ViewInfo").find(".modal-body").text(mailPieceId);
+
+        }
+        function shortName(str) {
+            //console.log(str);
+            if (typeof str != 'undefined' && str != null && str != "")
+                return str.length > 31 ? str.substring(0, 31) + '...' : str;
+        }
+        function MakeYesNoLabel(isbool) {
+            var val = (isbool == true || isbool == 1) ? '<span  class="label medium label-yellow">Yes</span>' : '<span class="label medium label-success">No</span>';
+            return val;
+        }
+        function FormatMailPieceObject(Model) {
+
+            $(Model).each(function () {
+                //console.log(Model)
+                this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                this.IsPrinted = MakeYesNoLabel(this.IsPrinted);
+                this.IsShipped = MakeYesNoLabel(this.IsShipped);
+                this.IsQCRequested = MakeYesNoLabel(this.IsQCRequested);
+                this.IsQCPerformed = MakeYesNoLabel(this.IsQCPerformed);
+                this.IsPullBackRequested = MakeYesNoLabel(this.IsPullBackRequested);
+                this.IsPulledBack = MakeYesNoLabel(this.IsPulledBack);
+                this.IsRcptInfoSpecified = MakeYesNoLabel(this.IsRcptInfoSpecified);
+                this.SLADays = parseInt(this.SLADays / 86400);
+                this.ShortBatchName = shortName(this.BatchName);
+                this.ShortFileName = shortName(this.FileName);
+                this.ShortPrintFileName = shortName(this.PrintFileName);
+                this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
+                this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
+                this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
+                this.PulledBackOnFormatted = this.PulledBackOn == null ? "--" : moment(this.PulledBackOn).format("MM/DD/YY HH:mm:ss");
+                //this.RcptName = this.RcptFirstName + " " + this.RcptMiddleName + " " + this.RcptLastName;
+                this.RcptName = this.RcptName == null ? "" : this.RcptName.trim();
+                //this.RcptAddress = this.RcptAddrOptionalLine1AboveStreet + " " + this.RcptAddrOptionalLine2AboveStreet + " " + this.RcptAddressStreet + " " + this.RcptAddressAptOrSuiteOrOther + " " + this.RcptAddrOptionalLine1BelowStreet + " " + this.RcptAddrOptionalLine2BelowStreet + " " + this.RcptAddressCity + " " + this.RcptAddressState + " " + this.RcptAddressZIP;
+                var cityStateZip = this.RcptAddressCity + " " + this.RcptAddressState + " " + this.RcptAddressZIP;
+                this.RcptAddress = this.RcptAddress == null ? "" : this.RcptAddress.trim() + (cityStateZip != "" ? ", " + cityStateZip : "");
+                //this.CoRcptName = this.CoRcptPrefix + " " + this.CoRcptFirstName + " " + this.CoRcptMiddleName + " " + this.CoRcptLastName + " " + this.CoRcptSuffix;
+                //this.CoRcptName = this.CoRcptName.replace(/null/g, "").trim();
+                //this.CoRcptName = this.CoRcptName == "" ? "--" : this.CoRcptName;
+                //this.ReturnRcptName = this.RetRcptPrefix + " " + this.RetRcptFirstName + " " + this.RetRcptMiddleName + " " + this.RetRcptLastName + " " + this.RetRcptSuffix
+                var returnCityStateZip = this.RetRcptAddressCity + " " + this.RetRcptAddressState + " " + this.RetRcptAddressZIP;
+                this.RetRcptName = this.RetRcptName == null ? "" : this.RetRcptName.replace(/null/g, "").trim() + (returnCityStateZip != "" ? ", " + returnCityStateZip : "");
+                //this.ReturnRcptAddress = this.RetRcptAddrOptionalLine1AboveStreet + " " + this.RetRcptAddrOptionalLine2AboveStreet + " " + this.RetRcptAddressStreet + " " + this.RetRcptAddressAptOrSuiteOrOther + " " + this.RetRcptAddrOptionalLine1BelowStreet + " " + this.RetRcptAddrOptionalLine2BelowStreet + " " + this.RetRcptAddressCity + " " + this.RetRcptAddressState + " " + this.RetRcptAddressZIP;
+                this.RetRcptAddress = this.RetRcptAddress == null ? "" : this.RetRcptAddress.replace(/null/g, "").trim();
+                switch (this.ShippingStatus) {
+
+                    case "PulledBack":
+                        status = '<span class="label medium label-yellow">' + this.ShippingStatus + '</span>';
+
+                        break;
+                    case "Error":
+                        status = '<span class="label medium label-red">' + this.ShippingStatus + '</span>';
+                        //status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error Code: ' + this.ErrorCode + '" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.Status + '</span>';
+                        break;
+                    case "Shipped":
+                        status = '<span class="label medium label-success">' + this.ShippingStatus + '</span>';
+                        break;
+                    case "InProgress":
+                        status = '<span class="label medium label-blue">' + this.ShippingStatus + '</span>';
+                        break;
+
+                }
+                this.ShippingStatus = status;
+                var trackingNo = "";
+                if (this.TrackingNo == null || this.TrackingNo == "") {
+
+                    trackingNo = "--";
+                }
+                else {
+                    trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/track/' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
+
+                    //if (this.DocTypes.ShippingServiceType == "USPS") {
+                    //if (this.ShippingMethod == "USPS") {
+                    //    if (this.TrackingNo.indexOf("00310901599685") == -1) {
+                    //        trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="https://m.usps.com/m/TrackConfirmAction_detail?tLabels=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
+                    //    } else {
+                    //        trackingNo = '<button id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
+                    //    }
+                    //    //trackingNo = '<button id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.DocTypes.ShippingServiceType + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
+                    //}
+                    //else {
+                    //    trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="http://www.fedex.com/Tracking?cntry_code=us&action=1&track=y&tracknumbers=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
+                    //}
+                }
+                this.TrackingNoFormatted = trackingNo;
+                var eddDesc = '<span id="popoverError" data-toggle="popover" data-original-title="Error Code: <ErrorCode>" data-html="true" data-content="<dataContent>" data-placement="left"><a> <ErrorCode> </a></span>'.replace(/<ErrorCode>/g, this.ErrorCode).replace("<dataContent>", this.ErrorDesc == null ? "--" : this.ErrorDesc);
+                this.ErrorDescPopover = this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>' : eddDesc;
+            });
+            //console.log(Model);
+            return Model;
+        }
+        function FormatObject(Model) {
+            //console.log(Model);
+            $(Model).each(function () {
+                //this.ReceivedOnFormatted = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
+                this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
+                this.RcptNameFormatted = this.FirstName + " " + this.LastName;
+                this.CityFormatted = this.City + " " + this.State + " " + this.ZIP;
+                var status = "";
+                this.View = (this.LoanNumber != null ? '<a class="viewdetails" style="cursor:pointer" onclick="ViewDetails(this)" data-mailpieceid="' + this.UniqueId + '">' + this.LoanNumber + '</a>' : "--");
+                this.ErrorDesc = this.ErrorDesc != null ? this.ErrorDesc.replace(/"/g, '\'') : "";
+                switch (this.Status) {
+
+                    case "PulledBack":
+                        status = '<span class="label medium label-yellow">' + this.Status + '</span>';
+
+                        break;
+                    case "Error":
+                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error Code: ' + this.ErrorCode + '" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.Status + '</span>';
+                        break;
+                    case "Shipped":
+                        status = '<span class="label medium label-success">' + this.Status + '</span>';
+                        break;
+                    case "InProgress":
+                        status = '<span class="label medium label-blue">' + this.Status + '</span>';
+                        break;
+
+                }
+                this.ShippingStatusFormatted = status;
+                var trackingNo = "";
+                //console.log(this.TrackingNo + ":trackingNo");
+                if (this.TrackingNo == null || this.TrackingNo == "") {
+
+                    trackingNo = "--";
+                }
+                else {
+                    //trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/Track/' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
+                    trackingNo = '<a id="' + this.TrackingNo + '" data-toggle="tooltip" data-container="body" data-placement="top" title="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" href="/track/' + this.TrackingNo + '" target="_blank"><i style="margin-top: 2px;" class="fa fa-map-marker fa-2x"></i> </a>';
+                    //if (this.ShippingCarrier == "USPS" && this.ShippingMethod == "PRIORITY_EXPRESS") {
+
+                    //    trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="https://m.usps.com/m/TrackConfirmAction_detail?tLabels=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
+                    //} else if (this.ShippingCarrier == "USPS" && this.ShippingMethod == "USPS") {
+                    //    trackingNo = '<button id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
+
+                    //}
+                    //else if (this.ShippingCarrier == "FedEx") {
+                    //    trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="http://www.fedex.com/Tracking?cntry_code=us&action=1&track=y&tracknumbers=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
+                    //} else {
+                    //    trackingNo = "--";
+                    //}
+                }
+                this.TrackingNoFormatted = trackingNo;
+                //this.TrackingNo == null ? "--" : '<button id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
+            });
+            return Model;
+        }
+        function applyDataTable() {
+            $('[data-toggle="popover"]').popover({
+                'trigger': 'hover',
+                'placement': 'auto right',
+                'container': 'body'
+            });
+            var table = $('#sample_2');
+            var filename = "Search";
+            var title = "Search";
+            var oTable = table.dataTable({
+
+                "language": {
+                    "aria": {
+                        "sortAscending": ": activate to sort column ascending",
+                        "sortDescending": ": activate to sort column descending"
+                    },
+                    "emptyTable": "No data available in table",
+                    "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+                    "infoEmpty": "No entries found",
+                    "infoFiltered": "(filtered1 from _MAX_ total entries)",
+                    "lengthMenu": "_MENU_ entries",
+                    "search": "<b>Search:</b>",
+                    "zeroRecords": "No matching records found"
+                },
+                "columnDefs": [
+                       {
+                           "targets": ["TrackingNoHide", "ErrorCode", "ErrorText", "BatchId"],
+                           "visible": false,
+                           "searchable": true
+                       },
+                ],
+                buttons: [
+                  //{
+                  //    extend: 'csv',
+                  //    text: '<i class="fa fa-file-excel-o fa-2x"></i>',
+                  //    className: 'btn btn-primary',
+                  //    filename: filename,
+                  //    title: title,
+                  //    exportOptions: {
+                  //        columns: ["thead th:not(.TrackingNo)", ".TrackingNoHide", ".ErrorCode", ".ErrorText"],
+                  //    }
+
+                  //}
+
+                ],
+
+                "scrollX": true,
+
+                "order": [
+                    [1, 'asc']
+                ],
+                "lengthMenu": [
+                    [5, 10, 25, 50, 100, -1],
+                    [5, 10, 25, 50, 100, "All"] // change per page values here
+                ],
+                // set the initial value
+                "pageLength": 5,
+
+                "dom": "<'row' <'col-md-12'B>><'row'<'col-md-6 col-sm-12'l><'col-md-6 col-sm-12'f>r><'table-scrollable't><'row'<'col-md-5 col-sm-12'i><'col-md-7 col-sm-12'p>>", // horizobtal scrollable datatable
+
+
+            });
+
+
+        }
+        function FilterData() {
+            $("#searchHeader").hide();
+            $("#searchMailPieceList").hide();
+            var el = $('#searchMailPieceList');
+            var startDate = "";
+            var endDate = "";
+            if ($("#receivedOn").val() != "") {
+                var selectedData = $("#receivedOn").val().split('-');
+                startDate = moment(selectedData[0].trim()).format("MM/DD/YY");
+                endDate = moment(selectedData[1].trim()).format("MM/DD/YY");
+                console.log(selectedData)
+                $("#headerdate").html(startDate + " to " + endDate + " EST");
+            } else {
+                $("#receivedOn").val("");
+                $("#headerdate").empty();
+                startDate = "";
+                endDate = "";
+            }
+            $("#loading").show();
+            //$("#headerdate").html(startDate + " to " + endDate + " EST");
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "Home/_GetSearchData",
+                data: JSON.stringify({
+                    BusinessFriendlyIdName: $("#BusinessFriendlyIdName").val(),
+                    BusinessFriendlyIdValue: $("#BusinessFriendlyIdValue").val(),
+                    DocType: $("#DocType").val(),
+                    Status: $("#Status").val(),
+                    Channel: $("#Channel").val(),
+                    receivedOnStart: startDate,
+                    receivedOnEnd: endDate,
+                    trackingNumber: $("#TrackingNumber").val(),
+                    clientBatchId: $("#ClientBatchId").val(),
+                    batchId: $("#BatchId").val(),
+                    errorCode: $("#ErrorCode").val()
+
+                }),
+                contentType: "application/json; charset=utf-8",
+                success: function (response) {
+                    // //console.log(response);
+                    if (response.Success) {
+                        $("#loading").hide();
+                        $("#searchHeader").show();
+                        $("#searchMailPieceList").show();
+                        if (response.Object != null) {
+                            console.log(response.Object.model);
+                            if (response.Object.model.Key <= 1200) {
+                                if (response.Object.model.Value.length > 0) {
+                                    $("#searchMailPieceList").html("");
+                                    var data = FormatObject(response.Object.model.Value);
+                                    BindTemplate(data, "#SearchBody", "#SearchbodyContent", "#SearchTableContent", "#searchMailPieceList");
+                                    window.clui.tooltipInit();
+                                }
+                                else {
+                                    $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                                }
+                            } else if (response.Object.model.Key >= 1200 && response.Object.model.Key <= 10000) {
+                                $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-blue'><span class='sbold'>More then 1200</span></div>")
+                            } else {
+                                $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-blue'><span class='sbold'>More then 10000</span></div>")
+                            }
+
+                        }
+                    } else {
+                        $("#loading").hide();
+                        $("#searchHeader").show();
+                        $("#searchMailPieceList").show();
+                        $("#searchMailPieceList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + response.ErrorMessage + "</span></div>");
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
                     $("#loading").hide();
                     $("#searchHeader").show();
                     $("#searchMailPieceList").show();
-                    $("#searchMailPieceList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + response.ErrorMessage + "</span></div>");
-                }
-            },
-            error: function (xhr, ajaxOptions, thrownError) {
-                $("#loading").hide();
-                $("#searchHeader").show();
-                $("#searchMailPieceList").show();
-                var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
+                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
                     $("#searchMailPieceList").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
                 }
 
@@ -1017,7 +1024,7 @@
                 }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
-                   //console.log(response);
+                    //console.log(response);
                     if (response.Success) {
                         if (response.Object != null) {
                             window.location = baseUrl + 'Home/DownloadSearch?fileGuid=' + response.Object.model.FileGuid
@@ -1041,14 +1048,14 @@
                 error: function (xhr, ajaxOptions, thrownError) {
                     window.clui.globalAlert({
                         message: "@AM.Services.Config.Web_Msg_Ajax_CommonError",
-                    alertType: 'red',
-                    timeout: 5000
-                });
+                        alertType: 'red',
+                        timeout: 5000
+                    });
 
-            }
+                }
 
+            });
         });
-    });
     </script>
 }
 
