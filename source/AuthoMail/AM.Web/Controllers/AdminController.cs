@@ -780,7 +780,7 @@ namespace AM.Web.Controllers
                 //return File(memoryStream, "application/pdf", fileName);
                 return File(memoryStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return View("Error");
             }
