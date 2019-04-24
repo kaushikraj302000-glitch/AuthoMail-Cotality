@@ -13,7 +13,7 @@ namespace AM.Services
         //Remove Method(make sure below method in use)
         //List<MailPieces> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo);
         List<SearchViewModel> GetMailPieceByParam
-            (int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo,List<string> errorList);
+            (int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo, List<string> errorList);
         MailPieces GetMailPieceByUniqueId(Guid uniqueId);
         List<MailPieces> GetAllData(int clientId);
 
@@ -23,19 +23,22 @@ namespace AM.Services
     }
     public class SearchService : ServiceBase, ISearchService
     {
-        public List<SearchViewModel> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo,List<string> errorList)
+        public List<SearchViewModel> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo, List<string> errorList)
         {
-            string query = @"SELECT Top 1000
-	 m.BusinessFriendlyIdValue as BusinessIdValue,m.ShippingStatus as [Status],m.UniqueId,
+            string query = @"SELECT 
+	 m.BusinessFriendlyIdValue as LoanNumber,m.ShippingStatus as [Status],m.UniqueId,
 	 m.RcptFirstName as FirstName,m.RcptLastName as LastName,m.RcptAddressCity as [City],m.RcptAddressZip as ZIP,
 	 m.RcptAddressState as [State],CASE WHEN d.ShippingCarrier ='FedEx' THEN isnull(m.PickedUpOn,m.ShippedOn) ELSE m.ShippedOn END as ShippedOn,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,
 	 b.ReceivedOn,m.DocTypeId,
 	 d.DocTypeCode as DocType,d.ShippingServiceType as ShippingMethod,d.ShippingCarrier,
 	 ch.Title as Channel
-	 FROM  [AM].[MailBatches] b,[Common].[SFTChannels] ch,[Common].[Clients] c,[AM].[MailPieces] m
-	 LEFT OUTER JOIN [Profile].[Users] u ON m.PulledBackRequestedBy=u.Id	 
-	 LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id
-	 WHERE m.MailBatchId=b.Id AND b.SFTChannelId=ch.Id AND m.ClientId=c.Id AND m.ClientId=@clientId";
+	 FROM AM.MailPieces m
+     inner join AM.MailBatches b on m.MailBatchId=b.Id
+     inner join Common.SFTChannels ch on b.SFTChannelId=ch.Id
+     inner join Common.Clients c on m.ClientId=c.Id     
+	 inner join AM.DocTypes d ON m.DocTypeId=d.Id
+	 left outer JOIN Profile.Users u ON m.PulledBackRequestedBy=u.Id	 
+	 WHERE m.ClientId=@clientId";
             DynamicParameters parameter = new DynamicParameters();
             parameter.Add("@clientId", clientId);
             if (!string.IsNullOrWhiteSpace(businessFriendlyIdName))
@@ -73,12 +76,6 @@ namespace AM.Services
                 query = string.Format("{0} and m.MailBatchId=@MailBatchId", query);
                 parameter.Add("@MailBatchId", mailBatchId);
             }
-            if (startDate.HasValue && endDate.HasValue)
-            {
-                query = string.Format("{0} and b.ReceivedOn BETWEEN @startDate and @endDate", query);
-                parameter.Add("@startDate", startDate.Value.ToStartDateTime().EstToUtc());
-                parameter.Add("@endDate", endDate.Value.ToEndDateTime().EstToUtc());
-            }
             if (docType != null && docType.Count > 0)
             {
                 query = string.Format("{0} and m.DocTypeId in @docTypeId", query);
@@ -89,49 +86,19 @@ namespace AM.Services
                 query = string.Format("{0} and m.ErrorCode in @ErrorCode", query);
                 parameter.Add("@ErrorCode", errorList);
             }
+            if (parameter.ParameterNames.Count() == 2 && !startDate.HasValue && !endDate.HasValue)
+                startDate = endDate = Common.EstToday;
 
+            if (startDate.HasValue && endDate.HasValue)
+            {
+                query = string.Format("{0} and b.ReceivedOn BETWEEN @startDate and @endDate", query);
+                parameter.Add("@startDate", startDate.Value.ToStartDateTime().EstToUtc());
+                parameter.Add("@endDate", endDate.Value.ToEndDateTime().EstToUtc());
+            }
+            query = string.Format("{0} order by b.ReceivedOn desc", query);
             var data = db.Query<SearchViewModel>(query, parameter).ToList();
             return data;
-            //var data = db.Query<SearchViewModel>(query,
-            //     new
-            //     {
-            //         clientId = clientId,
-            //         businessFriendlyIdName = businessFriendlyIdName.IsNullOrWhiteSpace() ? null : businessFriendlyIdName,
-            //         businessFriendlyIdValue = businessFriendlyIdValue.IsNullOrWhiteSpace() ? null : businessFriendlyIdValue,
-            //         startDate = startDate.ToStartDateTime().EstToUtc(),
-            //         endDate = endDate.ToEndDateTime().EstToUtc(),
-            //         docType = docType.IsNullOrWhiteSpace() ? null : docType,
-            //         shippingStatus = status.IsNullOrWhiteSpace() ? null : status,
-            //         channel = channel.IsNullOrWhiteSpace() ? null : channel,
-            //         clientBatchId = clientBatchId.IsNullOrWhiteSpace() ? null : clientBatchId,
-            //         trackingNo = trackingNo.IsNullOrWhiteSpace() ? null : trackingNo,
-            //         mailBatchId = mailBatchId
-            //     }
-            //     ).ToList();
         }
-
-        //public List<SearchViewModel> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo)
-        //{
-        //    string query = "[dbo].[uspweb_MailPieceSearch] @clientId, @businessFriendlyIdName, @businessFriendlyIdValue, @startDate, @endDate, @docType, @shippingStatus, @channel,@clientBatchId,@mailBatchId,@trackingNo";
-        //    var data = db.Query<SearchViewModel>(query,
-        //         new
-        //         {
-        //             clientId = clientId,
-        //             businessFriendlyIdName = businessFriendlyIdName.IsNullOrWhiteSpace() ? null : businessFriendlyIdName,
-        //             businessFriendlyIdValue = businessFriendlyIdValue.IsNullOrWhiteSpace() ? null : businessFriendlyIdValue,
-        //             startDate = startDate.ToStartDateTime().EstToUtc(),
-        //             endDate = endDate.ToEndDateTime().EstToUtc(),
-        //             docType = docType.IsNullOrWhiteSpace() ? null : docType,
-        //             shippingStatus = status.IsNullOrWhiteSpace() ? null : status,
-        //             channel = channel.IsNullOrWhiteSpace() ? null : channel,
-        //             clientBatchId = clientBatchId.IsNullOrWhiteSpace() ? null : clientBatchId,
-        //             trackingNo = trackingNo.IsNullOrWhiteSpace() ? null : trackingNo,
-        //             mailBatchId = mailBatchId
-        //         }
-        //         ).ToList();
-        //    return data;
-        //}
-
 
         public MailPieces GetMailPieceByUniqueId(Guid uniqueId)
         {

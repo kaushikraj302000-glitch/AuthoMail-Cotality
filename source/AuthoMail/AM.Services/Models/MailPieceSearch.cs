@@ -409,7 +409,7 @@ namespace AM.Services
 
     public class SearchViewModel
     {
-        public string BusinessIdValue { get; set; }
+        public string LoanNumber { get; set; }
         public string Status { get; set; }
         public Guid UniqueId { get; set; }
         public string FirstName { get; set; }
@@ -430,6 +430,7 @@ namespace AM.Services
         public string PrintLocation { get; set; }
 
     }
+   
 
     public class MonthlyReconReportViewModel
     {

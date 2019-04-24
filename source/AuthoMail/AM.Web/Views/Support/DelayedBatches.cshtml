@@ -45,7 +45,10 @@
                             <a href="#reportingbody" data-toggle="tab">Reporting</a>
                         </li>
                         <li>
-                            <a href="#pickupbody" data-toggle="tab">Pickup</a>
+                            <a href="#pickupbody" data-toggle="tab">Not Pickedup</a>
+                        </li>
+                        <li>
+                            <a href="#todaypickedup" data-toggle="tab">Pickedup</a>
                         </li>
                     </ul>
                 </div>
@@ -126,7 +129,9 @@
                             <li class="active">
                                 <a href="#pickupmailpiecebodymain" data-toggle="tab">Mailpiece</a>
                             </li>
-
+                            <li>
+                                <button type="button" id="RefreshPickeduponBtn" class="btn btn-success btn-sm" title="Refresh"><i class="fa fa-refresh"></i></button>
+                            </li>
                         </ul>
                         <div class="tab-content clearfix">
                             <div class="tab-pane active" id="pickupmailpiecebodymain">
@@ -136,7 +141,11 @@
                             </div>
                         </div>
                     </div>
-
+                    <div class="tab-pane" id="todaypickedup">
+                        <div class="alert-blue alert text-center">
+                            <span>Please Wait...</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -292,6 +301,8 @@
         <thead>
             <tr>
                 <th><span>Id</span></th>
+                <th><span>LoanNumber</span></th>
+                <th><span>TrackingNo</span></th>
                 <th><span>UniqueId</span></th>
                 <th><span>AppCode</span></th>
                 <th><span>BatchName</span></th>
@@ -313,6 +324,8 @@
         <tbody id="pickupmailpiecesbody">
             <tr class="row-small">
                 <td><span>{Id}</span></td>
+                <td><span>{LoanNumber}</span></td>
+                <td><span>{TrackingNo}</span></td>
                 <td><span>{UniqueId}</span></td>
                 <td><span>{AppCode}</span></td>
                 <td><span>{BatchName}</span></td>
@@ -542,6 +555,8 @@
         $(document).ready(function () {
             window.clui.dateTimePickerInit();
             FilterData();
+            GetPickedUpMailPieces()
+            RefreshPickeduponBtnEvent();
         });
         var GetBatchByClient = function () {
             $('.viewbatch').unbind('click');
@@ -834,22 +849,7 @@
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     if (response != null) {
-                        //if (response.Status == 'red') {
-                        //    $('#statustitle').addClass('text-danger');
-                        //    $('#statustitle').html('<i class="fa fa-exclamation-triangle"></i> ' + $('#statustitle').html());
-                        //}
-                        //else {
-                        //    $('#statustitle').addClass('text-success');
-                        //    $('#statustitle').html('<i class="fa fa-check-circle"></i> ' + $('#statustitle').html());
-                        //}
-                        //if (response.MinHour != 0) {
-                        //    $('#remainingminmaxtime').html($('#remainingminmaxtime').html().replace("{0}", response.MinHour).replace("{1}", response.MaxHour));
-                        //    $('#remainingminmaxtime').removeClass('hidden');
-                        //    $('#remainingminmaxtime').show();
-                        //}
-                        //else {
-                        //    $('#remainingminmaxtime').hide();
-                        //}
+
                         $("#loading").hide();
                         $("#supportHeader").show();
                         //$("#supportMailBatchesList").show();
@@ -864,15 +864,7 @@
                         else {
                             $("#processbatchbody").html(" <div style='margin-bottom:10px;' class='alert alert-green'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                         }
-                        //if (response.AppCodeCountByBatch != null && response.AppCodeCountByBatch.length > 0) {
-                        //    var dispText = "";
-                        //    $.each(response.AppCodeCountByBatch, function (i, v) {
-                        //        var lbl = '<button class="btn btn-primary btn-sm viewbatch" data-appcode=' + v['AppCode'] + ' style="margin-left:5px">' + v['AppCode'] + '  <span class="label label-blue"style="margin:0px;background-color:white;color:black">' + v['Total'] + '</span></button>';
-                        //        dispText = dispText + lbl;
-                        //    });
-                        //    $('#ClientWiseBatchCount').html(dispText);
-                        //    GetBatchByClient();
-                        //}
+
                         //All MailPieces
                         if (response.DelayedMailPieces.length > 0) {
                             processmailpieces = response.DelayedMailPieces;
@@ -881,17 +873,6 @@
                         } else {
                             $("#processmailpiecebody").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                         }
-                        //if (response.AppCodeCountByMailPiece != null && response.AppCodeCountByMailPiece.length > 0) {
-                        //    var dispText = "";
-                        //    $.each(response.AppCodeCountByMailPiece, function (i, v) {
-                        //        var lbl = '<button class="btn btn-primary btn-sm viewmps" data-appcode=' + v['AppCode'] + ' style="margin-left:5px">' + v['AppCode'] + '  <span class="label label-blue"style="margin:0px;background-color:white;color:black">' + v['Total'] + '</span></button>';
-                        //        dispText = dispText + lbl;
-                        //    });
-                        //    $('#ClientWiseMailPieceCount').html(dispText);
-                        //    GetMailPiecesByClient();
-                        //}
-
-
 
                         //Printer  //Batch
                         if (response.DelayedPrinterBatches.length > 0) {
@@ -931,9 +912,9 @@
                         } else {
                             $("#reportingmailpiecebody").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                         }
-                        if (response.DelayedMPickUpailPieces.length > 0) {
-                            reportingbatches = response.DelayedMPickUpailPieces;
-                            var mdata = FormatObjectMP(response.DelayedMPickUpailPieces);
+                        if (response.DelayedPickUpMailPieces.length > 0) {
+                            reportingbatches = response.DelayedPickUpMailPieces;
+                            var mdata = FormatObjectMP(response.DelayedPickUpMailPieces);
                             BindTemplateWithDataTable(mdata, "#pickupmailpiecesbody", "#pickupmailpiecesbodyContent", "#pickupmailpiecesContent", "#pickupmailpiecebodymain", 'pickupMPsDatatable', 'pickupmailpieces', 'Pickup Delayed MailPieces', true);
                         } else {
                             $("#pickupmailpiecebodymain").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
@@ -1009,5 +990,39 @@
             }
 
         }
+        function GetPickedUpMailPieces() {
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "Support/GetPickedUpMailPieces",
+                contentType: "application/json; charset=utf-8",
+                success: function (response) {
+                    if (response.length > 0) {
+                        var pdata = FormatObjectMP(response);
+                        BindTemplateWithDataTable(pdata, "#pickupmailpiecesbody", "#pickupmailpiecesbodyContent", "#pickupmailpiecesContent", "#todaypickedup", 'todaypickupMPsDatatable', 'todaypickupmailpieces', 'Today Pickup MailPieces', true);
+                    } else {
+                        $("#todaypickedup").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                    }
+                    $('#todaypickedup').html();
+                }, error: function (xhr, ajaxOptions, thrownError) {
+                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
+                    $("#todaypickedup").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
+                }
+            });
+        }
+
+        function RefreshPickeduponBtnEvent() {
+            $('#RefreshPickeduponBtn').click(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    type: "GET",
+                    url: baseUrl + "Support/CallFedExService",
+                    contentType: "application/json; charset=utf-8",
+                    success: function (response) {
+                        window.location.reload;
+                    }
+                });
+            });
+        }
+       
     </script>
 }
