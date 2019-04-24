@@ -14,6 +14,7 @@ using AM.Web.Models;
 using AutoMapper;
 using AM.Web.AMHub;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace AM.Web.Controllers
 {
@@ -103,6 +104,45 @@ namespace AM.Web.Controllers
             {
                 return Json(JsonResponseFactory.ErrorResponse(e.ToString()), JsonRequestBehavior.AllowGet);
             }
+        }
+
+        [HttpPost]
+        public ActionResult _DownloadSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string receivedOnStart, string receivedOnEnd, string status, string channel, List<int> docType, string trackingNumber, string clientBatchId, string batchId, List<string> errorCode)
+        {
+            try
+            {
+                int? mailBatchId = batchId.IsNullOrWhiteSpace() ? (int?)null : Convert.ToInt32(batchId);
+                var exactStartDate = receivedOnStart != string.Empty ? DateTime.ParseExact(receivedOnStart, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces) : (DateTime?)null;
+                var exactEndDate = receivedOnEnd != string.Empty ? DateTime.ParseExact(receivedOnEnd, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces) : (DateTime?)null;
+                var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, exactStartDate, exactEndDate, docType, status, channel, clientBatchId, mailBatchId, trackingNumber, errorCode);
+                string fileGuid = Guid.NewGuid().ToString();
+                var model = Mapper.Map<List<SearchViewModel>>(data);
+                var dataTable = ExcelHelper.ToDataTable<SearchViewModel>(model);
+                using (MemoryStream memoryStream = ExcelHelper.ExportDataSet(dataTable))
+                {
+                    memoryStream.Seek(0, SeekOrigin.Begin);
+                    TempData[fileGuid] = memoryStream.ToArray();
+                }  
+                
+                return Json(JsonResponseFactory.SuccessResponse(new { model = new { FileGuid = fileGuid, FileName = "Search.xlsx" } }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+        public ActionResult DownloadSearch(string fileGuid, string fileName)
+        {
+            if (TempData[fileGuid] != null)
+            {
+                byte[] data = TempData[fileGuid] as byte[];
+                return File(data, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            else
+            {
+                return new EmptyResult();
+            }
+            
         }
         [HttpPost]
         public ActionResult TodayChartDetails(string status, int batchId)
