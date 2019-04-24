@@ -195,19 +195,20 @@
                         <div class="col-md-1" style="margin-left: -2%;">
                             <div class="form-group ">
                                 <label for="filterData"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-                                <button type="button" id="resetFilter" title="Reset" class="btn btn-transparent-blue">
-                                    <i class="fa fa-undo"></i>
+                                <button type="button" id="downloadFilter" title="Download" class="btn btn-primary">
+                                    <i class="fa fa-download"></i>
                                 </button>
                             </div>
                         </div>
                         <div class="col-md-1" style="margin-left: -2%;">
                             <div class="form-group ">
                                 <label for="filterData"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-                                <button type="button" id="downloadFilter" title="Download" class="btn btn-primary">
-                                    <i class="fa fa-download"></i>
+                                <button type="button" id="resetFilter" title="Reset" class="btn btn-transparent-blue">
+                                    <i class="fa fa-undo"></i>
                                 </button>
                             </div>
                         </div>
+                        
                     </div>
                 </form>
 
@@ -851,17 +852,17 @@
                    },
             ],
             buttons: [
-              {
-                  extend: 'csv',
-                  text: '<i class="fa fa-file-excel-o fa-2x"></i>',
-                  className: 'btn btn-primary',
-                  filename: filename,
-                  title: title,
-                  exportOptions: {
-                      columns: ["thead th:not(.TrackingNo)", ".TrackingNoHide", ".ErrorCode", ".ErrorText"],
-                  }
+              //{
+              //    extend: 'csv',
+              //    text: '<i class="fa fa-file-excel-o fa-2x"></i>',
+              //    className: 'btn btn-primary',
+              //    filename: filename,
+              //    title: title,
+              //    exportOptions: {
+              //        columns: ["thead th:not(.TrackingNo)", ".TrackingNoHide", ".ErrorCode", ".ErrorText"],
+              //    }
 
-              }
+              //}
 
             ],
 
