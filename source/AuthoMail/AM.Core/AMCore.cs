@@ -1244,7 +1244,7 @@ namespace AM.Core
 
                     if (inProgressMailPiece == 0)
                     {
-                        mailPieces = mailPiecesData.Where(m => m.ShippingStatus == ShippingStatus.PulledBack.ToString() && m.PrintBatchId == null).ToList();
+                        mailPieces = mailPiecesData.Where(m => (m.ShippingStatus == ShippingStatus.PulledBack.ToString() && m.PrintBatchId == null) || m.ShippingStatus == ShippingStatus.Error.ToString()).ToList();
 
                         if (mailPieces.Count > 0)
                         {
@@ -1253,7 +1253,8 @@ namespace AM.Core
                                 case "AMC":
                                     using (IAMCService amcSvc = new AMCService())
                                     {
-                                        StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(mailPieces);
+                                        var pulledBackMailPieces = mailPieces.Where(m => (m.ShippingStatus == ShippingStatus.PulledBack.ToString() && m.PrintBatchId == null)).ToList();
+                                        StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(pulledBackMailPieces);
 
                                         if (deliveryReport != null)
                                         {
@@ -1266,7 +1267,7 @@ namespace AM.Core
                                             File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
                                         }
 
-                                        StringBuilder errorReport = amcSvc.AMCErrorReport(mailPiecesData);
+                                        StringBuilder errorReport = amcSvc.AMCErrorReport(mailPieces);
 
                                         if (errorReport != null)
                                         {
