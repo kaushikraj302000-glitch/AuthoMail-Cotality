@@ -939,12 +939,12 @@
                                     window.clui.tooltipInit();
                                 }
                                 else {
-                                    $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                                    $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>");
                                 }
                             } else if (response.Object.model.Key >= 1200 && response.Object.model.Key <= 10000) {
-                                $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-blue'><span class='sbold'>More then 1200</span></div>")
+                                $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-blue'><span class='sbold'> Use <span  title='Download'  style='width: 4%;padding-left: 15px;pointer-events: none;' class='btn btn-primary btn-sm'><i class='fa fa-download'></i></span> for the results.</span></div>");
                             } else {
-                                $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-blue'><span class='sbold'>More then 10000</span></div>")
+                                $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-blue'><span class='sbold'>we found records more than 10000.<br/>if you want to see result than please change your filter.</span></div>");
                             }
 
                         }
