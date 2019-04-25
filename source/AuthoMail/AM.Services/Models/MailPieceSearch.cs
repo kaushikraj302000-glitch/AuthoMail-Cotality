@@ -419,6 +419,7 @@ namespace AM.Services
         public string State { get; set; }
         public DateTime? ReceivedOn { get; set; }
         public DateTime? ShippedOn { get; set; }
+        public DateTime? PickedUpOn { get; set; }
         public string TrackingNo { get; set; }
         public string DocType { get; set; }
         public DateTime? DueDate { get; set; }
