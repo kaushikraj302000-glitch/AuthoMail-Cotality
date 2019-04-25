@@ -35,7 +35,7 @@ namespace AM.Services
 	 WHERE m.ClientId=@clientId";
             string fields = @"m.BusinessFriendlyIdValue as LoanNumber,m.ShippingStatus as [Status],m.UniqueId,
 	 m.RcptFirstName as FirstName,m.RcptLastName as LastName,m.RcptAddressCity as [City],m.RcptAddressZip as ZIP,
-	 m.RcptAddressState as [State],CASE WHEN d.ShippingCarrier ='FedEx' THEN isnull(m.PickedUpOn,m.ShippedOn) ELSE m.ShippedOn END as ShippedOn,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,
+	 m.RcptAddressState as [State],m.PickedUpOn,m.ShippedOn,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,
 	 b.ReceivedOn,m.DocTypeId,
 	 d.DocTypeCode as DocType,d.ShippingServiceType as ShippingMethod,d.ShippingCarrier,
 	 ch.Title as Channel";
