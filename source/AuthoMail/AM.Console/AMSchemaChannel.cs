@@ -722,6 +722,8 @@ namespace AM.Console
                         }
                         catch (SqlException ex)
                         {
+                            log.Error("Error occcured while inserting MailPiece details :", ex);
+                            MailUtility.SendUnexpectedExceptionEmail("Error occcured while inserting MailPiece details :" + ex.Message);
                             //2601 error code used for duplicate unique key insert 
                             if (ex.Number == 2601)
                             {
@@ -763,10 +765,12 @@ namespace AM.Console
                             mbi.MailBatch.ValidationStatus = BatchValidationStatus.Valid.ToString();
                         }
 
-                        if (totalNodes != mailPieceList.Count)
-                            MailUtility.SendUnexpectedExceptionEmail("Mail pieces count and received xml count is mismatched for Batch-Id : {0}<br/>".Fill(mailBatch.Id) + "Mail Piece count is {0} and received xml nodes count is {1}".Fill(mailPieceList.Count, totalNodes));
-
                         commonSvc.UpdateBatchValidationStatus(mbi.MailBatch.Id, mbi.MailBatch.ValidationStatus, mbi.MailBatch.ValidationErrors);
+                    }
+
+                    if (totalNodes != mailPieceList.Count)
+                    {
+                        throw new Exception("Mail pieces count and received xml count is mismatched for Batch-Id : {0}<br/>".Fill(mailBatch.Id) + "Mail Piece count is {0} and received xml nodes count is {1}".Fill(mailPieceList.Count, totalNodes));
                     }
                     Channel.CalculateDueDateAndPrintLocation(mailBatch, mailPieceList);
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
@@ -924,7 +928,7 @@ namespace AM.Console
                             MailUtility.SendDownloadNotificationEmail(mbi, mailPieces, emailErrorReportPath, deliverable.EmailChannel);
                             //After upload change extension of local file Path
                             if (File.Exists(emailErrorReportPath))
-                                File.Move(emailErrorReportPath, Path.ChangeExtension(emailErrorReportPath, ".uploaded"));
+                                File.Move(emailErrorReportPath, Path.ChangeExtension(emailErrorReportPath, ".Complete"));
                         }
                         catch (Exception ex)
                         {

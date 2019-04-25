@@ -443,11 +443,14 @@ namespace AM.Console
                             mbi.MailBatch.ValidationStatus = BatchValidationStatus.Valid.ToString();
                         }
 
-                        if (totalNodes != mailPieceData.Count)
-                            MailUtility.SendUnexpectedExceptionEmail("Mail pieces count and received xml count is mismatched for Batch-Id : {0}<br/>".Fill(mailBatch.Id) + "Mail Piece count is {0} and received xml nodes count is {1}".Fill(mailPieceData.Count, totalNodes));
-
                         commonSvc.UpdateBatchValidationStatus(mbi.MailBatch.Id, mbi.MailBatch.ValidationStatus, mbi.MailBatch.ValidationErrors);
                     }
+
+                    if (totalNodes != mailPieceData.Count)
+                    {
+                        throw new Exception("Mail pieces count and received xml count is mismatched for Batch-Id : {0}<br/>".Fill(mailBatch.Id) + "Mail Piece count is {0} and received xml nodes count is {1}".Fill(mailPieceData.Count, totalNodes));
+                    }
+
                     Channel.CalculateDueDateAndPrintLocation(mailBatch, mailPieceData);
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
                 }

@@ -1,4 +1,13 @@
 GO
+IF EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_MRDFRequest_PrintTrailBatchId')
+DROP INDEX [IX_MRDFRequest_PrintTrailBatchId] ON [PnS].[MRDFRequest]
+go
+CREATE NONCLUSTERED INDEX [IX_MRDFRequest_PrintTrailBatchId] ON [PnS].[MRDFRequest]
+(
+	[PrintTrailBatchId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)
+GO
+
 IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'SP_RegisterScan')
 DROP PROCEDURE [dbo].[SP_RegisterScan]
 go
