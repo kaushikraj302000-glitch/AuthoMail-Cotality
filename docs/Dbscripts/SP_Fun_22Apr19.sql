@@ -265,7 +265,7 @@ go
 print '[dbo].[ufn_GetDallasBatchDetails] created'
 ---------------------------------------------------------------------------------
 go
-DROP FUNCTION [dbo].[SP_GetScanStats]
+DROP PROCEDURE [dbo].[SP_GetScanStats]
 go
 print '[dbo].[SP_GetScanStats] dropped'
 GO
@@ -301,11 +301,11 @@ print '[dbo].[SP_GetScanStats] created'
 go
 ------------------------------------------------------------------------------------
 
-DROP FUNCTION [dbo].[SP_GetRecentBatchesStats]
+DROP PROCEDURE [dbo].[SP_GetRecentBatchesStats]
 go
 print '[dbo].[SP_GetRecentBatchesStats] dropped'
 GO
-ALTER PROCEDURE [dbo].[SP_GetRecentBatchesStats] 
+CREATE PROCEDURE [dbo].[SP_GetRecentBatchesStats] 
 	@appcode varchar(128),
 	@EstDate DATE,
 	@startdate datetime,
@@ -344,4 +344,34 @@ END
 
 go
 print '[dbo].[SP_GetRecentBatchesStats] created'
+go
+
+
+DROP VIEW [dbo].[view_FedExData]
+print '[dbo].[view_FedExData] dropped'
+go
+/****** Object:  View [dbo].[view_FedExData]    Script Date: 4/22/2019 12:04:06 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE VIEW [dbo].[view_FedExData]
+AS
+SELECT        MP.Id, MP.UniqueId, C.AppCode, MB.PipelineStatus, MP.ShippingStatus, D.DocTypeCode, D.ShippingCarrier, D.ShippingServiceType, MP.ClientId, MP.PrintLocation, 
+                         MB.BatchName, MP.BusinessFriendlyIdValue AS LoanNumber, MP.RcptFirstName, MP.RcptLastName, MP.RcptAddressStreet, MP.RcptAddressAptOrSuiteOrOther, 
+                         MP.RcptAddressCity, MP.RcptAddressState, MP.RcptAddressZIP, MP.TrackingNo, MB.ReceivedOn, MP.DocumentOrPackageType, MP.IsPickedUp, MP.PickedUpOn, 
+                         MP.DueDate, MP.ShippedOn, MP.EffectiveReceivedOnEst
+FROM            AM.MailPieces AS MP INNER JOIN
+                         AM.MailBatches AS MB ON MB.Id = MP.MailBatchId INNER JOIN
+                         AM.DocTypes AS D ON D.Id = MP.DocTypeId INNER JOIN
+                         Common.Clients AS C ON MB.ClientId = C.Id
+WHERE        (MP.ShippingStatus IN ('InProgress', 'Shipped')) AND (D.ShippingCarrier = 'FedEx') AND (MB.ReceivedOn >= '2019-01-01 05:00:00')
+
+GO
+print '[dbo].[view_FedExData] created'
+go
+DROP PROCEDURE [dbo].[uspweb_FedExPickedUpReport]
+print '[dbo].[uspweb_FedExPickedUpReport] dropped'
 go
