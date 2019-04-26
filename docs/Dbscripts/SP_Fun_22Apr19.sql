@@ -347,7 +347,7 @@ go
 print '[dbo].[SP_GetRecentBatchesStats] created'
 go
 
-
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'V' AND  name = 'view_FedExData')
 DROP VIEW [dbo].[view_FedExData]
 print '[dbo].[view_FedExData] dropped'
 go
@@ -373,6 +373,7 @@ WHERE        (MP.ShippingStatus IN ('InProgress', 'Shipped')) AND (D.ShippingCar
 GO
 print '[dbo].[view_FedExData] created'
 go
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'uspweb_FedExPickedUpReport')
 DROP PROCEDURE [dbo].[uspweb_FedExPickedUpReport]
 print '[dbo].[uspweb_FedExPickedUpReport] dropped'
 go
