@@ -195,7 +195,7 @@
                         <div class="col-md-1" style="margin-left: -2%;">
                             <div class="form-group ">
                                 <label for="filterData"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-                                <button type="button" id="downloadFilter" title="Download" class="btn btn-primary">
+                                <button type="button" id="downloadFilter" title="Download Search Output" class="btn btn-primary">
                                     <i class="fa fa-download"></i>
                                 </button>
                             </div>
@@ -948,12 +948,12 @@
                                     window.clui.tooltipInit();
                                 }
                                 else {
-                                    $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
+                                    $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>");
                                 }
-                            } else if (response.Object.model.Key >= 1200 && response.Object.model.Key <= 10000) {
-                                $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-blue'><span class='sbold'>More then 1200</span></div>")
+                            } else if (response.Object.model.Key > 1200 && response.Object.model.Key <= 10000) {
+                                $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-blue'><span class='sbold'>Your query is returning " + response.Object.model.Key + " records which is more than the display limit of 1200 records. You may click on <span  title='Download'  style='width: 4%;padding-left: 15px;pointer-events: none;' class='btn btn-primary btn-sm'><i class='fa fa-download'></i></span> to download results.</span></div>");
                             } else {
-                                $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-blue'><span class='sbold'>More then 10000</span></div>")
+                                $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-blue'><span class='sbold'>Your query is returning " + response.Object.model.Key + " records which is more than the display limit of 1200 and download limit of 10000. Please use more filters or fine tune your query.</span></div>");
                             }
 
                         }
