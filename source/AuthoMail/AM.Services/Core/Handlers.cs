@@ -20,6 +20,9 @@ namespace AM.Services
         {
             SqlMapper.AddTypeHandler(DateTimeHandler.Default);
             //SqlMapper.AddTypeHandler(NullableDateTimeHandler.Default);
+
+            //NOTE: Default Command Timeout
+            SqlMapper.Settings.CommandTimeout = 120;
         }
     }
 
