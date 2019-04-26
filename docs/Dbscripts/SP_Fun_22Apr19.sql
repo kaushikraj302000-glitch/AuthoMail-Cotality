@@ -265,7 +265,8 @@ go
 print '[dbo].[ufn_GetDallasBatchDetails] created'
 ---------------------------------------------------------------------------------
 go
-DROP FUNCTION [dbo].[SP_GetScanStats]
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'SP_GetScanStats')
+DROP PROCEDURE [dbo].[SP_GetScanStats]
 go
 print '[dbo].[SP_GetScanStats] dropped'
 GO
@@ -300,12 +301,12 @@ go
 print '[dbo].[SP_GetScanStats] created'
 go
 ------------------------------------------------------------------------------------
-
-DROP FUNCTION [dbo].[SP_GetRecentBatchesStats]
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'SP_GetRecentBatchesStats')
+DROP PROCEDURE [dbo].[SP_GetRecentBatchesStats]
 go
 print '[dbo].[SP_GetRecentBatchesStats] dropped'
 GO
-ALTER PROCEDURE [dbo].[SP_GetRecentBatchesStats] 
+CREATE PROCEDURE [dbo].[SP_GetRecentBatchesStats] 
 	@appcode varchar(128),
 	@EstDate DATE,
 	@startdate datetime,
