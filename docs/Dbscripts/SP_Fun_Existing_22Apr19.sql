@@ -181,8 +181,8 @@ select * from q where BatchName is not null
 go
 print '[dbo].[ufn_GetDallasBatchDetails] created'
 ---------------------------------------------------------------------------------
-
-DROP FUNCTION [dbo].[SP_GetScanStats]
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'SP_GetScanStats')
+DROP PROCEDURE [dbo].[SP_GetScanStats]
 go
 print '[dbo].[SP_GetScanStats] dropped'
 GO
@@ -226,8 +226,8 @@ go
 print '[dbo].[SP_GetScanStats] created'
 go
 ------------------------------------------------------------------------------------
-
-DROP FUNCTION [dbo].[SP_GetRecentBatchesStats]
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'SP_GetRecentBatchesStats')
+DROP PROCEDURE [dbo].[SP_GetRecentBatchesStats]
 go
 print '[dbo].[SP_GetRecentBatchesStats] dropped'
 GO

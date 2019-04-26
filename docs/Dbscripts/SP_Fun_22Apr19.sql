@@ -265,6 +265,7 @@ go
 print '[dbo].[ufn_GetDallasBatchDetails] created'
 ---------------------------------------------------------------------------------
 go
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'SP_GetScanStats')
 DROP PROCEDURE [dbo].[SP_GetScanStats]
 go
 print '[dbo].[SP_GetScanStats] dropped'
@@ -300,7 +301,7 @@ go
 print '[dbo].[SP_GetScanStats] created'
 go
 ------------------------------------------------------------------------------------
-
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'SP_GetRecentBatchesStats')
 DROP PROCEDURE [dbo].[SP_GetRecentBatchesStats]
 go
 print '[dbo].[SP_GetRecentBatchesStats] dropped'
