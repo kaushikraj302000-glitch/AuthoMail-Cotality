@@ -904,7 +904,7 @@
                 var selectedData = $("#receivedOn").val().split('-');
                 startDate = moment(selectedData[0].trim()).format("MM/DD/YY");
                 endDate = moment(selectedData[1].trim()).format("MM/DD/YY");
-                console.log(selectedData)
+                //console.log(selectedData)
                 $("#headerdate").html(startDate + " to " + endDate + " EST");
             } else {
                 $("#receivedOn").val("");
@@ -939,7 +939,7 @@
                         $("#searchHeader").show();
                         $("#searchMailPieceList").show();
                         if (response.Object != null) {
-                            console.log(response.Object.model);
+                            //console.log(response.Object.model);
                             if (response.Object.model.Key <= 1200) {
                                 if (response.Object.model.Value.length > 0) {
                                     $("#searchMailPieceList").html("");
