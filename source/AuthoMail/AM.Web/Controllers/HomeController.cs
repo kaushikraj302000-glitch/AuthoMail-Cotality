@@ -94,8 +94,8 @@ namespace AM.Web.Controllers
                 int? mailBatchId = batchId.IsNullOrWhiteSpace() ? (int?)null : Convert.ToInt32(batchId);
                 var exactStartDate = receivedOnStart != string.Empty ? DateTime.ParseExact(receivedOnStart, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces) : (DateTime?)null;
                 var exactEndDate = receivedOnEnd != string.Empty ? DateTime.ParseExact(receivedOnEnd, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces) : (DateTime?)null;
-                var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, exactStartDate, exactEndDate, docType, status, channel, clientBatchId, mailBatchId, trackingNumber, errorCode,false);
-                
+                var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, exactStartDate, exactEndDate, docType, status, channel, clientBatchId, mailBatchId, trackingNumber, errorCode, false);
+
                 //var model = Mapper.Map<List<SearchViewModel>>(data);
 
                 return Json(JsonResponseFactory.SuccessResponse(new { model = data }), JsonRequestBehavior.AllowGet);
@@ -114,16 +114,15 @@ namespace AM.Web.Controllers
                 int? mailBatchId = batchId.IsNullOrWhiteSpace() ? (int?)null : Convert.ToInt32(batchId);
                 var exactStartDate = receivedOnStart != string.Empty ? DateTime.ParseExact(receivedOnStart, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces) : (DateTime?)null;
                 var exactEndDate = receivedOnEnd != string.Empty ? DateTime.ParseExact(receivedOnEnd, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces) : (DateTime?)null;
-                var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, exactStartDate, exactEndDate, docType, status, channel, clientBatchId, mailBatchId, trackingNumber, errorCode,true);
+                var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, exactStartDate, exactEndDate, docType, status, channel, clientBatchId, mailBatchId, trackingNumber, errorCode, true);
                 string fileGuid = Guid.NewGuid().ToString();
                 var model = Mapper.Map<List<SearchViewModel>>(data.Value);
                 var dataTable = ExcelHelper.ToDataTable<SearchViewModel>(model);
-                using (MemoryStream memoryStream = ExcelHelper.ExportDataSet(dataTable))
-                {
-                    memoryStream.Seek(0, SeekOrigin.Begin);
-                    TempData[fileGuid] = memoryStream.ToArray();
-                }  
-                
+
+                var memoryStream = ExcelHelper.ExportDataSet(dataTable);
+                memoryStream.Seek(0, SeekOrigin.Begin);
+                TempData[fileGuid] = memoryStream.ToArray();
+
                 return Json(JsonResponseFactory.SuccessResponse(new { model = new { FileGuid = fileGuid, FileName = "Search.xlsx" } }), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
@@ -142,7 +141,7 @@ namespace AM.Web.Controllers
             {
                 return new EmptyResult();
             }
-            
+
         }
         [HttpPost]
         public ActionResult TodayChartDetails(string status, int batchId)
