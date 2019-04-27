@@ -26,5 +26,21 @@ namespace AM.Console
                 }
             }
         }
+
+        public static void UpdateErrorEffectiveReceivedOn()
+        {
+            using (IReCalculateDueDateService rSvc = new ReCalculateDueDateService())
+            using (IDocTypeService docTypeSvc = new DocTypeService())
+            using (ICommonService commonSvc = new CommonService())
+            {
+                var docTypeList = rSvc.GetDocTypeTestWithErrorMP();
+                foreach (var item in docTypeList)
+                {
+                    var docType = docTypeSvc.GetDocTypeById(item.DocTypeId);
+                    DateTime estEffectiveReceivedOn = commonSvc.GetEffectiveEstReceivedOn(docType, item.ReceivedOn);
+                    rSvc.UpdateEftRecOnEST(item.Id, estEffectiveReceivedOn);
+                }
+            }
+        }
     }
 }

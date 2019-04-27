@@ -10,9 +10,11 @@ namespace AM.Services
     public interface IReCalculateDueDateService : IDisposable
     {
         List<Recal> GetDocTypeTest();
+        List<Recal> GetDocTypeTestWithErrorMP();
         List<Recal> GetCalcListOfMailPieces();
         List<Sweep> GetSweepTimings();
         int UpdateDueDateAndEftRecOnEST(int Id, DateTime dueDate, DateTime effectiveReceivedOnEst);
+        int UpdateEftRecOnEST(int Id, DateTime effectiveReceivedOnEst);
         int UpdateSubmissionTime(int id, DateTime stdSubmissionTime, DateTime maxSubmissionTime, string missedSLAReason);
     }
     public class ReCalculateDueDateService : ServiceBase, IReCalculateDueDateService
@@ -23,11 +25,21 @@ namespace AM.Services
             string q = "select m.Id,m.DocTypeId,m.DueDate,b.ReceivedOn from AM.MailPieces m inner join AM.MailBatches b on m.MailBatchId = b.Id where m.DocTypeId is not null and m.ShippingStatus <> 'Error' order by m.id";
             return db.Query<Recal>(q).ToList();
         }
+        public List<Recal> GetDocTypeTestWithErrorMP()
+        {
+            string q = "select m.Id,m.DocTypeId,b.ReceivedOn,m.EffectiveReceivedOnEst from AM.MailPieces m inner join AM.MailBatches b on m.MailBatchId = b.Id where m.DocTypeId is not null and m.ShippingStatus = 'Error' and m.EffectiveReceivedOnEst IS NULL order by m.id";
+            return db.Query<Recal>(q).ToList();
+        }
 
         public int UpdateDueDateAndEftRecOnEST(int Id, DateTime dueDate, DateTime effectiveReceivedOnEst)
         {
             string q = "update AM.MailPieces set DueDate=@dueDate,EffectiveReceivedOnEst=@effectiveReceivedOnEst where Id=@id";
             return db.Execute(q, new { id = Id, dueDate = dueDate, effectiveReceivedOnEst = effectiveReceivedOnEst });
+        }
+        public int UpdateEftRecOnEST(int Id, DateTime effectiveReceivedOnEst)
+        {
+            string q = "update AM.MailPieces set EffectiveReceivedOnEst=@effectiveReceivedOnEst where Id=@id";
+            return db.Execute(q, new { id = Id, effectiveReceivedOnEst = effectiveReceivedOnEst });
         }
 
         public List<Recal> GetCalcListOfMailPieces()
