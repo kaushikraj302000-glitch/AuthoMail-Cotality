@@ -92,8 +92,6 @@ namespace AM.Services
                 // All the loans where outcome code is anything except no_error are processed invalid loans.
                 foreach (MailPieces mailPiece in shippedData)
                 {
-                    DocType docType = mailPiece.DocTypeId.HasValue ? docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value) : null;
-
                     var shippingCredCode = mailPiece.MailPieceCustomInfoTest.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "ShippingCredCode").SingleOrDefault();
 
                     var custId = mailPiece.MailPieceCustomInfoTest.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").SingleOrDefault();
@@ -111,7 +109,7 @@ namespace AM.Services
                             mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? Config.Monitor_AMCPulledBackDate : mailPiece.ShippedOn.Value.ToString(Config.Monitor_AMC_ReportDateFormat),
                             shippingCredCode == null ? string.Empty : shippingCredCode.Value,
                             mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? string.Empty : mailPiece.TrackingNo,
-                            docType == null ? string.Empty : docType.ShippingCarrier,
+                            mailPiece.DocTypes == null ? string.Empty : mailPiece.DocTypes.ShippingCarrier,
                             custId == null ? string.Empty : custId.Value,
                             mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName,
                             mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName,
