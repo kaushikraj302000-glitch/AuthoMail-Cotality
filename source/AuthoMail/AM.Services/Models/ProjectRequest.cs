@@ -66,6 +66,12 @@ namespace AM.Services
         public string CreatedBy { get; set; }
         public DateTime ModifiedOn { get; set; }
         public string ModifiedBy { get; set; }
+
+        public string ServiceLevelOther { get; set; }
+        public string PaperPrintRequirementsOther { get; set; }
+        public string PackagesSentToCustomerOther { get; set; }
+        public string EnvelopesOther { get; set; }
+        public string BusinessReplyMailEnvelopeOther { get; set; }
     }
     //public class ProjectRequestFormHeaders
     //{

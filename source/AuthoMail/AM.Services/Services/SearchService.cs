@@ -23,7 +23,7 @@ namespace AM.Services
     }
     public class SearchService : ServiceBase, ISearchService
     {
-        public KeyValuePair<int, List<SearchViewModel>> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo, List<string> errorList,bool isDownload)
+        public KeyValuePair<int, List<SearchViewModel>> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo, List<string> errorList, bool isDownload)
         {
             string query = @"SELECT {{fields}}
 	 FROM AM.MailPieces m
@@ -95,8 +95,8 @@ namespace AM.Services
                 parameter.Add("@startDate", startDate.Value.ToStartDateTime().EstToUtc());
                 parameter.Add("@endDate", endDate.Value.ToEndDateTime().EstToUtc());
             }
-            int count = db.ExecuteScalar<int>(query.Replace("{{fields}}", "count(m.Id)"), parameter);            
-            if (count <= 1200 ||(isDownload && count<=10000))
+            int count = db.ExecuteScalar<int>(query.Replace("{{fields}}", "count(m.Id)"), parameter);
+            if (count <= Config.Web_Search_DisplayLimit || (isDownload && count <= Config.Web_Search_DownloadLimit))
             {
                 query = string.Format("{0} order by b.ReceivedOn desc", query);
                 var data = db.Query<SearchViewModel>(query.Replace("{{fields}}", fields), parameter).ToList();

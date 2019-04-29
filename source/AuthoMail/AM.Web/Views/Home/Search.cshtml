@@ -904,7 +904,7 @@
                 var selectedData = $("#receivedOn").val().split('-');
                 startDate = moment(selectedData[0].trim()).format("MM/DD/YY");
                 endDate = moment(selectedData[1].trim()).format("MM/DD/YY");
-                console.log(selectedData)
+                //console.log(selectedData)
                 $("#headerdate").html(startDate + " to " + endDate + " EST");
             } else {
                 $("#receivedOn").val("");
@@ -939,20 +939,23 @@
                         $("#searchHeader").show();
                         $("#searchMailPieceList").show();
                         if (response.Object != null) {
-                            console.log(response.Object.model);
+                            //console.log(response.Object.model);
                             if (response.Object.model.Key <= 1200) {
                                 if (response.Object.model.Value.length > 0) {
                                     $("#searchMailPieceList").html("");
                                     var data = FormatObject(response.Object.model.Value);
                                     BindTemplate(data, "#SearchBody", "#SearchbodyContent", "#SearchTableContent", "#searchMailPieceList");
                                     window.clui.tooltipInit();
+                                    $("#downloadFilter").removeAttr("disabled");
                                 }
                                 else {
                                     $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>");
                                 }
                             } else if (response.Object.model.Key > 1200 && response.Object.model.Key <= 10000) {
                                 $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-blue'><span class='sbold'>Your query is returning " + response.Object.model.Key + " records which is more than the display limit of 1200 records. You may click on <span  title='Download'  style='width: 4%;padding-left: 15px;pointer-events: none;' class='btn btn-primary btn-sm'><i class='fa fa-download'></i></span> to download results.</span></div>");
+                                $("#downloadFilter").removeAttr("disabled");
                             } else {
+                                $("#downloadFilter").attr("disabled", true);
                                 $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-blue'><span class='sbold'>Your query is returning " + response.Object.model.Key + " records which is more than the display limit of 1200 and download limit of 10000. Please use more filters or fine tune your query.</span></div>");
                             }
 
@@ -998,6 +1001,7 @@
             $("#ClientBatchId").val("");
             $("#BatchId").val("");
             $("#TrackingNumber").val("");
+            $("#ErrorCode").val("");
             $('.selectpicker').selectpicker('refresh');
             $("#receivedOn").val("");
         });

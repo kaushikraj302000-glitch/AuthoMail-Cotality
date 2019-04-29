@@ -61,16 +61,7 @@ namespace AM.Web.Controllers
 
         public ActionResult MonthlyReconReport()
         {
-            var dateList = new List<string>();
-
-            var currDate = DateTime.UtcNow.UtcToEst();
-            if (currDate.Day <= 25) currDate = currDate.AddMonths(-1);
-
-            for (var dt = currDate.Date; dt.Date >= currDate.AddMonths(-6).Date; dt = dt.AddMonths(-1).Date)
-            {
-                dateList.Add(string.Format("{0}/26/{1} - {2}/25/{3}", dt.Month, dt.Year, dt.AddMonths(1).Month, dt.AddMonths(1).Year));
-            }
-            ViewBag.dateList = dateList;
+            ViewBag.dateList = repoSvc.GetMonthlyReconDate(User.Identity.GetClientId().Value);
             return View();
         }
         [HttpPost]

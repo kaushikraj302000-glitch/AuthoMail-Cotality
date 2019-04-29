@@ -265,6 +265,7 @@ go
 print '[dbo].[ufn_GetDallasBatchDetails] created'
 ---------------------------------------------------------------------------------
 go
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'SP_GetScanStats')
 DROP PROCEDURE [dbo].[SP_GetScanStats]
 go
 print '[dbo].[SP_GetScanStats] dropped'
@@ -300,7 +301,7 @@ go
 print '[dbo].[SP_GetScanStats] created'
 go
 ------------------------------------------------------------------------------------
-
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'SP_GetRecentBatchesStats')
 DROP PROCEDURE [dbo].[SP_GetRecentBatchesStats]
 go
 print '[dbo].[SP_GetRecentBatchesStats] dropped'
@@ -346,7 +347,7 @@ go
 print '[dbo].[SP_GetRecentBatchesStats] created'
 go
 
-
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'V' AND  name = 'view_FedExData')
 DROP VIEW [dbo].[view_FedExData]
 print '[dbo].[view_FedExData] dropped'
 go
@@ -372,6 +373,59 @@ WHERE        (MP.ShippingStatus IN ('InProgress', 'Shipped')) AND (D.ShippingCar
 GO
 print '[dbo].[view_FedExData] created'
 go
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'uspweb_FedExPickedUpReport')
 DROP PROCEDURE [dbo].[uspweb_FedExPickedUpReport]
 print '[dbo].[uspweb_FedExPickedUpReport] dropped'
 go
+
+---------------------------------------------------------------------------------
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'uspweb_MonthlyReconReport')
+DROP PROCEDURE [dbo].[uspweb_MonthlyReconReport]
+go
+print '[dbo].[uspweb_MonthlyReconReport] dropped'
+GO
+CREATE PROCEDURE [dbo].[uspweb_MonthlyReconReport]
+	@clientId int,
+	@startDate datetime,
+	@endDate datetime,
+	@channel varchar(128)
+AS
+	select m.UniqueId,b.BatchName,m.BusinessFriendlyIdValue as LoanNumber,m.[FileName],m.RcptFirstName as FirstName,m.RcptLastName as LastName
+	,m.RcptAddressStreet as [Address],m.RcptAddressCity as City, m.RcptAddressState as [State],m.RcptAddressZIP as Zip,
+	b.ReceivedOn,m.PrintLocation,m.ShippingStatus as [Status],m.TrackingNo,m.TotalPages,m.PrintedOn,m.ShippedOn,
+	m.PickedUpOn,d.ShippingCarrier,m.ErrorDesc,
+	d.DocTypeCode as DocType,d.ShippingCarrier +' '+d.ShippingServiceType as ShippingMethod,
+	ch.Title as Channel,c.AppCode,
+	r.JobId,r.PieceId
+	FROM [AM].[MailBatches] b, [Common].[SFTChannels] ch,[Common].[Clients] c,[AM].[MailPieces] m
+	LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id
+	LEFT OUTER JOIN [PnS].[MRDFRequest] r ON m.UniqueId = r.UniqueId AND r.IsPDFReceived=1
+	WHERE m.[MailBatchId]=b.Id AND c.Id=b.ClientId AND ch.Id=b.SFTChannelId AND m.ClientId=@clientId
+	AND b.ReceivedOn BETWEEN @startDate and @endDate
+	AND ISNULL(ch.Code, '') = ISNULL(@channel, ISNULL(ch.Code, ''))
+go
+print '[dbo].[uspweb_MonthlyReconReport] created'
+go
+
+
+if not exists (select * from Common.SystemSettings where id='Web_Search_DisplayLimit')
+begin
+INSERT INTO [Common].[SystemSettings] ([Id] ,[DataType] ,[Value] ,[Description] ,[IsSystem] ,[DefaultValue] ,[ModifiedBy] ,[ModifiedOn])     VALUES ('Web_Search_DisplayLimit','Int32','1200','No of records to be display in search page.',0,'1200',(select Id from Profile.Users where UserName='system@milestonetechnoconsulting.com'),GETUTCDATE())
+print 'insert Web_Search_DisplayLimit'
+end
+
+if not exists (select * from Common.SystemSettings where id='Web_Search_DownloadLimit')
+begin
+INSERT INTO [Common].[SystemSettings] ([Id] ,[DataType] ,[Value] ,[Description] ,[IsSystem] ,[DefaultValue] ,[ModifiedBy] ,[ModifiedOn])     VALUES ('Web_Search_DownloadLimit','Int32','10000','No of records to be download in search page.',0,'10000',(select Id from Profile.Users where UserName='system@milestonetechnoconsulting.com'),GETUTCDATE())
+print 'insert Web_Search_DownloadLimit'
+end
+--go
+--print 'Add columns in ProjectRequest'
+--alter table AM.ProjectRequest
+--add ServiceLevelOther nvarchar(1024) null,
+--PaperPrintRequirementsOther nvarchar(1024) null,
+--PackagesSentToCustomerOther nvarchar(1024) null,
+--EnvelopesOther nvarchar(1024) null
+
+
+Go

@@ -26,6 +26,8 @@ namespace AM.Services
         MailBatches GetMailBatchDataFromMailBatchId(int mailBatchId);
         List<ReportWizard> GetReportWizard(List<int> clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo);
         List<FedExReport> GetFedExData(int[] isPickedUp = null);
+        string GetAppcodeByClientid(int clientId);
+        List<string> GetMonthlyReconDate(int clientId);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -131,17 +133,33 @@ namespace AM.Services
                 ).ToList();
             return data;
         }
-        
+
         public List<MonthlyReconReportViewModel> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel)
         {
             string query = "[dbo].[uspweb_MonthlyReconReport] @clientId, @startDate, @endDate, @channel";
+            string appCode = GetAppcodeByClientid(clientId);
+            if (appCode == "USAA")
+            {
+                startDate = (startDate.Date + new TimeSpan(20, 00, 01)).EstToUtc();
+                endDate = (endDate.Date + new TimeSpan(20, 00, 00)).EstToUtc();
+            }
+            else if (appCode == "HSBC" || appCode == "BOTW")
+            {
+                startDate = (startDate + new TimeSpan(19, 30, 01)).EstToUtc();
+                endDate = (endDate + new TimeSpan(19, 30, 00)).EstToUtc();
+            }
+            else
+            {
+                startDate = startDate.ToStartDateTime().EstToUtc();
+                endDate = endDate.ToEndDateTime().EstToUtc();
+            }
 
             var data = db.Query<MonthlyReconReportViewModel>(query,
                 new
                 {
                     clientId = clientId,
-                    startDate = startDate.ToStartDateTime(),
-                    endDate = endDate.ToEndDateTime(),
+                    startDate = startDate,
+                    endDate = endDate,
                     channel = channel.IsNullOrWhiteSpace() ? null : channel,
                     //shippingStatus = ShippingStatus.Shipped.ToString()
                 }).ToList();
@@ -425,6 +443,27 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
                 }).ToList();
                 return data;
             }
+        }
+
+
+        public string GetAppcodeByClientid(int clientId)
+        {
+            return db.QuerySingle<string>("select AppCode from Common.Clients where Id=@clientId", new { clientId = clientId });
+        }
+
+
+        public List<string> GetMonthlyReconDate(int clientId)
+        {
+            string appCode = GetAppcodeByClientid(clientId);
+            string startDate = appCode == "USAA" || appCode == "HSBC" || appCode == "BOTW" ? "25" : "26";
+            var dateList = new List<string>();
+            var currDate = DateTime.UtcNow.UtcToEst();
+            if (currDate.Day <= 25) currDate = currDate.AddMonths(-1);
+            for (var dt = currDate.Date; dt.Date >= currDate.AddMonths(-6).Date; dt = dt.AddMonths(-1).Date)
+            {
+                dateList.Add(string.Format("{0}/{1}/{2} - {3}/25/{4}", dt.Month, startDate, dt.Year, dt.AddMonths(1).Month, dt.AddMonths(1).Year));
+            }
+            return dateList;
         }
     }
 }
