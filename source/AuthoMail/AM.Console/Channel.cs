@@ -521,28 +521,40 @@ namespace AM.Console
             {
                 var sweepTimings = commonSvc.GetSweepTimings();
 
-
                 Client client = clientSvc.GetClientById(mailBatch.ClientId);
 
-                List<MailPieceDTO> validMailPieces = mailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
-
-                foreach (MailPieceDTO mailPiece in validMailPieces)
+                foreach (MailPieceDTO mailPiece in mailPieces)
                 {
-                    DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value);
+                    if (mailPiece.ShippingStatus == ShippingStatus.Error.ToString())
+                    {
+                        if (!mailPiece.DocTypeId.HasValue)
+                        {
+                            //NOTE : If System didn't find any doctypeid for particular mail piece then it will take default max cut-off time of that particular client for calculating effective received on date.
+                            mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(docTypeSvc.GetDocTypeWithMaximumCutOffTimeByClientId(client.Id), mailBatch.ReceivedOn.Value);
+                        }
+                        else
+                        {
+                            mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value), mailBatch.ReceivedOn.Value);
+                        }
+                    }
+                    else
+                    {
+                        DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value);
 
-                    //Here first we will calculate effective received on date and based on that we will calculate due date,Print location, print trail id,etc. for that
-                    //Here storing effective receivedon in EST format
-                    mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(docType, mailBatch.ReceivedOn.Value);
-                    //Calculate Due Date for Mail Pieces doc type wise
-                    mailPiece.DueDate = commonSvc.GetDueDate(docType, mailPiece.EffectiveReceivedOnEst.Value);
-                    //Set print location where mail piece will go for print and ship
-                    mailPiece.PrintTrailId = commonSvc.GetPrintTrail(docType, mailPiece.EffectiveReceivedOnEst.Value);
-                    var printVendorDetails = commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value);
-                    mailPiece.PrintLocation = printVendorDetails.Name;
-                    //This field will be used for monitoring data    
-                    mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, mailBatch.ReceivedOn.Value, sweepTimings);
-                    mailPiece.MaxSubmissionTime = commonSvc.GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
-                    
+                        //Here first we will calculate effective received on date and based on that we will calculate due date,Print location, print trail id,etc. for that
+                        //Here storing effective receivedon in EST format
+                        mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(docType, mailBatch.ReceivedOn.Value);
+                        //Calculate Due Date for Mail Pieces doc type wise
+                        mailPiece.DueDate = commonSvc.GetDueDate(docType, mailPiece.EffectiveReceivedOnEst.Value);
+                        //Set print location where mail piece will go for print and ship
+                        mailPiece.PrintTrailId = commonSvc.GetPrintTrail(docType, mailPiece.EffectiveReceivedOnEst.Value);
+                        var printVendorDetails = commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value);
+                        mailPiece.PrintLocation = printVendorDetails.Name;
+                        //This field will be used for monitoring data    
+                        mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, mailBatch.ReceivedOn.Value, sweepTimings);
+                        mailPiece.MaxSubmissionTime = commonSvc.GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
+
+                    }
                     mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                 }
             }

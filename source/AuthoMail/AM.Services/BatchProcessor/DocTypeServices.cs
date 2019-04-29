@@ -15,6 +15,7 @@ namespace AM.Services
         DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName);
         DocType GetDocTypeById(int docTypeId);
         List<DocTypeCoverLetter> GetDocumentCoverLetterTemplates(int docTypeId);
+        DocType GetDocTypeWithMaximumCutOffTimeByClientId(int clientId);
     }
 
     public class DocTypeService : ServiceBase, IDocTypeService
@@ -52,6 +53,13 @@ namespace AM.Services
             string query = "SELECT * FROM [AM].[DocTypeCoverLetters] WHERE DocTypeId=@docTypeId";
 
             return db.Query<DocTypeCoverLetter>(query, new { docTypeId = docTypeId }).ToList();
+        }
+
+        public DocType GetDocTypeWithMaximumCutOffTimeByClientId(int clientId)
+        {
+            string query = "SELECT TOP 1 MAX(CAST(BizdayCutOff as time)) as maxCutOff,Id, DocTypeCode, ClientId, PrintSize, ContentScalePercent, PrintFormat, QCPercent, ShippingCarrier, ShippingServiceType, ShippingAccountCode, IsReturnInfoSpecified, RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RetRcptSuffix, RetRcptPhone, RetRcptOrganization, RetRcptAddrOptionalLine1AboveStreet, RetRcptAddrOptionalLine2AboveStreet, RetRcptAddressStreet, RetRcptAddressAptOrSuiteOrOther, RetRcptAddrOptionalLine1BelowStreet, RetRcptAddrOptionalLine2BelowStreet, RetRcptAddressCity, RetRcptAddressState, RetRcptAddressZIP, ClientEmails, ClientContactNo, SupportEmails, SupportContactNo, IsActive, ModifiedOn, CreatedOn, CreatedBy, ModifiedBy, Description, BizdayCutOff, BizdaySLAType, BizdayTimeSpan, SatCutOff, SatSLAType, SatTimeSpan, SunCutOff, SunSLAType, SunTimeSpan, ShippingSpecialService, IsBRE, EnvelopeId, BREEnvelopeId, NoOfCopies FROM AM.DocTypes WHERE ClientId=@clientId AND IsActive=1 GROUP BY Id, DocTypeCode, ClientId, PrintSize, ContentScalePercent, PrintFormat, QCPercent, ShippingCarrier, ShippingServiceType, ShippingAccountCode, IsReturnInfoSpecified, RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RetRcptSuffix, RetRcptPhone, RetRcptOrganization, RetRcptAddrOptionalLine1AboveStreet, RetRcptAddrOptionalLine2AboveStreet, RetRcptAddressStreet, RetRcptAddressAptOrSuiteOrOther, RetRcptAddrOptionalLine1BelowStreet, RetRcptAddrOptionalLine2BelowStreet, RetRcptAddressCity, RetRcptAddressState, RetRcptAddressZIP, ClientEmails, ClientContactNo, SupportEmails, SupportContactNo, IsActive, ModifiedOn, CreatedOn, CreatedBy, ModifiedBy, Description, BizdaySLAType, BizdayTimeSpan, SatCutOff, SatSLAType, SatTimeSpan, SunCutOff, SunSLAType, SunTimeSpan, ShippingSpecialService, IsBRE, EnvelopeId, BREEnvelopeId, NoOfCopies,BizdayCutOff";
+
+            return db.QuerySingleOrDefault<DocType>(query, new { clientId = clientId });
         }
     }
 }

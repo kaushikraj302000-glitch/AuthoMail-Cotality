@@ -624,6 +624,9 @@ namespace AM.Console
                                 //Document Or Package Type validation
                                 var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType);
 
+                                if (docType != null)
+                                    mailPieceDTO.DocTypeId = docType.Id;
+
                                 if (docType == null)
                                 {
                                     mailPieceDTO.ErrorCode = OutComeCodes.Invalid_PackageType;
@@ -749,6 +752,7 @@ namespace AM.Console
                     }
 
                     Channel.CalculateDueDateAndPrintLocation(mailBatch, mailPieceData);
+
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
                 }
                 catch (Exception ex)
@@ -760,11 +764,6 @@ namespace AM.Console
             }
             log.Debug("Validate job queue is completed.");
         }
-
-        //protected override void CalculateDueDateAndPrintLocation()
-        //{
-        //    Channel.CalculateDueDateAndPrintLocation(SFTChannel.Id);
-        //}
 
         protected override void AcknowledgeBatches()
         {
