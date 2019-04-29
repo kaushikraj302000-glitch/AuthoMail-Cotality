@@ -115,6 +115,11 @@ namespace AM.Web.Controllers
                 var exactStartDate = receivedOnStart != string.Empty ? DateTime.ParseExact(receivedOnStart, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces) : (DateTime?)null;
                 var exactEndDate = receivedOnEnd != string.Empty ? DateTime.ParseExact(receivedOnEnd, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces) : (DateTime?)null;
                 var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, exactStartDate, exactEndDate, docType, status, channel, clientBatchId, mailBatchId, trackingNumber, errorCode, true);
+                if (data.Value == null)
+                {
+                    string msg = data.Key > Config.Web_Search_DownloadLimit ? "Large no of records found." : "No data found.";
+                    return Json(JsonResponseFactory.ErrorResponse(msg), JsonRequestBehavior.AllowGet);
+                }
                 string fileGuid = Guid.NewGuid().ToString();
                 var model = Mapper.Map<List<SearchViewModel>>(data.Value);
                 var dataTable = ExcelHelper.ToDataTable<SearchViewModel>(model);

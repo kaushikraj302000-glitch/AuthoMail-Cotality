@@ -133,6 +133,9 @@ namespace AM.Services
         #region WEB HomeController
         public static string Web_Msg_NoMailPieceReceivedToday { get; private set; }
         public static string Web_Msg_NoRecordInTodayAndPendingBatches { get; private set; }
+
+        public static int Web_Search_DisplayLimit { get; private set; }
+        public static int Web_Search_DownloadLimit { get; private set; }
         #endregion
 
         #region WEB ReportController
