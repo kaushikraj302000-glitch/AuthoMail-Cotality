@@ -128,7 +128,7 @@ namespace AM.Web.Controllers
                 memoryStream.Seek(0, SeekOrigin.Begin);
                 TempData[fileGuid] = memoryStream.ToArray();
 
-                return Json(JsonResponseFactory.SuccessResponse(new { model = new { FileGuid = fileGuid, FileName = "Search.xlsx" } }), JsonRequestBehavior.AllowGet);
+                return Json(JsonResponseFactory.SuccessResponse(new { model = new { FileGuid = fileGuid, FileName = "Search.xlsx", Key = data.Key } }), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
             {
