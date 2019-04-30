@@ -796,6 +796,9 @@ namespace AM.Console
             //Document Or Package Type validation
             var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType);
 
+            if (docType != null)
+                mailPieceDTO.DocTypeId = docType.Id;
+
             if (docType == null)
             {
                 return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = "The specified document or package type '{0}' is not configured.".Fill(mailPieceDTO.DocumentOrPackageType) };
@@ -810,7 +813,6 @@ namespace AM.Console
             }
             else
             {
-                mailPieceDTO.DocTypeId = docType.Id;
                 //if at mail piece level or at mail batch level, system didn't find return info then it will check for MailBatch level if exist system will use that in mail piece level 
                 if (!mailPieceDTO.IsReturnInfoSpecified && !mbi.MailBatch.IsReturnInfoSpecified && docType.IsReturnInfoSpecified)
                 {
