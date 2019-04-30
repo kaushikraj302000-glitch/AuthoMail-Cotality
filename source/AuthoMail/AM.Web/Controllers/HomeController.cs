@@ -192,41 +192,41 @@ namespace AM.Web.Controllers
         {
             return View();
         }
-        [AllowAnonymous]
-        [HttpGet, Route("getamstatusdetail")]
-        public JsonResult AMStatusDetail()
-        {
-            try
-            {
-                return Json(AMAlert.Instance.GetGlobalStatus, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-                //return Json(GetData(), JsonRequestBehavior.AllowGet);
-            }
-        }
-        [HttpGet, Route("getamstatus")]
-        public JsonResult AMStatus()
-        {
-            try
-            {
-                return Json(AMAlert.Instance.GetAMHealth, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-                //var _model = GetData();
-                //return Json(new AMHealth { AlertLevel = _model.AlertLevel, IsAMDelay = _model.IsAMDelay, LastUpdatedOn = _model.LastUpdatedOn }, JsonRequestBehavior.AllowGet);
-            }
-        }
-        private AMGlobalStatus GetData()
-        {
-            using (IMonitorBatchesService alertSvc = new MonitorBatchesService())
-            {
-                var data = alertSvc.GetPendingBatchesToSubmit(30);
-                return new AMGlobalStatus { DelayedProcessBatches = data.DelayedBatches.Count(), DelayedProcessMailPieces = data.DelayedMailPieces.Count(), DelayedAMReportBackBatches = data.DelayedAMReportBackBatches.Count(), DelayedAMReportBackMailPieces = data.DelayedAMReportBackMailPieces.Count(), DelayedPrinterBatches = data.DelayedPrinterBatches.Count(), DelayedPickUpMailPieces = data.DelayedPrinterMailPieces.Count(), MinHour = data.MinHour, MaxHour = data.MaxHour, LastBatchReceivedOn = data.LastBatchReceivedOn, LastUpdatedOn = data.LastUpdatedOn, IsReportBackDelay = data.IsReportBackDelay, IsPrinterDelay = data.IsPrinterDelay, IsReceivedDelay = data.IsReceivedDelay, IsProcessDelay = data.IsProcessDelay, AlertLevel = data.AlertLevel, IsAMDelay = data.IsAMDelay };
-            }
-        }
+        //[AllowAnonymous]
+        //[HttpGet, Route("getamstatusdetail")]
+        //public JsonResult AMStatusDetail()
+        //{
+        //    try
+        //    {
+        //        return Json(AMAlert.Instance.GetGlobalStatus, JsonRequestBehavior.AllowGet);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw ex;
+        //        //return Json(GetData(), JsonRequestBehavior.AllowGet);
+        //    }
+        //}
+        //[HttpGet, Route("getamstatus")]
+        //public JsonResult AMStatus()
+        //{
+        //    try
+        //    {
+        //        return Json(AMAlert.Instance.GetAMHealth, JsonRequestBehavior.AllowGet);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw ex;
+        //        //var _model = GetData();
+        //        //return Json(new AMHealth { AlertLevel = _model.AlertLevel, IsAMDelay = _model.IsAMDelay, LastUpdatedOn = _model.LastUpdatedOn }, JsonRequestBehavior.AllowGet);
+        //    }
+        //}
+        //private AMGlobalStatus GetData()
+        //{
+        //    using (IMonitorBatchesService alertSvc = new MonitorBatchesService())
+        //    {
+        //        var data = alertSvc.GetPendingBatchesToSubmit(30);
+        //        return new AMGlobalStatus { DelayedProcessBatches = data.DelayedBatches.Count(), DelayedProcessMailPieces = data.DelayedMailPieces.Count(), DelayedAMReportBackBatches = data.DelayedAMReportBackBatches.Count(), DelayedAMReportBackMailPieces = data.DelayedAMReportBackMailPieces.Count(), DelayedPrinterBatches = data.DelayedPrinterBatches.Count(), DelayedPickUpMailPieces = data.DelayedPrinterMailPieces.Count(), MinHour = data.MinHour, MaxHour = data.MaxHour, LastBatchReceivedOn = data.LastBatchReceivedOn, LastUpdatedOn = data.LastUpdatedOn, IsReportBackDelay = data.IsReportBackDelay, IsPrinterDelay = data.IsPrinterDelay, IsReceivedDelay = data.IsReceivedDelay, IsProcessDelay = data.IsProcessDelay, AlertLevel = data.AlertLevel, IsAMDelay = data.IsAMDelay };
+        //    }
+        //}
     }
 }
