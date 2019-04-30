@@ -117,8 +117,7 @@ namespace AM.Web.Controllers
                 var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, exactStartDate, exactEndDate, docType, status, channel, clientBatchId, mailBatchId, trackingNumber, errorCode, true);
                 if (data.Value == null)
                 {
-                    string msg = data.Key > Config.Web_Search_DownloadLimit ? "Large no of records found." : "No data found.";
-                    return Json(JsonResponseFactory.ErrorResponse(msg), JsonRequestBehavior.AllowGet);
+                    return Json(JsonResponseFactory.ErrorResponse(data.Key.ToString()), JsonRequestBehavior.AllowGet);
                 }
                 string fileGuid = Guid.NewGuid().ToString();
                 var model = Mapper.Map<List<SearchViewModel>>(data.Value);
@@ -128,7 +127,7 @@ namespace AM.Web.Controllers
                 memoryStream.Seek(0, SeekOrigin.Begin);
                 TempData[fileGuid] = memoryStream.ToArray();
 
-                return Json(JsonResponseFactory.SuccessResponse(new { model = new { FileGuid = fileGuid, FileName = "Search.xlsx", Key = data.Key } }), JsonRequestBehavior.AllowGet);
+                return Json(JsonResponseFactory.SuccessResponse(new { model = new { FileGuid = fileGuid, FileName = "Search.xlsx" } }), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
             {
