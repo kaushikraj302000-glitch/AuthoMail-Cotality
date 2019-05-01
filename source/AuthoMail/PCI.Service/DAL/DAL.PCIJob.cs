@@ -156,5 +156,18 @@ namespace PCI.Service
                 ValidationErrors = pt.Field<string>("ValidationErrors")
             }).SingleOrDefault();
         }
+
+        public static List<PrintTrailBatch> GetNotSubmittedPrintBatchDetail()
+        {
+            string sqlQuery = "SELECT * FROM PnS.PrintTrailBatches WHERE IsSubmitted=0";
+            return db.ExecuteSqlStringAccessor<PrintTrailBatch>(sqlQuery).ToList();
+        }
+
+        public static void UpdateSubmittedForAllResReceivedBatch(int ptBatchId)
+        {
+            string sqlQuery = @"WITH CB AS (SELECT DISTINCT req.JobId FROM PnS.PrintTrailBatches P INNER JOIN PnS.MRDFRequest req ON P.Id=req.PrintTrailBatchId WHERE P.IsSubmitted=0 AND P.Id={0}) UPDATE B SET B.PipelineStatus = 'Submitted',B.SubmittedOn=GETUTCDATE() FROM PnS.BatchSummary B INNER JOIN CB ON B.PrintBatch = CB.JobId".Fill(ptBatchId);
+
+            db.ExecuteSqlNonQuery(sqlQuery);
+        }
     }
 }

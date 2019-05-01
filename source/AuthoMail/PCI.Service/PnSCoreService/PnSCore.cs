@@ -932,7 +932,7 @@ namespace PCI.Service
 
                 try
                 {
-                    log.Debug("Print Trail Batch-Id : " + printTrailBatchId.ToString() + " have out file(s) to process.");
+                    log.Debug("Print Trail Batch-Id : {0} have out file(s) to process.".Fill(printTrailBatchDetail.Id));
 
                     //Get MRDF Request Data List
                     var mrdfRequestData = DAL.GetMRDFRequestDataByPrintTrailBatchId(printTrailBatchId).AsEnumerable();
@@ -957,6 +957,7 @@ namespace PCI.Service
                         switch (printTrailDetail.VendorCode)
                         {
                             case "NORDIS":
+                                #region NordisResponse
                                 BatchResponse pnsResponse = null;
                                 //string suspensionReason = "";
 
@@ -1037,8 +1038,10 @@ namespace PCI.Service
                                 //Insert Reponse data end
                                 //Here we are getting PieceId of MRDFRequest due to mapping issue with mailPieceId
                                 resPieceIdData = pnsResponse.PackagesReport.Select(c => DAL.GetRequestPieceId(pnsResponse.JobId, c.PieceId)).ToList();
+                                #endregion
                                 break;
                             default:
+                                #region PCIResponse
                                 //Read Out file from PCIResponse path
                                 string[] mrdfOut = File.ReadAllLines(responseFilePath);
 
@@ -1096,6 +1099,7 @@ namespace PCI.Service
                                 // Persist MRDF response
                                 DAL.InsertMRDFResponseData(printTrailBatchDetail.Id, fieldDataCollection);
                                 resPieceIdData = fieldDataCollection.Select(c => c.PieceId).ToList();
+                                #endregion
                                 break;
                         }
 
@@ -1132,6 +1136,9 @@ namespace PCI.Service
 
                         DAL.UpdateMRDFRequestStatusFromResponse(printVendorResponseData, resPieceIdData);
 
+                        //NOTE : after updating MRDFStatus of each mail pieces, system will update MRDFReceived status at individual batch level
+                        DAL.UpdateMRDFReceivedForAllResReceivedBatch();
+
                         #endregion
 
 
@@ -1155,26 +1162,22 @@ namespace PCI.Service
 
                     var currentTime = Common.GetCurrentTime();
 
-                    using (TransactionScope scope = new TransactionScope())
+                    try
                     {
-                        try
-                        {
-                            //First update MRDF Received status because we have received all MRDF responses
-                            DAL.UpdatePrintTrailBatchStatus(printTrailBatchId, BatchPipelineStatus.MRDFReceived, currentTime);
+                        //First update MRDF Received status because we have received all MRDF responses
+                        DAL.UpdatePrintTrailBatchStatus(printTrailBatchId, BatchPipelineStatus.MRDFReceived, currentTime);
 
-                            var jobIds = mrdfRequestData.Select(p => p.Field<int>("JobId")).Distinct().ToList();
-                            foreach (var jobId in jobIds)
-                            {
-                                DAL.UpdateBatchPipeLineStatus(jobId, BatchPipelineStatus.MRDFReceived, currentTime);
-                            }
-                            scope.Complete();
-                        }
-                        catch (Exception ex)
-                        {
-                            var msg = "Error occured while updating submitted status for print trail batch id {0}".Fill(printTrailBatchDetail.Id);
-                            log.Error(msg, ex);
-                            MailUtility.SendUnexpectedNotificationEmail(msg + "<br/> Error Message is {0}".Fill(ex));
-                        }
+                        //var jobIds = mrdfRequestData.Select(p => p.Field<int>("JobId")).Distinct().ToList();
+                        //foreach (var jobId in jobIds)
+                        //{
+                        //    DAL.UpdateBatchPipeLineStatus(jobId, BatchPipelineStatus.MRDFReceived, currentTime);
+                        //}
+                    }
+                    catch (Exception ex)
+                    {
+                        var msg = "Error occured while updating submitted status for print trail batch id {0}".Fill(printTrailBatchDetail.Id);
+                        log.Error(msg, ex);
+                        MailUtility.SendUnexpectedNotificationEmail(msg + "<br/> Error Message is {0}".Fill(ex));
                     }
                     #endregion
                 }
