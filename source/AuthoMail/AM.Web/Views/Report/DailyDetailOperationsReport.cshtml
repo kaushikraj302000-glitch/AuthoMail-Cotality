@@ -107,7 +107,8 @@
                 <th>Channel</th>
                 <th>Document Type</th>
                 <th>@Html.Action("GetHeadingForBusinessId", "Common")</th>
-                <th>Tracking Number</th>
+                <th style="display:none">Tracking Number</th>
+                <th class="BatchIds">Tracking Number</th>
                 <th>Date Received <span class="fontcapitalize">(Local)</span></th>
                 <th>Date Printed <span class="fontcapitalize">(Local)</span></th>
                 <th>Date Mailed <span class="fontcapitalize">(Local)</span></th>
@@ -138,6 +139,7 @@
                 <td><span>{Channel}</span></td>
                 <td><span>{DocType}</span></td>
                 <td><span>{BusinessIdValue}</span></td>
+                <td style="display:none;"><span>{TrackingNoFormatted}</span></td>
                 <td><span>{TrackingNo}</span></td>
                 <td><span>{ReceivedOnFormatted}</span></td>
                 <td><span>{PrintedOnFormatted}</span></td>
@@ -215,7 +217,7 @@
                     filename: filename,
                     title: title,
                     exportOptions: {
-                        columns: "thead th:not(.BatchId)",//[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+                        columns: "thead th:not(.BatchIds)",//[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
                     }
 
                 }
@@ -254,12 +256,14 @@
             console.log(Model);
             $(Model).each(function () {
                 var trackingNo = "";
+                var trackingFormatted = "";
                 if (this.TrackingNo == null || this.TrackingNo == "") {
                     trackingNo = "--";
+                    trackingFormatted = "--";
                 }
                 else {
                     trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/track/' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
-
+                    trackingFormatted = '="' + this.TrackingNo + '"';
                     //if (this.ShippingCarrier == "USPS" && this.ShippingMethod == "PRIORITY_EXPRESS") {
 
                     //    trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="https://m.usps.com/m/TrackConfirmAction_detail?tLabels=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
@@ -273,11 +277,13 @@
                     //    trackingNo = "--";
                     //}
                 }
+                //console.log(trackingNo + "|" + trackingFormatted);
                 this.TotalPages = this.Status == "Shipped" ? this.TotalPages : 0;
                 this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
                 this.MailedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
                 this.TrackingNo = trackingNo;
+                this.TrackingNoFormatted = trackingFormatted;
                 //this.TrackingNo == "" ? "--" : '<button id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
             });
             return Model;

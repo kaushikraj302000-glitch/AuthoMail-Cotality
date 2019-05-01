@@ -34,12 +34,10 @@ declare	@jobid int,
 		@totalsheet int = null,
 		@pdffilename varchar(255),
 		@printlocationcl varchar(1024),
-		@inprogresscnt int,
 		@mailpieceid int,
 		@code varchar(50),
 		@existjobid int,
 		@jobName varchar(512),
-		@serviceType varchar(255),
 		@clientAppCode varchar(128),
 		@clientName varchar(255),
 		@bt varchar(255),
@@ -146,21 +144,21 @@ declare	@jobid int,
 				where PieceId = @pieceid and PrintTrailBatchId=@PrintTrailBatchId and JobId=@jobid
 
 				-- Check if we are yet to received response for any mail pieces
-			
-
-			select @inprogresscnt= count(*) from [PnS].[MRDFRequest] where MailPieceStatus='InProgress' and PrintTrailBatchId=@PrintTrailBatchId
-			if(@inprogresscnt = 0)
+			if((select count(*) from PnS.MRDFRequest where jobid=@jobid and MailPieceStatus='InProgress')=0)
 			begin
-			-- Update in PrintTrailBatch of mrdfreceivedon when all response is received.
-				update PnS.PrintTrailBatches 
-				set MRDFReceivedOn=GETUTCDATE()
-				where Id=@PrintTrailBatchId
-				--Update Batchsummary pipeline status when all mailpieces's response is received
+			--Update Batchsummary pipeline status when all mailpieces's response is received
 				update PnS.BatchSummary 
 				set PipelineStatus = 'MRDFReceived', MRDFReceivedOn = GETUTCDATE() 
-				where PrintBatch in (select distinct JobId from PnS.MRDFRequest where PrintTrailBatchId=@PrintTrailBatchId)
+				where PrintBatch = @jobid
+
+				if((select count(*) from [PnS].[MRDFRequest] where MailPieceStatus='InProgress' and PrintTrailBatchId=@PrintTrailBatchId)=0)
+				begin
+					-- Update in PrintTrailBatch of mrdfreceivedon when all response is received.
+					update PnS.PrintTrailBatches 
+					set MRDFReceivedOn=GETUTCDATE()
+					where Id=@PrintTrailBatchId					
+				end
 			end
-			
 		--End Transaction
 		COMMIT
 		
@@ -405,8 +403,33 @@ AS
 	AND ISNULL(ch.Code, '') = ISNULL(@channel, ISNULL(ch.Code, ''))
 go
 print '[dbo].[uspweb_MonthlyReconReport] created'
+---------------------------------------------------------------------------------
 go
-
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'uspalert_GetDelayedBatchesToSubmit')
+DROP PROCEDURE [dbo].[uspalert_GetDelayedBatchesToSubmit]
+go
+print '[dbo].[uspalert_GetDelayedBatchesToSubmit] dropped'
+GO
+CREATE PROCEDURE [dbo].[uspalert_GetDelayedBatchesToSubmit] 	
+	@cutOffMinutes int
+AS
+BEGIN
+ select mp.Id,mp.businessfriendlyidvalue as LoanNumber,mp.TrackingNo,mb.Id as MailBatchId,rq.UniqueId,bs.IsSubmitted,c.AppCode,mb.BatchName,mb.ReceivedOn,mb.PipelineStatus,mp.ShippingStatus,d.DocTypeCode,d.ShippingCarrier,d.ShippingServiceType,mp.ClientId,pv.Name as PrintLocation,pv.VendorCode,rq.MailPieceStatus  
+ from AM.MailPieces mp
+ inner join AM.MailBatches mb on mp.MailBatchId=mb.Id
+ left outer join Common.PrintTrails pt on mp.PrintTrailId = pt.Id
+ left outer join Common.PrintVendors pv on pt.PrintVendorId = pv.Id
+ left outer join Common.Clients c on mb.ClientId=c.Id
+ left outer join PnS.MRDFRequest rq on mp.UniqueId=rq.UniqueId
+ left outer join PnS.BatchSummary bs on rq.JobId=bs.PrintBatch
+ left outer join AM.DocTypes d on mp.DocTypeId = d.Id
+ where mb.ReceivedOn between DATEADD(day,-7,GETUTCDATE()) and DATEADD(minute,-@cutOffMinutes,GETUTCDATE()) and (mp.ShippingStatus is null or (mp.ShippingStatus in ('InProgress','Shipped') and (rq.UniqueId is null or ISNULL(bs.IsSubmitted,0)=0)) or (mp.ShippingStatus = 'Error' and mp.ErrorDesc IS NULL) or (mp.ShippingStatus = 'PulledBack' and not exists (select Id from AM.PullBackRequests where MailPieceId = mp.Id)) or (mb.ClientId IS NULL))
+ or (rq.MailPieceStatus='Shipped' and mp.IsPickedUp <> 1 and mp.DueDate < GETUTCDATE() and d.ShippingCarrier='FedEx')
+END
+go
+print '[dbo].[uspalert_GetDelayedBatchesToSubmit] created'
+go
+------------------------------------------------------------------------------------
 
 if not exists (select * from Common.SystemSettings where id='Web_Search_DisplayLimit')
 begin

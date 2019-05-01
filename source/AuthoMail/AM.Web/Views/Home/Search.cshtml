@@ -245,7 +245,7 @@
                 <th>PickedUp <span class="fontcapitalize">(Local)</span></th>
                 <th>Document Type</th>
                 <th>Channel</th>
-                <th>Shipping Method <span class="fa fa-question-circle" title="Shipping Carrier / Service type"></span></th>
+                <th>Shipping Method<span class="fa fa-question-circle" title="Shipping Carrier / Service type"></span></th>
                 <th class="ErrorCode">Error Code</th>
                 <th class="ErrorText">Error Text</th>
             </tr>
@@ -940,7 +940,7 @@
                         $("#searchMailPieceList").show();
                         if (response.Object != null) {
                             //console.log(response.Object.model);
-                            if (response.Object.model.Key <= 1200) {
+                            if (response.Object.model.Key <= '@(AM.Services.Config.Web_Search_DisplayLimit)') {
                                 if (response.Object.model.Value.length > 0) {
                                     $("#searchMailPieceList").html("");
                                     var data = FormatObject(response.Object.model.Value);
@@ -951,12 +951,12 @@
                                 else {
                                     $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>");
                                 }
-                            } else if (response.Object.model.Key > 1200 && response.Object.model.Key <= 10000) {
-                                $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-blue'><span class='sbold'>Your query is returning " + response.Object.model.Key + " records which is more than the display limit of 1200 records. You may click on <span  title='Download'  style='width: 4%;padding-left: 15px;pointer-events: none;' class='btn btn-primary btn-sm'><i class='fa fa-download'></i></span> to download results.</span></div>");
+                            } else if (response.Object.model.Key > '@(AM.Services.Config.Web_Search_DisplayLimit)' && response.Object.model.Key <= '@(AM.Services.Config.Web_Search_DownloadLimit)') {
+                                $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-blue'><span class='sbold'>Your query is returning " + response.Object.model.Key + " records which is more than the display limit of '@(AM.Services.Config.Web_Search_DisplayLimit)' records. You may click on <span  title='Download'  style='width: 4%;padding-left: 15px;pointer-events: none;' class='btn btn-primary btn-sm'><i class='fa fa-download'></i></span> to download results.</span></div>");
                                 $("#downloadFilter").removeAttr("disabled");
                             } else {
                                 $("#downloadFilter").attr("disabled", true);
-                                $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-blue'><span class='sbold'>Your query is returning " + response.Object.model.Key + " records which is more than the display limit of 1200 and download limit of 10000. Please use more filters or fine tune your query.</span></div>");
+                                $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-blue'><span class='sbold'>Your query is returning " + response.Object.model.Key + " records which is more than the display limit of '@(AM.Services.Config.Web_Search_DisplayLimit)' and download limit of '@(AM.Services.Config.Web_Search_DownloadLimit)'. Please use more filters or fine tune your query.</span></div>");
                             }
 
                         }
@@ -1040,6 +1040,7 @@
                     //console.log(response);
                     if (response.Success) {
                         if (response.Object != null) {
+
                             window.location = baseUrl + 'Home/DownloadSearch?fileGuid=' + response.Object.model.FileGuid
                           + '&filename=' + response.Object.model.FileName;
                         }
@@ -1051,11 +1052,26 @@
                             });
                         }
                     } else {
-                        window.clui.globalAlert({
-                            message: response.ErrorMessage,
-                            alertType: 'red',
-                            timeout: 5000
-                        });
+
+                        if (isNaN(response.ErrorMessage)) {
+                            window.clui.globalAlert({
+                                message: response.ErrorMessage,
+                                alertType: 'red',
+                                timeout: 5000
+                            });
+                        }
+                        else {
+                            var key = parseInt(response.ErrorMessage);
+                            if (key <= 0) {
+                                $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>");
+                            }
+                            else if (key > '@(AM.Services.Config.Web_Search_DisplayLimit)' && key <= '@(AM.Services.Config.Web_Search_DownloadLimit)') {
+                                $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-blue'><span class='sbold'>Your query is returning " + key + " records which is more than the display limit of '@(AM.Services.Config.Web_Search_DisplayLimit)' records. You may click on <span  title='Download'  style='width: 4%;padding-left: 15px;pointer-events: none;' class='btn btn-primary btn-sm'><i class='fa fa-download'></i></span> to download results.</span></div>");
+                            }
+                            else {
+                                $("#searchMailPieceList").html(" <div style='margin-bottom:10px;' class='alert alert-blue'><span class='sbold'>Your query is returning " + key + " records which is more than the display limit of '@(AM.Services.Config.Web_Search_DisplayLimit)' and download limit of '@(AM.Services.Config.Web_Search_DownloadLimit)'. Please use more filters or fine tune your query.</span></div>");
+                            }
+                        }
                     }
                 },
                 error: function (xhr, ajaxOptions, thrownError) {

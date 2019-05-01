@@ -10,6 +10,8 @@ namespace AM.Services
     public class PendingMailPieceInfo
     {
         public int Id { get; set; }
+        public string LoanNumber { get; set; }
+        public string TrackingNo { get; set; }
         public int MailBatchId { get; set; }
         public Guid? UniqueId { get; set; }
         public bool? IsSubmitted { get; set; }

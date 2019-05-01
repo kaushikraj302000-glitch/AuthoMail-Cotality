@@ -782,6 +782,8 @@
                 this.ShippingCarrier = this.ShippingCarrier == null ? '--' : this.ShippingCarrier;
                 this.ShippingServiceType = this.ShippingServiceType == null ? '--' : this.ShippingServiceType;
                 this.PrintLocation = this.PrintLocation == null ? '--' : this.PrintLocation;
+                this.LoanNumber = this.LoanNumber == null ? '--' : this.LoanNumber;
+                this.TrackingNo = this.TrackingNo == null ? '--' : this.TrackingNo;
                 switch (this.ShippingStatus) {
 
                     case "PulledBack":
@@ -996,7 +998,7 @@
                 url: baseUrl + "Support/GetPickedUpMailPieces",
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
-                    if (response.length > 0) {
+                    if (response.length > 0) {                        
                         var pdata = FormatObjectMP(response);
                         BindTemplateWithDataTable(pdata, "#pickupmailpiecesbody", "#pickupmailpiecesbodyContent", "#pickupmailpiecesContent", "#todaypickedup", 'todaypickupMPsDatatable', 'todaypickupmailpieces', 'Today Pickup MailPieces', true);
                     } else {
@@ -1018,7 +1020,11 @@
                     url: baseUrl + "Support/CallFedExService",
                     contentType: "application/json; charset=utf-8",
                     success: function (response) {
-                        window.location.reload;
+                        window.location.reload();
+                    },
+                    error:function(err)
+                    {
+                        console.log(err);
                     }
                 });
             });

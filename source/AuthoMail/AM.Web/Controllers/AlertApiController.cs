@@ -8,6 +8,7 @@ using System.Web.Http;
 using System.Web.Http.Cors;
 using AM.Services;
 using AM.Lib;
+using AM.Web.AMHub;
 
 namespace AM.Web.Controllers
 {
@@ -38,6 +39,13 @@ namespace AM.Web.Controllers
                 alertSvc.SendUnexpectedExceptionEmail(ex.ToString());
                 throw ex;
             }
+        }
+
+        [AllowAnonymous]
+        [HttpGet, Route("getamstatusdetail")]
+        public AMGlobalStatus AMStatusDetail()
+        {
+            return AMAlert.Instance.GetGlobalStatus;
         }
     }
 }

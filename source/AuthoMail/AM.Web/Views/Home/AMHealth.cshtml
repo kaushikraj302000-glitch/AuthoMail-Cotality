@@ -140,22 +140,23 @@
             };
         }
         $(document).ready(function () {
-            //var GetAMStatusData = function () {
-            //    var amhub = $.connection.aMAlertHub;
-            //    var data = $('#tabledata').html();
-            //    amhub.client.getAMDetailStatus = function (response) {
-            //        SpreadData(response, data);
-            //    };
-            //    $.connection.hub.start().done(function () {
-            //        amhub.server.getConnection($.connection.hub.id);
-            //    });
-            //    $.connection.hub.error(function (error) {
-            //        console.log('communication error: ' + error);
-            //    });
-            //    $.connection.aMAlertHub.client.exceptionHandler = function (error) {
-            //        console.log('Server Error: ' + error);
-            //    };
-            //}
+            var GetAMStatusData = function () {
+                var amhub = $.connection.aMAlertHub;
+                var data = $('#tabledata').html();
+                amhub.client.getAMDetailStatus = function (response) {
+                    //console.log("res:" + JSON.stringify(response));
+                    SpreadData(response, data);
+                };
+                $.connection.hub.start().done(function () {
+                    amhub.server.getConnection($.connection.hub.id);
+                });
+                $.connection.hub.error(function (error) {
+                    console.log('communication error: ' + error);
+                });
+                $.connection.aMAlertHub.client.exceptionHandler = function (error) {
+                    console.log('Server Error: ' + error);
+                };
+            }
             var SpreadData = function (response, data) {
                 if (response != null) {
                     $('#tabledata').html(data.supplant(formatData(response)));
@@ -194,23 +195,23 @@
                     IsAMDelay: data.IsAMDelay
                 });
             }
-            var tabData = $('#tabledata').html();
-            var AMHealthDetail = function () {
-                $.ajax({
-                    type: "GET",
-                    url: baseUrl + "AuthoMailHealth/getamstatusdetail",
-                    dataType: "json",
-                    success: function (response) {
-                        //console.log(Date() + " : " + response);
-                        SpreadData(response, tabData);
-                    }, error: function (err) {
-                        console.log(JSON.stringify(err));
-                    }
-                });
-            }
-            AMHealthDetail();
-            setInterval(function () { AMHealthDetail(); }, (1000 * 60 * 5));
-            //GetAMStatusData();
+            //var tabData = $('#tabledata').html();
+            //var AMHealthDetail = function () {
+            //    $.ajax({
+            //        type: "GET",
+            //        url: baseUrl + "AuthoMailHealth/getamstatusdetail",
+            //        dataType: "json",
+            //        success: function (response) {
+            //            //console.log(Date() + " : " + response);
+            //            SpreadData(response, tabData);
+            //        }, error: function (err) {
+            //            console.log(JSON.stringify(err));
+            //        }
+            //    });
+            //}
+            //AMHealthDetail();
+            //setInterval(function () { AMHealthDetail(); }, (1000 * 60 * 5));
+            GetAMStatusData();
         });
     </script>
 </body>
