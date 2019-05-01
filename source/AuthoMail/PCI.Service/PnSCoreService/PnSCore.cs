@@ -905,7 +905,10 @@ namespace PCI.Service
                             }
 
                             if (mrdfResData.Rows.Count > 0)
+                            {
+                                bundlingRootPath.CreateDirectoryIfNotExist();
                                 File.WriteAllLines(mrdfOutFilePath, mrdfs.ToArray());
+                            }
                             break;
 
                     }
