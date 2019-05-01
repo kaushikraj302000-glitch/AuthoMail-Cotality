@@ -112,7 +112,8 @@
                 <th>Document Type</th>
                 <th>Channel</th>
                 <th>Shipping Method<span class="fa fa-question-circle" title="Shipping Carrier / Service type"></span></th>
-                <th>Tracking Number</th>
+                <th style="display:none;">Tracking Number</th>
+                <th class="BatchIds">Tracking Number</th>
                 <th>SLA</th>
                 <th class="ErrorCode">Error Code</th>
                 <th class="ErrorText">Error Text</th>
@@ -136,6 +137,7 @@
                 <td><span>{DocType}</span></td>
                 <td><span>{Channel}</span></td>
                 <td><span>{ShippingCarrier} / {ShippingMethod}</span></td>
+                <td style="display:none;"><span>{TrackingNoFormatted}</span></td>
                 <td><span>{TrackingNo}</span></td>
                 <td><span>{SLAStatus}</span></td>
                 <td><span>{ErrorDescPopover}</span></td>
@@ -210,7 +212,7 @@
                     filename: filename,
                     title: title,
                     exportOptions: {
-                        columns: ["thead th:not(.BatchId)", ".ErrorCode", ".ErrorText"],//[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                        columns: ["thead th:not(.BatchIds)", ".ErrorCode", ".ErrorText"],//[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                     }
 
                 }
@@ -312,13 +314,16 @@
         function FormatObject(Model) {
             $(Model).each(function () {
                 var trackingNo = "";
+                var trackingFormatted = "";
                 if (this.TrackingNo == null || this.TrackingNo == "") {
-                    trackingNo = "--";
+                    trackingNo = "--"; trackingFormatted = "--";
                 }
                 else {
                     trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/track/' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
+                    trackingFormatted = '="' + this.TrackingNo + '"';
                 }
                 this.TrackingNo = trackingNo;
+                this.TrackingNoFormatted = trackingFormatted;
                 this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
                 this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
