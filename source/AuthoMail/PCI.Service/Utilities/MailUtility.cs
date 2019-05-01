@@ -25,7 +25,7 @@ namespace PCI.Service
                     msg.To.Add(printVendorCode == "NORDIS" ? Common.Email_ToCL : Common.Email_ToPCI);
                     msg.CC.Add(printVendorCode == "NORDIS" ? Common.Email_CcCL : Common.Email_CcPCI);
                     //Here subject string contains "Batch Submitted To {Location} : {FileName} at {Time} Total Files : {FileCount} Total Page Count : {PageCount}"
-                    msg.Subject = Common.SubmitBatchEmailSubject.Fill(printVendorCode, Path.GetFileName(fileName), Common.UtcToEst(Common.GetCurrentTime()).ToString("MM/dd/yyyy hh:mm tt") + " EST", mailPiecesCount, totalPages);
+                    msg.Subject = Common.ApplicationEnvironment + " : " + Common.SubmitBatchEmailSubject.Fill(printVendorCode, Path.GetFileName(fileName), Common.UtcToEst(Common.GetCurrentTime()).ToString("MM/dd/yyyy hh:mm tt") + " EST", mailPiecesCount, totalPages);
 
                     msg.Priority = MailPriority.Normal;
 
@@ -43,9 +43,9 @@ namespace PCI.Service
                     isEmailSent = true;
                 }
             }
-            catch (Exception err)
+            catch (Exception ex)
             {
-                log.Error("Error occured while sending batch submitted notification to PCI", err);
+                log.Error("Error occured while sending batch submitted notification to PCI", ex);
             }
 
             return isEmailSent;
@@ -61,7 +61,7 @@ namespace PCI.Service
                     msg.IsBodyHtml = true;
                     msg.To.Add(Common.SuspendEmail_To);
                     msg.CC.Add(Common.SuspendEmail_Cc);
-                    msg.Subject = Common.SuspendBatchEmailSubject + printBatchId;
+                    msg.Subject = Common.ApplicationEnvironment + " : " + Common.SuspendBatchEmailSubject + printBatchId;
                     msg.Priority = MailPriority.Normal;
 
                     StringBuilder sb = new StringBuilder(File.ReadAllText(Common.SuspendBatchEmailTemplate));
@@ -73,9 +73,9 @@ namespace PCI.Service
                     isEmailSent = true;
                 }
             }
-            catch (Exception err)
+            catch (Exception ex)
             {
-                log.Error("Error occured while sending batch submitted notification to PCI", err);
+                log.Error("Error occured while sending batch submitted notification to PCI", ex);
             }
 
             return isEmailSent;
@@ -92,11 +92,11 @@ namespace PCI.Service
                     msg.IsBodyHtml = true;
                     msg.To.Add(printVendorCode == "PCI" ? Common.PCI_Issue_Email_To : Common.NORDIS_Issue_Email_To);
                     msg.CC.Add(printVendorCode == "PCI" ? Common.PCI_Issue_Email_Cc : Common.NORDIS_Issue_Email_Cc);
-                    msg.Subject = printVendorCode == "PCI" ? Common.NoRecordsInMRDFSubject : Common.NoRecordsInMRDFSubject + " NORDIS";
+                    msg.Subject = Common.ApplicationEnvironment + " : " + printVendorCode == "PCI" ? Common.NoRecordsInMRDFSubject : Common.NoRecordsInMRDFSubject + " NORDIS";
                     msg.Priority = MailPriority.High;
 
                     StringBuilder sb = new StringBuilder(File.ReadAllText(Common.SuspendBatchEmailTemplate));
-                    sb = sb.Replace("<%Reason%>", errorMsg + "<br/><br/>Batch Name: {0} <br/><br/>".Fill(Path.GetFileNameWithoutExtension(printFileName)) + "OUT File Name : {0}".Fill(fileName));
+                    sb = sb.Replace("<%Reason%>", errorMsg + "<br/><br/>Batch Name: {0} <br/><br/>".Fill(Path.GetFileNameWithoutExtension(printFileName)) + " <br/>File Name : {0}".Fill(fileName));
 
                     msg.Body = sb.ToString();
                     Common.Email_SMTPClient.Send(msg);
@@ -104,9 +104,9 @@ namespace PCI.Service
                     isEmailSent = true;
                 }
             }
-            catch (Exception err)
+            catch (Exception ex)
             {
-                log.Error("Error occured while sending batch submitted notification to PCI", err);
+                log.Error("Error occured while sending batch submitted notification to PCI", ex);
             }
 
             return isEmailSent;
@@ -120,21 +120,21 @@ namespace PCI.Service
             {
                 using (MailMessage msg = new MailMessage())
                 {
+                    msg.IsBodyHtml = true;
                     msg.To.Add(Common.UnexpectedEmail_ToEmail);
                     msg.CC.Add(Common.UnexpectedEmail_CcEmail);
                     msg.Subject = Common.ApplicationEnvironment + " : " + Common.UnexpectedEmail_Subject;
                     msg.Priority = MailPriority.High;
 
                     msg.Body = errorMsg;
-
                     Common.Email_SMTPClient.Send(msg);
 
                     isEmailSent = true;
                 }
             }
-            catch (Exception err)
+            catch (Exception ex)
             {
-                log.Error("Error occured while sending batch submitted notification to internal team", err);
+                log.Error("Error occured while sending batch submitted notification to internal team", ex);
             }
 
             return isEmailSent;
