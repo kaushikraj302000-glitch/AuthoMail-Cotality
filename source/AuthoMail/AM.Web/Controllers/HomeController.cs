@@ -117,8 +117,7 @@ namespace AM.Web.Controllers
                 var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, exactStartDate, exactEndDate, docType, status, channel, clientBatchId, mailBatchId, trackingNumber, errorCode, true);
                 if (data.Value == null)
                 {
-                    string msg = data.Key > Config.Web_Search_DownloadLimit ? "Large no of records found." : "No data found.";
-                    return Json(JsonResponseFactory.ErrorResponse(msg), JsonRequestBehavior.AllowGet);
+                    return Json(JsonResponseFactory.ErrorResponse(data.Key.ToString()), JsonRequestBehavior.AllowGet);
                 }
                 string fileGuid = Guid.NewGuid().ToString();
                 var model = Mapper.Map<List<SearchViewModel>>(data.Value);
@@ -128,7 +127,7 @@ namespace AM.Web.Controllers
                 memoryStream.Seek(0, SeekOrigin.Begin);
                 TempData[fileGuid] = memoryStream.ToArray();
 
-                return Json(JsonResponseFactory.SuccessResponse(new { model = new { FileGuid = fileGuid, FileName = "Search.xlsx", Key = data.Key } }), JsonRequestBehavior.AllowGet);
+                return Json(JsonResponseFactory.SuccessResponse(new { model = new { FileGuid = fileGuid, FileName = "Search.xlsx" } }), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
             {
@@ -193,41 +192,41 @@ namespace AM.Web.Controllers
         {
             return View();
         }
-        [AllowAnonymous]
-        [HttpGet, Route("getamstatusdetail")]
-        public JsonResult AMStatusDetail()
-        {
-            try
-            {
-                return Json(AMAlert.Instance.GetGlobalStatus, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-                //return Json(GetData(), JsonRequestBehavior.AllowGet);
-            }
-        }
-        [HttpGet, Route("getamstatus")]
-        public JsonResult AMStatus()
-        {
-            try
-            {
-                return Json(AMAlert.Instance.GetAMHealth, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-                //var _model = GetData();
-                //return Json(new AMHealth { AlertLevel = _model.AlertLevel, IsAMDelay = _model.IsAMDelay, LastUpdatedOn = _model.LastUpdatedOn }, JsonRequestBehavior.AllowGet);
-            }
-        }
-        private AMGlobalStatus GetData()
-        {
-            using (IMonitorBatchesService alertSvc = new MonitorBatchesService())
-            {
-                var data = alertSvc.GetPendingBatchesToSubmit(30);
-                return new AMGlobalStatus { DelayedProcessBatches = data.DelayedBatches.Count(), DelayedProcessMailPieces = data.DelayedMailPieces.Count(), DelayedAMReportBackBatches = data.DelayedAMReportBackBatches.Count(), DelayedAMReportBackMailPieces = data.DelayedAMReportBackMailPieces.Count(), DelayedPrinterBatches = data.DelayedPrinterBatches.Count(), DelayedPickUpMailPieces = data.DelayedPrinterMailPieces.Count(), MinHour = data.MinHour, MaxHour = data.MaxHour, LastBatchReceivedOn = data.LastBatchReceivedOn, LastUpdatedOn = data.LastUpdatedOn, IsReportBackDelay = data.IsReportBackDelay, IsPrinterDelay = data.IsPrinterDelay, IsReceivedDelay = data.IsReceivedDelay, IsProcessDelay = data.IsProcessDelay, AlertLevel = data.AlertLevel, IsAMDelay = data.IsAMDelay };
-            }
-        }
+        //[AllowAnonymous]
+        //[HttpGet, Route("getamstatusdetail")]
+        //public JsonResult AMStatusDetail()
+        //{
+        //    try
+        //    {
+        //        return Json(AMAlert.Instance.GetGlobalStatus, JsonRequestBehavior.AllowGet);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw ex;
+        //        //return Json(GetData(), JsonRequestBehavior.AllowGet);
+        //    }
+        //}
+        //[HttpGet, Route("getamstatus")]
+        //public JsonResult AMStatus()
+        //{
+        //    try
+        //    {
+        //        return Json(AMAlert.Instance.GetAMHealth, JsonRequestBehavior.AllowGet);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw ex;
+        //        //var _model = GetData();
+        //        //return Json(new AMHealth { AlertLevel = _model.AlertLevel, IsAMDelay = _model.IsAMDelay, LastUpdatedOn = _model.LastUpdatedOn }, JsonRequestBehavior.AllowGet);
+        //    }
+        //}
+        //private AMGlobalStatus GetData()
+        //{
+        //    using (IMonitorBatchesService alertSvc = new MonitorBatchesService())
+        //    {
+        //        var data = alertSvc.GetPendingBatchesToSubmit(30);
+        //        return new AMGlobalStatus { DelayedProcessBatches = data.DelayedBatches.Count(), DelayedProcessMailPieces = data.DelayedMailPieces.Count(), DelayedAMReportBackBatches = data.DelayedAMReportBackBatches.Count(), DelayedAMReportBackMailPieces = data.DelayedAMReportBackMailPieces.Count(), DelayedPrinterBatches = data.DelayedPrinterBatches.Count(), DelayedPickUpMailPieces = data.DelayedPrinterMailPieces.Count(), MinHour = data.MinHour, MaxHour = data.MaxHour, LastBatchReceivedOn = data.LastBatchReceivedOn, LastUpdatedOn = data.LastUpdatedOn, IsReportBackDelay = data.IsReportBackDelay, IsPrinterDelay = data.IsPrinterDelay, IsReceivedDelay = data.IsReceivedDelay, IsProcessDelay = data.IsProcessDelay, AlertLevel = data.AlertLevel, IsAMDelay = data.IsAMDelay };
+        //    }
+        //}
     }
 }
