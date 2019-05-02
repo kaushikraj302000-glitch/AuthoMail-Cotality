@@ -45,16 +45,19 @@ namespace PCI.Service
                         //PnSCoreService.ProcessPCIReturnPDFsInfo();
                         break;
                     case "PCIJob":
+                        List<string> ptNames;
                         var isBundle = args.Length > 2 ? true : false;
                         if (isBundle)
                         {
+                            ptNames = args[2].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
                             //NOTE : Total 3 arguments will be passed for bundling PCIJob Bundle [PrintTrailNames]
-                            PCIJobMonitor.SubmitBatchToPrintVendor(isBundle, args[2]);
+                            PCIJobMonitor.SubmitBatchToPrintVendor(isBundle, ptNames);
                         }
                         else
                         {
+                            ptNames = args[1].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
                             //NOTE : Total 2 arguments will be passed for regular flow PCIJob [PrintTrailNames]
-                            PCIJobMonitor.SubmitBatchToPrintVendor(isBundle, args[1]);
+                            PCIJobMonitor.SubmitBatchToPrintVendor(isBundle, ptNames);
                         }
                         break;
                     case "DownloadPrinterReport":
