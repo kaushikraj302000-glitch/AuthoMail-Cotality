@@ -230,11 +230,19 @@ namespace AM.Web.Models
             sectionD.Border = Rectangle.NO_BORDER;
             sectionD.PaddingRight = Utilities.InchesToPoints(0);
             sectionD.UseAscender = true;
-            sectionC.ExtraParagraphSpace = 2;
+            sectionD.ExtraParagraphSpace = 2;
             tableD.AddCell(sectionD);
             tableD.AddCell(ColspanCell(14));
             var projectRequirements = new List<string> { "Mixed Media", "Letter Only", "Legal Only", "Stapled", "Not Stapled", "24# Paper", "Insert Required", "White", "Color (specify)", "Print 1-sided", "Print 2-sided", "B&W", "Color", "B&W & Color" };
-            CheckBoxListSectionC(model.PaperPrintRequirements, tableD, projectRequirements, 14);
+            CheckBoxListSectionC(model.PaperPrintRequirements, tableD, projectRequirements, 14, false);
+
+            tableD.AddCell(
+                new PdfPCell(new Phrase(model.PaperPrintRequirementsOther, new Font(verdana, 10, Font.NORMAL, BaseColor.RED)))
+                {
+                    Colspan = 14,
+                    Border = Rectangle.BOTTOM_BORDER,
+                    PaddingTop = Utilities.InchesToPoints(0.1f)
+                });
 
             PdfPCell tableDCell = new PdfPCell(tableD);
             tableDCell.Border = Rectangle.NO_BORDER;
@@ -659,7 +667,7 @@ namespace AM.Web.Models
 
             table.AddCell(BorderCell(!customValue.IsNullOrEmpty()));
             table.AddCell(LeftCell("Other", 8));
-            Phrase sampleEnvelopeOtherPh = new Phrase(customValue, new Font(verdana, 10, Font.NORMAL));
+            Phrase sampleEnvelopeOtherPh = new Phrase(customValue, new Font(verdana, 10, Font.NORMAL, customValue.IsNullOrEmpty() ? BaseColor.BLACK : BaseColor.RED));
             PdfPCell sampleEnvelopeOther = new PdfPCell(sampleEnvelopeOtherPh);
             sampleEnvelopeOther.Colspan = 8;
             sampleEnvelopeOther.HorizontalAlignment = Element.ALIGN_LEFT;
@@ -671,7 +679,7 @@ namespace AM.Web.Models
             sampleEnvelopeOther.ExtraParagraphSpace = 2;
             table.AddCell(sampleEnvelopeOther);
         }
-        public static void CheckBoxListSectionC(string value, PdfPTable table, List<string> list, int colspan)
+        public static void CheckBoxListSectionC(string value, PdfPTable table, List<string> list, int colspan, bool isother = true)
         {
             bool isFound = false;
             int cnt = 0;
@@ -702,15 +710,18 @@ namespace AM.Web.Models
 
                 }
             }
-            if (isFound)
+            if (isother)
             {
-                table.AddCell(BorderCell(false));
-                table.AddCell(LeftCell("Other", 8));
-            }
-            else
-            {
-                table.AddCell(BorderCell(true));
-                table.AddCell(LeftCell(string.Format("Other ({0})", value), 8));
+                if (isFound)
+                {
+                    table.AddCell(BorderCell(false));
+                    table.AddCell(LeftCell("Other", 8));
+                }
+                else
+                {
+                    table.AddCell(BorderCell(true));
+                    table.AddCell(LeftCell(string.Format("Other ({0})", value), 8));
+                }
             }
         }
         public static PdfPCell ColspanCell(int colspan)
