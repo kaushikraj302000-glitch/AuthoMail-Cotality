@@ -9,7 +9,7 @@
     var projectRequirements = new List<string> { "Mixed Media", "Letter Only", "Legal Only", "Stapled", "Not Stapled", "24# Paper", "Insert Required", "White", "Color (specify)", "Print 1-sided", "Print 2-sided", "B&W", "Color", "B&W & Color" };
     var packagesSentToCustomerList = new List<string> { "Mailed-USPS", "Federal Express", "Certified USPS", "Other" };
     var envelopeList = new List<string> { "# 10", "6 x 9.5", "9 x 12", "10 x 12", "10 x 13", "Other" };
-    var businessReplyMailEnvelopeList = new List<string> {"Yes", "No", "#9 Business Reply Mail", "Other" };
+    var businessReplyMailEnvelopeList = new List<string> { "Yes", "No", "#9 Business Reply Mail", "Other" };
 }
 <style>
     .bootstrap-select {
@@ -85,11 +85,16 @@
                             <div class="form-group">
                                 <label for="FileTransmittedVia">Files transmitted via</label>
                                 <div class="input-group">
-                                    <select id="FileTransmittedVia" data-live-search="true" data-live-search-placeholder="Search Files transmitted via" class="form-control selectpicker other" name="FileTransmittedViaSelect">
+                                    <select id="FileTransmittedVia" multiple data-live-search="true" data-live-search-placeholder="Search Files transmitted via" class="form-control selectpicker other" name="FileTransmittedViaList">
                                         <option value="">Select Files transmitted via</option>
-                                        @Html.Partial("_Lookup", new AM.Web.Models.LookupViewModel() { Value = Model.FileTransmittedVia, LookupList = fileTransmittedViaList })
+                                        @foreach (var item in fileTransmittedViaList)
+                                        {
+                                            string sel = Model.FileTransmittedVia == null ? "" : Model.FileTransmittedVia.Split(',').ToList().Any(t => t == item) ? "selected" : "";
+                                            <option value="@item" @sel>@item</option>
+                                        }
+                                        @*@Html.Partial("_Lookup", new AM.Web.Models.LookupViewModel() { Value = Model.FileTransmittedVia, LookupList = fileTransmittedViaList })*@
                                     </select>
-                                    <input type="text" name="FileTransmittedVia" value="@Model.FileTransmittedVia" class="form-control othertextbox" />
+                                    <input type="text" name="FilesTransmittedOther" value="@Model.FilesTransmittedOther" class="form-control othertextbox" />
                                 </div>
                                 <span for="FileTransmittedVia" class="error" style="display:none;">This field is required.</span>
                             </div>
@@ -100,11 +105,16 @@
                                     Type of Files
                                 </label>
                                 <div class="input-group">
-                                    <select id="TypeOfFiles" data-live-search="true" data-live-search-placeholder="Search Type of Files" class="form-control selectpicker  other" name="TypeOfFilesSelect">
+                                    <select id="TypeOfFiles" multiple data-live-search="true" data-live-search-placeholder="Search Type of Files" class="form-control selectpicker  other" name="TypeOfFilesList">
                                         <option value="">Select Type of Files</option>
-                                        @Html.Partial("_Lookup", new AM.Web.Models.LookupViewModel() { Value = Model.TypeOfFiles, LookupList = typeOfFilesList })
+                                        @foreach (var item in typeOfFilesList)
+                                        {
+                                            string sel = Model.TypeOfFiles == null ? "" : Model.TypeOfFiles.Split(',').ToList().Any(t => t == item) ? "selected" : "";
+                                            <option value="@item" @sel>@item</option>
+                                        }
+                                        @*@Html.Partial("_Lookup", new AM.Web.Models.LookupViewModel() { Value = Model.TypeOfFiles, LookupList = typeOfFilesList })*@
                                     </select>
-                                    <input type="text" name="TypeOfFiles" value="@Model.TypeOfFiles" class="form-control othertextbox" />
+                                    <input type="text" name="TypeOfFilesOther" value="@Model.TypeOfFilesOther" class="form-control othertextbox" />
                                 </div>
                                 <span for="TypeOfFiles" class="error" style="display:none;">This field is required.</span>
                             </div>
@@ -157,9 +167,9 @@
                                         <option value="PM" @{TTsel = Model.TransmittedTime == "PM" ? "Selected" : "";} @TTsel>PM</option>
                                     </select>
                                     @*<input type='text' class="form-control" value="@Model.TransmittedTime" name="TransmittedTime" id='datetimepicker3' />
-                                    <span class="input-group-addon">
-                                        <span class="fa fa-clock-o"></span>
-                                    </span>*@
+                                        <span class="input-group-addon">
+                                            <span class="fa fa-clock-o"></span>
+                                        </span>*@
                                 </div>
                             </div>
                             <div class="form-group">
@@ -167,11 +177,15 @@
                                     Service Level
                                 </label>
                                 <div class="input-group">
-                                    <select id="ServiceLevel" data-live-search="true" data-live-search-placeholder="Search Service Level" class="form-control selectpicker other" name="ServiceLevelSelect">
-                                        <option value="">Select Service Level</option>
-                                        @Html.Partial("_Lookup", new AM.Web.Models.LookupViewModel() { Value = Model.ServiceLevel, LookupList = serviceLevelList })
+                                    <select id="ServiceLevel" multiple data-live-search="true" data-live-search-placeholder="Search Service Level" class="form-control selectpicker other" name="ServiceLevelList">
+                                        <option value="">Select Service Level</option>@foreach (var item in serviceLevelList)
+                                        {
+                                            string sel = Model.ServiceLevel == null ? "" : Model.ServiceLevel.Split(',').ToList().Any(t => t == item) ? "selected" : "";
+                                            <option value="@item" @sel>@item</option>
+                                        }
+                                        @*@Html.Partial("_Lookup", new AM.Web.Models.LookupViewModel() { Value = Model.ServiceLevel, LookupList = serviceLevelList })*@
                                     </select>
-                                    <input type="text" name="ServiceLevel" value="@Model.ServiceLevel" class="form-control othertextbox" />
+                                    <input type="text" name="ServiceLevelOther" value="@Model.ServiceLevelOther" class="form-control othertextbox" />
                                 </div>
                                 <span for="ServiceLevel" class="error" style="display:none;">This field is required.</span>
                             </div>
@@ -232,6 +246,7 @@
                                             <string>
                                                 () : Model.DailyPrintSchedule.Split(',').ToList();
                                             string sel = lst.Any(l => l == day) ? "selected" : "";
+
                                             <option @sel value="@day.ToString()">@day.ToString()</option>
                                         }
                                     </select>
@@ -254,15 +269,17 @@
                             <div class="form-group">
                                 <label for="PaperPrintRequirements"></label>
                                 <div class="input-group">
-                                    <select class="selectpicker form-control" multiple="multiple" name="PaperPrintRequirementsList" id="PaperPrintRequirements">
+                                    <select class="selectpicker form-control other" multiple="multiple" name="PaperPrintRequirementsList" id="PaperPrintRequirements">
                                         @foreach (var item in projectRequirements)
                                         {
-                                            var lst = Model.PaperPrintRequirements == null ? new List<string>
-                                                () : Model.PaperPrintRequirements.Split(',').ToList();
-                                            string sel = lst.Any(l => l == item) ? "selected" : "";
+                                            //var lst = Model.PaperPrintRequirements == null ? new List<string>
+                                            //    () : Model.PaperPrintRequirements.Split(',').ToList();
+                                            //string sel = lst.Any(l => l == item) ? "selected" : "";
+                                            string sel = Model.PaperPrintRequirements == null ? "" : Model.PaperPrintRequirements.Split(',').ToList().Any(t => t == item) ? "selected" : "";
                                             <option @sel value="@item.ToString()">@item.ToString()</option>
                                         }
                                     </select>
+                                    <input type="text" name="PaperPrintRequirementsOther" value="@Model.PaperPrintRequirementsOther" class="form-control othertextbox" />
                                 </div>
                                 <span for="PaperPrintRequirements" class="error" style="display:none;">This field is required.</span>
                             </div>
@@ -281,11 +298,16 @@
                             <div class="form-group">
                                 <label for="PackagesSentToCustomer"></label>
                                 <div class="input-group">
-                                    <select id="PackagesSentToCustomer" data-live-search="true" data-live-search-placeholder="Search Packages" class="form-control selectpicker  other" name="PackagesSentToCustomerSelect">
+                                    <select id="PackagesSentToCustomer" multiple data-live-search="true" data-live-search-placeholder="Search Packages" class="form-control selectpicker other" name="PackagesSentToCustomerList">
                                         <option value="">Select Packages</option>
-                                        @Html.Partial("_Lookup", new AM.Web.Models.LookupViewModel() { Value = Model.PackagesSentToCustomer, LookupList = packagesSentToCustomerList })
+                                        @foreach (var item in packagesSentToCustomerList)
+                                        {
+                                            string sel = Model.PackagesSentToCustomer == null ? "" : Model.PackagesSentToCustomer.Split(',').ToList().Any(t => t == item) ? "selected" : "";
+                                            <option @sel value="@item.ToString()">@item.ToString()</option>
+                                        }
+                                        @*@Html.Partial("_Lookup", new AM.Web.Models.LookupViewModel() { Value = Model.PackagesSentToCustomer, LookupList = packagesSentToCustomerList })*@
                                     </select>
-                                    <input type="text" name="PackagesSentToCustomer" value="@Model.PackagesSentToCustomer" class="form-control othertextbox" />
+                                    <input type="text" name="PackagesSentToCustomerOther" value="@Model.PackagesSentToCustomerOther" class="form-control othertextbox" />
                                 </div>
                                 <span for="PackagesSentToCustomer" class="error" style="display:none;">This field is required.</span>
                             </div>
@@ -304,11 +326,16 @@
                             <div class="form-group">
                                 <label for="Value">Type of envelope</label>
                                 <div class="input-group">
-                                    <select id="Envelopes" data-live-search="true" data-live-search-placeholder="Search Envelopes" class="form-control selectpicker  other" name="EnvelopesSelect">
+                                    <select id="Envelopes" multiple data-live-search="true" data-live-search-placeholder="Search Envelopes" class="form-control selectpicker  other" name="EnvelopesList">
                                         <option value="">Select Envelopes</option>
-                                        @Html.Partial("_Lookup", new AM.Web.Models.LookupViewModel() { Value = Model.Envelopes, LookupList = envelopeList })
+                                        @foreach (var item in envelopeList)
+                                        {
+                                            string sel = Model.Envelopes == null ? "" : Model.Envelopes.Split(',').ToList().Any(t => t == item) ? "selected" : "";
+                                            <option @sel value="@item.ToString()">@item.ToString()</option>
+                                        }
+                                        @*@Html.Partial("_Lookup", new AM.Web.Models.LookupViewModel() { Value = Model.Envelopes, LookupList = envelopeList })*@
                                     </select>
-                                    <input type="text" name="Envelopes" value="@Model.Envelopes" class="form-control othertextbox" />
+                                    <input type="text" name="EnvelopesOther" value="@Model.EnvelopesOther" class="form-control othertextbox" />
                                 </div>
                                 <span for="Envelopes" class="error" style="display:none;">This field is required.</span>
                             </div>
@@ -339,11 +366,17 @@
                             <div class="form-group">
                                 <label for="BusinessReplyMailEnvelope">Does it need a Business Reply Mail envelope included?</label>
                                 <div class="input-group">
-                                    <select class="selectpicker form-control other" name="BusinessReplyMailEnvelopeSelect" id="BusinessReplyMailEnvelope">
-                                        @Html.Partial("_Lookup", new AM.Web.Models.LookupViewModel() { Value = Model.BusinessReplyMailEnvelope, LookupList = businessReplyMailEnvelopeList })
+                                    <select class="selectpicker form-control other" multiple name="BusinessReplyMailEnvelopeList" id="BusinessReplyMailEnvelope">
+                                        @foreach (var item in businessReplyMailEnvelopeList)
+                                        {
+                                            string sel = Model.BusinessReplyMailEnvelope == null ? "" : Model.BusinessReplyMailEnvelope.Split(',').ToList().Any(t => t == item) ? "selected" : "";
+                                            <option @sel value="@item.ToString()">@item.ToString()</option>
+                                        }
+                                        @*@Html.Partial("_Lookup", new AM.Web.Models.LookupViewModel() { Value = Model.BusinessReplyMailEnvelope, LookupList = businessReplyMailEnvelopeList })*@
                                     </select>
-                                    <input type="text" name="BusinessReplyMailEnvelope" value="@Model.BusinessReplyMailEnvelope" class="form-control othertextbox" />
+                                    <input type="text" name="BusinessReplyMailEnvelopeOther" value="@Model.BusinessReplyMailEnvelopeOther" class="form-control othertextbox" />
                                 </div>
+                                <span for="BusinessReplyMailEnvelope" class="error" style="display:none;">This field is required.</span>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -669,12 +702,21 @@
             $('#datetimepicker3').timepicker({
             });
             $.each($(".other"), function (indexInArray, valueOfElement) {
-                if ($(this).val() == "Other") {
-                    $(this).siblings(".othertextbox").show();
-                } else {
+                console.log($(this).val());
+                if ($(this).val() != null) {
+                    var isFound = Array.indexOf($(this).val(), 'Other');
+                    isFound = isFound == -1 ? Array.indexOf($(this).val(), 'Color (specify)') : isFound;
+                    if (isFound != -1) {
+                        $(this).siblings(".othertextbox").show();
+                    } else {
+                        $(this).siblings(".othertextbox").hide();
+                    }
+                }
+                else {
                     $(this).siblings(".othertextbox").hide();
                 }
             });
+
             $('#projetSetup').validate({ // initialize the plugin
                 errorElement: "span",
                 rules: {
@@ -690,13 +732,13 @@
                     FileTransmittedVia: {
                         required: true
                     },
-                    FileTransmittedViaSelect: {
+                    FileTransmittedViaList: {
                         required: true
                     },
                     TypeOfFiles: {
                         required: true
                     },
-                    TypeOfFilesSelect: {
+                    TypeOfFilesList: {
                         required: true
                     },
                     NoOfEstSweepTimes: {
@@ -708,7 +750,7 @@
                     ServiceLevel: {
                         required: true
                     },
-                    ServiceLevelSelect: {
+                    ServiceLevelList: {
                         required: true
                     },
                     DailyPrintScheduleList: {
@@ -720,13 +762,16 @@
                     PackagesSentToCustomer: {
                         required: true
                     },
-                    PackagesSentToCustomerSelect: {
+                    PackagesSentToCustomerList: {
                         required: true
                     },
                     Envelopes: {
                         required: true
                     },
-                    EnvelopesSelect: {
+                    EnvelopesList: {
+                        required: true
+                    },
+                    BusinessReplyMailEnvelopeList: {
                         required: true
                     }
                 },
@@ -835,14 +880,18 @@
             });
         });
         $('.selectpicker').on('change', function () {
-            if ($(this).val() == "Other") {
+            var isFound = Array.indexOf($(this).val(), 'Other');
+            isFound = isFound == -1 ? Array.indexOf($(this).val(), 'Color (specify)') : isFound;
+            if (isFound != -1) {
                 console.log($(this).closest(".input-group").find(".othertextbox").val())
-                $(this).closest(".input-group").find(".othertextbox").val("");
+                //$(this).closest(".input-group").find(".othertextbox").val("");
                 $(this).closest(".input-group").find(".othertextbox").show();
             } else {
                 $(this).closest(".input-group").find(".othertextbox").val($(this).val());
                 $(this).closest(".input-group").find(".othertextbox").hide();
+                $(this).closest(".input-group").find(".othertextbox").val("");
             }
+       
         });
         $(".cl-toggle").click(function () {
             var value = $(this).is(":checked") ? "true" : "false";

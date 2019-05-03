@@ -637,6 +637,13 @@ namespace AM.Web.Controllers
             {
                 projectRequest.SubmittedOn = DateTime.ParseExact(SubmittedOn, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
                 projectRequest.ProdStartOn = DateTime.ParseExact(ProdStartOn, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+                projectRequest.FileTransmittedVia = string.Join(",", projectRequest.FileTransmittedViaList);
+                projectRequest.TypeOfFiles = string.Join(",", projectRequest.TypeOfFilesList);
+                projectRequest.ServiceLevel = string.Join(",", projectRequest.ServiceLevelList);
+                projectRequest.PackagesSentToCustomer = string.Join(",", projectRequest.PackagesSentToCustomerList);
+                projectRequest.Envelopes = string.Join(",", projectRequest.EnvelopesList);
+                projectRequest.BusinessReplyMailEnvelope = string.Join(",", projectRequest.BusinessReplyMailEnvelopeList);
+
                 projectRequest.DailyPrintSchedule = string.Join(",", projectRequest.DailyPrintScheduleList);
                 projectRequest.PaperPrintRequirements = string.Join(",", projectRequest.PaperPrintRequirementsList);
                 var model = projectRequestSvc.SaveProjectRequest(projectRequest, User.Identity.GetUserId());
@@ -670,7 +677,7 @@ namespace AM.Web.Controllers
                             projectRequestSvc.SaveProjectRequestFiles(id, names, User.Identity.GetUserId());
                         }
                     }
-                    
+
                     return RedirectToAction("AllProjectSetupDetails");
                 }
                 else

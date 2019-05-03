@@ -34,7 +34,7 @@ namespace AM.Web.Models
             imageCell.PaddingLeft = Utilities.InchesToPoints(0.6f);
             imageCell.Border = Rectangle.NO_BORDER;
             HeaderLogo(document, writer, imageCell);
-           
+
             Phrase headerPh = new Phrase("New Project Request/Pricing Form", new Font(verdana, 10));
             headerPh.Leading = 5;
             PdfPCell header = new PdfPCell(headerPh);
@@ -81,7 +81,8 @@ namespace AM.Web.Models
 
             PdfPTable fileTransmissionTable = new PdfPTable(new float[] { 18, 4, 10, 4, 14, 4, 18, 4, 24 });
             var fileTransmittedViaList = new List<string> { "Client FTP", "CoreLogic FTP", "CL Pull from Client System Imaging" };
-            CheckBoxList("Files transmitted via:", model.FileTransmittedVia, fileTransmissionTable, fileTransmittedViaList);
+            //CheckBoxList("Files transmitted via:", model.FileTransmittedVia, fileTransmissionTable, fileTransmittedViaList);
+            CheckBoxListMultipleValue("Files transmitted via:", model.FileTransmittedVia, fileTransmissionTable, fileTransmittedViaList, model.FilesTransmittedOther);
 
             fileTransmissionTable.AddCell(ColspanCell(9));
             Phrase sweepTimesPh = new Phrase("How many times will Corelogic be sweeping the SFTP?", new Font(verdana, 8));
@@ -381,7 +382,7 @@ namespace AM.Web.Models
             otherCell.ExtraParagraphSpace = 2;
             table.AddCell(otherCell);
             table.AddCell(getEmptyCell());
-           
+
             table.AddCell(LeftCell("Files transmitted (Other):\n\n"));
             table.AddCell(RightCell(model.FilesTransmittedOther));
             table.AddCell(ColspanCell(1));
@@ -547,6 +548,35 @@ namespace AM.Web.Models
             {
                 table.AddCell(BorderCell(true));
                 table.AddCell(LeftCell(string.Format("Other ({0})", value), 8));
+            }
+        }
+        public static void CheckBoxListMultipleValue(string title, string value, PdfPTable table, List<string> list, string customValue)
+        {
+            table.AddCell(LeftCell(title, 8));
+            var valueList = value.Split(',').ToList();
+            foreach (var item in list)
+            {
+                if (valueList.Any(v => v == item))
+                {
+                    table.AddCell(BorderCell(true));
+                    table.AddCell(LeftCell(item, 8));
+                }
+                else
+                {
+                    table.AddCell(BorderCell(false));
+                    table.AddCell(LeftCell(item, 8));
+                }
+            }
+
+            if (customValue.IsNullOrEmpty())
+            {
+                table.AddCell(BorderCell(false));
+                table.AddCell(LeftCell("Other", 8));
+            }
+            else
+            {
+                table.AddCell(BorderCell(true));
+                table.AddCell(LeftCell(string.Format("Other ({0})", customValue), 8));
             }
         }
         public static void CheckBoxListSectionC(string value, PdfPTable table, List<string> list, int colspan)

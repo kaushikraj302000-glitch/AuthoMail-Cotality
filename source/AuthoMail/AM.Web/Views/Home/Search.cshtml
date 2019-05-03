@@ -451,7 +451,7 @@
             <div class="form-group margin-bottom-2">
                 <div class="input-group">
                     <label for="BusinessFriendlyIdValue">Document Type Code:&nbsp; </label>
-                    <span class="form-control-static">{DocTypes.DocTypeCode}</span>
+                    <span class="form-control-static">{DocTypeCode}</span>
                 </div>
             </div>
             <div class="form-group margin-bottom-2">
@@ -580,7 +580,7 @@
             <div class="form-group margin-bottom-2">
                 <div class="input-group">
                     <label for="BusinessFriendlyIdValue">Return Recipient Address:&nbsp; </label>
-                    <span class="form-control-static">{ReturnRcptAddress}</span>
+                    <span class="form-control-static">{RetRcptAddress}</span>
                 </div>
             </div>
 
@@ -721,9 +721,9 @@
                 //this.CoRcptName = this.CoRcptName == "" ? "--" : this.CoRcptName;
                 //this.ReturnRcptName = this.RetRcptPrefix + " " + this.RetRcptFirstName + " " + this.RetRcptMiddleName + " " + this.RetRcptLastName + " " + this.RetRcptSuffix
                 var returnCityStateZip = this.RetRcptAddressCity + " " + this.RetRcptAddressState + " " + this.RetRcptAddressZIP;
-                this.RetRcptName = this.RetRcptName == null ? "" : this.RetRcptName.replace(/null/g, "").trim() + (returnCityStateZip != "" ? ", " + returnCityStateZip : "");
+                this.RetRcptName = this.RetRcptName == null ? "" : this.RetRcptName.replace(/null/g, "").trim();
                 //this.ReturnRcptAddress = this.RetRcptAddrOptionalLine1AboveStreet + " " + this.RetRcptAddrOptionalLine2AboveStreet + " " + this.RetRcptAddressStreet + " " + this.RetRcptAddressAptOrSuiteOrOther + " " + this.RetRcptAddrOptionalLine1BelowStreet + " " + this.RetRcptAddrOptionalLine2BelowStreet + " " + this.RetRcptAddressCity + " " + this.RetRcptAddressState + " " + this.RetRcptAddressZIP;
-                this.RetRcptAddress = this.RetRcptAddress == null ? "" : this.RetRcptAddress.replace(/null/g, "").trim();
+                this.RetRcptAddress = this.RetRcptAddress == null ? "" : this.RetRcptAddress.replace(/null/g, "").trim() + (returnCityStateZip != "" ? ", " + returnCityStateZip : "");
                 switch (this.ShippingStatus) {
 
                     case "PulledBack":

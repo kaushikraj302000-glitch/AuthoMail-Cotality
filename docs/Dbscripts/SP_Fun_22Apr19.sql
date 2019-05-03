@@ -442,13 +442,14 @@ begin
 INSERT INTO [Common].[SystemSettings] ([Id] ,[DataType] ,[Value] ,[Description] ,[IsSystem] ,[DefaultValue] ,[ModifiedBy] ,[ModifiedOn])     VALUES ('Web_Search_DownloadLimit','Int32','10000','No of records to be download in search page.',0,'10000',(select Id from Profile.Users where UserName='system@milestonetechnoconsulting.com'),GETUTCDATE())
 print 'insert Web_Search_DownloadLimit'
 end
---go
---print 'Add columns in ProjectRequest'
---alter table AM.ProjectRequest
---add ServiceLevelOther nvarchar(1024) null,
---PaperPrintRequirementsOther nvarchar(1024) null,
---PackagesSentToCustomerOther nvarchar(1024) null,
---EnvelopesOther nvarchar(1024) null
+go
+print 'Add columns in ProjectRequest'
+alter table AM.ProjectRequest
+add ServiceLevelOther nvarchar(1024) null,
+PaperPrintRequirementsOther nvarchar(1024) null,
+PackagesSentToCustomerOther nvarchar(1024) null,
+EnvelopesOther nvarchar(1024) null,
+BusinessReplyMailEnvelopeOther nvarchar(1024) null
 
 
 Go

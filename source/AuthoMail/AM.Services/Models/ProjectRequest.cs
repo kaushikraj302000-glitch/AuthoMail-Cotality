@@ -16,11 +16,14 @@ namespace AM.Services
         public DateTime? ProdStartOn { get; set; }
         public string Description { get; set; }
         public string FileTransmittedVia { get; set; }
+        public List<string> FileTransmittedViaList { get; set; }//
         public string NoOfEstSweepTimes { get; set; }
         public string ESTSweepTime { get; set; }
         public string TypeOfFiles { get; set; }
+        public List<string> TypeOfFilesList { get; set; }//
         public string TransmittedTime { get; set; }
         public string ServiceLevel { get; set; }
+        public List<string> ServiceLevelList { get; set; }//
         public int? EstimatedPagesPerPackage { get; set; }
         public int? EstimatedPackagesDaily { get; set; }
         public int? EstimatedPackagesMonthly { get; set; }
@@ -28,12 +31,15 @@ namespace AM.Services
         public string DailyPrintSchedule { get; set; }
         public List<string> DailyPrintScheduleList { get; set; }
         public string PaperPrintRequirements { get; set; }
-        public List<string> PaperPrintRequirementsList { get; set; }
+        public List<string> PaperPrintRequirementsList { get; set; }//
         public string PackagesSentToCustomer { get; set; }
+        public List<string> PackagesSentToCustomerList { get; set; }//
         public bool IsSampleEnvelopeAttached { get; set; }
         public string Envelopes { get; set; }
+        public List<string> EnvelopesList { get; set; }//
         public bool IsBRERequired { get; set; }
         public string BusinessReplyMailEnvelope { get; set; }
+        public List<string> BusinessReplyMailEnvelopeList { get; set; }//
         public bool IsCustomerSupplyEnvelope { get; set; }
         public bool IsCustomerProvideArtworkEnvelope { get; set; }
         public bool IsClientPostageAccount { get; set; }
