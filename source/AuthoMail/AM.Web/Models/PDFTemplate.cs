@@ -48,27 +48,33 @@ namespace AM.Web.Models
 
             PdfPTable projectDetails = new PdfPTable(new float[] { 20, 28, 4, 20, 28 });
             projectDetails.AddCell(LeftCell("Name of Project:"));
-            projectDetails.AddCell(RightCell(model.ClientName));
+            projectDetails.AddCell(RightCell(model.ClientName, Rectangle.BOX));
             projectDetails.AddCell(getEmptyCell());
             projectDetails.AddCell(LeftCell("Submit Date:"));
 
-            projectDetails.AddCell(RightCell(model.SubmittedOn.HasValue ? model.SubmittedOn.Value.ToString("dd/MM/yyyy") : ""));
-
-            projectDetails.AddCell(LeftCell("Submitter:"));
-            projectDetails.AddCell(RightCell(model.SubmittedBy));
-            projectDetails.AddCell(getEmptyCell());
-            projectDetails.AddCell(LeftCell("Project Start Date:"));
-            projectDetails.AddCell(RightCell(model.ProdStartOn.HasValue ? model.ProdStartOn.Value.ToString("dd/MM/yyyy") : ""));
+            projectDetails.AddCell(RightCell(model.SubmittedOn.HasValue ? model.SubmittedOn.Value.ToString("dd/MM/yyyy") : "", Rectangle.BOX));
 
             PdfPCell tableCell = new PdfPCell(projectDetails);
             tableCell.Border = Rectangle.NO_BORDER;
             tableCell.PaddingTop = Utilities.InchesToPoints(0.1f);
             table.AddCell(tableCell);
 
+            projectDetails = new PdfPTable(new float[] { 20, 28, 4, 20, 28 });
+            projectDetails.AddCell(LeftCell("Submitter:"));
+            projectDetails.AddCell(RightCell(model.SubmittedBy, Rectangle.BOX));
+            projectDetails.AddCell(getEmptyCell());
+            projectDetails.AddCell(LeftCell("Project Start Date:"));
+            projectDetails.AddCell(RightCell(model.ProdStartOn.HasValue ? model.ProdStartOn.Value.ToString("dd/MM/yyyy") : "", Rectangle.BOX));
+
+            PdfPCell tableCellsub = new PdfPCell(projectDetails);
+            tableCellsub.Border = Rectangle.NO_BORDER;
+            tableCellsub.PaddingTop = Utilities.InchesToPoints(0.1f);
+            table.AddCell(tableCellsub);
+
 
             PdfPTable projectDesTable = new PdfPTable(new float[] { 20, 80 });
             projectDesTable.AddCell(LeftCell("Project Description:"));
-            projectDesTable.AddCell(RightCell(model.Description));
+            projectDesTable.AddCell(RightCell(model.Description, Rectangle.BOX));
             PdfPCell projectDestableCell = new PdfPCell(projectDesTable);
             projectDestableCell.Border = Rectangle.NO_BORDER;
             projectDestableCell.PaddingTop = Utilities.InchesToPoints(0.1f);
@@ -224,11 +230,19 @@ namespace AM.Web.Models
             sectionD.Border = Rectangle.NO_BORDER;
             sectionD.PaddingRight = Utilities.InchesToPoints(0);
             sectionD.UseAscender = true;
-            sectionC.ExtraParagraphSpace = 2;
+            sectionD.ExtraParagraphSpace = 2;
             tableD.AddCell(sectionD);
             tableD.AddCell(ColspanCell(14));
             var projectRequirements = new List<string> { "Mixed Media", "Letter Only", "Legal Only", "Stapled", "Not Stapled", "24# Paper", "Insert Required", "White", "Color (specify)", "Print 1-sided", "Print 2-sided", "B&W", "Color", "B&W & Color" };
-            CheckBoxListSectionC(model.PaperPrintRequirements, tableD, projectRequirements, 14);
+            CheckBoxListSectionC(model.PaperPrintRequirements, tableD, projectRequirements, 14, false);
+
+            tableD.AddCell(
+                new PdfPCell(new Phrase(model.PaperPrintRequirementsOther, new Font(verdana, 10, Font.NORMAL, BaseColor.RED)))
+                {
+                    Colspan = 14,
+                    Border = Rectangle.BOTTOM_BORDER,
+                    PaddingTop = Utilities.InchesToPoints(0.1f)
+                });
 
             PdfPCell tableDCell = new PdfPCell(tableD);
             tableDCell.Border = Rectangle.NO_BORDER;
@@ -270,9 +284,9 @@ namespace AM.Web.Models
             table.AddCell(getEmptyCell());
 
 
-            PdfPTable tableF = new PdfPTable(new float[] { 4, 15, 4, 15, 4, 15, 4, 15 });
+            PdfPTable tableF = new PdfPTable(new float[] { 4, 15, 4, 15, 4, 15, 4, 15, 4, 15 });
             PdfPCell sectionF = new PdfPCell(new Phrase("F. Envelopes", new Font(verdana, 10)));
-            sectionF.Colspan = 8;
+            sectionF.Colspan = 10;
             sectionF.BackgroundColor = new BaseColor(189, 215, 238);
             sectionF.HorizontalAlignment = Element.ALIGN_LEFT;
             sectionF.VerticalAlignment = Element.ALIGN_MIDDLE;
@@ -281,7 +295,7 @@ namespace AM.Web.Models
             sectionF.UseAscender = true;
             sectionF.ExtraParagraphSpace = 2;
             tableF.AddCell(sectionF);
-            tableF.AddCell(ColspanCell(8));
+            //tableF.AddCell(ColspanCell(8));
             Phrase envelopeText = new Phrase("If mailed, what type of envelope is required?", new Font(verdana, 8));
             PdfPCell envelope = new PdfPCell(envelopeText);
             envelope.Colspan = 4;
@@ -293,10 +307,40 @@ namespace AM.Web.Models
             envelope.ExtraParagraphSpace = 2;
             tableF.AddCell(envelope);
             tableF.AddCell(BorderCell(model.IsSampleEnvelopeAttached));
-            tableF.AddCell(RightCell("Sample envelope(s) attached?", Rectangle.NO_BORDER));
-            tableF.AddCell(ColspanCell(8));
-            var envelopeList = new List<string> { "# 10", "6 x 9.5", "9 x 12", "10 x 12", "10 x 13", "" };
-            CheckBoxListSectionC(model.Envelopes, tableF, envelopeList, 8);
+            //------
+            Phrase sampleEnvelopePh = new Phrase("Sample envelope(s) attached?", new Font(verdana, 10, Font.NORMAL));
+            PdfPCell sampleEnvelope = new PdfPCell(sampleEnvelopePh);
+            sampleEnvelope.Colspan = 5;
+            sampleEnvelope.HorizontalAlignment = Element.ALIGN_LEFT;
+            sampleEnvelope.VerticalAlignment = Element.ALIGN_MIDDLE;
+            sampleEnvelope.Border = Rectangle.NO_BORDER;
+            //sampleEnvelope.BorderWidthBottom = 1f;
+            sampleEnvelope.PaddingLeft = Utilities.InchesToPoints(0.1f);
+            sampleEnvelope.UseAscender = true;
+            sampleEnvelope.ExtraParagraphSpace = 2;
+            tableF.AddCell(sampleEnvelope);
+            //tableF.AddCell(RightCell("Sample envelope(s) attached?", Rectangle.NO_BORDER, 5));
+            //------
+
+            //tableF.AddCell(ColspanCell(4));
+            var envelopeList = new List<string> { "# 10", "6 x 9.5", "9 x 12", "10 x 12", "10 x 13" };
+            //CheckBoxListSectionC(model.Envelopes, tableF, envelopeList, 8);
+            CheckBoxListMultipleValueOtherNewline(model.Envelopes, tableF, envelopeList, model.EnvelopesOther);
+
+            //tableF.AddCell(BorderCell(!model.EnvelopesOther.IsNullOrEmpty()));
+            //Phrase sampleEnvelopeOtherPh = new Phrase(model.EnvelopesOther, new Font(verdana, 10, Font.NORMAL));
+            //PdfPCell sampleEnvelopeOther = new PdfPCell(sampleEnvelopeOtherPh);
+            //sampleEnvelopeOther.Colspan = 9;
+            //sampleEnvelopeOther.HorizontalAlignment = Element.ALIGN_LEFT;
+            //sampleEnvelopeOther.VerticalAlignment = Element.ALIGN_MIDDLE;
+            //sampleEnvelopeOther.Border = Rectangle.NO_BORDER;
+            //sampleEnvelopeOther.BorderWidthBottom = 1f;
+            //sampleEnvelopeOther.PaddingLeft = Utilities.InchesToPoints(0.1f);
+            //sampleEnvelopeOther.UseAscender = true;
+            //sampleEnvelopeOther.ExtraParagraphSpace = 2;
+            //tableF.AddCell(sampleEnvelopeOther);
+
+
             PdfPCell tableFCell = new PdfPCell(tableF);
             tableFCell.Border = Rectangle.NO_BORDER;
             tableFCell.PaddingTop = Utilities.InchesToPoints(0.1f);
@@ -324,8 +368,9 @@ namespace AM.Web.Models
             tableFNew.AddCell(BorderCell(model.BusinessReplyMailEnvelope == "#9 Business Reply Mail"));
             tableFNew.AddCell(LeftCell("#9 Business Reply Mail", 8));
             tableFNew.AddCell(BorderCell(model.BusinessReplyMailEnvelope != "No" && model.BusinessReplyMailEnvelope != "#9 Business Reply Mail"));
-            tableFNew.AddCell(LeftCell(string.Format("Other({0})", model.BusinessReplyMailEnvelope != "No" && model.BusinessReplyMailEnvelope != "#9 Business Reply Mail" ? model.BusinessReplyMailEnvelope : "Specify"), 8));
-            tableFNew.AddCell(ColspanCell(6));
+            //tableFNew.AddCell(LeftCell(string.Format("Other({0})", model.BusinessReplyMailEnvelope != "No" && model.BusinessReplyMailEnvelope != "#9 Business Reply Mail" ? model.BusinessReplyMailEnvelope : "Specify"), 8));
+            tableFNew.AddCell(LeftCell(string.Format("Other({0})", model.BusinessReplyMailEnvelopeOther), 8, 4));
+            tableFNew.AddCell(ColspanCell(4));
             tableFNew.AddCell(ColspanCell(8));
             YesNoCheckBox("Will customer supply their envelopes?", tableFNew, model.IsCustomerSupplyEnvelope);
             tableFNew.AddCell(ColspanCell(8));
@@ -570,7 +615,8 @@ namespace AM.Web.Models
         }
         public static void CheckBoxListMultipleValue(string title, string value, PdfPTable table, List<string> list, string customValue, bool skipFirst = false)
         {
-            table.AddCell(LeftCell(title, 8));
+            if (!title.IsNullOrEmpty())
+                table.AddCell(LeftCell(title, 8));
             var valueList = value.Split(',').ToList();
             foreach (var item in list)
             {
@@ -601,7 +647,39 @@ namespace AM.Web.Models
                 table.AddCell(LeftCell(string.Format("Other ({0})", customValue), 8, 4));
             }
         }
-        public static void CheckBoxListSectionC(string value, PdfPTable table, List<string> list, int colspan)
+        public static void CheckBoxListMultipleValueOtherNewline(string value, PdfPTable table, List<string> list, string customValue)
+        {
+            var valueList = value.Split(',').ToList();
+            foreach (var item in list)
+            {
+                if (valueList.Any(v => v == item))
+                {
+                    table.AddCell(BorderCell(true));
+                    table.AddCell(LeftCell(item, 8));
+                }
+                else
+                {
+                    table.AddCell(BorderCell(false));
+                    table.AddCell(LeftCell(item, 8));
+                }
+            }
+
+
+            table.AddCell(BorderCell(!customValue.IsNullOrEmpty()));
+            table.AddCell(LeftCell("Other", 8));
+            Phrase sampleEnvelopeOtherPh = new Phrase(customValue, new Font(verdana, 10, Font.NORMAL, customValue.IsNullOrEmpty() ? BaseColor.BLACK : BaseColor.RED));
+            PdfPCell sampleEnvelopeOther = new PdfPCell(sampleEnvelopeOtherPh);
+            sampleEnvelopeOther.Colspan = 8;
+            sampleEnvelopeOther.HorizontalAlignment = Element.ALIGN_LEFT;
+            sampleEnvelopeOther.VerticalAlignment = Element.ALIGN_MIDDLE;
+            sampleEnvelopeOther.Border = Rectangle.NO_BORDER;
+            sampleEnvelopeOther.BorderWidthBottom = 1f;
+            sampleEnvelopeOther.PaddingLeft = Utilities.InchesToPoints(0.1f);
+            sampleEnvelopeOther.UseAscender = true;
+            sampleEnvelopeOther.ExtraParagraphSpace = 2;
+            table.AddCell(sampleEnvelopeOther);
+        }
+        public static void CheckBoxListSectionC(string value, PdfPTable table, List<string> list, int colspan, bool isother = true)
         {
             bool isFound = false;
             int cnt = 0;
@@ -632,15 +710,18 @@ namespace AM.Web.Models
 
                 }
             }
-            if (isFound)
+            if (isother)
             {
-                table.AddCell(BorderCell(false));
-                table.AddCell(LeftCell("Other", 8));
-            }
-            else
-            {
-                table.AddCell(BorderCell(true));
-                table.AddCell(LeftCell(string.Format("Other ({0})", value), 8));
+                if (isFound)
+                {
+                    table.AddCell(BorderCell(false));
+                    table.AddCell(LeftCell("Other", 8));
+                }
+                else
+                {
+                    table.AddCell(BorderCell(true));
+                    table.AddCell(LeftCell(string.Format("Other ({0})", value), 8));
+                }
             }
         }
         public static PdfPCell ColspanCell(int colspan)
@@ -708,15 +789,17 @@ namespace AM.Web.Models
             left.ExtraParagraphSpace = 2;
             return left;
         }
-        public static PdfPCell RightCell(string value, int border = Rectangle.BOTTOM_BORDER)
+        public static PdfPCell RightCell(string value, int border = Rectangle.BOTTOM_BORDER, int colspan = 0)
         {
             Phrase rightPh = new Phrase(value, new Font(verdana, 10, Font.NORMAL, BaseColor.RED));
             PdfPCell right = new PdfPCell(rightPh);
+            right.Colspan = colspan;
             right.HorizontalAlignment = Element.ALIGN_LEFT;
             right.VerticalAlignment = Element.ALIGN_MIDDLE;
             right.Border = border;
-            right.BorderWidthBottom = 1f;
-            right.PaddingLeft = Utilities.InchesToPoints(0);
+            if (border == Rectangle.BOTTOM_BORDER)
+                right.BorderWidthBottom = 1f;
+            right.PaddingLeft = Utilities.InchesToPoints(border == Rectangle.BOTTOM_BORDER ? 0 : 0.1f);
             right.UseAscender = true;
             right.ExtraParagraphSpace = 2;
             return right;
