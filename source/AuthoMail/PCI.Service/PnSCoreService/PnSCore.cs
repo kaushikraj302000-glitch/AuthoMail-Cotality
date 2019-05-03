@@ -922,9 +922,11 @@ namespace PCI.Service
                         //Check for XML files only
                         responseFileList = Directory.GetFiles(Path.Combine(bundlingRootPath), "*.xml").ToList();
                         break;
-                    default:
+                    case "PCI":
                         //Check for OUT files only
                         responseFileList = Directory.GetFiles(Path.Combine(bundlingRootPath), "*.out").ToList();
+                        break;
+                    default:
                         break;
                 }
 
