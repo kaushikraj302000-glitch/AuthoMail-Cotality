@@ -80,9 +80,10 @@ namespace AM.Web.Models
 
 
             PdfPTable fileTransmissionTable = new PdfPTable(new float[] { 18, 4, 10, 4, 14, 4, 18, 4, 24 });
-            var fileTransmittedViaList = new List<string> { "Client FTP", "CoreLogic FTP", "CL Pull from Client System Imaging" };
+
+            var fileTransmittedViaList = new List<string> { "Client FTP", "CoreLogic FTP", "CL Pull from Client System Imaging", "Mortgage Cadence Integration" };
             //CheckBoxList("Files transmitted via:", model.FileTransmittedVia, fileTransmissionTable, fileTransmittedViaList);
-            CheckBoxListMultipleValue("Files transmitted via:", model.FileTransmittedVia, fileTransmissionTable, fileTransmittedViaList, model.FilesTransmittedOther);
+            CheckBoxListMultipleValue("Files transmitted via:", model.FileTransmittedVia, fileTransmissionTable, fileTransmittedViaList, model.FilesTransmittedOther, true);
 
             fileTransmissionTable.AddCell(ColspanCell(9));
             Phrase sweepTimesPh = new Phrase("How many times will Corelogic be sweeping the SFTP?", new Font(verdana, 8));
@@ -117,7 +118,8 @@ namespace AM.Web.Models
             fileTransmissionTable.AddCell(ColspanCell(9));
 
             var typeOfFilesList = new List<string> { "PDF", "HP", "TIFF" };
-            CheckBoxList("Type of Files:", model.TypeOfFiles, fileTransmissionTable, typeOfFilesList);
+            //CheckBoxList("Type of Files:", model.TypeOfFiles, fileTransmissionTable, typeOfFilesList);
+            CheckBoxListMultipleValue("Type of Files:", model.TypeOfFiles, fileTransmissionTable, typeOfFilesList, model.TypeOfFilesOther);
 
             fileTransmissionTable.AddCell(ColspanCell(9));
 
@@ -139,18 +141,34 @@ namespace AM.Web.Models
             TransmittedTime.VerticalAlignment = Element.ALIGN_MIDDLE;
             TransmittedTime.Border = Rectangle.NO_BORDER;
             TransmittedTime.PaddingRight = Utilities.InchesToPoints(0);
-            TransmittedTime.PaddingTop = Utilities.InchesToPoints(0.2f);
             TransmittedTime.UseAscender = true;
             TransmittedTime.ExtraParagraphSpace = 2;
             fileTransmissionTable.AddCell(TransmittedTime);
-            fileTransmissionTable.AddCell(getEmptyCell());
-            fileTransmissionTable.AddCell(RightCell(model.TransmittedTime));
-            fileTransmissionTable.AddCell(getEmptyCell());
-            fileTransmissionTable.AddCell(getEmptyCell());
+            fileTransmissionTable.AddCell(BorderCell(model.TransmittedTime.Contains("AM")));
+            fileTransmissionTable.AddCell(LeftCell("AM\n", 8));
+            fileTransmissionTable.AddCell(BorderCell(model.TransmittedTime.Contains("PM")));
+            fileTransmissionTable.AddCell(LeftCell("PM\n", 8));
             fileTransmissionTable.AddCell(ColspanCell(9));
+            //Phrase TransmittedTimePh = new Phrase("What time will files be transmitted to CoreLogic?", new Font(verdana, 8));
+            //PdfPCell TransmittedTime = new PdfPCell(TransmittedTimePh);
+            //TransmittedTime.Colspan = 5;
+            //TransmittedTime.HorizontalAlignment = Element.ALIGN_LEFT;
+            //TransmittedTime.VerticalAlignment = Element.ALIGN_MIDDLE;
+            //TransmittedTime.Border = Rectangle.NO_BORDER;
+            //TransmittedTime.PaddingRight = Utilities.InchesToPoints(0);
+            //TransmittedTime.PaddingTop = Utilities.InchesToPoints(0.2f);
+            //TransmittedTime.UseAscender = true;
+            //TransmittedTime.ExtraParagraphSpace = 2;
+            //fileTransmissionTable.AddCell(TransmittedTime);
+            //fileTransmissionTable.AddCell(getEmptyCell());
+            //fileTransmissionTable.AddCell(RightCell(model.TransmittedTime));
+            //fileTransmissionTable.AddCell(getEmptyCell());
+            //fileTransmissionTable.AddCell(getEmptyCell());
+            //fileTransmissionTable.AddCell(ColspanCell(9));
 
             var serviceLevelList = new List<string> { "Same Day", "24 Hours", "48 Hours" };
-            CheckBoxList("Service Level:", model.ServiceLevel, fileTransmissionTable, serviceLevelList);
+            //CheckBoxList("Service Level:", model.ServiceLevel, fileTransmissionTable, serviceLevelList);
+            CheckBoxListMultipleValue("Service Level:", model.ServiceLevel, fileTransmissionTable, serviceLevelList, model.ServiceLevelOther);
             fileTransmissionTable.AddCell(ColspanCell(9));
 
 
@@ -275,9 +293,9 @@ namespace AM.Web.Models
             envelope.ExtraParagraphSpace = 2;
             tableF.AddCell(envelope);
             tableF.AddCell(BorderCell(model.IsSampleEnvelopeAttached));
-            tableF.AddCell(ColspanCell(3));
+            tableF.AddCell(RightCell("Sample envelope(s) attached?", Rectangle.NO_BORDER));
             tableF.AddCell(ColspanCell(8));
-            var envelopeList = new List<string> { "# 10", "6 x 9.5", "9 x 12", "10 x 12", "10 x 13", "Standard Window", "Custom Window(s)", "" };
+            var envelopeList = new List<string> { "# 10", "6 x 9.5", "9 x 12", "10 x 12", "10 x 13", "" };
             CheckBoxListSectionC(model.Envelopes, tableF, envelopeList, 8);
             PdfPCell tableFCell = new PdfPCell(tableF);
             tableFCell.Border = Rectangle.NO_BORDER;
@@ -550,7 +568,7 @@ namespace AM.Web.Models
                 table.AddCell(LeftCell(string.Format("Other ({0})", value), 8));
             }
         }
-        public static void CheckBoxListMultipleValue(string title, string value, PdfPTable table, List<string> list, string customValue)
+        public static void CheckBoxListMultipleValue(string title, string value, PdfPTable table, List<string> list, string customValue, bool skipFirst = false)
         {
             table.AddCell(LeftCell(title, 8));
             var valueList = value.Split(',').ToList();
@@ -567,7 +585,11 @@ namespace AM.Web.Models
                     table.AddCell(LeftCell(item, 8));
                 }
             }
-
+            if (skipFirst)
+            {
+                //table.AddCell(BorderCell(false));
+                table.AddCell(LeftCell(string.Empty, 8));
+            }
             if (customValue.IsNullOrEmpty())
             {
                 table.AddCell(BorderCell(false));
@@ -576,7 +598,7 @@ namespace AM.Web.Models
             else
             {
                 table.AddCell(BorderCell(true));
-                table.AddCell(LeftCell(string.Format("Other ({0})", customValue), 8));
+                table.AddCell(LeftCell(string.Format("Other ({0})", customValue), 8, 4));
             }
         }
         public static void CheckBoxListSectionC(string value, PdfPTable table, List<string> list, int colspan)
@@ -588,8 +610,6 @@ namespace AM.Web.Models
             {
                 if (item != "")
                 {
-
-
                     if (value.Contains(item))
                     {
                         table.AddCell(BorderCell(true));
@@ -675,10 +695,11 @@ namespace AM.Web.Models
             borderCell.UseAscender = true;
             return borderCell;
         }
-        public static PdfPCell LeftCell(string key, int font = 10)
+        public static PdfPCell LeftCell(string key, int font = 10, int otherColspan = 0)
         {
             Phrase leftPh = new Phrase(key, new Font(verdana, font));
             PdfPCell left = new PdfPCell(leftPh);
+            left.Colspan = otherColspan;
             left.HorizontalAlignment = Element.ALIGN_LEFT;
             left.VerticalAlignment = Element.ALIGN_MIDDLE;
             left.Border = Rectangle.NO_BORDER;
@@ -687,13 +708,13 @@ namespace AM.Web.Models
             left.ExtraParagraphSpace = 2;
             return left;
         }
-        public static PdfPCell RightCell(string value)
+        public static PdfPCell RightCell(string value, int border = Rectangle.BOTTOM_BORDER)
         {
             Phrase rightPh = new Phrase(value, new Font(verdana, 10, Font.NORMAL, BaseColor.RED));
             PdfPCell right = new PdfPCell(rightPh);
             right.HorizontalAlignment = Element.ALIGN_LEFT;
             right.VerticalAlignment = Element.ALIGN_MIDDLE;
-            right.Border = Rectangle.BOTTOM_BORDER;
+            right.Border = border;
             right.BorderWidthBottom = 1f;
             right.PaddingLeft = Utilities.InchesToPoints(0);
             right.UseAscender = true;

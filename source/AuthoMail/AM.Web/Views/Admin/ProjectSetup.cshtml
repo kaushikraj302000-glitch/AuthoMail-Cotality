@@ -161,10 +161,10 @@
                             <div class="form-group">
                                 <label for="TransmittedTime">Transmitted File Time</label>
                                 <div class='input-group'>
-                                    <select class="form-control selectpicker other" name="TransmittedTime">
-                                        <option>Select Transmitted Time</option>
-                                        <option value="AM" @{string TTsel = Model.TransmittedTime == "AM" ? "Selected" : "";} @TTsel>AM</option>
-                                        <option value="PM" @{TTsel = Model.TransmittedTime == "PM" ? "Selected" : "";} @TTsel>PM</option>
+                                    <select class="form-control selectpicker other" multiple name="TransmittedTimeList">
+                                        <option value="">Select Transmitted Time</option>
+                                        <option value="AM" @{string TTsel = Model.TransmittedTime.Contains("AM") ? "Selected" : "";} @TTsel>AM</option>
+                                        <option value="PM" @{TTsel = Model.TransmittedTime.Contains("PM") ? "Selected" : "";} @TTsel>PM</option>
                                     </select>
                                     @*<input type='text' class="form-control" value="@Model.TransmittedTime" name="TransmittedTime" id='datetimepicker3' />
                                         <span class="input-group-addon">
@@ -880,18 +880,19 @@
             });
         });
         $('.selectpicker').on('change', function () {
-            var isFound = Array.indexOf($(this).val(), 'Other');
-            isFound = isFound == -1 ? Array.indexOf($(this).val(), 'Color (specify)') : isFound;
-            if (isFound != -1) {
-                console.log($(this).closest(".input-group").find(".othertextbox").val())
-                //$(this).closest(".input-group").find(".othertextbox").val("");
-                $(this).closest(".input-group").find(".othertextbox").show();
-            } else {
-                $(this).closest(".input-group").find(".othertextbox").val($(this).val());
-                $(this).closest(".input-group").find(".othertextbox").hide();
-                $(this).closest(".input-group").find(".othertextbox").val("");
+            if ($(this).val() != null) {
+                var isFound = Array.indexOf($(this).val(), 'Other');
+                isFound = isFound == -1 ? Array.indexOf($(this).val(), 'Color (specify)') : isFound;
+                if (isFound != -1) {
+                    //$(this).closest(".input-group").find(".othertextbox").val("");
+                    $(this).closest(".input-group").find(".othertextbox").show();
+                } else {
+                    $(this).closest(".input-group").find(".othertextbox").val($(this).val());
+                    $(this).closest(".input-group").find(".othertextbox").hide();
+                    $(this).closest(".input-group").find(".othertextbox").val("");
+                }
             }
-       
+
         });
         $(".cl-toggle").click(function () {
             var value = $(this).is(":checked") ? "true" : "false";

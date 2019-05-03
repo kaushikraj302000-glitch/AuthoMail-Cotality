@@ -22,6 +22,7 @@ namespace AM.Services
         public string TypeOfFiles { get; set; }
         public List<string> TypeOfFilesList { get; set; }//
         public string TransmittedTime { get; set; }
+        public List<string> TransmittedTimeList { get; set; }//
         public string ServiceLevel { get; set; }
         public List<string> ServiceLevelList { get; set; }//
         public int? EstimatedPagesPerPackage { get; set; }

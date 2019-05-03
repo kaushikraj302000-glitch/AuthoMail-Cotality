@@ -643,6 +643,7 @@ namespace AM.Web.Controllers
                 projectRequest.PackagesSentToCustomer = string.Join(",", projectRequest.PackagesSentToCustomerList);
                 projectRequest.Envelopes = string.Join(",", projectRequest.EnvelopesList);
                 projectRequest.BusinessReplyMailEnvelope = string.Join(",", projectRequest.BusinessReplyMailEnvelopeList);
+                projectRequest.TransmittedTime = string.Join(",", projectRequest.TransmittedTimeList);
 
                 projectRequest.DailyPrintSchedule = string.Join(",", projectRequest.DailyPrintScheduleList);
                 projectRequest.PaperPrintRequirements = string.Join(",", projectRequest.PaperPrintRequirementsList);
