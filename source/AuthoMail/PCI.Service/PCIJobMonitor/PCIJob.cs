@@ -163,9 +163,8 @@ namespace PCI.Service
                 PrintTrailId = ptDetail.PrintTrailId
             };
 
-            TransactionOptions tranOption = new TransactionOptions();
-            tranOption.IsolationLevel = System.Transactions.IsolationLevel.ReadCommitted;
-            using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Required, tranOption))
+            
+            using (TransactionScope scope = new TransactionScope())
             {
                 log.Info("Inserting Data Started.");
                 ptBatchDetail.Id = DAL.InsertPrintTrailBatchDetail(ptBatchDetail);
