@@ -38,9 +38,9 @@
     <xs:attribute name="AptOrSuiteOrOther" type="xs:string" use="optional"  />
     <xs:attribute name="OptionalLine1BelowStreet" type="xs:string" use="optional"  />
     <xs:attribute name="OptionalLine2BelowStreet" type="xs:string" use="optional"  />
-    <xs:attribute name="City" type="tns:nonEmptyString" use="required"  />
-    <xs:attribute name="State" type="tns:nonEmptyString" use="required"  />
-    <xs:attribute name="Zip" type="tns:USZIP" use="required"  />
+    <xs:attribute name="City" type="tns:nonEmptyString" use="optional"  />
+    <xs:attribute name="State" type="tns:nonEmptyString" use="optional"  />
+    <xs:attribute name="Zip" type="tns:USZIP" use="optional"  />
   </xs:complexType>
   <xs:complexType name="MailPieces">
     <xs:sequence>
