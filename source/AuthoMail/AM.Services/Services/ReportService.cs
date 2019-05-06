@@ -361,12 +361,7 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
                 parameter.Add("@TrackingNo", trackingNo);
             }
 
-            if (startDate.HasValue && endDate.HasValue)
-            {
-                query = string.Format("{0} and b.ReceivedOn BETWEEN @startDate and @endDate", query);
-                parameter.Add("@startDate", startDate.Value.ToStartDateTime().EstToUtc());
-                parameter.Add("@endDate", endDate.Value.ToEndDateTime().EstToUtc());
-            }
+
             if (docType != null && docType.Count > 0)
             {
                 query = string.Format("{0} and m.DocTypeId in @docTypeId", query);
@@ -382,6 +377,15 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
                 parameter.Add("@shippingMethod", shipMethod);
                 parameter.Add("@shippingCarrier", shipCarrier);
             }
+            if (parameter.ParameterNames.Count() == 0 && !startDate.HasValue && !endDate.HasValue)
+                startDate = endDate = Common.EstToday;
+            if (startDate.HasValue && endDate.HasValue)
+            {
+                query = string.Format("{0} and b.ReceivedOn BETWEEN @startDate and @endDate", query);
+                parameter.Add("@startDate", startDate.Value.ToStartDateTime().EstToUtc());
+                parameter.Add("@endDate", endDate.Value.ToEndDateTime().EstToUtc());
+            }
+            query = string.Format("{0} order by b.ReceivedOn desc", query);
             var data = db.Query<ReportWizard>(query, parameter).ToList();
             return data;
         }

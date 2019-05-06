@@ -118,7 +118,7 @@ namespace AM.Web.Models
             ESTSweepTime.ExtraParagraphSpace = 2;
             fileTransmissionTable.AddCell(ESTSweepTime);
             fileTransmissionTable.AddCell(getEmptyCell());
-            fileTransmissionTable.AddCell(RightCell(model.ESTSweepTime));
+            fileTransmissionTable.AddCell(RightCell(model.ESTSweepTime, Rectangle.BOX));
             fileTransmissionTable.AddCell(getEmptyCell());
             fileTransmissionTable.AddCell(getEmptyCell());
             fileTransmissionTable.AddCell(ColspanCell(9));
@@ -264,24 +264,25 @@ namespace AM.Web.Models
             tableE.AddCell(sectionE);
             tableE.AddCell(ColspanCell(8));
             var packagesSentToCustomerList = new List<string> { "Mailed-USPS", "Federal Express", "Certified USPS" };
-            CheckBoxListSectionC(model.PackagesSentToCustomer, tableE, packagesSentToCustomerList, 0);
+            CheckBoxListMultipleValueOtherNewline(model.PackagesSentToCustomer, tableE, packagesSentToCustomerList, model.PackagesSentToCustomerOther);
+            //CheckBoxListSectionC(model.PackagesSentToCustomer, tableE, packagesSentToCustomerList, 0);
             tableE.AddCell(ColspanCell(8));
-            Phrase infoText = new Phrase("First Mortgage will sent through Federal Express and Equity line of credit will go out in USPS", new Font(verdana, 8));
-            PdfPCell info = new PdfPCell(infoText);
-            info.Colspan = 8;
-            info.HorizontalAlignment = Element.ALIGN_LEFT;
-            info.VerticalAlignment = Element.ALIGN_MIDDLE;
-            info.Border = Rectangle.NO_BORDER;
-            info.PaddingRight = Utilities.InchesToPoints(0);
-            info.UseAscender = true;
-            info.ExtraParagraphSpace = 2;
-            tableE.AddCell(info);
+            //Phrase infoText = new Phrase("First Mortgage will sent through Federal Express and Equity line of credit will go out in USPS", new Font(verdana, 8));
+            //PdfPCell info = new PdfPCell(infoText);
+            //info.Colspan = 8;
+            //info.HorizontalAlignment = Element.ALIGN_LEFT;
+            //info.VerticalAlignment = Element.ALIGN_MIDDLE;
+            //info.Border = Rectangle.NO_BORDER;
+            //info.PaddingRight = Utilities.InchesToPoints(0);
+            //info.UseAscender = true;
+            //info.ExtraParagraphSpace = 2;
+            //tableE.AddCell(info);
 
             PdfPCell tableECell = new PdfPCell(tableE);
             tableECell.Border = Rectangle.NO_BORDER;
-            tableECell.PaddingTop = Utilities.InchesToPoints(0.1f);
+            tableECell.PaddingTop = Utilities.InchesToPoints(0);
             table.AddCell(tableECell);
-            table.AddCell(getEmptyCell());
+            //table.AddCell(getEmptyCell());
 
 
             PdfPTable tableF = new PdfPTable(new float[] { 4, 15, 4, 15, 4, 15, 4, 15, 4, 15 });

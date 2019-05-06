@@ -130,6 +130,7 @@ namespace AM.Web.Controllers
                         AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
                         return View("InActiveUser");
                     }
+                    UpdateLoginTime(user.Id);
                     return RedirectToLocal(returnUrl);
                 }
                 var result = await SignInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, shouldLockout: true);
@@ -148,6 +149,7 @@ namespace AM.Web.Controllers
                             AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
                             return View("InActiveUser");
                         }
+                        UpdateLoginTime(user.Id);
                         return RedirectToLocal(returnUrl);
                     case SignInStatus.LockedOut:
                         return View("Lockout");
@@ -296,7 +298,7 @@ namespace AM.Web.Controllers
             }
         }
         public ActionResult Success()
-        {            
+        {
             return View();
         }
         //
@@ -873,7 +875,21 @@ namespace AM.Web.Controllers
             base.Dispose(disposing);
         }
 
+
         #region Helpers
+        //Update Last login time
+        public void UpdateLoginTime(string userId)
+        {
+            if (userId != null)
+            {
+                var user = UserManager.FindById(userId);
+                if (user != null)
+                {
+                    user.LastLoginTimeUTC = DateTime.UtcNow;
+                    var result = UserManager.Update(user);
+                }
+            }
+        }
         // Used for XSRF protection when adding external logins
         private const string XsrfKey = "XsrfId";
 
