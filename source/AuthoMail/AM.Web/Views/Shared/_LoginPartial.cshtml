@@ -17,6 +17,7 @@
                     {
                         <li>@Html.ActionLink("AMUsers", "AMUsers", "Account")</li>
                     }
+                    <li id="LastLoginLi" title="Last Login Time (EST)" style="background-color:#eee;"><a class="disabled">Last Login(EST): @User.Identity.LastLoginTime().ToString("dd/MM/yy hh:mm:ss tt")</a></li>
                     <li><a href="javascript:document.getElementById('logoutForm').submit()">Log off</a></li>
                 </ul>
             </li>

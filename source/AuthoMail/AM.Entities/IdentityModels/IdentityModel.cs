@@ -79,6 +79,7 @@ namespace AM.Entities
         public string Status { get; set; }
         public DateTime? ClosedOn { get; set; }
         public string ClosedBy { get; set; }
+        public DateTime? LastLoginTimeUTC { get; set; }
     }
     public class IdentityRole : IRole
     {

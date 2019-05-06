@@ -65,7 +65,7 @@ namespace AM.Services
 
             string query = @"Update [Profile].[Users] set UserName = @userName, PasswordHash = @pswHash, SecurityStamp = @secStamp, 
                 Email=@email, EmailConfirmed=@emailconfirmed, PhoneNumber=@phonenumber, PhoneNumberConfirmed=@phonenumberconfirmed,
-                AccessFailedCount=@accesscount, LockoutEnabled=@lockoutenabled, LockoutEndDateUtc=@lockoutenddate, TwoFactorEnabled=@twofactorenabled,ClientId=@clientId,FirstName=@firstName,LastName=@lastName,DisplayName=@displayName,RequestedOn=@requestedOn,Status=@status,ClosedOn=@closedOn,ClosedBy=@closedBy
+                AccessFailedCount=@accesscount, LockoutEnabled=@lockoutenabled, LockoutEndDateUtc=@lockoutenddate, TwoFactorEnabled=@twofactorenabled,ClientId=@clientId,FirstName=@firstName,LastName=@lastName,DisplayName=@displayName,RequestedOn=@requestedOn,Status=@status,ClosedOn=@closedOn,ClosedBy=@closedBy,LastLoginTimeUTC=@LastLoginTimeUTC
                 WHERE Id = @userId";
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@userName", user.UserName);
@@ -88,6 +88,7 @@ namespace AM.Services
             parameters.Add("@status", user.Status);
             parameters.Add("@closedOn", user.ClosedOn);
             parameters.Add("@closedBy", user.ClosedBy);
+            parameters.Add("@LastLoginTimeUTC", user.LastLoginTimeUTC);
             return db.Execute(query, parameters);
         }
         public TUser GetUserById(string userId)
