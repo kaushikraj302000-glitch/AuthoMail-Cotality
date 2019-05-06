@@ -450,6 +450,7 @@ PaperPrintRequirementsOther nvarchar(1024) null,
 PackagesSentToCustomerOther nvarchar(1024) null,
 EnvelopesOther nvarchar(1024) null,
 BusinessReplyMailEnvelopeOther nvarchar(1024) null
-
-
 Go
+alter table profile.Users
+add LastLoginTimeUTC datetime null
+go
