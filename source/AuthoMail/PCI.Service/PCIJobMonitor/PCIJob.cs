@@ -163,7 +163,9 @@ namespace PCI.Service
                 PrintTrailId = ptDetail.PrintTrailId
             };
 
-            using (TransactionScope scope = new TransactionScope())
+            TransactionOptions tranOption = new TransactionOptions();
+            tranOption.IsolationLevel = System.Transactions.IsolationLevel.ReadCommitted;
+            using (TransactionScope scope = new TransactionScope(TransactionScopeOption.Required, tranOption))
             {
                 log.Info("Inserting Data Started.");
                 ptBatchDetail.Id = DAL.InsertPrintTrailBatchDetail(ptBatchDetail);
@@ -250,8 +252,6 @@ namespace PCI.Service
                     log.InfoFormat("Uploading Started For PrintTrailBatchId : {0}", ptBatchDetails.Id);
                     UploadBatchToPrintVendorSite(batchPath, ptDetails);
                     log.InfoFormat("Uploading Completd For PrintTrailBatchId : {0}", ptBatchDetails.Id);
-
-                    MailUtility.SendBatchSubmittedNotificationEmail(ptDetails.VendorCode, batchPath, mpList.Count, mpList.Sum(c => c.TotalPages));
                 }
             }
         }
@@ -301,6 +301,8 @@ namespace PCI.Service
                     string serverFilePath = "{0}/{1}.uploading".Fill(ptDetails.FromADEDir, ptBatchDetails.PrintBatchName);
                     if (sftSite.IsFileAvailable(serverFilePath))
                         sftSite.RenameFile(serverFilePath, "{0}/{1}.zip".Fill(ptDetails.FromADEDir, ptBatchDetails.PrintBatchName));
+
+                    MailUtility.SendBatchSubmittedNotificationEmail(ptDetails.VendorCode, "{0}.zip".Fill(ptBatchDetails.PrintBatchName), mpList.Count, mpList.Sum(c => c.TotalPages));
                 }
 
                 scope.Complete();
