@@ -17,17 +17,19 @@
                     {
                         <li>@Html.ActionLink("AMUsers", "AMUsers", "Account")</li>
                     }
-                    <li id="LastLoginLi" title="Last Login Time (EST)" style="background-color:#eee;"><a class="disabled">Last Login(EST): @User.Identity.LastLoginTime().ToString("dd/MM/yy hh:mm:ss tt")</a></li>
+                    <li title="Last Login Time (EST)" style="background-color:#eee;"><a class="disabled" id="LastLoginLi">Last Login(EST): @User.Identity.LastLoginTime().ToString("dd/MM/yy hh:mm:ss tt")</a></li>
                     <li><a href="javascript:document.getElementById('logoutForm').submit()">Log off</a></li>
                 </ul>
             </li>
         </ul>
+
+        <script src="~/Scripts/jquery-1.10.2.js"></script>
+        <script src="~/clui/dist/js/vendor/moment.js"></script>
+        <script type="text/javascript">
+            $(document).ready(function () {
+                var dt = moment.utc('@(User.Identity.LastLoginTime())');
+                $('#LastLoginLi').html("Last Login(Local): " + moment(dt).local().format("MM/DD/YY HH:mm:ss"));
+            });
+        </script>
     }
 }
-        @*else
-            {
-                <ul class="nav navbar-nav navbar-right">
-                    <li>@Html.ActionLink("Register", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink" })</li>
-                    <li>@Html.ActionLink("Log in", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" })</li>
-                </ul>
-            }*@
