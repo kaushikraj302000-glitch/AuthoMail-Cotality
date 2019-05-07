@@ -324,6 +324,11 @@ namespace AM.Console
             }
 
             MailUtility.SendProductionNotificationEmail(mbi, mailPieces, reportToMail, deliveryReportDeliverable.EmailChannel);
+            //After Sending An Email Change its extention to "EmailAttachment" to identify that report is sent as an attachments
+            foreach (var reportPath in reportToMail)
+            {
+                File.Move(reportPath, Path.ChangeExtension(reportPath, ".Mailed"));
+            }
         }
 
         private static void GenerateErrorReport(int mailBatchId, List<MailPieces> mailPieceData, string localErrorReportPath)

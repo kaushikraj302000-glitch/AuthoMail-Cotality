@@ -124,7 +124,9 @@ namespace PCI.Service
 
                     try
                     {
+                        log.Info("Submitted Stage Execution Started For PrintTrailBatchId - {0}".Fill(ptBatch.Id));
                         SubmittedStage(ptBatch);
+                        log.Info("Submitted Stage Execution Completed For PrintTrailBatchId - {0}".Fill(ptBatch.Id));
                     }
                     catch (Exception ex)
                     {
@@ -163,7 +165,7 @@ namespace PCI.Service
                 PrintTrailId = ptDetail.PrintTrailId
             };
 
-            
+
             using (TransactionScope scope = new TransactionScope())
             {
                 log.Info("Inserting Data Started.");
@@ -285,7 +287,7 @@ namespace PCI.Service
 
             sftSite.Connect();
 
-            log.DebugFormat("Uploading started For PrintTrailBatchId : {0}", ptBatchDetails.Id);
+            log.DebugFormat("Updating status started For PrintTrailBatchId : {0}", ptBatchDetails.Id);
 
             using (TransactionScope scope = new TransactionScope())
             {
@@ -307,7 +309,7 @@ namespace PCI.Service
                 scope.Complete();
             }
 
-            log.DebugFormat("Uploading completed For PrintTrailBatchId : {0}", ptBatchDetails.Id);
+            log.DebugFormat("Updating status completed For PrintTrailBatchId : {0}", ptBatchDetails.Id);
 
             sftSite.Disconnect();
         }
