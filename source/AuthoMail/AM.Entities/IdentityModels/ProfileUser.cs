@@ -53,8 +53,8 @@ namespace AM.Entities
         public static DateTime LastLoginTime(this IIdentity identity)
         {
             var claim = ((ClaimsIdentity)identity).FindFirst("LastLoginTime");
-            if (claim == null || claim.Value.IsNullOrWhiteSpace()) return DateTime.UtcNow.UtcToEst();
-            return Convert.ToDateTime(claim.Value).UtcToEst();
+            if (claim == null || claim.Value.IsNullOrWhiteSpace()) return DateTime.UtcNow;
+            return Convert.ToDateTime(claim.Value);
         }
     }
 
