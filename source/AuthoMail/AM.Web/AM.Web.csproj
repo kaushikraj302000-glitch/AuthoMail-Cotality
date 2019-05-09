@@ -560,6 +560,8 @@
     <Content Include="Views\Admin\AllProjectSetupDetails.cshtml" />
     <Content Include="Views\Report\ReportWizard.cshtml" />
     <Content Include="Template\Excel\ProjectSetupTemplate.xlsx" />
+    <Content Include="Views\Account\ChangePassword.cshtml" />
+    <Content Include="Views\Account\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

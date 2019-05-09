@@ -133,6 +133,21 @@ namespace AM.Web
         {
             return new AMSignInManager(context.GetUserManager<AMUserManager>(), context.Authentication);
         }
+        //public override async Task<SignInStatus> PasswordSignInAsync(string userName, string password, bool isPersistent, bool shouldLockout)
+        //{
+        //    var user = this.UserManager.FindByName(userName);
+
+        //    var result = await base.PasswordSignInAsync(userName, password, isPersistent, shouldLockout);
+        //    if (SignInStatus.Success == result)
+        //    {
+        //        if (DateTime.UtcNow.Subtract(user.ChangePasswordDateUTC.Date).TotalDays == 0)
+        //        {
+        //            return SignInStatus.Failure;
+        //        }
+        //    }
+
+        //    return (result);
+        //}
     }
 
     //public class AMRoleManager : RoleManager<IdentityRole>

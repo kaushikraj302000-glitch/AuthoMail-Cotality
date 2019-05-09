@@ -116,6 +116,9 @@ namespace AM.Services
         public static string Web_Msg_Lockout { get; private set; }
         public static string Web_Msg_Error { get; private set; }
         public static string Web_Msg_Inactive_Account { get; private set; }
+        public static bool Web_Login_PasswordExpirationIsEnable { get; private set; }
+        public static int Web_Login_PasswordExpirationDays { get; private set; }
+        
         #endregion
 
         #region WEB Common Msg

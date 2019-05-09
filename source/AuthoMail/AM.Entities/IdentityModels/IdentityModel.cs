@@ -80,6 +80,14 @@ namespace AM.Entities
         public DateTime? ClosedOn { get; set; }
         public string ClosedBy { get; set; }
         public DateTime? LastLoginTimeUTC { get; set; }
+        public DateTime ChangePasswordDateUTC { get; set; }
+        public int PasswordExpirationDays
+        {
+            get
+            {
+                return Convert.ToInt32(DateTime.UtcNow.Date.Subtract(this.ChangePasswordDateUTC.Date).TotalDays);
+            }
+        }
     }
     public class IdentityRole : IRole
     {
