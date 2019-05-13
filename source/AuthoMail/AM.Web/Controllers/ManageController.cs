@@ -243,6 +243,8 @@ namespace AM.Web.Controllers
             var result = await UserManager.ChangePasswordAsync(User.Identity.GetUserId(), model.OldPassword, model.NewPassword);
             if (result.Succeeded)
             {
+                existingUser.ChangePasswordDateUTC = DateTime.UtcNow;
+                await UserManager.UpdateAsync(existingUser);
 
                 StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\ChangePassword.html")));
                 sb.Replace("{{name}}", existingUser.FirstName);

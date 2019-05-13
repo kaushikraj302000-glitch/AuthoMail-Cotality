@@ -66,6 +66,11 @@ namespace AM.Web.Controllers
             }
         }
 
+        public ActionResult Index(string message)
+        {
+            ViewBag.StatusMessage = message;
+            return View();
+        }
         //
         // GET: /Account/Login
         [AllowAnonymous]
@@ -149,6 +154,9 @@ namespace AM.Web.Controllers
                             AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
                             return View("InActiveUser");
                         }
+                        if (Config.Web_Login_PasswordExpirationIsEnable && user.PasswordExpirationDays > Config.Web_Login_PasswordExpirationDays)
+                            return RedirectToAction("ChangePassword", new { unm = user.UserName });
+
                         UpdateLoginTime(user.Id);
                         return RedirectToLocal(returnUrl);
                     case SignInStatus.LockedOut:
@@ -429,7 +437,18 @@ namespace AM.Web.Controllers
                             ModelState.AddModelError("", string.Format("Users of the specified domain name '{0}' are not allowed to register.", mAdd.Host));
                             return View(model);
                         }
-                        var user = new ProfileUser { UserName = model.Email, Email = model.Email, FirstName = model.FirstName, LastName = model.LastName, DisplayName = model.DisplayName, LockoutEnabled = true, Status = AMUserStatus.Open, RequestedOn = DateTime.UtcNow };
+                        var user = new ProfileUser
+                        {
+                            UserName = model.Email,
+                            Email = model.Email,
+                            FirstName = model.FirstName,
+                            LastName = model.LastName,
+                            DisplayName = model.DisplayName,
+                            LockoutEnabled = true,
+                            Status = AMUserStatus.Open,
+                            RequestedOn = DateTime.UtcNow,
+                            ChangePasswordDateUTC = DateTime.UtcNow
+                        };
                         var result = await UserManager.CreateAsync(user, model.Password);
                         if (result.Succeeded)
                         {
@@ -684,6 +703,8 @@ namespace AM.Web.Controllers
             var result = await UserManager.ResetPasswordAsync(user.Id, model.Code, model.Password);
             if (result.Succeeded)
             {
+                user.ChangePasswordDateUTC = DateTime.UtcNow;
+                await UserManager.UpdateAsync(user);
                 return RedirectToAction("ResetPasswordConfirmation", "Account");
             }
             AddErrors(result);
@@ -723,6 +744,57 @@ namespace AM.Web.Controllers
             }
             return Json(JsonResponseFactory.ErrorResponse(null, null, result.Errors), JsonRequestBehavior.AllowGet);
         }
+        #region Expiration Change Password
+        public ActionResult ChangePassword(string unm)
+        {
+            return View(new ChangePasswordViewModel() { UserName = unm });
+        }
+        //
+        // POST: /Manage/ChangePassword
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ChangePassword(ChangePasswordViewModel model)
+        {
+            string userId = string.Empty;
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+            var existingUser = await UserManager.FindByNameAsync(model.UserName);
+            if (existingUser == null)
+            {
+                ModelState.AddModelError("", "User can't change password.");
+                return View(model);
+            }
+            if (CLAuthentication.HasCorelogicAccount(existingUser.Email))
+            {
+                ModelState.AddModelError("", "CoreLogic users cannot change password here.");
+                return View(model);
+            }
+            if (model.OldPassword.Equals(model.NewPassword))
+            {
+                ModelState.AddModelError("", "Your new password must be different then old password.");
+                return View(model);
+            }
+            userId = existingUser.Id;
+            var result = await UserManager.ChangePasswordAsync(userId, model.OldPassword, model.NewPassword);
+            if (result.Succeeded)
+            {
+                existingUser.ChangePasswordDateUTC = DateTime.UtcNow;
+                await UserManager.UpdateAsync(existingUser);
+
+                StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\ChangePassword.html")));
+                sb.Replace("{{name}}", existingUser.FirstName);
+                sb.Replace("{{username}}", User.Identity.Name);
+
+                await UserManager.SendEmailAsync(userId, "Your password changed", sb.ToString());
+                AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+                return RedirectToAction("Index", "Account", new { Message = "Your password has been changed." });
+            }
+            AddErrors(result);
+            return View(model);
+        }
+        #endregion Expiration Change Password
         //
         // POST: /Account/ExternalLogin
         [HttpPost]
@@ -877,8 +949,9 @@ namespace AM.Web.Controllers
 
 
         #region Helpers
+
         //Update Last login time
-        public void UpdateLoginTime(string userId)
+        private void UpdateLoginTime(string userId)
         {
             if (userId != null)
             {

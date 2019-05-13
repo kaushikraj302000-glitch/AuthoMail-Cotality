@@ -39,9 +39,11 @@
 
                             </div>
                             <div class="form-group">
-                                @Html.ActionLink("Login", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink", @class = "btn btn-block btn-default btn-lg", @tabindex = "3", @style = "width:49%;float:left;" })
-                                <button type="button" id="emailnext" tabindex="2" class="btn btn-primary  btn-lg btn-block" style="width:49%;float:right;margin-top:0px;">Next <i class="fa fa-arrow-right"></i></button>
+                                <button type="button" id="emailnext" tabindex="2" class="btn btn-primary btn-lg btn-block">Next <i class="fa fa-arrow-right"></i></button>
                                 @*<input type="button" id="emailnext" value="Next" class="btn btn-primary  btn-lg btn-block">*@
+                            </div>
+                            <div class="form-group text-center">
+                                @Html.ActionLink("Back to login", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink", @tabindex = "3" })
                             </div>
                         </div>
 

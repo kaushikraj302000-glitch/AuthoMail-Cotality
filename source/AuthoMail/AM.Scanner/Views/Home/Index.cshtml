@@ -55,48 +55,57 @@
 
     .bg-primary {
         border: 1px solid #cb4040 !important;
-        color: #cb4040 !important;
-        background-color: #fff !important;
+        /*color: #cb4040 !important;
+        background-color: #fff !important;*/
+        color: #fff !important;
+        background-color: #cb4040 !important;
     }
 
     .bg-info {
         border: 1px solid #466baf !important;
-        color: #466baf !important;
-        background-color: #fff !important;
+        color: #fff !important;
+        background-color: #466baf !important;
+    }
+
+    .bg-success {
+        border: 1px solid #72af46 !important;
+        color: #fff !important;
+        background-color: #72af46 !important;
     }
 
     .bg-inverse {
         border: 1px solid #424242 !important;
-        color: #424242 !important;
-        background-color: #fff !important;
+        color: #fff !important;
+        background-color: #424242 !important;
     }
 
     .bg-warning {
-        border: 1px solid #0094ff !important;
-        color: #0094ff !important;
-        background-color: #fff !important;
+        border: 1px solid #2BBBAD !important;
+        color: #fff !important;
+        background-color: #2BBBAD !important;
     }
-
+    /*rgba(255,136,0,1)*/
     .topbordernone {
         border-top: none !important;
     }
 
     .btn-warning {
-        background: #0094ff !important;
-        border-color: #0094ff !important;
+        background: #2BBBAD !important;
+        border-color: #2BBBAD !important;
         color: #fff !important;
     }
-    .btn-warning:hover{
-        background: none !important;
-        color: #0094ff !important;
-    }
+
+        .btn-warning:hover {
+            background: none !important;
+            color: #2BBBAD !important;
+        }
 </style>
 
 <div class="innerAll spacing-x2">
     <div class="row">
         @{
             //string[] colorcode = { "primary", "info", "inverse", "warning" };
-            string[] colorcode = { "primary", "info", "inverse", "primary" };
+            string[] colorcode = { "warning", "success", "info", "warning" };
             string[] ClientListWithName = System.Web.Configuration.WebConfigurationManager.AppSettings["ClientList"].Split('|');
             List<AM.Scanner.Models.ClientDetails> clientdetailsList = new List<AM.Scanner.Models.ClientDetails>();
             for (int i = 0; i < ClientListWithName.Length; i++)
@@ -135,6 +144,7 @@
                 cntbox++;
 
                 <div class="@usecls">
+                    <div id="ProductionStatusDiv@(item.ClientCode.Trim())"></div>
                     <div class="panel-3d">
 
                         <div class="front">
@@ -152,7 +162,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="reportLink bg-@colorcode[x] topbordernone">
+                                        <div class="reportLink bg@colorcode[x] topbordernone">
                                             <a href="~/Reports/ScanedDocuments?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">View Report</a>
                                             @*<a href="~/Scan/Index?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">Start Scan</a>*@
                                             @*<a href="~/Scan/USPSScan?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">USPS Scan</a>*@
@@ -221,6 +231,7 @@
 
     var themerPrimaryColor = primaryColor;
     function GetScanCount(clientCode) {
+        var result = 0;
         $.ajax({
             type: "GET",
             url: '@Url.Content("~/Home/GetScanCount")',
@@ -238,7 +249,7 @@
 
                 $("#" + clientCode.trim() + "scanCount").empty();
                 $("#" + clientCode.trim() + "scanCount").text(response.ScanCount + "/" + response.TotalCount);
-
+                result = response.ScanCount == response.TotalCount ? 0 : 1;
             },
             error: function (xhr, data) {
                 // console.log(xhr.status + " :" + xhr.responseText);
@@ -246,6 +257,7 @@
                 $("#" + clientCode.trim() + "scanCount").text("--/--");
             }
         });
+        return result;
         /*  End Ajax  */
     }
 
@@ -274,23 +286,23 @@
                         localTime = moment(localDate).format('hh:mm A');
                         // alert(localTime+"localtime");
                     }
-
+                    var backlogbg = data[j].BatchName.toLowerCase() == 'backlog' && (parseInt(data[j].ScannedLoans) != parseInt(data[j].TotalLoans)) ? "background-color:#D20D0D;color:#fff;" : "";
                     // alert(localTime);
                     if (j % 2 == 0) {
                         // $("#displaycount" + clientCode).append("<pre data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + data[j].BatchName + "' class='pull-left preclass'><strong  id='dispaly" + clientCode + i + "' class='text-larger'>" + localTime + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre>");
                         if (parseInt(data[j].ScannedLoans) == parseInt(data[j].TotalLoans)) {
-                            $("#displaycount" + clientCode).append("<a href='Scan/Index?clientCode=" + clientCode + "&batchName=" + data[j].BatchName + "'><pre class='pull-left preclass preclassok'><strong  id='dispaly" + clientCode + i + "' class='text-larger'>" + data[j].BatchName + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre></a>");
+                            $("#displaycount" + clientCode).append("<a href='Scan/Index?clientCode=" + clientCode + "&batchName=" + data[j].BatchName + "'><pre class='pull-left preclass' style='" + backlogbg + "'><strong  id='dispaly" + clientCode + i + "' class='text-larger'>" + data[j].BatchName + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre></a>");
                         } else {
-                            $("#displaycount" + clientCode).append("<a href='Scan/Index?clientCode=" + clientCode + "&batchName=" + data[j].BatchName + "'><pre class='pull-left preclass'><strong  id='dispaly" + clientCode + i + "' class='text-larger'>" + data[j].BatchName + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre></a>");
+                            $("#displaycount" + clientCode).append("<a href='Scan/Index?clientCode=" + clientCode + "&batchName=" + data[j].BatchName + "'><pre class='pull-left preclass' style='" + backlogbg + "'><strong  id='dispaly" + clientCode + i + "' class='text-larger'>" + data[j].BatchName + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre></a>");
                         }
 
 
                     }
                     else {
                         if (parseInt(data[j].ScannedLoans) == parseInt(data[j].TotalLoans)) {
-                            $("#displaycount" + clientCode).append("<a href='Scan/Index?clientCode=" + clientCode + "&batchName=" + data[j].BatchName + "'><pre  class='pull-right preclass preclassok'><strong id='dispaly" + clientCode + i + "' class='text-larger'>" + data[j].BatchName + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre></a>");
+                            $("#displaycount" + clientCode).append("<a href='Scan/Index?clientCode=" + clientCode + "&batchName=" + data[j].BatchName + "'><pre  class='pull-right preclass' style='" + backlogbg + "'><strong id='dispaly" + clientCode + i + "' class='text-larger'>" + data[j].BatchName + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre></a>");
                         } else {
-                            $("#displaycount" + clientCode).append("<a href='Scan/Index?clientCode=" + clientCode + "&batchName=" + data[j].BatchName + "'><pre  class='pull-right preclass'><strong id='dispaly" + clientCode + i + "' class='text-larger'>" + data[j].BatchName + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre></a>");
+                            $("#displaycount" + clientCode).append("<a href='Scan/Index?clientCode=" + clientCode + "&batchName=" + data[j].BatchName + "'><pre  class='pull-right preclass' style='" + backlogbg + "'><strong id='dispaly" + clientCode + i + "' class='text-larger'>" + data[j].BatchName + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre></a>");
                         }
                         //$("#displaycount" + clientCode).append("<pre data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + data[j].BatchName + "'  class='pull-right preclass'><strong id='dispaly" + clientCode + i + "' class='text-larger'>" + localTime + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre>");
                     }
@@ -299,7 +311,7 @@
                     var btName = "USAA Adverse Action 07PM";
                     $("#displaycount" + clientCode).append("<a href='Scan/SingleScan?clientCode=" + clientCode + "&batchName=07PM'><pre  class='pull-right preclass'><strong class='text-larger'>" + btName + "</></strong></pre></a>");
                     btName = "USAA Adverse Action Backlog";
-                    $("#displaycount" + clientCode).append("<a href='Scan/SingleScan?clientCode=" + clientCode + "&batchName=Backlog'><pre  class='pull-right preclass'><strong class='text-larger'>" + btName + "</></strong></pre></a>");
+                    $("#displaycount" + clientCode).append("<a href='Scan/SingleScan?clientCode=" + clientCode + "&batchName=Backlog'><pre  class='pull-right preclass' style='" + backlogbg + "'><strong class='text-larger'>" + btName + "</></strong></pre></a>");
                 }
 
                 $("#displaycount" + clientCode).append("<div class='clearfix'></div>");
@@ -314,23 +326,32 @@
         $(".tooltip.fade.top.in").remove();
     }
 
+    function isProductionIncomplete(isMsgShow, client) {
+        //console.log(isMsgShow + "|" + client);
+        if (isMsgShow == 1) {
+            $('#ProductionStatusDiv' + client).html('<div class="alert alert-danger text-center"><b>Production Incomplete</b></div>');
+        } else {
+            $('#ProductionStatusDiv' + client).html('');
+        }
+    }
 
     $(document).ready(function () {
         var clientCodeList = $("#ClientCodeList").val().split(',');
         var clientCode = "";
         for (var i = 0; i < clientCodeList.length; i++) {
-            clientCode = clientCodeList[i];
+            clientCode = clientCodeList[i].trim();
             //alert(clientCode);
-            GetScanCount(clientCode.trim());
+            isProductionIncomplete(GetScanCount(clientCode), clientCode);
             GetAllBatchForScan(clientCode.trim(), i);
             /*  End Ajax  */
         }
+
         /*  Updating Batch Count on every 60 Second using Ajax */
         window.setInterval(function () {
             for (var i = 0; i < clientCodeList.length; i++) {
-                clientCode = clientCodeList[i];
+                clientCode = clientCodeList[i].trim();
                 //console.log(clientCode);
-                GetScanCount(clientCode);
+                isProductionIncomplete(GetScanCount(clientCode), clientCode);
                 GetAllBatchForScan(clientCode.trim(), i);
                 /*  End Ajax  */
             }
@@ -359,4 +380,3 @@
     });
 
 </script>
-

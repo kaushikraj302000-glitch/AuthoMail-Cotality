@@ -440,6 +440,9 @@ end
 if not exists (select * from Common.SystemSettings where id='Web_Search_DownloadLimit')
 begin
 INSERT INTO [Common].[SystemSettings] ([Id] ,[DataType] ,[Value] ,[Description] ,[IsSystem] ,[DefaultValue] ,[ModifiedBy] ,[ModifiedOn])     VALUES ('Web_Search_DownloadLimit','Int32','10000','No of records to be download in search page.',0,'10000',(select Id from Profile.Users where UserName='system@milestonetechnoconsulting.com'),GETUTCDATE())
+INSERT INTO [Common].[SystemSettings] ([Id] ,[DataType] ,[Value] ,[Description] ,[IsSystem] ,[DefaultValue] ,[ModifiedBy] ,[ModifiedOn])     VALUES ('Web_Login_PasswordExpirationIsEnable','Boolean','true','Is password expired policy enable?',0,'true',(select Id from Profile.Users where UserName='system@milestonetechnoconsulting.com'),GETUTCDATE())
+INSERT INTO [Common].[SystemSettings] ([Id] ,[DataType] ,[Value] ,[Description] ,[IsSystem] ,[DefaultValue] ,[ModifiedBy] ,[ModifiedOn])     VALUES ('Web_Login_PasswordExpirationDays','Int32',50,'No of password expired days.',0,50,(select Id from Profile.Users where UserName='system@milestonetechnoconsulting.com'),GETUTCDATE())
+
 print 'insert Web_Search_DownloadLimit'
 end
 go
@@ -452,5 +455,6 @@ EnvelopesOther nvarchar(1024) null,
 BusinessReplyMailEnvelopeOther nvarchar(1024) null
 Go
 alter table profile.Users
-add LastLoginTimeUTC datetime null
+add LastLoginTimeUTC datetime null,
+ChangePasswordDateUTC datetime not null default(getutcdate())
 go
