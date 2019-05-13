@@ -56,7 +56,7 @@ namespace PCI.Service
                         else
                         {
                             //NOTE : Total 3 arguments will be passed for regular flow PCIJob PrintVendorCode [PrintTrailNames]
-                            ptNames = args[1].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                            ptNames = args[2].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
                             PCIJobMonitor.SubmitBatchToPrintVendor(args[1], isBundle, ptNames);
                         }
                         break;
