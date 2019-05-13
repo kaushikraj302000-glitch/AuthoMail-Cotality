@@ -27,7 +27,7 @@
                 <th>First Name</th>
                 <th>Last Name</th>
                 <th>Display Name</th>
-                <th>Phone Number</th>
+                <th>Last Login Time</th>
                 <th>Status</th>
                 <th>Action</th>
             </tr>
@@ -45,8 +45,8 @@
                 <td><span>{FirstName}</span></td>
                 <td><span>{LastName}</span></td>
                 <td><span>{DisplayName}</span></td>
-                <td><span>{PhoneNumber}</span></td>
-                <td><span class="label medium label-blue">{Status}</span></td>
+                <td><span>{LastLoginTimeUTC}</span></td>
+                <td><span>{Status}</span></td>
                 <td style="padding-right:0px !important;"><span>{button}</span></td>
             </tr>
         </tbody>
@@ -67,6 +67,28 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="statusModal" tabindex="-1" role="dialog" aria-labelledby="statusModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 id="statusModalLabel">User Status</h1>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <div class="form-control" id="usernamemodal"></div>
+                </div>
+                <div class="form-group">
+                    <select id="statusmodalselect" class="form-control"></select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="ChangeStatusBtn" disabled>Ok</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
             </div>
         </div>
     </div>
@@ -162,6 +184,7 @@
                                 $("#AMUsersList").html("");
                                 //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                                 BindTemplate(data, "#AMUsersBody", "#AMUsersbodyContent", "#AMUsersTableContent", "#AMUsersList");
+                                StatusChangeEventLoadOption();
                             }
                             else {
                                 $("#AMUsersList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
@@ -187,10 +210,14 @@
             });
         }
         var FormatObject = function (Model) {
+            var statuscolor = "info";
             $(Model).each(function () {
+                statuscolor = this.Status == 'Approved' ? 'Primary' : this.Status == 'Rejected' ? "warning" : this.status == 'InActive' ? 'danger' : statuscolor;
+                this.Status = this.Status == 'Open' ? '<label class="label label-' + statuscolor + '"></label>' : '<button class="btn btn-primary btn-xs statuschange" type="button" data-curstatus=' + this.Status + ' data-unm=' + this.UserName + ' title="click here to change status">' + this.Status + '</button>';
                 //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 //this.IsConfirmed = this.EmailConfirmed ? '<span  class="label medium label-green">Yes</span>' : '<span class="label medium label-yellow">No</span>';
                 this.LockoutEndDateUtc = this.LockoutEndDateUtc == null || this.LockoutEndDateUtc == "" ? '' : '<i class="fa fa-lock text-red"/>';
+                this.LastLoginTimeUTC = this.LastLoginTimeUTC == null ? '--' : this.LastLoginTimeUTC;
                 this.EmailConfirmed = this.EmailConfirmed == true ? '<i class="fa fa-check text-green"/>' : '<i class="padding-left-15 fa fa-times text-red"/>';
                 @*this.button = '<a style="cursor: pointer;font-size:1.5em;" onclick="ApproveUser(this)" data-userid="' + this.Id + '" data-status="@AM.Entities.AMUserStatus.Approved"><i class="fa fa-check text-green" aria-hidden="true" title="Approve"></i><span class="sr-only">Approve</span></a><a style="cursor: pointer;font-size:1.5em;" onclick="RejectUser(this)" data-userid="' + this.Id + '" data-status="@AM.Entities.AMUserStatus.Rejected"><i class="padding-left-15 fa fa-times text-red" aria-hidden="true" title="Reject"><span class="sr-only">Reject</span></i></a>';*@
                 var unlockbtn = this.LockoutEndDateUtc == null || this.LockoutEndDateUtc == "" ? '--' : '<a style="cursor: pointer;font-size:1.5em;" onclick="UnlockUser(this)" data-userid="' + this.Id + '"<i class="fa fa-unlock text-green" aria-hidden="true" title="Unlock"></i><span class="sr-only">Unlock</span></a>'
@@ -230,5 +257,70 @@
                 }
             });
         }
+        var statusemail = "";
+        var StatusChangeEventLoadOption = function () {
+            $('.statuschange').unbind("click");
+            $('.statuschange').bind("click", function (e) {
+                var curstatus = $(this).data("curstatus")
+                var statusList = { '@(AM.Entities.AMUserStatus.Approved)': 'Approve', '@(AM.Entities.AMUserStatus.Rejected)': 'Reject', '@(AM.Entities.AMUserStatus.InActive)': 'InActive' };
+                $('#usernamemodal').html($(this).data("unm") + ' <label class="label label-default" title="Current Status">' + curstatus + '</label>');
+                $('#statusmodalselect').empty();
+                statusemail = $(this).data('unm');
+                var keys = Object.keys(statusList);
+                for (var i = 0; i < keys.length; i++) {
+                    var sel = curstatus == keys[i] ? "disabled selected" : "";
+                    $('#statusmodalselect').append('<option ' + sel + ' value=' + keys[i] + '>' + statusList[keys[i]] + '</option>');
+                }
+                $('#statusModal').modal({
+                    backdrop: 'static',
+                    keyboard: false
+                });
+
+                statusmodalselectChangeEvent();
+            });
+        }
+        var StatusChangeEvent = function () {
+            $('#ChangeStatusBtn').unbind('click');
+            $('#ChangeStatusBtn').bind('click', function (e) {
+                $.ajax({
+                    type: "POST",
+                    url: "/Account/ChangeUserStatus",
+                    data: { userName: statusemail, status: $('#statusmodalselect').val() },
+                    dataType: "json",
+                    success: function (response) {
+                        if (response.Success) {
+                            window.clui.globalAlert({
+                                message: response.Message,
+                                alertType: 'green',
+                                timeout: 5000
+                            });
+                        }
+                        else {
+                            window.clui.globalAlert({
+                                message: response.ErrorMessage,
+                                alertType: 'red',
+                                timeout: 5000
+                            });
+                        }
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
+                        window.clui.globalAlert({
+                            message: msg,
+                            alertType: 'red',
+                            timeout: 5000
+                        });
+                    }
+                });
+            });
+        }
+        var statusmodalselectChangeEvent = function () {
+            $('#statusmodalselect').change(function (e) {
+                e.preventDefault();
+                $('#ChangeStatusBtn').removeAttr('disabled');
+            });
+        }
+        StatusChangeEvent();
+
     </script>
 }

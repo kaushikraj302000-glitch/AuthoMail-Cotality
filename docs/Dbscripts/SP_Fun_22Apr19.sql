@@ -452,7 +452,9 @@ add ServiceLevelOther nvarchar(1024) null,
 PaperPrintRequirementsOther nvarchar(1024) null,
 PackagesSentToCustomerOther nvarchar(1024) null,
 EnvelopesOther nvarchar(1024) null,
-BusinessReplyMailEnvelopeOther nvarchar(1024) null
+BusinessReplyMailEnvelopeOther nvarchar(1024) null,
+FilesTransmittedDetail nvarchar(1024) null,
+TypeOfFilesDetail nvarchar(1024) null
 Go
 alter table profile.Users
 add LastLoginTimeUTC datetime null,
