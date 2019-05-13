@@ -31,7 +31,7 @@ namespace PCI.Service
 
         #region Submit Batches To Print Vendors
 
-        public static void SubmitBatchToPrintVendor(bool isBundle, List<string> ptNames)
+        public static void SubmitBatchToPrintVendor(string pvCode, bool isBundle, List<string> ptNames)
         {
             List<string> unprocessedPrintTrails = new List<string>();
 
@@ -66,7 +66,7 @@ namespace PCI.Service
                     MailUtility.SendUnexpectedNotificationEmail(msg + "<br/> <b>Error Message</b> <br/> {0}".Fill(ex));
 
                     //NOTE: Reprocess if any exception occured while getting bundling queue data check
-                    SubmitBatchToPrintVendor(isBundle, ptNames);
+                    SubmitBatchToPrintVendor(pvCode, isBundle, ptNames);
                     return;
                 }
             }
@@ -97,11 +97,11 @@ namespace PCI.Service
             if (unprocessedPrintTrails.Count > 0)
             {
                 log.Info("Processing Again Unprocessed PrintTrails {0}".Fill(unprocessedPrintTrails));
-                SubmitBatchToPrintVendor(isBundle, unprocessedPrintTrails);
+                SubmitBatchToPrintVendor(pvCode, isBundle, unprocessedPrintTrails);
                 log.Info("Processing Completed Unprocessed PrintTrails {0}".Fill(unprocessedPrintTrails));
             }
 
-            List<PrintTrailBatch> ptBatchList = DAL.GetNotSubmittedPrintBatchDetail();
+            List<PrintTrailBatch> ptBatchList = DAL.GetNotSubmittedPrintBatchDetailByPrintVendorCode(pvCode);
             while (ptBatchList.Count != 0)
             {
                 foreach (PrintTrailBatch ptBatch in ptBatchList)
@@ -140,7 +140,7 @@ namespace PCI.Service
                 }
 
                 Thread.Sleep(36000);
-                ptBatchList = DAL.GetNotSubmittedPrintBatchDetail();
+                ptBatchList = DAL.GetNotSubmittedPrintBatchDetailByPrintVendorCode(pvCode);
             }
         }
 

@@ -46,18 +46,18 @@ namespace PCI.Service
                         break;
                     case "PCIJob":
                         List<string> ptNames;
-                        var isBundle = args.Length > 2 ? true : false;
+                        var isBundle = args.Length > 3 ? true : false;
                         if (isBundle)
                         {
-                            ptNames = args[2].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-                            //NOTE : Total 3 arguments will be passed for bundling PCIJob Bundle [PrintTrailNames]
-                            PCIJobMonitor.SubmitBatchToPrintVendor(isBundle, ptNames);
+                            //NOTE : Total 4 arguments will be passed for bundling PCIJob PrintVendorCode Bundle [PrintTrailNames]
+                            ptNames = args[3].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                            PCIJobMonitor.SubmitBatchToPrintVendor(args[1], isBundle, ptNames);
                         }
                         else
                         {
-                            ptNames = args[1].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-                            //NOTE : Total 2 arguments will be passed for regular flow PCIJob [PrintTrailNames]
-                            PCIJobMonitor.SubmitBatchToPrintVendor(isBundle, ptNames);
+                            //NOTE : Total 3 arguments will be passed for regular flow PCIJob PrintVendorCode [PrintTrailNames]
+                            ptNames = args[2].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                            PCIJobMonitor.SubmitBatchToPrintVendor(args[1], isBundle, ptNames);
                         }
                         break;
                     case "DownloadPrinterReport":
