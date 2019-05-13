@@ -157,9 +157,9 @@ namespace PCI.Service
             }).SingleOrDefault();
         }
 
-        public static List<PrintTrailBatch> GetNotSubmittedPrintBatchDetail()
+        public static List<PrintTrailBatch> GetNotSubmittedPrintBatchDetailByPrintVendorCode(string pvCode)
         {
-            string sqlQuery = "SELECT * FROM PnS.PrintTrailBatches WHERE IsSubmitted=0";
+            string sqlQuery = "SELECT PTB.* FROM PnS.PrintTrailBatches PTB INNER JOIN Common.PrintTrails PT ON PTB.PrintTrailId = PT.Id INNER JOIN Common.PrintVendors PV ON PT.PrintVendorId = PV.Id WHERE PTB.IsSubmitted=0 AND PV.VendorCode = '{0}'".Fill(pvCode);
             return db.ExecuteSqlStringAccessor<PrintTrailBatch>(sqlQuery).ToList();
         }
 
