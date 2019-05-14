@@ -65,7 +65,6 @@ namespace AM.Core
                             List<string> endLetterPdfPaths = new List<string>();
                             string endPageTemplatePath = string.Empty;
 
-                            SmartDocResponse response;
 
                             #region From Address
                             string fromAddress = string.Empty;
@@ -200,54 +199,86 @@ namespace AM.Core
                             //Folder structure and file naming convention should be Root/AppCode/AppCode_DocTypeCode_SeqNo.pdf
                             string coverLetterTemplatePath = docTypeLetter == null ? string.Empty : Path.Combine(Config.Core_CoverTemplateFolder, client.AppCode, docTypeLetter.CoverLetterTemplatePath);
 
+                            SmartDocResponse response = new SmartDocResponse();
 
                             if (docType.ShippingCarrier == Carrier.USPS.ToString())
                             {
                                 if (docType.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS.ToString())
                                 {
-                                    eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name);
-
-                                    response = doc.GenerateeVSPriorityExpressCoverLetter(client.AppCode, commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq);
-
-                                    //if we have service changed to priority then we are updating doctypeid and its reletad data in database also
-                                    if (response.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY)
+                                    int reTrycnt = 0;
+                                    while (reTrycnt < Config.Core_NoofTime_AttemptFedexService)
                                     {
-                                        string priorityDocType = mailPiece.DocumentOrPackageType + Config.Monitor_PriorityMailingText;
-                                        docType = docTypeSvc.GetDocTypeByDocTypeName(client.Id, priorityDocType);
+                                        eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name);
 
-                                        if (docType != null)
+                                        response = doc.GenerateeVSPriorityExpressCoverLetter(client.AppCode, commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq);
+
+                                        if (!response.HasError)
                                         {
-                                            var sweepTimings = commonSvc.GetSweepTimings();
+                                            //if we have service changed to priority then we are updating doctypeid and its reletad data in database also
+                                            if (response.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY)
+                                            {
+                                                string priorityDocType = mailPiece.DocumentOrPackageType + Config.Monitor_PriorityMailingText;
 
-                                            mailPiece.DocTypeId = docType.Id;
+                                                var docTypePRI = docTypeSvc.GetDocTypeByDocTypeName(client.Id, priorityDocType);
 
-                                            mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(docType, mailBatch.ReceivedOn.Value);
+                                                if (docTypePRI != null)
+                                                {
+                                                    var sweepTimings = commonSvc.GetSweepTimings();
 
-                                            //Calculate Due Date for Mail Pieces doc type wise
-                                            mailPiece.DueDate = commonSvc.GetDueDate(docType, mailPiece.EffectiveReceivedOnEst.Value);
+                                                    mailPiece.DocTypeId = docTypePRI.Id;
 
-                                            //Set print location where mail piece will go for print and ship
-                                            mailPiece.PrintTrailId = commonSvc.GetPrintTrail(docType, mailPiece.EffectiveReceivedOnEst.Value);
+                                                    mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(docTypePRI, mailBatch.ReceivedOn.Value);
 
-                                            var printVendorDetails = commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value);
-                                            mailPiece.PrintLocation = printVendorDetails.Name;
+                                                    //Calculate Due Date for Mail Pieces doc type wise
+                                                    mailPiece.DueDate = commonSvc.GetDueDate(docTypePRI, mailPiece.EffectiveReceivedOnEst.Value);
 
-                                            mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, mailBatch.ReceivedOn.Value, sweepTimings);
+                                                    //Set print location where mail piece will go for print and ship
+                                                    mailPiece.PrintTrailId = commonSvc.GetPrintTrail(docTypePRI, mailPiece.EffectiveReceivedOnEst.Value);
 
-                                            mailPiece.MaxSubmissionTime = commonSvc.GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
+                                                    var printVendorDetails = commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value);
+                                                    mailPiece.PrintLocation = printVendorDetails.Name;
+
+                                                    mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, mailBatch.ReceivedOn.Value, sweepTimings);
+
+                                                    mailPiece.MaxSubmissionTime = commonSvc.GetMaximumSubmissionTime(docTypePRI, mailPiece.EffectiveReceivedOnEst.Value);
+                                                }
+                                                else
+                                                {
+                                                    throw new Exception("Priority document type does not exist.");
+                                                }
+                                            }
+                                            break;
+                                        }
+                                        else if (response.HasError && (response.ExceptionCode.Contains("80040B18") || response.ExceptionDetail.Contains("An error has occurred with the service.  Please contact the system administrator, or try again.") || response.ExceptionDetail.Contains("A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond")))
+                                        {
+                                            System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
+                                            reTrycnt++;
                                         }
                                         else
                                         {
-                                            throw new Exception("Priority document type does not exist.");
+                                            break;
                                         }
                                     }
                                 }
                                 else if (docType.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY.ToString())
                                 {
-                                    eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name);
-                                    eVSReq.ServiceType = AM.USPSLib.ServiceType.PRIORITY;
-                                    response = doc.GenerateeVSPriorityCoverLetter(client.AppCode, commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq);
+                                    int reTrycnt = 0;
+                                    while (reTrycnt < Config.Core_NoofTime_AttemptFedexService)
+                                    {
+                                        eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name);
+                                        eVSReq.ServiceType = AM.USPSLib.ServiceType.PRIORITY;
+                                        response = doc.GenerateeVSPriorityCoverLetter(client.AppCode, commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq);
 
+                                        if (response.HasError && (response.ExceptionCode.Contains("80040B18") || response.ExceptionDetail.Contains("An error has occurred with the service.  Please contact the system administrator, or try again.") || response.ExceptionDetail.Contains("A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond")))
+                                        {
+                                            System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
+                                            reTrycnt++;
+                                        }
+                                        else
+                                        {
+                                            break;
+                                        }
+                                    }
                                 }
                                 else
                                 {
