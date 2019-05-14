@@ -25,10 +25,17 @@
 
         <script src="~/Scripts/jquery-1.10.2.js"></script>
         <script src="~/clui/dist/js/vendor/moment.js"></script>
+        <script src="~/clui/dist/js/vendor/jsondateextensions.js"></script>
         <script type="text/javascript">
             $(document).ready(function () {
-                var dt = moment.utc('@(User.Identity.LastLoginTime())');
-                $('#LastLoginLi').html("Last Login(Local): " + moment(dt).local().format("MM/DD/YY HH:mm:ss"));
+                $.ajax({
+                    type: "GET",
+                    url: baseUrl + "Account/GetLastLoginDate",
+                    dataType: "json",
+                    success: function (response) {
+                        $('#LastLoginLi').html("Last Login(Local): " + moment(response).format("MM/DD/YY HH:mm:ss"));
+                    }
+                });
             });
         </script>
     }

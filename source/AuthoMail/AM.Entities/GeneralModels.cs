@@ -275,6 +275,7 @@ namespace AM.Entities
         public const string Open = "Open";
         public const string Approved = "Approved";
         public const string Rejected = "Rejected";
+        public const string InActive = "InActive";
     }
     public enum ShippingServiceType
     {

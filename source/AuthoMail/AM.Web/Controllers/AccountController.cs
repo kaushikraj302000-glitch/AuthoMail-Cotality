@@ -130,7 +130,7 @@ namespace AM.Web.Controllers
                         ModelState.AddModelError("", Config.Web_Msg_Login_EmailConfirm);
                         return View(model);
                     }
-                    if ((user.Status.Equals(AMUserStatus.Open, StringComparison.CurrentCultureIgnoreCase) || user.Status.Equals(AMUserStatus.Rejected, StringComparison.CurrentCultureIgnoreCase)) || !user.ClientId.HasValue)
+                    if ((user.Status.Equals(AMUserStatus.Open, StringComparison.CurrentCultureIgnoreCase) || user.Status.Equals(AMUserStatus.Rejected, StringComparison.CurrentCultureIgnoreCase) || user.Status.Equals(AMUserStatus.InActive, StringComparison.CurrentCultureIgnoreCase)) || !user.ClientId.HasValue)
                     {
                         AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
                         return View("InActiveUser");
@@ -627,7 +627,7 @@ namespace AM.Web.Controllers
                     ModelState.AddModelError("", "Couldn't find your AuthoMail Account.");
                     return View(model);
                 }
-                if (!(await UserManager.IsEmailConfirmedAsync(user.Id)) || user.Status.Equals(AMUserStatus.Open, StringComparison.CurrentCultureIgnoreCase))
+                if (!(await UserManager.IsEmailConfirmedAsync(user.Id)) || user.Status.Equals(AMUserStatus.Open, StringComparison.CurrentCultureIgnoreCase) || user.Status.Equals(AMUserStatus.InActive, StringComparison.CurrentCultureIgnoreCase))
                 {
                     ModelState.AddModelError("", "Email is not confirmed or account is not yet approved.");
                     return View(model);
@@ -703,8 +703,9 @@ namespace AM.Web.Controllers
             var result = await UserManager.ResetPasswordAsync(user.Id, model.Code, model.Password);
             if (result.Succeeded)
             {
-                user.ChangePasswordDateUTC = DateTime.UtcNow;
-                await UserManager.UpdateAsync(user);
+                var newuser = await UserManager.FindByEmailAsync(model.Email);
+                newuser.ChangePasswordDateUTC = DateTime.UtcNow;
+                await UserManager.UpdateAsync(newuser);
                 return RedirectToAction("ResetPasswordConfirmation", "Account");
             }
             AddErrors(result);
@@ -771,6 +772,11 @@ namespace AM.Web.Controllers
                 ModelState.AddModelError("", "CoreLogic users cannot change password here.");
                 return View(model);
             }
+            if (!existingUser.Status.Equals(AMUserStatus.Approved))
+            {
+                ModelState.AddModelError("", Config.Web_Msg_Inactive_Account);
+                return View(model);
+            }
             if (model.OldPassword.Equals(model.NewPassword))
             {
                 ModelState.AddModelError("", "Your new password must be different then old password.");
@@ -780,8 +786,9 @@ namespace AM.Web.Controllers
             var result = await UserManager.ChangePasswordAsync(userId, model.OldPassword, model.NewPassword);
             if (result.Succeeded)
             {
-                existingUser.ChangePasswordDateUTC = DateTime.UtcNow;
-                await UserManager.UpdateAsync(existingUser);
+                var user = await UserManager.FindByNameAsync(model.UserName);
+                user.ChangePasswordDateUTC = DateTime.UtcNow;
+                await UserManager.UpdateAsync(user);
 
                 StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\ChangePassword.html")));
                 sb.Replace("{{name}}", existingUser.FirstName);
@@ -795,6 +802,27 @@ namespace AM.Web.Controllers
             return View(model);
         }
         #endregion Expiration Change Password
+
+        //Change user's status
+        public ActionResult ChangeUserStatus(string userName, string status)
+        {
+            if (!(AMUserStatus.Approved == status || AMUserStatus.InActive == status || AMUserStatus.Open == status || AMUserStatus.Rejected == status))
+                return Json(JsonResponseFactory.ErrorResponse("Invalid user status."));
+            var user = UserManager.FindByName(userName);
+            if (user == null)
+                return Json(JsonResponseFactory.ErrorResponse("User not found. Please check user name."));
+            if (user.Status.Equals(AMUserStatus.Open, StringComparison.CurrentCultureIgnoreCase))
+                return Json(JsonResponseFactory.ErrorResponse("Currently user's request is pending. Please go to the Sign Up Request page"));
+            user.Status = status;
+            var result = UserManager.Update(user);
+            if (result.Succeeded)
+                return Json(JsonResponseFactory.SuccessResponse("User's status updated successfully."));
+            return Json(JsonResponseFactory.ErrorResponse(string.Join(",", result.Errors)));
+        }
+        public ActionResult GetLastLoginDate()
+        {
+            return Json(User.Identity.LastLoginTime(), JsonRequestBehavior.AllowGet);
+        }
         //
         // POST: /Account/ExternalLogin
         [HttpPost]

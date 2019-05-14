@@ -10,6 +10,7 @@ using AM.Web.Models;
 using AM.Entities;
 using AM.Lib;
 using System.Text;
+using AM.Services;
 
 namespace AM.Web.Controllers
 {
@@ -240,11 +241,14 @@ namespace AM.Web.Controllers
                 ModelState.AddModelError("", "CoreLogic users cannot change password here.");
                 return View(model);
             }
+            if (!existingUser.Status.Equals(AMUserStatus.Approved))
+            {
+                ModelState.AddModelError("", Config.Web_Msg_Inactive_Account);
+                return View(model);
+            }
             var result = await UserManager.ChangePasswordAsync(User.Identity.GetUserId(), model.OldPassword, model.NewPassword);
             if (result.Succeeded)
             {
-                existingUser.ChangePasswordDateUTC = DateTime.UtcNow;
-                await UserManager.UpdateAsync(existingUser);
 
                 StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\ChangePassword.html")));
                 sb.Replace("{{name}}", existingUser.FirstName);
@@ -254,6 +258,9 @@ namespace AM.Web.Controllers
                 var user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
                 if (user != null)
                 {
+                    user.ChangePasswordDateUTC = DateTime.UtcNow;
+                    await UserManager.UpdateAsync(user);
+
                     await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
                 }
                 return RedirectToAction("Index", new { Message = ManageMessageId.ChangePasswordSuccess });

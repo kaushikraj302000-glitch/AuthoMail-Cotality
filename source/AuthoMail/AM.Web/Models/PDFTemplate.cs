@@ -448,11 +448,11 @@ namespace AM.Web.Models
             table.AddCell(getEmptyCell());
 
             table.AddCell(LeftCell("Files transmitted (Other):\n\n"));
-            table.AddCell(RightCell(model.FilesTransmittedOther));
+            table.AddCell(RightCell(model.FilesTransmittedDetail));
             table.AddCell(ColspanCell(1));
             table.AddCell(ColspanCell(1));
             table.AddCell(LeftCell("Types of Files (Other):\n\n"));
-            table.AddCell(RightCell(model.TypeOfFilesOther));
+            table.AddCell(RightCell(model.TypeOfFilesDetail));
             table.AddCell(ColspanCell(1));
             table.AddCell(ColspanCell(1));
             table.AddCell(LeftCell("Paper & Print (Additional Details):\n\n"));

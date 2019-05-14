@@ -79,6 +79,8 @@ namespace AM.Services
         public string PackagesSentToCustomerOther { get; set; }
         public string EnvelopesOther { get; set; }
         public string BusinessReplyMailEnvelopeOther { get; set; }
+        public string FilesTransmittedDetail { get; set; }
+        public string TypeOfFilesDetail { get; set; }
     }
     //public class ProjectRequestFormHeaders
     //{
