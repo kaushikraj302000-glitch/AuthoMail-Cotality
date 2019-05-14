@@ -811,13 +811,17 @@ namespace AM.Web.Controllers
             var user = UserManager.FindByName(userName);
             if (user == null)
                 return Json(JsonResponseFactory.ErrorResponse("User not found. Please check user name."));
-            if(user.Status.Equals(AMUserStatus.Open,StringComparison.CurrentCultureIgnoreCase))
+            if (user.Status.Equals(AMUserStatus.Open, StringComparison.CurrentCultureIgnoreCase))
                 return Json(JsonResponseFactory.ErrorResponse("Currently user's request is pending. Please go to the Sign Up Request page"));
             user.Status = status;
             var result = UserManager.Update(user);
             if (result.Succeeded)
                 return Json(JsonResponseFactory.SuccessResponse("User's status updated successfully."));
             return Json(JsonResponseFactory.ErrorResponse(string.Join(",", result.Errors)));
+        }
+        public ActionResult GetLastLoginDate()
+        {
+            return Json(User.Identity.LastLoginTime(), JsonRequestBehavior.AllowGet);
         }
         //
         // POST: /Account/ExternalLogin

@@ -101,6 +101,7 @@
 
         $(document).ready(function () {
             FilterData();
+
         });
 
         var applyDataTable = function () {
@@ -129,7 +130,6 @@
                 },
                 "columnDefs": [
                         {
-                            "targets": ["BatchId"],
                             "visible": false,
                             "searchable": true
                         },
@@ -183,8 +183,9 @@
                                 var data = FormatObject(response.Object.model);
                                 $("#AMUsersList").html("");
                                 //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                                
                                 BindTemplate(data, "#AMUsersBody", "#AMUsersbodyContent", "#AMUsersTableContent", "#AMUsersList");
-                                StatusChangeEventLoadOption();
+                                console.log("call11");
                             }
                             else {
                                 $("#AMUsersList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
@@ -210,14 +211,14 @@
             });
         }
         var FormatObject = function (Model) {
-            var statuscolor = "info";
             $(Model).each(function () {
-                statuscolor = this.Status == 'Approved' ? 'Primary' : this.Status == 'Rejected' ? "warning" : this.status == 'InActive' ? 'danger' : statuscolor;
-                this.Status = this.Status == 'Open' ? '<label class="label label-' + statuscolor + '"></label>' : '<button class="btn btn-primary btn-xs statuschange" type="button" data-curstatus=' + this.Status + ' data-unm=' + this.UserName + ' title="click here to change status">' + this.Status + '</button>';
+                var statuscolor = "info";
+                statuscolor = this.Status == 'Approved' ? 'primary' : this.Status == 'Rejected' ? "warning" : this.status == 'InActive' ? 'danger' : statuscolor;
+                this.Status = this.Status == 'Open' ? '<label class="label label-' + statuscolor + '">' + this.Status + '</label>' : '<button class="btn btn-primary btn-xs statuschange" type="button" onclick="StatusChangeEventLoadOption(this);" data-curstatus=' + this.Status + ' data-unm=' + this.UserName + ' title="click here to change status">' + this.Status + '</button>';
                 //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 //this.IsConfirmed = this.EmailConfirmed ? '<span  class="label medium label-green">Yes</span>' : '<span class="label medium label-yellow">No</span>';
                 this.LockoutEndDateUtc = this.LockoutEndDateUtc == null || this.LockoutEndDateUtc == "" ? '' : '<i class="fa fa-lock text-red"/>';
-                this.LastLoginTimeUTC = this.LastLoginTimeUTC == null ? '--' : this.LastLoginTimeUTC;
+                this.LastLoginTimeUTC = this.LastLoginTimeUTC == null ? '--' : moment(this.LastLoginTimeUTC).format("MM/DD/YY HH:mm:ss");
                 this.EmailConfirmed = this.EmailConfirmed == true ? '<i class="fa fa-check text-green"/>' : '<i class="padding-left-15 fa fa-times text-red"/>';
                 @*this.button = '<a style="cursor: pointer;font-size:1.5em;" onclick="ApproveUser(this)" data-userid="' + this.Id + '" data-status="@AM.Entities.AMUserStatus.Approved"><i class="fa fa-check text-green" aria-hidden="true" title="Approve"></i><span class="sr-only">Approve</span></a><a style="cursor: pointer;font-size:1.5em;" onclick="RejectUser(this)" data-userid="' + this.Id + '" data-status="@AM.Entities.AMUserStatus.Rejected"><i class="padding-left-15 fa fa-times text-red" aria-hidden="true" title="Reject"><span class="sr-only">Reject</span></i></a>';*@
                 var unlockbtn = this.LockoutEndDateUtc == null || this.LockoutEndDateUtc == "" ? '--' : '<a style="cursor: pointer;font-size:1.5em;" onclick="UnlockUser(this)" data-userid="' + this.Id + '"<i class="fa fa-unlock text-green" aria-hidden="true" title="Unlock"></i><span class="sr-only">Unlock</span></a>'
@@ -258,14 +259,16 @@
             });
         }
         var statusemail = "";
-        var StatusChangeEventLoadOption = function () {
-            $('.statuschange').unbind("click");
-            $('.statuschange').bind("click", function (e) {
-                var curstatus = $(this).data("curstatus")
+        
+        var StatusChangeEventLoadOption = function (obj) {
+            console.log("call");
+            //$('.statuschange').unbind("click");
+            //$('.statuschange').bind("click", function (e) {
+            var curstatus = $(obj).data("curstatus")
                 var statusList = { '@(AM.Entities.AMUserStatus.Approved)': 'Approve', '@(AM.Entities.AMUserStatus.Rejected)': 'Reject', '@(AM.Entities.AMUserStatus.InActive)': 'InActive' };
-                $('#usernamemodal').html($(this).data("unm") + ' <label class="label label-default" title="Current Status">' + curstatus + '</label>');
+                $('#usernamemodal').html($(obj).data("unm") + ' <label class="label label-default" title="Current Status">' + curstatus + '</label>');
                 $('#statusmodalselect').empty();
-                statusemail = $(this).data('unm');
+                statusemail = $(obj).data('unm');
                 var keys = Object.keys(statusList);
                 for (var i = 0; i < keys.length; i++) {
                     var sel = curstatus == keys[i] ? "disabled selected" : "";
@@ -277,14 +280,14 @@
                 });
 
                 statusmodalselectChangeEvent();
-            });
+            //});
         }
         var StatusChangeEvent = function () {
             $('#ChangeStatusBtn').unbind('click');
             $('#ChangeStatusBtn').bind('click', function (e) {
                 $.ajax({
                     type: "POST",
-                    url: "/Account/ChangeUserStatus",
+                    url: baseUrl + "/Account/ChangeUserStatus",
                     data: { userName: statusemail, status: $('#statusmodalselect').val() },
                     dataType: "json",
                     success: function (response) {
@@ -294,6 +297,7 @@
                                 alertType: 'green',
                                 timeout: 5000
                             });
+                            window.location.reload();
                         }
                         else {
                             window.clui.globalAlert({
