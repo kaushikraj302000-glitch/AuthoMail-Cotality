@@ -543,7 +543,7 @@ namespace AM.Core
             eVSReq.ImageType = ImageType.PDF;
             eVSReq.POZipCode = "75099";
             eVSReq.SenderName = clientName;
-            eVSReq.LabelParameters = new LabelParameters() { Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.SEPARATECONTINUEPAGE };//TODO : Change if required 50
+            eVSReq.LabelParameters = new LabelParameters() { XCoordinate = 450, YCoordinate = 500, Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.LABEL4X6P_PAGE };//TODO : Change if required 50
 
             // From Address
             eVSReq.CustomerRefNo = mailPiece.Id.ToString();
