@@ -10,6 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using AM.Lib;
 using AM.USPSLib;
+using AM.Entities;
+using ServiceType = AM.USPSLib.ServiceType;
 
 namespace AM.Core
 {
@@ -150,6 +152,7 @@ namespace AM.Core
                 log.Error(msg, ex);
                 response.HasError = true;
                 response.ExceptionDetail = msg;
+                response.ExceptionCode = OutComeCodes.Unknown_Error;
                 return response;
             }
             return response;
@@ -197,6 +200,7 @@ namespace AM.Core
                 log.Error(msg, ex);
                 response.HasError = true;
                 response.ExceptionDetail = msg;
+                response.ExceptionCode = OutComeCodes.Unknown_Error;
                 return response;
             }
             return response;
@@ -311,6 +315,7 @@ namespace AM.Core
                 log.Error(msg, ex);
                 response.HasError = true;
                 response.ExceptionDetail = msg;
+                response.ExceptionCode = OutComeCodes.Unknown_Error;
                 return response;
             }
 
@@ -334,6 +339,7 @@ namespace AM.Core
                 log.Error(msg, ex);
                 response.HasError = true;
                 response.ExceptionDetail = msg;
+                response.ExceptionCode = OutComeCodes.Unknown_Error;
                 return response;
             }
 
@@ -365,6 +371,7 @@ namespace AM.Core
                 log.Error(msg, ex);
                 response.HasError = true;
                 response.ExceptionDetail = msg;
+                response.ExceptionCode = OutComeCodes.Unknown_Error;
                 return response;
             }
             return response;
