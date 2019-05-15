@@ -134,6 +134,7 @@ namespace AM.Core
                         {
                             response.HasError = true;
                             response.ExceptionDetail = "Error occured while generating eVS label for MailPiece-Id:{0} with Exception : {1}".Fill(mailPieceId, eVSRes.Error.Description);
+                            response.ExceptionCode = OutComeCodes.Unknown_Error;
                             return response;
                         }
                     }
@@ -182,6 +183,7 @@ namespace AM.Core
                     {
                         response.HasError = true;
                         response.ExceptionDetail = "Error occured while generating eVS label for MailPiece-Id:{0} with Exception : {1}".Fill(mailPieceId, eVSRes.Error.Description);
+                        response.ExceptionCode = OutComeCodes.Unknown_Error;
                         return response;
                     }
 
