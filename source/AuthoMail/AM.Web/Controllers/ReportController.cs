@@ -181,6 +181,7 @@ namespace AM.Web.Controllers
             }
             return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
         }
+        [Authorize(Roles=AMRoles.Admin)]
         [HttpGet]
         public ActionResult ReportWizard()
         {
