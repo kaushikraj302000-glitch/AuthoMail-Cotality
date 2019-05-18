@@ -152,13 +152,20 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="ClientId">Clients</label>
-                                @Html.DropDownList("ClientId", ViewBag.ClientId as SelectList, htmlAttributes: new { @class = "selectpicker", @multiple = "multiple", @data_live_search = "true", @data_live_search_placeholder = "Search Client" })
-                            </div>
+                        @if (User.IsInRole(AM.Entities.AMRoles.Admin))
+                        {
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="ClientId">Clients</label>
+                                    @Html.DropDownList("ClientId", ViewBag.ClientId as SelectList, htmlAttributes: new { @class = "selectpicker", @multiple = "multiple", @data_live_search = "true", @data_live_search_placeholder = "Search Client" })
+                                </div>
 
-                        </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <input type="hidden" name="ClientId" id="ClientId" value="@ViewBag.ClientId" />
+                        }
                         <div class="col-md-10">
                             &nbsp;
                         </div>
@@ -874,7 +881,6 @@
                 endDate = "";
             }
             $("#loading").show($("#ClientId").val());
-            console.log()
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Report/_ReportWizard",

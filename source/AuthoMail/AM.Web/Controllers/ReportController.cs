@@ -181,13 +181,19 @@ namespace AM.Web.Controllers
             }
             return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
         }
-        [Authorize(Roles=AMRoles.Admin)]
         [HttpGet]
         public ActionResult ReportWizard()
         {
             ViewBag.BusinessId = homeSvc.GetBusinessFriendlyIdNameByclientId(User.Identity.GetClientId().Value);
             ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
-            ViewBag.ClientId = new SelectList(homeSvc.GetAllActiveClient(), "Id", "Name");
+            if (User.IsInRole(AMRoles.Admin))
+            {
+                ViewBag.ClientId = new SelectList(homeSvc.GetAllActiveClient(), "Id", "Name");
+            }
+            else
+            {
+                ViewBag.ClientId =User.Identity.GetClientId();// new SelectList(homeSvc.GetAllActiveClient().Where(s => s.Id == User.Identity.GetClientId()), "Id", "Name", );
+            }
             return View();
         }
         [HttpPost]
