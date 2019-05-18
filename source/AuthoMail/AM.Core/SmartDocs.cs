@@ -10,6 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using AM.Lib;
 using AM.USPSLib;
+using AM.Entities;
+using ServiceType = AM.USPSLib.ServiceType;
 
 namespace AM.Core
 {
@@ -132,6 +134,7 @@ namespace AM.Core
                         {
                             response.HasError = true;
                             response.ExceptionDetail = "Error occured while generating eVS label for MailPiece-Id:{0} with Exception : {1}".Fill(mailPieceId, eVSRes.Error.Description);
+                            response.ExceptionCode = OutComeCodes.Unknown_Error;
                             return response;
                         }
                     }
@@ -150,6 +153,7 @@ namespace AM.Core
                 log.Error(msg, ex);
                 response.HasError = true;
                 response.ExceptionDetail = msg;
+                response.ExceptionCode = OutComeCodes.Unknown_Error;
                 return response;
             }
             return response;
@@ -179,6 +183,7 @@ namespace AM.Core
                     {
                         response.HasError = true;
                         response.ExceptionDetail = "Error occured while generating eVS label for MailPiece-Id:{0} with Exception : {1}".Fill(mailPieceId, eVSRes.Error.Description);
+                        response.ExceptionCode = OutComeCodes.Unknown_Error;
                         return response;
                     }
 
@@ -197,6 +202,7 @@ namespace AM.Core
                 log.Error(msg, ex);
                 response.HasError = true;
                 response.ExceptionDetail = msg;
+                response.ExceptionCode = OutComeCodes.Unknown_Error;
                 return response;
             }
             return response;
@@ -311,6 +317,7 @@ namespace AM.Core
                 log.Error(msg, ex);
                 response.HasError = true;
                 response.ExceptionDetail = msg;
+                response.ExceptionCode = OutComeCodes.Unknown_Error;
                 return response;
             }
 
@@ -334,6 +341,7 @@ namespace AM.Core
                 log.Error(msg, ex);
                 response.HasError = true;
                 response.ExceptionDetail = msg;
+                response.ExceptionCode = OutComeCodes.Unknown_Error;
                 return response;
             }
 
@@ -365,6 +373,7 @@ namespace AM.Core
                 log.Error(msg, ex);
                 response.HasError = true;
                 response.ExceptionDetail = msg;
+                response.ExceptionCode = OutComeCodes.Unknown_Error;
                 return response;
             }
             return response;
