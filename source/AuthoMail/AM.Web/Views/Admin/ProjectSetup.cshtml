@@ -140,7 +140,7 @@
                                     What times of day (EST) will the sweeps take place?
                                 </label>
                                 <div class="input-group">
-                                    <input type="text" class="form-control" name="ESTSweepTime" value="@Model.ESTSweepTime" />
+                                    <input type="text" class="form-control" id="ESTSweepTime" name="ESTSweepTime" value="@Model.ESTSweepTime" />
                                 </div>
                             </div>
 
@@ -744,7 +744,9 @@
                         required: true
                     },
                     ESTSweepTime: {
-                        required: true
+                        required: true,
+                        min: 0,
+                        max:99
                     },
                     ServiceLevel: {
                         required: true
