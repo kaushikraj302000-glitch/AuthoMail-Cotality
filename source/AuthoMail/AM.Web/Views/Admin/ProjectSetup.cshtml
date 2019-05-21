@@ -163,8 +163,8 @@
                                 <div class='input-group'>
                                     <select class="form-control selectpicker other" multiple name="TransmittedTimeList">
                                         <option value="">Select Transmitted Time</option>
-                                        <option value="AM" @{string TTsel = Model.TransmittedTime.Contains("AM") ? "Selected" : "";} @TTsel>AM</option>
-                                        <option value="PM" @{TTsel = Model.TransmittedTime.Contains("PM") ? "Selected" : "";} @TTsel>PM</option>
+                                        <option value="AM" @{string TTsel = Model.TransmittedTime !=null && Model.TransmittedTime.Contains("AM") ? "Selected" : "";} @TTsel>AM</option>
+                                        <option value="PM" @{TTsel = Model.TransmittedTime != null && Model.TransmittedTime.Contains("PM") ? "Selected" : "";} @TTsel>PM</option>
                                     </select>
                                     @*<input type='text' class="form-control" value="@Model.TransmittedTime" name="TransmittedTime" id='datetimepicker3' />
                                         <span class="input-group-addon">
