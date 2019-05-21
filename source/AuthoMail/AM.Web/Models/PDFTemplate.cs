@@ -237,7 +237,7 @@ namespace AM.Web.Models
             CheckBoxListSectionC(model.PaperPrintRequirements, tableD, projectRequirements, 14, false);
 
             tableD.AddCell(
-                new PdfPCell(new Phrase(model.PaperPrintRequirementsOther == null ? "" : model.PaperPrintRequirementsOther, new Font(verdana, 10, Font.NORMAL, BaseColor.RED)))
+                new PdfPCell(new Phrase(model.PaperPrintRequirementsOther == null ? "\n" : model.PaperPrintRequirementsOther, new Font(verdana, 10, Font.NORMAL, BaseColor.RED)))
                 {
                     Colspan = 14,
                     Border = Rectangle.BOTTOM_BORDER,
@@ -668,7 +668,7 @@ namespace AM.Web.Models
 
             table.AddCell(BorderCell(!customValue.IsNullOrEmpty()));
             table.AddCell(LeftCell("Other", 8));
-            Phrase sampleEnvelopeOtherPh = new Phrase(customValue == null ? "" : customValue, new Font(verdana, 10, Font.NORMAL, customValue.IsNullOrEmpty() ? BaseColor.BLACK : BaseColor.RED));
+            Phrase sampleEnvelopeOtherPh = new Phrase(customValue == null ? "\n" : customValue, new Font(verdana, 10, Font.NORMAL, customValue.IsNullOrEmpty() ? BaseColor.BLACK : BaseColor.RED));
             PdfPCell sampleEnvelopeOther = new PdfPCell(sampleEnvelopeOtherPh);
             sampleEnvelopeOther.Colspan = 8;
             sampleEnvelopeOther.HorizontalAlignment = Element.ALIGN_LEFT;
