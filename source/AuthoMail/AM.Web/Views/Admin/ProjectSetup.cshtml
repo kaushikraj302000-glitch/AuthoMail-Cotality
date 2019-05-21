@@ -86,7 +86,6 @@
                                 <label for="FileTransmittedVia">Files transmitted via</label>
                                 <div class="input-group">
                                     <select id="FileTransmittedVia" multiple data-live-search="true" data-live-search-placeholder="Search Files transmitted via" class="form-control selectpicker other" name="FileTransmittedViaList">
-                                        <option value="">Select Files transmitted via</option>
                                         @foreach (var item in fileTransmittedViaList)
                                         {
                                             string sel = Model.FileTransmittedVia == null ? "" : Model.FileTransmittedVia.Split(',').ToList().Any(t => t == item) ? "selected" : "";
@@ -106,7 +105,6 @@
                                 </label>
                                 <div class="input-group">
                                     <select id="TypeOfFiles" multiple data-live-search="true" data-live-search-placeholder="Search Type of Files" class="form-control selectpicker  other" name="TypeOfFilesList">
-                                        <option value="">Select Type of Files</option>
                                         @foreach (var item in typeOfFilesList)
                                         {
                                             string sel = Model.TypeOfFiles == null ? "" : Model.TypeOfFiles.Split(',').ToList().Any(t => t == item) ? "selected" : "";
@@ -161,16 +159,16 @@
                             <div class="form-group">
                                 <label for="TransmittedTime">Transmitted File Time</label>
                                 <div class='input-group'>
-                                    <select class="form-control selectpicker other" multiple name="TransmittedTimeList">
-                                        <option value="">Select Transmitted Time</option>
-                                        <option value="AM" @{string TTsel = Model.TransmittedTime.Contains("AM") ? "Selected" : "";} @TTsel>AM</option>
-                                        <option value="PM" @{TTsel = Model.TransmittedTime.Contains("PM") ? "Selected" : "";} @TTsel>PM</option>
+                                    <select class="form-control selectpicker other" multiple name="TransmittedTimeList" id="TransmittedTimeList">
+                                        <option value="AM" @{string TTsel = Model.TransmittedTime != null && Model.TransmittedTime.Contains("AM") ? "Selected" : "";} @TTsel>AM</option>
+                                        <option value="PM" @{TTsel = Model.TransmittedTime != null && Model.TransmittedTime.Contains("PM") ? "Selected" : "";} @TTsel>PM</option>
                                     </select>
                                     @*<input type='text' class="form-control" value="@Model.TransmittedTime" name="TransmittedTime" id='datetimepicker3' />
                                         <span class="input-group-addon">
                                             <span class="fa fa-clock-o"></span>
                                         </span>*@
                                 </div>
+                                <span for="TransmittedTimeList" class="error" style="display:none;">This field is required.</span>
                             </div>
                             <div class="form-group">
                                 <label for="ServiceLevel">
@@ -178,7 +176,7 @@
                                 </label>
                                 <div class="input-group">
                                     <select id="ServiceLevel" multiple data-live-search="true" data-live-search-placeholder="Search Service Level" class="form-control selectpicker other" name="ServiceLevelList">
-                                        <option value="">Select Service Level</option>@foreach (var item in serviceLevelList)
+                                        @foreach (var item in serviceLevelList)
                                         {
                                             string sel = Model.ServiceLevel == null ? "" : Model.ServiceLevel.Split(',').ToList().Any(t => t == item) ? "selected" : "";
                                             <option value="@item" @sel>@item</option>
@@ -299,7 +297,6 @@
                                 <label for="PackagesSentToCustomer"></label>
                                 <div class="input-group">
                                     <select id="PackagesSentToCustomer" multiple data-live-search="true" data-live-search-placeholder="Search Packages" class="form-control selectpicker other" name="PackagesSentToCustomerList">
-                                        <option value="">Select Packages</option>
                                         @foreach (var item in packagesSentToCustomerList)
                                         {
                                             string sel = Model.PackagesSentToCustomer == null ? "" : Model.PackagesSentToCustomer.Split(',').ToList().Any(t => t == item) ? "selected" : "";
@@ -327,7 +324,6 @@
                                 <label for="Value">Type of envelope</label>
                                 <div class="input-group">
                                     <select id="Envelopes" multiple data-live-search="true" data-live-search-placeholder="Search Envelopes" class="form-control selectpicker  other" name="EnvelopesList">
-                                        <option value="">Select Envelopes</option>
                                         @foreach (var item in envelopeList)
                                         {
                                             string sel = Model.Envelopes == null ? "" : Model.Envelopes.Split(',').ToList().Any(t => t == item) ? "selected" : "";
@@ -739,6 +735,9 @@
                         required: true
                     },
                     TypeOfFilesList: {
+                        required: true
+                    },
+                    TransmittedTimeList:{
                         required: true
                     },
                     NoOfEstSweepTimes: {
