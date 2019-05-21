@@ -316,8 +316,9 @@ namespace AM.Core
                                     response = createFedExLabel.Create(mailPiece, fedExAccInfo, docType, mbi);
                                     if (!response.HasError)
                                     {
-                                        coverLetterPdfPaths.Add(createFedExLabel.GeneratedFedExLabelPath);
-                                        mailPiece.TrackingNo = Path.GetFileNameWithoutExtension(createFedExLabel.GeneratedFedExLabelPath);
+                                        coverLetterPdfPaths.Add(response.CoverLetterPath);
+                                        mailPiece.TrackingNo = response.TrackingCode;
+                                        mailPiece.ShippingCost = response.PostageCost;
                                         break;
                                     }
                                     else if (response.HasError && (response.ExceptionCode == "3022" || response.ExceptionCode == "1000" || response.ExceptionCode == "2998" || response.ExceptionCode == "Unknown_Error" || response.ExceptionDetail.Contains("General Failure")))
@@ -543,7 +544,10 @@ namespace AM.Core
             eVSReq.ImageType = ImageType.PDF;
             eVSReq.POZipCode = "75099";
             eVSReq.SenderName = clientName;
-            eVSReq.LabelParameters = new LabelParameters() { XCoordinate = 450, YCoordinate = 500, Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.LABEL4X6P_PAGE };//TODO : Change if required 50
+            if (mailPiece.RcptAddressTypes.Contains(AddressType.Military.ToString()))
+                eVSReq.LabelParameters = new LabelParameters() { Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.LABEL4X6L };
+            else
+                eVSReq.LabelParameters = new LabelParameters() { XCoordinate = 450, YCoordinate = 500, Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.LABEL4X6P_PAGE };
 
             // From Address
             eVSReq.CustomerRefNo = mailPiece.Id.ToString();
@@ -1008,7 +1012,7 @@ namespace AM.Core
                                     {
                                         row.PrintedOn = mailPackage.PrintedOn;
                                         row.ShippedOn = mailPackage.ShippedOn;
-                                        row.ShippingCost = mailPackage.PostageCost;
+                                        row.ShippingCost = mailPackage.PostageCost != 0.00M ? mailPackage.PostageCost : row.ShippingCost;
                                         row.Weight = mailPackage.WeightMeasured;
                                         row.IsQCPerformed = mailPackage.IsQCPerformed;
                                         row.MissedSLAReason = GetMissedSLAReason(row);

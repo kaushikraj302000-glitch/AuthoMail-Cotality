@@ -125,6 +125,7 @@ namespace AM.Core
 
                     if (eVSRes.HasError)
                     {
+                        log.Error("Error occured in MailPieceId - {0} while requesting eVS priority express label with following Error {1}".Fill(mailPieceId, eVSRes.Error.Description));
                         //If we get any error while generating USPS Priority express label then we are going to try for USPS Priority label
                         eVSReq.ServiceType = AM.USPSLib.ServiceType.PRIORITY;
 
@@ -141,6 +142,41 @@ namespace AM.Core
                     response.ShippingServiceType = eVSReq.ServiceType.Value;
 
                     File.WriteAllBytes(coverLetterPDFPath, Convert.FromBase64String(eVSRes.LabelImageString));
+
+                    //Here system is creating new PDF for military addresses only label's size LABEL6X4 to Letter size. 
+                    if (eVSReq.LabelParameters.Size == LabelSize.LABEL4X6L)
+                    {
+                        string newCoverLetterPath = Path.Combine(outputDir, string.Format("eVSCoverLetter_{0}_Military.pdf", mailPieceId));
+                        using (PdfReader reader = new PdfReader(coverLetterPDFPath))
+                        using (Document document = new Document(PageSize.LETTER))
+                        using (PdfWriter writer = PdfWriter.GetInstance(document, new FileStream(newCoverLetterPath, FileMode.Create)))
+                        {
+                            document.Open();
+                            PdfContentByte cb = writer.DirectContent;
+                            for (int pageNumber = 1; pageNumber <= reader.NumberOfPages; pageNumber++)
+                            {
+                                document.NewPage();
+                                PdfImportedPage page = writer.GetImportedPage(reader, pageNumber);
+                                int rotation = reader.GetPageRotation(pageNumber);
+                                float offsetW = 0;
+                                float offsetH = 0;
+                                if (page.Width < document.PageSize.Width)
+                                {
+                                    offsetW = (document.PageSize.Width - page.Width) / 2;
+                                    offsetH = (document.PageSize.Height - page.Height) / 2;
+                                }
+                                cb.AddTemplate(page, offsetW, offsetH, false);
+                            }
+
+                            document.Close();
+                        }
+
+                        //Here delete original cover letter and then create new cover page with old file name
+                        if (File.Exists(coverLetterPDFPath))
+                            File.Delete(coverLetterPDFPath);
+
+                        File.Move(newCoverLetterPath, coverLetterPDFPath);
+                    }
                     response.CoverLetterPath = coverLetterPDFPath;
                 }
 

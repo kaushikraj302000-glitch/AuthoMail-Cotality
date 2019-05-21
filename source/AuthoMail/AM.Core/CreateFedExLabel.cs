@@ -61,6 +61,7 @@ namespace AM.Core
                     //If we get saturday delivery failed then we just remove that special handling parameters.
                     if (reply.Notifications[0].Code == "8272" || reply.Notifications[0].Message.Contains("Saturday Delivery is not allowed"))
                     {
+                        log.Error("MailPieceId - {0} does not support saturday delivery.".Fill(mailPiece.Id));
                         request.RequestedShipment.SpecialServicesRequested = null;
                         reply = service.processShipment(request);
 
@@ -74,7 +75,7 @@ namespace AM.Core
                     List<Notification> notificaitons = new List<Notification>(reply.Notifications);
                     StringBuilder sbMessages = new StringBuilder(string.Format("Error occurred while generating FedEx label for client {0} and {1} : {2}<br/>", mbi.Client.AppCode, mailPiece.BusinessFriendlyIdName, mailPiece.BusinessFriendlyIdValue));
                     notificaitons.ForEach(n => sbMessages = sbMessages.AppendLine(n.Message));
-                    
+
                     log.Error(sbMessages.ToString());
 
                     response.HasError = true;
@@ -87,13 +88,13 @@ namespace AM.Core
             {
                 var error = "Error occured while generating FedEx label for MailPieceId : {0} And Exception : {1}".Fill(mailPiece.Id, ex);
                 log.Error(error);
-               
+
                 SendUnexpectedExceptionEmail(error);
 
                 response.HasError = true;
                 response.CoverLetterPath = "";
                 response.ExceptionCode = OutComeCodes.Unknown_Error;
-                response.ExceptionDetail = string.Format("{0}|{1}", OutComeCodes.Unknown_Error, ex.Message); 
+                response.ExceptionDetail = string.Format("{0}|{1}", OutComeCodes.Unknown_Error, ex.Message);
             }
 
             return response;
@@ -293,11 +294,11 @@ namespace AM.Core
         }
 
         // FedEx shipping service will return the label in landscape orientation and with different margins etc.; so we will create PDF having content in center area from the image returned by FedEx shipping service.
-        private void GenerateShipmentLabel(ProcessShipmentReply reply, MailBatchInfo mbi, ref  SmartDocResponse response)
+        private void GenerateShipmentLabel(ProcessShipmentReply reply, MailBatchInfo mbi, ref SmartDocResponse response)
         {
             string LabelFileName = null;
             FileStream LabelFile = null;
-
+            
             // Rate details for each package
             foreach (CompletedPackageDetail packageDetail in reply.CompletedShipmentDetail.CompletedPackageDetails)
             {
@@ -331,6 +332,7 @@ namespace AM.Core
                 response.ExceptionCode = OutComeCodes.No_Error;
                 response.ExceptionDetail = string.Empty;
                 response.HasError = false;
+                response.PostageCost = packageDetail.PackageRating.PackageRateDetails[0].NetCharge.Amount;
                 response.TrackingCode = packageDetail.TrackingIds[0].TrackingNumber;
             }
         }
