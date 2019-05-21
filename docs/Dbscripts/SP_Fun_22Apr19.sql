@@ -460,5 +460,11 @@ TypeOfFilesDetail nvarchar(1024) null
 Go
 alter table profile.Users
 add LastLoginTimeUTC datetime null,
-ChangePasswordDateUTC datetime not null default(getutcdate())
-go
+ChangePasswordDateUTC datetime not null default(getutcdate()),
+StatusModifiedBy nvarchar(128) null,
+StatusModifiedOn datetime not null default(getutcdate())
+Go
+alter table profile.Users
+add constraint FK_Users_StatusModifiedBy foreign key(StatusModifiedBy)
+references profile.Users (Id)
+Go
