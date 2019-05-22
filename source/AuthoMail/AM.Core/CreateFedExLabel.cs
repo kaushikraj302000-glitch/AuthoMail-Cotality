@@ -129,7 +129,7 @@ namespace AM.Core
             // Build the ShipmentRequest
             ProcessShipmentRequest shipRequest = new ProcessShipmentRequest();
             SetShipmentDetails(shipRequest, mailPiece, fedExAccInfo, docType);
-            SetPackageLineItems(shipRequest);
+            SetPackageLineItems(shipRequest, mailPiece);
 
             if (!string.IsNullOrEmpty(docType.ShippingSpecialService))
             {
@@ -249,7 +249,7 @@ namespace AM.Core
             request.RequestedShipment.Shipper.Address.CountryCode = Config.Core_CountryCode;
         }
 
-        private void SetPackageLineItems(ProcessShipmentRequest request)
+        private void SetPackageLineItems(ProcessShipmentRequest request, MailPieceDTO mailPiece)
         {
             request.RequestedShipment.RequestedPackageLineItems = new RequestedPackageLineItem[1];
             request.RequestedShipment.RequestedPackageLineItems[0] = new RequestedPackageLineItem();
@@ -257,6 +257,8 @@ namespace AM.Core
             request.RequestedShipment.RequestedPackageLineItems[0].Weight = new Weight(); // Package weight information
             request.RequestedShipment.RequestedPackageLineItems[0].Weight.Value = 1.0M;
             request.RequestedShipment.RequestedPackageLineItems[0].Weight.Units = WeightUnits.LB;
+            request.RequestedShipment.RequestedPackageLineItems[0].CustomerReferences = new CustomerReference[1];
+            request.RequestedShipment.RequestedPackageLineItems[0].CustomerReferences[0] = new CustomerReference() { CustomerReferenceType = CustomerReferenceType.CUSTOMER_REFERENCE, Value = "{0}_{1}".Fill(mailPiece.Id, Path.GetFileNameWithoutExtension(mailPiece.FileName)) };
 
             request.RequestedShipment.RequestedPackageLineItems[0].SpecialServicesRequested = new PackageSpecialServicesRequested();
             request.RequestedShipment.RequestedPackageLineItems[0].SpecialServicesRequested.SpecialServiceTypes = new PackageSpecialServiceType[1];
@@ -298,7 +300,7 @@ namespace AM.Core
         {
             string LabelFileName = null;
             FileStream LabelFile = null;
-            
+
             // Rate details for each package
             foreach (CompletedPackageDetail packageDetail in reply.CompletedShipmentDetail.CompletedPackageDetails)
             {
