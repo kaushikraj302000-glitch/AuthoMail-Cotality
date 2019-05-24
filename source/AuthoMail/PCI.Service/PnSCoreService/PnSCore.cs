@@ -920,13 +920,12 @@ namespace PCI.Service
                 {
                     case "NORDIS":
                         //Check for XML files only
-                        responseFileList = Directory.GetFiles(Path.Combine(bundlingRootPath), "*.xml").ToList();
+                        responseFileList = Directory.GetFiles(bundlingRootPath, "*.xml").ToList();
                         break;
-                    case "PCI":
-                        //Check for OUT files only
-                        responseFileList = Directory.GetFiles(Path.Combine(bundlingRootPath), "*.out").ToList();
-                        break;
-                    default:
+
+                    default: //Check for OUT files only For PCI responses and for Dummy Dallas response
+                        if (Directory.Exists(bundlingRootPath))
+                            responseFileList = Directory.GetFiles(bundlingRootPath, "*.out").ToList();
                         break;
                 }
 
