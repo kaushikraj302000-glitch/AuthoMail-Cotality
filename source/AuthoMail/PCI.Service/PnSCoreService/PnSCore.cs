@@ -76,19 +76,19 @@ namespace PCI.Service
                     }
                     catch (XmlException ex)
                     {
-                        var msg = "The request file is not a valid XML.";
+                        var msg = "The request file is not a valid XML.<br/> <b> Error Message : </b><br/> {0}".Fill(ex);
                         ReportInvalidBatch(bi, msg, ex);
                         continue;
                     }
                     catch (XmlSchemaValidationException ex)
                     {
-                        var msg = "The request XML has some invalid data.";
+                        var msg = "The request XML has some invalid data. <br/> <b> Error Message : </b><br/> {0}".Fill(ex);
                         ReportInvalidBatch(bi, msg, ex);
                         continue;
                     }
                     catch (Exception ex)
                     {
-                        var msg = "Ensure that the request XML complies with the request schema.";
+                        var msg = "Ensure that the request XML complies with the request schema.<br/> <b> Error Message : </b><br/> {0}".Fill(ex);
                         ReportInvalidBatch(bi, msg, ex);
                         continue;
                     }

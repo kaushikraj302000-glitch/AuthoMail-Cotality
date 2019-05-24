@@ -298,14 +298,16 @@ namespace AM.Core
         // FedEx shipping service will return the label in landscape orientation and with different margins etc.; so we will create PDF having content in center area from the image returned by FedEx shipping service.
         private void GenerateShipmentLabel(ProcessShipmentReply reply, MailBatchInfo mbi, ref SmartDocResponse response)
         {
-            string LabelFileName = null;
+            string LabelFileName = string.Empty;
             FileStream LabelFile = null;
 
             // Rate details for each package
             foreach (CompletedPackageDetail packageDetail in reply.CompletedShipmentDetail.CompletedPackageDetails)
             {
+                log.Info("Label File Creation : Started");
                 LabelFileName = Path.Combine(mbi.PnSRequestPath, string.Format("{0}.pdf", packageDetail.TrackingIds[0].TrackingNumber));
                 LabelFile = new FileStream(LabelFileName, FileMode.Create);
+                log.Info("Label File Creation : Completed");
 
                 using (Document doc = new Document(PageSize.LETTER))
                 {
@@ -329,12 +331,11 @@ namespace AM.Core
                 }
 
                 GeneratedFedExLabelPath = LabelFileName;
-
                 response.CoverLetterPath = LabelFileName;
                 response.ExceptionCode = OutComeCodes.No_Error;
                 response.ExceptionDetail = string.Empty;
                 response.HasError = false;
-                response.PostageCost = packageDetail.PackageRating.PackageRateDetails[0].NetCharge.Amount;
+                response.PostageCost = packageDetail.PackageRating == null ? 0.00M : packageDetail.PackageRating.PackageRateDetails[0].NetCharge == null ? 0.00M : packageDetail.PackageRating.PackageRateDetails[0].NetCharge.Amount;
                 response.TrackingCode = packageDetail.TrackingIds[0].TrackingNumber;
             }
         }
