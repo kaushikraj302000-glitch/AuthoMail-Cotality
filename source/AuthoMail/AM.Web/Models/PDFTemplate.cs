@@ -364,11 +364,13 @@ namespace AM.Web.Models
             businessReplyMail.UseAscender = true;
             businessReplyMail.ExtraParagraphSpace = 2;
             tableFNew.AddCell(businessReplyMail);
+            tableFNew.AddCell(BorderCell(model.BusinessReplyMailEnvelope == "Yes"));
+            tableFNew.AddCell(LeftCell("Yes", 8));
             tableFNew.AddCell(BorderCell(model.BusinessReplyMailEnvelope == "No"));
             tableFNew.AddCell(LeftCell("No", 8));
             tableFNew.AddCell(BorderCell(model.BusinessReplyMailEnvelope == "#9 Business Reply Mail"));
             tableFNew.AddCell(LeftCell("#9 Business Reply Mail", 8));
-            tableFNew.AddCell(BorderCell(model.BusinessReplyMailEnvelope != "No" && model.BusinessReplyMailEnvelope != "#9 Business Reply Mail"));
+            tableFNew.AddCell(BorderCell(model.BusinessReplyMailEnvelope != "Yes" && model.BusinessReplyMailEnvelope != "No" && model.BusinessReplyMailEnvelope != "#9 Business Reply Mail"));
             //tableFNew.AddCell(LeftCell(string.Format("Other({0})", model.BusinessReplyMailEnvelope != "No" && model.BusinessReplyMailEnvelope != "#9 Business Reply Mail" ? model.BusinessReplyMailEnvelope : "Specify"), 8));
             tableFNew.AddCell(LeftCell(string.Format("Other({0})", model.BusinessReplyMailEnvelopeOther), 8, 4));
             tableFNew.AddCell(ColspanCell(4));

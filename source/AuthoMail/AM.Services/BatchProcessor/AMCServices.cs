@@ -27,7 +27,7 @@ namespace AM.Services
 
             errorReport.AppendLine();
 
-            var erroredData = mailPieces.Where(l => l.ErrorCode != OutComeCodes.No_Error).ToList();
+            var erroredData = mailPieces.Where(l => l.ShippingStatus == ShippingStatus.Error.ToString()).ToList();
 
             if (erroredData == null || erroredData.Count == 0)
             {
