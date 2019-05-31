@@ -1384,10 +1384,10 @@ namespace AM.Core
                                 using (IAMCService amcSvc = new AMCService())
                                 {
                                     var pulledBackMailPieces = mailPieces.Where(m => (m.ShippingStatus == ShippingStatus.PulledBack.ToString() && m.PrintBatchId == null)).ToList();
-                                    StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(pulledBackMailPieces);
-
-                                    if (deliveryReport != null)
+                                    if (pulledBackMailPieces.Count > 0)
                                     {
+                                        StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(pulledBackMailPieces);
+
                                         string deliveryReportFileName = "Delivery-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
 
                                         //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
@@ -1396,6 +1396,7 @@ namespace AM.Core
 
                                         File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
                                     }
+
 
                                     StringBuilder errorReport = amcSvc.AMCErrorReport(mailPieces);
                                     if (errorReport != null)
