@@ -240,6 +240,11 @@ namespace AM.Console
             var reportToMail = new List<string>();
             var deliveryReportDeliverable = deliverables.SingleOrDefault(rt => rt.ReportType == ReportTypes.Delivery);
             var errorReportDeliverable = deliverables.SingleOrDefault(rt => rt.ReportType == ReportTypes.Error);
+
+            //NOTE : If Email channel is not exist for both delivery report and Error report then no need to create reports and send an email.
+            if (deliveryReportDeliverable.EmailChannel == null && errorReportDeliverable.EmailChannel == null)
+                return;
+
             switch (sftChannelDetail.Code.Split('_')[0])
             {
                 case "HSBC":

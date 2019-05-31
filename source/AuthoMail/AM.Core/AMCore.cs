@@ -50,7 +50,7 @@ namespace AM.Core
                         var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
 
                         List<MailPieceDTO> validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString() && string.IsNullOrWhiteSpace(c.TrackingNo)).ToList();
-
+                        List<MailPieceDTO> errorMailPieces = batchData.MailPieces.Where(c => c.ShippingStatus == ShippingStatus.Error.ToString()).ToList();
                         foreach (MailPieceDTO mailPiece in validMailPieces)
                         {
                             int attemptCount = 0;
@@ -489,6 +489,7 @@ namespace AM.Core
                             {
                                 mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
                             }
+
                             if (mailPieces != null)
                             {
                                 var validMailPiecesList = mailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
@@ -496,13 +497,16 @@ namespace AM.Core
                                 if (validMailPiecesList.Count == 0)
                                 {
                                     //TODO: Remove after proper logic implementation client wise switch case implemented
-                                    GenerateImmidiateReports(mbi, mailPieces, reportDeliverable, mailPieces);
+                                    GenerateImmidiateReports(mbi, mailPieces, reportDeliverable);
 
                                     mailBatchSvc.MarkMailBatchAsInvalid(mbi.MailBatch.Id, (mbi.MailBatch.ValidationErrors + Environment.NewLine + "Some documents could not be processed."));
                                     commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.Failed.ToString());
                                 }
                                 else if (validMailPiecesList.Count < mailPieces.Count)
                                 {
+                                    var errMpIds = mailPieces.Select(mp => mp.Id).Except(errorMailPieces.Select(errMp => errMp.Id));
+                                    mailPieces = mailPieces.Where(mp => errMpIds.Contains(mp.Id)).ToList();
+                                    GeneratePartialReports(mbi, mailPieces, reportDeliverable);
                                     commonSvc.UpdateBatchValidationStatus(mbi.MailBatch.Id, BatchValidationStatus.PartiallyValid, mailBatch.ValidationErrors);
                                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Prepped, Common.Now);
                                 }
@@ -526,6 +530,102 @@ namespace AM.Core
                         SendUnexpectedExceptionEmail(msg);
                         continue;
                     }
+                }
+            }
+        }
+
+        private static void GeneratePartialReports(MailBatchInfo mbi, List<MailPieces> mailPieces, Deliverable deliverable)
+        {
+            SFTChannel sftChannel;
+            using (IClientService clientSvc = new ClientService())
+            using (IMailBatchService mailBatchSvc = new MailBatchService())
+            using (ICommonService commonSvc = new CommonService())
+            {
+                sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelId(mbi.MailBatch.SFTChannelId);
+
+                switch (sftChannel.Code.Split('_')[0])
+                {
+                    case "AMC":
+                        using (IAMCService amcSvc = new AMCService())
+                        {
+                            string errorGoFileName = "ErrReport.go";
+                            string errorGoFilePath = Path.Combine(mbi.AMResponsePath, errorGoFileName);
+                            string ftpErrorGoUploadPath = Path.Combine(deliverable.UploadPath, errorGoFileName);
+
+                            string errorReportFileName = "Error-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+                            //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
+                            //string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                            string localErrorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+                            string ftpErrorReportPath = Path.Combine(deliverable.UploadPath, errorReportFileName);
+
+
+                            StringBuilder errorData = amcSvc.AMCErrorReport(mailPieces);
+                            if (errorData != null)
+                            {
+                                File.WriteAllText(localErrorReportPath, errorData.ToString());
+
+                                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannel.Protocol), sftChannel.Host, sftChannel.UserName, sftChannel.Password, 300000);
+                                sftSite.Connect();
+
+                                sftSite.UploadFile(localErrorReportPath, ftpErrorReportPath);
+
+                                //NOTE: Temparary Code for Duplicate Report Upload 
+                                if (sftSite.IsDownloadDirectoryAvailable(Config.Monitor_AMCBackupReportUploadPath))
+                                {
+                                    sftSite.UploadFile(localErrorReportPath, Path.Combine(Config.Monitor_AMCBackupReportUploadPath, errorReportFileName));
+                                }
+
+                                // Upload Error.GO file after uploading error report
+                                File.WriteAllText(errorGoFilePath, string.Empty);
+                                sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
+
+                                if (sftSite.IsConnected)
+                                    sftSite.Disconnect();
+
+                                if (File.Exists(localErrorReportPath))
+                                    File.Move(localErrorReportPath, Path.ChangeExtension(localErrorReportPath, ".Uploaded"));
+                            }
+                        }
+                        break;
+                    default:
+                        using (IGeneralService generalSvc = new GeneralService())
+                        {
+                            string errorGoFileName = "ErrReport.go";
+                            string errorGoFilePath = Path.Combine(mbi.AMResponsePath, errorGoFileName);
+                            string ftpErrorGoUploadPath = Path.Combine(deliverable.UploadPath, errorGoFileName);
+
+                            string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                            string localErrorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+                            string ftpErrorReportPath = Path.Combine(deliverable.UploadPath, errorReportFileName);
+
+                            StringBuilder errorData = generalSvc.GeneralErrorReport(mailPieces, deliverable.Delimeter);
+                            if (errorData != null)
+                            {
+                                File.WriteAllText(localErrorReportPath, errorData.ToString());
+
+                                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannel.Protocol), sftChannel.Host, sftChannel.UserName, sftChannel.Password, 300000);
+                                sftSite.Connect();
+
+                                sftSite.UploadFile(localErrorReportPath, ftpErrorReportPath);
+
+                                //NOTE: Temparary Code for Duplicate Report Upload 
+                                if (sftSite.IsDownloadDirectoryAvailable(Config.Monitor_AMCBackupReportUploadPath))
+                                {
+                                    sftSite.UploadFile(localErrorReportPath, Path.Combine(Config.Monitor_AMCBackupReportUploadPath, errorReportFileName));
+                                }
+
+                                // Upload Error.GO file after uploading error report
+                                File.WriteAllText(errorGoFilePath, string.Empty);
+                                sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
+
+                                if (sftSite.IsConnected)
+                                    sftSite.Disconnect();
+
+                                if (File.Exists(localErrorReportPath))
+                                    File.Move(localErrorReportPath, Path.ChangeExtension(localErrorReportPath, ".Uploaded"));
+                            }
+                        }
+                        break;
                 }
             }
         }
@@ -617,7 +717,7 @@ namespace AM.Core
             }
         }
 
-        private static void GenerateImmidiateReports(MailBatchInfo mbi, List<MailPieces> mailPiecesData, Deliverable deliverable, List<MailPieces> mailPieces = null)
+        private static void GenerateImmidiateReports(MailBatchInfo mbi, List<MailPieces> mailPieces, Deliverable deliverable)
         {
             SFTChannel sftChannel;
             using (IClientService clientSvc = new ClientService())
@@ -654,7 +754,7 @@ namespace AM.Core
                         {
                             string errorReportFileName = "ER_{0}.csv".Fill(mbi.BatchName);
                             string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-                            StringBuilder errorData = alaskaSvc.AlaskaErrorReport(mailPiecesData, mbi.Client.TimeZone, deliverable.Delimeter);
+                            StringBuilder errorData = alaskaSvc.AlaskaErrorReport(mailPieces, mbi.Client.TimeZone, deliverable.Delimeter);
                             if (errorData != null)
                             {
                                 File.WriteAllText(errorReportPath, errorData.ToString());
@@ -667,7 +767,7 @@ namespace AM.Core
                         {
                             string errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
                             string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-                            StringBuilder errorData = hsbcSvc.HSBCErrorReport(mailPiecesData, mbi.Client.TimeZone, deliverable.Delimeter);
+                            StringBuilder errorData = hsbcSvc.HSBCErrorReport(mailPieces, mbi.Client.TimeZone, deliverable.Delimeter);
                             if (errorData != null)
                             {
                                 File.WriteAllText(errorReportPath, errorData.ToString());
@@ -1213,7 +1313,7 @@ namespace AM.Core
             log.Debug("Report prepped job is completed.");
         }
 
-        private static bool GenerateFinalReports(MailBatchInfo mbi, List<MailPieces> mailPiecesData, List<Deliverable> deliverables, SFTChannel sftChannel)
+        private static bool GenerateFinalReports(MailBatchInfo mbi, List<MailPieces> mailPieces, List<Deliverable> deliverables, SFTChannel sftChannel)
         {
             bool isReportGenerated = false;
             string sftChannelCode = sftChannel.Code.Split('_')[0].ToUpper();
@@ -1223,7 +1323,7 @@ namespace AM.Core
                     using (IAlaskaService alaskaSvc = new AlaskaService())
                     {
                         var deliverayReportDeliverable = deliverables.Single(r => r.ReportType == ReportTypes.Delivery);
-                        StringBuilder deliveryReport = alaskaSvc.AlaskaDeliveryReport(mailPiecesData, mbi.Client.TimeZone, deliverayReportDeliverable.Delimeter);
+                        StringBuilder deliveryReport = alaskaSvc.AlaskaDeliveryReport(mailPieces, mbi.Client.TimeZone, deliverayReportDeliverable.Delimeter);
 
                         if (deliveryReport != null)
                         {
@@ -1235,7 +1335,7 @@ namespace AM.Core
                         }
 
                         var errorReportDeliverable = deliverables.Single(r => r.ReportType == ReportTypes.Error);
-                        StringBuilder errorReport = alaskaSvc.AlaskaErrorReport(mailPiecesData, mbi.Client.TimeZone, errorReportDeliverable.Delimeter);
+                        StringBuilder errorReport = alaskaSvc.AlaskaErrorReport(mailPieces, mbi.Client.TimeZone, errorReportDeliverable.Delimeter);
 
                         if (errorReport != null)
                         {
@@ -1251,7 +1351,7 @@ namespace AM.Core
                     using (IHSBCService hsbcSvc = new HSBCService())
                     {
                         var deliverayReportDeliverable = deliverables.Single(r => r.ReportType == ReportTypes.Delivery);
-                        StringBuilder deliveryReport = hsbcSvc.HSBCDeliveryReport(mailPiecesData, mbi.Client.TimeZone, deliverayReportDeliverable.Delimeter);
+                        StringBuilder deliveryReport = hsbcSvc.HSBCDeliveryReport(mailPieces, mbi.Client.TimeZone, deliverayReportDeliverable.Delimeter);
 
                         string deliveryReportFileName = "{0}.DeliveryReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
                         string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
@@ -1260,7 +1360,7 @@ namespace AM.Core
 
 
                         var errorReportDeliverable = deliverables.Single(r => r.ReportType == ReportTypes.Delivery);
-                        StringBuilder errorReport = hsbcSvc.HSBCErrorReport(mailPiecesData, mbi.Client.TimeZone, errorReportDeliverable.Delimeter);
+                        StringBuilder errorReport = hsbcSvc.HSBCErrorReport(mailPieces, mbi.Client.TimeZone, errorReportDeliverable.Delimeter);
 
                         string errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
                         string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
@@ -1274,75 +1374,69 @@ namespace AM.Core
                 case "AMC":
                 case "AMTEST":
                 default:
-                    List<MailPieces> mailPieces = null;
-                    var inProgressMailPiece = mailPiecesData.Where(m => m.ShippingStatus == ShippingStatus.InProgress.ToString()).Count();
+                    var inProgressMailPiece = mailPieces.Where(m => m.ShippingStatus == ShippingStatus.InProgress.ToString()).Count();
 
                     if (inProgressMailPiece == 0)
                     {
-                        mailPieces = mailPiecesData.Where(m => (m.ShippingStatus == ShippingStatus.PulledBack.ToString() && m.PrintBatchId == null) || m.ShippingStatus == ShippingStatus.Error.ToString()).ToList();
-
-                        if (mailPieces.Count > 0)
+                        switch (sftChannelCode)
                         {
-                            switch (sftChannelCode)
-                            {
-                                case "AMC":
-                                    using (IAMCService amcSvc = new AMCService())
+                            case "AMC":
+                                using (IAMCService amcSvc = new AMCService())
+                                {
+                                    var pulledBackMailPieces = mailPieces.Where(m => (m.ShippingStatus == ShippingStatus.PulledBack.ToString() && m.PrintBatchId == null)).ToList();
+                                    StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(pulledBackMailPieces);
+
+                                    if (deliveryReport != null)
                                     {
-                                        var pulledBackMailPieces = mailPieces.Where(m => (m.ShippingStatus == ShippingStatus.PulledBack.ToString() && m.PrintBatchId == null)).ToList();
-                                        StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(pulledBackMailPieces);
+                                        string deliveryReportFileName = "Delivery-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
 
-                                        if (deliveryReport != null)
-                                        {
-                                            string deliveryReportFileName = "Delivery-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+                                        //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
+                                        //string deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                                        string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
 
-                                            //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
-                                            //string deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
-                                            string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
-
-                                            File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
-                                        }
-
-                                        StringBuilder errorReport = amcSvc.AMCErrorReport(mailPieces);
-
-                                        if (errorReport != null)
-                                        {
-                                            string errorReportFileName = "Error-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
-
-                                            //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
-                                            //string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
-                                            string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-
-                                            File.WriteAllText(errorReportPath, errorReport.ToString());
-                                        }
+                                        File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
                                     }
-                                    break;
-                                default:
-                                    using (IGeneralService generalSvc = new GeneralService())
+
+                                    StringBuilder errorReport = amcSvc.AMCErrorReport(mailPieces);
+                                    if (errorReport != null)
                                     {
-                                        var deliverayReportDeliverable = deliverables.Single(r => r.ReportType == ReportTypes.Delivery);
-                                        StringBuilder deliveryReport = generalSvc.GeneralDeliveryReport(mailPieces, deliverayReportDeliverable.Delimeter);
+                                        string errorReportFileName = "Error-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
 
-                                        if (deliveryReport != null)
-                                        {
-                                            string deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
-                                            string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
+                                        //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
+                                        //string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                                        string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 
-                                            File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
-                                        }
-
-                                        var errorReportDeliverable = deliverables.Single(r => r.ReportType == ReportTypes.Error);
-                                        StringBuilder errorReport = generalSvc.GeneralErrorReport(mailPiecesData, errorReportDeliverable.Delimeter);
-
-                                        if (errorReport != null)
-                                        {
-                                            string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
-                                            string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-
-                                            File.WriteAllText(errorReportPath, errorReport.ToString());
-                                        }
+                                        File.WriteAllText(errorReportPath, errorReport.ToString());
                                     }
-                                    break;
-                            }
+                                }
+                                break;
+                            default:
+                                using (IGeneralService generalSvc = new GeneralService())
+                                {
+                                    var deliverayReportDeliverable = deliverables.Single(r => r.ReportType == ReportTypes.Delivery);
+
+                                    var pulledBackMailPieces = mailPieces.Where(m => (m.ShippingStatus == ShippingStatus.PulledBack.ToString() && m.PrintBatchId == null)).ToList();
+                                    StringBuilder deliveryReport = generalSvc.GeneralDeliveryReport(pulledBackMailPieces, deliverayReportDeliverable.Delimeter);
+                                    if (deliveryReport != null)
+                                    {
+                                        string deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                                        string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
+
+                                        File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
+                                    }
+
+                                    var errorReportDeliverable = deliverables.Single(r => r.ReportType == ReportTypes.Error);
+                                    StringBuilder errorReport = generalSvc.GeneralErrorReport(mailPieces, errorReportDeliverable.Delimeter);
+
+                                    if (errorReport != null)
+                                    {
+                                        string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                                        string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+
+                                        File.WriteAllText(errorReportPath, errorReport.ToString());
+                                    }
+                                }
+                                break;
                         }
                         isReportGenerated = true;
                     }
