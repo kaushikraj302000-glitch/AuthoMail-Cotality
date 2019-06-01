@@ -331,7 +331,49 @@
         </tbody>
     </table>
 </div>
-
+<div id="notpickupmailpiecesContent" style="display:none">
+    <table class="table table-responsive">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>LoanNumber</th>
+                <th>TrackingNo</th>
+                <th>UniqueId</th>
+                <th>AppCode</th>
+                <th>BatchName</th>
+                <th>Received Date <span class="fontcapitalize">(Local)</span></th>
+                <th>PipelineStatus</th>
+                <th>ShippingStatus</th>
+                <th>DocTypeCode</th>
+                <th>ShippingCarrier</th>
+                <th>ShippingServiceType</th>
+                <th>PrintLocation</th>
+            </tr>
+        </thead>
+        <tbody id="notpickupmailpiecesbodyContent"></tbody>
+    </table>
+</div>
+<div style="display:none">
+    <table>
+        <tbody id="notpickupmailpiecesbody">
+            <tr class="row-small">
+                <td><span>{Id}</span></td>
+                <td><span>{LoanNumber}</span></td>
+                <td><span>{TrackingNo}</span></td>
+                <td><span>{UniqueId}</span></td>
+                <td><span>{AppCode}</span></td>
+                <td><span>{BatchName}</span></td>
+                <td><span>{ReceivedOn}</span></td>
+                <td><span>{PipelineStatus}</span></td>
+                <td><span>{ShippingStatus}</span></td>
+                <td><span>{DocTypeCode}</span></td>
+                <td><span>{ShippingCarrier}</span></td>
+                <td><span>{ShippingServiceType}</span></td>
+                <td><span>{PrintLocation}</span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 <div id="delayedbatchmailpiecesContent" style="display:none">
     <table class="table table-responsive" style="overflow-x:scroll">
         <thead>
@@ -539,6 +581,10 @@
             FilterData();
             GetPickedUpMailPieces()
             RefreshPickeduponBtnEvent();
+            $($.fn.dataTable.tables(true)).DataTable().columns.adjust();
+        });
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            $($.fn.dataTable.tables(true)).DataTable().columns.adjust();
         });
         var GetBatchByClient = function () {
             $('.viewbatch').unbind('click');
@@ -897,7 +943,7 @@
                         if (response.DelayedPickUpMailPieces.length > 0) {
                             reportingbatches = response.DelayedPickUpMailPieces;
                             var mdata = FormatObjectMP(response.DelayedPickUpMailPieces);
-                            BindTemplateWithDataTable(mdata, "#pickupmailpiecesbody", "#pickupmailpiecesbodyContent", "#pickupmailpiecesContent", "#pickupmailpiecebodymain", 'pickupMPsDatatable', 'pickupmailpieces', 'Pickup Delayed MailPieces', true);
+                            BindTemplateWithDataTable(mdata, "#notpickupmailpiecesbody", "#notpickupmailpiecesbodyContent", "#notpickupmailpiecesContent", "#pickupmailpiecebodymain", 'pickupMPsDatatable', 'pickupmailpieces', 'Pickup Delayed MailPieces', true);
                         } else {
                             $("#pickupmailpiecebodymain").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                         }
@@ -978,7 +1024,7 @@
                 url: baseUrl + "Support/GetPickedUpMailPieces",
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
-                    if (response.length > 0) {                        
+                    if (response.length > 0) {
                         var pdata = FormatObjectMP(response);
                         BindTemplateWithDataTable(pdata, "#pickupmailpiecesbody", "#pickupmailpiecesbodyContent", "#pickupmailpiecesContent", "#todaypickedup", 'todaypickupMPsDatatable', 'todaypickupmailpieces', 'Today Pickup MailPieces', true);
                     } else {
@@ -1002,13 +1048,12 @@
                     success: function (response) {
                         window.location.reload();
                     },
-                    error:function(err)
-                    {
+                    error: function (err) {
                         console.log(err);
                     }
                 });
             });
         }
-       
+
     </script>
 }
