@@ -1,4 +1,5 @@
-﻿using Microsoft.Practices.EnterpriseLibrary.Data;
+﻿using log4net;
+using Microsoft.Practices.EnterpriseLibrary.Data;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -9,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
@@ -16,6 +18,7 @@ namespace PCI.Service
 {
     public static class Extensions
     {
+        private static readonly ILog log = LogManager.GetLogger(typeof(Extensions));
         public static int ExecuteSqlNonQuery(this Database db, string sql, params object[] parameterValues)
         {
             if (parameterValues == null) return db.ExecuteNonQuery(CommandType.Text, sql);
@@ -208,6 +211,24 @@ namespace PCI.Service
         {
             var sqlDbType = strSqlDbType.ParseEnum<SqlDbTypeCustom>(true);
             return value.ToClrType(sqlDbType);
+        }
+
+        public static void Attempts(this int c, Action action)
+        {
+            for (int i = 0; i < c; i++)
+            {
+                try
+                {
+                    action();
+                }
+                catch (Exception ex)
+                {
+                    var msg = "Extentions : Error occured while executing Attempts function : {0}".Fill(action.Method.Name);
+                    log.Error(msg, ex);
+                    MailUtility.SendUnexpectedNotificationEmail(msg + "<br/> <b>Error Message</b> <br/> {0}".Fill(ex));
+                }
+                Thread.Sleep(9000);
+            }
         }
     }
 
