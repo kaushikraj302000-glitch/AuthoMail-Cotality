@@ -1027,6 +1027,7 @@
                     if (response.length > 0) {
                         var pdata = FormatObjectMP(response);
                         BindTemplateWithDataTable(pdata, "#pickupmailpiecesbody", "#pickupmailpiecesbodyContent", "#pickupmailpiecesContent", "#todaypickedup", 'todaypickupMPsDatatable', 'todaypickupmailpieces', 'Today Pickup MailPieces', true);
+                        $("#todaypickedup").prepend("<br/>");
                     } else {
                         $("#todaypickedup").html(" <div style='margin-bottom:10px;' class='alert alert-green '><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
                     }
