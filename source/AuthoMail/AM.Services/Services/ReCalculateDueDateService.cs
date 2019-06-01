@@ -27,7 +27,7 @@ namespace AM.Services
         }
         public List<Recal> GetDocTypeTestWithErrorMP()
         {
-            string q = "select m.Id,m.DocTypeId,b.ReceivedOn,m.EffectiveReceivedOnEst from AM.MailPieces m inner join AM.MailBatches b on m.MailBatchId = b.Id where m.DocTypeId is not null and m.ShippingStatus = 'Error' and m.EffectiveReceivedOnEst IS NULL order by m.id";
+            string q = "select m.Id,m.DocTypeId,m.ClientId,b.ReceivedOn,m.EffectiveReceivedOnEst from AM.MailPieces m inner join AM.MailBatches b on m.MailBatchId = b.Id where m.ShippingStatus = 'Error' and m.EffectiveReceivedOnEst IS NULL order by m.id";
             return db.Query<Recal>(q).ToList();
         }
 
@@ -64,7 +64,8 @@ namespace AM.Services
     {
         public int Id { get; set; }
         public Guid UniqueId { get; set; }
-        public int DocTypeId { get; set; }
+        public int? DocTypeId { get; set; }
+        public int ClientId { get; set; }
         public string AppCode { get; set; }
         public string VendorCode { get; set; }
         public DateTime? DueDate { get; set; }

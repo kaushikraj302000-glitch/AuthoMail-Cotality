@@ -70,10 +70,10 @@ namespace PCI.Service
             }
             catch (Exception ex)
             {
-                var msg = "Error occured while executing PnSService";
+                var msg = "Error occured while executing {0} <br/> <b> Error Message </b><br/>{1}".Fill(args[0], ex);
                 log.Error(msg, ex);
 
-                MailUtility.SendUnexpectedNotificationEmail(msg + ex.Message);
+                MailUtility.SendUnexpectedNotificationEmail(msg);
             }
         }
     }

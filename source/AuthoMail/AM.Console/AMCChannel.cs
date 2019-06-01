@@ -803,7 +803,7 @@ namespace AM.Console
 
                             //NOTE : After Sending an Email change extention only if partially valid because when system generates final reports then it will not upload duplicate records
                             if (File.Exists(emailErrorReportPath) && mbi.MailBatch.ValidationStatus != BatchValidationStatus.Invalid)
-                                File.Move(emailErrorReportPath, Path.ChangeExtension(emailErrorReportPath, ".Mailed"));
+                                File.Move(emailErrorReportPath, Path.ChangeExtension(emailErrorReportPath, ".Uploaded"));
                         }
                         catch (Exception ex)
                         {
@@ -841,8 +841,37 @@ namespace AM.Console
 
             if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.Invalid)
             {
-                // Batch status Reported Prepped
+                // Batch status Report Prepped
                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
+            }
+            else if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.PartiallyValid)
+            {
+                string errorGoFileName = "ErrReport.go";
+                string errorGoFilePath = Path.Combine(mbi.AMResponsePath, errorGoFileName);
+                string ftpErrorGoUploadPath = Path.Combine(deliverable.UploadPath, errorGoFileName);
+
+                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
+                sftSite.Connect();
+
+                var ftpUploadPath = Path.Combine(deliverable.UploadPath, errorReportFileName);
+
+                sftSite.UploadFile(errorReportPath, ftpUploadPath);
+
+                //NOTE: Temparary Code for Duplicate Report Upload 
+                if (sftSite.IsDownloadDirectoryAvailable(Config.Monitor_AMCBackupReportUploadPath))
+                {
+                    sftSite.UploadFile(errorReportPath, Path.Combine(Config.Monitor_AMCBackupReportUploadPath, errorReportFileName));
+                }
+
+                // Upload Error.GO file after uploading error report
+                File.WriteAllText(errorGoFilePath, string.Empty);
+
+                sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
+
+                if (sftSite.IsConnected)
+                    sftSite.Disconnect();
+
+                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
             }
             else
             {

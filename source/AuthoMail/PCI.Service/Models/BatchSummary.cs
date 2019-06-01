@@ -44,7 +44,7 @@ namespace PCI.Service
         public int? DocTypeId { get; set; }
         public string PrintFileName { get; set; }
         public string PrintLocation { get; set; }
-        public int PrintTrailId { get; set; }
+        public int? PrintTrailId { get; set; }
     }
 
     public class BatchInfo

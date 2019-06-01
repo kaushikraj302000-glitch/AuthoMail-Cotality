@@ -129,7 +129,7 @@ namespace AM.Core
             // Build the ShipmentRequest
             ProcessShipmentRequest shipRequest = new ProcessShipmentRequest();
             SetShipmentDetails(shipRequest, mailPiece, fedExAccInfo, docType);
-            SetPackageLineItems(shipRequest);
+            SetPackageLineItems(shipRequest, mailPiece);
 
             if (!string.IsNullOrEmpty(docType.ShippingSpecialService))
             {
@@ -249,7 +249,7 @@ namespace AM.Core
             request.RequestedShipment.Shipper.Address.CountryCode = Config.Core_CountryCode;
         }
 
-        private void SetPackageLineItems(ProcessShipmentRequest request)
+        private void SetPackageLineItems(ProcessShipmentRequest request, MailPieceDTO mailPiece)
         {
             request.RequestedShipment.RequestedPackageLineItems = new RequestedPackageLineItem[1];
             request.RequestedShipment.RequestedPackageLineItems[0] = new RequestedPackageLineItem();
@@ -257,6 +257,8 @@ namespace AM.Core
             request.RequestedShipment.RequestedPackageLineItems[0].Weight = new Weight(); // Package weight information
             request.RequestedShipment.RequestedPackageLineItems[0].Weight.Value = 1.0M;
             request.RequestedShipment.RequestedPackageLineItems[0].Weight.Units = WeightUnits.LB;
+            request.RequestedShipment.RequestedPackageLineItems[0].CustomerReferences = new CustomerReference[1];
+            request.RequestedShipment.RequestedPackageLineItems[0].CustomerReferences[0] = new CustomerReference() { CustomerReferenceType = CustomerReferenceType.CUSTOMER_REFERENCE, Value = "{0}_{1}".Fill(mailPiece.Id, Path.GetFileNameWithoutExtension(mailPiece.FileName)) };
 
             request.RequestedShipment.RequestedPackageLineItems[0].SpecialServicesRequested = new PackageSpecialServicesRequested();
             request.RequestedShipment.RequestedPackageLineItems[0].SpecialServicesRequested.SpecialServiceTypes = new PackageSpecialServiceType[1];
@@ -296,14 +298,16 @@ namespace AM.Core
         // FedEx shipping service will return the label in landscape orientation and with different margins etc.; so we will create PDF having content in center area from the image returned by FedEx shipping service.
         private void GenerateShipmentLabel(ProcessShipmentReply reply, MailBatchInfo mbi, ref SmartDocResponse response)
         {
-            string LabelFileName = null;
+            string LabelFileName = string.Empty;
             FileStream LabelFile = null;
-            
+
             // Rate details for each package
             foreach (CompletedPackageDetail packageDetail in reply.CompletedShipmentDetail.CompletedPackageDetails)
             {
+                log.Info("Label File Creation : Started");
                 LabelFileName = Path.Combine(mbi.PnSRequestPath, string.Format("{0}.pdf", packageDetail.TrackingIds[0].TrackingNumber));
                 LabelFile = new FileStream(LabelFileName, FileMode.Create);
+                log.Info("Label File Creation : Completed");
 
                 using (Document doc = new Document(PageSize.LETTER))
                 {
@@ -327,12 +331,11 @@ namespace AM.Core
                 }
 
                 GeneratedFedExLabelPath = LabelFileName;
-
                 response.CoverLetterPath = LabelFileName;
                 response.ExceptionCode = OutComeCodes.No_Error;
                 response.ExceptionDetail = string.Empty;
                 response.HasError = false;
-                response.PostageCost = packageDetail.PackageRating.PackageRateDetails[0].NetCharge.Amount;
+                response.PostageCost = packageDetail.PackageRating == null ? 0.00M : packageDetail.PackageRating.PackageRateDetails[0].NetCharge == null ? 0.00M : packageDetail.PackageRating.PackageRateDetails[0].NetCharge.Amount;
                 response.TrackingCode = packageDetail.TrackingIds[0].TrackingNumber;
             }
         }

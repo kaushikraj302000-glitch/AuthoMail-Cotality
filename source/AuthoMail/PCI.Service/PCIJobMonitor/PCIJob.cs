@@ -33,114 +33,148 @@ namespace PCI.Service
 
         public static void SubmitBatchToPrintVendor(string pvCode, bool isBundle, List<string> ptNames)
         {
-            List<string> unprocessedPrintTrails = new List<string>();
-
-            var pieceIdFormat = MRDFRequestSchema.Single(f => f.FieldName == "PieceId").DataFormat;
-
-            if (isBundle)
+            try
             {
-                try
-                {
-                    DateTime startDateTime = Common.EstToUtc(Common.EstToday);
-                    DateTime toDateTime = Common.GetCurrentTime();
-                    DateTime endDateTime = new DateTime(toDateTime.Year, toDateTime.Month, toDateTime.Day, toDateTime.Hour, toDateTime.Minute, 0);
-                    int bundlingTime = 0;
+                List<string> unprocessedPrintTrails = new List<string>();
 
-                    //Waiting Code for AuthoMail as well as BatchSummary
-                    while (!DAL.CheckBatchesInQueue(startDateTime, endDateTime))
+                var pieceIdFormat = MRDFRequestSchema.Single(f => f.FieldName == "PieceId").DataFormat;
+
+                //NOTE : Here system will process not submitted batches if any error occured while getting any type of data. 
+                //NOTE : It will be used specifically for PCI and NORDIS client because they all have fix sweeps.
+                var notSubmittedList = DAL.GetNotSubmittedPrintBatchDetailByPrintVendorCode(pvCode);
+
+                if (notSubmittedList.Count > 0)
+                {
+                    while (notSubmittedList.Count != 0)
                     {
-                        log.Debug("Queue Check Waiting...");
+                        ProcessNotSubmittedBatches(notSubmittedList);
 
-                        Thread.Sleep(6000);
-
-                        //NOTE: If bundling is continueously running for 18 minutes then system will continue further for submitting batches to print vendor.
-                        bundlingTime += 6000;
-                        if (bundlingTime >= 1080000)
-                            break;
+                        Thread.Sleep(20000);
+                        notSubmittedList = DAL.GetNotSubmittedPrintBatchDetailByPrintVendorCode(pvCode);
                     }
-                }
-                catch (Exception ex)
-                {
-                    var msg = "SubmitBatchToPrintVendor : Error occured in PCIJob Monitor while checking for batches in queue.";
-                    log.Error(msg, ex);
-                    MailUtility.SendUnexpectedNotificationEmail(msg + "<br/> <b>Error Message</b> <br/> {0}".Fill(ex));
-
-                    //NOTE: Reprocess if any exception occured while getting bundling queue data check
-                    SubmitBatchToPrintVendor(pvCode, isBundle, ptNames);
                     return;
                 }
+
+                if (isBundle)
+                {
+                    try
+                    {
+                        DateTime startDateTime = Common.EstToUtc(Common.EstToday);
+                        DateTime toDateTime = Common.GetCurrentTime();
+                        DateTime endDateTime = new DateTime(toDateTime.Year, toDateTime.Month, toDateTime.Day, toDateTime.Hour, toDateTime.Minute, 0);
+                        int bundlingTime = 0;
+
+                        //Waiting Code for AuthoMail as well as BatchSummary
+                        while (!DAL.CheckBatchesInQueue(startDateTime, endDateTime))
+                        {
+                            log.Debug("Queue Check Waiting...");
+
+                            Thread.Sleep(6000);
+
+                            //NOTE: If bundling is continueously running for 18 minutes then system will continue further for submitting batches to print vendor.
+                            bundlingTime += 6000;
+                            if (bundlingTime >= 1080000)
+                                break;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        var msg = "SubmitBatchToPrintVendor : Error occured in PCIJob Monitor while checking for batches in queue.";
+                        log.Error(msg, ex);
+                        MailUtility.SendUnexpectedNotificationEmail(msg + "<br/> <b>Error Message</b> <br/> {0}".Fill(ex));
+
+                        //NOTE: Reprocess if any exception occured while getting bundling queue data check
+                        SubmitBatchToPrintVendor(pvCode, isBundle, ptNames);
+                        return;
+                    }
+                }
+
+
+                foreach (string ptName in ptNames)
+                {
+                    try
+                    {
+                        log.Info("Inserting Process Started For Print Trail {0}".Fill(ptName));
+                        InsertStage(ptName);
+                        log.Info("Inserting Process Completed For Print Trail {0}".Fill(ptName));
+                    }
+                    catch (Exception ex)
+                    {
+                        var msg = "SubmitBatchToPrintVendor : Error occured in PCIJob Monitor while getting print trail batch details for PrintTrail - {0}".Fill(ptName);
+                        log.Error(msg, ex);
+
+                        MailUtility.SendUnexpectedNotificationEmail(msg + "<br/> <b>Error Message</b> <br/> {0}".Fill(ex));
+
+                        //NOTE: Here System will add unprocessed print trails to process it once all other print trails are getting processed successfully.
+                        unprocessedPrintTrails.Add(ptName);
+                        continue;
+                    }
+                }
+
+                //NOTE: Here System will process unprocessed print trails.
+                if (unprocessedPrintTrails.Count > 0)
+                {
+                    log.Info("Processing Again Unprocessed PrintTrails {0}".Fill(unprocessedPrintTrails));
+                    SubmitBatchToPrintVendor(pvCode, isBundle, unprocessedPrintTrails);
+                    log.Info("Processing Completed Unprocessed PrintTrails {0}".Fill(unprocessedPrintTrails));
+                }
+
+                List<PrintTrailBatch> ptBatchList = DAL.GetNotSubmittedPrintBatchDetailByPrintVendorCode(pvCode);
+                while (ptBatchList.Count != 0)
+                {
+                    ProcessNotSubmittedBatches(ptBatchList);
+
+                    Thread.Sleep(36000);
+                    ptBatchList = DAL.GetNotSubmittedPrintBatchDetailByPrintVendorCode(pvCode);
+                }
             }
+            catch (Exception ex)
+            {
+                var msg = "SubmitBatchToPrintVendor : Error occured while getting initial information of batches for Print Vendor : {0}".Fill(pvCode);
+                log.Error(msg, ex);
+                MailUtility.SendUnexpectedNotificationEmail(msg + "<br/> <b>Error Message</b> <br/> {0}".Fill(ex));
 
+                //NOTE: Reprocess if any exception occured while getting bundling queue data check
+                SubmitBatchToPrintVendor(pvCode, isBundle, ptNames);
+                return;
+            }
+        }
 
-            foreach (string ptName in ptNames)
+        private static void ProcessNotSubmittedBatches(List<PrintTrailBatch> ptBatchList)
+        {
+            foreach (PrintTrailBatch ptBatch in ptBatchList)
             {
                 try
                 {
-                    log.Info("Inserting Process Started For Print Trail {0}".Fill(ptName));
-                    InsertStage(ptName);
-                    log.Info("Inserting Process Completed For Print Trail {0}".Fill(ptName));
+                    log.Info("Prepped Stage Execution Started For PrintTrailBatchId - {0}".Fill(ptBatch.Id));
+                    PreppedAndUploadStage(ptBatch);
+                    log.Info("Prepped Stage Execution Completed For PrintTrailBatchId - {0}".Fill(ptBatch.Id));
                 }
                 catch (Exception ex)
                 {
-                    var msg = "SubmitBatchToPrintVendor : Error occured in PCIJob Monitor while getting print trail batch details for PrintTrail - {0}".Fill(ptName);
+                    var msg = "SubmitBatchToPrintVendor : Error occured while uploading batch to print vendor for PrintTrailBatchId - {0}".Fill(ptBatch.Id);
                     log.Error(msg, ex);
 
                     MailUtility.SendUnexpectedNotificationEmail(msg + "<br/> <b>Error Message</b> <br/> {0}".Fill(ex));
 
-                    //NOTE: Here System will add unprocessed print trails to process it once all other print trails are getting processed successfully.
-                    unprocessedPrintTrails.Add(ptName);
                     continue;
                 }
-            }
 
-            //NOTE: Here System will process unprocessed print trails.
-            if (unprocessedPrintTrails.Count > 0)
-            {
-                log.Info("Processing Again Unprocessed PrintTrails {0}".Fill(unprocessedPrintTrails));
-                SubmitBatchToPrintVendor(pvCode, isBundle, unprocessedPrintTrails);
-                log.Info("Processing Completed Unprocessed PrintTrails {0}".Fill(unprocessedPrintTrails));
-            }
-
-            List<PrintTrailBatch> ptBatchList = DAL.GetNotSubmittedPrintBatchDetailByPrintVendorCode(pvCode);
-            while (ptBatchList.Count != 0)
-            {
-                foreach (PrintTrailBatch ptBatch in ptBatchList)
+                try
                 {
-                    try
-                    {
-                        log.Info("Prepped Stage Execution Started For PrintTrailBatchId - {0}".Fill(ptBatch.Id));
-                        PreppedAndUploadStage(ptBatch);
-                        log.Info("Prepped Stage Execution Completed For PrintTrailBatchId - {0}".Fill(ptBatch.Id));
-                    }
-                    catch (Exception ex)
-                    {
-                        var msg = "SubmitBatchToPrintVendor : Error occured while uploading batch to print vendor for PrintTrailBatchId - {0}".Fill(ptBatch.Id);
-                        log.Error(msg, ex);
-
-                        MailUtility.SendUnexpectedNotificationEmail(msg + "<br/> <b>Error Message</b> <br/> {0}".Fill(ex));
-
-                        continue;
-                    }
-
-                    try
-                    {
-                        log.Info("Submitted Stage Execution Started For PrintTrailBatchId - {0}".Fill(ptBatch.Id));
-                        SubmittedStage(ptBatch);
-                        log.Info("Submitted Stage Execution Completed For PrintTrailBatchId - {0}".Fill(ptBatch.Id));
-                    }
-                    catch (Exception ex)
-                    {
-                        var msg = "SubmitBatchToPrintVendor : Error occured while updating Batch Status for PrintTrailBatchId - {0}".Fill(ptBatch.Id);
-                        log.Error(msg, ex);
-
-                        MailUtility.SendUnexpectedNotificationEmail(msg + "<br/> <b>Error Message</b> <br/> {0}".Fill(ex));
-
-                        continue;
-                    }
+                    log.Info("Submitted Stage Execution Started For PrintTrailBatchId - {0}".Fill(ptBatch.Id));
+                    SubmittedStage(ptBatch);
+                    log.Info("Submitted Stage Execution Completed For PrintTrailBatchId - {0}".Fill(ptBatch.Id));
                 }
+                catch (Exception ex)
+                {
+                    var msg = "SubmitBatchToPrintVendor : Error occured while updating Batch Status for PrintTrailBatchId - {0}".Fill(ptBatch.Id);
+                    log.Error(msg, ex);
 
-                Thread.Sleep(36000);
-                ptBatchList = DAL.GetNotSubmittedPrintBatchDetailByPrintVendorCode(pvCode);
+                    MailUtility.SendUnexpectedNotificationEmail(msg + "<br/> <b>Error Message</b> <br/> {0}".Fill(ex));
+
+                    continue;
+                }
             }
         }
 
