@@ -19,7 +19,7 @@ namespace AM.Console
                 var docTypeList = rSvc.GetDocTypeTest();
                 foreach (var item in docTypeList)
                 {
-                    var docType = docTypeSvc.GetDocTypeById(item.DocTypeId);
+                    var docType = docTypeSvc.GetDocTypeById(item.DocTypeId.Value);
                     DateTime estEffectiveReceivedOn = commonSvc.GetEffectiveEstReceivedOn(docType, item.ReceivedOn);
                     var dueDate = commonSvc.GetDueDate(docType, estEffectiveReceivedOn);
                     rSvc.UpdateDueDateAndEftRecOnEST(item.Id, dueDate, estEffectiveReceivedOn);
@@ -36,9 +36,19 @@ namespace AM.Console
                 var docTypeList = rSvc.GetDocTypeTestWithErrorMP();
                 foreach (var item in docTypeList)
                 {
-                    var docType = docTypeSvc.GetDocTypeById(item.DocTypeId);
-                    DateTime estEffectiveReceivedOn = commonSvc.GetEffectiveEstReceivedOn(docType, item.ReceivedOn);
-                    rSvc.UpdateEftRecOnEST(item.Id, estEffectiveReceivedOn);
+
+                    if (!item.DocTypeId.HasValue)
+                    {
+                        //NOTE : If System didn't find any doctypeid for particular mail piece then it will take default max cut-off time of that particular client for calculating effective received on date.                        
+                        DateTime estMaxEffectiveReceivedOn = commonSvc.GetEffectiveEstReceivedOn(docTypeSvc.GetDocTypeWithMaximumCutOffTimeByClientId(item.ClientId), item.ReceivedOn);
+                        rSvc.UpdateEftRecOnEST(item.Id, estMaxEffectiveReceivedOn);
+                    }
+                    else
+                    {
+                        var docType = docTypeSvc.GetDocTypeById(item.DocTypeId.Value);
+                        DateTime estEffectiveReceivedOn = commonSvc.GetEffectiveEstReceivedOn(docType, item.ReceivedOn);
+                        rSvc.UpdateEftRecOnEST(item.Id, estEffectiveReceivedOn);
+                    }
                 }
             }
         }
