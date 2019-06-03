@@ -506,7 +506,7 @@ namespace AM.Core
                                 {
                                     var errMpIds = mailPieces.Select(mp => mp.Id).Except(errorMailPieces.Select(errMp => errMp.Id));
                                     mailPieces = mailPieces.Where(mp => errMpIds.Contains(mp.Id)).ToList();
-                                    GeneratePartialReports(mbi, mailPieces, reportDeliverable);
+                                    GenerateLabelErrorReport(mbi, mailPieces, reportDeliverable);
                                     commonSvc.UpdateBatchValidationStatus(mbi.MailBatch.Id, BatchValidationStatus.PartiallyValid, mailBatch.ValidationErrors);
                                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Prepped, Common.Now);
                                 }
@@ -534,7 +534,7 @@ namespace AM.Core
             }
         }
 
-        private static void GeneratePartialReports(MailBatchInfo mbi, List<MailPieces> mailPieces, Deliverable deliverable)
+        private static void GenerateLabelErrorReport(MailBatchInfo mbi, List<MailPieces> mailPieces, Deliverable deliverable)
         {
             SFTChannel sftChannel;
             using (IClientService clientSvc = new ClientService())
