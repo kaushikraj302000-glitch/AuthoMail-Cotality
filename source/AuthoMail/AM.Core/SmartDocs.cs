@@ -143,11 +143,11 @@ namespace AM.Core
 
                     File.WriteAllBytes(coverLetterPDFPath, Convert.FromBase64String(eVSRes.LabelImageString));
 
-                    //Here system is creating new PDF for military addresses only label's size LABEL4X6L to Letter size. 
-                    if (eVSReq.LabelParameters.Size == LabelSize.LABEL4X6L)
-                    {
-                        ConvertLetterSizeLabel(coverLetterPDFPath, outputDir, mailPieceId);
-                    }
+                    ////Here system is creating new PDF for military addresses only label's size LABEL4X6L to Letter size. 
+                    //if (eVSReq.LabelParameters.Size == LabelSize.LABEL4X6L)
+                    //{
+                    //    ConvertLetterSizeLabel(coverLetterPDFPath, outputDir, mailPieceId);
+                    //}
                     response.CoverLetterPath = coverLetterPDFPath;
                 }
 
@@ -232,11 +232,11 @@ namespace AM.Core
 
                     File.WriteAllBytes(coverLetterPDFPath, Convert.FromBase64String(eVSRes.LabelImageString));
 
-                    //Here system is creating new PDF for military addresses only label's size LABEL4X6L to Letter size. 
-                    if (eVSReq.LabelParameters.Size == LabelSize.LABEL4X6L)
-                    {
-                        ConvertLetterSizeLabel(coverLetterPDFPath, outputDir, mailPieceId);
-                    }
+                    ////Here system is creating new PDF for military addresses only label's size LABEL4X6L to Letter size. 
+                    //if (eVSReq.LabelParameters.Size == LabelSize.LABEL4X6L)
+                    //{
+                    //    ConvertLetterSizeLabel(coverLetterPDFPath, outputDir, mailPieceId);
+                    //}
                     response.CoverLetterPath = coverLetterPDFPath;
                 }
 
