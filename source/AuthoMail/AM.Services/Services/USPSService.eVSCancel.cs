@@ -8,6 +8,7 @@ using AM.Lib;
 using System.Net.Http;
 using Dapper;
 using log4net;
+using System.Net;
 
 namespace AM.Services
 {
@@ -67,6 +68,11 @@ namespace AM.Services
                     string url = Config.Web_API_USPS_URL;
                     //string url = @"https://stg-secure.shippingapis.com/ShippingAPI.dll";
 
+                    if (url.StartsWith("https", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+                    }
+
                     payload = new FormUrlEncodedContent(new[] 
                         {
                             new KeyValuePair<string, string>("API",Config.Web_API_USPS_eVSCancelAPIName),
@@ -100,13 +106,18 @@ namespace AM.Services
                     }
                     catch (Exception ex)
                     {
+                        log.Error("eVS cancel hard fail while download", ex);
+
+                        responseXML = "{0}\r\n{1}\r\n{2}".Fill(responseXML, new string('-', 105), ex.ToString());
+                        string err = "{0}\r\n{1}".Fill(ex.Message, responseXML);
+
                         isUSPSError = true;
                         eVSCancelResponse = new eVSCancelResponse
                         {
                             Error = new USPSError
                             {
                                 Source = ResponseSource.USPS,
-                                Description = ex.ToString()
+                                Description = err
                             }
                         };
                     }
