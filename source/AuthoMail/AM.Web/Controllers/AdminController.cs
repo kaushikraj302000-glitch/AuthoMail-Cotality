@@ -664,12 +664,9 @@ namespace AM.Web.Controllers
                         {
                             if (Path.GetExtension(file.FileName) == ".pdf")
                             {
-                                if (fileNames.Contains(file.FileName))
-                                {
                                     string filePath = string.Format("{0}/{1}", subPath, file.FileName);
                                     file.SaveAs(Server.MapPath(filePath));
                                     filesName.Add(file.FileName);
-                                }
                             }
                         }
                         if (filesName.Count > 0)
