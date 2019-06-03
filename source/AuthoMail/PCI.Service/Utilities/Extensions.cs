@@ -213,13 +213,14 @@ namespace PCI.Service
             return value.ToClrType(sqlDbType);
         }
 
-        public static void Attempts(this int c, Action action)
+        public static void TimesAttempt(this int c, Action action)
         {
             for (int i = 0; i < c; i++)
             {
                 try
                 {
                     action();
+                    break;
                 }
                 catch (Exception ex)
                 {
