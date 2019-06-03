@@ -249,7 +249,7 @@ namespace AM.Core
                                             }
                                             break;
                                         }
-                                        else if (response.HasError && (response.ExceptionCode.Contains("80040B18") || response.ExceptionDetail.Contains("error has occurred with the service") || response.ExceptionDetail.Contains("connected party did not properly respond")))
+                                        else if (response.HasError && (response.ExceptionCode.Contains("80040B18") || response.ExceptionDetail.Contains("error has occurred with the service") || response.ExceptionDetail.Contains("connected party did not properly respond") || response.ExceptionDetail.Contains("existing connection was forcibly closed")))
                                         {
                                             System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
                                             reTrycnt++;
@@ -269,7 +269,7 @@ namespace AM.Core
                                         eVSReq.ServiceType = AM.USPSLib.ServiceType.PRIORITY;
                                         response = doc.GenerateeVSPriorityCoverLetter(client.AppCode, commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq);
 
-                                        if (response.HasError && (response.ExceptionCode.Contains("80040B18") || response.ExceptionDetail.Contains("error has occurred with the service") || response.ExceptionDetail.Contains("connected party did not properly respond")))
+                                        if (response.HasError && (response.ExceptionCode.Contains("80040B18") || response.ExceptionDetail.Contains("error has occurred with the service") || response.ExceptionDetail.Contains("connected party did not properly respond") || response.ExceptionDetail.Contains("existing connection was forcibly closed")))
                                         {
                                             System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
                                             reTrycnt++;
