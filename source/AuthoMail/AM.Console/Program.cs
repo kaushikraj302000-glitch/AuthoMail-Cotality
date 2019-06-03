@@ -13,7 +13,7 @@ namespace AM.Console
     {
         private static log4net.ILog log;
         static void Main(string[] args)
-        {           
+        {
             //Code Added to create argument wise log file
             var argString = String.Join(",", args);
             log4net.LogicalThreadContext.Properties["args"] = argString;
@@ -37,6 +37,14 @@ namespace AM.Console
                     System.Console.WriteLine("Seed Completed.");
                     return;
                 }
+                else if (args[0] == "EffectiveReceivedOnCalculate")
+                {
+                    System.Console.WriteLine("Calculation Start");
+
+                    ReCalculateDueDate.UpdateErrorEffectiveReceivedOn();
+                    System.Console.WriteLine("Calculation Completed");
+                    return;
+                }
                 else if (args[0] == "BatchReporting")
                 {
                     //This will be used as How system will report back to the client. means based on response of printbatches table or full response so Here user needs to pass "Incremental" Or "Full" then comma separated SFTChannel codes
@@ -50,7 +58,7 @@ namespace AM.Console
 
                     Channel.ReportBack(channelList, reportType);
                 }
-                else if(args[0] == "Purging")
+                else if (args[0] == "Purging")
                 {
                     Purging.StartPurging();
                 }
