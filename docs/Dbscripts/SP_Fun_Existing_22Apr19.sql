@@ -101,7 +101,7 @@ declare	@jobid int,
 		-- Start Transaction
 		BEGIN TRANSACTION	
 			-- insert data into MRDFResponse table
-			INSERT INTO [PnS].[MRDFResponse] ([JobId],[PieceId],[Date],[Feeder2_Fed],[OperatorId],[MachineId],[ProcessingTimeStamp],[DetailedErrorId],[Disposition],[Input_Fed],[Feeder3_Fed],[Feeder4_Fed],[Feeder5_Fed],[ComputedWeight],[MeterDate],[StatusSource],[PostageMetered]
+			INSERT INTO [PnS].[MRDFResponse] ([JobId],[PieceId],[Date],[Feeder2_Fed],[OperatorId],[MachineId],									[ProcessingTimeStamp],[DetailedErrorId],[Disposition],[Input_Fed],[Feeder3_Fed],[Feeder4_Fed],[Feeder5_Fed],[ComputedWeight],[MeterDate],[StatusSource],[PostageMetered]
 			,[WeightMeasured],[ExitLocation],[TotalSheets],[PDFFileName],[PackageTrackingNumber])
 			VALUES(@PrintTrailBatchId ,@pieceid,@mrdfreqdate,0,@operatorid,@machineid,GETUTCDATE(),'4691'
 			,@disposition,'00','0','0','0','0.000','00000000', @printlocationcl,'0.000','0.000',@printlocationcl
@@ -136,7 +136,6 @@ declare	@jobid int,
 			ROLLBACK
 	END CATCH
 END
-
 go
 print '[dbo].[SP_RegisterScan] created'
 GO
@@ -193,19 +192,18 @@ CREATE PROCEDURE [dbo].[SP_GetScanStats]
 	@enddate datetime
  AS
 BEGIN
-	declare @printlocationcl varchar(1024),@totalPending int, @scannedCount int, @clientid int
-	
+	declare @printlocationcl varchar(1024), @totalPending int, @scannedCount int, @clientid int
 
 	-- Set PrintLocation value
 	select @printlocationcl=Name from Common.PrintVendors where VendorCode='CL_DALLAS';
+	--select @printlocationcl=Name from Common.PrintVendors where VendorCode='CL_DALLAS';
+	--select @printlocationcl = Value from [Common].[SystemSettings] where Id ='Common_PrintLocationCL'
 
 	-- Remove AUT from app code
 	set @appcode = replace(@appcode, 'AUT','')
 
 	-- Get client id
 	select @clientid=Id from Common.Clients where AppCode=@appcode
-
-	--Calculate Pending & Total Scan count
 
 	-- Calculate Total Pending Scanned
 		select @totalPending=count(Id) from dbo.ufn_GetDallasBatchDetails(@EstDate)
@@ -239,7 +237,9 @@ CREATE PROCEDURE [dbo].[SP_GetRecentBatchesStats]
  AS
 BEGIN
 	
-	declare @printlocationcl varchar(1024),  @clientid int
+	declare @bn nvarchar(max),@st time, @et time,
+	@printlocationcl varchar(1024),  @clientid int,
+	@sd datetime, @ed datetime, @mindt datetime=null
 
 	--Get Client Id, and remove AUT from client appcode
 	set @appcode=REPLACE(@appcode,'AUT','')
@@ -286,4 +286,58 @@ END
 
 go
 print '[dbo].[SP_GetRecentBatchesStats] created'
+go
+------------------------------------------------------------------------------------
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'uspalert_GetDelayedBatchesToSubmit')
+DROP PROCEDURE [dbo].[uspalert_GetDelayedBatchesToSubmit]
+go
+print '[dbo].[uspalert_GetDelayedBatchesToSubmit] dropped'
+GO
+CREATE PROCEDURE [dbo].[uspalert_GetDelayedBatchesToSubmit] 	
+	@cutOffMinutes int
+AS
+BEGIN
+ SELECT mp.Id,mb.Id as MailBatchId,rq.UniqueId,bs.IsSubmitted,c.AppCode,mb.BatchName,mb.ReceivedOn,mb.PipelineStatus,mp.ShippingStatus,d.DocTypeCode,d.ShippingCarrier,d.ShippingServiceType,mp.ClientId,pv.Name as PrintLocation,pv.VendorCode,rq.MailPieceStatus  from AM.MailPieces mp
+ inner join AM.MailBatches mb on mp.MailBatchId=mb.Id
+ left outer join Common.PrintTrails pt on mp.PrintTrailId = pt.Id
+ left outer join Common.PrintVendors pv on pt.PrintVendorId = pv.Id
+ left outer join Common.Clients c on mb.ClientId=c.Id
+ left outer join PnS.MRDFRequest rq on mp.UniqueId=rq.UniqueId
+ left outer join PnS.BatchSummary bs on rq.JobId=bs.PrintBatch
+ left outer join AM.DocTypes d on mp.DocTypeId = d.Id
+ where mb.ReceivedOn between DATEADD(day,-7,GETUTCDATE()) and DATEADD(minute,-@cutOffMinutes,GETUTCDATE()) and (mp.ShippingStatus is null or (mp.ShippingStatus in ('InProgress','Shipped') and (rq.UniqueId is null or ISNULL(bs.IsSubmitted,0)=0)) or (mp.ShippingStatus = 'Error' and mp.ErrorDesc IS NULL) or (mp.ShippingStatus = 'PulledBack' and not exists (select Id from AM.PullBackRequests where MailPieceId = mp.Id)) or (mb.ClientId IS NULL))
+ or (rq.MailPieceStatus='Shipped' and mp.IsPickedUp <> 1 and mp.DueDate < GETUTCDATE() and d.ShippingCarrier='FedEx' and mb.ReceivedOn>='2019-01-01 05:00:00')
+END
+
+go
+print '[dbo].[uspalert_GetDelayedBatchesToSubmit] created'
+go
+------------------------------------------------------------------------------------
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'uspalert_GetDelayedBatchesToSubmit')
+DROP PROCEDURE [dbo].[uspweb_MonthlyReconReport]
+go
+print '[dbo].[uspweb_MonthlyReconReport] dropped'
+GO
+CREATE PROCEDURE [dbo].[uspweb_MonthlyReconReport]
+	@clientId int,
+	@startDate datetime,
+	@endDate datetime,
+	@channel varchar(128)
+AS
+	select m.UniqueId,b.BatchName,m.BusinessFriendlyIdValue as LoanNumber,m.[FileName],m.RcptFirstName as FirstName,m.RcptLastName as LastName
+,m.RcptAddressStreet as [Address],m.RcptAddressCity as City, m.RcptAddressState as [State],m.RcptAddressZIP as Zip,
+b.ReceivedOn,m.PrintLocation,m.ShippingStatus as [Status],m.TrackingNo,m.TotalPages,m.PrintedOn,m.ShippedOn,
+m.PickedUpOn,d.ShippingCarrier,m.ErrorDesc,
+d.DocTypeCode as DocType,d.ShippingCarrier +' '+d.ShippingServiceType as ShippingMethod,
+ch.Title as Channel,c.AppCode,
+r.JobId,r.PieceId
+FROM [AM].[MailBatches] b, [Common].[SFTChannels] ch,[Common].[Clients] c,[AM].[MailPieces] m
+LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id
+LEFT OUTER JOIN [PnS].[MRDFRequest] r ON m.UniqueId = r.UniqueId AND r.IsPDFReceived=1
+WHERE m.[MailBatchId]=b.Id AND c.Id=b.ClientId AND ch.Id=b.SFTChannelId AND m.ClientId=@clientId
+AND m.EffectiveReceivedOnEst BETWEEN @startDate and @endDate
+AND ISNULL(ch.Code, '') = ISNULL(@channel, ISNULL(ch.Code, ''))
+
+go
+print '[dbo].[uspweb_MonthlyReconReport] created'
 go

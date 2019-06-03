@@ -105,7 +105,7 @@ namespace PCI.Service
             }
 
             //NOTE : Here system will try to submit bundle batches 5 times if any error is coming during execution
-            30.Attempts(() => SubmitBundledBatches(pvCode));
+            30.TimesAttempt(() => SubmitBundledBatches(pvCode));
 
         }
 
