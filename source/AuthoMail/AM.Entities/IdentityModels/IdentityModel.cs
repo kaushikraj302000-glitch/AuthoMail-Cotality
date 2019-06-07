@@ -81,6 +81,8 @@ namespace AM.Entities
         public string ClosedBy { get; set; }
         public DateTime? LastLoginTimeUTC { get; set; }
         public DateTime ChangePasswordDateUTC { get; set; }
+        public string StatusModifiedBy { get; set; }
+        public DateTime? StatusModifiedOn { get; set; }
         public int PasswordExpirationDays
         {
             get

@@ -914,6 +914,7 @@
             }
             $("#loading").show();
             //$("#headerdate").html(startDate + " to " + endDate + " EST");
+            
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Home/_GetSearchData",
@@ -928,8 +929,7 @@
                     trackingNumber: $("#TrackingNumber").val(),
                     clientBatchId: $("#ClientBatchId").val(),
                     batchId: $("#BatchId").val(),
-                    errorCode: $("#ErrorCode").val()
-
+                    errorCode: $("#ErrorCode").val()                    
                 }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
@@ -1032,8 +1032,8 @@
                     trackingNumber: $("#TrackingNumber").val(),
                     clientBatchId: $("#ClientBatchId").val(),
                     batchId: $("#BatchId").val(),
-                    errorCode: $("#ErrorCode").val()
-
+                    errorCode: $("#ErrorCode").val(),
+                    timezoneOffset: new Date().getTimezoneOffset()
                 }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {

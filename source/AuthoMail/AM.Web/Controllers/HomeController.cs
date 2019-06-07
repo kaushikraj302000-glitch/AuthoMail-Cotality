@@ -107,7 +107,7 @@ namespace AM.Web.Controllers
         }
 
         [HttpPost]
-        public ActionResult _DownloadSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string receivedOnStart, string receivedOnEnd, string status, string channel, List<int> docType, string trackingNumber, string clientBatchId, string batchId, List<string> errorCode)
+        public ActionResult _DownloadSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string receivedOnStart, string receivedOnEnd, string status, string channel, List<int> docType, string trackingNumber, string clientBatchId, string batchId, List<string> errorCode, int timezoneOffset)
         {
             try
             {
@@ -121,6 +121,14 @@ namespace AM.Web.Controllers
                 }
                 string fileGuid = Guid.NewGuid().ToString();
                 var model = Mapper.Map<List<SearchViewModel>>(data.Value);
+
+                model.ForEach(m =>
+                {
+                    m.ReceivedOn = m.ReceivedOn.HasValue ? m.ReceivedOn.Value.AddMinutes(-timezoneOffset) : m.ReceivedOn;
+                    m.ShippedOn = m.ShippedOn.HasValue ? m.ShippedOn.Value.AddMinutes(-timezoneOffset) : m.ShippedOn;
+                    m.PickedUpOn = m.PickedUpOn.HasValue ? m.PickedUpOn.Value.AddMinutes(-timezoneOffset) : m.PickedUpOn;
+                    m.DueDate = m.DueDate.HasValue ? m.DueDate.Value.AddMinutes(-timezoneOffset) : m.DueDate;
+                });
                 var dataTable = ExcelHelper.ToDataTable<SearchViewModel>(model);
 
                 var memoryStream = ExcelHelper.ExportDataSet(dataTable);

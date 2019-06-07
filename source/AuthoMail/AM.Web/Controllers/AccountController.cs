@@ -149,7 +149,7 @@ namespace AM.Web.Controllers
                             ViewBag.confirmationlink = user.Email;
                             return View(model);
                         }
-                        if ((user.Status.Equals(AMUserStatus.Open, StringComparison.CurrentCultureIgnoreCase) || user.Status.Equals(AMUserStatus.Rejected, StringComparison.CurrentCultureIgnoreCase)) || !user.ClientId.HasValue)
+                        if ((user.Status.Equals(AMUserStatus.Open, StringComparison.CurrentCultureIgnoreCase) || user.Status.Equals(AMUserStatus.Rejected, StringComparison.CurrentCultureIgnoreCase) || user.Status.Equals(AMUserStatus.InActive, StringComparison.CurrentCultureIgnoreCase)) || !user.ClientId.HasValue)
                         {
                             AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
                             return View("InActiveUser");
@@ -340,6 +340,7 @@ namespace AM.Web.Controllers
                             return View(model);
                         }
                         var nm = ldap.Value.Split('|');
+                        var systemUser = UserManager.FindByName("system@milestonetechnoconsulting.com");
                         var user = new ProfileUser
                         {
                             Email = model.Email,
@@ -350,7 +351,9 @@ namespace AM.Web.Controllers
                             LastName = nm[1],
                             DisplayName = model.DisplayName,
                             Status = AMUserStatus.Open,
-                            RequestedOn = DateTime.UtcNow
+                            RequestedOn = DateTime.UtcNow,
+                            StatusModifiedOn = DateTime.UtcNow,
+                            StatusModifiedBy = systemUser.Id
                         };
 
                         var result = await UserManager.CreateAsync(user);
@@ -437,6 +440,7 @@ namespace AM.Web.Controllers
                             ModelState.AddModelError("", string.Format("Users of the specified domain name '{0}' are not allowed to register.", mAdd.Host));
                             return View(model);
                         }
+                        var systemUser = UserManager.FindByName("system@milestonetechnoconsulting.com");
                         var user = new ProfileUser
                         {
                             UserName = model.Email,
@@ -447,7 +451,9 @@ namespace AM.Web.Controllers
                             LockoutEnabled = true,
                             Status = AMUserStatus.Open,
                             RequestedOn = DateTime.UtcNow,
-                            ChangePasswordDateUTC = DateTime.UtcNow
+                            ChangePasswordDateUTC = DateTime.UtcNow,
+                            StatusModifiedOn = DateTime.UtcNow,
+                            StatusModifiedBy = systemUser.Id
                         };
                         var result = await UserManager.CreateAsync(user, model.Password);
                         if (result.Succeeded)
@@ -803,6 +809,7 @@ namespace AM.Web.Controllers
         }
         #endregion Expiration Change Password
 
+        [HttpPost]
         //Change user's status
         public ActionResult ChangeUserStatus(string userName, string status)
         {
@@ -814,6 +821,8 @@ namespace AM.Web.Controllers
             if (user.Status.Equals(AMUserStatus.Open, StringComparison.CurrentCultureIgnoreCase))
                 return Json(JsonResponseFactory.ErrorResponse("Currently user's request is pending. Please go to the Sign Up Request page"));
             user.Status = status;
+            user.StatusModifiedOn = DateTime.UtcNow;
+            user.StatusModifiedBy = UserManager.FindByName("system@milestonetechnoconsulting.com").Id;
             var result = UserManager.Update(user);
             if (result.Succeeded)
                 return Json(JsonResponseFactory.SuccessResponse("User's status updated successfully."));

@@ -61,7 +61,7 @@ declare	@jobid int,
 		--Get batches timings
 		select * into #dallasBatchesTimes from (select * from [dbo].[ufn_GetDallasBatches](@EstDate)) as t
 		--initilize mindate
-		select @minDate= MIN(StartDate) from [dbo].[ufn_GetDallasBatches](@EstDate)
+		select @minDate= MIN(StartDate) from #dallasBatchesTimes
 			
 		-- getdata from DB
 		SELECT @mailpieceid=m.Id, @ispullbackrequested=m.[IsPullBackRequested],@isqcrequested=m.[IsQCRequested],
@@ -144,14 +144,14 @@ declare	@jobid int,
 				where PieceId = @pieceid and PrintTrailBatchId=@PrintTrailBatchId and JobId=@jobid
 
 				-- Check if we are yet to received response for any mail pieces
-			if((select count(*) from PnS.MRDFRequest where jobid=@jobid and MailPieceStatus='InProgress')=0)
+			if(not exists(select 1 from PnS.MRDFRequest where jobid=@jobid and MailPieceStatus='InProgress'))
 			begin
 			--Update Batchsummary pipeline status when all mailpieces's response is received
 				update PnS.BatchSummary 
 				set PipelineStatus = 'MRDFReceived', MRDFReceivedOn = GETUTCDATE() 
 				where PrintBatch = @jobid
 
-				if((select count(*) from [PnS].[MRDFRequest] where MailPieceStatus='InProgress' and PrintTrailBatchId=@PrintTrailBatchId)=0)
+				if(not exists(select 1 from [PnS].[MRDFRequest] where MailPieceStatus='InProgress' and PrintTrailBatchId=@PrintTrailBatchId))
 				begin
 					-- Update in PrintTrailBatch of mrdfreceivedon when all response is received.
 					update PnS.PrintTrailBatches 
@@ -239,14 +239,16 @@ begin
 	--Assign value to mindate
 	select @minDate= MIN(StartDate) from @dallasBatchesTimes
 
-	insert into @MPs
+	;with q1 as
+	(
 	SELECT m.Id,m.BusinessFriendlyIdValue as LoanNumber,m.ClientId, m.PrintLocation, m.EffectiveReceivedOnEst, m.TrackingNo,m.IsPullBackRequested,
 	m.IsQCRequested,m.TotalSheets, m.DueDate,m.TotalPages,m.ShippingStatus,
 	b.PrintBatch,b.IsSubmitted,b.PipelineStatus,preq.PrintBatchName,b.JobName,preq.SubmittedOn,
 	req.PieceId,req.PrintTrailBatchId, req.JobId,req.[Date] as MRDFReqDate,req.PDFFileName, req.UniqueId,req.MailPieceStatus, 
 	res.ProcessingTimeStamp,
 	d.ShippingServiceType,d.ShippingCarrier,d.IsBRE,
-	c.AppCode,c.Name as ClientName,(select BatchName from @dallasBatchesTimes where EffectiveReceivedOnEst between StartDate AND EndDate AND ShippingCarrier=d.ShippingCarrier AND ShippingServiceType=d.ShippingServiceType  AND AppCode=c.AppCode) BatchName
+	c.AppCode,c.Name as ClientName,
+	(select BatchName from @dallasBatchesTimes where EffectiveReceivedOnEst between StartDate AND EndDate AND ShippingCarrier=d.ShippingCarrier AND ShippingServiceType=d.ShippingServiceType  AND AppCode=c.AppCode) BatchName
 	FROM [AM].[MailPieces] m
 	LEFT OUTER JOIN PnS.MRDFRequest req ON m.UniqueId = req.UniqueId
 	LEFT OUTER JOIN PnS.BatchSummary b ON req.JobId = b.PrintBatch
@@ -256,6 +258,9 @@ begin
 	INNER JOIN Common.Clients c ON m.ClientId=c.Id
 	WHERE m.PrintLocation=@pl
 	AND m.EffectiveReceivedOnEst >=@minDate
+	)
+	insert into @MPs
+	select * from q1 where BatchName is not null
 
 	return
 end

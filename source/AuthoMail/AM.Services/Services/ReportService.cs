@@ -163,7 +163,7 @@ namespace AM.Services
                     channel = channel.IsNullOrWhiteSpace() ? null : channel,
                     //shippingStatus = ShippingStatus.Shipped.ToString()
                 }).ToList();
-            return data;
+            return data != null ? data.OrderBy(d => d.ReceivedOn).ToList() : data;
         }
 
         public List<ChannelCodeTitle> GetChannelTitle(int clientId)

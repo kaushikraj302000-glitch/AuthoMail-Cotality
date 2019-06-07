@@ -76,12 +76,17 @@ namespace AM.Web.Controllers
 
         }
 
-        public ActionResult DownloadMonthlyReconReport(string startDate, string endDate, string channel, string fileName)
+        public ActionResult DownloadMonthlyReconReport(string startDate, string endDate, string channel, string fileName, int timezoneOffset)
         {
             var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
             var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
             var data = repoSvc.GetMonthlyReconReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate, channel);
             var model = Mapper.Map<List<MonthlyReconReportViewModel>>(data);
+            model.ForEach(m =>
+            {
+                m.ReceivedOn = m.ReceivedOn.HasValue ? m.ReceivedOn.Value.AddMinutes(-timezoneOffset) : m.ReceivedOn;
+                m.ShippedOn = m.ShippedOn.HasValue ? m.ShippedOn.Value.AddMinutes(-timezoneOffset) : m.ShippedOn;
+            });
             var dataTable = ExcelHelper.ToDataTable<MonthlyReconReportViewModel>(model);
             var memoryStream = ExcelHelper.ExportDataSet(dataTable);
             memoryStream.Seek(0, SeekOrigin.Begin);
@@ -192,7 +197,7 @@ namespace AM.Web.Controllers
             }
             else
             {
-                ViewBag.ClientId =User.Identity.GetClientId();// new SelectList(homeSvc.GetAllActiveClient().Where(s => s.Id == User.Identity.GetClientId()), "Id", "Name", );
+                ViewBag.ClientId = User.Identity.GetClientId();// new SelectList(homeSvc.GetAllActiveClient().Where(s => s.Id == User.Identity.GetClientId()), "Id", "Name", );
             }
             return View();
         }
@@ -211,12 +216,19 @@ namespace AM.Web.Controllers
             }
         }
 
-        public ActionResult DownloadReportWizard(string clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, string docType, string status, string channel, List<string> shippingMethod, string trackingNo, string fileName)
+        public ActionResult DownloadReportWizard(string clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, string docType, string status, string channel, List<string> shippingMethod, string trackingNo, string fileName, int timezoneOffset)
         {
             List<int> ClientId = string.IsNullOrEmpty(clientId) ? new List<int>() : clientId.Split(',').Select(Int32.Parse).ToList();
             List<int> DocType = string.IsNullOrEmpty(docType) ? new List<int>() : docType.Split(',').Select(Int32.Parse).ToList();
             shippingMethod = shippingMethod[0] == "" ? null : shippingMethod;
             var result = repoSvc.GetReportWizard(ClientId, businessFriendlyIdName, businessFriendlyIdValue, startDate, endDate, DocType, status, channel, shippingMethod, trackingNo);
+
+            result.ForEach(m =>
+            {
+                m.ReceivedOn = m.ReceivedOn.HasValue ? m.ReceivedOn.Value.AddMinutes(-timezoneOffset) : m.ReceivedOn;
+                m.PrintedOn = m.PrintedOn.HasValue ? m.PrintedOn.Value.AddMinutes(-timezoneOffset) : m.PrintedOn;
+                m.MailedOn = m.MailedOn.HasValue ? m.MailedOn.Value.AddMinutes(-timezoneOffset) : m.MailedOn;
+            });
             var dataTable = ExcelHelper.ToDataTable<ReportWizard>(result);
             var memoryStream = ExcelHelper.ExportDataSet(dataTable);
             memoryStream.Seek(0, SeekOrigin.Begin);
