@@ -29,7 +29,7 @@ namespace AM.Services
             List<FedExReport> mailPieces;
             using (IReportService reportSvc = new ReportService())
             {
-                mailPieces = reportSvc.GetFedExData(new int[] { -1 });
+                mailPieces = reportSvc.GetFedExData(new int[] { 0, -1 });
             }
 
             if (mailPieces == null || mailPieces.Count == 0)

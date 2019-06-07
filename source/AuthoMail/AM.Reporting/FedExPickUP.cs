@@ -19,6 +19,7 @@ namespace AM.Reporting
         {
             try
             {
+                log.Info("FedEx Pickup Process Started");
                 List<FedExReport> mailPieces = new List<FedExReport>();
                 using (IFedExService fedExTrackingSvc = new FedExService())
                 using (IReportService reportSvc = new ReportService())
@@ -26,7 +27,7 @@ namespace AM.Reporting
                     DateTime todayEffectiveDateTime = Common.Now.UtcToEst();
                     //Here we are passing dates in EST format because we are looking for est dates column
                     DateTime todayEffectiveDate = todayEffectiveDateTime.Date;
-
+                    log.Info("FedEx Pickup Process For Date And Time {0}".Fill(todayEffectiveDateTime));
                     //UPDATE Pickupon list before generating reports.
                     fedExTrackingSvc.UpdateFedExTrackingInfo();
 
@@ -58,6 +59,7 @@ namespace AM.Reporting
                         SendReportToCLTeam(fedExReportPath, tableBody, todayEffectiveDateTime);
                     }
                 }
+                log.Info("FedEx Pickup Process Completed");
             }
             catch (Exception ex)
             {
@@ -72,7 +74,7 @@ namespace AM.Reporting
             fullContent.AppendLine(@"<tr><td>Loan Number</td><td>Borrower Name</td><td>Document Type</td><td>Received On</td><td>Tracking Number</td><td>Due Date</td><td>Shipped On</td></tr>");
             foreach (var mailPiece in notPickedMailPieces)
             {
-                fullContent.AppendLine(@"<tr><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td><td>{5}</td><td>{6}</td></tr>".Fill(mailPiece.LoanNumber, (mailPiece.RcptLastName + " " + mailPiece.RcptFirstName).ToCsvString(), mailPiece.DocumentOrPackageType, mailPiece.ReceivedOn.Value.UtcToEst(), mailPiece.TrackingNo, mailPiece.DueDate.Value.UtcToEst(), mailPiece.ShippedOn.HasValue ? mailPiece.ShippedOn.Value.UtcToEst().ToString() : ""));
+                fullContent.AppendLine(@"<tr><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td><td>{5}</td><td>{6}</td></tr>".Fill(mailPiece.LoanNumber, (mailPiece.RcptLastName + " " + mailPiece.RcptFirstName), mailPiece.DocumentOrPackageType, mailPiece.ReceivedOn.Value.UtcToEst(), mailPiece.TrackingNo, mailPiece.DueDate.Value.UtcToEst(), mailPiece.ShippedOn.HasValue ? mailPiece.ShippedOn.Value.UtcToEst().ToString() : ""));
             }
             return bodyContent.Replace("<%REPLACE%>", fullContent.ToString());
         }
@@ -88,13 +90,13 @@ namespace AM.Reporting
             {
                 var line = String.Join(",",
                     mailPiece.BatchName,
-                    mailPiece.LoanNumber,
+                    mailPiece.LoanNumber.ToCsvString(),
                     (mailPiece.RcptLastName + " " + mailPiece.RcptFirstName).ToCsvString(),
                     (mailPiece.RcptAddressStreet + " " + mailPiece.RcptAddressAptOrSuiteOrOther).ToCsvString(),
                     mailPiece.RcptAddressCity.ToCsvString(),
                     mailPiece.RcptAddressState,
                     mailPiece.RcptAddressZIP,
-                    mailPiece.TrackingNo,
+                    mailPiece.TrackingNo.ToCsvString(),
                     mailPiece.ReceivedOn.Value.UtcToEst(),
                     mailPiece.DocumentOrPackageType,
                     mailPiece.IsPickedUp == 1 ? "Picked Up" : "Not Picked",
