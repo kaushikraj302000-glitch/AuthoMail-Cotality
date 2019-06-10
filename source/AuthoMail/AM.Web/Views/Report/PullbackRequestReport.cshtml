@@ -125,7 +125,12 @@
         });
         function applyDataTable() {
             var table = $('#sample_2');
-            var filename = "PullbackRequestReport";
+            var selectedData = $("#requestedOn").val().split('-');
+
+            var startDate = selectedData[0].trim();
+            var endDate = selectedData[1].trim();
+
+            var filename = "PullbackRequestReport_" + moment(startDate).format("MMDDYYYY") + "_To_" + moment(endDate).format("MMDDYYYY") +"_"+$("#ClientName").text();
             var title = "Pullback Request Report";
             var oTable = table.dataTable({
 
