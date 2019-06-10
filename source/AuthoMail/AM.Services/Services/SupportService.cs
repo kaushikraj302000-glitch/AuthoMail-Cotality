@@ -25,10 +25,11 @@ namespace AM.Services
         List<DocTypeCoverLetterVM> GetDocTypeCoverLetterByDocTypeId(int Id);
         KeyValuePair<bool, string> SaveDocTypeCoverLetter(DocTypeCoverLetter dtcl);
         KeyValuePair<bool, string> RemoveCoverletter(int docTypeId, int seqId, string filePath);
-        KeyValuePair<bool, string> SaveDocTypePrintTrail(List<DocTypePrintTrailMaps> model);
+        KeyValuePair<bool, string> SaveDocTypePrintTrail(List<DocTypePrintTrailMap> model);
         KeyValuePair<bool, string> SavePrintTrail(PrintTrail model);
         List<PrintTrail> GetPrintTrails();
-        List<DocTypePrintTrailMaps> GetDocTypePrintTrail();
+        List<DocTypePrintTrailMap> GetDocTypePrintTrail();
+        List<DocTypePrintTrailMap> GetDocTypePrintTrailByDocTypeId(int docTypeId);
         //Clients
         List<Clients> GetClients();
         Clients FindByClientId(int Id);
@@ -578,7 +579,7 @@ namespace AM.Services
 
 
 
-        public KeyValuePair<bool, string> SaveDocTypePrintTrail(List<DocTypePrintTrailMaps> model)
+        public KeyValuePair<bool, string> SaveDocTypePrintTrail(List<DocTypePrintTrailMap> model)
         {
             var result = Has24HrsWithoutOverlap(model);
             if (!result.Key) return result;
@@ -586,7 +587,7 @@ namespace AM.Services
             var t = db.BeginTransaction();
             try
             {
-                string q = @"INSERT INTO Common.DocTypePrintTrailMaps (DocTypeId ,PrintTrailId ,BizDayStartTime ,BizDayEndTime ,SatStartTime ,SatEndTime ,SunStartTime ,SunEndTime) VALUES (@DocTypeId ,@PrintTrailId ,@BizDayStartTime ,@BizDayEndTime ,@SatStartTime ,@SatEndTime ,@SunStartTime ,@SunEndTime)";
+                string q = @"INSERT INTO Common.DocTypePrintTrailMap (DocTypeId ,PrintTrailId ,BizDayStartTime ,BizDayEndTime ,SatStartTime ,SatEndTime ,SunStartTime ,SunEndTime) VALUES (@DocTypeId ,@PrintTrailId ,@BizDayStartTime ,@BizDayEndTime ,@SatStartTime ,@SatEndTime ,@SunStartTime ,@SunEndTime)";
                 db.Execute(q, model, transaction: t);
                 t.Commit();
                 return new KeyValuePair<bool, string>(true, "DocType & Print Trail mapped successfully.");
@@ -613,16 +614,16 @@ namespace AM.Services
                 return new KeyValuePair<bool, string>(false, ex.Message);
             }
         }
-        private KeyValuePair<bool, string> Has24HrsWithoutOverlap(List<DocTypePrintTrailMaps> TSList)
+        private KeyValuePair<bool, string> Has24HrsWithoutOverlap(List<DocTypePrintTrailMap> TSList)
         {
             double hrs = 0.0;
-            TSList.ForEach(t => hrs += t.BizDayEndTime.Value.Subtract(t.BizDayStartTime.Value).TotalSeconds);
+            TSList.ForEach(t => hrs += t.BizDayEndTime.Subtract(t.BizDayStartTime).TotalSeconds);
             if ((hrs + TSList.Count) != 86400) return new KeyValuePair<bool, string>(false, "BizDay times are either overlap or doesn't contain a full day.");
             hrs = 0.0;
-            TSList.ForEach(t => hrs += t.SatStartTime.Value.Subtract(t.SatEndTime.Value).TotalSeconds);
+            TSList.ForEach(t => hrs += t.SatEndTime.Subtract(t.SatStartTime).TotalSeconds);
             if ((hrs + TSList.Count) != 86400) return new KeyValuePair<bool, string>(false, "Saturday times are either overlap or doesn't contain a full day.");
             hrs = 0.0;
-            TSList.ForEach(t => hrs += t.SunStartTime.Value.Subtract(t.SunEndTime.Value).TotalSeconds);
+            TSList.ForEach(t => hrs += t.SunEndTime.Subtract(t.SunStartTime).TotalSeconds);
             if ((hrs + TSList.Count) != 86400) return new KeyValuePair<bool, string>(false, "Sunday times are either overlap or doesn't contain a full day.");
             return new KeyValuePair<bool, string>(true, "");
         }
@@ -634,9 +635,16 @@ namespace AM.Services
             return model;
         }
 
-        public List<DocTypePrintTrailMaps> GetDocTypePrintTrail()
+        public List<DocTypePrintTrailMap> GetDocTypePrintTrail()
         {
-            var model = db.Query<DocTypePrintTrailMaps>("select * from Common.DocTypePrintTrailMaps").ToList();
+            var model = db.Query<DocTypePrintTrailMap>("select * from Common.DocTypePrintTrailMap").ToList();
+            return model;
+        }
+
+
+        public List<DocTypePrintTrailMap> GetDocTypePrintTrailByDocTypeId(int docTypeId)
+        {
+            var model = db.Query<DocTypePrintTrailMap>("select * from Common.DocTypePrintTrailMap where doctypeid=@doctypeid", new { doctypeid = docTypeId }).ToList();
             return model;
         }
     }
