@@ -473,7 +473,7 @@ namespace AM.Services
         //    }
         //}
     }
-    public class DocTypePrintTrail
+    public class DocTypePrintTrailMaps
     {
         public int DocTypeId { get; set; }
         public int PrintTrailId { get; set; }

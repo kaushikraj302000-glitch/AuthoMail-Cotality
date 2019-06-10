@@ -25,10 +25,10 @@ namespace AM.Services
         List<DocTypeCoverLetterVM> GetDocTypeCoverLetterByDocTypeId(int Id);
         KeyValuePair<bool, string> SaveDocTypeCoverLetter(DocTypeCoverLetter dtcl);
         KeyValuePair<bool, string> RemoveCoverletter(int docTypeId, int seqId, string filePath);
-        KeyValuePair<bool, string> SaveDocTypePrintTrail(List<DocTypePrintTrail> model);
+        KeyValuePair<bool, string> SaveDocTypePrintTrail(List<DocTypePrintTrailMaps> model);
         KeyValuePair<bool, string> SavePrintTrail(PrintTrail model);
         List<PrintTrail> GetPrintTrails();
-        List<DocTypePrintTrail> GetDocTypePrintTrail();
+        List<DocTypePrintTrailMaps> GetDocTypePrintTrail();
         //Clients
         List<Clients> GetClients();
         Clients FindByClientId(int Id);
@@ -578,7 +578,7 @@ namespace AM.Services
 
 
 
-        public KeyValuePair<bool, string> SaveDocTypePrintTrail(List<DocTypePrintTrail> model)
+        public KeyValuePair<bool, string> SaveDocTypePrintTrail(List<DocTypePrintTrailMaps> model)
         {
             var result = Has24HrsWithoutOverlap(model);
             if (!result.Key) return result;
@@ -613,19 +613,18 @@ namespace AM.Services
                 return new KeyValuePair<bool, string>(false, ex.Message);
             }
         }
-        private KeyValuePair<bool, string> Has24HrsWithoutOverlap(List<DocTypePrintTrail> TSList)
+        private KeyValuePair<bool, string> Has24HrsWithoutOverlap(List<DocTypePrintTrailMaps> TSList)
         {
             double hrs = 0.0;
             TSList.ForEach(t => hrs += t.BizDayEndTime.Value.Subtract(t.BizDayStartTime.Value).TotalSeconds);
-            if ((hrs + TSList.Count) != 86400) return new KeyValuePair<bool, string>(false, "");
+            if ((hrs + TSList.Count) != 86400) return new KeyValuePair<bool, string>(false, "BizDay times are either overlap or doesn't contain a full day.");
             hrs = 0.0;
             TSList.ForEach(t => hrs += t.SatStartTime.Value.Subtract(t.SatEndTime.Value).TotalSeconds);
-            if ((hrs + TSList.Count) != 86400) return new KeyValuePair<bool, string>(false, "");
+            if ((hrs + TSList.Count) != 86400) return new KeyValuePair<bool, string>(false, "Saturday times are either overlap or doesn't contain a full day.");
             hrs = 0.0;
             TSList.ForEach(t => hrs += t.SunStartTime.Value.Subtract(t.SunEndTime.Value).TotalSeconds);
-            if ((hrs + TSList.Count) != 86400) return new KeyValuePair<bool, string>(false, "");
+            if ((hrs + TSList.Count) != 86400) return new KeyValuePair<bool, string>(false, "Sunday times are either overlap or doesn't contain a full day.");
             return new KeyValuePair<bool, string>(true, "");
-
         }
 
 
@@ -635,9 +634,9 @@ namespace AM.Services
             return model;
         }
 
-        public List<DocTypePrintTrail> GetDocTypePrintTrail()
+        public List<DocTypePrintTrailMaps> GetDocTypePrintTrail()
         {
-            var model = db.Query<DocTypePrintTrail>("select * from Common.DocTypePrintTrailMaps").ToList();
+            var model = db.Query<DocTypePrintTrailMaps>("select * from Common.DocTypePrintTrailMaps").ToList();
             return model;
         }
     }
