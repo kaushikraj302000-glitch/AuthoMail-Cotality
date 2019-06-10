@@ -512,6 +512,8 @@ namespace AM.Web.Controllers
 
                 ViewBag.ShippingCarrierdropDown = ShippingCarrierList.Select(s => new SelectListItem() { Text = s, Value = s, Selected = model.ShippingCarrier == s }).ToList();
                 ViewBag.ShippingServiceTypedropDown = ShippingServiceTypeList.Select(s => new SelectListItem() { Text = s, Value = s, Selected = model.ShippingServiceType == s }).ToList();
+                ViewBag.BREEnvelopedropDown = inventorySvc.GetEnvelopes().Where(s => s.IsBREEnvelope).Select(s => new SelectListItem() { Text = s.Id, Value = s.Id, Selected = model.BREEnvelopeId == s.Id }).ToList();
+                ViewBag.EnvelopedropDown = inventorySvc.GetEnvelopes().Where(s => !s.IsBREEnvelope).Select(s => new SelectListItem() { Text = s.Id, Value = s.Id, Selected = model.BREEnvelopeId == s.Id }).ToList();
                 return PartialView("_AddOrEditDocType", model);
             }
             else
@@ -521,6 +523,8 @@ namespace AM.Web.Controllers
                 ViewBag.ShippingCarrierdropDown = ShippingCarrierList.Select(s => new SelectListItem() { Text = s, Value = s }).ToList();
                 ViewBag.ShippingServiceTypedropDown = ShippingServiceTypeList.Select(s => new SelectListItem() { Text = s, Value = s }).ToList();
                 ViewBag.Clients = new SelectList(homeSvc.GetAllActiveClient(), "Id", "Name");
+                ViewBag.BREEnvelopedropDown = inventorySvc.GetEnvelopes().Where(s => s.IsBREEnvelope).Select(s => new SelectListItem() { Text = s.Id, Value = s.Id}).ToList();
+                ViewBag.EnvelopedropDown = inventorySvc.GetEnvelopes().Where(s => !s.IsBREEnvelope).Select(s => new SelectListItem() { Text = s.Id, Value = s.Id }).ToList();
                 return PartialView("_AddOrEditDocType", new DocTypes());
             }
         }
