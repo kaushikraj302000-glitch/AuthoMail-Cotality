@@ -65,6 +65,11 @@
                 </div>
 
             </div>
+            <div class="form-group">
+                <label for="Description">BRE Envelope</label>
+                @Html.DropDownListFor(model => model.BREEnvelopeId, (IEnumerable<SelectListItem>)ViewBag.BREEnvelopedropDown, "Select BRE Envelope", htmlAttributes: new { @class = " form-control selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search BRE Envelope" })
+
+            </div>
         </div>
         <div class="col-md-4">
             <div class="form-group">
@@ -121,12 +126,17 @@
                         {
                             var lst = Model.ShippingSpecialService == null ? new List<string>() : Model.ShippingSpecialService.Split(',').ToList();
                             string sel = lst.Any(l => l == item.Value) ? "selected" : "";
-                            <option value="@item.Value" @sel>@item.Text</option>
+                        <option value="@item.Value" @sel>@item.Text</option>
                         }
 
                     </select>
 
                 </div>
+            </div>
+            <div class="form-group">
+                <label for="Description">Envelope</label>
+                @Html.DropDownListFor(model => model.EnvelopeId, (IEnumerable<SelectListItem>)ViewBag.EnvelopedropDown, "Select Envelope", htmlAttributes: new { @class = " form-control selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Envelope" })
+
             </div>
             @*<div class="form-group">
                     <label for="Description">Is Cover Letter required?</label>
@@ -189,13 +199,27 @@
                 <div class="input-group">
                     <input type="text" id="SunTimeSpan" value="@Model.SunTimeSpan" class="form-control daytimespan" placeholder="Sun Timespan" name="SunTimeSpan" />
                 </div>
+            </div>
+            <div class="form-group">
+                <label for="Description">Is BRE Envelope?</label>
+                <div class="input-group">
+                    <div class="toggle-container form-control">
+                        <input id="IsBRE" class="cl-toggle toggle-orange" type="checkbox" @(Model.IsBRE ? "checked" : "") name="toggle-demo" /><label for="IsBRE">IsBRE</label>
+                    </div>
+                </div>
 
             </div>
-           
+            <div class="form-group">
+                <label for="NoOfCopies">No Of Copies</label>
+                <div class="input-group">
+                    <input type="number" id="NoOfCopies" value="@Model.NoOfCopies" class="form-control" placeholder="No Of Copies" name="NoOfCopies" />
+                </div>
+            </div>
+
         </div>
 
     </div>
- 
+
 
     <div class="row">
         <div class="col-md-12">
@@ -400,5 +424,5 @@
 
 
     });
-    
+
 </script>

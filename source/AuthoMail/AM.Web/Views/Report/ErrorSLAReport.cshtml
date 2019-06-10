@@ -172,7 +172,11 @@
                 'container': 'body'
             });
             var table = $('#sample_2');
-            var filename = "SLAReport";
+            var selectedData = $("#date").val().split('-');
+
+            var startDate = selectedData[0].trim();
+            var endDate = selectedData[1].trim();
+            var filename = "SLAReport_" + moment(startDate).format("MMDDYYYY") + "_To_" + moment(endDate).format("MMDDYYYY") + "_" + $("#ClientName").text();
             var title = "SLA Report";
             var oTable = table.dataTable({
 

@@ -233,7 +233,7 @@ namespace AM.Web.Controllers
             var memoryStream = ExcelHelper.ExportDataSet(dataTable);
             memoryStream.Seek(0, SeekOrigin.Begin);
 
-            var fileNameArry = new string[] { fileName, DateTime.Now.ToString("MMddyyymmss") };
+            var fileNameArry = new string[] { fileName, DateTime.UtcNow.UtcToEst().ToString("MMddyyymmss") };
             fileName = string.Join("_", fileNameArry.Where(s => s != "").ToArray());
             fileName = string.Format("{0}.xlsx", fileName);
             return File(memoryStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);

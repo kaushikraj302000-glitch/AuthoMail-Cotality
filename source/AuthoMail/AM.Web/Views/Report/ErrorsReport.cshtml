@@ -156,7 +156,7 @@
                 'container': 'body'
             });
             var table = $('#sample_2');
-            var filename = "ErrorReport";
+            var filename = "ErrorReport_" + moment($("#date").val()).format("MMDDYYYY") + "_" + $("#ClientName").text();
             var title = "Error Report";
             var oTable = table.dataTable({
 

@@ -38,6 +38,7 @@
     <table class="table table-responsive" style="overflow-x:scroll">
         <thead>
             <tr>
+                <th style="min-width:99px;">Action</th>
                 <th>Client Name</th>
                 <th>App Code</th>
                 <th>Business Unit</th>
@@ -60,7 +61,6 @@
                 <th>Billing Contact Name</th>
                 <th>Billing Contact Phone</th>
                 <th>Billing Contact Email</th>
-                <th style="min-width:99px;">Action</th>
             </tr>
         </thead>
         <tbody id="ClientbodyContent"></tbody>
@@ -70,6 +70,7 @@
     <table>
         <tbody id="ClientBody">
             <tr class="row-small">
+                <td>{Action}{CoverLetter}</td>
                 <td><span data-id="{Id}">{Name}</span></td>
                 <td><span>{AppCode}</span></td>
                 <td><span>{BusinessUnitModel.BusinessUnit}</span></td>
@@ -92,7 +93,6 @@
                 <td><span>{BillingContactName}</span></td>
                 <td><span>{BillingContactPhone}</span></td>
                 <td><span>{BillingContactEmail}</span></td>
-                <td>{Action}{CoverLetter}</td>
             </tr>
         </tbody>
     </table>
