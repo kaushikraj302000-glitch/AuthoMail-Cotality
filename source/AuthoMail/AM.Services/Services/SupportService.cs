@@ -29,7 +29,7 @@ namespace AM.Services
         KeyValuePair<bool, string> SavePrintTrail(PrintTrail model);
         List<PrintTrail> GetPrintTrails();
         List<DocTypePrintTrailMap> GetDocTypePrintTrail();
-        List<DocTypePrintTrailMap> GetDocTypePrintTrailByDocTypeId(int docTypeId);
+        Tuple<DocType, List<DocTypePrintTrailMap>> GetDocTypePrintTrailByDocTypeId(int docTypeId);
         //Clients
         List<Clients> GetClients();
         Clients FindByClientId(int Id);
@@ -583,12 +583,18 @@ namespace AM.Services
         {
             var result = Has24HrsWithoutOverlap(model);
             if (!result.Key) return result;
+
             db.Open();
             var t = db.BeginTransaction();
             try
             {
-                string q = @"INSERT INTO Common.DocTypePrintTrailMap (DocTypeId ,PrintTrailId ,BizDayStartTime ,BizDayEndTime ,SatStartTime ,SatEndTime ,SunStartTime ,SunEndTime) VALUES (@DocTypeId ,@PrintTrailId ,@BizDayStartTime ,@BizDayEndTime ,@SatStartTime ,@SatEndTime ,@SunStartTime ,@SunEndTime)";
-                db.Execute(q, model, transaction: t);
+                int docTypeId = model.Select(m => m.DocTypeId).First();
+                db.Execute("delete from Common.DocTypePrintTrailMap where doctypeid=@doctypeid", new { doctypeid = docTypeId });
+                foreach (var item in model)
+                {
+                    string q = @"INSERT INTO Common.DocTypePrintTrailMap (DocTypeId ,PrintTrailId ,BizDayStartTime ,BizDayEndTime ,SatStartTime ,SatEndTime ,SunStartTime ,SunEndTime) VALUES (@DocTypeId ,@PrintTrailId ,@BizDayStartTime ,@BizDayEndTime ,@SatStartTime ,@SatEndTime ,@SunStartTime ,@SunEndTime)";
+                    db.Execute(q, item, transaction: t);
+                }
                 t.Commit();
                 return new KeyValuePair<bool, string>(true, "DocType & Print Trail mapped successfully.");
             }
@@ -642,10 +648,11 @@ namespace AM.Services
         }
 
 
-        public List<DocTypePrintTrailMap> GetDocTypePrintTrailByDocTypeId(int docTypeId)
+        public Tuple<DocType, List<DocTypePrintTrailMap>> GetDocTypePrintTrailByDocTypeId(int docTypeId)
         {
             var model = db.Query<DocTypePrintTrailMap>("select * from Common.DocTypePrintTrailMap where doctypeid=@doctypeid", new { doctypeid = docTypeId }).ToList();
-            return model;
+            var docType = db.QuerySingle<DocType>("select * from AM.DocTypes where id=@doctypeid", new { doctypeid = docTypeId });
+            return Tuple.Create<DocType, List<DocTypePrintTrailMap>>(docType, model);
         }
     }
 }
