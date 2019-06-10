@@ -828,9 +828,9 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.SuccessResponse("User's status updated successfully."));
             return Json(JsonResponseFactory.ErrorResponse(string.Join(",", result.Errors)));
         }
-        public ActionResult GetLastLoginDate()
+        public ActionResult GetLastLoginDate(int timezoneoffset)
         {
-            return Json(User.Identity.LastLoginTime(), JsonRequestBehavior.AllowGet);
+            return Json(User.Identity.LastLoginTime().AddMinutes(-timezoneoffset).ToString("MM/dd/yy hh:mm:ss tt"), JsonRequestBehavior.AllowGet);
         }
         //
         // POST: /Account/ExternalLogin
