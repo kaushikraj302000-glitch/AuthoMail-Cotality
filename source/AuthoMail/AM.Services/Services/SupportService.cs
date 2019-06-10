@@ -25,6 +25,10 @@ namespace AM.Services
         List<DocTypeCoverLetterVM> GetDocTypeCoverLetterByDocTypeId(int Id);
         KeyValuePair<bool, string> SaveDocTypeCoverLetter(DocTypeCoverLetter dtcl);
         KeyValuePair<bool, string> RemoveCoverletter(int docTypeId, int seqId, string filePath);
+        KeyValuePair<bool, string> SaveDocTypePrintTrail(List<DocTypePrintTrail> model);
+        KeyValuePair<bool, string> SavePrintTrail(PrintTrail model);
+        List<PrintTrail> GetPrintTrails();
+        List<DocTypePrintTrail> GetDocTypePrintTrail();
         //Clients
         List<Clients> GetClients();
         Clients FindByClientId(int Id);
@@ -572,5 +576,69 @@ namespace AM.Services
                 return GetKeyValue(false, "Data can't be removed.");
         }
 
+
+
+        public KeyValuePair<bool, string> SaveDocTypePrintTrail(List<DocTypePrintTrail> model)
+        {
+            var result = Has24HrsWithoutOverlap(model);
+            if (!result.Key) return result;
+            db.Open();
+            var t = db.BeginTransaction();
+            try
+            {
+                string q = @"INSERT INTO Common.DocTypePrintTrailMaps (DocTypeId ,PrintTrailId ,BizDayStartTime ,BizDayEndTime ,SatStartTime ,SatEndTime ,SunStartTime ,SunEndTime) VALUES (@DocTypeId ,@PrintTrailId ,@BizDayStartTime ,@BizDayEndTime ,@SatStartTime ,@SatEndTime ,@SunStartTime ,@SunEndTime)";
+                db.Execute(q, model, transaction: t);
+                t.Commit();
+                return new KeyValuePair<bool, string>(true, "DocType & Print Trail mapped successfully.");
+            }
+            catch (Exception ex)
+            {
+                t.Rollback();
+                return new KeyValuePair<bool, string>(false, ex.Message);
+            }
+        }
+
+
+        public KeyValuePair<bool, string> SavePrintTrail(PrintTrail model)
+        {
+            try
+            {
+
+                string q = @"INSERT INTO Common.PrintTrails (TrailName ,PrintVendorId ,SimulateTrail) VALUES (@TrailName ,@PrintVendorId ,@SimulateTrail)";
+                db.Execute(q, model);
+                return new KeyValuePair<bool, string>(true, "Print Trail saved successfully.");
+            }
+            catch (Exception ex)
+            {
+                return new KeyValuePair<bool, string>(false, ex.Message);
+            }
+        }
+        private KeyValuePair<bool, string> Has24HrsWithoutOverlap(List<DocTypePrintTrail> TSList)
+        {
+            double hrs = 0.0;
+            TSList.ForEach(t => hrs += t.BizDayEndTime.Value.Subtract(t.BizDayStartTime.Value).TotalSeconds);
+            if ((hrs + TSList.Count) != 86400) return new KeyValuePair<bool, string>(false, "");
+            hrs = 0.0;
+            TSList.ForEach(t => hrs += t.SatStartTime.Value.Subtract(t.SatEndTime.Value).TotalSeconds);
+            if ((hrs + TSList.Count) != 86400) return new KeyValuePair<bool, string>(false, "");
+            hrs = 0.0;
+            TSList.ForEach(t => hrs += t.SunStartTime.Value.Subtract(t.SunEndTime.Value).TotalSeconds);
+            if ((hrs + TSList.Count) != 86400) return new KeyValuePair<bool, string>(false, "");
+            return new KeyValuePair<bool, string>(true, "");
+
+        }
+
+
+        public List<PrintTrail> GetPrintTrails()
+        {
+            var model = db.Query<PrintTrail>("select * from Common.PrintTrails").ToList();
+            return model;
+        }
+
+        public List<DocTypePrintTrail> GetDocTypePrintTrail()
+        {
+            var model = db.Query<DocTypePrintTrail>("select * from Common.DocTypePrintTrailMaps").ToList();
+            return model;
+        }
     }
 }

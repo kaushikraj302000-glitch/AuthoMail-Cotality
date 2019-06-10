@@ -435,7 +435,7 @@ namespace AM.Services
         public string PrintLocation { get; set; }
 
     }
-   
+
 
     public class MonthlyReconReportViewModel
     {
@@ -472,5 +472,24 @@ namespace AM.Services
         //        return string.Format(@"ReturnPdfs\{0}\{1}\{2}-{3}-{4}_{5}", this.AppCode, this.JobId, this.JobId, this.PieceId, this.MailPieceId, this.FileName);
         //    }
         //}
+    }
+    public class DocTypePrintTrail
+    {
+        public int DocTypeId { get; set; }
+        public int PrintTrailId { get; set; }
+        public TimeSpan? BizDayStartTime { get; set; }
+        public TimeSpan? BizDayEndTime { get; set; }
+        public TimeSpan? SatStartTime { get; set; }
+        public TimeSpan? SatEndTime { get; set; }
+        public TimeSpan? SunStartTime { get; set; }
+        public TimeSpan? SunEndTime { get; set; }
+        
+    }
+    public class PrintTrail
+    {
+        public int Id { get; set; }
+        public string TrailName { get; set; }
+        public int PrintVendorId { get; set; }
+        public bool SimulateTrail { get; set; }
     }
 }
