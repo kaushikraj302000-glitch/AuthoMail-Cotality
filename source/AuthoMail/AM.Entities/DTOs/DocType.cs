@@ -88,11 +88,11 @@ namespace AM.Entities
     {
         public int DocTypeId { get; set; }
         public int PrintTrailId { get; set; }
-        public TimeSpan BizDayStartTime { get; set; }
-        public TimeSpan BizDayEndTime { get; set; }
-        public TimeSpan SatStartTime { get; set; }
-        public TimeSpan SatEndTime { get; set; }
-        public TimeSpan SunStartTime { get; set; }
-        public TimeSpan SunEndTime { get; set; }
+        public TimeSpan? BizDayStartTime { get; set; }
+        public TimeSpan? BizDayEndTime { get; set; }
+        public TimeSpan? SatStartTime { get; set; }
+        public TimeSpan? SatEndTime { get; set; }
+        public TimeSpan? SunStartTime { get; set; }
+        public TimeSpan? SunEndTime { get; set; }
     }
 }
