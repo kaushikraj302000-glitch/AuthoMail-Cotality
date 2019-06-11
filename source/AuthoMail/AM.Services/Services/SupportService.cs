@@ -667,7 +667,7 @@ namespace AM.Services
             {
                 hrs += t.SunEndTime.Subtract(t.SunStartTime).TotalSeconds;
             });
-            if ((hrs + TSList.Count) != 864003)
+            if ((hrs + TSList.Count) != 86400)
                 return new KeyValuePair<bool, string>(false, sun);
 
             for (int i = 0; i < TSList.Count; i++)
