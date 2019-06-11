@@ -523,7 +523,7 @@ namespace AM.Web.Controllers
                 ViewBag.ShippingCarrierdropDown = ShippingCarrierList.Select(s => new SelectListItem() { Text = s, Value = s }).ToList();
                 ViewBag.ShippingServiceTypedropDown = ShippingServiceTypeList.Select(s => new SelectListItem() { Text = s, Value = s }).ToList();
                 ViewBag.Clients = new SelectList(homeSvc.GetAllActiveClient(), "Id", "Name");
-                ViewBag.BREEnvelopedropDown = inventorySvc.GetEnvelopes().Where(s => s.IsBREEnvelope).Select(s => new SelectListItem() { Text = s.Id, Value = s.Id}).ToList();
+                ViewBag.BREEnvelopedropDown = inventorySvc.GetEnvelopes().Where(s => s.IsBREEnvelope).Select(s => new SelectListItem() { Text = s.Id, Value = s.Id }).ToList();
                 ViewBag.EnvelopedropDown = inventorySvc.GetEnvelopes().Where(s => !s.IsBREEnvelope).Select(s => new SelectListItem() { Text = s.Id, Value = s.Id }).ToList();
                 return PartialView("_AddOrEditDocType", new DocTypes());
             }
@@ -557,6 +557,31 @@ namespace AM.Web.Controllers
             }
         }
 
+
+
+        #endregion
+
+        #region PrintTrailMaps
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult PrintTrailMapByDocId(int id)
+        {
+            ViewBag.PrintTrailId = supportSvc.GetPrintTrails();
+            return View(supportSvc.GetDocTypePrintTrailByDocTypeId(id));
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult SaveDocTypePrintTrail(List<DocTypePrintTrailMap> docTypePrintTrailMapList)
+        {
+
+            try
+            {
+                var model = supportSvc.SaveDocTypePrintTrail(docTypePrintTrailMapList);
+                return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
         #endregion
 
         #region Assige Role
@@ -668,9 +693,9 @@ namespace AM.Web.Controllers
                         {
                             if (Path.GetExtension(file.FileName) == ".pdf")
                             {
-                                    string filePath = string.Format("{0}/{1}", subPath, file.FileName);
-                                    file.SaveAs(Server.MapPath(filePath));
-                                    filesName.Add(file.FileName);
+                                string filePath = string.Format("{0}/{1}", subPath, file.FileName);
+                                file.SaveAs(Server.MapPath(filePath));
+                                filesName.Add(file.FileName);
                             }
                         }
                         if (filesName.Count > 0)

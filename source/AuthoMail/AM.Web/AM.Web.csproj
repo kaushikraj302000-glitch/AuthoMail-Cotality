@@ -562,6 +562,8 @@
     <Content Include="Template\Excel\ProjectSetupTemplate.xlsx" />
     <Content Include="Views\Account\ChangePassword.cshtml" />
     <Content Include="Views\Account\Index.cshtml" />
+    <Content Include="Views\Admin\_AddOrEditDocTypePrintTrailMaps.cshtml" />
+    <Content Include="Views\Admin\PrintTrailMapByDocId.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
