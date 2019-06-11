@@ -567,6 +567,12 @@ namespace AM.Services
                 return GetKeyValue(false, ex.Message);
             }
         }
+        //private string CalFileName(int docTypeId, int seq,int suffix=1)
+        //{
+        //    var docType = FindByIdDocType(docTypeId);
+        //    var client = FindByClientId(docType.ClientId);
+        //    return string.Format("{0}_{1}_{2}_{3}", client.AppCode, docType.ShippingCarrier, seq > 100 ? "EndPage" : "Generic", suffix);
+        //}
         public KeyValuePair<bool, string> RemoveCoverletter(int docTypeId, int seqId, string filePath)
         {
             if (filePath.IsNullOrWhiteSpace())
@@ -644,7 +650,7 @@ namespace AM.Services
             string sat = "Saturday times are either overlap or doesn't contain a full day.";
             string sun = "Sunday times are either overlap or doesn't contain a full day.";
             double hrs = 0.0;
-           
+
             if (TSList.Any(t => t.BizDayStartTime == null || t.BizDayEndTime == null) && TSList.Any(t => t.BizDayStartTime != null || t.BizDayEndTime != null))
                 return new KeyValuePair<bool, string>(false, biz);
             if (TSList.Any(t => t.SatStartTime == null || t.SatEndTime == null) && TSList.Any(t => t.SatStartTime != null || t.SatEndTime != null))
