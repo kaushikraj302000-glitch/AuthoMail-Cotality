@@ -590,12 +590,10 @@ namespace AM.Services
             try
             {
                 int docTypeId = model.Select(m => m.DocTypeId).First();
-                db.Execute("delete from Common.DocTypePrintTrailMaps where doctypeid=@doctypeid", new { doctypeid = docTypeId });
-                foreach (var item in model)
-                {
-                    string q = @"INSERT INTO Common.DocTypePrintTrailMaps (DocTypeId ,PrintTrailId ,BizDayStartTime ,BizDayEndTime ,SatStartTime ,SatEndTime ,SunStartTime ,SunEndTime) VALUES (@DocTypeId ,@PrintTrailId ,@BizDayStartTime ,@BizDayEndTime ,@SatStartTime ,@SatEndTime ,@SunStartTime ,@SunEndTime)";
-                    db.Execute(q, item, transaction: t);
-                }
+                db.Execute("delete from Common.DocTypePrintTrailMaps where doctypeid=@doctypeid", new { doctypeid = docTypeId }, transaction: t);
+
+                string q = @"INSERT INTO Common.DocTypePrintTrailMaps (DocTypeId ,PrintTrailId ,BizDayStartTime ,BizDayEndTime ,SatStartTime ,SatEndTime ,SunStartTime ,SunEndTime) VALUES (@DocTypeId ,@PrintTrailId ,@BizDayStartTime ,@BizDayEndTime ,@SatStartTime ,@SatEndTime ,@SunStartTime ,@SunEndTime)";
+                db.Execute(q, model, transaction: t);
                 t.Commit();
                 return new KeyValuePair<bool, string>(true, "DocType & Print Trail mapped successfully.");
             }
