@@ -589,10 +589,10 @@ namespace AM.Services
             try
             {
                 int docTypeId = model.Select(m => m.DocTypeId).First();
-                db.Execute("delete from Common.DocTypePrintTrailMap where doctypeid=@doctypeid", new { doctypeid = docTypeId });
+                db.Execute("delete from Common.DocTypePrintTrailMaps where doctypeid=@doctypeid", new { doctypeid = docTypeId });
                 foreach (var item in model)
                 {
-                    string q = @"INSERT INTO Common.DocTypePrintTrailMap (DocTypeId ,PrintTrailId ,BizDayStartTime ,BizDayEndTime ,SatStartTime ,SatEndTime ,SunStartTime ,SunEndTime) VALUES (@DocTypeId ,@PrintTrailId ,@BizDayStartTime ,@BizDayEndTime ,@SatStartTime ,@SatEndTime ,@SunStartTime ,@SunEndTime)";
+                    string q = @"INSERT INTO Common.DocTypePrintTrailMaps (DocTypeId ,PrintTrailId ,BizDayStartTime ,BizDayEndTime ,SatStartTime ,SatEndTime ,SunStartTime ,SunEndTime) VALUES (@DocTypeId ,@PrintTrailId ,@BizDayStartTime ,@BizDayEndTime ,@SatStartTime ,@SatEndTime ,@SunStartTime ,@SunEndTime)";
                     db.Execute(q, item, transaction: t);
                 }
                 t.Commit();
@@ -643,14 +643,14 @@ namespace AM.Services
 
         public List<DocTypePrintTrailMap> GetDocTypePrintTrail()
         {
-            var model = db.Query<DocTypePrintTrailMap>("select * from Common.DocTypePrintTrailMap").ToList();
+            var model = db.Query<DocTypePrintTrailMap>("select * from Common.DocTypePrintTrailMaps").ToList();
             return model;
         }
 
 
         public Tuple<DocType, List<DocTypePrintTrailMap>> GetDocTypePrintTrailByDocTypeId(int docTypeId)
         {
-            var model = db.Query<DocTypePrintTrailMap>("select * from Common.DocTypePrintTrailMap where doctypeid=@doctypeid", new { doctypeid = docTypeId }).ToList();
+            var model = db.Query<DocTypePrintTrailMap>("select * from Common.DocTypePrintTrailMaps where doctypeid=@doctypeid", new { doctypeid = docTypeId }).ToList();
             var docType = db.QuerySingle<DocType>("select * from AM.DocTypes where id=@doctypeid", new { doctypeid = docTypeId });
             return Tuple.Create<DocType, List<DocTypePrintTrailMap>>(docType, model);
         }
