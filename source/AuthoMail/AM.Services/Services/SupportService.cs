@@ -27,6 +27,7 @@ namespace AM.Services
         KeyValuePair<bool, string> RemoveCoverletter(int docTypeId, int seqId, string filePath);
         KeyValuePair<bool, string> SaveDocTypePrintTrail(List<DocTypePrintTrailMap> model);
         KeyValuePair<bool, string> SavePrintTrail(PrintTrail model);
+        KeyValuePair<bool, string> RemovePrintTrail(int Id);
         List<PrintTrail> GetPrintTrails();
         List<DocTypePrintTrailMap> GetDocTypePrintTrail();
         Tuple<DocType, List<DocTypePrintTrailMap>> GetDocTypePrintTrailByDocTypeId(int docTypeId);
@@ -610,8 +611,9 @@ namespace AM.Services
         {
             try
             {
-
-                string q = @"INSERT INTO Common.PrintTrails (TrailName ,PrintVendorId ,SimulateTrail) VALUES (@TrailName ,@PrintVendorId ,@SimulateTrail)";
+                string q = model.Id != 0 ?
+                    @"INSERT INTO Common.PrintTrails (TrailName ,PrintVendorId ,SimulateTrail) VALUES (@TrailName ,@PrintVendorId ,@SimulateTrail)" :
+                    "UPDATE Common.PrintTrails SET TrailName = @TrailName,PrintVendorId = @PrintVendorId,SimulateTrail = @SimulateTrail WHERE Id=@Id";
                 db.Execute(q, model);
                 return new KeyValuePair<bool, string>(true, "Print Trail saved successfully.");
             }
@@ -620,17 +622,70 @@ namespace AM.Services
                 return new KeyValuePair<bool, string>(false, ex.Message);
             }
         }
+        public KeyValuePair<bool, string> RemovePrintTrail(int Id)
+        {
+            try
+            {
+                bool isExist = db.QuerySingle<bool>("select 1 from Common.DocTypePrintTrailMaps where PrintTrailId=@Id", new { Id = Id });
+                if (isExist) new KeyValuePair<bool, string>(false, "Print trail mapped into doctype.");
+
+                isExist = db.QuerySingle<bool>("select 1 from PnS.PrintTrailBatches where PrintTrailId=@Id", new { Id = Id });
+                if (isExist) new KeyValuePair<bool, string>(false, "Print trail mapped into print trail batches.");
+
+                db.Execute("delete from Common.PrintTrails WHERE Id=@Id", new { Id = Id });
+                return new KeyValuePair<bool, string>(true, "Print Trail Removed.");
+            }
+            catch (Exception ex)
+            {
+                return new KeyValuePair<bool, string>(false, ex.Message);
+            }
+        }
         private KeyValuePair<bool, string> Has24HrsWithoutOverlap(List<DocTypePrintTrailMap> TSList)
         {
+            string biz = "BizDay times are either overlap or doesn't contain a full day.";
+            string sat = "Saturday times are either overlap or doesn't contain a full day.";
+            string sun = "Sunday times are either overlap or doesn't contain a full day.";
             double hrs = 0.0;
-            TSList.ForEach(t => hrs += t.BizDayEndTime.Subtract(t.BizDayStartTime).TotalSeconds);
-            if ((hrs + TSList.Count) != 86400) return new KeyValuePair<bool, string>(false, "BizDay times are either overlap or doesn't contain a full day.");
+            TSList.ForEach(t =>
+            {
+                hrs += t.BizDayEndTime.Subtract(t.BizDayStartTime).TotalSeconds;
+            });
+
+            if ((hrs + TSList.Count) != 86400)
+                return new KeyValuePair<bool, string>(false, biz);
+
             hrs = 0.0;
-            TSList.ForEach(t => hrs += t.SatEndTime.Subtract(t.SatStartTime).TotalSeconds);
-            if ((hrs + TSList.Count) != 86400) return new KeyValuePair<bool, string>(false, "Saturday times are either overlap or doesn't contain a full day.");
+            TSList.ForEach(t =>
+            {
+                hrs += t.SatEndTime.Subtract(t.SatStartTime).TotalSeconds;
+            });
+            if ((hrs + TSList.Count) != 86400)
+                return new KeyValuePair<bool, string>(false, sat);
+
             hrs = 0.0;
-            TSList.ForEach(t => hrs += t.SunEndTime.Subtract(t.SunStartTime).TotalSeconds);
-            if ((hrs + TSList.Count) != 86400) return new KeyValuePair<bool, string>(false, "Sunday times are either overlap or doesn't contain a full day.");
+            TSList.ForEach(t =>
+            {
+                hrs += t.SunEndTime.Subtract(t.SunStartTime).TotalSeconds;
+            });
+            if ((hrs + TSList.Count) != 864003)
+                return new KeyValuePair<bool, string>(false, sun);
+
+            for (int i = 0; i < TSList.Count; i++)
+            {
+                for (int j = 0; j < TSList.Count; j++)
+                {
+                    if (i != j)
+                    {
+                        if ((TSList[j].BizDayStartTime <= TSList[i].BizDayStartTime && TSList[i].BizDayStartTime <= TSList[j].BizDayStartTime) || (TSList[j].BizDayStartTime <= TSList[i].BizDayEndTime && TSList[i].BizDayEndTime <= TSList[j].BizDayStartTime))
+                            return new KeyValuePair<bool, string>(false, biz);
+                        if ((TSList[j].SatStartTime <= TSList[i].SatStartTime && TSList[i].SatStartTime <= TSList[j].SatStartTime) || (TSList[j].SatStartTime <= TSList[i].SatEndTime && TSList[i].SatEndTime <= TSList[j].SatStartTime))
+                            return new KeyValuePair<bool, string>(false, sat);
+                        if ((TSList[j].SunStartTime <= TSList[i].SunStartTime && TSList[i].SunStartTime <= TSList[j].SunStartTime) || (TSList[j].SunStartTime <= TSList[i].SunEndTime && TSList[i].SunEndTime <= TSList[j].SunStartTime))
+                            return new KeyValuePair<bool, string>(false, sun);
+                    }
+                }
+            }
+
             return new KeyValuePair<bool, string>(true, "");
         }
 
@@ -654,5 +709,6 @@ namespace AM.Services
             var docType = db.QuerySingle<DocType>("select * from AM.DocTypes where id=@doctypeid", new { doctypeid = docTypeId });
             return Tuple.Create<DocType, List<DocTypePrintTrailMap>>(docType, model);
         }
+
     }
 }
