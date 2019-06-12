@@ -657,30 +657,38 @@ namespace AM.Services
                 return new KeyValuePair<bool, string>(false, sat);
             if (TSList.Any(t => t.SunStartTime == null || t.SunEndTime == null) && TSList.Any(t => t.SunStartTime != null || t.SunEndTime != null))
                 return new KeyValuePair<bool, string>(false, sun);
+            bool IsAllTimeNull = true;
 
             TSList.ForEach(t =>
             {
-                hrs += t.BizDayEndTime.Value.Subtract(t.BizDayStartTime.Value).TotalSeconds;
+                if (t.BizDayStartTime.HasValue && t.BizDayEndTime.HasValue) hrs += t.BizDayEndTime.Value.Subtract(t.BizDayStartTime.Value).TotalSeconds;
             });
-
-            if ((hrs + TSList.Count) != 86400)
+            IsAllTimeNull = IsAllTimeNull && hrs == 0.0 ? true : false;
+            if (!(TSList.Count(t => !t.BizDayEndTime.HasValue && !t.BizDayStartTime.HasValue) == TSList.Count) && (hrs + TSList.Count) != 86400)
                 return new KeyValuePair<bool, string>(false, biz);
 
             hrs = 0.0;
             TSList.ForEach(t =>
             {
-                hrs += t.SatEndTime.Value.Subtract(t.SatStartTime.Value).TotalSeconds;
+                if (t.SatStartTime.HasValue && t.SatEndTime.HasValue) hrs += t.SatEndTime.Value.Subtract(t.SatStartTime.Value).TotalSeconds;
             });
-            if ((hrs + TSList.Count) != 86400)
+            IsAllTimeNull = IsAllTimeNull && hrs == 0.0 ? true : false;
+            if (!(TSList.Count(t => !t.SatStartTime.HasValue && !t.SatEndTime.HasValue) == TSList.Count) && (hrs + TSList.Count) != 86400)
                 return new KeyValuePair<bool, string>(false, sat);
 
             hrs = 0.0;
             TSList.ForEach(t =>
             {
-                hrs += t.SunEndTime.Value.Subtract(t.SunStartTime.Value).TotalSeconds;
+                if (t.SunStartTime.HasValue && t.SunEndTime.HasValue) hrs += t.SunEndTime.Value.Subtract(t.SunStartTime.Value).TotalSeconds;
             });
-            if ((hrs + TSList.Count) != 86400)
-                return new KeyValuePair<bool, string>(false, sun);
+            IsAllTimeNull = IsAllTimeNull && hrs == 0.0 ? true : false;
+
+            if (!(TSList.Count(t => !t.SunEndTime.HasValue && !t.SunStartTime.HasValue) == TSList.Count) && (hrs + TSList.Count) != 86400)
+                return new KeyValuePair<bool, string>(false, sun + " sun");
+
+            if (IsAllTimeNull)
+                return new KeyValuePair<bool, string>(false, "All times can't be null.");
+
 
             for (int i = 0; i < TSList.Count; i++)
             {
@@ -688,12 +696,12 @@ namespace AM.Services
                 {
                     if (i != j)
                     {
-                        if ((TSList[j].BizDayStartTime <= TSList[i].BizDayStartTime && TSList[i].BizDayStartTime <= TSList[j].BizDayStartTime) || (TSList[j].BizDayStartTime <= TSList[i].BizDayEndTime && TSList[i].BizDayEndTime <= TSList[j].BizDayStartTime))
+                        if ((TSList[j].BizDayStartTime.HasValue && TSList[j].BizDayEndTime.HasValue) && (TSList[j].BizDayStartTime <= TSList[i].BizDayStartTime && TSList[i].BizDayStartTime <= TSList[j].BizDayStartTime) || (TSList[j].BizDayStartTime <= TSList[i].BizDayEndTime && TSList[i].BizDayEndTime <= TSList[j].BizDayStartTime))
                             return new KeyValuePair<bool, string>(false, biz);
-                        if ((TSList[j].SatStartTime <= TSList[i].SatStartTime && TSList[i].SatStartTime <= TSList[j].SatStartTime) || (TSList[j].SatStartTime <= TSList[i].SatEndTime && TSList[i].SatEndTime <= TSList[j].SatStartTime))
+                        if ((TSList[j].SatStartTime.HasValue && TSList[j].SatEndTime.HasValue) && (TSList[j].SatStartTime <= TSList[i].SatStartTime && TSList[i].SatStartTime <= TSList[j].SatStartTime) || (TSList[j].SatStartTime <= TSList[i].SatEndTime && TSList[i].SatEndTime <= TSList[j].SatStartTime))
                             return new KeyValuePair<bool, string>(false, sat);
-                        if ((TSList[j].SunStartTime <= TSList[i].SunStartTime && TSList[i].SunStartTime <= TSList[j].SunStartTime) || (TSList[j].SunStartTime <= TSList[i].SunEndTime && TSList[i].SunEndTime <= TSList[j].SunStartTime))
-                            return new KeyValuePair<bool, string>(false, sun);
+                        if ((TSList[j].SunStartTime.HasValue && TSList[j].SunEndTime.HasValue) && (TSList[j].SunStartTime <= TSList[i].SunStartTime && TSList[i].SunStartTime <= TSList[j].SunStartTime) || (TSList[j].SunStartTime <= TSList[i].SunEndTime && TSList[i].SunEndTime <= TSList[j].SunStartTime))
+                            return new KeyValuePair<bool, string>(false, sun + " null");
                     }
                 }
             }
