@@ -646,6 +646,9 @@ namespace AM.Services
         }
         private KeyValuePair<bool, string> Has24HrsWithoutOverlap(List<DocTypePrintTrailMap> TSList)
         {
+            if(TSList==null || TSList.Count==0)
+                return new KeyValuePair<bool, string>(false, "All times can't be null.");
+
             string biz = "BizDay times are either overlap or doesn't contain a full day.";
             string sat = "Saturday times are either overlap or doesn't contain a full day.";
             string sun = "Sunday times are either overlap or doesn't contain a full day.";
@@ -684,7 +687,7 @@ namespace AM.Services
             IsAllTimeNull = IsAllTimeNull && hrs == 0.0 ? true : false;
 
             if (!(TSList.Count(t => !t.SunEndTime.HasValue && !t.SunStartTime.HasValue) == TSList.Count) && (hrs + TSList.Count) != 86400)
-                return new KeyValuePair<bool, string>(false, sun + " sun");
+                return new KeyValuePair<bool, string>(false, sun);
 
             if (IsAllTimeNull)
                 return new KeyValuePair<bool, string>(false, "All times can't be null.");
@@ -701,7 +704,7 @@ namespace AM.Services
                         if ((TSList[j].SatStartTime.HasValue && TSList[j].SatEndTime.HasValue) && (TSList[j].SatStartTime <= TSList[i].SatStartTime && TSList[i].SatStartTime <= TSList[j].SatStartTime) || (TSList[j].SatStartTime <= TSList[i].SatEndTime && TSList[i].SatEndTime <= TSList[j].SatStartTime))
                             return new KeyValuePair<bool, string>(false, sat);
                         if ((TSList[j].SunStartTime.HasValue && TSList[j].SunEndTime.HasValue) && (TSList[j].SunStartTime <= TSList[i].SunStartTime && TSList[i].SunStartTime <= TSList[j].SunStartTime) || (TSList[j].SunStartTime <= TSList[i].SunEndTime && TSList[i].SunEndTime <= TSList[j].SunStartTime))
-                            return new KeyValuePair<bool, string>(false, sun + " null");
+                            return new KeyValuePair<bool, string>(false, sun);
                     }
                 }
             }
