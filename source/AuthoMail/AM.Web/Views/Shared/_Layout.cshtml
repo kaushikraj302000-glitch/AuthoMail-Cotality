@@ -421,6 +421,13 @@
 
             });
         }
+        function alertMessage(alertType,message) {
+            window.clui.globalAlert({
+                message: message,
+                alertType: alertType,
+                timeout: 3000
+            });
+        }
         $(document).ajaxSuccess(function (event, xhr, settings) {
             //console.log("Server Result:" + cnt++);
             //console.log(xhr.responseText);
