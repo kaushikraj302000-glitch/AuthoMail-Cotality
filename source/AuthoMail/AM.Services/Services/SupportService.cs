@@ -660,6 +660,7 @@ namespace AM.Services
                 return new KeyValuePair<bool, string>(false, sat);
             if (TSList.Any(t => t.SunStartTime == null || t.SunEndTime == null) && TSList.Any(t => t.SunStartTime != null || t.SunEndTime != null))
                 return new KeyValuePair<bool, string>(false, sun);
+
             bool IsAllTimeNull = true;
 
             TSList.ForEach(t =>
