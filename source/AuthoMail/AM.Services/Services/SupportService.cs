@@ -732,7 +732,7 @@ namespace AM.Services
 
         public List<PrintTrail> GetPrintTrails()
         {
-            var model = db.Query<PrintTrail>("select * from Common.PrintTrails").ToList();
+            var model = db.Query<PrintTrail>("select pt.Id,pt.TrailName,pt.PrintVendorId,pt.SimulateTrail,pv.Name as PrintVendor from Common.PrintTrails pt inner join Common.PrintVendors pv on pt.PrintVendorId=pv.Id").ToList();
             return model;
         }
 

@@ -83,6 +83,7 @@ namespace AM.Entities
         public string TrailName { get; set; }
         public bool SimulateTrail { get; set; }
         public int PrintVendorId { get; set; }
+        public string PrintVendor { get; set; }
     }
 
     public class DocTypePrintTrailMap
