@@ -633,7 +633,7 @@ namespace AM.Services
             {
                 string q = model.Id == 0 ?
                     @"INSERT INTO Common.PrintTrails (TrailName ,PrintVendorId ,SimulateTrail) VALUES (@TrailName ,@PrintVendorId ,@SimulateTrail)" :
-                    "UPDATE Common.PrintTrails SET TrailName = @TrailName,PrintVendorId = @PrintVendorId,SimulateTrail = @SimulateTrail WHERE Id=@Id";
+                    "UPDATE Common.PrintTrails SET TrailName = @TrailName,PrintVendorId = @PrintVendorId WHERE Id=@Id";
                 db.Execute(q, model);
                 return new KeyValuePair<bool, string>(true, "Print Trail saved successfully.");
             }
