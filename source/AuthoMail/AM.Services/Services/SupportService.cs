@@ -631,7 +631,7 @@ namespace AM.Services
         {
             try
             {
-                string q = model.Id != 0 ?
+                string q = model.Id == 0 ?
                     @"INSERT INTO Common.PrintTrails (TrailName ,PrintVendorId ,SimulateTrail) VALUES (@TrailName ,@PrintVendorId ,@SimulateTrail)" :
                     "UPDATE Common.PrintTrails SET TrailName = @TrailName,PrintVendorId = @PrintVendorId,SimulateTrail = @SimulateTrail WHERE Id=@Id";
                 db.Execute(q, model);
