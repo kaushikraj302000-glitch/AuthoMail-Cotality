@@ -81,6 +81,7 @@ namespace AM.Entities
     {
         public int Id { get; set; }
         public string TrailName { get; set; }
+        public bool SimulateTrail { get; set; }
         public int PrintVendorId { get; set; }
     }
 
