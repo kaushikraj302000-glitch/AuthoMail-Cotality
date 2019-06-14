@@ -29,6 +29,7 @@ namespace AM.Services
         KeyValuePair<bool, string> SaveDocTypePrintTrail(List<DocTypePrintTrailMap> model);
         KeyValuePair<bool, string> SavePrintTrail(PrintTrail model);
         KeyValuePair<bool, string> RemovePrintTrail(int Id);
+        KeyValuePair<bool, string> SimulatePrintTrail(int Id, bool isSimulate);
         List<PrintTrail> GetPrintTrails();
         List<PrintVendor> GetPrintVendors();
         List<DocTypePrintTrailMap> GetDocTypePrintTrail();
@@ -752,6 +753,20 @@ namespace AM.Services
         public List<PrintVendor> GetPrintVendors()
         {
             return db.Query<PrintVendor>("select * from common.PrintVendors").ToList();
+        }
+
+
+        public KeyValuePair<bool, string> SimulatePrintTrail(int Id, bool isSimulate)
+        {
+            try
+            {
+                db.Execute("update Common.PrintTrails set SimulateTrail=@SimulateTrail where Id=@id", new { SimulateTrail = isSimulate, id = @Id });
+                return new KeyValuePair<bool, string>(true, "Simulate successfully.");
+            }
+            catch (Exception ex)
+            {
+                return new KeyValuePair<bool, string>(false, ex.Message);
+            }
         }
     }
 }
