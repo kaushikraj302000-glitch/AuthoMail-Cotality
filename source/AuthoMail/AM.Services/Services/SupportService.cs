@@ -28,6 +28,7 @@ namespace AM.Services
         KeyValuePair<bool, string> RemoveCoverletter(int docTypeId, int seqId, string filePath);
         KeyValuePair<bool, string> SaveDocTypePrintTrail(List<DocTypePrintTrailMap> model);
         KeyValuePair<bool, string> SavePrintTrail(PrintTrail model);
+        PrintTrail GetPrintTrailById(int Id);
         KeyValuePair<bool, string> RemovePrintTrail(int Id);
         KeyValuePair<bool, string> SimulatePrintTrail(int Id, bool isSimulate);
         List<PrintTrail> GetPrintTrails();
@@ -767,6 +768,12 @@ namespace AM.Services
             {
                 return new KeyValuePair<bool, string>(false, ex.Message);
             }
+        }
+
+
+        public PrintTrail GetPrintTrailById(int Id)
+        {
+            return db.QuerySingle<PrintTrail>("select * from Common.PrintTrails where Id=@Id", new { Id = Id });
         }
     }
 }
