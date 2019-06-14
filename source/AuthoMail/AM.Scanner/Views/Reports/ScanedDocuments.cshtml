@@ -382,7 +382,7 @@
         }
 
         function bindReportData(clientCode, barcodeValue, loanNumber, printOnFrom, printOnTo, shippedOnFrom, shippedOnTo) {
-            console.log(loanNumber);
+            //console.log(loanNumber);
             $.ajax({
                 type: "GET",
                 url: '@Url.Content("~/api/report/ScanedDocumentList")',
