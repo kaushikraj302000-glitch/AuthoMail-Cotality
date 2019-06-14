@@ -24,11 +24,13 @@ namespace AM.Services
         List<DocTypeVM> GetDocTypesByClientId(int ClientId);
         List<DocTypeCoverLetterVM> GetDocTypeCoverLetterByDocTypeId(int Id);
         KeyValuePair<bool, string> SaveDocTypeCoverLetter(DocTypeCoverLetter dtcl);
+        KeyValuePair<bool, string> ValidateDocTypeCoverLetter(DocTypeCoverLetter dtcl);
         KeyValuePair<bool, string> RemoveCoverletter(int docTypeId, int seqId, string filePath);
         KeyValuePair<bool, string> SaveDocTypePrintTrail(List<DocTypePrintTrailMap> model);
         KeyValuePair<bool, string> SavePrintTrail(PrintTrail model);
         KeyValuePair<bool, string> RemovePrintTrail(int Id);
         List<PrintTrail> GetPrintTrails();
+        List<PrintVendor> GetPrintVendors();
         List<DocTypePrintTrailMap> GetDocTypePrintTrail();
         Tuple<DocType, List<DocTypePrintTrailMap>> GetDocTypePrintTrailByDocTypeId(int docTypeId);
         //Clients
@@ -551,16 +553,28 @@ namespace AM.Services
         {
             try
             {
-                if (dtcl.CoverLetterTemplatePath.IsNullOrWhiteSpace())
-                    return GetKeyValue(false, "Cover Letter Template Path can't be empty.");
-                var isExists = db.QueryFirstOrDefault<string>("select CoverLetterTemplatePath from AM.DocTypeCoverLetters where CoverLetterTemplatePath=@filePath", new { filePath = dtcl.CoverLetterTemplatePath });
-                if (isExists != null)
-                    return GetKeyValue(false, "Cover Letter Template Path already exists.");
                 int rows = db.Execute("insert into AM.DocTypeCoverLetters (DocTypeId,SeqId,CoverLetterTemplatePath) values (@docTypeId,@seqId,@coverLetterTemplatePath)", dtcl);
                 if (rows == 1)
                     return GetKeyValue(true, "Saved Successfully.");
                 else
                     return GetKeyValue(false, "Data can't be inserted.");
+            }
+            catch (Exception ex)
+            {
+                return GetKeyValue(false, ex.Message);
+            }
+        }
+
+        public KeyValuePair<bool, string> ValidateDocTypeCoverLetter(DocTypeCoverLetter dtcl)
+        {
+            try
+            {
+                if (dtcl.CoverLetterTemplatePath.IsNullOrWhiteSpace())
+                    return GetKeyValue(false, "Cover Letter Template Path can't be empty.");
+                var isExists = db.QueryFirstOrDefault<string>("select CoverLetterTemplatePath from AM.DocTypeCoverLetters where CoverLetterTemplatePath=@filePath", new { filePath = dtcl.CoverLetterTemplatePath });
+                if (isExists != null)
+                    return GetKeyValue(false, "Cover Letter Template Path already exists.");
+                return new KeyValuePair<bool, string>(true, "");
             }
             catch (Exception ex)
             {
@@ -646,7 +660,7 @@ namespace AM.Services
         }
         private KeyValuePair<bool, string> Has24HrsWithoutOverlap(List<DocTypePrintTrailMap> TSList)
         {
-            if(TSList==null || TSList.Count==0)
+            if (TSList == null || TSList.Count == 0)
                 return new KeyValuePair<bool, string>(false, "All times can't be null.");
 
             string biz = "BizDay times are either overlap or doesn't contain a full day.";
@@ -734,5 +748,10 @@ namespace AM.Services
             return Tuple.Create<DocType, List<DocTypePrintTrailMap>>(docType, model);
         }
 
+
+        public List<PrintVendor> GetPrintVendors()
+        {
+            return db.Query<PrintVendor>("select * from common.PrintVendors").ToList();
+        }
     }
 }
