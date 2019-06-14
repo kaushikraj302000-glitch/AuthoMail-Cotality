@@ -215,6 +215,7 @@
                     var fileName = $("#AddCoverLetterModal").find(".modal-header").find("#FileName").val();
                     var seqId = parseInt($("#AddCoverLetterModal").find(".modal-header").find("#SeqId").val());
                     var file = $("#AddCoverLetterModal").find(".modal-header").find("#file").prop('files')[0];
+                    console.log(file);
                     $("#AddCoverLetterModal").modal("hide");
                     var el = $("#myModal").find(".modal-body");
                     el.empty();

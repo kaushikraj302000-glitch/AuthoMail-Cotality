@@ -1,6 +1,10 @@
 ﻿@if (!ViewBag.IsModelEmpty)
 {
-
+    <style>
+        #alertContainer {
+            z-index: 1101;
+        }
+    </style>
     <h2 id="myModalLabel">Add Cover Letter for @ViewBag.ClientName</h2>
 
     <hr />
@@ -15,7 +19,7 @@
         </div>
         <div class="row" style="margin-bottom:10px;">
             <div class="col-md-12">
-                <h3>Cover Letter Files</h3>
+                <h3>Uploaded Cover Letter Files</h3>
                 <table class="table table-responsive">
                     <thead>
                         <tr>
@@ -31,21 +35,42 @@
                     </tbody>
                 </table>
             </div>
-        </div>
-        <div class="from-group">
-            <label for="Description">Select Files(pdf only)</label>
-            <div class="input-group">
-                <input type="file" @*multiple="multiple"*@ id="file" class="uploadInput" style="display:none;" accept="application/pdf">
-                <button type="button" id="uploadBtn" class="btn btn-default"><i class="fa fa-upload"> </i> Upload File</button>
+
+            <hr />
+
+
+            <div class="col-md-12">
+                <div class="from-group">
+                    <label for="Description">Select Files(pdf only)</label>
+                    <div class="input-group">
+                        <input type="file" @*multiple="multiple"*@ id="file" class="uploadInput" style="display:none;" accept="application/pdf">
+                        <button type="button" id="uploadBtn" class="btn btn-default"><i class="fa fa-upload"> </i> Upload File</button>
+                    </div>
+                </div>
+
+                <h3>Cover Letter Files</h3>
+                <table class="table table-responsive">
+                    <thead>
+                        <tr>
+                            <th width="70%">File Name</th>
+                            <th width="20%">Sequence</th>
+                            <th width="10%">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="newfileList">
+                        <tr>
+                            <td colspan="3">No cover letter found for this doctype.</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
-
         <hr />
-        <button type="submit"  class="btn btn-primary" id="Save"><i class="fa fa-save"></i> Save</button>
+        <button type="submit" class="btn btn-primary" id="Save"><i class="fa fa-save"></i> Save</button>
         <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> Cancel</button>
     </form>
 
-   
+
 }
 else
 {
@@ -104,27 +129,42 @@ else
         var cnt = 0;
         //console.log(e.target.files);
         var files = e.target.files;
-        for (var i = 0; i < files.length; i++) {
-            if (files[i].name.split('.').pop().toLowerCase() == "pdf") {
-                var seqId =coverletterList.length!=0? parseInt(coverletterList[coverletterList.length - 1].seqId + 1):1;
-                coverletterList.push(new CoverLetter(files[i].name, seqId, files[i]));
-                //fileArray.push(files[i]);
-                $("#Save").removeAttr("disabled");
-            }
-            else {
-                cnt++;
-            }
-        }
-        if (cnt > 0) {
-            //   fileArray = new Array();
+        if (files[0].name.split('.').pop().toLowerCase() != "pdf") {
             window.clui.globalAlert({
                 message: "Please select pdf files.",
                 alertType: 'red',
                 timeout: 5000
             });
+            return false;
         }
+        var fileList = $("#newfileList");
+        //fileList.empty();
+        var seqId = coverletterList.length != 0 ? parseInt(coverletterList[coverletterList.length - 1].seqId + 1) : 1;
+        var tr = "";
+        tr = tr + "<tr><td><input class='form-control' type='text' id='FileName' name='FileName' value='" + files[0].name + "'/></td><td><input type='number' min='" + seqId + "' class='form-control' id='SeqId' name='SeqId' value='" + seqId + "'/></td><td><span style='cursor: pointer;' onclick='RemoveFile(\"" + files[0].name + "\")'>  <i class='fa fa-times'></i></span></td></tr>";
+        fileList.html(tr);
+        $("#Save").removeAttr("disabled");
+        //for (var i = 0; i < files.length; i++) {
+        //    if (files[i].name.split('.').pop().toLowerCase() == "pdf") {
+        //        var seqId =coverletterList.length!=0? parseInt(coverletterList[coverletterList.length - 1].seqId + 1):1;
+        //        coverletterList.push(new CoverLetter(files[i].name, seqId, files[i]));
+        //        //fileArray.push(files[i]);
+        //        $("#Save").removeAttr("disabled");
+        //    }
+        //    else {
+        //        cnt++;
+        //    }
+        //}
+        //if (seqId > 0) {
+        //    //   fileArray = new Array();
+        //    window.clui.globalAlert({
+        //        message: "Please select pdf files.",
+        //        alertType: 'red',
+        //        timeout: 5000
+        //    });
+        //}
         //files.split('.').pop().toLowerCase()=="pdf"
-        MadeFileList();
+        // MadeFileList();
     });
     $("#DocTypeId").change(function () {
         var Id = parseInt($(this).val());
@@ -136,9 +176,9 @@ else
                 coverletterList = [];
                 for (var i = 0; i < response.length; i++) {
                     coverletterList.push(new CoverLetter(response[i].CoverLetterTemplatePath, response[i].SeqId, null));
-                   
+
                 }
-               
+
                 MadeFileList();
                 //  ValidateForm();
             },

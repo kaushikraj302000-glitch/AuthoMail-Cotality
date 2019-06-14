@@ -16,6 +16,11 @@ using NPOI.XSSF.UserModel;
 using NPOI.SS.UserModel;
 using System.IO;
 using System.Globalization;
+using System.Net;
+using System.Collections.Specialized;
+using System.Net.Http;
+using System.Configuration;
+using System.Net.Http.Headers;
 namespace AM.Web.Controllers
 {
     [Authorize(Roles = AMRoles.Admin + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager)]
@@ -281,7 +286,7 @@ namespace AM.Web.Controllers
 
         [Authorize(Roles = AMRoles.Admin)]
         [HttpPost]
-        public ActionResult _AddCoverLetter(int docTypeId, int seqId, string fileName, IEnumerable<HttpPostedFileBase> file)
+        public ActionResult _AddCoverLetter(int docTypeId, int seqId, string fileName, HttpPostedFileBase file)
         {
             try
             {
@@ -289,8 +294,43 @@ namespace AM.Web.Controllers
                 coverLetter.DocTypeId = docTypeId;
                 coverLetter.SeqId = seqId;
                 coverLetter.CoverLetterTemplatePath = fileName;
-                var model = supportSvc.SaveDocTypeCoverLetter(coverLetter);
-                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+                HttpClient client = new HttpClient();
+                Dictionary<string, string> parameters = new Dictionary<string, string>();
+                parameters.Add("id", "c711c4aa-8559-44fa-9edc-88600f38b3c9");
+
+                MultipartFormDataContent form = new MultipartFormDataContent();
+                HttpContent content = new StringContent("file");
+                HttpContent DictionaryItems = new FormUrlEncodedContent(parameters);
+                form.Add(content, "file", fileName);
+                form.Add(DictionaryItems, "param");
+                content = new StreamContent(file.InputStream);
+                content.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+                {
+                    Name = "file",
+                    FileName = fileName
+                };
+                form.Add(content);
+                var validateCoverLetter = supportSvc.ValidateDocTypeCoverLetter(coverLetter);
+                if (validateCoverLetter.Key)
+                {
+                    HttpResponseMessage response = client.PostAsync(ConfigurationManager.AppSettings["ScannerUrl"].ToString(), form).Result;
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var model = supportSvc.SaveDocTypeCoverLetter(coverLetter);
+                        return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+                    }
+                    else
+                    {
+                        var errorModel = new KeyValuePair<bool, string>(false, "File not uploaded, Please try again.");
+                        return Json(JsonResponseFactory.SuccessResponse(errorModel), JsonRequestBehavior.AllowGet);
+                    }
+                }
+                else
+                {
+                    return Json(JsonResponseFactory.SuccessResponse(validateCoverLetter), JsonRequestBehavior.AllowGet);
+                }
+
+
             }
             catch (Exception e)
             {
@@ -925,6 +965,10 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse(e.Message), JsonRequestBehavior.AllowGet);
             }
         }
+
+        #endregion
+
+        #region Manage Print Trails
 
         #endregion
     }
