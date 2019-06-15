@@ -1033,7 +1033,8 @@
                     clientBatchId: $("#ClientBatchId").val(),
                     batchId: $("#BatchId").val(),
                     errorCode: $("#ErrorCode").val(),
-                    timezoneOffset: new Date().getTimezoneOffset()
+                    timezoneOffset: new Date().getTimezoneOffset(),
+                    clientName: $("#ClientName").text().trim()
                 }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {

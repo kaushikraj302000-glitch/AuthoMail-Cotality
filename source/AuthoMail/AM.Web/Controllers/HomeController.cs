@@ -107,7 +107,7 @@ namespace AM.Web.Controllers
         }
 
         [HttpPost]
-        public ActionResult _DownloadSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string receivedOnStart, string receivedOnEnd, string status, string channel, List<int> docType, string trackingNumber, string clientBatchId, string batchId, List<string> errorCode, int timezoneOffset)
+        public ActionResult _DownloadSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string receivedOnStart, string receivedOnEnd, string status, string channel, List<int> docType, string trackingNumber, string clientBatchId, string batchId, List<string> errorCode, int timezoneOffset,string clientName)
         {
             try
             {
@@ -134,8 +134,19 @@ namespace AM.Web.Controllers
                 var memoryStream = ExcelHelper.ExportDataSet(dataTable);
                 memoryStream.Seek(0, SeekOrigin.Begin);
                 TempData[fileGuid] = memoryStream.ToArray();
-
-                return Json(JsonResponseFactory.SuccessResponse(new { model = new { FileGuid = fileGuid, FileName = "Search.xlsx" } }), JsonRequestBehavior.AllowGet);
+                string fileName = string.Empty;
+                if (!receivedOnStart.IsNullOrWhiteSpace())
+                {
+                    string[] fileNameArray={"Search",exactStartDate.Value.ToString("MMddyyyy"),"To",exactEndDate.Value.ToString("MMddyyyy"),clientName};
+                    fileName = string.Join("_", fileNameArray);
+                }
+                else
+                {
+                    string[] fileNameArray = { "Search", clientName };
+                    fileName = string.Join("_", fileNameArray);
+                }
+                fileName = string.Format("{0}.xlsx", fileName);
+                return Json(JsonResponseFactory.SuccessResponse(new { model = new { FileGuid = fileGuid, FileName = fileName } }), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
             {

@@ -215,28 +215,58 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse(ex.Message), JsonRequestBehavior.AllowGet);
             }
         }
-
-        public ActionResult DownloadReportWizard(string clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, string docType, string status, string channel, List<string> shippingMethod, string trackingNo, string fileName, int timezoneOffset)
+        [HttpPost]
+        public ActionResult _DownloadReportWizard(List<int> clientId, string businessFriendlyIdName, string businessFriendlyIdValue, string startDate, string endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo, int timezoneOffset)
         {
-            List<int> ClientId = string.IsNullOrEmpty(clientId) ? new List<int>() : clientId.Split(',').Select(Int32.Parse).ToList();
-            List<int> DocType = string.IsNullOrEmpty(docType) ? new List<int>() : docType.Split(',').Select(Int32.Parse).ToList();
-            shippingMethod = shippingMethod[0] == "" ? null : shippingMethod;
-            var result = repoSvc.GetReportWizard(ClientId, businessFriendlyIdName, businessFriendlyIdValue, startDate, endDate, DocType, status, channel, shippingMethod, trackingNo);
-
-            result.ForEach(m =>
+            try
             {
-                m.ReceivedOn = m.ReceivedOn.HasValue ? m.ReceivedOn.Value.AddMinutes(-timezoneOffset) : m.ReceivedOn;
-                m.PrintedOn = m.PrintedOn.HasValue ? m.PrintedOn.Value.AddMinutes(-timezoneOffset) : m.PrintedOn;
-                m.MailedOn = m.MailedOn.HasValue ? m.MailedOn.Value.AddMinutes(-timezoneOffset) : m.MailedOn;
-            });
-            var dataTable = ExcelHelper.ToDataTable<ReportWizard>(result);
-            var memoryStream = ExcelHelper.ExportDataSet(dataTable);
-            memoryStream.Seek(0, SeekOrigin.Begin);
+                var exactStartDate = startDate != string.Empty ? DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces) : (DateTime?)null;
+                var exactEndDate = endDate != string.Empty ? DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces) : (DateTime?)null;
+                var result = repoSvc.GetReportWizard(clientId, businessFriendlyIdName, businessFriendlyIdValue, exactStartDate, exactEndDate, docType, status, channel, shippingMethod, trackingNo);
 
-            var fileNameArry = new string[] { fileName, DateTime.UtcNow.UtcToEst().ToString("MMddyyymmss") };
-            fileName = string.Join("_", fileNameArry.Where(s => s != "").ToArray());
-            fileName = string.Format("{0}.xlsx", fileName);
-            return File(memoryStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                result.ForEach(m =>
+                {
+                    m.ReceivedOn = m.ReceivedOn.HasValue ? m.ReceivedOn.Value.AddMinutes(-timezoneOffset) : m.ReceivedOn;
+                    m.PrintedOn = m.PrintedOn.HasValue ? m.PrintedOn.Value.AddMinutes(-timezoneOffset) : m.PrintedOn;
+                    m.MailedOn = m.MailedOn.HasValue ? m.MailedOn.Value.AddMinutes(-timezoneOffset) : m.MailedOn;
+                });
+                var dataTable = ExcelHelper.ToDataTable<ReportWizard>(result);
+                var memoryStream = ExcelHelper.ExportDataSet(dataTable);
+                memoryStream.Seek(0, SeekOrigin.Begin);
+
+                string fileGuid = Guid.NewGuid().ToString();
+                TempData[fileGuid] = memoryStream.ToArray();
+                string fileName = string.Empty;
+                if (!startDate.IsNullOrWhiteSpace())
+                {
+                    string[] fileNameArray = { "ReportWizard", exactStartDate.Value.ToString("MMddyyyy"), "To", exactEndDate.Value.ToString("MMddyyyy") };
+                    fileName = string.Join("_", fileNameArray);
+                }
+                else
+                {
+                    string[] fileNameArray = { "ReportWizard", DateTime.UtcNow.AddMinutes(-timezoneOffset).ToString("MMddyyyy") };
+                    fileName = string.Join("_", fileNameArray);
+                }
+                fileName = string.Format("{0}.xlsx", fileName);
+                return Json(JsonResponseFactory.SuccessResponse(new { model = new { FileGuid = fileGuid, FileName = fileName } }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+        public ActionResult DownloadReportWizard(string fileGuid, string fileName)
+        {
+            if (TempData[fileGuid] != null)
+            {
+                byte[] data = TempData[fileGuid] as byte[];
+                return File(data, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            else
+            {
+                return new EmptyResult();
+            }
+
         }
     }
 }
