@@ -564,6 +564,8 @@
     <Content Include="Views\Account\Index.cshtml" />
     <Content Include="Views\Admin\_AddOrEditDocTypePrintTrailMaps.cshtml" />
     <Content Include="Views\Admin\PrintTrailMapByDocId.cshtml" />
+    <Content Include="Views\Admin\ManagePrintTrails.cshtml" />
+    <Content Include="Views\Admin\_AddOrEditPrintTrail.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

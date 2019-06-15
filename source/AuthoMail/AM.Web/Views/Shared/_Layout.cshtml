@@ -73,7 +73,7 @@
                                 <li>@Html.ActionLink("Pullback Request Report", "PullbackRequestReport", "Report")</li>
                                 <li>@Html.ActionLink("Supply Inventory Report", "SupplyInventoryReport", "Report")</li>
                                 <li>@Html.ActionLink("Report Wizard", "ReportWizard", "Report")</li>
-                               
+
                             </ul>
                         </li>
                         @if (User.IsInRole(AM.Entities.AMRoles.Admin) || User.IsInRole(AM.Entities.AMRoles.ClientUserManager) || User.IsInRole(AM.Entities.AMRoles.CoreLogicUserManager))
@@ -93,7 +93,7 @@
                                         <li>@Html.ActionLink("Manage Clients", "ManageClients", "Admin")</li>
                                         <li>@Html.ActionLink("Manage Envelope", "ManageEnvelopes", "Admin")</li>
                                         <li>@Html.ActionLink("Manage Envelope Transactions", "ManageEnvelopeTransactions", "Admin")</li>
-
+                                        <li>@Html.ActionLink("Manage Print Trails", "ManagePrintTrails", "Admin")</li>
                                     }
                                     <li>@Html.ActionLink("Services and Cost ", "AllProjectSetupDetails", "Admin")</li>
                                 </ul>

@@ -698,7 +698,7 @@
             $('#datetimepicker3').timepicker({
             });
             $.each($(".other"), function (indexInArray, valueOfElement) {
-                console.log($(this).val());
+                //console.log($(this).val());
                 if ($(this).val() != null) {
                     var isFound = Array.indexOf($(this).val(), 'Other');
                     isFound = isFound == -1 ? Array.indexOf($(this).val(), 'Color (specify)') : isFound;
@@ -845,7 +845,7 @@
                     },
                     //contentType: "application/json; charset=utf-8",
                     success: function (response) {
-                        console.log(response);
+                        //console.log(response);
                         if (response.Success) {
                             if (response.Object != null) {
                                 if (response.Object.model != null) {
@@ -925,7 +925,7 @@
             var value = $(this).is(":checked") ? "true" : "false";
             //$(this).va();
             $(this).val(value)
-            console.log($(this).prop("id"));
+            //console.log($(this).prop("id"));
             if ($(this).prop("id") == "InsertRequired") {
                 $("#IsInsertRequired").toggle();
             }

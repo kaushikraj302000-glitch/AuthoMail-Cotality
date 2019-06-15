@@ -970,6 +970,70 @@ namespace AM.Web.Controllers
 
         #region Manage Print Trails
 
+        [Authorize(Roles = AMRoles.Admin)]
+        public ActionResult ManagePrintTrails()
+        {
+            return View();
+        }
+
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult GetPrintTrails()
+        {
+            try
+            {
+                var model = supportSvc.GetPrintTrails().OrderByDescending(s=>s.SimulateTrail).ToList();
+                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult Simulate(bool simulateTrail, int Id)
+        {
+            try
+            {
+                var model = supportSvc.SimulatePrintTrail(Id, simulateTrail);
+                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult CreateOrEditPrintTrail(PrintTrail printTrail)
+        {
+            try
+            {
+                var model = supportSvc.SavePrintTrail(printTrail);
+                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult GetPrintTrailById(int id)
+        {
+
+            if (id != 0)
+            {
+                PrintTrail printTrail = supportSvc.GetPrintTrailById(id);
+                ViewBag.PrintVendors = new SelectList(supportSvc.GetPrintVendors(), "Id", "Name", printTrail.PrintVendorId);
+                return PartialView("_AddOrEditPrintTrail", printTrail);
+            }
+            else
+            {
+                ViewBag.PrintVendors = new SelectList(supportSvc.GetPrintVendors(), "Id", "Name");
+                return PartialView("_AddOrEditPrintTrail", new PrintTrail());
+            }
+        }
+
         #endregion
     }
 }
