@@ -183,9 +183,8 @@
                                 var data = FormatObject(response.Object.model);
                                 $("#AMUsersList").html("");
                                 //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
-                                
+
                                 BindTemplate(data, "#AMUsersBody", "#AMUsersbodyContent", "#AMUsersTableContent", "#AMUsersList");
-                                console.log("call11");
                             }
                             else {
                                 $("#AMUsersList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
@@ -230,7 +229,7 @@
         var UnlockUser = function (val) {
             var el = $("#myModal").find(".modal-body");
             el.empty();
-            console.log("UserId:" + $(val).data("userid"));
+
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Account/UnlockUser",
@@ -258,28 +257,28 @@
                 }
             });
         }
-        var statusemail = "";
-        
+        var statusunm = "";
+
         var StatusChangeEventLoadOption = function (obj) {
-            console.log("call");
             //$('.statuschange').unbind("click");
             //$('.statuschange').bind("click", function (e) {
             var curstatus = $(obj).data("curstatus")
-                var statusList = { '@(AM.Entities.AMUserStatus.Approved)': 'Approve', '@(AM.Entities.AMUserStatus.Rejected)': 'Reject', '@(AM.Entities.AMUserStatus.InActive)': 'InActive' };
-                $('#usernamemodal').html($(obj).data("unm") + ' <label class="label label-default" title="Current Status">' + curstatus + '</label>');
-                $('#statusmodalselect').empty();
-                statusemail = $(obj).data('unm');
-                var keys = Object.keys(statusList);
-                for (var i = 0; i < keys.length; i++) {
-                    var sel = curstatus == keys[i] ? "disabled selected" : "";
-                    $('#statusmodalselect').append('<option ' + sel + ' value=' + keys[i] + '>' + statusList[keys[i]] + '</option>');
-                }
-                $('#statusModal').modal({
-                    backdrop: 'static',
-                    keyboard: false
-                });
+            var statusList = { '@(AM.Entities.AMUserStatus.Approved)': 'Approve', '@(AM.Entities.AMUserStatus.Rejected)': 'Reject', '@(AM.Entities.AMUserStatus.InActive)': 'InActive' };
+            $('#usernamemodal').html($(obj).data("unm") + ' <label class="label label-default" title="Current Status">' + curstatus + '</label>');
+            $('#statusmodalselect').empty();
+            statusunm = $(obj).data('unm');
+            var keys = Object.keys(statusList);
+            for (var i = 0; i < keys.length; i++) {
+                var sel = curstatus == keys[i] ? "disabled selected" : "";
+                $('#statusmodalselect').append('<option ' + sel + ' value=' + keys[i] + '>' + statusList[keys[i]] + '</option>');
+            }
+            $('#statusModal').modal({
+                backdrop: 'static',
+                keyboard: false
+            });
 
-                statusmodalselectChangeEvent();
+            statusmodalselectChangeEvent();
+            StatusChangeEvent();
             //});
         }
         var StatusChangeEvent = function () {
@@ -287,8 +286,8 @@
             $('#ChangeStatusBtn').bind('click', function (e) {
                 $.ajax({
                     type: "POST",
-                    url: baseUrl + "/Account/ChangeUserStatus",
-                    data: { userName: statusemail, status: $('#statusmodalselect').val() },
+                    url: baseUrl + "Account/ChangeUserStatus",
+                    data: { userName: statusunm, status: $('#statusmodalselect').val() },
                     dataType: "json",
                     success: function (response) {
                         if (response.Success) {

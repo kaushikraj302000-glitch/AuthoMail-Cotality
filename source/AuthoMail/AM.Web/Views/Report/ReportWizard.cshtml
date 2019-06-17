@@ -948,34 +948,64 @@
                 startDate = "";
                 endDate = "";
             }
-            var businessFriendlyIdName = $("#BusinessFriendlyIdName").val();
-            var businessFriendlyIdValue= $("#BusinessFriendlyIdValue").val();
-            var docType= $("#DocType").val();
-            var status= $("#Status").val();
-            var channel= $("#Channel").val();
-            var trackingNo= $("#TrackingNumber").val();
+           
+           
+           
             var shippingMethod = $('#ShippingMethod').val() == null ? [] : $('#ShippingMethod').val();
             var clientId = $("#ClientId").val();
-            if (docType==null) {
-                docType = "";
-            }
-            if (clientId==null) {
-                clientId = "";
-            }
-            var url = baseUrl + "Report/DownloadReportWizard?businessFriendlyIdName=<businessFriendlyIdName>&businessFriendlyIdValue=<businessFriendlyIdValue>&startDate=<startDate>&endDate=<endDate>&channel=<channel>&fileName=<fileName>&docType=<docType>&status=<status>&shippingMethod=<shippingMethod>&trackingNo=<trackingNo>&clientId=<clientId>".replace("<startDate>", startDate).replace("<endDate>", endDate).replace("<channel>", $("#Channel").val()).replace("<fileName>", "ReportWizard ").replace("<businessFriendlyIdName>", businessFriendlyIdName).replace("<businessFriendlyIdValue>", businessFriendlyIdValue).replace("<shippingMethod>", shippingMethod).replace("<trackingNo>", trackingNo).replace("<clientId>", clientId).replace("<docType>", docType).replace("<status>", status).replace("<fileName>", "ReportWizard");
-            window.location = url;
-            //FilterData();
-            //if ($("#BatchId").val().trim() != "") {
-            //    if ($("#searchform").valid()) {
-            //        FilterData();
-            //    }
-            //    else {
-            //        return false;
-            //    }
-            //}
-            //else {
-            //    FilterData();
-            //}
+            
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "Report/_DownloadReportWizard",
+                data: JSON.stringify({
+                    clientId:$("#ClientId").val(),
+                    businessFriendlyIdName: $("#BusinessFriendlyIdName").val(),
+                    businessFriendlyIdValue: $("#BusinessFriendlyIdValue").val(),
+                    startDate: startDate,
+                    endDate: endDate,
+                    docType: $("#DocType").val(),
+                    status: $("#Status").val(),
+                    channel: $("#Channel").val(),
+                    shippingMethod: $('#ShippingMethod').val(),
+                    trackingNumber: $("#TrackingNumber").val(),
+                    timezoneOffset: new Date().getTimezoneOffset()
+                }),
+                contentType: "application/json; charset=utf-8",
+                success: function (response) {
+                    //console.log(response);
+                    if (response.Success) {
+                        if (response.Object != null) {
+
+                            window.location = baseUrl + 'Report/DownloadReportWizard?fileGuid=' + response.Object.model.FileGuid
+                          + '&filename=' + response.Object.model.FileName;
+                        }
+                        else {
+                            window.clui.globalAlert({
+                                message: "@AM.Services.Config.Web_Msg_NoRecordFound",
+                                alertType: 'red',
+                                timeout: 5000
+                            });
+                        }
+                    } else {
+                        
+                            window.clui.globalAlert({
+                                message: response.ErrorMessage,
+                                alertType: 'red',
+                                timeout: 5000
+                            });
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    window.clui.globalAlert({
+                        message: "@AM.Services.Config.Web_Msg_Ajax_CommonError",
+                        alertType: 'red',
+                        timeout: 5000
+                    });
+
+                }
+
+            });
+
         });
         $("#resetFilter").click(function () {
             $("#Status").val("");

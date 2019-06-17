@@ -38,6 +38,7 @@
     <table class="table table-responsive" style="overflow-x:scroll">
         <thead>
             <tr>
+                <th style="min-width:99px;">Action</th>
                 <th>Client Name</th>
                 <th>App Code</th>
                 <th>Business Unit</th>
@@ -60,7 +61,6 @@
                 <th>Billing Contact Name</th>
                 <th>Billing Contact Phone</th>
                 <th>Billing Contact Email</th>
-                <th style="min-width:99px;">Action</th>
             </tr>
         </thead>
         <tbody id="ClientbodyContent"></tbody>
@@ -70,6 +70,7 @@
     <table>
         <tbody id="ClientBody">
             <tr class="row-small">
+                <td>{Action}{CoverLetter}</td>
                 <td><span data-id="{Id}">{Name}</span></td>
                 <td><span>{AppCode}</span></td>
                 <td><span>{BusinessUnitModel.BusinessUnit}</span></td>
@@ -92,7 +93,6 @@
                 <td><span>{BillingContactName}</span></td>
                 <td><span>{BillingContactPhone}</span></td>
                 <td><span>{BillingContactEmail}</span></td>
-                <td>{Action}{CoverLetter}</td>
             </tr>
         </tbody>
     </table>
@@ -215,6 +215,7 @@
                     var fileName = $("#AddCoverLetterModal").find(".modal-header").find("#FileName").val();
                     var seqId = parseInt($("#AddCoverLetterModal").find(".modal-header").find("#SeqId").val());
                     var file = $("#AddCoverLetterModal").find(".modal-header").find("#file").prop('files')[0];
+                    //console.log(file);
                     $("#AddCoverLetterModal").modal("hide");
                     var el = $("#myModal").find(".modal-body");
                     el.empty();
@@ -369,7 +370,7 @@
                     var BillingContactEmail = $("#AddEditModal").find(".modal-header").find("#BillingContactEmail").val();
                     var Address = $("#AddEditModal").find(".modal-header").find("#Address").val();
                     var ClientObj = new Clients(Id, name, appCode, businessUnit, timezone, Contact1Name, Contact1Phone, Contact1Email, Contact2Name, Contact2Phone, Contact2Email, Contact3Name, Contact3Phone, Contact3Email, ITContactName, ITContactPhone, ITContactEmail, BillingContactName, BillingContactPhone, BillingContactEmail, Address);
-                    console.log(ClientObj);
+                    //console.log(ClientObj);
                    
                     $("#AddEditModal").modal("hide");
                     var el = $("#myModal").find(".modal-body");

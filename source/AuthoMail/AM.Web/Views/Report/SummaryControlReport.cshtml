@@ -165,7 +165,7 @@
                 'container': 'body'
             });
             var table = $('#sample_2');
-            var filename = "SummaryControlReport";
+            var filename = "SummaryControlReport_" + moment($("#date").val()).format("MMDDYYYY") + "_" + $("#ClientName").text();
             var title = "Summary Control Report";
             var oTable = table.dataTable({
 

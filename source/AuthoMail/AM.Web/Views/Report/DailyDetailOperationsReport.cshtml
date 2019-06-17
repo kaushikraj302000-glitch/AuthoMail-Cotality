@@ -178,7 +178,8 @@
                 'container': 'body'
             });
             var table = $('#sample_2');
-            var filename = "DailyDetailOperationsReport";
+            
+            var filename = "DailyDetailOperationsReport_" + moment($("#date").val()).format("MMDDYYYY") +"_"+ $("#ClientName").text();
             var title = "Daily Detail Operations Report";
             var oTable = table.dataTable({
 
@@ -253,7 +254,7 @@
             });
         }
         function FormatObject(Model) {
-            console.log(Model);
+            //console.log(Model);
             $(Model).each(function () {
                 var trackingNo = "";
                 var trackingFormatted = "";

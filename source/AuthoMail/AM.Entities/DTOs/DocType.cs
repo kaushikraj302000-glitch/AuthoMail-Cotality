@@ -81,18 +81,20 @@ namespace AM.Entities
     {
         public int Id { get; set; }
         public string TrailName { get; set; }
+        public bool SimulateTrail { get; set; }
         public int PrintVendorId { get; set; }
+        public string PrintVendor { get; set; }
     }
 
     public class DocTypePrintTrailMap
     {
         public int DocTypeId { get; set; }
         public int PrintTrailId { get; set; }
-        public TimeSpan BizDayStartTime { get; set; }
-        public TimeSpan BizDayEndTime { get; set; }
-        public TimeSpan SatStartTime { get; set; }
-        public TimeSpan SatEndTime { get; set; }
-        public TimeSpan SunStartTime { get; set; }
-        public TimeSpan SunEndTime { get; set; }
+        public TimeSpan? BizDayStartTime { get; set; }
+        public TimeSpan? BizDayEndTime { get; set; }
+        public TimeSpan? SatStartTime { get; set; }
+        public TimeSpan? SatEndTime { get; set; }
+        public TimeSpan? SunStartTime { get; set; }
+        public TimeSpan? SunEndTime { get; set; }
     }
 }
