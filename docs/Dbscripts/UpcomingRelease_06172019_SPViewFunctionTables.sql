@@ -1,0 +1,51 @@
+
+PRINT 'Added two new column in Common.Envelopes table'
+ALTER TABLE Common.Envelopes
+ADD ReorderDuration INT NULL,MinStock INT NULL
+
+PRINT 'Added new table PnS.EnvelopeUsage'
+CREATE TABLE [PnS].[EnvelopeUsage](
+	[PrintTrailBatchId] [int] NULL,
+	[EnvelopeId] [varchar](255) NULL,
+	[Quantity] [int] NULL,
+	[InsertedOn] [datetime] NULL
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [PnS].[EnvelopeUsage]  WITH CHECK ADD  CONSTRAINT [FK_EnvelopeUsage_Envelopes] FOREIGN KEY([EnvelopeId])
+REFERENCES [Common].[Envelopes] ([Id])
+GO
+
+ALTER TABLE [PnS].[EnvelopeUsage] CHECK CONSTRAINT [FK_EnvelopeUsage_Envelopes]
+GO
+
+ALTER TABLE [PnS].[EnvelopeUsage]  WITH CHECK ADD  CONSTRAINT [FK_EnvelopeUsage_PrintTrailBatches] FOREIGN KEY([PrintTrailBatchId])
+REFERENCES [PnS].[PrintTrailBatches] ([Id])
+GO
+
+ALTER TABLE [PnS].[EnvelopeUsage] CHECK CONSTRAINT [FK_EnvelopeUsage_PrintTrailBatches]
+GO
+
+PRINT 'Added new table AM.ErrorNotifications'
+
+CREATE TABLE [AM].[ErrorNotifications](
+	[Id] [int] IDENTITY(1001,1) NOT NULL,
+	[MailBatchId] [int] NULL,
+	[TotalMPsCount] [int] NULL,
+	[ErrorMPsCount] [int] NULL,
+	[ReceivedOn] [datetime] NULL,
+	[CreatedOn] [datetime] NULL,
+ CONSTRAINT [PK_ErrorNotifications] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [AM].[ErrorNotifications]  WITH CHECK ADD  CONSTRAINT [FK_ErrorNotifications_MailBatches] FOREIGN KEY([MailBatchId])
+REFERENCES [AM].[MailBatches] ([Id])
+GO
+
+ALTER TABLE [AM].[ErrorNotifications] CHECK CONSTRAINT [FK_ErrorNotifications_MailBatches]
+GO
+
