@@ -505,8 +505,7 @@ namespace AM.Core
                                 else if (validMailPiecesList.Count < mailPieces.Count)
                                 {
                                     var errMpIds = mailPieces.Select(mp => mp.Id).Except(errorMailPieces.Select(errMp => errMp.Id));
-                                    mailPieces = mailPieces.Where(mp => errMpIds.Contains(mp.Id)).ToList();
-                                    GenerateLabelErrorReport(mbi, mailPieces, reportDeliverable);
+                                    GenerateLabelErrorReport(mbi, mailPieces.Where(mp => errMpIds.Contains(mp.Id)).ToList(), reportDeliverable);
                                     commonSvc.UpdateBatchValidationStatus(mbi.MailBatch.Id, BatchValidationStatus.PartiallyValid, mailBatch.ValidationErrors);
                                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Prepped, Common.Now);
                                 }
@@ -514,6 +513,8 @@ namespace AM.Core
                                 {
                                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Prepped, Common.Now);
                                 }
+
+                                commonSvc.InsertUpdateErrorNotifications(mailBatch, mailPieces.Count, mailPieces.Where(mp => mp.ShippingStatus == ShippingStatus.Error.ToString()).Count());
                             }
                         }
                         catch (Exception ex)

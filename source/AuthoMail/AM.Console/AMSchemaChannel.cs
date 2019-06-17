@@ -773,6 +773,7 @@ namespace AM.Console
                         throw new Exception("Mail pieces count and received xml count is mismatched for Batch-Id : {0}<br/>".Fill(mailBatch.Id) + "Mail Piece count is {0} and received xml nodes count is {1}".Fill(mailPieceList.Count, totalNodes));
                     }
                     Channel.CalculateDueDateAndPrintLocation(mailBatch, mailPieceList);
+                    commonSvc.InsertUpdateErrorNotifications(mailBatch, mailPieceList.Count, mailPieceList.Where(mp => mp.ShippingStatus == ShippingStatus.Error.ToString()).Count());
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
                 }
                 catch (Exception ex)

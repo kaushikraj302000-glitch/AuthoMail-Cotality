@@ -770,6 +770,7 @@ namespace AM.Console
                     }
 
                     Channel.CalculateDueDateAndPrintLocation(mailBatch, mailPieceList);
+                    commonSvc.InsertUpdateErrorNotifications(mailBatch, mailPieceList.Count, mailPieceList.Where(mp => mp.ShippingStatus == ShippingStatus.Error.ToString()).Count());
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
                 }
                 catch (Exception ex)
