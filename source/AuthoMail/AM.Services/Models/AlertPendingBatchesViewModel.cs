@@ -192,4 +192,16 @@ namespace AM.Services
         public bool IsAMDelay { get; set; }
         public string AlertLevel { get; set; }
     }
+    public class ErrorNotifications
+    {
+        public int Id { get; set; }
+        public int ClientId { get; set; }
+        public string ClientName { get; set; }
+        public int MailBatchId { get; set; }
+        public string BatchName { get; set; }
+        public int TotalMPsCount { get; set; }
+        public int ErrorMPsCount { get; set; }
+        public DateTime ReceivedOn { get; set; }
+        public DateTime CreatedOn { get; set; }
+    }
 }
