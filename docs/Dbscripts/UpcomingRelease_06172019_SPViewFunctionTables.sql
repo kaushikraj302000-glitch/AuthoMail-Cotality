@@ -30,16 +30,24 @@ PRINT 'Added new table AM.ErrorNotifications'
 
 CREATE TABLE [AM].[ErrorNotifications](
 	[Id] [int] IDENTITY(1001,1) NOT NULL,
-	[MailBatchId] [int] NULL,
-	[TotalMPsCount] [int] NULL,
-	[ErrorMPsCount] [int] NULL,
-	[ReceivedOn] [datetime] NULL,
-	[CreatedOn] [datetime] NULL,
+	[ClientId] [int] NOT NULL,
+	[MailBatchId] [int] NOT NULL,
+	[TotalMPsCount] [int] NOT NULL,
+	[ErrorMPsCount] [int] NOT NULL,
+	[ReceivedOn] [datetime] NOT NULL,
+	[CreatedOn] [datetime] NOT NULL,
  CONSTRAINT [PK_ErrorNotifications] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY]
+GO
+
+ALTER TABLE [AM].[ErrorNotifications]  WITH CHECK ADD  CONSTRAINT [FK_ErrorNotifications_Clients] FOREIGN KEY([ClientId])
+REFERENCES [Common].[Clients] ([Id])
+GO
+
+ALTER TABLE [AM].[ErrorNotifications] CHECK CONSTRAINT [FK_ErrorNotifications_Clients]
 GO
 
 ALTER TABLE [AM].[ErrorNotifications]  WITH CHECK ADD  CONSTRAINT [FK_ErrorNotifications_MailBatches] FOREIGN KEY([MailBatchId])
