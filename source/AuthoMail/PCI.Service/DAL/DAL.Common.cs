@@ -134,10 +134,11 @@ namespace PCI.Service
             return printTrailDetail.DataTableAccessor<PrintVendor>(false).Single();
         }
 
-        public static int UpdateEnvelopeInventory(Dictionary<string, int> envelopeInventory)
+        public static int UpdateEnvelopeInventory(PrintTrailBatch printTrailBatch, Dictionary<string, int> envelopeInventory)
         {
             foreach (var envelope in envelopeInventory)
             {
+                db.ExecuteSqlNonQuery("INSERT INTO [PnS].[EnvelopeUsage]([PrintTrailBatchId],[EnvelopeId],[Quantity],[InsertedOn])VALUES(@p1,@p2,@p3,@p4)", printTrailBatch.Id, envelope.Key, envelope.Value, Common.GetCurrentTime());
                 db.ExecuteSqlNonQuery("UPDATE [Common].[Envelopes] SET CurrentQuantity = CurrentQuantity-{0} WHERE Id IN (@p1)".Fill(envelope.Value), envelope.Key);
             }
             return 1;

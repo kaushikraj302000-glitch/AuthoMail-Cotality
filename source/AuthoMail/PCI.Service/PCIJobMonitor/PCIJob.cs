@@ -312,8 +312,9 @@ namespace PCI.Service
                 DAL.UpdateSubmittedForAllResReceivedBatch(ptBatchDetails.Id);
 
                 DAL.UpdatePrintTrailBatchStatus(ptBatchDetails.Id, BatchPipelineStatus.Submitted, currentTime);
-
-                DAL.UpdateEnvelopeInventory(envelopeData);
+                
+                //NOTE : Here we are inserting used envelope stock by PrintTrailBatch in EnvelopeUsage table
+                DAL.UpdateEnvelopeInventory(ptBatchDetails, envelopeData);
 
                 if (ptDetails.VendorCode != "CL_DALLAS")
                 {
