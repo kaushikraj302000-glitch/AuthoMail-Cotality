@@ -543,7 +543,7 @@ namespace AM.Services
 
         public List<DocTypeVM> GetDocTypesByClientId(int ClientId)
         {
-            string q = "select d.Id,d.ClientId,d.DocTypeCode,c.Name as ClientName from AM.DocTypes d,Common.Clients c where d.ClientId=c.Id and ClientId=@clientId";
+            string q = "select d.Id,d.ClientId,d.DocTypeCode,c.Name as ClientName,c.AppCode from AM.DocTypes d,Common.Clients c where d.ClientId=c.Id and ClientId=@clientId";
             return db.Query<DocTypeVM>(q, new { clientId = ClientId }).ToList();
         }
         public List<DocTypeCoverLetterVM> GetDocTypeCoverLetterByDocTypeId(int Id)
