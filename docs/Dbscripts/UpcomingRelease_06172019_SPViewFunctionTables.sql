@@ -79,6 +79,8 @@ GROUP BY EnvelopeId
 SELECT CTE.*
 ,E.CurrentQuantity
 ,(CTE.TotalQuantityUsed/30) AS AvgQuantityPerDay
-,((CTE.TotalQuantityUsed/30)*E.ReorderDuration)+(((CTE.TotalQuantityUsed/30)*E.ReorderDuration) * (30 / 100)) AS MinStockRequirement 
+,((CTE.TotalQuantityUsed/30)*E.ReorderDuration) AS MinStockRequirement 
+,(((CTE.TotalQuantityUsed/30)*E.ReorderDuration) * (30 / 100)) AS BufferStock
 FROM CTE 
 INNER JOIN Common.Envelopes E ON CTE.[EnvelopeId] = E.Id
+GO
