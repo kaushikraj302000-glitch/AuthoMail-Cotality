@@ -402,13 +402,20 @@ namespace AM.Services
 
         public int InsertUpdateErrorNotifications(MailBatchDTO mailBatch, int totalMPCount, int errorMPCount)
         {
-            string query = "SELECT COUNT(*) FROM AM.ErrorNotifications WHERE MailBatchId=@MailBatchId";
-            bool isEntryExist = db.QuerySingle<int>(query, new { MailBatchId = mailBatch.Id }) > 0 ? true : false;
+            string query = "SELECT * FROM AM.ErrorNotifications WHERE MailBatchId=@MailBatchId";
+            var errMP = db.QuerySingle<ErrorNotifications>(query, new { MailBatchId = mailBatch.Id });
 
-            if (isEntryExist)
+            if (errMP != null)
             {
-                string upQuery = "UPDATE AM.ErrorNotifications SET ErrorMPsCount=@ErrorCount WHERE MailBatchId=@MailBatchId";
-                return db.Execute(upQuery, new { ErrorCount = errorMPCount, MailBatchId = mailBatch.Id });
+                int currentErrMpCount = errMP.ErrorMPsCount;
+
+                if (errorMPCount == currentErrMpCount)
+                    return 0;
+
+                string upQuery = "DELETE FROM AM.ErrorNotifications WHERE MailBatchId=@MailBatchId";
+                db.Execute(upQuery, new { MailBatchId = mailBatch.Id });
+                string inQuery = "INSERT INTO AM.ErrorNotifications (ClientId, MailBatchId, TotalMPsCount, ErrorMPsCount, ReceivedOn, CreatedOn) VALUES (@ClientId, @MailBatchId, @TotalMPsCount, @ErrorMPsCount, @ReceivedOn, @CreatedOn)";
+                return db.Execute(inQuery, new { ClientId = mailBatch.ClientId, ErrorCount = errorMPCount, MailBatchId = mailBatch.Id, TotalMPsCount = totalMPCount, ReceivedOn = mailBatch.ReceivedOn.Value, CreatedOn = Common.Now });
             }
             else
             {

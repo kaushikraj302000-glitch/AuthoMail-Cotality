@@ -514,7 +514,9 @@ namespace AM.Core
                                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Prepped, Common.Now);
                                 }
 
-                                commonSvc.InsertUpdateErrorNotifications(mailBatch, mailPieces.Count, mailPieces.Where(mp => mp.ShippingStatus == ShippingStatus.Error.ToString()).Count());
+                                int errorMPCount = mailPieces.Where(mp => mp.ShippingStatus == ShippingStatus.Error.ToString()).Count();
+                                if (errorMPCount > 0)
+                                    commonSvc.InsertUpdateErrorNotifications(mailBatch, mailPieces.Count, errorMPCount);
                             }
                         }
                         catch (Exception ex)
