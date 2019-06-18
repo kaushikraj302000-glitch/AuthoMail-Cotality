@@ -1,0 +1,66 @@
+﻿using Microsoft.AspNet.SignalR;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Web;
+using Microsoft.AspNet.Identity;
+using AM.Services;
+
+namespace AM.Web.AMHub
+{
+    public class ErrorNotificationSignalR
+    {
+        private readonly static Lazy<ErrorNotificationSignalR> _instance =
+           new Lazy<ErrorNotificationSignalR>(() => new ErrorNotificationSignalR());
+        // We're going to broadcast to all clients a maximum of N minutes
+        private readonly TimeSpan interval =
+            TimeSpan.FromMilliseconds(1000 * 60 * 1);
+        private readonly IHubContext _hubContext;
+        private Timer _broadcastLoop;
+        //private bool _modelUpdated;
+        private List<ErrorNotifications> _model;
+        private string connectionId;
+        private string userId;
+        public ErrorNotificationSignalR()
+        {
+            // Save our hub context so we can easily use it 
+            // to send to its connected clients
+            _hubContext = GlobalHost.ConnectionManager.GetHubContext<AMErrorNotificationHub>();
+
+            // Start the broadcast loop
+            _broadcastLoop = new Timer(
+                AMErrors,
+                null,
+                interval,
+                interval);
+        }
+        private void AMErrors(object state)
+        {
+            _model = GetErrorData(connectionId, userId);
+            _hubContext.Clients.All.getAMErrors(_model);
+        }
+        public static ErrorNotificationSignalR Instance
+        {
+            get
+            {
+                return _instance.Value;
+            }
+        }
+        public void UpdateErrorNotification(string connectionId, string userId)
+        {
+            this.connectionId = connectionId; this.userId = userId;
+            if (_model == null) _model = GetErrorData(connectionId, userId);
+            _hubContext.Clients.Client(connectionId).getAMErrors(_model);
+        }
+        private List<ErrorNotifications> GetErrorData(string connectionId, string userId)
+        {
+            using(IHomeService homeSvc=new HomeService())
+            {
+               return  homeSvc.GetErrorNotificationList();
+            }
+        }
+    }
+
+    
+}

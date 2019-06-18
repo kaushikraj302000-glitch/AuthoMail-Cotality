@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Dapper;
 using AM.Entities;
+using AM.Lib;
 
 namespace AM.Services
 {
@@ -16,6 +17,7 @@ namespace AM.Services
         string GetClientNameById(int clientId);
         List<ClientIdName> GetAllActiveClient();
         int SetClientIdToUser(string userId, int clientId);
+        List<ErrorNotifications> GetErrorNotificationList();
     }
     public class HomeService : ServiceBase, IHomeService //It implements Interfaces 
     {
@@ -67,6 +69,19 @@ namespace AM.Services
         public int SetClientIdToUser(string userId, int clientId)
         {
             return db.Execute(HomeServiceQuery.SetClientIdToUser, new { clientId = clientId, userId = userId });
+        }
+
+
+        public List<ErrorNotifications> GetErrorNotificationList()
+        {
+            DateTime utcNow = DateTime.UtcNow;
+            DateTime startDate = utcNow.UtcToEst().ToStartDateTime();
+            DateTime endDate = utcNow.UtcToEst().ToEndDateTime();
+            string q = @"select e.*,b.BatchName,c.Name as ClientName from AM.ErrorNotifications e
+inner join AM.MailBatches b on e.MailBatchId=b.Id
+inner join Common.Clients c on e.ClientId=c.Id
+where e.ReceivedOn between @startDate and @endDate";
+            return db.Query<ErrorNotifications>(q, new { startDate = startDate, endDate = endDate }).ToList();
         }
     }
     public static class HomeServiceQuery
