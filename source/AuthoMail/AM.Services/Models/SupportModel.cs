@@ -46,6 +46,7 @@ namespace AM.Services
         public int ClientId { get; set; }
         public string DocTypeCode { get; set; }
         public string ClientName { get; set; }
+        public string AppCode { get; set; }
     }
     public class DocTypeCoverLetterVM
     {

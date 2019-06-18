@@ -13,7 +13,7 @@ namespace AM.Services
         //Remove Method(make sure below method in use)
         //List<MailPieces> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo)
         KeyValuePair<int, List<SearchViewModel>> GetMailPieceByParam
-            (int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo, List<string> errorList, bool isDownload);
+            (int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo, List<string> errorList, bool isDownload, int? mailPieceId);
         MailPieces GetMailPieceByUniqueId(Guid uniqueId);
         List<MailPieces> GetAllData(int clientId);
 
@@ -23,7 +23,7 @@ namespace AM.Services
     }
     public class SearchService : ServiceBase, ISearchService
     {
-        public KeyValuePair<int, List<SearchViewModel>> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo, List<string> errorList, bool isDownload)
+        public KeyValuePair<int, List<SearchViewModel>> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo, List<string> errorList, bool isDownload, int? mailPieceId)
         {
             string query = @"SELECT {{fields}}
 	 FROM AM.MailPieces m
@@ -86,8 +86,16 @@ namespace AM.Services
                 query = string.Format("{0} and m.ErrorCode in @ErrorCode", query);
                 parameter.Add("@ErrorCode", errorList);
             }
-            if (parameter.ParameterNames.Count() == 2 && !startDate.HasValue && !endDate.HasValue)
+            if (mailPieceId.HasValue)
+            {
+                query = string.Format("{0} and m.Id=@mailPieceId", query);
+                parameter.Add("@mailPieceId", mailPieceId);
+            }
+            if (!startDate.HasValue && (trackingNo.IsNullOrWhiteSpace() || clientBatchId.IsNullOrWhiteSpace() || businessFriendlyIdValue.IsNullOrWhiteSpace() || !mailBatchId.HasValue || !mailPieceId.HasValue))
                 startDate = endDate = Common.EstToday;
+
+            //if (parameter.ParameterNames.Count() == 2 && !startDate.HasValue && !endDate.HasValue)
+            //    startDate = endDate = Common.EstToday;
 
             if (startDate.HasValue && endDate.HasValue)
             {
