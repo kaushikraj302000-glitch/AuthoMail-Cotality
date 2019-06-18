@@ -3,6 +3,14 @@ PRINT 'Added two new column in Common.Envelopes table'
 ALTER TABLE Common.Envelopes
 ADD ReorderDuration INT NULL,MinStock INT NULL
 
+PRINT 'Added new column in AM.MailPieces,PnS.MRDFRequest,PnS.PrintTrailBatches table'
+ALTER TABLE AM.MailPieces
+ADD PDFFileSize BIGINT NULL
+ALTER TABLE PnS.MRDFRequest
+ADD PDFFileSize BIGINT NULL
+ALTER TABLE PnS.PrintTrailBatches
+ADD ZipFileSize BIGINT NULL
+
 PRINT 'Added new table PnS.EnvelopeUsage'
 CREATE TABLE [PnS].[EnvelopeUsage](
 	[PrintTrailBatchId] [int] NULL,
@@ -57,3 +65,20 @@ GO
 ALTER TABLE [AM].[ErrorNotifications] CHECK CONSTRAINT [FK_ErrorNotifications_MailBatches]
 GO
 
+PRINT 'Added new view view_EnvelopeInventoryData'
+CREATE VIEW [dbo].[view_EnvelopeInventoryData]
+AS
+
+WITH CTE AS
+(
+SELECT EnvelopeId,SUM(Quantity) AS TotalQuantityUsed
+FROM [PnS].[EnvelopeUsage] EU
+WHERE InsertedOn >=DATEADD(DAY,-30,GETUTCDATE())
+GROUP BY EnvelopeId
+)
+SELECT CTE.*
+,E.CurrentQuantity
+,(CTE.TotalQuantityUsed/30) AS AvgQuantityPerDay
+,((CTE.TotalQuantityUsed/30)*E.ReorderDuration)+(((CTE.TotalQuantityUsed/30)*E.ReorderDuration) * (30 / 100)) AS MinStockRequirement 
+FROM CTE 
+INNER JOIN Common.Envelopes E ON CTE.[EnvelopeId] = E.Id
