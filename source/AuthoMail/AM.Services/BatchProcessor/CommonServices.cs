@@ -412,8 +412,8 @@ namespace AM.Services
             }
             else
             {
-                string inQuery = "INSERT INTO AM.ErrorNotifications (MailBatchId, TotalMPsCount, ErrorMPsCount, ReceivedOn, CreatedOn) VALUES ( @MailBatchId, @TotalMPsCount, @ErrorMPsCount, @ReceivedOn, @CreatedOn)";
-                return db.Execute(inQuery, new { ErrorCount = errorMPCount, MailBatchId = mailBatch.Id, TotalMPsCount = totalMPCount, ReceivedOn = mailBatch.ReceivedOn.Value, CreatedOn = Common.Now });
+                string inQuery = "INSERT INTO AM.ErrorNotifications (ClientId, MailBatchId, TotalMPsCount, ErrorMPsCount, ReceivedOn, CreatedOn) VALUES (@ClientId, @MailBatchId, @TotalMPsCount, @ErrorMPsCount, @ReceivedOn, @CreatedOn)";
+                return db.Execute(inQuery, new { ClientId = mailBatch.ClientId, ErrorCount = errorMPCount, MailBatchId = mailBatch.Id, TotalMPsCount = totalMPCount, ReceivedOn = mailBatch.ReceivedOn.Value, CreatedOn = Common.Now });
             }
         }
     }
