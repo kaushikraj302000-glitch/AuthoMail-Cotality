@@ -27,5 +27,6 @@ namespace PCI.Service
         {
             get { return !ErrDesc.IsNullOrWhiteSpace(); }
         }
+        public Int64? PDFFileSize { get; set; }
     }
 }

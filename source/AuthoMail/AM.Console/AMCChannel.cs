@@ -650,6 +650,10 @@ namespace AM.Console
                                     mailPieceDTO.ErrorCode = OutComeCodes.No_Error;
                                     mailPieceDTO.DocTypeId = docType.Id;
 
+                                    //NOTE : Here system is storing file size of received pdf in KB
+                                    FileInfo fileInfo = new FileInfo(filePath);
+                                    mailPieceDTO.PDFFileSize = (fileInfo.Length / 1024);
+
                                     if (!mailPieceDTO.IsReturnInfoSpecified && !mailBatch.IsReturnInfoSpecified && docType.IsReturnInfoSpecified)
                                     {
                                         mailPieceDTO.RetRcptFirstName = docType.RetRcptFirstName;

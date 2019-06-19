@@ -312,7 +312,7 @@ namespace PCI.Service
                 DAL.UpdateSubmittedForAllResReceivedBatch(ptBatchDetails.Id);
 
                 DAL.UpdatePrintTrailBatchStatus(ptBatchDetails.Id, BatchPipelineStatus.Submitted, currentTime);
-                
+
                 //NOTE : Here we are inserting used envelope stock by PrintTrailBatch in EnvelopeUsage table
                 DAL.UpdateEnvelopeInventory(ptBatchDetails, envelopeData);
 
@@ -426,6 +426,11 @@ namespace PCI.Service
                 //make an entry for mrdf file after making entries of files into zip
                 newFile.CreateEntryFromFile(mrdfFilePath, Path.GetFileName(mrdfFilePath));
             }
+
+            //NOTE : Here system is storing file size of received pdf in KB
+            FileInfo fileInfo = new FileInfo(zipFilePath);
+            Int64 fileSize = (fileInfo.Length / 1024);
+            DAL.UpdatePrintTrailBatchSize(ptBatchDetails.Id, fileSize);
 
             return zipFilePath;
         }

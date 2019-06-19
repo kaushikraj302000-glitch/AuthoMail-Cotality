@@ -348,6 +348,10 @@ namespace AM.Console
                                         sftSite.DownloadFile(sftFilePath, localFilePath);
                                     }
 
+                                    //NOTE : Here system is storing file size of received pdf in KB
+                                    FileInfo fileInfo = new FileInfo(localFilePath);
+                                    mailPieceDTO.PDFFileSize = (fileInfo.Length / 1024);
+
                                     //Creating collection for moving or deleting files because it may have same file for multiple nodes so can't move or delete at these level.
                                     fileListToMoveOrDelete.Add(sftFilePath);
 

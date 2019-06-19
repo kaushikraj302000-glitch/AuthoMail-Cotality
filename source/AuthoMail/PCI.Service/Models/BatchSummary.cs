@@ -203,5 +203,6 @@ namespace PCI.Service
         public bool IsSuspended { get; set; }
         public DateTime? SuspendedOn { get; set; }
         public string ValidationErrors { get; set; }
+        public Int64? ZipFileSize { get; set; }
     }
 }

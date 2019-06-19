@@ -811,6 +811,10 @@ namespace AM.Console
             }
             else
             {
+                //NOTE : Here system is storing file size of received pdf in KB
+                FileInfo fileInfo = new FileInfo(filePath);
+                mailPieceDTO.PDFFileSize = (fileInfo.Length / 1024);
+
                 //if at mail piece level or at mail batch level, system didn't find return info then it will check for MailBatch level if exist system will use that in mail piece level 
                 if (!mailPieceDTO.IsReturnInfoSpecified || !mbi.MailBatch.IsReturnInfoSpecified)
                 {
