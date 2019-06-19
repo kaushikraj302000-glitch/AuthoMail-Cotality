@@ -10,6 +10,7 @@
     <hr />
     <form id="coverletterform" action="#">
         <input type="hidden" name="Id" id="Id" value="@ViewBag.ClientId" />
+        <input type="hidden" name="AppCode" id="AppCode" value="@ViewBag.AppCode" />
         <div class="form-group">
             <label for="Description">Document Type</label>
             <div class="input-group">
@@ -96,6 +97,42 @@ else
         });
         MadeFileList();
     }
+    function DownloadCoverLetter(obj) {
+        $.ajax({
+            type: "POST",
+            url: baseUrl + "Admin/DownloadCoverLetter",
+            data: JSON.stringify({
+                fileName: $(obj).data("filename"),
+                appCode: $(obj).data("appcode")
+            }),
+            contentType: "application/json; charset=utf-8",
+            success: function (response) {
+                //console.log(response);
+                if (response.Success) {
+                    if (response.Object != null) {
+                        alertMessage("green", "File downloaded successfully.");
+                        window.location = baseUrl + 'Admin/_DownloadCoverLetter?fileGuid=' + response.Object.model.FileGuid
+                      + '&filename=' + response.Object.model.FileName;
+                    }
+                    else {
+                        alertMessage("red", "File not found.");
+                    }
+                } else {
+                    alertMessage("red", response.ErrorMessage);
+                }
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                window.clui.globalAlert({
+                    message: "@AM.Services.Config.Web_Msg_Ajax_CommonError",
+                    alertType: 'red',
+                    timeout: 5000
+                });
+
+            }
+
+        });
+        return false;
+    }
 
     function MadeFileList() {
         var fileList = $("#fileList");
@@ -107,7 +144,7 @@ else
             for (var i = 0; i < coverletterList.length; i++) {
 
                 if (coverletterList[i].file == null) {
-                    tr = tr + "<tr><td>" + coverletterList[i].fileName + "</td><td>" + coverletterList[i].seqId + "</td><td>--</td></tr>";
+                    tr = tr + "<tr><td>" + coverletterList[i].fileName + "</td><td>" + coverletterList[i].seqId + "</td><td><span style='cursor: pointer;' data-filename='" + coverletterList[i].fileName + "' data-appcode='" + $("#AppCode").val() + "' onclick='DownloadCoverLetter(this)'>  <i class='fa fa-download'></i></span></td></tr>";
                 } else {
 
                     tr = tr + "<tr><td><input class='form-control' type='text' id='FileName' name='FileName' value='" + coverletterList[i].fileName + "'/></td><td><input type='number' min='" + coverletterList[i].seqId + "' class='form-control' id='SeqId' name='SeqId' value='" + coverletterList[i].seqId + "'/></td><td><span style='cursor: pointer;' onclick='RemoveFile(\"" + coverletterList[i].fileName + "\")'>  <i class='fa fa-times'></i></span></td></tr>";
