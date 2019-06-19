@@ -21,7 +21,7 @@ namespace AM.Web.AMHub
         //private bool _modelUpdated;
         private List<ErrorNotifications> _model;
         private string connectionId;
-        private string userId;
+        private int? LastId;
         public ErrorNotificationSignalR()
         {
             // Save our hub context so we can easily use it 
@@ -37,7 +37,7 @@ namespace AM.Web.AMHub
         }
         private void AMErrors(object state)
         {
-            _model = GetErrorData(connectionId, userId);
+            _model = GetErrorData();
             _hubContext.Clients.All.getAMErrors(_model);
         }
         public static ErrorNotificationSignalR Instance
@@ -47,20 +47,24 @@ namespace AM.Web.AMHub
                 return _instance.Value;
             }
         }
-        public void UpdateErrorNotification(string connectionId, string userId)
+        public void UpdateErrorNotification(string connectionId)
         {
-            this.connectionId = connectionId; this.userId = userId;
-            if (_model == null) _model = GetErrorData(connectionId, userId);
+            this.connectionId = connectionId;
+            if (_model == null) _model = GetErrorData();
             _hubContext.Clients.Client(connectionId).getAMErrors(_model);
         }
-        private List<ErrorNotifications> GetErrorData(string connectionId, string userId)
+        private List<ErrorNotifications> GetErrorData()
         {
-            using(IHomeService homeSvc=new HomeService())
+            using (IHomeService homeSvc = new HomeService())
             {
-               return  homeSvc.GetErrorNotificationList();
+                var errorsData = homeSvc.GetErrorNotificationList(LastId);
+                int maxId = errorsData != null && errorsData.Count > 0 ? errorsData.Max(e => e.Id) : 0;
+                if (maxId != 0 && maxId != LastId)
+                    LastId = maxId;
+                return errorsData;
             }
         }
     }
 
-    
+
 }

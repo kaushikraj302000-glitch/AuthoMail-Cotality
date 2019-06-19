@@ -34,10 +34,15 @@ GO
 ALTER TABLE [PnS].[EnvelopeUsage] CHECK CONSTRAINT [FK_EnvelopeUsage_PrintTrailBatches]
 GO
 
+CREATE INDEX Idx_EnvelopeUsage_PrintTrailBatchId
+ON [PnS].[EnvelopeUsage] (PrintTrailBatchId);
+GO
+
+
 PRINT 'Added new table AM.ErrorNotifications'
 
 CREATE TABLE [AM].[ErrorNotifications](
-	[Id] [int] IDENTITY(1001,1) NOT NULL,
+	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[ClientId] [int] NOT NULL,
 	[MailBatchId] [int] NOT NULL,
 	[TotalMPsCount] [int] NOT NULL,
@@ -51,18 +56,12 @@ CREATE TABLE [AM].[ErrorNotifications](
 ) ON [PRIMARY]
 GO
 
-ALTER TABLE [AM].[ErrorNotifications]  WITH CHECK ADD  CONSTRAINT [FK_ErrorNotifications_Clients] FOREIGN KEY([ClientId])
-REFERENCES [Common].[Clients] ([Id])
+CREATE UNIQUE INDEX Idx_ErrorNotifications_MailBatchId
+ON AM.ErrorNotifications (MailBatchId);
 GO
 
-ALTER TABLE [AM].[ErrorNotifications] CHECK CONSTRAINT [FK_ErrorNotifications_Clients]
-GO
-
-ALTER TABLE [AM].[ErrorNotifications]  WITH CHECK ADD  CONSTRAINT [FK_ErrorNotifications_MailBatches] FOREIGN KEY([MailBatchId])
-REFERENCES [AM].[MailBatches] ([Id])
-GO
-
-ALTER TABLE [AM].[ErrorNotifications] CHECK CONSTRAINT [FK_ErrorNotifications_MailBatches]
+CREATE INDEX Idx_ErrorNotifications_ClientId
+ON AM.ErrorNotifications (ClientId);
 GO
 
 PRINT 'Added new view view_EnvelopeInventoryData'
@@ -79,6 +78,41 @@ GROUP BY EnvelopeId
 SELECT CTE.*
 ,E.CurrentQuantity
 ,(CTE.TotalQuantityUsed/30) AS AvgQuantityPerDay
-,((CTE.TotalQuantityUsed/30)*E.ReorderDuration)+(((CTE.TotalQuantityUsed/30)*E.ReorderDuration) * (30 / 100)) AS MinStockRequirement 
+,((CTE.TotalQuantityUsed/30)*E.ReorderDuration) AS MinStockRequirement 
+,(((CTE.TotalQuantityUsed/30)*E.ReorderDuration) * (30 / 100)) AS BufferStock
 FROM CTE 
 INNER JOIN Common.Envelopes E ON CTE.[EnvelopeId] = E.Id
+GO
+
+PRINT 'Added new sp	usp_InsertErrorNotificationData'
+
+CREATE PROCEDURE [dbo].[usp_InsertErrorNotificationData]
+@mailBatchId int
+AS
+BEGIN
+	SET NOCOUNT ON;
+
+	DECLARE @TotalMPs INT,@ErrorMPs INT,@Count INT,@CurrentErrorMps INT
+
+	SET @Count=(SELECT COUNT(*) FROM AM.ErrorNotifications WHERE MailBatchId=@mailBatchId)
+	SET @TotalMPs=(SELECT COUNT(*) FROM AM.MailPieces WHERE MailBatchId=@mailBatchId)
+	SET @ErrorMPs=(SELECT COUNT(*) FROM AM.MailPieces WHERE MailBatchId=@mailBatchId AND ShippingStatus='Error')
+
+	IF(@Count > 0)
+	BEGIN
+		SET @CurrentErrorMps=(SELECT ErrorMPsCount FROM AM.ErrorNotifications WHERE MailBatchId=@mailBatchId)
+
+		IF(@ErrorMPs>@CurrentErrorMps)
+		BEGIN
+			DELETE FROM AM.ErrorNotifications WHERE MailBatchId=@mailBatchId
+
+			INSERT INTO AM.ErrorNotifications(ClientId, MailBatchId, TotalMPsCount, ErrorMPsCount, ReceivedOn, CreatedOn)
+			SELECT ClientId,Id,@TotalMPs,@ErrorMPs,ReceivedOn,GETUTCDATE() FROM AM.MailBatches WHERE Id=@mailBatchId
+		END
+	END
+	ELSE
+	BEGIN
+		INSERT INTO AM.ErrorNotifications(ClientId, MailBatchId, TotalMPsCount, ErrorMPsCount, ReceivedOn, CreatedOn)
+		SELECT ClientId,Id,@TotalMPs,@ErrorMPs,ReceivedOn,GETUTCDATE() FROM AM.MailBatches WHERE Id=@mailBatchId
+	END
+END

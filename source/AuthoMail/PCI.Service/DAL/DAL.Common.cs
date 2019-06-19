@@ -155,5 +155,10 @@ namespace PCI.Service
         {
             return db.ExecuteSqlScalar<int>("SELECT TOP 1 Id FROM AM.MailPieces WHERE UniqueId=@p1 ORDER BY Id DESC", uniqueId);
         }
+
+        public static int UpdatePrintTrailBatchSize(int printTrailBatchId, Int64 zipFileSize)
+        {
+            return db.ExecuteSqlNonQuery("UPDATE [PnS].[PrintTrailBatches] SET ZipFileSize = @p1 WHERE Id = @p2", zipFileSize, printTrailBatchId);
+        }
     }
 }

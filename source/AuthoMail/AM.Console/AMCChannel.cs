@@ -650,6 +650,10 @@ namespace AM.Console
                                     mailPieceDTO.ErrorCode = OutComeCodes.No_Error;
                                     mailPieceDTO.DocTypeId = docType.Id;
 
+                                    //NOTE : Here system is storing file size of received pdf in KB
+                                    FileInfo fileInfo = new FileInfo(filePath);
+                                    mailPieceDTO.PDFFileSize = (fileInfo.Length / 1024);
+
                                     if (!mailPieceDTO.IsReturnInfoSpecified && !mailBatch.IsReturnInfoSpecified && docType.IsReturnInfoSpecified)
                                     {
                                         mailPieceDTO.RetRcptFirstName = docType.RetRcptFirstName;
@@ -751,9 +755,13 @@ namespace AM.Console
                         throw new Exception("Mail pieces count and received xml count is mismatched for Batch-Id : {0}<br/>".Fill(mailBatch.Id) + "Mail Piece count is {0} and received xml nodes count is {1}".Fill(mailPieceData.Count, totalNodes));
                     }
 
-                    Channel.CalculateDueDateAndPrintLocation(mailBatch, mailPieceData);
-                    commonSvc.InsertUpdateErrorNotifications(mailBatch, mailPieceData.Count, mailPieceData.Where(mp => mp.ShippingStatus == ShippingStatus.Error.ToString()).Count());
+                    Channel.CalculateDueDateAndPrintLocation(mailBatch, mailPieceData);                   
+
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
+
+                    int errorMPCount = mailPieceData.Where(mp => mp.ShippingStatus == ShippingStatus.Error.ToString()).Count();
+                    if (errorMPCount > 0)
+                        commonSvc.InsertErrorNotifications(mailBatch.Id);
                 }
                 catch (Exception ex)
                 {
