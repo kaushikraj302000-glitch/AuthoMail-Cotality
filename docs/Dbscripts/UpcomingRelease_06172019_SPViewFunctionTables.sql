@@ -56,13 +56,6 @@ CREATE TABLE [AM].[ErrorNotifications](
 ) ON [PRIMARY]
 GO
 
-ALTER TABLE [AM].[ErrorNotifications]  WITH CHECK ADD  CONSTRAINT [FK_ErrorNotifications_Clients] FOREIGN KEY([ClientId])
-REFERENCES [Common].[Clients] ([Id])
-GO
-
-ALTER TABLE [AM].[ErrorNotifications] CHECK CONSTRAINT [FK_ErrorNotifications_Clients]
-GO
-
 CREATE UNIQUE INDEX Idx_ErrorNotifications_MailBatchId
 ON AM.ErrorNotifications (MailBatchId);
 GO
