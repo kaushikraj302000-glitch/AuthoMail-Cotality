@@ -100,7 +100,7 @@ namespace PCI.Service
 
         public static void InsertMRDFRequestData(List<PCIField> mrdfRequestSchema, List<MRDFRequest> mrdfRequest)
         {
-            var usedColumns = new[] { "JobId", "PieceId", "Date", "TotalSheets", "Address1", "UniqueId", "PDFFileName", "MailPieceStatus", "ErrId", "ErrDesc", "Expansion", "DivertVS3", "Feeder4_Sel" };
+            var usedColumns = new[] { "JobId", "PieceId", "Date", "TotalSheets", "Address1", "UniqueId", "PDFFileName", "MailPieceStatus", "ErrId", "ErrDesc", "Expansion", "DivertVS3", "Feeder4_Sel", "PDFFileSize" };
             var defaultedColumns = mrdfRequestSchema
                 .Where(f => !usedColumns.Contains(f.FieldName)).ToList();
 
@@ -121,7 +121,7 @@ namespace PCI.Service
 
             foreach (var mrdf in mrdfRequest)
             {
-                var usedColumnValues = new object[] { mrdf.JobId, mrdf.PieceId, mrdf.Date, mrdf.TotalSheets, mrdf.Address1, mrdf.UniqueId, mrdf.PDFFileName, mrdf.MailPieceStatus, mrdf.ErrId, mrdf.ErrDesc, mrdf.Expansion, mrdf.DivertVS3, mrdf.Feeder4_Sel };
+                var usedColumnValues = new object[] { mrdf.JobId, mrdf.PieceId, mrdf.Date, mrdf.TotalSheets, mrdf.Address1, mrdf.UniqueId, mrdf.PDFFileName, mrdf.MailPieceStatus, mrdf.ErrId, mrdf.ErrDesc, mrdf.Expansion, mrdf.DivertVS3, mrdf.Feeder4_Sel, mrdf.PDFFileSize };
 
                 var values = usedColumnValues.Concat(defaultValues);
 

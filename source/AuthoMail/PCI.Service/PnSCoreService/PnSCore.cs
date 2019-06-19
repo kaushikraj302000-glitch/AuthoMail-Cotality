@@ -778,6 +778,10 @@ namespace PCI.Service
                     }
                 }
                 #endregion
+                
+                //NOTE : Here system is storing file size of received pdf in KB
+                FileInfo fileInfo = new FileInfo(outPDF);
+                mrdf.PDFFileSize = (fileInfo.Length / 1024);
 
                 return pageCountBySize;
             }
