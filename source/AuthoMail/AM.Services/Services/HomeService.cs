@@ -17,7 +17,8 @@ namespace AM.Services
         string GetClientNameById(int clientId);
         List<ClientIdName> GetAllActiveClient();
         int SetClientIdToUser(string userId, int clientId);
-        List<ErrorNotifications> GetErrorNotificationList();
+        List<ErrorNotifications> GetErrorNotificationList(int? LastId);
+        List<MailPiece> GetErrorMailPieces(DateTime startDate, DateTime endDate, int? clientId);
     }
     public class HomeService : ServiceBase, IHomeService //It implements Interfaces 
     {
@@ -72,16 +73,34 @@ namespace AM.Services
         }
 
 
-        public List<ErrorNotifications> GetErrorNotificationList()
+        public List<ErrorNotifications> GetErrorNotificationList(int? LastId)
         {
-            DateTime utcNow = DateTime.UtcNow;
-            DateTime startDate = utcNow.UtcToEst().ToStartDateTime();
-            DateTime endDate = utcNow.UtcToEst().ToEndDateTime();
-            string q = @"select e.*,b.BatchName,c.Name as ClientName from AM.ErrorNotifications e
-inner join AM.MailBatches b on e.MailBatchId=b.Id
-inner join Common.Clients c on e.ClientId=c.Id
-where e.ReceivedOn between @startDate and @endDate";
-            return db.Query<ErrorNotifications>(q, new { startDate = startDate, endDate = endDate }).ToList();
+            if (LastId.HasValue)
+            {
+                string q = "select * from AM.ErrorNotifications where Id > @Id";
+                return db.Query<ErrorNotifications>(q, new { Id = LastId.Value }).ToList();
+            }
+            else
+            {
+                DateTime utcNow = DateTime.UtcNow;
+                DateTime startDate = utcNow.UtcToEst().ToStartDateTime().EstToUtc();
+                DateTime endDate = utcNow.UtcToEst().ToEndDateTime().EstToUtc();
+                string q = @"select * from AM.ErrorNotifications where ReceivedOn between @startDate and @endDate";
+                return db.Query<ErrorNotifications>(q, new { startDate = startDate, endDate = endDate }).ToList();
+            }
+        }
+
+
+
+        public List<MailPiece> GetErrorMailPieces(DateTime startDate, DateTime endDate, int? clientId)
+        {
+            string q = "select m.* from AM.Mailpieces m inner join AM.MailBatches b on m.MailBatchid=b.Id where b.ReceivedOn between @startDate and @endDate";
+            if (clientId.HasValue)
+            {
+                q = string.Format("{0} and m.ClientId=@clientId", q);
+                return db.Query<MailPiece>(q, new { startDate = startDate, endDate = endDate, clientId = clientId }).ToList();
+            }
+            return db.Query<MailPiece>(q, new { startDate = startDate, endDate = endDate }).ToList();
         }
     }
     public static class HomeServiceQuery
