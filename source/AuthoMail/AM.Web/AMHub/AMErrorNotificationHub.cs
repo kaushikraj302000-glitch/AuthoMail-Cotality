@@ -18,9 +18,9 @@ namespace AM.Web.AMHub
         {
             this._eNoti = _eNoti;
         }
-        public void InitialConnection(string conId, string userId)//Get Connection id
+        public void InitialConnection(string conId)//Get Connection id
         {
-            _eNoti.UpdateErrorNotification(conId, userId);
+            _eNoti.UpdateErrorNotification(conId);
         }
         public override System.Threading.Tasks.Task OnReconnected()
         {
@@ -30,6 +30,10 @@ namespace AM.Web.AMHub
         {
             return base.OnDisconnected(stopCalled);
         }
+        public override System.Threading.Tasks.Task OnConnected()
+        {
+            return base.OnConnected();
+        }
     }
-   
+
 }

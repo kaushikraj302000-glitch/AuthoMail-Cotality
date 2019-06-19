@@ -32,6 +32,12 @@
         <script src="~/signalr/hubs"></script>
     <!--SignalR script to update the chat page and send messages.-->
         <script type="text/javascript">
+            var NotifyMessageVM = function (TotalErrors, HasNotify, HasErrors, Message) {
+                this.TotalErrors = TotalErrors;
+                this.HasNotify = HasNotify;
+                this.HasErrors = HasErrors;
+                this.Message = Message;
+            }
             $(document).ready(function () {
                 var LastLogin = function () {
                     $.ajax({
@@ -47,16 +53,15 @@
 
                 var NotificationHub = function () {
                     var userId = '@User.Identity.GetUserId()';
-                    var clientId = '@User.Identity.GetClientId()';
-                    var isAdmin = '@User.IsInRole(AMRoles.Admin)';
+
                     var amhub = $.connection.aMErrorNotificationHub;
 
                     amhub.client.getAMErrors = function (response) {
-                        console.log(JSON.stringify(response));
+                        //console.log(JSON.stringify(response));
                         FilterData(response);
                     };
                     $.connection.hub.start().done(function () {
-                        amhub.server.initialConnection($.connection.hub.id, userId);
+                        amhub.server.initialConnection($.connection.hub.id);
                     });
                     $.connection.hub.error(function (error) {
                         console.log('communication error: ' + error);
@@ -66,17 +71,15 @@
                     };
                 }
                 var FilterData = function (response) {
-                    if (response == null || response == "") return false;
-                    var totalErrors = 0;
-                    for (var i = 0; i < response.length; i++) {
-                        totalErrors += (isAdmin || clientId == response[i].ClientId) ? response[i].ErrorMPsCount : 0;
-                    }                    
-                    if (totalErrors > 0) {
-                        $('#ErrorNotificationSpan').html('<i class="fa fa-exclamation-triangle" style="color:red"></i>');
-                        notify("Total " + totalErrors + " errors has beed found today.");
+                    //if (response == null || response == "") return false;
+                    var notifyObj = FilterAndStorage(response);
+                    if (notifyObj.HasErrors) {
+                        $('#ErrorNotificationSpan').html('<a href="/Report/ErrorsReport" title="Errors"><i class="fa fa-exclamation-triangle" style="color:red"></i></a>');
+                        if (notifyObj.HasNotify)
+                            notify(notifyObj.Message);
                     }
                     else {
-                        $('#ErrorNotificationSpan').empty();
+                        $('#ErrorNotificationSpan').html('<a href="/Report/ErrorsReport" title="Errors"><i class="fa fa-exclamation-triangle" style="color:white"></i></a>');
                     }
                 }
                 NotificationHub();
@@ -93,7 +96,7 @@
                 }
 
                 function onClickNotification() {
-                    window.location.replace(baseUrl + "Home/Index");
+                    window.location.replace(baseUrl + "Report/ErrorsReport");
                 }
 
                 function onErrorNotification() {
@@ -132,6 +135,54 @@
                 } else if (Notify.isSupported()) {
                     Notify.requestPermission(onPermissionGranted, onPermissionDenied);
                 }
+            }
+
+            var FilterAndStorage = function (data) {
+                var clientId = '@User.Identity.GetClientId()';
+                var isAdmin = '@User.IsInRole(AMRoles.Admin)';
+                if (typeof (Storage) !== "undefined") {
+                    var lastErrorsIds = localStorage.getItem("LastErrorsIds");
+                    var IdsArr = new Array();
+                    var totalErrors = 0;
+                    var hasError = false;
+                    var msg = "";
+                    for (var i = 0; i < data.length; i++) {
+                        if (isAdmin) {
+                            IdsArr.push(data[i].Id);
+                        }
+                        else {
+                            if (clientId == data[i].ClientId) IdsArr.push(data[i].Id);
+                        }
+                        totalErrors += (isAdmin || clientId == data[i].ClientId) ? data[i].ErrorMPsCount : 0;
+                        hasError = totalErrors != 0;
+                        if (hasError) msg = "Total " + totalErrors + " new errors has been found.";
+                    }
+                    if (hasError) {
+                        if (lastErrorsIds == undefined || lastErrorsIds == null || lastErrorsIds == "") {
+                            localStorage.setItem("LastErrorsIds", IdsArr);
+                            return new NotifyMessageVM(totalErrors, true, hasError, msg);
+                        }
+                        else {
+                            var oldData = GetFromSessionStorage();
+                            if (oldData == IdsArr) {
+                                return new NotifyMessageVM(totalErrors, false, hasError, msg);
+                            }
+                            else {
+                                localStorage.setItem("LastErrorsIds", IdsArr);
+                                return new NotifyMessageVM(totalErrors, true, hasError, msg);
+                            }
+                        }
+                    }
+                    else {
+                        localStorage.setItem("LastErrorsIds", IdsArr);
+                        return new NotifyMessageVM(totalErrors, false, hasError, msg);
+                    }
+                } else {
+                    console.log("Sorry! No Web Storage support.");
+                }
+            }
+            var GetFromSessionStorage = function () {
+                return localStorage.getItem("LastErrorsIds");
             }
         </script>
     }
