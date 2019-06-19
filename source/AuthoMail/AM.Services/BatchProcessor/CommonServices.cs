@@ -34,7 +34,7 @@ namespace AM.Services
         int GetPrintTrail(DocType docType, DateTime estEffectiveReceivedOn);
         DateTime GetDueDate(DocType docType, DateTime estEffectiveReceivedOn);
         DateTime GetEffectiveEstReceivedOn(DocType docType, DateTime utcReceivedOn);
-        int InsertUpdateErrorNotifications(MailBatchDTO mailBatch, int totalMPCount, int errorMPCount);
+        int InsertErrorNotifications(int mailBatchId);
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -400,28 +400,9 @@ namespace AM.Services
             return estDateTime;
         }
 
-        public int InsertUpdateErrorNotifications(MailBatchDTO mailBatch, int totalMPCount, int errorMPCount)
+        public int InsertErrorNotifications(int mailBatchId)
         {
-            string query = "SELECT * FROM AM.ErrorNotifications WHERE MailBatchId=@MailBatchId";
-            var errMP = db.QuerySingle<ErrorNotifications>(query, new { MailBatchId = mailBatch.Id });
-
-            if (errMP != null)
-            {
-                int currentErrMpCount = errMP.ErrorMPsCount;
-
-                if (errorMPCount == currentErrMpCount)
-                    return 0;
-
-                string upQuery = "DELETE FROM AM.ErrorNotifications WHERE MailBatchId=@MailBatchId";
-                db.Execute(upQuery, new { MailBatchId = mailBatch.Id });
-                string inQuery = "INSERT INTO AM.ErrorNotifications (ClientId, MailBatchId, TotalMPsCount, ErrorMPsCount, ReceivedOn, CreatedOn) VALUES (@ClientId, @MailBatchId, @TotalMPsCount, @ErrorMPsCount, @ReceivedOn, @CreatedOn)";
-                return db.Execute(inQuery, new { ClientId = mailBatch.ClientId, ErrorCount = errorMPCount, MailBatchId = mailBatch.Id, TotalMPsCount = totalMPCount, ReceivedOn = mailBatch.ReceivedOn.Value, CreatedOn = Common.Now });
-            }
-            else
-            {
-                string inQuery = "INSERT INTO AM.ErrorNotifications (ClientId, MailBatchId, TotalMPsCount, ErrorMPsCount, ReceivedOn, CreatedOn) VALUES (@ClientId, @MailBatchId, @TotalMPsCount, @ErrorMPsCount, @ReceivedOn, @CreatedOn)";
-                return db.Execute(inQuery, new { ClientId = mailBatch.ClientId, ErrorCount = errorMPCount, MailBatchId = mailBatch.Id, TotalMPsCount = totalMPCount, ReceivedOn = mailBatch.ReceivedOn.Value, CreatedOn = Common.Now });
-            }
+            return db.Execute("usp_InsertErrorNotificationData", new { mailBatchId = mailBatchId });
         }
     }
 }

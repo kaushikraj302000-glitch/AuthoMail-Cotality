@@ -516,7 +516,7 @@ namespace AM.Core
 
                                 int errorMPCount = mailPieces.Where(mp => mp.ShippingStatus == ShippingStatus.Error.ToString()).Count();
                                 if (errorMPCount > 0)
-                                    commonSvc.InsertUpdateErrorNotifications(mailBatch, mailPieces.Count, errorMPCount);
+                                    commonSvc.InsertErrorNotifications(mailBatch.Id);
                             }
                         }
                         catch (Exception ex)
@@ -1183,6 +1183,9 @@ namespace AM.Core
                                     break;
                             }
                             mailBatchSvc.UpdatePrintBatchPipelineStatus(printBatch.PrintBatchId, BatchPipelineStatus.ReportPrepped, Common.Now);
+                            int errorMPCount = printBatchMailPieces.Where(mp => mp.ShippingStatus == ShippingStatus.Error.ToString()).Count();
+                            if (errorMPCount > 0)
+                                commonSvc.InsertErrorNotifications(mailBatch.Id);
                         }
 
                         var mailPiecesData = mailPieceSvc.GetMailPiecesByMailBatchId(printBatch.MailBatchId);
