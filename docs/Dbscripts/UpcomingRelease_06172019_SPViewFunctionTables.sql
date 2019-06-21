@@ -117,3 +117,30 @@ BEGIN
 	end
 
 END
+
+PRINT 'Added new table [AM].[AlertSubscribers]'
+CREATE TABLE [AM].[AlertSubscribers](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[UserId] [nvarchar](128) NOT NULL,
+	[ClientId] [int] NOT NULL,
+	[AlertType] [varchar](255) NOT NULL,
+ CONSTRAINT [PK_AlertSubscribers] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [AM].[AlertSubscribers]  WITH CHECK ADD  CONSTRAINT [FK_AlertSubscribers_Clients] FOREIGN KEY([ClientId])
+REFERENCES [Common].[Clients] ([Id])
+GO
+
+ALTER TABLE [AM].[AlertSubscribers] CHECK CONSTRAINT [FK_AlertSubscribers_Clients]
+GO
+
+ALTER TABLE [AM].[AlertSubscribers]  WITH CHECK ADD  CONSTRAINT [FK_AlertSubscribers_Users] FOREIGN KEY([UserId])
+REFERENCES [Profile].[Users] ([Id])
+GO
+
+ALTER TABLE [AM].[AlertSubscribers] CHECK CONSTRAINT [FK_AlertSubscribers_Users]
+GO
