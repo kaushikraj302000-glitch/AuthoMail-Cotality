@@ -75,7 +75,10 @@
                                 <li>@Html.ActionLink("SLA Report", "ErrorSLAReport", "Report")</li>
                                 <li>@Html.ActionLink("Monthly Recon Report", "MonthlyReconReport", "Report")</li>
                                 <li>@Html.ActionLink("Pullback Request Report", "PullbackRequestReport", "Report")</li>
-                                <li>@Html.ActionLink("Supply Inventory Report", "SupplyInventoryReport", "Report")</li>
+                                @if (User.IsInRole(AM.Entities.AMRoles.Admin) || User.IsInRole(AM.Entities.AMRoles.BA) || User.IsInRole(AM.Entities.AMRoles.CoreLogicUserManager))
+                                {
+                                    <li>@Html.ActionLink("Supply Inventory Report", "SupplyInventoryReport", "Report")</li>
+                                }
                                 <li>@Html.ActionLink("Report Wizard", "ReportWizard", "Report")</li>
 
                             </ul>

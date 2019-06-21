@@ -214,6 +214,7 @@
                     var docTypeId = parseInt($("#AddCoverLetterModal").find(".modal-header").find("#DocTypeId").val());
                     var fileName = $("#AddCoverLetterModal").find(".modal-header").find("#FileName").val();
                     var seqId = parseInt($("#AddCoverLetterModal").find(".modal-header").find("#SeqId").val());
+                    var AppCode = $("#AddCoverLetterModal").find(".modal-header").find("#AppCode").val();
                     var file = $("#AddCoverLetterModal").find(".modal-header").find("#file").prop('files')[0];
                     //console.log(file);
                     $("#AddCoverLetterModal").modal("hide");
@@ -223,6 +224,7 @@
                     formData.append("file", file);
                     formData.append("docTypeId", docTypeId);
                     formData.append("seqId", seqId);
+                    formData.append("appCode", AppCode);
                     formData.append("fileName", fileName);
                     $.ajax({
                         //dataType: 'json',

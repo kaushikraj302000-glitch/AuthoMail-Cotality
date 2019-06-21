@@ -51,10 +51,14 @@ namespace AM.Scanner.Controllers
             try
             {
 
-                if (Request.Params["param"].Replace("id=", "").Trim() == "c711c4aa-8559-44fa-9edc-88600f38b3c9")
+                if (Request.Headers["Id"].Trim() == "c711c4aa-8559-44fa-9edc-88600f38b3c9")
                 {
-                    Request.Files[1].SaveAs(Path.Combine(ConfigurationManager.AppSettings["CoverLetterPath"].ToString(), Request.Files[0].FileName));
-                    //System.IO.File.WriteAllBytes(Path.Combine(ConfigurationManager.AppSettings["CoverLetterPath"].ToString(), fileName), fileData);
+                    string path = Path.Combine(ConfigurationManager.AppSettings["CoverLetterPath"].ToString(), Request.Headers["AppCode"].Trim());
+                    if (!Directory.Exists(path))
+                    {
+                        Directory.CreateDirectory(path);
+                    }
+                    Request.Files[0].SaveAs(Path.Combine(path, Request.Headers["FileName"].Trim()));
                     return Json("File save successfully.", JsonRequestBehavior.AllowGet);
                 }
                 else

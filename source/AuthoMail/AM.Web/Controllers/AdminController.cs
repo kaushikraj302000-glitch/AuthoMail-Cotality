@@ -278,6 +278,7 @@ namespace AM.Web.Controllers
                 ViewBag.IsModelEmpty = false;
                 ViewBag.ClientId = id;
                 ViewBag.ClientName = model.FirstOrDefault().ClientName;
+                ViewBag.AppCode = model.FirstOrDefault().AppCode;
                 ViewBag.DocType = new SelectList(model, "Id", "DocTypeCode");
             }
             return PartialView();
@@ -286,7 +287,7 @@ namespace AM.Web.Controllers
 
         [Authorize(Roles = AMRoles.Admin)]
         [HttpPost]
-        public ActionResult _AddCoverLetter(int docTypeId, int seqId, string fileName, HttpPostedFileBase file)
+        public ActionResult _AddCoverLetter(int docTypeId, int seqId, string fileName, string appCode, HttpPostedFileBase file)
         {
             try
             {
@@ -294,26 +295,24 @@ namespace AM.Web.Controllers
                 coverLetter.DocTypeId = docTypeId;
                 coverLetter.SeqId = seqId;
                 coverLetter.CoverLetterTemplatePath = fileName;
-                HttpClient client = new HttpClient();
-                Dictionary<string, string> parameters = new Dictionary<string, string>();
-                parameters.Add("id", "c711c4aa-8559-44fa-9edc-88600f38b3c9");
 
+                HttpClient client = new HttpClient();
+                client.DefaultRequestHeaders.Add("AppCode", appCode);
+                client.DefaultRequestHeaders.Add("Id", "c711c4aa-8559-44fa-9edc-88600f38b3c9");
+                client.DefaultRequestHeaders.Add("FileName", fileName);
                 MultipartFormDataContent form = new MultipartFormDataContent();
                 HttpContent content = new StringContent("file");
-                HttpContent DictionaryItems = new FormUrlEncodedContent(parameters);
-                form.Add(content, "file", fileName);
-                form.Add(DictionaryItems, "param");
                 content = new StreamContent(file.InputStream);
                 content.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
                 {
                     Name = "file",
-                    FileName = fileName
+                    FileName = file.FileName
                 };
-                form.Add(content);
+                form.Add(content, "file", fileName);
                 var validateCoverLetter = supportSvc.ValidateDocTypeCoverLetter(coverLetter);
                 if (validateCoverLetter.Key)
                 {
-                    HttpResponseMessage response = client.PostAsync(ConfigurationManager.AppSettings["ScannerUrl"].ToString(), form).Result;
+                    HttpResponseMessage response = client.PostAsync(ConfigurationManager.AppSettings["CoverLetterUploadUrl"].ToString(), form).Result;
                     if (response.IsSuccessStatusCode)
                     {
                         var model = supportSvc.SaveDocTypeCoverLetter(coverLetter);
@@ -337,7 +336,47 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
             }
         }
+        [Authorize(Roles = AMRoles.Admin),HttpPost]
+        public ActionResult DownloadCoverLetter(string fileName, string appCode)
+        {
 
+            try
+            {
+                HttpClient client = new HttpClient();
+                HttpResponseMessage response = new HttpResponseMessage();
+                string url = string.Format("{0}?fileName={1}&appCode={2}", ConfigurationManager.AppSettings["CoverLetterDownloadUrl"].ToString(), fileName, appCode);
+                response = client.GetAsync(url).Result;
+                if (response.IsSuccessStatusCode)
+                {
+                    string fileGuid = Guid.NewGuid().ToString();
+                    TempData[fileGuid] =response.Content.ReadAsByteArrayAsync().Result;
+
+                    return Json(JsonResponseFactory.SuccessResponse(new { model = new { FileGuid = fileGuid, FileName = fileName } }), JsonRequestBehavior.AllowGet);
+                }
+                else
+                {
+                    return Json(JsonResponseFactory.ErrorResponse(response.ReasonPhrase), JsonRequestBehavior.AllowGet);
+                }
+            }
+            catch (Exception e)
+            {
+
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+        public ActionResult _DownloadCoverLetter(string fileGuid, string fileName)
+        {
+            if (TempData[fileGuid] != null)
+            {
+                byte[] data = TempData[fileGuid] as byte[];
+                return File(data, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            else
+            {
+                return new EmptyResult();
+            }
+
+        }
         [Authorize(Roles = AMRoles.Admin)]
         public ActionResult GetCoverLetterByDocTypeId(int id)
         {
@@ -981,7 +1020,7 @@ namespace AM.Web.Controllers
         {
             try
             {
-                var model = supportSvc.GetPrintTrails().OrderByDescending(s=>s.SimulateTrail).ToList();
+                var model = supportSvc.GetPrintTrails().OrderByDescending(s => s.SimulateTrail).ToList();
                 return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
