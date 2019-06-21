@@ -74,7 +74,7 @@ namespace AM.Services
             if (mailBatchId.HasValue)
             {
                 query = string.Format("{0} and m.MailBatchId=@MailBatchId", query);
-                parameter.Add("@MailBatchId", mailBatchId);
+                parameter.Add("@MailBatchId", mailBatchId.Value);
             }
             if (docType != null && docType.Count > 0)
             {
@@ -89,9 +89,9 @@ namespace AM.Services
             if (mailPieceId.HasValue)
             {
                 query = string.Format("{0} and m.Id=@mailPieceId", query);
-                parameter.Add("@mailPieceId", mailPieceId);
+                parameter.Add("@mailPieceId", mailPieceId.Value);
             }
-            if (!startDate.HasValue && (trackingNo.IsNullOrWhiteSpace() || clientBatchId.IsNullOrWhiteSpace() || businessFriendlyIdValue.IsNullOrWhiteSpace() || !mailBatchId.HasValue || !mailPieceId.HasValue))
+            if (!startDate.HasValue && (trackingNo.IsNullOrWhiteSpace() && clientBatchId.IsNullOrWhiteSpace() && businessFriendlyIdValue.IsNullOrWhiteSpace() && !mailBatchId.HasValue && !mailPieceId.HasValue))
                 startDate = endDate = Common.EstToday;
 
             //if (parameter.ParameterNames.Count() == 2 && !startDate.HasValue && !endDate.HasValue)
