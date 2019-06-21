@@ -208,9 +208,9 @@ namespace AM.Core
                                     int reTrycnt = 0;
                                     while (reTrycnt < Config.Core_NoofTime_AttemptFedexService)
                                     {
-                                        eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name);
+                                        eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, docType.ShippingServiceType.ParseEnum<AM.USPSLib.ServiceType>());
 
-                                        response = doc.GenerateeVSPriorityExpressCoverLetter(client.AppCode, commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq);
+                                        response = doc.GenerateeVSPriorityExpressCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.RcptAddressTypes);
 
                                         if (!response.HasError)
                                         {
@@ -265,9 +265,9 @@ namespace AM.Core
                                     int reTrycnt = 0;
                                     while (reTrycnt < Config.Core_NoofTime_AttemptFedexService)
                                     {
-                                        eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name);
-                                        eVSReq.ServiceType = AM.USPSLib.ServiceType.PRIORITY;
-                                        response = doc.GenerateeVSPriorityCoverLetter(client.AppCode, commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq);
+                                        eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
+
+                                        response = doc.GenerateeVSPriorityCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.RcptAddressTypes);
 
                                         if (response.HasError && (response.ExceptionCode.Contains("80040B18") || response.ExceptionDetail.Contains("error has occurred with the service") || response.ExceptionDetail.Contains("connected party did not properly respond") || response.ExceptionDetail.Contains("existing connection was forcibly closed")))
                                         {
@@ -344,9 +344,9 @@ namespace AM.Core
                                                 mailPiece.DocTypeId = docType.Id;
                                             }
 
-                                            eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name);
+                                            eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, docType.ShippingServiceType.ParseEnum<AM.USPSLib.ServiceType>());
 
-                                            response = doc.GenerateeVSPriorityExpressCoverLetter(client.AppCode, commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq);
+                                            response = doc.GenerateeVSPriorityExpressCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.RcptAddressTypes);
 
                                             //if eVS has changed service to USPS Priority then AM is updating doctypeid in database
                                             if (response.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY)
@@ -633,13 +633,13 @@ namespace AM.Core
             }
         }
 
-        private static eVSLabelRequest GenerateEVSLabelRequest(MailPieceDTO mailPiece, string clientName)
+        private static eVSLabelRequest GenerateEVSLabelRequest(MailPieceDTO mailPiece, string clientName, AM.USPSLib.ServiceType serviceType)
         {
             eVSLabelRequest eVSReq = new eVSLabelRequest();
             //General settings
             eVSReq.AllowNonCleansedDestAddr = true;
             eVSReq.AllowNonCleansedOriginAddr = true;
-            eVSReq.ServiceType = AM.USPSLib.ServiceType.PRIORITY_EXPRESS;
+            eVSReq.ServiceType = serviceType;
             eVSReq.Container = Container.FLAT_RATE_ENVELOPE;
             eVSReq.ShipDate = mailPiece.EffectiveReceivedOnEst.Value;
             eVSReq.ReceiptOption = ReceiptOption.SEPARATE_PAGE;
@@ -647,11 +647,15 @@ namespace AM.Core
             eVSReq.ImageType = ImageType.PDF;
             eVSReq.POZipCode = "75099";
             eVSReq.SenderName = clientName;
-            //if (mailPiece.RcptAddressTypes.Contains(AddressType.Military.ToString()))
-            //    eVSReq.LabelParameters = new LabelParameters() { Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.LABEL4X6L };
-            //else
-            //    eVSReq.LabelParameters = new LabelParameters() { XCoordinate = 450, YCoordinate = 500, Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.LABEL4X6P_PAGE };
-            eVSReq.LabelParameters = new LabelParameters() { Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.SEPARATECONTINUEPAGE };//TODO : Change if required 50
+            if (eVSReq.ServiceType == AM.USPSLib.ServiceType.PRIORITY)
+            {
+                if (mailPiece.RcptAddressTypes.Contains(AddressType.Military.ToString()))
+                    eVSReq.LabelParameters = new LabelParameters() { Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.LABEL4X6L };
+                else
+                    eVSReq.LabelParameters = new LabelParameters() { XCoordinate = 450, YCoordinate = 500, Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.LABEL4X6P_PAGE };
+            }
+            else
+                eVSReq.LabelParameters = new LabelParameters() { Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.SEPARATECONTINUEPAGE };//TODO : Change if required 50
             // From Address
             eVSReq.CustomerRefNo = mailPiece.Id.ToString();
             eVSReq.FromName = (mailPiece.RetRcptFirstName + " " + mailPiece.RetRcptLastName).Trim();

@@ -105,7 +105,7 @@ namespace AM.Core
             }
         }
 
-        public SmartDocResponse GenerateeVSPriorityExpressCoverLetter(string appCode, string sysUserId, string outputDir, string mailPieceId, eVSLabelRequest eVSReq)
+        public SmartDocResponse GenerateeVSPriorityExpressCoverLetter(string sysUserId, string outputDir, string mailPieceId, eVSLabelRequest eVSReq, string rcptAddressTypes)
         {
             SmartDocResponse response = new SmartDocResponse();
 
@@ -129,6 +129,11 @@ namespace AM.Core
                         //If we get any error while generating USPS Priority express label then we are going to try for USPS Priority label
                         eVSReq.ServiceType = AM.USPSLib.ServiceType.PRIORITY;
 
+                        if (rcptAddressTypes.Contains(AddressType.Military.ToString()))
+                            eVSReq.LabelParameters = new LabelParameters() { Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.LABEL4X6L };
+                        else
+                            eVSReq.LabelParameters = new LabelParameters() { XCoordinate = 450, YCoordinate = 500, Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.LABEL4X6P_PAGE };
+
                         eVSRes = uspsSvc.RequesteVSLabelAsync(sysUserId, eVSReq).Result;
 
                         if (eVSRes.HasError)
@@ -143,11 +148,11 @@ namespace AM.Core
 
                     File.WriteAllBytes(coverLetterPDFPath, Convert.FromBase64String(eVSRes.LabelImageString));
 
-                    ////Here system is creating new PDF for military addresses only label's size LABEL4X6L to Letter size. 
-                    //if (eVSReq.LabelParameters.Size == LabelSize.LABEL4X6L)
-                    //{
-                    //    ConvertLetterSizeLabel(coverLetterPDFPath, outputDir, mailPieceId);
-                    //}
+                    //Here system is creating new PDF for military addresses only label's size LABEL4X6L to Letter size. 
+                    if (eVSReq.ServiceType == AM.USPSLib.ServiceType.PRIORITY && rcptAddressTypes.Contains(AddressType.Military.ToString()))
+                    {
+                        ConvertLetterSizeLabel(coverLetterPDFPath, outputDir, mailPieceId);
+                    }
                     response.CoverLetterPath = coverLetterPDFPath;
                 }
 
@@ -202,7 +207,7 @@ namespace AM.Core
             File.Move(newCoverLetterPath, coverLetterPDFPath);
         }
 
-        public SmartDocResponse GenerateeVSPriorityCoverLetter(string appCode, string sysUserId, string outputDir, string mailPieceId, eVSLabelRequest eVSReq)
+        public SmartDocResponse GenerateeVSPriorityCoverLetter(string sysUserId, string outputDir, string mailPieceId, eVSLabelRequest eVSReq, string rcptAddressTypes)
         {
             SmartDocResponse response = new SmartDocResponse();
 
@@ -232,11 +237,12 @@ namespace AM.Core
 
                     File.WriteAllBytes(coverLetterPDFPath, Convert.FromBase64String(eVSRes.LabelImageString));
 
-                    ////Here system is creating new PDF for military addresses only label's size LABEL4X6L to Letter size. 
-                    //if (eVSReq.LabelParameters.Size == LabelSize.LABEL4X6L)
-                    //{
-                    //    ConvertLetterSizeLabel(coverLetterPDFPath, outputDir, mailPieceId);
-                    //}
+                    //Here system is creating new PDF for military addresses only label's size LABEL4X6L to Letter size. 
+                    if (rcptAddressTypes.Contains(AddressType.Military.ToString()))
+                    {
+                        ConvertLetterSizeLabel(coverLetterPDFPath, outputDir, mailPieceId);
+                    }
+
                     response.CoverLetterPath = coverLetterPDFPath;
                 }
 
