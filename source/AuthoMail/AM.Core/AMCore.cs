@@ -501,6 +501,10 @@ namespace AM.Core
 
                                     mailBatchSvc.MarkMailBatchAsInvalid(mbi.MailBatch.Id, (mbi.MailBatch.ValidationErrors + Environment.NewLine + "Some documents could not be processed."));
                                     commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.Failed.ToString());
+
+                                    //NOTE: Inserting Error Notification in this because system is not going to update any further status for batch due to full batch is invalid
+                                    commonSvc.InsertErrorNotifications(mbi.MailBatch.Id);
+                                    SendSubscribedErrorNotificationEmail(mbi, mailPieces, commonSvc.GetErrorNotificationEmailSubscriberList(mbi.Client.Id));
                                 }
                                 else if (validMailPiecesList.Count < mailPieces.Count)
                                 {
@@ -513,10 +517,6 @@ namespace AM.Core
                                 {
                                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Prepped, Common.Now);
                                 }
-
-                                int errorMPCount = mailPieces.Where(mp => mp.ShippingStatus == ShippingStatus.Error.ToString()).Count();
-                                if (errorMPCount > 0)
-                                    commonSvc.InsertErrorNotifications(mailBatch.Id);
                             }
                         }
                         catch (Exception ex)
@@ -724,6 +724,62 @@ namespace AM.Core
             }
         }
 
+        private static bool SendSubscribedErrorNotificationEmail(MailBatchInfo mbi, List<MailPieces> mailPieces, string emailList)
+        {
+            bool isEmailSent = false;
+
+            try
+            {
+                using (SmtpClient smtpClient = new SmtpClient())
+                {
+                    using (MailMessage msg = new MailMessage())
+                    {
+                        msg.IsBodyHtml = true;
+                        msg.To.Add(emailList);
+                        msg.CC.Add(Config.Common_ErrorSubscribedEmailCc);
+                        msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, mbi.Client.AppCode, Config.Common_ErrorSubscribedEmailSubject);
+                        msg.Priority = MailPriority.High;
+
+                        if (mailPieces.Count > 0)
+                        {
+                            #region Prepare email body
+
+                            string downloadEmail_TD_SrNoStyle = "style='width:10%;border:solid windowtext 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
+                            string downloadEmail_TD_DescriptionStyle = "style='width:45%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'' valign='top' width='213'><p>";
+
+                            StringBuilder sb = new StringBuilder(File.ReadAllText(Config.Common_ErrorSubscribedEmailTemplate));
+                            sb = sb.Replace("<%FileName%>", mbi.MailBatch.BatchName);
+                            sb = sb.Replace("<%yyyymmdd%>", Common.Now.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("MM/dd/yyyy"));
+                            sb = sb.Replace("<%hhmm%>", Common.Now.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("hh:mm tt"));
+
+                            var errorMPs = mailPieces.Where(mp => mp.ShippingStatus == ShippingStatus.Error.ToString());
+                            StringBuilder errData = new StringBuilder();
+                            foreach (var errMp in errorMPs)
+                            {
+                                errData.AppendLine("<tr><td {0}>{1}</td><td {2}>{3}</td><td{4}>{5}</td></tr>".Fill(downloadEmail_TD_SrNoStyle, errMp.BusinessFriendlyIdValue, downloadEmail_TD_DescriptionStyle, errMp.ErrorCode, downloadEmail_TD_DescriptionStyle, errMp.ErrorDesc));
+                            }
+                            sb = sb.Replace("<%trdata%>", errData.ToString());
+                            msg.Body = sb.ToString();
+
+                            #endregion
+                        }
+
+                        if (msg.Body.Length > 0)
+                        {
+                            smtpClient.Send(msg);
+                            isEmailSent = true;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex);
+            }
+
+            return isEmailSent;
+        }
+
         private static void GenerateImmidiateReports(MailBatchInfo mbi, List<MailPieces> mailPieces, Deliverable deliverable)
         {
             SFTChannel sftChannel;
@@ -842,8 +898,15 @@ namespace AM.Core
                         }
 
                         commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
-                        //TODO : Logic add for checking submitted
-                        //TODO : Also add logic for received response, check incremental reporting also
+
+                        //NOTE: Inserting Error Notification in this because system is not going to update any further status for batch due to full batch is invalid
+                        commonSvc.InsertErrorNotifications(mbi.MailBatch.Id);
+                        List<MailPieces> mailPieces;
+                        using (IReportService reportSvc = new ReportService())
+                        {
+                            mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
+                        }
+                        SendSubscribedErrorNotificationEmail(mbi, mailPieces, commonSvc.GetErrorNotificationEmailSubscriberList(mbi.Client.Id));
                     }
                     catch (Exception ex)
                     {
@@ -1187,9 +1250,6 @@ namespace AM.Core
                                     break;
                             }
                             mailBatchSvc.UpdatePrintBatchPipelineStatus(printBatch.PrintBatchId, BatchPipelineStatus.ReportPrepped, Common.Now);
-                            int errorMPCount = printBatchMailPieces.Where(mp => mp.ShippingStatus == ShippingStatus.Error.ToString()).Count();
-                            if (errorMPCount > 0)
-                                commonSvc.InsertErrorNotifications(mailBatch.Id);
                         }
 
                         var mailPiecesData = mailPieceSvc.GetMailPiecesByMailBatchId(printBatch.MailBatchId);

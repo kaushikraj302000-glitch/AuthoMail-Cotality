@@ -109,8 +109,8 @@ namespace AM.Console
 
                             StringBuilder sb = new StringBuilder(File.ReadAllText(Config.Monitor_DSEmailTemplate));
                             sb = sb.Replace("<%FileName%>", mbi.MailBatch.BatchName);
-                            sb = sb.Replace("<%yyyymmdd%>", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("MM/dd/yyyy"));
-                            sb = sb.Replace("<%hhmm%>", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("hh:mm tt"));
+                            sb = sb.Replace("<%yyyymmdd%>", Common.Now.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("MM/dd/yyyy"));
+                            sb = sb.Replace("<%hhmm%>", Common.Now.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("hh:mm tt"));
 
                             StringBuilder data = new StringBuilder();
                             data.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_SrNoStyle, "1"));
@@ -185,8 +185,8 @@ namespace AM.Console
 
                             StringBuilder sb = new StringBuilder(File.ReadAllText(Config.Monitor_PSEmailTemplate));
                             sb = sb.Replace("<%FileName%>", mbi.MailBatch.BatchName);
-                            sb = sb.Replace("<%yyyymmdd%>", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("MM/dd/yyyy"));
-                            sb = sb.Replace("<%hhmm%>", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("hh:mm tt"));
+                            sb = sb.Replace("<%yyyymmdd%>", Common.Now.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("MM/dd/yyyy"));
+                            sb = sb.Replace("<%hhmm%>", Common.Now.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("hh:mm tt"));
 
                             StringBuilder data = new StringBuilder();
                             data.AppendLine(string.Format("<tr> <td {0} {1} <u></u><u></u></p> </td>", downloadEmail_TD_SrNoStyle, "1"));
@@ -232,6 +232,62 @@ namespace AM.Console
             return isEmailSent;
         }
 
+        public static bool SendSubscribedErrorNotificationEmail(MailBatchInfo mbi, List<MailPieces> mailPieces, string emailList)
+        {
+            bool isEmailSent = false;
+
+            try
+            {
+                using (SmtpClient smtpClient = new SmtpClient())
+                {
+                    using (MailMessage msg = new MailMessage())
+                    {
+                        msg.IsBodyHtml = true;
+                        msg.To.Add(emailList);
+                        msg.CC.Add(Config.Common_ErrorSubscribedEmailCc);
+                        msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, mbi.Client.AppCode, Config.Common_ErrorSubscribedEmailSubject);
+                        msg.Priority = MailPriority.High;
+
+                        if (mailPieces.Count > 0)
+                        {
+                            #region Prepare email body
+
+                            string downloadEmail_TD_SrNoStyle = "style='width:10%;border:solid windowtext 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
+                            string downloadEmail_TD_DescriptionStyle = "style='width:45%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'' valign='top' width='213'><p>";
+
+                            StringBuilder sb = new StringBuilder(File.ReadAllText(Config.Common_ErrorSubscribedEmailTemplate));
+                            sb = sb.Replace("<%FileName%>", mbi.MailBatch.BatchName);
+                            sb = sb.Replace("<%yyyymmdd%>", Common.Now.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("MM/dd/yyyy"));
+                            sb = sb.Replace("<%hhmm%>", Common.Now.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("hh:mm tt"));
+
+                            var errorMPs = mailPieces.Where(mp => mp.ShippingStatus == ShippingStatus.Error.ToString());
+                            StringBuilder errData = new StringBuilder();
+                            foreach (var errMp in errorMPs)
+                            {
+                                errData.AppendLine("<tr><td {0}>{1}</td><td {2}>{3}</td><td{4}>{5}</td></tr>".Fill(downloadEmail_TD_SrNoStyle, errMp.BusinessFriendlyIdValue, downloadEmail_TD_DescriptionStyle, errMp.ErrorCode, downloadEmail_TD_DescriptionStyle, errMp.ErrorDesc));
+                            }
+                            sb = sb.Replace("<%trdata%>", errData.ToString());
+                            msg.Body = sb.ToString();
+
+                            #endregion
+                        }
+
+                        if (msg.Body.Length > 0)
+                        {
+                            smtpClient.Send(msg);
+                            isEmailSent = true;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex);
+            }
+
+            return isEmailSent;
+        }
+
         public static bool SendNoDataNotificationEmail(MailBatchInfo mbi, EmailChannel emailChannel, string errorMsg)
         {
             bool isEmailSent = false;
@@ -255,8 +311,8 @@ namespace AM.Console
 
                         StringBuilder sb = new StringBuilder(File.ReadAllText(Config.Monitor_PSNoDataEmailTemplate));
                         sb = sb.Replace("<%FileName%>", mbi.MailBatch.BatchName);
-                        sb = sb.Replace("<%yyyymmdd%>", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("MM/dd/yyyy"));
-                        sb = sb.Replace("<%hhmm%>", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("hh:mm tt"));
+                        sb = sb.Replace("<%yyyymmdd%>", Common.Now.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("MM/dd/yyyy"));
+                        sb = sb.Replace("<%hhmm%>", Common.Now.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("hh:mm tt"));
                         sb = sb.Replace("<%Description%>", errorMsg);
                         msg.Body = sb.ToString();
 
@@ -275,6 +331,7 @@ namespace AM.Console
 
             return isEmailSent;
         }
+
         public static bool SendNoDataNotificationEmail(MailBatchInfo mbi, EmailChannel emailChannel, string errorMsg, string reportFilePath)
         {
             bool isEmailSent = false;
@@ -298,8 +355,8 @@ namespace AM.Console
 
                         StringBuilder sb = new StringBuilder(File.ReadAllText(Config.Monitor_PSNoDataEmailTemplate));
                         sb = sb.Replace("<%FileName%>", mbi.MailBatch.BatchName);
-                        sb = sb.Replace("<%yyyymmdd%>", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("MM/dd/yyyy"));
-                        sb = sb.Replace("<%hhmm%>", DateTime.UtcNow.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("hh:mm tt"));
+                        sb = sb.Replace("<%yyyymmdd%>", Common.Now.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("MM/dd/yyyy"));
+                        sb = sb.Replace("<%hhmm%>", Common.Now.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("hh:mm tt"));
                         sb = sb.Replace("<%Description%>", errorMsg);
                         msg.Body = sb.ToString();
 

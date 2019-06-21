@@ -755,13 +755,9 @@ namespace AM.Console
                         throw new Exception("Mail pieces count and received xml count is mismatched for Batch-Id : {0}<br/>".Fill(mailBatch.Id) + "Mail Piece count is {0} and received xml nodes count is {1}".Fill(mailPieceData.Count, totalNodes));
                     }
 
-                    Channel.CalculateDueDateAndPrintLocation(mailBatch, mailPieceData);                   
+                    Channel.CalculateDueDateAndPrintLocation(mailBatch, mailPieceData);
 
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
-
-                    int errorMPCount = mailPieceData.Where(mp => mp.ShippingStatus == ShippingStatus.Error.ToString()).Count();
-                    if (errorMPCount > 0)
-                        commonSvc.InsertErrorNotifications(mailBatch.Id);
                 }
                 catch (Exception ex)
                 {
@@ -851,6 +847,10 @@ namespace AM.Console
             {
                 // Batch status Report Prepped
                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
+
+                //NOTE: Inserting Error Notification in this because system is not going to update any further status for batch due to full batch is invalid
+                commonSvc.InsertErrorNotifications(mbi.MailBatch.Id);
+                MailUtility.SendSubscribedErrorNotificationEmail(mbi, mailPieces, commonSvc.GetErrorNotificationEmailSubscriberList(mbi.Client.Id));
             }
             else if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.PartiallyValid)
             {

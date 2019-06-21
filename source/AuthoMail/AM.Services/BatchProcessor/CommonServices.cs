@@ -35,6 +35,7 @@ namespace AM.Services
         DateTime GetDueDate(DocType docType, DateTime estEffectiveReceivedOn);
         DateTime GetEffectiveEstReceivedOn(DocType docType, DateTime utcReceivedOn);
         int InsertErrorNotifications(int mailBatchId);
+        string GetErrorNotificationEmailSubscriberList(int clientId);
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -403,6 +404,11 @@ namespace AM.Services
         public int InsertErrorNotifications(int mailBatchId)
         {
             return db.Execute("usp_InsertErrorNotificationData", new { mailBatchId = mailBatchId });
+        }
+
+        public string GetErrorNotificationEmailSubscriberList(int clientId)
+        {
+            return String.Join(",", db.Query<string>("SELECT U.Email FROM [AM].[AlertSubscribers] AS INNER JOIN [Profile].[Users] U ON AS.UserId=U.Id WHERE ClientId=@ClientId", new { ClientId = clientId }));
         }
     }
 }

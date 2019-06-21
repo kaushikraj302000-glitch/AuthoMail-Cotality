@@ -23,6 +23,9 @@ namespace AM.Services
         public static int Common_ProcessingBufferTime { get; private set; }
         public static string Common_FedExTrackingAccountCode { get; private set; }
         public static string Common_FedExTrackingUrl { get; private set; }
+        public static string Common_ErrorSubscribedEmailSubject { get; private set; }
+        public static string Common_ErrorSubscribedEmailCc { get; private set; }
+        public static string Common_ErrorSubscribedEmailTemplate { get; private set; }
 
         #endregion
 
@@ -118,7 +121,7 @@ namespace AM.Services
         public static string Web_Msg_Inactive_Account { get; private set; }
         public static bool Web_Login_PasswordExpirationIsEnable { get; private set; }
         public static int Web_Login_PasswordExpirationDays { get; private set; }
-        
+
         #endregion
 
         #region WEB Common Msg
@@ -310,13 +313,13 @@ namespace AM.Services
                 if (authomailSetting != null)
                 {
                     cs.UpdateSystemSetting(new AMSetting
-                  {
-                      DataType = p.PropertyType.Name,
-                      Value = authomailSetting.Value,
-                      Description = p.GetDescription(),
-                      ModifiedOn = Common.Now,
-                      Id = p.Name
-                  });
+                    {
+                        DataType = p.PropertyType.Name,
+                        Value = authomailSetting.Value,
+                        Description = p.GetDescription(),
+                        ModifiedOn = Common.Now,
+                        Id = p.Name
+                    });
                 }
             }
         }
