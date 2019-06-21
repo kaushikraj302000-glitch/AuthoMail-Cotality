@@ -15,7 +15,7 @@ namespace AM.Web.AMHub
            new Lazy<ErrorNotificationSignalR>(() => new ErrorNotificationSignalR());
         // We're going to broadcast to all clients a maximum of N minutes
         private readonly TimeSpan interval =
-            TimeSpan.FromMilliseconds(1000 * 60 * 1);
+            TimeSpan.FromMilliseconds(1000 * 60 * 10);
         private readonly IHubContext _hubContext;
         private Timer _broadcastLoop;
         //private bool _modelUpdated;

@@ -86,33 +86,34 @@ GO
 
 PRINT 'Added new sp	usp_InsertErrorNotificationData'
 
+
 CREATE PROCEDURE [dbo].[usp_InsertErrorNotificationData]
 @mailBatchId int
 AS
 BEGIN
 	SET NOCOUNT ON;
 
-	DECLARE @TotalMPs INT,@ErrorMPs INT,@Count INT,@CurrentErrorMps INT
+	DECLARE @errorMPs INT,@errorMPsInNotify INT,@errorNotifyId INT
 
-	SET @Count=(SELECT COUNT(*) FROM AM.ErrorNotifications WHERE MailBatchId=@mailBatchId)
-	SET @TotalMPs=(SELECT COUNT(*) FROM AM.MailPieces WHERE MailBatchId=@mailBatchId)
-	SET @ErrorMPs=(SELECT COUNT(*) FROM AM.MailPieces WHERE MailBatchId=@mailBatchId AND ShippingStatus='Error')
+	select @errorMPs=count(Id) from am.MailPieces where mailbatchid=@mailBatchId and ShippingStatus='Error';
+	if(@errorMPs>0)
+	begin
+		select @errorMPsInNotify=ErrorMPsCount,@errorNotifyId=Id from AM.ErrorNotifications WHERE MailBatchId=@mailBatchId;
+		if(@errorMPsInNotify is null)
+		begin 
+			insert into AM.ErrorNotifications(ClientId, MailBatchId, ErrorMPsCount, ReceivedOn, CreatedOn)
+			SELECT ClientId,Id,@errorMPs,ReceivedOn,GETUTCDATE() FROM AM.MailBatches WHERE Id=@mailBatchId
+		end
+		else
+		begin
+			if(@errorMPs > @errorMPsInNotify)
+			begin
+				delete from AM.ErrorNotifications where Id=@errorNotifyId;
 
-	IF(@Count > 0)
-	BEGIN
-		SET @CurrentErrorMps=(SELECT ErrorMPsCount FROM AM.ErrorNotifications WHERE MailBatchId=@mailBatchId)
+				insert into AM.ErrorNotifications(ClientId, MailBatchId, ErrorMPsCount, ReceivedOn, CreatedOn)
+				SELECT ClientId,Id,@errorMPs,ReceivedOn,GETUTCDATE() FROM AM.MailBatches WHERE Id=@mailBatchId
+			end
+		end
+	end
 
-		IF(@ErrorMPs>@CurrentErrorMps)
-		BEGIN
-			DELETE FROM AM.ErrorNotifications WHERE MailBatchId=@mailBatchId
-
-			INSERT INTO AM.ErrorNotifications(ClientId, MailBatchId, TotalMPsCount, ErrorMPsCount, ReceivedOn, CreatedOn)
-			SELECT ClientId,Id,@TotalMPs,@ErrorMPs,ReceivedOn,GETUTCDATE() FROM AM.MailBatches WHERE Id=@mailBatchId
-		END
-	END
-	ELSE
-	BEGIN
-		INSERT INTO AM.ErrorNotifications(ClientId, MailBatchId, TotalMPsCount, ErrorMPsCount, ReceivedOn, CreatedOn)
-		SELECT ClientId,Id,@TotalMPs,@ErrorMPs,ReceivedOn,GETUTCDATE() FROM AM.MailBatches WHERE Id=@mailBatchId
-	END
 END
