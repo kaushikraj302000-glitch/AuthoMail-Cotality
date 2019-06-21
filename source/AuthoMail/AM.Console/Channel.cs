@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AM.Console
@@ -326,7 +327,11 @@ namespace AM.Console
                         }
                     }
                     break;
+
             }
+
+            //TODO: Remove after proper naming convention
+            Thread.Sleep(1000);
 
             MailUtility.SendProductionNotificationEmail(mbi, mailPieces, reportToMail, deliveryReportDeliverable.EmailChannel);
             //After Sending An Email Change its extention to "EmailAttachment" to identify that report is sent as an attachments

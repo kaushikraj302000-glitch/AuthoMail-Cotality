@@ -842,6 +842,9 @@ namespace AM.Console
             }
             else
                 errorReportPath = "";
+            
+            //TODO: Remove after proper naming convention
+            Thread.Sleep(1000);
 
             if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.Invalid)
             {

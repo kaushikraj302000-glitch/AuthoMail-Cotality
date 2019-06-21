@@ -630,6 +630,9 @@ namespace AM.Core
                         }
                         break;
                 }
+
+                //TODO: Remove after proper naming convention
+                Thread.Sleep(1000);
             }
         }
 
@@ -858,6 +861,9 @@ namespace AM.Core
                         }
                         break;
                 }
+
+                //TODO: Remove after proper naming convention
+                Thread.Sleep(1000);
             }
         }
 
@@ -1249,6 +1255,8 @@ namespace AM.Core
                                     }
                                     break;
                             }
+                            //TODO: Remove after proper naming convention
+                            Thread.Sleep(1000);
                             mailBatchSvc.UpdatePrintBatchPipelineStatus(printBatch.PrintBatchId, BatchPipelineStatus.ReportPrepped, Common.Now);
                         }
 
