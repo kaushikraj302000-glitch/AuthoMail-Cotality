@@ -138,22 +138,23 @@ namespace AM.Services
         {
             string query = "[dbo].[uspweb_MonthlyReconReport] @clientId, @startDate, @endDate, @channel";
             string appCode = GetAppcodeByClientid(clientId);
-            if (appCode == "USAA")
-            {
-                startDate = (startDate.Date + new TimeSpan(20, 00, 01)).EstToUtc();
-                endDate = (endDate.Date + new TimeSpan(20, 00, 00)).EstToUtc();
-            }
-            else if (appCode == "HSBC" || appCode == "BOTW")
-            {
-                startDate = (startDate + new TimeSpan(19, 30, 01)).EstToUtc();
-                endDate = (endDate + new TimeSpan(19, 30, 00)).EstToUtc();
-            }
-            else
-            {
-                startDate = startDate.ToStartDateTime().EstToUtc();
-                endDate = endDate.ToEndDateTime().EstToUtc();
-            }
-
+            //if (appCode == "USAA")
+            //{
+            //    startDate = (startDate.Date + new TimeSpan(20, 00, 01)).EstToUtc();
+            //    endDate = (endDate.Date + new TimeSpan(20, 00, 00)).EstToUtc();
+            //}
+            //else if (appCode == "HSBC" || appCode == "BOTW")
+            //{
+            //    startDate = (startDate + new TimeSpan(19, 30, 01)).EstToUtc();
+            //    endDate = (endDate + new TimeSpan(19, 30, 00)).EstToUtc();
+            //}
+            //else
+            //{
+            //    startDate = startDate.ToStartDateTime().EstToUtc();
+            //    endDate = endDate.ToEndDateTime().EstToUtc();
+            //}
+            startDate = startDate.ToStartDateTime();
+            endDate = endDate.ToEndDateTime();
             var data = db.Query<MonthlyReconReportViewModel>(query,
                 new
                 {
