@@ -463,7 +463,8 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
         public List<string> GetMonthlyReconDate(int clientId)
         {
             string appCode = GetAppcodeByClientid(clientId);
-            string startDate = appCode == "USAA" || appCode == "HSBC" || appCode == "BOTW" ? "25" : "26";
+            //string startDate = appCode == "USAA" || appCode == "HSBC" || appCode == "BOTW" ? "25" : "26";
+            string startDate = "26";
             var dateList = new List<string>();
             var currDate = DateTime.UtcNow.UtcToEst();
             if (currDate.Day <= 25) currDate = currDate.AddMonths(-1);
