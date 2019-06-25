@@ -277,8 +277,7 @@ namespace PCI.Service
 
         private static void SubmitStage(PrintTrailBatch ptBatchDetails)
         {
-            //Reason for maintaining this time because it should reflect same for 
-            var currentTime = Common.GetCurrentTime();
+
             //Get total counts of envelope / BRE envelopes used for valid mail pieces.
             Dictionary<string, int> envelopeData = new Dictionary<string, int>();
 
@@ -309,7 +308,10 @@ namespace PCI.Service
 
             using (TransactionScope scope = new TransactionScope())
             {
-                DAL.UpdateSubmittedForAllResReceivedBatch(ptBatchDetails.Id);
+                //Reason for maintaining this time because it should reflect same for 
+                var currentTime = Common.GetCurrentTime();
+
+                DAL.UpdateSubmittedForAllResReceivedBatch(ptBatchDetails.Id, currentTime);
 
                 DAL.UpdatePrintTrailBatchStatus(ptBatchDetails.Id, BatchPipelineStatus.Submitted, currentTime);
 
