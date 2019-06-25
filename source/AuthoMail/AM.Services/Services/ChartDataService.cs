@@ -234,20 +234,32 @@ namespace AM.Services
 
         public List<DailySummaryChartVM> GetDailySummaryChartByDocType(DateTime date, int clientId)
         {
-            string query = "select m.Id,m.ShippingStatus, d.DocTypeCode from AM.MailPieces m,AM.MailBatches b,AM.DocTypes d  where m.MailBatchId=b.Id AND m.DocTypeId=d.Id AND b.ClientId=@clientId AND  b.ReceivedOn BETWEEN @startDate AND @endDate";
-            var data = db.Query<DailySummaryChart>(query, new { clientId = clientId, startDate = date.ToStartDateTime().EstToUtc(), endDate = date.ToEndDateTime().EstToUtc() });
+            //string query = "select m.Id,m.ShippingStatus, d.DocTypeCode from AM.MailPieces m,AM.MailBatches b,AM.DocTypes d  where m.MailBatchId=b.Id AND m.DocTypeId=d.Id AND b.ClientId=@clientId AND  b.ReceivedOn BETWEEN @startDate AND @endDate";
+            //var data = db.Query<DailySummaryChart>(query, new { clientId = clientId, startDate = date.ToStartDateTime().EstToUtc(), endDate = date.ToEndDateTime().EstToUtc() });
 
-            var dailySummaryChartList = data.GroupBy(d => d.DocTypeCode).Select(
-                s => new DailySummaryChartVM
-                {
-                    DocTypeCode = s.Key,
-                    Shipped = s.Count(t => t.ShippingStatus == ShippingStatus.Shipped.ToString() && t.DocTypeCode == s.Key),
-                    InProgress = s.Count(t => t.ShippingStatus == ShippingStatus.InProgress.ToString() && t.DocTypeCode == s.Key),
-                    PulledBack = s.Count(t => t.ShippingStatus == ShippingStatus.PulledBack.ToString() && t.DocTypeCode == s.Key),
-                    Error = s.Count(t => t.ShippingStatus == ShippingStatus.Error.ToString() && t.DocTypeCode == s.Key)
-                }
-                ).ToList();
-            return dailySummaryChartList;
+            //var dailySummaryChartList = data.GroupBy(d => d.DocTypeCode).Select(
+            //    s => new DailySummaryChartVM
+            //    {
+            //        DocTypeCode = s.Key,
+            //        Shipped = s.Count(t => t.ShippingStatus == ShippingStatus.Shipped.ToString() && t.DocTypeCode == s.Key),
+            //        InProgress = s.Count(t => t.ShippingStatus == ShippingStatus.InProgress.ToString() && t.DocTypeCode == s.Key),
+            //        PulledBack = s.Count(t => t.ShippingStatus == ShippingStatus.PulledBack.ToString() && t.DocTypeCode == s.Key),
+            //        Error = s.Count(t => t.ShippingStatus == ShippingStatus.Error.ToString() && t.DocTypeCode == s.Key)
+            //    }
+            //    ).ToList();
+            //return dailySummaryChartList;
+            string query = @"select d.DocTypeCode
+,sum(case when m.shippingstatus = 'Shipped' then 1 else 0 end) as Shipped
+,sum(case when m.shippingstatus = 'InProgress' then 1 else 0 end) as InProgress
+,sum(case when m.shippingstatus = 'Error' then 1 else 0 end) as Error
+,sum(case when m.shippingstatus = 'Pulledback' then 1 else 0 end) as Pulledback
+from AM.MailPieces m
+inner join AM.MailBatches b on m.MailBatchId=b.Id
+inner join AM.DocTypes d  on m.DocTypeId=d.Id
+where b.ClientId=@clientId AND b.ReceivedOn BETWEEN @startDate AND @endDate
+group by d.DocTypeCode order by d.DocTypeCode";
+            return db.Query<DailySummaryChartVM>(query, new { clientId = clientId, startDate = date.ToStartDateTime().EstToUtc(), endDate = date.ToEndDateTime().EstToUtc() }).ToList();
+
         }
 
 
