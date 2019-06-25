@@ -23,8 +23,8 @@ namespace AM.Services
             var existingUser = GetUserByName(user.UserName);
             if (existingUser.Count > 0) throw new Exception("User name already exist.");
 
-            string query = @"Insert into [Profile].[Users] (UserName, Id, PasswordHash, SecurityStamp,Email,EmailConfirmed,PhoneNumber,PhoneNumberConfirmed, AccessFailedCount,LockoutEnabled,LockoutEndDateUtc,TwoFactorEnabled,ClientId,FirstName,LastName,DisplayName,RequestedOn,Status,ClosedOn,ClosedBy,StatusModifiedBy,StatusModifiedOn)
-                values (@name, @id, @pwdHash, @SecStamp,@email,@emailconfirmed,@phonenumber,@phonenumberconfirmed,@accesscount,@lockoutenabled,@lockoutenddate,@twofactorenabled,@clientId,@firstName,@lastName,@displayName,@requestedOn,@status,@closedOn,@closedBy,@StatusModifiedBy,@StatusModifiedOn)";
+            string query = @"Insert into [Profile].[Users] (UserName, Id, PasswordHash, SecurityStamp,Email,EmailConfirmed,PhoneNumber,PhoneNumberConfirmed, AccessFailedCount,LockoutEnabled,LockoutEndDateUtc,TwoFactorEnabled,ClientId,FirstName,LastName,DisplayName,RequestedOn,Status,ClosedOn,ClosedBy,ChangePasswordDateUTC,StatusModifiedBy,StatusModifiedOn)
+                values (@name, @id, @pwdHash, @SecStamp,@email,@emailconfirmed,@phonenumber,@phonenumberconfirmed,@accesscount,@lockoutenabled,@lockoutenddate,@twofactorenabled,@clientId,@firstName,@lastName,@displayName,@requestedOn,@status,@closedOn,@closedBy,@ChangePasswordDateUTC,@StatusModifiedBy,@StatusModifiedOn)";
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@name", user.UserName);
@@ -49,6 +49,7 @@ namespace AM.Services
             parameters.Add("@closedBy", user.ClosedBy);
             parameters.Add("@StatusModifiedOn", user.StatusModifiedOn);
             parameters.Add("@StatusModifiedBy", user.StatusModifiedBy);
+            parameters.Add("@ChangePasswordDateUTC",DateTime.UtcNow);
             return db.Execute(query, parameters);
         }
 
