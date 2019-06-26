@@ -238,6 +238,11 @@ namespace AM.Console
 
             try
             {
+                if (string.IsNullOrWhiteSpace(emailList))
+                {
+                    return true;
+                }
+
                 using (SmtpClient smtpClient = new SmtpClient())
                 {
                     using (MailMessage msg = new MailMessage())
