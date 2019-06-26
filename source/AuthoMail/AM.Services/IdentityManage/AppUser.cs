@@ -92,7 +92,6 @@ namespace AM.Services
             parameters.Add("@closedOn", user.ClosedOn);
             parameters.Add("@closedBy", user.ClosedBy);
             parameters.Add("@LastLoginTimeUTC", user.LastLoginTimeUTC);
-            //parameters.Add("@ChangePasswordDateUTC", user.ChangePasswordDateUTC);
             parameters.Add("@StatusModifiedOn", user.StatusModifiedOn);
             parameters.Add("@StatusModifiedBy", user.StatusModifiedBy);
             return db.Execute(query, parameters);
