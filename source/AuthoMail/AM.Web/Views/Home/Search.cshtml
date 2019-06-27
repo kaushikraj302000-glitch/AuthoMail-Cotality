@@ -176,11 +176,20 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class=" col-md-1" style="width:10%">
+                                <div class="form-group">
+                                    <label for="MailPiece">MailPiece Id</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" name="MailPieceId" placeholder="MailPiece Id" id="MailPieceId">
+                                    </div>
+                                </div>
+                            </div>
                         }
                         else
                         {
                             <input class="form-control" value="" type="hidden" name="ClientBatchId" id="ClientBatchId">
                             <input class="form-control" value="" name="BatchId" type="hidden" id="BatchId">
+                            <input class="form-control" value="" name="MailPieceId" type="hidden" id="MailPieceId">
                         }
 
                         <div class="col-md-1">
@@ -614,6 +623,11 @@
                         number: true,
                         min: 1,
                         maxlength: 8
+                    },
+                    MailPieceId: {
+                        number: true,
+                        min: 1,
+                        maxlength: 8
                     }
                 }
             });
@@ -914,7 +928,7 @@
             }
             $("#loading").show();
             //$("#headerdate").html(startDate + " to " + endDate + " EST");
-            
+
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Home/_GetSearchData",
@@ -929,7 +943,8 @@
                     trackingNumber: $("#TrackingNumber").val(),
                     clientBatchId: $("#ClientBatchId").val(),
                     batchId: $("#BatchId").val(),
-                    errorCode: $("#ErrorCode").val()                    
+                    mailPieceId:$("#MailPieceId").val(),
+                    errorCode: $("#ErrorCode").val()
                 }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
@@ -1000,6 +1015,7 @@
             $("#BusinessFriendlyIdValue").val("");
             $("#ClientBatchId").val("");
             $("#BatchId").val("");
+            $("#MailPieceId").val("");
             $("#TrackingNumber").val("");
             $("#ErrorCode").val("");
             $('.selectpicker').selectpicker('refresh');
@@ -1032,8 +1048,10 @@
                     trackingNumber: $("#TrackingNumber").val(),
                     clientBatchId: $("#ClientBatchId").val(),
                     batchId: $("#BatchId").val(),
+                    mailPieceId: $("#MailPieceId").val(),
                     errorCode: $("#ErrorCode").val(),
-                    timezoneOffset: new Date().getTimezoneOffset()
+                    timezoneOffset: new Date().getTimezoneOffset(),
+                    clientName: $("#ClientName").text().trim()
                 }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {

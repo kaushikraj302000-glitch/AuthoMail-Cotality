@@ -49,6 +49,7 @@ namespace AM.Services
             parameters.Add("@closedBy", user.ClosedBy);
             parameters.Add("@StatusModifiedOn", user.StatusModifiedOn);
             parameters.Add("@StatusModifiedBy", user.StatusModifiedBy);
+            //parameters.Add("@ChangePasswordDateUTC",DateTime.UtcNow);
             return db.Execute(query, parameters);
         }
 
@@ -67,7 +68,7 @@ namespace AM.Services
 
             string query = @"Update [Profile].[Users] set UserName = @userName, PasswordHash = @pswHash, SecurityStamp = @secStamp, 
                 Email=@email, EmailConfirmed=@emailconfirmed, PhoneNumber=@phonenumber, PhoneNumberConfirmed=@phonenumberconfirmed,
-                AccessFailedCount=@accesscount, LockoutEnabled=@lockoutenabled, LockoutEndDateUtc=@lockoutenddate, TwoFactorEnabled=@twofactorenabled,ClientId=@clientId,FirstName=@firstName,LastName=@lastName,DisplayName=@displayName,RequestedOn=@requestedOn,Status=@status,ClosedOn=@closedOn,ClosedBy=@closedBy,LastLoginTimeUTC=@LastLoginTimeUTC,ChangePasswordDateUTC=@ChangePasswordDateUTC,StatusModifiedOn=@StatusModifiedOn,StatusModifiedBy=@StatusModifiedBy
+                AccessFailedCount=@accesscount, LockoutEnabled=@lockoutenabled, LockoutEndDateUtc=@lockoutenddate, TwoFactorEnabled=@twofactorenabled,ClientId=@clientId,FirstName=@firstName,LastName=@lastName,DisplayName=@displayName,RequestedOn=@requestedOn,Status=@status,ClosedOn=@closedOn,ClosedBy=@closedBy,LastLoginTimeUTC=@LastLoginTimeUTC,StatusModifiedOn=@StatusModifiedOn,StatusModifiedBy=@StatusModifiedBy
                 WHERE Id = @userId";
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("@userName", user.UserName);
@@ -91,7 +92,6 @@ namespace AM.Services
             parameters.Add("@closedOn", user.ClosedOn);
             parameters.Add("@closedBy", user.ClosedBy);
             parameters.Add("@LastLoginTimeUTC", user.LastLoginTimeUTC);
-            parameters.Add("@ChangePasswordDateUTC", user.ChangePasswordDateUTC);
             parameters.Add("@StatusModifiedOn", user.StatusModifiedOn);
             parameters.Add("@StatusModifiedBy", user.StatusModifiedBy);
             return db.Execute(query, parameters);

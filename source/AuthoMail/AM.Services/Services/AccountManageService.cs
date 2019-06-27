@@ -14,6 +14,7 @@ namespace AM.Services
     public interface IAccountManageService : IDisposable
     {
         KeyValuePair<bool, string> CreateUser(AccountUser user, string userId);
+        Task UpdateChangePasswordDateAsync(string userId);
     }
     public class AccountManageService : ServiceBase, IAccountManageService
     {
@@ -135,5 +136,11 @@ namespace AM.Services
             }
         }
 
+
+
+        public async Task UpdateChangePasswordDateAsync(string userId)
+        {
+            await db.ExecuteAsync("update Profile.Users set ChangePasswordDateUTC=@utcDate where Id=@userId", new { userId = userId, utcDate = DateTime.UtcNow });
+        }
     }
 }

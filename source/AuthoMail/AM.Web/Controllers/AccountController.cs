@@ -352,6 +352,7 @@ namespace AM.Web.Controllers
                             DisplayName = model.DisplayName,
                             Status = AMUserStatus.Open,
                             RequestedOn = DateTime.UtcNow,
+                            ChangePasswordDateUTC = DateTime.UtcNow,
                             StatusModifiedOn = DateTime.UtcNow,
                             StatusModifiedBy = systemUser.Id
                         };
@@ -709,9 +710,7 @@ namespace AM.Web.Controllers
             var result = await UserManager.ResetPasswordAsync(user.Id, model.Code, model.Password);
             if (result.Succeeded)
             {
-                var newuser = await UserManager.FindByEmailAsync(model.Email);
-                newuser.ChangePasswordDateUTC = DateTime.UtcNow;
-                await UserManager.UpdateAsync(newuser);
+               await accSvc.UpdateChangePasswordDateAsync(user.Id);
                 return RedirectToAction("ResetPasswordConfirmation", "Account");
             }
             AddErrors(result);
@@ -792,9 +791,7 @@ namespace AM.Web.Controllers
             var result = await UserManager.ChangePasswordAsync(userId, model.OldPassword, model.NewPassword);
             if (result.Succeeded)
             {
-                var user = await UserManager.FindByNameAsync(model.UserName);
-                user.ChangePasswordDateUTC = DateTime.UtcNow;
-                await UserManager.UpdateAsync(user);
+                await accSvc.UpdateChangePasswordDateAsync(userId);
 
                 StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\ChangePassword.html")));
                 sb.Replace("{{name}}", existingUser.FirstName);

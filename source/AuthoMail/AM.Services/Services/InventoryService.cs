@@ -21,7 +21,7 @@ namespace AM.Services
 
         public Envelopes FindByCodeEnvelope(string envelopeCode)
         {
-            return db.QuerySingleOrDefault<Envelopes>(@"select e.*,c.UserName as CreatedBy,m.UserName as ModifiedBy from Common.Envelopes e
+            return db.QuerySingleOrDefault<Envelopes>(@"select e.*,c.DisplayName as CreatedBy,m.DisplayName as ModifiedBy from Common.Envelopes e
 inner join Profile.Users c on e.CreatedBy=c.Id
 inner join Profile.Users m on e.ModifiedBy=m.Id
 where e.Id=@envelopeCode", new { envelopeCode = envelopeCode });
@@ -29,7 +29,7 @@ where e.Id=@envelopeCode", new { envelopeCode = envelopeCode });
 
         public List<Envelopes> GetEnvelopes()
         {
-            return db.Query<Envelopes>(@"select e.*,c.UserName as CreatedBy,m.UserName as ModifiedBy from Common.Envelopes e
+            return db.Query<Envelopes>(@"select e.*,c.DisplayName as CreatedBy,m.DisplayName as ModifiedBy from Common.Envelopes e
 inner join Profile.Users c on e.CreatedBy=c.Id
 inner join Profile.Users m on e.ModifiedBy=m.Id").ToList();
         }
@@ -64,7 +64,7 @@ inner join Profile.Users m on e.ModifiedBy=m.Id").ToList();
 
         public EnvelopeInventory FindByIdEnvelopeInventory(int Id)
         {
-            string query = @"select e.*,c.UserName as CreatedBy,m.UserName as ModifiedBy from Common.EnvelopeInventory e
+            string query = @"select e.*,c.DisplayName as CreatedBy,m.DisplayName as ModifiedBy from Common.EnvelopeInventory e
 inner join Profile.Users c on e.CreatedBy=c.Id
 inner join Profile.Users m on e.ModifiedBy=m.Id
 where e.Id=@Id";
@@ -121,7 +121,7 @@ VALUES (@EnvelopeId ,@Description ,@ReceivedOn ,@ReceivedQuantity ,@UnitPrice,@C
         }
         public List<EnvelopeInventory> GetAllEnvelopeInventory()
         {
-            string query = @"select e.*,c.UserName as CreatedBy,m.UserName as ModifiedBy from Common.EnvelopeInventory e
+            string query = @"select e.*,c.DisplayName as CreatedBy,m.DisplayName as ModifiedBy from Common.EnvelopeInventory e
 inner join Profile.Users c on e.CreatedBy=c.Id
 inner join Profile.Users m on e.ModifiedBy=m.Id";
             return db.Query<EnvelopeInventory>(query).ToList();

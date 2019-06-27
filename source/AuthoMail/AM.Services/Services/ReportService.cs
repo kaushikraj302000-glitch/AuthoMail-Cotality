@@ -138,22 +138,23 @@ namespace AM.Services
         {
             string query = "[dbo].[uspweb_MonthlyReconReport] @clientId, @startDate, @endDate, @channel";
             string appCode = GetAppcodeByClientid(clientId);
-            if (appCode == "USAA")
-            {
-                startDate = (startDate.Date + new TimeSpan(20, 00, 01)).EstToUtc();
-                endDate = (endDate.Date + new TimeSpan(20, 00, 00)).EstToUtc();
-            }
-            else if (appCode == "HSBC" || appCode == "BOTW")
-            {
-                startDate = (startDate + new TimeSpan(19, 30, 01)).EstToUtc();
-                endDate = (endDate + new TimeSpan(19, 30, 00)).EstToUtc();
-            }
-            else
-            {
-                startDate = startDate.ToStartDateTime().EstToUtc();
-                endDate = endDate.ToEndDateTime().EstToUtc();
-            }
-
+            //if (appCode == "USAA")
+            //{
+            //    startDate = (startDate.Date + new TimeSpan(20, 00, 01)).EstToUtc();
+            //    endDate = (endDate.Date + new TimeSpan(20, 00, 00)).EstToUtc();
+            //}
+            //else if (appCode == "HSBC" || appCode == "BOTW")
+            //{
+            //    startDate = (startDate + new TimeSpan(19, 30, 01)).EstToUtc();
+            //    endDate = (endDate + new TimeSpan(19, 30, 00)).EstToUtc();
+            //}
+            //else
+            //{
+            //    startDate = startDate.ToStartDateTime().EstToUtc();
+            //    endDate = endDate.ToEndDateTime().EstToUtc();
+            //}
+            startDate = startDate.ToStartDateTime();
+            endDate = endDate.ToEndDateTime();
             var data = db.Query<MonthlyReconReportViewModel>(query,
                 new
                 {
@@ -320,6 +321,9 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
 
         public List<ReportWizard> GetReportWizard(List<int> clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo)
         {
+            if (!startDate.HasValue && businessFriendlyIdValue.IsNullOrWhiteSpace() && trackingNo.IsNullOrWhiteSpace())
+                throw new Exception("Date filter required.");
+
             string query = @"SELECT m.Id as MailPieceId,m.BusinessFriendlyIdValue as LoanNumber,m.ShippingStatus as [Status],m.UniqueId,
 	 m.RcptFirstName as FirstName,m.RcptLastName as LastName,m.RcptAddressCity as [City],m.RcptAddressZip as ZIP,m.RcptAddressStreet,
 	 m.RcptAddressState as [State], m.ShippedOn as MailedOn ,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,m.PrintedOn
@@ -371,8 +375,8 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
             {
                 List<string> shipMethod = new List<string>();
                 List<string> shipCarrier = new List<string>();
-                shippingMethod.ForEach(s => shipMethod.Add(s.Split('-').First()));
-                shippingMethod.ForEach(s => shipCarrier.Add(s.Split('-')[1]));
+                shippingMethod.ForEach(s => shipCarrier.Add(s.Split('-').First()));
+                shippingMethod.ForEach(s => shipMethod.Add(s.Split('-')[1]));
                 query = string.Format("{0} and d.ShippingServiceType in @shippingMethod and d.ShippingCarrier in @shippingCarrier", query);
                 parameter.Add("@shippingMethod", shipMethod);
                 parameter.Add("@shippingCarrier", shipCarrier);
@@ -459,7 +463,8 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
         public List<string> GetMonthlyReconDate(int clientId)
         {
             string appCode = GetAppcodeByClientid(clientId);
-            string startDate = appCode == "USAA" || appCode == "HSBC" || appCode == "BOTW" ? "25" : "26";
+            //string startDate = appCode == "USAA" || appCode == "HSBC" || appCode == "BOTW" ? "25" : "26";
+            string startDate = "26";
             var dateList = new List<string>();
             var currDate = DateTime.UtcNow.UtcToEst();
             if (currDate.Day <= 25) currDate = currDate.AddMonths(-1);

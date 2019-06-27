@@ -435,7 +435,7 @@ namespace AM.Services
         public string PrintLocation { get; set; }
 
     }
-   
+
 
     public class MonthlyReconReportViewModel
     {
@@ -473,4 +473,5 @@ namespace AM.Services
         //    }
         //}
     }
+   
 }

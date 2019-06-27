@@ -34,6 +34,8 @@ namespace AM.Services
         int GetPrintTrail(DocType docType, DateTime estEffectiveReceivedOn);
         DateTime GetDueDate(DocType docType, DateTime estEffectiveReceivedOn);
         DateTime GetEffectiveEstReceivedOn(DocType docType, DateTime utcReceivedOn);
+        int InsertErrorNotifications(int mailBatchId);
+        string GetErrorNotificationEmailSubscriberList(int clientId);
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -374,7 +376,7 @@ namespace AM.Services
             return effectiveEstReceivedOn;
         }
 
-        private bool IsBusinessDay(DateTime dueDate, List<Holiday> holidays, bool isSatWorkDay, bool isSunWorkDay)
+        public bool IsBusinessDay(DateTime dueDate, List<Holiday> holidays, bool isSatWorkDay, bool isSunWorkDay)
         {
             if (holidays.Select(c => c.HolidayDate).Contains(dueDate.Date))
                 return false;
@@ -388,7 +390,7 @@ namespace AM.Services
             return true;
         }
 
-        private DateTime GetNextWorkingDay(DateTime estDateTime, List<Holiday> HolidayList, bool isSatWorkDay, bool isSunWorkDay)
+        public DateTime GetNextWorkingDay(DateTime estDateTime, List<Holiday> HolidayList, bool isSatWorkDay, bool isSunWorkDay)
         {
             do
             {
@@ -397,6 +399,16 @@ namespace AM.Services
             while (!IsBusinessDay(estDateTime, HolidayList, isSatWorkDay, isSunWorkDay));
 
             return estDateTime;
+        }
+
+        public int InsertErrorNotifications(int mailBatchId)
+        {
+            return db.Execute("usp_InsertErrorNotificationData @mailBatchId", new { mailBatchId = mailBatchId });
+        }
+
+        public string GetErrorNotificationEmailSubscriberList(int clientId)
+        {
+            return String.Join(",", db.Query<string>("SELECT U.Email FROM [AM].[AlertSubscribers] A INNER JOIN [Profile].[Users] U ON A.UserId=U.Id WHERE U.ClientId=@ClientId", new { ClientId = clientId }));
         }
     }
 }

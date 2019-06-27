@@ -134,10 +134,11 @@ namespace PCI.Service
             return printTrailDetail.DataTableAccessor<PrintVendor>(false).Single();
         }
 
-        public static int UpdateEnvelopeInventory(Dictionary<string, int> envelopeInventory)
+        public static int UpdateEnvelopeInventory(PrintTrailBatch printTrailBatch, Dictionary<string, int> envelopeInventory)
         {
             foreach (var envelope in envelopeInventory)
             {
+                db.ExecuteSqlNonQuery("INSERT INTO [PnS].[EnvelopeUsage]([PrintTrailBatchId],[EnvelopeId],[Quantity],[InsertedOn])VALUES(@p1,@p2,@p3,@p4)", printTrailBatch.Id, envelope.Key, envelope.Value, Common.GetCurrentTime());
                 db.ExecuteSqlNonQuery("UPDATE [Common].[Envelopes] SET CurrentQuantity = CurrentQuantity-{0} WHERE Id IN (@p1)".Fill(envelope.Value), envelope.Key);
             }
             return 1;
@@ -153,6 +154,11 @@ namespace PCI.Service
         public static int GetMailPieceIdFromGuid(Guid uniqueId)
         {
             return db.ExecuteSqlScalar<int>("SELECT TOP 1 Id FROM AM.MailPieces WHERE UniqueId=@p1 ORDER BY Id DESC", uniqueId);
+        }
+
+        public static int UpdatePrintTrailBatchSize(int printTrailBatchId, Int64 zipFileSize)
+        {
+            return db.ExecuteSqlNonQuery("UPDATE [PnS].[PrintTrailBatches] SET ZipFileSize = @p1 WHERE Id = @p2", zipFileSize, printTrailBatchId);
         }
     }
 }

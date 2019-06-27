@@ -16,6 +16,11 @@ using NPOI.XSSF.UserModel;
 using NPOI.SS.UserModel;
 using System.IO;
 using System.Globalization;
+using System.Net;
+using System.Collections.Specialized;
+using System.Net.Http;
+using System.Configuration;
+using System.Net.Http.Headers;
 namespace AM.Web.Controllers
 {
     [Authorize(Roles = AMRoles.Admin + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager)]
@@ -273,6 +278,7 @@ namespace AM.Web.Controllers
                 ViewBag.IsModelEmpty = false;
                 ViewBag.ClientId = id;
                 ViewBag.ClientName = model.FirstOrDefault().ClientName;
+                ViewBag.AppCode = model.FirstOrDefault().AppCode;
                 ViewBag.DocType = new SelectList(model, "Id", "DocTypeCode");
             }
             return PartialView();
@@ -281,7 +287,7 @@ namespace AM.Web.Controllers
 
         [Authorize(Roles = AMRoles.Admin)]
         [HttpPost]
-        public ActionResult _AddCoverLetter(int docTypeId, int seqId, string fileName, IEnumerable<HttpPostedFileBase> file)
+        public ActionResult _AddCoverLetter(int docTypeId, int seqId, string fileName, string appCode, HttpPostedFileBase file)
         {
             try
             {
@@ -289,15 +295,88 @@ namespace AM.Web.Controllers
                 coverLetter.DocTypeId = docTypeId;
                 coverLetter.SeqId = seqId;
                 coverLetter.CoverLetterTemplatePath = fileName;
-                var model = supportSvc.SaveDocTypeCoverLetter(coverLetter);
-                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+
+                HttpClient client = new HttpClient();
+                client.DefaultRequestHeaders.Add("AppCode", appCode);
+                client.DefaultRequestHeaders.Add("Id", "c711c4aa-8559-44fa-9edc-88600f38b3c9");
+                client.DefaultRequestHeaders.Add("FileName", fileName);
+                MultipartFormDataContent form = new MultipartFormDataContent();
+                HttpContent content = new StringContent("file");
+                content = new StreamContent(file.InputStream);
+                content.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+                {
+                    Name = "file",
+                    FileName = file.FileName
+                };
+                form.Add(content, "file", fileName);
+                var validateCoverLetter = supportSvc.ValidateDocTypeCoverLetter(coverLetter);
+                if (validateCoverLetter.Key)
+                {
+                    HttpResponseMessage response = client.PostAsync(ConfigurationManager.AppSettings["CoverLetterUploadUrl"].ToString(), form).Result;
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var model = supportSvc.SaveDocTypeCoverLetter(coverLetter);
+                        return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+                    }
+                    else
+                    {
+                        var errorModel = new KeyValuePair<bool, string>(false, "File not uploaded, Please try again.");
+                        return Json(JsonResponseFactory.SuccessResponse(errorModel), JsonRequestBehavior.AllowGet);
+                    }
+                }
+                else
+                {
+                    return Json(JsonResponseFactory.SuccessResponse(validateCoverLetter), JsonRequestBehavior.AllowGet);
+                }
+
+
             }
             catch (Exception e)
             {
                 return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
             }
         }
+        [Authorize(Roles = AMRoles.Admin),HttpPost]
+        public ActionResult DownloadCoverLetter(string fileName, string appCode)
+        {
 
+            try
+            {
+                HttpClient client = new HttpClient();
+                HttpResponseMessage response = new HttpResponseMessage();
+                string url = string.Format("{0}?fileName={1}&appCode={2}", ConfigurationManager.AppSettings["CoverLetterDownloadUrl"].ToString(), fileName, appCode);
+                response = client.GetAsync(url).Result;
+                if (response.IsSuccessStatusCode)
+                {
+                    string fileGuid = Guid.NewGuid().ToString();
+                    TempData[fileGuid] =response.Content.ReadAsByteArrayAsync().Result;
+
+                    return Json(JsonResponseFactory.SuccessResponse(new { model = new { FileGuid = fileGuid, FileName = fileName } }), JsonRequestBehavior.AllowGet);
+                }
+                else
+                {
+                    return Json(JsonResponseFactory.ErrorResponse(response.ReasonPhrase), JsonRequestBehavior.AllowGet);
+                }
+            }
+            catch (Exception e)
+            {
+
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+        public ActionResult _DownloadCoverLetter(string fileGuid, string fileName)
+        {
+            if (TempData[fileGuid] != null)
+            {
+                byte[] data = TempData[fileGuid] as byte[];
+                return File(data, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            else
+            {
+                return new EmptyResult();
+            }
+
+        }
         [Authorize(Roles = AMRoles.Admin)]
         public ActionResult GetCoverLetterByDocTypeId(int id)
         {
@@ -523,7 +602,7 @@ namespace AM.Web.Controllers
                 ViewBag.ShippingCarrierdropDown = ShippingCarrierList.Select(s => new SelectListItem() { Text = s, Value = s }).ToList();
                 ViewBag.ShippingServiceTypedropDown = ShippingServiceTypeList.Select(s => new SelectListItem() { Text = s, Value = s }).ToList();
                 ViewBag.Clients = new SelectList(homeSvc.GetAllActiveClient(), "Id", "Name");
-                ViewBag.BREEnvelopedropDown = inventorySvc.GetEnvelopes().Where(s => s.IsBREEnvelope).Select(s => new SelectListItem() { Text = s.Id, Value = s.Id}).ToList();
+                ViewBag.BREEnvelopedropDown = inventorySvc.GetEnvelopes().Where(s => s.IsBREEnvelope).Select(s => new SelectListItem() { Text = s.Id, Value = s.Id }).ToList();
                 ViewBag.EnvelopedropDown = inventorySvc.GetEnvelopes().Where(s => !s.IsBREEnvelope).Select(s => new SelectListItem() { Text = s.Id, Value = s.Id }).ToList();
                 return PartialView("_AddOrEditDocType", new DocTypes());
             }
@@ -557,6 +636,31 @@ namespace AM.Web.Controllers
             }
         }
 
+
+
+        #endregion
+
+        #region PrintTrailMaps
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult PrintTrailMapByDocId(int id)
+        {
+            ViewBag.PrintTrailId = supportSvc.GetPrintTrails();
+            return View(supportSvc.GetDocTypePrintTrailByDocTypeId(id));
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult SaveDocTypePrintTrail(List<DocTypePrintTrailMap> docTypePrintTrailMapList)
+        {
+
+            try
+            {
+                var model = supportSvc.SaveDocTypePrintTrail(docTypePrintTrailMapList);
+                return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
         #endregion
 
         #region Assige Role
@@ -668,9 +772,9 @@ namespace AM.Web.Controllers
                         {
                             if (Path.GetExtension(file.FileName) == ".pdf")
                             {
-                                    string filePath = string.Format("{0}/{1}", subPath, file.FileName);
-                                    file.SaveAs(Server.MapPath(filePath));
-                                    filesName.Add(file.FileName);
+                                string filePath = string.Format("{0}/{1}", subPath, file.FileName);
+                                file.SaveAs(Server.MapPath(filePath));
+                                filesName.Add(file.FileName);
                             }
                         }
                         if (filesName.Count > 0)
@@ -898,6 +1002,74 @@ namespace AM.Web.Controllers
             catch (Exception e)
             {
                 return Json(JsonResponseFactory.ErrorResponse(e.Message), JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        #endregion
+
+        #region Manage Print Trails
+
+        [Authorize(Roles = AMRoles.Admin)]
+        public ActionResult ManagePrintTrails()
+        {
+            return View();
+        }
+
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult GetPrintTrails()
+        {
+            try
+            {
+                var model = supportSvc.GetPrintTrails().OrderByDescending(s => s.SimulateTrail).ToList();
+                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult Simulate(bool simulateTrail, int Id)
+        {
+            try
+            {
+                var model = supportSvc.SimulatePrintTrail(Id, simulateTrail);
+                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult CreateOrEditPrintTrail(PrintTrail printTrail)
+        {
+            try
+            {
+                var model = supportSvc.SavePrintTrail(printTrail);
+                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult GetPrintTrailById(int id)
+        {
+
+            if (id != 0)
+            {
+                PrintTrail printTrail = supportSvc.GetPrintTrailById(id);
+                ViewBag.PrintVendors = new SelectList(supportSvc.GetPrintVendors(), "Id", "Name", printTrail.PrintVendorId);
+                return PartialView("_AddOrEditPrintTrail", printTrail);
+            }
+            else
+            {
+                ViewBag.PrintVendors = new SelectList(supportSvc.GetPrintVendors(), "Id", "Name");
+                return PartialView("_AddOrEditPrintTrail", new PrintTrail());
             }
         }
 

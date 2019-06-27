@@ -101,7 +101,7 @@
     <table>
         <tbody id="DocTypeBody">
             <tr class="row-small">
-                <td>{CoverLetter}{Action}</td>
+                <td>{MappingPT}{CoverLetter}{Action}</td>
                 <td><span data-id="{Id}">{DocTypeCode}</span></td>
                 <td><span>{Description}</span></td>
                 <td><span>{Client.Name}</span></td>
@@ -175,7 +175,16 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="PrintTrailMappingModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <div class="modal-header" style="margin-top:2%;margin-bottom:2%;">
 
+            </div>
+        </div>
+    </div>
+</div>
 <div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -590,6 +599,31 @@
 
            });
         });
+        function GetPrintTrailMaps(obj){
+            //docTypePrintModal//
+            var Id = $(obj).data("id");
+            var docTypeCode = $(obj).data("doctypecode");
+            var el = $("#PrintTrailMappingModal").find(".modal-header");
+            el.empty();
+            $.ajax({
+                type: "GET",
+                url: baseUrl + "Admin/_GetPrintTrailMappingDetails",
+                data: { Id: Id },
+                success: function (response) {
+                    el.html(response);
+                    $("#docTypePrintModal").text(docTypeCode);
+                    $("#PrintTrailMappingModal").modal("show");
+
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+
+                    //Spinners(".spinnericon", "faspinner");
+                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
+                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    $("#RemoveCoverLetterModal").modal("show");
+                }
+            });
+        }
         function GetCoverLetterFiles(obj) {
             var Id = $(obj).data("id");
             var docTypeCode = $(obj).data("doctypecode");
@@ -647,9 +681,11 @@
                 this.SLACutOffTime = moment(this.SLACutOffTime).format("HH:mm:ss");
                 this.CreatedOn = moment(this.CreatedOn).format("MM/DD/YY HH:mm:ss");
                 this.ModifiedOn = moment(this.ModifiedOn).format("MM/DD/YY HH:mm:ss");
-                this.Action = '<span style="cursor: pointer;font-size:1.2em;" onclick="AddEditDocType(this)" data-id="' + this.Id + '" ><i class="padding-left-15 fa fa-edit text-blue" aria-hidden="true" title="Edit"><span class="sr-only">Edit</span></i></span>';
+                this.Action = '<span style="cursor: pointer;font-size:1.2em;" onclick="AddEditDocType(this)" data-id="' + this.Id + '" ><i class="fa fa-edit text-blue" aria-hidden="true" title="Edit"><span class="sr-only">Edit</span></i></span>';
 
-                this.CoverLetter = '<span style="cursor: pointer;font-size:1.2em;" onclick="GetCoverLetterFiles(this)" data-id="' + this.Id + '" data-doctypecode="' + this.DocTypeCode + '" ><i class=" fa fa-file-pdf-o text-red" aria-hidden="true" title="Remove Cover Letter"><span class="sr-only">Cover Letter</span></i></span>';
+                this.CoverLetter = '<span style="cursor: pointer;font-size:1.2em;margin-right:10%;" onclick="GetCoverLetterFiles(this)" data-id="' + this.Id + '" data-doctypecode="' + this.DocTypeCode + '" ><i class=" fa fa-file-pdf-o text-red" aria-hidden="true" title="Remove Cover Letter"><span class="sr-only">Cover Letter</span></i></span>';
+                this.MappingPT = '<a href="/Admin/PrintTrailMapByDocId/' + this.Id + '" style="cursor: pointer;font-size:1.2em;margin-right:10%;"  ><i class=" fa fa-list text-blue" aria-hidden="true" title="Print Trail Mapping"><span class="sr-only">Print Trail Mapping</span></i></a>';
+        
 
             });
             return Model;

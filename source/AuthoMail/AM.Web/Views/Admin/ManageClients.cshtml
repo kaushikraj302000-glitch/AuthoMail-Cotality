@@ -214,7 +214,9 @@
                     var docTypeId = parseInt($("#AddCoverLetterModal").find(".modal-header").find("#DocTypeId").val());
                     var fileName = $("#AddCoverLetterModal").find(".modal-header").find("#FileName").val();
                     var seqId = parseInt($("#AddCoverLetterModal").find(".modal-header").find("#SeqId").val());
+                    var AppCode = $("#AddCoverLetterModal").find(".modal-header").find("#AppCode").val();
                     var file = $("#AddCoverLetterModal").find(".modal-header").find("#file").prop('files')[0];
+                    //console.log(file);
                     $("#AddCoverLetterModal").modal("hide");
                     var el = $("#myModal").find(".modal-body");
                     el.empty();
@@ -222,6 +224,7 @@
                     formData.append("file", file);
                     formData.append("docTypeId", docTypeId);
                     formData.append("seqId", seqId);
+                    formData.append("appCode", AppCode);
                     formData.append("fileName", fileName);
                     $.ajax({
                         //dataType: 'json',
@@ -369,7 +372,7 @@
                     var BillingContactEmail = $("#AddEditModal").find(".modal-header").find("#BillingContactEmail").val();
                     var Address = $("#AddEditModal").find(".modal-header").find("#Address").val();
                     var ClientObj = new Clients(Id, name, appCode, businessUnit, timezone, Contact1Name, Contact1Phone, Contact1Email, Contact2Name, Contact2Phone, Contact2Email, Contact3Name, Contact3Phone, Contact3Email, ITContactName, ITContactPhone, ITContactEmail, BillingContactName, BillingContactPhone, BillingContactEmail, Address);
-                    console.log(ClientObj);
+                    //console.log(ClientObj);
                    
                     $("#AddEditModal").modal("hide");
                     var el = $("#myModal").find(".modal-body");

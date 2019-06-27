@@ -89,6 +89,7 @@ namespace AM.Entities
         public DateTime? MaxSubmissionTime { get; set; }
         public string MissedSLAReason { get; set; }
         public int? PrintTrailId { get; set; }
+        public Int64? PDFFileSize { get; set; }
     }
 
     public class MailPieceCustomInfo

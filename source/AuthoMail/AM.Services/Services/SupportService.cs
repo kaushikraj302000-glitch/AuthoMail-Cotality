@@ -24,7 +24,17 @@ namespace AM.Services
         List<DocTypeVM> GetDocTypesByClientId(int ClientId);
         List<DocTypeCoverLetterVM> GetDocTypeCoverLetterByDocTypeId(int Id);
         KeyValuePair<bool, string> SaveDocTypeCoverLetter(DocTypeCoverLetter dtcl);
+        KeyValuePair<bool, string> ValidateDocTypeCoverLetter(DocTypeCoverLetter dtcl);
         KeyValuePair<bool, string> RemoveCoverletter(int docTypeId, int seqId, string filePath);
+        KeyValuePair<bool, string> SaveDocTypePrintTrail(List<DocTypePrintTrailMap> model);
+        KeyValuePair<bool, string> SavePrintTrail(PrintTrail model);
+        PrintTrail GetPrintTrailById(int Id);
+        KeyValuePair<bool, string> RemovePrintTrail(int Id);
+        KeyValuePair<bool, string> SimulatePrintTrail(int Id, bool isSimulate);
+        List<PrintTrail> GetPrintTrails();
+        List<PrintVendor> GetPrintVendors();
+        List<DocTypePrintTrailMap> GetDocTypePrintTrail();
+        Tuple<DocType, List<DocTypePrintTrailMap>> GetDocTypePrintTrailByDocTypeId(int docTypeId);
         //Clients
         List<Clients> GetClients();
         Clients FindByClientId(int Id);
@@ -533,7 +543,7 @@ namespace AM.Services
 
         public List<DocTypeVM> GetDocTypesByClientId(int ClientId)
         {
-            string q = "select d.Id,d.ClientId,d.DocTypeCode,c.Name as ClientName from AM.DocTypes d,Common.Clients c where d.ClientId=c.Id and ClientId=@clientId";
+            string q = "select d.Id,d.ClientId,d.DocTypeCode,c.Name as ClientName,c.AppCode from AM.DocTypes d,Common.Clients c where d.ClientId=c.Id and ClientId=@clientId";
             return db.Query<DocTypeVM>(q, new { clientId = ClientId }).ToList();
         }
         public List<DocTypeCoverLetterVM> GetDocTypeCoverLetterByDocTypeId(int Id)
@@ -545,11 +555,6 @@ namespace AM.Services
         {
             try
             {
-                if (dtcl.CoverLetterTemplatePath.IsNullOrWhiteSpace())
-                    return GetKeyValue(false, "Cover Letter Template Path can't be empty.");
-                var isExists = db.QueryFirstOrDefault<string>("select CoverLetterTemplatePath from AM.DocTypeCoverLetters where CoverLetterTemplatePath=@filePath", new { filePath = dtcl.CoverLetterTemplatePath });
-                if (isExists != null)
-                    return GetKeyValue(false, "Cover Letter Template Path already exists.");
                 int rows = db.Execute("insert into AM.DocTypeCoverLetters (DocTypeId,SeqId,CoverLetterTemplatePath) values (@docTypeId,@seqId,@coverLetterTemplatePath)", dtcl);
                 if (rows == 1)
                     return GetKeyValue(true, "Saved Successfully.");
@@ -561,6 +566,29 @@ namespace AM.Services
                 return GetKeyValue(false, ex.Message);
             }
         }
+
+        public KeyValuePair<bool, string> ValidateDocTypeCoverLetter(DocTypeCoverLetter dtcl)
+        {
+            try
+            {
+                if (dtcl.CoverLetterTemplatePath.IsNullOrWhiteSpace())
+                    return GetKeyValue(false, "Cover Letter Template Path can't be empty.");
+                var isExists = db.QueryFirstOrDefault<string>("select CoverLetterTemplatePath from AM.DocTypeCoverLetters where CoverLetterTemplatePath=@filePath", new { filePath = dtcl.CoverLetterTemplatePath });
+                if (isExists != null)
+                    return GetKeyValue(false, "Cover Letter Template Path already exists.");
+                return new KeyValuePair<bool, string>(true, "");
+            }
+            catch (Exception ex)
+            {
+                return GetKeyValue(false, ex.Message);
+            }
+        }
+        //private string CalFileName(int docTypeId, int seq,int suffix=1)
+        //{
+        //    var docType = FindByIdDocType(docTypeId);
+        //    var client = FindByClientId(docType.ClientId);
+        //    return string.Format("{0}_{1}_{2}_{3}", client.AppCode, docType.ShippingCarrier, seq > 100 ? "EndPage" : "Generic", suffix);
+        //}
         public KeyValuePair<bool, string> RemoveCoverletter(int docTypeId, int seqId, string filePath)
         {
             if (filePath.IsNullOrWhiteSpace())
@@ -572,5 +600,180 @@ namespace AM.Services
                 return GetKeyValue(false, "Data can't be removed.");
         }
 
+
+
+        public KeyValuePair<bool, string> SaveDocTypePrintTrail(List<DocTypePrintTrailMap> model)
+        {
+            var result = Has24HrsWithoutOverlap(model);
+            if (!result.Key) return result;
+
+            db.Open();
+            var t = db.BeginTransaction();
+            try
+            {
+                int docTypeId = model.Select(m => m.DocTypeId).First();
+                db.Execute("delete from Common.DocTypePrintTrailMaps where doctypeid=@doctypeid", new { doctypeid = docTypeId }, transaction: t);
+
+                string q = @"INSERT INTO Common.DocTypePrintTrailMaps (DocTypeId ,PrintTrailId ,BizDayStartTime ,BizDayEndTime ,SatStartTime ,SatEndTime ,SunStartTime ,SunEndTime) VALUES (@DocTypeId ,@PrintTrailId ,@BizDayStartTime ,@BizDayEndTime ,@SatStartTime ,@SatEndTime ,@SunStartTime ,@SunEndTime)";
+                db.Execute(q, model, transaction: t);
+                t.Commit();
+                return new KeyValuePair<bool, string>(true, "DocType & Print Trail mapped successfully.");
+            }
+            catch (Exception ex)
+            {
+                t.Rollback();
+                return new KeyValuePair<bool, string>(false, ex.Message);
+            }
+        }
+
+
+        public KeyValuePair<bool, string> SavePrintTrail(PrintTrail model)
+        {
+            try
+            {
+                string q = model.Id == 0 ?
+                    @"INSERT INTO Common.PrintTrails (TrailName ,PrintVendorId ,SimulateTrail) VALUES (@TrailName ,@PrintVendorId ,@SimulateTrail)" :
+                    "UPDATE Common.PrintTrails SET TrailName = @TrailName,PrintVendorId = @PrintVendorId WHERE Id=@Id";
+                db.Execute(q, model);
+                return new KeyValuePair<bool, string>(true, "Print Trail saved successfully.");
+            }
+            catch (Exception ex)
+            {
+                return new KeyValuePair<bool, string>(false, ex.Message);
+            }
+        }
+        public KeyValuePair<bool, string> RemovePrintTrail(int Id)
+        {
+            try
+            {
+                bool isExist = db.QuerySingle<bool>("select 1 from Common.DocTypePrintTrailMaps where PrintTrailId=@Id", new { Id = Id });
+                if (isExist) new KeyValuePair<bool, string>(false, "Print trail mapped into doctype.");
+
+                isExist = db.QuerySingle<bool>("select 1 from PnS.PrintTrailBatches where PrintTrailId=@Id", new { Id = Id });
+                if (isExist) new KeyValuePair<bool, string>(false, "Print trail mapped into print trail batches.");
+
+                db.Execute("delete from Common.PrintTrails WHERE Id=@Id", new { Id = Id });
+                return new KeyValuePair<bool, string>(true, "Print Trail Removed.");
+            }
+            catch (Exception ex)
+            {
+                return new KeyValuePair<bool, string>(false, ex.Message);
+            }
+        }
+        private KeyValuePair<bool, string> Has24HrsWithoutOverlap(List<DocTypePrintTrailMap> TSList)
+        {
+            if (TSList == null || TSList.Count == 0)
+                return new KeyValuePair<bool, string>(false, "All times can't be null.");
+
+            string biz = "BizDay times are either overlap or doesn't contain a full day.";
+            string sat = "Saturday times are either overlap or doesn't contain a full day.";
+            string sun = "Sunday times are either overlap or doesn't contain a full day.";
+            double hrs = 0.0;
+
+            if (TSList.Any(t => t.BizDayStartTime == null || t.BizDayEndTime == null) && TSList.Any(t => t.BizDayStartTime != null || t.BizDayEndTime != null))
+                return new KeyValuePair<bool, string>(false, biz);
+            if (TSList.Any(t => t.SatStartTime == null || t.SatEndTime == null) && TSList.Any(t => t.SatStartTime != null || t.SatEndTime != null))
+                return new KeyValuePair<bool, string>(false, sat);
+            if (TSList.Any(t => t.SunStartTime == null || t.SunEndTime == null) && TSList.Any(t => t.SunStartTime != null || t.SunEndTime != null))
+                return new KeyValuePair<bool, string>(false, sun);
+
+            bool IsAllTimeNull = true;
+
+            TSList.ForEach(t =>
+            {
+                if (t.BizDayStartTime.HasValue && t.BizDayEndTime.HasValue) hrs += t.BizDayEndTime.Value.Subtract(t.BizDayStartTime.Value).TotalSeconds;
+            });
+            IsAllTimeNull = IsAllTimeNull && hrs == 0.0 ? true : false;
+            if (!(TSList.Count(t => !t.BizDayEndTime.HasValue && !t.BizDayStartTime.HasValue) == TSList.Count) && (hrs + TSList.Count) != 86400)
+                return new KeyValuePair<bool, string>(false, biz);
+
+            hrs = 0.0;
+            TSList.ForEach(t =>
+            {
+                if (t.SatStartTime.HasValue && t.SatEndTime.HasValue) hrs += t.SatEndTime.Value.Subtract(t.SatStartTime.Value).TotalSeconds;
+            });
+            IsAllTimeNull = IsAllTimeNull && hrs == 0.0 ? true : false;
+            if (!(TSList.Count(t => !t.SatStartTime.HasValue && !t.SatEndTime.HasValue) == TSList.Count) && (hrs + TSList.Count) != 86400)
+                return new KeyValuePair<bool, string>(false, sat);
+
+            hrs = 0.0;
+            TSList.ForEach(t =>
+            {
+                if (t.SunStartTime.HasValue && t.SunEndTime.HasValue) hrs += t.SunEndTime.Value.Subtract(t.SunStartTime.Value).TotalSeconds;
+            });
+            IsAllTimeNull = IsAllTimeNull && hrs == 0.0 ? true : false;
+
+            if (!(TSList.Count(t => !t.SunEndTime.HasValue && !t.SunStartTime.HasValue) == TSList.Count) && (hrs + TSList.Count) != 86400)
+                return new KeyValuePair<bool, string>(false, sun);
+
+            if (IsAllTimeNull)
+                return new KeyValuePair<bool, string>(false, "All times can't be null.");
+
+
+            for (int i = 0; i < TSList.Count; i++)
+            {
+                for (int j = 0; j < TSList.Count; j++)
+                {
+                    if (i != j)
+                    {
+                        if ((TSList[j].BizDayStartTime.HasValue && TSList[j].BizDayEndTime.HasValue) && (TSList[j].BizDayStartTime <= TSList[i].BizDayStartTime && TSList[i].BizDayStartTime <= TSList[j].BizDayStartTime) || (TSList[j].BizDayStartTime <= TSList[i].BizDayEndTime && TSList[i].BizDayEndTime <= TSList[j].BizDayStartTime))
+                            return new KeyValuePair<bool, string>(false, biz);
+                        if ((TSList[j].SatStartTime.HasValue && TSList[j].SatEndTime.HasValue) && (TSList[j].SatStartTime <= TSList[i].SatStartTime && TSList[i].SatStartTime <= TSList[j].SatStartTime) || (TSList[j].SatStartTime <= TSList[i].SatEndTime && TSList[i].SatEndTime <= TSList[j].SatStartTime))
+                            return new KeyValuePair<bool, string>(false, sat);
+                        if ((TSList[j].SunStartTime.HasValue && TSList[j].SunEndTime.HasValue) && (TSList[j].SunStartTime <= TSList[i].SunStartTime && TSList[i].SunStartTime <= TSList[j].SunStartTime) || (TSList[j].SunStartTime <= TSList[i].SunEndTime && TSList[i].SunEndTime <= TSList[j].SunStartTime))
+                            return new KeyValuePair<bool, string>(false, sun);
+                    }
+                }
+            }
+
+            return new KeyValuePair<bool, string>(true, "");
+        }
+
+
+        public List<PrintTrail> GetPrintTrails()
+        {
+            var model = db.Query<PrintTrail>("select pt.Id,pt.TrailName,pt.PrintVendorId,pt.SimulateTrail,pv.Name as PrintVendor from Common.PrintTrails pt inner join Common.PrintVendors pv on pt.PrintVendorId=pv.Id").ToList();
+            return model;
+        }
+
+        public List<DocTypePrintTrailMap> GetDocTypePrintTrail()
+        {
+            var model = db.Query<DocTypePrintTrailMap>("select * from Common.DocTypePrintTrailMaps").ToList();
+            return model;
+        }
+
+
+        public Tuple<DocType, List<DocTypePrintTrailMap>> GetDocTypePrintTrailByDocTypeId(int docTypeId)
+        {
+            var model = db.Query<DocTypePrintTrailMap>("select * from Common.DocTypePrintTrailMaps where doctypeid=@doctypeid", new { doctypeid = docTypeId }).ToList();
+            var docType = db.QuerySingle<DocType>("select * from AM.DocTypes where id=@doctypeid", new { doctypeid = docTypeId });
+            return Tuple.Create<DocType, List<DocTypePrintTrailMap>>(docType, model);
+        }
+
+
+        public List<PrintVendor> GetPrintVendors()
+        {
+            return db.Query<PrintVendor>("select * from common.PrintVendors").ToList();
+        }
+
+
+        public KeyValuePair<bool, string> SimulatePrintTrail(int Id, bool isSimulate)
+        {
+            try
+            {
+                db.Execute("update Common.PrintTrails set SimulateTrail=@SimulateTrail where Id=@id", new { SimulateTrail = isSimulate, id = @Id });
+                return new KeyValuePair<bool, string>(true, "Simulate successfully.");
+            }
+            catch (Exception ex)
+            {
+                return new KeyValuePair<bool, string>(false, ex.Message);
+            }
+        }
+
+
+        public PrintTrail GetPrintTrailById(int Id)
+        {
+            return db.QuerySingle<PrintTrail>("select * from Common.PrintTrails where Id=@Id", new { Id = Id });
+        }
     }
 }

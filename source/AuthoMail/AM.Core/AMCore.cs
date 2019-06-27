@@ -208,9 +208,9 @@ namespace AM.Core
                                     int reTrycnt = 0;
                                     while (reTrycnt < Config.Core_NoofTime_AttemptFedexService)
                                     {
-                                        eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name);
+                                        eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, docType.ShippingServiceType.ParseEnum<AM.USPSLib.ServiceType>());
 
-                                        response = doc.GenerateeVSPriorityExpressCoverLetter(client.AppCode, commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq);
+                                        response = doc.GenerateeVSPriorityExpressCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.RcptAddressTypes);
 
                                         if (!response.HasError)
                                         {
@@ -265,9 +265,9 @@ namespace AM.Core
                                     int reTrycnt = 0;
                                     while (reTrycnt < Config.Core_NoofTime_AttemptFedexService)
                                     {
-                                        eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name);
-                                        eVSReq.ServiceType = AM.USPSLib.ServiceType.PRIORITY;
-                                        response = doc.GenerateeVSPriorityCoverLetter(client.AppCode, commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq);
+                                        eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
+
+                                        response = doc.GenerateeVSPriorityCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.RcptAddressTypes);
 
                                         if (response.HasError && (response.ExceptionCode.Contains("80040B18") || response.ExceptionDetail.Contains("error has occurred with the service") || response.ExceptionDetail.Contains("connected party did not properly respond") || response.ExceptionDetail.Contains("existing connection was forcibly closed")))
                                         {
@@ -344,9 +344,9 @@ namespace AM.Core
                                                 mailPiece.DocTypeId = docType.Id;
                                             }
 
-                                            eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name);
+                                            eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, docType.ShippingServiceType.ParseEnum<AM.USPSLib.ServiceType>());
 
-                                            response = doc.GenerateeVSPriorityExpressCoverLetter(client.AppCode, commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq);
+                                            response = doc.GenerateeVSPriorityExpressCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.RcptAddressTypes);
 
                                             //if eVS has changed service to USPS Priority then AM is updating doctypeid in database
                                             if (response.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY)
@@ -501,12 +501,15 @@ namespace AM.Core
 
                                     mailBatchSvc.MarkMailBatchAsInvalid(mbi.MailBatch.Id, (mbi.MailBatch.ValidationErrors + Environment.NewLine + "Some documents could not be processed."));
                                     commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.Failed.ToString());
+
+                                    //NOTE: Inserting Error Notification in this because system is not going to update any further status for batch due to full batch is invalid
+                                    commonSvc.InsertErrorNotifications(mbi.MailBatch.Id);
+                                    SendSubscribedErrorNotificationEmail(mbi, mailPieces, commonSvc.GetErrorNotificationEmailSubscriberList(mbi.Client.Id));
                                 }
                                 else if (validMailPiecesList.Count < mailPieces.Count)
                                 {
                                     var errMpIds = mailPieces.Select(mp => mp.Id).Except(errorMailPieces.Select(errMp => errMp.Id));
-                                    mailPieces = mailPieces.Where(mp => errMpIds.Contains(mp.Id)).ToList();
-                                    GenerateLabelErrorReport(mbi, mailPieces, reportDeliverable);
+                                    GenerateLabelErrorReport(mbi, mailPieces.Where(mp => errMpIds.Contains(mp.Id)).ToList(), reportDeliverable);
                                     commonSvc.UpdateBatchValidationStatus(mbi.MailBatch.Id, BatchValidationStatus.PartiallyValid, mailBatch.ValidationErrors);
                                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Prepped, Common.Now);
                                 }
@@ -627,16 +630,19 @@ namespace AM.Core
                         }
                         break;
                 }
+
+                //TODO: Remove after proper naming convention
+                Thread.Sleep(1000);
             }
         }
 
-        private static eVSLabelRequest GenerateEVSLabelRequest(MailPieceDTO mailPiece, string clientName)
+        private static eVSLabelRequest GenerateEVSLabelRequest(MailPieceDTO mailPiece, string clientName, AM.USPSLib.ServiceType serviceType)
         {
             eVSLabelRequest eVSReq = new eVSLabelRequest();
             //General settings
             eVSReq.AllowNonCleansedDestAddr = true;
             eVSReq.AllowNonCleansedOriginAddr = true;
-            eVSReq.ServiceType = AM.USPSLib.ServiceType.PRIORITY_EXPRESS;
+            eVSReq.ServiceType = serviceType;
             eVSReq.Container = Container.FLAT_RATE_ENVELOPE;
             eVSReq.ShipDate = mailPiece.EffectiveReceivedOnEst.Value;
             eVSReq.ReceiptOption = ReceiptOption.SEPARATE_PAGE;
@@ -644,11 +650,15 @@ namespace AM.Core
             eVSReq.ImageType = ImageType.PDF;
             eVSReq.POZipCode = "75099";
             eVSReq.SenderName = clientName;
-            //if (mailPiece.RcptAddressTypes.Contains(AddressType.Military.ToString()))
-            //    eVSReq.LabelParameters = new LabelParameters() { Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.LABEL4X6L };
-            //else
-            //    eVSReq.LabelParameters = new LabelParameters() { XCoordinate = 450, YCoordinate = 500, Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.LABEL4X6P_PAGE };
-            eVSReq.LabelParameters = new LabelParameters() { Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.SEPARATECONTINUEPAGE };//TODO : Change if required 50
+            if (eVSReq.ServiceType == AM.USPSLib.ServiceType.PRIORITY)
+            {
+                if (mailPiece.RcptAddressTypes.Contains(AddressType.Military.ToString()))
+                    eVSReq.LabelParameters = new LabelParameters() { Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.LABEL4X6L };
+                else
+                    eVSReq.LabelParameters = new LabelParameters() { XCoordinate = 450, YCoordinate = 500, Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.LABEL4X6P_PAGE };
+            }
+            else
+                eVSReq.LabelParameters = new LabelParameters() { Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.SEPARATECONTINUEPAGE };//TODO : Change if required 50
             // From Address
             eVSReq.CustomerRefNo = mailPiece.Id.ToString();
             eVSReq.FromName = (mailPiece.RetRcptFirstName + " " + mailPiece.RetRcptLastName).Trim();
@@ -715,6 +725,67 @@ namespace AM.Core
             {
                 log.Error(ex);
             }
+        }
+
+        private static bool SendSubscribedErrorNotificationEmail(MailBatchInfo mbi, List<MailPieces> mailPieces, string emailList)
+        {
+            bool isEmailSent = false;
+
+            try
+            {
+                if (string.IsNullOrWhiteSpace(emailList))
+                {
+                    return true;
+                }
+
+                using (SmtpClient smtpClient = new SmtpClient())
+                {
+                    using (MailMessage msg = new MailMessage())
+                    {
+                        msg.IsBodyHtml = true;
+                        msg.To.Add(emailList);
+                        msg.CC.Add(Config.Common_ErrorSubscribedEmailCc);
+                        msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, mbi.Client.AppCode, Config.Common_ErrorSubscribedEmailSubject);
+                        msg.Priority = MailPriority.High;
+
+                        if (mailPieces.Count > 0)
+                        {
+                            #region Prepare email body
+
+                            string downloadEmail_TD_SrNoStyle = "style='width:10%;border:solid windowtext 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt' valign='top' width='213'><p>";
+                            string downloadEmail_TD_DescriptionStyle = "style='width:45%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'' valign='top' width='213'><p>";
+
+                            StringBuilder sb = new StringBuilder(File.ReadAllText(Config.Common_ErrorSubscribedEmailTemplate));
+                            sb = sb.Replace("<%FileName%>", mbi.MailBatch.BatchName);
+                            sb = sb.Replace("<%yyyymmdd%>", Common.Now.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("MM/dd/yyyy"));
+                            sb = sb.Replace("<%hhmm%>", Common.Now.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("hh:mm tt"));
+
+                            var errorMPs = mailPieces.Where(mp => mp.ShippingStatus == ShippingStatus.Error.ToString());
+                            StringBuilder errData = new StringBuilder();
+                            foreach (var errMp in errorMPs)
+                            {
+                                errData.AppendLine("<tr><td {0}>{1}</td><td {2}>{3}</td><td{4}>{5}</td></tr>".Fill(downloadEmail_TD_SrNoStyle, errMp.BusinessFriendlyIdValue, downloadEmail_TD_DescriptionStyle, errMp.ErrorCode, downloadEmail_TD_DescriptionStyle, errMp.ErrorDesc));
+                            }
+                            sb = sb.Replace("<%trdata%>", errData.ToString());
+                            msg.Body = sb.ToString();
+
+                            #endregion
+                        }
+
+                        if (msg.Body.Length > 0)
+                        {
+                            smtpClient.Send(msg);
+                            isEmailSent = true;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex);
+            }
+
+            return isEmailSent;
         }
 
         private static void GenerateImmidiateReports(MailBatchInfo mbi, List<MailPieces> mailPieces, Deliverable deliverable)
@@ -795,6 +866,9 @@ namespace AM.Core
                         }
                         break;
                 }
+
+                //TODO: Remove after proper naming convention
+                Thread.Sleep(1000);
             }
         }
 
@@ -835,8 +909,15 @@ namespace AM.Core
                         }
 
                         commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
-                        //TODO : Logic add for checking submitted
-                        //TODO : Also add logic for received response, check incremental reporting also
+
+                        //NOTE: Inserting Error Notification in this because system is not going to update any further status for batch due to full batch is invalid
+                        commonSvc.InsertErrorNotifications(mbi.MailBatch.Id);
+                        List<MailPieces> mailPieces;
+                        using (IReportService reportSvc = new ReportService())
+                        {
+                            mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
+                        }
+                        SendSubscribedErrorNotificationEmail(mbi, mailPieces, commonSvc.GetErrorNotificationEmailSubscriberList(mbi.Client.Id));
                     }
                     catch (Exception ex)
                     {
@@ -1179,6 +1260,8 @@ namespace AM.Core
                                     }
                                     break;
                             }
+                            //TODO: Remove after proper naming convention
+                            Thread.Sleep(1000);
                             mailBatchSvc.UpdatePrintBatchPipelineStatus(printBatch.PrintBatchId, BatchPipelineStatus.ReportPrepped, Common.Now);
                         }
 

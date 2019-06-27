@@ -277,8 +277,7 @@ namespace PCI.Service
 
         private static void SubmitStage(PrintTrailBatch ptBatchDetails)
         {
-            //Reason for maintaining this time because it should reflect same for 
-            var currentTime = Common.GetCurrentTime();
+
             //Get total counts of envelope / BRE envelopes used for valid mail pieces.
             Dictionary<string, int> envelopeData = new Dictionary<string, int>();
 
@@ -309,11 +308,15 @@ namespace PCI.Service
 
             using (TransactionScope scope = new TransactionScope())
             {
-                DAL.UpdateSubmittedForAllResReceivedBatch(ptBatchDetails.Id);
+                //Reason for maintaining this time because it should reflect same for 
+                var currentTime = Common.GetCurrentTime();
+
+                DAL.UpdateSubmittedForAllResReceivedBatch(ptBatchDetails.Id, currentTime);
 
                 DAL.UpdatePrintTrailBatchStatus(ptBatchDetails.Id, BatchPipelineStatus.Submitted, currentTime);
 
-                DAL.UpdateEnvelopeInventory(envelopeData);
+                //NOTE : Here we are inserting used envelope stock by PrintTrailBatch in EnvelopeUsage table
+                DAL.UpdateEnvelopeInventory(ptBatchDetails, envelopeData);
 
                 if (ptDetails.VendorCode != "CL_DALLAS")
                 {
@@ -425,6 +428,11 @@ namespace PCI.Service
                 //make an entry for mrdf file after making entries of files into zip
                 newFile.CreateEntryFromFile(mrdfFilePath, Path.GetFileName(mrdfFilePath));
             }
+
+            //NOTE : Here system is storing file size of received pdf in KB
+            FileInfo fileInfo = new FileInfo(zipFilePath);
+            Int64 fileSize = (fileInfo.Length / 1024);
+            DAL.UpdatePrintTrailBatchSize(ptBatchDetails.Id, fileSize);
 
             return zipFilePath;
         }

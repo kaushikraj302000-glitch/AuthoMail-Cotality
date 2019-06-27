@@ -348,6 +348,10 @@ namespace AM.Console
                                         sftSite.DownloadFile(sftFilePath, localFilePath);
                                     }
 
+                                    //NOTE : Here system is storing file size of received pdf in KB
+                                    FileInfo fileInfo = new FileInfo(localFilePath);
+                                    mailPieceDTO.PDFFileSize = (fileInfo.Length / 1024);
+
                                     //Creating collection for moving or deleting files because it may have same file for multiple nodes so can't move or delete at these level.
                                     fileListToMoveOrDelete.Add(sftFilePath);
 
@@ -452,6 +456,7 @@ namespace AM.Console
                     }
 
                     Channel.CalculateDueDateAndPrintLocation(mailBatch, mailPieceData);
+
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
                 }
                 catch (Exception ex)
@@ -574,6 +579,10 @@ namespace AM.Console
 
                                 // Batch status Prepped
                                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
+
+                                //NOTE: Inserting Error Notification in this because system is not going to update any further status for batch due to full batch is invalid
+                                commonSvc.InsertErrorNotifications(mbi.MailBatch.Id);
+                                MailUtility.SendSubscribedErrorNotificationEmail(mbi, mailPieces, commonSvc.GetErrorNotificationEmailSubscriberList(mbi.Client.Id));
                             }
                             else if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.PartiallyValid)
                             {

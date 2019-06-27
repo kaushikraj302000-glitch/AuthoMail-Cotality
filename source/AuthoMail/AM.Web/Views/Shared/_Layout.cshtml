@@ -38,8 +38,12 @@
                             @Html.ActionLink("AuthoMail", "Index", "Home", new { area = "" }, new { @class = "text-white ", @id = "mainlink" }) <span style="font-size:15px !important;" id="ClientName"></span>
                             @if (User.IsInRole(AM.Entities.AMRoles.Admin) || User.IsInRole(AM.Entities.AMRoles.BA))
                             {
-                                <span id="AMStatusNotification">
-                                </span>
+                                <span id="AMStatusNotification"></span>
+                            }
+                            <span id="ErrorNotificationSpan"></span>
+                            @if (User.IsInRole(AM.Entities.AMRoles.Admin) || User.IsInRole(AM.Entities.AMRoles.BA))
+                            {
+                                <span id="InventoryNotificationSpan"></span>
                             }
                         </h1>
                     </div>
@@ -60,7 +64,7 @@
 
 
                         <li>@Html.ActionLink("Search", "Search", "Home")</li>
-                        <li>@Html.ActionLink("Request Pullback ", "PullBack", "RequestPullBack")</li>
+                        <li>@Html.ActionLink(" Pullback ", "PullBack", "RequestPullBack")</li>
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Reports <span class="caret"></span></a>
                             <ul class="dropdown-menu">
@@ -71,9 +75,12 @@
                                 <li>@Html.ActionLink("SLA Report", "ErrorSLAReport", "Report")</li>
                                 <li>@Html.ActionLink("Monthly Recon Report", "MonthlyReconReport", "Report")</li>
                                 <li>@Html.ActionLink("Pullback Request Report", "PullbackRequestReport", "Report")</li>
-                                <li>@Html.ActionLink("Supply Inventory Report", "SupplyInventoryReport", "Report")</li>
+                                @if (User.IsInRole(AM.Entities.AMRoles.Admin) || User.IsInRole(AM.Entities.AMRoles.BA) || User.IsInRole(AM.Entities.AMRoles.CoreLogicUserManager))
+                                {
+                                    <li>@Html.ActionLink("Supply Inventory Report", "SupplyInventoryReport", "Report")</li>
+                                }
                                 <li>@Html.ActionLink("Report Wizard", "ReportWizard", "Report")</li>
-                               
+
                             </ul>
                         </li>
                         @if (User.IsInRole(AM.Entities.AMRoles.Admin) || User.IsInRole(AM.Entities.AMRoles.ClientUserManager) || User.IsInRole(AM.Entities.AMRoles.CoreLogicUserManager))
@@ -93,7 +100,7 @@
                                         <li>@Html.ActionLink("Manage Clients", "ManageClients", "Admin")</li>
                                         <li>@Html.ActionLink("Manage Envelope", "ManageEnvelopes", "Admin")</li>
                                         <li>@Html.ActionLink("Manage Envelope Transactions", "ManageEnvelopeTransactions", "Admin")</li>
-
+                                        <li>@Html.ActionLink("Manage Print Trails", "ManagePrintTrails", "Admin")</li>
                                     }
                                     <li>@Html.ActionLink("Services and Cost ", "AllProjectSetupDetails", "Admin")</li>
                                 </ul>
@@ -200,7 +207,11 @@
                     $.connection.aMAlertHub.client.exceptionHandler = function (error) {
                         console.log('Server Error: ' + error);
                     };
-
+                }
+                if($('#InventoryNotificationSpan').length!=0)
+                {
+                    $('#InventoryNotificationSpan').html();
+                    '<a href="#" title="Inventory"><i class="fa fa-hourglass" style="color:white"></i><i class="fa fa-hourglass-half" style="color:yellow"></i><i class="fa fa-hourglass-end" style="color:red"></i></a>'
                 }
             }
             GetAMStatus();
@@ -419,6 +430,13 @@
                     $("#TrackingInfo").modal("show");
                 }
 
+            });
+        }
+        function alertMessage(alertType,message) {
+            window.clui.globalAlert({
+                message: message,
+                alertType: alertType,
+                timeout: 3000
             });
         }
         $(document).ajaxSuccess(function (event, xhr, settings) {

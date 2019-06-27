@@ -773,6 +773,7 @@ namespace AM.Console
                         throw new Exception("Mail pieces count and received xml count is mismatched for Batch-Id : {0}<br/>".Fill(mailBatch.Id) + "Mail Piece count is {0} and received xml nodes count is {1}".Fill(mailPieceList.Count, totalNodes));
                     }
                     Channel.CalculateDueDateAndPrintLocation(mailBatch, mailPieceList);
+
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
                 }
                 catch (Exception ex)
@@ -813,6 +814,10 @@ namespace AM.Console
             }
             else
             {
+                //NOTE : Here system is storing file size of received pdf in KB
+                FileInfo fileInfo = new FileInfo(filePath);
+                mailPieceDTO.PDFFileSize = (fileInfo.Length / 1024);
+
                 //if at mail piece level or at mail batch level, system didn't find return info then it will check for MailBatch level if exist system will use that in mail piece level 
                 if (!mailPieceDTO.IsReturnInfoSpecified && !mbi.MailBatch.IsReturnInfoSpecified && docType.IsReturnInfoSpecified)
                 {
@@ -990,60 +995,44 @@ namespace AM.Console
             string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
             string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 
-            string errorGoFileName = "ErrReport.go";
-            string errorGoFilePath = Path.Combine(mbi.AMResponsePath, errorGoFileName);
-            string ftpErrorGoUploadPath = Path.Combine(deliverable.UploadPath, errorGoFileName);
+            StringBuilder errorData = generalSvc.GeneralErrorReport(mailPieces, deliverable.Delimeter);
+            if (errorData != null)
+            {
+                File.WriteAllText(errorReportPath, errorData.ToString());
+            }
+            else
+                errorReportPath = "";
 
             if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.Invalid)
             {
-                StringBuilder errorData = generalSvc.GeneralErrorReport(mailPieces, deliverable.Delimeter);
-                if (errorData != null)
-                {
-                    File.WriteAllText(errorReportPath, errorData.ToString());
+                // Batch status Reported Back
+                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
 
-                    SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
-                    sftSite.Connect();
-
-                    var ftpUploadPath = Path.Combine(deliverable.UploadPath, errorReportFileName);
-
-                    sftSite.UploadFile(errorReportPath, ftpUploadPath);
-
-                    // Upload Error.GO file after uploading error report
-                    File.WriteAllText(errorGoFilePath, string.Empty);
-
-                    sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
-
-                    if (sftSite.IsConnected)
-                        sftSite.Disconnect();
-
-                    // Batch status Reported Back
-                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
-                }
+                //NOTE: Inserting Error Notification in this because system is not going to update any further status for batch due to full batch is invalid
+                commonSvc.InsertErrorNotifications(mbi.MailBatch.Id);
+                MailUtility.SendSubscribedErrorNotificationEmail(mbi, mailPieces, commonSvc.GetErrorNotificationEmailSubscriberList(mbi.Client.Id));
             }
             else if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.PartiallyValid)
             {
-                StringBuilder errorData = generalSvc.GeneralErrorReport(mailPieces, deliverable.Delimeter);
+                string errorGoFileName = "ErrReport.go";
+                string errorGoFilePath = Path.Combine(mbi.AMResponsePath, errorGoFileName);
+                string ftpErrorGoUploadPath = Path.Combine(deliverable.UploadPath, errorGoFileName);
 
-                if (errorData != null)
-                {
-                    File.WriteAllText(errorReportPath, errorData.ToString());
+                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
+                sftSite.Connect();
 
-                    SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
-                    sftSite.Connect();
+                var ftpUploadPath = Path.Combine(deliverable.UploadPath, errorReportFileName);
 
-                    var ftpUploadPath = Path.Combine(deliverable.UploadPath, errorReportFileName);
+                sftSite.UploadFile(errorReportPath, ftpUploadPath);
 
-                    sftSite.UploadFile(errorReportPath, ftpUploadPath);
+                // Upload Error.GO file after uploading error report
+                File.WriteAllText(errorGoFilePath, string.Empty);
 
-                    // Upload Error.GO file after uploading error report
-                    File.WriteAllText(errorGoFilePath, string.Empty);
+                sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
 
-                    sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
+                if (sftSite.IsConnected)
+                    sftSite.Disconnect();
 
-                    if (sftSite.IsConnected)
-                        sftSite.Disconnect();
-
-                }
                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
             }
             else
