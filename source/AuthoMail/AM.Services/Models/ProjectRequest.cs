@@ -122,10 +122,23 @@ namespace AM.Services
         public string Id { get; set; }
         public int CurrentQuantity { get; set; }
         public bool IsBREEnvelope { get; set; }
+        public int? ReorderDuration { get; set; }
+        public int? MinStock { get; set; }
         public string CreatedBy { get; set; }
         public DateTime CreatedOn { get; set; }
         public string ModifiedBy { get; set; }
         public DateTime ModifiedOn { get; set; }
+        public int AlertLevel
+        {
+            get
+            {
+                if (this.MinStock > this.CurrentQuantity && ((this.MinStock * Config.Common_InventoryBufferStockPercentage) / 100) < this.CurrentQuantity)
+                    return 1;
+                if (this.CurrentQuantity < this.MinStock)
+                    return 2;
+                return 0;
+            }
+        }
     }
     public class EnvelopeInventory
     {
@@ -141,5 +154,14 @@ namespace AM.Services
         public DateTime CreatedOn { get; set; }
         public string ModifiedBy { get; set; }
         public DateTime ModifiedOn { get; set; }
+    }
+    public class EnvelopeInventoryView
+    {
+        public string EnvelopeId { get; set; }
+        public int? TotalQuantityUsed { get; set; }
+        public int? CurrentQuantity { get; set; }
+        public int? AvgQuantityPerDay { get; set; }
+        public int? MinStockRequirement { get; set; }
+        public int? BufferStock { get; set; }
     }
 }

@@ -154,9 +154,11 @@ namespace AM.Web.Controllers
                             AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
                             return View("InActiveUser");
                         }
-                        if (Config.Web_Login_PasswordExpirationIsEnable && user.PasswordExpirationDays > Config.Web_Login_PasswordExpirationDays)
+                        if (!isCoreLogicUser && Config.Web_Login_PasswordExpirationIsEnable && user.PasswordExpirationDays > Config.Web_Login_PasswordExpirationDays)
+                        {
+                            AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
                             return RedirectToAction("ChangePassword", new { unm = user.UserName });
-
+                        }
                         UpdateLoginTime(user.Id);
                         return RedirectToLocal(returnUrl);
                     case SignInStatus.LockedOut:
@@ -276,8 +278,8 @@ namespace AM.Web.Controllers
             var r = new RoleStore<IdentityRole>();
             ViewBag.Roles = new SelectList(r.Roles.ToList(), "Name", "Name");
             ViewBag.Clients = new SelectList(supportSvc.GetClients().Where(c => c.IsAMActive).Select(c => new { c.Id, c.Name }).ToList(), "Id", "Name");
-            var statusList = new List<SelectListItem>() { 
-                new SelectListItem { Text = AMUserStatus.Open, Value = AMUserStatus.Open }, 
+            var statusList = new List<SelectListItem>() {
+                new SelectListItem { Text = AMUserStatus.Open, Value = AMUserStatus.Open },
                 new SelectListItem { Text = AMUserStatus.Approved, Value = AMUserStatus.Approved },
                 new SelectListItem { Text = AMUserStatus.Rejected, Value = AMUserStatus.Rejected } };
             ViewBag.Status = new SelectList(statusList, "Value", "Text");
@@ -296,8 +298,8 @@ namespace AM.Web.Controllers
                 var r = new RoleStore<IdentityRole>();
                 ViewBag.Roles = new SelectList(r.Roles.ToList(), "Name", "Name");
                 ViewBag.Clients = new SelectList(supportSvc.GetClients().Where(c => c.IsAMActive).Select(c => new { c.Id, c.Name }).ToList(), "Id", "Name");
-                var statusList = new List<SelectListItem>() { 
-                new SelectListItem { Text = AMUserStatus.Open, Value = AMUserStatus.Open }, 
+                var statusList = new List<SelectListItem>() {
+                new SelectListItem { Text = AMUserStatus.Open, Value = AMUserStatus.Open },
                 new SelectListItem { Text = AMUserStatus.Approved, Value = AMUserStatus.Approved },
                 new SelectListItem { Text = AMUserStatus.Rejected, Value = AMUserStatus.Rejected } };
                 ViewBag.Status = new SelectList(statusList, "Value", "Text");
@@ -710,7 +712,7 @@ namespace AM.Web.Controllers
             var result = await UserManager.ResetPasswordAsync(user.Id, model.Code, model.Password);
             if (result.Succeeded)
             {
-               await accSvc.UpdateChangePasswordDateAsync(user.Id);
+                await accSvc.UpdateChangePasswordDateAsync(user.Id);
                 return RedirectToAction("ResetPasswordConfirmation", "Account");
             }
             AddErrors(result);

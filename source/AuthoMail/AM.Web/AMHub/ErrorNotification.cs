@@ -19,7 +19,7 @@ namespace AM.Web.AMHub
         private readonly IHubContext _hubContext;
         private Timer _broadcastLoop;
         //private bool _modelUpdated;
-        private List<ErrorNotifications> _model;
+        private object _model;
         private string connectionId;
         private int? LastId;
         public ErrorNotificationSignalR()
@@ -53,15 +53,21 @@ namespace AM.Web.AMHub
             if (_model == null) _model = GetErrorData();
             _hubContext.Clients.Client(connectionId).getAMErrors(_model);
         }
-        private List<ErrorNotifications> GetErrorData()
+        private object GetErrorData()
         {
             using (IHomeService homeSvc = new HomeService())
+            using (IInventoryService invSvc = new InventoryService())
             {
                 var errorsData = homeSvc.GetErrorNotificationList(LastId);
                 int maxId = errorsData != null && errorsData.Count > 0 ? errorsData.Max(e => e.Id) : 0;
                 if (maxId != 0 && maxId != LastId)
                     LastId = maxId;
-                return errorsData;
+
+                return new
+                {
+                    errorsData = errorsData,
+                    stocklevel = invSvc.InventoryStockAlertLevel()
+                };
             }
         }
     }

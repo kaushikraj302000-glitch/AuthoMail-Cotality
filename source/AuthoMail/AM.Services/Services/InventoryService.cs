@@ -15,6 +15,8 @@ namespace AM.Services
         EnvelopeInventory FindByIdEnvelopeInventory(int Id);
         KeyValuePair<bool, string> SaveEnvelopeInventory(EnvelopeInventory envtran, string userId);
         List<EnvelopeInventory> GetAllEnvelopeInventory();
+        void UpdateMinStock();
+        int InventoryStockAlertLevel();
     }
     public class InventoryService : ServiceBase, IInventoryService
     {
@@ -41,7 +43,7 @@ inner join Profile.Users m on e.ModifiedBy=m.Id").ToList();
                 var envelope = FindByCodeEnvelope(envelopes.Id);
                 if (envelope == null)
                 {
-                    string sql = "INSERT INTO [Common].[Envelopes] ([Id],[CurrentQuantity] ,[IsBREEnvelope],[CreatedBy],[ModifiedBy],[CreatedOn],[ModifiedOn]) VALUES(@Id ,0 ,@IsBREEnvelope,@CreatedBy,@ModifiedBy,@CreatedOn,@ModifiedOn)";
+                    string sql = "INSERT INTO [Common].[Envelopes] ([Id],[CurrentQuantity] ,[IsBREEnvelope],[CreatedBy],[ModifiedBy],[CreatedOn],[ModifiedOn],[ReorderDuration]) VALUES(@Id ,0 ,@IsBREEnvelope,@CreatedBy,@ModifiedBy,@CreatedOn,@ModifiedOn,@ReorderDuration)";
                     envelopes.CreatedBy = envelopes.ModifiedBy = userId;
                     envelopes.CreatedOn = envelopes.ModifiedOn = DateTime.UtcNow;
                     db.Execute(sql, envelopes);
@@ -49,7 +51,7 @@ inner join Profile.Users m on e.ModifiedBy=m.Id").ToList();
                 }
                 else
                 {
-                    string sql = "UPDATE [Common].[Envelopes]  SET [IsBREEnvelope] = @IsBREEnvelope,[ModifiedBy]=@ModifiedBy,[ModifiedOn]=@ModifiedOn WHERE Id=@Id";
+                    string sql = "UPDATE [Common].[Envelopes]  SET [IsBREEnvelope] = @IsBREEnvelope,[ModifiedBy]=@ModifiedBy,[ModifiedOn]=@ModifiedOn,[ReorderDuration]=@ReorderDuration WHERE Id=@Id";
                     envelopes.ModifiedBy = userId;
                     envelopes.ModifiedOn = DateTime.UtcNow;
                     db.Execute(sql, envelopes);
@@ -127,7 +129,25 @@ inner join Profile.Users m on e.ModifiedBy=m.Id";
             return db.Query<EnvelopeInventory>(query).ToList();
         }
 
+        public void UpdateMinStock()
+        {
+            //Execute every week(7 Days)
+            var enventories = db.Query<EnvelopeInventoryView>("select * from dbo.view_EnvelopeInventoryData").ToList();
+            if (enventories != null)
+            {
+                enventories.ForEach(i =>
+                {
+                    db.Execute("update Common.Envelopes set MinStock=@MinStock where Id=@id", new { id = i.EnvelopeId, MinStock = i.MinStockRequirement });
+                });
+            }
+        }
 
-
+        public int InventoryStockAlertLevel()
+        {
+            var envelopes = GetEnvelopes();
+            if (envelopes.Any(e => e.AlertLevel == 2)) return 2;
+            if (envelopes.Any(e => e.AlertLevel == 1)) return 1;
+            return 0;
+        }
     }
 }
