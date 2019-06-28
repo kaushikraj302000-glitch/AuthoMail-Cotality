@@ -788,13 +788,14 @@
         function FormatObject(Model) {
             //console.log(Model);
             $(Model).each(function () {
+
                 //this.ReceivedOnFormatted = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
                 this.PickedUpOnFormatted = this.PickedUpOn == null ? "--" : moment(this.PickedUpOn).format("MM/DD/YY HH:mm:ss");
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
                 this.RcptNameFormatted = this.FirstName + " " + this.LastName;
-                this.CityFormatted = this.City + " " + this.State + " " + this.ZIP;
+                this.CityFormatted =(this.City==null?"":this.City) + " " + (this.State==null?"":this.State) + " " + (this.ZIP==null?"":this.ZIP);
                 var status = "";
                 this.View = (this.LoanNumber != null ? '<a class="viewdetails" style="cursor:pointer" onclick="ViewDetails(this)" data-mailpieceid="' + this.UniqueId + '">' + this.LoanNumber + '</a>' : "--");
                 this.ErrorDesc = this.ErrorDesc != null ? this.ErrorDesc.replace(/"/g, '\'') : "";
