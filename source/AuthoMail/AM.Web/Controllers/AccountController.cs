@@ -368,21 +368,25 @@ namespace AM.Web.Controllers
                             //await UserManager.SendEmailAsync(user.Id, "Welcome to AuthoMail.", sb.ToString());
 
                             StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\RegistrationInAuthoMail.html")));
+                            string emails = string.Empty;
                             if (Config.Common_Environment == Env.Prod)
                             {
                                 sb.Replace("{{url}}", "https://authomail.corelogic.com");
+                                emails = supportSvc.GetEmailsFromClientDomain(user.Email);
                             }
                             else if (Config.Common_Environment == Env.Staging)
                             {
                                 sb.Replace("{{url}}", "https://authomailuat.corelogic.com");
+                                emails = supportSvc.GetEmailsFromClientDomain(user.Email);
                             }
                             else
                             {
                                 string url = Request.Url.ToString().Replace(Request.RawUrl.ToString(), Url.Action("SignUpRequest", "Admin"));
                                 sb.Replace("{{url}}", url);
+                                emails = Config.Web_RegistrationDefaultEmails;
                             }
                             sb.Replace("{{email}}", user.Email);
-                            string emails = supportSvc.GetEmailsFromClientDomain(user.Email);
+
                             //Send email to specified admin for new registration request
                             await InternalEmail.SendMail(emails, null, Config.Web_RegistrationBCCEmails, "Registration in authomail.", sb.ToString());
                             //Send email to client to waiting for approval
@@ -567,21 +571,25 @@ namespace AM.Web.Controllers
             if (result.Succeeded)
             {
                 var sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\RegistrationInAuthoMail.html")));
+                string emails = string.Empty;
                 if (Config.Common_Environment == Env.Prod)
                 {
                     sb.Replace("{{url}}", "https://authomail.corelogic.com");
+                    emails = supportSvc.GetEmailsFromClientDomain(user.Email);
                 }
                 else if (Config.Common_Environment == Env.Staging)
                 {
                     sb.Replace("{{url}}", "https://authomailuat.corelogic.com");
+                    emails = supportSvc.GetEmailsFromClientDomain(user.Email);
                 }
                 else
                 {
                     string url = Request.Url.ToString().Replace(Request.RawUrl.ToString(), Url.Action("SignUpRequest", "Admin"));
                     sb.Replace("{{url}}", url);
+                    emails = Config.Web_RegistrationDefaultEmails;
                 }
                 sb.Replace("{{email}}", user.Email);
-                string emails = supportSvc.GetEmailsFromClientDomain(user.Email);
+
                 //Send email to specified client admin for new registration request.
                 await InternalEmail.SendMail(emails, null, Config.Web_RegistrationBCCEmails, "Registration in authomail.", sb.ToString());
                 //Send email to client for waiting for approval of registration
