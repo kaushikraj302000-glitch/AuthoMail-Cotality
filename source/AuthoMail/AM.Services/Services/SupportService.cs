@@ -229,7 +229,7 @@ namespace AM.Services
             if (client.Id == 0)
             {
                 int? isExist = db.QuerySingleOrDefault<int>("select 1 from Common.Clients where AppCode=@appCode", new { appCode = client.AppCode });
-                if (isExist != null && isExist == 1) return GetKeyValue(true, "Client AppCode already exist.");
+                if (isExist != null && isExist == 1) return GetKeyValue(false, "Client AppCode already exist.");
 
                 string query = "INSERT INTO [Common].[Clients] ([Name], [AppCode], [BusinessUnit], [IsAMActive], [IsPnSActive], [TimeZone], [ModifiedOn], [CreatedOn], [CreatedBy] ,[ModifiedBy],[Address] ,[Contact1Name] ,[Contact1Phone] ,[Contact1Email] ,[Contact2Name] ,[Contact2Phone] ,[Contact2Email] ,[Contact3Name] ,[Contact3Phone] ,[Contact3Email] ,[ITContactName] ,[ITContactPhone] ,[ITContactEmail] ,[BillingContactName] ,[BillingContactPhone] ,[BillingContactEmail]) VALUES (@name,@appCode,@businessUnit,@isAMActive,@isPnSActive,@timeZone,@modifiedOn,@createdOn,@createdBy,@modifiedBy,@Address ,@Contact1Name ,@Contact1Phone ,@Contact1Email ,@Contact2Name ,@Contact2Phone ,@Contact2Email ,@Contact3Name ,@Contact3Phone ,@Contact3Email ,@ITContactName ,@ITContactPhone ,@ITContactEmail ,@BillingContactName ,@BillingContactPhone ,@BillingContactEmail)";
                 client.ModifiedOn = client.CreatedOn = DateTime.UtcNow;
@@ -322,7 +322,7 @@ namespace AM.Services
             if (docTypes.Id == 0)
             {
                 int? isExist = db.QuerySingleOrDefault<int>("select 1 from AM.DocTypes where DocTypeCode=@code", new { code = docTypes.DocTypeCode });
-                if (isExist != null && isExist == 1) return GetKeyValue(true, "DocType already exist.");
+                if (isExist != null && isExist == 1) return GetKeyValue(false, "DocType already exist.");
 
                 string query = "INSERT INTO [AM].[DocTypes] ([DocTypeCode],[Description],[ClientId],[PrintSize],[ContentScalePercent],[PrintFormat],[QCPercent],[ShippingCarrier],[ShippingServiceType],[ShippingAccountCode],[IsReturnInfoSpecified],[RetRcptPrefix],[RetRcptFirstName],[RetRcptMiddleName],[RetRcptLastName],[RetRcptSuffix],[RetRcptPhone],[RetRcptOrganization],[RetRcptAddrOptionalLine1AboveStreet],[RetRcptAddrOptionalLine2AboveStreet],[RetRcptAddressStreet],[RetRcptAddressAptOrSuiteOrOther],[RetRcptAddrOptionalLine1BelowStreet],[RetRcptAddrOptionalLine2BelowStreet],[RetRcptAddressCity],[RetRcptAddressState],[RetRcptAddressZIP],[ClientEmails],[ClientContactNo],[SupportEmails],[SupportContactNo],[IsActive],[ModifiedOn],[CreatedOn],[CreatedBy],[ModifiedBy],[BizdayCutOff],[BizdaySLAType],[BizdayTimeSpan],[SatCutOff],[SatSLAType],[SatTimeSpan],[SunCutOff],[SunSLAType],[SunTimeSpan],[ShippingSpecialService],[IsBRE],[EnvelopeId],[BREEnvelopeId],[NoOfCopies]) VALUES (@docTypeCode,@description,@clientId,@printSize,@contentScalePercent,@printFormat,@qCPercent,@shippingCarrier,@shippingServiceType,@shippingAccountCode,@isReturnInfoSpecified,@retRcptPrefix,@retRcptFirstName,@retRcptMiddleName,@retRcptLastName,@retRcptSuffix,@retRcptPhone,@retRcptOrganization,@retRcptAddrOptionalLine1AboveStreet,@retRcptAddrOptionalLine2AboveStreet,@retRcptAddressStreet,@retRcptAddressAptOrSuiteOrOther,@retRcptAddrOptionalLine1BelowStreet,@retRcptAddrOptionalLine2BelowStreet,@retRcptAddressCity,@retRcptAddressState,@retRcptAddressZIP,@clientEmails,@clientContactNo,@supportEmails,@supportContactNo,@isActive,@modifiedOn,@createdOn,@createdBy,@modifiedBy,@bizdayCutOff,@bizdaySLAType,@bizdayTimeSpan,@satCutOff,@satSLAType,@satTimeSpan,@sunCutOff,@sunSLAType,@sunTimeSpan,@shippingSpecialService,@IsBRE,@EnvelopeId,@BREEnvelopeId,@NoOfCopies)";
                 docTypes.CreatedOn = DateTime.UtcNow;
@@ -640,7 +640,7 @@ namespace AM.Services
                 if (model.Id == 0)
                 {
                     int? isExist = db.QuerySingleOrDefault<int>("select 1 from Common.PrintTrails where TrailName=@TrailName", new { TrailName = model.TrailName });
-                    if (isExist != null && isExist == 1) return GetKeyValue(true, "Trail name already exist.");
+                    if (isExist != null && isExist == 1) return GetKeyValue(false, "Trail name already exist.");
                 }
                 string q = model.Id == 0 ?
                     @"INSERT INTO Common.PrintTrails (TrailName ,PrintVendorId ,SimulateTrail) VALUES (@TrailName ,@PrintVendorId ,@SimulateTrail)" :
