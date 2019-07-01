@@ -637,6 +637,11 @@ namespace AM.Services
         {
             try
             {
+                if (model.Id == 0)
+                {
+                    int? isExist = db.QuerySingleOrDefault<int>("select 1 from Common.PrintTrails where TrailName=@TrailName", new { TrailName = model.TrailName });
+                    if (isExist != null && isExist == 1) return GetKeyValue(true, "Trail name already exist.");
+                }
                 string q = model.Id == 0 ?
                     @"INSERT INTO Common.PrintTrails (TrailName ,PrintVendorId ,SimulateTrail) VALUES (@TrailName ,@PrintVendorId ,@SimulateTrail)" :
                     "UPDATE Common.PrintTrails SET TrailName = @TrailName,PrintVendorId = @PrintVendorId WHERE Id=@Id";
