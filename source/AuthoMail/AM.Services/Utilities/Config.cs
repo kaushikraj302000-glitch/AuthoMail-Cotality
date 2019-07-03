@@ -193,6 +193,8 @@ namespace AM.Services
         public static string Web_RegistrationBCCEmails { get; private set; }
         [Description("Notify about AuthoMail health every elapsed minutes.")]
         public static int Web_API_AlertElapsedMinute { get; set; }
+        [Description("Inventory Buffer Stock Percentage")]
+        public static double Common_InventoryBufferStockPercentage { get; set; }
         #endregion Support
 
 

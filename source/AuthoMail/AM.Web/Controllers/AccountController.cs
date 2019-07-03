@@ -154,9 +154,11 @@ namespace AM.Web.Controllers
                             AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
                             return View("InActiveUser");
                         }
-                        if (Config.Web_Login_PasswordExpirationIsEnable && user.PasswordExpirationDays > Config.Web_Login_PasswordExpirationDays)
+                        if (!isCoreLogicUser && Config.Web_Login_PasswordExpirationIsEnable && user.PasswordExpirationDays > Config.Web_Login_PasswordExpirationDays)
+                        {
+                            AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
                             return RedirectToAction("ChangePassword", new { unm = user.UserName });
-
+                        }
                         UpdateLoginTime(user.Id);
                         return RedirectToLocal(returnUrl);
                     case SignInStatus.LockedOut:
@@ -276,8 +278,8 @@ namespace AM.Web.Controllers
             var r = new RoleStore<IdentityRole>();
             ViewBag.Roles = new SelectList(r.Roles.ToList(), "Name", "Name");
             ViewBag.Clients = new SelectList(supportSvc.GetClients().Where(c => c.IsAMActive).Select(c => new { c.Id, c.Name }).ToList(), "Id", "Name");
-            var statusList = new List<SelectListItem>() { 
-                new SelectListItem { Text = AMUserStatus.Open, Value = AMUserStatus.Open }, 
+            var statusList = new List<SelectListItem>() {
+                new SelectListItem { Text = AMUserStatus.Open, Value = AMUserStatus.Open },
                 new SelectListItem { Text = AMUserStatus.Approved, Value = AMUserStatus.Approved },
                 new SelectListItem { Text = AMUserStatus.Rejected, Value = AMUserStatus.Rejected } };
             ViewBag.Status = new SelectList(statusList, "Value", "Text");
@@ -296,8 +298,8 @@ namespace AM.Web.Controllers
                 var r = new RoleStore<IdentityRole>();
                 ViewBag.Roles = new SelectList(r.Roles.ToList(), "Name", "Name");
                 ViewBag.Clients = new SelectList(supportSvc.GetClients().Where(c => c.IsAMActive).Select(c => new { c.Id, c.Name }).ToList(), "Id", "Name");
-                var statusList = new List<SelectListItem>() { 
-                new SelectListItem { Text = AMUserStatus.Open, Value = AMUserStatus.Open }, 
+                var statusList = new List<SelectListItem>() {
+                new SelectListItem { Text = AMUserStatus.Open, Value = AMUserStatus.Open },
                 new SelectListItem { Text = AMUserStatus.Approved, Value = AMUserStatus.Approved },
                 new SelectListItem { Text = AMUserStatus.Rejected, Value = AMUserStatus.Rejected } };
                 ViewBag.Status = new SelectList(statusList, "Value", "Text");
@@ -366,21 +368,25 @@ namespace AM.Web.Controllers
                             //await UserManager.SendEmailAsync(user.Id, "Welcome to AuthoMail.", sb.ToString());
 
                             StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\RegistrationInAuthoMail.html")));
+                            string emails = string.Empty;
                             if (Config.Common_Environment == Env.Prod)
                             {
                                 sb.Replace("{{url}}", "https://authomail.corelogic.com");
+                                emails = supportSvc.GetEmailsFromClientDomain(user.Email);
                             }
                             else if (Config.Common_Environment == Env.Staging)
                             {
                                 sb.Replace("{{url}}", "https://authomailuat.corelogic.com");
+                                emails = supportSvc.GetEmailsFromClientDomain(user.Email);
                             }
                             else
                             {
                                 string url = Request.Url.ToString().Replace(Request.RawUrl.ToString(), Url.Action("SignUpRequest", "Admin"));
                                 sb.Replace("{{url}}", url);
+                                emails = Config.Web_RegistrationDefaultEmails;
                             }
                             sb.Replace("{{email}}", user.Email);
-                            string emails = supportSvc.GetEmailsFromClientDomain(user.Email);
+
                             //Send email to specified admin for new registration request
                             await InternalEmail.SendMail(emails, null, Config.Web_RegistrationBCCEmails, "Registration in authomail.", sb.ToString());
                             //Send email to client to waiting for approval
@@ -565,21 +571,25 @@ namespace AM.Web.Controllers
             if (result.Succeeded)
             {
                 var sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\RegistrationInAuthoMail.html")));
+                string emails = string.Empty;
                 if (Config.Common_Environment == Env.Prod)
                 {
                     sb.Replace("{{url}}", "https://authomail.corelogic.com");
+                    emails = supportSvc.GetEmailsFromClientDomain(user.Email);
                 }
                 else if (Config.Common_Environment == Env.Staging)
                 {
                     sb.Replace("{{url}}", "https://authomailuat.corelogic.com");
+                    emails = supportSvc.GetEmailsFromClientDomain(user.Email);
                 }
                 else
                 {
                     string url = Request.Url.ToString().Replace(Request.RawUrl.ToString(), Url.Action("SignUpRequest", "Admin"));
                     sb.Replace("{{url}}", url);
+                    emails = Config.Web_RegistrationDefaultEmails;
                 }
                 sb.Replace("{{email}}", user.Email);
-                string emails = supportSvc.GetEmailsFromClientDomain(user.Email);
+
                 //Send email to specified client admin for new registration request.
                 await InternalEmail.SendMail(emails, null, Config.Web_RegistrationBCCEmails, "Registration in authomail.", sb.ToString());
                 //Send email to client for waiting for approval of registration
@@ -710,7 +720,7 @@ namespace AM.Web.Controllers
             var result = await UserManager.ResetPasswordAsync(user.Id, model.Code, model.Password);
             if (result.Succeeded)
             {
-               await accSvc.UpdateChangePasswordDateAsync(user.Id);
+                await accSvc.UpdateChangePasswordDateAsync(user.Id);
                 return RedirectToAction("ResetPasswordConfirmation", "Account");
             }
             AddErrors(result);
