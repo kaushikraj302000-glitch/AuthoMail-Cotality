@@ -257,13 +257,15 @@ namespace AM.Services
 
         public List<PCISubmittedBatchDetail> GetPCIReconReport(DateTime startDate, DateTime endDate)
         {
-            string query = @"SELECT PT.Id as PrintTrailBatchId,PT.[PrintBatchName],PT.SubmittedOn,MAX(BS.DueDate) AS DueDate,D.ShippingCarrier,D.ShippingServiceType,COUNT(*) AS PackageCount,SUM(REQ.TotalSheets) AS TotalPages 
+            string query = @"SELECT PT.Id as PrintTrailBatchId,PT.[PrintBatchName],dbo.ufn_UTCToEST(PT.SubmittedOn) AS SubmittedOnEST,dbo.ufn_UTCToEST(MIN(MP.DueDate)) AS DueDate, D.ShippingCarrier
+,D.ShippingServiceType,COUNT(*) AS PackageCount,SUM(REQ.TotalSheets) AS TotalPages 
 FROM PnS.PrintTrailBatches PT 
 INNER JOIN PnS.MRDFRequest REQ ON PT.Id=REQ.PrintTrailBatchId
-INNER JOIN PnS.BatchSummary BS ON REQ.JobId=BS.PrintBatch
-INNER JOIN Common.PrintTrails PTS ON BS.PrintTrailId=PTS.Id
-LEFT OUTER JOIN AM.DocTypes D ON BS.DocTypeId=D.Id
-WHERE PT.SubmittedOn >= @StartDate AND  PT.SubmittedOn < @EndDate AND BS.PrintLocation='Fort Mill, SC' AND REQ.MailPieceStatus NOT IN ('Error','PulledBack')
+INNER JOIN AM.MailPieces MP ON REQ.UniqueId=MP.UniqueId
+INNER JOIN Common.PrintTrails PTS ON MP.PrintTrailId=PTS.Id
+LEFT OUTER JOIN AM.DocTypes D ON MP.DocTypeId=D.Id
+WHERE PT.SubmittedOn >= @StartDate AND  PT.SubmittedOn < @EndDate AND MP.PrintLocation='Fort Mill, SC' 
+AND REQ.MailPieceStatus NOT IN ('Error','PulledBack')
 GROUP BY PT.Id,PT.PrintBatchName,PT.SubmittedOn,D.ShippingCarrier,D.ShippingServiceType
 ORDER BY PrintTrailBatchId";
             return db.Query<PCISubmittedBatchDetail>(query, new { StartDate = startDate, EndDate = endDate }).ToList();
