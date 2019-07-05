@@ -647,6 +647,12 @@ namespace AM.Web.Controllers
             ViewBag.PrintTrailId = supportSvc.GetPrintTrails();
             return View(supportSvc.GetDocTypePrintTrailByDocTypeId(id));
         }
+        [Authorize(Roles = AMRoles.Admin)]
+        public ActionResult _AddNewRowPrintTrail()
+        {
+            ViewBag.PrintTrailId = supportSvc.GetPrintTrails();
+            return PartialView();
+        }
         [Authorize(Roles = AMRoles.Admin), HttpPost]
         public ActionResult SaveDocTypePrintTrail(List<DocTypePrintTrailMap> docTypePrintTrailMapList)
         {
