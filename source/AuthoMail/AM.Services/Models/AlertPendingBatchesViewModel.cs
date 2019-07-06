@@ -18,6 +18,7 @@ namespace AM.Services
         public string AppCode { get; set; }
         public string BatchName { get; set; }
         public DateTime ReceivedOn { get; set; }
+        public DateTime? DueDate { get; set; }
         public string PipelineStatus { get; set; }
         public string ShippingStatus { get; set; }
         public string MailPieceStatus { get; set; }
@@ -29,6 +30,7 @@ namespace AM.Services
         public string VendorCode { get; set; }
         public DateTime? MaxSubmissionTime { get; set; }
         public string MissedSLAReason { get; set; }
+        public string PrintTrail { get; set; }
         public double MinRemainingHours
         {
             get
