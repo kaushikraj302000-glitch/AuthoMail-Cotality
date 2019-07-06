@@ -33,7 +33,7 @@ where e.Id=@envelopeCode", new { envelopeCode = envelopeCode });
         {
             return db.Query<Envelopes>(@"select e.*,c.DisplayName as CreatedBy,m.DisplayName as ModifiedBy from Common.Envelopes e
 inner join Profile.Users c on e.CreatedBy=c.Id
-inner join Profile.Users m on e.ModifiedBy=m.Id").ToList();
+inner join Profile.Users m on e.ModifiedBy=m.Id").ToList().OrderByDescending(e => e.AlertLevel).ToList();
         }
 
         public KeyValuePair<bool, string> SaveEnvelopes(Envelopes envelopes, string userId)

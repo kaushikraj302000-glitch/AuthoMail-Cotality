@@ -79,7 +79,8 @@
                             notify(notifyObj.Message);
                     }
                     else {
-                        $('#ErrorNotificationSpan').html('<a href="'+baseUrl+'Report/ErrorsReport" title="Errors"><i class="fa fa-exclamation-triangle" style="color:white;"></i></a>');
+                        $('#ErrorNotificationSpan').html("");
+                        //$('#ErrorNotificationSpan').html('<a href="'+baseUrl+'Report/ErrorsReport" title="Errors"><i class="fa fa-exclamation-triangle" style="color:white;"></i></a>');
                     }
                 }
                 NotificationHub();
