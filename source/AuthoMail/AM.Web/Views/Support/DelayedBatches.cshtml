@@ -834,6 +834,7 @@
                 this.PrintLocation = this.PrintLocation == null ? '--' : this.PrintLocation;
                 this.LoanNumber = this.LoanNumber == null ? '--' : this.LoanNumber;
                 this.TrackingNo = this.TrackingNo == null ? '--' : this.TrackingNo;
+
                 this.DueDate = this.DueDate == null ? "-" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
                 this.PrintTrail = this.PrintTrail == null ? "-" : this.PrintTrail;
                 switch (this.ShippingStatus) {
