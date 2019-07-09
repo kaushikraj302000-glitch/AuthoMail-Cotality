@@ -20,6 +20,8 @@
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
+    <Use64BitIISExpress />
+    <UseGlobalApplicationHostFile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -569,6 +571,7 @@
     <Content Include="Views\Admin\PrintTrailMapByDocId.cshtml" />
     <Content Include="Views\Admin\ManagePrintTrails.cshtml" />
     <Content Include="Views\Admin\_AddOrEditPrintTrail.cshtml" />
+    <Content Include="Views\Admin\_AddNewRowPrintTrail.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -79,6 +79,7 @@
                             notify(notifyObj.Message);
                     }
                     else {
+                        //$('#ErrorNotificationSpan').html("");
                         $('#ErrorNotificationSpan').html('<a href="'+baseUrl+'Report/ErrorsReport" title="Errors"><i class="fa fa-exclamation-triangle" style="color:white;"></i></a>');
                     }
                 }
@@ -187,7 +188,7 @@
             var InventoryAlert = function (stocklevel) {
                 if ($('#InventoryNotificationSpan').length > 0) {
                     var color = stocklevel == 0 ? "white" : stocklevel == 1 ? "yellow" : "red";
-                    $('#InventoryNotificationSpan').html('<a href="'+baseUrl+'Report/SupplyInventoryReport" title="Envelope Inventory"><i class="fa fa-envelope-open" style="color:'+color+';margin:5px;"></i></a>');
+                    $('#InventoryNotificationSpan').html('<a href="'+baseUrl+'Admin/ManageEnvelopes" title="Envelope Inventory"><i class="fa fa-envelope-open" style="color:'+color+';margin:5px;"></i></a>');
                 }
             }
         </script>

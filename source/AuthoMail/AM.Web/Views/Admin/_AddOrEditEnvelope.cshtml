@@ -17,7 +17,12 @@
                 <input id="IsBREEnvelope" class="cl-toggle toggle-orange" type="checkbox" @(Model.IsBREEnvelope ? "checked" : "") name="toggle-demo" /><label for="IsBREEnvelope">IsBREEnvelope</label>
             </div>
         </div>
-
+    </div>
+    <div class="form-group">
+        <label for="Description">Reorder Duration</label>
+        <div class="input-group">
+            <input type="text" id="ReorderDuration" class="form-control" name="ReorderDuration" value="@Model.ReorderDuration" />
+        </div>
     </div>
     <hr />
     <button type="submit" class="btn btn-primary" id="Save"><i class="fa fa-save"></i> Save</button>

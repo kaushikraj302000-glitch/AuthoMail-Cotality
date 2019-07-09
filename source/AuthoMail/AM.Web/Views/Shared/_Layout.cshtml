@@ -40,11 +40,11 @@
                             {
                                 <span id="AMStatusNotification"></span>
                             }
-                            <span id="ErrorNotificationSpan"></span>
-                            @if (User.IsInRole(AM.Entities.AMRoles.Admin) || User.IsInRole(AM.Entities.AMRoles.BA))
+                            @if (User.IsInRole(AM.Entities.AMRoles.Admin))
                             {
                                 <span id="InventoryNotificationSpan"></span>
                             }
+                            <span id="ErrorNotificationSpan"></span>
                         </h1>
                     </div>
 
