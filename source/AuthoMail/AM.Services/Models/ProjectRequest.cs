@@ -123,20 +123,25 @@ namespace AM.Services
         public int CurrentQuantity { get; set; }
         public bool IsBREEnvelope { get; set; }
         public int? ReorderDuration { get; set; }
-        public int? MinStock { get; set; }
         public string CreatedBy { get; set; }
         public DateTime CreatedOn { get; set; }
         public string ModifiedBy { get; set; }
         public DateTime ModifiedOn { get; set; }
+        //public int RemainingStockDays { get; set; }
+        public int TotalDays { get; set; }
+        public int TotalQuantityUsed { get; set; }
+        public float AvgQuantityPerDay { get; set; }
+        public float AvgRate { get; set; }
+        public float EnvDays { get; set; }
         public int AlertLevel
         {
             get
             {
-                if (this.MinStock > this.CurrentQuantity && ((this.MinStock * Config.Common_InventoryBufferStockPercentage) / 100) < this.CurrentQuantity)
-                    return 1;
-                if (this.CurrentQuantity < this.MinStock)
-                    return 2;
-                return 0;
+                int minBufferDays = this.ReorderDuration.HasValue ? this.ReorderDuration.Value : 0 + Config.Common_InventoryBufferStockDays;
+                int warningBufferDays = minBufferDays + 3;
+                if (this.EnvDays > warningBufferDays) return 0;
+                if (this.EnvDays > minBufferDays) return 1;
+                return 2;
             }
         }
     }
@@ -155,13 +160,14 @@ namespace AM.Services
         public string ModifiedBy { get; set; }
         public DateTime ModifiedOn { get; set; }
     }
-    public class EnvelopeInventoryView
+    public class EnvelopeInventoryStockCalculation
     {
         public string EnvelopeId { get; set; }
-        public int? TotalQuantityUsed { get; set; }
-        public int? CurrentQuantity { get; set; }
-        public int? AvgQuantityPerDay { get; set; }
-        public int? MinStockRequirement { get; set; }
-        public int? BufferStock { get; set; }
+        public int TotalDays { get; set; }
+        public int TotalQuantityUsed { get; set; }
+        public float AvgQuantityPerDay { get; set; }
+        public int CurrentQuantity { get; set; }
+        public float AvgRate { get; set; }
+        public float EnvDays { get; set; }
     }
 }

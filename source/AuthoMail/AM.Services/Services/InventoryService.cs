@@ -15,7 +15,7 @@ namespace AM.Services
         EnvelopeInventory FindByIdEnvelopeInventory(int Id);
         KeyValuePair<bool, string> SaveEnvelopeInventory(EnvelopeInventory envtran, string userId);
         List<EnvelopeInventory> GetAllEnvelopeInventory();
-        void UpdateMinStock();
+        List<EnvelopeInventoryStockCalculation> GetEnvelopeInventoryStockCalculation();
         int InventoryStockAlertLevel();
     }
     public class InventoryService : ServiceBase, IInventoryService
@@ -31,9 +31,27 @@ where e.Id=@envelopeCode", new { envelopeCode = envelopeCode });
 
         public List<Envelopes> GetEnvelopes()
         {
-            return db.Query<Envelopes>(@"select e.*,c.DisplayName as CreatedBy,m.DisplayName as ModifiedBy from Common.Envelopes e
+            var envelopes = db.Query<Envelopes>(@"select e.*,c.DisplayName as CreatedBy,m.DisplayName as ModifiedBy from Common.Envelopes e
 inner join Profile.Users c on e.CreatedBy=c.Id
-inner join Profile.Users m on e.ModifiedBy=m.Id").ToList().OrderByDescending(e => e.AlertLevel).ToList();
+inner join Profile.Users m on e.ModifiedBy=m.Id").ToList();
+            var envelopeInventoryStockCalc = GetEnvelopeInventoryStockCalculation();
+            envelopes.ForEach(e =>
+            {
+                var env = envelopeInventoryStockCalc.SingleOrDefault(s => s.EnvelopeId == e.Id);
+                if (env != null)
+                {
+                    e.TotalDays = env.TotalDays;
+                    e.TotalQuantityUsed = env.TotalQuantityUsed;
+                    e.AvgQuantityPerDay = env.AvgQuantityPerDay;
+                    e.AvgRate = env.AvgRate;
+                    e.EnvDays = env.EnvDays;
+                }
+            });
+            return envelopes;
+        }
+        public List<EnvelopeInventoryStockCalculation> GetEnvelopeInventoryStockCalculation()
+        {
+            return db.Query<EnvelopeInventoryStockCalculation>("exec dbo.usp_EnvelopeInventoryStockCalculation").ToList();
         }
 
         public KeyValuePair<bool, string> SaveEnvelopes(Envelopes envelopes, string userId)
@@ -129,18 +147,7 @@ inner join Profile.Users m on e.ModifiedBy=m.Id";
             return db.Query<EnvelopeInventory>(query).ToList();
         }
 
-        public void UpdateMinStock()//Todo
-        {
-            //Execute every week(7 Days)
-            var enventories = db.Query<EnvelopeInventoryView>("select * from dbo.view_EnvelopeInventoryData").ToList();
-            if (enventories != null)
-            {
-                enventories.ForEach(i =>
-                {
-                    db.Execute("update Common.Envelopes set MinStock=@MinStock where Id=@id", new { id = i.EnvelopeId, MinStock = i.MinStockRequirement });
-                });
-            }
-        }
+
 
         public int InventoryStockAlertLevel()
         {

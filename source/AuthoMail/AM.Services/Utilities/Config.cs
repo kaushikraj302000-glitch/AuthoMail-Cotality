@@ -194,7 +194,7 @@ namespace AM.Services
         [Description("Notify about AuthoMail health every elapsed minutes.")]
         public static int Web_API_AlertElapsedMinute { get; set; }
         [Description("Inventory Buffer Stock Percentage")]
-        public static double Common_InventoryBufferStockPercentage { get; set; }
+        public static int Common_InventoryBufferStockDays { get; set; }
         #endregion Support
 
 

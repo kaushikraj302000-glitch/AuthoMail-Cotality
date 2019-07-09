@@ -15,13 +15,14 @@ namespace AM.Web.AMHub
            new Lazy<ErrorNotificationSignalR>(() => new ErrorNotificationSignalR());
         // We're going to broadcast to all clients a maximum of N minutes
         private readonly TimeSpan interval =
-            TimeSpan.FromMilliseconds(1000 * 60 * 10);
+            TimeSpan.FromMilliseconds(1000 * 60 * 12);
         private readonly IHubContext _hubContext;
         private Timer _broadcastLoop;
         //private bool _modelUpdated;
         private object _model;
         private string connectionId;
         private int? LastId;
+        private KeyValuePair<string, int>? StockAlert;
         public ErrorNotificationSignalR()
         {
             // Save our hub context so we can easily use it 
@@ -62,11 +63,15 @@ namespace AM.Web.AMHub
                 int maxId = errorsData != null && errorsData.Count > 0 ? errorsData.Max(e => e.Id) : 0;
                 if (maxId != 0 && maxId != LastId)
                     LastId = maxId;
-
+                if (this.StockAlert == null || (DateTime.UtcNow.ToString("MM/dd/yy") != this.StockAlert.Value.Key))
+                {
+                    int stocklevel = invSvc.InventoryStockAlertLevel();
+                    this.StockAlert = new KeyValuePair<string, int>(DateTime.UtcNow.ToString("MM/dd/yy"), stocklevel);
+                }
                 return new
                 {
                     errorsData = errorsData,
-                    stocklevel = invSvc.InventoryStockAlertLevel()
+                    stocklevel = this.StockAlert.Value.Value
                 };
             }
         }

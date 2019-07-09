@@ -187,6 +187,7 @@
             }
             var InventoryAlert = function (stocklevel) {
                 if ($('#InventoryNotificationSpan').length > 0) {
+                    console.log(stocklevel);
                     var color = stocklevel == 0 ? "white" : stocklevel == 1 ? "yellow" : "red";
                     $('#InventoryNotificationSpan').html('<a href="'+baseUrl+'Admin/ManageEnvelopes" title="Envelope Inventory"><i class="fa fa-envelope-open" style="color:'+color+';margin:5px;"></i></a>');
                 }
