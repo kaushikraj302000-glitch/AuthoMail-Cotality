@@ -1,7 +1,7 @@
 
 PRINT 'Added two new column in Common.Envelopes table'
 ALTER TABLE Common.Envelopes
-ADD ReorderDuration INT NULL,MinStock INT NULL
+ADD ReorderDuration INT NULL--,MinStock INT NULL
 
 PRINT 'Added new column in AM.MailPieces,PnS.MRDFRequest,PnS.PrintTrailBatches table'
 ALTER TABLE AM.MailPieces
