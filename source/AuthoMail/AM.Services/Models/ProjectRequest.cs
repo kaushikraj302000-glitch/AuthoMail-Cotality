@@ -127,21 +127,30 @@ namespace AM.Services
         public DateTime CreatedOn { get; set; }
         public string ModifiedBy { get; set; }
         public DateTime ModifiedOn { get; set; }
-        //public int RemainingStockDays { get; set; }
         public int TotalDays { get; set; }
         public int TotalQuantityUsed { get; set; }
-        public float AvgQuantityPerDay { get; set; }
         public float AvgRate { get; set; }
         public float EnvDays { get; set; }
         public int AlertLevel
         {
             get
             {
-                int minBufferDays = this.ReorderDuration.HasValue ? this.ReorderDuration.Value : 0 + Config.Common_InventoryBufferStockDays;
+                if (this.AvgRate == 0) return 0;//If AvgRate is zero then no need to calculate AlertLevel
+                int minBufferDays = ((this.ReorderDuration.HasValue ? this.ReorderDuration.Value : 0) + Config.Common_InventoryBufferStockDays);
                 int warningBufferDays = minBufferDays + 3;
                 if (this.EnvDays > warningBufferDays) return 0;
                 if (this.EnvDays > minBufferDays) return 1;
                 return 2;
+            }
+        }
+        public int Order
+        {
+            get
+            {
+                if (this.AlertLevel == 2) return 0;
+                if (this.AlertLevel == 1) return 1;
+                if (this.AlertLevel == 0 && this.EnvDays > 0) return 3;
+                return 4;
             }
         }
     }
@@ -165,9 +174,46 @@ namespace AM.Services
         public string EnvelopeId { get; set; }
         public int TotalDays { get; set; }
         public int TotalQuantityUsed { get; set; }
-        public float AvgQuantityPerDay { get; set; }
-        public int CurrentQuantity { get; set; }
         public float AvgRate { get; set; }
         public float EnvDays { get; set; }
+        public int? CurrentQuantity { get; set; }
+        public int? ReorderDuration { get; set; }
+        public int AlertLevel
+        {
+            get
+            {
+                if (this.AvgRate == 0) return 0;//If AvgRate is zero then no need to calculate AlertLevel
+                int minBufferDays = ((this.ReorderDuration.HasValue ? this.ReorderDuration.Value : 0) + Config.Common_InventoryBufferStockDays);
+                int warningBufferDays = minBufferDays + 3;
+                if (this.EnvDays > warningBufferDays) return 0;
+                if (this.EnvDays > minBufferDays) return 1;
+                return 2;
+            }
+        }
     }
+    //public class EnvelopeIdCQuantity
+    //{
+    //    public string Id { get; set; }
+    //    public int? CurrentQuantity { get; set; }
+    //    public int? ReorderDuration { get; set; }
+    //    public float AvgRate { get; set; }
+    //    public float EnvDays
+    //    {
+    //        get
+    //        {
+    //            return float.Parse(this.CurrentQuantity.ToString()) / this.AvgRate == 0f ? 1 : this.AvgRate;
+    //        }
+    //    }
+    //    public int AlertLevel
+    //    {
+    //        get
+    //        {
+    //            int minBufferDays = this.ReorderDuration.HasValue ? this.ReorderDuration.Value : 0 + Config.Common_InventoryBufferStockDays;
+    //            int warningBufferDays = minBufferDays + 3;
+    //            if (this.EnvDays > warningBufferDays) return 0;
+    //            if (this.EnvDays > minBufferDays) return 1;
+    //            return 2;
+    //        }
+    //    }
+    //}
 }
