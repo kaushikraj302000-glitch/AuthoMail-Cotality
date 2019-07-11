@@ -257,7 +257,7 @@ namespace AM.Services
 
         public List<PCISubmittedBatchDetail> GetPCIReconReport(DateTime startDate, DateTime endDate)
         {
-            string query = @"SELECT PT.Id as PrintTrailBatchId,PT.[PrintBatchName],PT.SubmittedOn AS SubmittedOnEST,MIN(MP.DueDate) AS DueDate, D.ShippingCarrier
+            string query = @"SELECT PT.Id as PrintTrailBatchId,PT.[PrintBatchName],PT.SubmittedOn ,MIN(MP.DueDate) AS DueDate, D.ShippingCarrier
 ,D.ShippingServiceType,COUNT(*) AS PackageCount,SUM(REQ.TotalSheets) AS TotalPages 
 FROM PnS.PrintTrailBatches PT 
 INNER JOIN PnS.MRDFRequest REQ ON PT.Id=REQ.PrintTrailBatchId
