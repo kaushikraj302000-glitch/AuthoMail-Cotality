@@ -142,7 +142,7 @@ VALUES (@EnvelopeId ,@Description ,@ReceivedOn ,@ReceivedQuantity ,@UnitPrice,@C
         {
             string query = @"select e.*,c.DisplayName as CreatedBy,m.DisplayName as ModifiedBy from Common.EnvelopeInventory e
 inner join Profile.Users c on e.CreatedBy=c.Id
-inner join Profile.Users m on e.ModifiedBy=m.Id";
+inner join Profile.Users m on e.ModifiedBy=m.Id order by e.ReceivedOn desc";
             return db.Query<EnvelopeInventory>(query).ToList();
         }
 
