@@ -387,6 +387,12 @@ namespace PCI.Service
                 //make an entry for mrdf file after making entries of files into zip
                 newFile.CreateEntryFromFile(xmlFilePath, Path.GetFileName(xmlFilePath));
             }
+
+            //NOTE : Here system is storing file size of received pdf in KB
+            FileInfo fileInfo = new FileInfo(zipFilePath);
+            Int64 fileSize = (fileInfo.Length / 1024);
+            DAL.UpdatePrintTrailBatchSize(ptBatchDetails.Id, fileSize);
+
             return zipFilePath;
         }
 
