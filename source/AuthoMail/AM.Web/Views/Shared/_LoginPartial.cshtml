@@ -148,17 +148,23 @@
                     var hasError = false;
                     var msg = "";
                     for (var i = 0; i < data.length; i++) {
-                        if (isAdmin) {
+                        if (isAdmin == "True") {
                             IdsArr.push(data[i].Id);
+                            totalErrors += data[i].ErrorMPsCount;
                         }
                         else {
-                            if (clientId == data[i].ClientId) IdsArr.push(data[i].Id);
+                            if (clientId == data[i].ClientId) {
+                                IdsArr.push(data[i].Id);
+                                totalErrors++;
+                            }
                         }
-                        totalErrors += (isAdmin || clientId == data[i].ClientId) ? data[i].ErrorMPsCount : 0;
-                        hasError = totalErrors != 0;
-                        if (hasError) msg = "Total " + totalErrors + " new errors has been found.";
                     }
+                        //totalErrors += (isAdmin || clientId == data[i].ClientId) ? data[i].ErrorMPsCount : 0;
+                        hasError = totalErrors != 0;
+                        //if (hasError) msg = "Total " + totalErrors + " new errors has been found.";
+
                     if (hasError) {
+                        msg = "Total " + totalErrors + " new errors has been found.";
                         if (lastErrorsIds == undefined || lastErrorsIds == null || lastErrorsIds == "") {
                             localStorage.setItem("LastErrorsIds", IdsArr);
                             return new NotifyMessageVM(totalErrors, true, hasError, msg);

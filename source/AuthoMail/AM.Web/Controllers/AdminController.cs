@@ -336,7 +336,7 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
             }
         }
-        [Authorize(Roles = AMRoles.Admin),HttpPost]
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
         public ActionResult DownloadCoverLetter(string fileName, string appCode)
         {
 
@@ -349,7 +349,7 @@ namespace AM.Web.Controllers
                 if (response.IsSuccessStatusCode)
                 {
                     string fileGuid = Guid.NewGuid().ToString();
-                    TempData[fileGuid] =response.Content.ReadAsByteArrayAsync().Result;
+                    TempData[fileGuid] = response.Content.ReadAsByteArrayAsync().Result;
 
                     return Json(JsonResponseFactory.SuccessResponse(new { model = new { FileGuid = fileGuid, FileName = fileName } }), JsonRequestBehavior.AllowGet);
                 }
@@ -912,7 +912,7 @@ namespace AM.Web.Controllers
         {
             try
             {
-                var model = inventorySvc.GetEnvelopes();
+                var model = inventorySvc.GetEnvelopes().OrderBy(e => e.Order);
 
                 return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
             }

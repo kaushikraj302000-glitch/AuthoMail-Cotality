@@ -16,7 +16,7 @@ namespace AM.Services
         KeyValuePair<bool, string> SaveEnvelopeInventory(EnvelopeInventory envtran, string userId);
         List<EnvelopeInventory> GetAllEnvelopeInventory();
         List<EnvelopeInventoryStockCalculation> GetEnvelopeInventoryStockCalculation();
-        int InventoryStockAlertLevel();
+        KeyValuePair<int, Dictionary<string, float>> InventoryStockAlertLevel(Dictionary<string, float> envelopeAvgRate);
     }
     public class InventoryService : ServiceBase, IInventoryService
     {
@@ -42,7 +42,6 @@ inner join Profile.Users m on e.ModifiedBy=m.Id").ToList();
                 {
                     e.TotalDays = env.TotalDays;
                     e.TotalQuantityUsed = env.TotalQuantityUsed;
-                    e.AvgQuantityPerDay = env.AvgQuantityPerDay;
                     e.AvgRate = env.AvgRate;
                     e.EnvDays = env.EnvDays;
                 }
@@ -149,12 +148,44 @@ inner join Profile.Users m on e.ModifiedBy=m.Id";
 
 
 
-        public int InventoryStockAlertLevel()
+        public KeyValuePair<int, Dictionary<string, float>> InventoryStockAlertLevel(Dictionary<string, float> envelopeAvgRate)
         {
-            var envelopes = GetEnvelopes();
-            if (envelopes.Any(e => e.AlertLevel == 2)) return 2;
-            if (envelopes.Any(e => e.AlertLevel == 1)) return 1;
-            return 0;
+            var envelopeInvStockCalc = GetEnvelopeInventoryStockCalculation();
+            Dictionary<string, float> dict = new Dictionary<string, float>();
+            int alertLevel = 0;
+            dict = envelopeInvStockCalc.Select(e => new { e.EnvelopeId, e.AvgRate }).ToDictionary(e => e.EnvelopeId, e => e.AvgRate);
+            if (envelopeInvStockCalc.Any(e => e.AlertLevel == 2)) alertLevel = 2;
+            else if (envelopeInvStockCalc.Any(e => e.AlertLevel == 1)) alertLevel = 1;
+            return new KeyValuePair<int, Dictionary<string, float>>(alertLevel, dict);
+
+            //var envelopes = db.Query<EnvelopeIdCQuantity>("select Id,CurrentQuantity,ReorderDuration from Common.Envelopes").ToList();
+            //bool isnotExist = envelopeAvgRate != null ? envelopes.Any(e => !envelopeAvgRate.Any(r => r.Key == e.Id)) : true;
+
+
+            //if (isnotExist)
+            //{
+            //    var newEnvelopes = GetEnvelopes();
+            //    dict = newEnvelopes.Select(e => new { e.Id, e.AvgRate }).ToDictionary(e => e.Id, e => e.AvgRate);
+            //    if (newEnvelopes.Any(e => e.AlertLevel == 2)) alertLevel = 2;
+            //    else if (newEnvelopes.Any(e => e.AlertLevel == 1)) alertLevel = 1;
+            //}
+            //else
+            //{
+            //    envelopes.ForEach(e =>
+            //    {
+            //        float? avgRate = envelopeAvgRate.Where(a => a.Key == e.Id).Select(a => a.Value).SingleOrDefault();
+            //        //Fix if avgRate is null or 0 then exclude it.
+            //        if (avgRate != null)
+            //        {
+            //            e.AvgRate = avgRate.Value;
+            //        }
+            //    });
+            //    dict = envelopes.Select(e => new { e.Id, e.AvgRate }).ToDictionary(e => e.Id, e => e.AvgRate);
+            //    if (envelopes.Any(e => e.AlertLevel == 2)) alertLevel = 2;
+            //    else if (envelopes.Any(e => e.AlertLevel == 1)) alertLevel = 1;
+            //}
+            //return new KeyValuePair<int, Dictionary<string, float>>(alertLevel, dict);
         }
+
     }
 }

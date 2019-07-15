@@ -22,7 +22,7 @@ namespace AM.Web.AMHub
         private object _model;
         private string connectionId;
         private int? LastId;
-        private KeyValuePair<string, int>? StockAlert;
+        private Dictionary<string, float> stockAlertDict;
         public ErrorNotificationSignalR()
         {
             // Save our hub context so we can easily use it 
@@ -63,15 +63,12 @@ namespace AM.Web.AMHub
                 int maxId = errorsData != null && errorsData.Count > 0 ? errorsData.Max(e => e.Id) : 0;
                 if (maxId != 0 && maxId != LastId)
                     LastId = maxId;
-                if (this.StockAlert == null || (DateTime.UtcNow.ToString("MM/dd/yy") != this.StockAlert.Value.Key))
-                {
-                    int stocklevel = invSvc.InventoryStockAlertLevel();
-                    this.StockAlert = new KeyValuePair<string, int>(DateTime.UtcNow.ToString("MM/dd/yy"), stocklevel);
-                }
+                var result = invSvc.InventoryStockAlertLevel(stockAlertDict);
+                stockAlertDict = result.Value;
                 return new
                 {
                     errorsData = errorsData,
-                    stocklevel = this.StockAlert.Value.Value
+                    stocklevel = result.Key
                 };
             }
         }
