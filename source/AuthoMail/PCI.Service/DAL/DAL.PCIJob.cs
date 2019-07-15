@@ -165,7 +165,7 @@ namespace PCI.Service
 
         public static void UpdateSubmittedForAllResReceivedBatch(int ptBatchId, DateTime currentDateTime)
         {
-            string sqlQuery = @"WITH CB AS (SELECT DISTINCT req.JobId FROM PnS.MRDFRequest req WHERE req.PrintTrailBatchId={0}),PTB AS (SELECT IsSubmitted FROM PnS.PrintTrailBatches WHERE Id={0})UPDATE B SET B.PipelineStatus = 'Submitted',B.SubmittedOn='{1}' FROM PnS.BatchSummary B INNER JOIN CB ON B.PrintBatch = CB.JobId WHERE (SELECT IsSubmitted FROM PTB)=0".Fill(ptBatchId, currentDateTime);
+            string sqlQuery = @"WITH CB AS (SELECT DISTINCT req.JobId FROM PnS.MRDFRequest req WHERE req.PrintTrailBatchId={0}),PTB AS (SELECT IsSubmitted FROM PnS.PrintTrailBatches WHERE Id={0})UPDATE B SET B.PipelineStatus = 'Submitted',B.SubmittedOn={1} FROM PnS.BatchSummary B INNER JOIN CB ON B.PrintBatch = CB.JobId WHERE (SELECT IsSubmitted FROM PTB)=0".Fill(ptBatchId, currentDateTime);
 
             db.ExecuteSqlNonQuery(sqlQuery);
         }
