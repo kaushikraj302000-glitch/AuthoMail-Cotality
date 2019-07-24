@@ -154,20 +154,35 @@ CREATE PROCEDURE [dbo].[usp_EnvelopeInventoryStockCalculation]
 	
 AS
 BEGIN
-	declare @startDate as date,@endDate as date
+	declare @startDate as date,@endDate as date,@wstartDate as date
 set @endDate = dateadd(day,-1,cast(getutcdate() as date));
-set @startDate= dateadd(month,-1,getutcdate());--dateadd(day,-(DAY(EOMONTH(DATEADD(month,-1,@endDate)))+1),@endDate)
-
-;with cte as
+set @startDate= dateadd(month,-1,getutcdate());
+set @wstartDate=dateadd(day,-7,getutcdate());
+;with monthAvg as
 (
 	select EnvelopeId,count(distinct(cast(SubmittedOn as date))) as TotalDays,SUM(Quantity) AS TotalQuantityUsed
 	from PnS.EnvelopeUsage EU
 	INNER JOIN PnS.PrintTrailBatches PTB ON EU.PrintTrailBatchId=PTB.Id
 	WHERE cast(SubmittedOn as date) BETWEEN @startDate AND @endDate
 	GROUP BY EnvelopeId
+),
+weekAvg as
+(
+	select EnvelopeId,count(distinct(cast(SubmittedOn as date))) as TotalDays,SUM(Quantity) AS TotalQuantityUsed
+	from PnS.EnvelopeUsage EU
+	INNER JOIN PnS.PrintTrailBatches PTB ON EU.PrintTrailBatchId=PTB.Id
+	WHERE cast(SubmittedOn as date) BETWEEN @wstartDate AND @endDate
+	GROUP BY EnvelopeId
+),
+mergeAvg as
+(
+	select m.EnvelopeId,case when m.TotalQuantityUsed>isnull(w.TotalQuantityUsed,0) then m.TotalQuantityUsed else w.TotalQuantityUsed end as TotalQuantityUsed,
+	case when m.TotalDays>isnull(w.TotalDays,0) then m.TotalDays else w.TotalDays end as TotalDays
+	from monthAvg m
+	left outer join weekAvg w on m.EnvelopeId=w.EnvelopeId
 )
-select c.*,e.CurrentQuantity,e.ReorderDuration,(cast(TotalQuantityUsed as float)/TotalDays) as AvgRate,(cast(e.CurrentQuantity as float)/(TotalQuantityUsed/TotalDays)) as EnvDays
-from cte c
+select c.*,e.CurrentQuantity,e.ReorderDuration,CEILING(cast(TotalQuantityUsed as float)/TotalDays) as AvgRate,CEILING(cast(e.CurrentQuantity as float)/(TotalQuantityUsed/TotalDays)) as EnvDays
+from mergeAvg c
 inner join Common.Envelopes e on c.EnvelopeId=e.Id
 END
 go
@@ -191,3 +206,29 @@ BEGIN
  where mb.ReceivedOn between DATEADD(day,-7,GETUTCDATE()) and DATEADD(minute,-@cutOffMinutes,GETUTCDATE()) and (mp.ShippingStatus is null or (mp.ShippingStatus in ('InProgress','Shipped') and (rq.UniqueId is null or ISNULL(bs.IsSubmitted,0)=0)) or (mp.ShippingStatus = 'Error' and mp.ErrorDesc IS NULL) or (mp.ShippingStatus = 'PulledBack' and not exists (select Id from AM.PullBackRequests where MailPieceId = mp.Id)) or (mb.ClientId IS NULL))
  or (rq.MailPieceStatus='Shipped' and mp.IsPickedUp <> 1 and mp.DueDate < GETUTCDATE() and d.ShippingCarrier='FedEx' and mb.ReceivedOn>='2019-01-01 05:00:00')
 END
+---------------------------------------------------------------------------------------------------------
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'usp_GetEnvelopeInventoryUsage')
+DROP PROCEDURE [dbo].[usp_GetEnvelopeInventoryUsage]
+go
+Create PROCEDURE [dbo].[usp_GetEnvelopeInventoryUsage]
+	@Id varchar(500)
+	AS
+	BEGIN
+		-- SET NOCOUNT ON added to prevent extra result sets from
+		-- interfering with SELECT statements.
+		SET NOCOUNT ON;
+		declare @startDate as date,@endDate as date
+set @endDate = dateadd(day,-1,cast(getutcdate() as date));
+set @startDate= dateadd(month,-1,getutcdate());--dateadd(day,-(DAY(EOMONTH(DATEADD(month,-1,@endDate)))+1),@endDate)
+
+;with cte as
+(
+	select distinct(cast(SubmittedOn as date)) as Date ,SUM(Quantity) AS UsageStock
+	from PnS.EnvelopeUsage EU
+	INNER JOIN PnS.PrintTrailBatches PTB ON EU.PrintTrailBatchId=PTB.Id
+	WHERE cast(SubmittedOn as date) BETWEEN @startDate AND @endDate and EU.EnvelopeId=@Id
+	GROUP BY SubmittedOn 
+)
+select * from cte  order by Date desc
+
+	END
