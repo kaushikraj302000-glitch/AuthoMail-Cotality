@@ -69,7 +69,7 @@ inner join Profile.Users m on e.ModifiedBy=m.Id").ToList();
                 {
                     var envelope = FindByCodeEnvelope(envelopes.EnvelopeName);
                     if (envelope != null) return new KeyValuePair<bool, string>(false, "Envelope name already exists.");
-                    string sql = "INSERT INTO [Common].[Envelopes] ([EnvelopeName],[CurrentQuantity] ,[IsBREEnvelope],[CreatedBy],[ModifiedBy],[CreatedOn],[ModifiedOn],[ReorderDuration]) VALUES(@Id ,0 ,@IsBREEnvelope,@CreatedBy,@ModifiedBy,@CreatedOn,@ModifiedOn,@ReorderDuration)";
+                    string sql = "INSERT INTO [Common].[Envelopes] ([EnvelopeName],[CurrentQuantity] ,[IsBREEnvelope],[CreatedBy],[ModifiedBy],[CreatedOn],[ModifiedOn],[ReorderDuration]) VALUES(@EnvelopeName ,0 ,@IsBREEnvelope,@CreatedBy,@ModifiedBy,@CreatedOn,@ModifiedOn,@ReorderDuration)";
                     envelopes.CreatedBy = envelopes.ModifiedBy = userId;
                     envelopes.CreatedOn = envelopes.ModifiedOn = DateTime.UtcNow;
                     db.Execute(sql, envelopes);

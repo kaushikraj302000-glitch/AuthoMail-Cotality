@@ -922,7 +922,7 @@ namespace AM.Web.Controllers
             }
         }
         [Authorize(Roles = AMRoles.Admin), HttpGet]
-        public ActionResult GetEnvelopeByName(int id)
+        public ActionResult GetEnvelopeById(int id)
         {
 
             if (id != 0)
@@ -942,13 +942,13 @@ namespace AM.Web.Controllers
         }
 
         [Authorize(Roles = AMRoles.Admin), HttpPost]
-        public ActionResult CreateOrEditEnvelope(Envelopes envelopes, bool IsInsert)
+        public ActionResult CreateOrEditEnvelope(Envelopes envelopes)
         {
             try
             {
-                if (IsInsert)
+                if (envelopes.Id == 0)
                 {
-                    var env = inventorySvc.FindByCodeEnvelope(envelopes.EnvelopeName);
+                    var env = inventorySvc.FindEnvelopeById(envelopes.Id);
                     if (env != null) return Json(JsonResponseFactory.ErrorResponse("Envelope already exists."), JsonRequestBehavior.AllowGet);
                 }
 

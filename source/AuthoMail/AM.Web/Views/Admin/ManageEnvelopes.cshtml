@@ -60,7 +60,7 @@
         <tbody id="EnvelopeBody">
             <tr class="row-small">
                 <td>{Action}</td>
-                <td><span>{Id}</span></td>
+                <td><span>{EnvelopeName}</span></td>
                 <td><span>{CurrentQuantity}</span></td>
                 <td><span>{IsBREEnvelope}</span></td>
                 <td><span>{ReorderDuration}</span></td>
@@ -262,7 +262,7 @@
             el.empty();
             $.ajax({
                 type: "GET",
-                url: baseUrl + "Admin/GetEnvelopeByName",
+                url: baseUrl + "Admin/GetEnvelopeById",
                 data: { id: id },
                 success: function (response) {
                     el.html(response);
@@ -280,8 +280,9 @@
             });
 
         }
-        function Envelopes(Id, CurrentQuantity, IsBREEnvelope,ReorderDuration) {
+        function Envelopes(Id,EnvelopeName, CurrentQuantity, IsBREEnvelope,ReorderDuration) {
             this.Id = Id;
+            this.EnvelopeName = EnvelopeName;
             this.CurrentQuantity = CurrentQuantity;
             this.IsBREEnvelope = IsBREEnvelope;
             this.ReorderDuration = ReorderDuration;
@@ -289,15 +290,14 @@
         function SaveEnvelope() {
 
             var isBRE = $("#IsBREEnvelope").is(':checked') ? true : false;
-            var isInsert = $("#isInsert").val() == "true" ? true : false;
             var ReorderDuration = $('#ReorderDuration').val();
-            var envelopes = new Envelopes($("#Id").val(), $("#CurrentQuantity").val(), isBRE,ReorderDuration);
+            var envelopes = new Envelopes($("#Id").val(), $("#EnvelopeName").val(), $("#CurrentQuantity").val(), isBRE, ReorderDuration);
             var el = $("#myModal").find(".modal-body");
             el.empty();
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Admin/CreateOrEditEnvelope",
-                data: { envelopes: envelopes, IsInsert: isInsert },
+                data: { envelopes: envelopes },
                 success: function (response) {
                     if (response.Success) {
                         if (response.Object != null) {
