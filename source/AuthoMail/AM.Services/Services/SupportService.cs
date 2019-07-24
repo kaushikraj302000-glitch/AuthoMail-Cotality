@@ -300,7 +300,9 @@ namespace AM.Services
         {
             //Validation
             if (docTypes.DocTypeCode.IsNullOrWhiteSpace()) throw new Exception("Doc Type Code can't be null or empty.");
+            if (docTypes.DocTypeCode.Any(d => d == '|')) throw new Exception("Doc Type Code doesn't allow '|' character.");
             if (docTypes.Description.IsNullOrWhiteSpace()) throw new Exception("Description can't be null or empty.");
+            if (docTypes.Description.Any(d => d == '|')) throw new Exception("Description doesn't allow '|' character.");
             if (docTypes.PrintSize.IsNullOrWhiteSpace()) throw new Exception("PrintSize can't be null or empty.");
             if (docTypes.ShippingServiceType.IsNullOrWhiteSpace()) throw new Exception("Shipping Service Type can't be null or empty.");
             if (FindByClientId(docTypes.ClientId) == null) throw new Exception("Client not found.");
