@@ -154,24 +154,27 @@ CREATE PROCEDURE [dbo].[usp_EnvelopeInventoryStockCalculation]
 	
 AS
 BEGIN
-	declare @startDate as date,@endDate as date,@wstartDate as date
-set @endDate = dateadd(day,-1,cast(getutcdate() as date));
-set @startDate= dateadd(month,-1,getutcdate());
-set @wstartDate=dateadd(day,-7,getutcdate());
-;with monthAvg as
+	;with allenvelope as
 (
-	select EnvelopeId,count(distinct(cast(SubmittedOn as date))) as TotalDays,SUM(Quantity) AS TotalQuantityUsed
+	select EnvelopeId,cast(SubmittedOn as date) as SubmittedOn,Quantity,
+ROW_NUMBER() OVER (PARTITION BY EnvelopeId order by cast(SubmittedOn as date) desc) as RowNum
 	from PnS.EnvelopeUsage EU
 	INNER JOIN PnS.PrintTrailBatches PTB ON EU.PrintTrailBatchId=PTB.Id
-	WHERE cast(SubmittedOn as date) BETWEEN @startDate AND @endDate
+	where cast(SubmittedOn as date) < cast(GETUTCDATE() as date)
+	GROUP BY cast(SubmittedOn as date),EnvelopeId,Quantity
+),
+monthAvg as
+(
+	select EnvelopeId,count(distinct(SubmittedOn)) as TotalDays,SUM(Quantity) AS TotalQuantityUsed
+	from allenvelope
+	where RowNum<=30
 	GROUP BY EnvelopeId
 ),
 weekAvg as
 (
 	select EnvelopeId,count(distinct(cast(SubmittedOn as date))) as TotalDays,SUM(Quantity) AS TotalQuantityUsed
-	from PnS.EnvelopeUsage EU
-	INNER JOIN PnS.PrintTrailBatches PTB ON EU.PrintTrailBatchId=PTB.Id
-	WHERE cast(SubmittedOn as date) BETWEEN @wstartDate AND @endDate
+	from allenvelope
+	where RowNum<=7
 	GROUP BY EnvelopeId
 ),
 mergeAvg as
