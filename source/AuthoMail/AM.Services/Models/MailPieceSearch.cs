@@ -310,8 +310,8 @@ namespace AM.Services
         public string SunTimeSpan { get; set; }
         public string ShippingSpecialService { get; set; }
         public bool IsBRE { get; set; }
-        public string EnvelopeId { get; set; }
-        public string BREEnvelopeId { get; set; }
+        public int? EnvelopeId { get; set; }
+        public int? BREEnvelopeId { get; set; }
         public int NoOfCopies { get; set; }
 
     }
@@ -473,5 +473,5 @@ namespace AM.Services
         //    }
         //}
     }
-   
+
 }

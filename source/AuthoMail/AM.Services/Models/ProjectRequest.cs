@@ -119,7 +119,8 @@ namespace AM.Services
 
     public class Envelopes
     {
-        public string Id { get; set; }
+        public int Id { get; set; }
+        public string EnvelopeName { get; set; }
         public int CurrentQuantity { get; set; }
         public bool IsBREEnvelope { get; set; }
         public int? ReorderDuration { get; set; }
@@ -171,7 +172,7 @@ namespace AM.Services
     }
     public class EnvelopeInventoryStockCalculation
     {
-        public string EnvelopeId { get; set; }
+        public int EnvelopeId { get; set; }
         public int TotalDays { get; set; }
         public int TotalQuantityUsed { get; set; }
         public float AvgRate { get; set; }
