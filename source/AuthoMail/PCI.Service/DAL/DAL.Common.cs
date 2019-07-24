@@ -134,7 +134,7 @@ namespace PCI.Service
             return printTrailDetail.DataTableAccessor<PrintVendor>(false).Single();
         }
 
-        public static int UpdateEnvelopeInventory(PrintTrailBatch printTrailBatch, Dictionary<string, int> envelopeInventory)
+        public static int UpdateEnvelopeInventory(PrintTrailBatch printTrailBatch, Dictionary<int?, int> envelopeInventory)
         {
             foreach (var envelope in envelopeInventory)
             {
