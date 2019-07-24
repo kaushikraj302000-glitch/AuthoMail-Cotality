@@ -64,29 +64,7 @@ CREATE INDEX Idx_ErrorNotifications_ClientId
 ON AM.ErrorNotifications (ClientId);
 GO
 
-PRINT 'Added new view view_EnvelopeInventoryData'
-CREATE VIEW [dbo].[view_EnvelopeInventoryData]
-AS
-
-WITH CTE AS
-(
-SELECT EnvelopeId,SUM(Quantity) AS TotalQuantityUsed
-FROM [PnS].[EnvelopeUsage] EU
-WHERE InsertedOn >=DATEADD(DAY,-30,GETUTCDATE())
-GROUP BY EnvelopeId
-)
-SELECT CTE.*
-,E.CurrentQuantity
-,(CTE.TotalQuantityUsed/30) AS AvgQuantityPerDay
-,((CTE.TotalQuantityUsed/30)*E.ReorderDuration) AS MinStockRequirement 
-,(((CTE.TotalQuantityUsed/30)*E.ReorderDuration) * (30 / 100)) AS BufferStock
-FROM CTE 
-INNER JOIN Common.Envelopes E ON CTE.[EnvelopeId] = E.Id
-GO
-
 PRINT 'Added new sp	usp_InsertErrorNotificationData'
-
-
 CREATE PROCEDURE [dbo].[usp_InsertErrorNotificationData]
 @mailBatchId int
 AS
@@ -117,6 +95,7 @@ BEGIN
 	end
 
 END
+GO
 
 PRINT 'Added new table [AM].[AlertSubscribers]'
 CREATE TABLE [AM].[AlertSubscribers](

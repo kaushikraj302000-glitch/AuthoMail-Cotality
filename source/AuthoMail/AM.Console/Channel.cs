@@ -372,12 +372,7 @@ namespace AM.Console
                 string ftpUploadPath = Path.Combine(deliveryUploadPath, fileName);
                 sftSite.UploadFile(filePath, ftpUploadPath);
 
-                //NOTE: Temparary Code for Duplicate Report Upload 
-                if (sftChannelDetail.Code.Contains("AMC") && sftSite.IsDownloadDirectoryAvailable(Config.Monitor_AMCBackupReportUploadPath))
-                {
-                    sftSite.UploadFile(filePath, Path.Combine(Config.Monitor_AMCBackupReportUploadPath, fileName));
-                }
-
+              
                 //After upload change extention as a Complete
                 File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
             }
@@ -400,11 +395,6 @@ namespace AM.Console
                 string ftpUploadPath = Path.Combine(errorUploadPath, fileName);
                 sftSite.UploadFile(filePath, ftpUploadPath);
 
-                //NOTE: Temparary Code for Duplicate Report Upload 
-                if (sftChannelDetail.Code.Contains("AMC") && sftSite.IsDownloadDirectoryAvailable(Config.Monitor_AMCBackupReportUploadPath))
-                {
-                    sftSite.UploadFile(filePath, Path.Combine(Config.Monitor_AMCBackupReportUploadPath, fileName));
-                }
 
                 //After upload change extention as a Complete
                 File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));

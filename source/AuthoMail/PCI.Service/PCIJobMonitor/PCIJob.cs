@@ -117,8 +117,9 @@ namespace PCI.Service
 
             while (notSubmittedList.Count > 0)
             {
+                log.Info("Submit Bundle Process Started");
                 SubmitBatches(notSubmittedList);
-
+                log.Info("Submit Bundle Process Completed");
                 Thread.Sleep(12000);
                 notSubmittedList = DAL.GetNotSubmittedPrintBatchDetailByPrintVendorCode(pvCode);
             }
@@ -300,7 +301,7 @@ namespace PCI.Service
             #endregion
 
             SFTUtil sftSite = new SFTUtil(ptDetails.Protocol.ParseEnum<SFT_ProtocolType>(), ptDetails.Host, ptDetails.UserName, ptDetails.Password,
-               300000);
+               60000);
 
             sftSite.Connect();
 
@@ -338,7 +339,7 @@ namespace PCI.Service
         private static void CreateDallasBatch(List<MailPieceDetail> mpList, PrintTrailDetail ptDetails)
         {
             SFTUtil sftSite = new SFTUtil(ptDetails.Protocol.ParseEnum<SFT_ProtocolType>(), ptDetails.Host, ptDetails.UserName, ptDetails.Password,
-                300000);
+                60000);
 
             sftSite.Connect();
             var sw = new Stopwatch();
@@ -387,6 +388,12 @@ namespace PCI.Service
                 //make an entry for mrdf file after making entries of files into zip
                 newFile.CreateEntryFromFile(xmlFilePath, Path.GetFileName(xmlFilePath));
             }
+
+            //NOTE : Here system is storing file size of received pdf in KB
+            FileInfo fileInfo = new FileInfo(zipFilePath);
+            Int64 fileSize = (fileInfo.Length / 1024);
+            DAL.UpdatePrintTrailBatchSize(ptBatchDetails.Id, fileSize);
+
             return zipFilePath;
         }
 
@@ -440,7 +447,7 @@ namespace PCI.Service
         private static void UploadBatchToPrintVendorSite(string zipFilePath, PrintTrailDetail ptDetails)
         {
             SFTUtil sftSite = new SFTUtil(ptDetails.Protocol.ParseEnum<SFT_ProtocolType>(), ptDetails.Host, ptDetails.UserName, ptDetails.Password,
-               300000);
+               60000);
             sftSite.Connect();
 
             var sw = new Stopwatch();
@@ -520,7 +527,7 @@ namespace PCI.Service
                     continue;
                 }
 
-                SFTUtil sftSite = new SFTUtil(printVendorDetail.Protocol.ParseEnum<SFT_ProtocolType>(), printVendorDetail.Host, printVendorDetail.UserName, printVendorDetail.Password, 300000);
+                SFTUtil sftSite = new SFTUtil(printVendorDetail.Protocol.ParseEnum<SFT_ProtocolType>(), printVendorDetail.Host, printVendorDetail.UserName, printVendorDetail.Password, 60000);
 
                 sftSite.Connect();
 
