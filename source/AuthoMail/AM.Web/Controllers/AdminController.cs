@@ -922,12 +922,12 @@ namespace AM.Web.Controllers
             }
         }
         [Authorize(Roles = AMRoles.Admin), HttpGet]
-        public ActionResult GetEnvelopeByName(string id)
+        public ActionResult GetEnvelopeByName(int id)
         {
 
-            if (!string.IsNullOrWhiteSpace(id))
+            if (id != 0)
             {
-                Envelopes envelop = inventorySvc.FindByCodeEnvelope(id);
+                Envelopes envelop = inventorySvc.FindEnvelopeById(id);
                 return PartialView("_AddOrEditEnvelope", envelop);
             }
             else

@@ -23,7 +23,10 @@ namespace AM.Services
     {
         public Envelopes FindEnvelopeById(int Id)
         {
-            string query = "select * from Common.Envelopes where Id=@Id";
+            string query = @"select e.*,c.DisplayName as CreatedBy,m.DisplayName as ModifiedBy from Common.Envelopes e
+inner join Profile.Users c on e.CreatedBy = c.Id
+inner join Profile.Users m on e.ModifiedBy = m.Id
+where e.Id = @Id";
             return db.QuerySingleOrDefault<Envelopes>(query, new { Id = Id });
         }
         public Envelopes FindByCodeEnvelope(string envelopeCode)
