@@ -1,16 +1,11 @@
 ﻿@model AM.Services.EnvelopeInventory
 
-<h2 id="myModalLabel">@(Model.Id == 0 ? Html.Raw("Add Envelope Transactions Details") : Html.Raw("Edit Envelope Transactions Details"))</h2>
+<h2 id="myModalLabel">Add Envelope Transactions Details for @Model.EnvelopeId</h2>
 <hr />
 <input type="hidden" id="Id" name="Id" value="@Model.Id" />
+<input type="hidden" id="EnvelopeId" name="EnvelopeId" value="@Model.EnvelopeId" />
 <form id="envelopetransactionsform" action="#">
-    <div class="form-group">
-        <label for="Description">Envelope</label>
-        <div class="input-group">
-            @Html.DropDownListFor(model => model.EnvelopeId, ViewBag.Envelopes as SelectList, "Select Envelope", new { @class = " form-control selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Envelope" })
-        </div>
-        <span for="EnvelopeId" class="error" style="display:none;">This field is required.</span>
-    </div>
+    
     <div class="form-group">
         <label for="Description">Received Quantity</label>
         <div class="input-group">

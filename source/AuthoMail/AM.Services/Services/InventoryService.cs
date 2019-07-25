@@ -17,6 +17,9 @@ namespace AM.Services
         List<EnvelopeInventory> GetAllEnvelopeInventory();
         List<EnvelopeInventoryStockCalculation> GetEnvelopeInventoryStockCalculation();
         KeyValuePair<int, Dictionary<string, float>> InventoryStockAlertLevel(Dictionary<string, float> envelopeAvgRate);
+        Tuple<List<StockDetails>, List<StockDetails>> GetEnvelopeStockDetails(string id);
+
+
     }
     public class InventoryService : ServiceBase, IInventoryService
     {
@@ -185,6 +188,20 @@ inner join Profile.Users m on e.ModifiedBy=m.Id order by e.ReceivedOn desc";
             //    else if (envelopes.Any(e => e.AlertLevel == 1)) alertLevel = 1;
             //}
             //return new KeyValuePair<int, Dictionary<string, float>>(alertLevel, dict);
+        }
+
+
+
+        public Tuple<List<StockDetails>, List<StockDetails>> GetEnvelopeStockDetails(string id)
+        {
+            string query = @"select top 30 ReceivedOn as Date,ReceivedQuantity as UsageStock from [Common].[EnvelopeInventory] where EnvelopeId=@Id order by Id desc;exec dbo.usp_GetEnvelopeInventoryUsage @Id;";
+            using (var result = db.QueryMultiple(query, new { Id = id }))
+            {
+                var envelopeArrival = result.Read<StockDetails>().ToList();
+                var envelopeInventoryUsage = result.Read<StockDetails>().ToList();
+                return new Tuple<List<StockDetails>, List<StockDetails>>(envelopeInventoryUsage, envelopeArrival);
+            }
+
         }
 
     }

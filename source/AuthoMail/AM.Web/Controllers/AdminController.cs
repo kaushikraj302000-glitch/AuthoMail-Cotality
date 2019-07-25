@@ -978,19 +978,9 @@ namespace AM.Web.Controllers
             }
         }
         [Authorize(Roles = AMRoles.Admin), HttpGet]
-        public ActionResult GetEnvelopeTransactionsByName(int id)
+        public ActionResult GetEnvelopeTransactionsByName(int id, string envelopeId)
         {
-            if (id != 0)
-            {
-                EnvelopeInventory envelopTransactions = inventorySvc.FindByIdEnvelopeInventory(id);
-                ViewBag.Envelopes = new SelectList(inventorySvc.GetEnvelopes(), "Id", "Id", envelopTransactions.EnvelopeId);
-                return PartialView("_AddOrEditEnvelopeTransactions", envelopTransactions);
-            }
-            else
-            {
-                ViewBag.Envelopes = new SelectList(inventorySvc.GetEnvelopes(), "Id", "Id");
-                return PartialView("_AddOrEditEnvelopeTransactions", new EnvelopeInventory());
-            }
+            return PartialView("_AddOrEditEnvelopeTransactions", new EnvelopeInventory() { EnvelopeId = envelopeId });
         }
         [Authorize(Roles = AMRoles.Admin)]
         public ActionResult ManageEnvelopeTransactions()
@@ -1011,6 +1001,19 @@ namespace AM.Web.Controllers
             }
         }
 
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult GetEnvelopeStockDetails(string id)
+        {
+            try
+            {
+                return Json(JsonResponseFactory.SuccessResponse(inventorySvc.GetEnvelopeStockDetails(id)), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message), JsonRequestBehavior.AllowGet);
+            }
+        }
+        
         #endregion
 
         #region Manage Print Trails
