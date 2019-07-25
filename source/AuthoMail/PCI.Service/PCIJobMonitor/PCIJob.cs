@@ -280,7 +280,7 @@ namespace PCI.Service
         {
 
             //Get total counts of envelope / BRE envelopes used for valid mail pieces.
-            Dictionary<string, int> envelopeData = new Dictionary<string, int>();
+            Dictionary<int?, int> envelopeData = new Dictionary<int?, int>();
 
             var ptDetails = DAL.GetPrintTrailDetailByPrintTrailId(ptBatchDetails.PrintTrailId);
 
@@ -495,9 +495,16 @@ namespace PCI.Service
                     });
 
                     var currentBatch = dallasBatches.Single(b => (b.AppCode == client.AppCode && effectiveReceivedOnEst >= b.StartDate && effectiveReceivedOnEst <= b.EndDate) && b.ShippingCarrier == mailPiece.ShippingCarrier && b.ShippingServiceType == mailPiece.ShippingServiceType);
+                    string submitDir = string.Empty;
 
-                    //Here for HSBC System is separating packages which have pages more than 65 pages with priority folder
-                    string submitDir = Path.Combine(printTrailDetail.FromADEDir, client.AppCode, effectiveReceivedOnEst.Value.Date.ToString("MMddyyyy"), currentBatch.BatchName, currentBatch.ShippingCarrier + "_" + currentBatch.ShippingServiceType + folderBRE, client.AppCode == "HSBC" && mailPiece.TotalPages >= 65 ? "PRIORITY" : "");
+                    if (client.AppCode == "HSBC" && mailPiece.TotalPages >= 65) //NOTE : Here for HSBC System is separating packages which have pages more than 65 pages with priority folder
+                    {
+                        submitDir = Path.Combine(printTrailDetail.FromADEDir, client.AppCode, effectiveReceivedOnEst.Value.Date.ToString("MMddyyyy"), currentBatch.BatchName, currentBatch.ShippingCarrier + "_" + currentBatch.ShippingServiceType + folderBRE, "PRIORITY");
+                    }
+                    else
+                    {
+                        submitDir = Path.Combine(printTrailDetail.FromADEDir, client.AppCode, effectiveReceivedOnEst.Value.Date.ToString("MMddyyyy"), currentBatch.BatchName, currentBatch.ShippingCarrier + "_" + currentBatch.ShippingServiceType + folderBRE);
+                    }
 
                     if (!sftSite.IsDownloadDirectoryAvailable(submitDir))
                         sftSite.CreateDirectory(submitDir);
