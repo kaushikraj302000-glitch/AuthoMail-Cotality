@@ -278,20 +278,7 @@ namespace AM.Console
                                 .Select(m => m.Groups[1].Value)
                                 .ToList();
 
-                            //Document Or Package Type validation
-                            var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType);
-
-                            if (docType != null)
-                                mailPieceDTO.DocTypeId = docType.Id;
-
-                            if (docType == null)
-                            {
-                                mailPieceDTO.ErrorCode = OutComeCodes.Invalid_PackageType;
-                                mailPieceDTO.ErrorDesc = "The specified document or package type '{0}' is not configured.".Fill(mailPieceDTO.DocumentOrPackageType);
-                                mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
-                                mailPieceDTO.PrintLocation = null;
-                            }
-                            else if (!availablePdfs.Any(fName => fName.ToLower().Contains(mailPieceDTO.FilePattern.ToLower())))
+                            if (!availablePdfs.Any(fName => fName.ToLower().Contains(mailPieceDTO.FilePattern.ToLower())))
                             {
                                 mailPieceDTO.ErrorCode = OutComeCodes.Missing_PDF_File;
                                 mailPieceDTO.ErrorDesc = "Pdf attachment is not available.";
@@ -313,10 +300,22 @@ namespace AM.Console
                                 string sftPdfFileName = Path.GetFileName(sftFilePath);
                                 string localFilePath = Path.Combine(mbi.AMRequestPath, sftPdfFileName);
 
-                                if (!sftSite.IsFileAvailable(sftFilePath))
+                                int pageCount = 0;
+                                using (iTextSharp.text.pdf.PdfReader reader = new iTextSharp.text.pdf.PdfReader(localFilePath))
                                 {
-                                    mailPieceDTO.ErrorCode = OutComeCodes.Missing_PDF_File;
-                                    mailPieceDTO.ErrorDesc = "Pdf attachment is not available.";
+                                    pageCount = reader.NumberOfPages;
+                                }
+
+                                //Document Or Package Type validation
+                                var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, pageCount);
+
+                                if (docType != null)
+                                    mailPieceDTO.DocTypeId = docType.Id;
+
+                                if (docType == null)
+                                {
+                                    mailPieceDTO.ErrorCode = OutComeCodes.Invalid_PackageType;
+                                    mailPieceDTO.ErrorDesc = "The specified document or package type '{0}' is not configured.".Fill(mailPieceDTO.DocumentOrPackageType);
                                     mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                                     mailPieceDTO.PrintLocation = null;
                                 }
@@ -482,11 +481,9 @@ namespace AM.Console
         private void ReportInvalidBatch(MailBatchInfo mbi, string msg, Deliverable deliverable)
         {
             string mailMsg = "No records available in the batch file {0}".Fill(mbi.MailBatch.BatchName);
-            string errorReportFileName = string.Empty;
+            string errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.MailBatch.BatchName.Split('[')[0], Common.Now.ToString("htt"));
 
             StringBuilder errorReport = new StringBuilder(string.Format("No matching PDFs available in the batch file {0}.", mbi.MailBatch.BatchName));
-
-            errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.MailBatch.BatchName.Split('[')[0], Common.Now.ToString("htt"));
 
             string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
             File.WriteAllText(errorReportPath, errorReport.ToString());

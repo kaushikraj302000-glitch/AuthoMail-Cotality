@@ -319,21 +319,9 @@ namespace AM.Console
                                 //Now Check mentioned file is exist on sft or not that needs to be verified
                                 string sftFilePath = Path.Combine(SFTChannel.ToADEDir, mailPieceDTO.FileName);
                                 string localFilePath = Path.Combine(mbi.AMRequestPath, mailPieceDTO.FileName);
+                                int pageCount = 0;
 
-                                //Document Or Package Type validation
-                                var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType);
-
-                                if (docType != null)
-                                    mailPieceDTO.DocTypeId = docType.Id;
-
-                                if (docType == null)
-                                {
-                                    mailPieceDTO.PrintLocation = null;
-                                    mailPieceDTO.ErrorCode = OutComeCodes.Invalid_PackageType;
-                                    mailPieceDTO.ErrorDesc = "The specified document or package type '{0}' is not configured.".Fill(mailPieceDTO.DocumentOrPackageType);
-                                    mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
-                                }
-                                else if (!sftSite.IsFileAvailable(sftFilePath))
+                                if (!sftSite.IsFileAvailable(sftFilePath))
                                 {
                                     mailPieceDTO.PrintLocation = null;
                                     mailPieceDTO.ErrorCode = OutComeCodes.Missing_PDF_File;
@@ -355,7 +343,28 @@ namespace AM.Console
                                     //Creating collection for moving or deleting files because it may have same file for multiple nodes so can't move or delete at these level.
                                     fileListToMoveOrDelete.Add(sftFilePath);
 
-                                    mailPieceDTO.ErrorCode = OutComeCodes.No_Error;
+                                    using (iTextSharp.text.pdf.PdfReader reader = new iTextSharp.text.pdf.PdfReader(localFilePath))
+                                    {
+                                        pageCount = reader.NumberOfPages;
+                                    }
+
+                                    //Document Or Package Type validation
+                                    var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, pageCount);
+
+                                    if (docType != null)
+                                        mailPieceDTO.DocTypeId = docType.Id;
+
+                                    if (docType == null)
+                                    {
+                                        mailPieceDTO.PrintLocation = null;
+                                        mailPieceDTO.ErrorCode = OutComeCodes.Invalid_PackageType;
+                                        mailPieceDTO.ErrorDesc = "The specified document or package type '{0}' is not configured.".Fill(mailPieceDTO.DocumentOrPackageType);
+                                        mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
+                                    }
+                                    else
+                                    {
+                                        mailPieceDTO.ErrorCode = OutComeCodes.No_Error;
+                                    }
                                 }
                             }
                             else
@@ -469,11 +478,6 @@ namespace AM.Console
             }
         }
 
-        //protected override void CalculateDueDateAndPrintLocation()
-        //{
-        //    Channel.CalculateDueDateAndPrintLocation(SFTChannel.Id);
-        //}
-
         private MailPieceValidationResult ValidateRespaControlNode(XmlNode mailPieceNode)
         {
             var errors = GetAllRespaControlErrors(mailPieceNode).ToList();
@@ -556,16 +560,6 @@ namespace AM.Console
                         try
                         {
                             string errorReportFileName = "ER_{0}.csv".Fill(mbi.BatchName);
-
-                            //Regex regEx = new Regex(@"{(.+?)}");
-
-                            //var param = regEx.Matches(errorReportFileName);
-                            //for (int i = 0; i < param.Count; i++)
-                            //{
-                            //    string propertyName = param[i].Groups[1].Value;
-
-                            //    errorReportFileName = errorReportFileName.Replace("{" + propertyName + "}", mbi.MailBatch.GetValueOfPropertyFromPropertyName(propertyName).ToString());
-                            //}
 
                             string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 

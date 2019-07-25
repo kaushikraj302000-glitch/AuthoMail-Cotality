@@ -787,12 +787,25 @@ namespace AM.Console
         private MailPieceValidationResult ValidateCommonValidation(MailPieceDTO mailPieceDTO, MailBatchInfo mbi)
         {
             //in last system will check for general validations
-            string filePath = Path.Combine(mbi.AMRequestPath, mailPieceDTO.FileName);
+            string localFilePath = Path.Combine(mbi.AMRequestPath, mailPieceDTO.FileName);
+            if (!File.Exists(localFilePath))
+            {
+                return new MailPieceValidationResult() { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file is not available for this package." };
+            }
+
+            int pageCount = 0;
+            using (iTextSharp.text.pdf.PdfReader reader = new iTextSharp.text.pdf.PdfReader(localFilePath))
+            {
+                pageCount = reader.NumberOfPages;
+            }
+            //NOTE : Here system is storing file size of received pdf in KB
+            FileInfo fileInfo = new FileInfo(localFilePath);
+            mailPieceDTO.PDFFileSize = (fileInfo.Length / 1024);
 
             string documentOrPackageType = mailPieceDTO.DocumentOrPackageType;
 
             //Document Or Package Type validation
-            var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType);
+            var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType, pageCount);
 
             if (docType != null)
                 mailPieceDTO.DocTypeId = docType.Id;
@@ -801,16 +814,8 @@ namespace AM.Console
             {
                 return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = "The specified document or package type '{0}' is not configured.".Fill(mailPieceDTO.DocumentOrPackageType) };
             }
-            else if (!File.Exists(filePath))
-            {
-                return new MailPieceValidationResult() { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file is not available for this package." };
-            }
             else
             {
-                //NOTE : Here system is storing file size of received pdf in KB
-                FileInfo fileInfo = new FileInfo(filePath);
-                mailPieceDTO.PDFFileSize = (fileInfo.Length / 1024);
-
                 //if at mail piece level or at mail batch level, system didn't find return info then it will check for MailBatch level if exist system will use that in mail piece level 
                 if (!mailPieceDTO.IsReturnInfoSpecified || !mbi.MailBatch.IsReturnInfoSpecified)
                 {
@@ -882,11 +887,6 @@ namespace AM.Console
             yield break;
         }
         #endregion
-
-        //protected override void CalculateDueDateAndPrintLocation()
-        //{
-        //    Channel.CalculateDueDateAndPrintLocation(SFTChannel.Id);
-        //}
 
         protected override void AcknowledgeBatches()
         {
@@ -989,7 +989,7 @@ namespace AM.Console
         {
             string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
             string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-            
+
             StringBuilder errorData = generalSvc.GeneralErrorReport(mailPieces, deliverable.Delimeter);
             if (errorData != null)
             {

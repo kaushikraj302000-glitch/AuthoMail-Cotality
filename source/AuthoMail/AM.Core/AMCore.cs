@@ -219,7 +219,7 @@ namespace AM.Core
                                             {
                                                 string priorityDocType = mailPiece.DocumentOrPackageType + Config.Monitor_PriorityMailingText;
 
-                                                var docTypePRI = docTypeSvc.GetDocTypeByDocTypeName(client.Id, priorityDocType);
+                                                var docTypePRI = docTypeSvc.GetFallBackDocTypeByDocTypeName(client.Id, priorityDocType);
 
                                                 if (docTypePRI != null)
                                                 {
@@ -338,7 +338,7 @@ namespace AM.Core
                                             //First try to generate eVS label with USPS Priority Express
                                             string priorityExpressDocType = mailPiece.DocumentOrPackageType + Config.Monitor_ExpressMailingText;
 
-                                            docType = docTypeSvc.GetDocTypeByDocTypeName(client.Id, priorityExpressDocType);
+                                            docType = docTypeSvc.GetFallBackDocTypeByDocTypeName(client.Id, priorityExpressDocType);
                                             if (docType != null)
                                             {
                                                 mailPiece.DocTypeId = docType.Id;
@@ -353,7 +353,7 @@ namespace AM.Core
                                             {
                                                 string priorityDocType = mailPiece.DocumentOrPackageType + Config.Monitor_PriorityMailingText;
 
-                                                docType = docTypeSvc.GetDocTypeByDocTypeName(client.Id, priorityDocType);
+                                                docType = docTypeSvc.GetFallBackDocTypeByDocTypeName(client.Id, priorityDocType);
                                                 if (docType != null)
                                                 {
                                                     mailPiece.DocTypeId = docType.Id;

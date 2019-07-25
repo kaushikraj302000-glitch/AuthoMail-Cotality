@@ -12,7 +12,8 @@ namespace AM.Services
     {
         List<DocType> GetDocTypesByClientId(int clientId);
         DocType GetDocTypeByDocTypeCode(int clientId, string docTypeCode);
-        DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName);
+        DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount);
+        DocType GetFallBackDocTypeByDocTypeName(int clientId, string documentOrPackageName);
         DocType GetDocTypeById(int docTypeId);
         List<DocTypeCoverLetter> GetDocumentCoverLetterTemplates(int docTypeId);
         DocType GetDocTypeWithMaximumCutOffTimeByClientId(int clientId);
@@ -34,11 +35,18 @@ namespace AM.Services
             return db.QuerySingleOrDefault<DocType>(query, new { clientId = clientId, docTypeCode = docTypeCode });
         }
 
-        public DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName)
+        public DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount)
         {
-            string query = "SELECT * FROM [AM].[DocTypes] WHERE ClientId=@clientId AND Description=@documentOrPackageName  AND IsActive=1";
+            string query = "SELECT * FROM [AM].[DocTypes] WHERE ClientId=@ClientId AND Description LIKE @DocumentOrPackageName AND @PageCount BETWEEN MinPage AND MaxPage AND IsActive=1";
 
-            return db.QuerySingleOrDefault<DocType>(query, new { clientId = clientId, documentOrPackageName = documentOrPackageName });
+            return db.QuerySingleOrDefault<DocType>(query, new { ClientId = clientId, DocumentOrPackageName = documentOrPackageName + "|%", PageCount = pageCount });
+        }
+
+        public DocType GetFallBackDocTypeByDocTypeName(int clientId, string documentOrPackageName)
+        {
+            string query = "SELECT * FROM [AM].[DocTypes] WHERE ClientId=@ClientId AND Description = @DocumentOrPackageName AND IsActive=1";
+
+            return db.QuerySingleOrDefault<DocType>(query, new { ClientId = clientId, DocumentOrPackageName = documentOrPackageName });
         }
 
         public DocType GetDocTypeById(int docTypeId)

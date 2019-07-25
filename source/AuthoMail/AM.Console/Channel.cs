@@ -372,7 +372,7 @@ namespace AM.Console
                 string ftpUploadPath = Path.Combine(deliveryUploadPath, fileName);
                 sftSite.UploadFile(filePath, ftpUploadPath);
 
-              
+
                 //After upload change extention as a Complete
                 File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
             }
@@ -644,9 +644,9 @@ namespace AM.Console
                         {
                             if (!(addressResponse.AddressTypes.All(c => c == AddressType.DHAM)))
                             {
-                                documentOrPackageType = documentOrPackageType + Config.Monitor_ExpressMailingText;
+                                documentOrPackageType += Config.Monitor_ExpressMailingText;
 
-                                docType = docTypeSvc.GetDocTypeByDocTypeName(mailPiece.ClientId, documentOrPackageType);
+                                docType = docTypeSvc.GetFallBackDocTypeByDocTypeName(mailPiece.ClientId, documentOrPackageType);
 
                                 if (docType == null)
                                 {
@@ -664,12 +664,9 @@ namespace AM.Console
                                     mailPiece.RetRcptFirstName = docType.RetRcptFirstName;
                                     mailPiece.RetRcptLastName = docType.RetRcptLastName;
                                     mailPiece.RetRcptMiddleName = docType.RetRcptMiddleName;
-
                                     mailPiece.RetRcptOrganization = docType.RetRcptOrganization;
-
                                     mailPiece.RetRcptPrefix = docType.RetRcptPrefix;
                                     mailPiece.RetRcptSuffix = docType.RetRcptSuffix;
-
                                     mailPiece.RetRcptPhone = docType.RetRcptPhone;
 
                                     mailPiece.RetRcptAddrOptionalLine1AboveStreet = docType.RetRcptAddrOptionalLine1AboveStreet;

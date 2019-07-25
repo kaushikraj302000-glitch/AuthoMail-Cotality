@@ -55,10 +55,12 @@ namespace AM.Entities
         public string ModifiedBy { get; set; }
         public string CreatedBy { get; set; }
         public string ShippingSpecialService { get; set; }
-        public string EnvelopeId { get; set; }
-        public string BREEnvelopeId { get; set; }
+        public int EnvelopeId { get; set; }
+        public int BREEnvelopeId { get; set; }
         public int NoOfCopies { get; set; }
         public string PrintFormat { get; set; }
+        public string MinPageCount { get; set; }
+        public string MaxPageCount { get; set; }
     }
 
     public class DocTypeCoverLetter
