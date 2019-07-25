@@ -496,14 +496,10 @@ namespace PCI.Service
 
                     var currentBatch = dallasBatches.Single(b => (b.AppCode == client.AppCode && effectiveReceivedOnEst >= b.StartDate && effectiveReceivedOnEst <= b.EndDate) && b.ShippingCarrier == mailPiece.ShippingCarrier && b.ShippingServiceType == mailPiece.ShippingServiceType);
                     string submitDir = string.Empty;
-                    
+
                     if (client.AppCode == "HSBC" && mailPiece.TotalPages >= 65) //NOTE : Here for HSBC System is separating packages which have pages more than 65 pages with priority folder
                     {
                         submitDir = Path.Combine(printTrailDetail.FromADEDir, client.AppCode, effectiveReceivedOnEst.Value.Date.ToString("MMddyyyy"), currentBatch.BatchName, currentBatch.ShippingCarrier + "_" + currentBatch.ShippingServiceType + folderBRE, "PRIORITY");
-                    }
-                    else if (client.AppCode == "HSBC" && mailPiece.TotalPages <= 12 && mailPiece.Feeder4_Sel == 0) //NOTE : Here for HSBC System is separating packages which have no BRE and pages less than or equal to 12 pages (10 actual pdf page count + 1 cover letter and 1 rear page cover letter with #10 folder
-                    {
-                        submitDir = Path.Combine(printTrailDetail.FromADEDir, client.AppCode, effectiveReceivedOnEst.Value.Date.ToString("MMddyyyy"), currentBatch.BatchName, currentBatch.ShippingCarrier + "_" + currentBatch.ShippingServiceType + folderBRE, "#10");
                     }
                     else
                     {
