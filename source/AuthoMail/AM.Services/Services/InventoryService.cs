@@ -11,6 +11,7 @@ namespace AM.Services
     {
         KeyValuePair<bool, string> SaveEnvelopes(Envelopes envelopes, string userId);
         Envelopes FindByCodeEnvelope(string envelopeCode);
+        Envelopes FindEnvelopeById(int Id);
         List<Envelopes> GetEnvelopes();
         EnvelopeInventory FindByIdEnvelopeInventory(int Id);
         KeyValuePair<bool, string> SaveEnvelopeInventory(EnvelopeInventory envtran, string userId);
@@ -20,13 +21,20 @@ namespace AM.Services
     }
     public class InventoryService : ServiceBase, IInventoryService
     {
-
+        public Envelopes FindEnvelopeById(int Id)
+        {
+            string query = @"select e.*,c.DisplayName as CreatedBy,m.DisplayName as ModifiedBy from Common.Envelopes e
+inner join Profile.Users c on e.CreatedBy = c.Id
+inner join Profile.Users m on e.ModifiedBy = m.Id
+where e.Id = @Id";
+            return db.QuerySingleOrDefault<Envelopes>(query, new { Id = Id });
+        }
         public Envelopes FindByCodeEnvelope(string envelopeCode)
         {
             return db.QuerySingleOrDefault<Envelopes>(@"select e.*,c.DisplayName as CreatedBy,m.DisplayName as ModifiedBy from Common.Envelopes e
 inner join Profile.Users c on e.CreatedBy=c.Id
 inner join Profile.Users m on e.ModifiedBy=m.Id
-where e.Id=@envelopeCode", new { envelopeCode = envelopeCode });
+where e.EnvelopeName=@envelopeCode", new { envelopeCode = envelopeCode });
         }
 
         public List<Envelopes> GetEnvelopes()
@@ -57,10 +65,11 @@ inner join Profile.Users m on e.ModifiedBy=m.Id").ToList();
         {
             try
             {
-                var envelope = FindByCodeEnvelope(envelopes.Id);
-                if (envelope == null)
+                if (envelopes.Id == 0)
                 {
-                    string sql = "INSERT INTO [Common].[Envelopes] ([Id],[CurrentQuantity] ,[IsBREEnvelope],[CreatedBy],[ModifiedBy],[CreatedOn],[ModifiedOn],[ReorderDuration]) VALUES(@Id ,0 ,@IsBREEnvelope,@CreatedBy,@ModifiedBy,@CreatedOn,@ModifiedOn,@ReorderDuration)";
+                    var envelope = FindByCodeEnvelope(envelopes.EnvelopeName);
+                    if (envelope != null) return new KeyValuePair<bool, string>(false, "Envelope name already exists.");
+                    string sql = "INSERT INTO [Common].[Envelopes] ([EnvelopeName],[CurrentQuantity] ,[IsBREEnvelope],[CreatedBy],[ModifiedBy],[CreatedOn],[ModifiedOn],[ReorderDuration]) VALUES(@Id ,0 ,@IsBREEnvelope,@CreatedBy,@ModifiedBy,@CreatedOn,@ModifiedOn,@ReorderDuration)";
                     envelopes.CreatedBy = envelopes.ModifiedBy = userId;
                     envelopes.CreatedOn = envelopes.ModifiedOn = DateTime.UtcNow;
                     db.Execute(sql, envelopes);
@@ -68,7 +77,7 @@ inner join Profile.Users m on e.ModifiedBy=m.Id").ToList();
                 }
                 else
                 {
-                    string sql = "UPDATE [Common].[Envelopes]  SET [IsBREEnvelope] = @IsBREEnvelope,[ModifiedBy]=@ModifiedBy,[ModifiedOn]=@ModifiedOn,[ReorderDuration]=@ReorderDuration WHERE Id=@Id";
+                    string sql = "UPDATE [Common].[Envelopes]  SET [EnvelopeName]=@EnvelopeName, [IsBREEnvelope] = @IsBREEnvelope,[ModifiedBy]=@ModifiedBy,[ModifiedOn]=@ModifiedOn,[ReorderDuration]=@ReorderDuration WHERE Id=@Id";
                     envelopes.ModifiedBy = userId;
                     envelopes.ModifiedOn = DateTime.UtcNow;
                     db.Execute(sql, envelopes);
@@ -153,7 +162,7 @@ inner join Profile.Users m on e.ModifiedBy=m.Id order by e.ReceivedOn desc";
             var envelopeInvStockCalc = GetEnvelopeInventoryStockCalculation();
             Dictionary<string, float> dict = new Dictionary<string, float>();
             int alertLevel = 0;
-            dict = envelopeInvStockCalc.Select(e => new { e.EnvelopeId, e.AvgRate }).ToDictionary(e => e.EnvelopeId, e => e.AvgRate);
+            dict = envelopeInvStockCalc.Select(e => new { e.EnvelopeId, e.AvgRate }).ToDictionary(e => e.EnvelopeId.ToString(), e => e.AvgRate);
             if (envelopeInvStockCalc.Any(e => e.AlertLevel == 2)) alertLevel = 2;
             else if (envelopeInvStockCalc.Any(e => e.AlertLevel == 1)) alertLevel = 1;
             return new KeyValuePair<int, Dictionary<string, float>>(alertLevel, dict);
@@ -186,6 +195,7 @@ inner join Profile.Users m on e.ModifiedBy=m.Id order by e.ReceivedOn desc";
             //}
             //return new KeyValuePair<int, Dictionary<string, float>>(alertLevel, dict);
         }
+
 
     }
 }

@@ -1,13 +1,14 @@
 ﻿@model AM.Services.Envelopes
 
-<h2 id="myModalLabel">@(string.IsNullOrWhiteSpace(Model.Id) ? Html.Raw("Add Envelope Details") : Html.Raw("Edit Envelope Details"))</h2>
-<input type="hidden" id="isInsert" value="@(string.IsNullOrWhiteSpace(Model.Id) ? "true" : "false")" />
+<h2 id="myModalLabel">@((Model.Id == 0) ? Html.Raw("Add Envelope Details") : Html.Raw("Edit Envelope Details"))</h2>
+<input type="hidden" id="isInsert" value="@((Model.Id==0) ? "true" : "false")" />
 <hr />
 <form id="envelopeform" action="#">
+    <input type="hidden" name="Id" value="@Model.Id" />
     <div class="form-group">
         <label for="Description">Name</label>
         <div class="input-group">
-            <input type="text" id="Id" @(string.IsNullOrWhiteSpace(Model.Id) ? "" : "readonly") class="form-control" name="Id" value="@Model.Id" />
+            <input type="text" id="EnvelopeName" class="form-control" name="EnvelopeName" value="@Model.EnvelopeName" />
         </div>
     </div>
     <div class="form-group">
