@@ -342,7 +342,7 @@
             var envelopeId = $(obj).data("envelopeid");
             var envelopeName = $(obj).data("envelopename");
             var el = $("#AddEditModal").find(".modal-header");
-            console.log(envelopeName);
+            //console.log(envelopeName);
             el.empty();
             $.ajax({
                 type: "GET",
@@ -372,7 +372,7 @@
             this.Description = Description;
         }
         function SaveEnvelopeTransactions() {
-            console.log("SaveET");
+            //console.log("SaveET");
             var isBRE = $("#IsBREEnvelope").is(':checked') ? true : false;
             var envelopeTransactions = new EnvelopeTransactions($("#Id").val(), $("#EnvelopeId").val(), $("#ReceivedQuantity").val(), $("#UnitPrice").val(), $("#Description").val());
             var el = $("#myModal").find(".modal-body");
@@ -384,7 +384,7 @@
                 success: function (response) {
                     if (response.Success) {
                         if (response.Object != null) {
-                            console.log(response.Object)
+                            //console.log(response.Object)
                             if (response.Object.Key) {
                                 el.html("<div class='alert alert-green'>" + response.Object.Value + "</div>");
                             }
@@ -437,7 +437,7 @@
                 url: baseUrl + "Admin/GetEnvelopeStockDetails",
                 data: { id: id },
                 success: function (response) {
-                    console.log(response);
+                    //console.log(response);
                     if (response.Success) {
                         var envelopeInventoryUsage = response.Object.Item1;
                         var envelopeArrival = response.Object.Item2;
@@ -491,7 +491,7 @@
             var isBRE = $("#IsBREEnvelope").is(':checked') ? true : false;
             var ReorderDuration = $('#ReorderDuration').val();
             var envelopes = new Envelopes($("#Id").val(), $("#EnvelopeName").val(), $("#CurrentQuantity").val(), isBRE, ReorderDuration);
-            console.log(envelopes);
+            //console.log(envelopes);
             var el = $("#myModal").find(".modal-body");
             el.empty();
             $.ajax({
