@@ -203,7 +203,7 @@ inner join Profile.Users m on e.ModifiedBy=m.Id order by e.ReceivedOn desc";
 
         public Tuple<List<StockDetails>, List<StockDetails>> GetEnvelopeStockDetails(string id)
         {
-            string query = @"select top 30 ReceivedOn as Date,ReceivedQuantity as UsageStock from [Common].[EnvelopeInventory] where EnvelopeId=@Id order by Id desc;exec dbo.usp_GetEnvelopeInventoryUsage @Id;";
+            string query = @"select top 30 CAST(ReceivedOn as date) as Date,sum(ReceivedQuantity) as UsageStock from [Common].[EnvelopeInventory] where EnvelopeId=6 group by Cast(ReceivedOn as date) order by Cast(ReceivedOn as date) desc;exec dbo.usp_GetEnvelopeInventoryUsage @Id;";
             using (var result = db.QueryMultiple(query, new { Id = id }))
             {
                 var envelopeArrival = result.Read<StockDetails>().ToList();

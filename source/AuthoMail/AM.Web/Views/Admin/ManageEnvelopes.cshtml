@@ -24,7 +24,7 @@
         <div class="panel-heading">
             <div class="panel-title">
                 <i class="fa fa-envelope"></i> Envelope Management <span class="pull-right">
-                    <button type="button" data-id="" class="btn btn-primary " onclick="AddEditEnvelope(this)"><i class="fa fa-plus"></i> Add New Envelope</button>
+                    <button type="button" data-id="0" class="btn btn-primary " onclick="AddEditEnvelope(this)"><i class="fa fa-plus"></i> Add New Envelope</button>
                 </span>
             </div>
         </div>
@@ -60,7 +60,7 @@
         <tbody id="EnvelopeBody">
             <tr class="row-small">
                 <td>{Action}</td>
-                <td><span>{EnvelopeName}</span></td>
+                <td><span>{EnvelopeNameFormated}</span></td>
                 <td><span>{CurrentQuantity}</span></td>
                 <td><span>{ReorderDuration}</span></td>
                 <td><span>{IsBREEnvelope}</span></td>
@@ -167,9 +167,9 @@
         });
         function FormatObject(Model) {
             $(Model).each(function () {
-                this.IdFormated = '<a class="viewdetails" style="cursor:pointer" onclick="ViewDetails(this)" data-id="' + this.Id + '">' + this.EnvelopeName + '</a>';
+                this.EnvelopeNameFormated = '<a class="viewdetails" style="cursor:pointer" onclick="ViewDetails(this)" data-id="' + this.Id + '">' + this.EnvelopeName + '</a>';
                 this.IsBREEnvelope = this.IsBREEnvelope ? '<span  class="label medium label-yellow">Yes</span>' : '<span class="label medium label-success">No</span>';
-                this.Action = '<span style="cursor: pointer;font-size:1.2em;" onclick="AddEditEnvelopeTransaction(this)" data-id="0" data-EnvelopeId="' + this.Id + '"><i class="fa fa-plus text-blue" aria-hidden="true" title="Add"><span class="sr-only">Add</span></i></span><span style="cursor: pointer;font-size:1.2em;" onclick="AddEditEnvelope(this)" data-id="' + this.Id + '" ><i class="padding-left-15 fa fa-edit text-blue" aria-hidden="true" title="Edit"><span class="sr-only">Edit</span></i></span>';
+                this.Action = '<span style="cursor: pointer;font-size:1.2em;" onclick="AddEditEnvelopeTransaction(this)" data-id="0" data-envelopename="' + this.EnvelopeName + '" data-EnvelopeId="' + this.Id + '"><i class="fa fa-plus text-blue" aria-hidden="true" title="Add"><span class="sr-only">Add</span></i></span><span style="cursor: pointer;font-size:1.2em;" onclick="AddEditEnvelope(this)" data-id="' + this.Id + '" ><i class="padding-left-15 fa fa-edit text-blue" aria-hidden="true" title="Edit"><span class="sr-only">Edit</span></i></span>';
                 this.LastUpdated = this.ModifiedBy + " <br />on " + moment(this.ModifiedOn).format("MM/DD/YY HH:mm:ss");
                 this.ReorderDuration = (this.ReorderDuration == null || this.ReorderDuration == "") ? "-" : this.ReorderDuration;
                 this.EnvDays = (this.EnvDays == null || this.EnvDays == "") ? "-" : this.EnvDays;
@@ -340,8 +340,9 @@
         function AddEditEnvelopeTransaction(obj) {
             var id = $(obj).data("id");
             var envelopeId = $(obj).data("envelopeid");
+            var envelopeName = $(obj).data("envelopename");
             var el = $("#AddEditModal").find(".modal-header");
-            console.log(id);
+            console.log(envelopeName);
             el.empty();
             $.ajax({
                 type: "GET",
@@ -350,6 +351,7 @@
                 success: function (response) {
                     el.html(response);
                     $("#AddEditModal").modal("show");
+                    $("#AddEditModal").find("#envelopeName").text(envelopeName);
                     ValidateFormET();
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
@@ -477,7 +479,7 @@
             });
         }
         //end transcation code
-        function Envelopes(Id, CurrentQuantity, IsBREEnvelope, ReorderDuration) {
+        function Envelopes(Id,EnvelopeName, CurrentQuantity, IsBREEnvelope, ReorderDuration) {
             this.Id = Id;
             this.EnvelopeName = EnvelopeName;
             this.CurrentQuantity = CurrentQuantity;
@@ -489,6 +491,7 @@
             var isBRE = $("#IsBREEnvelope").is(':checked') ? true : false;
             var ReorderDuration = $('#ReorderDuration').val();
             var envelopes = new Envelopes($("#Id").val(), $("#EnvelopeName").val(), $("#CurrentQuantity").val(), isBRE, ReorderDuration);
+            console.log(envelopes);
             var el = $("#myModal").find(".modal-body");
             el.empty();
             $.ajax({
