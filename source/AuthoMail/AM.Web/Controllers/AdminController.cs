@@ -982,11 +982,11 @@ namespace AM.Web.Controllers
         {
             return PartialView("_AddOrEditEnvelopeTransactions", new EnvelopeInventory() { EnvelopeId = envelopeId });
         }
-        [Authorize(Roles = AMRoles.Admin)]
-        public ActionResult ManageEnvelopeTransactions()
-        {
-            return View();
-        }
+        //[Authorize(Roles = AMRoles.Admin)]
+        //public ActionResult ManageEnvelopeTransactions()
+        //{
+        //    return View();
+        //}
 
         [Authorize(Roles = AMRoles.Admin), HttpPost]
         public ActionResult CreateOrEditEnvelopeTransactions(EnvelopeInventory envelopeInventory)
