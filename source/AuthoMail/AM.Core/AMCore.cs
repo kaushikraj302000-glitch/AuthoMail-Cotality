@@ -571,13 +571,7 @@ namespace AM.Core
                                 sftSite.Connect();
 
                                 sftSite.UploadFile(localErrorReportPath, ftpErrorReportPath);
-
-                                //NOTE: Temparary Code for Duplicate Report Upload 
-                                if (sftSite.IsDownloadDirectoryAvailable(Config.Monitor_AMCBackupReportUploadPath))
-                                {
-                                    sftSite.UploadFile(localErrorReportPath, Path.Combine(Config.Monitor_AMCBackupReportUploadPath, errorReportFileName));
-                                }
-
+                                
                                 // Upload Error.GO file after uploading error report
                                 File.WriteAllText(errorGoFilePath, string.Empty);
                                 sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
@@ -610,13 +604,7 @@ namespace AM.Core
                                 sftSite.Connect();
 
                                 sftSite.UploadFile(localErrorReportPath, ftpErrorReportPath);
-
-                                //NOTE: Temparary Code for Duplicate Report Upload 
-                                if (sftSite.IsDownloadDirectoryAvailable(Config.Monitor_AMCBackupReportUploadPath))
-                                {
-                                    sftSite.UploadFile(localErrorReportPath, Path.Combine(Config.Monitor_AMCBackupReportUploadPath, errorReportFileName));
-                                }
-
+                                
                                 // Upload Error.GO file after uploading error report
                                 File.WriteAllText(errorGoFilePath, string.Empty);
                                 sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
