@@ -107,6 +107,7 @@
     <Compile Include="Models\IeVSResponse.cs" />
     <Compile Include="Models\IeVSCancelRequest.cs" />
     <Compile Include="Models\ProjectRequest.cs" />
+    <Compile Include="Models\StockDetails.cs" />
     <Compile Include="Models\SupportModel.cs" />
     <Compile Include="Models\CustomModels.cs" />
     <Compile Include="Models\MailPieceSearch.cs" />

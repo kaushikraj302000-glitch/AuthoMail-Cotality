@@ -18,6 +18,9 @@ namespace AM.Services
         List<EnvelopeInventory> GetAllEnvelopeInventory();
         List<EnvelopeInventoryStockCalculation> GetEnvelopeInventoryStockCalculation();
         KeyValuePair<int, Dictionary<string, float>> InventoryStockAlertLevel(Dictionary<string, float> envelopeAvgRate);
+        Tuple<List<StockDetails>, List<StockDetails>> GetEnvelopeStockDetails(string id);
+
+
     }
     public class InventoryService : ServiceBase, IInventoryService
     {
@@ -69,7 +72,7 @@ inner join Profile.Users m on e.ModifiedBy=m.Id").ToList();
                 {
                     var envelope = FindByCodeEnvelope(envelopes.EnvelopeName);
                     if (envelope != null) return new KeyValuePair<bool, string>(false, "Envelope name already exists.");
-                    string sql = "INSERT INTO [Common].[Envelopes] ([EnvelopeName],[CurrentQuantity] ,[IsBREEnvelope],[CreatedBy],[ModifiedBy],[CreatedOn],[ModifiedOn],[ReorderDuration]) VALUES(@Id ,0 ,@IsBREEnvelope,@CreatedBy,@ModifiedBy,@CreatedOn,@ModifiedOn,@ReorderDuration)";
+                    string sql = "INSERT INTO [Common].[Envelopes] ([EnvelopeName],[CurrentQuantity] ,[IsBREEnvelope],[CreatedBy],[ModifiedBy],[CreatedOn],[ModifiedOn],[ReorderDuration]) VALUES(@EnvelopeName ,0 ,@IsBREEnvelope,@CreatedBy,@ModifiedBy,@CreatedOn,@ModifiedOn,@ReorderDuration)";
                     envelopes.CreatedBy = envelopes.ModifiedBy = userId;
                     envelopes.CreatedOn = envelopes.ModifiedOn = DateTime.UtcNow;
                     db.Execute(sql, envelopes);
@@ -196,6 +199,19 @@ inner join Profile.Users m on e.ModifiedBy=m.Id order by e.ReceivedOn desc";
             //return new KeyValuePair<int, Dictionary<string, float>>(alertLevel, dict);
         }
 
+
+
+        public Tuple<List<StockDetails>, List<StockDetails>> GetEnvelopeStockDetails(string id)
+        {
+            string query = @"select top 30 CAST(ReceivedOn as date) as Date,sum(ReceivedQuantity) as UsageStock from [Common].[EnvelopeInventory] where EnvelopeId=6 group by Cast(ReceivedOn as date) order by Cast(ReceivedOn as date) desc;exec dbo.usp_GetEnvelopeInventoryUsage @Id;";
+            using (var result = db.QueryMultiple(query, new { Id = id }))
+            {
+                var envelopeArrival = result.Read<StockDetails>().ToList();
+                var envelopeInventoryUsage = result.Read<StockDetails>().ToList();
+                return new Tuple<List<StockDetails>, List<StockDetails>>(envelopeInventoryUsage, envelopeArrival);
+            }
+
+        }
 
     }
 }

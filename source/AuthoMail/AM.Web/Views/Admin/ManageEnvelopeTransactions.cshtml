@@ -256,30 +256,7 @@
 
             });
         }
-        function AddEditEnvelopeTransaction(obj) {
-            var id = $(obj).data("id");
-            var el = $("#AddEditModal").find(".modal-header");
-            el.empty();
-            $.ajax({
-                type: "GET",
-                url: baseUrl + "Admin/GetEnvelopeTransactionsByName",
-                data: { id: id },
-                success: function (response) {
-                    el.html(response);
-
-                    $("#AddEditModal").modal("show");
-                    ValidateForm();
-                },
-                error: function (xhr, ajaxOptions, thrownError) {
-
-                    //Spinners(".spinnericon", "faspinner");
-                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
-                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
-                    $("#AddEditModal").modal("show");
-                }
-            });
-
-        }
+        
         function EnvelopeTransactions(Id, EnvelopeId, ReceivedQuantity, UnitPrice, Description) {
             this.Id = Id;
             this.EnvelopeId = EnvelopeId;
