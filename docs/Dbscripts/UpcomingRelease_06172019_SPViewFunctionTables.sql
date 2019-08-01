@@ -63,6 +63,9 @@ GO
 CREATE INDEX Idx_ErrorNotifications_ClientId
 ON AM.ErrorNotifications (ClientId);
 GO
+CREATE nonclustered INDEX Idx_PrintTrailBatches_SubmittedOn
+ON PnS.PrintTrailBatches(SubmittedOn);
+GO
 
 PRINT 'Added new sp	usp_InsertErrorNotificationData'
 CREATE PROCEDURE [dbo].[usp_InsertErrorNotificationData]
@@ -193,7 +196,7 @@ IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'usp_GetEnvelo
 DROP PROCEDURE [dbo].[usp_GetEnvelopeInventoryUsage]
 go
 Create PROCEDURE [dbo].[usp_GetEnvelopeInventoryUsage]
-	@Id varchar(500)
+	@Id int
 	AS
 	BEGIN
 		-- SET NOCOUNT ON added to prevent extra result sets from
