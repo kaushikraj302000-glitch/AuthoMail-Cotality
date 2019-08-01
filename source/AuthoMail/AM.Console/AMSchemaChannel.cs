@@ -188,19 +188,20 @@ namespace AM.Console
                     return;
                 }
 
-                mailBatch = new MailBatchDTO();
-                mailBatch.ClientId = client.Id;
-                mailBatch.BatchName = batchName;
-                mailBatch.SFTChannelId = SFTChannel.Id;
-                mailBatch.ReceivedOn = receivedOnDateTime;
-                mailBatch.PipelineStatus = BatchPipelineStatus.Received;
-                mailBatch.BatchStatus = BatchStatus.InProgress.ToString();
-                //Parse AM mail batch request element
-                mailBatch.UniqueId = batchXML.DocumentElement.Attributes["Id"] == null ? Guid.NewGuid() : Guid.Parse(batchXML.DocumentElement.Attributes["Id"].Value);
-                mailBatch.Priority = batchXML.DocumentElement.Attributes["Priority"] == null ? Priority.Medium.ToString() : batchXML.DocumentElement.Attributes["Priority"].Value;
-                mailBatch.DocumentOrPackageType = batchXML.DocumentElement.Attributes["DocumentOrPackageType"]?.Value;
-                mailBatch.ClientBatchId = batchXML.DocumentElement.Attributes["ClientBatchId"] == null ? mailBatch.BatchName : batchXML.DocumentElement.Attributes["ClientBatchId"].Value;
-
+                mailBatch = new MailBatchDTO
+                {
+                    ClientId = client.Id,
+                    BatchName = batchName,
+                    SFTChannelId = SFTChannel.Id,
+                    ReceivedOn = receivedOnDateTime,
+                    PipelineStatus = BatchPipelineStatus.Received,
+                    BatchStatus = BatchStatus.InProgress.ToString(),
+                    //Parse AM mail batch request element
+                    UniqueId = batchXML.DocumentElement.Attributes["Id"] == null ? Guid.NewGuid() : Guid.Parse(batchXML.DocumentElement.Attributes["Id"].Value),
+                    Priority = batchXML.DocumentElement.Attributes["Priority"] == null ? Priority.Medium.ToString() : batchXML.DocumentElement.Attributes["Priority"].Value,
+                    DocumentOrPackageType = batchXML.DocumentElement.Attributes["DocumentOrPackageType"]?.Value,
+                    ClientBatchId = batchXML.DocumentElement.Attributes["ClientBatchId"] == null ? batchName : batchXML.DocumentElement.Attributes["ClientBatchId"].Value
+                };
                 //AM Mail Batch Custom Info
                 MailBatchCustomInfo mailBatchCustomInfo;
                 var customeInfoElement = batchXML.DocumentElement.SelectSingleNode("./CustomInfo", nsManager);
@@ -397,28 +398,6 @@ namespace AM.Console
             if (availableTriggerFilePaths != null && availableTriggerFilePaths.Count > 0)
             {
                 log.Debug(string.Format("{0} trigger file(s) found.", availableTriggerFilePaths.Count));
-            }
-            else
-            {
-                log.Error("No trigger files found hence no batches are available to download.");
-            }
-
-            return availableTriggerFilePaths;
-        }
-
-        private List<string> GetXmlFileNames(SFTUtil sftSite)
-        {
-            var regex = new Regex(@"^(.*).xml$", RegexOptions.IgnoreCase);
-
-            List<string> availableTriggerFilePaths = sftSite.ListDirectory(SFTChannel.ToADEDir)
-                .Select(f => regex.Match(Path.GetFileName(f)))
-                .Where(m => m.Success)
-                .Select(m => m.Groups[1].Value)
-                .ToList();
-
-            if (availableTriggerFilePaths != null && availableTriggerFilePaths.Count > 0)
-            {
-                log.Debug(string.Format("{0} xml file(s) found.", availableTriggerFilePaths.Count));
             }
             else
             {

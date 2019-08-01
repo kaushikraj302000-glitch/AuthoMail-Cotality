@@ -47,12 +47,10 @@ namespace AM.Console
         {
             log.Debug("Enumerate Batches job queue for " + SFTChannel.Code + " is started.");
 
-            List<string> triggerFilePaths = new List<string>();
-
             SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
             sftSite.Connect();
 
-            triggerFilePaths = GetTriggerFilePaths(sftSite);
+            List<string> triggerFilePaths = GetTriggerFilePaths(sftSite);
 
             foreach (string triggerFile in triggerFilePaths)
             {
@@ -143,8 +141,8 @@ namespace AM.Console
         private void ProcessBatch(string xmlFilePath, string localZipFilePath, string batchName, string channelDownloadPath, DateTime receivedOnDateTime, SFTUtil sftSite)
         {
             XmlDocument batchXML = new XmlDocument();
-            XmlNamespaceManager nsManager = null;
-            XmlNodeList mailPieceNodes = null;
+            XmlNamespaceManager nsManager;
+            XmlNodeList mailPieceNodes;
             try
             {
                 batchXML.LoadXml(File.ReadAllText(xmlFilePath));
@@ -190,21 +188,20 @@ namespace AM.Console
                     return;
                 }
 
-                mailBatch = new MailBatchDTO();
-                mailBatch.ClientId = client.Id;
-                mailBatch.BatchName = batchName;
-                mailBatch.SFTChannelId = SFTChannel.Id;
-                mailBatch.ReceivedOn = receivedOnDateTime;
-                mailBatch.PipelineStatus = BatchPipelineStatus.Received;
-                mailBatch.BatchStatus = BatchStatus.InProgress.ToString();
-
-                //var request = XmlUtil.Deserialize<MailBatch>(batchXML.DocumentElement.OuterXml);
-
-                //Parse AM mail batch request element
-                mailBatch.UniqueId = batchXML.DocumentElement.Attributes["Id"] == null ? Guid.NewGuid() : Guid.Parse(batchXML.DocumentElement.Attributes["Id"].Value);
-                mailBatch.Priority = batchXML.DocumentElement.Attributes["Priority"] == null ? Priority.Medium.ToString() : batchXML.DocumentElement.Attributes["Priority"].Value;
-                mailBatch.DocumentOrPackageType = batchXML.DocumentElement.Attributes["DocumentOrPackageType"] == null ? null : batchXML.DocumentElement.Attributes["DocumentOrPackageType"].Value;
-                mailBatch.ClientBatchId = batchXML.DocumentElement.Attributes["ClientBatchId"] == null ? mailBatch.BatchName : batchXML.DocumentElement.Attributes["ClientBatchId"].Value;
+                mailBatch = new MailBatchDTO
+                {
+                    ClientId = client.Id,
+                    BatchName = batchName,
+                    SFTChannelId = SFTChannel.Id,
+                    ReceivedOn = receivedOnDateTime,
+                    PipelineStatus = BatchPipelineStatus.Received,
+                    BatchStatus = BatchStatus.InProgress.ToString(),
+                    //Parse AM mail batch request element
+                    UniqueId = batchXML.DocumentElement.Attributes["Id"] == null ? Guid.NewGuid() : Guid.Parse(batchXML.DocumentElement.Attributes["Id"].Value),
+                    Priority = batchXML.DocumentElement.Attributes["Priority"] == null ? Priority.Medium.ToString() : batchXML.DocumentElement.Attributes["Priority"].Value,
+                    DocumentOrPackageType = batchXML.DocumentElement.Attributes["DocumentOrPackageType"]?.Value,
+                    ClientBatchId = batchXML.DocumentElement.Attributes["ClientBatchId"] == null ? batchName : batchXML.DocumentElement.Attributes["ClientBatchId"].Value
+                };
 
                 //AM Mail Batch Custom Info
 
@@ -228,14 +225,14 @@ namespace AM.Console
                     {
                         mailBatch.IsReturnInfoSpecified = true;
 
-                        mailBatch.RetRcptFirstName = returnRcptInfoElement.SelectSingleNode("./x:FirstName/text()", nsManager) == null ? null : returnRcptInfoElement.SelectSingleNode("./x:FirstName/text()", nsManager).Value;
-                        mailBatch.RetRcptLastName = returnRcptInfoElement.SelectSingleNode("./x:LastName/text()", nsManager) == null ? null : returnRcptInfoElement.SelectSingleNode("./x:LastName/text()", nsManager).Value;
+                        mailBatch.RetRcptFirstName = returnRcptInfoElement.SelectSingleNode("./x:FirstName/text()", nsManager)?.Value;
+                        mailBatch.RetRcptLastName = returnRcptInfoElement.SelectSingleNode("./x:LastName/text()", nsManager)?.Value;
 
-                        mailBatch.RetRcptMiddleName = returnRcptInfoElement.SelectSingleNode("./x:MiddleName/text()", nsManager) == null ? null : returnRcptInfoElement.SelectSingleNode("./x:MiddleName/text()", nsManager).Value;
-                        mailBatch.RetRcptOrganization = returnRcptInfoElement.SelectSingleNode("./x:Organization/text()", nsManager) == null ? null : returnRcptInfoElement.SelectSingleNode("./x:Organization/text()", nsManager).Value;
-                        mailBatch.RetRcptPhone = returnRcptInfoElement.SelectSingleNode("./x:Phone/text()", nsManager) == null ? null : returnRcptInfoElement.SelectSingleNode("./x:Phone/text()", nsManager).Value;
-                        mailBatch.RetRcptPrefix = returnRcptInfoElement.SelectSingleNode("./x:Prefix/text()", nsManager) == null ? null : returnRcptInfoElement.SelectSingleNode("./x:Prefix/text()", nsManager).Value;
-                        mailBatch.RetRcptSuffix = returnRcptInfoElement.SelectSingleNode("./x:Suffix/text()", nsManager) == null ? null : returnRcptInfoElement.SelectSingleNode("./x:Suffix/text()", nsManager).Value;
+                        mailBatch.RetRcptMiddleName = returnRcptInfoElement.SelectSingleNode("./x:MiddleName/text()", nsManager)?.Value;
+                        mailBatch.RetRcptOrganization = returnRcptInfoElement.SelectSingleNode("./x:Organization/text()", nsManager)?.Value;
+                        mailBatch.RetRcptPhone = returnRcptInfoElement.SelectSingleNode("./x:Phone/text()", nsManager)?.Value;
+                        mailBatch.RetRcptPrefix = returnRcptInfoElement.SelectSingleNode("./x:Prefix/text()", nsManager)?.Value;
+                        mailBatch.RetRcptSuffix = returnRcptInfoElement.SelectSingleNode("./x:Suffix/text()", nsManager)?.Value;
                     }
 
                     var returnAddressElement = returnInfoElement.SelectSingleNode("./x:Address", nsManager);
@@ -243,20 +240,18 @@ namespace AM.Console
                     {
                         mailBatch.IsReturnInfoSpecified = true;
 
-                        mailBatch.RetRcptAddrOptionalLine1AboveStreet = returnAddressElement.SelectSingleNode("./x:OptionalLine1AboveStreet/text()", nsManager) == null ? null : returnAddressElement.SelectSingleNode("./x:OptionalLine1AboveStreet/text()", nsManager).Value;
-                        mailBatch.RetRcptAddrOptionalLine2AboveStreet = returnAddressElement.SelectSingleNode("./x:OptionalLine2AboveStreet/text()", nsManager) == null ? null : returnAddressElement.SelectSingleNode("./x:OptionalLine2AboveStreet/text()", nsManager).Value;
+                        mailBatch.RetRcptAddrOptionalLine1AboveStreet = returnAddressElement.SelectSingleNode("./x:OptionalLine1AboveStreet/text()", nsManager)?.Value;
+                        mailBatch.RetRcptAddrOptionalLine2AboveStreet = returnAddressElement.SelectSingleNode("./x:OptionalLine2AboveStreet/text()", nsManager)?.Value;
 
-                        mailBatch.RetRcptAddressStreet = returnAddressElement.SelectSingleNode("./x:Street/text()", nsManager) == null ? null : returnAddressElement.SelectSingleNode("./x:Street/text()", nsManager).Value;
+                        mailBatch.RetRcptAddressStreet = returnAddressElement.SelectSingleNode("./x:Street/text()", nsManager)?.Value;
 
-                        mailBatch.RetRcptAddressAptOrSuiteOrOther = returnAddressElement.SelectSingleNode("./x:AptOrSuiteOrOther/text()", nsManager) == null ? null : returnAddressElement.SelectSingleNode("./x:AptOrSuiteOrOther/text()", nsManager).Value;
-                        mailBatch.RetRcptAddrOptionalLine1BelowStreet = returnAddressElement.SelectSingleNode("./x:OptionalLine1BelowStreet/text()", nsManager) == null ? null : returnAddressElement.SelectSingleNode("./x:OptionalLine1BelowStreet/text()", nsManager).Value;
-                        mailBatch.RetRcptAddrOptionalLine2BelowStreet = returnAddressElement.SelectSingleNode("./x:OptionalLine2BelowStreet/text()", nsManager) == null ? null : returnAddressElement.SelectSingleNode("./x:OptionalLine2BelowStreet/text()", nsManager).Value;
+                        mailBatch.RetRcptAddressAptOrSuiteOrOther = returnAddressElement.SelectSingleNode("./x:AptOrSuiteOrOther/text()", nsManager)?.Value;
+                        mailBatch.RetRcptAddrOptionalLine1BelowStreet = returnAddressElement.SelectSingleNode("./x:OptionalLine1BelowStreet/text()", nsManager)?.Value;
+                        mailBatch.RetRcptAddrOptionalLine2BelowStreet = returnAddressElement.SelectSingleNode("./x:OptionalLine2BelowStreet/text()", nsManager)?.Value;
 
-                        mailBatch.RetRcptAddressCity = returnAddressElement.SelectSingleNode("./x:City/text()", nsManager) == null ? null : returnAddressElement.SelectSingleNode("./x:City/text()", nsManager).Value;
-
-                        mailBatch.RetRcptAddressState = returnAddressElement.SelectSingleNode("./x:State/text()", nsManager) == null ? null : returnAddressElement.SelectSingleNode("./x:State/text()", nsManager).Value;
-
-                        mailBatch.RetRcptAddressZIP = returnAddressElement.SelectSingleNode("./x:Zip/text()", nsManager) == null ? null : returnAddressElement.SelectSingleNode("./x:Zip/text()", nsManager).Value;
+                        mailBatch.RetRcptAddressCity = returnAddressElement.SelectSingleNode("./x:City/text()", nsManager)?.Value;
+                        mailBatch.RetRcptAddressState = returnAddressElement.SelectSingleNode("./x:State/text()", nsManager)?.Value;
+                        mailBatch.RetRcptAddressZIP = returnAddressElement.SelectSingleNode("./x:Zip/text()", nsManager)?.Value;
                     }
                 }
                 else
@@ -377,13 +372,15 @@ namespace AM.Console
 
         private MailBatchDTO InsertInvalidBatchInfo(string batchName, DateTime receivedOn, string errorMessage)
         {
-            MailBatchDTO mailBatch = new MailBatchDTO();
-            mailBatch.UniqueId = Guid.NewGuid();
-            mailBatch.ClientId = GetInvalidClient().Id;
-            mailBatch.SFTChannelId = SFTChannel.Id;
-            mailBatch.BatchName = batchName;
-            mailBatch.ClientBatchId = batchName;
-            mailBatch.Priority = Priority.Low.ToString();
+            MailBatchDTO mailBatch = new MailBatchDTO
+            {
+                UniqueId = Guid.NewGuid(),
+                ClientId = GetInvalidClient().Id,
+                SFTChannelId = SFTChannel.Id,
+                BatchName = batchName,
+                ClientBatchId = batchName,
+                Priority = Priority.Low.ToString()
+            };
             mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
             commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, receivedOn);
             mailBatchSvc.MarkMailBatchAsInvalid(mailBatch.Id, errorMessage);
@@ -409,28 +406,6 @@ namespace AM.Console
             if (availableTriggerFilePaths != null && availableTriggerFilePaths.Count > 0)
             {
                 log.Debug(string.Format("{0} trigger file(s) found.", availableTriggerFilePaths.Count));
-            }
-            else
-            {
-                log.Error("No trigger files found hence no batches are available to download.");
-            }
-
-            return availableTriggerFilePaths;
-        }
-
-        private List<string> GetXmlFileNames(SFTUtil sftSite)
-        {
-            var regex = new Regex(@"^(.*).xml$", RegexOptions.IgnoreCase);
-
-            List<string> availableTriggerFilePaths = sftSite.ListDirectory(SFTChannel.ToADEDir)
-                .Select(f => regex.Match(Path.GetFileName(f)))
-                .Where(m => m.Success)
-                .Select(m => m.Groups[1].Value)
-                .ToList();
-
-            if (availableTriggerFilePaths != null && availableTriggerFilePaths.Count > 0)
-            {
-                log.Debug(string.Format("{0} xml file(s) found.", availableTriggerFilePaths.Count));
             }
             else
             {
@@ -526,9 +501,8 @@ namespace AM.Console
                             }
 
                             mailPieceDTO.BusinessFriendlyIdValue = requests.BusinessFriendlyIdValue;
-                            mailPieceDTO.DocumentOrPackageType = requests.DocumentOrPackageType == null ? mailBatch.DocumentOrPackageType : requests.DocumentOrPackageType;
+                            mailPieceDTO.DocumentOrPackageType = requests.DocumentOrPackageType ?? mailBatch.DocumentOrPackageType;
                             mailPieceDTO.UniqueId = requests.Id == null || requests.Id == Guid.Empty ? Guid.NewGuid() : requests.Id;
-
                             mailPieceDTO.FileName = requests.DocumentOrPackage.Name;
                             mailPieceDTO.FilePattern = requests.DocumentOrPackage.Pattern;
                             if (!string.IsNullOrEmpty(requests.DocumentOrPackage.Pattern))
@@ -954,7 +928,7 @@ namespace AM.Console
         {
             string errorReportPath = string.Empty;
             string errorReportFileName = string.Empty;
-            StringBuilder errorReportData = new StringBuilder();
+            StringBuilder errorReportData;
 
             switch (mbi.Client.AppCode)
             {

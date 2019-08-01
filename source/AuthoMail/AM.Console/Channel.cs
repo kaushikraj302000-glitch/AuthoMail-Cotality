@@ -213,7 +213,7 @@ namespace AM.Console
 
                         string localReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, client.AppCode, Util.AMResponseFolderName, preppedPrintBatch.PrintBatchId.ToString());
                         //Here we are passing localReportPath as PrintBatches folder structure AMRoot/AMResponses/PrintBatchId
-                        UploadReportsToIncrementalClients(deliverables, localReportPath, sftSite, sftChannelDetails);
+                        UploadReportsToIncrementalClients(deliverables, localReportPath, sftSite);
 
                         mailBatchSvc.UpdatePrintBatchPipelineStatus(preppedPrintBatch.PrintBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
                     }
@@ -341,26 +341,7 @@ namespace AM.Console
             }
         }
 
-        private static void GenerateErrorReport(int mailBatchId, List<MailPieces> mailPieceData, string localErrorReportPath)
-        {
-            using (IAMCService amcSvc = new AMCService())
-            {
-                StringBuilder errorReport = amcSvc.AMCErrorReport(mailPieceData);
-
-                if (errorReport != null)
-                {
-                    string errorReportFileName = "Error-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
-
-                    //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
-                    //string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
-                    string errorReportPath = Path.Combine(localErrorReportPath, errorReportFileName);
-
-                    File.WriteAllText(errorReportPath, errorReport.ToString());
-                }
-            }
-        }
-
-        private static void UploadReportsToIncrementalClients(List<Deliverable> deliverables, string localReportPath, SFTUtil sftSite, SFTChannel sftChannelDetail)
+        private static void UploadReportsToIncrementalClients(List<Deliverable> deliverables, string localReportPath, SFTUtil sftSite)
         {
             string deliveryUploadPath = deliverables.SingleOrDefault(up => up.ReportType == ReportTypes.Delivery).UploadPath;
 
@@ -503,7 +484,7 @@ namespace AM.Console
                     string reportPath = Path.Combine(Config.Common_AuthoMailRootFolder, mbi.Client.AppCode, mbi.MailBatch.Id.ToString(), Util.AMResponseFolderName);
 
                     //Here we are passing localReportPath as MailBatch folder structure AMRoot/USAA/MailBatchId/AMResponses
-                    UploadReportsToIncrementalClients(deliverables, reportPath, sftSite, sftChannelDetail);
+                    UploadReportsToIncrementalClients(deliverables, reportPath, sftSite);
 
                     GenerateAndSendProductionSummaryNotification(mbi, mailPieceData, deliverables, sftChannelDetail);
                     isUploaded = true;

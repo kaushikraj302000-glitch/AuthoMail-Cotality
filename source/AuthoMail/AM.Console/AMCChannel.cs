@@ -306,7 +306,7 @@ namespace AM.Console
 
             string amcFilePath = Path.Combine(clientBatchDirectory, string.Format("{0}.xml", batchName));
 
-            string reqRootXml = "<?xml version=\"1.0\" encoding=\"utf-16\"?><PackageRequests xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://schemas.corelogic.com/2015/amc/v1/packages\">{0}</PackageRequests>";
+            string reqRootXml = "<?xml version=\"1.0\" encoding=\"utf-16\"?><PackageRequests xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://schemas.corelogic.com/2015/amc/v1/packages\">" + Environment.NewLine + "{0}" + Environment.NewLine + "</PackageRequests>";
 
             var packageInfoNodes = string.Join(Environment.NewLine, packages.Select(nodes => nodes.OuterXml));
 

@@ -47,14 +47,12 @@ namespace AM.Console
         {
             log.Debug("Enumerate Batches job queue for Alaska is started.");
 
-            List<string> xmlFileNames = new List<string>();
-
             Deliverable deliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.NoBatch);
 
             SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
             sftSite.Connect();
 
-            xmlFileNames = GetXmlFileNames(sftSite);
+            List<string> xmlFileNames = GetXmlFileNames(sftSite);
 
             if (xmlFileNames.Count == 0)
             {
@@ -75,14 +73,16 @@ namespace AM.Console
                     string shortBatchName = batchName.Replace("PSManifest", "");
                     string documentOrPackageType = shortBatchName.Substring(0, shortBatchName.IndexOf("["));
 
-                    MailBatchDTO mailBatch = new MailBatchDTO();
-                    mailBatch.ClientId = client.Id;
-                    mailBatch.BatchName = batchName;
-                    mailBatch.SFTChannelId = SFTChannel.Id;
-                    mailBatch.ClientBatchId = batchName;
-                    mailBatch.UniqueId = Guid.NewGuid();
-                    mailBatch.Priority = Priority.Medium.ToString();
-                    mailBatch.DocumentOrPackageType = documentOrPackageType;
+                    MailBatchDTO mailBatch = new MailBatchDTO
+                    {
+                        ClientId = client.Id,
+                        BatchName = batchName,
+                        SFTChannelId = SFTChannel.Id,
+                        ClientBatchId = batchName,
+                        UniqueId = Guid.NewGuid(),
+                        Priority = Priority.Medium.ToString(),
+                        DocumentOrPackageType = documentOrPackageType
+                    };
 
                     //Insert New Batch Entry
                     mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
