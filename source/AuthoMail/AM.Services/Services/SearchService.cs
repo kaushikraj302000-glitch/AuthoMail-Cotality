@@ -13,7 +13,7 @@ namespace AM.Services
         //Remove Method(make sure below method in use)
         //List<MailPieces> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo)
         KeyValuePair<int, List<SearchViewModel>> GetMailPieceByParam
-            (int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo, List<string> errorList, bool isDownload, int? mailPieceId);
+            (int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<string> docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo, List<string> errorList, bool isDownload, int? mailPieceId);
         MailPieces GetMailPieceByUniqueId(Guid uniqueId);
         List<MailPieces> GetAllData(int clientId);
 
@@ -23,7 +23,7 @@ namespace AM.Services
     }
     public class SearchService : ServiceBase, ISearchService
     {
-        public KeyValuePair<int, List<SearchViewModel>> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo, List<string> errorList, bool isDownload, int? mailPieceId)
+        public KeyValuePair<int, List<SearchViewModel>> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<string> docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo, List<string> errorList, bool isDownload, int? mailPieceId)
         {
             string query = @"SELECT {{fields}}
 	 FROM AM.MailPieces m
@@ -78,8 +78,13 @@ namespace AM.Services
             }
             if (docType != null && docType.Count > 0)
             {
-                query = string.Format("{0} and m.DocTypeId in @docTypeId", query);
-                parameter.Add("@DocTypeId", docType);
+                int i = 0;
+                docType.ForEach(d =>
+                {
+                    query = string.Format("{0} {1} d.DocTypeCode like @DocTypeCode" + i.ToString() + " {2}", query, i == 0 ? "and (" : "or", i == docType.Count - 1 ? ")" : "");
+                    parameter.Add("@DocTypeCode" + i.ToString(), $"{d}|%");
+                    i++;
+                });
             }
             if (errorList != null && errorList.Count > 0)
             {

@@ -202,7 +202,7 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public JsonResult _ReportWizard(List<int> clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo)
+        public JsonResult _ReportWizard(List<int> clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<string> docType, string status, string channel, List<string> shippingMethod, string trackingNo)
         {
 
             try
@@ -216,7 +216,7 @@ namespace AM.Web.Controllers
             }
         }
         [HttpPost]
-        public ActionResult _DownloadReportWizard(List<int> clientId, string businessFriendlyIdName, string businessFriendlyIdValue, string startDate, string endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo, int timezoneOffset)
+        public ActionResult _DownloadReportWizard(List<int> clientId, string businessFriendlyIdName, string businessFriendlyIdValue, string startDate, string endDate, List<string> docType, string status, string channel, List<string> shippingMethod, string trackingNo, int timezoneOffset)
         {
             try
             {

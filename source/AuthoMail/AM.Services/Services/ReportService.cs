@@ -24,7 +24,7 @@ namespace AM.Services
         List<DALLASSubmittedBatchDetail> GetDALLASReconReport(DateTime startDate, DateTime endDate);
         List<EnvelopeInventory> SupplyInventoryReport(List<string> envelopes);
         MailBatches GetMailBatchDataFromMailBatchId(int mailBatchId);
-        List<ReportWizard> GetReportWizard(List<int> clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo);
+        List<ReportWizard> GetReportWizard(List<int> clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<string> docType, string status, string channel, List<string> shippingMethod, string trackingNo);
         List<FedExReport> GetFedExData(int[] isPickedUp = null);
         string GetAppcodeByClientid(int clientId);
         List<string> GetMonthlyReconDate(int clientId);
@@ -321,7 +321,7 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
             return data.SingleOrDefault();
         }
 
-        public List<ReportWizard> GetReportWizard(List<int> clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo)
+        public List<ReportWizard> GetReportWizard(List<int> clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<string> docType, string status, string channel, List<string> shippingMethod, string trackingNo)
         {
             if (!startDate.HasValue && businessFriendlyIdValue.IsNullOrWhiteSpace() && trackingNo.IsNullOrWhiteSpace())
                 throw new Exception("Date filter required.");
@@ -370,8 +370,13 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
 
             if (docType != null && docType.Count > 0)
             {
-                query = string.Format("{0} and m.DocTypeId in @docTypeId", query);
-                parameter.Add("@DocTypeId", docType);
+                int i = 0;
+                docType.ForEach(d =>
+                {
+                    query = string.Format("{0} {1} d.DocTypeCode like @DocTypeCode" + i.ToString() + " {2}", query, i == 0 ? "and (" : "or", i == docType.Count - 1 ? ")" : "");
+                    parameter.Add("@DocTypeCode" + i.ToString(), $"{d}|%");
+                    i++;
+                });
             }
             if (shippingMethod != null && shippingMethod.Count > 0)
             {

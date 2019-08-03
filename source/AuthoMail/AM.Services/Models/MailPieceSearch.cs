@@ -259,11 +259,18 @@ namespace AM.Services
         public string CreatedBy { get; set; }
         public BusinessUnitModel BusinessUnitModel { get; set; }
     }
+    public class ClientDocTypes
+    {
+        public int Id { get; set; }
+        public int ClientId { get; set; }
+        public string Name { get; set; }
+        public List<DocTypes> DocTypesList { get; set; }
+    }
     public class DocTypes
     {
         public int Id { get; set; }
-        public string DocTypeCode { get; set; }
-        public string Description { get; set; }
+        public string DocTypeCode { get; set; }//Removed
+        public string Description { get; set; }//Removed
         public int ClientId { get; set; }
         public string PrintSize { get; set; }
         public decimal ContentScalePercent { get; set; }
@@ -313,7 +320,26 @@ namespace AM.Services
         public int? EnvelopeId { get; set; }
         public int? BREEnvelopeId { get; set; }
         public int NoOfCopies { get; set; }
+        public int? MinPage { get; set; }
+        public int? MaxPage { get; set; }
+        public int? ClientDocTypesId { get; set; }
+        public string ClientDocTypesName { get; set; }
+        public List<DocTypePageRange> DocTypePageRangeList { get; set; }
+        public DocTypes()
+        {
+            this.DocTypePageRangeList = new List<DocTypePageRange>();
+        }
 
+    }
+    public class DocTypePageRange
+    {
+        public int From { get; set; }
+        public int To { get; set; }
+        public string ShippingCarrier { get; set; }
+        public string ShippingServiceType { get; set; }
+        public int EnvelopeId { get; set; }
+        public int? BREEnvelopeId { get; set; }
+        public bool IsFallBack { get; set; }
     }
     public class SFTChannels
     {

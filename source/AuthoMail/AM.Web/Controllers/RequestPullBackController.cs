@@ -24,7 +24,7 @@ namespace AM.Web.Controllers
             this.repoSvc = repoSvc;
             this.pullBackSvc = pullBackSvc;
         }
-        public ActionResult PullBack(string BusinessFriendlyIdName,string BusinessFriendlyIdValue)
+        public ActionResult PullBack(string BusinessFriendlyIdName, string BusinessFriendlyIdValue)
         {
             ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
             ViewBag.BusinessId = homeSvc.GetBusinessFriendlyIdNameByclientId(User.Identity.GetClientId().Value);
@@ -41,11 +41,11 @@ namespace AM.Web.Controllers
         {
             var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
             var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-           
-            //Ref only. remove it. also check doctype is required or not.
-            var data = pullBackSvc.GetPullBackRequestList(businessFriendlyIdName, businessFriendlyIdValue, docType, exactStartDate, exactEndDate, User.Identity.GetClientId().Value);
 
-            var model = Mapper.Map<List<MailPieceViewModel>>(data);
+            //Ref only. remove it. also check doctype is required or not.
+            var model = pullBackSvc.GetPullBackRequestList(businessFriendlyIdName, businessFriendlyIdValue, docType, exactStartDate, exactEndDate, User.Identity.GetClientId().Value);
+
+            //var model = Mapper.Map<List<MailPieceViewModel>>(data);
             return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.Status == "InProgress").ThenBy(s => s.IsPullBackRequested).ThenByDescending(s => s.Status == "PulledBack").ThenByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
         }
     }

@@ -155,7 +155,7 @@
 
 
 <div class="modal fade" id="AddEditModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-lg" role="document" style="width:80%;">
         <div class="modal-content">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal-header" style="margin-top:2%;margin-bottom:2%;">
@@ -685,7 +685,7 @@
 
                 this.CoverLetter = '<span style="cursor: pointer;font-size:1.2em;margin-right:10%;" onclick="GetCoverLetterFiles(this)" data-id="' + this.Id + '" data-doctypecode="' + this.DocTypeCode + '" ><i class=" fa fa-file-pdf-o text-red" aria-hidden="true" title="Remove Cover Letter"><span class="sr-only">Cover Letter</span></i></span>';
                 this.MappingPT = '<a href="/Admin/PrintTrailMapByDocId/' + this.Id + '" style="cursor: pointer;font-size:1.2em;margin-right:10%;"  ><i class=" fa fa-list text-blue" aria-hidden="true" title="Print Trail Mapping"><span class="sr-only">Print Trail Mapping</span></i></a>';
-        
+
 
             });
             return Model;

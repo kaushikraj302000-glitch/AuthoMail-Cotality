@@ -17,6 +17,24 @@
         margin-top: 2% !important;
         margin-bottom: 2% !important;
     }
+
+    .frm-control {
+        padding: 4px 8px;
+    }
+
+    .colmd {
+        padding-right: 5px;
+        padding-left: 5px;
+    }
+
+    .rw {
+        border: 1px solid #d9d9d9;
+        padding: 4px;
+    }
+
+        .rw .colmd {
+            border-right: 1px solid #d9d9d9;
+        }
 </style>
 <hr />
 <form id="doctypeform" action="#" enctype="multipart/form-data">
@@ -33,20 +51,71 @@
                             </div>
                         </div>
                         <div class="panel-body">
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="Description">Document Type Code</label>
+                                    <label for="Description">Document Type Name</label>
                                     <div class="input-group">
-                                        <input type="text" id="DocTypeCode" class="form-control" placeholder="Document Type Code" name="DocTypeCode" value="@Model.DocTypeCode" />
+                                        <input type="text" id="ClientDocTypesName" class="form-control" placeholder="Document Type Name" name="ClientDocTypesName" value="@Model.ClientDocTypesName" />
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="Clients">Clients</label>
                                     @Html.DropDownListFor(model => model.ClientId, ViewBag.Clients as SelectList, "Select Client", htmlAttributes: new { @class = " form-control selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Client" })
                                 </div>
                             </div>
+                            <div class="clearfix"></div>
+                            <div class="col-md-12">
+                                <div class="panel panel-default">
+
+                                    <div class="panel-body">
+                                        <div class="row">
+                                            <div class="rw">
+                                                <div class="col-md-1 colmd">
+                                                    <button class="btn btn-primary form-control"><i class="fa fa-plus"></i></button>
+                                                </div>
+                                                <div class="col-md-1 colmd">
+                                                    <input class="form-control frm-control" type="text" value="From" />
+                                                </div>
+                                                <div class="col-md-1 colmd">
+                                                    <input class="form-control frm-control" type="text" value="To" />
+                                                </div>
+                                                <div class="col-md-2 colmd">
+                                                    <input class="form-control frm-control" type="text" value="Shipping Carrier" />
+                                                </div>
+                                                <div class="col-md-3 colmd">
+                                                    <input class="form-control frm-control" type="text" value="Service Type" />
+                                                </div>
+                                                <div class="col-md-2 colmd">
+                                                    <input class="form-control frm-control" type="text" value="Envelope" />
+                                                </div>
+                                                <div class="col-md-2 colmd" style="border-right:none;">
+                                                    <input class="form-control frm-control" type="text" value="BRE Envelope" />
+                                                </div>
+                                                <div class="clearfix"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <br />
+                                </div>
+                            </div>
+                            @*<div class="row">
+                                    <div class="">
+                                        <div class="row">
+                                            <div class="col-md-1"><label>From</label></div>
+                                            <div class="col-md-1"><label>To</label></div>
+                                            <div class="col-md-3"><label>Shipping Carrier</label></div>
+                                            <div class="col-md-3"><label>Service Type</label></div>
+                                            <div class="col-md-2"><label>Envelope</label></div>
+                                            <div class="col-md-2"><label>BRE Envelope</label></div>
+                                        </div>
+                                        <div class="clearfix"></div>
+
+                                        <div class="clearfix"></div>
+                                    </div>
+                                </div>*@
+                            <div class="clearfix"></div>
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="Description">Shipping Carrier</label>
@@ -102,14 +171,14 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="Description">Description</label>
-                                    <div class="input-group">
-                                        <textarea id="Description" rows="1" name="Description" placeholder="Description" class="form-control">@Model.Description</textarea>
+                            @*<div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="Description">Description</label>
+                                        <div class="input-group">
+                                            <textarea id="Description" rows="1" name="Description" placeholder="Description" class="form-control">@Model.Description</textarea>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
+                                </div>*@
                         </div>
                     </div>
                 </div>

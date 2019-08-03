@@ -623,11 +623,11 @@ namespace AM.Web.Controllers
             }
         }
         [Authorize(Roles = AMRoles.Admin), HttpPost]
-        public ActionResult CreateOrEditDocType(DocTypes docType)
+        public ActionResult CreateOrEditDocType(DocTypes docTypes)
         {
             try
             {
-                var model = supportSvc.CreateOrEditDocType(docType, User.Identity.GetUserId());
+                var model = supportSvc.CreateOrEditDocType(docTypes, User.Identity.GetUserId());
                 return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
@@ -1013,7 +1013,7 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse(e.Message), JsonRequestBehavior.AllowGet);
             }
         }
-        
+
         #endregion
 
         #region Manage Print Trails

@@ -23,6 +23,14 @@ namespace AM.Services
         public string ShippingStatus { get; set; }
         public string MailPieceStatus { get; set; }
         public string DocTypeCode { get; set; }
+        public string DisplayDocTypeCode
+        {
+            get
+            {
+                if (this.DocTypeCode.IsNullOrWhiteSpace()) return "-";
+                return this.DocTypeCode.Split('|').First();
+            }
+        }
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
         public int? ClientId { get; set; }
