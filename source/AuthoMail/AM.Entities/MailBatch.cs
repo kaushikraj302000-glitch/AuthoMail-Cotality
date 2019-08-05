@@ -187,6 +187,8 @@ namespace AM.Entities
 
         [XmlAttribute]
         public string Zip { get; set; }
+        [XmlAttribute]
+        public string Country { get; set; }
     }
 
     [Serializable]
