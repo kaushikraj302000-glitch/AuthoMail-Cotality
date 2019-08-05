@@ -607,7 +607,34 @@ namespace AM.Web.Controllers
                 return PartialView("_AddOrEditDocType", new DocTypes());
             }
         }
-
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult _DocTypePageRangeAjax(int index)
+        {
+            var model = PageRangeMethods(new DocTypePageRange(), true, index, false, "");
+            return PartialView("_DocTypePageRange", model);
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult _DocTypePageRange(DocTypePageRange docTypePageRange, bool hasAdd, int index, bool isFallBack, string shippingServiceType)
+        {
+            var model = PageRangeMethods(docTypePageRange, hasAdd, index, isFallBack, shippingServiceType);
+            return PartialView(model);
+        }
+        private DocTypePageRange PageRangeMethods(DocTypePageRange docTypePageRange, bool hasAdd, int index, bool isFallBack, string shippingServiceType)
+        {
+            var ShippingCarrierList = Config.Web_DD_ShippingCarrierList.Split(',').ToArray();
+            var ShippingServiceTypeList = Config.Web_DD_ShippingServiceTypeList.Split(',').ToArray();
+            var ShippingSpecialServiceList = Config.Web_DD_ShippingSpecialServiceList.Split(',').ToArray();
+            ViewBag.ShippingSpecialService = ShippingSpecialServiceList.Select(s => new SelectListItem() { Text = s, Value = s, Selected = s == docTypePageRange.ShippingSpecialService }).ToList();
+            ViewBag.ShippingCarrierdropDown = ShippingCarrierList.Select(s => new SelectListItem() { Text = s, Value = s, Selected = docTypePageRange.ShippingCarrier == s }).ToList();
+            ViewBag.ShippingServiceTypedropDown = ShippingServiceTypeList.Select(s => new SelectListItem() { Text = s, Value = s, Selected = docTypePageRange.ShippingServiceType == s }).ToList();
+            ViewBag.BREEnvelopedropDown = inventorySvc.GetEnvelopes().Where(s => s.IsBREEnvelope).Select(s => new SelectListItem() { Text = s.EnvelopeName, Value = s.Id.ToString(), Selected = docTypePageRange.BREEnvelopeId == s.Id }).ToList();
+            ViewBag.EnvelopedropDown = inventorySvc.GetEnvelopes().Where(s => !s.IsBREEnvelope).Select(s => new SelectListItem() { Text = s.EnvelopeName, Value = s.Id.ToString(), Selected = docTypePageRange.BREEnvelopeId == s.Id }).ToList();
+            ViewBag.hasAdd = hasAdd;
+            ViewBag.index = index;
+            ViewBag.isFallBack = isFallBack;
+            ViewBag.shippingServiceType = shippingServiceType;
+            return docTypePageRange;
+        }
         [Authorize(Roles = AMRoles.Admin), HttpPost]
         public ActionResult MakeActiveOrDeactiveDocType(bool isActive, int Id)
         {

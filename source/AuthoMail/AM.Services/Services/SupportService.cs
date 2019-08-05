@@ -51,6 +51,8 @@ namespace AM.Services
         KeyValuePair<bool, string> CreateOrEditDocType(DocTypes docTypes, string userId);
         int MakeActivateOrDeactivateDocType(int Id, bool isActive, string userId);
         DocTypes FindByIdDocType(int Id);
+        List<ClientDocTypes> GetDocTypesToClientDocTypes(List<DocTypes> docTypes);
+        ClientDocTypes GetClientDocTypesById(int Id);
         #endregion DocType
         //SFTChannel
         List<SFTChannels> GetSFTChannels();
@@ -177,17 +179,7 @@ namespace AM.Services
         }
 
 
-        public List<DocTypes> GetDocTypes()
-        {
-            string query = "SELECT d.*,c.* FROM [AM].[DocTypes] d,[Common].[Clients] c WHERE d.ClientId=c.Id";
-            return db.Query<DocTypes, Clients, DocTypes>(query,
-                (d, c) =>
-                {
-                    d.Client = c;
-                    return d;
-                }
-                ).ToList();
-        }
+
 
         public List<Clients> GetClients()
         {
@@ -310,7 +302,7 @@ namespace AM.Services
             if (docTypes.Id == 0)
             {
                 string clientDocTypeQuery = @"INSERT INTO AM.ClientDocTypes(ClientId,Name) VALUES (@ClientId,@Name);SELECT CAST(SCOPE_IDENTITY() as int)";
-                string query = "INSERT INTO [AM].[DocTypes] ([ClientId],[PrintSize],[ContentScalePercent],[PrintFormat],[QCPercent],[ShippingCarrier],[ShippingServiceType],[ShippingAccountCode],[IsReturnInfoSpecified],[RetRcptPrefix],[RetRcptFirstName],[RetRcptMiddleName],[RetRcptLastName],[RetRcptSuffix],[RetRcptPhone],[RetRcptOrganization],[RetRcptAddrOptionalLine1AboveStreet],[RetRcptAddrOptionalLine2AboveStreet],[RetRcptAddressStreet],[RetRcptAddressAptOrSuiteOrOther],[RetRcptAddrOptionalLine1BelowStreet],[RetRcptAddrOptionalLine2BelowStreet],[RetRcptAddressCity],[RetRcptAddressState],[RetRcptAddressZIP],[ClientEmails],[ClientContactNo],[SupportEmails],[SupportContactNo],[IsActive],[ModifiedOn],[CreatedOn],[CreatedBy],[ModifiedBy],[BizdayCutOff],[BizdaySLAType],[BizdayTimeSpan],[SatCutOff],[SatSLAType],[SatTimeSpan],[SunCutOff],[SunSLAType],[SunTimeSpan],[ShippingSpecialService],[IsBRE],[EnvelopeId],[BREEnvelopeId],[NoOfCopies],[MinPage],[MaxPage],[ClientDocTypesId]) VALUES (@clientId,@printSize,@contentScalePercent,@printFormat,@qCPercent,@shippingCarrier,@shippingServiceType,@shippingAccountCode,@isReturnInfoSpecified,@retRcptPrefix,@retRcptFirstName,@retRcptMiddleName,@retRcptLastName,@retRcptSuffix,@retRcptPhone,@retRcptOrganization,@retRcptAddrOptionalLine1AboveStreet,@retRcptAddrOptionalLine2AboveStreet,@retRcptAddressStreet,@retRcptAddressAptOrSuiteOrOther,@retRcptAddrOptionalLine1BelowStreet,@retRcptAddrOptionalLine2BelowStreet,@retRcptAddressCity,@retRcptAddressState,@retRcptAddressZIP,@clientEmails,@clientContactNo,@supportEmails,@supportContactNo,@isActive,@modifiedOn,@createdOn,@createdBy,@modifiedBy,@bizdayCutOff,@bizdaySLAType,@bizdayTimeSpan,@satCutOff,@satSLAType,@satTimeSpan,@sunCutOff,@sunSLAType,@sunTimeSpan,@shippingSpecialService,@IsBRE,@EnvelopeId,@BREEnvelopeId,@NoOfCopies,@MinPage,@MaxPage,@ClientDocTypesId)";
+                string query = "INSERT INTO [AM].[DocTypes] ([ClientId],[PrintSize],[ContentScalePercent],[PrintFormat],[QCPercent],[ShippingCarrier],[ShippingServiceType],[ShippingAccountCode],[IsReturnInfoSpecified],[RetRcptPrefix],[RetRcptFirstName],[RetRcptMiddleName],[RetRcptLastName],[RetRcptSuffix],[RetRcptPhone],[RetRcptOrganization],[RetRcptAddrOptionalLine1AboveStreet],[RetRcptAddrOptionalLine2AboveStreet],[RetRcptAddressStreet],[RetRcptAddressAptOrSuiteOrOther],[RetRcptAddrOptionalLine1BelowStreet],[RetRcptAddrOptionalLine2BelowStreet],[RetRcptAddressCity],[RetRcptAddressState],[RetRcptAddressZIP],[ClientEmails],[ClientContactNo],[SupportEmails],[SupportContactNo],[IsActive],[ModifiedOn],[CreatedOn],[CreatedBy],[ModifiedBy],[BizdayCutOff],[BizdaySLAType],[BizdayTimeSpan],[SatCutOff],[SatSLAType],[SatTimeSpan],[SunCutOff],[SunSLAType],[SunTimeSpan],[ShippingSpecialService],[IsBRE],[EnvelopeId],[BREEnvelopeId],[NoOfCopies],[MinPage],[MaxPage],[ClientDocTypesId],[IsFallBack]) VALUES (@clientId,@printSize,@contentScalePercent,@printFormat,@qCPercent,@shippingCarrier,@shippingServiceType,@shippingAccountCode,@isReturnInfoSpecified,@retRcptPrefix,@retRcptFirstName,@retRcptMiddleName,@retRcptLastName,@retRcptSuffix,@retRcptPhone,@retRcptOrganization,@retRcptAddrOptionalLine1AboveStreet,@retRcptAddrOptionalLine2AboveStreet,@retRcptAddressStreet,@retRcptAddressAptOrSuiteOrOther,@retRcptAddrOptionalLine1BelowStreet,@retRcptAddrOptionalLine2BelowStreet,@retRcptAddressCity,@retRcptAddressState,@retRcptAddressZIP,@clientEmails,@clientContactNo,@supportEmails,@supportContactNo,@isActive,@modifiedOn,@createdOn,@createdBy,@modifiedBy,@bizdayCutOff,@bizdaySLAType,@bizdayTimeSpan,@satCutOff,@satSLAType,@satTimeSpan,@sunCutOff,@sunSLAType,@sunTimeSpan,@shippingSpecialService,@IsBRE,@EnvelopeId,@BREEnvelopeId,@NoOfCopies,@MinPage,@MaxPage,@ClientDocTypesId,@IsFallBack)";
 
                 db.Open();
                 using (var t = db.BeginTransaction())
@@ -351,10 +343,12 @@ namespace AM.Services
             {
                 docTypes.MinPage = range.IsFallBack ? 1 : range.From;
                 docTypes.MaxPage = range.IsFallBack ? 999 : range.To;
-                docTypes.ShippingCarrier = range.ShippingCarrier;
+                docTypes.ShippingCarrier = range.IsFallBack ? "USPS" : range.ShippingCarrier;
                 docTypes.ShippingServiceType = range.ShippingServiceType;
                 docTypes.EnvelopeId = range.EnvelopeId;
                 docTypes.BREEnvelopeId = range.BREEnvelopeId;
+                docTypes.IsBRE = range.BREEnvelopeId.HasValue;
+                docTypes.ShippingSpecialService = range.ShippingSpecialService;
                 docTypes.CreatedOn = docTypes.ModifiedOn = DateTime.UtcNow;
                 docTypes.CreatedBy = docTypes.ModifiedBy = userId;
                 docTypes.ClientId = clientId;
@@ -445,7 +439,67 @@ namespace AM.Services
             string query = "SELECT * FROM [AM].[DocTypes] WHERE Id=@id";
             return db.QuerySingleOrDefault<DocTypes>(query, new { id = Id });
         }
+        public ClientDocTypes GetClientDocTypesById(int Id)
+        {
+            string query = @"select d.*,cd.Name as ClientDocTypesName,c.Name as ClientName from AM.ClientDocTypes cd
+inner join AM.DocTypes d on cd.Id = d.ClientDocTypesId
+inner join Common.Clients c on cd.ClientId=c.Id
+where cd.Id=@Id";
+            var docTypes = db.Query<DocTypes>(query, new { Id = Id }).ToList();
+            return GetDocTypesToClientDocTypes(docTypes).First();
+        }
+        public List<ClientDocTypes> GetDocTypesToClientDocTypes(List<DocTypes> docTypes)
+        {
+            var clientDocTypesList = new List<ClientDocTypes>();
+            foreach (var item in docTypes.GroupBy(d => d.ClientDocTypesId))
+            {
+                var pageRangeList = new List<DocTypePageRange>();
+                foreach (var range in item)
+                {
+                    pageRangeList.Add(
+                        new DocTypePageRange
+                        {
+                            From = range.MinPage ?? 0,
+                            To = range.MaxPage ?? 999,
+                            ShippingCarrier = range.ShippingCarrier,
+                            ShippingServiceType = range.ShippingServiceType,
+                            ShippingSpecialService = range.ShippingSpecialService,
+                            EnvelopeId = range.EnvelopeId ?? 0,
+                            BREEnvelopeId = range.BREEnvelopeId,
+                            IsBRE = range.IsBRE,
+                            IsFallBack = range.IsFallBack
+                        }
+                        );
+                }
+                item.First().DocTypePageRangeList = pageRangeList;
+                var clientDocTypes = new ClientDocTypes()
+                {
+                    Id = item.Key,
+                    Name = item.First().ClientDocTypesName,
+                    DocTypes = item.First()
+                };
+            }
+            return clientDocTypesList;
+        }
+
         #endregion docType
+        public List<DocTypes> GetDocTypes()
+        {
+            string query = @"select d.*,cd.Name as ClientDocTypesName,c.Name as ClientName from AM.ClientDocTypes cd
+inner join AM.DocTypes d on cd.Id = d.ClientDocTypesId
+inner join Common.Clients c on cd.ClientId=c.Id";
+            var model = db.Query<DocTypes>(query).ToList();
+            //var list = GetDocTypesToClientDocTypes(model);
+            return model;
+            //string query = "SELECT d.*,c.* FROM [AM].[DocTypes] d,[Common].[Clients] c WHERE d.ClientId=c.Id";
+            //return db.Query<DocTypes, Clients, DocTypes>(query,
+            //    (d, c) =>
+            //    {
+            //        d.Client = c;
+            //        return d;
+            //    }
+            //    ).ToList();
+        }
         public List<SFTChannels> GetSFTChannels()
         {
             string query = "SELECT * FROM [Common].[SFTChannels]";
@@ -863,5 +917,7 @@ namespace AM.Services
         {
             return db.QuerySingle<PrintTrail>("select * from Common.PrintTrails where Id=@Id", new { Id = Id });
         }
+
+
     }
 }

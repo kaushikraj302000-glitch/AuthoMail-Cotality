@@ -571,6 +571,7 @@
     <Content Include="Views\Admin\ManagePrintTrails.cshtml" />
     <Content Include="Views\Admin\_AddOrEditPrintTrail.cshtml" />
     <Content Include="Views\Admin\_AddNewRowPrintTrail.cshtml" />
+    <Content Include="Views\Admin\_DocTypePageRange.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

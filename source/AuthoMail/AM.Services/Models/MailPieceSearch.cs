@@ -265,6 +265,7 @@ namespace AM.Services
         public int ClientId { get; set; }
         public string Name { get; set; }
         public List<DocTypes> DocTypesList { get; set; }
+        public DocTypes DocTypes { get; set; }
     }
     public class DocTypes
     {
@@ -272,6 +273,7 @@ namespace AM.Services
         public string DocTypeCode { get; set; }//Removed
         public string Description { get; set; }//Removed
         public int ClientId { get; set; }
+        public string ClientName { get; set; }
         public string PrintSize { get; set; }
         public decimal ContentScalePercent { get; set; }
         public string PrintFormat { get; set; }
@@ -322,8 +324,9 @@ namespace AM.Services
         public int NoOfCopies { get; set; }
         public int? MinPage { get; set; }
         public int? MaxPage { get; set; }
-        public int? ClientDocTypesId { get; set; }
+        public int ClientDocTypesId { get; set; }
         public string ClientDocTypesName { get; set; }
+        public bool IsFallBack { get; set; }
         public List<DocTypePageRange> DocTypePageRangeList { get; set; }
         public DocTypes()
         {
@@ -337,9 +340,11 @@ namespace AM.Services
         public int To { get; set; }
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
+        public string ShippingSpecialService { get; set; }
         public int EnvelopeId { get; set; }
         public int? BREEnvelopeId { get; set; }
         public bool IsFallBack { get; set; }
+        public bool IsBRE { get; set; }
     }
     public class SFTChannels
     {

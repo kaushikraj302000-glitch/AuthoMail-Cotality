@@ -7,7 +7,7 @@
         Model.ContentScalePercent = 100;
         Model.QCPercent = 0;
     }
-
+    int rangeIndex = 0;
 }
 
 
@@ -29,18 +29,22 @@
 
     .rw {
         border: 1px solid #d9d9d9;
-        padding: 4px;
+        border-bottom: 1px solid #d9d9d9;
+        padding: 8px 4px;
     }
 
         .rw .colmd {
             border-right: 1px solid #d9d9d9;
         }
+
+    .colmda {
+        font-size: 23px;
+    }
 </style>
 <hr />
 <form id="doctypeform" action="#" enctype="multipart/form-data">
     <input type="hidden" name="Id" id="Id" value="@Model.Id" />
     <div class="row">
-
         <div class="row">
             <div class="col-md-12">
                 <div class="panel-group">
@@ -55,7 +59,7 @@
                                 <div class="form-group">
                                     <label for="Description">Document Type Name</label>
                                     <div class="input-group">
-                                        <input type="text" id="ClientDocTypesName" class="form-control" placeholder="Document Type Name" name="ClientDocTypesName" value="@Model.ClientDocTypesName" />
+                                        <input type="text" id="ClientDocTypesName" class="form-control" placeholder="Document Type Name" name="ClientDocTypesName" required value="@Model.ClientDocTypesName" />
                                     </div>
                                 </div>
                             </div>
@@ -68,32 +72,43 @@
                             <div class="clearfix"></div>
                             <div class="col-md-12">
                                 <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        <div class="panel-title">
+                                            Doctype page range configuration
+                                            <span class="pull-right">
+                                                <button class="btn btn-primary addpagerangebtn" type="button"><i class="fa fa-plus"></i></button>
+                                            </span>
+                                        </div>
+                                    </div>
                                     <div class="panel-body">
-                                        <div class="row">
-                                            <div class="rw">
-                                                <div class="col-md-1 colmd">
-                                                    <button class="btn btn-primary form-control"><i class="fa fa-plus"></i></button>
-                                                </div>
-                                                <div class="col-md-1 colmd">
-                                                    <input class="form-control frm-control" type="text" value="From" />
-                                                </div>
-                                                <div class="col-md-1 colmd">
-                                                    <input class="form-control frm-control" type="text" value="To" />
-                                                </div>
-                                                <div class="col-md-2 colmd">
-                                                    <input class="form-control frm-control" type="text" value="Shipping Carrier" />
-                                                </div>
-                                                <div class="col-md-3 colmd">
-                                                    <input class="form-control frm-control" type="text" value="Service Type" />
-                                                </div>
-                                                <div class="col-md-2 colmd">
-                                                    <input class="form-control frm-control" type="text" value="Envelope" />
-                                                </div>
-                                                <div class="col-md-2 colmd" style="border-right:none;">
-                                                    <input class="form-control frm-control" type="text" value="BRE Envelope" />
-                                                </div>
-                                                <div class="clearfix"></div>
-                                            </div>
+                                        <div class="row" id="PageRangeDiv">
+                                            @if (Model.DocTypePageRangeList.Any(m => !m.IsFallBack))
+                                            {
+                                                foreach (var range in Model.DocTypePageRangeList.Where(m => !m.IsFallBack))
+                                                {
+
+                                                    @Html.Action("_DocTypePageRange", "Admin", new { docTypePageRange = range, hasAdd = false, index = rangeIndex, isFallBack = false, shippingServiceType = "" })
+                                                    rangeIndex++;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                @Html.Action("_DocTypePageRange", "Admin", new { docTypePageRange = new AM.Services.DocTypePageRange() { From = 1 }, hasAdd = true, index = rangeIndex, isFallBack = false, shippingServiceType = "" })
+                                                rangeIndex++;
+                                            }
+                                        </div>
+                                        <div class="row" id="PageRangeFallBackDiv">
+                                            @{
+                                                var priorityExp = Model.DocTypePageRangeList.FirstOrDefault(m => m.ShippingServiceType == "PRIORITY_EXPRESS");
+                                                var priority = Model.DocTypePageRangeList.FirstOrDefault(m => m.ShippingServiceType == "PRIORITY");
+                                                priorityExp = priorityExp ?? new AM.Services.DocTypePageRange(); priorityExp = priorityExp ?? new AM.Services.DocTypePageRange();
+                                                priority = priorityExp ?? new AM.Services.DocTypePageRange(); priority = priority ?? new AM.Services.DocTypePageRange();
+                                            }
+
+                                            @Html.Action("_DocTypePageRange", "Admin", new { docTypePageRange = priorityExp, hasAdd = false, index = 101, isFallBack = true, shippingServiceType = "PRIORITY_EXPRESS" })
+
+                                            @Html.Action("_DocTypePageRange", "Admin", new { docTypePageRange = priority, hasAdd = false, index = 102, isFallBack = true, shippingServiceType = "PRIORITY" })
+
                                         </div>
                                     </div>
                                     <br />
@@ -115,19 +130,19 @@
                                     </div>
                                 </div>*@
                             <div class="clearfix"></div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="Description">Shipping Carrier</label>
+                            @*<div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="Description">Shipping Carrier</label>
 
-                                    @Html.DropDownListFor(model => model.ShippingCarrier, (IEnumerable<SelectListItem>)ViewBag.ShippingCarrierdropDown, "Select Shipping Carrier", htmlAttributes: new { @class = " form-control selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Shipping Carrier" })
+                                        @Html.DropDownListFor(model => model.ShippingCarrier, (IEnumerable<SelectListItem>)ViewBag.ShippingCarrierdropDown, "Select Shipping Carrier", htmlAttributes: new { @class = " form-control selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Shipping Carrier" })
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="Description">Shipping Service Type</label>
-                                    @Html.DropDownListFor(model => model.ShippingServiceType, (IEnumerable<SelectListItem>)ViewBag.ShippingServiceTypedropDown, "Select Shipping Service Type", htmlAttributes: new { @class = " form-control selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Shipping Service Type" })
-                                </div>
-                            </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="Description">Shipping Service Type</label>
+                                        @Html.DropDownListFor(model => model.ShippingServiceType, (IEnumerable<SelectListItem>)ViewBag.ShippingServiceTypedropDown, "Select Shipping Service Type", htmlAttributes: new { @class = " form-control selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Shipping Service Type" })
+                                    </div>
+                                </div>*@
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="Description">Shipping Account Code</label>
@@ -136,40 +151,40 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="Description">BRE Envelope</label>
-                                    @Html.DropDownListFor(model => model.BREEnvelopeId, (IEnumerable<SelectListItem>)ViewBag.BREEnvelopedropDown, "Select BRE Envelope", htmlAttributes: new { @class = " form-control selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search BRE Envelope" })
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="Description">Shipping Special Service</label>
-                                    <div class="input-group">
-
-                                        <select id="ShippingSpecialService" data-live-search="true" data-live-search-placeholder="Select Shipping Special Service" multiple="multiple" class="form-control selectpicker" name="ShippingSpecialService">
-                                            @foreach (var item in ViewBag.ShippingSpecialService as List<SelectListItem>)
-                                            {
-                                                var lst = Model.ShippingSpecialService == null ? new List<string>() : Model.ShippingSpecialService.Split(',').ToList();
-                                                string sel = lst.Any(l => l == item.Value) ? "selected" : "";
-                                                <option value="@item.Value" @sel>@item.Text</option>
-                                            }
-
-                                        </select>
-
+                            @*<div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="Description">BRE Envelope</label>
+                                        @Html.DropDownListFor(model => model.BREEnvelopeId, (IEnumerable<SelectListItem>)ViewBag.BREEnvelopedropDown, "Select BRE Envelope", htmlAttributes: new { @class = " form-control selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search BRE Envelope" })
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="Description">Is BRE Envelope?</label>
-                                    <div class="input-group">
-                                        <div class="toggle-container form-control">
-                                            <input id="IsBRE" class="cl-toggle toggle-orange" type="checkbox" @(Model.IsBRE ? "checked" : "") name="toggle-demo" /><label for="IsBRE">IsBRE</label>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="Description">Shipping Special Service</label>
+                                        <div class="input-group">
+
+                                            <select id="ShippingSpecialService" data-live-search="true" data-live-search-placeholder="Select Shipping Special Service" multiple="multiple" class="form-control selectpicker" name="ShippingSpecialService">
+                                                @foreach (var item in ViewBag.ShippingSpecialService as List<SelectListItem>)
+                                                {
+                                                    var lst = Model.ShippingSpecialService == null ? new List<string>() : Model.ShippingSpecialService.Split(',').ToList();
+                                                    string sel = lst.Any(l => l == item.Value) ? "selected" : "";
+                                                    <option value="@item.Value" @sel>@item.Text</option>
+                                                }
+
+                                            </select>
+
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="Description">Is BRE Envelope?</label>
+                                        <div class="input-group">
+                                            <div class="toggle-container form-control">
+                                                <input id="IsBRE" class="cl-toggle toggle-orange" type="checkbox" @(Model.IsBRE ? "checked" : "") name="toggle-demo" /><label for="IsBRE">IsBRE</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>*@
                             @*<div class="col-md-4">
                                     <div class="form-group">
                                         <label for="Description">Description</label>
@@ -523,8 +538,11 @@
     <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> Cancel</button>
 </form>
 
-<script>
+
+
+<script type="text/javascript">
     $(document).ready(function () {
+        var index='@rangeIndex';
         if ($("#Id").val() == "0") {
             $(".daytimespan").val("00:00:00:00");
             $(".timespan").val("00:00:00");
@@ -541,8 +559,55 @@
             separator: ':',
             hourFormat: "24"
         });
-
-
+        var Message = function (id,message) {
+            var alert = '<div id="message" class="alert alert-yellow">' + message + '</div>';
+            $(id).append($(alert).delay(5000).fadeOut()).show();
+        }
+        var AddNewPageRange = function () {
+            $('.addpagerangebtn').unbind('click');
+            $('.addpagerangebtn').bind('click', function (e) {
+                var idx = index - 1;
+                if (idx == 0) {
+                    if ($('#To' + idx).val() == 999) {
+                        Message('#pagerangediv' + idx, "Page range limit is over.");
+                        //alertMessage("yellow", "Page range limit is over.");
+                        return false;
+                    }
+                    if ($('#To' + idx).val() == 0) {
+                        Message('#pagerangediv' + idx, "Page To range must be larger then 0.");
+                        //alertMessage("yellow", "Page To range must be larger then 0.");
+                        return false;
+                    }
+                }
+                console.log("Indexval", $('#To' + idx).val(),index);
+                var lastToVal = $('#To' + idx).val();
+                if (lastToVal == 999) {
+                     Message('#pagerangediv' + idx, "Page range limit is over.");
+                    //alertMessage("yellow", "Page range limit is over.");
+                        return false;
+                }
+                if (lastToVal == 0) {
+                    Message('#pagerangediv' + idx, "Page To range must be larger then 0.");
+                        //alertMessage("yellow", "Page To range must be larger then 0.");
+                        return false;
+                }
+                console.log("lastToVal", lastToVal,idx);
+                $.ajax({
+                    type: "GET",
+                    url: baseUrl+"Admin/_DocTypePageRangeAjax",
+                    data: {index:index},
+                    success: function (response) {
+                        $('#PageRangeDiv').append(response);
+                        $('#From' + index).val(parseInt(lastToVal)+1);
+                        index++;
+                    },
+                    error: function (err) {
+                        console.log(err);
+                    }
+                });
+            });
+        }
+        AddNewPageRange();
     });
 
 </script>
