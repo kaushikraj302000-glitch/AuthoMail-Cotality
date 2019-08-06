@@ -107,9 +107,8 @@
                                             <div class="row" id="PageRangeDiv">
                                                 @if (Model.DocTypes.DocTypePageRangeList.Any(m => !m.IsFallBack))
                                                 {
-                                                    foreach (var range in Model.DocTypes.DocTypePageRangeList.Where(m => !m.IsFallBack))
+                                                    foreach (var range in Model.DocTypes.DocTypePageRangeList.Where(m => m.IsFallBack==false))
                                                     {
-
                                                         @Html.Action("_DocTypePageRange", "Admin", new { docTypePageRange = range, hasAdd = false, index = rangeIndex, isFallBack = false, shippingServiceType = "" })
                                                         rangeIndex++;
                                                     }

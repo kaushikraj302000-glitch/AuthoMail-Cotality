@@ -4,7 +4,7 @@
     @if (ViewBag.isFallBack)
     {
         string isChecked = string.IsNullOrWhiteSpace(Model.ShippingCarrier) ? "" : "checked";
-
+        
         <div class="col-md-2 colmd">
             <div class="col-md-2" style="padding-left:0px;">
                 <input class="colmda" type="checkbox" @isChecked name="DocTypes.DocTypePageRangeList[@ViewBag.index].IsFallBack" />
@@ -26,6 +26,8 @@
     }
     else
     {
+        string shippingCarrierName = string.Format("DocTypes.DocTypePageRangeList[{0}].ShippingCarrier", ViewBag.index);
+        string shippingServiceTypeName=string.Format("DocTypes.DocTypePageRangeList[{0}].ShippingServiceType", ViewBag.index);
         <div class="col-md-2 colmd">
             <div class="col-md-2" style="padding-left:0px;">
                 <a href="#" class="colmda"><i class="fa fa-trash" title="Delete"></i></a>
@@ -39,18 +41,24 @@
         </div>
         <div class="col-md-2 colmd">
 
-            @Html.DropDownListFor(model => model.ShippingCarrier, (IEnumerable<SelectListItem>)ViewBag.ShippingCarrierdropDown, "Select Shipping Carrier", htmlAttributes: new
+            @Html.DropDownList(shippingCarrierName,
+           (IEnumerable<SelectListItem>)ViewBag.ShippingCarrierdropDown, 
+           "Select Shipping Carrier", htmlAttributes: new
             {
                 @class = " form-control selectpicker frm-control",
                 @data_live_search = "true",
                 @data_live_search_placeholder = "Search Shipping Carrier",
-                @data_title = "Shipping Carrier",
-                id = string.Format("ShippingCarrier{0}", ViewBag.index),
-                name = string.Format("DocTypes.DocTypePageRangeList[{0}].ShippingCarrier", ViewBag.index)
+                @data_title = "Shipping Carrier"
             })
         </div>
         <div class="col-md-2 colmd">
-            @Html.DropDownListFor(model => model.ShippingServiceType, (IEnumerable<SelectListItem>)ViewBag.ShippingServiceTypedropDown, "Select Shipping Service Type", htmlAttributes: new { @class = " form-control selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Shipping Service Type", @data_title = "Shipping Service Type" })
+            @Html.DropDownList(shippingServiceTypeName,
+           (IEnumerable<SelectListItem>)ViewBag.ShippingServiceTypedropDown,
+           "Select Shipping Service Type", htmlAttributes: new
+           { @class = " form-control selectpicker",
+               @data_live_search = "true",
+               @data_live_search_placeholder = "Search Shipping Service Type",
+               @data_title = "Shipping Service Type" })
         </div>
     }
     <div class="col-md-2 colmd">
