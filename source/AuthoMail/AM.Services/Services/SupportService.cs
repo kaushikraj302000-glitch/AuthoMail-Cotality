@@ -48,7 +48,7 @@ namespace AM.Services
         int CreateOrEditBusinessUnit(BusinessUnitModel businessUnit);
         int MakeActiveOrInActiveBusinessUnit(bool isActive, int Id);
         #region DocType
-        KeyValuePair<bool, string> CreateOrEditDocType(DocTypes docTypes, string userId);
+        KeyValuePair<bool, string> CreateOrEditDocType(ClientDocTypes clientDocTypes, string userId);
         int MakeActivateOrDeactivateDocType(int Id, bool isActive, string userId);
         DocTypes FindByIdDocType(int Id);
         List<ClientDocTypes> GetDocTypesToClientDocTypes(List<DocTypes> docTypes);
@@ -289,53 +289,64 @@ namespace AM.Services
         }
 
         #region docType
-        public KeyValuePair<bool, string> CreateOrEditDocType(DocTypes docTypes, string userId)
+        public KeyValuePair<bool, string> CreateOrEditDocType(ClientDocTypes clientDocTypes, string userId)
         {
             //Validation
-            var clientDocTypes = new ClientDocTypes();
-            clientDocTypes.ClientId = docTypes.ClientId;
-            clientDocTypes.DocTypeName = docTypes.ClientDocTypesName;
-            DocTypeValidation(docTypes);
-            var result = IsDocTypePageRangeValid(docTypes.DocTypePageRangeList);
+            clientDocTypes.DocTypes.ClientId = clientDocTypes.ClientId;
+            DocTypeValidation(clientDocTypes.DocTypes);
+            var result = IsDocTypePageRangeValid(clientDocTypes.DocTypes.DocTypePageRangeList);
             if (!result.Key) return result;
 
-            if (docTypes.Id == 0)
-            {
-                string clientDocTypeQuery = @"INSERT INTO AM.ClientDocTypes(ClientId,DocTypeName) VALUES (@ClientId,@Name);SELECT CAST(SCOPE_IDENTITY() as int)";
-                string query = "INSERT INTO [AM].[DocTypes] ([ClientId],[PrintSize],[ContentScalePercent],[PrintFormat],[QCPercent],[ShippingCarrier],[ShippingServiceType],[ShippingAccountCode],[IsReturnInfoSpecified],[RetRcptPrefix],[RetRcptFirstName],[RetRcptMiddleName],[RetRcptLastName],[RetRcptSuffix],[RetRcptPhone],[RetRcptOrganization],[RetRcptAddrOptionalLine1AboveStreet],[RetRcptAddrOptionalLine2AboveStreet],[RetRcptAddressStreet],[RetRcptAddressAptOrSuiteOrOther],[RetRcptAddrOptionalLine1BelowStreet],[RetRcptAddrOptionalLine2BelowStreet],[RetRcptAddressCity],[RetRcptAddressState],[RetRcptAddressZIP],[ClientEmails],[ClientContactNo],[SupportEmails],[SupportContactNo],[IsActive],[ModifiedOn],[CreatedOn],[CreatedBy],[ModifiedBy],[BizdayCutOff],[BizdaySLAType],[BizdayTimeSpan],[SatCutOff],[SatSLAType],[SatTimeSpan],[SunCutOff],[SunSLAType],[SunTimeSpan],[ShippingSpecialService],[IsBRE],[EnvelopeId],[BREEnvelopeId],[NoOfCopies],[MinPage],[MaxPage],[ClientDocTypeId],[IsFallBack]) VALUES (@clientId,@printSize,@contentScalePercent,@printFormat,@qCPercent,@shippingCarrier,@shippingServiceType,@shippingAccountCode,@isReturnInfoSpecified,@retRcptPrefix,@retRcptFirstName,@retRcptMiddleName,@retRcptLastName,@retRcptSuffix,@retRcptPhone,@retRcptOrganization,@retRcptAddrOptionalLine1AboveStreet,@retRcptAddrOptionalLine2AboveStreet,@retRcptAddressStreet,@retRcptAddressAptOrSuiteOrOther,@retRcptAddrOptionalLine1BelowStreet,@retRcptAddrOptionalLine2BelowStreet,@retRcptAddressCity,@retRcptAddressState,@retRcptAddressZIP,@clientEmails,@clientContactNo,@supportEmails,@supportContactNo,@isActive,@modifiedOn,@createdOn,@createdBy,@modifiedBy,@bizdayCutOff,@bizdaySLAType,@bizdayTimeSpan,@satCutOff,@satSLAType,@satTimeSpan,@sunCutOff,@sunSLAType,@sunTimeSpan,@shippingSpecialService,@IsBRE,@EnvelopeId,@BREEnvelopeId,@NoOfCopies,@MinPage,@MaxPage,@ClientDocTypeId,@IsFallBack)";
+            string clientDocTypeInsertQuery = @"INSERT INTO AM.ClientDocTypes(ClientId,DocTypeName) VALUES (@ClientId,@Name);SELECT CAST(SCOPE_IDENTITY() as int)";
+            string clientDocTypeUpdateQuery = @"update AM.ClientDocTypes set DocTypeName=@DocTypeName where Id=@Id";
 
-                db.Open();
-                using (var t = db.BeginTransaction())
+            db.Open();
+            using (var t = db.BeginTransaction())
+            {
+                try
                 {
-                    try
+                    int clientDocTypeId = clientDocTypes.Id;
+                    if (clientDocTypeId == 0)
+                        clientDocTypeId = db.QuerySingle<int>(clientDocTypeInsertQuery, clientDocTypes);
+                    else
+                        db.Execute(clientDocTypeUpdateQuery, new { Id = clientDocTypeId });
+
+                    var docTypesList = GenerateDocTypes(clientDocTypes.DocTypes, userId, clientDocTypes.ClientId, clientDocTypeId);
+                    for (int i = 0; i < docTypesList.Count; i++)
                     {
-                        int clientDocTypeId = db.QuerySingle<int>(clientDocTypeQuery, clientDocTypes);
-                        var docTypesList = GenerateDocTypes(docTypes, userId, clientDocTypes.ClientId, clientDocTypeId);
-                        for (int i = 0; i < docTypesList.Count; i++)
-                        {
-                            db.Execute(query, docTypesList[i]);
-                        }
-                        t.Commit();
-                        return GetKeyValue(true, "DocType saved successfully.");
+                        if (docTypesList[i].Id == 0)
+                            InsertDocType(docTypesList[i], userId, clientDocTypeId);
+                        else
+                            UpdateDocType(docTypesList[i], userId);
                     }
-                    catch (Exception ex)
-                    {
-                        t.Rollback();
-                        return GetKeyValue(false, ex.Message);
-                    }
+                    //t.Commit();
+                    return GetKeyValue(true, "DocType saved successfully.");
                 }
+                catch (Exception ex)
+                {
+                    t.Rollback();
+                    return GetKeyValue(false, ex.Message);
+                }
+            }
 
-            }
-            else
-            {
-                string query = "UPDATE [AM].[DocTypes] SET [DocTypeCode]=@docTypeCode ,[Description]=@description ,[ClientId]=@clientId ,[PrintSize]=@printSize ,[ContentScalePercent]=@contentScalePercent ,[PrintFormat]=@printFormat ,[QCPercent]=@qCPercent ,[ShippingCarrier]=@shippingCarrier ,[ShippingServiceType]=@shippingServiceType ,[ShippingAccountCode]=@shippingAccountCode ,[IsReturnInfoSpecified]=@isReturnInfoSpecified ,[RetRcptPrefix]=@retRcptPrefix ,[RetRcptFirstName]=@retRcptFirstName ,[RetRcptMiddleName]=@retRcptMiddleName ,[RetRcptLastName]=@retRcptLastName ,[RetRcptSuffix]=@retRcptSuffix ,[RetRcptPhone]=@retRcptPhone ,[RetRcptOrganization]=@retRcptOrganization ,[RetRcptAddrOptionalLine1AboveStreet]=@retRcptAddrOptionalLine1AboveStreet ,[RetRcptAddrOptionalLine2AboveStreet]=@retRcptAddrOptionalLine2AboveStreet ,[RetRcptAddressStreet]=@retRcptAddressStreet ,[RetRcptAddressAptOrSuiteOrOther]=@retRcptAddressAptOrSuiteOrOther ,[RetRcptAddrOptionalLine1BelowStreet]=@retRcptAddrOptionalLine1BelowStreet ,[RetRcptAddrOptionalLine2BelowStreet]=@retRcptAddrOptionalLine2BelowStreet ,[RetRcptAddressCity]=@retRcptAddressCity ,[RetRcptAddressState]=@retRcptAddressState ,[RetRcptAddressZIP]=@retRcptAddressZIP ,[ClientEmails]=@clientEmails ,[ClientContactNo]=@clientContactNo ,[SupportEmails]=@supportEmails ,[SupportContactNo]=@supportContactNo ,[ModifiedOn]=@modifiedOn,[ModifiedBy]=@modifiedBy,[BizdayCutOff]=@bizdayCutOff,[BizdaySLAType]=@bizdaySLAType,[BizdayTimeSpan]=@bizdayTimeSpan,[SatCutOff]=@satCutOff,[SatSLAType]=@satSLAType,[SatTimeSpan]=@satTimeSpan,[SunCutOff]=@sunCutOff, [SunSLAType]=@sunSLAType,[SunTimeSpan]=@sunTimeSpan,[ShippingSpecialService]=@shippingSpecialService,[IsBRE]=@IsBRE,[EnvelopeId]=@EnvelopeId,[BREEnvelopeId]=@BREEnvelopeId,[NoOfCopies]=@NoOfCopies,[MinPage]=@MinPage,[MaxPage]=@MaxPage WHERE Id=@id";
-                docTypes.ModifiedOn = DateTime.UtcNow;
-                docTypes.ModifiedBy = userId;
-                int rows = db.Execute(query, docTypes);
-                return rows > 0 ? GetKeyValue(true, "DocType saved successfully.") : GetKeyValue(false, "Invalid action performed.");
-            }
+
+
         }
-
+        private void InsertDocType(DocTypes docTypes, string userId, int clientDocTypeId)
+        {
+            string docTypeInsertQuery = "INSERT INTO [AM].[DocTypes] ([ClientId],[PrintSize],[ContentScalePercent],[PrintFormat],[QCPercent],[ShippingCarrier],[ShippingServiceType],[ShippingAccountCode],[IsReturnInfoSpecified],[RetRcptPrefix],[RetRcptFirstName],[RetRcptMiddleName],[RetRcptLastName],[RetRcptSuffix],[RetRcptPhone],[RetRcptOrganization],[RetRcptAddrOptionalLine1AboveStreet],[RetRcptAddrOptionalLine2AboveStreet],[RetRcptAddressStreet],[RetRcptAddressAptOrSuiteOrOther],[RetRcptAddrOptionalLine1BelowStreet],[RetRcptAddrOptionalLine2BelowStreet],[RetRcptAddressCity],[RetRcptAddressState],[RetRcptAddressZIP],[ClientEmails],[ClientContactNo],[SupportEmails],[SupportContactNo],[IsActive],[ModifiedOn],[CreatedOn],[CreatedBy],[ModifiedBy],[BizdayCutOff],[BizdaySLAType],[BizdayTimeSpan],[SatCutOff],[SatSLAType],[SatTimeSpan],[SunCutOff],[SunSLAType],[SunTimeSpan],[ShippingSpecialService],[IsBRE],[EnvelopeId],[BREEnvelopeId],[NoOfCopies],[MinPage],[MaxPage],[ClientDocTypeId],[IsFallBack]) VALUES (@clientId,@printSize,@contentScalePercent,@printFormat,@qCPercent,@shippingCarrier,@shippingServiceType,@shippingAccountCode,@isReturnInfoSpecified,@retRcptPrefix,@retRcptFirstName,@retRcptMiddleName,@retRcptLastName,@retRcptSuffix,@retRcptPhone,@retRcptOrganization,@retRcptAddrOptionalLine1AboveStreet,@retRcptAddrOptionalLine2AboveStreet,@retRcptAddressStreet,@retRcptAddressAptOrSuiteOrOther,@retRcptAddrOptionalLine1BelowStreet,@retRcptAddrOptionalLine2BelowStreet,@retRcptAddressCity,@retRcptAddressState,@retRcptAddressZIP,@clientEmails,@clientContactNo,@supportEmails,@supportContactNo,@isActive,@modifiedOn,@createdOn,@createdBy,@modifiedBy,@bizdayCutOff,@bizdaySLAType,@bizdayTimeSpan,@satCutOff,@satSLAType,@satTimeSpan,@sunCutOff,@sunSLAType,@sunTimeSpan,@shippingSpecialService,@IsBRE,@EnvelopeId,@BREEnvelopeId,@NoOfCopies,@MinPage,@MaxPage,@ClientDocTypeId,@IsFallBack)";
+            docTypes.CreatedOn = docTypes.ModifiedOn = DateTime.UtcNow;
+            docTypes.CreatedBy = docTypes.ModifiedBy = userId;
+            docTypes.ClientDocTypeId = clientDocTypeId;
+            db.Execute(docTypeInsertQuery, docTypes);
+        }
+        private void UpdateDocType(DocTypes docTypes, string userId)
+        {
+            string docTypeUpdateQuery = "UPDATE [AM].[DocTypes] SET [ClientId]=@clientId ,[PrintSize]=@printSize ,[ContentScalePercent]=@contentScalePercent ,[PrintFormat]=@printFormat ,[QCPercent]=@qCPercent ,[ShippingCarrier]=@shippingCarrier ,[ShippingServiceType]=@shippingServiceType ,[ShippingAccountCode]=@shippingAccountCode ,[IsReturnInfoSpecified]=@isReturnInfoSpecified ,[RetRcptPrefix]=@retRcptPrefix ,[RetRcptFirstName]=@retRcptFirstName ,[RetRcptMiddleName]=@retRcptMiddleName ,[RetRcptLastName]=@retRcptLastName ,[RetRcptSuffix]=@retRcptSuffix ,[RetRcptPhone]=@retRcptPhone ,[RetRcptOrganization]=@retRcptOrganization ,[RetRcptAddrOptionalLine1AboveStreet]=@retRcptAddrOptionalLine1AboveStreet ,[RetRcptAddrOptionalLine2AboveStreet]=@retRcptAddrOptionalLine2AboveStreet ,[RetRcptAddressStreet]=@retRcptAddressStreet ,[RetRcptAddressAptOrSuiteOrOther]=@retRcptAddressAptOrSuiteOrOther ,[RetRcptAddrOptionalLine1BelowStreet]=@retRcptAddrOptionalLine1BelowStreet ,[RetRcptAddrOptionalLine2BelowStreet]=@retRcptAddrOptionalLine2BelowStreet ,[RetRcptAddressCity]=@retRcptAddressCity ,[RetRcptAddressState]=@retRcptAddressState ,[RetRcptAddressZIP]=@retRcptAddressZIP ,[ClientEmails]=@clientEmails ,[ClientContactNo]=@clientContactNo ,[SupportEmails]=@supportEmails ,[SupportContactNo]=@supportContactNo ,[ModifiedOn]=@modifiedOn,[ModifiedBy]=@modifiedBy,[BizdayCutOff]=@bizdayCutOff,[BizdaySLAType]=@bizdaySLAType,[BizdayTimeSpan]=@bizdayTimeSpan,[SatCutOff]=@satCutOff,[SatSLAType]=@satSLAType,[SatTimeSpan]=@satTimeSpan,[SunCutOff]=@sunCutOff, [SunSLAType]=@sunSLAType,[SunTimeSpan]=@sunTimeSpan,[ShippingSpecialService]=@shippingSpecialService,[IsBRE]=@IsBRE,[EnvelopeId]=@EnvelopeId,[BREEnvelopeId]=@BREEnvelopeId,[NoOfCopies]=@NoOfCopies,[MinPage]=@MinPage,[MaxPage]=@MaxPage,[IsFallBack]=@IsFallBack WHERE Id=@id";
+            docTypes.ModifiedOn = DateTime.UtcNow;
+            docTypes.ModifiedBy = userId;
+            db.Execute(docTypeUpdateQuery, docTypes);
+        }
         private List<DocTypes> GenerateDocTypes(DocTypes docTypes, string userId, int clientId, int clientDocTypeId)
         {
             var docTypeList = new List<DocTypes>();
@@ -459,6 +470,7 @@ where cd.Id=@Id";
                     pageRangeList.Add(
                         new DocTypePageRange
                         {
+                            DocTypesId = range.Id,
                             From = range.MinPage ?? 0,
                             To = range.MaxPage ?? 999,
                             ShippingCarrier = range.ShippingCarrier,

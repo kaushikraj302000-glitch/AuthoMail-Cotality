@@ -344,6 +344,7 @@ namespace AM.Services
     }
     public class DocTypePageRange
     {
+        public int DocTypesId { get; set; }
         [Required, Range(1, 998, ErrorMessage = "From field value must be between 1 to 999.")]
         public int From { get; set; }
         [Required, Range(1, 999, ErrorMessage = "To field value must be between 1 to 999.")]

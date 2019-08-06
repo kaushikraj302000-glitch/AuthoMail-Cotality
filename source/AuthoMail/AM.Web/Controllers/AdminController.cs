@@ -680,7 +680,16 @@ namespace AM.Web.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    return View(clientDocTypes);
+                    var model = supportSvc.CreateOrEditDocType(clientDocTypes, User.Identity.GetUserId());
+                    if (model.Key)
+                    {
+                        return View(clientDocTypes);
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", model.Value);
+                        return View(clientDocTypes);
+                    }
                 }
                 else
                 {
