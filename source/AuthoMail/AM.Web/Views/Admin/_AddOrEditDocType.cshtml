@@ -579,7 +579,6 @@
                         return false;
                     }
                 }
-                console.log("Indexval", $('#To' + idx).val(),index);
                 var lastToVal = $('#To' + idx).val();
                 if (lastToVal == 999) {
                      Message('#pagerangediv' + idx, "Page range limit is over.");
@@ -591,7 +590,6 @@
                         //alertMessage("yellow", "Page To range must be larger then 0.");
                         return false;
                 }
-                console.log("lastToVal", lastToVal,idx);
                 $.ajax({
                     type: "GET",
                     url: baseUrl+"Admin/_DocTypePageRangeAjax",

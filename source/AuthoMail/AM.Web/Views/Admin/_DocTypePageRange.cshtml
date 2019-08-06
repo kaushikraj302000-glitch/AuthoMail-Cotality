@@ -7,12 +7,12 @@
 
         <div class="col-md-2 colmd">
             <div class="col-md-2" style="padding-left:0px;">
-                <input class="colmda" type="checkbox" @isChecked />
+                <input class="colmda" type="checkbox" @isChecked name="DocTypes.DocTypePageRangeList[@ViewBag.index].IsFallBack" />
             </div>
             <div class="col-md-5 colmd">
                 <input class="form-control frm-control" placeholder="From" type="number" min="1" title="From" value="1" />
             </div>
-            <div class="col-md-5" style="padding-left:5px;padding-right:5px;">
+            <div class="col-md-5" style="padding-left:5px;padding-right:0px;">
                 <input class="form-control frm-control" placeholder="To" type="number" min="1" max="999" title="To" value="999" />
             </div>
         </div>
@@ -21,7 +21,7 @@
         </div>
         <div class="col-md-2 colmd">
             <label class="form-control frm-control">@ViewBag.shippingServiceType</label>
-            <input type="hidden" name="DocTypes[@ViewBag.index].ShippingServiceType" value="@ViewBag.shippingServiceType" />
+            <input type="hidden" name="DocTypes.DocTypePageRangeList[@ViewBag.index].ShippingServiceType" value="@ViewBag.shippingServiceType" />
         </div>
     }
     else
@@ -30,14 +30,11 @@
             <div class="col-md-2" style="padding-left:0px;">
                 <a href="#" class="colmda"><i class="fa fa-trash" title="Delete"></i></a>
             </div>
-            @*<div class="col-md-2 colmd" style="padding-left:0px;">
-                    <a href="#" class="colmda addpagerangebtn" title="Add New"><i class="fa fa-plus"></i></a>
-                </div>*@
             <div class="col-md-5 colmd">
-                <input class="form-control frm-control" placeholder="From" type="number" min="1" title="From" value="@Model.From" name="DocTypePageRangeList[@ViewBag.index].From" id="From@(ViewBag.index)" />
+                <input class="form-control frm-control" placeholder="From" type="number" min="1" title="From" value="@Model.From" name="DocTypes.DocTypePageRangeList[@ViewBag.index].From" id="From@(ViewBag.index)" />
             </div>
-            <div class="col-md-5" style="padding-left:5px;padding-right:5px;">
-                <input class="form-control frm-control" placeholder="To" type="number" min="1" max="999" title="To" value="@Model.To" name="DocTypePageRangeList[@ViewBag.index].To" id="To@(ViewBag.index)" />
+            <div class="col-md-5" style="padding-left:5px;padding-right:0px;">
+                <input class="form-control frm-control" placeholder="To" type="number" min="1" max="999" title="To" value="@Model.To" name="DocTypes.DocTypePageRangeList[@ViewBag.index].To" id="To@(ViewBag.index)" />
             </div>
         </div>
         <div class="col-md-2 colmd">
@@ -49,7 +46,7 @@
                 @data_live_search_placeholder = "Search Shipping Carrier",
                 @data_title = "Shipping Carrier",
                 id = string.Format("ShippingCarrier{0}", ViewBag.index),
-                name = string.Format("DocTypePageRangeList[{0}].ShippingCarrier", ViewBag.index)
+                name = string.Format("DocTypes.DocTypePageRangeList[{0}].ShippingCarrier", ViewBag.index)
             })
         </div>
         <div class="col-md-2 colmd">
@@ -57,7 +54,7 @@
         </div>
     }
     <div class="col-md-2 colmd">
-        <select data-live-search="true" data-live-search-placeholder="Select Shipping Special Service" class="form-control selectpicker" multiple="multiple">
+        <select data-live-search="true" data-live-search-placeholder="Select Shipping Special Service" class="form-control selectpicker" multiple="multiple" name="DocTypes.DocTypePageRangeList[@ViewBag.index].ShippingSpecialService">
             @foreach (var item in ViewBag.ShippingSpecialService as List<SelectListItem>)
             {
                 var lst = Model.ShippingSpecialService == null ? new List<string>() : Model.ShippingSpecialService.Split(',').ToList();

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AM.Lib;
+using System.ComponentModel.DataAnnotations;
 namespace AM.Services
 {
 
@@ -262,10 +263,16 @@ namespace AM.Services
     public class ClientDocTypes
     {
         public int Id { get; set; }
+        [Required(ErrorMessage = "Client field is required.")]
         public int ClientId { get; set; }
-        public string Name { get; set; }
+        [Required(ErrorMessage = "Document type name is required.")]
+        public string DocTypeName { get; set; }
         public List<DocTypes> DocTypesList { get; set; }
         public DocTypes DocTypes { get; set; }
+        public ClientDocTypes()
+        {
+            this.DocTypes = new DocTypes();
+        }
     }
     public class DocTypes
     {
@@ -280,6 +287,7 @@ namespace AM.Services
         public decimal QCPercent { get; set; }
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
+        [Required]
         public string ShippingAccountCode { get; set; }
         public bool IsReturnInfoSpecified { get; set; }
         public string RetRcptPrefix { get; set; }
@@ -324,7 +332,7 @@ namespace AM.Services
         public int NoOfCopies { get; set; }
         public int? MinPage { get; set; }
         public int? MaxPage { get; set; }
-        public int ClientDocTypesId { get; set; }
+        public int ClientDocTypeId { get; set; }
         public string ClientDocTypesName { get; set; }
         public bool IsFallBack { get; set; }
         public List<DocTypePageRange> DocTypePageRangeList { get; set; }
@@ -336,7 +344,9 @@ namespace AM.Services
     }
     public class DocTypePageRange
     {
+        [Required, Range(1, 998, ErrorMessage = "From field value must be between 1 to 999.")]
         public int From { get; set; }
+        [Required, Range(1, 999, ErrorMessage = "To field value must be between 1 to 999.")]
         public int To { get; set; }
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }

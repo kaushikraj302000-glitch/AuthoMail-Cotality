@@ -649,21 +649,68 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
             }
         }
-        [Authorize(Roles = AMRoles.Admin), HttpPost]
-        public ActionResult CreateOrEditDocType(DocTypes docTypes)
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult CreateOrEditDocType(int id = 0)
         {
+            var clientDocTypes = new ClientDocTypes();
+            if (id != 0)
+                clientDocTypes = supportSvc.GetClientDocTypesById(id);
+
+            CreateOrEditDocTypeSettings(clientDocTypes);
+            return View(clientDocTypes);
+        }
+        //[Authorize(Roles = AMRoles.Admin), HttpPost]
+        //public ActionResult CreateOrEditDocType(DocTypes docTypes)
+        //{
+        //    try
+        //    {
+        //        var model = supportSvc.CreateOrEditDocType(docTypes, User.Identity.GetUserId());
+        //        return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+        //    }
+        //}
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult CreateOrEditDocType(ClientDocTypes clientDocTypes)
+        {
+            CreateOrEditDocTypeSettings(clientDocTypes);
             try
             {
-                var model = supportSvc.CreateOrEditDocType(docTypes, User.Identity.GetUserId());
-                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+                if (ModelState.IsValid)
+                {
+                    return View(clientDocTypes);
+                }
+                else
+                {
+                    return View(clientDocTypes);
+                }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+                ModelState.AddModelError("", ex.Message);
+                return View(clientDocTypes);
             }
         }
 
+        private void CreateOrEditDocTypeSettings(ClientDocTypes clientDocTypes)
+        {
+            var PrintSizeList = Config.Web_DD_PrintSizeList.Split(',').ToArray();
+            var PrintFormatList = Config.Web_DD_PrintFormatList.Split(',').ToArray();
+            //var ShippingCarrierList = Config.Web_DD_ShippingCarrierList.Split(',').ToArray();
+            //var ShippingServiceTypeList = Config.Web_DD_ShippingServiceTypeList.Split(',').ToArray();
+            //var ShippingSpecialServiceList = Config.Web_DD_ShippingSpecialServiceList.Split(',').ToArray();
+            //ViewBag.ShippingSpecialService = ShippingSpecialServiceList.Select(s => new SelectListItem() { Text = s, Value = s }).ToList();
+            ViewBag.Clients = new SelectList(homeSvc.GetAllActiveClient(), "Id", "Name", clientDocTypes.ClientId);
+            ViewBag.PrintSizedropDown = PrintSizeList.Select(s => new SelectListItem() { Text = s, Value = s, Selected = clientDocTypes.DocTypes.PrintSize == s }).ToList();
 
+            ViewBag.PrintFormatdropDown = PrintFormatList.Select(s => new SelectListItem() { Text = s, Value = s, Selected = clientDocTypes.DocTypes.PrintFormat == s }).ToList();
+            //ViewBag.ShippingCarrierdropDown = ShippingCarrierList.Select(s => new SelectListItem() { Text = s, Value = s, Selected = clientDocTypes.DocTypes.ShippingCarrier == s }).ToList();
+            //ViewBag.ShippingServiceTypedropDown = ShippingServiceTypeList.Select(s => new SelectListItem() { Text = s, Value = s, Selected = clientDocTypes.DocTypes.ShippingServiceType == s }).ToList();
+            //ViewBag.BREEnvelopedropDown = inventorySvc.GetEnvelopes().Where(s => s.IsBREEnvelope).Select(s => new SelectListItem() { Text = s.EnvelopeName, Value = s.Id.ToString(), Selected = clientDocTypes.DocTypes.BREEnvelopeId == s.Id }).ToList();
+            //ViewBag.EnvelopedropDown = inventorySvc.GetEnvelopes().Where(s => !s.IsBREEnvelope).Select(s => new SelectListItem() { Text = s.EnvelopeName, Value = s.Id.ToString(), Selected = clientDocTypes.DocTypes.BREEnvelopeId == s.Id }).ToList();
+        }
 
         #endregion
 
