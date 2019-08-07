@@ -8,7 +8,7 @@
         Model.DocTypes.ContentScalePercent = 100;
         Model.DocTypes.QCPercent = 0;
     }
-    int rangeIndex = 0;
+    int rangeIndex = 2;
 }
 
 
@@ -56,6 +56,7 @@
         <div class="panel-body" style="padding:0px;">
             <div>@Html.ValidationSummary()</div>
             @Html.HiddenFor(model => model.Id)
+            <input type="hidden" name="DocTypes.EnvelopeId" value="0" />
             <div class="row" style="margin-right:-10px;margin-left:-10px;">
                 <div class="col-md-12">
                     <div class="panel-group">
@@ -98,7 +99,7 @@
                                                 <h3>
                                                     Doctype page range configuration
                                                     <span class="pull-right">
-                                                        <button class="btn btn-primary addpagerangebtn" type="button"><i class="fa fa-plus"></i></button>
+                                                        <button class="btn btn-primary addpagerangebtn" type="button" title="Add new doctype page range"><i class="fa fa-plus"></i></button>
                                                     </span>
                                                 </h3>
                                             </div>
@@ -107,29 +108,30 @@
                                             <div class="row" id="PageRangeDiv">
                                                 @if (Model.DocTypes.DocTypePageRangeList.Any(m => !m.IsFallBack))
                                                 {
-                                                    foreach (var range in Model.DocTypes.DocTypePageRangeList.Where(m => m.IsFallBack==false))
+                                                    foreach (var range in Model.DocTypes.DocTypePageRangeList.Where(m => m.IsFallBack == false).Select(m => m))
                                                     {
-                                                        @Html.Action("_DocTypePageRange", "Admin", new { docTypePageRange = range, hasAdd = false, index = rangeIndex, isFallBack = false, shippingServiceType = "" })
+                                                        @Html.Action("_DocTypePageRange", "Admin", new { docTypePageRange = range, index = rangeIndex, isFallBack = false, shippingServiceType = "" })
                                                         rangeIndex++;
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    @Html.Action("_DocTypePageRange", "Admin", new { docTypePageRange = new AM.Services.DocTypePageRange() { From = 1 }, hasAdd = true, index = rangeIndex, isFallBack = false, shippingServiceType = "" })
+                                                    @Html.Action("_DocTypePageRange", "Admin", new { docTypePageRange = new AM.Services.DocTypePageRange() { From = 1 }, index = rangeIndex, isFallBack = false, shippingServiceType = "" })
                                                     rangeIndex++;
                                                 }
                                             </div>
+                                            <h3 style="margin-top:5px;margin-bottom:-5px;">Fallback doctype page range configuration</h3>
                                             <div class="row" id="PageRangeFallBackDiv">
                                                 @{
                                                     var priorityExp = Model.DocTypes.DocTypePageRangeList.FirstOrDefault(m => m.ShippingServiceType == "PRIORITY_EXPRESS");
                                                     var priority = Model.DocTypes.DocTypePageRangeList.FirstOrDefault(m => m.ShippingServiceType == "PRIORITY");
-                                                    priorityExp = priorityExp ?? new AM.Services.DocTypePageRange(); priorityExp = priorityExp ?? new AM.Services.DocTypePageRange();
-                                                    priority = priorityExp ?? new AM.Services.DocTypePageRange(); priority = priority ?? new AM.Services.DocTypePageRange();
+                                                    priorityExp = priorityExp ?? new AM.Services.DocTypePageRange();
+                                                    priority = priority ?? new AM.Services.DocTypePageRange();
                                                 }
 
-                                                @Html.Action("_DocTypePageRange", "Admin", new { docTypePageRange = priorityExp, hasAdd = false, index = 101, isFallBack = true, shippingServiceType = "PRIORITY_EXPRESS" })
+                                                @Html.Action("_DocTypePageRange", "Admin", new { docTypePageRange = priorityExp, index = 0, isFallBack = true, shippingServiceType = "PRIORITY_EXPRESS" })
 
-                                                @Html.Action("_DocTypePageRange", "Admin", new { docTypePageRange = priority, hasAdd = false, index = 102, isFallBack = true, shippingServiceType = "PRIORITY" })
+                                                @Html.Action("_DocTypePageRange", "Admin", new { docTypePageRange = priority, index = 1, isFallBack = true, shippingServiceType = "PRIORITY" })
 
                                             </div>
                                         </div>
@@ -138,7 +140,7 @@
                                 </div>
 
                                 <div class="clearfix"></div>
-
+                                <br />
                             </div>
                         </div>
                     </div>
@@ -520,35 +522,35 @@
             separator: ':',
             hourFormat: "24"
         });
-        var Message = function (id,message) {
-            var alert = '<div id="message" class="alert alert-yellow">' + message + '</div>';
-            $(id).append($(alert).delay(5000).fadeOut()).show();
-        }
+        //var Message = function (id,message) {
+        //    var alert = '<div id="message" class="alert alert-yellow">' + message + '</div>';
+        //    $(id).append($(alert).delay(5000).fadeOut()).show();
+        //}
         var AddNewPageRange = function () {
             $('.addpagerangebtn').unbind('click');
             $('.addpagerangebtn').bind('click', function (e) {
                 var idx = index - 1;
                 if (idx == 0) {
                     if ($('#To' + idx).val() == 999) {
-                        Message('#pagerangediv' + idx, "Page range limit is over.");
-                        //alertMessage("yellow", "Page range limit is over.");
+                        alertMessage("yellow", "Page range limit is over.");
                         return false;
                     }
                     if ($('#To' + idx).val() == 0) {
-                        Message('#pagerangediv' + idx, "Page To range must be larger then 0.");
-                        //alertMessage("yellow", "Page To range must be larger then 0.");
+                        alertMessage("yellow", "Page To range must be larger then 0.");
                         return false;
                     }
                 }
                 var lastToVal = $('#To' + idx).val();
                 if (lastToVal == 999) {
-                     Message('#pagerangediv' + idx, "Page range limit is over.");
-                    //alertMessage("yellow", "Page range limit is over.");
+                    alertMessage("yellow", "Page range limit is over.");
                         return false;
                 }
                 if (lastToVal == 0) {
-                    Message('#pagerangediv' + idx, "Page To range must be larger then 0.");
-                        //alertMessage("yellow", "Page To range must be larger then 0.");
+                        alertMessage("yellow", "Page To range must be larger then 0.");
+                        return false;
+                }
+                if ($('#From' + idx).val() > $('#To' + idx).val()) {
+                     alertMessage("yellow", "Page From range can't be smaller than To.");
                         return false;
                 }
                 $.ajax({

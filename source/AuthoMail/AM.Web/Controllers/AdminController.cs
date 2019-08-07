@@ -610,16 +610,16 @@ namespace AM.Web.Controllers
         [Authorize(Roles = AMRoles.Admin), HttpGet]
         public ActionResult _DocTypePageRangeAjax(int index)
         {
-            var model = PageRangeMethods(new DocTypePageRange(), true, index, false, "");
+            var model = PageRangeMethods(new DocTypePageRange(), index, false, "");
             return PartialView("_DocTypePageRange", model);
         }
-        [Authorize(Roles = AMRoles.Admin), HttpGet]
-        public ActionResult _DocTypePageRange(DocTypePageRange docTypePageRange, bool hasAdd, int index, bool isFallBack, string shippingServiceType)
+        [Authorize(Roles = AMRoles.Admin)]
+        public ActionResult _DocTypePageRange(DocTypePageRange docTypePageRange, int index, bool isFallBack, string shippingServiceType)
         {
-            var model = PageRangeMethods(docTypePageRange, hasAdd, index, isFallBack, shippingServiceType);
-            return PartialView(model);
+            var model = PageRangeMethods(docTypePageRange, index, isFallBack, shippingServiceType);
+            return PartialView("_DocTypePageRange", model);
         }
-        private DocTypePageRange PageRangeMethods(DocTypePageRange docTypePageRange, bool hasAdd, int index, bool isFallBack, string shippingServiceType)
+        public DocTypePageRange PageRangeMethods(DocTypePageRange docTypePageRange, int index, bool isFallBack, string shippingServiceType)
         {
             var ShippingCarrierList = Config.Web_DD_ShippingCarrierList.Split(',').ToArray();
             var ShippingServiceTypeList = Config.Web_DD_ShippingServiceTypeList.Split(',').ToArray();
@@ -627,9 +627,10 @@ namespace AM.Web.Controllers
             ViewBag.ShippingSpecialService = ShippingSpecialServiceList.Select(s => new SelectListItem() { Text = s, Value = s, Selected = s == docTypePageRange.ShippingSpecialService }).ToList();
             ViewBag.ShippingCarrierdropDown = ShippingCarrierList.Select(s => new SelectListItem() { Text = s, Value = s, Selected = docTypePageRange.ShippingCarrier == s }).ToList();
             ViewBag.ShippingServiceTypedropDown = ShippingServiceTypeList.Select(s => new SelectListItem() { Text = s, Value = s, Selected = docTypePageRange.ShippingServiceType == s }).ToList();
-            ViewBag.BREEnvelopedropDown = inventorySvc.GetEnvelopes().Where(s => s.IsBREEnvelope).Select(s => new SelectListItem() { Text = s.EnvelopeName, Value = s.Id.ToString(), Selected = docTypePageRange.BREEnvelopeId == s.Id }).ToList();
-            ViewBag.EnvelopedropDown = inventorySvc.GetEnvelopes().Where(s => !s.IsBREEnvelope).Select(s => new SelectListItem() { Text = s.EnvelopeName, Value = s.Id.ToString(), Selected = docTypePageRange.BREEnvelopeId == s.Id }).ToList();
-            ViewBag.hasAdd = hasAdd;
+            var breEnvelopes = new List<SelectListItem>() { new SelectListItem { Text = "NA", Value = "0", Selected = docTypePageRange.BREEnvelopeId == 0 } };
+            breEnvelopes.AddRange(inventorySvc.GetEnvelopes().Where(s => s.IsBREEnvelope).Select(s => new SelectListItem() { Text = s.EnvelopeName, Value = s.Id.ToString(), Selected = docTypePageRange.BREEnvelopeId == s.Id }).ToList());
+            ViewBag.BREEnvelopedropDown = breEnvelopes;
+            ViewBag.EnvelopedropDown = inventorySvc.GetEnvelopes().Where(s => !s.IsBREEnvelope).Select(s => new SelectListItem() { Text = s.EnvelopeName, Value = s.Id.ToString(), Selected = docTypePageRange.EnvelopeId == s.Id }).ToList();
             ViewBag.index = index;
             ViewBag.isFallBack = isFallBack;
             ViewBag.shippingServiceType = shippingServiceType;
@@ -642,7 +643,6 @@ namespace AM.Web.Controllers
             {
                 var model = supportSvc.MakeActivateOrDeactivateDocType(Id, isActive, User.Identity.GetUserId());
                 return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
-
             }
             catch (Exception e)
             {
@@ -678,8 +678,13 @@ namespace AM.Web.Controllers
             CreateOrEditDocTypeSettings(clientDocTypes);
             try
             {
+                clientDocTypes.DocTypes.DocTypePageRangeList.RemoveAll(d => d.DocTypesId < 0);
                 if (ModelState.IsValid)
                 {
+                    if (clientDocTypes.DocTypes.DocTypePageRangeList[0].IsFallBack == false)
+                        clientDocTypes.DocTypes.DocTypePageRangeList.Remove(clientDocTypes.DocTypes.DocTypePageRangeList[0]);
+                    if (clientDocTypes.DocTypes.DocTypePageRangeList[1].IsFallBack == false)
+                        clientDocTypes.DocTypes.DocTypePageRangeList.Remove(clientDocTypes.DocTypes.DocTypePageRangeList[1]);
                     var model = supportSvc.CreateOrEditDocType(clientDocTypes, User.Identity.GetUserId());
                     if (model.Key)
                     {

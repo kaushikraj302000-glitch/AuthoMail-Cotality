@@ -281,6 +281,7 @@ namespace AM.Services
         public string Description { get; set; }//Removed
         public int ClientId { get; set; }
         public string ClientName { get; set; }
+        [Required]
         public string PrintSize { get; set; }
         public decimal ContentScalePercent { get; set; }
         public string PrintFormat { get; set; }
@@ -340,7 +341,6 @@ namespace AM.Services
         {
             this.DocTypePageRangeList = new List<DocTypePageRange>();
         }
-
     }
     public class DocTypePageRange
     {
@@ -352,10 +352,12 @@ namespace AM.Services
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
         public string ShippingSpecialService { get; set; }
-        public int EnvelopeId { get; set; }
+        public int? EnvelopeId { get; set; }
         public int? BREEnvelopeId { get; set; }
         public bool IsFallBack { get; set; }
         public bool IsBRE { get; set; }
+        //public bool HasFB { get; set; }//isfallback ref for UI
+        //public bool isAdd { get; set; }
     }
     public class SFTChannels
     {
