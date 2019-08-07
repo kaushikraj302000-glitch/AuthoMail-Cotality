@@ -502,12 +502,12 @@ where cd.Id=@Id";
                         );
                 }
                 item.First().DocTypePageRangeList = pageRangeList;
-                var clientDocTypes = new ClientDocTypes()
+                clientDocTypesList.Add(new ClientDocTypes()
                 {
                     Id = item.Key,
                     DocTypeName = item.First().ClientDocTypesName,
                     DocTypes = item.First()
-                };
+                });
             }
             return clientDocTypesList;
         }
