@@ -5,6 +5,7 @@
     string EnvelopeIdName = string.Format("DocTypes.DocTypePageRangeList[{0}].EnvelopeId", ViewBag.index);
     string BREEnvelopeIdName = string.Format("DocTypes.DocTypePageRangeList[{0}].BREEnvelopeId", ViewBag.index);
     bool isFallBackChecked = !(Model.DocTypesId == 0);
+    bool fallBackVal = Model.DocTypesId != 0 ? true : Model.IsFallBack;
     string chkhide = isFallBackChecked ? "none" : "block";
 }
 <div class="rw" id="pagerangediv@(ViewBag.index)" style="@(bgcolor)">
@@ -17,7 +18,7 @@
         <input type="hidden" name="DocTypes.DocTypePageRangeList[@ViewBag.index].To" value="999" />
         <div class="col-md-2 colmd">
             <div class="col-md-2" style="padding-left:0px;">
-                <input class="colmda cl-check chkbx" type="checkbox" @isChecked name="DocTypes.DocTypePageRangeList[@ViewBag.index].IsFallBack" id="DocTypes.DocTypePageRangeList[@ViewBag.index].IsFallBack" value="@isFallBackChecked" style="display:@chkhide" />
+                <input class="colmda cl-check chkbx" type="checkbox" @isChecked name="DocTypes.DocTypePageRangeList[@ViewBag.index].IsFallBack" id="DocTypes.DocTypePageRangeList[@ViewBag.index].IsFallBack" value="@fallBackVal" style="display:@chkhide" />
                 <label for="DocTypes.DocTypePageRangeList[@ViewBag.index].IsFallBack" style="display:@chkhide"></label>
                 @if (isFallBackChecked)
                 {

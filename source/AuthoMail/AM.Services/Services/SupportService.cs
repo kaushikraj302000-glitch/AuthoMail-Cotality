@@ -298,10 +298,12 @@ namespace AM.Services
             DocTypeValidation(clientDocTypes.DocTypes);
             var result = IsDocTypePageRangeValid(clientDocTypes.DocTypes.DocTypePageRangeList);
             if (!result.Key) return result;
-            int? isClientDocTypeExist = db.QuerySingleOrDefault<int>("select 1 from AM.ClientDocTypes where ClientId=@ClientId and DocTypeName=@DocTypeName", new { ClientId = clientDocTypes.ClientId, DocTypeName = clientDocTypes.DocTypeName });
-            if (isClientDocTypeExist.HasValue)
-                return new KeyValuePair<bool, string>(false, "Client & DocTypeName already exist.");
-
+            if (clientDocTypes.Id == 0)
+            {
+                int? isClientDocTypeExist = db.QuerySingleOrDefault<int>("select 1 from AM.ClientDocTypes where ClientId=@ClientId and DocTypeName=@DocTypeName", new { ClientId = clientDocTypes.ClientId, DocTypeName = clientDocTypes.DocTypeName });
+                if (isClientDocTypeExist.HasValue)
+                    return new KeyValuePair<bool, string>(false, "Client & DocTypeName already exist.");
+            }
             string clientDocTypeInsertQuery = @"INSERT INTO AM.ClientDocTypes(ClientId,DocTypeName) VALUES (@ClientId,@DocTypeName);SELECT CAST(SCOPE_IDENTITY() as int)";
             string clientDocTypeUpdateQuery = @"update AM.ClientDocTypes set DocTypeName=@DocTypeName where Id=@Id";
 
@@ -326,7 +328,7 @@ namespace AM.Services
                             UpdateDocType(docTypesList[i], userId, t);
                     }
                     t.Commit();
-                    return GetKeyValue(true, "DocType saved successfully.");
+                    return GetKeyValue(true, clientDocTypeId.ToString());
                 }
                 catch (Exception ex)
                 {

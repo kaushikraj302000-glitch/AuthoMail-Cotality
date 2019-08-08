@@ -506,7 +506,11 @@
     <script src="~/Scripts/jquery.inputmask.extensions.js"></script>
     <script type="text/javascript">
     $(document).ready(function () {
-        var index='@rangeIndex';
+        var index = '@rangeIndex';
+        var success = '@ViewBag.Success';
+        console.log(success);
+        if (success != null && success != undefined && success != "")
+            alertMessage("green", success);
         if ($("#Id").val() == "0") {
             $(".daytimespan").val("00:00:00:00");
             $(".timespan").val("00:00:00");

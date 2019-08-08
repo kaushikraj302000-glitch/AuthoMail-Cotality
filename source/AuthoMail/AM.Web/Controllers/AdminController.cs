@@ -650,13 +650,14 @@ namespace AM.Web.Controllers
             }
         }
         [Authorize(Roles = AMRoles.Admin), HttpGet]
-        public ActionResult CreateOrEditDocType(int id = 0)
+        public ActionResult CreateOrEditDocType(int id = 0, string Success = null)
         {
             var clientDocTypes = new ClientDocTypes();
             if (id != 0)
                 clientDocTypes = supportSvc.GetClientDocTypesById(id);
 
             CreateOrEditDocTypeSettings(clientDocTypes);
+            ViewBag.Success = Success;
             return View(clientDocTypes);
         }
         //[Authorize(Roles = AMRoles.Admin), HttpPost]
@@ -690,7 +691,7 @@ namespace AM.Web.Controllers
                     var model = supportSvc.CreateOrEditDocType(clientDocTypes, User.Identity.GetUserId());
                     if (model.Key)
                     {
-                        return View(clientDocTypes);
+                        return RedirectToAction("CreateOrEditDocType", new { id = Convert.ToInt32(model.Value) });
                     }
                     else
                     {
