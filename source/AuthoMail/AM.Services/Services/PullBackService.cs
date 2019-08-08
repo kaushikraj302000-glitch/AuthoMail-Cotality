@@ -20,7 +20,7 @@ namespace AM.Services
         int UpdateAMBatchStatus(string mpId);
         int UpdateUSPSApiCancelErrorDesc(string mpId);
         string GetPnSBatchPipelineStatusByPrintBatchId(int printBatchId);
-        List<MailPieceViewModel> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, string docType, DateTime startDate, DateTime endDate, int clientId);
+        List<MailPieceViewModel> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, int? docType, DateTime startDate, DateTime endDate, int clientId);
         List<QuickPullBackResponse> GetQuickPullBackResponseFromBusinessFriendlyValue(string businessFriendlyIdName, string businessFriendlyIdValue, int clientId);
         List<QuickPullBackResponse> GetQuickPullBackResponse(List<string> mailPieceIds, int clientId);
         bool GeneratePullBackForm(List<PullBackRequestForm> pullBackData);
@@ -85,18 +85,20 @@ namespace AM.Services
             return db.Execute(@"UPDATE AM.MailPieces SET ErrorDesc = 'USPS label is cancelled because mailpiece is pulledback.' WHERE UniqueId = @MailPieceUniqueId", new { MailPieceUniqueId = mpId });
         }
 
-        public List<MailPieces> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, string docType, DateTime startDate, DateTime endDate, int clientId)
+        //public List<MailPieces> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, string docType, DateTime startDate, DateTime endDate, int clientId)
+        public List<MailPieceViewModel> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, int? docType, DateTime startDate, DateTime endDate, int clientId)
         {
             string query = @"select m.BusinessFriendlyIdValue as BusinessIdValue,m.UniqueId,m.FileName,(m.RcptFirstName+ ' ' +m.RcptLastName) as Name,
 m.RcptAddressStreet as Address,m.TotalPages,m.IsPullBackRequested,m.ShippingStatus as Status,m.DueDate,m.TrackingNo,m.ErrorCode,m.ErrorDesc,
 b.ReceivedOn,
-d.DocTypeCode as DocType,
+cd.DocTypeName as DocType,
 c.AppCode 
 from AM.MailPieces m 
 inner join AM.MailBatches b on m.MailBatchId=b.Id
 inner join Common.Clients c on m.ClientId=c.Id
 LEFT OUTER JOIN [Profile].[Users] u on m.[PulledBackRequestedBy]=u.Id 
 LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id 
+left outer join AM.ClientDocTypes cd on d.ClientDocTypeId=cd.Id
 where ((m.MailBatchId=b.Id and m.ClientId=c.Id) and b.ClientId=@clientId) ";
 
             DynamicParameters parameter = new DynamicParameters();
@@ -111,7 +113,7 @@ where ((m.MailBatchId=b.Id and m.ClientId=c.Id) and b.ClientId=@clientId) ";
                 query = string.Format("{0} and m.businessFriendlyIdValue=@businessFriendlyIdValue", query);
                 parameter.Add("@businessFriendlyIdValue", businessFriendlyIdValue);
             }
-            if (!string.IsNullOrWhiteSpace(docType))
+            if (docType.HasValue)
             {
                 query = string.Format("{0} and d.DocTypeCode like @docType", query);
                 parameter.Add("@docType", $"{docType}|%");

@@ -336,6 +336,7 @@ namespace AM.Services
         public int ClientDocTypeId { get; set; }
         public string ClientDocTypesName { get; set; }
         public bool IsFallBack { get; set; }
+        public ClientDocTypes ClientDocTypes { get; set; }
         public List<DocTypePageRange> DocTypePageRangeList { get; set; }
         public DocTypes()
         {

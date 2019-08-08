@@ -80,7 +80,7 @@ namespace AM.Services
             if (docType != null && docType.Count > 0)
             {
                 query = string.Format("{0} and cd.ClientDocTypeId in @docType", query);
-                parameter.Add("@docType" + docType);
+                parameter.Add("@docType", docType);
             }
             if (errorList != null && errorList.Count > 0)
             {

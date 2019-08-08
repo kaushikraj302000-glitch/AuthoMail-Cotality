@@ -37,7 +37,7 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult _GetMailPieceList(string businessFriendlyIdName, string businessFriendlyIdValue, string docType, string startDate, string endDate)
+        public ActionResult _GetMailPieceList(string businessFriendlyIdName, string businessFriendlyIdValue, int? docType, string startDate, string endDate)
         {
             var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
             var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);

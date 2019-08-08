@@ -14,7 +14,7 @@ namespace AM.Services
         List<MailPieces> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel);
         List<MailPieces> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel);
         List<MailPieces> GetSummaryControlReport(int clientId, DateTime startDate, DateTime endDate, string channel);
-        List<MailPieces> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime startDate, DateTime endDate, int? batchId, string docType, string filterBy);
+        List<MailPieces> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime startDate, DateTime endDate, int? batchId, int? docType, string filterBy);
         List<MonthlyReconReportViewModel> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel);
         List<ChannelCodeTitle> GetChannelTitle(int clientId);
         List<PullBackRequests> GetPullbackRequestReport(int clientId, DateTime startDate, DateTime endDate);
@@ -24,7 +24,7 @@ namespace AM.Services
         List<DALLASSubmittedBatchDetail> GetDALLASReconReport(DateTime startDate, DateTime endDate);
         List<EnvelopeInventory> SupplyInventoryReport(List<string> envelopes);
         MailBatches GetMailBatchDataFromMailBatchId(int mailBatchId);
-        List<ReportWizard> GetReportWizard(List<int> clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<string> docType, string status, string channel, List<string> shippingMethod, string trackingNo);
+        List<ReportWizard> GetReportWizard(List<int> clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo);
         List<FedExReport> GetFedExData(int[] isPickedUp = null);
         string GetAppcodeByClientid(int clientId);
         List<string> GetMonthlyReconDate(int clientId);
@@ -105,26 +105,27 @@ namespace AM.Services
             return data;
         }
 
-        public List<MailPieces> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime startDate, DateTime endDate, int? batchId, string docType, string filterBy)
+        public List<MailPieces> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime startDate, DateTime endDate, int? batchId, int? docType, string filterBy)
         {
             string query = "[dbo].[uspweb_ErrorReportSLA] @clientId, @startDateRec, @endDateRec, @startDateDue, @endDateDue, @batchId, @docType";
             bool isReceived = filterBy == "ByReceivedOn" ? true : false;
             DateTime? dt = null;
 
-            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, MailPieces>(query,
-                (b, s, c, m, d) =>
+            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, ClientDocTypes, MailPieces>(query,
+                (b, s, c, m, d, cd) =>
                 {
                     m.Clients = c;
                     m.MailBatches = b;
                     b.SFTChannels = s;
                     m.DocTypes = d;
+                    m.DocTypes.ClientDocTypes = cd;
                     return m;
                 },
                 new
                 {
                     clientId = clientId,
                     batchId = batchId,
-                    docType = docType.IsNullOrWhiteSpace() ? null : docType,
+                    docType = docType,
                     startDateRec = isReceived ? (startDate.ToStartDateTime()).EstToUtc() : dt,
                     endDateRec = isReceived ? (endDate.ToEndDateTime()).EstToUtc() : dt,
                     startDateDue = isReceived ? dt : (startDate.ToStartDateTime()).EstToUtc(),
@@ -321,7 +322,7 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
             return data.SingleOrDefault();
         }
 
-        public List<ReportWizard> GetReportWizard(List<int> clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<string> docType, string status, string channel, List<string> shippingMethod, string trackingNo)
+        public List<ReportWizard> GetReportWizard(List<int> clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo)
         {
             if (!startDate.HasValue && businessFriendlyIdValue.IsNullOrWhiteSpace() && trackingNo.IsNullOrWhiteSpace())
                 throw new Exception("Date filter required.");
@@ -330,13 +331,14 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
 	 m.RcptFirstName as FirstName,m.RcptLastName as LastName,m.RcptAddressCity as [City],m.RcptAddressZip as ZIP,m.RcptAddressStreet,
 	 m.RcptAddressState as [State], m.ShippedOn as MailedOn ,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,m.PrintedOn
 	 ,b.BatchName as BatchId,b.ReceivedOn,m.DocTypeId,m.FileName,
-	 d.DocTypeCode as DocType,(d.ShippingCarrier + '-' + d.ShippingServiceType) as ShippingMethod,
+	 cd.DocTypeName as DocType,(d.ShippingCarrier + '-' + d.ShippingServiceType) as ShippingMethod,
      m.DocumentOrPackageType,m.TotalPages as PagesShipped,
 	 ch.Title as Channel,
      c.AppCode as ClientCode
 	 FROM  [AM].[MailBatches] b,[Common].[SFTChannels] ch,[Common].[Clients] c,[AM].[MailPieces] m
 	 LEFT OUTER JOIN [Profile].[Users] u ON m.PulledBackRequestedBy=u.Id	 
 	 LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id
+     left outer join AM.ClientDocTypes cd on d.ClientDocTypeId=cd.Id
 	 WHERE m.MailBatchId=b.Id AND b.SFTChannelId=ch.Id AND m.ClientId=c.Id";
             DynamicParameters parameter = new DynamicParameters();
             if (clientId != null && clientId.Count > 0)
@@ -370,13 +372,8 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
 
             if (docType != null && docType.Count > 0)
             {
-                int i = 0;
-                docType.ForEach(d =>
-                {
-                    query = string.Format("{0} {1} d.DocTypeCode like @DocTypeCode" + i.ToString() + " {2}", query, i == 0 ? "and (" : "or", i == docType.Count - 1 ? ")" : "");
-                    parameter.Add("@DocTypeCode" + i.ToString(), $"{d}|%");
-                    i++;
-                });
+                query = string.Format("{0} and cd.ClientDocTypeId in @docType", query);
+                parameter.Add("@docType", docType);
             }
             if (shippingMethod != null && shippingMethod.Count > 0)
             {
