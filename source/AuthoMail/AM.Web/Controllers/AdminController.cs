@@ -625,8 +625,8 @@ namespace AM.Web.Controllers
             var ShippingServiceTypeList = Config.Web_DD_ShippingServiceTypeList.Split(',').ToArray();
             var ShippingSpecialServiceList = Config.Web_DD_ShippingSpecialServiceList.Split(',').ToArray();
             ViewBag.ShippingSpecialService = ShippingSpecialServiceList.Select(s => new SelectListItem() { Text = s, Value = s, Selected = s == docTypePageRange.ShippingSpecialService }).ToList();
-            ViewBag.ShippingCarrierdropDown = ShippingCarrierList.Select(s => new SelectListItem() { Text = s, Value = s, Selected = docTypePageRange.ShippingCarrier == s }).ToList();
-            ViewBag.ShippingServiceTypedropDown = ShippingServiceTypeList.Select(s => new SelectListItem() { Text = s, Value = s, Selected = docTypePageRange.ShippingServiceType == s }).ToList();
+            ViewBag.ShippingCarrierdropDown = ShippingCarrierList.Select(s => new SelectListItem() { Text = s.Trim(), Value = s.Trim(), Selected = docTypePageRange.ShippingCarrier == s.Trim() }).ToList();
+            ViewBag.ShippingServiceTypedropDown = ShippingServiceTypeList.Select(s => new SelectListItem() { Text = s.Trim(), Value = s.Trim(), Selected = docTypePageRange.ShippingServiceType == s.Trim() }).ToList();
             var breEnvelopes = new List<SelectListItem>() { new SelectListItem { Text = "NA", Value = "0", Selected = docTypePageRange.BREEnvelopeId == 0 } };
             breEnvelopes.AddRange(inventorySvc.GetEnvelopes().Where(s => s.IsBREEnvelope).Select(s => new SelectListItem() { Text = s.EnvelopeName, Value = s.Id.ToString(), Selected = docTypePageRange.BREEnvelopeId == s.Id }).ToList());
             ViewBag.BREEnvelopedropDown = breEnvelopes;
@@ -685,6 +685,11 @@ namespace AM.Web.Controllers
                         clientDocTypes.DocTypes.DocTypePageRangeList.Remove(clientDocTypes.DocTypes.DocTypePageRangeList[0]);
                     if (clientDocTypes.DocTypes.DocTypePageRangeList[1].IsFallBack == false)
                         clientDocTypes.DocTypes.DocTypePageRangeList.Remove(clientDocTypes.DocTypes.DocTypePageRangeList[1]);
+                    if (clientDocTypes.DocTypes.DocTypePageRangeList.Count() == 0)
+                    {
+                        ModelState.AddModelError("", "Please specify DocType page range configuration.");
+                        return View(clientDocTypes);
+                    }
                     var model = supportSvc.CreateOrEditDocType(clientDocTypes, User.Identity.GetUserId());
                     if (model.Key)
                     {

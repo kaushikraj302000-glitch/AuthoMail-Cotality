@@ -311,7 +311,7 @@ namespace AM.Services
                     if (clientDocTypeId == 0)
                         clientDocTypeId = db.QuerySingle<int>(clientDocTypeInsertQuery, clientDocTypes, transaction: t);
                     else
-                        db.Execute(clientDocTypeUpdateQuery, new { Id = clientDocTypeId }, transaction: t);
+                        db.Execute(clientDocTypeUpdateQuery, new { Id = clientDocTypeId, DocTypeName = clientDocTypes.DocTypeName }, transaction: t);
 
                     var docTypesList = GenerateDocTypes(clientDocTypes.DocTypes, userId, clientDocTypes.ClientId, clientDocTypeId);
                     for (int i = 0; i < docTypesList.Count; i++)
@@ -475,7 +475,8 @@ inner join AM.DocTypes d on cd.Id = d.ClientDocTypeId
 inner join Common.Clients c on cd.ClientId=c.Id
 where cd.Id=@Id";
             var docTypes = db.Query<DocTypes>(query, new { Id = Id }).ToList();
-            return GetDocTypesToClientDocTypes(docTypes).First();
+            var model = GetDocTypesToClientDocTypes(docTypes);
+            return model.First();
         }
         public List<ClientDocTypes> GetDocTypesToClientDocTypes(List<DocTypes> docTypes)
         {
@@ -494,8 +495,8 @@ where cd.Id=@Id";
                             ShippingCarrier = range.ShippingCarrier,
                             ShippingServiceType = range.ShippingServiceType,
                             ShippingSpecialService = range.ShippingSpecialService,
-                            EnvelopeId = range.EnvelopeId ?? 0,
-                            BREEnvelopeId = range.BREEnvelopeId,
+                            EnvelopeId = range.EnvelopeId,
+                            BREEnvelopeId = range.BREEnvelopeId ?? 0,
                             IsBRE = range.IsBRE,
                             IsFallBack = range.IsFallBack
                         }
@@ -506,7 +507,8 @@ where cd.Id=@Id";
                 {
                     Id = item.Key,
                     DocTypeName = item.First().ClientDocTypesName,
-                    DocTypes = item.First()
+                    DocTypes = item.First(),
+                    ClientId = item.First().ClientId
                 });
             }
             return clientDocTypesList;

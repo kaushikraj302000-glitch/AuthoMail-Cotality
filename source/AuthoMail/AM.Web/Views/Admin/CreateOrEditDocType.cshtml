@@ -9,6 +9,7 @@
         Model.DocTypes.QCPercent = 0;
     }
     int rangeIndex = 2;
+    var fallBackShippingCarrier = new List<string>() { "PRIORITY_EXPRESS", "PRIORITY" };
 }
 
 
@@ -105,7 +106,7 @@
                                         </div>
                                         <div class="panel-body">
                                             <div class="row" id="PageRangeDiv">
-                                                @if (Model.DocTypes.DocTypePageRangeList.Any(m => !m.IsFallBack))
+                                                @if (Model.DocTypes.DocTypePageRangeList.Any(m => !fallBackShippingCarrier.Any(f => f == m.ShippingCarrier)))
                                                 {
                                                     foreach (var range in Model.DocTypes.DocTypePageRangeList.Where(m => m.IsFallBack == false).Select(m => m))
                                                     {

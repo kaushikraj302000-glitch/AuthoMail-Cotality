@@ -681,7 +681,7 @@
                 this.SLACutOffTime = moment(this.SLACutOffTime).format("HH:mm:ss");
                 this.CreatedOn = moment(this.CreatedOn).format("MM/DD/YY HH:mm:ss");
                 this.ModifiedOn = moment(this.ModifiedOn).format("MM/DD/YY HH:mm:ss");
-                this.Action = '<a style="cursor: pointer;font-size:1.2em;" a href="/Admin/CreateOrEditDocType?id='+this.Id+'" ><i class="fa fa-edit text-blue" aria-hidden="true" title="Edit"><span class="sr-only">Edit</span></i></a>';
+                this.Action = '<a style="cursor: pointer;font-size:1.2em;" a href="/Admin/CreateOrEditDocType?id='+this.ClientDocTypeId+'" ><i class="fa fa-edit text-blue" aria-hidden="true" title="Edit"><span class="sr-only">Edit</span></i></a>';
 
                 this.CoverLetter = '<span style="cursor: pointer;font-size:1.2em;margin-right:10%;" onclick="GetCoverLetterFiles(this)" data-id="' + this.Id + '" data-doctypecode="' + this.DocTypeCode + '" ><i class=" fa fa-file-pdf-o text-red" aria-hidden="true" title="Remove Cover Letter"><span class="sr-only">Cover Letter</span></i></span>';
                 this.MappingPT = '<a href="/Admin/PrintTrailMapByDocId/' + this.Id + '" style="cursor: pointer;font-size:1.2em;margin-right:10%;"  ><i class=" fa fa-list text-blue" aria-hidden="true" title="Print Trail Mapping"><span class="sr-only">Print Trail Mapping</span></i></a>';
