@@ -19,6 +19,12 @@ namespace AM.Core
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private static Random random = new Random();
+        private static readonly List<string> fallBackCodes = new List<string>() { "3051", "3049", "3052" };
+        private static readonly List<string> fallBackDescriptions = new List<string>() { "Recipient Postal Code not Served", "Recipient Postal Code not found", "Recipient Postal-State Mismatch" };
+        private static readonly List<string> fedExExceptionCodes = new List<string>() { "3022", "1000", "2998", "Unknown_Error" };
+        private static readonly List<string> fedExExceptionDescriptions = new List<string>() { "General Failure" };
+        private static readonly List<string> uspsExceptionCodes = new List<string>() { "80040B18" };
+        private static readonly List<string> uspsExceptionDescriptions = new List<string>() { "error has occurred with the service", "connected party did not properly respond", "existing connection was forcibly closed" };
 
         #region PrepPnSJob
         internal static void PrepPnSJobs()
@@ -212,53 +218,60 @@ namespace AM.Core
 
                                         response = doc.GenerateeVSPriorityExpressCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.RcptAddressTypes);
 
-                                        if (!response.HasError)
-                                        {
-                                            //if we have service changed to priority then we are updating doctypeid and its reletad data in database also
-                                            if (response.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY)
-                                            {
-                                                string priorityDocType = mailPiece.DocumentOrPackageType + Config.Monitor_PriorityMailingText;
-
-                                                var docTypePRI = docTypeSvc.GetFallBackDocTypeByDocTypeName(client.Id, priorityDocType);
-
-                                                if (docTypePRI != null)
-                                                {
-                                                    var sweepTimings = commonSvc.GetSweepTimings();
-
-                                                    mailPiece.DocTypeId = docTypePRI.Id;
-
-                                                    mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(docTypePRI, mailBatch.ReceivedOn.Value);
-
-                                                    //Calculate Due Date for Mail Pieces doc type wise
-                                                    mailPiece.DueDate = commonSvc.GetDueDate(docTypePRI, mailPiece.EffectiveReceivedOnEst.Value);
-
-                                                    //Set print location where mail piece will go for print and ship
-                                                    mailPiece.PrintTrailId = commonSvc.GetPrintTrail(docTypePRI, mailPiece.EffectiveReceivedOnEst.Value);
-
-                                                    var printVendorDetails = commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value);
-                                                    mailPiece.PrintLocation = printVendorDetails.Name;
-
-                                                    mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, mailBatch.ReceivedOn.Value, sweepTimings);
-
-                                                    mailPiece.MaxSubmissionTime = commonSvc.GetMaximumSubmissionTime(docTypePRI, mailPiece.EffectiveReceivedOnEst.Value);
-                                                }
-                                                else
-                                                {
-                                                    throw new Exception("Priority document type does not exist.");
-                                                }
-                                            }
-                                            break;
-                                        }
-                                        else if (response.HasError && (response.ExceptionCode.Contains("80040B18") || response.ExceptionDetail.Contains("error has occurred with the service") || response.ExceptionDetail.Contains("connected party did not properly respond") || response.ExceptionDetail.Contains("existing connection was forcibly closed")))
+                                        if (response.HasError && (uspsExceptionCodes.Any(code => response.ExceptionCode.Contains(code)) || uspsExceptionCodes.Any(desc => response.ExceptionDetail.Contains(desc))))
                                         {
                                             System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
                                             reTrycnt++;
+                                        }
+                                        else if (response.HasError)
+                                        {
+                                            var fallBackDocTypes = docTypeSvc.GetFallBackDocTypeByDocTypeName(client.Id, mailPiece.DocumentOrPackageType);
+
+                                            var priDocType = fallBackDocTypes.Single(dt => dt.ShippingCarrier == Carrier.USPS.ToString() && dt.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY.ToString());
+
+                                            if (priDocType == null)
+                                            {
+                                                mailPiece.TotalPages = 0;
+                                                mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                                mailPiece.ErrorDesc = response.ExceptionDetail;
+                                                mailPiece.DueDate = null;
+                                                mailPiece.PrintLocation = null;
+                                                mailPiece.PrintTrailId = null;
+                                                mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                                continue;
+                                            }
+
+                                            docType = priDocType;
+                                            commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client.AppCode);
+
+                                            eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
+
+                                            response = doc.GenerateeVSPriorityCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.RcptAddressTypes);
+
+                                            break;
                                         }
                                         else
                                         {
                                             break;
                                         }
                                     }
+
+                                    if (response.HasError)
+                                    {
+                                        mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
+                                        mailPiece.TotalPages = 0;
+                                        mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                        mailPiece.ErrorDesc = response.ExceptionDetail;
+                                        mailPiece.DueDate = null;
+                                        mailPiece.PrintLocation = null;
+                                        mailPiece.PrintTrailId = null;
+                                        mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                        continue;
+                                    }
+
+                                    coverLetterPdfPaths.Add(response.CoverLetterPath);
+                                    mailPiece.TrackingNo = response.TrackingCode;
+                                    mailPiece.ShippingCost = response.PostageCost;
                                 }
                                 else if (docType.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY.ToString())
                                 {
@@ -269,7 +282,7 @@ namespace AM.Core
 
                                         response = doc.GenerateeVSPriorityCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.RcptAddressTypes);
 
-                                        if (response.HasError && (response.ExceptionCode.Contains("80040B18") || response.ExceptionDetail.Contains("error has occurred with the service") || response.ExceptionDetail.Contains("connected party did not properly respond") || response.ExceptionDetail.Contains("existing connection was forcibly closed")))
+                                        if (response.HasError && (uspsExceptionCodes.Any(code => response.ExceptionCode.Contains(code)) || uspsExceptionCodes.Any(desc => response.ExceptionDetail.Contains(desc))))
                                         {
                                             System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
                                             reTrycnt++;
@@ -279,29 +292,48 @@ namespace AM.Core
                                             break;
                                         }
                                     }
+
+                                    if (response.HasError)
+                                    {
+                                        mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
+                                        mailPiece.TotalPages = 0;
+                                        mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                        mailPiece.ErrorDesc = response.ExceptionDetail;
+                                        mailPiece.DueDate = null;
+                                        mailPiece.PrintLocation = null;
+                                        mailPiece.PrintTrailId = null;
+                                        mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                        continue;
+                                    }
+
+                                    coverLetterPdfPaths.Add(response.CoverLetterPath);
+                                    mailPiece.TrackingNo = response.TrackingCode;
+                                    mailPiece.ShippingCost = response.PostageCost;
                                 }
-                                else
+                                else if (docType.ShippingServiceType == ShippingServiceType.IMB.ToString())
                                 {
                                     //Create Cover letter with IMBarcode - USPS First Class
                                     response = doc.GenerateUSPSIMBCoverLetter(client.AppCode, coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
+
+                                    if (response.HasError)
+                                    {
+                                        mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
+                                        mailPiece.TotalPages = 0;
+                                        mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                        mailPiece.ErrorDesc = response.ExceptionDetail;
+                                        mailPiece.DueDate = null;
+                                        mailPiece.PrintLocation = null;
+                                        mailPiece.PrintTrailId = null;
+                                        mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                        continue;
+                                    }
+
+                                    coverLetterPdfPaths.Add(response.CoverLetterPath);
+                                    mailPiece.TrackingNo = response.TrackingCode;
+                                    mailPiece.ShippingCost = response.PostageCost;
                                 }
 
-                                if (response.HasError)
-                                {
-                                    mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
-                                    mailPiece.TotalPages = 0;
-                                    mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                                    mailPiece.ErrorDesc = response.ExceptionDetail;
-                                    mailPiece.DueDate = null;
-                                    mailPiece.PrintLocation = null;
-                                    mailPiece.PrintTrailId = null;
-                                    mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
-                                    continue;
-                                }
-
-                                coverLetterPdfPaths.Add(response.CoverLetterPath);
-                                mailPiece.TrackingNo = response.TrackingCode;
-                                mailPiece.ShippingCost = response.PostageCost;
+                                // Shipping Service Type is First Class or  client is print ready then we don't need to do anything.
                             }
                             else if (docType.ShippingCarrier == Carrier.FedEx.ToString())
                             {
@@ -321,7 +353,7 @@ namespace AM.Core
                                         mailPiece.ShippingCost = response.PostageCost;
                                         break;
                                     }
-                                    else if (response.HasError && (response.ExceptionCode == "3022" || response.ExceptionCode == "1000" || response.ExceptionCode == "2998" || response.ExceptionCode == "Unknown_Error" || response.ExceptionDetail.Contains("General Failure")))
+                                    else if (response.HasError && (fedExExceptionCodes.Any(code => response.ExceptionCode == code) || fedExExceptionDescriptions.Any(desc => response.ExceptionDetail.Contains(desc))))
                                     {
                                         System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
                                         attemptCount++;
@@ -333,31 +365,77 @@ namespace AM.Core
                                     }
                                     else
                                     {
-                                        if (response.HasError && (response.ExceptionCode == "3051" || response.ExceptionCode == "3049" || response.ExceptionCode == "3052" || response.ExceptionDetail.Contains("Recipient Postal Code not Served") || response.ExceptionDetail.Contains("Recipient Postal Code not found") || response.ExceptionDetail.Contains("Recipient Postal-State Mismatch")))
+                                        if (response.HasError && (fallBackCodes.Any(code => code == response.ExceptionCode) || fallBackDescriptions.Any(desc => response.ExceptionDetail.Contains(desc) && docType.IsFallBack)))
                                         {
                                             //First try to generate eVS label with USPS Priority Express
-                                            string priorityExpressDocType = mailPiece.DocumentOrPackageType + Config.Monitor_ExpressMailingText;
+                                            var fallBackDocTypes = docTypeSvc.GetFallBackDocTypeByDocTypeName(mailPiece.ClientId, mailPiece.DocumentOrPackageType);
 
-                                            docType = docTypeSvc.GetFallBackDocTypeByDocTypeName(client.Id, priorityExpressDocType);
-                                            if (docType != null)
+                                            if (fallBackDocTypes == null || fallBackDocTypes.Count == 0)
                                             {
-                                                mailPiece.DocTypeId = docType.Id;
+                                                mailPiece.ErrorCode = OutComeCodes.Invalid_PackageType;
+                                                mailPiece.ErrorDesc = "The specified document or package type '{0}' is not configured.".Fill(mailPiece.DocumentOrPackageType);
+                                                mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                                mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                                continue;
                                             }
 
-                                            eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, docType.ShippingServiceType.ParseEnum<AM.USPSLib.ServiceType>());
+                                            var priExDocType = fallBackDocTypes.Single(dt => dt.ShippingCarrier == Carrier.USPS.ToString() && dt.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS.ToString());
 
-                                            response = doc.GenerateeVSPriorityExpressCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.RcptAddressTypes);
-
-                                            //if eVS has changed service to USPS Priority then AM is updating doctypeid in database
-                                            if (response.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY)
+                                            if (priExDocType != null)
                                             {
-                                                string priorityDocType = mailPiece.DocumentOrPackageType + Config.Monitor_PriorityMailingText;
+                                                docType = priExDocType;
 
-                                                docType = docTypeSvc.GetFallBackDocTypeByDocTypeName(client.Id, priorityDocType);
-                                                if (docType != null)
+                                                mailPiece.DocTypeId = docType.Id;
+
+                                                eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, docType.ShippingServiceType.ParseEnum<AM.USPSLib.ServiceType>());
+
+                                                response = doc.GenerateeVSPriorityExpressCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.RcptAddressTypes);
+
+                                                if (response.HasError)
                                                 {
-                                                    mailPiece.DocTypeId = docType.Id;
+                                                    var priDocType = fallBackDocTypes.Single(dt => dt.ShippingCarrier == Carrier.USPS.ToString() && dt.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY.ToString());
+
+                                                    if (priDocType == null)
+                                                    {
+                                                        mailPiece.TotalPages = 0;
+                                                        mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                                        mailPiece.ErrorDesc = response.ExceptionDetail;
+                                                        mailPiece.DueDate = null;
+                                                        mailPiece.PrintLocation = null;
+                                                        mailPiece.PrintTrailId = null;
+                                                        mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                                        continue;
+                                                    }
+
+
+                                                    eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
+
+                                                    response = doc.GenerateeVSPriorityCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.RcptAddressTypes);
                                                 }
+                                            }
+                                            else
+                                            {
+                                                var priDocType = fallBackDocTypes.Single(dt => dt.ShippingCarrier == Carrier.USPS.ToString() && dt.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY.ToString());
+
+                                                if (priDocType == null)
+                                                {
+                                                    mailPiece.TotalPages = 0;
+                                                    mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                                    mailPiece.ErrorDesc = response.ExceptionDetail;
+                                                    mailPiece.DueDate = null;
+                                                    mailPiece.PrintLocation = null;
+                                                    mailPiece.PrintTrailId = null;
+                                                    mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                                    continue;
+                                                }
+
+                                                docType = priDocType;
+
+                                                mailPiece.DocTypeId = docType.Id;
+
+                                                eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
+
+                                                response = doc.GenerateeVSPriorityCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.RcptAddressTypes);
                                             }
 
                                             if (response.HasError)
@@ -373,20 +451,8 @@ namespace AM.Core
                                             coverLetterPdfPaths.Add(response.CoverLetterPath);
                                             mailPiece.TrackingNo = response.TrackingCode;
                                             mailPiece.ShippingCost = response.PostageCost;
-                                            mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(docType, mailBatch.ReceivedOn.Value);
-
-                                            //Calculate Due Date for Mail Pieces doc type wise
-                                            mailPiece.DueDate = commonSvc.GetDueDate(docType, mailPiece.EffectiveReceivedOnEst.Value);
-
-                                            //Set print location where mail piece will go for print and ship
-                                            mailPiece.PrintTrailId = commonSvc.GetPrintTrail(docType, mailPiece.EffectiveReceivedOnEst.Value);
-
-                                            var printVendorDetails = commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value);
-                                            mailPiece.PrintLocation = printVendorDetails.Name;
-
-                                            mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, mailBatch.ReceivedOn.Value, sweepTimings);
-
-                                            mailPiece.MaxSubmissionTime = commonSvc.GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
+                                            //Update Due Date and its other calculation based on updated document type.
+                                            commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client.AppCode);
                                             break;
                                         }
 

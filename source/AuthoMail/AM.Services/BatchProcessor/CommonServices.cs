@@ -36,6 +36,7 @@ namespace AM.Services
         DateTime GetEffectiveEstReceivedOn(DocType docType, DateTime utcReceivedOn);
         int InsertErrorNotifications(int mailBatchId);
         string GetErrorNotificationEmailSubscriberList(int clientId);
+        void GetUpdatedDueDateAndPrintLocation(DateTime receivedOn, MailPieceDTO mailPiece, DocType docType, string appCode);
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -409,6 +410,20 @@ namespace AM.Services
         public string GetErrorNotificationEmailSubscriberList(int clientId)
         {
             return String.Join(",", db.Query<string>("SELECT U.Email FROM [AM].[AlertSubscribers] A INNER JOIN [Profile].[Users] U ON A.UserId=U.Id WHERE U.ClientId=@ClientId", new { ClientId = clientId }));
+        }
+        public void GetUpdatedDueDateAndPrintLocation(DateTime receivedOn, MailPieceDTO mailPiece, DocType docType, string appCode)
+        {
+            mailPiece.DocTypeId = docType.Id;
+            mailPiece.EffectiveReceivedOnEst = GetEffectiveEstReceivedOn(docType, receivedOn);
+            //Calculate Due Date for Mail Pieces doc type wise
+            mailPiece.DueDate = GetDueDate(docType, mailPiece.EffectiveReceivedOnEst.Value);
+            //Set print location where mail piece will go for print and ship
+            mailPiece.PrintTrailId = GetPrintTrail(docType, mailPiece.EffectiveReceivedOnEst.Value);
+            var printVendorDetails = GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value);
+            mailPiece.PrintLocation = printVendorDetails.Name;
+            mailPiece.StdSubmissionTime = GetStandardSubmissionTime(appCode, printVendorDetails.VendorCode, receivedOn, GetSweepTimings());
+            mailPiece.MaxSubmissionTime = GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
+
         }
     }
 }

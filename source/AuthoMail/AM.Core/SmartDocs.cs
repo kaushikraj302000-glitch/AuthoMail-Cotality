@@ -126,24 +126,13 @@ namespace AM.Core
                     if (eVSRes.HasError)
                     {
                         log.Error("Error occured in MailPieceId - {0} while requesting eVS priority express label with following Error {1}".Fill(mailPieceId, eVSRes.Error.Description));
-                        //If we get any error while generating USPS Priority express label then we are going to try for USPS Priority label
-                        eVSReq.ServiceType = AM.USPSLib.ServiceType.PRIORITY;
 
-                        if (rcptAddressTypes.Contains(AddressType.Military.ToString()))
-                            eVSReq.LabelParameters = new LabelParameters() { Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.LABEL4X6L };
-                        else
-                            eVSReq.LabelParameters = new LabelParameters() { XCoordinate = 450, YCoordinate = 500, Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.LABEL4X6P_PAGE };
-
-                        eVSRes = uspsSvc.RequesteVSLabelAsync(sysUserId, eVSReq).Result;
-
-                        if (eVSRes.HasError)
-                        {
-                            response.HasError = true;
-                            response.ExceptionDetail = "Error occured while generating eVS label for MailPiece-Id:{0} with Exception : {1}".Fill(mailPieceId, eVSRes.Error.Description);
-                            response.ExceptionCode = OutComeCodes.Unknown_Error;
-                            return response;
-                        }
+                        response.HasError = true;
+                        response.ExceptionDetail = "Error occured while generating eVS label for MailPiece-Id:{0} with Exception : {1}".Fill(mailPieceId, eVSRes.Error.Description);
+                        response.ExceptionCode = OutComeCodes.Unknown_Error;
+                        return response;
                     }
+
                     response.ShippingServiceType = eVSReq.ServiceType.Value;
 
                     File.WriteAllBytes(coverLetterPDFPath, Convert.FromBase64String(eVSRes.LabelImageString));

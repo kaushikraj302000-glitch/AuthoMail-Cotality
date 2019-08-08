@@ -625,17 +625,37 @@ namespace AM.Console
                         {
                             if (!(addressResponse.AddressTypes.All(c => c == AddressType.DHAM)))
                             {
-                                documentOrPackageType += Config.Monitor_ExpressMailingText;
+                                var fallBackDocTypes = docTypeSvc.GetFallBackDocTypeByDocTypeName(mailPiece.ClientId, documentOrPackageType);
 
-                                docType = docTypeSvc.GetFallBackDocTypeByDocTypeName(mailPiece.ClientId, documentOrPackageType);
-
-                                if (docType == null)
+                                if (fallBackDocTypes == null || fallBackDocTypes.Count == 0)
                                 {
                                     mailPiece.ErrorCode = OutComeCodes.Invalid_PackageType;
                                     mailPiece.ErrorDesc = "The specified document or package type '{0}' is not configured.".Fill(mailPiece.DocumentOrPackageType);
                                     mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                                     mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                                     continue;
+                                }
+
+                                var priExDocType = fallBackDocTypes.Single(dt => dt.ShippingCarrier == Carrier.USPS.ToString() && dt.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS.ToString());
+
+                                if (priExDocType != null)
+                                {
+                                    docType = priExDocType;
+                                }
+                                else
+                                {
+                                    var priDocType = fallBackDocTypes.Single(dt => dt.ShippingCarrier == Carrier.USPS.ToString() && dt.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY.ToString());
+
+                                    if (priDocType == null)
+                                    {
+                                        mailPiece.ErrorCode = OutComeCodes.Invalid_PackageType;
+                                        mailPiece.ErrorDesc = "The specified document or package type '{0}' is not configured.".Fill(mailPiece.DocumentOrPackageType);
+                                        mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                        mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                        continue;
+                                    }
+
+                                    docType = priDocType;
                                 }
 
                                 mailPiece.DocTypeId = docType.Id;

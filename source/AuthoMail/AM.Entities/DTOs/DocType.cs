@@ -6,11 +6,18 @@ using System.Threading.Tasks;
 
 namespace AM.Entities
 {
+    public class ClientDocType
+    {
+        public int Id { get; set; }
+        public int ClientId { get; set; }
+        public string DocTypeName { get; set; }
+    }
+
     public class DocType
     {
         public int Id { get; set; }
-        public string DocTypeCode { get; set; }
-        public string Description { get; set; }
+        public int ClientDocTypeId { get; set; }
+        public string DocTypeName { get; set; }
         public bool IsBRE { get; set; }
         public string PrintSize { get; set; }
         public int ContentScalePercent { get; set; }
@@ -59,8 +66,9 @@ namespace AM.Entities
         public int BREEnvelopeId { get; set; }
         public int NoOfCopies { get; set; }
         public string PrintFormat { get; set; }
-        public string MinPageCount { get; set; }
-        public string MaxPageCount { get; set; }
+        public int MinPage { get; set; }
+        public int MaxPage { get; set; }
+        public bool IsFallBack { get; set; }
     }
 
     public class DocTypeCoverLetter
