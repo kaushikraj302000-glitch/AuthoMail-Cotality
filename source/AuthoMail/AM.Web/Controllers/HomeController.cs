@@ -75,7 +75,7 @@ namespace AM.Web.Controllers
         public ActionResult Search()
         {
             ViewBag.BusinessId = homeSvc.GetBusinessFriendlyIdNameByclientId(User.Identity.GetClientId().Value);
-            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
+            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeName");
             return View();
         }
         [HttpGet]
@@ -87,7 +87,7 @@ namespace AM.Web.Controllers
         }
 
         [HttpPost]
-        public ActionResult _GetSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string receivedOnStart, string receivedOnEnd, string status, string channel, List<string> docType, string trackingNumber, string clientBatchId, string batchId, string mailPieceId, List<string> errorCode)
+        public ActionResult _GetSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string receivedOnStart, string receivedOnEnd, string status, string channel, List<int> docType, string trackingNumber, string clientBatchId, string batchId, string mailPieceId, List<string> errorCode)
         {
             try
             {
@@ -108,7 +108,7 @@ namespace AM.Web.Controllers
         }
 
         [HttpPost]
-        public ActionResult _DownloadSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string receivedOnStart, string receivedOnEnd, string status, string channel, List<string> docType, string trackingNumber, string clientBatchId, string batchId, string mailPieceId, List<string> errorCode, int timezoneOffset, string clientName)
+        public ActionResult _DownloadSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string receivedOnStart, string receivedOnEnd, string status, string channel, List<int> docType, string trackingNumber, string clientBatchId, string batchId, string mailPieceId, List<string> errorCode, int timezoneOffset, string clientName)
         {
             try
             {

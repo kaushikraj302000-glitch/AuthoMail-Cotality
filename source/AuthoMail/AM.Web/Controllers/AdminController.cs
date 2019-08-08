@@ -680,11 +680,8 @@ namespace AM.Web.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    clientDocTypes.DocTypes.DocTypePageRangeList.RemoveAll(d => d.DocTypesId < 0);
-                    if (clientDocTypes.DocTypes.DocTypePageRangeList[0].IsFallBack == false)
-                        clientDocTypes.DocTypes.DocTypePageRangeList.Remove(clientDocTypes.DocTypes.DocTypePageRangeList[0]);
-                    if (clientDocTypes.DocTypes.DocTypePageRangeList[1].IsFallBack == false)
-                        clientDocTypes.DocTypes.DocTypePageRangeList.Remove(clientDocTypes.DocTypes.DocTypePageRangeList[1]);
+                    var fallBackShippingServiceType = new List<string>() { "PRIORITY_EXPRESS", "PRIORITY" };
+                    clientDocTypes.DocTypes.DocTypePageRangeList.RemoveAll(d => d.DocTypesId < 0 || (!d.IsFallBack && fallBackShippingServiceType.Any(f => f == d.ShippingServiceType)));
                     if (clientDocTypes.DocTypes.DocTypePageRangeList.Count() == 0)
                     {
                         ModelState.AddModelError("", "Please specify DocType page range configuration.");
