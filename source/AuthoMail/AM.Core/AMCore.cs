@@ -571,7 +571,7 @@ namespace AM.Core
                                 sftSite.Connect();
 
                                 sftSite.UploadFile(localErrorReportPath, ftpErrorReportPath);
-                                
+
                                 // Upload Error.GO file after uploading error report
                                 File.WriteAllText(errorGoFilePath, string.Empty);
                                 sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
@@ -604,7 +604,7 @@ namespace AM.Core
                                 sftSite.Connect();
 
                                 sftSite.UploadFile(localErrorReportPath, ftpErrorReportPath);
-                                
+
                                 // Upload Error.GO file after uploading error report
                                 File.WriteAllText(errorGoFilePath, string.Empty);
                                 sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
@@ -1160,38 +1160,43 @@ namespace AM.Core
 
                         var pnsResponse = PnSResponse.LoadXml(File.ReadAllText(printbatchResponseFilePath));
 
-                        foreach (var mailPackage in pnsResponse.MailPackageReport)
-                        {
-                            printBatchMailPieces.ForEach(row =>
-                            {
-                                if (row.UniqueId == mailPackage.UniqueId)
-                                {
-                                    if (mailPackage.MailPieceStatus == MailPieceStatus.Error)
-                                    {
-                                        row.ErrorCode = Enum.ToObject(typeof(ErrorTypes), mailPackage.ErrId).ToString();
-                                        row.ErrorDesc = mailPackage.ErrDesc;
-                                        row.MissedSLAReason = MissedSLAReason.NA;
-                                    }
-                                    else if (mailPackage.MailPieceStatus == MailPieceStatus.PulledBack)
-                                    {
-                                        row.PulledBackOn = mailPackage.PulledBackOn;
-                                        row.MissedSLAReason = MissedSLAReason.NA;
-                                    }
-                                    else if (mailPackage.MailPieceStatus == MailPieceStatus.Shipped)
-                                    {
-                                        row.PrintedOn = mailPackage.PrintedOn;
-                                        row.ShippedOn = mailPackage.ShippedOn;
-                                        row.ShippingCost = mailPackage.PostageCost != 0.00M ? mailPackage.PostageCost : row.ShippingCost;
-                                        row.Weight = mailPackage.WeightMeasured;
-                                        row.IsQCPerformed = mailPackage.IsQCPerformed;
-                                        row.MissedSLAReason = GetMissedSLAReason(row);
-                                    }
-                                    row.ShippingStatus = mailPackage.MailPieceStatus.ToString();
+                        var responseLookup = new Dictionary<Guid, MailPieceReport>();
+                        pnsResponse.MailPackageReport.ForEach(mpr => responseLookup.Add(mpr.UniqueId, mpr));
 
-                                    mailPieceSvc.UpdateBatchMailPieceShippingStatusDetails(row);
-                                }
-                            });
-                        }
+
+                        //foreach (var mailPackage in pnsResponse.MailPackageReport)
+                        //{
+                        printBatchMailPieces.ForEach(row =>
+                        {
+                            var mailPackage = responseLookup[row.UniqueId];
+                            //if (row.UniqueId == mailPackage.UniqueId)
+                            //{
+                            if (mailPackage.MailPieceStatus == MailPieceStatus.Error)
+                            {
+                                row.ErrorCode = Enum.ToObject(typeof(ErrorTypes), mailPackage.ErrId).ToString();
+                                row.ErrorDesc = mailPackage.ErrDesc;
+                                row.MissedSLAReason = MissedSLAReason.NA;
+                            }
+                            else if (mailPackage.MailPieceStatus == MailPieceStatus.PulledBack)
+                            {
+                                row.PulledBackOn = mailPackage.PulledBackOn;
+                                row.MissedSLAReason = MissedSLAReason.NA;
+                            }
+                            else if (mailPackage.MailPieceStatus == MailPieceStatus.Shipped)
+                            {
+                                row.PrintedOn = mailPackage.PrintedOn;
+                                row.ShippedOn = mailPackage.ShippedOn;
+                                row.ShippingCost = mailPackage.PostageCost != 0.00M ? mailPackage.PostageCost : row.ShippingCost;
+                                row.Weight = mailPackage.WeightMeasured;
+                                row.IsQCPerformed = mailPackage.IsQCPerformed;
+                                row.MissedSLAReason = GetMissedSLAReason(row);
+                            }
+                            row.ShippingStatus = mailPackage.MailPieceStatus.ToString();
+
+                            mailPieceSvc.UpdateBatchMailPieceShippingStatusDetails(row);
+                            //}
+                        });
+                        //}
 
                         //Updates PrintBatches Status values
                         commonSvc.UpdatePrintBatchStatus(printBatch.PrintBatchId, pnsResponse.BatchStatus.ToString(), pnsResponse.StatusDescription);
