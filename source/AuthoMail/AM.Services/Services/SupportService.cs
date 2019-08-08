@@ -521,7 +521,7 @@ where cd.Id=@Id";
         #endregion docType
         public List<DocTypes> GetDocTypes()
         {
-            string query = @"select d.*,cd.DocTypeName as ClientDocTypesName,c.Name as ClientName from AM.ClientDocTypes cd
+            string query = @"select d.*,c.Name as ClientName,cd.DocTypeName as ClientDocTypesName,c.Name as ClientName from AM.ClientDocTypes cd
 inner join AM.DocTypes d on cd.Id = d.ClientDocTypeId
 inner join Common.Clients c on cd.ClientId=c.Id";
             var model = db.Query<DocTypes>(query).ToList();
@@ -716,7 +716,7 @@ inner join Common.Clients c on cd.ClientId=c.Id";
 
         public List<DocTypeVM> GetDocTypesByClientId(int ClientId)
         {
-            string q = "select d.Id,d.ClientId,d.DocTypeCode,c.Name as ClientName,c.AppCode from AM.DocTypes d,Common.Clients c where d.ClientId=c.Id and ClientId=@clientId";
+            string q = "select cd.Id,cd.ClientId,cd.DocTypeName as DocTypeCode,c.Name as ClientName,c.AppCode from AM.ClientDocTypes cd,Common.Clients c where cd.ClientId = c.Id and ClientId =@clientId";
             return db.Query<DocTypeVM>(q, new { clientId = ClientId }).ToList();
         }
         public List<DocTypeCoverLetterVM> GetDocTypeCoverLetterByDocTypeId(int Id)

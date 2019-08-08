@@ -46,8 +46,9 @@
         <thead>
             <tr>
                 <th>Action</th>
-                <th>DocType Code</th>
-                <th>Description</th>
+                @*<th>DocType Code</th>
+                    <th>Description</th>*@
+                <th>DocType Name</th>
                 <th>Client Name</th>
                 <th>IsActive</th>
                 <th>Print Size</th>
@@ -102,9 +103,10 @@
         <tbody id="DocTypeBody">
             <tr class="row-small">
                 <td>{MappingPT}{CoverLetter}{Action}</td>
-                <td><span data-id="{Id}">{DocTypeCode}</span></td>
-                <td><span>{Description}</span></td>
-                <td><span>{Client.Name}</span></td>
+                @*<td><span data-id="{Id}">{DocTypeCode}</span></td>
+                    <td><span>{Description}</span></td>*@
+                <td><span>{ClientDocTypesName}</span></td>
+                <td><span>{ClientName}</span></td>
                 <td><span>{IsActiveFormatted}</span></td>
                 <td><span>{PrintSize}</span></td>
                 <td><span>{ContentScalePercent}</span></td>
