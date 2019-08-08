@@ -782,7 +782,10 @@ namespace AM.Console
             var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType, pageCount);
 
             if (docType != null)
+            {
+                mailPieceDTO.ClientDocTypeId = docType.ClientDocTypeId;
                 mailPieceDTO.DocTypeId = docType.Id;
+            }
 
             if (docType == null)
             {
