@@ -678,9 +678,9 @@ namespace AM.Web.Controllers
             CreateOrEditDocTypeSettings(clientDocTypes);
             try
             {
-                clientDocTypes.DocTypes.DocTypePageRangeList.RemoveAll(d => d.DocTypesId < 0);
                 if (ModelState.IsValid)
                 {
+                    clientDocTypes.DocTypes.DocTypePageRangeList.RemoveAll(d => d.DocTypesId < 0);
                     if (clientDocTypes.DocTypes.DocTypePageRangeList[0].IsFallBack == false)
                         clientDocTypes.DocTypes.DocTypePageRangeList.Remove(clientDocTypes.DocTypes.DocTypePageRangeList[0]);
                     if (clientDocTypes.DocTypes.DocTypePageRangeList[1].IsFallBack == false)

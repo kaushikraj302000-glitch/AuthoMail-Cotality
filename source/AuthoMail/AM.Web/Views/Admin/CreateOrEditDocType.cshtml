@@ -9,7 +9,8 @@
         Model.DocTypes.QCPercent = 0;
     }
     int rangeIndex = 2;
-    var fallBackShippingCarrier = new List<string>() { "PRIORITY_EXPRESS", "PRIORITY" };
+    var fallBackShippingServiceType = new List<string>() { "PRIORITY_EXPRESS", "PRIORITY" };
+    var pageRangeDocTypes = Model.DocTypes.DocTypePageRangeList.Where(m => !fallBackShippingServiceType.Any(f => f == m.ShippingServiceType)).ToList();
 }
 
 
@@ -106,9 +107,9 @@
                                         </div>
                                         <div class="panel-body">
                                             <div class="row" id="PageRangeDiv">
-                                                @if (Model.DocTypes.DocTypePageRangeList.Any(m => !fallBackShippingCarrier.Any(f => f == m.ShippingCarrier)))
+                                                @if (pageRangeDocTypes.Count() > 0)
                                                 {
-                                                    foreach (var range in Model.DocTypes.DocTypePageRangeList.Where(m => m.IsFallBack == false).Select(m => m))
+                                                    foreach (var range in pageRangeDocTypes)
                                                     {
                                                         @Html.Action("_DocTypePageRange", "Admin", new { docTypePageRange = range, index = rangeIndex, isFallBack = false, shippingServiceType = "" })
                                                         rangeIndex++;
@@ -129,9 +130,9 @@
                                                     priority = priority ?? new AM.Services.DocTypePageRange();
                                                 }
 
-                                                @Html.Action("_DocTypePageRange", "Admin", new { docTypePageRange = priorityExp, index = 0, isFallBack = true, shippingServiceType = "PRIORITY_EXPRESS" })
+                                                @Html.Action("_DocTypePageRange", "Admin", new { docTypePageRange = priorityExp, index = 0, isFallBack = true, shippingServiceType = fallBackShippingServiceType.First() })
 
-                                                @Html.Action("_DocTypePageRange", "Admin", new { docTypePageRange = priority, index = 1, isFallBack = true, shippingServiceType = "PRIORITY" })
+                                                @Html.Action("_DocTypePageRange", "Admin", new { docTypePageRange = priority, index = 1, isFallBack = true, shippingServiceType = fallBackShippingServiceType[1] })
 
                                             </div>
                                         </div>
