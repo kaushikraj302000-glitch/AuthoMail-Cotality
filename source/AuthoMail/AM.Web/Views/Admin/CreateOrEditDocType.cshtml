@@ -80,7 +80,7 @@
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="Clients">Clients</label>
-                                        @Html.DropDownListFor(model => model.ClientId, ViewBag.Clients as SelectList, "Select Client", htmlAttributes: new { @class = " form-control selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Client" })
+                                        @Html.DropDownListFor(model => model.ClientId, ViewBag.Clients as SelectList, htmlAttributes: new { @class = " form-control selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Client" })
                                     </div>
                                 </div>
                                 <div class="col-md-4">
