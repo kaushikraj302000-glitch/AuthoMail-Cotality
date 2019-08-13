@@ -106,7 +106,38 @@
                                             </div>
                                         </div>
                                         <div class="panel-body">
-                                            <div class="row" id="PageRangeDiv">
+                                            <div class="row">
+                                                <div class="col-md-2 colmd">
+                                                    <div class="col-md-2 colmd">
+                                                        <label>#</label>
+                                                    </div>
+                                                    <div class="col-md-5 colmd">
+                                                        <label>From</label>
+                                                    </div>
+                                                    <div class="col-md-5 colmd">
+                                                        <label>To</label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-md-2 colmd">
+                                                    <label>Shipping Carrier</label>
+                                                </div>
+                                                <div class="col-md-2 colmd">
+                                                    <label>Shipping Service Type</label>
+                                                </div>
+                                                <div class="col-md-2 colmd">
+                                                    <label>Shipping Special Service</label>
+                                                </div>
+                                                <div class="col-md-2 colmd">
+                                                    <label>Envelope</label>
+                                                </div>
+                                                <div class="col-md-2 colmd" style="border-right:none;">
+                                                    <label>BREEnvelope</label>
+                                                </div>
+                                            </div>
+
+                                            <div class="clearfix"></div>
+                                            <div class="row" id="PageRangeDiv" style="padding-top:0px !important;">
                                                 @if (pageRangeDocTypes.Count() > 0)
                                                 {
                                                     foreach (var range in pageRangeDocTypes)

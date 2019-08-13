@@ -369,7 +369,7 @@ namespace AM.Services
                 dt.EnvelopeId = range.EnvelopeId;
                 dt.BREEnvelopeId = range.BREEnvelopeId == 0 ? null : range.BREEnvelopeId;
                 dt.IsBRE = docTypes.BREEnvelopeId.HasValue;
-                dt.ShippingSpecialService = range.ShippingSpecialService;
+                dt.ShippingSpecialService = string.Join(",", range.ShippingSpecialServiceList);
                 dt.CreatedOn = docTypes.ModifiedOn = DateTime.UtcNow;
                 dt.CreatedBy = docTypes.ModifiedBy = userId;
                 dt.ClientId = clientId;
@@ -441,7 +441,7 @@ namespace AM.Services
                     throw new Exception("Shipping Carrier field is required.");
                 if (range.ShippingServiceType.IsNullOrWhiteSpace())
                     throw new Exception("Shipping Service Type field is required.");
-                if (range.ShippingSpecialService.IsNullOrWhiteSpace())
+                if (range.ShippingSpecialServiceList == null || range.ShippingSpecialServiceList.Count() == 0)
                     throw new Exception("Shipping Special Service field is required.");
                 if (!range.EnvelopeId.HasValue || range.EnvelopeId.Value == 0)
                     throw new Exception("Envelope field is required.");
@@ -501,6 +501,7 @@ where cd.Id=@Id";
                             ShippingCarrier = range.ShippingCarrier,
                             ShippingServiceType = range.ShippingServiceType,
                             ShippingSpecialService = range.ShippingSpecialService,
+                            ShippingSpecialServiceList = range.ShippingSpecialService == null ? null : range.ShippingSpecialService.Split(',').ToList(),
                             EnvelopeId = range.EnvelopeId,
                             BREEnvelopeId = range.BREEnvelopeId ?? 0,
                             IsBRE = range.IsBRE,

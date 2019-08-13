@@ -353,6 +353,7 @@ namespace AM.Services
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
         public string ShippingSpecialService { get; set; }
+        public List<string> ShippingSpecialServiceList { get; set; }
         public int? EnvelopeId { get; set; }
         public int? BREEnvelopeId { get; set; }
         public bool IsFallBack { get; set; }
