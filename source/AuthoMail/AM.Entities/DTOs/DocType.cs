@@ -42,6 +42,7 @@ namespace AM.Entities
         public string RetRcptAddressCity { get; set; }
         public string RetRcptAddressState { get; set; }
         public string RetRcptAddressZIP { get; set; }
+        public string RetRcptAddressCountry { get; set; }
         public string ClientEmails { get; set; }
         public string ClientContactNo { get; set; }
         public string SupportEmails { get; set; }

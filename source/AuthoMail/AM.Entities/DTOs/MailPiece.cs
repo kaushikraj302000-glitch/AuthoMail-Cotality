@@ -45,6 +45,7 @@ namespace AM.Entities
         public string RcptAddressCity { get; set; }
         public string RcptAddressState { get; set; }
         public string RcptAddressZIP { get; set; }
+        public string RcptAddressCountry { get; set; }
         public bool IsReturnInfoSpecified { get; set; }
         public string RetRcptPrefix { get; set; }
         public string RetRcptFirstName { get; set; }
@@ -62,6 +63,7 @@ namespace AM.Entities
         public string RetRcptAddressCity { get; set; }
         public string RetRcptAddressState { get; set; }
         public string RetRcptAddressZIP { get; set; }
+        public string RetRcptAddressCountry { get; set; }
         public int TotalPages { get; set; }
         public int TotalSheets { get; set; }
         public string ErrorCode { get; set; }
