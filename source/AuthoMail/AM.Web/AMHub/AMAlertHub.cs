@@ -19,6 +19,10 @@ namespace AM.Web.AMHub
         {
             _amAlert = amAlert;
         }
+        public void RefreshAMAlert()
+        {
+            _amAlert.RefreshAMAlert();
+        }
         public void GetConnection(string conId)//Get Connection id
         {
             _amAlert.UpdateAMAlert(conId);

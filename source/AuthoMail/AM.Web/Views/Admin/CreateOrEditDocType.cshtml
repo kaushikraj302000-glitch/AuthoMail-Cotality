@@ -52,6 +52,9 @@
     <div class="panel-heading">
         <div class="panel-title">
             @(Model.Id == 0 ? Html.Raw("Add Document Type Details") : Html.Raw("Edit Document Type Details"))
+            <span class="pull-right">
+                <a href="/Admin/ManageDocumentTypes" class="btn btn-primary" type="button" title="Back to document type"><i class="fa fa-backward"></i> Go Back</a>
+            </span>
         </div>
     </div>
     <form id="doctypeform" action="/Admin/CreateOrEditDocType" method="post" enctype="multipart/form-data">
