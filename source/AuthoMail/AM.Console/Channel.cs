@@ -535,7 +535,7 @@ namespace AM.Console
                         //Set print location where mail piece will go for print and ship
                         mailPiece.PrintTrailId = commonSvc.GetPrintTrail(docType, mailPiece.EffectiveReceivedOnEst.Value);
                         var printVendorDetails = commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value);
-                        mailPiece.PrintLocation = printVendorDetails.Name;
+                        mailPiece.PrintLocation = printVendorDetails.PrintLocation;
                         //This field will be used for monitoring data    
                         mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, mailBatch.ReceivedOn.Value, sweepTimings);
                         mailPiece.MaxSubmissionTime = commonSvc.GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);

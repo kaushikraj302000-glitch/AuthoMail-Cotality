@@ -86,6 +86,7 @@ namespace AM.Entities
         public int SFTChannelId { get; set; }
         public string BusinessCode { get; set; }
         public string VendorCode { get; set; }
+        public string PrintLocation { get; set; }
     }
 
     public class PrintTrail

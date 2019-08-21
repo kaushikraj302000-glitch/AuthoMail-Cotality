@@ -210,7 +210,7 @@ namespace AM.Services
 
         public PrintVendor GetPrintVendorDetailsByPrintTrailId(int printTrailId)
         {
-            string query = "select pv.* from [Common].[PrintTrails] as pt inner join  [Common].[PrintVendors] as pv on pt.PrintVendorId = pv.Id where pt.Id = @printTrailId";
+            string query = "select pv.*,pt.PrintLocation from [Common].[PrintTrails] as pt inner join  [Common].[PrintVendors] as pv on pt.PrintVendorId = pv.Id where pt.Id = @printTrailId";
             return db.QuerySingleOrDefault<PrintVendor>(query, new { printTrailId = printTrailId });
         }
 
