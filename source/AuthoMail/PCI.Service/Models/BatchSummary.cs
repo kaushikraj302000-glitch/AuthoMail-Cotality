@@ -124,6 +124,12 @@ namespace PCI.Service
         public DateTime MailPieceDueDate { get; set; }
         public int? EnvelopeId { get; set; }
         public int? BREEnvelopeId { get; set; }
+        public int EnvelopePartNo { get; set; }
+        public int? BREPartNo { get; set; }
+        public string EnvelopeDesc { get; set; }
+        public string BREDesc { get; set; }
+        public string PrintSize { get; set; }
+        public string PrintFormat { get; set; }
 
         //Extra fields which will be used for generating MRDF Request
         public string InputWeight { get; set; }

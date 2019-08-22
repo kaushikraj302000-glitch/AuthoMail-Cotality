@@ -356,24 +356,32 @@ namespace PCI.Service
 
         private static string CreateNordisBatch(List<MailPieceDetail> mpList, PrintTrailBatch ptBatchDetails, string zipFilePath, string xmlFilePath, PrintTrailDetail ptDetails)
         {
-            List<PackageData> packageData = new List<PackageData>();
+            List<Package> packageData = new List<Package>();
+            PrintRequest printRequestXml = new PrintRequest();
+            printRequestXml.JobId = ptBatchDetails.Id;
             foreach (MailPieceDetail package in mpList)
             {
-                packageData.Add(
-                    new PackageData()
+                printRequestXml.Packages.Add(
+                    new Package()
                     {
                         PieceId = package.MailPieceId.Value,
-                        PDFFileName = package.PDFFileName,
+                        FileName = package.PDFFileName,
                         DueDate = package.MailPieceDueDate,
                         TotalSheets = package.TotalSheets,
-                        BRERequired = package.Feeder4_Sel == 1 ? true : false,
+                        ClientCode = package.AppCode,
+                        IsForeignAddress = false,
+                        TotalImages = package.TotalPages,
+                        PaperSize = package.PrintSize,
+                        PrintFormat = package.PrintFormat.ParseEnum<PrintFormat>(),
+                        EnvelopePartNo = package.EnvelopePartNo.ToString(),
+                        EnvelopeDesc = package.EnvelopeDesc,
+                        BREPartNo = package.BREPartNo.ToString(),
+                        BREDesc = package.BREDesc,
                         QCReqd = package.DivertVS3 == 1 ? true : false,
-                        ClientId = package.ClientId
                     });
             }
-            BatchRequest batchRequestXml = new BatchRequest() { JobId = ptBatchDetails.Id, PackagesData = packageData };
 
-            File.WriteAllText(xmlFilePath, batchRequestXml.ToXml());
+            File.WriteAllText(xmlFilePath, printRequestXml.ToXml());
 
             using (ZipArchive newFile = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
             {
