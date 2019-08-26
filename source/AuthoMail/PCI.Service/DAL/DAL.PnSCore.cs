@@ -166,20 +166,20 @@ namespace PCI.Service
             }
         }
 
-        public static void InsertXMLResponseData(BatchResponse batchResponse)
+        public static void InsertXMLResponseData(PrintResponse printResponse)
         {
-            if (batchResponse.PackagesReport.Count == 0)
+            if (printResponse.PackageReports.Count == 0)
                 return;
 
-            foreach (var res in batchResponse.PackagesReport)
+            foreach (var res in printResponse.PackageReports)
             {
-                int pieceId = GetRequestPieceId(batchResponse.JobId, res.PieceId);
+                int pieceId = GetRequestPieceId(printResponse.JobId, res.PieceId);
                 var sql = @"DELETE FROM [PnS].[MRDFResponse] Where JobId=@p1 and PieceId=@p2";
-                db.ExecuteSqlNonQuery(sql, batchResponse.JobId, pieceId);
+                db.ExecuteSqlNonQuery(sql, printResponse.JobId, pieceId);
 
                 sql = @"INSERT INTO PnS.MRDFResponse (JobId,PieceId,ProcessingTimeStamp,Disposition,PostageMetered,WeightMeasured,TotalSheets,PDFFileName) VALUES (@p1,@p2,@p3,@p4,@p5,@p6,@p7,@p8)";
 
-                db.ExecuteSqlNonQuery(sql, batchResponse.JobId, pieceId, res.PrintStatus == PrintStatus.Shipped ? Common.EstToUtc(res.ShippedOn) : res.PrintStatus == PrintStatus.PulledBack ? Common.EstToUtc(res.PulledBackOn) : DateTime.MinValue, res.PrintStatus == PrintStatus.Shipped ? '5' : res.PrintStatus == PrintStatus.PulledBack ? '4' : '7', res.Postage, res.WeightMeasured, res.TotalSheets, res.PDFFileName);
+                db.ExecuteSqlNonQuery(sql, printResponse.JobId, pieceId, res.PrintStatus == PrintStatus.Shipped ? Common.EstToUtc(res.ShippedOn) : res.PrintStatus == PrintStatus.PulledBack ? Common.EstToUtc(res.PulledBackOn) : DateTime.MinValue, res.PrintStatus == PrintStatus.Shipped ? '5' : res.PrintStatus == PrintStatus.PulledBack ? '4' : '7', res.Postage, res.WeightMeasured, res.TotalSheets, res.FileName);
             }
         }
         public static int GetRequestPieceId(int printTrailBatchId, int mailPieceId)

@@ -778,7 +778,7 @@ namespace PCI.Service
                     }
                 }
                 #endregion
-                
+
                 //NOTE : Here system is storing file size of received pdf in KB
                 FileInfo fileInfo = new FileInfo(outPDF);
                 mrdf.PDFFileSize = (fileInfo.Length / 1024);
@@ -851,28 +851,26 @@ namespace PCI.Service
                     {
                         case "NORDIS":
                             var xmlOutFilePath = Path.Combine(bundlingRootPath, printTrailBatchDetail.PrintBatchName + ".xml");
-                            BatchResponse batchResponse = new BatchResponse();
-                            batchResponse.JobId = printTrailBatchId;
-                            List<PackageReport> packagesReport = new List<PackageReport>();
+                            PrintResponse printResponse = new PrintResponse();
+                            printResponse.JobId = printTrailBatchId;
+
                             foreach (DataRow resData in mrdfResData.Rows)
                             {
 
                                 var rpt = new PackageReport();
 
                                 rpt.PieceId = resData.Field<int>("MailPieceId");
-                                rpt.PDFFileName = resData.Field<string>("PDFFileName");
+                                rpt.FileName = resData.Field<string>("PDFFileName");
                                 rpt.PrintStatus = resData.Field<string>("PrintStatus").ParseEnum<PrintStatus>();
                                 rpt.PulledBackOn = resData.Field<string>("PrintStatus").ParseEnum<PrintStatus>() == PrintStatus.PulledBack ? Common.UtcToEst(resData.Field<DateTime>("ProcessingTimeStamp")) : DateTime.MinValue;
                                 rpt.ShippedOn = resData.Field<string>("PrintStatus").ParseEnum<PrintStatus>() == PrintStatus.Shipped ? Common.UtcToEst(resData.Field<DateTime>("ProcessingTimeStamp")) : DateTime.MinValue;
                                 rpt.TotalSheets = resData.Field<int>("TotalSheets");
                                 rpt.Postage = Decimal.Parse(resData.Field<string>("PostageMetered"));
-                                packagesReport.Add(rpt);
+                                printResponse.PackageReports.Add(rpt);
                             }
 
-                            batchResponse.PackagesReport = packagesReport;
-
-                            if (packagesReport.Count > 0)
-                                File.WriteAllText(xmlOutFilePath, batchResponse.ToXml());
+                            if (printResponse.PackageReports.Count > 0)
+                                File.WriteAllText(xmlOutFilePath, printResponse.ToXml());
                             break;
                         default:
                             var mrdfOutFilePath = Path.Combine(bundlingRootPath, printTrailBatchDetail.PrintBatchName + ".OUT");
@@ -966,12 +964,12 @@ namespace PCI.Service
                         {
                             case "NORDIS":
                                 #region NordisResponse
-                                BatchResponse pnsResponse = null;
+                                PrintResponse pnsResponse = null;
                                 //string suspensionReason = "";
 
                                 try
                                 {
-                                    pnsResponse = BatchResponse.LoadXml(File.ReadAllText(responseFilePath));
+                                    pnsResponse = PrintResponse.LoadXml(File.ReadAllText(responseFilePath));
                                 }
                                 catch (XmlException ex)
                                 {
@@ -1005,7 +1003,7 @@ namespace PCI.Service
                                     break;
                                 }
 
-                                if (pnsResponse.PackagesReport.Count == 0)
+                                if (pnsResponse.PackageReports.Count == 0)
                                 {
                                     suspensionReason = "Print trail batch {0} is suspended because response XML does not contain any valid package count.".Fill(printTrailBatchId);
                                     log.Error(suspensionReason);
@@ -1022,7 +1020,7 @@ namespace PCI.Service
                                     suspensionReason = "PrintTrailBatch {0} is suspended due to invalid JobId : {1}".Fill(printTrailBatchId, pnsResponse.JobId);
                                     break;
                                 }
-                                var mismatchedMailPieceId = pnsResponse.PackagesReport.Select(c => c.PieceId).Except(mrdfRequestData.Select(c => c.Field<int?>("MailPieceId").Value)).ToList();
+                                var mismatchedMailPieceId = pnsResponse.PackageReports.Select(c => c.PieceId).Except(mrdfRequestData.Select(c => c.Field<int?>("MailPieceId").Value)).ToList();
 
                                 if (mismatchedMailPieceId.Count > 0)
                                 {
@@ -1045,7 +1043,7 @@ namespace PCI.Service
 
                                 //Insert Reponse data end
                                 //Here we are getting PieceId of MRDFRequest due to mapping issue with mailPieceId
-                                resPieceIdData = pnsResponse.PackagesReport.Select(c => DAL.GetRequestPieceId(pnsResponse.JobId, c.PieceId)).ToList();
+                                resPieceIdData = pnsResponse.PackageReports.Select(c => DAL.GetRequestPieceId(pnsResponse.JobId, c.PieceId)).ToList();
                                 #endregion
                                 break;
                             default:
