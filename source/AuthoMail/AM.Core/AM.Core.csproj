@@ -97,6 +97,12 @@
     </None>
     <None Include="CoverTemplates\BECU_FrontBarcode.pdf" />
     <None Include="CoverTemplates\BECU__IMBWith_A_Barcode.pdf" />
+    <None Include="CoverTemplates\BOTW\BOTW_USPS_#10_FrontBarcoded_1.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="CoverTemplates\BOTW\BOTW_USPS_6X9.5_FrontBarcoded_1.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="CoverTemplates\BOTW\BOTW_USPS_Generic_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -113,6 +119,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="CoverTemplates\Generic_Template95X12.pdf" />
+    <None Include="CoverTemplates\HSBC\HSBC_USPS_#10_1.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="CoverTemplates\HSBC\HSBC_USPS_Generic_1.pdf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -121,6 +130,12 @@
     </None>
     <None Include="CoverTemplates\HSBC_FrontBarcode.pdf" />
     <None Include="CoverTemplates\HSBC_IMBWith_A_Barcode.pdf" />
+    <None Include="CoverTemplates\S3\S3_USPS_EndPage_1.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="CoverTemplates\S3\S3_USPS_Generic_1.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="CoverTemplates\USAA\USAA_USPS_Generic_FrontBarcode_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
