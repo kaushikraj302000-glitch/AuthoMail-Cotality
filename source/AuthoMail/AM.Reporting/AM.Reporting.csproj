@@ -94,6 +94,9 @@
   <ItemGroup>
     <Folder Include="DALLASReconReport\" />
     <Folder Include="PCIReconReport\" />
+    <Folder Include="USAAReport\ErrorReports\" />
+    <Folder Include="USAAReport\MonthlyReconReports\" />
+    <Folder Include="USAAReport\WeeklyReports\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

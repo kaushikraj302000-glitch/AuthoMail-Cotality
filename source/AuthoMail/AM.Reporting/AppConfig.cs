@@ -29,6 +29,15 @@ namespace AM.Reporting
         public static string DALLASReconEMailSubject { get; private set; }
         public static string DALLASReconReportPath { get; private set; }
 
+        public static string USAAEMailTo { get; private set; }
+        public static string USAAEMailCc { get; private set; }
+        public static string USAAMonthlyReconEMailSubject { get; private set; }
+        public static string USAAMonthlyReconReportPath { get; private set; }
+        public static string USAAErrorReportEMailSubject { get; private set; }
+        public static string USAAErrorReportPath { get; private set; }
+        public static string USAAWeeklyReportEMailSubject { get; private set; }
+        public static string USAAWeeklyReportPath { get; private set; }
+
         static AppConfig()
         {
             DallasEMailTo = ConfigurationManager.AppSettings["DallasEMailTo"].Trim();
@@ -51,6 +60,15 @@ namespace AM.Reporting
             DALLASReconEMailCc = ConfigurationManager.AppSettings["DALLASReconEMailCc"].Trim();
             DALLASReconEMailSubject = ConfigurationManager.AppSettings["DALLASReconEMailSubject"].Trim();
             DALLASReconReportPath = ConfigurationManager.AppSettings["DALLASReconReportPath"].Trim();
+
+            USAAEMailTo = ConfigurationManager.AppSettings["USAAEMailTo"].Trim();
+            USAAEMailCc = ConfigurationManager.AppSettings["USAAEMailCc"].Trim();
+            USAAMonthlyReconEMailSubject = ConfigurationManager.AppSettings["USAAMonthlyReconEMailSubject"].Trim();
+            USAAMonthlyReconReportPath = ConfigurationManager.AppSettings["USAAMonthlyReconReportPath"].Trim();
+            USAAErrorReportEMailSubject = ConfigurationManager.AppSettings["USAAErrorReportEMailSubject"].Trim();
+            USAAErrorReportPath = ConfigurationManager.AppSettings["USAAErrorReportPath"].Trim();
+            USAAWeeklyReportEMailSubject = ConfigurationManager.AppSettings["USAAWeeklyReportEMailSubject"].Trim();
+            USAAWeeklyReportPath = ConfigurationManager.AppSettings["USAAWeeklyReportPath"].Trim();
         }
     }
 }
