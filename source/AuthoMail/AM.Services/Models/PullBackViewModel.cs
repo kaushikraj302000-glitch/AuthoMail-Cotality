@@ -11,6 +11,8 @@ namespace AM.Services
         public Guid MailPieceUniqueId { get; set; }
         public int? PrintTrailBatchId { get; set; }
         public int PrintBatch { get; set; }
+        public string TrackingNo { get; set; }
+        public string ShippingServiceType { get; set; }
         public string AMBatchPipelineStatus { get; set; }
         public string PnSBatchPipelineStatus { get; set; }
         public string AMMailPieceStatus { get; set; }

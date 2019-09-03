@@ -539,7 +539,6 @@ namespace AM.Console
                         //This field will be used for monitoring data    
                         mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, mailBatch.ReceivedOn.Value, sweepTimings);
                         mailPiece.MaxSubmissionTime = commonSvc.GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
-
                     }
                     mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                 }
@@ -625,13 +624,10 @@ namespace AM.Console
                         {
                             if (!(addressResponse.AddressTypes.All(c => c == AddressType.DHAM)))
                             {
-                                var fallBackDocTypes = docTypeSvc.GetFallBackDocTypeByDocTypeName(mailPiece.ClientId, documentOrPackageType);
+                                var fallBackDocTypes = docTypeSvc.GetFallBackDocTypeByClientDocTypeId(mailPiece.ClientId, docType.ClientDocTypeId);
 
                                 if (fallBackDocTypes == null || fallBackDocTypes.Count == 0)
                                 {
-                                    mailPiece.ErrorCode = OutComeCodes.Invalid_PackageType;
-                                    mailPiece.ErrorDesc = "The specified document or package type '{0}' is not configured.".Fill(mailPiece.DocumentOrPackageType);
-                                    mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                                     mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                                     continue;
                                 }
@@ -648,9 +644,6 @@ namespace AM.Console
 
                                     if (priDocType == null)
                                     {
-                                        mailPiece.ErrorCode = OutComeCodes.Invalid_PackageType;
-                                        mailPiece.ErrorDesc = "The specified document or package type '{0}' is not configured.".Fill(mailPiece.DocumentOrPackageType);
-                                        mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                                         mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                                         continue;
                                     }

@@ -411,6 +411,7 @@ namespace AM.Services
         {
             return String.Join(",", db.Query<string>("SELECT U.Email FROM [AM].[AlertSubscribers] A INNER JOIN [Profile].[Users] U ON A.UserId=U.Id WHERE U.ClientId=@ClientId", new { ClientId = clientId }));
         }
+
         public void GetUpdatedDueDateAndPrintLocation(DateTime receivedOn, MailPieceDTO mailPiece, DocType docType, string appCode)
         {
             mailPiece.DocTypeId = docType.Id;
@@ -420,7 +421,7 @@ namespace AM.Services
             //Set print location where mail piece will go for print and ship
             mailPiece.PrintTrailId = GetPrintTrail(docType, mailPiece.EffectiveReceivedOnEst.Value);
             var printVendorDetails = GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value);
-            mailPiece.PrintLocation = printVendorDetails.Name;
+            mailPiece.PrintLocation = printVendorDetails.PrintLocation;
             mailPiece.StdSubmissionTime = GetStandardSubmissionTime(appCode, printVendorDetails.VendorCode, receivedOn, GetSweepTimings());
             mailPiece.MaxSubmissionTime = GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
 

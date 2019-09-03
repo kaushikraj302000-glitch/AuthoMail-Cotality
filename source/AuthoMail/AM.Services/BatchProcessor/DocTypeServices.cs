@@ -13,7 +13,7 @@ namespace AM.Services
         List<DocType> GetDocTypesByClientId(int clientId);
         DocType GetDocTypeByDocTypeCode(int clientId, string docTypeCode);
         DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount);
-        List<DocType> GetFallBackDocTypeByDocTypeName(int clientId, string documentOrPackageName);
+        List<DocType> GetFallBackDocTypeByClientDocTypeId(int clientId, int clientDocTypeId);
         DocType GetDocTypeById(int docTypeId);
         List<DocTypeCoverLetter> GetDocumentCoverLetterTemplates(int docTypeId);
         DocType GetDocTypeWithMaximumCutOffTimeByClientId(int clientId);
@@ -37,16 +37,16 @@ namespace AM.Services
 
         public DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount)
         {
-            string query = "SELECT D.*,CDT.DocTypeName FROM [AM].[DocTypes] D INNER JOIN [AM].[ClientDocTypes] CDT WHERE CDT.ClientId=@ClientId AND CDT.DocTypeName = @DocumentOrPackageName AND @PageCount BETWEEN D.MinPage AND D.MaxPage AND D.IsActive=1";
+            string query = "SELECT D.*,CDT.DocTypeName FROM [AM].[DocTypes] D INNER JOIN [AM].[ClientDocTypes] CDT ON D.ClientDocTypeId=CDT.Id WHERE CDT.ClientId=@ClientId AND CDT.DocTypeName = @DocumentOrPackageName AND @PageCount BETWEEN D.MinPage AND D.MaxPage AND D.IsActive=1 AND D.IsFallBack=0";
 
             return db.QuerySingleOrDefault<DocType>(query, new { ClientId = clientId, DocumentOrPackageName = documentOrPackageName, PageCount = pageCount });
         }
 
-        public List<DocType> GetFallBackDocTypeByDocTypeName(int clientId, string documentOrPackageName)
+        public List<DocType> GetFallBackDocTypeByClientDocTypeId(int clientId, int clientDocTypeId)
         {
-            string query = "SELECT D.*,CDT.DocTypeName FROM [AM].[DocTypes] D INNER JOIN [AM].[ClientDocTypes] CDT WHERE CDT.ClientId=@ClientId AND CDT.DocTypeName = @DocumentOrPackageName AND IsActive=1 AND D.IsFallBack=1";
+            string query = "SELECT D.*,CDT.DocTypeName FROM [AM].[DocTypes] D INNER JOIN [AM].[ClientDocTypes] CDT ON D.ClientDocTypeId=CDT.Id WHERE CDT.ClientId=@ClientId AND CDT.Id = @ClientDocTypeId AND D.IsActive=1 AND D.IsFallBack=1";
 
-            return db.Query<DocType>(query, new { ClientId = clientId, DocumentOrPackageName = documentOrPackageName }).ToList();
+            return db.Query<DocType>(query, new { ClientId = clientId, ClientDocTypeId = clientDocTypeId }).ToList();
         }
 
         public DocType GetDocTypeById(int docTypeId)
