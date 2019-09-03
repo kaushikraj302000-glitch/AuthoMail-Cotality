@@ -137,11 +137,6 @@ namespace AM.Core
 
                     File.WriteAllBytes(coverLetterPDFPath, Convert.FromBase64String(eVSRes.LabelImageString));
 
-                    //Here system is creating new PDF for military addresses only label's size LABEL4X6L to Letter size. 
-                    if (eVSReq.ServiceType == AM.USPSLib.ServiceType.PRIORITY && rcptAddressTypes.Contains(AddressType.Military.ToString()))
-                    {
-                        ConvertLetterSizeLabel(coverLetterPDFPath, outputDir, mailPieceId);
-                    }
                     response.CoverLetterPath = coverLetterPDFPath;
                 }
 
@@ -217,12 +212,10 @@ namespace AM.Core
                     if (eVSRes.HasError)
                     {
                         response.HasError = true;
-                        response.ExceptionDetail = "Error occured while generating eVS label for MailPiece-Id:{0} with Exception : {1}".Fill(mailPieceId, eVSRes.Error.Description);
+                        response.ExceptionDetail = "Error occured while generating eVS Priority label for MailPiece-Id:{0} with Exception : {1}".Fill(mailPieceId, eVSRes.Error.Description);
                         response.ExceptionCode = OutComeCodes.Unknown_Error;
                         return response;
                     }
-
-                    response.ShippingServiceType = eVSReq.ServiceType.Value;
 
                     File.WriteAllBytes(coverLetterPDFPath, Convert.FromBase64String(eVSRes.LabelImageString));
 
