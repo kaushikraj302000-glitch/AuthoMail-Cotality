@@ -217,3 +217,139 @@ set @startDate= dateadd(month,-1,getutcdate());--dateadd(day,-(DAY(EOMONTH(DATEA
 select * from cte  order by Date desc
 
 	END
+GO
+	
+-- Min Max Page Fields
+ALTER TABLE AM.DocTypes
+ADD MinPage INT NULL, MaxPage INT NULL
+GO
+-- New table Added ClientDocTypes
+CREATE TABLE AM.ClientDocTypes
+(
+	Id INT IDENTITY(1,1) NOT NULL,
+	ClientId INT NOT NULL,
+	DocTypeName NVARCHAR(255) NOT NULL,
+	CONSTRAINT [PK_ClientDocTypes_Id] PRIMARY KEY CLUSTERED (Id ASC),
+	CONSTRAINT FK_ClientDocTypes_Clients FOREIGN KEY (ClientId) REFERENCES Common.Clients (Id) 
+)
+GO
+CREATE INDEX Idx_ClientDocTypes_DocTypeName
+ON AM.ClientDocTypes (DocTypeName);
+GO
+CREATE UNIQUE NONCLUSTERED INDEX [IX_ClientDocTypes_ClientId_DocTypeName] ON [AM].[ClientDocTypes]
+(
+	[ClientId] ASC,
+	[DocTypeName] ASC
+)
+GO
+ALTER TABLE AM.DocTypes
+ADD ClientDocTypeId INT NULL,IsFallBack BIT
+GO
+ALTER TABLE AM.DocTypes  WITH CHECK ADD  CONSTRAINT [FK_DocTypes_ClientDocTypes] FOREIGN KEY(ClientDocTypeId)
+REFERENCES AM.ClientDocTypes ([Id])
+GO
+CREATE INDEX Idx_ClientDocTypes_ClientId
+ON AM.ClientDocTypes (ClientId);
+GO
+CREATE INDEX Idx_DocTypes_ClientDocTypeId
+ON AM.DocTypes (ClientDocTypeId);
+GO
+DROP INDEX IX_DocTypes_ClientId_Description
+ON AM.DocTypes
+GO
+DROP INDEX IX_DocTypes_ClientId_DocTypeCode
+ON AM.DocTypes
+GO
+EXEC sp_rename 'AM.DocTypes.DocTypeCode', 'DocTypeCodeDelete', 'COLUMN';
+GO
+EXEC sp_rename 'AM.DocTypes.Description', 'DescriptionDelete', 'COLUMN';
+GO
+ALTER TABLE AM.DocTypes ALTER COLUMN DocTypeCodeDelete VARCHAR(255) NULL
+GO
+ALTER TABLE AM.DocTypes ALTER COLUMN DescriptionDelete VARCHAR(512) NULL
+GO		
+
+
+
+--Change Mapping Of DocType Envelopes
+
+ALTER TABLE [AM].[DocTypes] DROP CONSTRAINT [FK_DocTypes_Envelope]
+GO
+ALTER TABLE [AM].[DocTypes] DROP CONSTRAINT [FK_DocTypes_BREEnvelope]
+GO
+/****** Object:  Index [PK_Envelopes]    Script Date: 23-07-2019 04:18:24 PM ******/
+ALTER TABLE [Common].[Envelopes] DROP CONSTRAINT [PK_Envelopes] WITH ( ONLINE = OFF )
+GO
+
+sp_RENAME '[Common].[Envelopes].[Id]' , 'EnvelopeName', 'COLUMN'
+GO
+
+ALTER TABLE Common.Envelopes
+ADD Id INT IDENTITY(1,1) NOT NULL,PartNumber VARCHAR(255) NULL,EnvelopeDesc VARCHAR(255) NULL
+GO
+
+ALTER TABLE Common.Envelopes
+ADD CONSTRAINT PK_Envelopes PRIMARY KEY(Id)
+GO
+
+sp_RENAME '[AM].[DocTypes].[EnvelopeId]' , 'EnvelopeName1', 'COLUMN'
+GO
+
+sp_RENAME '[AM].[DocTypes].[BREEnvelopeId]' , 'BREEnvelopeName1', 'COLUMN'
+GO
+
+ALTER TABLE [AM].[DocTypes]
+ADD EnvelopeId INT NULL,BREEnvelopeId INT NULL
+GO
+
+ALTER TABLE [AM].[DocTypes]  WITH CHECK ADD  CONSTRAINT [FK_DocTypes_Envelope] FOREIGN KEY([EnvelopeId])
+REFERENCES [Common].[Envelopes] ([Id])
+GO
+
+ALTER TABLE [AM].[DocTypes]  WITH CHECK ADD  CONSTRAINT [FK_DocTypes_BREEnvelope] FOREIGN KEY([EnvelopeId])
+REFERENCES [Common].[Envelopes] ([Id])
+GO
+
+ALTER TABLE [PnS].[EnvelopeUsage] DROP CONSTRAINT [FK_EnvelopeUsage_Envelopes]
+GO
+
+sp_RENAME '[PnS].[EnvelopeUsage].[EnvelopeId]' , 'EnvelopeName1', 'COLUMN'
+GO
+
+ALTER TABLE [PnS].[EnvelopeUsage]
+ADD EnvelopeId INT NULL
+GO
+
+ALTER TABLE [PnS].[EnvelopeUsage]  WITH CHECK ADD  CONSTRAINT [FK_EnvelopeUsage_Envelopes] FOREIGN KEY([EnvelopeId])
+REFERENCES [Common].[Envelopes] ([Id])
+GO
+
+ALTER TABLE [Common].[EnvelopeInventory] DROP CONSTRAINT [FK_EnvelopeId_EnvelopeInventory_Users]
+GO
+
+sp_RENAME '[Common].[EnvelopeInventory].[EnvelopeId]' , 'EnvelopeName1', 'COLUMN'
+GO
+
+ALTER TABLE [Common].[EnvelopeInventory]
+ADD EnvelopeId INT NULL
+GO
+
+ALTER TABLE [Common].[EnvelopeInventory]  WITH CHECK ADD  CONSTRAINT [FK_EnvelopeId_EnvelopeInventory] FOREIGN KEY([EnvelopeId])
+REFERENCES [Common].[Envelopes] ([Id])
+GO
+
+ALTER TABLE AM.DocTypes
+ADD RetRcptAddressCountry VARCHAR(255) NULL
+GO
+ALTER TABLE AM.MailBatches
+ADD RetRcptAddressCountry VARCHAR(255) NULL
+GO
+ALTER TABLE AM.MailPieces
+ADD RcptAddressCountry VARCHAR(255) NULL,RetRcptAddressCountry VARCHAR(255) NULL,ClientDocTypeId INT NULL
+GO
+ALTER TABLE [AM].[MailPieces]  WITH CHECK ADD  CONSTRAINT [FK_MailPiece_ClientDocTypes] FOREIGN KEY([ClientDocTypeId])
+REFERENCES [AM].[ClientDocTypes] ([Id])
+GO
+ALTER TABLE [Common].[PrintTrails]
+ADD PrintLocation VARCHAR(255) NULL
+GO
