@@ -382,6 +382,7 @@ namespace AM.Services
         public string Id { get; set; }
         public string Email { get; set; }
         public string UserName { get; set; }
+        public string DisplayName { get; set; }
         public int? ClientId { get; set; }
     }
 
