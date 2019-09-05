@@ -126,99 +126,7 @@ GO
 
 ALTER TABLE [AM].[AlertSubscribers] CHECK CONSTRAINT [FK_AlertSubscribers_Users]
 GO
-
---------------------------------------------------------------------------------------
-IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'usp_EnvelopeInventoryStockCalculation')
-DROP PROCEDURE [dbo].[usp_EnvelopeInventoryStockCalculation]
-go
-
-CREATE PROCEDURE [dbo].[usp_EnvelopeInventoryStockCalculation]
-	
-AS
-BEGIN
-	;with allenvelope as
-(
-	select EnvelopeId,cast(SubmittedOn as date) as SubmittedOn,Quantity,
-ROW_NUMBER() OVER (PARTITION BY EnvelopeId order by cast(SubmittedOn as date) desc) as RowNum
-	from PnS.EnvelopeUsage EU
-	INNER JOIN PnS.PrintTrailBatches PTB ON EU.PrintTrailBatchId=PTB.Id
-	where cast(SubmittedOn as date) < cast(GETUTCDATE() as date)
-	GROUP BY cast(SubmittedOn as date),EnvelopeId,Quantity
-),
-monthAvg as
-(
-	select EnvelopeId,count(distinct(SubmittedOn)) as TotalDays,SUM(Quantity) AS TotalQuantityUsed
-	from allenvelope
-	where RowNum<=30
-	GROUP BY EnvelopeId
-),
-weekAvg as
-(
-	select EnvelopeId,count(distinct(cast(SubmittedOn as date))) as TotalDays,SUM(Quantity) AS TotalQuantityUsed
-	from allenvelope
-	where RowNum<=7
-	GROUP BY EnvelopeId
-),
-mergeAvg as
-(
-	select m.EnvelopeId,case when m.TotalQuantityUsed>isnull(w.TotalQuantityUsed,0) then m.TotalQuantityUsed else w.TotalQuantityUsed end as TotalQuantityUsed,
-	case when m.TotalDays>isnull(w.TotalDays,0) then m.TotalDays else w.TotalDays end as TotalDays
-	from monthAvg m
-	left outer join weekAvg w on m.EnvelopeId=w.EnvelopeId
-)
-select c.*,e.CurrentQuantity,e.ReorderDuration,CEILING(cast(TotalQuantityUsed as float)/TotalDays) as AvgRate,CEILING(cast(e.CurrentQuantity as float)/(TotalQuantityUsed/TotalDays)) as EnvDays
-from mergeAvg c
-inner join Common.Envelopes e on c.EnvelopeId=e.Id
-END
-go
------------------------------------------------------------------------------------------------------------
-IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'uspalert_GetDelayedBatchesToSubmit')
-DROP PROCEDURE [dbo].[uspalert_GetDelayedBatchesToSubmit]
-go
-CREATE PROCEDURE [dbo].[uspalert_GetDelayedBatchesToSubmit] 	
-	@cutOffMinutes int
-AS
-BEGIN
- select mp.Id,mp.businessfriendlyidvalue as LoanNumber,mp.TrackingNo,mb.Id as MailBatchId,rq.UniqueId,bs.IsSubmitted,c.AppCode,mb.BatchName,mb.ReceivedOn,mb.PipelineStatus,mp.DueDate, mp.ShippingStatus,d.DocTypeCode,d.ShippingCarrier,d.ShippingServiceType,mp.ClientId,pv.Name as PrintLocation,pv.VendorCode,rq.MailPieceStatus,pt.TrailName as PrintTrail  
- from AM.MailPieces mp
- inner join AM.MailBatches mb on mp.MailBatchId=mb.Id
- left outer join Common.PrintTrails pt on mp.PrintTrailId = pt.Id
- left outer join Common.PrintVendors pv on pt.PrintVendorId = pv.Id
- left outer join Common.Clients c on mb.ClientId=c.Id
- left outer join PnS.MRDFRequest rq on mp.UniqueId=rq.UniqueId
- left outer join PnS.BatchSummary bs on rq.JobId=bs.PrintBatch
- left outer join AM.DocTypes d on mp.DocTypeId = d.Id
- where mb.ReceivedOn between DATEADD(day,-7,GETUTCDATE()) and DATEADD(minute,-@cutOffMinutes,GETUTCDATE()) and (mp.ShippingStatus is null or (mp.ShippingStatus in ('InProgress','Shipped') and (rq.UniqueId is null or ISNULL(bs.IsSubmitted,0)=0)) or (mp.ShippingStatus = 'Error' and mp.ErrorDesc IS NULL) or (mp.ShippingStatus = 'PulledBack' and not exists (select Id from AM.PullBackRequests where MailPieceId = mp.Id)) or (mb.ClientId IS NULL))
- or (rq.MailPieceStatus='Shipped' and mp.IsPickedUp <> 1 and mp.DueDate < GETUTCDATE() and d.ShippingCarrier='FedEx' and mb.ReceivedOn>='2019-01-01 05:00:00')
-END
----------------------------------------------------------------------------------------------------------
-IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'usp_GetEnvelopeInventoryUsage')
-DROP PROCEDURE [dbo].[usp_GetEnvelopeInventoryUsage]
-go
-Create PROCEDURE [dbo].[usp_GetEnvelopeInventoryUsage]
-	@Id int
-	AS
-	BEGIN
-		-- SET NOCOUNT ON added to prevent extra result sets from
-		-- interfering with SELECT statements.
-		SET NOCOUNT ON;
-		declare @startDate as date,@endDate as date
-set @endDate = dateadd(day,-1,cast(getutcdate() as date));
-set @startDate= dateadd(month,-1,getutcdate());--dateadd(day,-(DAY(EOMONTH(DATEADD(month,-1,@endDate)))+1),@endDate)
-
-;with cte as
-(
-	select distinct(cast(SubmittedOn as date)) as Date ,SUM(Quantity) AS UsageStock
-	from PnS.EnvelopeUsage EU
-	INNER JOIN PnS.PrintTrailBatches PTB ON EU.PrintTrailBatchId=PTB.Id
-	WHERE cast(SubmittedOn as date) BETWEEN @startDate AND @endDate and EU.EnvelopeId=@Id
-	GROUP BY SubmittedOn 
-)
-select * from cte  order by Date desc
-
-	END
-GO
-	
+-----------------------------------------------------------------------------------
 -- Min Max Page Fields
 ALTER TABLE AM.DocTypes
 ADD MinPage INT NULL, MaxPage INT NULL
@@ -353,3 +261,153 @@ GO
 ALTER TABLE [Common].[PrintTrails]
 ADD PrintLocation VARCHAR(255) NULL
 GO
+
+------------STORE Procedures---------------------
+
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'usp_EnvelopeInventoryStockCalculation')
+DROP PROCEDURE [dbo].[usp_EnvelopeInventoryStockCalculation]
+go
+
+CREATE PROCEDURE [dbo].[usp_EnvelopeInventoryStockCalculation]
+	
+AS
+BEGIN
+	;with allenvelope as
+(
+	select EnvelopeId,cast(SubmittedOn as date) as SubmittedOn,Quantity,
+ROW_NUMBER() OVER (PARTITION BY EnvelopeId order by cast(SubmittedOn as date) desc) as RowNum
+	from PnS.EnvelopeUsage EU
+	INNER JOIN PnS.PrintTrailBatches PTB ON EU.PrintTrailBatchId=PTB.Id
+	where cast(SubmittedOn as date) < cast(GETUTCDATE() as date)
+	GROUP BY cast(SubmittedOn as date),EnvelopeId,Quantity
+),
+monthAvg as
+(
+	select EnvelopeId,count(distinct(SubmittedOn)) as TotalDays,SUM(Quantity) AS TotalQuantityUsed
+	from allenvelope
+	where RowNum<=30
+	GROUP BY EnvelopeId
+),
+weekAvg as
+(
+	select EnvelopeId,count(distinct(cast(SubmittedOn as date))) as TotalDays,SUM(Quantity) AS TotalQuantityUsed
+	from allenvelope
+	where RowNum<=7
+	GROUP BY EnvelopeId
+),
+mergeAvg as
+(
+	select m.EnvelopeId,case when m.TotalQuantityUsed>isnull(w.TotalQuantityUsed,0) then m.TotalQuantityUsed else w.TotalQuantityUsed end as TotalQuantityUsed,
+	case when m.TotalDays>isnull(w.TotalDays,0) then m.TotalDays else w.TotalDays end as TotalDays
+	from monthAvg m
+	left outer join weekAvg w on m.EnvelopeId=w.EnvelopeId
+)
+select c.*,e.CurrentQuantity,e.ReorderDuration,CEILING(cast(TotalQuantityUsed as float)/TotalDays) as AvgRate,CEILING(cast(e.CurrentQuantity as float)/(TotalQuantityUsed/TotalDays)) as EnvDays
+from mergeAvg c
+inner join Common.Envelopes e on c.EnvelopeId=e.Id
+END
+go
+-----------------------------------------------------------------------------------------------------------
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'uspalert_GetDelayedBatchesToSubmit')
+DROP PROCEDURE [dbo].[uspalert_GetDelayedBatchesToSubmit]
+go
+CREATE PROCEDURE [dbo].[uspalert_GetDelayedBatchesToSubmit] 	
+	@cutOffMinutes int
+AS
+BEGIN
+ select mp.Id,mp.businessfriendlyidvalue as LoanNumber,mp.TrackingNo,mb.Id as MailBatchId,rq.UniqueId,bs.IsSubmitted,c.AppCode,
+ mb.BatchName,mb.ReceivedOn,mb.PipelineStatus,mp.DueDate, mp.ShippingStatus,cd.DocTypeName as DocTypeCode,
+ d.ShippingCarrier,d.ShippingServiceType,mp.ClientId,pv.Name as PrintLocation,pv.VendorCode,rq.MailPieceStatus,pt.TrailName as PrintTrail  
+ from AM.MailPieces mp
+ inner join AM.MailBatches mb on mp.MailBatchId=mb.Id
+ left outer join Common.PrintTrails pt on mp.PrintTrailId = pt.Id
+ left outer join Common.PrintVendors pv on pt.PrintVendorId = pv.Id
+ left outer join Common.Clients c on mb.ClientId=c.Id
+ left outer join PnS.MRDFRequest rq on mp.UniqueId=rq.UniqueId
+ left outer join PnS.BatchSummary bs on rq.JobId=bs.PrintBatch
+ left outer join AM.DocTypes d on mp.DocTypeId = d.Id
+ left outer join AM.ClientDocTypes cd on d.ClientDocTypeId=cd.Id
+ where mb.ReceivedOn between DATEADD(day,-7,GETUTCDATE()) and DATEADD(minute,-@cutOffMinutes,GETUTCDATE()) and (mp.ShippingStatus is null or (mp.ShippingStatus in ('InProgress','Shipped') and (rq.UniqueId is null or ISNULL(bs.IsSubmitted,0)=0)) or (mp.ShippingStatus = 'Error' and mp.ErrorDesc IS NULL) or (mp.ShippingStatus = 'PulledBack' and not exists (select Id from AM.PullBackRequests where MailPieceId = mp.Id)) or (mb.ClientId IS NULL))
+ or (rq.MailPieceStatus='Shipped' and mp.IsPickedUp <> 1 and mp.DueDate < GETUTCDATE() and d.ShippingCarrier='FedEx' and mb.ReceivedOn>='2019-01-01 05:00:00')
+END
+go
+---------------------------------------------------------------------------------------------------------
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'usp_GetEnvelopeInventoryUsage')
+DROP PROCEDURE [dbo].[usp_GetEnvelopeInventoryUsage]
+go
+Create PROCEDURE [dbo].[usp_GetEnvelopeInventoryUsage]
+	@Id int
+	AS
+	BEGIN
+		-- SET NOCOUNT ON added to prevent extra result sets from
+		-- interfering with SELECT statements.
+		SET NOCOUNT ON;
+		
+;with cte as
+(
+select  distinct(cast(SubmittedOn as date)) as Date ,SUM(Quantity) AS UsageStock
+	from PnS.EnvelopeUsage EU
+	INNER JOIN PnS.PrintTrailBatches PTB ON EU.PrintTrailBatchId=PTB.Id
+	WHERE EU.EnvelopeId=@Id
+	GROUP BY cast(SubmittedOn as date)  
+)
+select top 30 * from cte
+order by date desc
+	END
+GO
+---------------------------------------------------------------------------------------------------------
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'uspweb_ErrorReportSLA')
+DROP PROCEDURE [dbo].[uspweb_ErrorReportSLA]
+go
+Create PROCEDURE [dbo].[uspweb_ErrorReportSLA]
+	@clientId int,
+	@startDateRec datetime,
+	@endDateRec datetime,
+	@startDateDue datetime,
+	@endDateDue datetime,
+	@batchId int,
+	@docType varchar(128)
+AS
+BEGIN
+
+select *	
+	from [AM].[MailBatches] b, [Common].[SFTChannels] ch, [Common].[Clients] c,[AM].[MailPieces] m
+	left outer join [AM].[DocTypes] d on m.DocTypeId=d.Id
+	left outer join AM.ClientDocTypes cd on d.ClientDocTypeId=cd.Id
+	where m.MailBatchId=b.Id and c.Id=b.ClientId and ch.Id=b.SFTChannelId AND m.ClientId=@clientId --AND m.SLADays < 0
+	AND ISNULL(b.ReceivedOn,0) BETWEEN ISNULL(@startDateRec, ISNULL(b.ReceivedOn, 0)) AND ISNULL(@endDateRec, ISNULL(b.ReceivedOn, 0))
+	AND ISNULL(m.DueDate,0) BETWEEN ISNULL(@startDateDue, ISNULL(m.DueDate, 0)) AND ISNULL(@endDateDue, ISNULL(m.DueDate, 0))
+	AND ISNULL(m.MailBatchId, '') = ISNULL(@batchId, ISNULL(m.MailBatchId, ''))
+	AND ISNULL(d.ClientDocTypeId, '') = ISNULL(@docType, ISNULL(d.ClientDocTypeId, ''))
+	--AND m.ShippingStatus IN ('InProgress','Shipped')
+	--AND ISNULL(m.ShippingStatus, '') IN (ISNULL('''InProgress'',''Shipped''', ISNULL(m.ShippingStatus, '')))
+	END
+	go
+-----------------------------------------------------------------------------------------------------
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'uspweb_MonthlyReconReport')
+DROP PROCEDURE [dbo].[uspweb_MonthlyReconReport]
+go
+create PROCEDURE [dbo].[uspweb_MonthlyReconReport]
+	@clientId int,
+	@startDate datetime,
+	@endDate datetime,
+	@channel varchar(128)
+AS
+begin
+	select m.UniqueId,b.BatchName,m.BusinessFriendlyIdValue as LoanNumber,m.[FileName],m.RcptFirstName as FirstName,m.RcptLastName as LastName
+	,m.RcptAddressStreet as [Address],m.RcptAddressCity as City, m.RcptAddressState as [State],m.RcptAddressZIP as Zip,
+	b.ReceivedOn,m.PrintLocation,m.ShippingStatus as [Status],m.TrackingNo,m.TotalPages,m.PrintedOn,m.ShippedOn,
+	m.PickedUpOn,d.ShippingCarrier,m.ErrorDesc,
+	cd.DocTypeName as DocType,d.ShippingCarrier +' '+d.ShippingServiceType as ShippingMethod,
+	ch.Title as Channel,c.AppCode,
+	r.JobId,r.PieceId
+	FROM [AM].[MailBatches] b, [Common].[SFTChannels] ch,[Common].[Clients] c,[AM].[MailPieces] m
+	LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id
+	left outer join AM.ClientDocTypes cd on d.ClientDocTypeId=cd.Id
+	LEFT OUTER JOIN [PnS].[MRDFRequest] r ON m.UniqueId = r.UniqueId AND r.IsPDFReceived=1
+	WHERE m.[MailBatchId]=b.Id AND c.Id=b.ClientId AND ch.Id=b.SFTChannelId AND m.ClientId=@clientId
+	AND b.ReceivedOn BETWEEN @startDate and @endDate
+	AND ISNULL(ch.Code, '') = ISNULL(@channel, ISNULL(ch.Code, ''))
+end
+go
+-------------------------------------------------------------------------------------------------
