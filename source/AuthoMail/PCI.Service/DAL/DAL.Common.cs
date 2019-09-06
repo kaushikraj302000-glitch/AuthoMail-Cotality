@@ -75,6 +75,12 @@ namespace PCI.Service
             return db.ExecuteScalar("usp_GetSystemSettingsById", keyId).ToString();
         }
 
+        public static EmailChannel GetEmailChannelByTitleName(string titleName)
+        {
+            var emailChannel = db.ExecuteDataSet(CommandType.Text, "SELECT * FROM Common.EmailChannels WHERE Title='{0}'".Fill(titleName));
+            return emailChannel.DataTableAccessor<EmailChannel>(false).Single();
+        }
+
         public static List<DallasBatch> GetDallasBatches(DateTime estToday)
         {
             var dallasTimings = db.ExecuteDataSet(CommandType.Text, "Select * from dbo.ufn_GetDallasBatches('" + estToday.ToString() + "')");

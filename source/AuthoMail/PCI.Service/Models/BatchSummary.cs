@@ -213,4 +213,16 @@ namespace PCI.Service
         public string ValidationErrors { get; set; }
         public Int64? ZipFileSize { get; set; }
     }
+
+    public class EmailChannel
+    {
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public string To { get; set; }
+        public string Cc { get; set; }
+        public string Bcc { get; set; }
+        public string Subject { get; set; }
+        public string BodyTemplate { get; set; }
+        public bool IsBodyHTML { get; set; }
+    }
 }
