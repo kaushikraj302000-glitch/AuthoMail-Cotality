@@ -118,14 +118,14 @@ namespace PCI.Service
             while (notSubmittedList.Count > 0)
             {
                 log.Info("Submit Bundle Process Started");
-                SubmitBatches(notSubmittedList);
+                SubmitBatches(notSubmittedList, pvCode);
                 log.Info("Submit Bundle Process Completed");
                 Thread.Sleep(12000);
                 notSubmittedList = DAL.GetNotSubmittedPrintBatchDetailByPrintVendorCode(pvCode);
             }
         }
 
-        private static void SubmitBatches(List<PrintTrailBatch> ptBatchList)
+        private static void SubmitBatches(List<PrintTrailBatch> ptBatchList, string pvCode)
         {
             foreach (PrintTrailBatch ptBatch in ptBatchList)
             {
@@ -137,6 +137,15 @@ namespace PCI.Service
                 }
                 catch (Exception ex)
                 {
+                    if (ex.Message.Contains("connection attempt failed") || ex.Message.Contains("connected party did not properly respond") || ex.Message.Contains("established connection failed"))
+                    {
+                        var connectionMsg = "Error occured while connecting to Print Vendor {0}'s SFT Site with <br/> below exception <br/>{1}".Fill(pvCode, ex);
+                        log.Error(connectionMsg);
+                        MailUtility.SendSFTConnectionIssueNotificationEmail(connectionMsg, pvCode);
+                        Thread.Sleep(300000);
+                        continue;
+                    }
+
                     var msg = "SubmitBatchToPrintVendor : Error occured while uploading batch to print vendor for PrintTrailBatchId - {0}".Fill(ptBatch.Id);
                     log.Error(msg, ex);
 
@@ -454,10 +463,11 @@ namespace PCI.Service
 
         private static void UploadBatchToPrintVendorSite(string zipFilePath, PrintTrailDetail ptDetails)
         {
+            log.Debug("Started SFT Connection To {0}".Fill(ptDetails.VendorCode));
             SFTUtil sftSite = new SFTUtil(ptDetails.Protocol.ParseEnum<SFT_ProtocolType>(), ptDetails.Host, ptDetails.UserName, ptDetails.Password,
                60000);
             sftSite.Connect();
-
+            log.Debug("SFT Connection successfull To {0}".Fill(ptDetails.VendorCode));
             var sw = new Stopwatch();
             sw.Start();
 
@@ -468,6 +478,8 @@ namespace PCI.Service
             log.DebugFormat("Total time spent : {0} For Batch : {1}", time, Path.GetFileNameWithoutExtension(zipFilePath));
 
             sftSite.Disconnect();
+            log.Debug("SFT Connection disconnected with {0}".Fill(ptDetails.VendorCode));
+
         }
 
         private static void UploadBatchToInternalPrintVendorSite(string pciRootPath, SFTUtil sftSite, List<MailPieceDetail> mailPiecesDetails, PrintTrailDetail printTrailDetail)

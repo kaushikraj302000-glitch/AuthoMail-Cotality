@@ -148,5 +148,32 @@ namespace PCI.Service
 
             return isEmailSent;
         }
+
+        public static bool SendSFTConnectionIssueNotificationEmail(string errorMsg, string pvCode)
+        {
+            bool isEmailSent = false;
+
+            try
+            {
+                using (MailMessage msg = new MailMessage())
+                {
+                    msg.IsBodyHtml = true;
+                    msg.To.Add(pvCode == "PCI" ? Common.Email_ToPCI : Common.Email_ToNordis);
+                    msg.Subject = Common.ApplicationEnvironment + " : {0} SFT Site Connection issue".Fill(pvCode);
+                    msg.Priority = MailPriority.High;
+
+                    msg.Body = errorMsg;
+                    Common.Email_SMTPClient.Send(msg);
+
+                    isEmailSent = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error("Error occured while sending batch submitted notification to internal team", ex);
+            }
+
+            return isEmailSent;
+        }
     }
 }
