@@ -10,7 +10,7 @@ namespace AM.Services
     public class DocumentType
     {
         public int Id { get; set; }
-        public string DocTypeCode { get; set; }
+        public string DocTypeName { get; set; }
     }
     public class ChannelCodeTitle
     {
@@ -74,7 +74,7 @@ namespace AM.Services
     public class ReportWizard
     {
         public int MailPieceId { get; set; }
-        public string BatchId { get; set; }        
+        public string BatchId { get; set; }
         public string Channel { get; set; }
         public string DocumentOrPackageType { get; set; }
         //public string BusinessIdName { get; set; }

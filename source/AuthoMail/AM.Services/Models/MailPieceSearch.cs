@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AM.Lib;
+using System.ComponentModel.DataAnnotations;
 namespace AM.Services
 {
 
@@ -259,18 +260,35 @@ namespace AM.Services
         public string CreatedBy { get; set; }
         public BusinessUnitModel BusinessUnitModel { get; set; }
     }
+    public class ClientDocTypes
+    {
+        public int Id { get; set; }
+        [Required(ErrorMessage = "Client field is required.")]
+        public int ClientId { get; set; }
+        [Required(ErrorMessage = "Document type name is required.")]
+        public string DocTypeName { get; set; }
+        public List<DocTypes> DocTypesList { get; set; }
+        public DocTypes DocTypes { get; set; }
+        public ClientDocTypes()
+        {
+            this.DocTypes = new DocTypes();
+        }
+    }
     public class DocTypes
     {
         public int Id { get; set; }
-        public string DocTypeCode { get; set; }
-        public string Description { get; set; }
+        public string DocTypeCode { get; set; }//Removed
+        public string Description { get; set; }//Removed
         public int ClientId { get; set; }
+        public string ClientName { get; set; }
+        [Required]
         public string PrintSize { get; set; }
         public decimal ContentScalePercent { get; set; }
         public string PrintFormat { get; set; }
         public decimal QCPercent { get; set; }
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
+        [Required]
         public string ShippingAccountCode { get; set; }
         public bool IsReturnInfoSpecified { get; set; }
         public string RetRcptPrefix { get; set; }
@@ -313,7 +331,35 @@ namespace AM.Services
         public int? EnvelopeId { get; set; }
         public int? BREEnvelopeId { get; set; }
         public int NoOfCopies { get; set; }
-
+        public int? MinPage { get; set; }
+        public int? MaxPage { get; set; }
+        public int ClientDocTypeId { get; set; }
+        public string ClientDocTypesName { get; set; }
+        public bool IsFallBack { get; set; }
+        public ClientDocTypes ClientDocTypes { get; set; }
+        public List<DocTypePageRange> DocTypePageRangeList { get; set; }
+        public DocTypes()
+        {
+            this.DocTypePageRangeList = new List<DocTypePageRange>();
+        }
+    }
+    public class DocTypePageRange
+    {
+        public int DocTypesId { get; set; }
+        [Required, Range(1, 998, ErrorMessage = "From field value must be between 1 to 999.")]
+        public int From { get; set; }
+        [Required, Range(1, 999, ErrorMessage = "To field value must be between 1 to 999.")]
+        public int To { get; set; }
+        public string ShippingCarrier { get; set; }
+        public string ShippingServiceType { get; set; }
+        public string ShippingSpecialService { get; set; }
+        public List<string> ShippingSpecialServiceList { get; set; }
+        public int? EnvelopeId { get; set; }
+        public int? BREEnvelopeId { get; set; }
+        public bool IsFallBack { get; set; }
+        public bool IsBRE { get; set; }
+        //public bool HasFB { get; set; }//isfallback ref for UI
+        //public bool isAdd { get; set; }
     }
     public class SFTChannels
     {
@@ -336,6 +382,7 @@ namespace AM.Services
         public string Id { get; set; }
         public string Email { get; set; }
         public string UserName { get; set; }
+        public string DisplayName { get; set; }
         public int? ClientId { get; set; }
     }
 

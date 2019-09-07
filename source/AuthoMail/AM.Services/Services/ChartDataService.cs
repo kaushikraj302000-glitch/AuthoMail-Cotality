@@ -248,7 +248,7 @@ namespace AM.Services
             //    }
             //    ).ToList();
             //return dailySummaryChartList;
-            string query = @"select d.DocTypeCode
+            string query = @"select dc.DocTypeName as DocTypeCode
 ,sum(case when m.shippingstatus = 'Shipped' then 1 else 0 end) as Shipped
 ,sum(case when m.shippingstatus = 'InProgress' then 1 else 0 end) as InProgress
 ,sum(case when m.shippingstatus = 'Error' then 1 else 0 end) as Error
@@ -256,8 +256,9 @@ namespace AM.Services
 from AM.MailPieces m
 inner join AM.MailBatches b on m.MailBatchId=b.Id
 inner join AM.DocTypes d  on m.DocTypeId=d.Id
+inner join AM.ClientDocTypes dc  on d.ClientDocTypeId=dc.Id
 where b.ClientId=@clientId AND b.ReceivedOn BETWEEN @startDate AND @endDate
-group by d.DocTypeCode order by d.DocTypeCode";
+group by dc.DocTypeName order by dc.DocTypeName";
             return db.Query<DailySummaryChartVM>(query, new { clientId = clientId, startDate = date.ToStartDateTime().EstToUtc(), endDate = date.ToEndDateTime().EstToUtc() }).ToList();
 
         }

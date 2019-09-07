@@ -17,4 +17,7 @@ namespace AM.Lib
             PnSResponsesFolderName = "PnSResponses";
         }
     }
+    [AttributeUsage(AttributeTargets.All)]
+    public class ExcludeInExcel : Attribute
+    { }
 }

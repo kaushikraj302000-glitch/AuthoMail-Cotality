@@ -29,12 +29,7 @@ namespace AM.Services
         }
         public List<DocumentType> GetDocTypeList(int clientId)
         {
-            var data = db.Query(HomeServiceQuery.GetDocTypeList, new { clientId = clientId }).ToList();
-            var list = new List<DocumentType>();
-            foreach (var item in data)
-            {
-                list.Add(new DocumentType { Id = item.Id, DocTypeCode = item.DocTypeCode });
-            }
+            var list = db.Query<DocumentType>(HomeServiceQuery.GetDocTypeList, new { clientId = clientId }).ToList();
             return list;
         }
 
@@ -109,7 +104,7 @@ namespace AM.Services
 
         public static string GetMailPieceByBatchId = "select * from [dbo].[view_MailPieceByParam] where MailBatchId=@batchId and clientId=@clientId";
         //Description AS
-        public static string GetDocTypeList = "select Id, DocTypeCode FROM [AM].[DocTypes] WHERE ClientId=@clientId AND IsActive=1";
+        public static string GetDocTypeList = "select Id, DocTypeName FROM [AM].[ClientDocTypes] WHERE ClientId=@clientId";
 
         public static string GetMailPieceIdFromBusinessFriendlyValue = "select m.[UniqueId] as [MailPieceId] from [AM].[MailBatches] b,[AM].[MailPieces] m where b.Id = m.MailBatchId and ((cast(ReceivedOn as date)=cast(@todayDate as date) or (m.ShippingStatus=@shippingStatus and b.PipelineStatus=@pipelineStatus))) and m.BusinessFriendlyIdName=@businessFriendlyIdName AND m.BusinessFriendlyIdValue=@businessFriendlyIdValue AND b.ClientId=@clientId";
 

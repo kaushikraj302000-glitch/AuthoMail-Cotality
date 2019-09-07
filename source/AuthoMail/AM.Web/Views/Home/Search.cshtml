@@ -96,7 +96,6 @@
                                 <label for="DocType">Document Type</label>
                                 @Html.DropDownList("DocType", ViewBag.DocType as SelectList, htmlAttributes: new { @class = "selectpicker", @multiple = "multiple", @data_live_search = "true", @data_live_search_placeholder = "Search Document Type" })
                             </div>
-
                         </div>
                         <div class="col-md-@(ViewBag.BusinessId.Count > 1?"4":"3")">
                             <div class="form-group">
@@ -277,7 +276,7 @@
                 <td><span>{DueDateFormatted}</span></td>
                 <td><span>{ShippedOnFormatted}</span></td>
                 <td><span>{PickedUpOnFormatted}</span></td>
-                <td><span>{DocType}</span></td>
+                <td><span>{DisplayDocType}</span></td>
                 <td><span>{Channel}</span></td>
                 <td>{ShippingCarrier} / {ShippingMethod}</td>
                 <td>{ErrorCode}</td>
@@ -460,7 +459,7 @@
             <div class="form-group margin-bottom-2">
                 <div class="input-group">
                     <label for="BusinessFriendlyIdValue">Document Type Code:&nbsp; </label>
-                    <span class="form-control-static">{DocTypeCode}</span>
+                    <span class="form-control-static">{DisplayDocTypeCode}</span>
                 </div>
             </div>
             <div class="form-group margin-bottom-2">

@@ -35,13 +35,21 @@ namespace AM.Web.Models
         public bool IsQCPerformed { get; set; }
         public string SFTChannels { get; set; }
         public string DocTypeCode { get; set; }
+        public string DisplayDocTypeCode
+        {
+            get
+            {
+                if (this.DocTypeCode.IsNullOrEmpty()) return "-";
+                return this.DocTypeCode.Split('|').First();
+            }
+        }
         public int TotalPages { get; set; }
         public int TotalSheets { get; set; }
         public string ErrorCode { get; set; }
         public string ErrorDesc { get; set; }
         public bool IsRcptInfoSpecified { get; set; }
-        public string  RcptName { get; set; }
-        public string  RcptAddress { get; set; }
+        public string RcptName { get; set; }
+        public string RcptAddress { get; set; }
         public string RcptPhone { get; set; }
         public string RcptOrganization { get; set; }
         public string RcptAddressCity { get; set; }

@@ -31,13 +31,14 @@ namespace AM.Services
      inner join Common.SFTChannels ch on b.SFTChannelId=ch.Id
      inner join Common.Clients c on m.ClientId=c.Id     
 	 left outer join AM.DocTypes d ON m.DocTypeId=d.Id
+     left outer join AM.ClientDocTypes cd on d.ClientDocTypeId=cd.Id
 	 left outer JOIN Profile.Users u ON m.PulledBackRequestedBy=u.Id	 
 	 WHERE m.ClientId=@clientId";
             string fields = @"m.BusinessFriendlyIdValue as LoanNumber,m.ShippingStatus as [Status],m.UniqueId,
 	 m.RcptFirstName as FirstName,m.RcptLastName as LastName,m.RcptAddressCity as [City],m.RcptAddressZip as ZIP,
 	 m.RcptAddressState as [State],m.PickedUpOn,m.ShippedOn,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,
 	 b.ReceivedOn,m.DocTypeId,
-	 d.DocTypeCode as DocType,d.ShippingServiceType as ShippingMethod,d.ShippingCarrier,
+	 cd.DocTypeName as DocType,d.ShippingServiceType as ShippingMethod,d.ShippingCarrier,
 	 ch.Title as Channel";
             DynamicParameters parameter = new DynamicParameters();
             parameter.Add("@clientId", clientId);
@@ -78,8 +79,8 @@ namespace AM.Services
             }
             if (docType != null && docType.Count > 0)
             {
-                query = string.Format("{0} and m.DocTypeId in @docTypeId", query);
-                parameter.Add("@DocTypeId", docType);
+                query = string.Format("{0} and cd.ClientDocTypeId in @docType", query);
+                parameter.Add("@docType", docType);
             }
             if (errorList != null && errorList.Count > 0)
             {

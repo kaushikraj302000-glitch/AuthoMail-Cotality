@@ -41,7 +41,6 @@ namespace AM.Web.Controllers
             this.accSvc = accSvc;
         }
 
-
         public AMSignInManager SignInManager
         {
             get

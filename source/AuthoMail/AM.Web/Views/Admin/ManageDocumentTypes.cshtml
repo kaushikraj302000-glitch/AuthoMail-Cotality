@@ -30,8 +30,8 @@
     <div class="panel-heading" id="clientHeader">
         <div class="panel-title">
             <i class="fa fa-file"></i> Document Type Details
-            <span class="pull-right" @*style=" margin-right: 11%;" *@>
-                <button type="button" data-id="0" class="btn btn-primary " onclick="AddEditDocType(this)"><i class="fa fa-plus"></i> Add Document Type</button>
+            <span class="pull-right">
+                <a href="/Admin/CreateOrEditDocType" type="button" class="btn btn-primary"><i class="fa fa-plus"></i> Add Document Type</a>
             </span>
         </div>
     </div>
@@ -46,8 +46,9 @@
         <thead>
             <tr>
                 <th>Action</th>
-                <th>DocType Code</th>
-                <th>Description</th>
+                @*<th>DocType Code</th>
+                    <th>Description</th>*@
+                <th>DocType Name</th>
                 <th>Client Name</th>
                 <th>IsActive</th>
                 <th>Print Size</th>
@@ -102,9 +103,10 @@
         <tbody id="DocTypeBody">
             <tr class="row-small">
                 <td>{MappingPT}{CoverLetter}{Action}</td>
-                <td><span data-id="{Id}">{DocTypeCode}</span></td>
-                <td><span>{Description}</span></td>
-                <td><span>{Client.Name}</span></td>
+                @*<td><span data-id="{Id}">{DocTypeCode}</span></td>
+                    <td><span>{Description}</span></td>*@
+                <td><span>{ClientDocTypesName}</span></td>
+                <td><span>{ClientName}</span></td>
                 <td><span>{IsActiveFormatted}</span></td>
                 <td><span>{PrintSize}</span></td>
                 <td><span>{ContentScalePercent}</span></td>
@@ -155,7 +157,7 @@
 
 
 <div class="modal fade" id="AddEditModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-lg" role="document" style="width:90%;">
         <div class="modal-content">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal-header" style="margin-top:2%;margin-bottom:2%;">
@@ -681,11 +683,11 @@
                 this.SLACutOffTime = moment(this.SLACutOffTime).format("HH:mm:ss");
                 this.CreatedOn = moment(this.CreatedOn).format("MM/DD/YY HH:mm:ss");
                 this.ModifiedOn = moment(this.ModifiedOn).format("MM/DD/YY HH:mm:ss");
-                this.Action = '<span style="cursor: pointer;font-size:1.2em;" onclick="AddEditDocType(this)" data-id="' + this.Id + '" ><i class="fa fa-edit text-blue" aria-hidden="true" title="Edit"><span class="sr-only">Edit</span></i></span>';
+                this.Action = '<a style="cursor: pointer;font-size:1.2em;" a href="/Admin/CreateOrEditDocType?id='+this.ClientDocTypeId+'" ><i class="fa fa-edit text-blue" aria-hidden="true" title="Edit"><span class="sr-only">Edit</span></i></a>';
 
                 this.CoverLetter = '<span style="cursor: pointer;font-size:1.2em;margin-right:10%;" onclick="GetCoverLetterFiles(this)" data-id="' + this.Id + '" data-doctypecode="' + this.DocTypeCode + '" ><i class=" fa fa-file-pdf-o text-red" aria-hidden="true" title="Remove Cover Letter"><span class="sr-only">Cover Letter</span></i></span>';
                 this.MappingPT = '<a href="/Admin/PrintTrailMapByDocId/' + this.Id + '" style="cursor: pointer;font-size:1.2em;margin-right:10%;"  ><i class=" fa fa-list text-blue" aria-hidden="true" title="Print Trail Mapping"><span class="sr-only">Print Trail Mapping</span></i></a>';
-        
+
 
             });
             return Model;
