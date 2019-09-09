@@ -126,6 +126,8 @@ namespace AM.USPSLib
 
         public bool PrintCustomerRefNo { get; set; }
 
+        public bool PrintCustomerRefNo2 { get; set; }
+
         public Content Content { get; set; }
 
         public ActionCode? ActionCode { get; set; }

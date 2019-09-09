@@ -262,7 +262,6 @@
     <Compile Include="Models\LookupViewModel.cs" />
     <Compile Include="Models\MailPieceCommonViewModel.cs" />
     <Compile Include="Models\MailPieceDetailsViewModel.cs" />
-    <Compile Include="Models\MailPieceViewModel.cs" />
     <Compile Include="Models\MonthlyReconReportViewModel.cs" />
     <Compile Include="Models\PDFTemplate.cs" />
     <Compile Include="Models\PullBackResponse.cs" />
@@ -572,6 +571,8 @@
     <Content Include="Views\Admin\ManagePrintTrails.cshtml" />
     <Content Include="Views\Admin\_AddOrEditPrintTrail.cshtml" />
     <Content Include="Views\Admin\_AddNewRowPrintTrail.cshtml" />
+    <Content Include="Views\Admin\_DocTypePageRange.cshtml" />
+    <Content Include="Views\Admin\CreateOrEditDocType.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

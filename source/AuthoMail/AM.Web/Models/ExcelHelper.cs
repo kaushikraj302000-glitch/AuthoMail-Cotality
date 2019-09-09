@@ -6,12 +6,14 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Web;
+using AM.Lib;
 
 namespace AM.Web.Models
 {
     public class ExcelHelper
     {
-         public static DataTable ToDataTable<T>(List<T> items)
+
+        public static DataTable ToDataTable<T>(List<T> items)
         {
             DataTable dataTable = new DataTable(typeof(T).Name);
 
@@ -22,15 +24,18 @@ namespace AM.Web.Models
                 //Defining type of data column gives proper data table 
                 var type = (prop.PropertyType.IsGenericType && prop.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>) ? Nullable.GetUnderlyingType(prop.PropertyType) : prop.PropertyType);
                 //Setting column names as Property names
-                dataTable.Columns.Add(prop.Name, type);
+                if (!prop.CustomAttributes.Any(c => c.AttributeType.Name == "ExcludeInExcel"))
+                    dataTable.Columns.Add(prop.Name, type);
             }
+            var columns = dataTable.Columns;
             foreach (T item in items)
             {
-                var values = new object[Props.Length];
-                for (int i = 0; i < Props.Length; i++)
+                var values = new object[columns.Count];
+                for (int i = 0; i < columns.Count; i++)
                 {
                     //inserting property values to datatable rows
-                    values[i] = Props[i].GetValue(item, null);
+                    values[i] = item.GetValueOfPropertyFromPropertyName(columns[i].ColumnName);
+                    //Props[i].GetValue(item, null);
                 }
                 dataTable.Rows.Add(values);
             }
@@ -95,7 +100,7 @@ namespace AM.Web.Models
 
                     sheetData.AppendChild(newRow);
                 }
-                
+
                 return memoryStream;
             }
         }

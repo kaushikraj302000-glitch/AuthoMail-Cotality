@@ -118,14 +118,14 @@ namespace PCI.Service
             while (notSubmittedList.Count > 0)
             {
                 log.Info("Submit Bundle Process Started");
-                SubmitBatches(notSubmittedList);
+                SubmitBatches(notSubmittedList, pvCode);
                 log.Info("Submit Bundle Process Completed");
                 Thread.Sleep(12000);
                 notSubmittedList = DAL.GetNotSubmittedPrintBatchDetailByPrintVendorCode(pvCode);
             }
         }
 
-        private static void SubmitBatches(List<PrintTrailBatch> ptBatchList)
+        private static void SubmitBatches(List<PrintTrailBatch> ptBatchList, string pvCode)
         {
             foreach (PrintTrailBatch ptBatch in ptBatchList)
             {
@@ -137,6 +137,15 @@ namespace PCI.Service
                 }
                 catch (Exception ex)
                 {
+                    if (ex.Message.Contains("connection attempt failed") || ex.Message.Contains("connected party did not properly respond") || ex.Message.Contains("established connection failed"))
+                    {
+                        var connectionMsg = "Error occured while connecting to Print Vendor {0}'s SFT Site with <br/> below exception <br/>{1}".Fill(pvCode, ex);
+                        log.Error(connectionMsg);
+                        MailUtility.SendSFTConnectionIssueNotificationEmail(connectionMsg, pvCode);
+                        Thread.Sleep(300000);
+                        continue;
+                    }
+
                     var msg = "SubmitBatchToPrintVendor : Error occured while uploading batch to print vendor for PrintTrailBatchId - {0}".Fill(ptBatch.Id);
                     log.Error(msg, ex);
 
@@ -454,10 +463,11 @@ namespace PCI.Service
 
         private static void UploadBatchToPrintVendorSite(string zipFilePath, PrintTrailDetail ptDetails)
         {
+            log.Debug("Started SFT Connection To {0}".Fill(ptDetails.VendorCode));
             SFTUtil sftSite = new SFTUtil(ptDetails.Protocol.ParseEnum<SFT_ProtocolType>(), ptDetails.Host, ptDetails.UserName, ptDetails.Password,
                60000);
             sftSite.Connect();
-
+            log.Debug("SFT Connection successfull To {0}".Fill(ptDetails.VendorCode));
             var sw = new Stopwatch();
             sw.Start();
 
@@ -468,6 +478,8 @@ namespace PCI.Service
             log.DebugFormat("Total time spent : {0} For Batch : {1}", time, Path.GetFileNameWithoutExtension(zipFilePath));
 
             sftSite.Disconnect();
+            log.Debug("SFT Connection disconnected with {0}".Fill(ptDetails.VendorCode));
+
         }
 
         private static void UploadBatchToInternalPrintVendorSite(string pciRootPath, SFTUtil sftSite, List<MailPieceDetail> mailPiecesDetails, PrintTrailDetail printTrailDetail)
@@ -489,7 +501,6 @@ namespace PCI.Service
                     string localFilePath = Path.Combine(pciRootPath, client.AppCode, mailPiece.JobId.ToString(), Common.PCIRequestFolderName, mailPiece.PDFFileName);
                     //NOTE : Here Feeder4_Sel field of MRDFRequest table contains detail about mail packages is BRE or not and Because of that we have used this over here.
 
-                    string folderBRE = mailPiece.Feeder4_Sel == 1 ? "_BRE" : "";
                     var effectiveReceivedOnEst = mailPiece.EffectiveReceivedOnEst;
 
                     var dallasBatches = batchTimings.Select(t => new DallasBatch
@@ -503,21 +514,17 @@ namespace PCI.Service
                     });
 
                     var currentBatch = dallasBatches.Single(b => (b.AppCode == client.AppCode && effectiveReceivedOnEst >= b.StartDate && effectiveReceivedOnEst <= b.EndDate) && b.ShippingCarrier == mailPiece.ShippingCarrier && b.ShippingServiceType == mailPiece.ShippingServiceType);
-                    string submitDir = string.Empty;
 
-                    if (client.AppCode == "HSBC" && mailPiece.TotalPages >= 65) //NOTE : Here for HSBC System is separating packages which have pages more than 65 pages with priority folder
-                    {
-                        submitDir = Path.Combine(printTrailDetail.FromADEDir, client.AppCode, effectiveReceivedOnEst.Value.Date.ToString("MMddyyyy"), currentBatch.BatchName, currentBatch.ShippingCarrier + "_" + currentBatch.ShippingServiceType + folderBRE, "PRIORITY");
-                    }
-                    else
-                    {
-                        submitDir = Path.Combine(printTrailDetail.FromADEDir, client.AppCode, effectiveReceivedOnEst.Value.Date.ToString("MMddyyyy"), currentBatch.BatchName, currentBatch.ShippingCarrier + "_" + currentBatch.ShippingServiceType + folderBRE);
-                    }
+                    //NOTE: Folder structure will be like  /gos/ClientCode/SweepTime/ShippingCarrier_ShippingServiceType/EnvelopeName_BREEnvelopeName
+                    string submitDir = Path.Combine(printTrailDetail.FromADEDir, client.AppCode, effectiveReceivedOnEst.Value.Date.ToString("MMddyyyy"), currentBatch.BatchName, currentBatch.ShippingCarrier + "_" + currentBatch.ShippingServiceType, "{0}_{1}".Fill(mailPiece.EnvelopeName, mailPiece.BREEnvelopeName));
 
                     if (!sftSite.IsDownloadDirectoryAvailable(submitDir))
                         sftSite.CreateDirectory(submitDir);
 
-                    sftSite.UploadFile(localFilePath, Path.Combine(submitDir, mailPiece.PDFFileName));
+                    string fullFilePath = Path.Combine(submitDir, mailPiece.PDFFileName);
+                    sftSite.UploadFile(localFilePath, fullFilePath);
+
+                    DAL.UpdateFilePathForDallas(mailPiece, fullFilePath);
                 }
             }
         }

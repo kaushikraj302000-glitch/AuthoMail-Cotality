@@ -126,8 +126,144 @@ GO
 
 ALTER TABLE [AM].[AlertSubscribers] CHECK CONSTRAINT [FK_AlertSubscribers_Users]
 GO
+-----------------------------------------------------------------------------------
+-- Min Max Page Fields
+ALTER TABLE AM.DocTypes
+ADD MinPage INT NULL, MaxPage INT NULL
+GO
+-- New table Added ClientDocTypes
+CREATE TABLE AM.ClientDocTypes
+(
+	Id INT IDENTITY(1,1) NOT NULL,
+	ClientId INT NOT NULL,
+	DocTypeName NVARCHAR(255) NOT NULL,
+	CONSTRAINT [PK_ClientDocTypes_Id] PRIMARY KEY CLUSTERED (Id ASC),
+	CONSTRAINT FK_ClientDocTypes_Clients FOREIGN KEY (ClientId) REFERENCES Common.Clients (Id) 
+)
+GO
+CREATE INDEX Idx_ClientDocTypes_DocTypeName
+ON AM.ClientDocTypes (DocTypeName);
+GO
+CREATE UNIQUE NONCLUSTERED INDEX [IX_ClientDocTypes_ClientId_DocTypeName] ON [AM].[ClientDocTypes]
+(
+	[ClientId] ASC,
+	[DocTypeName] ASC
+)
+GO
+ALTER TABLE AM.DocTypes
+ADD ClientDocTypeId INT NULL,IsFallBack BIT
+GO
+ALTER TABLE AM.DocTypes  WITH CHECK ADD  CONSTRAINT [FK_DocTypes_ClientDocTypes] FOREIGN KEY(ClientDocTypeId)
+REFERENCES AM.ClientDocTypes ([Id])
+GO
+CREATE INDEX Idx_ClientDocTypes_ClientId
+ON AM.ClientDocTypes (ClientId);
+GO
+CREATE INDEX Idx_DocTypes_ClientDocTypeId
+ON AM.DocTypes (ClientDocTypeId);
+GO
+DROP INDEX IX_DocTypes_ClientId_Description
+ON AM.DocTypes
+GO
+DROP INDEX IX_DocTypes_ClientId_DocTypeCode
+ON AM.DocTypes
+GO
+EXEC sp_rename 'AM.DocTypes.DocTypeCode', 'DocTypeCodeDelete', 'COLUMN';
+GO
+EXEC sp_rename 'AM.DocTypes.Description', 'DescriptionDelete', 'COLUMN';
+GO
+ALTER TABLE AM.DocTypes ALTER COLUMN DocTypeCodeDelete VARCHAR(255) NULL
+GO
+ALTER TABLE AM.DocTypes ALTER COLUMN DescriptionDelete VARCHAR(512) NULL
+GO		
 
---------------------------------------------------------------------------------------
+
+
+--Change Mapping Of DocType Envelopes
+
+ALTER TABLE [AM].[DocTypes] DROP CONSTRAINT [FK_DocTypes_Envelope]
+GO
+ALTER TABLE [AM].[DocTypes] DROP CONSTRAINT [FK_DocTypes_BREEnvelope]
+GO
+/****** Object:  Index [PK_Envelopes]    Script Date: 23-07-2019 04:18:24 PM ******/
+ALTER TABLE [Common].[Envelopes] DROP CONSTRAINT [PK_Envelopes] WITH ( ONLINE = OFF )
+GO
+
+sp_RENAME '[Common].[Envelopes].[Id]' , 'EnvelopeName', 'COLUMN'
+GO
+
+ALTER TABLE Common.Envelopes
+ADD Id INT IDENTITY(1,1) NOT NULL,PartNumber VARCHAR(255) NULL,EnvelopeDesc VARCHAR(255) NULL
+GO
+
+ALTER TABLE Common.Envelopes
+ADD CONSTRAINT PK_Envelopes PRIMARY KEY(Id)
+GO
+
+sp_RENAME '[AM].[DocTypes].[EnvelopeId]' , 'EnvelopeName1', 'COLUMN'
+GO
+
+sp_RENAME '[AM].[DocTypes].[BREEnvelopeId]' , 'BREEnvelopeName1', 'COLUMN'
+GO
+
+ALTER TABLE [AM].[DocTypes]
+ADD EnvelopeId INT NULL,BREEnvelopeId INT NULL
+GO
+
+ALTER TABLE [AM].[DocTypes]  WITH CHECK ADD  CONSTRAINT [FK_DocTypes_Envelope] FOREIGN KEY([EnvelopeId])
+REFERENCES [Common].[Envelopes] ([Id])
+GO
+
+ALTER TABLE [AM].[DocTypes]  WITH CHECK ADD  CONSTRAINT [FK_DocTypes_BREEnvelope] FOREIGN KEY([EnvelopeId])
+REFERENCES [Common].[Envelopes] ([Id])
+GO
+
+ALTER TABLE [PnS].[EnvelopeUsage] DROP CONSTRAINT [FK_EnvelopeUsage_Envelopes]
+GO
+
+sp_RENAME '[PnS].[EnvelopeUsage].[EnvelopeId]' , 'EnvelopeName1', 'COLUMN'
+GO
+
+ALTER TABLE [PnS].[EnvelopeUsage]
+ADD EnvelopeId INT NULL
+GO
+
+ALTER TABLE [PnS].[EnvelopeUsage]  WITH CHECK ADD  CONSTRAINT [FK_EnvelopeUsage_Envelopes] FOREIGN KEY([EnvelopeId])
+REFERENCES [Common].[Envelopes] ([Id])
+GO
+
+ALTER TABLE [Common].[EnvelopeInventory] DROP CONSTRAINT [FK_EnvelopeId_EnvelopeInventory_Users]
+GO
+
+sp_RENAME '[Common].[EnvelopeInventory].[EnvelopeId]' , 'EnvelopeName1', 'COLUMN'
+GO
+
+ALTER TABLE [Common].[EnvelopeInventory]
+ADD EnvelopeId INT NULL
+GO
+
+ALTER TABLE [Common].[EnvelopeInventory]  WITH CHECK ADD  CONSTRAINT [FK_EnvelopeId_EnvelopeInventory] FOREIGN KEY([EnvelopeId])
+REFERENCES [Common].[Envelopes] ([Id])
+GO
+
+ALTER TABLE AM.DocTypes
+ADD RetRcptAddressCountry VARCHAR(255) NULL
+GO
+ALTER TABLE AM.MailBatches
+ADD RetRcptAddressCountry VARCHAR(255) NULL
+GO
+ALTER TABLE AM.MailPieces
+ADD RcptAddressCountry VARCHAR(255) NULL,RetRcptAddressCountry VARCHAR(255) NULL,ClientDocTypeId INT NULL
+GO
+ALTER TABLE [AM].[MailPieces]  WITH CHECK ADD  CONSTRAINT [FK_MailPiece_ClientDocTypes] FOREIGN KEY([ClientDocTypeId])
+REFERENCES [AM].[ClientDocTypes] ([Id])
+GO
+ALTER TABLE [Common].[PrintTrails]
+ADD PrintLocation VARCHAR(255) NULL
+GO
+
+------------STORE Procedures---------------------
+
 IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'usp_EnvelopeInventoryStockCalculation')
 DROP PROCEDURE [dbo].[usp_EnvelopeInventoryStockCalculation]
 go
@@ -179,7 +315,9 @@ CREATE PROCEDURE [dbo].[uspalert_GetDelayedBatchesToSubmit]
 	@cutOffMinutes int
 AS
 BEGIN
- select mp.Id,mp.businessfriendlyidvalue as LoanNumber,mp.TrackingNo,mb.Id as MailBatchId,rq.UniqueId,bs.IsSubmitted,c.AppCode,mb.BatchName,mb.ReceivedOn,mb.PipelineStatus,mp.DueDate, mp.ShippingStatus,d.DocTypeCode,d.ShippingCarrier,d.ShippingServiceType,mp.ClientId,pv.Name as PrintLocation,pv.VendorCode,rq.MailPieceStatus,pt.TrailName as PrintTrail  
+ select mp.Id,mp.businessfriendlyidvalue as LoanNumber,mp.TrackingNo,mb.Id as MailBatchId,rq.UniqueId,bs.IsSubmitted,c.AppCode,
+ mb.BatchName,mb.ReceivedOn,mb.PipelineStatus,mp.DueDate, mp.ShippingStatus,cd.DocTypeName as DocTypeCode,
+ d.ShippingCarrier,d.ShippingServiceType,mp.ClientId,pv.Name as PrintLocation,pv.VendorCode,rq.MailPieceStatus,pt.TrailName as PrintTrail  
  from AM.MailPieces mp
  inner join AM.MailBatches mb on mp.MailBatchId=mb.Id
  left outer join Common.PrintTrails pt on mp.PrintTrailId = pt.Id
@@ -188,9 +326,11 @@ BEGIN
  left outer join PnS.MRDFRequest rq on mp.UniqueId=rq.UniqueId
  left outer join PnS.BatchSummary bs on rq.JobId=bs.PrintBatch
  left outer join AM.DocTypes d on mp.DocTypeId = d.Id
+ left outer join AM.ClientDocTypes cd on d.ClientDocTypeId=cd.Id
  where mb.ReceivedOn between DATEADD(day,-7,GETUTCDATE()) and DATEADD(minute,-@cutOffMinutes,GETUTCDATE()) and (mp.ShippingStatus is null or (mp.ShippingStatus in ('InProgress','Shipped') and (rq.UniqueId is null or ISNULL(bs.IsSubmitted,0)=0)) or (mp.ShippingStatus = 'Error' and mp.ErrorDesc IS NULL) or (mp.ShippingStatus = 'PulledBack' and not exists (select Id from AM.PullBackRequests where MailPieceId = mp.Id)) or (mb.ClientId IS NULL))
  or (rq.MailPieceStatus='Shipped' and mp.IsPickedUp <> 1 and mp.DueDate < GETUTCDATE() and d.ShippingCarrier='FedEx' and mb.ReceivedOn>='2019-01-01 05:00:00')
 END
+go
 ---------------------------------------------------------------------------------------------------------
 IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'usp_GetEnvelopeInventoryUsage')
 DROP PROCEDURE [dbo].[usp_GetEnvelopeInventoryUsage]
@@ -202,18 +342,72 @@ Create PROCEDURE [dbo].[usp_GetEnvelopeInventoryUsage]
 		-- SET NOCOUNT ON added to prevent extra result sets from
 		-- interfering with SELECT statements.
 		SET NOCOUNT ON;
-		declare @startDate as date,@endDate as date
-set @endDate = dateadd(day,-1,cast(getutcdate() as date));
-set @startDate= dateadd(month,-1,getutcdate());--dateadd(day,-(DAY(EOMONTH(DATEADD(month,-1,@endDate)))+1),@endDate)
-
+		
 ;with cte as
 (
-	select distinct(cast(SubmittedOn as date)) as Date ,SUM(Quantity) AS UsageStock
+select  distinct(cast(SubmittedOn as date)) as Date ,SUM(Quantity) AS UsageStock
 	from PnS.EnvelopeUsage EU
 	INNER JOIN PnS.PrintTrailBatches PTB ON EU.PrintTrailBatchId=PTB.Id
-	WHERE cast(SubmittedOn as date) BETWEEN @startDate AND @endDate and EU.EnvelopeId=@Id
-	GROUP BY SubmittedOn 
+	WHERE EU.EnvelopeId=@Id
+	GROUP BY cast(SubmittedOn as date)  
 )
-select * from cte  order by Date desc
-
+select top 30 * from cte
+order by date desc
 	END
+GO
+---------------------------------------------------------------------------------------------------------
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'uspweb_ErrorReportSLA')
+DROP PROCEDURE [dbo].[uspweb_ErrorReportSLA]
+go
+Create PROCEDURE [dbo].[uspweb_ErrorReportSLA]
+	@clientId int,
+	@startDateRec datetime,
+	@endDateRec datetime,
+	@startDateDue datetime,
+	@endDateDue datetime,
+	@batchId int,
+	@docType varchar(128)
+AS
+BEGIN
+
+select *	
+	from [AM].[MailBatches] b, [Common].[SFTChannels] ch, [Common].[Clients] c,[AM].[MailPieces] m
+	left outer join [AM].[DocTypes] d on m.DocTypeId=d.Id
+	left outer join AM.ClientDocTypes cd on d.ClientDocTypeId=cd.Id
+	where m.MailBatchId=b.Id and c.Id=b.ClientId and ch.Id=b.SFTChannelId AND m.ClientId=@clientId --AND m.SLADays < 0
+	AND ISNULL(b.ReceivedOn,0) BETWEEN ISNULL(@startDateRec, ISNULL(b.ReceivedOn, 0)) AND ISNULL(@endDateRec, ISNULL(b.ReceivedOn, 0))
+	AND ISNULL(m.DueDate,0) BETWEEN ISNULL(@startDateDue, ISNULL(m.DueDate, 0)) AND ISNULL(@endDateDue, ISNULL(m.DueDate, 0))
+	AND ISNULL(m.MailBatchId, '') = ISNULL(@batchId, ISNULL(m.MailBatchId, ''))
+	AND ISNULL(d.ClientDocTypeId, '') = ISNULL(@docType, ISNULL(d.ClientDocTypeId, ''))
+	--AND m.ShippingStatus IN ('InProgress','Shipped')
+	--AND ISNULL(m.ShippingStatus, '') IN (ISNULL('''InProgress'',''Shipped''', ISNULL(m.ShippingStatus, '')))
+	END
+	go
+-----------------------------------------------------------------------------------------------------
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND  name = 'uspweb_MonthlyReconReport')
+DROP PROCEDURE [dbo].[uspweb_MonthlyReconReport]
+go
+create PROCEDURE [dbo].[uspweb_MonthlyReconReport]
+	@clientId int,
+	@startDate datetime,
+	@endDate datetime,
+	@channel varchar(128)
+AS
+begin
+	select m.UniqueId,b.BatchName,m.BusinessFriendlyIdValue as LoanNumber,m.[FileName],m.RcptFirstName as FirstName,m.RcptLastName as LastName
+	,m.RcptAddressStreet as [Address],m.RcptAddressCity as City, m.RcptAddressState as [State],m.RcptAddressZIP as Zip,
+	b.ReceivedOn,m.PrintLocation,m.ShippingStatus as [Status],m.TrackingNo,m.TotalPages,m.PrintedOn,m.ShippedOn,
+	m.PickedUpOn,d.ShippingCarrier,m.ErrorDesc,
+	cd.DocTypeName as DocType,d.ShippingCarrier +' '+d.ShippingServiceType as ShippingMethod,
+	ch.Title as Channel,c.AppCode,
+	r.JobId,r.PieceId
+	FROM [AM].[MailBatches] b, [Common].[SFTChannels] ch,[Common].[Clients] c,[AM].[MailPieces] m
+	LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id
+	left outer join AM.ClientDocTypes cd on d.ClientDocTypeId=cd.Id
+	LEFT OUTER JOIN [PnS].[MRDFRequest] r ON m.UniqueId = r.UniqueId AND r.IsPDFReceived=1
+	WHERE m.[MailBatchId]=b.Id AND c.Id=b.ClientId AND ch.Id=b.SFTChannelId AND m.ClientId=@clientId
+	AND b.ReceivedOn BETWEEN @startDate and @endDate
+	AND ISNULL(ch.Code, '') = ISNULL(@channel, ISNULL(ch.Code, ''))
+end
+go
+-------------------------------------------------------------------------------------------------

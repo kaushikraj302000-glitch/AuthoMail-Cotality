@@ -607,7 +607,35 @@ namespace AM.Web.Controllers
                 return PartialView("_AddOrEditDocType", new DocTypes());
             }
         }
-
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult _DocTypePageRangeAjax(int index)
+        {
+            var model = PageRangeMethods(new DocTypePageRange(), index, false, "");
+            return PartialView("_DocTypePageRange", model);
+        }
+        [Authorize(Roles = AMRoles.Admin)]
+        public ActionResult _DocTypePageRange(DocTypePageRange docTypePageRange, int index, bool isFallBack, string shippingServiceType)
+        {
+            var model = PageRangeMethods(docTypePageRange, index, isFallBack, shippingServiceType);
+            return PartialView("_DocTypePageRange", model);
+        }
+        public DocTypePageRange PageRangeMethods(DocTypePageRange docTypePageRange, int index, bool isFallBack, string shippingServiceType)
+        {
+            var ShippingCarrierList = Config.Web_DD_ShippingCarrierList.Split(',').ToArray();
+            var ShippingServiceTypeList = Config.Web_DD_ShippingServiceTypeList.Split(',').ToArray();
+            var ShippingSpecialServiceList = Config.Web_DD_ShippingSpecialServiceList.Split(',').ToArray();
+            ViewBag.ShippingSpecialService = ShippingSpecialServiceList.Select(s => new SelectListItem() { Text = s, Value = s, Selected = s == docTypePageRange.ShippingSpecialService }).ToList();
+            ViewBag.ShippingCarrierdropDown = ShippingCarrierList.Select(s => new SelectListItem() { Text = s.Trim(), Value = s.Trim(), Selected = docTypePageRange.ShippingCarrier == s.Trim() }).ToList();
+            ViewBag.ShippingServiceTypedropDown = ShippingServiceTypeList.Select(s => new SelectListItem() { Text = s.Trim(), Value = s.Trim(), Selected = docTypePageRange.ShippingServiceType == s.Trim() }).ToList();
+            var breEnvelopes = new List<SelectListItem>() { new SelectListItem { Text = "NA", Value = "0", Selected = docTypePageRange.BREEnvelopeId == 0 } };
+            breEnvelopes.AddRange(inventorySvc.GetEnvelopes().Where(s => s.IsBREEnvelope).Select(s => new SelectListItem() { Text = s.EnvelopeName, Value = s.Id.ToString(), Selected = docTypePageRange.BREEnvelopeId == s.Id }).ToList());
+            ViewBag.BREEnvelopedropDown = breEnvelopes;
+            ViewBag.EnvelopedropDown = inventorySvc.GetEnvelopes().Where(s => !s.IsBREEnvelope).Select(s => new SelectListItem() { Text = s.EnvelopeName, Value = s.Id.ToString(), Selected = docTypePageRange.EnvelopeId == s.Id }).ToList();
+            ViewBag.index = index;
+            ViewBag.isFallBack = isFallBack;
+            ViewBag.shippingServiceType = shippingServiceType;
+            return docTypePageRange;
+        }
         [Authorize(Roles = AMRoles.Admin), HttpPost]
         public ActionResult MakeActiveOrDeactiveDocType(bool isActive, int Id)
         {
@@ -615,28 +643,91 @@ namespace AM.Web.Controllers
             {
                 var model = supportSvc.MakeActivateOrDeactivateDocType(Id, isActive, User.Identity.GetUserId());
                 return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
-
             }
             catch (Exception e)
             {
                 return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
             }
         }
-        [Authorize(Roles = AMRoles.Admin), HttpPost]
-        public ActionResult CreateOrEditDocType(DocTypes docType)
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult CreateOrEditDocType(int id = 0, string Success = null)
         {
+            var clientDocTypes = new ClientDocTypes();
+            if (id != 0)
+                clientDocTypes = supportSvc.GetClientDocTypesById(id);
+
+            CreateOrEditDocTypeSettings(clientDocTypes);
+            ViewBag.Success = Success;
+            return View(clientDocTypes);
+        }
+        //[Authorize(Roles = AMRoles.Admin), HttpPost]
+        //public ActionResult CreateOrEditDocType(DocTypes docTypes)
+        //{
+        //    try
+        //    {
+        //        var model = supportSvc.CreateOrEditDocType(docTypes, User.Identity.GetUserId());
+        //        return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+        //    }
+        //}
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult CreateOrEditDocType(ClientDocTypes clientDocTypes)
+        {
+            CreateOrEditDocTypeSettings(clientDocTypes);
             try
             {
-                var model = supportSvc.CreateOrEditDocType(docType, User.Identity.GetUserId());
-                return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
+                if (ModelState.IsValid)
+                {
+                    var fallBackShippingServiceType = new List<string>() { "PRIORITY_EXPRESS", "PRIORITY" };
+                    clientDocTypes.DocTypes.DocTypePageRangeList.RemoveAll(d => d.DocTypesId < 0 || (!d.IsFallBack && fallBackShippingServiceType.Any(f => f == d.ShippingServiceType)));
+                    if (clientDocTypes.DocTypes.DocTypePageRangeList.Count() == 0)
+                    {
+                        ModelState.AddModelError("", "Please specify DocType page range configuration.");
+                        return View(clientDocTypes);
+                    }
+                    var model = supportSvc.CreateOrEditDocType(clientDocTypes, User.Identity.GetUserId());
+                    if (model.Key)
+                    {
+                        return RedirectToAction("CreateOrEditDocType", new { id = Convert.ToInt32(model.Value) });
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", model.Value);
+                        return View(clientDocTypes);
+                    }
+                }
+                else
+                {
+                    return View(clientDocTypes);
+                }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+                ModelState.AddModelError("", ex.Message);
+                return View(clientDocTypes);
             }
         }
 
+        private void CreateOrEditDocTypeSettings(ClientDocTypes clientDocTypes)
+        {
+            var PrintSizeList = Config.Web_DD_PrintSizeList.Split(',').ToArray();
+            var PrintFormatList = Config.Web_DD_PrintFormatList.Split(',').ToArray();
+            //var ShippingCarrierList = Config.Web_DD_ShippingCarrierList.Split(',').ToArray();
+            //var ShippingServiceTypeList = Config.Web_DD_ShippingServiceTypeList.Split(',').ToArray();
+            //var ShippingSpecialServiceList = Config.Web_DD_ShippingSpecialServiceList.Split(',').ToArray();
+            //ViewBag.ShippingSpecialService = ShippingSpecialServiceList.Select(s => new SelectListItem() { Text = s, Value = s }).ToList();
+            ViewBag.Clients = new SelectList(homeSvc.GetAllActiveClient(), "Id", "Name", clientDocTypes.ClientId);
+            ViewBag.PrintSizedropDown = PrintSizeList.Select(s => new SelectListItem() { Text = s, Value = s, Selected = clientDocTypes.DocTypes.PrintSize == s }).ToList();
 
+            ViewBag.PrintFormatdropDown = PrintFormatList.Select(s => new SelectListItem() { Text = s, Value = s, Selected = clientDocTypes.DocTypes.PrintFormat == s }).ToList();
+            //ViewBag.ShippingCarrierdropDown = ShippingCarrierList.Select(s => new SelectListItem() { Text = s, Value = s, Selected = clientDocTypes.DocTypes.ShippingCarrier == s }).ToList();
+            //ViewBag.ShippingServiceTypedropDown = ShippingServiceTypeList.Select(s => new SelectListItem() { Text = s, Value = s, Selected = clientDocTypes.DocTypes.ShippingServiceType == s }).ToList();
+            //ViewBag.BREEnvelopedropDown = inventorySvc.GetEnvelopes().Where(s => s.IsBREEnvelope).Select(s => new SelectListItem() { Text = s.EnvelopeName, Value = s.Id.ToString(), Selected = clientDocTypes.DocTypes.BREEnvelopeId == s.Id }).ToList();
+            //ViewBag.EnvelopedropDown = inventorySvc.GetEnvelopes().Where(s => !s.IsBREEnvelope).Select(s => new SelectListItem() { Text = s.EnvelopeName, Value = s.Id.ToString(), Selected = clientDocTypes.DocTypes.BREEnvelopeId == s.Id }).ToList();
+        }
 
         #endregion
 
@@ -1013,7 +1104,7 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse(e.Message), JsonRequestBehavior.AllowGet);
             }
         }
-        
+
         #endregion
 
         #region Manage Print Trails

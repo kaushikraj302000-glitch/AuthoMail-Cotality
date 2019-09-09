@@ -624,7 +624,7 @@ namespace AM.Console
                         {
                             if (!(addressResponse.AddressTypes.All(c => c == AddressType.DHAM)))
                             {
-                                var fallBackDocTypes = docTypeSvc.GetFallBackDocTypeByDocTypeName(mailPiece.ClientId, documentOrPackageType);
+                                var fallBackDocTypes = docTypeSvc.GetFallBackDocTypeByClientDocTypeId(mailPiece.ClientId, docType.ClientDocTypeId);
 
                                 if (fallBackDocTypes == null || fallBackDocTypes.Count == 0)
                                 {
@@ -643,7 +643,7 @@ namespace AM.Console
                                     var priDocType = fallBackDocTypes.Single(dt => dt.ShippingCarrier == Carrier.USPS.ToString() && dt.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY.ToString());
 
                                     if (priDocType == null)
-                                    {                                       
+                                    {
                                         mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                                         continue;
                                     }

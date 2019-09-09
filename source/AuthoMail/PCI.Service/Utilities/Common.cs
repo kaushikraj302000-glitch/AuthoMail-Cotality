@@ -23,27 +23,30 @@ namespace PCI.Service
         public static string BundlingRootFolder { get; set; }
         public static string PCIRootReturnPDFsZipFolder { get; set; }
         public static string PnS_SFTChannelCode { get; private set; }
-
+        public static int MRDFResponseLength { get; private set; }
         public static SmtpClient Email_SMTPClient { get; private set; }
+
+        public static string SubmitPCIBatchEmailSubject { get; private set; }
+        public static string SubmitPCIBatchEmailTemplate { get; private set; }
         public static string Email_ToPCI { get; private set; }
         public static string Email_CcPCI { get; private set; }
 
-        public static string Email_ToCL { get; private set; }
-        public static string Email_CcCL { get; private set; }
-
-        public static string SubmitBatchEmailSubject { get; private set; }
-        public static string SubmitBatchEmailTemplate { get; private set; }
+        public static string SubmitNordisBatchEmailSubject { get; private set; }
+        public static string SubmitNordisBatchEmailTemplate { get; private set; }
+        public static string Email_ToNordis { get; private set; }
+        public static string Email_CcNordis { get; private set; }
 
         public static string SuspendBatchEmailSubject { get; private set; }
         public static string SuspendBatchEmailTemplate { get; private set; }
         public static string SuspendEmail_To { get; private set; }
         public static string SuspendEmail_Cc { get; private set; }
-        public static int MRDFResponseLength { get; private set; }
 
-        public static string NoRecordsInMRDFSubject { get; private set; }
+
+        public static string PCI_Issue_Subject { get; private set; }
         public static string PCI_Issue_Email_To { get; private set; }
         public static string PCI_Issue_Email_Cc { get; private set; }
 
+        public static string NORDIS_Issue_Subject { get; private set; }
         public static string NORDIS_Issue_Email_To { get; private set; }
         public static string NORDIS_Issue_Email_Cc { get; private set; }
 
@@ -67,12 +70,12 @@ namespace PCI.Service
         {
             try
             {
-                Remove_ImmediateErrFiles = ConfigurationManager.AppSettings["Remove_ImmediateErrFiles"].Trim() == "0" ? false : true;
-                FontPathDir = ConfigurationManager.AppSettings["FontsDirPath"].Trim();
-                PCIRootFolder = Path.GetFullPath(ConfigurationManager.AppSettings["PCIRootFolder"]);
+                Remove_ImmediateErrFiles = DAL.GetSystemSettingsValue("PnS_Remove_ImmediateErrFiles").Trim() == "0" ? false : true;
+                FontPathDir = DAL.GetSystemSettingsValue("PnS_FontsDirPath").Trim();
+                PCIRootFolder = DAL.GetSystemSettingsValue("PnS_PCIRootFolder").Trim();
                 PCIRootFolder.CreateDirectoryIfNotExist();
 
-                BundlingRootFolder = Path.Combine(Path.GetFullPath(ConfigurationManager.AppSettings["PCIRootFolder"]), "BundlingRoot");
+                BundlingRootFolder = Path.Combine(PCIRootFolder, "BundlingRoot");
                 BundlingRootFolder.CreateDirectoryIfNotExist();
                 BundlingRequestFolderName = "Request";
                 BundlingResponseFolderName = "Response";
@@ -82,42 +85,50 @@ namespace PCI.Service
                 PCIRequestFolderName = "PCIRequest";
                 PCIResponseFolderName = "PCIResponse";
 
-                PCIRootReturnPDFsZipFolder = Path.GetFullPath(ConfigurationManager.AppSettings["PCIRootReturnPDFsZipFolder"]);
+                PCIRootReturnPDFsZipFolder = DAL.GetSystemSettingsValue("PnS_PCIRootReturnPDFsZipFolder").Trim();
                 PCIRootReturnPDFsZipFolder.CreateDirectoryIfNotExist();
+                MRDFResponseLength = int.Parse(DAL.GetSystemSettingsValue("PnS_MRDFResponseLength").Trim());
 
                 DatabaseFactory.SetDatabaseProviderFactory(new DatabaseProviderFactory());
 
                 ApplicationEnvironment = DAL.GetSystemSettingsValue("Common_Environment");
-                PnS_SFTChannelCode = ConfigurationManager.AppSettings["PnS_SFTChannelCode"].Trim() + "_" + ApplicationEnvironment;
+
+                PnS_SFTChannelCode = DAL.GetSystemSettingsValue("PnS_SFTChannelCode").Trim() + "_" + ApplicationEnvironment;
                 Email_SMTPClient = new SmtpClient();
 
-                Email_ToPCI = ConfigurationManager.AppSettings["Email_ToPCI"];
-                Email_CcPCI = ConfigurationManager.AppSettings["Email_CcPCI"];
+                var suspendedEmailChannel = DAL.GetEmailChannelByTitleName("PnS_SuspendEmail");
+                SuspendEmail_To = suspendedEmailChannel.To;
+                SuspendEmail_Cc = suspendedEmailChannel.Cc;
+                SuspendBatchEmailSubject = suspendedEmailChannel.Subject;
+                SuspendBatchEmailTemplate = suspendedEmailChannel.BodyTemplate;
 
-                Email_ToCL = ConfigurationManager.AppSettings["Email_ToCL"];
-                Email_CcCL = ConfigurationManager.AppSettings["Email_CcCL"];
+                var submitNordisBatchEmailChannel = DAL.GetEmailChannelByTitleName("PnS_SubmitNordisBatchEmail");
+                SubmitNordisBatchEmailSubject = submitNordisBatchEmailChannel.Subject;
+                SubmitNordisBatchEmailTemplate = submitNordisBatchEmailChannel.BodyTemplate;
+                Email_ToNordis = submitNordisBatchEmailChannel.To;
+                Email_CcNordis = submitNordisBatchEmailChannel.Cc;
 
-                SubmitBatchEmailTemplate = Path.GetFullPath(ConfigurationManager.AppSettings["SubmitBatchEmailTemplate"]);
+                var submitPCIBatchEmailChannel = DAL.GetEmailChannelByTitleName("PnS_SubmitPCIBatchEmail");
+                SubmitPCIBatchEmailSubject = submitPCIBatchEmailChannel.Subject;
+                SubmitPCIBatchEmailTemplate = submitPCIBatchEmailChannel.BodyTemplate;
+                Email_ToPCI = submitPCIBatchEmailChannel.To;
+                Email_CcPCI = submitPCIBatchEmailChannel.Cc;
 
-                SuspendEmail_To = ConfigurationManager.AppSettings["SuspendEmail_To"];
-                SuspendEmail_Cc = ConfigurationManager.AppSettings["SuspendEmail_Cc"];
-                SuspendBatchEmailTemplate = Path.GetFullPath(ConfigurationManager.AppSettings["SuspendBatchEmailTemplate"]);
 
-                MRDFResponseLength = int.Parse(ConfigurationManager.AppSettings["MRDFResponseLength"]);
+                var invalidPCIResponseEmailChannel = DAL.GetEmailChannelByTitleName("PnS_PCIIssueEmail");
+                PCI_Issue_Subject = invalidPCIResponseEmailChannel.Subject;
+                PCI_Issue_Email_To = invalidPCIResponseEmailChannel.To;
+                PCI_Issue_Email_Cc = invalidPCIResponseEmailChannel.Cc;
 
-                SubmitBatchEmailSubject = ConfigurationManager.AppSettings["SubmitBatchEmailSubject"];
-                SuspendBatchEmailSubject = ConfigurationManager.AppSettings["SuspendBatchEmailSubject"];
+                var invalidNordisResponseEmailChannel = DAL.GetEmailChannelByTitleName("PnS_PCIIssueEmail");
+                NORDIS_Issue_Subject = invalidNordisResponseEmailChannel.Subject;
+                NORDIS_Issue_Email_To = invalidNordisResponseEmailChannel.To;
+                NORDIS_Issue_Email_Cc = invalidNordisResponseEmailChannel.Cc;
 
-                NoRecordsInMRDFSubject = ConfigurationManager.AppSettings["NoRecordsInMRDFSubject"];
-                PCI_Issue_Email_To = ConfigurationManager.AppSettings["PCI_Issue_Email_To"];
-                PCI_Issue_Email_Cc = ConfigurationManager.AppSettings["PCI_Issue_Email_Cc"];
-
-                NORDIS_Issue_Email_To = ConfigurationManager.AppSettings["NORDIS_Issue_Email_To"];
-                NORDIS_Issue_Email_Cc = ConfigurationManager.AppSettings["NORDIS_Issue_Email_Cc"];
-
-                UnexpectedEmail_Subject = ConfigurationManager.AppSettings["UnexpectedEmail_Subject"];
-                UnexpectedEmail_ToEmail = ConfigurationManager.AppSettings["UnexpectedEmail_ToEmail"];
-                UnexpectedEmail_CcEmail = ConfigurationManager.AppSettings["UnexpectedEmail_CcEmail"];
+                var unexpectedEmailChannel = DAL.GetEmailChannelByTitleName("PnS_UnexpectedEmail");
+                UnexpectedEmail_Subject = unexpectedEmailChannel.Subject;
+                UnexpectedEmail_ToEmail = unexpectedEmailChannel.To;
+                UnexpectedEmail_CcEmail = unexpectedEmailChannel.Cc;
             }
             catch (Exception ex)
             {

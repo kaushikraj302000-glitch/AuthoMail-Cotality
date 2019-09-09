@@ -120,11 +120,11 @@ namespace AM.Web.Controllers
 
         public ActionResult ErrorSLAReport()
         {
-            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
+            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeName");
             return View();
         }
         [HttpPost]
-        public ActionResult _GetErrorsSLAReport(string startDate, string endDate, string filterBy, string docType)
+        public ActionResult _GetErrorsSLAReport(string startDate, string endDate, string filterBy, int? docType)
         {
             var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
             var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
@@ -190,7 +190,7 @@ namespace AM.Web.Controllers
         public ActionResult ReportWizard()
         {
             ViewBag.BusinessId = homeSvc.GetBusinessFriendlyIdNameByclientId(User.Identity.GetClientId().Value);
-            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
+            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeName");
             if (User.IsInRole(AMRoles.Admin))
             {
                 ViewBag.ClientId = new SelectList(homeSvc.GetAllActiveClient(), "Id", "Name");

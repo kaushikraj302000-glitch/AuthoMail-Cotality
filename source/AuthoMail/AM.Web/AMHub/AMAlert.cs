@@ -15,6 +15,7 @@ namespace AM.Web.AMHub
         // We're going to broadcast to all clients a maximum of N minutes
         private readonly TimeSpan interval =
             TimeSpan.FromMilliseconds(1000 * 60 * Config.Web_API_AlertElapsedMinute);
+
         private readonly IHubContext _hubContext;
         private Timer _broadcastLoop;
         private AMGlobalStatus _model;
@@ -33,6 +34,11 @@ namespace AM.Web.AMHub
                 interval);
         }
         private void GetAMGlobalStatus(object state)
+        {
+            _model = GetData();
+            _hubContext.Clients.All.getAMDetailStatus(_model);
+        }
+        internal void RefreshAMAlert()
         {
             _model = GetData();
             _hubContext.Clients.All.getAMDetailStatus(_model);

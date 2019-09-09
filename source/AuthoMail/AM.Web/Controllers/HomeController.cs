@@ -56,8 +56,8 @@ namespace AM.Web.Controllers
                 }
                 else if (model.Count == 1)
                 {
-                    var pullbackRequestData = pullBackSvc.GetPullBackRequestList(BusinessFriendlyIdName, BusinessFriendlyIdValue, null, startDate, endDate, User.Identity.GetClientId().Value);
-                    var data = Mapper.Map<List<MailPieceViewModel>>(pullbackRequestData);
+                    var data = pullBackSvc.GetPullBackRequestList(BusinessFriendlyIdName, BusinessFriendlyIdValue, null, startDate, endDate, User.Identity.GetClientId().Value);
+                    //var data = Mapper.Map<List<MailPieceViewModel>>(pullbackRequestData);
                     return Json(JsonResponseFactory.SuccessResponse(new { model = data.OrderBy(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
                 }
                 else
@@ -75,7 +75,7 @@ namespace AM.Web.Controllers
         public ActionResult Search()
         {
             ViewBag.BusinessId = homeSvc.GetBusinessFriendlyIdNameByclientId(User.Identity.GetClientId().Value);
-            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeCode");
+            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeName");
             return View();
         }
         [HttpGet]
@@ -87,7 +87,7 @@ namespace AM.Web.Controllers
         }
 
         [HttpPost]
-        public ActionResult _GetSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string receivedOnStart, string receivedOnEnd, string status, string channel, List<int> docType, string trackingNumber, string clientBatchId, string batchId,string mailPieceId, List<string> errorCode)
+        public ActionResult _GetSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string receivedOnStart, string receivedOnEnd, string status, string channel, List<int> docType, string trackingNumber, string clientBatchId, string batchId, string mailPieceId, List<string> errorCode)
         {
             try
             {
@@ -108,7 +108,7 @@ namespace AM.Web.Controllers
         }
 
         [HttpPost]
-        public ActionResult _DownloadSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string receivedOnStart, string receivedOnEnd, string status, string channel, List<int> docType, string trackingNumber, string clientBatchId, string batchId, string mailPieceId, List<string> errorCode, int timezoneOffset,string clientName)
+        public ActionResult _DownloadSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string receivedOnStart, string receivedOnEnd, string status, string channel, List<int> docType, string trackingNumber, string clientBatchId, string batchId, string mailPieceId, List<string> errorCode, int timezoneOffset, string clientName)
         {
             try
             {
@@ -116,22 +116,22 @@ namespace AM.Web.Controllers
                 int? batchMailPieceId = mailPieceId.IsNullOrWhiteSpace() ? (int?)null : Convert.ToInt32(mailPieceId);
                 var exactStartDate = receivedOnStart != string.Empty ? DateTime.ParseExact(receivedOnStart, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces) : (DateTime?)null;
                 var exactEndDate = receivedOnEnd != string.Empty ? DateTime.ParseExact(receivedOnEnd, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces) : (DateTime?)null;
-                var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, exactStartDate, exactEndDate, docType, status, channel, clientBatchId, mailBatchId, trackingNumber, errorCode, true, batchMailPieceId);
-                if (data.Value == null)
+                var model = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, exactStartDate, exactEndDate, docType, status, channel, clientBatchId, mailBatchId, trackingNumber, errorCode, true, batchMailPieceId);
+                if (model.Value == null)
                 {
-                    return Json(JsonResponseFactory.ErrorResponse(data.Key.ToString()), JsonRequestBehavior.AllowGet);
+                    return Json(JsonResponseFactory.ErrorResponse(model.Key.ToString()), JsonRequestBehavior.AllowGet);
                 }
                 string fileGuid = Guid.NewGuid().ToString();
-                var model = Mapper.Map<List<SearchViewModel>>(data.Value);
+                //var model = Mapper.Map<List<SearchViewModel>>(data.Value);
 
-                model.ForEach(m =>
+                model.Value.ForEach(m =>
                 {
                     m.ReceivedOn = m.ReceivedOn.HasValue ? m.ReceivedOn.Value.AddMinutes(-timezoneOffset) : m.ReceivedOn;
                     m.ShippedOn = m.ShippedOn.HasValue ? m.ShippedOn.Value.AddMinutes(-timezoneOffset) : m.ShippedOn;
                     m.PickedUpOn = m.PickedUpOn.HasValue ? m.PickedUpOn.Value.AddMinutes(-timezoneOffset) : m.PickedUpOn;
                     m.DueDate = m.DueDate.HasValue ? m.DueDate.Value.AddMinutes(-timezoneOffset) : m.DueDate;
                 });
-                var dataTable = ExcelHelper.ToDataTable<SearchViewModel>(model);
+                var dataTable = ExcelHelper.ToDataTable<SearchViewModel>(model.Value);
 
                 var memoryStream = ExcelHelper.ExportDataSet(dataTable);
                 memoryStream.Seek(0, SeekOrigin.Begin);
@@ -139,7 +139,7 @@ namespace AM.Web.Controllers
                 string fileName = string.Empty;
                 if (!receivedOnStart.IsNullOrWhiteSpace())
                 {
-                    string[] fileNameArray={"Search",exactStartDate.Value.ToString("MMddyyyy"),"To",exactEndDate.Value.ToString("MMddyyyy"),clientName};
+                    string[] fileNameArray = { "Search", exactStartDate.Value.ToString("MMddyyyy"), "To", exactEndDate.Value.ToString("MMddyyyy"), clientName };
                     fileName = string.Join("_", fileNameArray);
                 }
                 else

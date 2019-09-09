@@ -20,16 +20,25 @@ namespace PCI.Service
             {
                 using (MailMessage msg = new MailMessage())
                 {
+                    StringBuilder sb;
                     msg.IsBodyHtml = true;
-
-                    msg.To.Add(printVendorCode == "NORDIS" ? Common.Email_ToCL : Common.Email_ToPCI);
-                    msg.CC.Add(printVendorCode == "NORDIS" ? Common.Email_CcCL : Common.Email_CcPCI);
-                    //Here subject string contains "Batch Submitted To {Location} : {FileName} at {Time} Total Files : {FileCount} Total Page Count : {PageCount}"
-                    msg.Subject = Common.ApplicationEnvironment + " : " + Common.SubmitBatchEmailSubject.Fill(printVendorCode, Path.GetFileName(fileName), Common.UtcToEst(Common.GetCurrentTime()).ToString("MM/dd/yyyy hh:mm tt") + " EST", mailPiecesCount, totalPages);
-
+                    if (printVendorCode == "NORDIS")
+                    {
+                        msg.To.Add(Common.Email_ToNordis);
+                        msg.CC.Add(Common.Email_CcNordis);
+                        //Here subject string contains "Batch Submitted To {Location} : {FileName} at {Time} Total Files : {FileCount} Total Page Count : {PageCount}"
+                        msg.Subject = Common.ApplicationEnvironment + " : " + Common.SubmitNordisBatchEmailSubject.Fill(printVendorCode, Path.GetFileName(fileName), Common.UtcToEst(Common.GetCurrentTime()).ToString("MM/dd/yyyy hh:mm tt") + " EST", mailPiecesCount, totalPages);
+                        sb = new StringBuilder(File.ReadAllText(Common.SubmitNordisBatchEmailTemplate));
+                    }
+                    else
+                    {
+                        msg.To.Add(Common.Email_ToPCI);
+                        msg.CC.Add(Common.Email_CcPCI);
+                        //Here subject string contains "Batch Submitted To {Location} : {FileName} at {Time} Total Files : {FileCount} Total Page Count : {PageCount}"
+                        msg.Subject = Common.ApplicationEnvironment + " : " + Common.SubmitPCIBatchEmailSubject.Fill(printVendorCode, Path.GetFileName(fileName), Common.UtcToEst(Common.GetCurrentTime()).ToString("MM/dd/yyyy hh:mm tt") + " EST", mailPiecesCount, totalPages);
+                        sb = new StringBuilder(File.ReadAllText(Common.SubmitPCIBatchEmailTemplate));
+                    }
                     msg.Priority = MailPriority.Normal;
-
-                    StringBuilder sb = new StringBuilder(File.ReadAllText(Common.SubmitBatchEmailTemplate));
                     sb = sb.Replace("<%FileName%>", Path.GetFileName(fileName));
                     sb = sb.Replace("<%PrintLocation%>", printVendorCode);
                     sb = sb.Replace("<%yyyymmdd%>", Common.UtcToEst(Common.GetCurrentTime()).ToString("MM/dd/yyyy"));
@@ -92,7 +101,7 @@ namespace PCI.Service
                     msg.IsBodyHtml = true;
                     msg.To.Add(printVendorCode == "PCI" ? Common.PCI_Issue_Email_To : Common.NORDIS_Issue_Email_To);
                     msg.CC.Add(printVendorCode == "PCI" ? Common.PCI_Issue_Email_Cc : Common.NORDIS_Issue_Email_Cc);
-                    msg.Subject = Common.ApplicationEnvironment + " : " + printVendorCode == "PCI" ? Common.NoRecordsInMRDFSubject : Common.NoRecordsInMRDFSubject + " NORDIS";
+                    msg.Subject = Common.ApplicationEnvironment + " : " + printVendorCode == "PCI" ? Common.PCI_Issue_Subject : Common.PCI_Issue_Subject + " NORDIS";
                     msg.Priority = MailPriority.High;
 
                     StringBuilder sb = new StringBuilder(File.ReadAllText(Common.SuspendBatchEmailTemplate));
@@ -124,6 +133,33 @@ namespace PCI.Service
                     msg.To.Add(Common.UnexpectedEmail_ToEmail);
                     msg.CC.Add(Common.UnexpectedEmail_CcEmail);
                     msg.Subject = Common.ApplicationEnvironment + " : " + Common.UnexpectedEmail_Subject;
+                    msg.Priority = MailPriority.High;
+
+                    msg.Body = errorMsg;
+                    Common.Email_SMTPClient.Send(msg);
+
+                    isEmailSent = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error("Error occured while sending batch submitted notification to internal team", ex);
+            }
+
+            return isEmailSent;
+        }
+
+        public static bool SendSFTConnectionIssueNotificationEmail(string errorMsg, string pvCode)
+        {
+            bool isEmailSent = false;
+
+            try
+            {
+                using (MailMessage msg = new MailMessage())
+                {
+                    msg.IsBodyHtml = true;
+                    msg.To.Add(pvCode == "PCI" ? Common.Email_ToPCI : Common.Email_ToNordis);
+                    msg.Subject = Common.ApplicationEnvironment + " : {0} SFT Site Connection issue".Fill(pvCode);
                     msg.Priority = MailPriority.High;
 
                     msg.Body = errorMsg;

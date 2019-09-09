@@ -124,8 +124,10 @@ namespace PCI.Service
         public DateTime MailPieceDueDate { get; set; }
         public int? EnvelopeId { get; set; }
         public int? BREEnvelopeId { get; set; }
-        public int EnvelopePartNo { get; set; }
-        public int? BREPartNo { get; set; }
+        public string EnvelopeName { get; set; }
+        public string BREEnvelopeName { get; set; }
+        public string EnvelopePartNo { get; set; }
+        public string BREPartNo { get; set; }
         public string EnvelopeDesc { get; set; }
         public string BREDesc { get; set; }
         public string PrintSize { get; set; }
@@ -210,5 +212,17 @@ namespace PCI.Service
         public DateTime? SuspendedOn { get; set; }
         public string ValidationErrors { get; set; }
         public Int64? ZipFileSize { get; set; }
+    }
+
+    public class EmailChannel
+    {
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public string To { get; set; }
+        public string Cc { get; set; }
+        public string Bcc { get; set; }
+        public string Subject { get; set; }
+        public string BodyTemplate { get; set; }
+        public bool IsBodyHTML { get; set; }
     }
 }
