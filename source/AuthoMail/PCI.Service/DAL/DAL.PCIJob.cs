@@ -169,5 +169,10 @@ namespace PCI.Service
 
             db.ExecuteSqlNonQuery(sqlQuery, currentDateTime);
         }
+
+        public static int UpdateFilePathForDallas(MailPieceDetail mailPiece, string filePath)
+        {
+            return db.ExecuteSqlNonQuery(@"UPDATE [PnS].[MRDFRequest] SET [FilePath]= @p1 WHERE JobId = @p2 AND PieceId= @p3", filePath, mailPiece.JobId, mailPiece.PieceId);
+        }
     }
 }
