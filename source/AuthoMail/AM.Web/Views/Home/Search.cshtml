@@ -157,7 +157,7 @@
                                 </select>
                             </div>
                         </div>
-                        @if (User.IsInRole(AM.Entities.AMRoles.Admin))
+                        @if (User.IsInRole(AM.Entities.AMRoles.Admin) || User.IsInRole(AM.Entities.AMRoles.BA))
                         {
                             <div class="col-md-3">
                                 <div class="form-group">
