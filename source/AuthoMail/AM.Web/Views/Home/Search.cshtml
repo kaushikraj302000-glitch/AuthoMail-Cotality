@@ -157,7 +157,7 @@
                                 </select>
                             </div>
                         </div>
-                        @if (User.IsInRole(AM.Entities.AMRoles.Admin))
+                        @if (User.IsInRole(AM.Entities.AMRoles.Admin) || User.IsInRole(AM.Entities.AMRoles.BA))
                         {
                             <div class="col-md-3">
                                 <div class="form-group">
@@ -725,18 +725,18 @@
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
                 this.PulledBackOnFormatted = this.PulledBackOn == null ? "--" : moment(this.PulledBackOn).format("MM/DD/YY HH:mm:ss");
                 //this.RcptName = this.RcptFirstName + " " + this.RcptMiddleName + " " + this.RcptLastName;
-                this.RcptName = this.RcptName == null ? "" : this.RcptName.trim();
+                this.RcptName = this.RcptName == null || this.RcptName == "" ? "--" : this.RcptName.trim();
                 //this.RcptAddress = this.RcptAddrOptionalLine1AboveStreet + " " + this.RcptAddrOptionalLine2AboveStreet + " " + this.RcptAddressStreet + " " + this.RcptAddressAptOrSuiteOrOther + " " + this.RcptAddrOptionalLine1BelowStreet + " " + this.RcptAddrOptionalLine2BelowStreet + " " + this.RcptAddressCity + " " + this.RcptAddressState + " " + this.RcptAddressZIP;
                 var cityStateZip = this.RcptAddressCity + " " + this.RcptAddressState + " " + this.RcptAddressZIP;
-                this.RcptAddress = this.RcptAddress == null ? "" : this.RcptAddress.trim() + (cityStateZip != "" ? ", " + cityStateZip : "");
+                this.RcptAddress = this.RcptAddress == null || this.RcptAddress.trim() =="" ? "--" : this.RcptAddress.trim() + (cityStateZip != "" ? ", " + cityStateZip : "");
                 //this.CoRcptName = this.CoRcptPrefix + " " + this.CoRcptFirstName + " " + this.CoRcptMiddleName + " " + this.CoRcptLastName + " " + this.CoRcptSuffix;
                 //this.CoRcptName = this.CoRcptName.replace(/null/g, "").trim();
                 //this.CoRcptName = this.CoRcptName == "" ? "--" : this.CoRcptName;
                 //this.ReturnRcptName = this.RetRcptPrefix + " " + this.RetRcptFirstName + " " + this.RetRcptMiddleName + " " + this.RetRcptLastName + " " + this.RetRcptSuffix
                 var returnCityStateZip = this.RetRcptAddressCity + " " + this.RetRcptAddressState + " " + this.RetRcptAddressZIP;
-                this.RetRcptName = this.RetRcptName == null ? "" : this.RetRcptName.replace(/null/g, "").trim();
+                this.RetRcptName = this.RetRcptName == null || this.RetRcptName.trim() == "" ? "--" : this.RetRcptName.replace(/null/g, "").trim();
                 //this.ReturnRcptAddress = this.RetRcptAddrOptionalLine1AboveStreet + " " + this.RetRcptAddrOptionalLine2AboveStreet + " " + this.RetRcptAddressStreet + " " + this.RetRcptAddressAptOrSuiteOrOther + " " + this.RetRcptAddrOptionalLine1BelowStreet + " " + this.RetRcptAddrOptionalLine2BelowStreet + " " + this.RetRcptAddressCity + " " + this.RetRcptAddressState + " " + this.RetRcptAddressZIP;
-                this.RetRcptAddress = this.RetRcptAddress == null ? "" : this.RetRcptAddress.replace(/null/g, "").trim() + (returnCityStateZip != "" ? ", " + returnCityStateZip : "");
+                this.RetRcptAddress = this.RetRcptAddress == null || this.RetRcptAddress.trim() =="" ? "--" : this.RetRcptAddress.replace(/null/g, "").trim() + (returnCityStateZip != "" ? ", " + returnCityStateZip : "");
                 switch (this.ShippingStatus) {
 
                     case "PulledBack":
@@ -793,8 +793,8 @@
                 this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
                 this.PickedUpOnFormatted = this.PickedUpOn == null ? "--" : moment(this.PickedUpOn).format("MM/DD/YY HH:mm:ss");
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
-                this.RcptNameFormatted = this.FirstName + " " + this.LastName;
-                this.CityFormatted =(this.City==null?"":this.City) + " " + (this.State==null?"":this.State) + " " + (this.ZIP==null?"":this.ZIP);
+                this.RcptNameFormatted = (this.FirstName==null || this.FirstName=="" ? "--" : this.FirstName) + " " +(this.LastName==null || this.LastName=="" ? "" : this.LastName);
+                this.CityFormatted =(this.City==null || this.City=="" ? "--" : this.City) + " " + (this.State==null || this.State==""?"":this.State) + " " + (this.ZIP==null || this.ZIP=="" ?"":this.ZIP);
                 var status = "";
                 this.View = (this.LoanNumber != null ? '<a class="viewdetails" style="cursor:pointer" onclick="ViewDetails(this)" data-mailpieceid="' + this.UniqueId + '">' + this.LoanNumber + '</a>' : "--");
                 this.ErrorDesc = this.ErrorDesc != null ? this.ErrorDesc.replace(/"/g, '\'') : "";
