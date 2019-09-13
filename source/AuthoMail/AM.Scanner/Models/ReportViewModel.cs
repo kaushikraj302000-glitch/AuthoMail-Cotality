@@ -15,6 +15,8 @@ namespace AM.Scanner.Models
         public DateTime ReceivedOn { get; set; }
         public DateTime ShippedOn { get; set; }
         public string MailPieceStatus { get; set; }
+        public string FileName { get; set; }
+        public string FilePath { get; set; }
 
     }
 
@@ -28,6 +30,7 @@ namespace AM.Scanner.Models
         public DateTime SubmittedOn { get; set; }
         public DateTime DueDate { get; set; }
         public string MailPieceStatus { get; set; }
+        public string FilePath { get; set; }
 
     }
 }
