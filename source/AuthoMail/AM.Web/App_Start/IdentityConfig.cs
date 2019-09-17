@@ -110,7 +110,7 @@ namespace AM.Web
             UserTokenProvider =
                 new DataProtectorTokenProvider<ProfileUser>(dataProtectionProvider.Create("ASP.NET Identity"))
                 {
-                    TokenLifespan = TimeSpan.FromDays(3)
+                    TokenLifespan = TimeSpan.FromDays(30)
                 };
 
         }
