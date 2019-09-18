@@ -604,11 +604,13 @@ namespace AM.Web.Controllers
             else
             {
                 ViewBag.Message = string.Join(",", result.Errors);
+                ViewBag.confirmationlink = user.Email;
                 var sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\ErrorInAM.html")));
                 sb.Replace("{{user}}", user.Email);
                 sb.Replace("{{action}}", "Account/ConfirmEmail");
                 sb.Replace("{{error}}", string.Join(",", result.Errors));
                 await InternalEmail.SendMail(Config.Web_RegistrationDefaultEmails, null, Config.Web_RegistrationBCCEmails, Config.Common_Environment + ": Error in authomail.", sb.ToString());
+                ViewBag.Message = "Invalid token.".Equals(ViewBag.Message) ? "This confirmation link has expired. <span class='link resendemaillink' role='button' style='color: white;'><u>Click here</u></span> to receive new email confirmation link." : ViewBag.Message;
                 ViewBag.Success = false;
                 return View();
             }

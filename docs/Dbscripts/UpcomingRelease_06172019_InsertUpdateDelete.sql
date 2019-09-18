@@ -18,6 +18,16 @@ INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsS
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Common_ErrorSubscribedEmailCc', N'String', 'avala@corelogic.com,sgolvelkar@corelogic.com', 'cc emails for internal team apart from subscribed email list', 0, 'avala@corelogic.com,sgolvelkar@corelogic.com', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Common_ErrorSubscribedEmailTemplate', N'String', 'HTMLTemplates\ErrorSubScribed.html', 'template for error notification', 0, 'HTMLTemplates\ErrorSubScribed.html', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Common_InventoryBufferStockDays', N'Int32', '6', 'Inventory Buffer Stock Days', 0, '6', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+if not exists (select * from Common.SystemSettings where id='Web_Login_PasswordExpirationIsEnable')
+begin
+INSERT INTO [Common].[SystemSettings] ([Id] ,[DataType] ,[Value] ,[Description] ,[IsSystem] ,[DefaultValue] ,[ModifiedBy] ,[ModifiedOn])     VALUES ('Web_Login_PasswordExpirationIsEnable','Boolean','true','Is password expired policy enable?',0,'true',(select Id from Profile.Users where UserName='system@milestonetechnoconsulting.com'),GETUTCDATE())
+print 'insert Web_Login_PasswordExpirationIsEnable'
+end
+if not exists (select * from Common.SystemSettings where id='Web_Login_PasswordExpirationDays')
+begin
+INSERT INTO [Common].[SystemSettings] ([Id] ,[DataType] ,[Value] ,[Description] ,[IsSystem] ,[DefaultValue] ,[ModifiedBy] ,[ModifiedOn])     VALUES ('Web_Login_PasswordExpirationDays','Int32',50,'No of password expired days.',0,50,(select Id from Profile.Users where UserName='system@milestonetechnoconsulting.com'),GETUTCDATE())
+print 'insert Web_Login_PasswordExpirationDays'
+end
 -- UAT End
 -- UAT Start
 PRINT 'Insert Values in AM.ClientDocTypes table based on AM.DocTypes TABLE'

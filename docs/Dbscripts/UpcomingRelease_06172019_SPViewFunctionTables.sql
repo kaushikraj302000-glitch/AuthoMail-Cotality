@@ -235,6 +235,29 @@ GO
 ALTER TABLE [PnS].[MRDFRequest]
 ADD FilePath VARCHAR(255) NULL
 GO
+
+print 'Add columns in ProjectRequest'
+alter table AM.ProjectRequest
+add 
+--ServiceLevelOther nvarchar(1024) null,
+--PaperPrintRequirementsOther nvarchar(1024) null,
+--PackagesSentToCustomerOther nvarchar(1024) null,
+--EnvelopesOther nvarchar(1024) null,
+--BusinessReplyMailEnvelopeOther nvarchar(1024) null,
+FilesTransmittedDetail nvarchar(1024) null,
+TypeOfFilesDetail nvarchar(1024) null
+Go
+alter table profile.Users
+add 
+--LastLoginTimeUTC datetime null,
+ChangePasswordDateUTC datetime not null default(getutcdate()),
+StatusModifiedBy nvarchar(128) null,
+StatusModifiedOn datetime null
+Go
+alter table profile.Users
+add constraint FK_Users_StatusModifiedBy foreign key(StatusModifiedBy)
+references profile.Users (Id)
+Go
 ------------STORE Procedures---------------------
 
 PRINT 'Added new sp	usp_InsertErrorNotificationData'

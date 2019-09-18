@@ -70,6 +70,7 @@ namespace PCI.Service
         {
             try
             {
+                DatabaseFactory.SetDatabaseProviderFactory(new DatabaseProviderFactory());
                 Remove_ImmediateErrFiles = DAL.GetSystemSettingsValue("PnS_Remove_ImmediateErrFiles").Trim() == "0" ? false : true;
                 FontPathDir = DAL.GetSystemSettingsValue("PnS_FontsDirPath").Trim();
                 PCIRootFolder = DAL.GetSystemSettingsValue("PnS_PCIRootFolder").Trim();
@@ -87,9 +88,7 @@ namespace PCI.Service
 
                 PCIRootReturnPDFsZipFolder = DAL.GetSystemSettingsValue("PnS_PCIRootReturnPDFsZipFolder").Trim();
                 PCIRootReturnPDFsZipFolder.CreateDirectoryIfNotExist();
-                MRDFResponseLength = int.Parse(DAL.GetSystemSettingsValue("PnS_MRDFResponseLength").Trim());
-
-                DatabaseFactory.SetDatabaseProviderFactory(new DatabaseProviderFactory());
+                MRDFResponseLength = int.Parse(DAL.GetSystemSettingsValue("PnS_MRDFResponseLength").Trim());                
 
                 ApplicationEnvironment = DAL.GetSystemSettingsValue("Common_Environment");
 
