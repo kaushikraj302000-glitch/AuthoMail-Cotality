@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xs:schema xmlns:tns="http://schemas.corelogic.com/ade/authomail/v1.18.0" elementFormDefault="qualified" targetNamespace="http://schemas.corelogic.com/ade/authomail/v1.18.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
-<!-- Naming Conventions : "{0}-{1}-{2}.xml".Fill(mbi.Client.AppCode, mbi.MailBatch.Id, sequenceid) 
-https://docs.microsoft.com/en-us/sql/t-sql/statements/create-sequence-transact-sql?view=sql-server-2017 -->
-  <xs:element name="MailBatchResponse" type="tns:MailBatch" />
+  <xs:element name="MailBatchResponse" type="tns:MailBatchResponse" />
   <xs:complexType name="MailBatchResponse">
     <xs:all>
       <xs:element minOccurs="1" maxOccurs="1" name="MailPieces" type="tns:MailPieces" />
@@ -16,13 +14,13 @@ https://docs.microsoft.com/en-us/sql/t-sql/statements/create-sequence-transact-s
       <xs:element minOccurs="1" maxOccurs="unbounded" name="MailPiece" type="tns:MailPiece" />
     </xs:sequence>
   </xs:complexType>
-  <xs:complexType name="MailPiece">    
+  <xs:complexType name="MailPiece">
     <xs:attribute name="Id" type="tns:guid" use="optional" />
     <xs:attribute name="BusinessFriendlyIdName" type="tns:nonEmptyString" use="optional" />
     <xs:attribute name="BusinessFriendlyIdValue" type="tns:nonEmptyString" use="optional" />
     <xs:attribute name="DocumentOrPackageType" type="tns:nonEmptyString" use="optional" />
-	<xs:attribute name="FileName" type="tns:nonEmptyString" use="optional" />
-	<xs:attribute name="PrintStatus" type="tns:PrintStatus" use="required" />
+    <xs:attribute name="FileName" type="tns:nonEmptyString" use="optional" />
+    <xs:attribute name="PrintStatus" type="tns:PrintStatus" use="required" />
     <xs:attribute name="TotalSheets" type="tns:TotalSheets" use="optional" />
     <xs:attribute name="ShippedOn" type="xs:dateTime" use="optional" />
     <xs:attribute name="PulledBackOn" type="xs:dateTime" use="optional" />
