@@ -387,7 +387,7 @@ namespace AM.Console
 
         private List<string> GetTriggerFilePaths(SFTUtil sftSite)
         {
-            var regex = new Regex(@"^(\w*).go$", RegexOptions.IgnoreCase);
+            var regex = new Regex(@"^(\S*).go$", RegexOptions.IgnoreCase);
 
             List<string> availableTriggerFilePaths = sftSite.ListDirectory(SFTChannel.ToADEDir)
                 .Select(f => regex.Match(Path.GetFileName(f)))
