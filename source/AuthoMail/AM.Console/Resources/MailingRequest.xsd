@@ -19,7 +19,7 @@
   <xs:complexType name="ReturnInfo">
     <xs:all>
       <xs:element minOccurs="1" maxOccurs="1" name="Recipient" type="tns:Recipient" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Address" type="tns:Address" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Address" type="tns:Address" />
     </xs:all>
   </xs:complexType>
   <xs:complexType name="Recipient">
@@ -52,7 +52,7 @@
   <xs:complexType name="MailPiece">
     <xs:all>
       <xs:element minOccurs="1" maxOccurs="1" name="DocumentOrPackage" type="tns:DocumentOrPackage" />
-      <xs:element minOccurs="1" maxOccurs="1" name="eDelivery" type="tns:eDelivery" />
+      <xs:element minOccurs="0" maxOccurs="1" name="eDelivery" type="tns:eDelivery" />
       <xs:element minOccurs="0" maxOccurs="1" name="RecipientInfo" type="tns:RecipientInfo" />
       <xs:element minOccurs="0" maxOccurs="1" name="ReturnInfo" type="tns:ReturnInfo" />
       <!--<xs:element minOccurs="1" maxOccurs="1" name="ShippingInfo" nillable="true" type="tns:ShippingInfo" />-->
@@ -64,7 +64,6 @@
     <xs:attribute name="DocumentOrPackageType" type="tns:nonEmptyString" use="optional" />
   </xs:complexType>
   <xs:complexType name="eDelivery">
-    <xs:attribute name="Enabled" type="xs:boolean" use="required" />
     <xs:attribute name="ExpiryDate" type="xs:dateTime" use="required" />
     <xs:attribute name="PrintAndShipOnExpiry" type="xs:boolean" use="required" />
   </xs:complexType>
@@ -77,7 +76,7 @@
     <xs:all>
       <xs:element minOccurs="1" maxOccurs="1" name="Recipient" type="tns:Recipient" />
       <xs:element minOccurs="0" maxOccurs="1" name="Corecipient" type="tns:Recipient" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Address" type="tns:Address" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Address" type="tns:Address" />
     </xs:all>
   </xs:complexType>
   <xs:complexType name="CustomInfo">
