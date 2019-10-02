@@ -817,6 +817,7 @@ namespace AM.Web.Controllers
 
         [HttpPost]
         //Change user's status
+        [Authorize(Roles =AMRoles.Admin)]
         public ActionResult ChangeUserStatus(string userName, string status)
         {
             if (!(AMUserStatus.Approved == status || AMUserStatus.InActive == status || AMUserStatus.Open == status || AMUserStatus.Rejected == status))
