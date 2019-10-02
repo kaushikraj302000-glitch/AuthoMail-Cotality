@@ -117,6 +117,9 @@
     <None Include="Resources\MailingRequest.xsd">
       <SubType>Designer</SubType>
     </None>
+    <None Include="Resources\MailingResponse.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Resources\PackageInfoSchema.xsd">
       <SubType>Designer</SubType>
     </None>

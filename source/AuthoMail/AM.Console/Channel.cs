@@ -632,7 +632,7 @@ namespace AM.Console
                                     continue;
                                 }
 
-                                var priExDocType = fallBackDocTypes.Single(dt => dt.ShippingCarrier == Carrier.USPS.ToString() && dt.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS.ToString());
+                                var priExDocType = fallBackDocTypes.SingleOrDefault(dt => dt.ShippingCarrier == Carrier.USPS.ToString() && dt.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS.ToString());
 
                                 if (priExDocType != null)
                                 {
@@ -640,7 +640,7 @@ namespace AM.Console
                                 }
                                 else
                                 {
-                                    var priDocType = fallBackDocTypes.Single(dt => dt.ShippingCarrier == Carrier.USPS.ToString() && dt.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY.ToString());
+                                    var priDocType = fallBackDocTypes.SingleOrDefault(dt => dt.ShippingCarrier == Carrier.USPS.ToString() && dt.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY.ToString());
 
                                     if (priDocType == null)
                                     {
