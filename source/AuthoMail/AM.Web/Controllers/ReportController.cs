@@ -171,12 +171,13 @@ namespace AM.Web.Controllers
             var model = repoSvc.GetPullbackRequestReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate);
             return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.RequestedOn) }), JsonRequestBehavior.AllowGet);
         }
+        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA )]
         public ActionResult SupplyInventoryReport()
         {
             ViewBag.Envelopes = new SelectList(invSvc.GetEnvelopes(), "Id", "Id");
             return View();
         }
-        [HttpPost]
+        [HttpPost, Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA)]
         public ActionResult _SupplyInventoryReport(List<string> envelopes)
         {
             var model = repoSvc.SupplyInventoryReport(envelopes);
