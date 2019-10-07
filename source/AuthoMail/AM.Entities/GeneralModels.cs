@@ -44,6 +44,18 @@ namespace AM.Entities
         public const string Cancelled = "Cancelled";
     }
 
+    public static class EDPipelineStatus
+    {
+        public const string Received = "Received";
+        public const string Downloaded = "Downloaded";
+        public const string Validated = "Validated";
+        public const string SigningRoomCreated = "SigningRoomCreated";
+        public const string InvitationSent = "InvitationSent";
+        public const string eDelivered = "eDelivered";
+        public const string Expired = "Expired";
+        public const string FallBack = "FallBack";
+    }
+
     public static class OutComeCodes
     {
         public const string No_Error = "No_Error";

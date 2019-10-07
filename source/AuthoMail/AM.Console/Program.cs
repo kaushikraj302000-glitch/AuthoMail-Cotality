@@ -66,6 +66,28 @@ namespace AM.Console
                 {
                     Purging.DeleteFiles();
                 }
+                else if (args[0] == "EDelivery")
+                {
+                    if (args.Count() != 3)
+                    {
+                        log.Error("Invalid Parameter has passed for E-Delivery Channel");
+                        return;
+                    }
+
+                    string channelPrefix = args[1];
+                    string channelType = args[2];
+
+                    using (var channel = ChannelFactory.Create(channelPrefix, channelType))
+                    {
+                        if (channel == null)
+                        {
+                            log.Error("EDChannel prefix '{0}' is invalid.".Fill(args[0]));
+                            return;
+                        }
+
+                        channel.ProcessBatches();
+                    }
+                }
                 else
                 {
                     using (var channel = ChannelFactory.Create(args))

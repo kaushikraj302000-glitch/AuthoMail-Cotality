@@ -50,5 +50,20 @@ namespace AM.Console
                         return new AMSchemaChannel(channelCode, channelType);
             }
         }
+        public static EDChannel Create(string channelPrefix, string channelType)
+        {
+            // Each channel is tied to one and ONLY one XML schema
+            string channelCode = channelPrefix + "_" + Config.Common_Environment;
+
+            switch (channelPrefix)
+            {
+                case "AMC":
+                    return new EDAMCChannel(channelCode, channelType);
+
+                // AuthoMail Generic XML schema
+                default:
+                    return new EDAMSchemaChannel(channelCode, channelType);
+            }
+        }
     }
 }
