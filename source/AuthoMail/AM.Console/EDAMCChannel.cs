@@ -67,5 +67,10 @@ namespace AM.Console
         {
             throw new NotImplementedException();
         }
+
+        protected override void FallBackBatches()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

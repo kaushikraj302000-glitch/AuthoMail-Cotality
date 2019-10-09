@@ -57,10 +57,11 @@ namespace AM.Console
 
             switch (channelPrefix)
             {
-                case "AMC":
-                    return new EDAMCChannel(channelCode, channelType);
-
-                // AuthoMail Generic XML schema
+                case "GENERAL"://This channel will be used for those client whose coming from existing print and ship clients
+                    return new EDGeneralChannel(channelCode, channelType);
+                //case "AMC":
+                //    return new EDAMCChannel(channelCode, channelType);
+                // Client is using Generic XML schema 
                 default:
                     return new EDAMSchemaChannel(channelCode, channelType);
             }

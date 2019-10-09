@@ -31,6 +31,7 @@ namespace AM.Services
         public string RcptLastName { get; set; }
         public string RcptSuffix { get; set; }
         public string RcptPhone { get; set; }
+        public string RcptEmailId { get; set; }
         public string RcptOrganization { get; set; }
         public string RcptName
         {

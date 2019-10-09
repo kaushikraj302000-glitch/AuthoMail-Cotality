@@ -55,6 +55,7 @@ namespace AM.Console
                 this.EnumerateBatches();
                 this.DownloadBatches();
                 this.ValidateBatches();
+                this.FallBackBatches();
                 this.CreateSigningRoom();
                 this.SendInvitations();
             }
@@ -82,6 +83,10 @@ namespace AM.Console
         /// Validates all batches which are queued as Downloaded
         /// </summary>
         protected abstract void ValidateBatches();
+        /// <summary>
+        /// Create XML based on ChannelIds and Follow AM folder structure to fall back all the packages which are failed in validation
+        /// </summary>
+        protected abstract void FallBackBatches();
         /// <summary>
         /// Create signing room for all mailpieces which are validated successfully
         /// </summary>

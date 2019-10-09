@@ -54,6 +54,10 @@ namespace AM.Entities
         public const string eDelivered = "eDelivered";
         public const string Expired = "Expired";
         public const string FallBack = "FallBack";
+        public const string PrintAndShip = "PrintAndShip";
+        public const string ErroredOut = "ErroredOut";
+        public const string ReportPrepped = "ReportPrepped";
+        public const string ReportedBack = "ReportedBack";
     }
 
     public static class OutComeCodes

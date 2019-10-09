@@ -77,6 +77,7 @@
   <ItemGroup>
     <Compile Include="AlaskaChannel.cs" />
     <Compile Include="AlaskaSchema.cs" />
+    <Compile Include="EDGeneralChannel.cs" />
     <Compile Include="EDAMSchemaChannel.cs" />
     <Compile Include="EDAMCChannel.cs" />
     <Compile Include="AMCChannel.cs" />

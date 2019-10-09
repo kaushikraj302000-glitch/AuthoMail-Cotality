@@ -19,6 +19,7 @@ namespace AM.Services
         [Description("To indicate on which environment job is running.")]
         public static string Common_Environment { get; private set; }
         public static string Common_AuthoMailRootFolder { get; private set; }
+        public static string Common_EDeliveryRootFolder { get; private set; }
         public static List<Holiday> Common_Holidays { get; private set; }
         public static int Common_ProcessingBufferTime { get; private set; }
         public static string Common_FedExTrackingAccountCode { get; private set; }
