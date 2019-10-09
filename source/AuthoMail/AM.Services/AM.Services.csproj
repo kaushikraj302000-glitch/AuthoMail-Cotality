@@ -70,6 +70,7 @@
     <Reference Include="System.Xml.Serialization" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BatchProcessor\EDeliveryServices.cs" />
     <Compile Include="BatchProcessor\GeneralServices.cs" />
     <Compile Include="BatchProcessor\HSBCServices.cs" />
     <Compile Include="BatchProcessor\AlaskaServices.cs" />
@@ -111,6 +112,7 @@
     <Compile Include="Models\IeVSCancelResponse.cs" />
     <Compile Include="Models\IeVSResponse.cs" />
     <Compile Include="Models\IeVSCancelRequest.cs" />
+    <Compile Include="Models\EDMailPiece.cs" />
     <Compile Include="Models\ProjectRequest.cs" />
     <Compile Include="Models\SigningRoomActivityLogResponse.cs" />
     <Compile Include="Models\SigningRoomRequest.cs" />

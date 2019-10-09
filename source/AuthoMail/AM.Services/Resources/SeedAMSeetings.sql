@@ -2,6 +2,8 @@ TRUNCATE TABLE [Common].[SystemSettings]
 
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Common_AuthoMailRootFolder', N'String', N'D:\Production\AuthoMail\AMRoot', NULL, 0, N'D:\AuthoMailGit\Repos\source\AuthoMail\AM.Console\bin\Debug\AuthoMailRoot', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
+INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Common_EDeliveryRootFolder', N'String', N'D:\Production\AuthoMail\EDeliveryRoot', NULL, 0, N'D:\AuthoMailGit\Repos\source\AuthoMail\AM.Console\bin\Debug\EDeliveryRoot', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Core_CountryCode', N'String', N'US', NULL, 0, N'US', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'Core_CoverTemplateFolder', N'String', N'CoverTemplates', NULL, 0, N'D:\AuthoMailGit\Repos\source\AuthoMail\AM.Core\CoverTemplates', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
