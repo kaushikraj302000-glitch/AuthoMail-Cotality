@@ -186,6 +186,18 @@ namespace AM.Services
 
         #endregion
 
+        #region E-DeliveryAPI
+        public static string E_API_BaseURL { get; set; }
+        public static  string E_API_ClientId { get; set; }
+        public static string E_API_UserName { get; set; }
+        public static string E_API_Password { get; set; }
+        public static string E_API_CreateSigningRoomURL { get; set; }
+        public static string E_API_SendInvitationURL { get; set; }
+        public static string E_API_SigningRoomActivityLogSearchURL { get; set; }
+        public static string E_API_SigningRoomSummaryURL { get; set; }
+
+        #endregion
+
         #region Support
         [Description("Default emails for getting notification from registration request.")]
         public static string Web_RegistrationDefaultEmails { get; private set; }

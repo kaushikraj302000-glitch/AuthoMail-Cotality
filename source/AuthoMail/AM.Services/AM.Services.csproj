@@ -50,6 +50,9 @@
       <HintPath>..\packages\Microsoft.AspNet.Identity.Core.2.2.1\lib\net45\Microsoft.AspNet.Identity.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.configuration" />
@@ -103,11 +106,15 @@
     <Compile Include="Models\eVSCancelResponse.cs" />
     <Compile Include="Models\eVSResponse.cs" />
     <Compile Include="Models\FedExReport.cs" />
+    <Compile Include="Models\GenerateToken.cs" />
     <Compile Include="Models\IeVSRequest.cs" />
     <Compile Include="Models\IeVSCancelResponse.cs" />
     <Compile Include="Models\IeVSResponse.cs" />
     <Compile Include="Models\IeVSCancelRequest.cs" />
     <Compile Include="Models\ProjectRequest.cs" />
+    <Compile Include="Models\SigningRoomActivityLogResponse.cs" />
+    <Compile Include="Models\SigningRoomRequest.cs" />
+    <Compile Include="Models\SigningRoomResponse.cs" />
     <Compile Include="Models\StockDetails.cs" />
     <Compile Include="Models\SupportModel.cs" />
     <Compile Include="Models\CustomModels.cs" />
@@ -146,6 +153,10 @@
     <Compile Include="Services\ReCalculateDueDateService.cs" />
     <Compile Include="Services\ReportService.cs" />
     <Compile Include="Services\SearchService.cs" />
+    <Compile Include="Services\SendInvitationsService.cs" />
+    <Compile Include="Services\SigningRoomActivityLogServices.cs" />
+    <Compile Include="Services\SigningRoomRequestService.cs" />
+    <Compile Include="Services\SigningRoomSummaryService.cs" />
     <Compile Include="Services\SupportReportService.cs" />
     <Compile Include="Services\SupportService.cs" />
     <Compile Include="Services\USPSService.cs" />
@@ -156,6 +167,7 @@
     <Compile Include="Utilities\JsonResponseFactory.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
     <Compile Include="Services\USPSService.VerifyAddress.cs" />
     <Compile Include="Services\USPSService.eVSCancel.cs" />
