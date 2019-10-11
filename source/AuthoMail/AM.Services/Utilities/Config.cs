@@ -189,7 +189,7 @@ namespace AM.Services
 
         #region E-DeliveryAPI
         public static string E_API_BaseURL { get; set; }
-        public static  string E_API_ClientId { get; set; }
+        public static string E_API_ClientId { get; set; }
         public static string E_API_UserName { get; set; }
         public static string E_API_Password { get; set; }
         public static string E_API_CreateSigningRoomURL { get; set; }

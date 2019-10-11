@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,7 +10,9 @@ namespace AM.Services
     public class SigningRoomActivityLogResponse
     {
         public int SigningRoomId { get; set; }
-        public string SigningRoomActivityType { get; set; }
+        //public string SigningRoomActivityType { get; set; }
+        [JsonProperty("SigningRoomActivityType")]
+        public string EDeliveryStatus { get; set; }
         public int? ParticipantId { get; set; }
         public string ParticipantFirstName { get; set; }
         public string ParticipantLastName { get; set; }

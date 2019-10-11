@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,7 +14,8 @@ namespace AM.Services
         public DateTime StartDate { get; set; }
         public DateTime ExpirationDate { get; set; }
         public List<Participant> Participants { get; set; }
-        public List<Document> Documents { get; set; }
+        [JsonProperty("Document")]
+        public List<DocumentInfo> Documents { get; set; }
     }
 
     public class Participant
@@ -23,7 +25,7 @@ namespace AM.Services
         public string InvitationEmail { get; set; }
     }
 
-    public class Document
+    public class DocumentInfo
     {
         public string DocumentName { get; set; }
         public string FileName { get; set; }
