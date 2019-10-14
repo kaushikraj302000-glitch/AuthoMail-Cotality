@@ -107,7 +107,6 @@
     <Compile Include="Models\eVSCancelResponse.cs" />
     <Compile Include="Models\eVSResponse.cs" />
     <Compile Include="Models\FedExReport.cs" />
-    <Compile Include="Models\GenerateToken.cs" />
     <Compile Include="Models\IeVSRequest.cs" />
     <Compile Include="Models\IeVSCancelResponse.cs" />
     <Compile Include="Models\IeVSResponse.cs" />
@@ -146,6 +145,7 @@
     <Compile Include="Services\AccountManageService.cs" />
     <Compile Include="Services\ChartDataService.cs" />
     <Compile Include="Services\ConfigService.cs" />
+    <Compile Include="Services\EDeliveryAPIService.cs" />
     <Compile Include="Services\HomeService.cs" />
     <Compile Include="Services\InventoryService.cs" />
     <Compile Include="Services\MonitorBatchesService.cs" />
@@ -155,10 +155,6 @@
     <Compile Include="Services\ReCalculateDueDateService.cs" />
     <Compile Include="Services\ReportService.cs" />
     <Compile Include="Services\SearchService.cs" />
-    <Compile Include="Services\SendInvitationsService.cs" />
-    <Compile Include="Services\SigningRoomActivityLogServices.cs" />
-    <Compile Include="Services\SigningRoomRequestService.cs" />
-    <Compile Include="Services\SigningRoomSummaryService.cs" />
     <Compile Include="Services\SupportReportService.cs" />
     <Compile Include="Services\SupportService.cs" />
     <Compile Include="Services\USPSService.cs" />
