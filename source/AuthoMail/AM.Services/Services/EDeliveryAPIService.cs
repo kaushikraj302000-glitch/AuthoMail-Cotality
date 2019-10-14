@@ -24,7 +24,7 @@ namespace AM.Services
         {
             try
             {
-                var token = await GenerateToken.GetToken();
+                var token = await GetToken();
                 using (var client = SetupClient(token))
                 {
                     string json = JsonConvert.SerializeObject(signingRoomRequest);
@@ -50,7 +50,7 @@ namespace AM.Services
             bool isInvitationSent = false;
             try
             {
-                var token = await GenerateToken.GetToken();
+                var token = await GetToken();
                 using (var client = SetupClient(token))
                 {
                     StringContent content = new StringContent("", Encoding.UTF8, "application/json");
@@ -102,7 +102,7 @@ namespace AM.Services
         {
             try
             {
-                var token = await GenerateToken.GetToken();
+                var token = await GetToken();
                 using (var client = SetupClient(token))
                 {
                     //make request
