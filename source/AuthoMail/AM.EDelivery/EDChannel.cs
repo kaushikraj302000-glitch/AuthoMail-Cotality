@@ -1,5 +1,4 @@
-﻿using AM.Console.Properties;
-using AM.Entities;
+﻿using AM.Entities;
 using AM.Lib;
 using AM.Services;
 using System;
@@ -12,7 +11,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
 
-namespace AM.Console
+namespace AM.EDelivery
 {
     abstract class EDChannel : Disposable
     {

@@ -77,14 +77,10 @@
   <ItemGroup>
     <Compile Include="AlaskaChannel.cs" />
     <Compile Include="AlaskaSchema.cs" />
-    <Compile Include="EDGeneralChannel.cs" />
-    <Compile Include="EDAMSchemaChannel.cs" />
-    <Compile Include="EDAMCChannel.cs" />
     <Compile Include="AMCChannel.cs" />
     <Compile Include="CalcStdPrepStartTime.cs" />
     <Compile Include="Channel.cs" />
     <Compile Include="ChannelFactory.cs" />
-    <Compile Include="EDChannel.cs" />
     <Compile Include="PrintReadyChannel.cs" />
     <Compile Include="AMSchemaChannel.cs" />
     <Compile Include="HSBCChannel.cs" />

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29409.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AM.Web", "AM.Web\AM.Web.csproj", "{4C37D74F-2A55-4B6F-99F6-85595C7B7C6D}"
 EndProject
@@ -32,6 +32,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AM.USPSLib", "AM.USPSLib\AM.USPSLib.csproj", "{C221D27E-C501-4838-B58F-D06C97E07923}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PCI.Service", "PCI.Service\PCI.Service.csproj", "{8107735F-EAD2-47EA-9BB1-A77637C62CA6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AM.EDelivery", "AM.EDelivery\AM.EDelivery.csproj", "{467D03D9-4A46-4ABF-BB62-FDF46C5E338C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -91,11 +93,16 @@ Global
 		{8107735F-EAD2-47EA-9BB1-A77637C62CA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8107735F-EAD2-47EA-9BB1-A77637C62CA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8107735F-EAD2-47EA-9BB1-A77637C62CA6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{467D03D9-4A46-4ABF-BB62-FDF46C5E338C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{467D03D9-4A46-4ABF-BB62-FDF46C5E338C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{467D03D9-4A46-4ABF-BB62-FDF46C5E338C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{467D03D9-4A46-4ABF-BB62-FDF46C5E338C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		EnterpriseLibraryConfigurationToolBinariesPathV6 = packages\EnterpriseLibrary.Common.6.0.1304.0\lib\NET45;packages\EnterpriseLibrary.Data.6.0.1304.0\lib\NET45
+		SolutionGuid = {B2EB8168-EB28-40A6-9C95-DB9114637768}
 	EndGlobalSection
 EndGlobal
