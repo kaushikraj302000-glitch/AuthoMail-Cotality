@@ -66,6 +66,14 @@ namespace AM.Entities
         [XmlElement(ElementName = "DocumentOrPackage")]
         public DocumentOrPackage DocumentOrPackage { get; set; }
 
+        [XmlElement(ElementName = "eDelivery")]
+        public eDelivery eDelivery { get; set; }
+
+        public bool ShouldSerializeeDelivery()
+        {
+            return eDelivery != null;
+        }
+
         [XmlElement(ElementName = "RecipientInfo")]
         public RecipientInfo RecipientInfo { get; set; }
 
@@ -92,6 +100,17 @@ namespace AM.Entities
 
         [XmlArrayItem(IsNullable = true)]
         public List<Metadata> CustomInfo { get; set; }
+    }
+
+    [Serializable]
+    [XmlType(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0")]
+    public class eDelivery
+    {
+        [XmlAttribute]
+        public DateTime ExpiryDate { get; set; }
+
+        [XmlAttribute]
+        public bool PrintAndShipOnExpiry { get; set; }
     }
 
     [Serializable]
@@ -155,6 +174,8 @@ namespace AM.Entities
 
         [XmlAttribute]
         public string Phone { get; set; }
+        [XmlAttribute]
+        public string EmailAddress { get; set; }
     }
 
     [Serializable]

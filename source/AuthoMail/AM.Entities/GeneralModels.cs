@@ -33,6 +33,7 @@ namespace AM.Entities
     {
         public const string Received = "Received";
         public const string Downloaded = "Downloaded";
+        public const string SubmittedToEDelivery = "SubmittedToEDelivery";
         public const string Validated = "Validated";
         public const string Acknowledged = "Acknowledged";
         public const string Prepped = "Prepped";

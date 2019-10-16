@@ -509,7 +509,7 @@ namespace AM.Console
 
                 Client client = clientSvc.GetClientById(mailBatch.ClientId);
 
-                foreach (MailPieceDTO mailPiece in mailPieces)
+                foreach (MailPieceDTO mailPiece in mailPieces.Where(mp => (mp.IsEDeliveryRequested && mp.IsFallBackRequested) || !mp.IsEDeliveryRequested))
                 {
                     if (mailPiece.ShippingStatus == ShippingStatus.Error.ToString())
                     {
@@ -564,7 +564,7 @@ namespace AM.Console
                     //Get validate Addresses for each records
                     List<AddressResponse> addressResponses = new List<AddressResponse>();
                     List<AddressRequest> addressRequestes = new List<AddressRequest>();
-                    foreach (var mailPiece in validMailPieces)
+                    foreach (var mailPiece in validMailPieces.Where(mp => (mp.IsEDeliveryRequested && mp.IsFallBackRequested) || !mp.IsEDeliveryRequested)) // Here system will verify only those address which have fallbackrequested=true or Edeliveryrequested=false
                     {
                         AddressRequest addressRequest = new AddressRequest() { Id = mailPiece.UniqueId.ToString(), StreetAddress = mailPiece.RcptAddressStreet + " " + mailPiece.RcptAddrOptionalLine1BelowStreet, City = mailPiece.RcptAddressCity, State = mailPiece.RcptAddressState, Zip4 = mailPiece.RcptAddressZIP.SeparateZip4And5(4), Zip5 = mailPiece.RcptAddressZIP.SeparateZip4And5(5) };
 
@@ -600,7 +600,7 @@ namespace AM.Console
                         }
                     }
                     #endregion
-                    foreach (MailPieceDTO mailPiece in validMailPieces)
+                    foreach (MailPieceDTO mailPiece in validMailPieces.Where(mp => (mp.IsEDeliveryRequested && mp.IsFallBackRequested) || !mp.IsEDeliveryRequested))
                     {
                         string documentOrPackageType = mailPiece.DocumentOrPackageType;
 

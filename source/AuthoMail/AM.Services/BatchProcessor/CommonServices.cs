@@ -13,6 +13,7 @@ namespace AM.Services
     public interface ICommonService : IDisposable
     {
         int UpdateBatchPipeLineStatus(int batchId, string pipeLineStatus, DateTime timestamp);
+        int UpdateEDeliveryPipelineStatus(int batchId, string pipeLineStatus, DateTime timestamp);
         int UpdateBatchStatus(int batchId, string batchStatus);
         int UpdateBatchValidationStatus(int batchId, string validationStatus, string validationErrors);
         int AMLogBatchTimeLine(int batchId, string activityName, DateTime timeStamp);
@@ -43,7 +44,20 @@ namespace AM.Services
 
         public int UpdateBatchPipeLineStatus(int batchId, string pipeLineStatus, DateTime timestamp)
         {
-            string query = "UPDATE [AM].[MailBatches] SET PipelineStatus = @pipelineStatus, {0}On = @timestamp WHERE Id = @batchId".Fill(pipeLineStatus);
+            string query;
+            if (pipeLineStatus == BatchPipelineStatus.SubmittedToEDelivery)//System will move pipelinestatus to SubmittedToEDelivery to exclude it from regular print and ship process.
+            {
+                query = "UPDATE [AM].[MailBatches] SET PipelineStatus = @pipelineStatus, ValidatedOn = @timestamp WHERE Id = @batchId";
+            }
+            else
+                query = "UPDATE [AM].[MailBatches] SET PipelineStatus = @pipelineStatus, {0}On = @timestamp WHERE Id = @batchId".Fill(pipeLineStatus);
+
+            return db.Execute(query, new { pipeLineStatus = pipeLineStatus, timestamp = timestamp, batchId = batchId });
+        }
+
+        public int UpdateEDeliveryPipelineStatus(int batchId, string pipeLineStatus, DateTime timestamp)
+        {
+            string query = "UPDATE [AM].[EDeliveryMailPieces] SET PipelineStatus = @pipelineStatus, {0}On = @timestamp WHERE Id = @batchId".Fill(pipeLineStatus);
 
             return db.Execute(query, new { pipeLineStatus = pipeLineStatus, timestamp = timestamp, batchId = batchId });
         }

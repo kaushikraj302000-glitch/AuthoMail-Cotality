@@ -10,7 +10,7 @@ namespace AM.Entities
     {
         public int Id { get; set; }
         public int ClientId { get; set; }
-        public int ClientDocTypeId { get; set; }
+        public int? ClientDocTypeId { get; set; }
         public int MailBatchId { get; set; }
         public int? PrintBatchId { get; set; }
         public Guid UniqueId { get; set; }
@@ -27,6 +27,7 @@ namespace AM.Entities
         public string RcptMiddleName { get; set; }
         public string RcptLastName { get; set; }
         public string RcptSuffix { get; set; }
+        public string RcptEmailId { get; set; }
         public string RcptPhone { get; set; }
         public string RcptOrganization { get; set; }
         public string CoRcptPrefix { get; set; }
@@ -93,6 +94,9 @@ namespace AM.Entities
         public string MissedSLAReason { get; set; }
         public int? PrintTrailId { get; set; }
         public Int64? PDFFileSize { get; set; }
+        public bool IsEDeliveryRequested { get; set; }
+        public bool IsFallBackRequested { get; set; }
+        public DateTime? ExpiryDate { get; set; }
     }
 
     public class MailPieceCustomInfo

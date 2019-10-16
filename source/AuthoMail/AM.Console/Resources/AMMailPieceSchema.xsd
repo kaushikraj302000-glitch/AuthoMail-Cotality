@@ -4,6 +4,7 @@
   <xs:complexType name="MailPiece">
     <xs:all>
       <xs:element minOccurs="1" maxOccurs="1" name="DocumentOrPackage" type="DocumentOrPackage" />
+      <xs:element minOccurs="0" maxOccurs="1" name="eDelivery" type="eDelivery" />
       <xs:element minOccurs="0" maxOccurs="1" name="RecipientInfo" type="RecipientInfo" />
       <xs:element minOccurs="0" maxOccurs="1" name="ReturnInfo" type="ReturnInfo" />
       <xs:element minOccurs="0" maxOccurs="1" name="CustomInfo" type="CustomInfo" />
@@ -33,6 +34,7 @@
     <xs:attribute name="LastName" type="xs:string" use="optional"  />
     <xs:attribute name="Suffix" type="xs:string"  use="optional" />
     <xs:attribute name="Phone" type="NAPhone" use="optional" />
+    <xs:attribute name="EmailAddress" type="nonEmptyString" use="optional"  />
   </xs:complexType>
   <xs:complexType name="Address">
     <xs:attribute name="OptionalLine1AboveStreet" type="xs:string" use="optional"  />
@@ -44,6 +46,11 @@
     <xs:attribute name="City" type="nonEmptyString" use="required"  />
     <xs:attribute name="State" type="nonEmptyString" use="required"  />
     <xs:attribute name="Zip" type="USZIP" use="required"  />
+    <xs:attribute name="Country" type="nonEmptyString" use="optional"  />
+  </xs:complexType>
+  <xs:complexType name="eDelivery">
+    <xs:attribute name="ExpiryDate" type="xs:date" use="required" />
+    <xs:attribute name="PrintAndShipOnExpiry" type="xs:boolean" use="required" />
   </xs:complexType>
   <xs:complexType name="ReturnInfo">
     <xs:all>
