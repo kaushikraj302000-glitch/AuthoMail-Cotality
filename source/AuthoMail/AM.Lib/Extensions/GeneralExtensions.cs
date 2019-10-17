@@ -26,6 +26,11 @@ namespace AM.Lib
             return String.IsNullOrWhiteSpace(value);
         }
 
+        public static string TrimIfNotNull(this string value)
+        {
+            return !value.IsNullOrWhiteSpace() ? value.Trim() : value;
+        }
+
         public static string ToTitleCase(this string value)
         {
             return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(value.ToLower());

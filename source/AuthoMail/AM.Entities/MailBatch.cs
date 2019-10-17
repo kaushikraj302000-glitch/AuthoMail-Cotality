@@ -138,13 +138,6 @@ namespace AM.Entities
             return Recipient != null;
         }
 
-        [XmlElement(ElementName = "Corecipient")]
-        public Recipient Corecipient { get; set; }
-        public bool ShouldSerializeCorecipient()
-        {
-            return Corecipient != null;
-        }
-
         [XmlElement(ElementName = "Address")]
         public Address Address { get; set; }
     }

@@ -476,7 +476,7 @@ namespace AM.Console
                 {
                     string sourceFile = Path.Combine(receivedBatchDirPath, fileName);
                     string destFile = Path.Combine(clientBatchDirectory, fileName);
-                    File.Copy(sourceFile, destFile);
+                    File.Copy(sourceFile, destFile, true);
                 }
             }
 
@@ -665,22 +665,22 @@ namespace AM.Console
                         {
                             var requests = XmlUtil.Deserialize<MailPiece>(mailPieceNode.OuterXml);
 
-                            mailPieceDTO.BusinessFriendlyIdName = requests.BusinessFriendlyIdName;
+                            mailPieceDTO.BusinessFriendlyIdName = requests.BusinessFriendlyIdName.TrimIfNotNull();
 
                             //Here we are inserting BusinessIdentifier for Client if not exist.
                             ClientBusinessIdentifier clientBusinessIdDetails = commonSvc.GetBusinessIdNameFromClientId(client.Id);
                             if (clientBusinessIdDetails == null)
                             {
-                                commonSvc.InsertBusinessIdentifierName(client.Id, mailPieceDTO.BusinessFriendlyIdName);
+                                commonSvc.InsertBusinessIdentifierName(client.Id, mailPieceDTO.BusinessFriendlyIdName.TrimIfNotNull());
                             }
 
-                            mailPieceDTO.BusinessFriendlyIdValue = requests.BusinessFriendlyIdValue;
+                            mailPieceDTO.BusinessFriendlyIdValue = requests.BusinessFriendlyIdValue.TrimIfNotNull();
                             mailPieceDTO.DocumentOrPackageType = requests.DocumentOrPackageType == null ? mailBatch.DocumentOrPackageType : requests.DocumentOrPackageType;
                             mailPieceDTO.UniqueId = requests.Id == null || requests.Id == Guid.Empty ? Guid.NewGuid() : requests.Id;
 
-                            mailPieceDTO.FileName = requests.DocumentOrPackage.Name;
-                            mailPieceDTO.FilePattern = requests.DocumentOrPackage.Pattern;
-                            if (!string.IsNullOrEmpty(requests.DocumentOrPackage.Pattern))
+                            mailPieceDTO.FileName = requests.DocumentOrPackage.Name.TrimIfNotNull();
+                            mailPieceDTO.FilePattern = requests.DocumentOrPackage.Pattern.TrimIfNotNull();
+                            if (!string.IsNullOrEmpty(mailPieceDTO.FilePattern))
                             {
                                 var file = Directory.EnumerateFiles(mbi.AMRequestPath, "*" + mailPieceDTO.FilePattern + "*.pdf").SingleOrDefault();
 
@@ -700,45 +700,34 @@ namespace AM.Console
                                 {
                                     mailPieceDTO.IsRcptInfoSpecified = true;
 
-                                    mailPieceDTO.RcptFirstName = requests.RecipientInfo.Recipient.FirstName;
-                                    mailPieceDTO.RcptLastName = requests.RecipientInfo.Recipient.LastName;
-                                    mailPieceDTO.RcptMiddleName = requests.RecipientInfo.Recipient.MiddleName;
-                                    mailPieceDTO.RcptOrganization = requests.RecipientInfo.Recipient.Organization;
-                                    mailPieceDTO.RcptPrefix = requests.RecipientInfo.Recipient.Prefix;
-                                    mailPieceDTO.RcptSuffix = requests.RecipientInfo.Recipient.Suffix;
-                                    mailPieceDTO.RcptPhone = requests.RecipientInfo.Recipient.Phone;
-                                    mailPieceDTO.RcptEmailId = requests.RecipientInfo.Recipient.EmailAddress;
+                                    mailPieceDTO.RcptFirstName = requests.RecipientInfo.Recipient.FirstName.TrimIfNotNull();
+                                    mailPieceDTO.RcptLastName = requests.RecipientInfo.Recipient.LastName.TrimIfNotNull();
+                                    mailPieceDTO.RcptMiddleName = requests.RecipientInfo.Recipient.MiddleName.TrimIfNotNull();
+                                    mailPieceDTO.RcptOrganization = requests.RecipientInfo.Recipient.Organization.TrimIfNotNull();
+                                    mailPieceDTO.RcptPrefix = requests.RecipientInfo.Recipient.Prefix.TrimIfNotNull();
+                                    mailPieceDTO.RcptSuffix = requests.RecipientInfo.Recipient.Suffix.TrimIfNotNull();
+                                    mailPieceDTO.RcptPhone = requests.RecipientInfo.Recipient.Phone.TrimIfNotNull();
+                                    mailPieceDTO.RcptEmailId = requests.RecipientInfo.Recipient.EmailAddress.TrimIfNotNull();
                                 }
                                 else
-                                    mailPieceDTO.IsRcptInfoSpecified = false;
-
-                                if (requests.RecipientInfo.Corecipient != null)
-                                {
-                                    mailPieceDTO.CoRcptFirstName = requests.RecipientInfo.Corecipient.FirstName;
-                                    mailPieceDTO.CoRcptLastName = requests.RecipientInfo.Corecipient.LastName;
-                                    mailPieceDTO.CoRcptMiddleName = requests.RecipientInfo.Corecipient.MiddleName;
-                                    mailPieceDTO.CoRcptOrganization = requests.RecipientInfo.Corecipient.Organization;
-                                    mailPieceDTO.CoRcptPrefix = requests.RecipientInfo.Corecipient.Prefix;
-                                    mailPieceDTO.CoRcptSuffix = requests.RecipientInfo.Corecipient.Suffix;
-                                    mailPieceDTO.CoRcptPhone = requests.RecipientInfo.Corecipient.Phone;
-                                }
+                                    mailPieceDTO.IsRcptInfoSpecified = false;                               
 
                                 if (requests.RecipientInfo.Address != null)
                                 {
                                     mailPieceDTO.IsRcptInfoSpecified = true;
 
-                                    mailPieceDTO.RcptAddrOptionalLine1AboveStreet = requests.RecipientInfo.Address.OptionalLine1AboveStreet;
-                                    mailPieceDTO.RcptAddrOptionalLine2AboveStreet = requests.RecipientInfo.Address.OptionalLine2AboveStreet;
+                                    mailPieceDTO.RcptAddrOptionalLine1AboveStreet = requests.RecipientInfo.Address.OptionalLine1AboveStreet.TrimIfNotNull();
+                                    mailPieceDTO.RcptAddrOptionalLine2AboveStreet = requests.RecipientInfo.Address.OptionalLine2AboveStreet.TrimIfNotNull();
 
-                                    mailPieceDTO.RcptAddressStreet = requests.RecipientInfo.Address.Street;
-                                    mailPieceDTO.RcptAddressAptOrSuiteOrOther = requests.RecipientInfo.Address.AptOrSuiteOrOther;
+                                    mailPieceDTO.RcptAddressStreet = requests.RecipientInfo.Address.Street.TrimIfNotNull();
+                                    mailPieceDTO.RcptAddressAptOrSuiteOrOther = requests.RecipientInfo.Address.AptOrSuiteOrOther.TrimIfNotNull();
 
-                                    mailPieceDTO.RcptAddrOptionalLine1BelowStreet = requests.RecipientInfo.Address.OptionalLine1BelowStreet;
-                                    mailPieceDTO.RcptAddrOptionalLine2BelowStreet = requests.RecipientInfo.Address.OptionalLine2BelowStreet;
+                                    mailPieceDTO.RcptAddrOptionalLine1BelowStreet = requests.RecipientInfo.Address.OptionalLine1BelowStreet.TrimIfNotNull();
+                                    mailPieceDTO.RcptAddrOptionalLine2BelowStreet = requests.RecipientInfo.Address.OptionalLine2BelowStreet.TrimIfNotNull();
 
-                                    mailPieceDTO.RcptAddressCity = requests.RecipientInfo.Address.City;
-                                    mailPieceDTO.RcptAddressState = requests.RecipientInfo.Address.State;
-                                    mailPieceDTO.RcptAddressZIP = requests.RecipientInfo.Address.Zip;
+                                    mailPieceDTO.RcptAddressCity = requests.RecipientInfo.Address.City.TrimIfNotNull();
+                                    mailPieceDTO.RcptAddressState = requests.RecipientInfo.Address.State.TrimIfNotNull();
+                                    mailPieceDTO.RcptAddressZIP = requests.RecipientInfo.Address.Zip.TrimIfNotNull();
                                 }
                             }
                             else
@@ -764,27 +753,27 @@ namespace AM.Console
                                 //if at mail piece level system didn't find return info then it will check for MailBatch level if exist system will use that in mail piece level 
                                 if (mailBatch.IsReturnInfoSpecified)
                                 {
-                                    mailPieceDTO.RetRcptFirstName = mailBatch.RetRcptFirstName;
-                                    mailPieceDTO.RetRcptLastName = mailBatch.RetRcptLastName;
+                                    mailPieceDTO.RetRcptFirstName = mailBatch.RetRcptFirstName.TrimIfNotNull();
+                                    mailPieceDTO.RetRcptLastName = mailBatch.RetRcptLastName.TrimIfNotNull();
 
-                                    mailPieceDTO.RetRcptMiddleName = mailBatch.RetRcptMiddleName;
-                                    mailPieceDTO.RetRcptOrganization = mailBatch.RetRcptOrganization;
-                                    mailPieceDTO.RetRcptPrefix = mailBatch.RetRcptPrefix;
-                                    mailPieceDTO.RetRcptSuffix = mailBatch.RetRcptSuffix;
-                                    mailPieceDTO.RetRcptPhone = mailBatch.RetRcptPhone;
+                                    mailPieceDTO.RetRcptMiddleName = mailBatch.RetRcptMiddleName.TrimIfNotNull();
+                                    mailPieceDTO.RetRcptOrganization = mailBatch.RetRcptOrganization.TrimIfNotNull();
+                                    mailPieceDTO.RetRcptPrefix = mailBatch.RetRcptPrefix.TrimIfNotNull();
+                                    mailPieceDTO.RetRcptSuffix = mailBatch.RetRcptSuffix.TrimIfNotNull();
+                                    mailPieceDTO.RetRcptPhone = mailBatch.RetRcptPhone.TrimIfNotNull();
 
-                                    mailPieceDTO.RetRcptAddrOptionalLine1AboveStreet = mailBatch.RetRcptAddrOptionalLine1AboveStreet;
-                                    mailPieceDTO.RetRcptAddrOptionalLine2AboveStreet = mailBatch.RetRcptAddrOptionalLine2AboveStreet;
+                                    mailPieceDTO.RetRcptAddrOptionalLine1AboveStreet = mailBatch.RetRcptAddrOptionalLine1AboveStreet.TrimIfNotNull();
+                                    mailPieceDTO.RetRcptAddrOptionalLine2AboveStreet = mailBatch.RetRcptAddrOptionalLine2AboveStreet.TrimIfNotNull();
 
-                                    mailPieceDTO.RetRcptAddressStreet = mailBatch.RetRcptAddressStreet;
-                                    mailPieceDTO.RetRcptAddressAptOrSuiteOrOther = mailBatch.RetRcptAddressAptOrSuiteOrOther;
+                                    mailPieceDTO.RetRcptAddressStreet = mailBatch.RetRcptAddressStreet.TrimIfNotNull();
+                                    mailPieceDTO.RetRcptAddressAptOrSuiteOrOther = mailBatch.RetRcptAddressAptOrSuiteOrOther.TrimIfNotNull();
 
-                                    mailPieceDTO.RetRcptAddrOptionalLine1BelowStreet = mailBatch.RetRcptAddrOptionalLine1BelowStreet;
-                                    mailPieceDTO.RetRcptAddrOptionalLine2BelowStreet = mailBatch.RetRcptAddrOptionalLine2BelowStreet;
+                                    mailPieceDTO.RetRcptAddrOptionalLine1BelowStreet = mailBatch.RetRcptAddrOptionalLine1BelowStreet.TrimIfNotNull();
+                                    mailPieceDTO.RetRcptAddrOptionalLine2BelowStreet = mailBatch.RetRcptAddrOptionalLine2BelowStreet.TrimIfNotNull();
 
-                                    mailPieceDTO.RetRcptAddressCity = mailBatch.RetRcptAddressCity;
-                                    mailPieceDTO.RetRcptAddressState = mailBatch.RetRcptAddressState;
-                                    mailPieceDTO.RetRcptAddressZIP = mailBatch.RetRcptAddressZIP;
+                                    mailPieceDTO.RetRcptAddressCity = mailBatch.RetRcptAddressCity.TrimIfNotNull();
+                                    mailPieceDTO.RetRcptAddressState = mailBatch.RetRcptAddressState.TrimIfNotNull();
+                                    mailPieceDTO.RetRcptAddressZIP = mailBatch.RetRcptAddressZIP.TrimIfNotNull();
                                 }
                             }
                             else
@@ -792,14 +781,14 @@ namespace AM.Console
                                 if (requests.ReturnInfo.Recipient != null)
                                 {
                                     mailPieceDTO.IsReturnInfoSpecified = true;
-                                    mailPieceDTO.RetRcptFirstName = requests.ReturnInfo.Recipient.FirstName;
-                                    mailPieceDTO.RetRcptLastName = requests.ReturnInfo.Recipient.LastName;
+                                    mailPieceDTO.RetRcptFirstName = requests.ReturnInfo.Recipient.FirstName.TrimIfNotNull();
+                                    mailPieceDTO.RetRcptLastName = requests.ReturnInfo.Recipient.LastName.TrimIfNotNull();
 
-                                    mailPieceDTO.RetRcptMiddleName = requests.ReturnInfo.Recipient.MiddleName;
-                                    mailPieceDTO.RetRcptOrganization = requests.ReturnInfo.Recipient.Organization;
-                                    mailPieceDTO.RetRcptPrefix = requests.ReturnInfo.Recipient.Prefix;
-                                    mailPieceDTO.RetRcptSuffix = requests.ReturnInfo.Recipient.Suffix;
-                                    mailPieceDTO.RetRcptPhone = requests.ReturnInfo.Recipient.Phone;
+                                    mailPieceDTO.RetRcptMiddleName = requests.ReturnInfo.Recipient.MiddleName.TrimIfNotNull();
+                                    mailPieceDTO.RetRcptOrganization = requests.ReturnInfo.Recipient.Organization.TrimIfNotNull();
+                                    mailPieceDTO.RetRcptPrefix = requests.ReturnInfo.Recipient.Prefix.TrimIfNotNull();
+                                    mailPieceDTO.RetRcptSuffix = requests.ReturnInfo.Recipient.Suffix.TrimIfNotNull();
+                                    mailPieceDTO.RetRcptPhone = requests.ReturnInfo.Recipient.Phone.TrimIfNotNull();
                                 }
                                 else
                                     mailPieceDTO.IsReturnInfoSpecified = false;
@@ -807,18 +796,18 @@ namespace AM.Console
                                 if (requests.ReturnInfo.Address != null)
                                 {
                                     mailPieceDTO.IsReturnInfoSpecified = true;
-                                    mailPieceDTO.RetRcptAddrOptionalLine1AboveStreet = requests.ReturnInfo.Address.OptionalLine1AboveStreet;
-                                    mailPieceDTO.RetRcptAddrOptionalLine2AboveStreet = requests.ReturnInfo.Address.OptionalLine2AboveStreet;
+                                    mailPieceDTO.RetRcptAddrOptionalLine1AboveStreet = requests.ReturnInfo.Address.OptionalLine1AboveStreet.TrimIfNotNull();
+                                    mailPieceDTO.RetRcptAddrOptionalLine2AboveStreet = requests.ReturnInfo.Address.OptionalLine2AboveStreet.TrimIfNotNull();
 
-                                    mailPieceDTO.RetRcptAddressStreet = requests.ReturnInfo.Address.Street;
-                                    mailPieceDTO.RetRcptAddressAptOrSuiteOrOther = requests.ReturnInfo.Address.AptOrSuiteOrOther;
+                                    mailPieceDTO.RetRcptAddressStreet = requests.ReturnInfo.Address.Street.TrimIfNotNull();
+                                    mailPieceDTO.RetRcptAddressAptOrSuiteOrOther = requests.ReturnInfo.Address.AptOrSuiteOrOther.TrimIfNotNull();
 
-                                    mailPieceDTO.RetRcptAddrOptionalLine1BelowStreet = requests.ReturnInfo.Address.OptionalLine1BelowStreet;
-                                    mailPieceDTO.RetRcptAddrOptionalLine2BelowStreet = requests.ReturnInfo.Address.OptionalLine2BelowStreet;
+                                    mailPieceDTO.RetRcptAddrOptionalLine1BelowStreet = requests.ReturnInfo.Address.OptionalLine1BelowStreet.TrimIfNotNull();
+                                    mailPieceDTO.RetRcptAddrOptionalLine2BelowStreet = requests.ReturnInfo.Address.OptionalLine2BelowStreet.TrimIfNotNull();
 
-                                    mailPieceDTO.RetRcptAddressCity = requests.ReturnInfo.Address.City;
-                                    mailPieceDTO.RetRcptAddressState = requests.ReturnInfo.Address.State;
-                                    mailPieceDTO.RetRcptAddressZIP = requests.ReturnInfo.Address.Zip;
+                                    mailPieceDTO.RetRcptAddressCity = requests.ReturnInfo.Address.City.TrimIfNotNull();
+                                    mailPieceDTO.RetRcptAddressState = requests.ReturnInfo.Address.State.TrimIfNotNull();
+                                    mailPieceDTO.RetRcptAddressZIP = requests.ReturnInfo.Address.Zip.TrimIfNotNull();
                                 }
                             }
 
@@ -826,7 +815,7 @@ namespace AM.Console
                             {
                                 foreach (var cstmInfo in requests.CustomInfo)
                                 {
-                                    customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = cstmInfo.Key, DataType = cstmInfo.DataType, Value = cstmInfo.Value };
+                                    customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = cstmInfo.Key.TrimIfNotNull(), DataType = cstmInfo.DataType, Value = cstmInfo.Value.TrimIfNotNull() };
 
                                     mailPieceCustomInfo.Add(customInfo);
                                 }
