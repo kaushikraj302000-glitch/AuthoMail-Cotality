@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using AM.Lib;
 using System.ComponentModel.DataAnnotations;
+using System.IO;
+
 namespace AM.Services
 {
 
@@ -14,7 +16,7 @@ namespace AM.Services
         public Guid UniqueId { get; set; }
         public int? ClientId { get; set; }
         public int? ChannelId { get; set; }
-        public Guid BatchUniqueId { get; set; }
+        public int MailBatchId { get; set; }
         public string BatchName { get; set; }
         public string BusinessFriendlyIdName { get; set; }
         public string BusinessFriendlyIdValue { get; set; }
@@ -41,21 +43,6 @@ namespace AM.Services
                 return nm.IsNullOrWhiteSpace() ? null : nm.Replace("  ", " ");
             }
         }
-        public string CoRcptPrefix { get; set; }
-        public string CoRcptFirstName { get; set; }
-        public string CoRcptMiddleName { get; set; }
-        public string CoRcptLastName { get; set; }
-        public string CoRcptSuffix { get; set; }
-        public string CoRcptName
-        {
-            get
-            {
-                string nm = string.Format("{0} {1} {2}", this.CoRcptFirstName, this.CoRcptMiddleName, this.CoRcptLastName);
-                return nm.IsNullOrWhiteSpace() ? null : nm.Replace("  ", " ");
-            }
-        }
-        public string CoRcptPhone { get; set; }
-        public string CoRcptOrganization { get; set; }
         public string RcptAddrOptionalLine1AboveStreet { get; set; }
         public string RcptAddrOptionalLine2AboveStreet { get; set; }
         public string RcptAddressStreet { get; set; }
@@ -123,6 +110,7 @@ namespace AM.Services
                 return string.Format("{0}{1}", this.ErrorCode, this.ErrorDesc.IsNullOrWhiteSpace() ? null : (" <br/>  " + this.ErrorDesc));
             }
         }
+        public bool IsFallBackRequested { get; set; }
         public int? SigningRoomId { get; set; }
         public Guid SigningRoomUniqueId { get; set; }
         public string SigningRoomName { get; set; }
@@ -151,5 +139,35 @@ namespace AM.Services
         public Clients Clients { get; set; }
         public DocTypes DocTypes { get; set; }
         public SFTChannels SFTChannel { get; set; }
+    }
+
+    public class MailPieceInfo
+    {
+        public string BatchRepo { get; private set; }
+        public string AMRequestPath { get; private set; }
+        public string PnSRequestPath { get; private set; }
+        public string PnSResponsePath { get; private set; }
+        public string AMResponsePath { get; private set; }
+        public string BatchName { get; private set; }
+        public Clients Client { get; private set; }
+
+        public MailPieceInfo(Clients client, string amRootFolder, int mailBatchId, string batchName)
+        {
+            Client = client ?? throw new ArgumentNullException("Client cannot be null.");
+
+            Initialize(client, amRootFolder, mailBatchId, batchName);
+        }
+
+        private void Initialize(Clients client, string amRootFolder, int mailBatchId, string batchName)
+        {
+            BatchName = batchName.Trim();
+            //Combined path
+            BatchRepo = Path.Combine(amRootFolder, client.AppCode, "{0}".Fill(mailBatchId));
+
+            AMRequestPath = Path.Combine(BatchRepo, "AMRequest");
+            PnSRequestPath = Path.Combine(BatchRepo, "PnSRequest");
+            PnSResponsePath = Path.Combine(BatchRepo, "PnSResponse");
+            AMResponsePath = Path.Combine(BatchRepo, Util.AMResponseFolderName);
+        }
     }
 }

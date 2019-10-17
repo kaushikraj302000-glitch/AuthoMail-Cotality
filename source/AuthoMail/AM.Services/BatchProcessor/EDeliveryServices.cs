@@ -18,13 +18,15 @@ namespace AM.Services
         int UpdateEDMailPiecePipelineStatus(int mailPieceId, string pipeLineStatus, DateTime timestamp);
         int UpdateEDMailPieceDetails(EDMailPiece mailPiece);
         DocType GetEDDocTypeByDocTypeName(int clientId, string documentOrPackageName);
+        int FallBackEDeliveryPackage(int edMPId, Guid uniqueId, int mailBatchId, string appCode);
+        int ErrorOutEDeliveryPackage(Guid uniqueId, int mailBatchId, string errorCode, string errorDesc);
     }
     public class EDeliveryService : ServiceBase, IEDeliveryService
     {
         public List<EDMailPiece> GetBatchesByPipelineStatusAndSFTChannelId(string pipelineStatus, int? sftChannelId)
         {
             //Sql Query
-            string query = "SELECT * FROM [AM].[EDeliveryMailPieces] ED LEFT OUTER JOIN AM.DocTypes D ON ED.DocTypeId=D.Id LEFT OUTER JOIN AM.ClientDocTypes CDT ON D.ClientDocTypeId=CDT.Id LEFT OUTER JOIN Common.Clients C ON ED.ClientId=C.Id LEFT OUTER JOIN Common.SFTChannels S ON ED.SFTChannelId=S.Id WHERE ED.PipelineStatus= @PipelineStatus";
+            string query = "SELECT ED.Id, ED.UniqueId, ED.ClientId, ED.MailBatchId, ED.BusinessFriendlyIdName, ED.BusinessFriendlyIdValue, ED.FileName,ED.DocumentOrPackageType, ED.DocTypeId, ED.ClientDocTypeId, ED.ExpiryDate, ED.PipelineStatus, ED.RcptFirstName, ED.RcptMiddleName,ED.RcptLastName, ED.RcptEmailId, ED.TotalPages, ED.ErrorCode, ED.ErrorDesc, ED.SigningRoomId, ED.SigningRoomUniqueId, ED.SigningRoomName,ED.DocumentId, ED.ReceivedOn, ED.IsReceived, ED.DownloadedOn, ED.IsDownloaded, ED.ValidatedOn, ED.IsValidated, ED.SigningRoomCreatedOn,ED.IsSigningRoomCreated, ED.InvitationSentOn, ED.IsInvitationSent, ED.eDeliveredOn, ED.IseDelivered, ED.ConsentedOn, ED.IsConsented,ED.NotConsentedOn, ED.IsNotConsented, ED.DocReviewedOn, ED.IsDocReviewed, ED.DocDownloadedOn, ED.IsDocDownloaded, ED.ESignedOn, ED.IsESigned,ED.PDFFileSize, D.*,CDT.*,C.*,S.* FROM[AM].[EDeliveryMailPieces] ED INNER JOIN AM.MailBatches B ON ED.MailBatchId = B.Id LEFT OUTER JOIN AM.DocTypes D ON ED.DocTypeId = D.Id LEFT OUTER JOIN AM.ClientDocTypes CDT ON D.ClientDocTypeId = CDT.Id LEFT OUTER JOIN Common.Clients C ON ED.ClientId = C.Id LEFT OUTER JOIN Common.SFTChannels S ON B.SFTChannelId = S.Id WHERE ED.PipelineStatus = @PipelineStatus";
 
             if (sftChannelId.HasValue)
                 query += " AND SFTChannelId= @SFTChannelId";
@@ -38,16 +40,16 @@ namespace AM.Services
                     query += " AND IsDownloaded=1 AND IsValidated=0";
                     break;
                 case EDPipelineStatus.Validated:
-                    query += " AND IsValidated=1 AND IsSigningRoomCreated=0";
+                    query += " AND IsValidated=1 AND IsSigningRoomCreated=0 AND IsExpired=0";
                     break;
                 case EDPipelineStatus.SigningRoomCreated:
-                    query += " AND IsSigningRoomCreated=1 AND IsInvitationSent=0";
+                    query += " AND IsSigningRoomCreated=1 AND IsInvitationSent=0 AND IsExpired=0";
                     break;
                 case EDPipelineStatus.InvitationSent:
-                    query += " AND IsInvitationSent=1 AND IseDelivered=0";
+                    query += " AND IsInvitationSent=1 AND IseDelivered=0 AND IsExpired=0";
                     break;
                 case EDPipelineStatus.Expired:
-                    query += " AND IsExpired=1 AND IsFallBack=0";
+                    query += " AND IsExpired=1 AND IseDelivered=0";
                     break;
                 case EDPipelineStatus.FallBack:
                     query += " AND Expired=1 AND FallBack=0";
@@ -74,7 +76,7 @@ namespace AM.Services
 
         public int InsertEDMailPieceDetails(EDMailPiece mailPiece)
         {
-            string query = "INSERT INTO [AM].[EDeliveryMailPieces](UniqueId, ClientId, SFTChannelId, BatchUniqueId, BatchName, BusinessFriendlyIdName, BusinessFriendlyIdValue, FileName, FilePattern, DocumentOrPackageType, RcptPrefix, RcptFirstName, RcptMiddleName, RcptLastName, RcptSuffix, RcptPhone, RcptEmailId, RcptOrganization, RcptAddrOptionalLine1AboveStreet, RcptAddrOptionalLine2AboveStreet, RcptAddressStreet, RcptAddressAptOrSuiteOrOther, RcptAddrOptionalLine1BelowStreet, RcptAddrOptionalLine2BelowStreet, RcptAddressCity, RcptAddressState, RcptAddressZIP, RcptAddressCountry, RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RetRcptSuffix, RetRcptPhone, RetRcptOrganization, RetRcptAddrOptionalLine1AboveStreet, RetRcptAddrOptionalLine2AboveStreet, RetRcptAddressStreet, RetRcptAddressAptOrSuiteOrOther, RetRcptAddrOptionalLine1BelowStreet, RetRcptAddrOptionalLine2BelowStreet, RetRcptAddressCity, RetRcptAddressState, RetRcptAddressZIP, RetRcptAddressCountry) Output Inserted.Id VALUES (@UniqueId, @ClientId, @SFTChannelId, @BatchUniqueId, @BatchName, @BusinessFriendlyIdName, @BusinessFriendlyIdValue, @FileName, @FilePattern, @DocumentOrPackageType, @RcptPrefix, @RcptFirstName, @RcptMiddleName, @RcptLastName, @RcptSuffix, @RcptPhone, @RcptEmailId, @RcptOrganization, @RcptAddrOptionalLine1AboveStreet, @RcptAddrOptionalLine2AboveStreet, @RcptAddressStreet, @RcptAddressAptOrSuiteOrOther, @RcptAddrOptionalLine1BelowStreet, @RcptAddrOptionalLine2BelowStreet, @RcptAddressCity, @RcptAddressState, @RcptAddressZIP, @RcptAddressCountry, @RetRcptPrefix, @RetRcptFirstName, @RetRcptMiddleName, @RetRcptLastName, @RetRcptSuffix, @RetRcptPhone, @RetRcptOrganization, @RetRcptAddrOptionalLine1AboveStreet, @RetRcptAddrOptionalLine2AboveStreet, @RetRcptAddressStreet, @RetRcptAddressAptOrSuiteOrOther, @RetRcptAddrOptionalLine1BelowStreet, @RetRcptAddrOptionalLine2BelowStreet, @RetRcptAddressCity, @RetRcptAddressState, @RetRcptAddressZIP, @RetRcptAddressCountry)";
+            string query = "INSERT INTO [AM].[EDeliveryMailPieces](UniqueId, ClientId, SFTChannelId, BatchUniqueId, BatchName, BusinessFriendlyIdName, BusinessFriendlyIdValue, FileName, FilePattern, DocumentOrPackageType, RcptPrefix, RcptFirstName, RcptMiddleName, RcptLastName, RcptSuffix, RcptPhone, RcptEmailId, RcptOrganization, RcptAddrOptionalLine1AboveStreet, RcptAddrOptionalLine2AboveStreet, RcptAddressStreet, RcptAddressAptOrSuiteOrOther, RcptAddrOptionalLine1BelowStreet, RcptAddrOptionalLine2BelowStreet, RcptAddressCity, RcptAddressState, RcptAddressZIP, RcptAddressCountry, RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RetRcptSuffix, RetRcptPhone, RetRcptOrganization, RetRcptAddrOptionalLine1AboveStreet, RetRcptAddrOptionalLine2AboveStreet, RetRcptAddressStreet, RetRcptAddressAptOrSuiteOrOther, RetRcptAddrOptionalLine1BelowStreet, RetRcptAddrOptionalLine2BelowStreet, RetRcptAddressCity, RetRcptAddressState, RetRcptAddressZIP, RetRcptAddressCountry, IsFallBackRequested) Output Inserted.Id VALUES (@UniqueId, @ClientId, @SFTChannelId, @BatchUniqueId, @BatchName, @BusinessFriendlyIdName, @BusinessFriendlyIdValue, @FileName, @FilePattern, @DocumentOrPackageType, @RcptPrefix, @RcptFirstName, @RcptMiddleName, @RcptLastName, @RcptSuffix, @RcptPhone, @RcptEmailId, @RcptOrganization, @RcptAddrOptionalLine1AboveStreet, @RcptAddrOptionalLine2AboveStreet, @RcptAddressStreet, @RcptAddressAptOrSuiteOrOther, @RcptAddrOptionalLine1BelowStreet, @RcptAddrOptionalLine2BelowStreet, @RcptAddressCity, @RcptAddressState, @RcptAddressZIP, @RcptAddressCountry, @RetRcptPrefix, @RetRcptFirstName, @RetRcptMiddleName, @RetRcptLastName, @RetRcptSuffix, @RetRcptPhone, @RetRcptOrganization, @RetRcptAddrOptionalLine1AboveStreet, @RetRcptAddrOptionalLine2AboveStreet, @RetRcptAddressStreet, @RetRcptAddressAptOrSuiteOrOther, @RetRcptAddrOptionalLine1BelowStreet, @RetRcptAddrOptionalLine2BelowStreet, @RetRcptAddressCity, @RetRcptAddressState, @RetRcptAddressZIP, @RetRcptAddressCountry, @IsFallBackRequested)";
 
             return db.ExecuteScalar<int>(query, mailPiece);
         }
@@ -98,6 +100,37 @@ namespace AM.Services
             string query = "SELECT D.*,CDT.DocTypeName FROM [AM].[DocTypes] D INNER JOIN [AM].[ClientDocTypes] CDT ON D.ClientDocTypeId=CDT.Id WHERE CDT.ClientId=@ClientId AND CDT.DocTypeName = @DocumentOrPackageName AND ShippingCarrier='E-DELIVERY' AND D.IsActive=1";
 
             return db.QuerySingleOrDefault<DocType>(query, new { ClientId = clientId, DocumentOrPackageName = documentOrPackageName });
+        }
+
+        public int FallBackEDeliveryPackage(int edMPId, Guid uniqueId, int mailBatchId, string appCode)
+        {
+            using (ICommonService commonSvc = new CommonService())
+            using (IMailPieceService mpSvc = new MailPieceService())
+            using (IDocTypeService docTypeSvc = new DocTypeService())
+            {
+                MailPieceDTO mailPieceDTO = mpSvc.GetMailPieceDataByUniqueIdAndMBId(uniqueId, mailBatchId);
+                DocType mpDocType = docTypeSvc.GetDocTypeById(mailPieceDTO.DocTypeId.Value);
+                commonSvc.GetUpdatedDueDateAndPrintLocation(Common.Now, mailPieceDTO, mpDocType, appCode);
+                mpSvc.UpdateBatchMailPieceDetails(mailPieceDTO);
+                return commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.Validated, Common.Now);
+            }
+        }
+        public int ErrorOutEDeliveryPackage(Guid uniqueId, int mailBatchId, string errorCode, string errorDesc)
+        {
+            string query = "UPDATE AM.MailPieces SET ShippingStatus='Error', ErrorCode=@ErrorCode, ErrorDesc=@ErrorDesc WHERE MailBatchId=@MailBatchId AND UniqueId=@UniqueId";
+            var retVal = db.Execute(query, new { ErrorCode = errorCode, ErrorDesc = errorCode, MailBatchId = mailBatchId, UniqueId = uniqueId });
+
+            if (retVal == 1)
+            {
+                using (ICommonService commonSvc = new CommonService())
+                {
+                    commonSvc.UpdateBatchStatus(mailBatchId, BatchStatus.Failed.ToString());
+                    commonSvc.UpdateBatchValidationStatus(mailBatchId, BatchValidationStatus.Invalid, errorDesc);
+                    commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.Validated, Common.Now);
+                    return 1;
+                }
+            }
+            return 0;
         }
     }
 }

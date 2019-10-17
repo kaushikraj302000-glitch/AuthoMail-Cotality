@@ -36,8 +36,11 @@ namespace AM.EDelivery
             eDeliverySvc = GetService<EDeliveryService>();
             docTypeSvc = GetService<DocTypeService>();
 
+            if (channelCode != "GENERAL")
+            {
+                SFTChannel = clientSvc.GetSFTChannelDetailsBySFTChannelCode(channelCode);
+            }
             // Get Channel by code
-            SFTChannel = clientSvc.GetSFTChannelDetailsBySFTChannelCode(channelCode);
         }
 
         protected T GetService<T>() where T : ServiceBase, new()
@@ -54,9 +57,9 @@ namespace AM.EDelivery
                 this.EnumerateBatches();
                 this.DownloadBatches();
                 this.ValidateBatches();
-                this.FallBackBatches();
                 this.CreateSigningRoom();
                 this.SendInvitations();
+                this.CheckActivityLogs();
             }
             catch (Exception ex)
             {
@@ -83,10 +86,6 @@ namespace AM.EDelivery
         /// </summary>
         protected abstract void ValidateBatches();
         /// <summary>
-        /// Create XML based on ChannelIds and Follow AM folder structure to fall back all the packages which are failed in validation
-        /// </summary>
-        protected abstract void FallBackBatches();
-        /// <summary>
         /// Create signing room for all mailpieces which are validated successfully
         /// </summary>
         protected abstract void CreateSigningRoom();
@@ -94,6 +93,11 @@ namespace AM.EDelivery
         /// Send invitaions to all recipients for which signing rooms are created successfully
         /// </summary>
         protected abstract void SendInvitations();
+        /// <summary>
+        /// Send invitaions to all recipients for which signing rooms are created successfully
+        /// </summary>
+        protected abstract void CheckActivityLogs();
+
 
         protected override void DisposeManagedObjects()
         {

@@ -21,6 +21,7 @@ namespace AM.Services
         MailPieceDTO GetMailPieceDataFromTrackingNo(string trackingNo);
         List<DallasMailPieceData> GetDallasMailPiecesByTimingsAndClient(string sweepName);
         BatchSummary GetBatchSummaryDetailByUniqueId(Guid uniqueId);
+        MailPieceDTO GetMailPieceDataByUniqueIdAndMBId(Guid uniqueId, int mailBatchId);
     }
     public class MailPieceService : ServiceBase, IMailPieceService //It implements Interfaces 
     {
@@ -127,6 +128,13 @@ namespace AM.Services
             string query = @"SELECT * FROM [PnS].[BatchSummary] WHERE PrintBatch = (SELECT JobId FROM [PnS].[MRDFRequest] WHERE UniqueId=@UniqueId)";
 
             return db.QuerySingle<BatchSummary>(query, new { UniqueId = uniqueId });
+        }
+
+        public MailPieceDTO GetMailPieceDataByUniqueIdAndMBId(Guid uniqueId, int mailBatchId)
+        {
+            string query = @"SELECT TOP 1 * FROM [AM].[MailPieces] WHERE [UniqueId] = @UniqueId AND MailBatchId = @MailBatchId";
+
+            return db.ExecuteScalar<MailPieceDTO>(query, new { UniqueId = uniqueId, MailBatchId = mailBatchId });
         }
     }
 }

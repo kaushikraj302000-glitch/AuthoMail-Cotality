@@ -1,7 +1,9 @@
 ﻿using AM.Entities;
+using AM.Lib;
 using AM.Services;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace AM.EDelivery
 {
@@ -32,32 +34,143 @@ namespace AM.EDelivery
 
         protected override void ValidateBatches()
         {
-            log.Debug("EDelivery Validate job queue is started.");
-
-           
-            log.Debug("EDelivery Validate job queue is completed.");
-        }
-
-        protected override void FallBackBatches()
-        {
-            log.Debug("EDelivery FallBack job queue is started.");
-
-            List<EDMailPiece> downloadedMailPieces = eDeliverySvc.GetBatchesByPipelineStatusAndSFTChannelId(EDPipelineStatus.FallBack);
-            if (downloadedMailPieces == null)
-            {
-                log.Debug("EDelivery FallBack job queue is empty.");
-                return;
-            }
-
-            log.Debug("EDelivery FallBack job queue is started.");
+            //No need to implement
         }
 
         protected override void CreateSigningRoom()
         {
-            throw new NotImplementedException();
+            log.Debug("EDelivery CreateSigningRoom job queue is started.");
+
+            List<EDMailPiece> validatedMailPieces = eDeliverySvc.GetBatchesByPipelineStatusAndSFTChannelId(EDPipelineStatus.Validated);
+            if (validatedMailPieces == null)
+            {
+                log.Debug("EDelivery CreateSigningRoom job queue is empty.");
+                log.Debug("EDelivery CreateSigningRoom job queue is completed.");
+                return;
+            }
+
+            foreach (EDMailPiece mp in validatedMailPieces)
+            {
+                try
+                {
+                    MailPieceInfo mpi = new MailPieceInfo(mp.Clients, Config.Common_AuthoMailRootFolder, mp.MailBatchId, mp.BatchName);
+                    mp.SigningRoomName = "{0}-{1}-{2}".Fill(mp.Clients.AppCode, mp.FileName, mp.Id);
+                    SigningRoomRequest request = new SigningRoomRequest()
+                    {
+                        SigningRoomName = mp.SigningRoomName,
+                        Description = "",
+                        ExpirationDate = mp.ExpiryDate.HasValue ? mp.ExpiryDate.Value : mp.ReceivedOn.Value.AddDays(7),
+                        StartDate = Common.EstToday
+                    };
+
+                    List<DocumentInfo> documents = new List<DocumentInfo>();
+                    documents.Add(
+                        new DocumentInfo()
+                        {
+                            DocumentData = Convert.ToBase64String(File.ReadAllBytes(Path.Combine(mpi.BatchRepo, mp.FileName))),
+                            DocumentName = Path.GetFileNameWithoutExtension(Path.Combine(mpi.BatchRepo, mp.FileName)),
+                            FileName = Path.GetFileName(Path.Combine(mpi.BatchRepo, mp.FileName))
+                        }
+                    );
+                    request.Documents = documents;
+                    List<Participant> participants = new List<Participant>();
+                    participants.Add(
+                        new Participant()
+                        {
+                            FirstName = mp.RcptFirstName,
+                            LastName = mp.RcptLastName,
+                            InvitationEmail = mp.RcptEmailId
+                        });
+                    request.Participants = participants;
+                    IEDeliveryAPIService eDeliveryAPISvc = new EDeliveryAPIService();
+                    var response = eDeliveryAPISvc.CreateSigningRoom(request).Result;
+                    if (response.HasError)
+                    {
+                        mp.ErrorCode = OutComeCodes.Issue_In_EDelivery;
+                        mp.ErrorDesc = response.Error;
+
+                        eDeliverySvc.UpdateEDMailPieceDetails(mp);
+                        eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.Expired, Common.Now);
+                        #region Check IsFallBackRequested
+                        if (mp.IsFallBackRequested)
+                        {
+                            eDeliverySvc.FallBackEDeliveryPackage(mp.Id, mp.UniqueId, mp.MailBatchId, mp.Clients.AppCode);
+                        }
+                        else
+                        {
+                            eDeliverySvc.ErrorOutEDeliveryPackage(mp.UniqueId, mp.MailBatchId, mp.ErrorCode, mp.ErrorDesc);
+                        }
+                        #endregion
+                        continue;
+                    }
+                    else
+                    {
+                        mp.SigningRoomId = response.SigningRoom.SigningRoomId;
+                        mp.SigningRoomUniqueId = response.SigningRoom.SigningRoomGuid;
+                        mp.ExpiryDate = response.SigningRoom.ExpirationDate;
+
+                        eDeliverySvc.UpdateEDMailPieceDetails(mp);
+                        eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.SigningRoomCreated, Common.Now);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var msg = "Error occured while creating signing room for Id {0} for client {1} with below error <br/>{2}".Fill(mp.Id, mp.Clients.AppCode, ex);
+                    log.Error(msg);
+                    MailUtility.SendUnexpectedExceptionEmail(msg);
+                    continue;
+                }
+            }
+
+            log.Debug("EDelivery CreateSigningRoom job queue is completed.");
         }
 
         protected override void SendInvitations()
+        {
+            log.Debug("EDelivery SendInvitations job queue is started.");
+
+            List<EDMailPiece> signingRoomCreatedMailPieces = eDeliverySvc.GetBatchesByPipelineStatusAndSFTChannelId(EDPipelineStatus.SigningRoomCreated);
+
+            if (signingRoomCreatedMailPieces.Count == 0)
+            {
+                log.Debug("EDelivery SendInvitations job queue is empty.");
+                log.Debug("EDelivery SendInvitations job queue is completed.");
+                return;
+            }
+
+            foreach (EDMailPiece mp in signingRoomCreatedMailPieces)
+            {
+                try
+                {
+                    IEDeliveryAPIService eDeliveryAPISvc = new EDeliveryAPIService();
+                    bool isInvitationSent = eDeliveryAPISvc.SendInvitations(mp.SigningRoomId.Value).Result;
+
+                    if (isInvitationSent)
+                    {
+                        eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.InvitationSent, Common.Now);
+                    }
+                    else
+                    {
+                        mp.ErrorCode = OutComeCodes.Issue_In_EDelivery;
+                        mp.ErrorDesc = "Error occured while sending invitation to participant for mail piece Id {0}".Fill(mp.Id);
+
+                        eDeliverySvc.UpdateEDMailPieceDetails(mp);
+                        eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.Expired, Common.Now);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var msg = "Error occured while sending invitation to participant Id {0} for client {1} with below error <br/>{2}".Fill(mp.Id, mp.Clients.AppCode, ex);
+                    log.Error(msg);
+                    MailUtility.SendUnexpectedExceptionEmail(msg);
+                    continue;
+                }
+            }
+
+            log.Debug("EDelivery SendInvitations job queue is completed.");
+        }
+
+        protected override void CheckActivityLogs()
         {
             throw new NotImplementedException();
         }
