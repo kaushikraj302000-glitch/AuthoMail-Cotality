@@ -129,7 +129,7 @@ namespace AM.Console
                 }
             }
         }
-       
+
         private static bool IsBusinessDay(DateTime date, List<Holiday> holidays, bool isSatWorkDay, bool isSunWorkDay)
         {
             if (holidays.Select(c => c.HolidayDate).Contains(date.Date))
@@ -153,6 +153,42 @@ namespace AM.Console
             foreach (DirectoryInfo pciDir in destPCIDir.GetDirectories())
             {
                 pciDir.Delete(true);
+            }
+        }
+
+        public static void PurgeDBRecords()
+        {
+            using (IReCalculateDueDateService reCalculateDueDateService = new ReCalculateDueDateService())
+            {
+                var recordsToUpdateOnUSPS = reCalculateDueDateService.GetUSPSRecordsToPurge();
+                try
+                {
+                    foreach (var record in recordsToUpdateOnUSPS)
+                    {
+                        reCalculateDueDateService.UpdateUSPSRecords(record.Id);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var msg = "Error occured while PURGING records from [API].[USPS] Table: {0} ".Fill(ex.Message);
+                    log.Error(msg, ex);
+                    MailUtility.SendUnexpectedExceptionEmail(msg);
+                }
+
+                var recordsToUpdateOnUSPSeVS = reCalculateDueDateService.GetUSPSeVSRecordsToPurge();
+                try
+                {
+                    foreach (var record in recordsToUpdateOnUSPSeVS)
+                    {
+                        reCalculateDueDateService.UpdateUSPSeVSRecords(record.Id);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var msg = "Error occured while PURGING records from [API].[USPSeVS] Table: {0} ".Fill(ex.Message);
+                    log.Error(msg, ex);
+                    MailUtility.SendUnexpectedExceptionEmail(msg);
+                }
             }
         }
     }
