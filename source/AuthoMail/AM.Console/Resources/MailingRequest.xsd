@@ -64,7 +64,7 @@
     <xs:attribute name="DocumentOrPackageType" type="tns:nonEmptyString" use="optional" />
   </xs:complexType>
   <xs:complexType name="eDelivery">
-    <xs:attribute name="ExpiryDate" type="xs:dateTime" use="required" />
+    <xs:attribute name="ExpiryDate" type="xs:date" use="required" />
     <xs:attribute name="PrintAndShipOnExpiry" type="xs:boolean" use="required" />
   </xs:complexType>
   <xs:complexType name="DocumentOrPackage">

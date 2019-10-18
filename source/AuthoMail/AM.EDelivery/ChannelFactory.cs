@@ -9,7 +9,7 @@ namespace AM.EDelivery
 {
     static class ChannelFactory
     {
-        public static EDChannel Create(string channelPrefix, string channelType)
+        public static EDChannel Create(string channelPrefix, string channelType = "")
         {
             // Each channel is tied to one and ONLY one XML schema
             string channelCode = channelPrefix + "_" + Config.Common_Environment;

@@ -534,18 +534,7 @@ namespace AM.Console
                                     mailPieceDTO.RcptPhone = requests.RecipientInfo.Recipient.Phone;
                                 }
                                 else
-                                    mailPieceDTO.IsRcptInfoSpecified = false;
-
-                                if (requests.RecipientInfo.Corecipient != null)
-                                {
-                                    mailPieceDTO.CoRcptFirstName = requests.RecipientInfo.Corecipient.FirstName;
-                                    mailPieceDTO.CoRcptLastName = requests.RecipientInfo.Corecipient.LastName;
-                                    mailPieceDTO.CoRcptMiddleName = requests.RecipientInfo.Corecipient.MiddleName;
-                                    mailPieceDTO.CoRcptOrganization = requests.RecipientInfo.Corecipient.Organization;
-                                    mailPieceDTO.CoRcptPrefix = requests.RecipientInfo.Corecipient.Prefix;
-                                    mailPieceDTO.CoRcptSuffix = requests.RecipientInfo.Corecipient.Suffix;
-                                    mailPieceDTO.CoRcptPhone = requests.RecipientInfo.Corecipient.Phone;
-                                }
+                                    mailPieceDTO.IsRcptInfoSpecified = false;                                
 
                                 if (requests.RecipientInfo.Address != null)
                                 {

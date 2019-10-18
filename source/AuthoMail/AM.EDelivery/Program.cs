@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AM.Lib;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
@@ -20,6 +21,22 @@ namespace AM.EDelivery
             log = log4net.LogManager.GetLogger(type);
 
             log.InfoFormat("Command line arguments : {0}", String.Join(",", args));
+
+            if (args[0] == "GENERAL")
+            {
+                string channelPrefix;
+                channelPrefix = args[0];
+                using (var channel = ChannelFactory.Create(channelPrefix))
+                {
+                    if (channel == null)
+                    {
+                        log.Error("Channel prefix '{0}' is invalid.".Fill(args[0]));
+                        return;
+                    }
+
+                    channel.ProcessBatches();
+                }
+            }
         }
     }
 }

@@ -33,6 +33,7 @@ namespace AM.Entities
     {
         public const string Received = "Received";
         public const string Downloaded = "Downloaded";
+        public const string SubmittedToEDelivery = "SubmittedToEDelivery";
         public const string Validated = "Validated";
         public const string Acknowledged = "Acknowledged";
         public const string Prepped = "Prepped";
@@ -58,6 +59,25 @@ namespace AM.Entities
         public const string ErroredOut = "ErroredOut";
         public const string ReportPrepped = "ReportPrepped";
         public const string ReportedBack = "ReportedBack";
+        public const string Consented = "Consented";
+        public const string NotConsented = "NotConsented";
+        public const string DocReviewed = "DocReviewed";
+        public const string DocDownloaded = "DocDownloaded";
+    }
+
+    public static class EDeliveryStatus
+    {
+        public const string ESignConsentAccepted = "ESIGN Consent Accepted";
+        public const string ESignConsentDeclined = "ESIGN Consent Declined";
+        public const string DocumentReviewed = "Document Reviewed";
+        public const string DocumentSigned = "Document Signed";
+        public const string DocumentDownloaded = "Document Downloaded";
+    }
+
+    public static class SigningRoomStatus
+    {
+        public const string InProgress = "InProgress";
+        public const string Expired = "Expired";
     }
 
     public static class OutComeCodes
@@ -75,6 +95,7 @@ namespace AM.Entities
         public const string Invalid_PackageType = "Invalid_PackageType";
         public const string Invalid_ShippingDetail = "Invalid_ShippingDetail";
         public const string Invalid_DuplicateKey = "Invalid_DuplicateKey";
+        public const string Issue_In_EDelivery = "Issue_In_EDelivery";
 
         public static string GetAMCMappingCode(string amOutcomecode)
         {
