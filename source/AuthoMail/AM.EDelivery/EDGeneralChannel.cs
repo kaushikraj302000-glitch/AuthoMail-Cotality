@@ -42,7 +42,7 @@ namespace AM.EDelivery
             log.Debug("EDelivery CreateSigningRoom job queue is started.");
 
             List<EDMailPiece> validatedMailPieces = eDeliverySvc.GetBatchesByPipelineStatusAndSFTChannelId(EDPipelineStatus.Validated);
-            if (validatedMailPieces == null)
+            if (validatedMailPieces.Count == 0)
             {
                 log.Debug("EDelivery CreateSigningRoom job queue is empty.");
                 log.Debug("EDelivery CreateSigningRoom job queue is completed.");
@@ -53,8 +53,8 @@ namespace AM.EDelivery
             {
                 try
                 {
-                    MailPieceInfo mpi = new MailPieceInfo(mp.Clients, Config.Common_AuthoMailRootFolder, mp.MailBatchId, mp.BatchName);
-                    mp.SigningRoomName = "{0}-{1}-{2}".Fill(mp.Clients.AppCode, mp.FileName, mp.Id);
+                    MailPieceInfo mpi = new MailPieceInfo(mp.ClientCode, Config.Common_AuthoMailRootFolder, mp.MailBatchId, mp.BatchName);
+                    mp.SigningRoomName = "{0}-{1}-{2}".Fill(mp.ClientCode, mp.FileName, mp.Id);
                     SigningRoomRequest request = new SigningRoomRequest()
                     {
                         SigningRoomName = mp.SigningRoomName,
@@ -67,9 +67,9 @@ namespace AM.EDelivery
                     documents.Add(
                         new DocumentInfo()
                         {
-                            DocumentData = Convert.ToBase64String(File.ReadAllBytes(Path.Combine(mpi.BatchRepo, mp.FileName))),
-                            DocumentName = Path.GetFileNameWithoutExtension(Path.Combine(mpi.BatchRepo, mp.FileName)),
-                            FileName = Path.GetFileName(Path.Combine(mpi.BatchRepo, mp.FileName))
+                            DocumentData = Convert.ToBase64String(File.ReadAllBytes(Path.Combine(mpi.AMRequestPath, mp.FileName))),
+                            DocumentName = Path.GetFileNameWithoutExtension(Path.Combine(mpi.AMRequestPath, mp.FileName)),
+                            FileName = Path.GetFileName(Path.Combine(mpi.AMRequestPath, mp.FileName))
                         }
                     );
                     request.Documents = documents;
@@ -94,7 +94,7 @@ namespace AM.EDelivery
                         #region Check IsFallBackRequested
                         if (mp.IsFallBackRequested)
                         {
-                            eDeliverySvc.FallBackEDeliveryPackage(mp.Id, mp.UniqueId, mp.MailBatchId, mp.Clients.AppCode);
+                            eDeliverySvc.FallBackEDeliveryPackage(mp.Id, mp.UniqueId, mp.MailBatchId, mp.ClientCode);
                         }
                         else
                         {
@@ -115,7 +115,7 @@ namespace AM.EDelivery
                 }
                 catch (Exception ex)
                 {
-                    var msg = "Error occured while creating signing room for Id {0} for client {1} with below error <br/>{2}".Fill(mp.Id, mp.Clients.AppCode, ex);
+                    var msg = "Error occured while creating signing room for Id {0} for client {1} with below error <br/>{2}".Fill(mp.Id, mp.ClientCode, ex);
                     log.Error(msg);
                     MailUtility.SendUnexpectedExceptionEmail(msg);
                     continue;
@@ -160,7 +160,7 @@ namespace AM.EDelivery
                 }
                 catch (Exception ex)
                 {
-                    var msg = "Error occured while sending invitation to participant Id {0} for client {1} with below error <br/>{2}".Fill(mp.Id, mp.Clients.AppCode, ex);
+                    var msg = "Error occured while sending invitation to participant Id {0} for client {1} with below error <br/>{2}".Fill(mp.Id, mp.ClientCode, ex);
                     log.Error(msg);
                     MailUtility.SendUnexpectedExceptionEmail(msg);
                     continue;
@@ -172,7 +172,58 @@ namespace AM.EDelivery
 
         protected override void CheckActivityLogs()
         {
-            throw new NotImplementedException();
+            log.Debug("EDelivery Check ActivityLogs job queue is started.");
+
+            List<EDMailPiece> invitationSentMailPieces = eDeliverySvc.GetBatchesByPipelineStatusAndSFTChannelId(EDPipelineStatus.InvitationSent);
+
+            if (invitationSentMailPieces.Count == 0)
+            {
+                log.Debug("EDelivery Check ActivityLogs job queue is empty.");
+                log.Debug("EDelivery Check ActivityLogs job queue is completed.");
+                return;
+            }
+
+            foreach (EDMailPiece mp in invitationSentMailPieces)
+            {
+                try
+                {
+                    IEDeliveryAPIService eDeliveryAPISvc = new EDeliveryAPIService();
+                    var activityLogs = eDeliveryAPISvc.GetSigningRoomActivityLog(mp.SigningRoomName).Result;
+
+                    string signingRoomStatus = eDeliveryAPISvc.GetSigningRoomStatus(mp.SigningRoomId.Value).Result;
+
+                    foreach (var actlog in activityLogs)
+                    {
+                        switch (actlog.EDeliveryStatus)
+                        {
+                            case EDeliveryStatus.ESignConsentAccepted:
+                                eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.Consented, actlog.UpdatedDate);
+                                break;
+                            case EDeliveryStatus.ESignConsentDeclined:
+                                eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.NotConsented, actlog.UpdatedDate);
+                                break;
+                            case EDeliveryStatus.DocumentReviewed:
+                                eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.DocReviewed, actlog.UpdatedDate);
+                                break;
+                            case EDeliveryStatus.DocumentDownloaded:
+                                eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.DocDownloaded, actlog.UpdatedDate);
+                                eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.eDelivered, actlog.UpdatedDate);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var msg = "Error occured while checking for activity logs of Id {0} for client {1} with below error <br/>{2}".Fill(mp.Id, mp.ClientCode, ex);
+                    log.Error(msg);
+                    MailUtility.SendUnexpectedExceptionEmail(msg);
+                    continue;
+                }
+            }
+
+            log.Debug("EDelivery Check ActivityLogs job queue is started.");
         }
     }
 }

@@ -15,81 +15,29 @@ namespace AM.Services
         public int Id { get; set; }
         public Guid UniqueId { get; set; }
         public int? ClientId { get; set; }
+        public string ClientCode { get; set; }
         public int? ChannelId { get; set; }
+        public string ChannelCode { get; set; }
         public int MailBatchId { get; set; }
         public string BatchName { get; set; }
         public string BusinessFriendlyIdName { get; set; }
         public string BusinessFriendlyIdValue { get; set; }
         public string FileName { get; set; }
-        public string FilePattern { get; set; }
         public string DocumentOrPackageType { get; set; }
         public int? DocTypeId { get; set; }
         public int? ClientDocTypeId { get; set; }
         public DateTime? ExpiryDate { get; set; }
         public string PipelineStatus { get; set; }
-        public string RcptPrefix { get; set; }
         public string RcptFirstName { get; set; }
         public string RcptMiddleName { get; set; }
         public string RcptLastName { get; set; }
-        public string RcptSuffix { get; set; }
-        public string RcptPhone { get; set; }
         public string RcptEmailId { get; set; }
-        public string RcptOrganization { get; set; }
         public string RcptName
         {
             get
             {
                 string nm = string.Format("{0} {1} {2}", this.RcptFirstName, this.RcptMiddleName, this.RcptLastName);
                 return nm.IsNullOrWhiteSpace() ? null : nm.Replace("  ", " ");
-            }
-        }
-        public string RcptAddrOptionalLine1AboveStreet { get; set; }
-        public string RcptAddrOptionalLine2AboveStreet { get; set; }
-        public string RcptAddressStreet { get; set; }
-        public string RcptAddressAptOrSuiteOrOther { get; set; }
-        public string RcptAddrOptionalLine1BelowStreet { get; set; }
-        public string RcptAddrOptionalLine2BelowStreet { get; set; }
-        public string RcptAddressCity { get; set; }
-        public string RcptAddressState { get; set; }
-        public string RcptAddressZIP { get; set; }
-        public string RcptAddress
-        {
-            get
-            {
-                string add = string.Format("{0} {1} {2} {3} {4} {5}", this.RcptAddrOptionalLine1AboveStreet, this.RcptAddrOptionalLine2AboveStreet, this.RcptAddressStreet, this.RcptAddressAptOrSuiteOrOther, this.RcptAddrOptionalLine1BelowStreet, this.RcptAddrOptionalLine2BelowStreet);
-                return add;
-            }
-        }
-        public string RetRcptPrefix { get; set; }
-        public string RetRcptFirstName { get; set; }
-        public string RetRcptMiddleName { get; set; }
-        public string RetRcptLastName { get; set; }
-        public string RetRcptSuffix { get; set; }
-        public string RetRcptName
-        {
-            get
-            {
-                string nm = string.Format("{0} {1} {2}", this.RetRcptFirstName, this.RetRcptMiddleName, this.RetRcptLastName);
-                return nm.IsNullOrWhiteSpace() ? null : nm.Replace("  ", " ");
-            }
-        }
-        public string RetRcptPhone { get; set; }
-        public string RetRcptOrganization { get; set; }
-        public string RetRcptAddrOptionalLine1AboveStreet { get; set; }
-        public string RetRcptAddrOptionalLine2AboveStreet { get; set; }
-        public string RetRcptAddressStreet { get; set; }
-        public string RetRcptAddressAptOrSuiteOrOther { get; set; }
-        public string RetRcptAddrOptionalLine1BelowStreet { get; set; }
-        public string RetRcptAddrOptionalLine2BelowStreet { get; set; }
-        public string RetRcptAddressCity { get; set; }
-        public string RetRcptAddressState { get; set; }
-        public string RetRcptAddressZIP { get; set; }
-        public string RetRcptAddress
-        {
-            get
-            {
-                string add = string.Format("{0} {1} {2} {3} {4} {5}", this.RetRcptAddrOptionalLine1AboveStreet, this.RetRcptAddrOptionalLine2AboveStreet, this.RetRcptAddressStreet, this.RetRcptAddressAptOrSuiteOrOther, this.RetRcptAddrOptionalLine1BelowStreet, this.RetRcptAddrOptionalLine2BelowStreet);
-                return add;
             }
         }
         public int TotalPages { get; set; }
@@ -112,13 +60,15 @@ namespace AM.Services
         }
         public bool IsFallBackRequested { get; set; }
         public int? SigningRoomId { get; set; }
-        public Guid SigningRoomUniqueId { get; set; }
+        public Guid? SigningRoomUniqueId { get; set; }
         public string SigningRoomName { get; set; }
         public int? DocumentId { get; set; }
         public DateTime? ReceivedOn { get; set; }
         public int IsReceived { get; set; }
         public DateTime? DownloadedOn { get; set; }
         public int IsDownloaded { get; set; }
+        public DateTime? ValidatedOn { get; set; }
+        public int IsValidated { get; set; }
         public DateTime? SigningRoomCreatedOn { get; set; }
         public int IsSigningRoomCreated { get; set; }
         public DateTime? InvitationSentOn { get; set; }
@@ -135,10 +85,8 @@ namespace AM.Services
         public int IsDocDownloaded { get; set; }
         public DateTime? ESignedOn { get; set; }
         public int IsESigned { get; set; }
+        public bool IsExpired { get; set; }
         public Int64 PDFFileSize { get; set; }
-        public Clients Clients { get; set; }
-        public DocTypes DocTypes { get; set; }
-        public SFTChannels SFTChannel { get; set; }
     }
 
     public class MailPieceInfo
@@ -151,18 +99,11 @@ namespace AM.Services
         public string BatchName { get; private set; }
         public Clients Client { get; private set; }
 
-        public MailPieceInfo(Clients client, string amRootFolder, int mailBatchId, string batchName)
-        {
-            Client = client ?? throw new ArgumentNullException("Client cannot be null.");
-
-            Initialize(client, amRootFolder, mailBatchId, batchName);
-        }
-
-        private void Initialize(Clients client, string amRootFolder, int mailBatchId, string batchName)
+        public MailPieceInfo(string clientCode, string amRootFolder, int mailBatchId, string batchName)
         {
             BatchName = batchName.Trim();
             //Combined path
-            BatchRepo = Path.Combine(amRootFolder, client.AppCode, "{0}".Fill(mailBatchId));
+            BatchRepo = Path.Combine(amRootFolder, clientCode, "{0}".Fill(mailBatchId));
 
             AMRequestPath = Path.Combine(BatchRepo, "AMRequest");
             PnSRequestPath = Path.Combine(BatchRepo, "PnSRequest");

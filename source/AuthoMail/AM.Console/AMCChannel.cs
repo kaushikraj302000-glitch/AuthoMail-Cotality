@@ -346,7 +346,7 @@ namespace AM.Console
 
         private void SeparateEDXMLsAndPDFsPackageWise(XmlNode package, XmlNamespaceManager nsManager, string amcDownloadPath, string clientCode, string batchName)
         {
-            string clientBatchDirectory = Path.Combine(amcDownloadPath, clientCode);
+            string clientBatchDirectory = Path.Combine(amcDownloadPath, clientCode, Guid.NewGuid().ToString());
 
             clientBatchDirectory.CleanDirectory();
 
@@ -364,7 +364,7 @@ namespace AM.Console
             {
                 string sourceFile = Path.Combine(amcDownloadPath, fileName);
                 string destFile = Path.Combine(clientBatchDirectory, fileName);
-                File.Move(sourceFile, destFile);
+                File.Copy(sourceFile, destFile, true);
             }
 
             File.WriteAllText(amcFilePath, reqRootXml.Fill(packageInfoNodes));

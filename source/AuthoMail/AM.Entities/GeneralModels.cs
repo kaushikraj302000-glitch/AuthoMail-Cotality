@@ -59,6 +59,25 @@ namespace AM.Entities
         public const string ErroredOut = "ErroredOut";
         public const string ReportPrepped = "ReportPrepped";
         public const string ReportedBack = "ReportedBack";
+        public const string Consented = "Consented";
+        public const string NotConsented = "NotConsented";
+        public const string DocReviewed = "DocReviewed";
+        public const string DocDownloaded = "DocDownloaded";
+    }
+
+    public static class EDeliveryStatus
+    {
+        public const string ESignConsentAccepted = "ESIGN Consent Accepted";
+        public const string ESignConsentDeclined = "ESIGN Consent Declined";
+        public const string DocumentReviewed = "Document Reviewed";
+        public const string DocumentSigned = "Document Signed";
+        public const string DocumentDownloaded = "Document Downloaded";
+    }
+
+    public static class SigningRoomStatus
+    {
+        public const string InProgress = "InProgress";
+        public const string Expired = "Expired";
     }
 
     public static class OutComeCodes

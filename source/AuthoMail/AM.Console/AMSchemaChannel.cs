@@ -422,7 +422,7 @@ namespace AM.Console
             {
                 string sourceFile = Path.Combine(receivedBatchDirPath, fileName);
                 string destFile = Path.Combine(clientBatchDirectory, fileName);
-                File.Copy(sourceFile, destFile);
+                File.Copy(sourceFile, destFile, true);
             }
 
             File.WriteAllText(amFilePath, reqXML.Fill(uniqueId, clientCode, clientBatchId, customeInfoElement?.OuterXml, returnInfoElement?.OuterXml, package?.OuterXml));
@@ -710,7 +710,7 @@ namespace AM.Console
                                     mailPieceDTO.RcptEmailId = requests.RecipientInfo.Recipient.EmailAddress.TrimIfNotNull();
                                 }
                                 else
-                                    mailPieceDTO.IsRcptInfoSpecified = false;                               
+                                    mailPieceDTO.IsRcptInfoSpecified = false;
 
                                 if (requests.RecipientInfo.Address != null)
                                 {
@@ -925,7 +925,7 @@ namespace AM.Console
                     }
                     Channel.CalculateDueDateAndPrintLocation(mailBatch, mailPieceList);
 
-                    if (mailPieceList.All(mp => mp.IsEDeliveryRequested && mp.ShippingStatus == ShippingStatus.Error.ToString()))
+                    if (mailPieceList.All(mp => mp.IsEDeliveryRequested && mp.ShippingStatus != ShippingStatus.Error.ToString()))
                     {
                         commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.SubmittedToEDelivery, Common.Now);
                         commonSvc.UpdateEDeliveryPipelineStatus(mbi.MailBatch.Id, EDPipelineStatus.Validated, Common.Now);
