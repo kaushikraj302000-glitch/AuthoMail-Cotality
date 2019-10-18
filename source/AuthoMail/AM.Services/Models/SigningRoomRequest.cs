@@ -14,7 +14,7 @@ namespace AM.Services
         public DateTime StartDate { get; set; }
         public DateTime ExpirationDate { get; set; }
         public List<Participant> Participants { get; set; }
-        [JsonProperty("Document")]
+        [JsonProperty("Documents")]
         public List<DocumentInfo> Documents { get; set; }
     }
 
