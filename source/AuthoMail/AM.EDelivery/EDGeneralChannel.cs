@@ -63,25 +63,24 @@ namespace AM.EDelivery
                         StartDate = Common.EstToday
                     };
 
-                    List<DocumentInfo> documents = new List<DocumentInfo>();
-                    documents.Add(
+                    request.Documents = new List<DocumentInfo>() {
                         new DocumentInfo()
                         {
-                            DocumentData = Convert.ToBase64String(File.ReadAllBytes(Path.Combine(mpi.AMRequestPath, mp.FileName))),
+                            DocumentData = Convert.ToBase64String(File.ReadAllBytes(Path.Combine(mpi.AMRequestPath, mp.FileName))).ToString(),
                             DocumentName = Path.GetFileNameWithoutExtension(Path.Combine(mpi.AMRequestPath, mp.FileName)),
                             FileName = Path.GetFileName(Path.Combine(mpi.AMRequestPath, mp.FileName))
                         }
-                    );
-                    request.Documents = documents;
-                    List<Participant> participants = new List<Participant>();
-                    participants.Add(
+                    };
+
+                    request.Participants = new List<Participant>() {
                         new Participant()
                         {
                             FirstName = mp.RcptFirstName,
                             LastName = mp.RcptLastName,
                             InvitationEmail = mp.RcptEmailId
-                        });
-                    request.Participants = participants;
+                        }
+                    };
+
                     IEDeliveryAPIService eDeliveryAPISvc = new EDeliveryAPIService();
                     var response = eDeliveryAPISvc.CreateSigningRoom(request).Result;
                     if (response.HasError)
@@ -191,6 +190,27 @@ namespace AM.EDelivery
                     var activityLogs = eDeliveryAPISvc.GetSigningRoomActivityLog(mp.SigningRoomName).Result;
 
                     string signingRoomStatus = eDeliveryAPISvc.GetSigningRoomStatus(mp.SigningRoomId.Value).Result;
+
+                    //NOTE : Here system will check if signing room is expired and activity logs have 3 activities only which were created at signing room creating process then system will consider this as Expired.
+                    if (signingRoomStatus == SigningRoomStatus.Expired && activityLogs.Count == 3)
+                    {
+                        //eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.Expired, Common.Now);
+                        #region Check IsFallBackRequested
+                        if (mp.IsFallBackRequested)
+                        {
+                            eDeliverySvc.FallBackEDeliveryPackage(mp.Id, mp.UniqueId, mp.MailBatchId, mp.ClientCode);
+                        }
+                        else
+                        {
+                            mp.ErrorCode = OutComeCodes.Issue_In_EDelivery;
+                            mp.ErrorDesc = "Signing room is expired without any activity done by participant.";
+                            mp.IsExpired = true;
+                            eDeliverySvc.UpdateEDMailPieceDetails(mp);
+                            eDeliverySvc.ErrorOutEDeliveryPackage(mp.UniqueId, mp.MailBatchId, mp.ErrorCode, mp.ErrorDesc);
+                        }
+                        #endregion
+                    }
+
 
                     foreach (var actlog in activityLogs)
                     {

@@ -16,8 +16,8 @@ namespace AM.Services
         List<EDMailPiece> GetBatchesByPipelineStatusAndSFTChannelId(string batchPipelineStatus, int? sftChannelId = null);
         int InsertEDMailPieceDetails(EDMailPiece mailPiece);
         int UpdateEDMailPiecePipelineStatus(int mailPieceId, string pipeLineStatus, DateTime timestamp);
+        int UpdateEDMailPieceActivityStatus(int mailPieceId, string pipeLineStatus, DateTime timestamp);
         int UpdateEDMailPieceDetails(EDMailPiece mailPiece);
-        DocType GetEDDocTypeByDocTypeName(int clientId, string documentOrPackageName);
         int FallBackEDeliveryPackage(int edMPId, Guid uniqueId, int mailBatchId, string appCode);
         int ErrorOutEDeliveryPackage(Guid uniqueId, int mailBatchId, string errorCode, string errorDesc);
     }
@@ -75,18 +75,18 @@ namespace AM.Services
             return db.Execute(query, new { TimeStamp = timestamp, Id = mailPieceId, PipelineStatus = pipeLineStatus });
         }
 
-        public int UpdateEDMailPieceDetails(EDMailPiece mailPiece)
+        public int UpdateEDMailPieceActivityStatus(int mailPieceId, string pipeLineStatus, DateTime timestamp)
         {
-            string query = @"UPDATE [AM].[EDeliveryMailPieces] SET DocTypeId=@DocTypeId, ClientDocTypeId=@ClientDocTypeId, ExpiryDate=@ExpiryDate, TotalPages=@TotalPages, ErrorCode=@ErrorCode, ErrorDesc=@ErrorDesc, SigningRoomId=@SigningRoomId, SigningRoomUniqueId=@SigningRoomUniqueId, SigningRoomName=@SigningRoomName,PDFFileSize=@PDFFileSize WHERE Id=@Id";
+            string query = "UPDATE [AM].[EDeliveryMailPieces] SET [{0}On] = @TimeStamp WHERE Id=@Id".Fill(pipeLineStatus);
 
-            return db.Execute(query, mailPiece);
+            return db.Execute(query, new { TimeStamp = timestamp, Id = mailPieceId });
         }
 
-        public DocType GetEDDocTypeByDocTypeName(int clientId, string documentOrPackageName)
+        public int UpdateEDMailPieceDetails(EDMailPiece mailPiece)
         {
-            string query = "SELECT D.*,CDT.DocTypeName FROM [AM].[DocTypes] D INNER JOIN [AM].[ClientDocTypes] CDT ON D.ClientDocTypeId=CDT.Id WHERE CDT.ClientId=@ClientId AND CDT.DocTypeName = @DocumentOrPackageName AND ShippingCarrier='E-DELIVERY' AND D.IsActive=1";
+            string query = @"UPDATE [AM].[EDeliveryMailPieces] SET DocTypeId=@DocTypeId, ClientDocTypeId=@ClientDocTypeId, ExpiryDate=@ExpiryDate, TotalPages=@TotalPages, ErrorCode=@ErrorCode, ErrorDesc=@ErrorDesc, SigningRoomId=@SigningRoomId, SigningRoomUniqueId=@SigningRoomUniqueId, SigningRoomName=@SigningRoomName,PDFFileSize=@PDFFileSize,IsExpired=@IsExpired WHERE Id=@Id";
 
-            return db.QuerySingleOrDefault<DocType>(query, new { ClientId = clientId, DocumentOrPackageName = documentOrPackageName });
+            return db.Execute(query, mailPiece);
         }
 
         public int FallBackEDeliveryPackage(int edMPId, Guid uniqueId, int mailBatchId, string appCode)
