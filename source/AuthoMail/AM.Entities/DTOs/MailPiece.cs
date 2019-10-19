@@ -10,7 +10,7 @@ namespace AM.Entities
     {
         public int Id { get; set; }
         public int ClientId { get; set; }
-        public int ClientDocTypeId { get; set; }
+        public int? ClientDocTypeId { get; set; }
         public int MailBatchId { get; set; }
         public int? PrintBatchId { get; set; }
         public Guid UniqueId { get; set; }
