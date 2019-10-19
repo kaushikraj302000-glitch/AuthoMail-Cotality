@@ -3,18 +3,18 @@
   <xs:element name="MailBatchResponse" type="tns:MailBatchResponse" />
   <xs:complexType name="MailBatchResponse">
     <xs:all>
-      <xs:element minOccurs="1" maxOccurs="1" name="MailPieces" type="tns:MailPieces" />
+      <xs:element minOccurs="1" maxOccurs="1" name="MailPiecesReport" type="tns:MailPiecesReport" />
     </xs:all>
     <xs:attribute name="Id" type="tns:guid" use="optional" />
     <xs:attribute name="ClientCode" type="tns:nonEmptyString" use="required" />
     <xs:attribute name="ClientBatchId" type="tns:nonEmptyString" use="optional" />
   </xs:complexType>
-  <xs:complexType name="MailPieces">
+  <xs:complexType name="MailPiecesReport">
     <xs:sequence>
-      <xs:element minOccurs="1" maxOccurs="unbounded" name="MailPiece" type="tns:MailPiece" />
+      <xs:element minOccurs="1" maxOccurs="unbounded" name="MailPieceReport" type="tns:MailPieceReport" />
     </xs:sequence>
   </xs:complexType>
-  <xs:complexType name="MailPiece">
+  <xs:complexType name="MailPieceReport">
     <xs:attribute name="Id" type="tns:guid" use="optional" />
     <xs:attribute name="BusinessFriendlyIdName" type="tns:nonEmptyString" use="optional" />
     <xs:attribute name="BusinessFriendlyIdValue" type="tns:nonEmptyString" use="optional" />
