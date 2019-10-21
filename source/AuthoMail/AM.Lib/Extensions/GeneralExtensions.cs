@@ -149,6 +149,12 @@ namespace AM.Lib
         {
             return dt.ClientTimeZoneToUtc("Eastern Standard Time");
         }
+
+        public static DateTime PstToUtc(this DateTime dt)
+        {
+            return dt.ClientTimeZoneToUtc("Pacific Standard Time");
+        }
+
         public static DateTime ToStartDateTime(this DateTime dt)
         {
             return (dt.Date + new TimeSpan(00, 00, 00));

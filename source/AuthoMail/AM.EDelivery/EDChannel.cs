@@ -83,7 +83,80 @@ namespace AM.EDelivery
         #region Check Activity Logs
         private static void CheckActivityLogs()
         {
-            
+            log.Debug("EDelivery Check ActivityLogs job queue is started.");
+
+            using (IEDeliveryService eDeliverySvc = new EDeliveryService())
+            {
+                List<EDMailPiece> invitationSentMailPieces = eDeliverySvc.GetBatchesByPipelineStatusAndSFTChannelId(EDPipelineStatus.InvitationSent);
+
+                if (invitationSentMailPieces.Count == 0)
+                {
+                    log.Debug("EDelivery Check ActivityLogs job queue is empty.");
+                    log.Debug("EDelivery Check ActivityLogs job queue is completed.");
+                    return;
+                }
+
+                foreach (EDMailPiece mp in invitationSentMailPieces)
+                {
+                    try
+                    {
+                        IEDeliveryAPIService eDeliveryAPISvc = new EDeliveryAPIService();
+                        
+                        var activityLogs = eDeliveryAPISvc.GetSigningRoomActivityLog(mp.SigningRoomName).Result;
+                        foreach (var actlog in activityLogs)
+                        {
+                            switch (actlog.EDeliveryStatus)
+                            {
+                                case ActivityStatus.ESignConsentAccepted:
+                                    mp.IsConsented = 1;
+                                    mp.ConsentedOn = actlog.UpdatedDate.PstToUtc();
+                                    eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, EDeliveryStatus.Consented, actlog.UpdatedDate);
+                                    break;
+                                case ActivityStatus.ESignConsentDeclined:
+                                    mp.IsNotConsented = 1;
+                                    mp.NotConsentedOn = actlog.UpdatedDate.PstToUtc();
+                                    eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, EDeliveryStatus.NotConsented, actlog.UpdatedDate);
+                                    break;
+                                case ActivityStatus.DocumentReviewed:
+                                    mp.IsDocReviewed = 1;
+                                    mp.DocReviewedOn = actlog.UpdatedDate.PstToUtc();
+                                    eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, EDeliveryStatus.DocReviewed, actlog.UpdatedDate);
+                                    break;
+                                case ActivityStatus.DocumentDownloaded:
+                                    mp.IsDocDownloaded = 1;
+                                    mp.DocDownloadedOn = actlog.UpdatedDate.PstToUtc();
+                                    eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, EDeliveryStatus.DocDownloaded, actlog.UpdatedDate);                                   
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+
+                        if (mp.IsConsented == 1 && mp.IsDocDownloaded == 1 && mp.ExpiryDate.Value.Date <= mp.ConsentedOn.Value.Date && mp.ExpiryDate.Value.Date <= mp.DocDownloadedOn.Value.Date)
+                        {
+                            eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.eDelivered, Common.Now);
+                        }
+
+                        string signingRoomStatus = eDeliveryAPISvc.GetSigningRoomStatus(mp.SigningRoomId.Value).Result;
+
+                        //NOTE : Here system will check if signing room is expired and activity logs have 3 activities only which were created at signing room creating process then system will consider this as Expired.
+                        if (signingRoomStatus == SigningRoomStatus.Expired && Common.Today > mp.ExpiryDate.Value.Date)
+                        {
+                            //Do we need to update error code and description? ask to ravisir
+                            eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.Expired, Common.Now);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        var msg = "Error occured while checking for activity logs of Id {0} for client {1} with below error <br/>{2}".Fill(mp.Id, mp.ClientCode, ex);
+                        log.Error(msg);
+                        MailUtility.SendUnexpectedExceptionEmail(msg);
+                        continue;
+                    }
+                } 
+            }
+
+            log.Debug("EDelivery Check ActivityLogs job queue is started.");
         }
         #endregion
 

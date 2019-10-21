@@ -57,13 +57,22 @@ namespace AM.Entities
         public const string ReportedBack = "ReportedBack";
     }
 
-    public static class EDeliveryStatus
+    public static class ActivityStatus
     {
         public const string ESignConsentAccepted = "ESIGN Consent Accepted";
         public const string ESignConsentDeclined = "ESIGN Consent Declined";
         public const string DocumentReviewed = "Document Reviewed";
         public const string DocumentSigned = "Document Signed";
         public const string DocumentDownloaded = "Document Downloaded";
+    }
+
+    public static class EDeliveryStatus
+    {
+        public const string Consented = "Consented";
+        public const string NotConsented = "NotConsented";
+        public const string DocReviewed = "DocReviewed";
+        public const string DocDownloaded = "DocDownloaded";
+        public const string ESigned = "ESigned";
     }
 
     public static class SigningRoomStatus
