@@ -4,6 +4,8 @@ using AM.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
+using System.Threading;
 
 namespace AM.EDelivery
 {
@@ -20,21 +22,6 @@ namespace AM.EDelivery
         {
             generalSvc = GetService<GeneralService>();
             this.channelType = channelType;
-        }
-
-        protected override void EnumerateBatches()
-        {
-            //No need to implement
-        }
-
-        protected override void DownloadBatches()
-        {
-            //No need to implement
-        }
-
-        protected override void ValidateBatches()
-        {
-            //No need to implement
         }
 
         protected override void CreateSigningRoom()
@@ -55,11 +42,13 @@ namespace AM.EDelivery
                 {
                     MailPieceInfo mpi = new MailPieceInfo(mp.ClientCode, Config.Common_AuthoMailRootFolder, mp.MailBatchId, mp.BatchName);
                     mp.SigningRoomName = "{0}-{1}-{2}".Fill(mp.ClientCode, mp.FileName, mp.Id);
+                    mp.ExpiryDate = mp.ExpiryDate.HasValue ? mp.ExpiryDate.Value : mp.ReceivedOn.Value.AddDays(7);
+
                     SigningRoomRequest request = new SigningRoomRequest()
                     {
                         SigningRoomName = mp.SigningRoomName,
                         Description = "",
-                        ExpirationDate = mp.ExpiryDate.HasValue ? mp.ExpiryDate.Value : mp.ReceivedOn.Value.AddDays(7),
+                        ExpirationDate = mp.ExpiryDate.Value,
                         StartDate = Common.EstToday
                     };
 
@@ -89,7 +78,7 @@ namespace AM.EDelivery
                         mp.ErrorDesc = response.Error;
 
                         eDeliverySvc.UpdateEDMailPieceDetails(mp);
-                        eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.Expired, Common.Now);
+                        eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.ReportedBack, Common.Now);
                         #region Check IsFallBackRequested
                         if (mp.IsFallBackRequested)
                         {
@@ -154,7 +143,7 @@ namespace AM.EDelivery
                         mp.ErrorDesc = "Error occured while sending invitation to participant for mail piece Id {0}".Fill(mp.Id);
 
                         eDeliverySvc.UpdateEDMailPieceDetails(mp);
-                        eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.Expired, Common.Now);
+                        eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.ReportedBack, Common.Now);
                     }
                 }
                 catch (Exception ex)
@@ -169,81 +158,128 @@ namespace AM.EDelivery
             log.Debug("EDelivery SendInvitations job queue is completed.");
         }
 
-        protected override void CheckActivityLogs()
+        protected override void EDelivered()
         {
-            log.Debug("EDelivery Check ActivityLogs job queue is started.");
+            log.Debug("EDelivery ReportPrepped job queue is started.");
 
-            List<EDMailPiece> invitationSentMailPieces = eDeliverySvc.GetBatchesByPipelineStatusAndSFTChannelId(EDPipelineStatus.InvitationSent);
+            List<EDMailPiece> eDeliveredMPs = eDeliverySvc.GetBatchesByPipelineStatusAndSFTChannelId(EDPipelineStatus.eDelivered);
 
-            if (invitationSentMailPieces.Count == 0)
+            if (eDeliveredMPs.Count == 0)
             {
-                log.Debug("EDelivery Check ActivityLogs job queue is empty.");
-                log.Debug("EDelivery Check ActivityLogs job queue is completed.");
+                log.Debug("EDelivery ReportPrepped job queue is empty.");
+                log.Debug("EDelivery ReportPrepped job queue is completed.");
                 return;
             }
 
-            foreach (EDMailPiece mp in invitationSentMailPieces)
+            foreach (EDMailPiece edmp in eDeliveredMPs)
             {
                 try
                 {
-                    IEDeliveryAPIService eDeliveryAPISvc = new EDeliveryAPIService();
-                    var activityLogs = eDeliveryAPISvc.GetSigningRoomActivityLog(mp.SigningRoomName).Result;
-
-                    string signingRoomStatus = eDeliveryAPISvc.GetSigningRoomStatus(mp.SigningRoomId.Value).Result;
-
-                    //NOTE : Here system will check if signing room is expired and activity logs have 3 activities only which were created at signing room creating process then system will consider this as Expired.
-                    if (signingRoomStatus == SigningRoomStatus.Expired && activityLogs.Count == 3)
+                    using (IMailPieceService mpSvc = new MailPieceService())
+                    using (IReportService reportSvc = new ReportService())
                     {
-                        //eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.Expired, Common.Now);
-                        #region Check IsFallBackRequested
-                        if (mp.IsFallBackRequested)
-                        {
-                            eDeliverySvc.FallBackEDeliveryPackage(mp.Id, mp.UniqueId, mp.MailBatchId, mp.ClientCode);
-                        }
-                        else
-                        {
-                            mp.ErrorCode = OutComeCodes.Issue_In_EDelivery;
-                            mp.ErrorDesc = "Signing room is expired without any activity done by participant.";
-                            mp.IsExpired = true;
-                            eDeliverySvc.UpdateEDMailPieceDetails(mp);
-                            eDeliverySvc.ErrorOutEDeliveryPackage(mp.UniqueId, mp.MailBatchId, mp.ErrorCode, mp.ErrorDesc);
-                        }
-                        #endregion
-                    }
+                        MailPieces mailPiece = reportSvc.GetMailPiecesDataFromMailBatchIdAndUniqueId(edmp.MailBatchId, edmp.UniqueId);
+                        mailPiece.PrintedOn = edmp.DocDownloadedOn.Value;
+                        mailPiece.ShippedOn = edmp.DocDownloadedOn.Value;
+                        mailPiece.ShippingStatus = ShippingStatus.Shipped.ToString();
 
-
-                    foreach (var actlog in activityLogs)
-                    {
-                        switch (actlog.EDeliveryStatus)
-                        {
-                            case EDeliveryStatus.ESignConsentAccepted:
-                                eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.Consented, actlog.UpdatedDate);
-                                break;
-                            case EDeliveryStatus.ESignConsentDeclined:
-                                eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.NotConsented, actlog.UpdatedDate);
-                                break;
-                            case EDeliveryStatus.DocumentReviewed:
-                                eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.DocReviewed, actlog.UpdatedDate);
-                                break;
-                            case EDeliveryStatus.DocumentDownloaded:
-                                eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.DocDownloaded, actlog.UpdatedDate);
-                                eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.eDelivered, actlog.UpdatedDate);
-                                break;
-                            default:
-                                break;
-                        }
+                        mpSvc.UpdateBatchMailPieceShippingStatusDetails(mailPiece);
+                        MailPieceInfo mpi = new MailPieceInfo(edmp.ClientCode, Config.Common_AuthoMailRootFolder, edmp.MailBatchId, edmp.BatchName);
+                        GenerateDeliveryReport(edmp, mailPiece, mpi);
                     }
                 }
                 catch (Exception ex)
                 {
-                    var msg = "Error occured while checking for activity logs of Id {0} for client {1} with below error <br/>{2}".Fill(mp.Id, mp.ClientCode, ex);
+                    var msg = "Error occured while preparing report for Id {0} for client {1} with below error <br/>{2}".Fill(edmp.Id, edmp.ClientCode, ex);
                     log.Error(msg);
                     MailUtility.SendUnexpectedExceptionEmail(msg);
                     continue;
                 }
             }
 
-            log.Debug("EDelivery Check ActivityLogs job queue is started.");
+            log.Debug("EDelivery ReportPrepped job queue is completed.");
+        }//Check Edelivered //Check Expired
+
+        private void GenerateDeliveryReport(EDMailPiece eDeliveryMP, MailPieces mp, MailPieceInfo mpi)
+        {
+            string amResponsePath = mpi.AMResponsePath;
+
+            switch (eDeliveryMP.ChannelCode.ToUpper())
+            {
+                case "AMC":
+                    using (IAMCService amcSvc = new AMCService())
+                    {
+                        StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(new List<MailPieces>() { mp });
+
+                        if (deliveryReport != null)
+                        {
+                            string deliveryReportFileName = "Delivery-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+
+                            string deliveryReportPath = Path.Combine(amResponsePath, deliveryReportFileName);
+
+                            File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
+                        }
+                    }
+                    Thread.Sleep(1000);
+                    break;
+                default:
+                    var deliverables = commonSvc.GetDeliverableByReportType(eDeliveryMP.ClientId.Value, ReportTypes.Delivery);
+                    using (IGeneralService generalSvc = new GeneralService())
+                    {
+                        StringBuilder deliveryReport = generalSvc.GeneralDeliveryReport(new List<MailPieces>() { mp }, deliverables.Delimeter);
+
+                        if (deliveryReport != null)
+                        {
+                            string deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(eDeliveryMP.BatchName, eDeliveryMP.ClientCode, eDeliveryMP.MailBatchId, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                            string deliveryReportPath = Path.Combine(amResponsePath, deliveryReportFileName);
+
+                            File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
+                        }
+                    }
+                    break;
+            }
+        }
+
+        protected override void Expired()
+        {
+            log.Debug("EDelivery ReportPrepped job queue is started.");
+
+            List<EDMailPiece> eDeliveredMPs = eDeliverySvc.GetBatchesByPipelineStatusAndSFTChannelId(EDPipelineStatus.eDelivered);
+
+            if (eDeliveredMPs.Count == 0)
+            {
+                log.Debug("EDelivery ReportPrepped job queue is empty.");
+                log.Debug("EDelivery ReportPrepped job queue is completed.");
+                return;
+            }
+
+            foreach (EDMailPiece edmp in eDeliveredMPs)
+            {
+                try
+                {
+                    using (IMailPieceService mpSvc = new MailPieceService())
+                    using (IReportService reportSvc = new ReportService())
+                    {
+                        MailPieces mailPiece = reportSvc.GetMailPiecesDataFromMailBatchIdAndUniqueId(edmp.MailBatchId, edmp.UniqueId);
+                        mailPiece.PrintedOn = edmp.DocDownloadedOn.Value;
+                        mailPiece.ShippedOn = edmp.DocDownloadedOn.Value;
+                        mailPiece.ShippingStatus = ShippingStatus.Shipped.ToString();
+
+                        mpSvc.UpdateBatchMailPieceShippingStatusDetails(mailPiece);
+                        MailPieceInfo mpi = new MailPieceInfo(edmp.ClientCode, Config.Common_AuthoMailRootFolder, edmp.MailBatchId, edmp.BatchName);
+                        GenerateDeliveryReport(edmp, mailPiece, mpi);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var msg = "Error occured while preparing report for Id {0} for client {1} with below error <br/>{2}".Fill(edmp.Id, edmp.ClientCode, ex);
+                    log.Error(msg);
+                    MailUtility.SendUnexpectedExceptionEmail(msg);
+                    continue;
+                }
+            }
+
+            log.Debug("EDelivery ReportPrepped job queue is completed.");
         }
     }
 }

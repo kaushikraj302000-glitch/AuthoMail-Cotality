@@ -20,6 +20,7 @@ namespace AM.Services
         List<PullBackRequests> GetPullbackRequestReport(int clientId, DateTime startDate, DateTime endDate);
         List<MailPieces> GetMailPiecesDataFromPrintBatchId(int printBatchId);
         List<MailPieces> GetMailPiecesDataFromMailBatchId(int mailBatchId);
+        MailPieces GetMailPiecesDataFromMailBatchIdAndUniqueId(int mailBatchId, Guid uniqueId);
         List<PCISubmittedBatchDetail> GetPCIReconReport(DateTime startDate, DateTime endDate);
         List<DALLASSubmittedBatchDetail> GetDALLASReconReport(DateTime startDate, DateTime endDate);
         List<EnvelopeInventory> SupplyInventoryReport(List<string> envelopes);
@@ -254,6 +255,37 @@ namespace AM.Services
                     MailBatchId = mailBatchId
                 }, splitOn: "Id,MailPieceId,Id").Distinct().ToList();
             return data;
+        }
+
+        public MailPieces GetMailPiecesDataFromMailBatchIdAndUniqueId(int mailBatchId, Guid uniqueId)
+        {
+            var mailPieceDictionary = new Dictionary<int, MailPieces>();
+
+            string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id LEFT OUTER JOIN AM.MailPieceCustomInfo MC ON M.Id=MC.MailPieceId INNER JOIN Common.Clients C ON B.ClientId=C.Id WHERE M.MailBatchId=@MailBatchId AND M.UniqueId=@UniqueId";
+
+            var data = db.Query<MailPieces, MailBatches, MailPieceCustomInfoTest, Clients, MailPieces>(query,
+                (m, b, c, cl) =>
+                {
+                    MailPieces mp;
+
+                    if (!mailPieceDictionary.TryGetValue(m.Id, out mp))
+                    {
+                        mp = m;
+                        mp.MailBatches = b;
+                        mp.Clients = cl;
+                        mp.MailPieceCustomInfoTest = new List<MailPieceCustomInfoTest>();
+                        mailPieceDictionary.Add(mp.Id, mp);
+                    }
+
+                    mp.MailPieceCustomInfoTest.Add(c);
+                    return mp;
+                },
+                new
+                {
+                    MailBatchId = mailBatchId,
+                    UniqueId = uniqueId
+                }, splitOn: "Id,MailPieceId,Id").Distinct().ToList();
+            return data.SingleOrDefault();
         }
 
         public List<PCISubmittedBatchDetail> GetPCIReconReport(DateTime startDate, DateTime endDate)

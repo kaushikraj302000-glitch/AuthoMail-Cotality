@@ -33,26 +33,20 @@ namespace AM.Services
 
             switch (pipelineStatus)
             {
-                case EDPipelineStatus.Received:
-                    query += " AND ED.IsReceived=1 AND ED.IsDownloaded=0";
-                    break;
-                case EDPipelineStatus.Downloaded:
-                    query += " AND ED.IsDownloaded=1 AND ED.IsValidated=0";
-                    break;
                 case EDPipelineStatus.Validated:
-                    query += " AND ED.IsValidated=1 AND ED.IsSigningRoomCreated=0 AND ED.IsExpired=0";
+                    query += " AND ED.IsValidated=1 AND ED.IsSigningRoomCreated=0";
                     break;
                 case EDPipelineStatus.SigningRoomCreated:
-                    query += " AND ED.IsSigningRoomCreated=1 AND ED.IsInvitationSent=0 AND ED.IsExpired=0";
+                    query += " AND ED.IsSigningRoomCreated=1 AND ED.IsInvitationSent=0";
                     break;
                 case EDPipelineStatus.InvitationSent:
-                    query += " AND ED.IsInvitationSent=1 AND ED.IseDelivered=0 AND ED.IsExpired=0";
+                    query += " AND ED.IsInvitationSent=1";
+                    break;
+                case EDPipelineStatus.eDelivered:
+                    query += " AND ED.IseDelivered=1 AND ED.IsReportedBack=0";
                     break;
                 case EDPipelineStatus.Expired:
-                    query += " AND ED.IsExpired=1 AND ED.IseDelivered=0";
-                    break;
-                case EDPipelineStatus.FallBack:
-                    query += " AND ED.Expired=1 AND ED.FallBack=0";
+                    query += " AND ED.IsExpired=1 AND ED.IsReportedBack=0";
                     break;
                 default:
                     break;

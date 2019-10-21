@@ -54,12 +54,10 @@ namespace AM.EDelivery
         {
             try
             {
-                this.EnumerateBatches();
-                this.DownloadBatches();
-                this.ValidateBatches();
                 this.CreateSigningRoom();
                 this.SendInvitations();
-                this.CheckActivityLogs();
+                this.EDelivered();
+                this.Expired();
             }
             catch (Exception ex)
             {
@@ -72,19 +70,7 @@ namespace AM.EDelivery
                 MailUtility.SendUnexpectedExceptionEmail(msg);
             }
         }
-
-        /// <summary>
-        /// Checks for available batches and marks them as Received.
-        /// </summary>
-        protected abstract void EnumerateBatches();
-        /// <summary>
-        /// Downloads all batches which are queued as Received
-        /// </summary>
-        protected abstract void DownloadBatches();
-        /// <summary>
-        /// Validates all batches which are queued as Downloaded
-        /// </summary>
-        protected abstract void ValidateBatches();
+        
         /// <summary>
         /// Create signing room for all mailpieces which are validated successfully
         /// </summary>
@@ -92,12 +78,22 @@ namespace AM.EDelivery
         /// <summary>
         /// Send invitaions to all recipients for which signing rooms are created successfully
         /// </summary>
-        protected abstract void SendInvitations();
+        protected abstract void SendInvitations();       
         /// <summary>
-        /// Send invitaions to all recipients for which signing rooms are created successfully
+        /// Take all eDelivered records and generate reports
         /// </summary>
-        protected abstract void CheckActivityLogs();
+        protected abstract void EDelivered();
+        /// <summary>
+        /// Take all Expired records and generate reports
+        /// </summary>
+        protected abstract void Expired();
 
+        #region Check Activity Logs
+        private static void CheckActivityLogs()
+        {
+            
+        }
+        #endregion
 
         protected override void DisposeManagedObjects()
         {

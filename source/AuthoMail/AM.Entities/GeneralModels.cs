@@ -54,15 +54,7 @@ namespace AM.Entities
         public const string InvitationSent = "InvitationSent";
         public const string eDelivered = "eDelivered";
         public const string Expired = "Expired";
-        public const string FallBack = "FallBack";
-        public const string PrintAndShip = "PrintAndShip";
-        public const string ErroredOut = "ErroredOut";
-        public const string ReportPrepped = "ReportPrepped";
         public const string ReportedBack = "ReportedBack";
-        public const string Consented = "Consented";
-        public const string NotConsented = "NotConsented";
-        public const string DocReviewed = "DocReviewed";
-        public const string DocDownloaded = "DocDownloaded";
     }
 
     public static class EDeliveryStatus
