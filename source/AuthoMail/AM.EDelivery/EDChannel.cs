@@ -17,8 +17,6 @@ namespace AM.EDelivery
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public SFTChannel SFTChannel { get; private set; }
-
         protected IClientService clientSvc;
         protected IEDeliveryService eDeliverySvc;
         protected ICommonService commonSvc;
@@ -26,7 +24,7 @@ namespace AM.EDelivery
 
         protected List<ServiceBase> services;
 
-        protected EDChannel(string channelCode)
+        protected EDChannel()
         {
             services = new List<ServiceBase>();
 
@@ -35,12 +33,6 @@ namespace AM.EDelivery
             commonSvc = GetService<CommonService>();
             eDeliverySvc = GetService<EDeliveryService>();
             docTypeSvc = GetService<DocTypeService>();
-
-            if (channelCode != "GENERAL")
-            {
-                SFTChannel = clientSvc.GetSFTChannelDetailsBySFTChannelCode(channelCode);
-            }
-            // Get Channel by code
         }
 
         protected T GetService<T>() where T : ServiceBase, new()

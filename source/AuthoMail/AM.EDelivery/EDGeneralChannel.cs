@@ -15,13 +15,10 @@ namespace AM.EDelivery
 
         protected IGeneralService generalSvc;
 
-        private string channelType;
-
-        public EDGeneralChannel(string channelCode, string channelType)
-            : base(channelCode)
+        public EDGeneralChannel()
+            : base()
         {
             generalSvc = GetService<GeneralService>();
-            this.channelType = channelType;
         }
 
         protected override void CreateSigningRoom()

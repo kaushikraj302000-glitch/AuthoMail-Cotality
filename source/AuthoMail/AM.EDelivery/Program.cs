@@ -24,9 +24,7 @@ namespace AM.EDelivery
 
             if (args[0] == "GENERAL")
             {
-                string channelPrefix;
-                channelPrefix = args[0];
-                using (var channel = ChannelFactory.Create(channelPrefix))
+                using (var channel = ChannelFactory.Create())
                 {
                     if (channel == null)
                     {
