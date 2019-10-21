@@ -71,17 +71,17 @@ namespace AM.Services
         public bool IsInvitationSent { get; set; }
         public DateTime? eDeliveredOn { get; set; }
         public bool IseDelivered { get; set; }
-        public DateTime? ConsentedOn { get; set; }
-        public bool IsConsented { get; set; }
-        public DateTime? NotConsentedOn { get; set; }
-        public bool IsNotConsented { get; set; }
+        public DateTime? ConsentAcceptedOn { get; set; }
+        public bool IsConsentAccepted { get; set; }
+        public DateTime? ConsentDeclinedOn { get; set; }
+        public bool IsConsentDeclined { get; set; }
         public DateTime? DocReviewedOn { get; set; }
         public bool IsDocReviewed { get; set; }
         public DateTime? DocDownloadedOn { get; set; }
         public bool IsDocDownloaded { get; set; }
         public DateTime? ESignedOn { get; set; }
         public bool IsESigned { get; set; }
-        public bool IsExpired { get; set; }
+        public string DownloadedIPAddress { get; set; }
     }
 
     public class MailPieceInfo

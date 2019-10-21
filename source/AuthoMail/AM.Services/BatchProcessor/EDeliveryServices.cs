@@ -26,7 +26,7 @@ namespace AM.Services
         public List<EDMailPiece> GetBatchesByPipelineStatusAndSFTChannelId(string pipelineStatus)
         {
             //Sql Query
-            string query = "SELECT ED.Id, ED.UniqueId, ED.ClientId, ED.MailBatchId, ED.BusinessFriendlyIdValue AS LoanNumber, ED.FileName, ED.ExpiryDate, ED.PipelineStatus, ED.RcptFirstName, ED.RcptMiddleName,ED.RcptLastName, ED.RcptEmailId, ED.TotalPages, ED.ErrorCode, ED.ErrorDesc, ED.SigningRoomId, ED.SigningRoomUniqueId, ED.SigningRoomName,ED.DocumentId, ED.ReceivedOn, ED.IsReceived, ED.DownloadedOn, ED.IsDownloaded, ED.ValidatedOn, ED.IsValidated, ED.SigningRoomCreatedOn,ED.IsSigningRoomCreated, ED.InvitationSentOn, ED.IsInvitationSent, ED.eDeliveredOn, ED.IseDelivered, ED.ConsentedOn, ED.IsConsented,ED.NotConsentedOn, ED.IsNotConsented, ED.DocReviewedOn, ED.IsDocReviewed, ED.DocDownloadedOn, ED.IsDocDownloaded, ED.ESignedOn, ED.IsESigned, C.AppCode AS ClientCode,B.SFTChannelId AS ChannelId,S.Code AS ChannelCode,B.BatchName FROM [AM].[EDeliveryMailPieces] ED INNER JOIN AM.MailBatches B ON ED.MailBatchId = B.Id LEFT OUTER JOIN Common.Clients C ON ED.ClientId = C.Id LEFT OUTER JOIN Common.SFTChannels S ON B.SFTChannelId = S.Id WHERE ED.PipelineStatus = @PipelineStatus";
+            string query = "SELECT ED.Id, ED.UniqueId, ED.ClientId, ED.MailBatchId, MP.BusinessFriendlyIdValue AS LoanNumber, ED.FileName, ED.ExpiryDate, ED.PipelineStatus, MP.RcptFirstName, MP.RcptMiddleName,MP.RcptLastName, MP.RcptEmailId, ED.TotalPages, ED.ErrorCode, ED.ErrorDesc, ED.SigningRoomId, ED.SigningRoomUniqueId, ED.SigningRoomName,ED.DocumentId, ED.ReceivedOn, ED.IsReceived, ED.DownloadedOn, ED.IsDownloaded, ED.ValidatedOn, ED.IsValidated, ED.SigningRoomCreatedOn,ED.IsSigningRoomCreated, ED.InvitationSentOn, ED.IsInvitationSent, ED.eDeliveredOn, ED.IseDelivered, ED.ConsentAcceptedOn, ED.IsConsentAccepted,ED.ConsentDeclinedOn, ED.IsConsentDeclined, ED.DocReviewedOn, ED.IsDocReviewed, ED.DocDownloadedOn, ED.IsDocDownloaded, ED.ESignedOn, ED.IsESigned, C.AppCode AS ClientCode,B.SFTChannelId AS ChannelId,S.Code AS ChannelCode,B.BatchName,ED.DownloadedIPAddress FROM[AM].[EDeliveryMailPieces] ED INNER JOIN AM.MailBatches B ON ED.MailBatchId = B.Id INNER JOIN AM.MailPieces MP ON ED.UniqueId = MP.UniqueId AND ED.MailBatchId = MP.MailBatchId LEFT OUTER JOIN Common.Clients C ON ED.ClientId = C.Id LEFT OUTER JOIN Common.SFTChannels S ON B.SFTChannelId = S.Id WHERE ED.PipelineStatus = @PipelineStatus";
 
             switch (pipelineStatus)
             {
@@ -43,7 +43,7 @@ namespace AM.Services
                     query += " AND ED.IseDelivered=1 AND ED.IsReportedBack=0";
                     break;
                 case EDPipelineStatus.Expired:
-                    query += " AND ED.IsExpired=1 AND ED.IsReportedBack=0";
+                    query += " AND ED.IsReportedBack=0";
                     break;
                 default:
                     break;
@@ -75,7 +75,7 @@ namespace AM.Services
 
         public int UpdateEDMailPieceDetails(EDMailPiece mailPiece)
         {
-            string query = @"UPDATE [AM].[EDeliveryMailPieces] SET DocTypeId=@DocTypeId, ClientDocTypeId=@ClientDocTypeId, ExpiryDate=@ExpiryDate, TotalPages=@TotalPages, ErrorCode=@ErrorCode, ErrorDesc=@ErrorDesc, SigningRoomId=@SigningRoomId, SigningRoomUniqueId=@SigningRoomUniqueId, SigningRoomName=@SigningRoomName,PDFFileSize=@PDFFileSize,IsExpired=@IsExpired WHERE Id=@Id";
+            string query = @"UPDATE [AM].[EDeliveryMailPieces] SET  ExpiryDate=@ExpiryDate, ErrorCode=@ErrorCode, ErrorDesc=@ErrorDesc, SigningRoomId=@SigningRoomId, SigningRoomUniqueId=@SigningRoomUniqueId, SigningRoomName=@SigningRoomName WHERE Id=@Id";
 
             return db.Execute(query, mailPiece);
         }

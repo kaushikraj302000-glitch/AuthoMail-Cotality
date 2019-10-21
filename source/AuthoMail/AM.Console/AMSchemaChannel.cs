@@ -744,7 +744,7 @@ namespace AM.Console
                             {
                                 mailPieceDTO.IsEDeliveryRequested = true;
                                 mailPieceDTO.IsFallBackRequested = requests.eDelivery.PrintAndShipOnExpiry;
-                                mailPieceDTO.ExpiryDate = requests.eDelivery.ExpiryDate.ToEndDateTime();
+                                mailPieceDTO.ExpiryDate = requests.eDelivery.ExpiryDate.ToEndDateTime().EstToUtc();
                             }
 
                             if (requests.ReturnInfo == null)
@@ -1124,7 +1124,7 @@ namespace AM.Console
                         try
                         {
                             var emailErrorReportPath = UploadBaseReportToClient(mbi, mailPieces, deliverable);
-                            
+
                             MailUtility.SendDownloadNotificationEmail(mbi, mailPieces, emailErrorReportPath, deliverable.EmailChannel);
                             //After upload change extension of local file Path
                             if (File.Exists(emailErrorReportPath))

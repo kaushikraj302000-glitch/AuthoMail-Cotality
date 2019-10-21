@@ -267,7 +267,9 @@ namespace AM.Console
                     {
                         foreach (XmlNode package in packages)
                         {
-                            SeparateEDXMLsAndPDFsPackageWise(package, nsManager, amcDownloadPath, client.AppCode, batchName);
+                            Guid batchUniqueId = Guid.NewGuid();
+                            //Folder Structure will be like : {AMCDownloadPath}/{ClientCode}/{BatchUniqueId}
+                            SeparateEDXMLsAndPDFsPackageWise(package, nsManager, amcDownloadPath, client.AppCode, batchName, batchUniqueId);
 
                             MailBatchDTO mailBatch = new MailBatchDTO
                             {
@@ -275,12 +277,13 @@ namespace AM.Console
                                 BatchName = batchName,
                                 SFTChannelId = SFTChannel.Id,
                                 ClientBatchId = batchName,
-                                UniqueId = Guid.NewGuid(),
+                                UniqueId = batchUniqueId,
                                 Priority = Priority.Medium.ToString(),
                                 ReceivedOn = receivedOn,
                                 PipelineStatus = BatchPipelineStatus.Received,
                                 BatchStatus = BatchStatus.InProgress.ToString(),
-                                IsReturnInfoSpecified = false
+                                IsReturnInfoSpecified = false,
+                                IsEDeliveryBatch = true
                             };
                             mailBatches.Add(mailBatch);
                         }
@@ -312,7 +315,14 @@ namespace AM.Console
                         mbi.PnSRequestPath.CreateDirectoryIfNotExist();
                         mbi.PnSResponsePath.CreateDirectoryIfNotExist();
 
-                        Directory.Move(Path.Combine(amcDownloadPath, client.AppCode), mbi.AMRequestPath);
+                        if (clientBatch.IsEDeliveryBatch) //Note : Reason to add uniqueId because there is a possibility that for one client system may receive multiple batches and system is separating into individual batches.
+                        {
+                            Directory.Move(Path.Combine(amcDownloadPath, client.AppCode, clientBatch.UniqueId.ToString()), mbi.AMRequestPath);
+                        }
+                        else
+                        {
+                            Directory.Move(Path.Combine(amcDownloadPath, client.AppCode), mbi.AMRequestPath);
+                        }
 
                         commonSvc.UpdateBatchPipeLineStatus(clientBatch.Id, BatchPipelineStatus.Downloaded, Common.Now);
                     }
@@ -344,9 +354,9 @@ namespace AM.Console
             }
         }
 
-        private void SeparateEDXMLsAndPDFsPackageWise(XmlNode package, XmlNamespaceManager nsManager, string amcDownloadPath, string clientCode, string batchName)
+        private void SeparateEDXMLsAndPDFsPackageWise(XmlNode package, XmlNamespaceManager nsManager, string amcDownloadPath, string clientCode, string batchName, Guid batchUniqueId)
         {
-            string clientBatchDirectory = Path.Combine(amcDownloadPath, clientCode, Guid.NewGuid().ToString());
+            string clientBatchDirectory = Path.Combine(amcDownloadPath, clientCode, batchUniqueId.ToString());
 
             clientBatchDirectory.CleanDirectory();
 
@@ -650,7 +660,7 @@ namespace AM.Console
                             {
                                 mailPieceDTO.IsEDeliveryRequested = true;
                                 mailPieceDTO.IsFallBackRequested = Convert.ToBoolean(eDeliveryElement.Attributes["PrintAndShipOnExpiry"] == null ? "false" : eDeliveryElement.Attributes["PrintAndShipOnExpiry"].Value);
-                                mailPieceDTO.ExpiryDate = eDeliveryElement.Attributes["ExpiryDate"] == null ? null : (DateTime?)Convert.ToDateTime(eDeliveryElement.Attributes["ExpiryDate"].Value).ToEndDateTime();
+                                mailPieceDTO.ExpiryDate = eDeliveryElement.Attributes["ExpiryDate"] == null ? null : (DateTime?)Convert.ToDateTime(eDeliveryElement.Attributes["ExpiryDate"].Value).ToEndDateTime().EstToUtc();
                             }
                             else
                             {
@@ -890,7 +900,9 @@ namespace AM.Console
 
                     if (mailPieceData.All(mp => mp.IsEDeliveryRequested && mp.ShippingStatus != ShippingStatus.Error.ToString()))
                     {
-                        commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.SubmittedToEDelivery, Common.Now);
+                        var validationTiming = Common.Now;
+                        commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.SubmittedToEDelivery, validationTiming);
+                        commonSvc.UpdateEDeliveryPipelineStatus(mbi.MailBatch.Id, EDPipelineStatus.Validated, validationTiming);
                     }
                     else
                         commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);

@@ -81,7 +81,7 @@ namespace AM.EDelivery
         protected abstract void Expired();
 
         #region Check Activity Logs
-        private static void CheckActivityLogs()
+        public static void CheckActivityLogs()
         {
             log.Debug("EDelivery Check ActivityLogs job queue is started.");
 
@@ -108,39 +108,38 @@ namespace AM.EDelivery
                             switch (actlog.EDeliveryStatus)
                             {
                                 case ActivityStatus.ESignConsentAccepted:
-                                    mp.IsConsented = true;
-                                    mp.ConsentedOn = actlog.UpdatedDate.PstToUtc();
-                                    eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, EDeliveryStatus.Consented, actlog.UpdatedDate);
+                                    mp.IsConsentAccepted = true;
+                                    mp.ConsentAcceptedOn = actlog.UpdatedDate.PstToUtc();
+                                    eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, EDeliveryStatus.Consented, mp.ConsentAcceptedOn.Value);
                                     break;
                                 case ActivityStatus.ESignConsentDeclined:
-                                    mp.IsNotConsented = true;
-                                    mp.NotConsentedOn = actlog.UpdatedDate.PstToUtc();
-                                    eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, EDeliveryStatus.NotConsented, actlog.UpdatedDate);
+                                    mp.IsConsentDeclined = true;
+                                    mp.ConsentDeclinedOn = actlog.UpdatedDate.PstToUtc();
+                                    eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, EDeliveryStatus.NotConsented, mp.ConsentDeclinedOn.Value);
                                     break;
                                 case ActivityStatus.DocumentReviewed:
                                     mp.IsDocReviewed = true;
                                     mp.DocReviewedOn = actlog.UpdatedDate.PstToUtc();
-                                    eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, EDeliveryStatus.DocReviewed, actlog.UpdatedDate);
+                                    eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, EDeliveryStatus.DocReviewed, mp.DocReviewedOn.Value);
                                     break;
                                 case ActivityStatus.DocumentDownloaded:
                                     mp.IsDocDownloaded = true;
                                     mp.DocDownloadedOn = actlog.UpdatedDate.PstToUtc();
-                                    eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, EDeliveryStatus.DocDownloaded, actlog.UpdatedDate);
+                                    eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, EDeliveryStatus.DocDownloaded, mp.DocDownloadedOn.Value);
                                     break;
                                 default:
                                     break;
                             }
                         }
 
-                        if (mp.IsConsented && mp.IsDocDownloaded && mp.ExpiryDate.Value.Date <= mp.ConsentedOn.Value.Date && mp.ExpiryDate.Value.Date <= mp.DocDownloadedOn.Value.Date)
+                        if ((mp.IsConsentAccepted && mp.IsDocDownloaded) && (mp.ExpiryDate.Value.Date >= mp.ConsentAcceptedOn.Value && mp.ExpiryDate.Value >= mp.DocDownloadedOn.Value.Date))
                         {
-                            eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.eDelivered, Common.Now);
+                            eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.eDelivered, mp.DocDownloadedOn.Value);
                         }
 
                         string signingRoomStatus = eDeliveryAPISvc.GetSigningRoomStatus(mp.SigningRoomId.Value).Result;
 
-                        //NOTE : Here system will check if signing room is expired and activity logs have 3 activities only which were created at signing room creating process then system will consider this as Expired.
-                        if (signingRoomStatus == SigningRoomStatus.Expired && Common.Today > mp.ExpiryDate.Value.Date)
+                        if (signingRoomStatus == SigningRoomStatus.Expired && Common.Now > mp.ExpiryDate.Value && (!mp.IsDocDownloaded))
                         {
                             //Do we need to update error code and description? ask to ravisir
                             eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.Expired, Common.Now);

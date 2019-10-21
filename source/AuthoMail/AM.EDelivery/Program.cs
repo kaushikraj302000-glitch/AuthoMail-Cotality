@@ -35,6 +35,10 @@ namespace AM.EDelivery
                     channel.ProcessBatches();
                 }
             }
+            else if (args[0] == "CHECKLOG")
+            {
+                EDChannel.CheckActivityLogs();
+            }
         }
     }
 }

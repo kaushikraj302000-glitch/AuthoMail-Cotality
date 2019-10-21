@@ -39,14 +39,15 @@ namespace AM.EDelivery
                 try
                 {
                     MailPieceInfo mpi = new MailPieceInfo(mp.ClientCode, Config.Common_AuthoMailRootFolder, mp.MailBatchId, mp.BatchName);
-                    mp.SigningRoomName = "{0}-{1}-{2}".Fill(mp.ClientCode, mp.FileName, mp.Id);
-                    mp.ExpiryDate = mp.ExpiryDate.HasValue ? mp.ExpiryDate.Value.ToEndDateTime() : GetDefaultExpiryDate(mp.ReceivedOn.Value);//Date will be considered as in EST timezone
+                    mp.SigningRoomName = "{0}-{1}-{2}".Fill(mp.ClientCode, Path.GetFileNameWithoutExtension(mp.FileName), mp.Id);
+                    DateTime expiryDate = mp.ExpiryDate.HasValue ? mp.ExpiryDate.Value : GetDefaultExpiryDate(mp.ReceivedOn.Value);//Date will be considered as in EST timezone
+                    mp.ExpiryDate = expiryDate;
 
                     SigningRoomRequest request = new SigningRoomRequest()
                     {
                         SigningRoomName = mp.SigningRoomName,
                         Description = "",
-                        ExpirationDate = mp.ExpiryDate.Value,
+                        ExpirationDate = expiryDate.UtcToEst(),
                         StartDate = Common.EstToday
                     };
 
@@ -81,8 +82,6 @@ namespace AM.EDelivery
                     {
                         mp.SigningRoomId = response.SigningRoom.SigningRoomId;
                         mp.SigningRoomUniqueId = response.SigningRoom.SigningRoomGuid;
-                        mp.ExpiryDate = response.SigningRoom.ExpirationDate;
-
                         eDeliverySvc.UpdateEDMailPieceDetails(mp);
                         eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.SigningRoomCreated, Common.Now);
                     }
@@ -102,7 +101,7 @@ namespace AM.EDelivery
         private DateTime GetDefaultExpiryDate(DateTime receivedOn)
         {
             var workingDateTime = commonSvc.GetNextWorkingDay(receivedOn.UtcToEst(), Config.Common_Holidays, false, false);
-            return workingDateTime.ToEndDateTime();
+            return workingDateTime.ToEndDateTime().EstToUtc();
         }
 
         protected override void SendInvitations()

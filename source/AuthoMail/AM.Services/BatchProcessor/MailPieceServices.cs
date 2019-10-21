@@ -48,7 +48,7 @@ namespace AM.Services
 
         private int InsertMailPieceEDeliveryDetails(MailPieceDTO mailPiece, DateTime? receivedOn, DateTime? downloadedOn)
         {
-            string query = "INSERT INTO [AM].[EDeliveryMailPieces]([UniqueId],[MailBatchId],[ClientId],[FileName],[ExpiryDate],[ReceivedOn],[DownloadedOn],[TotalPages],[PipelineStatus]) Output Inserted.Id VALUES (@UniqueId,@MailBatchId,@ClientId,@FileName,@ExpiryDate,@ReceivedOn,@DownloadedOn,@TotalPages,@PipelineStatus, @IsExpired)";
+            string query = "INSERT INTO [AM].[EDeliveryMailPieces]([UniqueId],[MailBatchId],[ClientId],[FileName],[ExpiryDate],[ReceivedOn],[DownloadedOn],[TotalPages],[PipelineStatus]) Output Inserted.Id VALUES (@UniqueId,@MailBatchId,@ClientId,@FileName,@ExpiryDate,@ReceivedOn,@DownloadedOn,@TotalPages,@PipelineStatus)";
 
             return db.ExecuteScalar<int>(query, new { UniqueId = mailPiece.UniqueId, MailBatchId = mailPiece.MailBatchId, ClientId = mailPiece.ClientId, FileName = mailPiece.FileName, ExpiryDate = mailPiece.ExpiryDate, ReceivedOn = receivedOn.Value, DownloadedOn = downloadedOn.Value, TotalPages = mailPiece.TotalPages, PipelineStatus = EDPipelineStatus.Downloaded });
         }
