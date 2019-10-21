@@ -40,7 +40,7 @@ namespace AM.EDelivery
                 {
                     MailPieceInfo mpi = new MailPieceInfo(mp.ClientCode, Config.Common_AuthoMailRootFolder, mp.MailBatchId, mp.BatchName);
                     mp.SigningRoomName = "{0}-{1}-{2}".Fill(mp.ClientCode, mp.FileName, mp.Id);
-                    mp.ExpiryDate = mp.ExpiryDate.HasValue ? mp.ExpiryDate.Value.ToEndDateTime() : GetDefaultExpiryDate(mp.ReceivedOn.Value);
+                    mp.ExpiryDate = mp.ExpiryDate.HasValue ? mp.ExpiryDate.Value.ToEndDateTime() : GetDefaultExpiryDate(mp.ReceivedOn.Value);//Date will be considered as in EST timezone
 
                     SigningRoomRequest request = new SigningRoomRequest()
                     {
@@ -131,6 +131,9 @@ namespace AM.EDelivery
                     }
                     else
                     {
+                        var msg = "Invitation did not get sent to participant for Id {0}".Fill(mp.Id);
+                        log.Error(msg);
+                        MailUtility.SendUnexpectedExceptionEmail(msg);
                         continue;
                     }
                 }

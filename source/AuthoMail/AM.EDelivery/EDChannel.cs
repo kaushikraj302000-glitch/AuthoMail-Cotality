@@ -62,7 +62,7 @@ namespace AM.EDelivery
                 MailUtility.SendUnexpectedExceptionEmail(msg);
             }
         }
-        
+
         /// <summary>
         /// Create signing room for all mailpieces which are validated successfully
         /// </summary>
@@ -70,7 +70,7 @@ namespace AM.EDelivery
         /// <summary>
         /// Send invitaions to all recipients for which signing rooms are created successfully
         /// </summary>
-        protected abstract void SendInvitations();       
+        protected abstract void SendInvitations();
         /// <summary>
         /// Take all eDelivered records and generate reports
         /// </summary>
@@ -101,38 +101,38 @@ namespace AM.EDelivery
                     try
                     {
                         IEDeliveryAPIService eDeliveryAPISvc = new EDeliveryAPIService();
-                        
+
                         var activityLogs = eDeliveryAPISvc.GetSigningRoomActivityLog(mp.SigningRoomName).Result;
                         foreach (var actlog in activityLogs)
                         {
                             switch (actlog.EDeliveryStatus)
                             {
                                 case ActivityStatus.ESignConsentAccepted:
-                                    mp.IsConsented = 1;
+                                    mp.IsConsented = true;
                                     mp.ConsentedOn = actlog.UpdatedDate.PstToUtc();
                                     eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, EDeliveryStatus.Consented, actlog.UpdatedDate);
                                     break;
                                 case ActivityStatus.ESignConsentDeclined:
-                                    mp.IsNotConsented = 1;
+                                    mp.IsNotConsented = true;
                                     mp.NotConsentedOn = actlog.UpdatedDate.PstToUtc();
                                     eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, EDeliveryStatus.NotConsented, actlog.UpdatedDate);
                                     break;
                                 case ActivityStatus.DocumentReviewed:
-                                    mp.IsDocReviewed = 1;
+                                    mp.IsDocReviewed = true;
                                     mp.DocReviewedOn = actlog.UpdatedDate.PstToUtc();
                                     eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, EDeliveryStatus.DocReviewed, actlog.UpdatedDate);
                                     break;
                                 case ActivityStatus.DocumentDownloaded:
-                                    mp.IsDocDownloaded = 1;
+                                    mp.IsDocDownloaded = true;
                                     mp.DocDownloadedOn = actlog.UpdatedDate.PstToUtc();
-                                    eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, EDeliveryStatus.DocDownloaded, actlog.UpdatedDate);                                   
+                                    eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, EDeliveryStatus.DocDownloaded, actlog.UpdatedDate);
                                     break;
                                 default:
                                     break;
                             }
                         }
 
-                        if (mp.IsConsented == 1 && mp.IsDocDownloaded == 1 && mp.ExpiryDate.Value.Date <= mp.ConsentedOn.Value.Date && mp.ExpiryDate.Value.Date <= mp.DocDownloadedOn.Value.Date)
+                        if (mp.IsConsented && mp.IsDocDownloaded && mp.ExpiryDate.Value.Date <= mp.ConsentedOn.Value.Date && mp.ExpiryDate.Value.Date <= mp.DocDownloadedOn.Value.Date)
                         {
                             eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.eDelivered, Common.Now);
                         }
@@ -153,7 +153,7 @@ namespace AM.EDelivery
                         MailUtility.SendUnexpectedExceptionEmail(msg);
                         continue;
                     }
-                } 
+                }
             }
 
             log.Debug("EDelivery Check ActivityLogs job queue is started.");

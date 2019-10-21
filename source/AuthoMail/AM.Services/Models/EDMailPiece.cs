@@ -60,27 +60,27 @@ namespace AM.Services
         public string SigningRoomName { get; set; }
         public int? DocumentId { get; set; }
         public DateTime? ReceivedOn { get; set; }
-        public int IsReceived { get; set; }
+        public bool IsReceived { get; set; }
         public DateTime? DownloadedOn { get; set; }
-        public int IsDownloaded { get; set; }
+        public bool IsDownloaded { get; set; }
         public DateTime? ValidatedOn { get; set; }
-        public int IsValidated { get; set; }
+        public bool IsValidated { get; set; }
         public DateTime? SigningRoomCreatedOn { get; set; }
-        public int IsSigningRoomCreated { get; set; }
+        public bool IsSigningRoomCreated { get; set; }
         public DateTime? InvitationSentOn { get; set; }
-        public int IsInvitationSent { get; set; }
+        public bool IsInvitationSent { get; set; }
         public DateTime? eDeliveredOn { get; set; }
-        public int IseDelivered { get; set; }
+        public bool IseDelivered { get; set; }
         public DateTime? ConsentedOn { get; set; }
-        public int IsConsented { get; set; }
+        public bool IsConsented { get; set; }
         public DateTime? NotConsentedOn { get; set; }
-        public int IsNotConsented { get; set; }
+        public bool IsNotConsented { get; set; }
         public DateTime? DocReviewedOn { get; set; }
-        public int IsDocReviewed { get; set; }
+        public bool IsDocReviewed { get; set; }
         public DateTime? DocDownloadedOn { get; set; }
-        public int IsDocDownloaded { get; set; }
+        public bool IsDocDownloaded { get; set; }
         public DateTime? ESignedOn { get; set; }
-        public int IsESigned { get; set; }
+        public bool IsESigned { get; set; }
         public bool IsExpired { get; set; }
     }
 
