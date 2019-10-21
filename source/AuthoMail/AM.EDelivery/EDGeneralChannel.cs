@@ -34,18 +34,18 @@ namespace AM.EDelivery
                 return;
             }
 
-            foreach (EDMailPiece mp in validatedMailPieces)
+            foreach (EDMailPiece edmp in validatedMailPieces)
             {
                 try
                 {
-                    MailPieceInfo mpi = new MailPieceInfo(mp.ClientCode, Config.Common_AuthoMailRootFolder, mp.MailBatchId, mp.BatchName);
-                    mp.SigningRoomName = "{0}-{1}-{2}".Fill(mp.ClientCode, Path.GetFileNameWithoutExtension(mp.FileName), mp.Id);
-                    DateTime expiryDate = mp.ExpiryDate.HasValue ? mp.ExpiryDate.Value : GetDefaultExpiryDate(mp.ReceivedOn.Value);//Date will be considered as in EST timezone
-                    mp.ExpiryDate = expiryDate;
+                    MailPieceInfo mpi = new MailPieceInfo(edmp.ClientCode, Config.Common_AuthoMailRootFolder, edmp.MailBatchId, edmp.BatchName);
+                    edmp.SigningRoomName = "{0}-{1}-{2}".Fill(edmp.ClientCode, Path.GetFileNameWithoutExtension(edmp.FileName), edmp.Id);
+                    DateTime expiryDate = edmp.ExpiryDate.HasValue ? edmp.ExpiryDate.Value : GetDefaultExpiryDate(edmp.ReceivedOn.Value);//Date will be considered as in EST timezone
+                    edmp.ExpiryDate = expiryDate;
 
                     SigningRoomRequest request = new SigningRoomRequest()
                     {
-                        SigningRoomName = mp.SigningRoomName,
+                        SigningRoomName = edmp.SigningRoomName,
                         Description = "",
                         ExpirationDate = expiryDate.UtcToEst(),
                         StartDate = Common.EstToday
@@ -54,41 +54,60 @@ namespace AM.EDelivery
                     request.Documents = new List<DocumentInfo>() {
                         new DocumentInfo()
                         {
-                            DocumentData = Convert.ToBase64String(File.ReadAllBytes(Path.Combine(mpi.AMRequestPath, mp.FileName))).ToString(),
-                            DocumentName = Path.GetFileNameWithoutExtension(Path.Combine(mpi.AMRequestPath, mp.FileName)),
-                            FileName = Path.GetFileName(Path.Combine(mpi.AMRequestPath, mp.FileName))
+                            DocumentData = Convert.ToBase64String(File.ReadAllBytes(Path.Combine(mpi.AMRequestPath, edmp.FileName))).ToString(),
+                            DocumentName = Path.GetFileNameWithoutExtension(Path.Combine(mpi.AMRequestPath, edmp.FileName)),
+                            FileName = Path.GetFileName(Path.Combine(mpi.AMRequestPath, edmp.FileName))
                         }
                     };
 
                     request.Participants = new List<Participant>() {
                         new Participant()
                         {
-                            FirstName = mp.RcptFirstName,
-                            LastName = mp.RcptLastName,
-                            InvitationEmail = mp.RcptEmailId
+                            FirstName = edmp.RcptFirstName,
+                            LastName = edmp.RcptLastName,
+                            InvitationEmail = edmp.RcptEmailId
                         }
                     };
 
+
                     IEDeliveryAPIService eDeliveryAPISvc = new EDeliveryAPIService();
-                    var response = eDeliveryAPISvc.CreateSigningRoom(request).Result;
-                    if (response.HasError)
+                    int reTrycnt = 0;
+                    bool hasError = false;
+                    while (reTrycnt < Config.Core_NoofTime_AttemptFedexService)
                     {
-                        var msg = "Error occured while creating signing room for Id {0} with Error".Fill(mp.Id) + Environment.NewLine + response.Error;
+                        var response = eDeliveryAPISvc.CreateSigningRoom(request).Result;
+                        if (!response.HasError)
+                        {
+                            edmp.SigningRoomId = response.SigningRoom.SigningRoomId;
+                            edmp.SigningRoomUniqueId = response.SigningRoom.SigningRoomGuid;
+                            eDeliverySvc.UpdateEDMailPieceDetails(edmp);
+                            eDeliverySvc.UpdateEDMailPiecePipelineStatus(edmp.Id, EDPipelineStatus.SigningRoomCreated, Common.Now);
+                            hasError = false;
+                            break;
+                        }
+
+                        var msg = "Error occured while creating signing room for Id {0} with Error".Fill(edmp.Id) + Environment.NewLine + response.Error;
                         log.Error(msg);
                         MailUtility.SendUnexpectedExceptionEmail(msg);
-                        continue;
+                        System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
+                        hasError = true;
+                        reTrycnt++;
                     }
-                    else
+
+                    if (hasError)
                     {
-                        mp.SigningRoomId = response.SigningRoom.SigningRoomId;
-                        mp.SigningRoomUniqueId = response.SigningRoom.SigningRoomGuid;
-                        eDeliverySvc.UpdateEDMailPieceDetails(mp);
-                        eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.SigningRoomCreated, Common.Now);
+                        edmp.ErrorCode = OutComeCodes.Issue_In_EDelivery;
+                        edmp.ErrorDesc = "Error occured while creating signing room for Loan Number:{0}".Fill(edmp.LoanNumber);
+                        eDeliverySvc.UpdateEDMailPieceDetails(edmp);
+
+                        #region Check ErrorOut or IsFallBackRequested Package
+                        eDeliverySvc.ErrorOutOrFallBackEDeliveryPackage(edmp);
+                        #endregion
                     }
                 }
                 catch (Exception ex)
                 {
-                    var msg = "Error occured while creating signing room for Id {0} for client {1} with below error <br/>{2}".Fill(mp.Id, mp.ClientCode, ex);
+                    var msg = "Error occured while creating signing room for Id {0} for client {1} with below error <br/>{2}".Fill(edmp.Id, edmp.ClientCode, ex);
                     log.Error(msg);
                     MailUtility.SendUnexpectedExceptionEmail(msg);
                     continue;
@@ -117,28 +136,46 @@ namespace AM.EDelivery
                 return;
             }
 
-            foreach (EDMailPiece mp in signingRoomCreatedMailPieces)
+            foreach (EDMailPiece edmp in signingRoomCreatedMailPieces)
             {
                 try
                 {
                     IEDeliveryAPIService eDeliveryAPISvc = new EDeliveryAPIService();
-                    bool isInvitationSent = eDeliveryAPISvc.SendInvitations(mp.SigningRoomId.Value).Result;
+                    int reTrycnt = 0;
+                    bool hasError = false;
+                    while (reTrycnt < Config.Core_NoofTime_AttemptFedexService)
+                    {
+                        bool isInvitationSent = eDeliveryAPISvc.SendInvitations(edmp.SigningRoomId.Value).Result;
 
-                    if (isInvitationSent)
-                    {
-                        eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.InvitationSent, Common.Now);
-                    }
-                    else
-                    {
-                        var msg = "Invitation did not get sent to participant for Id {0}".Fill(mp.Id);
+                        if (isInvitationSent)
+                        {
+                            eDeliverySvc.UpdateEDMailPiecePipelineStatus(edmp.Id, EDPipelineStatus.InvitationSent, Common.Now);
+                            hasError = false;
+                            break;
+                        }
+
+                        var msg = "Error occured while sending invitation to participants of Id {0}";
                         log.Error(msg);
                         MailUtility.SendUnexpectedExceptionEmail(msg);
-                        continue;
+                        System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
+                        hasError = true;
+                        reTrycnt++;
+                    }
+
+                    if (hasError)
+                    {
+                        edmp.ErrorCode = OutComeCodes.Issue_In_EDelivery;
+                        edmp.ErrorDesc = "Error occured while sending invitation to participant for Loan Number:{0}".Fill(edmp.LoanNumber);
+                        eDeliverySvc.UpdateEDMailPieceDetails(edmp);
+
+                        #region Check ErrorOut or IsFallBackRequested Package
+                        eDeliverySvc.ErrorOutOrFallBackEDeliveryPackage(edmp);
+                        #endregion
                     }
                 }
                 catch (Exception ex)
                 {
-                    var msg = "Error occured while sending invitation to participant Id {0} for client {1} with below error <br/>{2}".Fill(mp.Id, mp.ClientCode, ex);
+                    var msg = "Error occured while sending invitation to participant Id {0} for client {1} with below error <br/>{2}".Fill(edmp.Id, edmp.ClientCode, ex);
                     log.Error(msg);
                     MailUtility.SendUnexpectedExceptionEmail(msg);
                     continue;
@@ -212,7 +249,7 @@ namespace AM.EDelivery
         {
             string amResponsePath = mpi.AMResponsePath;
 
-            switch (eDeliveryMP.ChannelCode.ToUpper())
+            switch (eDeliveryMP.ChannelCode.Split('_')[0].ToUpper())
             {
                 case "AMC":
                     using (IAMCService amcSvc = new AMCService())
@@ -268,25 +305,8 @@ namespace AM.EDelivery
                     {
                         try
                         {
-                            #region Check IsFallBackRequested
-                            if (edmp.IsFallBackRequested)
-                            {
-                                using (ICommonService commonSvc = new CommonService())
-                                using (IMailPieceService mpSvc = new MailPieceService())
-                                using (IDocTypeService docTypeSvc = new DocTypeService())
-                                {
-                                    MailPieceDTO mailPieceDTO = mpSvc.GetMailPieceDataByUniqueIdAndMBId(edmp.UniqueId, edmp.MailBatchId);
-                                    DocType mpDocType = docTypeSvc.GetDocTypeById(mailPieceDTO.DocTypeId.Value);
-                                    commonSvc.GetUpdatedDueDateAndPrintLocation(Common.Now, mailPieceDTO, mpDocType, edmp.ClientCode);
-                                    mpSvc.UpdateBatchMailPieceDetails(mailPieceDTO);
-                                    commonSvc.UpdateBatchPipeLineStatus(edmp.MailBatchId, BatchPipelineStatus.Validated, Common.Now);
-                                    eDeliverySvc.UpdateEDMailPiecePipelineStatus(edmp.Id, EDPipelineStatus.ReportedBack, Common.Now);
-                                }
-                            }
-                            else
-                            {
-                                eDeliverySvc.ErrorOutEDeliveryPackage(edmp);
-                            }
+                            #region Check ErrorOut or IsFallBackRequested Package
+                            eDeliverySvc.ErrorOutOrFallBackEDeliveryPackage(edmp);
                             #endregion
 
                             scope.Complete();

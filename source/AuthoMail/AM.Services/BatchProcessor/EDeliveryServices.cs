@@ -18,7 +18,7 @@ namespace AM.Services
         int UpdateEDMailPiecePipelineStatus(int mailPieceId, string pipeLineStatus, DateTime timestamp);
         int UpdateEDMailPieceActivityStatus(int mailPieceId, string pipeLineStatus, DateTime timestamp);
         int UpdateEDMailPieceDetails(EDMailPiece mailPiece);
-        int ErrorOutEDeliveryPackage(EDMailPiece edmp);
+        int ErrorOutOrFallBackEDeliveryPackage(EDMailPiece edmp);
         int UpdateEDeliveredMPForReportingBack(int mailBatchId, DateTime reportPreppedTiming);
     }
     public class EDeliveryService : ServiceBase, IEDeliveryService
@@ -80,21 +80,41 @@ namespace AM.Services
             return db.Execute(query, mailPiece);
         }
 
-        public int ErrorOutEDeliveryPackage(EDMailPiece edmp)
+        public int ErrorOutOrFallBackEDeliveryPackage(EDMailPiece edmp)
         {
-            string query = "UPDATE AM.MailPieces SET ShippingStatus='Error', ErrorCode=@ErrorCode, ErrorDesc=@ErrorDesc WHERE MailBatchId=@MailBatchId AND UniqueId=@UniqueId";
-            var retVal = db.Execute(query, new { ErrorCode = edmp.ErrorCode, ErrorDesc = edmp.ErrorDesc, MailBatchId = edmp.MailBatchId, UniqueId = edmp.UniqueId });
-
-            if (retVal == 1)
+            if (edmp.IsFallBackRequested)
             {
                 using (ICommonService commonSvc = new CommonService())
+                using (IMailPieceService mpSvc = new MailPieceService())
+                using (IDocTypeService docTypeSvc = new DocTypeService())
+                using (IEDeliveryService eDeliverySvc = new EDeliveryService())
                 {
-                    commonSvc.UpdateBatchStatus(edmp.MailBatchId, BatchStatus.Failed.ToString());
-                    commonSvc.UpdateBatchValidationStatus(edmp.MailBatchId, BatchValidationStatus.Invalid, edmp.ErrorDesc);
+                    MailPieceDTO mailPieceDTO = mpSvc.GetMailPieceDataByUniqueIdAndMBId(edmp.UniqueId, edmp.MailBatchId);
+                    DocType mpDocType = docTypeSvc.GetDocTypeById(mailPieceDTO.DocTypeId.Value);
+                    commonSvc.GetUpdatedDueDateAndPrintLocation(Common.Now, mailPieceDTO, mpDocType, edmp.ClientCode);
+                    mpSvc.UpdateBatchMailPieceDetails(mailPieceDTO);
                     commonSvc.UpdateBatchPipeLineStatus(edmp.MailBatchId, BatchPipelineStatus.Validated, Common.Now);
+                    eDeliverySvc.UpdateEDMailPiecePipelineStatus(edmp.Id, EDPipelineStatus.ReportedBack, Common.Now);
                     return 1;
                 }
             }
+            else
+            {
+                string query = "UPDATE AM.MailPieces SET ShippingStatus='Error', ErrorCode=@ErrorCode, ErrorDesc=@ErrorDesc WHERE MailBatchId=@MailBatchId AND UniqueId=@UniqueId";
+                var retVal = db.Execute(query, new { ErrorCode = edmp.ErrorCode, ErrorDesc = edmp.ErrorDesc, MailBatchId = edmp.MailBatchId, UniqueId = edmp.UniqueId });
+
+                if (retVal == 1)
+                {
+                    using (ICommonService commonSvc = new CommonService())
+                    {
+                        commonSvc.UpdateBatchStatus(edmp.MailBatchId, BatchStatus.Failed.ToString());
+                        commonSvc.UpdateBatchValidationStatus(edmp.MailBatchId, BatchValidationStatus.Invalid, edmp.ErrorDesc);
+                        commonSvc.UpdateBatchPipeLineStatus(edmp.MailBatchId, BatchPipelineStatus.Validated, Common.Now);
+                        return 1;
+                    }
+                }
+            }
+
             return 0;
         }
 
