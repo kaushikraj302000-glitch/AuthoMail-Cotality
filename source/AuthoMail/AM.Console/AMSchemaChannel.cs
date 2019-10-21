@@ -744,7 +744,7 @@ namespace AM.Console
                             {
                                 mailPieceDTO.IsEDeliveryRequested = true;
                                 mailPieceDTO.IsFallBackRequested = requests.eDelivery.PrintAndShipOnExpiry;
-                                mailPieceDTO.ExpiryDate = requests.eDelivery.ExpiryDate;
+                                mailPieceDTO.ExpiryDate = requests.eDelivery.ExpiryDate.ToEndDateTime();
                             }
 
                             if (requests.ReturnInfo == null)

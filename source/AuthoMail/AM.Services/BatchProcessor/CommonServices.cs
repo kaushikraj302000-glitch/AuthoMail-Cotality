@@ -35,6 +35,7 @@ namespace AM.Services
         int GetPrintTrail(DocType docType, DateTime estEffectiveReceivedOn);
         DateTime GetDueDate(DocType docType, DateTime estEffectiveReceivedOn);
         DateTime GetEffectiveEstReceivedOn(DocType docType, DateTime utcReceivedOn);
+        DateTime GetNextWorkingDay(DateTime estDateTime, List<Holiday> HolidayList, bool isSatWorkDay, bool isSunWorkDay);
         int InsertErrorNotifications(int mailBatchId);
         string GetErrorNotificationEmailSubscriberList(int clientId);
         void GetUpdatedDueDateAndPrintLocation(DateTime receivedOn, MailPieceDTO mailPiece, DocType docType, string appCode);

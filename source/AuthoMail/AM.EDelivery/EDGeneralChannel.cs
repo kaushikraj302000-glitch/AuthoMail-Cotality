@@ -40,7 +40,7 @@ namespace AM.EDelivery
                 {
                     MailPieceInfo mpi = new MailPieceInfo(mp.ClientCode, Config.Common_AuthoMailRootFolder, mp.MailBatchId, mp.BatchName);
                     mp.SigningRoomName = "{0}-{1}-{2}".Fill(mp.ClientCode, mp.FileName, mp.Id);
-                    mp.ExpiryDate = mp.ExpiryDate.HasValue ? mp.ExpiryDate.Value : mp.ReceivedOn.Value.AddDays(7);
+                    mp.ExpiryDate = mp.ExpiryDate.HasValue ? mp.ExpiryDate.Value.ToEndDateTime() : GetDefaultExpiryDate(mp.ReceivedOn.Value);
 
                     SigningRoomRequest request = new SigningRoomRequest()
                     {
@@ -72,6 +72,9 @@ namespace AM.EDelivery
                     var response = eDeliveryAPISvc.CreateSigningRoom(request).Result;
                     if (response.HasError)
                     {
+                        var msg = "Error occured while creating signing room for Id {0} with Error".Fill(mp.Id) + Environment.NewLine + response.Error;
+                        log.Error(msg);
+                        MailUtility.SendUnexpectedExceptionEmail(msg);
                         continue;
                     }
                     else
@@ -94,6 +97,12 @@ namespace AM.EDelivery
             }
 
             log.Debug("EDelivery CreateSigningRoom job queue is completed.");
+        }
+
+        private DateTime GetDefaultExpiryDate(DateTime receivedOn)
+        {
+            var workingDateTime = commonSvc.GetNextWorkingDay(receivedOn.UtcToEst(), Config.Common_Holidays, false, false);
+            return workingDateTime.ToEndDateTime();
         }
 
         protected override void SendInvitations()
@@ -122,11 +131,7 @@ namespace AM.EDelivery
                     }
                     else
                     {
-                        mp.ErrorCode = OutComeCodes.Issue_In_EDelivery;
-                        mp.ErrorDesc = "Error occured while sending invitation to participant for mail piece Id {0}".Fill(mp.Id);
-
-                        eDeliverySvc.UpdateEDMailPieceDetails(mp);
-                        eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.ReportedBack, Common.Now);
+                        continue;
                     }
                 }
                 catch (Exception ex)

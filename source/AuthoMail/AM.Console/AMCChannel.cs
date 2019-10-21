@@ -650,7 +650,7 @@ namespace AM.Console
                             {
                                 mailPieceDTO.IsEDeliveryRequested = true;
                                 mailPieceDTO.IsFallBackRequested = Convert.ToBoolean(eDeliveryElement.Attributes["PrintAndShipOnExpiry"] == null ? "false" : eDeliveryElement.Attributes["PrintAndShipOnExpiry"].Value);
-                                mailPieceDTO.ExpiryDate = eDeliveryElement.Attributes["ExpiryDate"] == null ? null : (DateTime?)Convert.ToDateTime(eDeliveryElement.Attributes["ExpiryDate"].Value);
+                                mailPieceDTO.ExpiryDate = eDeliveryElement.Attributes["ExpiryDate"] == null ? null : (DateTime?)Convert.ToDateTime(eDeliveryElement.Attributes["ExpiryDate"].Value).ToEndDateTime();
                             }
                             else
                             {
@@ -717,6 +717,7 @@ namespace AM.Console
                                     using (iTextSharp.text.pdf.PdfReader reader = new iTextSharp.text.pdf.PdfReader(localFilePath))
                                     {
                                         pageCount = reader.NumberOfPages;
+                                        mailPieceDTO.TotalPages = pageCount; // Note : system will not store this in AM.MailPieces table but store in EDMailPieces table
                                     }
 
                                     //NOTE : Here system is storing file size of received pdf in KB
