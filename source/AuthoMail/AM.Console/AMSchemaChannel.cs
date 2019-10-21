@@ -744,7 +744,7 @@ namespace AM.Console
                             {
                                 mailPieceDTO.IsEDeliveryRequested = true;
                                 mailPieceDTO.IsFallBackRequested = requests.eDelivery.PrintAndShipOnExpiry;
-                                mailPieceDTO.ExpiryDate = requests.eDelivery.ExpiryDate;
+                                mailPieceDTO.ExpiryDate = requests.eDelivery.ExpiryDate.ToEndDateTime();
                             }
 
                             if (requests.ReturnInfo == null)
@@ -1123,11 +1123,8 @@ namespace AM.Console
                     {
                         try
                         {
-                            UploadBaseReportToClient(mbi, mailPieces, deliverable);
-
-                            //Here we have to provide clientwise notification so only reporting functionality will be customized over here
-                            var emailErrorReportPath = GenerateClientWiseAcknowledgementReport(mbi, mailPieces, deliverable);
-
+                            var emailErrorReportPath = UploadBaseReportToClient(mbi, mailPieces, deliverable);
+                            
                             MailUtility.SendDownloadNotificationEmail(mbi, mailPieces, emailErrorReportPath, deliverable.EmailChannel);
                             //After upload change extension of local file Path
                             if (File.Exists(emailErrorReportPath))
@@ -1135,7 +1132,9 @@ namespace AM.Console
                         }
                         catch (Exception ex)
                         {
-                            log.Error("Error occured while acknowleding for Batch-Id : {0}".Fill(mbi.BatchName), ex);
+                            var msg = "Error occured in AcknowledgeBatches Method For Mail Batch Id: {0} with Error : {1}".Fill(mailBatch.Id, ex.Message);
+                            log.Error(msg, ex);
+                            MailUtility.SendUnexpectedExceptionEmail(msg);
                         }
                     }
                 }
@@ -1144,55 +1143,19 @@ namespace AM.Console
                     var msg = "Error occured in AcknowledgeBatches Method For Mail Batch Id: {0} with Error : {1}".Fill(mailBatch.Id, ex.Message);
                     log.Error(msg, ex);
                     MailUtility.SendUnexpectedExceptionEmail(msg);
-                    continue;
                 }
             }
 
             log.Debug("Acknowledge job queue is completed.");
         }
 
-        private string GenerateClientWiseAcknowledgementReport(MailBatchInfo mbi, List<MailPieces> mailPieces, Deliverable reportDeliverable)
+        private string UploadBaseReportToClient(MailBatchInfo mbi, List<MailPieces> mailPieces, Deliverable deliverable)
         {
-            string errorReportPath = string.Empty;
-            string errorReportFileName = string.Empty;
-            StringBuilder errorReportData = new StringBuilder();
-
-            switch (mbi.Client.AppCode)
-            {
-                case "HSBC":
-                    using (IHSBCService hsbcSvc = new HSBCService())
-                    {
-                        errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
-
-                        errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-
-                        //Here we are generating error report even though it does not have any errored records
-                        errorReportData = hsbcSvc.HSBCErrorReport(mailPieces, mbi.Client.TimeZone, reportDeliverable.Delimeter);
-
-                        File.WriteAllText(errorReportPath, errorReportData.ToString());
-                    }
-                    break;
-                default:
-                    errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
-                    errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-                    errorReportData = generalSvc.GeneralErrorReport(mailPieces, reportDeliverable.Delimeter);
-                    if (errorReportData != null)
-                    {
-                        File.WriteAllText(errorReportPath, errorReportData.ToString());
-                    }
-                    break;
-            }
-
-            return errorReportPath;
-        }
-
-        private void UploadBaseReportToClient(MailBatchInfo mbi, List<MailPieces> mailPieces, Deliverable deliverable)
-        {
-            string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+            string errorReportFileName = "{0}-{1}-{2}.xml".Fill(mbi.Client.AppCode, mbi.MailBatch.Id, commonSvc.GetReportingSequence());
             string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 
-            StringBuilder errorData = generalSvc.GeneralErrorReport(mailPieces, deliverable.Delimeter);
-            if (errorData != null)
+            string errorData = generalSvc.GeneralXMLReport(mailPieces, mbi.MailBatch, mbi.Client.AppCode);
+            if (!string.IsNullOrWhiteSpace(errorData))
             {
                 File.WriteAllText(errorReportPath, errorData.ToString());
             }
@@ -1235,6 +1198,8 @@ namespace AM.Console
             {
                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
             }
+
+            return errorReportPath;
         }
 
         private void ReportInvalidBatch(MailBatchInfo mbi, string msg, Deliverable deliverables)

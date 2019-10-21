@@ -213,7 +213,7 @@ namespace AM.Console
 
                         string localReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, client.AppCode, Util.AMResponseFolderName, preppedPrintBatch.PrintBatchId.ToString());
                         //Here we are passing localReportPath as PrintBatches folder structure AMRoot/AMResponses/PrintBatchId
-                        UploadReportsToIncrementalClients(deliverables, localReportPath, sftSite);
+                        UploadReportsToIncrementalClients(deliverables, localReportPath, sftSite, sftChannelDetails);
 
                         mailBatchSvc.UpdatePrintBatchPipelineStatus(preppedPrintBatch.PrintBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
                     }
@@ -341,53 +341,74 @@ namespace AM.Console
             }
         }
 
-        private static void UploadReportsToIncrementalClients(List<Deliverable> deliverables, string localReportPath, SFTUtil sftSite)
+        private static void UploadReportsToIncrementalClients(List<Deliverable> deliverables, string localReportPath, SFTUtil sftSite, SFTChannel sftChannelDetails)
         {
-            string deliveryUploadPath = deliverables.SingleOrDefault(up => up.ReportType == ReportTypes.Delivery).UploadPath;
-
-            var deliveryReportList = Directory.EnumerateFiles(localReportPath, "*.txt").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-")).ToList();
-
-            foreach (string filePath in deliveryReportList)
+            string sftChannelCode = sftChannelDetails.Code.Split('_')[0];
+            switch (sftChannelCode)
             {
-                string fileName = Path.GetFileName(filePath);
-                string ftpUploadPath = Path.Combine(deliveryUploadPath, fileName);
-                sftSite.UploadFile(filePath, ftpUploadPath);
+                case "AMC":
+                    string deliveryUploadPath = deliverables.SingleOrDefault(up => up.ReportType == ReportTypes.Delivery).UploadPath;
+
+                    var deliveryReportList = Directory.EnumerateFiles(localReportPath, "*.txt").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-")).ToList();
+
+                    foreach (string filePath in deliveryReportList)
+                    {
+                        string fileName = Path.GetFileName(filePath);
+                        string ftpUploadPath = Path.Combine(deliveryUploadPath, fileName);
+                        sftSite.UploadFile(filePath, ftpUploadPath);
 
 
-                //After upload change extention as a Complete
-                File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
-            }
+                        //After upload change extention as a Complete
+                        File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
+                    }
 
-            if (deliveryReportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-")) > 0)
-            {
-                string deliveryGoFilePath = Path.Combine(localReportPath, "DlvrReport.go");
-                string ftpDeliveryGoUploadPath = Path.Combine(deliveryUploadPath, "DlvrReport.go");
-                File.WriteAllText(deliveryGoFilePath, string.Empty);
+                    if (deliveryReportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-")) > 0)
+                    {
+                        string deliveryGoFilePath = Path.Combine(localReportPath, "DlvrReport.go");
+                        string ftpDeliveryGoUploadPath = Path.Combine(deliveryUploadPath, "DlvrReport.go");
+                        File.WriteAllText(deliveryGoFilePath, string.Empty);
 
-                sftSite.UploadFile(deliveryGoFilePath, ftpDeliveryGoUploadPath);
-            }
+                        sftSite.UploadFile(deliveryGoFilePath, ftpDeliveryGoUploadPath);
+                    }
 
-            string errorUploadPath = deliverables.SingleOrDefault(up => up.ReportType == ReportTypes.Error).UploadPath;
-            var errorReportList = Directory.EnumerateFiles(localReportPath, "*.txt").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Error-")).ToList();
+                    string errorUploadPath = deliverables.SingleOrDefault(up => up.ReportType == ReportTypes.Error).UploadPath;
+                    var errorReportList = Directory.EnumerateFiles(localReportPath, "*.txt").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Error-")).ToList();
 
-            foreach (string filePath in errorReportList)
-            {
-                string fileName = Path.GetFileName(filePath);
-                string ftpUploadPath = Path.Combine(errorUploadPath, fileName);
-                sftSite.UploadFile(filePath, ftpUploadPath);
+                    foreach (string filePath in errorReportList)
+                    {
+                        string fileName = Path.GetFileName(filePath);
+                        string ftpUploadPath = Path.Combine(errorUploadPath, fileName);
+                        sftSite.UploadFile(filePath, ftpUploadPath);
 
 
-                //After upload change extention as a Complete
-                File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
-            }
+                        //After upload change extention as a Complete
+                        File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
+                    }
 
-            if (errorReportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Error-")) > 0)
-            {
-                string errorGoFilePath = Path.Combine(localReportPath, "ErrReport.go");
-                string ftpErrorGoUploadPath = Path.Combine(errorUploadPath, "ErrReport.go");
-                File.WriteAllText(errorGoFilePath, string.Empty);
+                    if (errorReportList.Count(f => Path.GetFileNameWithoutExtension(f).StartsWith("Error-")) > 0)
+                    {
+                        string errorGoFilePath = Path.Combine(localReportPath, "ErrReport.go");
+                        string ftpErrorGoUploadPath = Path.Combine(errorUploadPath, "ErrReport.go");
+                        File.WriteAllText(errorGoFilePath, string.Empty);
 
-                sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
+                        sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
+                    }
+                    break;
+                default:
+                    string resXmlUploadPath = deliverables.SingleOrDefault(up => up.ReportType == ReportTypes.Delivery).UploadPath;
+                    var resXmlList = Directory.EnumerateFiles(localReportPath, "*.xml").ToList();
+
+                    foreach (string filePath in resXmlList)
+                    {
+                        string fileName = Path.GetFileName(filePath);
+                        string ftpUploadPath = Path.Combine(resXmlUploadPath, fileName);
+                        sftSite.UploadFile(filePath, ftpUploadPath);
+
+
+                        //After upload change extention as a Complete
+                        File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
+                    }
+                    break;
             }
         }
 
@@ -484,7 +505,7 @@ namespace AM.Console
                     string reportPath = Path.Combine(Config.Common_AuthoMailRootFolder, mbi.Client.AppCode, mbi.MailBatch.Id.ToString(), Util.AMResponseFolderName);
 
                     //Here we are passing localReportPath as MailBatch folder structure AMRoot/USAA/MailBatchId/AMResponses
-                    UploadReportsToIncrementalClients(deliverables, reportPath, sftSite);
+                    UploadReportsToIncrementalClients(deliverables, reportPath, sftSite, sftChannelDetail);
 
                     GenerateAndSendProductionSummaryNotification(mbi, mailPieceData, deliverables, sftChannelDetail);
                     isUploaded = true;

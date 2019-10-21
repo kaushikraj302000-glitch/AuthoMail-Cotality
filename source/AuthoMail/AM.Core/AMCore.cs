@@ -644,16 +644,17 @@ namespace AM.Core
                     default:
                         using (IGeneralService generalSvc = new GeneralService())
                         {
+                            string errorReportFileName = "{0}-{1}-{2}.xml".Fill(mbi.Client.AppCode, mbi.MailBatch.Id, commonSvc.GetReportingSequence());
                             string errorGoFileName = "ErrReport.go";
                             string errorGoFilePath = Path.Combine(mbi.AMResponsePath, errorGoFileName);
                             string ftpErrorGoUploadPath = Path.Combine(deliverable.UploadPath, errorGoFileName);
 
-                            string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
                             string localErrorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
                             string ftpErrorReportPath = Path.Combine(deliverable.UploadPath, errorReportFileName);
 
                             StringBuilder errorData = generalSvc.GeneralErrorReport(mailPieces, deliverable.Delimeter);
-                            if (errorData != null)
+                            string responseReport = generalSvc.GeneralXMLReport(mailPieces, mbi.MailBatch, mbi.Client.AppCode);
+                            if (!string.IsNullOrWhiteSpace(responseReport))
                             {
                                 File.WriteAllText(localErrorReportPath, errorData.ToString());
 
@@ -894,19 +895,14 @@ namespace AM.Core
                     default:
                         using (IGeneralService generalSvc = new GeneralService())
                         {
-                            string errorGoFileName = "ErrReport.go";
-                            string errorGoFilePath = Path.Combine(mbi.AMResponsePath, errorGoFileName);
+                            string responseReport = generalSvc.GeneralXMLReport(mailPieces, mbi.MailBatch, mbi.Client.AppCode);
 
-                            string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
-
-                            string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-
-                            StringBuilder errorData = generalSvc.GeneralErrorReport(mailPieces, deliverable.Delimeter);
-                            if (errorData != null)
+                            if (!string.IsNullOrWhiteSpace(responseReport))
                             {
-                                File.WriteAllText(errorReportPath, errorData.ToString());
+                                string deliveryReportFileName = "{0}-{1}-{2}.xml".Fill(mbi.Client.AppCode, mbi.MailBatch.Id, commonSvc.GetReportingSequence());
+                                string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
 
-                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
+                                File.WriteAllText(deliveryReportPath, responseReport);
                             }
                         }
                         break;
@@ -1217,7 +1213,7 @@ namespace AM.Core
 
                         var pnsResponse = PnSResponse.LoadXml(File.ReadAllText(printbatchResponseFilePath));
 
-                        var responseLookup = new Dictionary<Guid, MailPieceReport>();
+                        var responseLookup = new Dictionary<Guid, PCI.Lib.MailPieceReport>();
                         pnsResponse.MailPackageReport.ForEach(mpr => responseLookup.Add(mpr.UniqueId, mpr));
 
 
@@ -1295,17 +1291,16 @@ namespace AM.Core
 
                                     break;
                                 default:
-                                    var deliverables = commonSvc.GetDeliverableByReportType(mailBatch.ClientId.Value, ReportTypes.Delivery);
                                     using (IGeneralService generalSvc = new GeneralService())
                                     {
-                                        StringBuilder deliveryReport = generalSvc.GeneralDeliveryReport(printBatchMailPieces, deliverables.Delimeter);
+                                        string responseReport = generalSvc.GeneralXMLReport(printBatchMailPieces, mailBatch);
 
-                                        if (deliveryReport != null)
+                                        if (!string.IsNullOrWhiteSpace(responseReport))
                                         {
-                                            string deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(mailBatch.BatchName, mailBatch.Clients.AppCode, mailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                                            string deliveryReportFileName = "{0}-{1}-{2}.xml".Fill(mailBatch.Clients.AppCode, mailBatch.Id, commonSvc.GetReportingSequence());
                                             string deliveryReportPath = Path.Combine(amResponsePath, deliveryReportFileName);
 
-                                            File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
+                                            File.WriteAllText(deliveryReportPath, responseReport);
                                         }
                                     }
                                     break;
@@ -1545,29 +1540,18 @@ namespace AM.Core
                                 }
                                 break;
                             default:
+                                using (ICommonService commonSvc = new CommonService())
                                 using (IGeneralService generalSvc = new GeneralService())
                                 {
-                                    var deliverayReportDeliverable = deliverables.Single(r => r.ReportType == ReportTypes.Delivery);
+                                    var filteredMPs = mailPieces.Where(m => (m.ShippingStatus == ShippingStatus.PulledBack.ToString() && m.PrintBatchId == null) || (m.ShippingStatus == ShippingStatus.Error.ToString())).ToList();
+                                    string responseReport = generalSvc.GeneralXMLReport(filteredMPs, mbi.MailBatch, mbi.Client.AppCode);
 
-                                    var pulledBackMailPieces = mailPieces.Where(m => (m.ShippingStatus == ShippingStatus.PulledBack.ToString() && m.PrintBatchId == null)).ToList();
-                                    StringBuilder deliveryReport = generalSvc.GeneralDeliveryReport(pulledBackMailPieces, deliverayReportDeliverable.Delimeter);
-                                    if (deliveryReport != null)
+                                    if (!string.IsNullOrWhiteSpace(responseReport))
                                     {
-                                        string deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                                        string deliveryReportFileName = "{0}-{1}-{2}.xml".Fill(mbi.Client.AppCode, mbi.MailBatch.Id, commonSvc.GetReportingSequence());
                                         string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
 
-                                        File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
-                                    }
-
-                                    var errorReportDeliverable = deliverables.Single(r => r.ReportType == ReportTypes.Error);
-                                    StringBuilder errorReport = generalSvc.GeneralErrorReport(mailPieces, errorReportDeliverable.Delimeter);
-
-                                    if (errorReport != null)
-                                    {
-                                        string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
-                                        string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-
-                                        File.WriteAllText(errorReportPath, errorReport.ToString());
+                                        File.WriteAllText(deliveryReportPath, responseReport);
                                     }
                                 }
                                 break;

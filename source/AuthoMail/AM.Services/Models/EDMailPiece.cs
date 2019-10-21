@@ -20,12 +20,8 @@ namespace AM.Services
         public string ChannelCode { get; set; }
         public int MailBatchId { get; set; }
         public string BatchName { get; set; }
-        public string BusinessFriendlyIdName { get; set; }
-        public string BusinessFriendlyIdValue { get; set; }
+        public string LoanNumber { get; set; }
         public string FileName { get; set; }
-        public string DocumentOrPackageType { get; set; }
-        public int? DocTypeId { get; set; }
-        public int? ClientDocTypeId { get; set; }
         public DateTime? ExpiryDate { get; set; }
         public string PipelineStatus { get; set; }
         public string RcptFirstName { get; set; }
@@ -86,7 +82,6 @@ namespace AM.Services
         public DateTime? ESignedOn { get; set; }
         public int IsESigned { get; set; }
         public bool IsExpired { get; set; }
-        public Int64 PDFFileSize { get; set; }
     }
 
     public class MailPieceInfo

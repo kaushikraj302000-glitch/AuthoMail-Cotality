@@ -13,6 +13,8 @@ namespace AM.Services
     {
         StringBuilder GeneralErrorReport(List<MailPieces> mailPieces, string separator);
         StringBuilder GeneralDeliveryReport(List<MailPieces> mailPieces, string separator);
+        string GeneralXMLReport(List<MailPieces> mailPieces, MailBatches mailBatch);
+        string GeneralXMLReport(List<MailPieces> mailPieces, MailBatchDTO mailBatch, string clientCode);
     }
 
     public class GeneralService : ServiceBase, IGeneralService
@@ -115,6 +117,44 @@ namespace AM.Services
                 }
             }
             return deliveryReport;
+        }
+
+        public string GeneralXMLReport(List<MailPieces> mailPieces, MailBatches mailBatch)
+        {
+            MailBatchResponse mbResponse = new MailBatchResponse()
+            {
+                Id = mailBatch.UniqueId,
+                ClientBatchId = mailBatch.ClientBatchId,
+                ClientCode = mailBatch.Clients.AppCode,
+            };
+
+            foreach (MailPieces mp in mailPieces)
+            {
+                mbResponse.MailPiecesReport.Add(new MailPieceReport() { BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackageType = mp.DocumentOrPackageType, ErrorCode = mp.ErrorCode, ErrorDesc = mp.ErrorDesc, FileName = mp.FileName, Id = mp.UniqueId, Postage = mp.ShippingCost, PrintStatus = mp.ShippingStatus.ParseEnum<PrintStatus>(), PulledBackOn = mp.PulledBackOn.HasValue ? mp.PulledBackOn.Value : DateTime.MinValue, ShippedOn = mp.ShippedOn.HasValue ? mp.ShippedOn.Value : DateTime.MinValue, TotalSheets = mp.TotalPages, WeightMeasured = mp.Weight.HasValue ? mp.Weight.Value : 0 });
+            }
+
+            var serializedString = XmlUtil.Serialize<MailBatchResponse>(mbResponse);
+
+            return serializedString;
+        }
+
+        public string GeneralXMLReport(List<MailPieces> mailPieces, MailBatchDTO mailBatch, string clientCode)
+        {
+            MailBatchResponse mbResponse = new MailBatchResponse()
+            {
+                Id = mailBatch.UniqueId,
+                ClientBatchId = mailBatch.ClientBatchId,
+                ClientCode = clientCode,
+            };
+
+            foreach (MailPieces mp in mailPieces)
+            {
+                mbResponse.MailPiecesReport.Add(new MailPieceReport() { BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackageType = mp.DocumentOrPackageType, ErrorCode = mp.ErrorCode, ErrorDesc = mp.ErrorDesc, FileName = mp.FileName, Id = mp.UniqueId, Postage = mp.ShippingCost, PrintStatus = mp.ShippingStatus.ParseEnum<PrintStatus>(), PulledBackOn = mp.PulledBackOn.HasValue ? mp.PulledBackOn.Value : DateTime.MinValue, ShippedOn = mp.ShippedOn.HasValue ? mp.ShippedOn.Value : DateTime.MinValue, TotalSheets = mp.TotalPages, WeightMeasured = mp.Weight.HasValue ? mp.Weight.Value : 0 });
+            }
+
+            var serializedString = XmlUtil.Serialize<MailBatchResponse>(mbResponse);
+
+            return serializedString;
         }
     }
 }

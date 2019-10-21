@@ -35,9 +35,11 @@ namespace AM.Services
         int GetPrintTrail(DocType docType, DateTime estEffectiveReceivedOn);
         DateTime GetDueDate(DocType docType, DateTime estEffectiveReceivedOn);
         DateTime GetEffectiveEstReceivedOn(DocType docType, DateTime utcReceivedOn);
+        DateTime GetNextWorkingDay(DateTime estDateTime, List<Holiday> HolidayList, bool isSatWorkDay, bool isSunWorkDay);
         int InsertErrorNotifications(int mailBatchId);
         string GetErrorNotificationEmailSubscriberList(int clientId);
         void GetUpdatedDueDateAndPrintLocation(DateTime receivedOn, MailPieceDTO mailPiece, DocType docType, string appCode);
+        int GetReportingSequence();
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -439,6 +441,12 @@ namespace AM.Services
             mailPiece.StdSubmissionTime = GetStandardSubmissionTime(appCode, printVendorDetails.VendorCode, receivedOn, GetSweepTimings());
             mailPiece.MaxSubmissionTime = GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
 
+        }
+
+        public int GetReportingSequence()
+        {
+            string query = "SELECT NEXT VALUE FOR dbo.ReportingSequence";
+            return db.ExecuteScalar<int>(query);
         }
     }
 }
