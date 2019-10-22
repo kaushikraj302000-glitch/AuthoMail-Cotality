@@ -31,7 +31,6 @@ namespace AM.EDelivery
                         log.Error("Channel prefix '{0}' is invalid.".Fill(args[0]));
                         return;
                     }
-
                     channel.ProcessBatches();
                 }
             }
