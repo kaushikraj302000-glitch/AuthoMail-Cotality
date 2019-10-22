@@ -131,19 +131,6 @@ namespace AM.EDelivery
                             int i = eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, mp.ConsentAcceptedOn, mp.ConsentDeclinedOn, mp.DocReviewedOn, mp.DocDownloadedOn, mp.DownloadedIPAddress);
                             scope.Complete();
                         }
-
-                        //if ((mp.IsConsentAccepted && mp.IsDocDownloaded) && (mp.ExpiryDate.Value.Date >= mp.ConsentAcceptedOn.Value && mp.ExpiryDate.Value >= mp.DocDownloadedOn.Value.Date))
-                        //{
-                        //    eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.eDelivered, mp.DocDownloadedOn.Value);
-                        //}
-
-                        //string signingRoomStatus = eDeliveryAPISvc.GetSigningRoomStatus(mp.SigningRoomId.Value).Result;
-
-                        //if (signingRoomStatus == SigningRoomStatus.Expired && Common.Now > mp.ExpiryDate.Value && (!mp.IsDocDownloaded))
-                        //{
-                        //    //Do we need to update error code and description? ask to ravisir
-                        //    eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.Expired, Common.Now);
-                        //}
                     }
                     catch (Exception ex)
                     {
