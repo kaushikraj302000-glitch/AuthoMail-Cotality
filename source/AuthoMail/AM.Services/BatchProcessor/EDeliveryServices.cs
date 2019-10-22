@@ -128,6 +128,7 @@ namespace AM.Services
         {
             using (ICommonService commonSvc = new CommonService())
             {
+                commonSvc.UpdateBatchStatus(mailBatchId, BatchStatus.ShippedAll.ToString());
                 return commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportPrepped, reportPreppedTiming);
             }
         }
