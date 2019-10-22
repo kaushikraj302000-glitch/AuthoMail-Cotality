@@ -23,7 +23,12 @@ namespace AM.Entities
         [XmlAttribute]
         public string ClientCode { get; set; }
         [XmlAttribute]
-        public string ClientBatchId { get; set; }        
+        public string ClientBatchId { get; set; }
+
+        public MailBatchResponse()
+        {
+            this.MailPiecesReport = new List<MailPieceReport>();
+        }
     }
 
     [Serializable]

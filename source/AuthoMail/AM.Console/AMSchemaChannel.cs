@@ -958,6 +958,7 @@ namespace AM.Console
             using (iTextSharp.text.pdf.PdfReader reader = new iTextSharp.text.pdf.PdfReader(localFilePath))
             {
                 pageCount = reader.NumberOfPages;
+                mailPieceDTO.TotalPages = pageCount;//System is going to store TotalPages only for AM.EDMailPieces table from here
             }
 
             //NOTE : Here system is storing file size of received pdf in KB
@@ -1028,7 +1029,7 @@ namespace AM.Console
                 }
                 else
                 {
-                    DocType eDeliveryDocType = docTypeSvc.GetDocTypeByDocTypeName(mbi.Client.Id, "E-Delivery", 0);
+                    DocType eDeliveryDocType = docTypeSvc.GetDocTypeByDocTypeName(mbi.Client.Id, "E-Delivery", mailPieceDTO.TotalPages);
                     mailPieceDTO.ErrorCode = OutComeCodes.No_Error;
                     mailPieceDTO.DocTypeId = eDeliveryDocType.Id;
                     mailPieceDTO.ClientDocTypeId = eDeliveryDocType.ClientDocTypeId;
@@ -1154,10 +1155,15 @@ namespace AM.Console
             string errorReportFileName = "{0}-{1}-{2}.xml".Fill(mbi.Client.AppCode, mbi.MailBatch.Id, commonSvc.GetReportingSequence());
             string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 
-            string errorData = generalSvc.GeneralXMLReport(mailPieces, mbi.MailBatch, mbi.Client.AppCode);
-            if (!string.IsNullOrWhiteSpace(errorData))
+            if (mailPieces.Where(mp => mp.ShippingStatus == ShippingStatus.Error.ToString()).Count() > 0)
             {
-                File.WriteAllText(errorReportPath, errorData.ToString());
+                string errorData = generalSvc.GeneralXMLReport(mailPieces, mbi.MailBatch, mbi.Client.AppCode);
+                if (!string.IsNullOrWhiteSpace(errorData))
+                {
+                    File.WriteAllText(errorReportPath, errorData.ToString());
+                }
+                else
+                    errorReportPath = "";
             }
             else
                 errorReportPath = "";

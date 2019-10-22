@@ -38,7 +38,7 @@ namespace AM.Services
 
         public DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount)
         {
-            string query = "with cte AS(SELECT D.*, CDT.DocTypeName, (SELECT COUNT(*) FROM AM.DocTypeCoverLetters WHERE DocTypeId = D.Id) AS CoverLetterCount FROM AM.DocTypes D INNER JOIN AM.ClientDocTypes CDT ON D.ClientDocTypeId = CDT.Id INNER JOIN AM.DocTypeCoverLetters DC ON D.Id = DC.DocTypeId WHERE CDT.DocTypeName = @DocumentOrPackageName AND CDT.ClientId = @ClientId) SELECT * FROM cte WHERE (cte.CoverLetterCount + {0}) BETWEEN cte.MinPage AND cte.MaxPage AND cte.IsFallBack = 0 AND cte.IsActive = 1".Fill(pageCount);
+            string query = "with cte AS(SELECT D.*, CDT.DocTypeName, ISNULL((SELECT COUNT(*) FROM AM.DocTypeCoverLetters WHERE DocTypeId = D.Id),0) AS CoverLetterCount FROM AM.DocTypes D INNER JOIN AM.ClientDocTypes CDT ON D.ClientDocTypeId = CDT.Id WHERE CDT.DocTypeName = @DocumentOrPackageName AND CDT.ClientId = @ClientId) SELECT * FROM cte WHERE (cte.CoverLetterCount + {0}) BETWEEN cte.MinPage AND cte.MaxPage AND cte.IsFallBack = 0 AND cte.IsActive = 1".Fill(pageCount);
 
             return db.QuerySingleOrDefault<DocType>(query, new { ClientId = clientId, DocumentOrPackageName = documentOrPackageName, PageCount = pageCount });
         }
