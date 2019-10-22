@@ -801,7 +801,7 @@ namespace AM.Console
                                         }
                                         else
                                         {
-                                            DocType eDeliveryDocType = docTypeSvc.GetDocTypeByDocTypeName(client.Id, "E-Delivery", 0);
+                                            DocType eDeliveryDocType = docTypeSvc.GetDocTypeByDocTypeName(client.Id, "E-Delivery", mailPieceDTO.TotalPages);
                                             mailPieceDTO.ErrorCode = OutComeCodes.No_Error;
                                             mailPieceDTO.DocTypeId = eDeliveryDocType.Id;
                                             mailPieceDTO.ClientDocTypeId = eDeliveryDocType.ClientDocTypeId;
