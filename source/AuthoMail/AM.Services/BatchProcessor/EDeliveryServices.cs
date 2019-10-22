@@ -17,6 +17,7 @@ namespace AM.Services
         int InsertEDMailPieceDetails(EDMailPiece mailPiece);
         int UpdateEDMailPiecePipelineStatus(int mailPieceId, string pipeLineStatus, DateTime timestamp);
         int UpdateEDMailPieceActivityStatus(int mailPieceId, string pipeLineStatus, DateTime timestamp);
+        int UpdateEDMailPieceActivityStatus(int mailPieceId, DateTime? consentAcceptedOn, DateTime? consentDeclinedOn, DateTime? docReviewedOn, DateTime? docDownloadedOn, string ipAddress);
         int UpdateEDMailPieceDetails(EDMailPiece mailPiece);
         int ErrorOutOrFallBackEDeliveryPackage(EDMailPiece edmp);
         int UpdateEDeliveredMPForReportingBack(int mailBatchId, DateTime reportPreppedTiming);
@@ -71,6 +72,11 @@ namespace AM.Services
             string query = "UPDATE [AM].[EDeliveryMailPieces] SET [{0}On] = @TimeStamp WHERE Id=@Id".Fill(pipeLineStatus);
 
             return db.Execute(query, new { TimeStamp = timestamp, Id = mailPieceId });
+        }
+
+        public int UpdateEDMailPieceActivityStatus(int mailPieceId, DateTime? consentAcceptedOn, DateTime? consentDeclinedOn, DateTime? docReviewedOn, DateTime? docDownloadedOn, string ipAddress)
+        {
+            return db.Execute("[dbo].[usp_UpdateEDMailPieceActivityStatus]", new { @Id = mailPieceId, @ConsentAcceptedOn = consentAcceptedOn, @ConsentDeclinedOn = consentDeclinedOn, @DocReviewedOn = docReviewedOn, @DocDownloadedOn = docDownloadedOn, @IpAddress = ipAddress }, commandType: CommandType.StoredProcedure);
         }
 
         public int UpdateEDMailPieceDetails(EDMailPiece mailPiece)

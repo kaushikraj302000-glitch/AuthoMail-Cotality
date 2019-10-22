@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Transactions;
 using System.Xml;
 using System.Xml.Schema;
 
@@ -103,47 +104,46 @@ namespace AM.EDelivery
                         IEDeliveryAPIService eDeliveryAPISvc = new EDeliveryAPIService();
 
                         var activityLogs = eDeliveryAPISvc.GetSigningRoomActivityLog(mp.SigningRoomName).Result;
+
                         foreach (var actlog in activityLogs)
                         {
                             switch (actlog.EDeliveryStatus)
                             {
                                 case ActivityStatus.ESignConsentAccepted:
-                                    mp.IsConsentAccepted = true;
                                     mp.ConsentAcceptedOn = actlog.UpdatedDate.PstToUtc();
-                                    eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, EDeliveryStatus.Consented, mp.ConsentAcceptedOn.Value);
                                     break;
                                 case ActivityStatus.ESignConsentDeclined:
-                                    mp.IsConsentDeclined = true;
                                     mp.ConsentDeclinedOn = actlog.UpdatedDate.PstToUtc();
-                                    eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, EDeliveryStatus.NotConsented, mp.ConsentDeclinedOn.Value);
                                     break;
                                 case ActivityStatus.DocumentReviewed:
-                                    mp.IsDocReviewed = true;
                                     mp.DocReviewedOn = actlog.UpdatedDate.PstToUtc();
-                                    eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, EDeliveryStatus.DocReviewed, mp.DocReviewedOn.Value);
                                     break;
                                 case ActivityStatus.DocumentDownloaded:
-                                    mp.IsDocDownloaded = true;
                                     mp.DocDownloadedOn = actlog.UpdatedDate.PstToUtc();
-                                    eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, EDeliveryStatus.DocDownloaded, mp.DocDownloadedOn.Value);
                                     break;
                                 default:
                                     break;
                             }
                         }
-
-                        if ((mp.IsConsentAccepted && mp.IsDocDownloaded) && (mp.ExpiryDate.Value.Date >= mp.ConsentAcceptedOn.Value && mp.ExpiryDate.Value >= mp.DocDownloadedOn.Value.Date))
+                        using (TransactionScope scope = new TransactionScope())
                         {
-                            eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.eDelivered, mp.DocDownloadedOn.Value);
+
+                            int i = eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, mp.ConsentAcceptedOn, mp.ConsentDeclinedOn, mp.DocReviewedOn, mp.DocDownloadedOn, mp.DownloadedIPAddress);
+                            scope.Complete();
                         }
 
-                        string signingRoomStatus = eDeliveryAPISvc.GetSigningRoomStatus(mp.SigningRoomId.Value).Result;
+                        //if ((mp.IsConsentAccepted && mp.IsDocDownloaded) && (mp.ExpiryDate.Value.Date >= mp.ConsentAcceptedOn.Value && mp.ExpiryDate.Value >= mp.DocDownloadedOn.Value.Date))
+                        //{
+                        //    eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.eDelivered, mp.DocDownloadedOn.Value);
+                        //}
 
-                        if (signingRoomStatus == SigningRoomStatus.Expired && Common.Now > mp.ExpiryDate.Value && (!mp.IsDocDownloaded))
-                        {
-                            //Do we need to update error code and description? ask to ravisir
-                            eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.Expired, Common.Now);
-                        }
+                        //string signingRoomStatus = eDeliveryAPISvc.GetSigningRoomStatus(mp.SigningRoomId.Value).Result;
+
+                        //if (signingRoomStatus == SigningRoomStatus.Expired && Common.Now > mp.ExpiryDate.Value && (!mp.IsDocDownloaded))
+                        //{
+                        //    //Do we need to update error code and description? ask to ravisir
+                        //    eDeliverySvc.UpdateEDMailPiecePipelineStatus(mp.Id, EDPipelineStatus.Expired, Common.Now);
+                        //}
                     }
                     catch (Exception ex)
                     {
