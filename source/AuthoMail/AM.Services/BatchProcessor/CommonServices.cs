@@ -59,7 +59,7 @@ namespace AM.Services
 
         public int UpdateEDeliveryPipelineStatus(int batchId, string pipeLineStatus, DateTime timestamp)
         {
-            string query = "UPDATE [AM].[EDeliveryMailPieces] SET PipelineStatus = @pipelineStatus, {0}On = @timestamp WHERE Id = @batchId".Fill(pipeLineStatus);
+            string query = "UPDATE [AM].[EDeliveryMailPieces] SET PipelineStatus = @pipelineStatus, {0}On = @timestamp WHERE MailBatchId = @batchId".Fill(pipeLineStatus);
 
             return db.Execute(query, new { pipeLineStatus = pipeLineStatus, timestamp = timestamp, batchId = batchId });
         }
