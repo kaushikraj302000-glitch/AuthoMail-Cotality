@@ -58,7 +58,8 @@ namespace AM.Services
         public int? SigningRoomId { get; set; }
         public Guid? SigningRoomUniqueId { get; set; }
         public string SigningRoomName { get; set; }
-        public int? DocumentId { get; set; }
+        public int? SRDocId { get; set; }
+        public Guid? SRDocGuId { get; set; }
         public DateTime? ReceivedOn { get; set; }
         public bool IsReceived { get; set; }
         public DateTime? DownloadedOn { get; set; }

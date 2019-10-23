@@ -80,6 +80,8 @@ namespace AM.EDelivery
                         {
                             edmp.SigningRoomId = response.SigningRoom.SigningRoomId;
                             edmp.SigningRoomUniqueId = response.SigningRoom.SigningRoomGuid;
+                            edmp.SRDocId = response.SigningRoom.Documents[0].DocumentId;
+                            edmp.SRDocGuId = response.SigningRoom.Documents[0].DocumentGuid;
                             eDeliverySvc.UpdateEDMailPieceDetails(edmp);
                             eDeliverySvc.UpdateEDMailPiecePipelineStatus(edmp.Id, EDPipelineStatus.SigningRoomCreated, Common.Now);
                             hasError = false;

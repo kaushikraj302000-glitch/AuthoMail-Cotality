@@ -14,7 +14,6 @@ namespace AM.Services
     public interface IEDeliveryService : IDisposable
     {
         List<EDMailPiece> GetBatchesByPipelineStatusAndSFTChannelId(string batchPipelineStatus);
-        int InsertEDMailPieceDetails(EDMailPiece mailPiece);
         int UpdateEDMailPiecePipelineStatus(int mailPieceId, string pipeLineStatus, DateTime timestamp);
         int UpdateEDMailPieceActivityStatus(int mailPieceId, string pipeLineStatus, DateTime timestamp);
         int UpdateEDMailPieceActivityStatus(int mailPieceId, DateTime? consentAcceptedOn, DateTime? consentDeclinedOn, DateTime? docReviewedOn, DateTime? docDownloadedOn, string ipAddress);
@@ -27,7 +26,7 @@ namespace AM.Services
         public List<EDMailPiece> GetBatchesByPipelineStatusAndSFTChannelId(string pipelineStatus)
         {
             //Sql Query
-            string query = "SELECT ED.Id, ED.UniqueId, ED.ClientId, ED.MailBatchId, MP.BusinessFriendlyIdValue AS LoanNumber, ED.FileName, ED.ExpiryDate, ED.PipelineStatus, MP.RcptFirstName, MP.RcptMiddleName,MP.RcptLastName, MP.RcptEmailId, ED.TotalPages, ED.ErrorCode, ED.ErrorDesc, ED.SigningRoomId, ED.SigningRoomUniqueId, ED.SigningRoomName,ED.DocumentId, ED.ReceivedOn, ED.IsReceived, ED.DownloadedOn, ED.IsDownloaded, ED.ValidatedOn, ED.IsValidated, ED.SigningRoomCreatedOn,ED.IsSigningRoomCreated, ED.InvitationSentOn, ED.IsInvitationSent, ED.eDeliveredOn, ED.IseDelivered, ED.ConsentAcceptedOn, ED.IsConsentAccepted,ED.ConsentDeclinedOn, ED.IsConsentDeclined, ED.DocReviewedOn, ED.IsDocReviewed, ED.DocDownloadedOn, ED.IsDocDownloaded, ED.ESignedOn, ED.IsESigned, C.AppCode AS ClientCode,B.SFTChannelId AS ChannelId,S.Code AS ChannelCode,B.BatchName,ED.DownloadedIPAddress FROM[AM].[EDeliveryMailPieces] ED INNER JOIN AM.MailBatches B ON ED.MailBatchId = B.Id INNER JOIN AM.MailPieces MP ON ED.UniqueId = MP.UniqueId AND ED.MailBatchId = MP.MailBatchId LEFT OUTER JOIN Common.Clients C ON ED.ClientId = C.Id LEFT OUTER JOIN Common.SFTChannels S ON B.SFTChannelId = S.Id WHERE ED.PipelineStatus = @PipelineStatus";
+            string query = "SELECT ED.Id, ED.UniqueId, ED.ClientId, ED.MailBatchId, MP.BusinessFriendlyIdValue AS LoanNumber, MP.FileName, MP.ExpiryDate, ED.PipelineStatus, MP.RcptFirstName, MP.RcptMiddleName,MP.RcptLastName, MP.RcptEmailId, ED.TotalPages, ED.ErrorCode, ED.ErrorDesc, ED.SigningRoomId, ED.SigningRoomUniqueId, ED.SigningRoomName,ED.DocumentId, ED.ReceivedOn, ED.IsReceived, ED.DownloadedOn, ED.IsDownloaded, ED.ValidatedOn, ED.IsValidated, ED.SigningRoomCreatedOn,ED.IsSigningRoomCreated, ED.InvitationSentOn, ED.IsInvitationSent, ED.eDeliveredOn, ED.IseDelivered, ED.ConsentAcceptedOn, ED.IsConsentAccepted,ED.ConsentDeclinedOn, ED.IsConsentDeclined, ED.DocReviewedOn, ED.IsDocReviewed, ED.DocDownloadedOn, ED.IsDocDownloaded, ED.ESignedOn, ED.IsESigned, C.AppCode AS ClientCode,B.SFTChannelId AS ChannelId,S.Code AS ChannelCode,B.BatchName,ED.DownloadedIPAddress FROM[AM].[EDeliveryMailPieces] ED INNER JOIN AM.MailBatches B ON ED.MailBatchId = B.Id INNER JOIN AM.MailPieces MP ON ED.UniqueId = MP.UniqueId AND ED.MailBatchId = MP.MailBatchId LEFT OUTER JOIN Common.Clients C ON ED.ClientId = C.Id LEFT OUTER JOIN Common.SFTChannels S ON B.SFTChannelId = S.Id WHERE ED.PipelineStatus = @PipelineStatus";
 
             switch (pipelineStatus)
             {
@@ -53,13 +52,6 @@ namespace AM.Services
             return db.Query<EDMailPiece>(query, new { PipelineStatus = pipelineStatus }).ToList();
         }
 
-        public int InsertEDMailPieceDetails(EDMailPiece mailPiece)
-        {
-            string query = "INSERT INTO [AM].[EDeliveryMailPieces](UniqueId, ClientId, SFTChannelId, BatchUniqueId, BatchName, BusinessFriendlyIdName, BusinessFriendlyIdValue, FileName, FilePattern, DocumentOrPackageType, RcptPrefix, RcptFirstName, RcptMiddleName, RcptLastName, RcptSuffix, RcptPhone, RcptEmailId, RcptOrganization, RcptAddrOptionalLine1AboveStreet, RcptAddrOptionalLine2AboveStreet, RcptAddressStreet, RcptAddressAptOrSuiteOrOther, RcptAddrOptionalLine1BelowStreet, RcptAddrOptionalLine2BelowStreet, RcptAddressCity, RcptAddressState, RcptAddressZIP, RcptAddressCountry, RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RetRcptSuffix, RetRcptPhone, RetRcptOrganization, RetRcptAddrOptionalLine1AboveStreet, RetRcptAddrOptionalLine2AboveStreet, RetRcptAddressStreet, RetRcptAddressAptOrSuiteOrOther, RetRcptAddrOptionalLine1BelowStreet, RetRcptAddrOptionalLine2BelowStreet, RetRcptAddressCity, RetRcptAddressState, RetRcptAddressZIP, RetRcptAddressCountry, IsFallBackRequested) Output Inserted.Id VALUES (@UniqueId, @ClientId, @SFTChannelId, @BatchUniqueId, @BatchName, @BusinessFriendlyIdName, @BusinessFriendlyIdValue, @FileName, @FilePattern, @DocumentOrPackageType, @RcptPrefix, @RcptFirstName, @RcptMiddleName, @RcptLastName, @RcptSuffix, @RcptPhone, @RcptEmailId, @RcptOrganization, @RcptAddrOptionalLine1AboveStreet, @RcptAddrOptionalLine2AboveStreet, @RcptAddressStreet, @RcptAddressAptOrSuiteOrOther, @RcptAddrOptionalLine1BelowStreet, @RcptAddrOptionalLine2BelowStreet, @RcptAddressCity, @RcptAddressState, @RcptAddressZIP, @RcptAddressCountry, @RetRcptPrefix, @RetRcptFirstName, @RetRcptMiddleName, @RetRcptLastName, @RetRcptSuffix, @RetRcptPhone, @RetRcptOrganization, @RetRcptAddrOptionalLine1AboveStreet, @RetRcptAddrOptionalLine2AboveStreet, @RetRcptAddressStreet, @RetRcptAddressAptOrSuiteOrOther, @RetRcptAddrOptionalLine1BelowStreet, @RetRcptAddrOptionalLine2BelowStreet, @RetRcptAddressCity, @RetRcptAddressState, @RetRcptAddressZIP, @RetRcptAddressCountry, @IsFallBackRequested)";
-
-            return db.ExecuteScalar<int>(query, mailPiece);
-        }
-
         public int UpdateEDMailPiecePipelineStatus(int mailPieceId, string pipeLineStatus, DateTime timestamp)
         {
             string query = "UPDATE [AM].[EDeliveryMailPieces] SET [{0}On] = @TimeStamp, PipelineStatus=@PipelineStatus WHERE Id=@Id".Fill(pipeLineStatus);
@@ -81,7 +73,7 @@ namespace AM.Services
 
         public int UpdateEDMailPieceDetails(EDMailPiece mailPiece)
         {
-            string query = @"UPDATE [AM].[EDeliveryMailPieces] SET  ExpiryDate=@ExpiryDate, ErrorCode=@ErrorCode, ErrorDesc=@ErrorDesc, SigningRoomId=@SigningRoomId, SigningRoomUniqueId=@SigningRoomUniqueId, SigningRoomName=@SigningRoomName WHERE Id=@Id";
+            string query = @"UPDATE [AM].[EDeliveryMailPieces] SET  SRDocId=@SRDocId,SRDocGuId=@SRDocGuId, ErrorCode=@ErrorCode, ErrorDesc=@ErrorDesc, SigningRoomId=@SigningRoomId, SigningRoomUniqueId=@SigningRoomUniqueId, SigningRoomName=@SigningRoomName WHERE Id=@Id";
 
             return db.Execute(query, mailPiece);
         }
@@ -95,12 +87,20 @@ namespace AM.Services
                 using (IDocTypeService docTypeSvc = new DocTypeService())
                 using (IEDeliveryService eDeliverySvc = new EDeliveryService())
                 {
+                    //Here system is making received on date and time update to latest after fallback.
+                    var newReceivedOnDateTime = Common.Now;
+                    commonSvc.UpdateBatchPipeLineStatus(edmp.MailBatchId, BatchPipelineStatus.Received, newReceivedOnDateTime);
+                    commonSvc.UpdateBatchPipeLineStatus(edmp.MailBatchId, BatchPipelineStatus.Downloaded, newReceivedOnDateTime);
+
+                    //System will calculate print trail,print location, duedate etc.
                     MailPieceDTO mailPieceDTO = mpSvc.GetMailPieceDataByUniqueIdAndMBId(edmp.UniqueId, edmp.MailBatchId);
                     DocType mpDocType = docTypeSvc.GetDocTypeById(mailPieceDTO.DocTypeId.Value);
-                    commonSvc.GetUpdatedDueDateAndPrintLocation(Common.Now, mailPieceDTO, mpDocType, edmp.ClientCode);
+                    commonSvc.GetUpdatedDueDateAndPrintLocation(newReceivedOnDateTime, mailPieceDTO, mpDocType, edmp.ClientCode);
                     mpSvc.UpdateBatchMailPieceDetails(mailPieceDTO);
-                    commonSvc.UpdateBatchPipeLineStatus(edmp.MailBatchId, BatchPipelineStatus.Validated, Common.Now);
-                    eDeliverySvc.UpdateEDMailPiecePipelineStatus(edmp.Id, EDPipelineStatus.ReportedBack, Common.Now);
+                   
+                    var newValidatedOnDateTime = Common.Now;
+                    commonSvc.UpdateBatchPipeLineStatus(edmp.MailBatchId, BatchPipelineStatus.Validated, newValidatedOnDateTime);
+                    eDeliverySvc.UpdateEDMailPiecePipelineStatus(edmp.Id, EDPipelineStatus.ReportedBack, newValidatedOnDateTime);
                     return 1;
                 }
             }
