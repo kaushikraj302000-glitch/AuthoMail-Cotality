@@ -530,10 +530,16 @@ namespace AM.Console
 
                 Client client = clientSvc.GetClientById(mailBatch.ClientId);
 
-                foreach (MailPieceDTO mailPiece in mailPieces.Where(mp => (mp.IsEDeliveryRequested && mp.IsFallBackRequested) || !mp.IsEDeliveryRequested))
+                foreach (MailPieceDTO mailPiece in mailPieces)
                 {
-                    if (mailPiece.ShippingStatus == ShippingStatus.Error.ToString())
+                    if ((mailPiece.IsEDeliveryRequested && !mailPiece.IsFallBackRequested))
                     {
+                        //Here system will set receivedOn datetime as Effective received because package is not opted for print and ship process.
+                        mailPiece.EffectiveReceivedOnEst = mailBatch.ReceivedOn.Value.UtcToEst();
+                    }
+                    else if (mailPiece.ShippingStatus == ShippingStatus.Error.ToString())
+                    {
+
                         if (!mailPiece.DocTypeId.HasValue)
                         {
                             //NOTE : If System didn't find any doctypeid for particular mail piece then it will take default max cut-off time of that particular client for calculating effective received on date.
