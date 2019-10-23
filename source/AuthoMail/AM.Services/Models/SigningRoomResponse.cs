@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -43,9 +44,17 @@ namespace AM.Services
         public DateTime ExpirationDate { get; set; }
         [Description("Returns the SigningRoom status.")]
         public string Status { get; set; }
+        [JsonProperty("Documents")]
+        public List<DocumentResponse> Documents { get; set; }
         [Description("Returns the name of the user that updated the model.")]
         public string UpdatedBy { get; set; }
         [Description("Returns the date and time that the model was updated.")]
         public DateTime UpdatedDate { get; set; }
+    }
+
+    public class DocumentResponse
+    {
+        public int DocumentId { get; set; }
+        public Guid DocumentGuid { get; set; }
     }
 }
