@@ -305,6 +305,8 @@ namespace AM.EDelivery
                     {
                         try
                         {
+                            edmp.ErrorCode = OutComeCodes.SigningRoomExpired;
+                            edmp.ErrorDesc = "Signing room is expired for E-Delivery.";
                             #region Check ErrorOut or IsFallBackRequested Package
                             eDeliverySvc.ErrorOutOrFallBackEDeliveryPackage(edmp);
                             #endregion

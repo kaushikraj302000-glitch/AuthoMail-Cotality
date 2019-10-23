@@ -97,7 +97,7 @@ namespace AM.Entities
         public const string Invalid_ShippingDetail = "Invalid_ShippingDetail";
         public const string Invalid_DuplicateKey = "Invalid_DuplicateKey";
         public const string Issue_In_EDelivery = "Issue_In_EDelivery";
-
+        public const string SigningRoomExpired = "SigningRoomExpired";
         public static string GetAMCMappingCode(string amOutcomecode)
         {
             switch (amOutcomecode)
