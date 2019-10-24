@@ -16,7 +16,7 @@ namespace AM.Services
         List<EDMailPiece> GetBatchesByPipelineStatusAndSFTChannelId(string batchPipelineStatus);
         int UpdateEDMailPiecePipelineStatus(int mailPieceId, string pipeLineStatus, DateTime timestamp);
         int UpdateEDMailPieceActivityStatus(int mailPieceId, string pipeLineStatus, DateTime timestamp);
-        int UpdateEDMailPieceActivityStatus(int mailPieceId, DateTime? consentAcceptedOn, DateTime? consentDeclinedOn, DateTime? docReviewedOn, DateTime? docDownloadedOn, string ipAddress);
+        int UpdateEDMailPieceActivityStatus(int mailPieceId, DateTime? consentAcceptedOn, DateTime? consentDeclinedOn, DateTime? docReviewedOn, DateTime? docDownloadedOn, DateTime? expiryDate, string ipAddress);
         int UpdateEDMailPieceDetails(EDMailPiece mailPiece);
         int ErrorOutOrFallBackEDeliveryPackage(EDMailPiece edmp);
         int UpdateEDeliveredMPForReportingBack(int mailBatchId, DateTime reportPreppedTiming);
@@ -66,9 +66,9 @@ namespace AM.Services
             return db.Execute(query, new { TimeStamp = timestamp, Id = mailPieceId });
         }
 
-        public int UpdateEDMailPieceActivityStatus(int mailPieceId, DateTime? consentAcceptedOn, DateTime? consentDeclinedOn, DateTime? docReviewedOn, DateTime? docDownloadedOn, string ipAddress)
+        public int UpdateEDMailPieceActivityStatus(int mailPieceId, DateTime? consentAcceptedOn, DateTime? consentDeclinedOn, DateTime? docReviewedOn, DateTime? docDownloadedOn, DateTime? expiryDate, string ipAddress)
         {
-            return db.Execute("[dbo].[usp_UpdateEDMailPieceActivityStatus]", new { @Id = mailPieceId, @ConsentAcceptedOn = consentAcceptedOn, @ConsentDeclinedOn = consentDeclinedOn, @DocReviewedOn = docReviewedOn, @DocDownloadedOn = docDownloadedOn, @IpAddress = ipAddress }, commandType: CommandType.StoredProcedure);
+            return db.Execute("[dbo].[usp_UpdateEDMailPieceActivityStatus]", new { @Id = mailPieceId, @ConsentAcceptedOn = consentAcceptedOn, @ConsentDeclinedOn = consentDeclinedOn, @DocReviewedOn = docReviewedOn, @DocDownloadedOn = docDownloadedOn, @ExpiryDate = expiryDate, @IpAddress = ipAddress }, commandType: CommandType.StoredProcedure);
         }
 
         public int UpdateEDMailPieceDetails(EDMailPiece mailPiece)
@@ -97,7 +97,7 @@ namespace AM.Services
                     DocType mpDocType = docTypeSvc.GetDocTypeById(mailPieceDTO.DocTypeId.Value);
                     commonSvc.GetUpdatedDueDateAndPrintLocation(newReceivedOnDateTime, mailPieceDTO, mpDocType, edmp.ClientCode);
                     mpSvc.UpdateBatchMailPieceDetails(mailPieceDTO);
-                   
+
                     var newValidatedOnDateTime = Common.Now;
                     commonSvc.UpdateBatchPipeLineStatus(edmp.MailBatchId, BatchPipelineStatus.Validated, newValidatedOnDateTime);
                     eDeliverySvc.UpdateEDMailPiecePipelineStatus(edmp.Id, EDPipelineStatus.ReportedBack, newValidatedOnDateTime);
