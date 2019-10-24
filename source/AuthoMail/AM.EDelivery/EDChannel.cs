@@ -128,7 +128,7 @@ namespace AM.EDelivery
                         using (TransactionScope scope = new TransactionScope())
                         {
 
-                            int i = eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, mp.ConsentAcceptedOn, mp.ConsentDeclinedOn, mp.DocReviewedOn, mp.DocDownloadedOn, mp.DownloadedIPAddress);
+                            int i = eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, mp.ConsentAcceptedOn, mp.ConsentDeclinedOn, mp.DocReviewedOn, mp.DocDownloadedOn, mp.ExpiryDate, mp.DownloadedIPAddress);
                             scope.Complete();
                         }
                     }
