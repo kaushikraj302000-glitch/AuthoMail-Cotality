@@ -382,8 +382,6 @@ namespace PCI.Service
                         TotalImages = package.TotalPages,
                         PaperSize = package.PrintSize,
                         PrintFormat = package.PrintFormat.ParseEnum<PrintFormat>(),
-                        EnvelopePartNo = package.EnvelopePartNo.ToString(),
-                        EnvelopeDesc = package.EnvelopeDesc,
                         BREPartNo = package.BREPartNo.ToString(),
                         BREDesc = package.BREDesc,
                         QCReqd = package.DivertVS3 == 1 ? true : false,
