@@ -444,6 +444,8 @@ namespace AM.Console
                         if (validMailPieces.Count > 0)
                             Channel.ValidateAddressType(mailBatch, validMailPieces);
 
+                        validMailPieces = validMailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
+
                         if (validMailPieces.Count == 0)
                         {
                             mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid.ToString();
