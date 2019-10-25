@@ -32,6 +32,13 @@ namespace AM.Services
 
                     HttpResponseMessage response = await client.PostAsync(Config.E_API_CreateSigningRoomURL, content); //"api/SigningRoomManager/SigningRooms/CreateFromPackage"
                     var responseString = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode || response.StatusCode != HttpStatusCode.OK)
+                    {
+                        return new SigningRoomResponse()
+                        {
+                            Error = responseString
+                        };
+                    }
                     SigningRoomResponse signingRoomResponse = JsonConvert.DeserializeObject<SigningRoomResponse>(responseString);
                     return signingRoomResponse;
                 }
