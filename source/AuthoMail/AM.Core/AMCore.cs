@@ -596,6 +596,10 @@ namespace AM.Core
 
         private static void GenerateLabelErrorReport(MailBatchInfo mbi, List<MailPieces> mailPieces, Deliverable deliverable)
         {
+            //If System do not find new errors in mail pieces apart from already provided error reports then it will just return.
+            if (mailPieces.Where(mp => mp.ShippingStatus == ShippingStatus.Error.ToString()).Count() == 0)
+                return;
+
             SFTChannel sftChannel;
             using (IClientService clientSvc = new ClientService())
             using (IMailBatchService mailBatchSvc = new MailBatchService())
@@ -605,6 +609,8 @@ namespace AM.Core
 
                 switch (sftChannel.Code.Split('_')[0])
                 {
+                    case "ALASKA":
+                        break;
                     case "AMC":
                         using (IAMCService amcSvc = new AMCService())
                         {
