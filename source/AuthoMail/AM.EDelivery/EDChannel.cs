@@ -120,6 +120,7 @@ namespace AM.EDelivery
                                     break;
                                 case ActivityStatus.DocumentDownloaded:
                                     mp.DocDownloadedOn = actlog.UpdatedDate.PstToUtc();
+                                    mp.DownloadedIPAddress = actlog.IPAddress;
                                     break;
                                 default:
                                     break;
