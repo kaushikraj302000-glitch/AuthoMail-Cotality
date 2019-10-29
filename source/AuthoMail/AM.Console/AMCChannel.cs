@@ -829,7 +829,7 @@ namespace AM.Console
                             log.Error(msg, ex);
 
                             mailPieceDTO.ErrorCode = OutComeCodes.Unknown_Error;
-                            mailPieceDTO.ErrorDesc = msg + Environment.NewLine + ex.Message;
+                            mailPieceDTO.ErrorDesc = msg + Environment.NewLine + ex.ToString();
                             mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                         }
 

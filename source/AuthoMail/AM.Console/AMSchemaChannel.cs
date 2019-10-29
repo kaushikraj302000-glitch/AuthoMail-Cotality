@@ -669,7 +669,7 @@ namespace AM.Console
 
                             //Here we are inserting BusinessIdentifier for Client if not exist.
                             ClientBusinessIdentifier clientBusinessIdDetails = commonSvc.GetBusinessIdNameFromClientId(client.Id);
-                            if (clientBusinessIdDetails == null)
+                            if (clientBusinessIdDetails == null || clientBusinessIdDetails.BusinessIdName != requests.BusinessFriendlyIdName)
                             {
                                 commonSvc.InsertBusinessIdentifierName(client.Id, mailPieceDTO.BusinessFriendlyIdName.TrimIfNotNull());
                             }
@@ -863,7 +863,7 @@ namespace AM.Console
                             log.Error(msg, ex);
 
                             mailPieceDTO.ErrorCode = OutComeCodes.Unknown_Error;
-                            mailPieceDTO.ErrorDesc = msg + Environment.NewLine + ex.Message;
+                            mailPieceDTO.ErrorDesc = msg + Environment.NewLine + ex.ToString();
                             mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                         }
 
@@ -1154,10 +1154,11 @@ namespace AM.Console
         {
             string errorReportFileName = "{0}-{1}-{2}.xml".Fill(mbi.Client.AppCode, mbi.MailBatch.Id, commonSvc.GetReportingSequence());
             string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+            var erroredMPs = mailPieces.Where(mp => mp.ShippingStatus == ShippingStatus.Error.ToString()).ToList();
 
-            if (mailPieces.Where(mp => mp.ShippingStatus == ShippingStatus.Error.ToString()).Count() > 0)
+            if (erroredMPs.Count() > 0)
             {
-                string errorData = generalSvc.GeneralXMLReport(mailPieces, mbi.MailBatch, mbi.Client.AppCode);
+                string errorData = generalSvc.GeneralXMLReport(erroredMPs, mbi.MailBatch, mbi.Client.AppCode);
                 if (!string.IsNullOrWhiteSpace(errorData))
                 {
                     File.WriteAllText(errorReportPath, errorData.ToString());
