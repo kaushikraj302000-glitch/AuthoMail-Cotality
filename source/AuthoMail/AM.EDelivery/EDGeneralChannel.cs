@@ -272,11 +272,14 @@ namespace AM.EDelivery
                 default:
                     using (IGeneralService generalSvc = new GeneralService())
                     {
+                        var mailBatch = mp.MailBatches;
+                        var client = mp.Clients;
+                        mailBatch.Clients = client;
                         string responseReport = generalSvc.GeneralXMLReport(new List<MailPieces>() { mp }, mp.MailBatches);
 
                         if (!string.IsNullOrWhiteSpace(responseReport))
                         {
-                            string deliveryReportFileName = "{0}-{1}-{2}.xml".Fill(mpi.Client.AppCode, mp.MailBatchId, commonSvc.GetReportingSequence());
+                            string deliveryReportFileName = "{0}-{1}-{2}.xml".Fill(mailBatch.Clients.AppCode, mp.MailBatchId, commonSvc.GetReportingSequence());
                             string deliveryReportPath = Path.Combine(amResponsePath, deliveryReportFileName);
 
                             File.WriteAllText(deliveryReportPath, responseReport);
