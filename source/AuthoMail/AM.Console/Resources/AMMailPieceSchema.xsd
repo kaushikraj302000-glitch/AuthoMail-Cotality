@@ -39,13 +39,13 @@
   <xs:complexType name="Address">
     <xs:attribute name="OptionalLine1AboveStreet" type="xs:string" use="optional"  />
     <xs:attribute name="OptionalLine2AboveStreet" type="xs:string" use="optional"  />
-    <xs:attribute name="Street" type="nonEmptyString" use="required"  />
+    <xs:attribute name="Street" type="nonEmptyString" use="optional"  />
     <xs:attribute name="AptOrSuiteOrOther" type="xs:string" use="optional"  />
     <xs:attribute name="OptionalLine1BelowStreet" type="xs:string" use="optional"  />
     <xs:attribute name="OptionalLine2BelowStreet" type="xs:string" use="optional"  />
-    <xs:attribute name="City" type="nonEmptyString" use="required"  />
-    <xs:attribute name="State" type="nonEmptyString" use="required"  />
-    <xs:attribute name="Zip" type="USZIP" use="required"  />
+    <xs:attribute name="City" type="nonEmptyString" use="optional"  />
+    <xs:attribute name="State" type="nonEmptyString" use="optional"  />
+    <xs:attribute name="Zip" type="USZIP" use="optional"  />
     <xs:attribute name="Country" type="nonEmptyString" use="optional"  />
   </xs:complexType>
   <xs:complexType name="eDelivery">

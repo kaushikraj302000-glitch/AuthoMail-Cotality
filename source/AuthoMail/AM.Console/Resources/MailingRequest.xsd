@@ -35,7 +35,7 @@
   <xs:complexType name="Address">
     <xs:attribute name="OptionalLine1AboveStreet" type="xs:string" use="optional"  />
     <xs:attribute name="OptionalLine2AboveStreet" type="xs:string" use="optional"  />
-    <xs:attribute name="Street" type="tns:nonEmptyString" use="required"  />
+    <xs:attribute name="Street" type="tns:nonEmptyString" use="optional"  />
     <xs:attribute name="AptOrSuiteOrOther" type="xs:string" use="optional"  />
     <xs:attribute name="OptionalLine1BelowStreet" type="xs:string" use="optional"  />
     <xs:attribute name="OptionalLine2BelowStreet" type="xs:string" use="optional"  />
