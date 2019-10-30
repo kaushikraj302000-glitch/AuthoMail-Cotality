@@ -596,8 +596,9 @@ namespace AM.Core
 
         private static void GenerateLabelErrorReport(MailBatchInfo mbi, List<MailPieces> mailPieces, Deliverable deliverable)
         {
+            var erroredMPs = mailPieces.Where(mp => mp.ShippingStatus == ShippingStatus.Error.ToString()).ToList();
             //If System do not find new errors in mail pieces apart from already provided error reports then it will just return.
-            if (mailPieces.Where(mp => mp.ShippingStatus == ShippingStatus.Error.ToString()).Count() == 0)
+            if (erroredMPs.Count() == 0)
                 return;
 
             SFTChannel sftChannel;
@@ -657,12 +658,11 @@ namespace AM.Core
 
                             string localErrorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
                             string ftpErrorReportPath = Path.Combine(deliverable.UploadPath, errorReportFileName);
-
-                            StringBuilder errorData = generalSvc.GeneralErrorReport(mailPieces, deliverable.Delimeter);
+                            
                             string responseReport = generalSvc.GeneralXMLReport(mailPieces, mbi.MailBatch, mbi.Client.AppCode);
                             if (!string.IsNullOrWhiteSpace(responseReport))
                             {
-                                File.WriteAllText(localErrorReportPath, errorData.ToString());
+                                File.WriteAllText(localErrorReportPath, responseReport);
 
                                 SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannel.Protocol), sftChannel.Host, sftChannel.UserName, sftChannel.Password, 300000);
                                 sftSite.Connect();
@@ -901,7 +901,8 @@ namespace AM.Core
                     default:
                         using (IGeneralService generalSvc = new GeneralService())
                         {
-                            string responseReport = generalSvc.GeneralXMLReport(mailPieces, mbi.MailBatch, mbi.Client.AppCode);
+                            var errorMPs = mailPieces.Where(mp => mp.ShippingStatus == ShippingStatus.Error.ToString()).ToList();
+                            string responseReport = generalSvc.GeneralXMLReport(errorMPs, mbi.MailBatch, mbi.Client.AppCode);
 
                             if (!string.IsNullOrWhiteSpace(responseReport))
                             {
