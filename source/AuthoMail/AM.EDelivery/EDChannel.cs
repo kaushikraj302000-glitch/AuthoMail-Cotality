@@ -51,6 +51,7 @@ namespace AM.EDelivery
                 this.SendInvitations();
                 this.EDelivered();
                 this.Expired();
+                this.Declined();
             }
             catch (Exception ex)
             {
@@ -80,6 +81,10 @@ namespace AM.EDelivery
         /// Take all Expired records and generate reports
         /// </summary>
         protected abstract void Expired();
+        /// <summary>
+        /// Take all Consent Declined records and generate reports
+        /// </summary>
+        protected abstract void Declined();
 
         #region Check Activity Logs
         public static void CheckActivityLogs()

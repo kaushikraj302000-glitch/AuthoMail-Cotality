@@ -54,6 +54,7 @@ namespace AM.Entities
         public const string InvitationSent = "InvitationSent";
         public const string eDelivered = "eDelivered";
         public const string Expired = "Expired";
+        public const string Declined = "Declined";
         public const string ReportedBack = "ReportedBack";
     }
 
@@ -98,6 +99,7 @@ namespace AM.Entities
         public const string Invalid_DuplicateKey = "Invalid_DuplicateKey";
         public const string Issue_In_EDelivery = "Issue_In_EDelivery";
         public const string SigningRoomExpired = "SigningRoomExpired";
+        public const string ConsentDeclined = "ConsentDeclined";
         public static string GetAMCMappingCode(string amOutcomecode)
         {
             switch (amOutcomecode)

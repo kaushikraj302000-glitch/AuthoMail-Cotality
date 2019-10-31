@@ -337,5 +337,54 @@ namespace AM.EDelivery
 
             log.Debug("EDelivery Expired job queue is completed.");
         }
+
+        protected override void Declined()
+        {
+            log.Debug("EDelivery Declined job queue is started.");
+
+            List<EDMailPiece> declinedMPs = eDeliverySvc.GetBatchesByPipelineStatusAndSFTChannelId(EDPipelineStatus.Declined);
+
+            if (declinedMPs.Count == 0)
+            {
+                log.Debug("EDelivery Declined job queue is empty.");
+                log.Debug("EDelivery Declined job queue is completed.");
+                return;
+            }
+
+            foreach (EDMailPiece edmp in declinedMPs)
+            {
+                try
+                {
+                    using (TransactionScope scope = new TransactionScope())
+                    {
+                        try
+                        {
+                            edmp.ErrorCode = OutComeCodes.ConsentDeclined;
+                            edmp.ErrorDesc = "Consent is declined by participant.";
+                            #region Check ErrorOut or IsFallBackRequested Package
+                            eDeliverySvc.ErrorOutOrFallBackEDeliveryPackage(edmp);
+                            #endregion
+
+                            scope.Complete();
+                        }
+                        catch (Exception ex)
+                        {
+                            var msg = "Error occured while processing Declined packages EDMailPiece-Id {0} and BatchName='{1}.xml'".Fill(edmp.Id, edmp.BatchName);
+                            log.Error(msg, ex);
+                            MailUtility.SendUnexpectedExceptionEmail(msg + "<br/> Error Message is {0}".Fill(ex));
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var msg = "Error occured while processing Declined packages for Id {0} for client {1} with below error <br/>{2}".Fill(edmp.Id, edmp.ClientCode, ex);
+                    log.Error(msg);
+                    MailUtility.SendUnexpectedExceptionEmail(msg);
+                    continue;
+                }
+            }
+
+            log.Debug("EDelivery Declined job queue is completed.");
+        }
     }
 }
