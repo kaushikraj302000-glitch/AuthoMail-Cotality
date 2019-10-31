@@ -273,8 +273,9 @@ group by dc.DocTypeName order by dc.DocTypeName";
                 inner join [AM].[MailBatches] b on m.MailBatchId=b.Id
 				inner join [Common].[Clients] c on m.ClientId=c.Id
                 inner join [AM].[DocTypes] d ON m.DocTypeId=d.Id
+                inner join AM.ClientDocTypes dc  on d.ClientDocTypeId=dc.Id
                 where b.ClientId=@clientId
-                and m.ShippingStatus=@status and b.ReceivedOn between @startDate and @endDate and d.DocTypeCode=@DocTypeCode";
+                and m.ShippingStatus=@status and b.ReceivedOn between @startDate and @endDate and dc.DocTypeName=@DocTypeCode";
             //var data = db.Query<MailPieces>(query, new { startDate = date.ToStartDateTime().EstToUtc(), endDate = date.ToEndDateTime().EstToUtc(), status = status, clientId = clientId, DocTypeCode = DocTypeCode }).ToList();
             //return data;
 
