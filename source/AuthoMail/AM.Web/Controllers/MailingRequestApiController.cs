@@ -31,7 +31,7 @@ namespace AM.Web.Controllers
             return new MailPiece()
             {
                 DocumentOrPackage = new DocumentOrPackage(),
-                eDelivery = new eDelivery(),
+                // eDelivery = new eDelivery(),
                 RecipientInfo = new RecipientInfo() { Recipient = new Recipient(), Address = new Address() },
                 ReturnInfo = new ReturnInfo() { Recipient = new Recipient(), Address = new Address() },
                 ShippingInfo = new ShippingInfo() { Carrier = new Carrier(), ServiceType = new ServiceType(), AccountCode = null },
