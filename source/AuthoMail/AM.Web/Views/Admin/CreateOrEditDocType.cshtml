@@ -82,8 +82,8 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="Clients">Clients</label>
-                                        @Html.DropDownListFor(model => model.ClientId, ViewBag.Clients as SelectList, htmlAttributes: new { @class = " form-control selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Client" })
+                                        <label for="Client">Client</label>
+                                        @Html.DropDownListFor(model => model.ClientId, ViewBag.Clients as SelectList, htmlAttributes: new { @class = " form-control selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Client", @data_title = "Select Client" })
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -135,7 +135,7 @@
                                                     <label>Envelope</label>
                                                 </div>
                                                 <div class="col-md-2 colmd" style="border-right:none;">
-                                                    <label>BREEnvelope</label>
+                                                    <label>BRE Envelope</label>
                                                 </div>
                                             </div>
 
@@ -528,7 +528,7 @@
 
             <div class="panel-footer">
                 <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
-                <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> Cancel</button>
+                <a href="/Admin/ManageDocumentTypes" class="btn btn-default"><i class="fa fa-close"></i> Cancel</a>
             </div>
         </div>
     </form>
