@@ -66,6 +66,10 @@ namespace AM.Console
                 {
                     Purging.DeleteFiles();
                 }
+                else if (args[0] == "PurgeDBRecords")
+                {
+                    Purging.PurgeDBRecords();
+                }
                 else
                 {
                     using (var channel = ChannelFactory.Create(args))
