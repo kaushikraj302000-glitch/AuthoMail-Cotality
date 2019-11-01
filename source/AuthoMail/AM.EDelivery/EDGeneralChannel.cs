@@ -39,7 +39,7 @@ namespace AM.EDelivery
                 try
                 {
                     MailPieceInfo mpi = new MailPieceInfo(edmp.ClientCode, Config.Common_AuthoMailRootFolder, edmp.MailBatchId, edmp.BatchName);
-                    edmp.SigningRoomName = "{0}-{1}-{2}".Fill(edmp.ClientCode, Path.GetFileNameWithoutExtension(edmp.FileName), edmp.Id);
+                    edmp.SigningRoomName = "{0}-{1}-{2}-{3}".Fill(edmp.ClientCode, Path.GetFileNameWithoutExtension(edmp.FileName), edmp.Id, Common.Now.ToString("yyyyMMddhhmmss"));
                     DateTime expiryDate = edmp.ExpiryDate.Value;
                     edmp.ExpiryDate = expiryDate;
 
@@ -87,10 +87,18 @@ namespace AM.EDelivery
                             hasError = false;
                             break;
                         }
+                        else if (response.HasError && response.Error.Contains("already exists") || response.Error.Contains("expiration date must be greater than or equal to"))
+                        {
+                            edmp.ErrorCode = OutComeCodes.Issue_In_EDelivery;
+                            edmp.ErrorDesc = response.Error;
+                            break;
+                        }
 
                         var msg = "Error occured while creating signing room for Id {0} with Error".Fill(edmp.Id) + Environment.NewLine + response.Error;
                         log.Error(msg);
                         MailUtility.SendUnexpectedExceptionEmail(msg);
+                        edmp.ErrorCode = OutComeCodes.Issue_In_EDelivery;
+                        edmp.ErrorDesc = "Error occured while creating signing room for Loan Number:{0}".Fill(edmp.LoanNumber);
                         System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
                         hasError = true;
                         reTrycnt++;
@@ -98,10 +106,7 @@ namespace AM.EDelivery
 
                     if (hasError)
                     {
-                        edmp.ErrorCode = OutComeCodes.Issue_In_EDelivery;
-                        edmp.ErrorDesc = "Error occured while creating signing room for Loan Number:{0}".Fill(edmp.LoanNumber);
                         eDeliverySvc.UpdateEDMailPieceDetails(edmp);
-
                         #region Check ErrorOut or IsFallBackRequested Package
                         eDeliverySvc.ErrorOutOrFallBackEDeliveryPackage(edmp);
                         #endregion
