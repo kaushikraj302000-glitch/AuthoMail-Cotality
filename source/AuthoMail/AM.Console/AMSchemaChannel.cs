@@ -744,7 +744,21 @@ namespace AM.Console
                             {
                                 mailPieceDTO.IsEDeliveryRequested = true;
                                 mailPieceDTO.IsFallBackRequested = requests.eDelivery.PrintAndShipOnExpiry;
-                                mailPieceDTO.ExpiryDate = requests.eDelivery.ExpiryDate.ToEndDateTime().EstToUtc();
+                                if ( requests.eDelivery.ExpiryDate == null)
+                                {
+                                    if (client.SigningRoomExpiryDays > 0)
+                                    {
+                                        mailPieceDTO.ExpiryDate = GetDefaultExpiryDate(mailBatch.ReceivedOn.Value.UtcToEst(), client.SigningRoomExpiryDays).ToEndDateTime().EstToUtc();
+                                    }
+                                    else
+                                    {
+                                        mailPieceDTO.ExpiryDate = null;
+                                    }
+                                }
+                                else
+                                {
+                                    mailPieceDTO.ExpiryDate = Convert.ToDateTime(requests.eDelivery.ExpiryDate).ToEndDateTime().EstToUtc();
+                                }
                             }
 
                             if (requests.ReturnInfo == null)
@@ -944,6 +958,18 @@ namespace AM.Console
             log.Debug("Validate job queue is completed.");
         }
 
+        private DateTime GetDefaultExpiryDate(DateTime receivedOnEst, int expiryDays)
+        {
+            DateTime expiryDate = receivedOnEst.AddDays(expiryDays);
+
+            if (!commonSvc.IsBusinessDay(expiryDate, Config.Common_FederalHolidays, false, false))
+            {
+                expiryDate = commonSvc.GetNextWorkingDay(receivedOnEst.UtcToEst(), Config.Common_FederalHolidays, false, false);
+            }
+
+            return expiryDate;
+        }
+
         private MailPieceValidationResult ValidateCommonValidation(MailPieceDTO mailPieceDTO, MailBatchInfo mbi)
         {
             //in last system will check for general validations
@@ -984,6 +1010,12 @@ namespace AM.Console
                 {
                     mailPieceDTO.ErrorCode = OutComeCodes.Recipient_Details_Missing_Or_Invalid;
                     mailPieceDTO.ErrorDesc = "Recipient Email address is not specified for E-Delivery request.";
+                    mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
+                }
+                else if (mailPieceDTO.ExpiryDate == null && mailPieceDTO.IsEDeliveryRequested)//Here system will validate if EDelivery is requested then Expiry date is required, if not exist then error out
+                {
+                    mailPieceDTO.ErrorCode = OutComeCodes.Issue_In_EDelivery;
+                    mailPieceDTO.ErrorDesc = "Client has not provided expiry date or expiry days while creating signing room.";
                     mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                 }
                 else if (!mailPieceDTO.IsReturnInfoSpecified && !mbi.MailBatch.IsReturnInfoSpecified && !docType.IsReturnInfoSpecified)

@@ -21,6 +21,7 @@ namespace AM.Services
         public static string Common_AuthoMailRootFolder { get; private set; }
         public static string Common_EDeliveryRootFolder { get; private set; }
         public static List<Holiday> Common_Holidays { get; private set; }
+        public static List<Holiday> Common_FederalHolidays { get; private set; }
         public static int Common_ProcessingBufferTime { get; private set; }
         public static string Common_FedExTrackingAccountCode { get; private set; }
         public static string Common_FedExTrackingUrl { get; private set; }
@@ -221,6 +222,7 @@ namespace AM.Services
             using (ICommonService commonSvc = new CommonService())
             {
                 Common_Holidays = commonSvc.GetHolidayList();
+                Common_FederalHolidays = commonSvc.GetFederalHolidayList();
             }
         }
 

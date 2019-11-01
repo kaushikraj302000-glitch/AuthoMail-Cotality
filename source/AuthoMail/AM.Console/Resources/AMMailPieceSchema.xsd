@@ -49,7 +49,7 @@
     <xs:attribute name="Country" type="nonEmptyString" use="optional"  />
   </xs:complexType>
   <xs:complexType name="eDelivery">
-    <xs:attribute name="ExpiryDate" type="xs:date" use="required" />
+    <xs:attribute name="ExpiryDate" type="xs:date" use="optional" />
     <xs:attribute name="PrintAndShipOnExpiry" type="xs:boolean" use="required" />
   </xs:complexType>
   <xs:complexType name="ReturnInfo">

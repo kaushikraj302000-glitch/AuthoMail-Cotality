@@ -25,6 +25,7 @@ namespace AM.Services
         List<Deliverable> GetDeliverablesByClientId(int clientId);
         Deliverable GetDeliverableByReportType(int clientId, string reportType);
         List<Holiday> GetHolidayList();
+        List<Holiday> GetFederalHolidayList();
         string GetSystemUserId();
         List<DallasBatch> GetDallasBatches(DateTime estToday);
         DateTime GetStandardSubmissionTime(string appCode, string vendorCode, DateTime receivedOn, List<Sweep> sweepTimings);
@@ -35,6 +36,7 @@ namespace AM.Services
         int GetPrintTrail(DocType docType, DateTime estEffectiveReceivedOn);
         DateTime GetDueDate(DocType docType, DateTime estEffectiveReceivedOn);
         DateTime GetEffectiveEstReceivedOn(DocType docType, DateTime utcReceivedOn);
+        bool IsBusinessDay(DateTime dueDate, List<Holiday> holidays, bool isSatWorkDay, bool isSunWorkDay);
         DateTime GetNextWorkingDay(DateTime estDateTime, List<Holiday> HolidayList, bool isSatWorkDay, bool isSunWorkDay);
         int InsertErrorNotifications(int mailBatchId);
         string GetErrorNotificationEmailSubscriberList(int clientId);
@@ -160,6 +162,13 @@ namespace AM.Services
         public List<Holiday> GetHolidayList()
         {
             string query = "SELECT * FROM [Common].[Holidays]";
+
+            return db.Query<Holiday>(query, null).ToList();
+        }
+
+        public List<Holiday> GetFederalHolidayList()
+        {
+            string query = "SELECT * FROM [Common].[FederalHolidays]";
 
             return db.Query<Holiday>(query, null).ToList();
         }
