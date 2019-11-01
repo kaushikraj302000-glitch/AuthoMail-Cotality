@@ -91,6 +91,7 @@ namespace AM.EDelivery
                         {
                             edmp.ErrorCode = OutComeCodes.Issue_In_EDelivery;
                             edmp.ErrorDesc = response.Error;
+                            hasError = true;
                             break;
                         }
 
