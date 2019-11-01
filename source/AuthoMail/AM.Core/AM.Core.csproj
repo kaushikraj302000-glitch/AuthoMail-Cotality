@@ -52,6 +52,8 @@
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.Xml.Linq" />
@@ -130,6 +132,13 @@
     </None>
     <None Include="CoverTemplates\HSBC_FrontBarcode.pdf" />
     <None Include="CoverTemplates\HSBC_IMBWith_A_Barcode.pdf" />
+    <None Include="CoverTemplates\PENFED\PenFed_USPS_Generic_#10&amp;6X95_FrontBarcoded_1.pdf" />
+    <None Include="CoverTemplates\PENFED\PenFed_FedEx_EndPage_1.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="CoverTemplates\PENFED\PenFed_USPS_EndPage_1.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="CoverTemplates\S3\S3_USPS_EndPage_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

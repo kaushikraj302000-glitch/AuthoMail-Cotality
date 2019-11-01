@@ -11,6 +11,7 @@ using AM.Lib;
 using System.Threading;
 using System.Net.Mail;
 using AM.USPSLib;
+using System.IO.Compression;
 
 namespace AM.Core
 {
@@ -607,7 +608,8 @@ namespace AM.Core
             using (ICommonService commonSvc = new CommonService())
             {
                 sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelId(mbi.MailBatch.SFTChannelId);
-
+                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannel.Protocol), sftChannel.Host, sftChannel.UserName, sftChannel.Password, 300000);
+                sftSite.Connect();
                 switch (sftChannel.Code.Split('_')[0])
                 {
                     case "ALASKA":
@@ -631,21 +633,44 @@ namespace AM.Core
                             {
                                 File.WriteAllText(localErrorReportPath, errorData.ToString());
 
-                                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannel.Protocol), sftChannel.Host, sftChannel.UserName, sftChannel.Password, 300000);
-                                sftSite.Connect();
-
                                 sftSite.UploadFile(localErrorReportPath, ftpErrorReportPath);
 
                                 // Upload Error.GO file after uploading error report
                                 File.WriteAllText(errorGoFilePath, string.Empty);
                                 sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
 
-                                if (sftSite.IsConnected)
-                                    sftSite.Disconnect();
-
                                 if (File.Exists(localErrorReportPath))
                                     File.Move(localErrorReportPath, Path.ChangeExtension(localErrorReportPath, ".Uploaded"));
                             }
+                        }
+                        break;
+                    case "PENFED":
+                        using (IGeneralService generalSvc = new GeneralService())
+                        {
+                            //NOTE : Below zip file naming convention is EDG Naming convention.
+                            string zipFileName = "{0}FAGOS.ZYIAC.N0010362.PenFedPNSOUTPUT.D{1}.T{2}.zip".Fill(Config.Common_EnvironmentInitial, Common.Now.ToString("yyyyMMdd"), Common.Now.ToString("hhmmss"));
+                            string zipFilePath = Path.Combine(mbi.AMResponsePath, zipFileName);
+                            string errorReportFileName = "{0}-{1}-{2}.xml".Fill(mbi.Client.AppCode, mbi.MailBatch.Id, commonSvc.GetReportingSequence());
+                            string localErrorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+                            
+                            string ftpUploadPath = Path.Combine(deliverable.UploadPath, zipFileName);
+                            string responseReport = generalSvc.GeneralXMLReport(erroredMPs, mbi.MailBatch, mbi.Client.AppCode);
+                            if (!string.IsNullOrWhiteSpace(responseReport))
+                            {
+                                File.WriteAllText(localErrorReportPath, responseReport);
+                            }
+
+                            using (ZipArchive newFile = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
+                            {
+                                newFile.CreateEntryFromFile(localErrorReportPath, errorReportFileName);
+                            }
+                            sftSite.UploadFile(zipFilePath, ftpUploadPath);
+                            Thread.Sleep(1000);//This line is added to avoid any duplication of file name.
+
+                            File.Move(zipFilePath, Path.ChangeExtension(zipFilePath, ".ZipUploaded"));
+
+                            if (File.Exists(localErrorReportPath))
+                                File.Move(localErrorReportPath, Path.ChangeExtension(localErrorReportPath, ".Uploaded"));
                         }
                         break;
                     default:
@@ -658,14 +683,11 @@ namespace AM.Core
 
                             string localErrorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
                             string ftpErrorReportPath = Path.Combine(deliverable.UploadPath, errorReportFileName);
-                            
+
                             string responseReport = generalSvc.GeneralXMLReport(mailPieces, mbi.MailBatch, mbi.Client.AppCode);
                             if (!string.IsNullOrWhiteSpace(responseReport))
                             {
                                 File.WriteAllText(localErrorReportPath, responseReport);
-
-                                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannel.Protocol), sftChannel.Host, sftChannel.UserName, sftChannel.Password, 300000);
-                                sftSite.Connect();
 
                                 sftSite.UploadFile(localErrorReportPath, ftpErrorReportPath);
 
@@ -673,15 +695,15 @@ namespace AM.Core
                                 File.WriteAllText(errorGoFilePath, string.Empty);
                                 sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
 
-                                if (sftSite.IsConnected)
-                                    sftSite.Disconnect();
-
                                 if (File.Exists(localErrorReportPath))
                                     File.Move(localErrorReportPath, Path.ChangeExtension(localErrorReportPath, ".Uploaded"));
                             }
                         }
                         break;
                 }
+
+                if (sftSite.IsConnected)
+                    sftSite.Disconnect();
 
                 //TODO: Remove after proper naming convention
                 Thread.Sleep(1000);

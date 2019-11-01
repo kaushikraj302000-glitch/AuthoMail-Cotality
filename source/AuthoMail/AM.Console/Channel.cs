@@ -5,6 +5,7 @@ using AM.USPSLib;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -303,27 +304,15 @@ namespace AM.Console
                     break;
                 default:
                     using (IGeneralService generalSvc = new GeneralService())
+                    using (ICommonService commonSvc = new CommonService())
                     {
-                        StringBuilder deliveryReport = generalSvc.GeneralDeliveryReport(mailPieces, deliveryReportDeliverable.Delimeter);
-
-                        if (deliveryReport != null)
+                        string deliveryReport = generalSvc.GeneralXMLReport(mailPieces, mbi.MailBatch, mbi.Client.AppCode);
+                        if (!string.IsNullOrWhiteSpace(deliveryReport))
                         {
-                            deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                            deliveryReportFileName = "{0}-{1}-{2}.xml".Fill(mbi.Client.AppCode, mbi.MailBatch.Id, commonSvc.GetReportingSequence());
                             deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
-
                             File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
                             reportToMail.Add(deliveryReportPath);
-                        }
-
-                        StringBuilder errorReport = generalSvc.GeneralErrorReport(mailPieces, errorReportDeliverable.Delimeter);
-
-                        if (errorReport != null)
-                        {
-                            errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
-                            errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-
-                            File.WriteAllText(errorReportPath, errorReport.ToString());
-                            reportToMail.Add(errorReportPath);
                         }
                     }
                     break;
@@ -343,18 +332,20 @@ namespace AM.Console
 
         private static void UploadReportsToIncrementalClients(List<Deliverable> deliverables, string localReportPath, SFTUtil sftSite, SFTChannel sftChannelDetails)
         {
+            string deliveryUploadPath = deliverables.SingleOrDefault(up => up.ReportType == ReportTypes.Delivery).UploadPath;
+            string errorUploadPath = deliverables.SingleOrDefault(up => up.ReportType == ReportTypes.Error).UploadPath;
+            string ftpUploadPath = "";
             string sftChannelCode = sftChannelDetails.Code.Split('_')[0];
             switch (sftChannelCode)
             {
                 case "AMC":
-                    string deliveryUploadPath = deliverables.SingleOrDefault(up => up.ReportType == ReportTypes.Delivery).UploadPath;
 
                     var deliveryReportList = Directory.EnumerateFiles(localReportPath, "*.txt").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Delivery-")).ToList();
 
                     foreach (string filePath in deliveryReportList)
                     {
                         string fileName = Path.GetFileName(filePath);
-                        string ftpUploadPath = Path.Combine(deliveryUploadPath, fileName);
+                        ftpUploadPath = Path.Combine(deliveryUploadPath, fileName);
                         sftSite.UploadFile(filePath, ftpUploadPath);
 
 
@@ -371,13 +362,12 @@ namespace AM.Console
                         sftSite.UploadFile(deliveryGoFilePath, ftpDeliveryGoUploadPath);
                     }
 
-                    string errorUploadPath = deliverables.SingleOrDefault(up => up.ReportType == ReportTypes.Error).UploadPath;
                     var errorReportList = Directory.EnumerateFiles(localReportPath, "*.txt").Where(f => Path.GetFileNameWithoutExtension(f).StartsWith("Error-")).ToList();
 
                     foreach (string filePath in errorReportList)
                     {
                         string fileName = Path.GetFileName(filePath);
-                        string ftpUploadPath = Path.Combine(errorUploadPath, fileName);
+                        ftpUploadPath = Path.Combine(errorUploadPath, fileName);
                         sftSite.UploadFile(filePath, ftpUploadPath);
 
 
@@ -394,14 +384,33 @@ namespace AM.Console
                         sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
                     }
                     break;
-                default:
-                    string resXmlUploadPath = deliverables.SingleOrDefault(up => up.ReportType == ReportTypes.Delivery).UploadPath;
+                case "PENFED":
+
+                    //NOTE : Below zip file naming convention is EDG Naming convention.
+                    string zipFileName = "{0}FAGOS.ZYIAC.N0010362.PenFedPNSOUTPUT.D{1}.T{2}.zip".Fill(Config.Common_EnvironmentInitial, Common.Now.ToString("yyyyMMdd"), Common.Now.ToString("hhmmss"));
+                    string zipFilePath = Path.Combine(localReportPath, zipFileName);
+                    ftpUploadPath = Path.Combine(deliveryUploadPath, zipFileName);
                     var resXmlList = Directory.EnumerateFiles(localReportPath, "*.xml").ToList();
+                    using (ZipArchive newFile = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
+                    {
+                        foreach (string filePath in resXmlList)
+                        {
+                            string fileName = Path.GetFileName(filePath);
+                            newFile.CreateEntryFromFile(filePath, fileName);
+                            //After upload change extention as a Complete
+                            File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
+                        }
+                    }
+                    sftSite.UploadFile(zipFilePath, ftpUploadPath);
+                    File.Move(zipFilePath, Path.ChangeExtension(zipFilePath, ".ZipUploaded"));
+                    break;
+                default:
+                    resXmlList = Directory.EnumerateFiles(localReportPath, "*.xml").ToList();
 
                     foreach (string filePath in resXmlList)
                     {
                         string fileName = Path.GetFileName(filePath);
-                        string ftpUploadPath = Path.Combine(resXmlUploadPath, fileName);
+                        ftpUploadPath = Path.Combine(deliveryUploadPath, fileName);
                         sftSite.UploadFile(filePath, ftpUploadPath);
 
 

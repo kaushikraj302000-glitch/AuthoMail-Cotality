@@ -1212,25 +1212,46 @@ namespace AM.Console
             }
             else if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.PartiallyValid)
             {
-                string errorGoFileName = "ErrReport.go";
-                string errorGoFilePath = Path.Combine(mbi.AMResponsePath, errorGoFileName);
-                string ftpErrorGoUploadPath = Path.Combine(deliverable.UploadPath, errorGoFileName);
-
                 SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
                 sftSite.Connect();
 
-                var ftpUploadPath = Path.Combine(deliverable.UploadPath, errorReportFileName);
+                string sftChannelCode = SFTChannel.Code.Split('_')[0].ToUpper();
+                string ftpUploadPath = "";
+                switch (sftChannelCode)
+                {
+                    case "PENFED":
+                        //NOTE : Below zip file naming convention is EDG Naming convention.
+                        string zipFileName = "{0}FAGOS.ZYIAC.N0010362.PenFedPNSOUTPUT.D{1}.T{2}.zip".Fill(Config.Common_EnvironmentInitial, Common.Now.ToString("yyyyMMdd"), Common.Now.ToString("hhmmss"));
+                        string zipFilePath = Path.Combine(mbi.AMResponsePath, zipFileName);
 
-                sftSite.UploadFile(errorReportPath, ftpUploadPath);
+                        ftpUploadPath = Path.Combine(deliverable.UploadPath, zipFileName);
 
-                // Upload Error.GO file after uploading error report
-                File.WriteAllText(errorGoFilePath, string.Empty);
+                        using (ZipArchive newFile = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
+                        {
+                            newFile.CreateEntryFromFile(errorReportPath, errorReportFileName);
+                        }
+                        sftSite.UploadFile(zipFilePath, ftpUploadPath);
+                        Thread.Sleep(1000);//This line is added to avoid any duplication of file name.
 
-                sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
+                        File.Move(zipFilePath, Path.ChangeExtension(zipFilePath, ".ZipUploaded"));
+                        break;
+                    default:
+                        string errorGoFileName = "ErrReport.go";
+                        string errorGoFilePath = Path.Combine(mbi.AMResponsePath, errorGoFileName);
+                        string ftpErrorGoUploadPath = Path.Combine(deliverable.UploadPath, errorGoFileName);
+
+                        ftpUploadPath = Path.Combine(deliverable.UploadPath, errorReportFileName);
+
+                        sftSite.UploadFile(errorReportPath, ftpUploadPath);
+
+                        // Upload Error.GO file after uploading error report
+                        File.WriteAllText(errorGoFilePath, string.Empty);
+                        sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
+                        break;
+                }
 
                 if (sftSite.IsConnected)
                     sftSite.Disconnect();
-
                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
             }
             else
@@ -1239,17 +1260,6 @@ namespace AM.Console
             }
 
             return errorReportPath;
-        }
-
-        private void ReportInvalidBatch(MailBatchInfo mbi, string msg, Deliverable deliverables)
-        {
-            MailUtility.SendNoDataNotificationEmail(mbi, deliverables.EmailChannel, msg);
-            //For Invalid Batch, we will generate error File
-            mailBatchSvc.MarkMailBatchAsInvalid(mbi.MailBatch.Id, msg);
-
-            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
-
-            commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
         }
     }
 }
