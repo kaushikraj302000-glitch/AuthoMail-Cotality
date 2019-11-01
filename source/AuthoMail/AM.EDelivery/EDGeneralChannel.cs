@@ -40,7 +40,7 @@ namespace AM.EDelivery
                 {
                     MailPieceInfo mpi = new MailPieceInfo(edmp.ClientCode, Config.Common_AuthoMailRootFolder, edmp.MailBatchId, edmp.BatchName);
                     edmp.SigningRoomName = "{0}-{1}-{2}".Fill(edmp.ClientCode, Path.GetFileNameWithoutExtension(edmp.FileName), edmp.Id);
-                    DateTime expiryDate = edmp.ExpiryDate.HasValue ? edmp.ExpiryDate.Value : GetDefaultExpiryDate(edmp.ReceivedOn.Value);//Date will be considered as in EST timezone
+                    DateTime expiryDate = edmp.ExpiryDate.Value;
                     edmp.ExpiryDate = expiryDate;
 
                     SigningRoomRequest request = new SigningRoomRequest()
@@ -117,12 +117,6 @@ namespace AM.EDelivery
             }
 
             log.Debug("EDelivery CreateSigningRoom job queue is completed.");
-        }
-
-        private DateTime GetDefaultExpiryDate(DateTime receivedOn)
-        {
-            var workingDateTime = commonSvc.GetNextWorkingDay(receivedOn.UtcToEst(), Config.Common_Holidays, false, false);
-            return workingDateTime.ToEndDateTime().EstToUtc();
         }
 
         protected override void SendInvitations()
@@ -214,7 +208,7 @@ namespace AM.EDelivery
                                 MailPieces mailPiece = reportSvc.GetMailPiecesDataFromMailBatchIdAndUniqueId(edmp.MailBatchId, edmp.UniqueId);
                                 mailPiece.PrintedOn = edmp.DocDownloadedOn.Value;
                                 mailPiece.ShippedOn = edmp.DocDownloadedOn.Value;
-                                mailPiece.ShippingStatus = ShippingStatus.Shipped.ToString();
+                                mailPiece.ShippingStatus = ShippingStatus.EDelivered.ToString();
 
                                 mpSvc.UpdateBatchMailPieceShippingStatusDetails(mailPiece);
                                 MailPieceInfo mpi = new MailPieceInfo(edmp.ClientCode, Config.Common_AuthoMailRootFolder, edmp.MailBatchId, edmp.BatchName);

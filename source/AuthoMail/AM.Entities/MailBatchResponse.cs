@@ -130,6 +130,7 @@ namespace AM.Entities
     {
         Shipped,
         Error,
-        PulledBack
+        PulledBack,
+        EDelivered
     }
 }

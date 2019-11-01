@@ -49,6 +49,7 @@
       <xs:enumeration value="Shipped"/>
       <xs:enumeration value="Error"/>
       <xs:enumeration value="PulledBack" />
+      <xs:enumeration value="EDelivered" />
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name="Money">
