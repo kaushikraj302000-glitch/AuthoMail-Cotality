@@ -532,7 +532,13 @@ namespace AM.Console
 
                 foreach (MailPieceDTO mailPiece in mailPieces)
                 {
-                    if (mailPiece.ShippingStatus == ShippingStatus.Error.ToString() || (mailPiece.IsEDeliveryRequested && !mailPiece.IsFallBackRequested))
+                    if (mailPiece.IsEDeliveryRequested && !mailPiece.IsFallBackRequested)
+                    {
+                        mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value), mailBatch.ReceivedOn.Value);
+                        mailPiece.StdSubmissionTime = mailPiece.EffectiveReceivedOnEst.Value.AddMinutes(30).EstToUtc();
+                        mailPiece.MaxSubmissionTime = mailPiece.EffectiveReceivedOnEst.Value.AddHours(7).EstToUtc();
+                    }
+                    else if (mailPiece.ShippingStatus == ShippingStatus.Error.ToString())
                     {
                         if (!mailPiece.DocTypeId.HasValue)
                         {

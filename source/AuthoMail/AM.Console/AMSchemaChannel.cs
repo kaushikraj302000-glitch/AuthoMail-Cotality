@@ -744,7 +744,7 @@ namespace AM.Console
                             {
                                 mailPieceDTO.IsEDeliveryRequested = true;
                                 mailPieceDTO.IsFallBackRequested = requests.eDelivery.PrintAndShipOnExpiry;
-                                if ( requests.eDelivery.ExpiryDate == null)
+                                if (requests.eDelivery.ExpiryDate == null)
                                 {
                                     if (client.SigningRoomExpiryDays > 0)
                                     {
@@ -757,7 +757,7 @@ namespace AM.Console
                                 }
                                 else
                                 {
-                                    mailPieceDTO.ExpiryDate = Convert.ToDateTime(requests.eDelivery.ExpiryDate).ToEndDateTime().EstToUtc();
+                                    mailPieceDTO.ExpiryDate = requests.eDelivery.ExpiryDate.ToEndDateTime().EstToUtc();
                                 }
                             }
 
