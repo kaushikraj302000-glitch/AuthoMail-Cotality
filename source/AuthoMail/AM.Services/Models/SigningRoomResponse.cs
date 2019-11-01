@@ -25,7 +25,7 @@ namespace AM.Services
         {
             get
             {
-                return Warnings.Count() > 0 ? true : false;
+                return Warnings == null ? false : Warnings.Count() > 0 ? true : false;
             }
         }
     }
