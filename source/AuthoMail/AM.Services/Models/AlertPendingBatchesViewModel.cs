@@ -38,6 +38,9 @@ namespace AM.Services
         public string VendorCode { get; set; }
         public DateTime? MaxSubmissionTime { get; set; }
         public string MissedSLAReason { get; set; }
+        public bool? IsEDeliveryRequested { get; set; }
+        public bool? IsInvitationSent { get; set; }
+        public bool? IsFallBackRequested { get; set; }
         public string PrintTrail { get; set; }
         public double MinRemainingHours
         {
