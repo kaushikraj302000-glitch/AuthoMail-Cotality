@@ -252,6 +252,7 @@
                 <th>Shipped <span class="fontcapitalize">(Local)</span></th>
                 <th>PickedUp <span class="fontcapitalize">(Local)</span></th>
                 <th>Document Type</th>
+                <th>Delivery Type</th>
                 <th>Channel</th>
                 <th>Shipping Method<span class="fa fa-question-circle" title="Shipping Carrier / Service type"></span></th>
                 <th class="ErrorCode">Error Code</th>
@@ -277,6 +278,7 @@
                 <td><span>{ShippedOnFormatted}</span></td>
                 <td><span>{PickedUpOnFormatted}</span></td>
                 <td><span>{DisplayDocType}</span></td>
+                <td><span>{IsEDeliveryRequested}</span></td>
                 <td><span>{Channel}</span></td>
                 <td>{ShippingCarrier} / {ShippingMethod}</td>
                 <td>{ErrorCode}</td>
@@ -368,6 +370,12 @@
                 <div class="input-group">
                     <label for="BusinessFriendlyIdValue">Document Or Package Type:&nbsp; </label>
                     <span class="form-control-static">{DocumentOrPackageType}</span>
+                </div>
+            </div>
+            <div class="form-group margin-bottom-2">
+                <div class="input-group">
+                    <label for="BusinessFriendlyIdValue">Delivery Type:&nbsp; </label>
+                    <span class="form-control-static">{IsEDeliveryRequested}</span>
                 </div>
             </div>
             <div class="form-group margin-bottom-2">
@@ -705,7 +713,7 @@
             return val;
         }
         function FormatMailPieceObject(Model) {
-
+            console.log(Model);
             $(Model).each(function () {
                 this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.IsPrinted = MakeYesNoLabel(this.IsPrinted);
@@ -780,6 +788,7 @@
                 this.TrackingNoFormatted = trackingNo;
                 var eddDesc = '<span id="popoverError" data-toggle="popover" data-original-title="Error Code: <ErrorCode>" data-html="true" data-content="<dataContent>" data-placement="left"><a> <ErrorCode> </a></span>'.replace(/<ErrorCode>/g, this.ErrorCode).replace("<dataContent>", this.ErrorDesc == null ? "--" : this.ErrorDesc);
                 this.ErrorDescPopover = this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>' : eddDesc;
+                this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
             });
             //console.log(Model);
             return Model;
@@ -840,6 +849,7 @@
                 }
                 this.TrackingNoFormatted = trackingNo;
                 //this.TrackingNo == null ? "--" : '<button id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
+                this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
             });
             return Model;
         }

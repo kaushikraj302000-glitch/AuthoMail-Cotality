@@ -151,6 +151,7 @@ namespace AM.Services
         public string PrintLocation { get; set; }
         public DateTime? StdSubmissionTime { get; set; }
         public DateTime? MaxSubmissionTime { get; set; }
+        public bool IsEDeliveryRequested { get; set; }
         public string MissedSLAReason { get; set; }
         public MailBatches MailBatches { get; set; }
         public Clients Clients { get; set; }
@@ -473,6 +474,7 @@ namespace AM.Services
         public DateTime? PickedUpOn { get; set; }
         public string TrackingNo { get; set; }
         public string DocType { get; set; }
+        public bool IsEDeliveryRequested { get; set; }
         public DateTime? DueDate { get; set; }
         public string Channel { get; set; }
         public string ShippingMethod { get; set; }
