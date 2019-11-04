@@ -134,7 +134,7 @@ namespace AM.Services
         {
             string query = @"SELECT TOP 1 * FROM [AM].[MailPieces] WHERE [UniqueId] = @UniqueId AND MailBatchId = @MailBatchId";
 
-            return db.ExecuteScalar<MailPieceDTO>(query, new { UniqueId = uniqueId, MailBatchId = mailBatchId });
+            return db.QuerySingleOrDefault<MailPieceDTO>(query, new { UniqueId = uniqueId, MailBatchId = mailBatchId });
         }
     }
 }
