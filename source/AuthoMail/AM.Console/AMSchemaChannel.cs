@@ -1160,7 +1160,7 @@ namespace AM.Console
 
                             MailUtility.SendDownloadNotificationEmail(mbi, mailPieces, emailErrorReportPath, deliverable.EmailChannel);
                             //After upload change extension of local file Path
-                            if (File.Exists(emailErrorReportPath))
+                            if (File.Exists(emailErrorReportPath) && mbi.MailBatch.ValidationStatus != BatchValidationStatus.Invalid)
                                 File.Move(emailErrorReportPath, Path.ChangeExtension(emailErrorReportPath, ".Complete"));
                         }
                         catch (Exception ex)
