@@ -296,6 +296,7 @@
                 <th>Received Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Due Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Document Type</th>
+                <th>Delivery Type</th>
                 <th>Pages</th>
                 <th>Tracking Number</th>
                 <th>Shipping Status</th>
@@ -315,6 +316,7 @@
                 <td class="receivedon"><span>{MailPieceReceivedOn}</span></td>
                 <td><span>{DueDateFormatted}</span></td>
                 <td><span>{DocType}</span></td>
+                <td><span>{IsEDeliveryRequested}</span></td>
                 <td><span>{TotalPages}</span></td>
                 <td><span class="small">{TrackingNo}</span></td>
                 <td><span>{ShippingStatusFormatted}</span></td>
@@ -335,6 +337,7 @@
                 <th>Received Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Due Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Document Type</th>
+                <th>Delivery Type</th>
                 <th>Pages</th>
                 <th>Tracking Number</th>
                 <th>Shipping Status</th>
@@ -354,6 +357,7 @@
                 <td><span>{MailPieceReceivedOn}</span></td>
                 <td><span>{DueDateFormatted}</span></td>
                 <td><span>{DocType}</span></td>
+                <td><span>{IsEDeliveryRequested}</span></td>
                 <td><span>{TotalPages}</span></td>
                 <td><span class="small">{TrackingNo}</span></td>
                 <td><span>{ShippingStatusFormatted}</span></td>
@@ -1070,6 +1074,7 @@
                 //this.RcptNameFormatted = this.RcptFirstName + " " + this.RcptLastName;
 
                 this.IsPullBackRequestedFormatted = requestedPullback;
+                this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
             });
             return Model;
             //console.log(Model);
@@ -1135,6 +1140,7 @@
 
                 }
                 this.BatchStatusFormatted = batchStatus;
+                this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
             });
             return Model;
             //console.log(Model);
