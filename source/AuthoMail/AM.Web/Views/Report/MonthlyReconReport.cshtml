@@ -74,6 +74,7 @@
                 <th>File Name</th>
                 <th>Channel</th>
                 <th>Document Type</th>
+                <th>Delivery Type</th>
                 <th class="notprint">Shipped Document</th>
                 <th>First Name</th>
                 <th>Last Name</th>
@@ -102,6 +103,7 @@
                 <td><span>{FileName}</span></td>
                 <td><span>{Channel}</span></td>
                 <td><span>{DocType}</span></td>
+                <td><span>{IsEDeliveryRequested}</span></td>
                 <td><span data-toggle="tooltip" data-container="body" data-placement="top" title="{message}">{ReturnPdf}</span></td>
                 <td><span>{FirstName}</span></td>
                 <td><span>{LastName}</span></td>
@@ -202,6 +204,7 @@
                 this.MailedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
                 this.message = this.PdfReceivedPath == null ? "File not received." : "View / Download";
                 this.ReturnPdf = this.PdfReceivedPath == null ? "<i class='fa fa-file-pdf-o' disabled='true' style='cursor:not-allowed;'></i>" : "<a href='/" + this.PdfReceivedPath + "'  target='_blank'><i class='fa fa-file-pdf-o' style='color:red'></i></a>";
+                this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
             });
             return Model;
         }

@@ -8,6 +8,7 @@ namespace AM.Web.Models
     public class ErrorSLAReportViewModel : MailPieceCommonViewModel
     {
         public string DocType { get; set; }
+        public bool IsEDeliveryRequested { get; set; }
         public int BatchId { get; set; }
         public Guid UniqueId { get; set; }
         public DateTime? DueDate { get; set; }

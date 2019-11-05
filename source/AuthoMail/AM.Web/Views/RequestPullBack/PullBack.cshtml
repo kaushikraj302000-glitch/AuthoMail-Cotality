@@ -7,9 +7,11 @@
     .show-calendar {
         width: 484px !important;
     }
+
     #bsselectId .bootstrap-select {
         width: 100% !important;
     }
+
     .bootstrap-select {
         width: 165px !important;
     }
@@ -17,6 +19,7 @@
     .dataTables_wrapper {
         margin-top: -1.5% !important;
     }
+
     .popover-content {
         word-wrap: break-word;
         color: red;
@@ -138,6 +141,7 @@
                 <th>Recipient Name</th>
                 <th>Recipient Address</th>
                 <th>Document Type</th>
+                <th>Delivery Type</th>
                 <th>Pages Shipped</th>
                 <th>Tracking Number</th>
                 <th>File Name</th>
@@ -159,6 +163,7 @@
                 <td><span>{Name}</span></td>
                 <td><span>{Address}</span></td>
                 <td><span>{DocType}</span></td>
+                <td><span>{IsEDeliveryRequested}</span></td>
                 <td><span>{TotalPages}</span></td>
                 <td><span>{TrackingNo}</span></td>
                 <td><span>{FileName}</span></td>
@@ -399,6 +404,7 @@
                 //this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
                 this.ErrorDescPopover = this.ErrorDesc == null ? "--" : '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left"><a>Error Details</a></span>';
                 this.TotalPages = this.Status == "Shipped" ? this.TotalPages : 0;
+                this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
                 this.IsPullBackRequestedFormatted = requestedPullback;
 
                 var checkbox = '<span id="resPullBack_' + cnt + '" data-trigger="hover" data-html="true" data-toggle="popover" data-placement="right"></span>';

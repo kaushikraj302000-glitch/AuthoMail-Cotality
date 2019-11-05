@@ -110,6 +110,7 @@
                 <th>Due Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Shipped Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Document Type</th>
+                <th>Delivery Type</th>
                 <th>Channel</th>
                 <th>Shipping Method<span class="fa fa-question-circle" title="Shipping Carrier / Service type"></span></th>
                 <th style="display:none;">Tracking Number</th>
@@ -135,6 +136,7 @@
                 <td><span>{DueDateFormatted}</span></td>
                 <td><span>{ShippedOnFormatted}</span></td>
                 <td><span>{DocType}</span></td>
+                <td><span>{IsEDeliveryRequested}</span></td>
                 <td><span>{Channel}</span></td>
                 <td><span>{ShippingCarrier} / {ShippingMethod}</span></td>
                 <td style="display:none;"><span>{TrackingNoFormatted}</span></td>
@@ -354,6 +356,7 @@
 
                 }
                 this.ShippingStatusFormatted = status;
+                this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
             });
             //console.log(Model);
             return Model;

@@ -106,6 +106,7 @@
                 <th>MailPiece Id</th>
                 <th>Channel</th>
                 <th>Document Type</th>
+                <th>Delivery Type</th>
                 <th>@Html.Action("GetHeadingForBusinessId", "Common")</th>
                 <th style="display:none">Tracking Number</th>
                 <th class="BatchIds">Tracking Number</th>
@@ -138,6 +139,7 @@
                 <td><span>{UniqueId}</span></td>
                 <td><span>{Channel}</span></td>
                 <td><span>{DocType}</span></td>
+                <td><span>{IsEDeliveryRequested}</span></td>
                 <td><span>{BusinessIdValue}</span></td>
                 <td style="display:none;"><span>{TrackingNoFormatted}</span></td>
                 <td><span>{TrackingNo}</span></td>
@@ -286,6 +288,7 @@
                 this.TrackingNo = trackingNo;
                 this.TrackingNoFormatted = trackingFormatted;
                 //this.TrackingNo == "" ? "--" : '<button id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
+                this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
             });
             return Model;
         }

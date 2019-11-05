@@ -213,6 +213,7 @@
                 <th>Mailpiece Id</th>
                 <th>Channel</th>
                 <th>Document Type</th>
+                <th>Delivery Type</th>
                 <th>@Html.Action("GetHeadingForBusinessId", "Common")</th>
                 <th class="TrackingNoHide">Tracking Number</th>
                 <th class="TrackingNo">Tracking Number</th>
@@ -223,13 +224,13 @@
                 <th>File Name</th>
                 <th>Client Code</th>
                 <th>Shipping Method</th>
-                <th>Name</th>                
+                <th>Name</th>
                 <th>Recipient Street Address</th>
                 <th>Recipient City</th>
                 <th>Print Location</th>
                 <th>Pages Shipped</th>
                 @*<th class="ErrorCode">Error Code</th>
-                <th class="ErrorText">Error Text</th>*@
+        <th class="ErrorText">Error Text</th>*@
             </tr>
         </thead>
         <tbody id="SearchbodyContent"></tbody>
@@ -243,23 +244,24 @@
                 <td><span>{Id}</span></td>
                 <td><span>{Channel}</span></td>
                 <td><span>{DocumentOrPackageType}</span></td>
+                <td><span>{IsEDeliveryRequested}</span></td>
                 <td data-businessidvalue="{BusinessIdValue}"><span>{View}</span></td>
                 <td><span>{TrackingNo}</span></td>
-                <td><span>{TrackingNoFormatted}</span></td> 
+                <td><span>{TrackingNoFormatted}</span></td>
                 <td><span>{ReceivedOnFormatted}</span></td>
                 <td><span>{PrintedOnDateFormatted}</span></td>
-                <td><span>{ShippedOnFormatted}</span></td>                
+                <td><span>{ShippedOnFormatted}</span></td>
                 <td><span>{ShippingStatusFormatted}</span></td>
                 <td><span>{FileName}</span></td>
                 <td><span>{ClientCode}</span></td>
                 <td><span>{ShippingMethod}</span></td>
                 <td><span>{RcptNameFormatted}</span></td>
                 <td><span>{RcptAddressStreet}</span></td>
-                <td><span>{CityFormatted}</span></td>                
+                <td><span>{CityFormatted}</span></td>
                 <td><span>{PrintLocation}</span></td>
                 <td><span>{PagesShipped}</span></td>
                 @*<td>{ErrorCode}</td>
-                <td>{ErrorDesc}</td>*@
+        <td>{ErrorDesc}</td>*@
             </tr>
         </tbody>
     </table>
@@ -794,6 +796,7 @@
                 }
                 this.TrackingNoFormatted = trackingNo;
                 //this.TrackingNo == null ? "--" : '<button id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
+                this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
             });
             return Model;
         }
