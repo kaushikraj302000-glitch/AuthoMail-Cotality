@@ -279,12 +279,14 @@ group by dc.DocTypeName order by dc.DocTypeName";
             //var data = db.Query<MailPieces>(query, new { startDate = date.ToStartDateTime().EstToUtc(), endDate = date.ToEndDateTime().EstToUtc(), status = status, clientId = clientId, DocTypeCode = DocTypeCode }).ToList();
             //return data;
 
-            var data = db.Query<MailPieces, MailBatches, Clients, DocTypes, MailPieces>(query,
-                (m, b, c, d) =>
+            var data = db.Query<MailPieces, MailBatches, Clients, DocTypes, ClientDocTypes, MailPieces>(query,
+                (m, b, c, d, cd) =>
                 {
                     m.MailBatches = b;
                     m.Clients = c;
                     m.DocTypes = d;
+                    if (m.DocTypes != null)
+                        m.DocTypes.ClientDocTypes = cd;
                     return m;
                 },
                 new
