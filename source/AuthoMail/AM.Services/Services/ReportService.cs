@@ -119,7 +119,8 @@ namespace AM.Services
                     m.MailBatches = b;
                     b.SFTChannels = s;
                     m.DocTypes = d;
-                    m.DocTypes.ClientDocTypes = cd;
+                    if (m.DocTypes != null)
+                        m.DocTypes.ClientDocTypes = cd;
                     return m;
                 },
                 new
