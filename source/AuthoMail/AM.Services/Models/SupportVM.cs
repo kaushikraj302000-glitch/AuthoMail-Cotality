@@ -16,6 +16,7 @@ namespace AM.Services
         public string PipelineStatus { get; set; }
         public string ClientCode { get; set; }
         public string DocTypeCode { get; set; }
+        public bool IsEDeliveryRequested { get; set; }
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
         public int TotalPackages { get; set; }
@@ -32,6 +33,7 @@ namespace AM.Services
         public int MailPieceId { get; set; }
         public string LoanNumber { get; set; }
         public string DocumentOrPackageType { get; set; }
+        public bool IsEDeliveryRequested { get; set; }
         public DateTime? EffectiveReceivedOnEst { get; set; }
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
