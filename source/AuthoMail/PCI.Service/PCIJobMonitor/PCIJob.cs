@@ -142,7 +142,7 @@ namespace PCI.Service
                         var connectionMsg = "Error occured while connecting to Print Vendor {0}'s SFT Site with <br/> below exception <br/>{1}".Fill(pvCode, ex);
                         log.Error(connectionMsg);
                         MailUtility.SendSFTConnectionIssueNotificationEmail(connectionMsg, pvCode);
-                        Thread.Sleep(300000);
+                        Thread.Sleep(180000);
                         continue;
                     }
 

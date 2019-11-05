@@ -13,6 +13,7 @@ namespace AM.Web.Models
         public string ClientBatchId { get; set; }
         public string Channel { get; set; }
         public string DocType { get; set; }
+        public bool IsEDeliveryRequested { get; set; }
         public int BatchId { get; set; }
         public DateTime? PrintedOn { get; set; }
         public DateTime? ShippedOn { get; set; }

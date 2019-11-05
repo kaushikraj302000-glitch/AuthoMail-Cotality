@@ -363,7 +363,7 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
             string query = @"SELECT m.Id as MailPieceId,m.BusinessFriendlyIdValue as LoanNumber,m.ShippingStatus as [Status],m.UniqueId,
 	 m.RcptFirstName as FirstName,m.RcptLastName as LastName,m.RcptAddressCity as [City],m.RcptAddressZip as ZIP,m.RcptAddressStreet,
 	 m.RcptAddressState as [State], m.ShippedOn as MailedOn ,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,m.PrintedOn
-	 ,b.BatchName as BatchId,b.ReceivedOn,m.DocTypeId,m.FileName,
+	 ,b.BatchName as BatchId,b.ReceivedOn,m.DocTypeId,m.IsEDeliveryRequested,m.FileName,
 	 cd.DocTypeName as DocType,(d.ShippingCarrier + '-' + d.ShippingServiceType) as ShippingMethod,
      m.DocumentOrPackageType,m.TotalPages as PagesShipped,
 	 ch.Title as Channel,

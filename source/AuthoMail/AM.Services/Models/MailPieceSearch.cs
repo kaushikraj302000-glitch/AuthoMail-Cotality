@@ -499,6 +499,7 @@ namespace AM.Services
         public string State { get; set; }
         public string ZIP { get; set; }
         public string DocType { get; set; }
+        public bool IsEDeliveryRequested { get; set; }
         public string Channel { get; set; }
         public string PrintLocation { get; set; }
         public string ShippingMethod { get; set; }

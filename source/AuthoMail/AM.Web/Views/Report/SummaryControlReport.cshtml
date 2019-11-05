@@ -90,6 +90,7 @@
                 <th>MailPiece Id</th>
                 <th>Channel</th>
                 <th>Document Type</th>
+                <th>Delivery Type</th>
                 <th>@Html.Action("GetHeadingForBusinessId", "Common")</th>
                 <th>Status</th>
                 <th>File Name</th>
@@ -124,6 +125,7 @@
                 <td><span>{UniqueId}</span></td>
                 <td><span>{Channel}</span></td>
                 <td><span>{DocType}</span></td>
+                <td><span>{IsEDeliveryRequested}</span></td>
                 <td><span>{BusinessIdValue}</span></td>
                 <td><span>{ShippingStatusFormatted}</span></td>
                 <td><span>{FileName}</span></td>
@@ -271,6 +273,7 @@
 
                 }
                 this.ShippingStatusFormatted = status;
+                this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
             });
             return Model;
         }

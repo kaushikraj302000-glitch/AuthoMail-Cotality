@@ -29,15 +29,16 @@ namespace AM.Web
                //    .ForMember(d => d.ZIP, o => o.MapFrom(s => s.RcptAddressZIP))
                //.ForMember(d => d.State, o => o.MapFrom(s => s.RcptAddressState));
 
-               //cfg.CreateMap<MailPieces, MailPieceViewModel>()
-               //    .ForMember(d => d.ReceivedOn, o => o.MapFrom(s => s.MailBatches != null ? (s.MailBatches.ReceivedOn != null ? s.MailBatches.ReceivedOn : null) : null))
-               //    .ForMember(d => d.Address, o => o.MapFrom(s => s.RcptAddressStreet))
-               //    .ForMember(d => d.ErrorDesc, o => o.MapFrom(s => s.ErrorDescription))
-               //    .ForMember(d => d.Name, o => o.MapFrom(s => string.Format("{0} {1}", s.RcptFirstName, s.RcptLastName)))
-               //    .ForMember(d => d.Status, o => o.MapFrom(s => s.ShippingStatus))
-               //    .ForMember(d => d.BusinessIdValue, o => o.MapFrom(s => s.BusinessFriendlyIdValue))
-               //    .ForMember(d => d.DocType, o => o.MapFrom(s => s.DocumentOrPackageType))
-               //    .ForMember(d => d.AppCode, o => o.MapFrom(s => s.Clients.AppCode));
+               cfg.CreateMap<MailPieces, MailPieceViewModel>()
+                   .ForMember(d => d.ReceivedOn, o => o.MapFrom(s => s.MailBatches != null ? (s.MailBatches.ReceivedOn != null ? s.MailBatches.ReceivedOn : null) : null))
+                   .ForMember(d => d.Address, o => o.MapFrom(s => s.RcptAddressStreet))
+                   .ForMember(d => d.ErrorDesc, o => o.MapFrom(s => s.ErrorDescription))
+                   .ForMember(d => d.Name, o => o.MapFrom(s => string.Format("{0} {1}", s.RcptFirstName, s.RcptLastName)))
+                   .ForMember(d => d.Status, o => o.MapFrom(s => s.ShippingStatus))
+                   .ForMember(d => d.BusinessIdValue, o => o.MapFrom(s => s.BusinessFriendlyIdValue))
+                   .ForMember(d => d.DocType, o => o.MapFrom(s => s.DocumentOrPackageType))
+                   .ForMember(d => d.AppCode, o => o.MapFrom(s => s.Clients.AppCode));
+               //Above code is commented
 
                cfg.CreateMap<MailPieces, DailyDetailReportViewModel>()
                   .ForMember(d => d.ReceivedOn, o => o.MapFrom(s => s.MailBatches != null ? (s.MailBatches.ReceivedOn != null ? s.MailBatches.ReceivedOn : null) : null))

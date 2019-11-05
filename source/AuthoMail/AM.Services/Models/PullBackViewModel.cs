@@ -54,6 +54,7 @@ namespace AM.Services
         public DateTime? DueDate { get; set; }
         public string TrackingNo { get; set; }
         public string DocType { get; set; }
+        public bool IsEDeliveryRequested { get; set; }
         public string DisplayDocType
         {
             get

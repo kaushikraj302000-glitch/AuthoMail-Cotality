@@ -29,7 +29,7 @@
 
     <div class="panel-heading" id="clientHeader">
         <div class="panel-title">
-            <i class="fa fa-print"></i>  Print trail mapping for @Model.Item1.DocTypeCode
+            <i class="fa fa-print"></i>  Print trail mapping for @Model.Item1.DocTypeName
             <span class="pull-right">
                 <button type="button" data-id="0" class="btn btn-primary addnew"><i class="fa fa-plus"></i> Add New</button>
             </span>
@@ -112,7 +112,6 @@
 <div style="display:none">
     <table>
         <tbody id="tbodyAddNew">
-            
         </tbody>
     </table>
 </div>
@@ -184,10 +183,10 @@
                     },
                     error: function (xhr, ajaxOptions, thrownError) {
                         cosole.log("no record found.");
-                       
+
                     }
                 });
-                
+
                 // window.clui.selectInit();
             });
             $(document).on("click", ".deletept", function () {
@@ -204,7 +203,7 @@
                     $("#trId").val($(this).parent().parent().attr("id"));
                 }
             });
-            
+
             $(document).on("click", "#yesRemove", function () {
                 $("#" + $("#trId").val()).remove();
                 $("#confirmModal").modal("hide");
@@ -259,7 +258,7 @@
 
         });
         function DeleteConfrim(obj) {
-            
+
         }
         function DocTypePrintTrailMap(DocTypeId, PrintTrailId, BizDayStartTime, BizDayEndTime, SatStartTime, SatEndTime, SunStartTime, SunEndTime) {
             this.DocTypeId = DocTypeId;
