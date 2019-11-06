@@ -253,6 +253,7 @@ namespace AM.Services
 ,sum(case when m.shippingstatus = 'InProgress' then 1 else 0 end) as InProgress
 ,sum(case when m.shippingstatus = 'Error' then 1 else 0 end) as Error
 ,sum(case when m.shippingstatus = 'Pulledback' then 1 else 0 end) as Pulledback
+,sum(case when m.shippingstatus = 'EDelivered' then 1 else 0 end) as EDelivered
 from AM.MailPieces m
 inner join AM.MailBatches b on m.MailBatchId=b.Id
 inner join AM.DocTypes d  on m.DocTypeId=d.Id
