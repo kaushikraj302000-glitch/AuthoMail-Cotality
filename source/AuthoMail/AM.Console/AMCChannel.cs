@@ -234,7 +234,8 @@ namespace AM.Console
 
                     if (packages.Count > 0)
                     {
-                        SeparateXMLsAndPDFsClientWise(packages, nsManager, amcDownloadPath, client.AppCode, batchName);
+                        Guid batchUniqueId = Guid.NewGuid();
+                        SeparateXMLsAndPDFsClientWise(packages, nsManager, amcDownloadPath, client.AppCode, batchName, batchUniqueId);
 
                         MailBatchDTO mailBatch = new MailBatchDTO
                         {
@@ -242,7 +243,7 @@ namespace AM.Console
                             BatchName = batchName,
                             SFTChannelId = SFTChannel.Id,
                             ClientBatchId = batchName,
-                            UniqueId = Guid.NewGuid(),
+                            UniqueId = batchUniqueId,
                             Priority = Priority.Medium.ToString(),
                             ReceivedOn = receivedOn,
                             PipelineStatus = BatchPipelineStatus.Received,
@@ -317,14 +318,7 @@ namespace AM.Console
                         mbi.PnSRequestPath.CreateDirectoryIfNotExist();
                         mbi.PnSResponsePath.CreateDirectoryIfNotExist();
 
-                        if (clientBatch.IsEDeliveryBatch) //Note : Reason to add uniqueId because there is a possibility that for one client system may receive multiple batches and system is separating into individual batches.
-                        {
-                            Directory.Move(Path.Combine(amcDownloadPath, client.AppCode, clientBatch.UniqueId.ToString()), mbi.AMRequestPath);
-                        }
-                        else
-                        {
-                            Directory.Move(Path.Combine(amcDownloadPath, client.AppCode), mbi.AMRequestPath);
-                        }
+                        Directory.Move(Path.Combine(amcDownloadPath, client.AppCode, clientBatch.UniqueId.ToString()), mbi.AMRequestPath);
 
                         commonSvc.UpdateBatchPipeLineStatus(clientBatch.Id, BatchPipelineStatus.Downloaded, Common.Now);
                     }
@@ -387,9 +381,9 @@ namespace AM.Console
             return clientSvc.GetClientByAppCode("AMCInvalid");
         }
 
-        private void SeparateXMLsAndPDFsClientWise(List<XmlNode> packages, XmlNamespaceManager nsManager, string amcDownloadPath, string clientCode, string batchName)
+        private void SeparateXMLsAndPDFsClientWise(List<XmlNode> packages, XmlNamespaceManager nsManager, string amcDownloadPath, string clientCode, string batchName, Guid batchUniqueId)
         {
-            string clientBatchDirectory = Path.Combine(amcDownloadPath, clientCode);
+            string clientBatchDirectory = Path.Combine(amcDownloadPath, clientCode, batchUniqueId.ToString());
 
             clientBatchDirectory.CleanDirectory();
 
