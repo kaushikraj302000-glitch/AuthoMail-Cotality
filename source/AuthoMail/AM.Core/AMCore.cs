@@ -652,7 +652,7 @@ namespace AM.Core
                             string zipFilePath = Path.Combine(mbi.AMResponsePath, zipFileName);
                             string errorReportFileName = "{0}-{1}-{2}.xml".Fill(mbi.Client.AppCode, mbi.MailBatch.Id, commonSvc.GetReportingSequence());
                             string localErrorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-                            
+
                             string ftpUploadPath = Path.Combine(deliverable.UploadPath, zipFileName);
                             string responseReport = generalSvc.GeneralXMLReport(erroredMPs, mbi.MailBatch, mbi.Client.AppCode);
                             if (!string.IsNullOrWhiteSpace(responseReport))
@@ -923,8 +923,8 @@ namespace AM.Core
                     default:
                         using (IGeneralService generalSvc = new GeneralService())
                         {
-                            var errorMPs = mailPieces.Where(mp => mp.ShippingStatus == ShippingStatus.Error.ToString()).ToList();
-                            string responseReport = generalSvc.GeneralXMLReport(errorMPs, mbi.MailBatch, mbi.Client.AppCode);
+                            var errorOrPullbackMps = mailPieces.Where(mp => mp.ShippingStatus == ShippingStatus.Error.ToString() || mp.ShippingStatus == ShippingStatus.PulledBack.ToString()).ToList();
+                            string responseReport = generalSvc.GeneralXMLReport(errorOrPullbackMps, mbi.MailBatch, mbi.Client.AppCode);
 
                             if (!string.IsNullOrWhiteSpace(responseReport))
                             {
@@ -933,6 +933,8 @@ namespace AM.Core
 
                                 File.WriteAllText(deliveryReportPath, responseReport);
                             }
+
+                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
                         }
                         break;
                 }
