@@ -227,7 +227,7 @@ namespace AM.Console
 
                     Client client = clientSvc.GetClientById(map.ClientId);
 
-                    if (!clients.Contains(client))
+                    if (!clients.Select(cl => cl.Id).Contains(client.Id))
                         clients.Add(client);
 
                     var packages = inputXmlByCustId[map.AMCCustId];
@@ -260,7 +260,7 @@ namespace AM.Console
 
                     Client client = clientSvc.GetClientById(map.ClientId);
 
-                    if (!clients.Contains(client))
+                    if (!clients.Select(cl => cl.Id).Contains(client.Id))
                         clients.Add(client);
 
                     var packages = inputXmlByEDelivery[map.AMCCustId];
