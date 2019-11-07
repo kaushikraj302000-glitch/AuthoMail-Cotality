@@ -1221,7 +1221,7 @@ namespace AM.Console
                 {
                     case "PENFED":
                         //NOTE : Below zip file naming convention is EDG Naming convention.
-                        string zipFileName = "{0}FAGOS.ZYIAC.N0010362.PenFedPNSOUTPUT.D{1}.T{2}.zip".Fill(Config.Common_EnvironmentInitial, Common.Now.ToString("yyyyMMdd"), Common.Now.ToString("hhmmss"));
+                        string zipFileName = "{0}FAGOS.ZYONT.N0010362.PenFedPNSOUTPUT.D{1}.T{2}.zip".Fill(Config.Common_EnvironmentInitial, Common.Now.ToString("yyyyMMdd"), Common.Now.ToString("hhmmss"));
                         string zipFilePath = Path.Combine(mbi.AMResponsePath, zipFileName);
 
                         ftpUploadPath = Path.Combine(deliverable.UploadPath, zipFileName);

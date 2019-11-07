@@ -648,7 +648,7 @@ namespace AM.Core
                         using (IGeneralService generalSvc = new GeneralService())
                         {
                             //NOTE : Below zip file naming convention is EDG Naming convention.
-                            string zipFileName = "{0}FAGOS.ZYIAC.N0010362.PenFedPNSOUTPUT.D{1}.T{2}.zip".Fill(Config.Common_EnvironmentInitial, Common.Now.ToString("yyyyMMdd"), Common.Now.ToString("hhmmss"));
+                            string zipFileName = "{0}FAGOS.ZYONT.N0010362.PenFedPNSOUTPUT.D{1}.T{2}.zip".Fill(Config.Common_EnvironmentInitial, Common.Now.ToString("yyyyMMdd"), Common.Now.ToString("hhmmss"));
                             string zipFilePath = Path.Combine(mbi.AMResponsePath, zipFileName);
                             string errorReportFileName = "{0}-{1}-{2}.xml".Fill(mbi.Client.AppCode, mbi.MailBatch.Id, commonSvc.GetReportingSequence());
                             string localErrorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
