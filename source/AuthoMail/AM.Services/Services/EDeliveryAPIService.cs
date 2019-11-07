@@ -17,6 +17,7 @@ namespace AM.Services
         Task<bool> SendInvitations(int signingRoomId);
         Task<List<SigningRoomActivityLogResponse>> GetSigningRoomActivityLog(string signingRoomName);
         Task<string> GetSigningRoomStatus(int signingRoomId);
+        Task<bool> DeleteSigningRoom(int signingRoomId);
     }
     public class EDeliveryAPIService : IEDeliveryAPIService
     {
@@ -89,6 +90,16 @@ namespace AM.Services
 
                     HttpResponseMessage response = await client.PostAsync(Config.E_API_SigningRoomActivityLogSearchURL, content);//"api/Reports/SigningRoomActivityLogSearch"
                     var responseString = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode || response.StatusCode != HttpStatusCode.OK)
+                    {
+                        return new List<SigningRoomActivityLogResponse>()
+                        {
+                            new SigningRoomActivityLogResponse
+                            {
+                                Error = responseString
+                            }
+                        };
+                    }
                     List<SigningRoomActivityLogResponse> signingRoomActivityLogResponse = JsonConvert.DeserializeObject<List<SigningRoomActivityLogResponse>>(responseString);
                     return signingRoomActivityLogResponse;
                 }
@@ -115,6 +126,10 @@ namespace AM.Services
                     //make request
                     HttpResponseMessage response = await client.GetAsync(string.Format(Config.E_API_SigningRoomSummaryURL, signingRoomId)); //"api/SigningRoomManager/SigningRooms/{0}/signingroomsummary"
                     var responseString = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode || response.StatusCode != HttpStatusCode.OK)
+                    {
+                        return responseString;
+                    }
                     var jObject = JObject.Parse(responseString);
                     return jObject.GetValue("Status").ToString();
                 }
@@ -173,5 +188,25 @@ namespace AM.Services
             }
         }
 
+        public async Task<bool> DeleteSigningRoom(int signingRoomId)
+        {
+            bool isSigningRoomDelete = false;
+            try
+            {
+                var token = await GetToken();
+                using (var client = SetupClient(token))
+                {
+                    //make request
+                    HttpResponseMessage response = await client.DeleteAsync(string.Format(Config.E_API_DeleteSigningRoomURL, signingRoomId)); //api/SigningRoomManager/SigningRooms/{signingRoomId}
+                    if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.OK)
+                        isSigningRoomDelete = true;
+                    return isSigningRoomDelete;
+                }
+            }
+            catch (Exception)
+            {
+                return isSigningRoomDelete;
+            }
+        }
     }
 }
