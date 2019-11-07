@@ -150,7 +150,7 @@ namespace AM.Services
             return client;
         }
 
-        public static async Task<string> GetToken()
+        public async static Task<string> GetToken()
         {
             try
             {

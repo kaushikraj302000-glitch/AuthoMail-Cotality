@@ -13,6 +13,7 @@ using AM.Entities;
 using System.Web.Hosting;
 using System.Threading;
 using System.Web.Http.Cors;
+using System.Threading.Tasks;
 
 namespace AM.Web.Controllers
 {
@@ -37,7 +38,7 @@ namespace AM.Web.Controllers
 
         [Route("RequestPullBack")]
         [HttpPost]
-        public object GeneratePullBackRequest([FromBody] List<string> mailPieceIds)
+        public async Task<object> GeneratePullBackRequest([FromBody] List<string> mailPieceIds)
         {
             if (mailPieceIds == null || mailPieceIds.Count == 0)
             {
@@ -110,7 +111,8 @@ namespace AM.Web.Controllers
                         {
                             IEDeliveryAPIService eDeliveryAPISvc = new EDeliveryAPIService();
 
-                            var activityLogs = eDeliveryAPISvc.GetSigningRoomActivityLog(item.SigningRoomName).Result;
+                            var activityLogs = await eDeliveryAPISvc.GetSigningRoomActivityLog(item.SigningRoomName);
+
                             foreach (var actlog in activityLogs)
                             {
                                 switch (actlog.EDeliveryStatus)
@@ -128,7 +130,7 @@ namespace AM.Web.Controllers
 
                             if (!item.IsDocReviewed && !item.IsDocDownloaded)
                             {
-                                var isSigningRoomDeleted = eDeliveryAPISvc.DeleteSigningRoom(item.SigningRoomId).Result;
+                                var isSigningRoomDeleted = await eDeliveryAPISvc.DeleteSigningRoom(item.SigningRoomId);
                                 if (isSigningRoomDeleted)
                                 {
                                     int row1 = pullBackSvc.InsertPullBackRequestData(item.MailPieceUniqueId.ToString(), User.Identity.GetClientId().Value, "PulledBack", string.IsNullOrEmpty(User.Identity.GetUserId().ToString()) ? string.Empty : User.Identity.GetUserId().ToString());
@@ -139,7 +141,7 @@ namespace AM.Web.Controllers
                             }
                             else
                             {
-
+                                mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.MailPieceUniqueId.ToString(), Message = "Mailpiece is already Downloaded/Reviewed by Borrower, pullback cannot be requested.", Success = false });
                             }
                         }
                         else
