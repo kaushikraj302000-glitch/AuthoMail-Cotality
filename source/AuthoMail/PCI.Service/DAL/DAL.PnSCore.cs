@@ -170,8 +170,8 @@ namespace PCI.Service
         {
             if (printResponse.PackageReports.Count == 0)
                 return;
-            //NOTE : System will ignore all the RJ codes from the response file which starts from IV_.
-            var packageReports = printResponse.PackageReports.Except(printResponse.PackageReports.Where(mp => mp.PrintStatus == PrintStatus.Error && mp.ErrorCode.Contains("IV_")));
+            //NOTE : System will ignore all the RJ codes from the response file which starts from IV_ OR RJ_.
+            var packageReports = printResponse.PackageReports.Except(printResponse.PackageReports.Where(mp => mp.PrintStatus == PrintStatus.Error && (mp.ErrorCode.Contains("IV_") || mp.ErrorCode.Contains("RJ_"))));
             foreach (var res in printResponse.PackageReports)
             {
                 int pieceId = GetRequestPieceId(printResponse.JobId, res.PieceId);
