@@ -31,7 +31,7 @@ namespace AM.Services
         DateTime GetStandardSubmissionTime(string appCode, string vendorCode, DateTime receivedOn, List<Sweep> sweepTimings);
         List<Sweep> GetSweepTimings();
         List<DocTypePrintTrailMap> GetTrailMapDetailsByDocTypeId(int docTypeId);
-        PrintVendor GetPrintVendorDetailsByPrintTrailId(int printTrailId);
+        PrintVendor GetPrintVendorDetailsByPrintTrailId(int printTrailId, DateTime? effectiveReceivedOnEst = null);
         DateTime GetMaximumSubmissionTime(DocType docType, DateTime effectiveReceivedOnEst);
         int GetPrintTrail(DocType docType, DateTime estEffectiveReceivedOn);
         DateTime GetDueDate(DocType docType, DateTime estEffectiveReceivedOn);
@@ -233,10 +233,11 @@ namespace AM.Services
             return db.Query<DocTypePrintTrailMap>(query, new { docTypeId = docTypeId }).ToList();
         }
 
-        public PrintVendor GetPrintVendorDetailsByPrintTrailId(int printTrailId)
+        public PrintVendor GetPrintVendorDetailsByPrintTrailId(int printTrailId, DateTime? effectiveReceivedOnEst = null)
         {
-            string query = "select pv.*,pt.PrintLocation from [Common].[PrintTrails] as pt inner join  [Common].[PrintVendors] as pv on pt.PrintVendorId = pv.Id where pt.Id = @printTrailId";
-            return db.QuerySingleOrDefault<PrintVendor>(query, new { printTrailId = printTrailId });
+            string query = "SELECT pv.*,CASE WHEN DATEPART(DW,@EffectiveReceivedOnEst)=7 AND pv.VendorCode='NORDIS' THEN 'Las Vegas' ELSE pt.PrintLocation END AS PrintLocation FROM [Common].[PrintTrails] AS pt INNER JOIN  [Common].[PrintVendors] AS pv ON pt.PrintVendorId = pv.Id WHERE pt.Id = @printTrailId";
+
+            return db.QuerySingleOrDefault<PrintVendor>(query, new { printTrailId = printTrailId, EffectiveReceivedOnEst = effectiveReceivedOnEst });
         }
 
         public DateTime GetMaximumSubmissionTime(DocType docType, DateTime effectiveReceivedOnEst)
@@ -445,7 +446,7 @@ namespace AM.Services
             mailPiece.DueDate = GetDueDate(docType, mailPiece.EffectiveReceivedOnEst.Value);
             //Set print location where mail piece will go for print and ship
             mailPiece.PrintTrailId = GetPrintTrail(docType, mailPiece.EffectiveReceivedOnEst.Value);
-            var printVendorDetails = GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value);
+            var printVendorDetails = GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value, mailPiece.EffectiveReceivedOnEst);
             mailPiece.PrintLocation = printVendorDetails.PrintLocation;
             mailPiece.StdSubmissionTime = GetStandardSubmissionTime(appCode, printVendorDetails.VendorCode, receivedOn, GetSweepTimings());
             mailPiece.MaxSubmissionTime = GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
