@@ -131,6 +131,6 @@ namespace AM.Entities
         Shipped,
         Error,
         PulledBack,
-        EDelivered
+        eDelivered
     }
 }

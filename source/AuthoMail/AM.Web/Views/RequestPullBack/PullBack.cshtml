@@ -400,7 +400,7 @@
                     case "InProgress":
                         status = '<span id="statusid_' + cnt + '"><span class="label medium label-blue">' + this.Status + '</span></span>';
                         break;
-                    case "EDelivered":
+                    case "eDelivered":
                         status = '<span class="label medium label-Edelivery">' + this.Status + '</span>';
                         break;
                 }
@@ -418,7 +418,7 @@
                     case "PulledBack":
                     case "Error":
                     case "Shipped":
-                    case "EDelivered":
+                    case "eDelivered":
                         checkbox = checkbox + '<input type="checkbox" disabled id="checkbox-demo_' + cnt + '"  class="cl-check" /><label for="checkbox-demo_' + cnt + '"></label>';
                         break;
                     case "InProgress":

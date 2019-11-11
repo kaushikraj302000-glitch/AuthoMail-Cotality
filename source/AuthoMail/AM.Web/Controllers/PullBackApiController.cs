@@ -88,7 +88,7 @@ namespace AM.Web.Controllers
                     {
                         mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.MailPieceUniqueId.ToString(), Message = Config.Web_Msg_API_PB_Shipped, Success = false });
                     }
-                    else if (item.AMMailPieceStatus == "EDelivered")
+                    else if (item.AMMailPieceStatus == "eDelivered")
                     {
                         mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.MailPieceUniqueId.ToString(), Message = Config.Web_Msg_API_PB_EDelivered, Success = false });
                     }
