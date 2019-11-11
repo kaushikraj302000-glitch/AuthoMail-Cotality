@@ -670,10 +670,10 @@
                         var errorCountBatch = parseInt(response[cnt].Error == 0 ? null : response[cnt].Error);
                         var pulledBackCountBatch = parseInt(response[cnt].PulledBack == 0 ? null : response[cnt].PulledBack);
                         var shippedCountBatch = parseInt(response[cnt].Shipped == 0 ? null : response[cnt].Shipped);
-                        var eDeliveredCountBatch = parseInt(response[cnt].EDelivered == 0 ? null : response[cnt].EDelivered);
+                        var eDeliveredCountBatch = parseInt(response[cnt].eDelivered == 0 ? null : response[cnt].eDelivered);
 
                         chartData.push([response[cnt].ClientBatchId, inProgressCountBatch, errorCountBatch, pulledBackCountBatch, shippedCountBatch,eDeliveredCountBatch, response[cnt].MailBatchId, moment(response[cnt].ReceivedOn).format("MM/DD/YYYY  HH:mm:ss")]);
-                        sumArr.push(response[cnt].InProgress + response[cnt].Error + response[cnt].PulledBack + response[cnt].Shipped + response[cnt].EDelivered);
+                        sumArr.push(response[cnt].InProgress + response[cnt].Error + response[cnt].PulledBack + response[cnt].Shipped + response[cnt].eDelivered);
 
                         cnt++;
                     }
@@ -1072,7 +1072,7 @@
                     case "InProgress":
                         status = '<span class="label medium label-blue">' + this.Status + '</span>';
                         break;
-                    case "EDelivered":
+                    case "eDelivered":
                         status = '<span class="label medium label-Edelivery">' + this.Status + '</span>';
                         break;
                 }
@@ -1120,7 +1120,7 @@
                     case "InProgress":
                         status = '<span class="label medium label-blue">' + this.Status + '</span>';
                         break;
-                    case "EDelivered":
+                    case "eDelivered":
                         status = '<span class="label medium label-Edelivery">' + this.Status + '</span>';
                         break;
                 }
@@ -1190,7 +1190,7 @@
                         return;
                     }
                     var chartData = [];
-                    chartData.push(['DocTypeCode', 'InProgress', 'Error', 'PulledBack', 'Shipped','EDelivered']);
+                    chartData.push(['DocTypeCode', 'InProgress', 'Error', 'PulledBack', 'Shipped','eDelivered']);
                     var cnt = 0;
                     //var ticksArr = [];
                     sumArrDS = new Array();
@@ -1200,10 +1200,10 @@
                         var errorCountBatch = parseInt(response[cnt].Error == 0 ? null : response[cnt].Error);
                         var pulledBackCountBatch = parseInt(response[cnt].PulledBack == 0 ? null : response[cnt].PulledBack);
                         var shippedCountBatch = parseInt(response[cnt].Shipped == 0 ? null : response[cnt].Shipped);
-                        var eDeliveredCountBatch = parseInt(response[cnt].EDelivered == 0 ? null : response[cnt].EDelivered);
+                        var eDeliveredCountBatch = parseInt(response[cnt].eDelivered == 0 ? null : response[cnt].eDelivered);
 
                         chartData.push([response[cnt].DocTypeCode, inProgressCountBatch, errorCountBatch, pulledBackCountBatch, shippedCountBatch, eDeliveredCountBatch]);
-                        sumArrDS.push(response[cnt].InProgress + response[cnt].Error + response[cnt].PulledBack + response[cnt].Shipped, response[cnt].EDelivered);
+                        sumArrDS.push(response[cnt].InProgress + response[cnt].Error + response[cnt].PulledBack + response[cnt].Shipped, response[cnt].eDelivered);
 
                         cnt++;
                     }
