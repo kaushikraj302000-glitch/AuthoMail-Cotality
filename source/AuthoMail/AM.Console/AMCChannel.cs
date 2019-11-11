@@ -197,27 +197,31 @@ namespace AM.Console
 
                     string custId = custIdNode == null || !amcClientMaps.Any(c => c.AMCCustId == custIdNode.InnerXml) ? "InvalidCustId" : custIdNode.InnerXml;
 
-                    #region EDelivery Batch Separated
+
                     var eDeliveryNode = node.SelectSingleNode("x:eDelivery", nsManager);
-                    if (!inputXmlByEDelivery.ContainsKey(custId) && eDeliveryNode != null)
-                    {
-                        inputXmlByEDelivery.Add(custId, new List<XmlNode>());
-                    }
+
                     if (eDeliveryNode != null)
                     {
+                        #region EDelivery Batch Separated
+                        if (!inputXmlByEDelivery.ContainsKey(custId))
+                        {
+                            inputXmlByEDelivery.Add(custId, new List<XmlNode>());
+                        }
+
                         inputXmlByEDelivery[custId].Add(node);
-                        continue;
+                        #endregion
                     }
-                    #endregion
-
-                    #region PrintAndShip Batch
-                    if (!inputXmlByCustId.ContainsKey(custId))
+                    else
                     {
-                        inputXmlByCustId.Add(custId, new List<XmlNode>());
-                    }
+                        #region PrintAndShip Batch
+                        if (!inputXmlByCustId.ContainsKey(custId))
+                        {
+                            inputXmlByCustId.Add(custId, new List<XmlNode>());
+                        }
 
-                    inputXmlByCustId[custId].Add(node);
-                    #endregion
+                        inputXmlByCustId[custId].Add(node);
+                        #endregion
+                    }
                 }
 
                 foreach (var map in amcClientMaps)
@@ -658,7 +662,7 @@ namespace AM.Console
                                 mailPieceDTO.IsFallBackRequested = Convert.ToBoolean(eDeliveryElement.Attributes["PrintAndShipOnExpiry"] == null ? "false" : eDeliveryElement.Attributes["PrintAndShipOnExpiry"].Value);
                                 if (eDeliveryElement.Attributes["ExpiryDate"] == null)
                                 {
-                                    if (client.SigningRoomExpiryDays > 0)
+                                    if (client.SigningRoomExpiryDays >= 0)
                                     {
                                         mailPieceDTO.ExpiryDate = GetDefaultExpiryDate(mailBatch.ReceivedOn.Value.UtcToEst(), client.SigningRoomExpiryDays).ToEndDateTime().EstToUtc();
                                     }
