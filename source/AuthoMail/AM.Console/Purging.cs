@@ -52,6 +52,8 @@ namespace AM.Console
                         days = 60;
                     else if (dir.Name == "USAA")
                         days = 21;
+                    else if (dir.Name == "S3")
+                        days = 5;
                     else
                         days = 30;
                     DateTime startDate = Common.Today;
@@ -100,6 +102,8 @@ namespace AM.Console
                         days = 60;
                     else if (dir.Name == "USAA")
                         days = 21;
+                    else if (dir.Name == "S3")
+                        days = 5;
                     else
                         days = 30;
                     DateTime startDate = Common.Today;
