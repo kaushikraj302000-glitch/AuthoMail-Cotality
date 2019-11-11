@@ -54,7 +54,7 @@ namespace AM.Services
         public static string Core_CountryCode { get; private set; }
         public static int Core_NoofTime_AttemptFedexService { get; private set; }
         public static int Core_FedexServiceAttemptInterval { get; private set; }
-        public static string Core_DirectReportBackChannelCodes { get; private set; }
+        public static string Core_IncrementalReportingChannelCodes { get; private set; }
 
 
         //FedEx URLs

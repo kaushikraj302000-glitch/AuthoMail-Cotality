@@ -424,6 +424,11 @@ namespace AM.Console
         private static bool UploadReportsToClients(MailBatchInfo mbi, SFTUtil sftSite, List<Deliverable> deliverables, List<MailPieces> mailPieceData, SFTChannel sftChannelDetail)
         {
             bool isUploaded = false;
+
+            var increamentalReportingChannels = Config.Core_IncrementalReportingChannelCodes.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+
+            increamentalReportingChannels = increamentalReportingChannels.Select(c => c + "_" + Config.Common_Environment).ToList();
+
             switch (sftChannelDetail.Code.Split('_')[0].ToUpper())
             {
                 case "ALASKA":
@@ -493,7 +498,6 @@ namespace AM.Console
                     MailUtility.SendProductionNotificationEmail(mbi, mailPieceData, reportToMailHSBC, emailChannelHSBC);
                     isUploaded = true;
                     break;
-                case "AMTEST":
                 case "AMC":
                 default:
                     var mailPieceCount = mailPieceData.Count(status => status.ShippingStatus == ShippingStatus.InProgress.ToString());
@@ -503,13 +507,16 @@ namespace AM.Console
 
                     //NOTE : Here we have to check printbatches table for that MailBatchId because we can not updated reported back status until all print batches status are getting changed to ReportedBack.
                     int remainingPrintBatchReportedBackCount = 0;
-                    using (IMailBatchService mailBatchSvc = new MailBatchService())
+                    if (increamentalReportingChannels.Contains(sftChannelDetail.Code))
                     {
-                        remainingPrintBatchReportedBackCount = mailBatchSvc.RemainingPrintBatchesReportedBackCount(mbi.MailBatch.Id);
-                    }
+                        using (IMailBatchService mailBatchSvc = new MailBatchService())
+                        {
+                            remainingPrintBatchReportedBackCount = mailBatchSvc.RemainingPrintBatchesReportedBackCount(mbi.MailBatch.Id);
+                        }
 
-                    if (remainingPrintBatchReportedBackCount > 0)
-                        return isUploaded;
+                        if (remainingPrintBatchReportedBackCount > 0)
+                            return isUploaded;
+                    }
 
                     string reportPath = Path.Combine(Config.Common_AuthoMailRootFolder, mbi.Client.AppCode, mbi.MailBatch.Id.ToString(), Util.AMResponseFolderName);
 
