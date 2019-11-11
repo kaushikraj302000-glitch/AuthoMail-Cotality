@@ -35,6 +35,10 @@
     .margin-bottom-2 {
         margin-bottom: 2px !important;
     }
+
+    .label.label-Edelivery {
+        background-color: #0cc9de;
+    }
 </style>
 <div class="panel-group">
     <div class="panel panel-default">
@@ -108,6 +112,7 @@
                                     <option value="PulledBack">Pulledback</option>
                                     <option value="Error">Error</option>
                                     <option value="Shipped">Shipped</option>
+                                    <option value="EDelivered">EDelivered</option>
                                 </select>
                             </div>
 
@@ -761,7 +766,9 @@
                     case "InProgress":
                         status = '<span class="label medium label-blue">' + this.ShippingStatus + '</span>';
                         break;
-
+                    case "EDelivered":
+                        status = '<span class="label medium label-Edelivery">' + this.ShippingStatus + '</span>';
+                        break;
                 }
                 this.ShippingStatus = status;
                 var trackingNo = "";
@@ -822,7 +829,9 @@
                     case "InProgress":
                         status = '<span class="label medium label-blue">' + this.Status + '</span>';
                         break;
-
+                    case "EDelivered":
+                        status = '<span class="label medium label-Edelivery">' + this.Status + '</span>';
+                        break;
                 }
                 this.ShippingStatusFormatted = status;
                 var trackingNo = "";
