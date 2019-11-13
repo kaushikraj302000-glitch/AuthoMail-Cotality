@@ -25,6 +25,7 @@ namespace AM.Services
         public bool IsEDeliveryRequested { get; set; }
         public int SigningRoomId { get; set; }
         public string SigningRoomName { get; set; }
+        public bool IsInvitationSent { get; set; }
         public bool IsDocReviewed { get; set; }
         public bool IsDocDownloaded { get; set; }
         public bool IsPullBackRequested { get; set; }
