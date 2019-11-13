@@ -668,8 +668,8 @@ namespace AM.Console
                             mailPieceDTO.BusinessFriendlyIdName = requests.BusinessFriendlyIdName.TrimIfNotNull();
 
                             //Here we are inserting BusinessIdentifier for Client if not exist.
-                            ClientBusinessIdentifier clientBusinessIdDetails = commonSvc.GetBusinessIdNameFromClientId(client.Id);
-                            if (clientBusinessIdDetails == null || clientBusinessIdDetails.BusinessIdName != requests.BusinessFriendlyIdName)
+                            ClientBusinessIdentifier clientBusinessIdDetails = commonSvc.CheckBusinessIdNameAlreadyExist(client.Id, mailPieceDTO.BusinessFriendlyIdName);
+                            if (clientBusinessIdDetails == null)
                             {
                                 commonSvc.InsertBusinessIdentifierName(client.Id, mailPieceDTO.BusinessFriendlyIdName.TrimIfNotNull());
                             }
@@ -744,9 +744,9 @@ namespace AM.Console
                             {
                                 mailPieceDTO.IsEDeliveryRequested = true;
                                 mailPieceDTO.IsFallBackRequested = requests.eDelivery.PrintAndShipOnExpiry;
-                                if (requests.eDelivery.ExpiryDate == null)
+                                if (requests.eDelivery.ExpiryDate == null || requests.eDelivery.ExpiryDate == DateTime.MinValue)
                                 {
-                                    if (client.SigningRoomExpiryDays > 0)
+                                    if (client.SigningRoomExpiryDays >= 0)
                                     {
                                         mailPieceDTO.ExpiryDate = GetDefaultExpiryDate(mailBatch.ReceivedOn.Value.UtcToEst(), client.SigningRoomExpiryDays).ToEndDateTime().EstToUtc();
                                     }
@@ -991,7 +991,7 @@ namespace AM.Console
             FileInfo fileInfo = new FileInfo(localFilePath);
             mailPieceDTO.PDFFileSize = (fileInfo.Length / 1024);
 
-            if ((mailPieceDTO.IsEDeliveryRequested && mailPieceDTO.IsFallBackRequested) || !mailPieceDTO.IsEDeliveryRequested)
+            if (mailPieceDTO.IsFallBackRequested || !mailPieceDTO.IsEDeliveryRequested)
             {
                 //Document Or Package Type validation
                 var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, pageCount);
@@ -1006,25 +1006,12 @@ namespace AM.Console
                 {
                     return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = "The specified document or package type '{0}' is not configured.".Fill(mailPieceDTO.DocumentOrPackageType) };
                 }
-                else if (string.IsNullOrWhiteSpace(mailPieceDTO.RcptEmailId) && mailPieceDTO.IsEDeliveryRequested)//Here system will validate if EDelivery is requested then EmailId is required, if not exist then error out
-                {
-                    mailPieceDTO.ErrorCode = OutComeCodes.Recipient_Details_Missing_Or_Invalid;
-                    mailPieceDTO.ErrorDesc = "Recipient Email address is not specified for E-Delivery request.";
-                    mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
-                }
-                else if (mailPieceDTO.ExpiryDate == null && mailPieceDTO.IsEDeliveryRequested)//Here system will validate if EDelivery is requested then Expiry date is required, if not exist then error out
-                {
-                    mailPieceDTO.ErrorCode = OutComeCodes.Issue_In_EDelivery;
-                    mailPieceDTO.ErrorDesc = "Client has not provided expiry date or expiry days while creating signing room.";
-                    mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
-                }
                 else if (!mailPieceDTO.IsReturnInfoSpecified && !mbi.MailBatch.IsReturnInfoSpecified && !docType.IsReturnInfoSpecified)
                 {
                     return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Return mailing address is not specified for this package." };
                 }
                 else
                 {
-
                     //if at mail piece level or at mail batch level, system didn't find return info then it will check for MailBatch level if exist system will use that in mail piece level 
                     if (!mailPieceDTO.IsReturnInfoSpecified && !mbi.MailBatch.IsReturnInfoSpecified && docType.IsReturnInfoSpecified)
                     {
@@ -1050,30 +1037,38 @@ namespace AM.Console
                         mailPieceDTO.RetRcptAddressState = docType.RetRcptAddressState;
                         mailPieceDTO.RetRcptAddressZIP = docType.RetRcptAddressZIP;
                     }
-                    return new MailPieceValidationResult() { Code = OutComeCodes.No_Error };
                 }
             }
-            else if (mailPieceDTO.IsEDeliveryRequested)
+
+            if (mailPieceDTO.IsEDeliveryRequested && mailPieceDTO.ShippingStatus != ShippingStatus.Error.ToString())
             {
-                if (string.IsNullOrWhiteSpace(mailPieceDTO.RcptEmailId))
+                //NOTE : System will check for E-Delivery and set E-Delivery as a Document type even though requested for FallBack
+                var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, "E-Delivery", pageCount);
+
+                if (docType != null)
                 {
-                    return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Recipient Email address is not specified for E-Delivery request." };
+                    mailPieceDTO.ClientDocTypeId = docType.ClientDocTypeId;
+                    mailPieceDTO.DocTypeId = docType.Id;
+                }
+
+                if (docType == null)
+                {
+                    return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = "Client has not opted for E-Delivery service." };
+                }
+                else if (string.IsNullOrWhiteSpace(mailPieceDTO.RcptEmailId) && mailPieceDTO.IsEDeliveryRequested)//Here system will validate if EDelivery is requested then EmailId is required, if not exist then error out
+                {
+                    return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Recipient Email address is not specified for E-Delivery request.".Fill(mailPieceDTO.DocumentOrPackageType) };
+                }
+                else if (mailPieceDTO.ExpiryDate == null && mailPieceDTO.IsEDeliveryRequested)//Here system will validate if EDelivery is requested then Expiry date is required, if not exist then error out
+                {
+                    return new MailPieceValidationResult() { Code = OutComeCodes.Issue_In_EDelivery, ErrorMessage = "Client has not provided expiry date or expiry days while creating signing room.".Fill(mailPieceDTO.DocumentOrPackageType) };
                 }
                 else
                 {
-                    DocType eDeliveryDocType = docTypeSvc.GetDocTypeByDocTypeName(mbi.Client.Id, "E-Delivery", mailPieceDTO.TotalPages);
-                    mailPieceDTO.ErrorCode = OutComeCodes.No_Error;
-                    mailPieceDTO.DocTypeId = eDeliveryDocType.Id;
-                    mailPieceDTO.ClientDocTypeId = eDeliveryDocType.ClientDocTypeId;
                     return new MailPieceValidationResult() { Code = OutComeCodes.No_Error };
                 }
             }
-            else
-            {
-                return new MailPieceValidationResult() { Code = OutComeCodes.Unknown_Error, ErrorMessage = "Unknown error occured while processing package." };
-            }
-
-            return new MailPieceValidationResult() { Code = OutComeCodes.Unknown_Error, ErrorMessage = "Unknown error occured while processing package." };
+            return new MailPieceValidationResult() { Code = OutComeCodes.No_Error };
         }
 
         private MailPieceValidationResult ValidateClientSpecificRules(MailPieceDTO mailPieceDTO, MailBatchInfo mbi)

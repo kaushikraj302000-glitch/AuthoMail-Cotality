@@ -660,7 +660,7 @@ namespace AM.Console
                             {
                                 mailPieceDTO.IsEDeliveryRequested = true;
                                 mailPieceDTO.IsFallBackRequested = Convert.ToBoolean(eDeliveryElement.Attributes["PrintAndShipOnExpiry"] == null ? "false" : eDeliveryElement.Attributes["PrintAndShipOnExpiry"].Value);
-                                if (eDeliveryElement.Attributes["ExpiryDate"] == null)
+                                if (eDeliveryElement.Attributes["ExpiryDate"] == null || eDeliveryElement.Attributes["ExpiryDate"].Value == "")
                                 {
                                     if (client.SigningRoomExpiryDays >= 0)
                                     {
@@ -750,11 +750,59 @@ namespace AM.Console
 
                                     string documentOrPackageType = mailPieceDTO.DocumentOrPackageType;
 
-                                    //NOTE : Here system will check for IsEDeliveryRequested and IsFallBackRequested if both true then we need to verify document type as well
-                                    if ((mailPieceDTO.IsEDeliveryRequested && mailPieceDTO.IsFallBackRequested) || !mailPieceDTO.IsEDeliveryRequested)
+
+                                    if (!mailPieceDTO.IsEDeliveryRequested || mailPieceDTO.IsFallBackRequested)
                                     {
                                         //Document Or Package Type validation
-                                        var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType, pageCount);
+                                        var tempDocType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType, pageCount);
+
+                                        if (tempDocType != null)
+                                        {
+                                            mailPieceDTO.ClientDocTypeId = tempDocType.ClientDocTypeId;
+                                            mailPieceDTO.DocTypeId = tempDocType.Id;
+                                        }
+
+                                        if (tempDocType == null)
+                                        {
+                                            mailPieceDTO.ErrorCode = OutComeCodes.Invalid_PackageType;
+                                            mailPieceDTO.ErrorDesc = client.AppCode == GetInvalidClient().AppCode ? "The specified customer identifier {0} is not configured.".Fill(mailPieceCustomInfo.Single(c => c.Key == "CustomerIdentifier").Value) : "The specified document or package type '{0}' is not configured.".Fill(mailPieceDTO.DocumentOrPackageType);
+                                            mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
+                                        }
+                                        else if (!mailPieceDTO.IsReturnInfoSpecified && !mailBatch.IsReturnInfoSpecified && !tempDocType.IsReturnInfoSpecified)
+                                        {
+                                            mailPieceDTO.ErrorCode = OutComeCodes.Mailing_Address_Missing_Or_Invalid;
+                                            mailPieceDTO.ErrorDesc = "Return mailing address is not specified for this package.";
+                                            mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
+                                        }
+                                        else
+                                        {
+                                            mailPieceDTO.ErrorCode = OutComeCodes.No_Error;
+
+                                            if (!mailPieceDTO.IsReturnInfoSpecified && !mailBatch.IsReturnInfoSpecified && tempDocType.IsReturnInfoSpecified)
+                                            {
+                                                mailPieceDTO.RetRcptFirstName = tempDocType.RetRcptFirstName;
+
+                                                mailPieceDTO.RetRcptLastName = tempDocType.RetRcptLastName;
+
+                                                mailPieceDTO.RetRcptPhone = tempDocType.RetRcptPhone;
+
+                                                mailPieceDTO.RetRcptAddressStreet = tempDocType.RetRcptAddressStreet;
+
+                                                mailPieceDTO.RetRcptAddrOptionalLine1BelowStreet = tempDocType.RetRcptAddrOptionalLine1BelowStreet;
+
+                                                mailPieceDTO.RetRcptAddressCity = tempDocType.RetRcptAddressCity;
+
+                                                mailPieceDTO.RetRcptAddressState = tempDocType.RetRcptAddressState;
+
+                                                mailPieceDTO.RetRcptAddressZIP = tempDocType.RetRcptAddressZIP;
+                                            }
+                                        }
+                                    }
+
+                                    if (mailPieceDTO.IsEDeliveryRequested && mailPieceDTO.ShippingStatus != ShippingStatus.Error.ToString())
+                                    {
+                                        //NOTE : System will check for E-Delivery and set E-Delivery as a Document type even though requested for FallBack
+                                        var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, "E-Delivery", pageCount);
 
                                         if (docType != null)
                                         {
@@ -765,7 +813,7 @@ namespace AM.Console
                                         if (docType == null)
                                         {
                                             mailPieceDTO.ErrorCode = OutComeCodes.Invalid_PackageType;
-                                            mailPieceDTO.ErrorDesc = client.AppCode == GetInvalidClient().AppCode ? "The specified customer identifier {0} is not configured.".Fill(mailPieceCustomInfo.Single(c => c.Key == "CustomerIdentifier").Value) : "The specified document or package type '{0}' is not configured.".Fill(mailPieceDTO.DocumentOrPackageType);
+                                            mailPieceDTO.ErrorDesc = "Client has not opted for E-Delivery service.".Fill(mailPieceDTO.DocumentOrPackageType);
                                             mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                                         }
                                         else if (string.IsNullOrWhiteSpace(mailPieceDTO.RcptEmailId) && mailPieceDTO.IsEDeliveryRequested)//Here system will validate if EDelivery is requested then EmailId is required, if not exist then error out
@@ -780,58 +828,12 @@ namespace AM.Console
                                             mailPieceDTO.ErrorDesc = "Client has not provided expiry date or expiry days while creating signing room.";
                                             mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                                         }
-                                        else if (!mailPieceDTO.IsReturnInfoSpecified && !mailBatch.IsReturnInfoSpecified && !docType.IsReturnInfoSpecified)
-                                        {
-                                            mailPieceDTO.ErrorCode = OutComeCodes.Mailing_Address_Missing_Or_Invalid;
-                                            mailPieceDTO.ErrorDesc = "Return mailing address is not specified for this package.";
-                                            mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
-                                        }
                                         else
                                         {
                                             mailPieceDTO.ErrorCode = OutComeCodes.No_Error;
-                                            mailPieceDTO.DocTypeId = docType.Id;
-
-                                            if (!mailPieceDTO.IsReturnInfoSpecified && !mailBatch.IsReturnInfoSpecified && docType.IsReturnInfoSpecified)
-                                            {
-                                                mailPieceDTO.RetRcptFirstName = docType.RetRcptFirstName;
-
-                                                mailPieceDTO.RetRcptLastName = docType.RetRcptLastName;
-
-                                                mailPieceDTO.RetRcptPhone = docType.RetRcptPhone;
-
-                                                mailPieceDTO.RetRcptAddressStreet = docType.RetRcptAddressStreet;
-
-                                                mailPieceDTO.RetRcptAddrOptionalLine1BelowStreet = docType.RetRcptAddrOptionalLine1BelowStreet;
-
-                                                mailPieceDTO.RetRcptAddressCity = docType.RetRcptAddressCity;
-
-                                                mailPieceDTO.RetRcptAddressState = docType.RetRcptAddressState;
-
-                                                mailPieceDTO.RetRcptAddressZIP = docType.RetRcptAddressZIP;
-                                            }
+                                            mailPieceDTO.ErrorDesc = null;
+                                            mailPieceDTO.ShippingStatus = ShippingStatus.InProgress.ToString();
                                         }
-                                    }
-                                    else if (mailPieceDTO.IsEDeliveryRequested)
-                                    {
-                                        if (string.IsNullOrWhiteSpace(mailPieceDTO.RcptEmailId))
-                                        {
-                                            mailPieceDTO.ErrorCode = OutComeCodes.Recipient_Details_Missing_Or_Invalid;
-                                            mailPieceDTO.ErrorDesc = "Recipient Email address is not specified for E-Delivery request.";
-                                            mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
-                                        }
-                                        else
-                                        {
-                                            DocType eDeliveryDocType = docTypeSvc.GetDocTypeByDocTypeName(client.Id, "E-Delivery", mailPieceDTO.TotalPages);
-                                            mailPieceDTO.ErrorCode = OutComeCodes.No_Error;
-                                            mailPieceDTO.DocTypeId = eDeliveryDocType.Id;
-                                            mailPieceDTO.ClientDocTypeId = eDeliveryDocType.ClientDocTypeId;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        mailPieceDTO.ErrorCode = OutComeCodes.Unknown_Error;
-                                        mailPieceDTO.ErrorDesc = "Unknown error occured while processing package.";
-                                        mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                                     }
                                 }
                             }
