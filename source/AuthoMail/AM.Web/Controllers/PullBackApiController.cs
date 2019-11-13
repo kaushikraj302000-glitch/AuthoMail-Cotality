@@ -38,7 +38,7 @@ namespace AM.Web.Controllers
 
         [Route("RequestPullBack")]
         [HttpPost]
-        public object GeneratePullBackRequest([FromBody] List<string> mailPieceIds)
+        public async Task<object> GeneratePullBackRequest([FromBody] List<string> mailPieceIds)
         {
             if (mailPieceIds == null || mailPieceIds.Count == 0)
             {
@@ -149,6 +149,8 @@ namespace AM.Web.Controllers
                         #region If invitation is not sent then only allow to pulledback 
                         if (!item.IsInvitationSent)
                         {
+                            IEDeliveryAPIService eDeliveryAPISvc = new EDeliveryAPIService();
+                            var isSigningRoomDeleted = await eDeliveryAPISvc.DeleteSigningRoom(item.SigningRoomId);
                             int row1 = pullBackSvc.InsertPullBackRequestData(item.MailPieceUniqueId.ToString(), User.Identity.GetClientId().Value, "PulledBack", string.IsNullOrEmpty(User.Identity.GetUserId().ToString()) ? string.Empty : User.Identity.GetUserId().ToString());
                             int row = pullBackSvc.UpdatePullBackRequestedOn(item.MailPieceUniqueId.ToString(), string.IsNullOrEmpty(User.Identity.GetUserId().ToString()) ? string.Empty : User.Identity.GetUserId().ToString(), "PulledBack");
 
