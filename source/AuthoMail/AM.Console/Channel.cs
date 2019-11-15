@@ -725,7 +725,7 @@ namespace AM.Console
                 }
                 catch (Exception ex)
                 {
-                    var msg = "Error occured in ValidateAddress Method For Mail Batch Id: {0} with Error : {1}".Fill(validMailPieces.Select(c => c.MailBatchId).Distinct().SingleOrDefault(), ex.Message);
+                    var msg = "Error occured in ValidateAddress Method For Mail Batch Id: {0} with Error : {1}".Fill(validMailPieces.Select(c => c.MailBatchId).Distinct().SingleOrDefault(), ex);
                     log.Error(msg, ex);
                     MailUtility.SendUnexpectedExceptionEmail(msg);
                     throw ex;
