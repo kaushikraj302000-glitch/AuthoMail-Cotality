@@ -215,7 +215,7 @@ namespace AM.Console
                         string localReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, client.AppCode, Util.AMResponseFolderName, preppedPrintBatch.PrintBatchId.ToString());
                         //Here we are passing localReportPath as PrintBatches folder structure AMRoot/AMResponses/PrintBatchId
                         UploadReportsToIncrementalClients(deliverables, localReportPath, sftSite, sftChannelDetails);
-
+                        
                         mailBatchSvc.UpdatePrintBatchPipelineStatus(preppedPrintBatch.PrintBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
                     }
                     catch (Exception ex)
@@ -403,6 +403,7 @@ namespace AM.Console
                     }
                     sftSite.UploadFile(zipFilePath, ftpUploadPath);
                     File.Move(zipFilePath, Path.ChangeExtension(zipFilePath, ".ZipUploaded"));
+                    Thread.Sleep(1000);
                     break;
                 default:
                     resXmlList = Directory.EnumerateFiles(localReportPath, "*.xml").ToList();
