@@ -208,7 +208,11 @@ namespace AM.Core
 
                             SmartDocResponse response = new SmartDocResponse();
 
-                            if (docType.ShippingCarrier == Carrier.USPS.ToString())
+                            if (docType.IsPrintReady)
+                            {
+                                //Do nothing
+                            }
+                            else if (docType.ShippingCarrier == Carrier.USPS.ToString())
                             {
                                 if (docType.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS.ToString())
                                 {

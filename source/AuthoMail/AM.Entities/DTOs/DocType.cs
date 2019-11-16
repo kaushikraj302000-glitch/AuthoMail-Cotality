@@ -70,6 +70,7 @@ namespace AM.Entities
         public int MinPage { get; set; }
         public int MaxPage { get; set; }
         public bool IsFallBack { get; set; }
+        public bool IsPrintReady { get; set; }
     }
 
     public class DocTypeCoverLetter
