@@ -8,6 +8,7 @@ using Dapper;
 using AM.Entities;
 using AM.Lib;
 using System.Data;
+using AM.USPSLib;
 
 namespace AM.Services
 {
@@ -94,7 +95,11 @@ namespace AM.Services
 
                     //System will calculate print trail,print location, duedate etc.
                     MailPieceDTO mailPieceDTO = mpSvc.GetMailPieceDataByUniqueIdAndMBId(edmp.UniqueId, edmp.MailBatchId);
-                    DocType mpDocType = docTypeSvc.GetDocTypeById(mailPieceDTO.DocTypeId.Value);
+                    //NOTE : Reason to take document type based on Name to just put valid Id after fall back
+                    DocType mpDocType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, edmp.TotalPages);
+                    mailPieceDTO.DocTypeId = mpDocType.Id;
+                    mailPieceDTO.ClientDocTypeId = mpDocType.ClientDocTypeId;
+                    GetExactDocumentType(mpDocType, mailPieceDTO);
                     commonSvc.GetUpdatedDueDateAndPrintLocation(newReceivedOnDateTime, mailPieceDTO, mpDocType, edmp.ClientCode);
                     mpSvc.UpdateBatchMailPieceDetails(mailPieceDTO);
 
@@ -112,16 +117,80 @@ namespace AM.Services
                 if (retVal == 1)
                 {
                     using (ICommonService commonSvc = new CommonService())
+                    using (IEDeliveryService eDeliverySvc = new EDeliveryService())
                     {
+                        var newValidatedOnDateTime = Common.Now;
+                        eDeliverySvc.UpdateEDMailPiecePipelineStatus(edmp.Id, EDPipelineStatus.ReportedBack, newValidatedOnDateTime);
                         commonSvc.UpdateBatchStatus(edmp.MailBatchId, BatchStatus.Failed.ToString());
                         commonSvc.UpdateBatchValidationStatus(edmp.MailBatchId, BatchValidationStatus.Invalid, edmp.ErrorDesc);
-                        commonSvc.UpdateBatchPipeLineStatus(edmp.MailBatchId, BatchPipelineStatus.Validated, Common.Now);
+                        commonSvc.UpdateBatchPipeLineStatus(edmp.MailBatchId, BatchPipelineStatus.Validated, newValidatedOnDateTime);
                         return 1;
                     }
                 }
             }
 
             return 0;
+        }
+
+        private void GetExactDocumentType(DocType docType, MailPieceDTO mailPiece)
+        {
+            using (IDocTypeService docTypeSvc = new DocTypeService())
+            using (IMailPieceService mailPieceSvc = new MailPieceService())
+            {
+                if (docType.ShippingCarrier == Carrier.FedEx.ToString())
+                {
+                    if (mailPiece.RcptAddressTypes.Contains(AddressType.Military.ToString()) || mailPiece.RcptAddressTypes.Contains(AddressType.POBOX.ToString()) || mailPiece.RcptAddressTypes.Contains(AddressType.Territory.ToString()))
+                    {
+                        var fallBackDocTypes = docTypeSvc.GetFallBackDocTypeByClientDocTypeId(mailPiece.ClientId, docType.ClientDocTypeId);
+
+                        if (fallBackDocTypes == null || fallBackDocTypes.Count == 0)
+                        {
+                            return;
+                        }
+
+                        var priExDocType = fallBackDocTypes.SingleOrDefault(dt => dt.ShippingCarrier == Carrier.USPS.ToString() && dt.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS.ToString());
+
+                        if (priExDocType != null)
+                        {
+                            docType = priExDocType;
+                        }
+                        else
+                        {
+                            var priDocType = fallBackDocTypes.SingleOrDefault(dt => dt.ShippingCarrier == Carrier.USPS.ToString() && dt.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY.ToString());
+
+                            if (priDocType == null)
+                            {
+                                return;
+                            }
+
+                            docType = priDocType;
+                        }
+
+                        mailPiece.DocTypeId = docType.Id;
+
+                        if (!mailPiece.IsReturnInfoSpecified && docType.IsReturnInfoSpecified)
+                        {
+                            mailPiece.RetRcptFirstName = docType.RetRcptFirstName;
+                            mailPiece.RetRcptLastName = docType.RetRcptLastName;
+                            mailPiece.RetRcptMiddleName = docType.RetRcptMiddleName;
+                            mailPiece.RetRcptOrganization = docType.RetRcptOrganization;
+                            mailPiece.RetRcptPrefix = docType.RetRcptPrefix;
+                            mailPiece.RetRcptSuffix = docType.RetRcptSuffix;
+                            mailPiece.RetRcptPhone = docType.RetRcptPhone;
+
+                            mailPiece.RetRcptAddrOptionalLine1AboveStreet = docType.RetRcptAddrOptionalLine1AboveStreet;
+                            mailPiece.RetRcptAddrOptionalLine2AboveStreet = docType.RetRcptAddrOptionalLine2AboveStreet;
+                            mailPiece.RetRcptAddressStreet = docType.RetRcptAddressStreet;
+                            mailPiece.RetRcptAddressAptOrSuiteOrOther = docType.RetRcptAddressAptOrSuiteOrOther;
+                            mailPiece.RetRcptAddrOptionalLine1BelowStreet = docType.RetRcptAddrOptionalLine1BelowStreet;
+                            mailPiece.RetRcptAddrOptionalLine2BelowStreet = docType.RetRcptAddrOptionalLine2BelowStreet;
+                            mailPiece.RetRcptAddressCity = docType.RetRcptAddressCity;
+                            mailPiece.RetRcptAddressState = docType.RetRcptAddressState;
+                            mailPiece.RetRcptAddressZIP = docType.RetRcptAddressZIP;
+                        }
+                    }
+                }
+            }
         }
 
         public int UpdateEDeliveredMPForReportingBack(int mailBatchId, DateTime reportPreppedTiming)

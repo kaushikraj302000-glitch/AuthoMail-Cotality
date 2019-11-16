@@ -214,7 +214,7 @@ namespace AM.EDelivery
                                 MailPieces mailPiece = reportSvc.GetMailPiecesDataFromMailBatchIdAndUniqueId(edmp.MailBatchId, edmp.UniqueId);
                                 mailPiece.PrintedOn = edmp.DocDownloadedOn.Value;
                                 mailPiece.ShippedOn = edmp.DocDownloadedOn.Value;
-                                mailPiece.ShippingStatus = ShippingStatus.EDelivered.ToString();
+                                mailPiece.ShippingStatus = ShippingStatus.eDelivered.ToString();
 
                                 mpSvc.UpdateBatchMailPieceShippingStatusDetails(mailPiece);
                                 MailPieceInfo mpi = new MailPieceInfo(edmp.ClientCode, Config.Common_AuthoMailRootFolder, edmp.MailBatchId, edmp.BatchName);

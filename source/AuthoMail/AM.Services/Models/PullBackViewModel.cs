@@ -22,6 +22,12 @@ namespace AM.Services
         public string AMErrorDescription { get; set; }
         public string PnSErrorDescription { get; set; }
         public DateTime? PCIBatchPrepEnd { get; set; }
+        public bool IsEDeliveryRequested { get; set; }
+        public int SigningRoomId { get; set; }
+        public string SigningRoomName { get; set; }
+        public bool IsInvitationSent { get; set; }
+        public bool IsDocReviewed { get; set; }
+        public bool IsDocDownloaded { get; set; }
         public bool IsPullBackRequested { get; set; }
         public DateTime? PullBackRequestedOn { get; set; }
         public bool IsPulledBack { get; set; }

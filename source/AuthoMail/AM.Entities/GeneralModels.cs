@@ -245,7 +245,7 @@ namespace AM.Entities
         PulledBack,
         Error,
         Shipped,
-        EDelivered,
+        eDelivered,
         Unknown
     }
 

@@ -215,7 +215,7 @@ namespace AM.Console
                         string localReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, client.AppCode, Util.AMResponseFolderName, preppedPrintBatch.PrintBatchId.ToString());
                         //Here we are passing localReportPath as PrintBatches folder structure AMRoot/AMResponses/PrintBatchId
                         UploadReportsToIncrementalClients(deliverables, localReportPath, sftSite, sftChannelDetails);
-
+                        
                         mailBatchSvc.UpdatePrintBatchPipelineStatus(preppedPrintBatch.PrintBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
                     }
                     catch (Exception ex)
@@ -387,7 +387,7 @@ namespace AM.Console
                 case "PENFED":
 
                     //NOTE : Below zip file naming convention is EDG Naming convention.
-                    string zipFileName = "{0}FAGOS.ZYIAC.N0010362.PenFedPNSOUTPUT.D{1}.T{2}.zip".Fill(Config.Common_EnvironmentInitial, Common.Now.ToString("yyyyMMdd"), Common.Now.ToString("hhmmss"));
+                    string zipFileName = "{0}FAGOS.ZYONT.N0010362.PenFedPNSOUTPUT.D{1}.T{2}.zip".Fill(Config.Common_EnvironmentInitial, Common.Now.ToString("yyyyMMdd"), Common.Now.ToString("hhmmss"));
                     string zipFilePath = Path.Combine(localReportPath, zipFileName);
                     ftpUploadPath = Path.Combine(deliveryUploadPath, zipFileName);
                     var resXmlList = Directory.EnumerateFiles(localReportPath, "*.xml").ToList();
@@ -403,6 +403,7 @@ namespace AM.Console
                     }
                     sftSite.UploadFile(zipFilePath, ftpUploadPath);
                     File.Move(zipFilePath, Path.ChangeExtension(zipFilePath, ".ZipUploaded"));
+                    Thread.Sleep(1000);
                     break;
                 default:
                     resXmlList = Directory.EnumerateFiles(localReportPath, "*.xml").ToList();
@@ -424,6 +425,11 @@ namespace AM.Console
         private static bool UploadReportsToClients(MailBatchInfo mbi, SFTUtil sftSite, List<Deliverable> deliverables, List<MailPieces> mailPieceData, SFTChannel sftChannelDetail)
         {
             bool isUploaded = false;
+
+            var increamentalReportingChannels = Config.Core_IncrementalReportingChannelCodes.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+
+            increamentalReportingChannels = increamentalReportingChannels.Select(c => c + "_" + Config.Common_Environment).ToList();
+
             switch (sftChannelDetail.Code.Split('_')[0].ToUpper())
             {
                 case "ALASKA":
@@ -493,7 +499,6 @@ namespace AM.Console
                     MailUtility.SendProductionNotificationEmail(mbi, mailPieceData, reportToMailHSBC, emailChannelHSBC);
                     isUploaded = true;
                     break;
-                case "AMTEST":
                 case "AMC":
                 default:
                     var mailPieceCount = mailPieceData.Count(status => status.ShippingStatus == ShippingStatus.InProgress.ToString());
@@ -503,13 +508,16 @@ namespace AM.Console
 
                     //NOTE : Here we have to check printbatches table for that MailBatchId because we can not updated reported back status until all print batches status are getting changed to ReportedBack.
                     int remainingPrintBatchReportedBackCount = 0;
-                    using (IMailBatchService mailBatchSvc = new MailBatchService())
+                    if (increamentalReportingChannels.Contains(sftChannelDetail.Code))
                     {
-                        remainingPrintBatchReportedBackCount = mailBatchSvc.RemainingPrintBatchesReportedBackCount(mbi.MailBatch.Id);
-                    }
+                        using (IMailBatchService mailBatchSvc = new MailBatchService())
+                        {
+                            remainingPrintBatchReportedBackCount = mailBatchSvc.RemainingPrintBatchesReportedBackCount(mbi.MailBatch.Id);
+                        }
 
-                    if (remainingPrintBatchReportedBackCount > 0)
-                        return isUploaded;
+                        if (remainingPrintBatchReportedBackCount > 0)
+                            return isUploaded;
+                    }
 
                     string reportPath = Path.Combine(Config.Common_AuthoMailRootFolder, mbi.Client.AppCode, mbi.MailBatch.Id.ToString(), Util.AMResponseFolderName);
 
@@ -553,11 +561,12 @@ namespace AM.Console
                             mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value), mailBatch.ReceivedOn.Value);
                         }
                     }
-                    else if (mailPiece.IsEDeliveryRequested && !mailPiece.IsFallBackRequested)
+                    else if (mailPiece.IsEDeliveryRequested)
                     {
                         mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value), mailBatch.ReceivedOn.Value);
+                        mailPiece.DueDate = mailPiece.ExpiryDate;
                         mailPiece.StdSubmissionTime = mailPiece.EffectiveReceivedOnEst.Value.AddMinutes(30).EstToUtc();
-                        mailPiece.MaxSubmissionTime = mailPiece.EffectiveReceivedOnEst.Value.AddHours(7).EstToUtc();
+                        mailPiece.MaxSubmissionTime = mailPiece.EffectiveReceivedOnEst.Value.AddHours(4).EstToUtc();
                     }
                     else
                     {
@@ -570,7 +579,7 @@ namespace AM.Console
                         mailPiece.DueDate = commonSvc.GetDueDate(docType, mailPiece.EffectiveReceivedOnEst.Value);
                         //Set print location where mail piece will go for print and ship
                         mailPiece.PrintTrailId = commonSvc.GetPrintTrail(docType, mailPiece.EffectiveReceivedOnEst.Value);
-                        var printVendorDetails = commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value);
+                        var printVendorDetails = commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value, mailPiece.EffectiveReceivedOnEst);
                         mailPiece.PrintLocation = printVendorDetails.PrintLocation;
                         //This field will be used for monitoring data    
                         mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, mailBatch.ReceivedOn.Value, sweepTimings);
@@ -717,7 +726,7 @@ namespace AM.Console
                 }
                 catch (Exception ex)
                 {
-                    var msg = "Error occured in ValidateAddress Method For Mail Batch Id: {0} with Error : {1}".Fill(validMailPieces.Select(c => c.MailBatchId).Distinct().SingleOrDefault(), ex.Message);
+                    var msg = "Error occured in ValidateAddress Method For Mail Batch Id: {0} with Error : {1}".Fill(validMailPieces.Select(c => c.MailBatchId).Distinct().SingleOrDefault(), ex);
                     log.Error(msg, ex);
                     MailUtility.SendUnexpectedExceptionEmail(msg);
                     throw ex;

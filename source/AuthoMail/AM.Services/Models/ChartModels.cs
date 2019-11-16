@@ -62,6 +62,7 @@ namespace AM.Services
         public string DocTypeCode { get; set; }
         public int DocTypeId { get; set; }
         public int Shipped { get; set; }
+        public int eDelivered { get; set; }
         public int InProgress { get; set; }
         public int PulledBack { get; set; }
         public int Error { get; set; }

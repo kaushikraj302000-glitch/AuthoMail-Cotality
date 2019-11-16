@@ -534,7 +534,7 @@ namespace AM.Console
                                     mailPieceDTO.RcptPhone = requests.RecipientInfo.Recipient.Phone;
                                 }
                                 else
-                                    mailPieceDTO.IsRcptInfoSpecified = false;                                
+                                    mailPieceDTO.IsRcptInfoSpecified = false;
 
                                 if (requests.RecipientInfo.Address != null)
                                 {
@@ -627,9 +627,16 @@ namespace AM.Console
                             {
                                 foreach (var cstmInfo in requests.CustomInfo)
                                 {
-                                    customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = cstmInfo.Key, DataType = cstmInfo.DataType, Value = cstmInfo.Value };
+                                    if (cstmInfo.Key == "TrackingNumber")
+                                    {
+                                        mailPieceDTO.TrackingNo = cstmInfo.Value.Trim();
+                                    }
+                                    else
+                                    {
+                                        customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = cstmInfo.Key, DataType = cstmInfo.DataType, Value = cstmInfo.Value };
 
-                                    mailPieceCustomInfo.Add(customInfo);
+                                        mailPieceCustomInfo.Add(customInfo);
+                                    }                                   
                                 }
                             }
                             //First System will check for schema validation

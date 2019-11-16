@@ -13,6 +13,7 @@ using AM.Entities;
 using System.Web.Hosting;
 using System.Threading;
 using System.Web.Http.Cors;
+using System.Threading.Tasks;
 
 namespace AM.Web.Controllers
 {
@@ -37,7 +38,7 @@ namespace AM.Web.Controllers
 
         [Route("RequestPullBack")]
         [HttpPost]
-        public object GeneratePullBackRequest([FromBody] List<string> mailPieceIds)
+        public async Task<object> GeneratePullBackRequest([FromBody] List<string> mailPieceIds)
         {
             if (mailPieceIds == null || mailPieceIds.Count == 0)
             {
@@ -87,6 +88,10 @@ namespace AM.Web.Controllers
                     {
                         mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.MailPieceUniqueId.ToString(), Message = Config.Web_Msg_API_PB_Shipped, Success = false });
                     }
+                    else if (item.AMMailPieceStatus == "eDelivered")
+                    {
+                        mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.MailPieceUniqueId.ToString(), Message = Config.Web_Msg_API_PB_EDelivered, Success = false });
+                    }
                     else if (item.AMMailPieceStatus == "InProgress" && (item.AMBatchPipelineStatus == "Validated" || item.AMBatchPipelineStatus == "Acknowledged" || item.AMBatchPipelineStatus == "Prepped"))
                     {
                         int row1 = pullBackSvc.InsertPullBackRequestData(item.MailPieceUniqueId.ToString(), User.Identity.GetClientId().Value, "PulledBack", string.IsNullOrEmpty(User.Identity.GetUserId().ToString()) ? string.Empty : User.Identity.GetUserId().ToString());
@@ -99,6 +104,63 @@ namespace AM.Web.Controllers
                         }
 
                         mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.MailPieceUniqueId.ToString(), Message = Config.Web_Msg_API_PB_PulledBackSuccess, MailPieceStatus = "PulledBack", PullBackRequestedOn = Common.Now, PulledBackRequestedBy = (User.Identity) == null ? string.Empty : User.Identity.Name, Success = true });
+                    }
+                    else if (item.AMMailPieceStatus == "InProgress" && item.AMBatchPipelineStatus == "SubmittedToEDelivery" && item.IsEDeliveryRequested)
+                    {
+                        #region If signingroom is created and user has still not downloaded/reviewed the document then delete signing room and update pullback status.
+                        //if (!string.IsNullOrWhiteSpace(item.SigningRoomName))
+                        //{
+                        //    IEDeliveryAPIService eDeliveryAPISvc = new EDeliveryAPIService();
+
+                        //    var activityLogs = await eDeliveryAPISvc.GetSigningRoomActivityLog(item.SigningRoomName);
+
+                        //    foreach (var actlog in activityLogs)
+                        //    {
+                        //        switch (actlog.EDeliveryStatus)
+                        //        {
+                        //            case ActivityStatus.DocumentReviewed:
+                        //                item.IsDocReviewed = true;
+                        //                break;
+                        //            case ActivityStatus.DocumentDownloaded:
+                        //                item.IsDocDownloaded = true;
+                        //                break;
+                        //            default:
+                        //                break;
+                        //        }
+                        //    }
+
+                        //    if (!item.IsDocReviewed && !item.IsDocDownloaded)
+                        //    {
+                        //        var isSigningRoomDeleted = await eDeliveryAPISvc.DeleteSigningRoom(item.SigningRoomId);
+                        //        if (isSigningRoomDeleted)
+                        //        {
+                        //            int row1 = pullBackSvc.InsertPullBackRequestData(item.MailPieceUniqueId.ToString(), User.Identity.GetClientId().Value, "PulledBack", string.IsNullOrEmpty(User.Identity.GetUserId().ToString()) ? string.Empty : User.Identity.GetUserId().ToString());
+                        //            int row = pullBackSvc.UpdatePullBackRequestedOn(item.MailPieceUniqueId.ToString(), string.IsNullOrEmpty(User.Identity.GetUserId().ToString()) ? string.Empty : User.Identity.GetUserId().ToString(), "PulledBack");
+
+                        //            mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.MailPieceUniqueId.ToString(), Message = Config.Web_Msg_API_PB_PulledBackSuccess, MailPieceStatus = "PulledBack", PullBackRequestedOn = Common.Now, PulledBackRequestedBy = (User.Identity) == null ? string.Empty : User.Identity.Name, Success = true });
+                        //        }
+                        //    }
+                        //    else
+                        //    {
+                        //        mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.MailPieceUniqueId.ToString(), Message = "Mailpiece is already Downloaded/Reviewed by Borrower, pullback cannot be requested.", Success = false });
+                        //    }
+                        //}
+                        #endregion
+                        #region If invitation is not sent then only allow to pulledback 
+                        if (!item.IsInvitationSent)
+                        {
+                            IEDeliveryAPIService eDeliveryAPISvc = new EDeliveryAPIService();
+                            var isSigningRoomDeleted = await eDeliveryAPISvc.DeleteSigningRoom(item.SigningRoomId);
+                            int row1 = pullBackSvc.InsertPullBackRequestData(item.MailPieceUniqueId.ToString(), User.Identity.GetClientId().Value, "PulledBack", string.IsNullOrEmpty(User.Identity.GetUserId().ToString()) ? string.Empty : User.Identity.GetUserId().ToString());
+                            int row = pullBackSvc.UpdatePullBackRequestedOn(item.MailPieceUniqueId.ToString(), string.IsNullOrEmpty(User.Identity.GetUserId().ToString()) ? string.Empty : User.Identity.GetUserId().ToString(), "PulledBack");
+
+                            mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.MailPieceUniqueId.ToString(), Message = Config.Web_Msg_API_PB_PulledBackSuccess, MailPieceStatus = "PulledBack", PullBackRequestedOn = Common.Now, PulledBackRequestedBy = (User.Identity) == null ? string.Empty : User.Identity.Name, Success = true });
+                        }
+                        else
+                        {
+                            mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.MailPieceUniqueId.ToString(), Message = "Invitation for signing room is already sent to Borrower, pullback cannot be requested.", Success = false });
+                        }
+                        #endregion
                     }
                     else if (item.AMMailPieceStatus == "InProgress" && item.AMBatchPipelineStatus == "SubmittedToShipping" && !item.PCIBatchPrepEnd.HasValue)
                     {

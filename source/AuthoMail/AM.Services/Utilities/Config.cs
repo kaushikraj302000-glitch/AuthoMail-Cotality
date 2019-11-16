@@ -54,7 +54,7 @@ namespace AM.Services
         public static string Core_CountryCode { get; private set; }
         public static int Core_NoofTime_AttemptFedexService { get; private set; }
         public static int Core_FedexServiceAttemptInterval { get; private set; }
-        public static string Core_DirectReportBackChannelCodes { get; private set; }
+        public static string Core_IncrementalReportingChannelCodes { get; private set; }
 
 
         //FedEx URLs
@@ -100,8 +100,10 @@ namespace AM.Services
         [Description("When mailpiece is pulledback.")]
         public static string Web_Msg_API_PB_PulledBack { get; private set; }
         public static string Web_Msg_API_PB_PulledBackSuccess { get; private set; }
-        [Description("When mailpiece statis is shipped then it can not be pullback.")]
+        [Description("When mailpiece status is shipped then it can not be pullback.")]
         public static string Web_Msg_API_PB_Shipped { get; private set; }
+        [Description("When mailpiece status is EDelivered then it can not be pullback.")]
+        public static string Web_Msg_API_PB_EDelivered { get; private set; }
         [Description("To whom need to send email.")]
         public static string Web_API_Email_To { get; private set; }
         [Description("To whom need to send email.")]
@@ -198,6 +200,7 @@ namespace AM.Services
         public static string E_API_SendInvitationURL { get; set; }
         public static string E_API_SigningRoomActivityLogSearchURL { get; set; }
         public static string E_API_SigningRoomSummaryURL { get; set; }
+        public static string E_API_DeleteSigningRoomURL { get; set; }
 
         #endregion
 

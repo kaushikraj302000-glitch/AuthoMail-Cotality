@@ -29,7 +29,7 @@ namespace AM.Services
     {
         public List<PullBackViewModel> GetMailPieceData(List<string> mpIds)
         {
-            string qry = string.Format(@"SELECT AMMP.MailBatchId,AMMP.[UniqueId] as MailPieceUniqueId,PM.PrintTrailBatchId,PB.PrintBatch,AMMP.TrackingNo,D.ShippingServiceType,AMMB.PipelineStatus AS AMBatchPipelineStatus,PB.PipelineStatus AS PnSBatchPipelineStatus,AMMP.ShippingStatus AS AMMailPieceStatus,PM.MailPieceStatus AS PnSMailPieceStatus,AMMP.PrintLocation,AMMP.ErrorDesc AS AMErrorDescription,PM.ErrDesc AS PnSErrorDescription,PLBT.PCIBatchPrepEnd,AMMP.IsPullBackRequested,AMMP.PullBackRequestedOn,AMMP.IsPulledBack,AMMP.PulledBackOn,PU.UserName FROM AM.MailPieces AMMP  LEFT OUTER JOIN PnS.MRDFRequest PM ON AMMP.[UniqueId] = PM.UniqueId  
+            string qry = string.Format(@"SELECT AMMP.MailBatchId,AMMP.[UniqueId] as MailPieceUniqueId,PM.PrintTrailBatchId,PB.PrintBatch,AMMP.TrackingNo,D.ShippingServiceType,AMMB.PipelineStatus AS AMBatchPipelineStatus,PB.PipelineStatus AS PnSBatchPipelineStatus,AMMP.ShippingStatus AS AMMailPieceStatus,PM.MailPieceStatus AS PnSMailPieceStatus,AMMP.PrintLocation,AMMP.ErrorDesc AS AMErrorDescription,PM.ErrDesc AS PnSErrorDescription,PLBT.PCIBatchPrepEnd,AMMP.IsEDeliveryRequested,EDMP.SigningRoomId,EDMP.SigningRoomName,EDMP.IsInvitationSent,AMMP.IsPullBackRequested,AMMP.PullBackRequestedOn,AMMP.IsPulledBack,AMMP.PulledBackOn,PU.UserName FROM AM.MailPieces AMMP LEFT OUTER JOIN AM.EDeliveryMailPieces EDMP ON AMMP.UniqueId = EDMP.UniqueId LEFT OUTER JOIN PnS.MRDFRequest PM ON AMMP.[UniqueId] = PM.UniqueId  
               LEFT OUTER JOIN AM.DocTypes D ON AMMP.DocTypeId = D.Id
               INNER JOIN AM.MailBatches AMMB ON AMMB.Id = AMMP.MailBatchId LEFT OUTER JOIN PnS.BatchSummary PB ON PB.PrintBatch = PM.JobId LEFT OUTER JOIN PnS.LogBatchTimeLine PLBT ON PLBT.BatchId = PB.PrintBatch LEFT OUTER JOIN[Profile].Users PU ON PU.Id = AMMP.PulledBackRequestedBy  WHERE AMMP.[UniqueId] IN @mailPieceIds");
             var data = db.Query<PullBackViewModel>(qry, new { mailPieceIds = mpIds }).ToList();
@@ -64,6 +64,7 @@ namespace AM.Services
                 string qry = string.Format(@"UPDATE AM.MailPieces SET ShippingStatus = @shippingStatus, PullBackRequestedOn = @utcDate, PulledBackOn = @pulledbackUtcDate,PulledBackRequestedBy = @UserId WHERE UniqueId = @id");
                 data = db.Execute(qry, new { shippingStatus = status, utcDate = DateTime.UtcNow, pulledbackUtcDate = DateTime.UtcNow, UserId = string.IsNullOrEmpty(userId) ? DBNull.Value.ToString() : userId, id = mpId });
                 UpdateAMBatchStatus(mpId.ToString());
+                db.Execute(@"UPDATE AM.EDeliveryMailPieces SET PipelineStatus = 'ReportedBack',ReportedBackOn = @ReportedBackOn WHERE UniqueId = @MailPieceUniqueId", new { ReportedBackOn = DateTime.UtcNow, MailPieceUniqueId = mpId });
                 db.Execute(@"UPDATE AM.MailPieces SET PrintBatchId = null WHERE UniqueId = @MailPieceUniqueId", new { MailPieceUniqueId = mpId });
                 db.Execute(@"UPDATE PnS.MRDFRequest SET MailPieceStatus = 'PulledBack', ErrId = '-4', ErrDesc = 'Mail piece was pulled back by client directly.' , TotalSheets = 0 WHERE UniqueId = @MailPieceUniqueId", new { MailPieceUniqueId = mpId });
             }
