@@ -97,6 +97,7 @@ namespace AM.Entities
         public bool IsEDeliveryRequested { get; set; }
         public bool IsFallBackRequested { get; set; }
         public DateTime? ExpiryDate { get; set; }
+        public bool IsPrintReady { get; set; }
     }
 
     public class MailPieceCustomInfo

@@ -56,7 +56,7 @@ namespace AM.Core
 
                         var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
 
-                        List<MailPieceDTO> validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString() && string.IsNullOrWhiteSpace(c.TrackingNo)).ToList();
+                        List<MailPieceDTO> validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString() && ((string.IsNullOrWhiteSpace(c.TrackingNo)) || c.IsPrintReady)).ToList();
                         List<MailPieceDTO> errorMailPieces = batchData.MailPieces.Where(c => c.ShippingStatus == ShippingStatus.Error.ToString()).ToList();
                         foreach (MailPieceDTO mailPiece in validMailPieces)
                         {
