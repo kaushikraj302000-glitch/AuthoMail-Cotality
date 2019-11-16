@@ -124,6 +124,8 @@ namespace AM.Services
         public int CurrentQuantity { get; set; }
         public bool IsBREEnvelope { get; set; }
         public int? ReorderDuration { get; set; }
+        public string PartNumber { get; set; }
+        public string EnvelopeDesc { get; set; }
         public string CreatedBy { get; set; }
         public DateTime CreatedOn { get; set; }
         public string ModifiedBy { get; set; }
