@@ -156,12 +156,15 @@ namespace PCI.Service
                 #endregion
 
             }
-            catch (Exception err)
+            catch (Exception ex)
             {
+                var msg = "Error occurred during downloading new PnS batch: {0} files. With below Error <br/> {1}".Fill(bi.BatchName, ex);
                 // During downloading PDFs for this batch if any error occurs; remove the batch entry from DB and remove folder structure also.
-                log.Error("Error occurred during downloading new PnS batch: {0} files.".Fill(bi.BatchName), err);
+                log.Error(msg);
                 DAL.DeleteInCompleteBatchById(bi.BatchSummary.PrintBatch);
                 Common.CleanDirectory(bi.BatchRepo);
+
+                MailUtility.SendUnexpectedNotificationEmail(msg);
             }
             finally
             {
