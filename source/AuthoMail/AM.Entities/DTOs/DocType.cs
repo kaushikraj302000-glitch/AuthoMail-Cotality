@@ -16,7 +16,8 @@ namespace AM.Entities
     public class DocType
     {
         public int Id { get; set; }
-        public int ClientDocTypeId { get; set; }
+        public int? PnSConfigId { get; set; }
+        public int? PnSConfigDetailId { get; set; }
         public string DocTypeName { get; set; }
         public bool IsBRE { get; set; }
         public string PrintSize { get; set; }
@@ -75,7 +76,7 @@ namespace AM.Entities
 
     public class DocTypeCoverLetter
     {
-        public int DocTypeId { get; set; }
+        public int PnSConfigDetailId { get; set; }
         public int SeqId { get; set; }
         public string CoverLetterTemplatePath { get; set; }
     }
@@ -101,7 +102,7 @@ namespace AM.Entities
 
     public class DocTypePrintTrailMap
     {
-        public int DocTypeId { get; set; }
+        public int PnSConfigDetailId { get; set; }
         public int PrintTrailId { get; set; }
         public TimeSpan? BizDayStartTime { get; set; }
         public TimeSpan? BizDayEndTime { get; set; }

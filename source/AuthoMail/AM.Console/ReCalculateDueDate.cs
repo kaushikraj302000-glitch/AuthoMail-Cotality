@@ -19,7 +19,7 @@ namespace AM.Console
                 var docTypeList = rSvc.GetDocTypeTest();
                 foreach (var item in docTypeList)
                 {
-                    var docType = docTypeSvc.GetDocTypeById(item.DocTypeId.Value);
+                    var docType = docTypeSvc.GetDocTypeById(item.DocTypeId.Value, 0);
                     DateTime estEffectiveReceivedOn = commonSvc.GetEffectiveEstReceivedOn(docType, item.ReceivedOn);
                     var dueDate = commonSvc.GetDueDate(docType, estEffectiveReceivedOn);
                     rSvc.UpdateDueDateAndEftRecOnEST(item.Id, dueDate, estEffectiveReceivedOn);
@@ -47,7 +47,7 @@ namespace AM.Console
                     }
                     else
                     {
-                        var docType = docTypeSvc.GetDocTypeById(item.DocTypeId.Value);
+                        var docType = docTypeSvc.GetDocTypeById(item.DocTypeId.Value, 0);
                         DateTime estEffectiveReceivedOn = commonSvc.GetEffectiveEstReceivedOn(docType, item.ReceivedOn);
                         rSvc.UpdateEftRecOnEST(item.Id, estEffectiveReceivedOn);
                         //item.EffectiveReceivedOnEst = estEffectiveReceivedOn;

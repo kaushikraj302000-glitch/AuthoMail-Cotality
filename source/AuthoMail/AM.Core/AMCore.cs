@@ -62,7 +62,7 @@ namespace AM.Core
                         {
                             int attemptCount = 0;
 
-                            DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value);
+                            DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value);
 
                             int mailPieceId = mailPiece.Id;
 
@@ -193,7 +193,7 @@ namespace AM.Core
                             mailPieceData.Add("LoanNbr", mailPiece.BusinessFriendlyIdValue);
                             #endregion
 
-                            List<DocTypeCoverLetter> docTypeLetters = docTypeSvc.GetDocumentCoverLetterTemplates(docType.Id).OrderBy(o => o.SeqId).ToList();
+                            List<DocTypeCoverLetter> docTypeLetters = docTypeSvc.GetDocumentCoverLetterTemplates(mailPiece.PnSConfigDetailId.Value).OrderBy(o => o.SeqId).ToList();
 
                             var frontCoverLetters = docTypeLetters.Where(seq => seq.SeqId <= 100);
                             var rearCoverLetters = docTypeLetters.Where(seq => seq.SeqId > 100);
@@ -233,7 +233,7 @@ namespace AM.Core
                                         else if (response.HasError)
                                         {
                                             //NOTE: Here system is check for not deliverable or any other error if occure then system will fall back to USPS Priority service and try to generate label
-                                            var fallBackDocTypes = docTypeSvc.GetFallBackDocTypeByClientDocTypeId(client.Id, docType.ClientDocTypeId);
+                                            var fallBackDocTypes = docTypeSvc.GetFallBackDocTypeByPnSConfigId(client.Id, docType.PnSConfigId.Value);
 
                                             if (fallBackDocTypes == null || fallBackDocTypes.Count == 0)
                                             {
@@ -375,7 +375,7 @@ namespace AM.Core
                                         if (response.HasError && (fallBackCodes.Any(code => code == response.ExceptionCode) || fallBackDescriptions.Any(desc => response.ExceptionDetail.Contains(desc))))
                                         {
                                             //First try to generate eVS label with USPS Priority Express
-                                            var fallBackDocTypes = docTypeSvc.GetFallBackDocTypeByClientDocTypeId(mailPiece.ClientId, docType.ClientDocTypeId);
+                                            var fallBackDocTypes = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, docType.PnSConfigId.Value);
 
                                             if (fallBackDocTypes == null || fallBackDocTypes.Count == 0)
                                             {
@@ -1025,12 +1025,12 @@ namespace AM.Core
             {
                 List<PrintBatch> printBatches = new List<PrintBatch>();
 
-                var docTypes = validMailPieces.Select(row => row.DocTypeId.Value).Distinct();
-                foreach (var docTypeId in docTypes)
+                var docTypes = validMailPieces.Select(row => new { DocTypeId = row.DocTypeId.Value, PnSConfigDetailId = row.PnSConfigDetailId.Value }).Distinct();
+                foreach (var docTypePnSConfig in docTypes)
                 {
-                    DocType docType = docTypeSvc.GetDocTypeById(docTypeId);
+                    DocType docType = docTypeSvc.GetDocTypeById(docTypePnSConfig.DocTypeId, docTypePnSConfig.PnSConfigDetailId);
 
-                    var filteredMailPiecesDocTypeWise = validMailPieces.Where(c => c.DocTypeId == docTypeId).ToList();
+                    var filteredMailPiecesDocTypeWise = validMailPieces.Where(c => c.DocTypeId == docTypePnSConfig.DocTypeId && c.PnSConfigDetailId == docTypePnSConfig.PnSConfigDetailId).ToList();
 
                     #region QC Request Logic
                     if (docType.QCPercent > 0)

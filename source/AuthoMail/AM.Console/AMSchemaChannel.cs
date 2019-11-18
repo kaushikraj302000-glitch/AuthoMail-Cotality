@@ -998,8 +998,8 @@ namespace AM.Console
 
                 if (docType != null)
                 {
-                    mailPieceDTO.ClientDocTypeId = docType.ClientDocTypeId;
                     mailPieceDTO.DocTypeId = docType.Id;
+                    mailPieceDTO.PnSConfigDetailId = docType.PnSConfigDetailId;
                 }
 
                 if (docType == null)
@@ -1047,8 +1047,8 @@ namespace AM.Console
 
                 if (docType != null)
                 {
-                    mailPieceDTO.ClientDocTypeId = docType.ClientDocTypeId;
                     mailPieceDTO.DocTypeId = docType.Id;
+                    mailPieceDTO.PnSConfigDetailId = docType.PnSConfigDetailId;
                 }
 
                 if (docType == null)

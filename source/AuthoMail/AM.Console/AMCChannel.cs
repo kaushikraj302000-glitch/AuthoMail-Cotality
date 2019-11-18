@@ -758,8 +758,8 @@ namespace AM.Console
 
                                         if (tempDocType != null)
                                         {
-                                            mailPieceDTO.ClientDocTypeId = tempDocType.ClientDocTypeId;
                                             mailPieceDTO.DocTypeId = tempDocType.Id;
+                                            mailPieceDTO.PnSConfigDetailId = tempDocType.PnSConfigDetailId;
                                         }
 
                                         if (tempDocType == null)
@@ -806,8 +806,8 @@ namespace AM.Console
 
                                         if (docType != null)
                                         {
-                                            mailPieceDTO.ClientDocTypeId = docType.ClientDocTypeId;
                                             mailPieceDTO.DocTypeId = docType.Id;
+                                            mailPieceDTO.PnSConfigDetailId = docType.PnSConfigDetailId;
                                         }
 
                                         if (docType == null)

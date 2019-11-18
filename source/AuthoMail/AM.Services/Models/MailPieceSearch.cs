@@ -148,6 +148,7 @@ namespace AM.Services
         public bool IsQCRequested { get; set; }
         public bool IsQCPerformed { get; set; }
         public int? DocTypeId { get; set; }
+        public int? PnSConfigDetailId { get; set; }
         public string PrintLocation { get; set; }
         public DateTime? StdSubmissionTime { get; set; }
         public DateTime? MaxSubmissionTime { get; set; }

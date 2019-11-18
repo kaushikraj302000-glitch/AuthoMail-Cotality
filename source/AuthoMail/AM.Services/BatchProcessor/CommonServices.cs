@@ -30,10 +30,10 @@ namespace AM.Services
         List<DallasBatch> GetDallasBatches(DateTime estToday);
         DateTime GetStandardSubmissionTime(string appCode, string vendorCode, DateTime receivedOn, List<Sweep> sweepTimings);
         List<Sweep> GetSweepTimings();
-        List<DocTypePrintTrailMap> GetTrailMapDetailsByDocTypeId(int docTypeId);
+        List<DocTypePrintTrailMap> GetTrailMapDetailsByPnSConfigDetailId(int pnsConfigDetailId);
         PrintVendor GetPrintVendorDetailsByPrintTrailId(int printTrailId, DateTime? effectiveReceivedOnEst = null);
         DateTime GetMaximumSubmissionTime(DocType docType, DateTime effectiveReceivedOnEst);
-        int GetPrintTrail(DocType docType, DateTime estEffectiveReceivedOn);
+        int GetPrintTrail(int pnsConfigDetailId, DateTime estEffectiveReceivedOn);
         DateTime GetDueDate(DocType docType, DateTime estEffectiveReceivedOn);
         DateTime GetEffectiveEstReceivedOn(DocType docType, DateTime utcReceivedOn);
         bool IsBusinessDay(DateTime dueDate, List<Holiday> holidays, bool isSatWorkDay, bool isSunWorkDay);
@@ -227,10 +227,10 @@ namespace AM.Services
             return db.Query<Sweep>("SELECT * from ufn_GetSweepTimings()").ToList();
         }
 
-        public List<DocTypePrintTrailMap> GetTrailMapDetailsByDocTypeId(int docTypeId)
+        public List<DocTypePrintTrailMap> GetTrailMapDetailsByPnSConfigDetailId(int pnsConfigDetailId)
         {
-            string query = "select * from [Common].[DocTypePrintTrailMaps] where DocTypeId = @docTypeId";
-            return db.Query<DocTypePrintTrailMap>(query, new { docTypeId = docTypeId }).ToList();
+            string query = "SELECT * FROM [Common].[DocTypePrintTrailMaps] WHERE PnSConfigDetailId = @PnSConfigDetailId";
+            return db.Query<DocTypePrintTrailMap>(query, new { PnSConfigDetailId = pnsConfigDetailId }).ToList();
         }
 
         public PrintVendor GetPrintVendorDetailsByPrintTrailId(int printTrailId, DateTime? effectiveReceivedOnEst = null)
@@ -265,13 +265,13 @@ namespace AM.Services
             return maxSubmissionDateTime.EstToUtc();
         }
 
-        public int GetPrintTrail(DocType docType, DateTime estEffectiveReceivedOn)
+        public int GetPrintTrail(int pnsConfigDetailId, DateTime estEffectiveReceivedOn)
         {
             DocTypePrintTrailMap docTypePrintTrail;
 
             using (ICommonService commonSvc = new CommonService())
             {
-                List<DocTypePrintTrailMap> docTypePrintTrailMaps = commonSvc.GetTrailMapDetailsByDocTypeId(docType.Id);
+                List<DocTypePrintTrailMap> docTypePrintTrailMaps = commonSvc.GetTrailMapDetailsByPnSConfigDetailId(pnsConfigDetailId);
                 var dayofWeek = estEffectiveReceivedOn.DayOfWeek;
 
                 if (dayofWeek == DayOfWeek.Saturday)
@@ -445,7 +445,7 @@ namespace AM.Services
             //Calculate Due Date for Mail Pieces doc type wise
             mailPiece.DueDate = GetDueDate(docType, mailPiece.EffectiveReceivedOnEst.Value);
             //Set print location where mail piece will go for print and ship
-            mailPiece.PrintTrailId = GetPrintTrail(docType, mailPiece.EffectiveReceivedOnEst.Value);
+            mailPiece.PrintTrailId = GetPrintTrail(mailPiece.PnSConfigDetailId.Value, mailPiece.EffectiveReceivedOnEst.Value);
             var printVendorDetails = GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value, mailPiece.EffectiveReceivedOnEst);
             mailPiece.PrintLocation = printVendorDetails.PrintLocation;
             mailPiece.StdSubmissionTime = GetStandardSubmissionTime(appCode, printVendorDetails.VendorCode, receivedOn, GetSweepTimings());

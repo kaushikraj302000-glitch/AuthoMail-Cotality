@@ -98,7 +98,7 @@ namespace AM.Services
                     //NOTE : Reason to take document type based on Name to just put valid Id after fall back
                     DocType mpDocType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, edmp.TotalPages);
                     mailPieceDTO.DocTypeId = mpDocType.Id;
-                    mailPieceDTO.ClientDocTypeId = mpDocType.ClientDocTypeId;
+                    mailPieceDTO.PnSConfigDetailId = mpDocType.PnSConfigDetailId;
                     GetExactDocumentType(mpDocType, mailPieceDTO);
                     commonSvc.GetUpdatedDueDateAndPrintLocation(newReceivedOnDateTime, mailPieceDTO, mpDocType, edmp.ClientCode);
                     mpSvc.UpdateBatchMailPieceDetails(mailPieceDTO);
@@ -141,7 +141,7 @@ namespace AM.Services
                 {
                     if (mailPiece.RcptAddressTypes.Contains(AddressType.Military.ToString()) || mailPiece.RcptAddressTypes.Contains(AddressType.POBOX.ToString()) || mailPiece.RcptAddressTypes.Contains(AddressType.Territory.ToString()))
                     {
-                        var fallBackDocTypes = docTypeSvc.GetFallBackDocTypeByClientDocTypeId(mailPiece.ClientId, docType.ClientDocTypeId);
+                        var fallBackDocTypes = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, docType.PnSConfigId.Value);
 
                         if (fallBackDocTypes == null || fallBackDocTypes.Count == 0)
                         {

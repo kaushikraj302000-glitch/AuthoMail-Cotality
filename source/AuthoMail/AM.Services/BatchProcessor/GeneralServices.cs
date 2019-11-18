@@ -42,7 +42,7 @@ namespace AM.Services
                 // All the loans where outcome code is anything except no_error are processed invalid loans.
                 foreach (MailPieces mailPiece in erroredData)
                 {
-                    DocType docType = mailPiece.DocTypeId.HasValue ? docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value) : null;
+                    DocType docType = mailPiece.DocTypeId.HasValue ? docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value) : null;
 
                     var line = String.Join(@separator,
                        mailPiece.MailBatches.BatchName == null ? string.Empty : mailPiece.MailBatches.BatchName,
@@ -91,7 +91,7 @@ namespace AM.Services
                 // All the loans where outcome code is anything except no_error are processed invalid loans.
                 foreach (MailPieces mailPiece in shippedData)
                 {
-                    DocType docType = mailPiece.DocTypeId.HasValue ? docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value) : null;
+                    DocType docType = mailPiece.DocTypeId.HasValue ? docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value) : null;
 
 
                     var line = String.Join(@separator,

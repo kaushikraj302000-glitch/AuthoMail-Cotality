@@ -11,64 +11,48 @@ namespace AM.Services
 {
     public interface IDocTypeService : IDisposable
     {
-        List<DocType> GetDocTypesByClientId(int clientId);
-        DocType GetDocTypeByDocTypeCode(int clientId, string docTypeCode);
         DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount);
-        List<DocType> GetFallBackDocTypeByClientDocTypeId(int clientId, int clientDocTypeId);
-        DocType GetDocTypeById(int docTypeId);
-        List<DocTypeCoverLetter> GetDocumentCoverLetterTemplates(int docTypeId);
+        List<DocType> GetFallBackDocTypeByPnSConfigId(int clientId, int pnSConfigId);
+        DocType GetDocTypeById(int docTypeId, int pnsConfigDetailId);
+        List<DocTypeCoverLetter> GetDocumentCoverLetterTemplates(int pnSConfigDetailId);
         DocType GetDocTypeWithMaximumCutOffTimeByClientId(int clientId);
     }
 
     public class DocTypeService : ServiceBase, IDocTypeService
     {
-        public List<DocType> GetDocTypesByClientId(int clientId)
-        {
-            string query = "SELECT * FROM [AM].[DocTypes] WHERE ClientId=@ClientId AND IsActive=1";
-
-            return db.Query<DocType>(query, new { ClientId = clientId }).ToList();
-        }
-
-        public DocType GetDocTypeByDocTypeCode(int clientId, string docTypeCode)
-        {
-            string query = "SELECT * FROM [AM].[DocTypes]  WHERE ClientId=@clientId AND DocTypeCode=@docTypeCode  AND IsActive=1";
-
-            return db.QuerySingleOrDefault<DocType>(query, new { clientId = clientId, docTypeCode = docTypeCode });
-        }
-
         public DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount)
         {
-            string query = "SELECT D.*, CDT.DocTypeName FROM AM.DocTypes D INNER JOIN AM.ClientDocTypes CDT ON D.ClientDocTypeId = CDT.Id WHERE CDT.DocTypeName = @DocumentOrPackageName AND CDT.ClientId = @ClientId AND (1 - D.IsPrintReady + {0}) BETWEEN D.MinPage AND D.MaxPage AND D.IsFallBack = 0 AND D.IsActive = 1".Fill(pageCount);
+            string query = "SELECT * FROM [dbo].[v_DocTypes] D WHERE D.DocTypeName = @DocumentOrPackageName AND D.ClientId = @ClientId AND (1 - D.IsPrintReady + {0}) BETWEEN D.MinPage AND D.MaxPage AND D.IsFallBack = 0 AND D.IsActive = 1".Fill(pageCount);
 
             return db.QuerySingleOrDefault<DocType>(query, new { ClientId = clientId, DocumentOrPackageName = documentOrPackageName, PageCount = pageCount });
         }
 
-        public List<DocType> GetFallBackDocTypeByClientDocTypeId(int clientId, int clientDocTypeId)
+        public List<DocType> GetFallBackDocTypeByPnSConfigId(int clientId, int pnSConfigId)
         {
-            string query = "SELECT D.*,CDT.DocTypeName FROM [AM].[DocTypes] D INNER JOIN [AM].[ClientDocTypes] CDT ON D.ClientDocTypeId=CDT.Id WHERE CDT.ClientId=@ClientId AND CDT.Id = @ClientDocTypeId AND D.IsActive=1 AND D.IsFallBack=1";
+            string query = "SELECT D.* FROM [dbo].[v_DocTypes] D WHERE D.PnSConfigId=@PnSConfigId AND D.ClientId=@ClientId AND D.IsActive=1 AND D.IsFallBack=1";
 
-            return db.Query<DocType>(query, new { ClientId = clientId, ClientDocTypeId = clientDocTypeId }).ToList();
+            return db.Query<DocType>(query, new { ClientId = clientId, PnSConfigId = pnSConfigId }).ToList();
         }
 
-        public DocType GetDocTypeById(int docTypeId)
+        public DocType GetDocTypeById(int docTypeId, int pnsConfigDetailId)
         {
-            string query = "SELECT * FROM [AM].[DocTypes] WHERE Id=@docTypeId  AND IsActive=1";
+            string query = "SELECT D.* FROM [dbo].[v_DocTypes] D WHERE D.Id=@DocTypeId AND D.PnSConfigDetailId=@PnSConfigDetailId AND D.IsActive=1";
 
-            return db.QuerySingleOrDefault<DocType>(query, new { docTypeId = docTypeId });
+            return db.QuerySingleOrDefault<DocType>(query, new { DocTypeId = docTypeId, PnsConfigDetailId = pnsConfigDetailId });
         }
 
-        public List<DocTypeCoverLetter> GetDocumentCoverLetterTemplates(int docTypeId)
+        public List<DocTypeCoverLetter> GetDocumentCoverLetterTemplates(int pnSConfigDetailId)
         {
-            string query = "SELECT * FROM [AM].[DocTypeCoverLetters] WHERE DocTypeId=@docTypeId";
+            string query = "SELECT * FROM [AM].[DocTypeCoverLetters] WHERE PnSConfigDetailId=@PnSConfigDetailId";
 
-            return db.Query<DocTypeCoverLetter>(query, new { docTypeId = docTypeId }).ToList();
+            return db.Query<DocTypeCoverLetter>(query, new { PnSConfigDetailId = pnSConfigDetailId }).ToList();
         }
 
         public DocType GetDocTypeWithMaximumCutOffTimeByClientId(int clientId)
         {
-            string query = "SELECT Top 1 * FROM AM.DocTypes WHERE BizdayCutOff=(SELECT MAX(CAST(BizdayCutOff as time)) as maxCutOff FROM AM.DocTypes WHERE ClientId=@clientId AND IsActive=1) AND ClientId=@clientId AND IsActive=1";
+            string query = "SELECT TOP 1 D.* FROM [dbo].[v_DocTypes] WHERE BizdayCutOff=(SELECT MAX(CAST(BizdayCutOff as time)) as maxCutOff FROM AM.DocTypes WHERE ClientId=@clientId AND IsActive=1) AND ClientId=@ClientId AND IsActive=1";
 
-            return db.QuerySingleOrDefault<DocType>(query, new { clientId = clientId });
+            return db.QuerySingleOrDefault<DocType>(query, new { ClientId = clientId });
         }
     }
 }
