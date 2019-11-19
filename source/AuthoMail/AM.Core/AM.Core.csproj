@@ -97,6 +97,9 @@
     <None Include="CoverTemplates\BECU\BECU_USPS_Generic_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="CoverTemplates\BECU\BECU_USPS_EndPage_1.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="CoverTemplates\BECU_FrontBarcode.pdf" />
     <None Include="CoverTemplates\BECU__IMBWith_A_Barcode.pdf" />
     <None Include="CoverTemplates\BOTW\BOTW_USPS_#10_FrontBarcoded_1.pdf">
