@@ -199,12 +199,12 @@ namespace AM.Services
 
         public List<MailPieces> GetMailPiecesDataFromPrintBatchId(int printBatchId)
         {
-            string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id LEFT OUTER JOIN AM.MailPieceCustomInfo MC ON M.Id=MC.MailPieceId WHERE M.PrintBatchId=@PrintBatchId";
+            string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id LEFT OUTER JOIN [dbo].[v_DocTypes] d ON M.DocTypeId=d.Id and M.PnSConfigDetailId = d.PnSConfigDetailId LEFT OUTER JOIN AM.MailPieceCustomInfo MC ON M.Id=MC.MailPieceId WHERE M.PrintBatchId=@PrintBatchId";
 
             var mailPieceDictionary = new Dictionary<int, MailPieces>();
 
-            var data = db.Query<MailPieces, MailBatches, MailPieceCustomInfoTest, MailPieces>(query,
-                (m, b, c) =>
+            var data = db.Query<MailPieces, MailBatches, DocTypes, MailPieceCustomInfoTest, MailPieces>(query,
+                (m, b, d, c) =>
                 {
                     MailPieces mp;
 
@@ -212,6 +212,7 @@ namespace AM.Services
                     {
                         mp = m;
                         mp.MailBatches = b;
+                        mp.DocTypes = d;
                         mp.MailPieceCustomInfoTest = new List<MailPieceCustomInfoTest>();
                         mailPieceDictionary.Add(mp.Id, mp);
                     }
@@ -222,7 +223,7 @@ namespace AM.Services
                 new
                 {
                     PrintBatchId = printBatchId
-                }, splitOn: "Id,MailPieceId").Distinct().ToList();
+                }, splitOn: "Id,Id,MailPieceId").Distinct().ToList();
             return data;
         }
 
@@ -230,10 +231,10 @@ namespace AM.Services
         {
             var mailPieceDictionary = new Dictionary<int, MailPieces>();
 
-            string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id LEFT OUTER JOIN AM.MailPieceCustomInfo MC ON M.Id=MC.MailPieceId INNER JOIN Common.Clients C ON B.ClientId=C.Id WHERE M.MailBatchId=@MailBatchId";
+            string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id LEFT OUTER JOIN [dbo].[v_DocTypes] d ON M.DocTypeId=d.Id and M.PnSConfigDetailId = d.PnSConfigDetailId LEFT OUTER JOIN AM.MailPieceCustomInfo MC ON M.Id=MC.MailPieceId INNER JOIN Common.Clients C ON B.ClientId=C.Id WHERE M.MailBatchId=@MailBatchId";
 
-            var data = db.Query<MailPieces, MailBatches, MailPieceCustomInfoTest, Clients, MailPieces>(query,
-                (m, b, c, cl) =>
+            var data = db.Query<MailPieces, MailBatches, DocTypes, MailPieceCustomInfoTest, Clients, MailPieces>(query,
+                (m, b, d, c, cl) =>
                 {
                     MailPieces mp;
 
@@ -241,6 +242,7 @@ namespace AM.Services
                     {
                         mp = m;
                         mp.MailBatches = b;
+                        mp.DocTypes = d;
                         mp.Clients = cl;
                         mp.MailPieceCustomInfoTest = new List<MailPieceCustomInfoTest>();
                         mailPieceDictionary.Add(mp.Id, mp);
@@ -252,7 +254,7 @@ namespace AM.Services
                 new
                 {
                     MailBatchId = mailBatchId
-                }, splitOn: "Id,MailPieceId,Id").Distinct().ToList();
+                }, splitOn: "Id,Id,MailPieceId,Id").Distinct().ToList();
             return data;
         }
 
@@ -260,10 +262,10 @@ namespace AM.Services
         {
             var mailPieceDictionary = new Dictionary<int, MailPieces>();
 
-            string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id LEFT OUTER JOIN AM.MailPieceCustomInfo MC ON M.Id=MC.MailPieceId INNER JOIN Common.Clients C ON M.ClientId=C.Id WHERE M.MailBatchId=@MailBatchId AND M.UniqueId=@UniqueId";
+            string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id LEFT OUTER JOIN [dbo].[v_DocTypes] d ON M.DocTypeId=d.Id and M.PnSConfigDetailId = d.PnSConfigDetailId LEFT OUTER JOIN AM.MailPieceCustomInfo MC ON M.Id=MC.MailPieceId INNER JOIN Common.Clients C ON M.ClientId=C.Id WHERE M.MailBatchId=@MailBatchId AND M.UniqueId=@UniqueId";
 
-            var data = db.Query<MailPieces, MailBatches, MailPieceCustomInfoTest, Clients, MailPieces>(query,
-                (m, b, c, cl) =>
+            var data = db.Query<MailPieces, MailBatches, DocTypes, MailPieceCustomInfoTest, Clients, MailPieces>(query,
+                (m, b, d, c, cl) =>
                 {
                     MailPieces mp;
 
@@ -271,6 +273,7 @@ namespace AM.Services
                     {
                         mp = m;
                         mp.MailBatches = b;
+                        mp.DocTypes = d;
                         mp.Clients = cl;
                         mp.MailPieceCustomInfoTest = new List<MailPieceCustomInfoTest>();
                         mailPieceDictionary.Add(mp.Id, mp);
@@ -283,7 +286,7 @@ namespace AM.Services
                 {
                     MailBatchId = mailBatchId,
                     UniqueId = uniqueId
-                }, splitOn: "Id,MailPieceId,Id").Distinct().ToList();
+                }, splitOn: "Id,Id,MailPieceId,Id").Distinct().ToList();
             return data.SingleOrDefault();
         }
 
@@ -487,12 +490,10 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
             }
         }
 
-
         public string GetAppcodeByClientid(int clientId)
         {
             return db.QuerySingle<string>("select AppCode from Common.Clients where Id=@clientId", new { clientId = clientId });
         }
-
 
         public List<string> GetMonthlyReconDate(int clientId)
         {
