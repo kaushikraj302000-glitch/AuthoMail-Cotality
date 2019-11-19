@@ -42,6 +42,7 @@ namespace PCI.Service
         public DateTime CancelledOn { get; set; }
         public Guid BatchIdentifier { get; set; }
         public int? DocTypeId { get; set; }
+        public int? PnSConfigDetailId { get; set; }
         public string PrintFileName { get; set; }
         public string PrintLocation { get; set; }
         public int? PrintTrailId { get; set; }

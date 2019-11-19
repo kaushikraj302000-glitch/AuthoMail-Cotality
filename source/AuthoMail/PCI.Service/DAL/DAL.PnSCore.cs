@@ -25,12 +25,12 @@ namespace PCI.Service
                 slaDays = batchSummary.SLADays;
             }
 
-            return db.ExecuteSqlNonQuery(@"UPDATE [PnS].[BatchSummary] SET ValidationStatus=@p1, OnValidationErrors=@p2, ValidationErrors=@p3, JulianDate=@p4, Images=@p5, dueDate=@p6,  slaDays=@p7, BatchIdentifier=@p8, PrintTrailId=@p9, PrintFileName=@p10,PrintLocation=@p11, DocTypeId=@p12  WHERE PrintBatch = @p13", batchSummary.ValidationStatus, batchSummary.OnValidationErrors, batchSummary.ValidationErrors, batchSummary.JulianDate, batchSummary.Images, dueDate, slaDays, batchSummary.BatchIdentifier, batchSummary.PrintTrailId, batchSummary.PrintFileName, batchSummary.PrintLocation, batchSummary.DocTypeId, batchSummary.PrintBatch);
+            return db.ExecuteSqlNonQuery(@"UPDATE [PnS].[BatchSummary] SET ValidationStatus=@p1, OnValidationErrors=@p2, ValidationErrors=@p3, JulianDate=@p4, Images=@p5, dueDate=@p6,  slaDays=@p7, BatchIdentifier=@p8, PrintTrailId=@p9, PrintFileName=@p10,PrintLocation=@p11, DocTypeId=@p12, PnSConfigDetailId=@p13  WHERE PrintBatch = @p14", batchSummary.ValidationStatus, batchSummary.OnValidationErrors, batchSummary.ValidationErrors, batchSummary.JulianDate, batchSummary.Images, dueDate, slaDays, batchSummary.BatchIdentifier, batchSummary.PrintTrailId, batchSummary.PrintFileName, batchSummary.PrintLocation, batchSummary.DocTypeId, batchSummary.PnSConfigDetailId, batchSummary.PrintBatch);
         }
 
         public static void UpdateBatchSummaryData(List<PCIField> batchSummarySchema, BatchSummary batchSummary)
         {
-            var usedColumns = new[] { "PrintFileName", "JulianDate", "Images", "DueDate", "SLADays", "ValidationStatus", "OnValidationErrors", "ValidationErrors", "BatchIdentifier", "PrintTrailId", "PrintLocation", "DocTypeId" };
+            var usedColumns = new[] { "PrintFileName", "JulianDate", "Images", "DueDate", "SLADays", "ValidationStatus", "OnValidationErrors", "ValidationErrors", "BatchIdentifier", "PrintTrailId", "PrintLocation", "DocTypeId", "PnSConfigDetailId" };
 
             var skippedColumns = new[] { "PrintBatch", "ClientId", "JobName" };
 
@@ -47,7 +47,7 @@ namespace PCI.Service
 
             var defaultValues = defaultedColumns.Select(c => c.Value).ToList();
 
-            var usedColumnValues = new object[] { batchSummary.PrintBatch, batchSummary.PrintFileName, batchSummary.JulianDate, batchSummary.Images, batchSummary.DueDate, batchSummary.SLADays, batchSummary.ValidationStatus, batchSummary.OnValidationErrors, batchSummary.ValidationErrors, batchSummary.BatchIdentifier, batchSummary.PrintTrailId, batchSummary.PrintLocation, batchSummary.DocTypeId };
+            var usedColumnValues = new object[] { batchSummary.PrintBatch, batchSummary.PrintFileName, batchSummary.JulianDate, batchSummary.Images, batchSummary.DueDate, batchSummary.SLADays, batchSummary.ValidationStatus, batchSummary.OnValidationErrors, batchSummary.ValidationErrors, batchSummary.BatchIdentifier, batchSummary.PrintTrailId, batchSummary.PrintLocation, batchSummary.DocTypeId, batchSummary.PnSConfigDetailId };
 
             var allValues = usedColumnValues.Concat(defaultValues).ToArray();
 

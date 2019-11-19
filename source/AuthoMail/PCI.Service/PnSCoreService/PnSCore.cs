@@ -108,7 +108,7 @@ namespace PCI.Service
                         ReportInvalidBatch(bi, msg);
                         continue;
                     }
-                    var validDocType = docTypes.Where(x => x.DocTypeId == pnsRequest.DocTypeId).FirstOrDefault();
+                    var validDocType = docTypes.Where(x => x.DocTypeId == pnsRequest.DocTypeId && x.PnSConfigDetailId == pnsRequest.PnSConfigDetailId).FirstOrDefault();
                     if (validDocType == null)
                     {
                         var msg = "The specified document type id '{0}' is not valid.".Fill(pnsRequest.DocTypeId);
@@ -116,7 +116,7 @@ namespace PCI.Service
                         continue;
                     }
                     batchSummary.DocTypeId = pnsRequest.DocTypeId;
-
+                    batchSummary.PnSConfigDetailId = pnsRequest.PnSConfigDetailId;
                     //TODO: Mapping validation with DocTypeId also
 
                     //Ensure that the DocTypeCode is valid

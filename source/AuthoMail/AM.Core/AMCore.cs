@@ -1065,6 +1065,7 @@ namespace AM.Core
                         printBatch.AppCode = clientSvc.GetClientById(docType.ClientId).AppCode;
                         printBatch.UniqueId = Guid.NewGuid();
                         printBatch.DocTypeId = docType.Id;
+                        printBatch.PnSConfigDetailId = docType.PnSConfigDetailId.Value;
                         printBatch.PrintTrailId = printTrailId.Value;
                         printBatch.PrintLocation = commonSvc.GetPrintVendorDetailsByPrintTrailId(printTrailId.Value).Name;
                         printBatch.MailPieces = filteredMailPiecesDocTypeWise.Where(c => c.PrintTrailId == printTrailId).ToList();
@@ -1096,6 +1097,7 @@ namespace AM.Core
                     request.BatchIdentifier = printBatchData.UniqueId;
                     request.BatchName = batchName;
                     request.DocTypeId = printBatchData.DocTypeId;
+                    request.PnSConfigDetailId = printBatchData.PnSConfigDetailId;
                     request.PrintTrailId = printBatchData.PrintTrailId;
                     request.DueDate = printBatchData.MailPieces.OrderBy(x => x.DueDate).Select(x => x.DueDate).Distinct().First().Value.Date;
                     request.PrintLocation = printBatchData.PrintLocation;

@@ -9,6 +9,8 @@ namespace PCI.Service
     public class DocType
     {
         public int DocTypeId { get; set; }
+        public int PnSConfigDetailId { get; set; }
+        public int PnSConfigId { get; set; }
         public string DocTypeName { get; set; }
         public string PrintSize { get; set; }
         public string PrintFormat { get; set; }

@@ -84,6 +84,7 @@ namespace AM.Entities
         public string AppCode { get; set; }
         public string PrintLocation { get; set; }
         public int DocTypeId { get; set; }
+        public int PnSConfigDetailId { get; set; }
         public List<MailPieceDTO> MailPieces { get; set; }
     }
 
