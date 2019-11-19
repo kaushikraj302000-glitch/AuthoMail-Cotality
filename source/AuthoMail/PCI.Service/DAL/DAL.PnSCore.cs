@@ -233,7 +233,7 @@ namespace PCI.Service
                 mailPiece.ErrId = row.Field<int>("ErrId");
                 mailPiece.MailPieceStatus = row.Field<string>("MailPieceStatus").ParseEnum<MailPieceStatus>();
                 mailPiece.PDFFileName = row.Field<string>("PDFFileName");
-                mailPiece.PostageCost = row.Field<decimal>("PostageCost");
+                mailPiece.PostageCost = Math.Round(row.Field<decimal>("PostageCost"),3,MidpointRounding.AwayFromZero);
                 mailPiece.PulledBackOn = mailPiece.MailPieceStatus == MailPieceStatus.PulledBack ? DateTime.SpecifyKind(row.Field<DateTime>("ShippedOn"), DateTimeKind.Utc) : DateTime.MinValue;
                 mailPiece.ShippedOn = row.Field<DateTime?>("ShippedOn") == null || mailPiece.MailPieceStatus == MailPieceStatus.Error || mailPiece.MailPieceStatus == MailPieceStatus.PulledBack ? DateTime.MinValue : DateTime.SpecifyKind(row.Field<DateTime>("ShippedOn"), DateTimeKind.Utc);
                 mailPiece.PrintedOn = mailPiece.ShippedOn;
