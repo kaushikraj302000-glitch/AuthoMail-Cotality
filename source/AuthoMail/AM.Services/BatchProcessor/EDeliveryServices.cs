@@ -141,7 +141,7 @@ namespace AM.Services
                 {
                     if (mailPiece.RcptAddressTypes.Contains(AddressType.Military.ToString()) || mailPiece.RcptAddressTypes.Contains(AddressType.POBOX.ToString()) || mailPiece.RcptAddressTypes.Contains(AddressType.Territory.ToString()))
                     {
-                        var fallBackDocTypes = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, docType.PnSConfigId.Value);
+                        var fallBackDocTypes = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, docType.PnSConfigId.Value);
 
                         if (fallBackDocTypes == null || fallBackDocTypes.Count == 0)
                         {

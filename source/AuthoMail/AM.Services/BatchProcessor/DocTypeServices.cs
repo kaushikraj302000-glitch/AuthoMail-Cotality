@@ -12,7 +12,7 @@ namespace AM.Services
     public interface IDocTypeService : IDisposable
     {
         DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount);
-        List<DocType> GetFallBackDocTypeByPnSConfigId(int clientId, int pnSConfigId);
+        List<DocType> GetFallBackDocTypeByPnSConfigId(int clientId, int docTypeId, int pnSConfigId);
         DocType GetDocTypeById(int docTypeId, int pnsConfigDetailId);
         List<DocTypeCoverLetter> GetDocumentCoverLetterTemplates(int pnSConfigDetailId);
         DocType GetDocTypeWithMaximumCutOffTimeByClientId(int clientId);
@@ -27,11 +27,11 @@ namespace AM.Services
             return db.QuerySingleOrDefault<DocType>(query, new { ClientId = clientId, DocumentOrPackageName = documentOrPackageName, PageCount = pageCount });
         }
 
-        public List<DocType> GetFallBackDocTypeByPnSConfigId(int clientId, int pnSConfigId)
+        public List<DocType> GetFallBackDocTypeByPnSConfigId(int clientId, int docTypeId, int pnSConfigId)
         {
-            string query = "SELECT D.* FROM [dbo].[v_DocTypes] D WHERE D.PnSConfigId=@PnSConfigId AND D.ClientId=@ClientId AND D.IsActive=1 AND D.IsFallBack=1";
+            string query = "SELECT D.* FROM [dbo].[v_DocTypes] D WHERE D.PnSConfigId=@PnSConfigId AND D.ClientId=@ClientId AND D.Id=@DocTypeId AND D.IsActive=1 AND D.IsFallBack=1";
 
-            return db.Query<DocType>(query, new { ClientId = clientId, PnSConfigId = pnSConfigId }).ToList();
+            return db.Query<DocType>(query, new { ClientId = clientId, DocTypeId = docTypeId, PnSConfigId = pnSConfigId }).ToList();
         }
 
         public DocType GetDocTypeById(int docTypeId, int pnsConfigDetailId)
@@ -50,7 +50,7 @@ namespace AM.Services
 
         public DocType GetDocTypeWithMaximumCutOffTimeByClientId(int clientId)
         {
-            string query = "SELECT TOP 1 D.* FROM [dbo].[v_DocTypes] WHERE BizdayCutOff=(SELECT MAX(CAST(BizdayCutOff as time)) as maxCutOff FROM [dbo].[v_DocTypes] WHERE ClientId=@clientId AND IsActive=1) AND ClientId=@ClientId AND IsActive=1";
+            string query = "SELECT TOP 1 D.* FROM [dbo].[v_DocTypes] D WHERE BizdayCutOff=(SELECT MAX(CAST(BizdayCutOff as time)) as maxCutOff FROM [dbo].[v_DocTypes] WHERE ClientId=@ClientId AND IsActive=1) AND ClientId=@ClientId AND IsActive=1";
 
             return db.QuerySingleOrDefault<DocType>(query, new { ClientId = clientId });
         }

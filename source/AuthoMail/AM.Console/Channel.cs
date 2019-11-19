@@ -669,7 +669,7 @@ namespace AM.Console
                         {
                             if (!(addressResponse.AddressTypes.All(c => c == AddressType.DHAM)))
                             {
-                                var fallBackDocTypes = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, docType.PnSConfigId.Value);
+                                var fallBackDocTypes = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, docType.PnSConfigId.Value);
 
                                 if (fallBackDocTypes == null || fallBackDocTypes.Count == 0)
                                 {

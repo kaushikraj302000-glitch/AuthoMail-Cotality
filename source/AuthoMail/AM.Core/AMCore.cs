@@ -233,7 +233,7 @@ namespace AM.Core
                                         else if (response.HasError)
                                         {
                                             //NOTE: Here system is check for not deliverable or any other error if occure then system will fall back to USPS Priority service and try to generate label
-                                            var fallBackDocTypes = docTypeSvc.GetFallBackDocTypeByPnSConfigId(client.Id, docType.PnSConfigId.Value);
+                                            var fallBackDocTypes = docTypeSvc.GetFallBackDocTypeByPnSConfigId(client.Id, mailPiece.DocTypeId.Value, docType.PnSConfigId.Value);
 
                                             if (fallBackDocTypes == null || fallBackDocTypes.Count == 0)
                                             {
@@ -375,7 +375,7 @@ namespace AM.Core
                                         if (response.HasError && (fallBackCodes.Any(code => code == response.ExceptionCode) || fallBackDescriptions.Any(desc => response.ExceptionDetail.Contains(desc))))
                                         {
                                             //First try to generate eVS label with USPS Priority Express
-                                            var fallBackDocTypes = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, docType.PnSConfigId.Value);
+                                            var fallBackDocTypes = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, docType.PnSConfigId.Value);
 
                                             if (fallBackDocTypes == null || fallBackDocTypes.Count == 0)
                                             {
