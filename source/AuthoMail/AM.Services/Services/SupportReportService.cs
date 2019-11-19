@@ -25,14 +25,13 @@ namespace AM.Services
         {
             date = date.Date + new TimeSpan(20, 00, 00);// : date.Date + new TimeSpan(20, 15, 00);
             date = date.EstToUtc();
-            string query = @"select bs.PrintBatch,bs.PrintLocation,bs.SubmittedOn,bs.JobName,bs.PrintFileName,bs.PipelineStatus, c.AppCode as ClientCode,cd.DocTypeName as DocTypeCode,m.IsEDeliveryRequested, d.ShippingCarrier,d.ShippingServiceType,Count(m.Id) as TotalPackages,Sum(m.TotalPages) as TotalPages 
+            string query = @"select bs.PrintBatch,bs.PrintLocation,bs.SubmittedOn,bs.JobName,bs.PrintFileName,bs.PipelineStatus, c.AppCode as ClientCode,d.DocTypeName as DocTypeCode,m.IsEDeliveryRequested, d.ShippingCarrier,d.ShippingServiceType,Count(m.Id) as TotalPackages,Sum(m.TotalPages) as TotalPages 
 from PnS.MRDFRequest rq inner join PnS.BatchSummary bs on rq.JobId=bs.PrintBatch 
 left outer join Common.Clients c on bs.ClientId=c.Id 
-left outer join AM.DocTypes d on bs.DocTypeId=d.Id 
-left outer join AM.ClientDocTypes cd on d.ClientDocTypeId=cd.Id
+left outer join [dbo].[v_DocTypes] d ON m.DocTypeId=d.Id and m.PnSConfigDetailId = d.PnSConfigDetailId
 left outer join AM.MailPieces m on rq.UniqueId=m.UniqueId 
 where bs.PrintLocation=ISNULL(@printLocation,bs.PrintLocation) and bs.PipelineStatus not in ('ReportedBack','Cancelled') and bs.SubmittedOn <= @date 
-group by bs.PrintBatch,bs.PrintLocation,bs.SubmittedOn,bs.JobName,bs.PrintFileName,bs.PipelineStatus, c.AppCode,cd.DocTypeName, d.ShippingCarrier,d.ShippingServiceType";
+group by bs.PrintBatch,bs.PrintLocation,bs.SubmittedOn,bs.JobName,bs.PrintFileName,bs.PipelineStatus, c.AppCode,d.DocTypeName, d.ShippingCarrier,d.ShippingServiceType";
             return db.Query<NotReportedBackMailPieces>(query,
                 new
                 {
@@ -54,7 +53,7 @@ group by bs.PrintBatch,bs.PrintLocation,bs.SubmittedOn,bs.JobName,bs.PrintFileNa
         {
             date = clientId != 104 ? date.Date + new TimeSpan(20, 00, 00) : date.Date + new TimeSpan(20, 15, 00);
             date = date.EstToUtc();
-            string query = "select bs.PrintBatch,bs.PrintLocation,bs.SubmittedOn,bs.JobName,bs.PrintFileName,bs.PipelineStatus, c.AppCode as ClientCode,cd.DocTypeName as DocTypeCode, d.ShippingCarrier,d.ShippingServiceType,Count(m.Id) as TotalPackages,Sum(m.TotalPages) as TotalPages from PnS.MRDFRequest rq inner join PnS.BatchSummary bs on rq.JobId=bs.PrintBatch inner join Common.Clients c on bs.ClientId=c.Id inner join AM.DocTypes d on bs.DocTypeId=d.Id inner join AM.ClientDocTypes cd on d.ClientDocTypeId=cd.Id inner join AM.MailPieces m on rq.UniqueId=m.UniqueId where c.Id=@clientId and bs.SubmittedOn <= @date group by bs.PrintBatch,bs.PrintLocation,bs.SubmittedOn,bs.JobName,bs.PrintFileName,bs.PipelineStatus, c.AppCode,cd.DocTypeName, d.ShippingCarrier,d.ShippingServiceType";
+            string query = "select bs.PrintBatch,bs.PrintLocation,bs.SubmittedOn,bs.JobName,bs.PrintFileName,bs.PipelineStatus, c.AppCode as ClientCode,d.DocTypeName as DocTypeCode, d.ShippingCarrier,d.ShippingServiceType,Count(m.Id) as TotalPackages,Sum(m.TotalPages) as TotalPages from PnS.MRDFRequest rq inner join PnS.BatchSummary bs on rq.JobId=bs.PrintBatch inner join Common.Clients c on bs.ClientId=c.Id inner join [dbo].[v_DocTypes] d ON bs.DocTypeId=d.Id and bs.PnSConfigDetailId = d.PnSConfigDetailId inner join AM.MailPieces m on rq.UniqueId=m.UniqueId where c.Id=@clientId and bs.SubmittedOn <= @date group by bs.PrintBatch,bs.PrintLocation,bs.SubmittedOn,bs.JobName,bs.PrintFileName,bs.PipelineStatus, c.AppCode,d.DocTypeName, d.ShippingCarrier,d.ShippingServiceType";
             return db.Query<NotReportedBackMailPieces>(query,
                 new
                 {
@@ -66,7 +65,7 @@ group by bs.PrintBatch,bs.PrintLocation,bs.SubmittedOn,bs.JobName,bs.PrintFileNa
 
         public List<MailPieceByPrintBatch> GetMailPieceWithBatchSummaryByPrintBatch(int printBatch, int clientId)
         {
-            string query = "select rq.PieceId,rq.PDFFileName,rq.UniqueId,rq.MailPieceStatus,rs.ProcessingTimeStamp,rs.Disposition,m.Id as MailPieceId,m.BusinessFriendlyIdValue as LoanNumber,m.DocumentOrPackageType,m.IsEDeliveryRequested,m.EffectiveReceivedOnEst, d.ShippingCarrier,d.ShippingServiceType,m.ShippingStatus,m.ErrorCode,m.ErrorDesc,m.PrintedOn,m.ShippedOn,m.TotalPages,m.PrintLocation from PnS.BatchSummary bs inner join [PnS].[MRDFRequest] rq on bs.PrintBatch=rq.JobId left outer join PnS.MRDFResponse rs on rq.PieceId=rs.PieceId and rq.PrintTrailBatchId=rs.JobId inner join AM.MailPieces m on rq.UniqueId=m.UniqueId inner join AM.DocTypes d on m.DocTypeId=d.Id where bs.ClientId=@clientId and bs.PrintBatch=@printBatch";
+            string query = "select rq.PieceId,rq.PDFFileName,rq.UniqueId,rq.MailPieceStatus,rs.ProcessingTimeStamp,rs.Disposition,m.Id as MailPieceId,m.BusinessFriendlyIdValue as LoanNumber,m.DocumentOrPackageType,m.IsEDeliveryRequested,m.EffectiveReceivedOnEst, d.ShippingCarrier,d.ShippingServiceType,m.ShippingStatus,m.ErrorCode,m.ErrorDesc,m.PrintedOn,m.ShippedOn,m.TotalPages,m.PrintLocation from PnS.BatchSummary bs inner join [PnS].[MRDFRequest] rq on bs.PrintBatch=rq.JobId left outer join PnS.MRDFResponse rs on rq.PieceId=rs.PieceId and rq.PrintTrailBatchId=rs.JobId inner join AM.MailPieces m on rq.UniqueId=m.UniqueId inner join [dbo].[v_DocTypes] d ON m.DocTypeId=d.Id and m.PnSConfigDetailId = d.PnSConfigDetailId where bs.ClientId=@clientId and bs.PrintBatch=@printBatch";
             return db.Query<MailPieceByPrintBatch>(query, new { printBatch = printBatch, clientId = clientId }).ToList();
         }
 
@@ -80,7 +79,7 @@ group by bs.PrintBatch,bs.PrintLocation,bs.SubmittedOn,bs.JobName,bs.PrintFileNa
 
         public List<MailPieceByPrintBatch> GetMailPieceByBatchId(int batchId, int clientId)
         {
-            string query = "select m.Id as MailPieceId,m.BusinessFriendlyIdValue as LoanNumber,m.DocumentOrPackageType,m.EffectiveReceivedOnEst,d.ShippingCarrier,d.ShippingServiceType,b.PrintBatch as PrintBatchId,b.PipelineStatus,m.ErrorCode,m.ShippingStatus,m.ErrorDesc,m.PrintedOn,m.ShippedOn,m.TotalPages,m.PrintLocation from AM.MailPieces m inner join AM.DocTypes d on m.DocTypeId=d.Id inner join PnS.MRDFRequest r on m.UniqueId=r.UniqueId inner join PnS.BatchSummary b on  r.JobId=b.PrintBatch where m.ClientId=@clientId and m.MailBatchId=@batchId";
+            string query = "select m.Id as MailPieceId,m.BusinessFriendlyIdValue as LoanNumber,m.DocumentOrPackageType,m.EffectiveReceivedOnEst,d.ShippingCarrier,d.ShippingServiceType,b.PrintBatch as PrintBatchId,b.PipelineStatus,m.ErrorCode,m.ShippingStatus,m.ErrorDesc,m.PrintedOn,m.ShippedOn,m.TotalPages,m.PrintLocation from AM.MailPieces m inner join [dbo].[v_DocTypes] d ON m.DocTypeId=d.Id and m.PnSConfigDetailId = d.PnSConfigDetailId inner join PnS.MRDFRequest r on m.UniqueId=r.UniqueId inner join PnS.BatchSummary b on  r.JobId=b.PrintBatch where m.ClientId=@clientId and m.MailBatchId=@batchId";
             return db.Query<MailPieceByPrintBatch>(query, new { batchId = batchId, clientId = clientId }).ToList();
         }
     }

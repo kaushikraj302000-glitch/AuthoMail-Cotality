@@ -248,7 +248,7 @@ namespace AM.Services
             //    }
             //    ).ToList();
             //return dailySummaryChartList;
-            string query = @"select dc.DocTypeName as DocTypeCode
+            string query = @"select d.DocTypeName as DocTypeCode
 ,sum(case when m.shippingstatus = 'Shipped' then 1 else 0 end) as Shipped
 ,sum(case when m.shippingstatus = 'InProgress' then 1 else 0 end) as InProgress
 ,sum(case when m.shippingstatus = 'Error' then 1 else 0 end) as Error
@@ -256,10 +256,9 @@ namespace AM.Services
 ,sum(case when m.shippingstatus = 'EDelivered' then 1 else 0 end) as EDelivered
 from AM.MailPieces m
 inner join AM.MailBatches b on m.MailBatchId=b.Id
-inner join AM.DocTypes d  on m.DocTypeId=d.Id
-inner join AM.ClientDocTypes dc  on d.ClientDocTypeId=dc.Id
+inner join [dbo].[v_DocTypes] d ON m.DocTypeId=d.Id and m.PnSConfigDetailId = d.PnSConfigDetailId
 where b.ClientId=@clientId AND b.ReceivedOn BETWEEN @startDate AND @endDate
-group by dc.DocTypeName order by dc.DocTypeName";
+group by d.DocTypeName order by d.DocTypeName";
             return db.Query<DailySummaryChartVM>(query, new { clientId = clientId, startDate = date.ToStartDateTime().EstToUtc(), endDate = date.ToEndDateTime().EstToUtc() }).ToList();
 
         }
@@ -272,22 +271,19 @@ group by dc.DocTypeName order by dc.DocTypeName";
             string query = @"select *
                 from [AM].[MailPieces] m
                 inner join [AM].[MailBatches] b on m.MailBatchId=b.Id
-				inner join [Common].[Clients] c on m.ClientId=c.Id
-                inner join [AM].[DocTypes] d ON m.DocTypeId=d.Id
-                inner join AM.ClientDocTypes dc  on d.ClientDocTypeId=dc.Id
+				inner join [Common].[Clients] c on m.ClientId=c.Id                
+                inner join [dbo].[v_DocTypes] d ON m.DocTypeId=d.Id and m.PnSConfigDetailId = d.PnSConfigDetailId
                 where b.ClientId=@clientId
-                and m.ShippingStatus=@status and b.ReceivedOn between @startDate and @endDate and dc.DocTypeName=@DocTypeCode";
+                and m.ShippingStatus=@status and b.ReceivedOn between @startDate and @endDate and d.DocTypeName=@DocTypeCode";
             //var data = db.Query<MailPieces>(query, new { startDate = date.ToStartDateTime().EstToUtc(), endDate = date.ToEndDateTime().EstToUtc(), status = status, clientId = clientId, DocTypeCode = DocTypeCode }).ToList();
             //return data;
 
-            var data = db.Query<MailPieces, MailBatches, Clients, DocTypes, ClientDocTypes, MailPieces>(query,
-                (m, b, c, d, cd) =>
+            var data = db.Query<MailPieces, MailBatches, Clients, DocTypes, MailPieces>(query,
+                (m, b, c, d) =>
                 {
                     m.MailBatches = b;
                     m.Clients = c;
                     m.DocTypes = d;
-                    if (m.DocTypes != null)
-                        m.DocTypes.ClientDocTypes = cd;
                     return m;
                 },
                 new

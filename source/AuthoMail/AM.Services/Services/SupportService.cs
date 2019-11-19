@@ -524,9 +524,8 @@ where cd.Id=@Id";
         #endregion docType
         public List<DocTypes> GetDocTypes()
         {
-            string query = @"select d.*,c.Name as ClientName,cd.DocTypeName as ClientDocTypesName,c.Name as ClientName from AM.ClientDocTypes cd
-inner join AM.DocTypes d on cd.Id = d.ClientDocTypeId
-inner join Common.Clients c on cd.ClientId=c.Id";
+            string query = @"select d.*,c.Name as ClientName,d.DocTypeName as ClientDocTypesName,c.Name as ClientName from AM.DocTypes d
+inner join Common.Clients c on d.ClientId=c.Id";
             var model = db.Query<DocTypes>(query).ToList();
             //var list = GetDocTypesToClientDocTypes(model);
             return model;
@@ -719,7 +718,7 @@ inner join Common.Clients c on cd.ClientId=c.Id";
 
         public List<DocTypeVM> GetDocTypesByClientId(int ClientId)
         {
-            string q = "select cd.Id,cd.ClientId,cd.DocTypeName as DocTypeCode,c.Name as ClientName,c.AppCode from AM.ClientDocTypes cd,Common.Clients c where cd.ClientId = c.Id and ClientId =@clientId";
+            string q = "select cd.Id,cd.ClientId,cd.DocTypeName as DocTypeCode,c.Name as ClientName,c.AppCode from [dbo].[v_DocTypes] cd,Common.Clients c where cd.ClientId = c.Id and ClientId =@clientId";
             return db.Query<DocTypeVM>(q, new { clientId = ClientId }).ToList();
         }
         public List<DocTypeCoverLetterVM> GetDocTypeCoverLetterByDocTypeId(int Id)
@@ -787,8 +786,8 @@ inner join Common.Clients c on cd.ClientId=c.Id";
             var t = db.BeginTransaction();
             try
             {
-                int docTypeId = model.Select(m => m.DocTypeId).First();
-                db.Execute("delete from Common.DocTypePrintTrailMaps where doctypeid=@doctypeid", new { doctypeid = docTypeId }, transaction: t);
+                int docTypeId = model.Select(m => m.PnSConfigDetailId).First();
+                db.Execute("delete from Common.DocTypePrintTrailMaps where PnSConfigDetailId=@doctypeid", new { doctypeid = docTypeId }, transaction: t);
 
                 string q = @"INSERT INTO Common.DocTypePrintTrailMaps (DocTypeId ,PrintTrailId ,BizDayStartTime ,BizDayEndTime ,SatStartTime ,SatEndTime ,SunStartTime ,SunEndTime) VALUES (@DocTypeId ,@PrintTrailId ,@BizDayStartTime ,@BizDayEndTime ,@SatStartTime ,@SatEndTime ,@SunStartTime ,@SunEndTime)";
                 db.Execute(q, model, transaction: t);

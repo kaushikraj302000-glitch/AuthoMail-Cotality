@@ -112,15 +112,13 @@ namespace AM.Services
             bool isReceived = filterBy == "ByReceivedOn" ? true : false;
             DateTime? dt = null;
 
-            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, ClientDocTypes, MailPieces>(query,
-                (b, s, c, m, d, cd) =>
+            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, MailPieces>(query,
+                (b, s, c, m, d) =>
                 {
                     m.Clients = c;
                     m.MailBatches = b;
                     b.SFTChannels = s;
                     m.DocTypes = d;
-                    if (m.DocTypes != null)
-                        m.DocTypes.ClientDocTypes = cd;
                     return m;
                 },
                 new
@@ -297,7 +295,7 @@ FROM PnS.PrintTrailBatches PT
 INNER JOIN PnS.MRDFRequest REQ ON PT.Id=REQ.PrintTrailBatchId
 INNER JOIN AM.MailPieces MP ON REQ.UniqueId=MP.UniqueId
 INNER JOIN Common.PrintTrails PTS ON MP.PrintTrailId=PTS.Id
-LEFT OUTER JOIN AM.DocTypes D ON MP.DocTypeId=D.Id
+left outer join [dbo].[v_DocTypes] d ON mp.DocTypeId=d.Id and mp.PnSConfigDetailId = d.PnSConfigDetailId
 WHERE PT.SubmittedOn >= @StartDate AND  PT.SubmittedOn < @EndDate AND MP.PrintLocation='Fort Mill, SC' 
 AND REQ.MailPieceStatus NOT IN ('Error','PulledBack')
 GROUP BY PT.Id,PT.PrintBatchName,PT.SubmittedOn,D.ShippingCarrier,D.ShippingServiceType
@@ -308,7 +306,7 @@ ORDER BY PrintTrailBatchId";
         public List<DALLASSubmittedBatchDetail> GetDALLASReconReport(DateTime startDate, DateTime endDate)
         {
             string query = @"SELECT C.AppCode,D.ShippingCarrier,D.ShippingServiceType,MIN(P.DueDate) as DueDate,COUNT(*) AS PackageCount,SUM(P.TotalPages) AS TotalPages FROM AM.MailPieces P
-INNER JOIN AM.DocTypes D ON P.DocTypeId=D.Id
+inner join [dbo].[v_DocTypes] d ON P.DocTypeId=d.Id and P.PnSConfigDetailId = d.PnSConfigDetailId
 INNER JOIN Common.Clients C ON P.ClientId=C.Id
 WHERE P.ShippingStatus NOT IN ('Error','PulledBack') AND P.EffectiveReceivedOnEst >= @StartDate AND P.EffectiveReceivedOnEst < @EndDate
 AND P.PrintLocation='Dallas CL'
@@ -364,14 +362,13 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
 	 m.RcptFirstName as FirstName,m.RcptLastName as LastName,m.RcptAddressCity as [City],m.RcptAddressZip as ZIP,m.RcptAddressStreet,
 	 m.RcptAddressState as [State], m.ShippedOn as MailedOn ,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,m.PrintedOn
 	 ,b.BatchName as BatchId,b.ReceivedOn,m.DocTypeId,m.IsEDeliveryRequested,m.FileName,
-	 cd.DocTypeName as DocType,(d.ShippingCarrier + '-' + d.ShippingServiceType) as ShippingMethod,
+	 d.DocTypeName as DocType,(d.ShippingCarrier + '-' + d.ShippingServiceType) as ShippingMethod,
      m.DocumentOrPackageType,m.TotalPages as PagesShipped,
 	 ch.Title as Channel,
      c.AppCode as ClientCode
 	 FROM  [AM].[MailBatches] b,[Common].[SFTChannels] ch,[Common].[Clients] c,[AM].[MailPieces] m
 	 LEFT OUTER JOIN [Profile].[Users] u ON m.PulledBackRequestedBy=u.Id	 
-	 LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id
-     left outer join AM.ClientDocTypes cd on d.ClientDocTypeId=cd.Id
+	 left outer join [dbo].[v_DocTypes] d ON m.DocTypeId=d.Id and m.PnSConfigDetailId = d.PnSConfigDetailId
 	 WHERE m.MailBatchId=b.Id AND b.SFTChannelId=ch.Id AND m.ClientId=c.Id";
             DynamicParameters parameter = new DynamicParameters();
             if (clientId != null && clientId.Count > 0)
@@ -405,7 +402,7 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
 
             if (docType != null && docType.Count > 0)
             {
-                query = string.Format("{0} and cd.ClientDocTypeId in @docType", query);
+                query = string.Format("{0} and d.Id in @docType", query);
                 parameter.Add("@docType", docType);
             }
             if (shippingMethod != null && shippingMethod.Count > 0)

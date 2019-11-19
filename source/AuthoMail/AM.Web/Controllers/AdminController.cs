@@ -292,7 +292,7 @@ namespace AM.Web.Controllers
             try
             {
                 DocTypeCoverLetter coverLetter = new DocTypeCoverLetter();
-                coverLetter.DocTypeId = docTypeId;
+                coverLetter.PnSConfigDetailId = docTypeId;
                 coverLetter.SeqId = seqId;
                 coverLetter.CoverLetterTemplatePath = fileName;
 

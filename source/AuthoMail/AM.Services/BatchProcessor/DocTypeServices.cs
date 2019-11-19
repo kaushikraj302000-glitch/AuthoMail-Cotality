@@ -50,7 +50,7 @@ namespace AM.Services
 
         public DocType GetDocTypeWithMaximumCutOffTimeByClientId(int clientId)
         {
-            string query = "SELECT TOP 1 D.* FROM [dbo].[v_DocTypes] WHERE BizdayCutOff=(SELECT MAX(CAST(BizdayCutOff as time)) as maxCutOff FROM AM.DocTypes WHERE ClientId=@clientId AND IsActive=1) AND ClientId=@ClientId AND IsActive=1";
+            string query = "SELECT TOP 1 D.* FROM [dbo].[v_DocTypes] WHERE BizdayCutOff=(SELECT MAX(CAST(BizdayCutOff as time)) as maxCutOff FROM [dbo].[v_DocTypes] WHERE ClientId=@clientId AND IsActive=1) AND ClientId=@ClientId AND IsActive=1";
 
             return db.QuerySingleOrDefault<DocType>(query, new { ClientId = clientId });
         }

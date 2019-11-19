@@ -112,17 +112,15 @@ namespace AM.Services
 
             try
             {
-                delayedReportedBackMailPiecesByAM = db.Query<PendingMailPieceInfo>(@";with cte as (select MB.Id, Count(PB.Id) as TotalPrintBatches, Count(case when PB.IsReportedBack = 1 then 1 else NULL end) as TotalCompletedBatches from AM.PrintBatches PB inner join AM.MailBatches MB on PB.MailBatchId = MB.Id where MB.IsReportedBack = 0 group by MB.Id) select MP.Id,MP.MailBatchId,C.AppCode,MP.ClientId,MB.BatchName,MB.ReceivedOn,MB.PipelineStatus,MP.DueDate,MP.PrintLocation,MP.ShippingStatus,MP.Uniqueid,CD.DocTypeName as DocTypeCode,D.ShippingCarrier,D.ShippingServiceType,MP.MissedSLAReason 
+                delayedReportedBackMailPiecesByAM = db.Query<PendingMailPieceInfo>(@";with cte as (select MB.Id, Count(PB.Id) as TotalPrintBatches, Count(case when PB.IsReportedBack = 1 then 1 else NULL end) as TotalCompletedBatches from AM.PrintBatches PB inner join AM.MailBatches MB on PB.MailBatchId = MB.Id where MB.IsReportedBack = 0 group by MB.Id) select MP.Id,MP.MailBatchId,C.AppCode,MP.ClientId,MB.BatchName,MB.ReceivedOn,MB.PipelineStatus,MP.DueDate,MP.PrintLocation,MP.ShippingStatus,MP.Uniqueid,d.DocTypeName as DocTypeCode,d.ShippingCarrier,d.ShippingServiceType,MP.MissedSLAReason 
 from cte inner join AM.MailBatches MB ON cte.Id = Mb.Id 
 INNER JOIN AM.MailPieces MP ON MB.Id = MP.MailBatchId 
-LEFT OUTER JOIN AM.DocTypes D ON MP.DocTypeId = D.Id 
-LEFT OUTER join AM.ClientDocTypes cd on d.ClientDocTypeId=CD.Id
+left outer join [dbo].[v_DocTypes] d ON MP.DocTypeId=d.Id and MP.PnSConfigDetailId = d.PnSConfigDetailId
 INNER JOIN Common.Clients C ON MP.ClientId = C.Id 
 where cte.TotalPrintBatches = cte.TotalCompletedBatches 
-UNION Select MP.Id,MP.MailBatchId,C.AppCode,MP.ClientId,MB.BatchName,MB.ReceivedOn,MB.PipelineStatus,MP.PrintLocation,MP.ShippingStatus,MP.Uniqueid,cd.DocTypeName as DocTypeCode,d.ShippingCarrier,d.ShippingServiceType,MP.MissedSLAReason,pt.TrailName as PrintTrail 
+UNION Select MP.Id,MP.MailBatchId,C.AppCode,MP.ClientId,MB.BatchName,MB.ReceivedOn,MB.PipelineStatus,MP.PrintLocation,MP.ShippingStatus,MP.Uniqueid,d.DocTypeName as DocTypeCode,d.ShippingCarrier,d.ShippingServiceType,MP.MissedSLAReason,pt.TrailName as PrintTrail 
 from AM.MailPieces MP 
-inner join AM.DocTypes d on MP.DocTypeId = d.Id 
-inner join AM.ClientDocTypes cd on d.ClientDocTypeId=cd.Id
+inner join [dbo].[v_DocTypes] d ON MP.DocTypeId=d.Id and MP.PnSConfigDetailId = d.PnSConfigDetailId
 inner join Common.Clients C on MP.ClientId = C.Id  
 inner join AM.MailBatches MB on MP.MailBatchId = MB.Id  
 inner join PnS.MrdfRequest MR on MP.UniqueId = MR.UniqueId  
@@ -146,10 +144,9 @@ where MP.SLADays < 0 and BS.IsReportedBack = 1 and BS.PipelineStatus <> 'Cancell
 
             try
             {
-                delayedMailPiecesByPrinter = db.Query<PendingMailPieceInfo>(@"Select MP.Id,MP.MailBatchId,C.AppCode,MP.ClientId,MB.BatchName,MB.ReceivedOn,MB.PipelineStatus,MP.PrintLocation,MP.DueDate,MP.ShippingStatus,MP.Uniqueid,cd.DocTypeName as DocTypeCode,d.ShippingCarrier,d.ShippingServiceType,pt.TrailName as PrintTrail 
+                delayedMailPiecesByPrinter = db.Query<PendingMailPieceInfo>(@"Select MP.Id,MP.MailBatchId,C.AppCode,MP.ClientId,MB.BatchName,MB.ReceivedOn,MB.PipelineStatus,MP.PrintLocation,MP.DueDate,MP.ShippingStatus,MP.Uniqueid,d.DocTypeName as DocTypeCode,d.ShippingCarrier,d.ShippingServiceType,pt.TrailName as PrintTrail 
 from AM.MailPieces MP 
-inner join AM.DocTypes d on MP.DocTypeId=d.Id 
-inner join AM.ClientDocTypes cd on d.ClientDocTypeId=cd.Id
+inner join [dbo].[v_DocTypes] d ON mp.DocTypeId=d.Id and mp.PnSConfigDetailId = d.PnSConfigDetailId
 inner join Common.Clients C on MP.ClientId = C.Id 
 inner join AM.MailBatches MB on MP.MailBatchId = MB.Id 
 inner join PnS.MrdfRequest MR on MP.UniqueId = MR.UniqueId 

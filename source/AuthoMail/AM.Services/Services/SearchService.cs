@@ -30,15 +30,14 @@ namespace AM.Services
      inner join AM.MailBatches b on m.MailBatchId=b.Id
      inner join Common.SFTChannels ch on b.SFTChannelId=ch.Id
      inner join Common.Clients c on m.ClientId=c.Id     
-	 left outer join AM.DocTypes d ON m.DocTypeId=d.Id
-     left outer join AM.ClientDocTypes cd on d.ClientDocTypeId=cd.Id
+	 left outer join [dbo].[v_DocTypes] d ON m.DocTypeId=d.Id and m.PnSConfigDetailId = d.PnSConfigDetailId
 	 left outer JOIN Profile.Users u ON m.PulledBackRequestedBy=u.Id	 
 	 WHERE m.ClientId=@clientId";
             string fields = @"m.BusinessFriendlyIdValue as LoanNumber,m.ShippingStatus as [Status],m.UniqueId,
 	 m.RcptFirstName as FirstName,m.RcptLastName as LastName,m.RcptAddressCity as [City],m.RcptAddressZip as ZIP,
 	 m.RcptAddressState as [State],m.PickedUpOn,m.ShippedOn,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,m.IsEDeliveryRequested,
 	 b.ReceivedOn,m.DocTypeId,
-	 cd.DocTypeName as DocType,d.ShippingServiceType as ShippingMethod,d.ShippingCarrier,
+	 d.DocTypeName as DocType,d.ShippingServiceType as ShippingMethod,d.ShippingCarrier,
 	 ch.Title as Channel";
             DynamicParameters parameter = new DynamicParameters();
             parameter.Add("@clientId", clientId);
@@ -79,7 +78,7 @@ namespace AM.Services
             }
             if (docType != null && docType.Count > 0)
             {
-                query = string.Format("{0} and d.ClientDocTypeId in @docType", query);
+                query = string.Format("{0} and d.Id in @docType", query);
                 parameter.Add("@docType", docType);
             }
             if (errorList != null && errorList.Count > 0)
@@ -116,7 +115,7 @@ namespace AM.Services
 
         public MailPieces GetMailPieceByUniqueId(Guid uniqueId)
         {
-            string query = "SELECT * FROM  [AM].[MailBatches] b,[Common].[SFTChannels] ch,[Common].[Clients] c,[AM].[MailPieces] m LEFT OUTER JOIN [Profile].[Users] u ON m.PulledBackRequestedBy=u.Id LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id WHERE m.MailBatchId=b.Id AND b.SFTChannelId=ch.Id AND b.ClientId=c.Id AND m.[UniqueId] = @uniqueId";
+            string query = "SELECT * FROM  [AM].[MailBatches] b,[Common].[SFTChannels] ch,[Common].[Clients] c,[AM].[MailPieces] m LEFT OUTER JOIN [Profile].[Users] u ON m.PulledBackRequestedBy=u.Id left outer join [dbo].[v_DocTypes] d ON m.DocTypeId=d.Id and m.PnSConfigDetailId = d.PnSConfigDetailId WHERE m.MailBatchId=b.Id AND b.SFTChannelId=ch.Id AND b.ClientId=c.Id AND m.[UniqueId] = @uniqueId";
             var mp = db.Query<MailBatches, SFTChannels, Clients, MailPieces, Users, DocTypes, MailPieces>(query,
                  (b, s, c, m, u, d) =>
                  {
