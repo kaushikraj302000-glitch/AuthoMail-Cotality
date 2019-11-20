@@ -107,7 +107,7 @@ namespace PCI.Service
         public static PrintTrailDetail GetPrintTrailDetailByPrintTrailName(string printTrailName)
         {
             var printTrailDetail = db.ExecuteDataSet("usp_GetPrintTrailDetailByPrintTrailName", printTrailName);
-            return printTrailDetail.DataTableAccessor<PrintTrailDetail>(false).Single();
+            return printTrailDetail.DataTableAccessor<PrintTrailDetail>(false).SingleOrDefault();
         }
 
         public static bool CheckBatchesInQueue(DateTime startDateTime, DateTime endDateTime)

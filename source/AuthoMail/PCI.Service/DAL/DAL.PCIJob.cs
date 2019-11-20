@@ -124,7 +124,7 @@ namespace PCI.Service
         {
             foreach (var mailPiece in mailPieceDetails)
             {
-                db.ExecuteSqlNonQuery(@"UPDATE [PnS].[MRDFRequest] SET [PrintTrailBatchId]= @p1,[PieceId] = @p2 WHERE JobId = @p3 AND PieceId = @p4", printTrailBatchId, mailPiece.SequenceNo, mailPiece.JobId, mailPiece.PieceId);
+                db.ExecuteSqlNonQuery(@"UPDATE [PnS].[MRDFRequest] SET [PrintTrailBatchId]= @p1,[PieceId] = @p2 WHERE JobId = @p3 AND PieceId = @p4", mailPiece.PrintTrailBatchId, mailPiece.SequenceNo, mailPiece.JobId, mailPiece.PieceId);
             }
 
             //For divert primary key issue we are using starting number as 90001 and then we will change that numbering again
