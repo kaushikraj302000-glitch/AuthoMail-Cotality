@@ -180,6 +180,12 @@ namespace PCI.Service
 
             PrintTrailDetail ptDetail = DAL.GetPrintTrailDetailByPrintTrailName(ptName);
 
+            if (ptDetail == null)
+            {
+                log.Debug("SubmitBatchToPrintVendor : Print Trail {0} is not exist in the system. Please verify it.".Fill(ptName));
+                return;
+            }
+
             List<MailPieceDetail> mpDetails = DAL.GetMRDFRequestDataByPrintTrailId(ptDetail.PrintTrailId);
 
             if (mpDetails == null || mpDetails.Count == 0)
@@ -202,11 +208,11 @@ namespace PCI.Service
 
                 mpDetails.ForEach(mp =>
                 {
-                    mp.PrintTrailBatchId = ptBatchDetail.Id;
                     if (mp.MailPieceStatus == MailPieceStatus.PulledBack.ToString() || mp.MailPieceStatus == MailPieceStatus.Error.ToString())
                         mp.SequenceNo = -1;
                     else
                     {
+                        mp.PrintTrailBatchId = ptBatchDetail.Id;
                         mp.SequenceNo = sequenceNo++;
                     }
                 });
