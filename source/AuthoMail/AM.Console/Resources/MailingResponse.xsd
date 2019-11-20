@@ -20,7 +20,7 @@
     <xs:attribute name="BusinessFriendlyIdValue" type="tns:nonEmptyString" use="optional" />
     <xs:attribute name="DocumentOrPackageType" type="tns:nonEmptyString" use="optional" />
     <xs:attribute name="FileName" type="tns:nonEmptyString" use="optional" />
-    <xs:attribute name="PrintStatus" type="tns:PrintStatus" use="required" />
+    <xs:attribute name="MailingStatus" type="tns:MailingStatus" use="required" />
     <xs:attribute name="TotalSheets" type="tns:TotalSheets" use="optional" />
     <xs:attribute name="ShippedOn" type="xs:dateTime" use="optional" />
     <xs:attribute name="PulledBackOn" type="xs:dateTime" use="optional" />
@@ -44,7 +44,7 @@
       <xs:minInclusive value="1"></xs:minInclusive>
     </xs:restriction>
   </xs:simpleType>
-  <xs:simpleType name="PrintStatus">
+  <xs:simpleType name="MailingStatus">
     <xs:restriction base="xs:string">
       <xs:enumeration value="Shipped"/>
       <xs:enumeration value="Error"/>

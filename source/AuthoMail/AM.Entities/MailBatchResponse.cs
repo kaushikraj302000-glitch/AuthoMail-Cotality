@@ -55,14 +55,14 @@ namespace AM.Entities
 
         public bool ShouldSerializeTotalSheets()
         {
-            return (TotalSheets > 0 && PrintStatus == PrintStatus.Shipped);
+            return (TotalSheets > 0 && MailingStatus == MailingStatus.Shipped);
         }
 
         /// <summary>
         /// This is used for printing and mailing status
         /// </summary>
         [XmlAttribute]
-        public PrintStatus PrintStatus { get; set; }
+        public MailingStatus MailingStatus { get; set; }
 
         /// <summary>
         /// This is for getting date and time of print and ship
@@ -71,7 +71,7 @@ namespace AM.Entities
         public DateTime ShippedOn { get; set; }
         public bool ShouldSerializeShippedOn()
         {
-            return (!string.IsNullOrEmpty(ShippedOn.ToString()) && ShippedOn != DateTime.MinValue && PrintStatus == PrintStatus.Shipped);
+            return (!string.IsNullOrEmpty(ShippedOn.ToString()) && ShippedOn != DateTime.MinValue && MailingStatus == MailingStatus.Shipped);
         }
         /// <summary>
         /// This is for getting date and time of print and ship
@@ -80,7 +80,7 @@ namespace AM.Entities
         public DateTime PulledBackOn { get; set; }
         public bool ShouldSerializePulledBackOn()
         {
-            return (!string.IsNullOrEmpty(PulledBackOn.ToString()) && PulledBackOn != DateTime.MinValue && PrintStatus == PrintStatus.PulledBack);
+            return (!string.IsNullOrEmpty(PulledBackOn.ToString()) && PulledBackOn != DateTime.MinValue && MailingStatus == MailingStatus.PulledBack);
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace AM.Entities
         public Decimal Postage { get; set; }
         public bool ShouldSerializePostage()
         {
-            return (!string.IsNullOrEmpty(Postage.ToString()) && Postage != 0m && PrintStatus == PrintStatus.Shipped);
+            return (!string.IsNullOrEmpty(Postage.ToString()) && Postage != 0m && MailingStatus == MailingStatus.Shipped);
         }
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace AM.Entities
         public Decimal WeightMeasured { get; set; }
         public bool ShouldSerializeWeightMeasured()
         {
-            return (!string.IsNullOrEmpty(WeightMeasured.ToString()) && WeightMeasured != 0m && PrintStatus == PrintStatus.Shipped);
+            return (!string.IsNullOrEmpty(WeightMeasured.ToString()) && WeightMeasured != 0m && MailingStatus == MailingStatus.Shipped);
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace AM.Entities
         public string ErrorCode { get; set; }
         public bool ShouldSerializeErrorCode()
         {
-            return PrintStatus == PrintStatus.Error;
+            return MailingStatus == MailingStatus.Error;
         }
 
         /// <summary>
@@ -120,13 +120,13 @@ namespace AM.Entities
         public string ErrorDesc { get; set; }
         public bool ShouldSerializeErrorDesc()
         {
-            return PrintStatus == PrintStatus.Error;
+            return MailingStatus == MailingStatus.Error;
         }
     }
 
     [Serializable]
     [XmlType(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0")]
-    public enum PrintStatus
+    public enum MailingStatus
     {
         Shipped,
         Error,
