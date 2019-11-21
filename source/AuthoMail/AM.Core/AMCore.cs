@@ -193,7 +193,7 @@ namespace AM.Core
                             mailPieceData.Add("LoanNbr", mailPiece.BusinessFriendlyIdValue);
                             #endregion
 
-                            List<DocTypeCoverLetter> docTypeLetters = docTypeSvc.GetDocumentCoverLetterTemplates(mailPiece.PnSConfigDetailId.Value).OrderBy(o => o.SeqId).ToList();
+                            List<PnSConfigDetailCoverLetter> docTypeLetters = docTypeSvc.GetDocumentCoverLetterTemplates(mailPiece.PnSConfigDetailId.Value).OrderBy(o => o.SeqId).ToList();
 
                             var frontCoverLetters = docTypeLetters.Where(seq => seq.SeqId <= 100);
                             var rearCoverLetters = docTypeLetters.Where(seq => seq.SeqId > 100);
