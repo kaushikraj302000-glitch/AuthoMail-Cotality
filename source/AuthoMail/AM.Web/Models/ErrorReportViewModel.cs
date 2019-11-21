@@ -14,6 +14,7 @@ namespace AM.Web.Models
         public bool IsEDeliveryRequested { get; set; }
         public int BatchId { get; set; }
         public string ShippingMethod { get; set; }
+        public string ShippingCarrier { get; set; }
         public string ErrorCode { get; set; }
         public string ErrorDesc { get; set; }
         

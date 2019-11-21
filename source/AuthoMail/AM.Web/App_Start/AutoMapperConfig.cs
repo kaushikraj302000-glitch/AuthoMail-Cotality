@@ -104,6 +104,7 @@ namespace AM.Web
                   .ForMember(d => d.ClientCode, o => o.MapFrom(s => s.Clients != null ? (s.Clients.AppCode != null ? s.Clients.AppCode : "") : ""))
                   .ForMember(d => d.ClientBatchId, o => o.MapFrom(s => s.MailBatches != null ? (s.MailBatches.ClientBatchId != null ? s.MailBatches.ClientBatchId : "") : ""))
                   .ForMember(d => d.ShippingMethod, o => o.MapFrom(s => s.DocTypes != null ? (s.DocTypes.ShippingServiceType != null ? s.DocTypes.ShippingServiceType : "") : null))
+                  .ForMember(d => d.ShippingCarrier, o => o.MapFrom(s => s.DocTypes != null ? (s.DocTypes.ShippingCarrier != null ? s.DocTypes.ShippingCarrier : "") : null))
                   .ForMember(d => d.Status, o => o.MapFrom(s => s.ShippingStatus))
                   .ForMember(d => d.BusinessIdValue, o => o.MapFrom(s => s.BusinessFriendlyIdValue))
                   .ForMember(d => d.DocType, o => o.MapFrom(s => s.DocumentOrPackageType));
@@ -121,6 +122,7 @@ namespace AM.Web
                   .ForMember(d => d.BatchId, o => o.MapFrom(s => s.MailBatches != null ? s.MailBatches.Id : 0))
                     .ForMember(d => d.ClientBatchId, o => o.MapFrom(s => s.MailBatches != null ? (s.MailBatches.ClientBatchId != null ? s.MailBatches.ClientBatchId : "") : ""))
                   .ForMember(d => d.ShippingMethod, o => o.MapFrom(s => s.DocTypes != null ? (s.DocTypes.ShippingServiceType != null ? s.DocTypes.ShippingServiceType : "") : null))
+                  .ForMember(d => d.ShippingCarrier, o => o.MapFrom(s => s.DocTypes != null ? (s.DocTypes.ShippingCarrier != null ? s.DocTypes.ShippingCarrier : "") : null))
                   .ForMember(d => d.BusinessIdValue, o => o.MapFrom(s => s.BusinessFriendlyIdValue))
                   .ForMember(d => d.DocType, o => o.MapFrom(s => s.DocumentOrPackageType));
 
