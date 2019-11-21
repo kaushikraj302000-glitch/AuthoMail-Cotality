@@ -74,7 +74,7 @@ namespace AM.Entities
         public bool IsPrintReady { get; set; }
     }
 
-    public class DocTypeCoverLetter
+    public class PnSConfigDetailCoverLetter
     {
         public int PnSConfigDetailId { get; set; }
         public int SeqId { get; set; }
@@ -100,7 +100,7 @@ namespace AM.Entities
         public string PrintVendor { get; set; }
     }
 
-    public class DocTypePrintTrailMap
+    public class PnSConfigDetailPrintTrailMap
     {
         public int PnSConfigDetailId { get; set; }
         public int PrintTrailId { get; set; }

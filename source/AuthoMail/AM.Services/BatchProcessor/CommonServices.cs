@@ -30,7 +30,7 @@ namespace AM.Services
         List<DallasBatch> GetDallasBatches(DateTime estToday);
         DateTime GetStandardSubmissionTime(string appCode, string vendorCode, DateTime receivedOn, List<Sweep> sweepTimings);
         List<Sweep> GetSweepTimings();
-        List<DocTypePrintTrailMap> GetTrailMapDetailsByPnSConfigDetailId(int pnsConfigDetailId);
+        List<PnSConfigDetailPrintTrailMap> GetTrailMapDetailsByPnSConfigDetailId(int pnsConfigDetailId);
         PrintVendor GetPrintVendorDetailsByPrintTrailId(int printTrailId, DateTime? effectiveReceivedOnEst = null);
         DateTime GetMaximumSubmissionTime(DocType docType, DateTime effectiveReceivedOnEst);
         int GetPrintTrail(int pnsConfigDetailId, DateTime estEffectiveReceivedOn);
@@ -227,10 +227,10 @@ namespace AM.Services
             return db.Query<Sweep>("SELECT * from ufn_GetSweepTimings()").ToList();
         }
 
-        public List<DocTypePrintTrailMap> GetTrailMapDetailsByPnSConfigDetailId(int pnsConfigDetailId)
+        public List<PnSConfigDetailPrintTrailMap> GetTrailMapDetailsByPnSConfigDetailId(int pnsConfigDetailId)
         {
-            string query = "SELECT * FROM [Common].[DocTypePrintTrailMaps] WHERE PnSConfigDetailId = @PnSConfigDetailId";
-            return db.Query<DocTypePrintTrailMap>(query, new { PnSConfigDetailId = pnsConfigDetailId }).ToList();
+            string query = "SELECT * FROM [Common].[PnSConfigDetailPrintTrailMaps] WHERE PnSConfigDetailId = @PnSConfigDetailId";
+            return db.Query<PnSConfigDetailPrintTrailMap>(query, new { PnSConfigDetailId = pnsConfigDetailId }).ToList();
         }
 
         public PrintVendor GetPrintVendorDetailsByPrintTrailId(int printTrailId, DateTime? effectiveReceivedOnEst = null)
@@ -267,11 +267,11 @@ namespace AM.Services
 
         public int GetPrintTrail(int pnsConfigDetailId, DateTime estEffectiveReceivedOn)
         {
-            DocTypePrintTrailMap docTypePrintTrail;
+            PnSConfigDetailPrintTrailMap docTypePrintTrail;
 
             using (ICommonService commonSvc = new CommonService())
             {
-                List<DocTypePrintTrailMap> docTypePrintTrailMaps = commonSvc.GetTrailMapDetailsByPnSConfigDetailId(pnsConfigDetailId);
+                List<PnSConfigDetailPrintTrailMap> docTypePrintTrailMaps = commonSvc.GetTrailMapDetailsByPnSConfigDetailId(pnsConfigDetailId);
                 var dayofWeek = estEffectiveReceivedOn.DayOfWeek;
 
                 if (dayofWeek == DayOfWeek.Saturday)

@@ -291,7 +291,7 @@ namespace AM.Web.Controllers
         {
             try
             {
-                DocTypeCoverLetter coverLetter = new DocTypeCoverLetter();
+                PnSConfigDetailCoverLetter coverLetter = new PnSConfigDetailCoverLetter();
                 coverLetter.PnSConfigDetailId = docTypeId;
                 coverLetter.SeqId = seqId;
                 coverLetter.CoverLetterTemplatePath = fileName;
@@ -745,7 +745,7 @@ namespace AM.Web.Controllers
             return PartialView();
         }
         [Authorize(Roles = AMRoles.Admin), HttpPost]
-        public ActionResult SaveDocTypePrintTrail(List<DocTypePrintTrailMap> docTypePrintTrailMapList)
+        public ActionResult SaveDocTypePrintTrail(List<PnSConfigDetailPrintTrailMap> docTypePrintTrailMapList)
         {
 
             try

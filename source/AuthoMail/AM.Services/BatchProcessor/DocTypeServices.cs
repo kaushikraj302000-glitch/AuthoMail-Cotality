@@ -14,7 +14,7 @@ namespace AM.Services
         DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount);
         List<DocType> GetFallBackDocTypeByPnSConfigId(int clientId, int docTypeId, int pnSConfigId);
         DocType GetDocTypeById(int docTypeId, int pnsConfigDetailId);
-        List<DocTypeCoverLetter> GetDocumentCoverLetterTemplates(int pnSConfigDetailId);
+        List<PnSConfigDetailCoverLetter> GetDocumentCoverLetterTemplates(int pnSConfigDetailId);
         DocType GetDocTypeWithMaximumCutOffTimeByClientId(int clientId);
     }
 
@@ -41,11 +41,11 @@ namespace AM.Services
             return db.QuerySingleOrDefault<DocType>(query, new { DocTypeId = docTypeId, PnsConfigDetailId = pnsConfigDetailId });
         }
 
-        public List<DocTypeCoverLetter> GetDocumentCoverLetterTemplates(int pnSConfigDetailId)
+        public List<PnSConfigDetailCoverLetter> GetDocumentCoverLetterTemplates(int pnSConfigDetailId)
         {
-            string query = "SELECT * FROM [AM].[DocTypeCoverLetters] WHERE PnSConfigDetailId=@PnSConfigDetailId";
+            string query = "SELECT * FROM [Common].[PnSConfigDetailCoverLetters] WHERE PnSConfigDetailId=@PnSConfigDetailId";
 
-            return db.Query<DocTypeCoverLetter>(query, new { PnSConfigDetailId = pnSConfigDetailId }).ToList();
+            return db.Query<PnSConfigDetailCoverLetter>(query, new { PnSConfigDetailId = pnSConfigDetailId }).ToList();
         }
 
         public DocType GetDocTypeWithMaximumCutOffTimeByClientId(int clientId)

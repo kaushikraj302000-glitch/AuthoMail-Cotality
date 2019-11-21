@@ -23,18 +23,18 @@ namespace AM.Services
         List<DocTypes> GetDocTypes();
         List<DocTypeVM> GetDocTypesByClientId(int ClientId);
         List<DocTypeCoverLetterVM> GetDocTypeCoverLetterByDocTypeId(int Id);
-        KeyValuePair<bool, string> SaveDocTypeCoverLetter(DocTypeCoverLetter dtcl);
-        KeyValuePair<bool, string> ValidateDocTypeCoverLetter(DocTypeCoverLetter dtcl);
+        KeyValuePair<bool, string> SaveDocTypeCoverLetter(PnSConfigDetailCoverLetter dtcl);
+        KeyValuePair<bool, string> ValidateDocTypeCoverLetter(PnSConfigDetailCoverLetter dtcl);
         KeyValuePair<bool, string> RemoveCoverletter(int docTypeId, int seqId, string filePath);
-        KeyValuePair<bool, string> SaveDocTypePrintTrail(List<DocTypePrintTrailMap> model);
+        KeyValuePair<bool, string> SaveDocTypePrintTrail(List<PnSConfigDetailPrintTrailMap> model);
         KeyValuePair<bool, string> SavePrintTrail(PrintTrail model);
         PrintTrail GetPrintTrailById(int Id);
         KeyValuePair<bool, string> RemovePrintTrail(int Id);
         KeyValuePair<bool, string> SimulatePrintTrail(int Id, bool isSimulate);
         List<PrintTrail> GetPrintTrails();
         List<PrintVendor> GetPrintVendors();
-        List<DocTypePrintTrailMap> GetDocTypePrintTrail();
-        Tuple<DocType, List<DocTypePrintTrailMap>> GetDocTypePrintTrailByDocTypeId(int docTypeId);
+        List<PnSConfigDetailPrintTrailMap> GetDocTypePrintTrail();
+        Tuple<DocType, List<PnSConfigDetailPrintTrailMap>> GetDocTypePrintTrailByDocTypeId(int docTypeId);
         //Clients
         List<Clients> GetClients();
         Clients FindByClientId(int Id);
@@ -726,7 +726,7 @@ inner join Common.Clients c on d.ClientId=c.Id";
             string q = "select * from AM.DocTypeCoverLetters where DocTypeId=@id";
             return db.Query<DocTypeCoverLetterVM>(q, new { id = Id }).ToList();
         }
-        public KeyValuePair<bool, string> SaveDocTypeCoverLetter(DocTypeCoverLetter dtcl)
+        public KeyValuePair<bool, string> SaveDocTypeCoverLetter(PnSConfigDetailCoverLetter dtcl)
         {
             try
             {
@@ -742,7 +742,7 @@ inner join Common.Clients c on d.ClientId=c.Id";
             }
         }
 
-        public KeyValuePair<bool, string> ValidateDocTypeCoverLetter(DocTypeCoverLetter dtcl)
+        public KeyValuePair<bool, string> ValidateDocTypeCoverLetter(PnSConfigDetailCoverLetter dtcl)
         {
             try
             {
@@ -777,7 +777,7 @@ inner join Common.Clients c on d.ClientId=c.Id";
 
 
 
-        public KeyValuePair<bool, string> SaveDocTypePrintTrail(List<DocTypePrintTrailMap> model)
+        public KeyValuePair<bool, string> SaveDocTypePrintTrail(List<PnSConfigDetailPrintTrailMap> model)
         {
             var result = Has24HrsWithoutOverlap(model);
             if (!result.Key) return result;
@@ -840,7 +840,7 @@ inner join Common.Clients c on d.ClientId=c.Id";
                 return new KeyValuePair<bool, string>(false, ex.Message);
             }
         }
-        private KeyValuePair<bool, string> Has24HrsWithoutOverlap(List<DocTypePrintTrailMap> TSList)
+        private KeyValuePair<bool, string> Has24HrsWithoutOverlap(List<PnSConfigDetailPrintTrailMap> TSList)
         {
             if (TSList == null || TSList.Count == 0)
                 return new KeyValuePair<bool, string>(false, "All times can't be null.");
@@ -916,18 +916,18 @@ inner join Common.Clients c on d.ClientId=c.Id";
             return model;
         }
 
-        public List<DocTypePrintTrailMap> GetDocTypePrintTrail()
+        public List<PnSConfigDetailPrintTrailMap> GetDocTypePrintTrail()
         {
-            var model = db.Query<DocTypePrintTrailMap>("select * from Common.DocTypePrintTrailMaps").ToList();
+            var model = db.Query<PnSConfigDetailPrintTrailMap>("select * from Common.DocTypePrintTrailMaps").ToList();
             return model;
         }
 
 
-        public Tuple<DocType, List<DocTypePrintTrailMap>> GetDocTypePrintTrailByDocTypeId(int docTypeId)
+        public Tuple<DocType, List<PnSConfigDetailPrintTrailMap>> GetDocTypePrintTrailByDocTypeId(int docTypeId)
         {
-            var model = db.Query<DocTypePrintTrailMap>("select * from Common.DocTypePrintTrailMaps where doctypeid=@doctypeid", new { doctypeid = docTypeId }).ToList();
+            var model = db.Query<PnSConfigDetailPrintTrailMap>("select * from Common.DocTypePrintTrailMaps where doctypeid=@doctypeid", new { doctypeid = docTypeId }).ToList();
             var docType = db.QuerySingle<DocType>("select * from AM.DocTypes where id=@doctypeid", new { doctypeid = docTypeId });
-            return Tuple.Create<DocType, List<DocTypePrintTrailMap>>(docType, model);
+            return Tuple.Create<DocType, List<PnSConfigDetailPrintTrailMap>>(docType, model);
         }
 
 
