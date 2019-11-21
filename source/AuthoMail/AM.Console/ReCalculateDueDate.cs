@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AM.Lib;
+using System.IO;
 
 namespace AM.Console
 {
@@ -56,6 +57,30 @@ namespace AM.Console
                 }
 
                 //System.IO.File.WriteAllText(@"C:\Users\sagar.g\Desktop\Reports MC\Calculation.csv", stringBuilder.ToString());
+            }
+        }
+
+        public static void UpdatePnSConfigDetailId()
+        {
+            using (IReCalculateDueDateService rSvc = new ReCalculateDueDateService())
+            {
+                var listofMpToUpdate = rSvc.GetMPsToUpdatePnSConfigDetailId();
+                var columnName = String.Join(",", "MPID", "DocTypeID", "PnSConfigDetailId");
+
+                StringBuilder deliveryReport = new StringBuilder(columnName);
+
+                deliveryReport.AppendLine();
+                foreach (var mp in listofMpToUpdate)
+                {
+                    var doctype = rSvc.GetDocTypeById(mp.DocTypeId.Value);
+
+                    var docTypeInfo = rSvc.GetPnSConfigDetailId(mp.ClientId, mp.DocTypeId.Value, doctype.ShippingCarrier, doctype.ShippingServiceType, mp.TotalPages == 0 ? 1 : mp.TotalPages);
+                    
+                    deliveryReport.AppendLine(String.Join(",", mp.Id, mp.DocTypeId, docTypeInfo.PnSConfigDetailId));
+
+                    rSvc.UpdatePnSConfigDetailId(mp.Id, docTypeInfo.PnSConfigDetailId);
+                }
+                File.WriteAllText(@"E:\Git\PnSIds.csv", deliveryReport.ToString());
             }
         }
     }

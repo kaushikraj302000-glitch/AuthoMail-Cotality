@@ -45,6 +45,15 @@ namespace AM.Console
                     System.Console.WriteLine("Calculation Completed");
                     return;
                 }
+                else if (args[0] == "UpdatePnSConfigDetailId")
+                {
+                    System.Console.WriteLine("Update PnSConfigDetailId Start");
+
+                    ReCalculateDueDate.UpdatePnSConfigDetailId();
+
+                    System.Console.WriteLine("Update PnSConfigDetailId Completed");
+                    return;
+                }
                 else if (args[0] == "BatchReporting")
                 {
                     //This will be used as How system will report back to the client. means based on response of printbatches table or full response so Here user needs to pass "Incremental" Or "Full" then comma separated SFTChannel codes
