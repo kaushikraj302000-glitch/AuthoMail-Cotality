@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AM.Entities;
 using Dapper;
 
 namespace AM.Services
@@ -16,6 +17,10 @@ namespace AM.Services
         int UpdateDueDateAndEftRecOnEST(int Id, DateTime dueDate, DateTime effectiveReceivedOnEst);
         int UpdateEftRecOnEST(int Id, DateTime effectiveReceivedOnEst);
         int UpdateSubmissionTime(int id, DateTime stdSubmissionTime, DateTime maxSubmissionTime, string missedSLAReason);
+        List<Recal> GetMPsToUpdatePnSConfigDetailId();
+        DocTypeInfo GetDocTypeById(int id);
+        DocTypeInfo GetPnSConfigDetailId(int clientId, int doctypeId, string shippingCarrier, string shippingServiceType, int totalPages);
+        int UpdatePnSConfigDetailId(int mpId, int pnsConfigDetailId);
     }
     public class ReCalculateDueDateService : ServiceBase, IReCalculateDueDateService
     {
@@ -59,12 +64,32 @@ namespace AM.Services
             return db.Execute(q, new { Id = id, stdSubmissionTime = stdSubmissionTime, maxSubmissionTime = maxSubmissionTime, missedSLAReason = missedSLAReason });
         }
 
+        public List<Recal> GetMPsToUpdatePnSConfigDetailId()
+        {
+            return db.Query<Recal>("select Id,ClientId,TotalPages,DocTypeId,ClientDocTypeId from AM.MailPieces where DocTypeId IS NOT NULL").ToList();
+        }
+
+        public DocTypeInfo GetDocTypeById(int id)
+        {
+            return db.QuerySingleOrDefault<DocTypeInfo>("select Id,ShippingCarrier,ShippingServiceType from AM.DocTypes WHERE Id= @Id", new { Id = id });
+        }
+
+        public DocTypeInfo GetPnSConfigDetailId(int clientId, int doctypeId, string shippingCarrier, string shippingServiceType, int totalPages)
+        {
+            return db.QuerySingleOrDefault<DocTypeInfo>("SELECT D.PnSConfigDetailId FROM [dbo].[v_DocTypes] D WHERE D.ClientId=@ClientId AND D.Id=@DocTypeId AND D.ShippingCarrier = @ShippingCarrier AND D.ShippingServiceType = @ShippingServiceType AND @TotalPages BETWEEN MinPage AND MaxPage", new { ClientId = clientId, DocTypeId = doctypeId, ShippingCarrier = shippingCarrier, ShippingServiceType = shippingServiceType, TotalPages = totalPages });
+        }
+
+        public int UpdatePnSConfigDetailId(int mpId, int pnsConfigDetailId)
+        {
+            return db.Execute("Update AM.MailPieces set PnSConfigDetailId = @PnSConfigDetailId where Id = @mpId", new { PnSConfigDetailId = pnsConfigDetailId, mpId = mpId });
+        }
     }
     public class Recal
     {
         public int Id { get; set; }
         public Guid UniqueId { get; set; }
         public int? DocTypeId { get; set; }
+        public int? ClientDocTypeId { get; set; }
         public int ClientId { get; set; }
         public string AppCode { get; set; }
         public string VendorCode { get; set; }
@@ -79,6 +104,14 @@ namespace AM.Services
         public string MissedSLAReason { get; set; }
         public DateTime? StdSubmissionTime { get; set; }
         public DateTime? MaxSubmissionTime { get; set; }
+        public int TotalPages { get; set; }
     }
 
+    public class DocTypeInfo
+    {
+        public int Id { get; set; }
+        public int PnSConfigDetailId { get; set; }
+        public string ShippingCarrier { get; set; }
+        public string ShippingServiceType { get; set; }
+    }
 }
