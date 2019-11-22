@@ -73,7 +73,7 @@ namespace AM.Core
                     }
 
                     List<Notification> notificaitons = new List<Notification>(reply.Notifications);
-                    StringBuilder sbMessages = new StringBuilder(string.Format("Error occurred while generating FedEx label for client {0} and {1} : {2}<br/>", mbi.Client.AppCode, mailPiece.BusinessFriendlyIdName, mailPiece.BusinessFriendlyIdValue));
+                    StringBuilder sbMessages = new StringBuilder(string.Format("MailPiece Id : {0} Error occurred while generating FedEx label for client {1} and {2} : {3}<br/>", mailPiece.Id, mbi.Client.AppCode, mailPiece.BusinessFriendlyIdName, mailPiece.BusinessFriendlyIdValue));
                     notificaitons.ForEach(n => sbMessages = sbMessages.AppendLine(n.Message));
 
                     log.Error(sbMessages.ToString());

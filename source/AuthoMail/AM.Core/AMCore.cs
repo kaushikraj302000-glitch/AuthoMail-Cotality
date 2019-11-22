@@ -232,6 +232,8 @@ namespace AM.Core
                                         }
                                         else if (response.HasError)
                                         {
+                                            var msg = "USPS Priority Express is not supporting shipping to provided address for MailPieceId : {0} with Error :{1}. So AM is doing fallback to other shipping service.".Fill(mailPiece.Id, response.ExceptionDetail);
+                                            log.Debug(msg);
                                             //NOTE: Here system is check for not deliverable or any other error if occure then system will fall back to USPS Priority service and try to generate label
                                             var fallBackDocTypes = docTypeSvc.GetFallBackDocTypeByPnSConfigId(client.Id, mailPiece.DocTypeId.Value, docType.PnSConfigId.Value);
 
@@ -374,6 +376,8 @@ namespace AM.Core
                                     {
                                         if (response.HasError && (fallBackCodes.Any(code => code == response.ExceptionCode) || fallBackDescriptions.Any(desc => response.ExceptionDetail.Contains(desc))))
                                         {
+                                            var msg = "FedEx is not supporting shipping to provided address for MailPieceId : {0} with Error :{1}. So AM is doing fallback to other shipping carrier.".Fill(mailPiece.Id, response.ExceptionDetail);
+                                            log.Debug(msg);
                                             //First try to generate eVS label with USPS Priority Express
                                             var fallBackDocTypes = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, docType.PnSConfigId.Value);
 
@@ -399,6 +403,8 @@ namespace AM.Core
 
                                                 if (response.HasError)
                                                 {
+                                                    msg = "USPS Priority Express is not supporting shipping to provided address for MailPieceId : {0} with Error :{1}.".Fill(mailPiece.Id, response.ExceptionDetail);
+                                                    log.Debug(msg);
                                                     var priDocType = fallBackDocTypes.SingleOrDefault(dt => dt.ShippingCarrier == Carrier.USPS.ToString() && dt.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY.ToString());
 
                                                     if (priDocType == null)
@@ -443,6 +449,8 @@ namespace AM.Core
 
                                             if (response.HasError)
                                             {
+                                                msg = "After FallBack, USPS Priority is not supporting shipping to provided address for MailPieceId : {0} with Error :{1}.".Fill(mailPiece.Id, response.ExceptionDetail);
+                                                log.Debug(msg);
                                                 //Consider as an Error package
                                                 break;
                                             }
