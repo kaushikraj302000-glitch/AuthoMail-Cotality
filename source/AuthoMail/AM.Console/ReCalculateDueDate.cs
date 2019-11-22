@@ -80,7 +80,7 @@ namespace AM.Console
 
                     rSvc.UpdatePnSConfigDetailId(mp.Id, docTypeInfo.PnSConfigDetailId);
                 }
-                File.WriteAllText(@"E:\Git\PnSIds.csv", deliveryReport.ToString());
+                //File.WriteAllText(@"F:\PnSIds.csv", deliveryReport.ToString());
             }
         }
     }

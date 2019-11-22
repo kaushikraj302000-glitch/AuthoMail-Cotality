@@ -76,7 +76,7 @@ namespace AM.Services
 
         public DocTypeInfo GetPnSConfigDetailId(int clientId, int doctypeId, string shippingCarrier, string shippingServiceType, int totalPages)
         {
-            return db.QuerySingleOrDefault<DocTypeInfo>("SELECT D.PnSConfigDetailId FROM [dbo].[v_DocTypes] D WHERE D.ClientId=@ClientId AND D.Id=@DocTypeId AND D.ShippingCarrier = @ShippingCarrier AND D.ShippingServiceType = @ShippingServiceType AND @TotalPages BETWEEN MinPage AND MaxPage", new { ClientId = clientId, DocTypeId = doctypeId, ShippingCarrier = shippingCarrier, ShippingServiceType = shippingServiceType, TotalPages = totalPages });
+            return db.QuerySingleOrDefault<DocTypeInfo>("SELECT D.PnSConfigDetailId FROM [dbo].[v_DocTypes] D WHERE D.ClientId=@ClientId AND D.Id=@DocTypeId AND ISNULL(D.ShippingCarrier,'') = ISNULL(@ShippingCarrier,'') AND ISNULL(D.ShippingServiceType,'') = ISNULL(@ShippingServiceType,'') AND @TotalPages BETWEEN MinPage AND MaxPage", new { ClientId = clientId, DocTypeId = doctypeId, ShippingCarrier = shippingCarrier, ShippingServiceType = shippingServiceType, TotalPages = totalPages });
         }
 
         public int UpdatePnSConfigDetailId(int mpId, int pnsConfigDetailId)
