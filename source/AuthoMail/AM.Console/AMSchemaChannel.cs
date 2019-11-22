@@ -523,6 +523,7 @@ namespace AM.Console
             sftSite.Connect();
 
             sftSite.UploadFile(invalidBatchPath, remoteFilePath);
+
             if (sftSite.IsFileAvailable(Path.Combine(mailBatchSFTChannel.ToADEDir, mbi.BatchName + ".zip")))
                 MoveBatchToBackupDir(sftSite, Path.Combine(mailBatchSFTChannel.ToADEDir, mbi.BatchName + ".zip"));
 
@@ -537,13 +538,15 @@ namespace AM.Console
         private void MoveBatchToBackupDir(SFTUtil sftSite, string ftpFilePath)
         {
             string ftpBackUpFilePath = Path.Combine(SFTChannel.ArchiveDir, Path.GetFileName(ftpFilePath));
-
-            if (SFTChannel.PostDownloadAction == PostDownloadAction.Archive)
+            if (sftSite.IsFileAvailable(ftpFilePath))
             {
-                sftSite.MoveFile(ftpFilePath, ftpBackUpFilePath);
+                if (SFTChannel.PostDownloadAction == PostDownloadAction.Archive)
+                {
+                    sftSite.MoveFile(ftpFilePath, ftpBackUpFilePath);
+                }
+                else
+                    sftSite.DeleteFile(ftpFilePath);
             }
-            else
-                sftSite.DeleteFile(ftpFilePath);
         }
 
         private MailBatchDTO InsertInvalidBatchInfo(string batchName, DateTime receivedOn, string errorMessage)
