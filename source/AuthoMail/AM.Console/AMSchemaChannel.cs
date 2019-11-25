@@ -841,28 +841,28 @@ namespace AM.Console
                             MailPieceValidationResult schemaValidationResult = ValidateMailPieceNode(mailPieceNode);
                             if (schemaValidationResult.Code == OutComeCodes.No_Error)
                             {
-                                //System will check for common validations
-                                MailPieceValidationResult commonValidationResult = ValidateCommonValidation(mailPieceDTO, mbi);
-                                if (commonValidationResult.Code == OutComeCodes.No_Error)
+                                // System will check for client specific validations
+                                MailPieceValidationResult clientSpecificValidationResult = ValidateClientSpecificRules(mailPieceDTO);
+                                if (clientSpecificValidationResult.Code == OutComeCodes.No_Error)
                                 {
-                                    // System will check for client specific validations
-                                    MailPieceValidationResult clientSpecificValidationResult = ValidateClientSpecificRules(mailPieceDTO, mbi);
-                                    if (clientSpecificValidationResult.Code == OutComeCodes.No_Error)
+                                    //System will check for common validations
+                                    MailPieceValidationResult commonValidationResult = ValidateCommonValidation(mailPieceDTO, mbi);
+                                    if (commonValidationResult.Code == OutComeCodes.No_Error)
                                     {
                                         mailPieceDTO.ErrorCode = OutComeCodes.No_Error;
                                         mailPieceDTO.ErrorDesc = "";
                                     }
                                     else
                                     {
-                                        mailPieceDTO.ErrorCode = clientSpecificValidationResult.Code;
-                                        mailPieceDTO.ErrorDesc = clientSpecificValidationResult.ErrorMessage;
+                                        mailPieceDTO.ErrorCode = commonValidationResult.Code;
+                                        mailPieceDTO.ErrorDesc = commonValidationResult.ErrorMessage;
                                         mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
-                                    }
+                                    }                                    
                                 }
                                 else
                                 {
-                                    mailPieceDTO.ErrorCode = commonValidationResult.Code;
-                                    mailPieceDTO.ErrorDesc = commonValidationResult.ErrorMessage;
+                                    mailPieceDTO.ErrorCode = clientSpecificValidationResult.Code;
+                                    mailPieceDTO.ErrorDesc = clientSpecificValidationResult.ErrorMessage;
                                     mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                                 }
                             }
@@ -1074,9 +1074,15 @@ namespace AM.Console
             return new MailPieceValidationResult() { Code = OutComeCodes.No_Error };
         }
 
-        private MailPieceValidationResult ValidateClientSpecificRules(MailPieceDTO mailPieceDTO, MailBatchInfo mbi)
+        private MailPieceValidationResult ValidateClientSpecificRules(MailPieceDTO mailPiece)
         {
-            //temparary Code
+            var errors = GetAllMailPieceBasicErrors(mailPiece).ToList();
+
+            if (errors.Count > 0)
+            {
+                return new MailPieceValidationResult() { Code = errors.First().Code, ErrorMessage = string.Join(" | ", errors.Select(row => row.ErrorMessage)) };
+            }
+
             return new MailPieceValidationResult() { Code = OutComeCodes.No_Error };
         }
 
@@ -1112,6 +1118,26 @@ namespace AM.Console
 
             if (!string.IsNullOrEmpty(errorMsg))
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_XML_File, ErrorMessage = errorMsg };
+
+            yield break;
+        }
+
+        private IEnumerable<MailPieceValidationResult> GetAllMailPieceBasicErrors(MailPieceDTO mailPiece)
+        {
+            if (mailPiece.RcptAddressStreet.IsNullOrWhiteSpace() || mailPiece.RcptAddressCity.IsNullOrWhiteSpace() || mailPiece.RcptAddressState.IsNullOrWhiteSpace() || mailPiece.RcptAddressZIP.IsNullOrWhiteSpace())
+                yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Recipient address details are missing or invalid in package." };
+
+            if (mailPiece.RcptFirstName.IsNullOrWhiteSpace() && mailPiece.RcptLastName.IsNullOrWhiteSpace())
+                yield return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Recipient's first and last name are missing or invalid in package." };
+
+            if (mailPiece.DocumentOrPackageType.IsNullOrWhiteSpace())
+                yield return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = "Document type is not specified in package." };
+
+            if (mailPiece.BusinessFriendlyIdName.IsNullOrWhiteSpace() || mailPiece.BusinessFriendlyIdValue.IsNullOrWhiteSpace())
+                yield return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_ShippingDetail, ErrorMessage = "Business friendly Id or value is not specified in package." };
+
+            if (mailPiece.FileName.IsNullOrWhiteSpace() && mailPiece.FilePattern.IsNullOrWhiteSpace())
+                yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file is not provided in package." };
 
             yield break;
         }
