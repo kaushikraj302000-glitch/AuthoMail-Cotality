@@ -175,7 +175,7 @@ namespace AM.Web.Controllers
                 ModelState.AddModelError("", Config.Web_Msg_Login_InvalidUserName);
                 return View(model);
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 ModelState.AddModelError("", Config.Web_Msg_Login_Default);
                 return View(model);

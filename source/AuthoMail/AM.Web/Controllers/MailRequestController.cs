@@ -14,9 +14,11 @@ using System.Web.Http;
 using System.Xml.Serialization;
 using AM.Lib;
 using Newtonsoft.Json.Serialization;
+using System.Web.Http.Cors;
 
 namespace AM.Web.Controllers
 {
+    [EnableCors(origins: "*", headers: "*", methods: "*")]
     [Authorize(Roles = AMRoles.Admin + "," + AMRoles.API)]
     [RoutePrefix("api")]
     public class MailRequestController : ApiController
@@ -30,18 +32,11 @@ namespace AM.Web.Controllers
             File.WriteAllText(@"\\Slxqn1vdappsr01.infosolco.net\FAGOSFTP\ADE_PnS\Test\test.txt", "Jai Swaminarayan");
         }
 
-        [Route("createmailrequest")]
+        [Route("mailrequest")]
         [HttpPost]
         public object CreateMailRequest(JObject jObject)
         {           
             DateTime receivedTime = Common.Now;
-            //JsonConvert.SerializeObject(jObject, new JsonSerializerSettings()
-            //{
-            //    ContractResolver = new DefaultContractResolver()
-            //    {
-            //        IgnoreSerializableAttribute = false
-            //    }
-            //});
             SuccessResponse successResponse = new SuccessResponse();
             SFTChannel sFTChannel;
             Client client;
@@ -165,7 +160,8 @@ namespace AM.Web.Controllers
                                 commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.Received, receivedTime);
                                 mailBatchService.MarkMailBatchAsInvalid(mailBatchId, "Request does not contain valid package info.");
                                 commonSvc.UpdateBatchStatus(mailBatchId, BatchStatus.Failed.ToString());
-
+                                commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportPrepped, Common.Now);
+                                commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
                             }
                             return JsonResponseFactory.ErrorResponse(null, null, new ErrorResponse { ID = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = result.Code, ErrorDesc = result.ErrorMessage, ReceivedOn = receivedTime });
                         }
@@ -188,6 +184,8 @@ namespace AM.Web.Controllers
                 commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.Received, receivedTime);
                 mailBatchService.MarkMailBatchAsInvalid(mailBatchId, errorMessage);
                 commonSvc.UpdateBatchStatus(mailBatchId, BatchStatus.Failed.ToString());
+                commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportPrepped, Common.Now);
+                commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
             }
         }
 

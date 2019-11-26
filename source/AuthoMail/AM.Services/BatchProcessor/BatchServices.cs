@@ -256,7 +256,7 @@ namespace AM.Services
         {
             string query = @"INSERT INTO [AM].[MailBatches](UniqueId, ClientId, SFTChannelId, ClientBatchId,  BatchName, Priority) Output Inserted.Id VALUES (@UniqueId, @ClientId, @SFTChannelId, @ClientBatchId, @BatchName, @Priority)";
 
-            return db.ExecuteScalar<int>(query, new { UniqueId = mailBatch.Id, ClientId = clientId, SFTChannelId = sFTChannel.Id, ClientBatchId = mailBatch.ClientBatchId, BatchName = mailBatch.ClientBatchId , Priority = Priority.Low});
+            return db.ExecuteScalar<int>(query, new { UniqueId = mailBatch.Id, ClientId = clientId, SFTChannelId = sFTChannel.Id, ClientBatchId = mailBatch.ClientBatchId, BatchName = mailBatch.ClientBatchId , Priority = Priority.Low.ToString()});
         }
     }
 }
