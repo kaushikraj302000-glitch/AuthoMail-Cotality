@@ -553,7 +553,7 @@ namespace AM.Console
         {
             MailBatchDTO mailBatch = new MailBatchDTO();
             mailBatch.UniqueId = Guid.NewGuid();
-            mailBatch.ClientId = GetInvalidClient().Id;
+            mailBatch.ClientId = GetInvalidClient(SFTChannel.Code.Split('_')[0]).Id;
             mailBatch.SFTChannelId = SFTChannel.Id;
             mailBatch.BatchName = batchName;
             mailBatch.ClientBatchId = batchName;
@@ -565,9 +565,9 @@ namespace AM.Console
             return mailBatch;
         }
 
-        private Client GetInvalidClient()
+        private Client GetInvalidClient(string sftChannelCode)
         {
-            return clientSvc.GetClientByAppCode("GeneralInvalid");
+            return clientSvc.GetClientByAppCode(sftChannelCode + "_Invalid");
         }
 
         private List<string> GetTriggerFilePaths(SFTUtil sftSite)
