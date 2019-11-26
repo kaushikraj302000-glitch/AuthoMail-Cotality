@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
@@ -11,6 +12,10 @@ namespace AM.Entities
     [XmlRootAttribute(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0", IsNullable = false)]
     public class MailBatch
     {
+        public MailBatch()
+        {
+            this.MailPieces = new List<MailPiece>();
+        }
         [XmlAttribute]
         public Guid Id { get; set; }
 
@@ -53,6 +58,8 @@ namespace AM.Entities
         {
             return Id != null;
         }
+        [XmlIgnore]
+        public string ClientCode { get; set; }
 
         [XmlAttribute]
         public string BusinessFriendlyIdName { get; set; }
@@ -114,7 +121,7 @@ namespace AM.Entities
     }
 
     [Serializable]
-    [XmlType(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0")]
+    [XmlType(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0")]    
     public class DocumentOrPackage
     {
         [XmlAttribute]
@@ -128,7 +135,7 @@ namespace AM.Entities
     }
 
     [Serializable]
-    [XmlType(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0")]
+    [XmlType(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0")]    
     public class RecipientInfo
     {
         [XmlElement(ElementName = "Recipient")]

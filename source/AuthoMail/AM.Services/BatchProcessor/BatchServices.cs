@@ -30,6 +30,7 @@ namespace AM.Services
         int GetMailBatchesReceivedCount(DateTime startTime, DateTime endTime, string status);
         int UpdatePrintBatchPipelineStatus(int printBatchId, string pipeLineStatus, DateTime timestamp);
         int RemainingPrintBatchesReportedBackCount(int mailBatchId);
+        int InsertBatchDetails(MailBatch mailBatch, int clientId, SFTChannel sFTChannel);
     }
     public class MailBatchService : ServiceBase, IMailBatchService //It implements Interfaces 
     {
@@ -249,6 +250,13 @@ namespace AM.Services
             string query = @"SELECT COUNT(*) FROM AM.PrintBatches PB WHERE PB.MailBatchId=@MailBatchId AND PB.IsReportedBack=0";
 
             return db.ExecuteScalar<int>(query, new { MailBatchId = mailBatchId });
+        }
+
+        public int InsertBatchDetails(MailBatch mailBatch,int clientId,SFTChannel sFTChannel)
+        {
+            string query = @"INSERT INTO [AM].[MailBatches](UniqueId, ClientId, SFTChannelId, ClientBatchId,  BatchName, Priority) Output Inserted.Id VALUES (@UniqueId, @ClientId, @SFTChannelId, @ClientBatchId, @BatchName, @Priority)";
+
+            return db.ExecuteScalar<int>(query, new { UniqueId = mailBatch.Id, ClientId = clientId, SFTChannelId = sFTChannel.Id, ClientBatchId = mailBatch.ClientBatchId, BatchName = mailBatch.ClientBatchId , Priority = Priority.Low});
         }
     }
 }

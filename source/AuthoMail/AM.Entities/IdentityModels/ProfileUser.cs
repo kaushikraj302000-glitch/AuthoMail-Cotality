@@ -24,6 +24,7 @@ namespace AM.Entities
             userIdentity.AddClaim(new Claim("IsCoreLogicUser", this.Email));
             userIdentity.AddClaim(new Claim("DisplayName", this.DisplayName == null ? "Hello" : this.DisplayName));
             userIdentity.AddClaim(new Claim("LastLoginTime", this.LastLoginTimeUTC.HasValue ? this.LastLoginTimeUTC.ToString() : DateTime.UtcNow.ToString()));
+            userIdentity.AddClaim(new Claim("SFTChannelId", this.SFTChannelId.HasValue ? this.SFTChannelId.ToString() : null));
             return userIdentity;
         }
 
@@ -55,6 +56,13 @@ namespace AM.Entities
             var claim = ((ClaimsIdentity)identity).FindFirst("LastLoginTime");
             if (claim == null || claim.Value.IsNullOrWhiteSpace()) return DateTime.UtcNow;
             return Convert.ToDateTime(claim.Value);
+        }
+
+        public static int? SFTChannelId(this IIdentity identity)
+        {
+            var claim = ((ClaimsIdentity)identity).FindFirst("SFTChannelId");
+            if (claim == null || claim.Value.IsNullOrWhiteSpace()) return null;
+            return Convert.ToInt32(claim.Value);
         }
     }
 

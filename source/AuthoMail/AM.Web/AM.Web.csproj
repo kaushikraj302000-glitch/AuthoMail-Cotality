@@ -117,6 +117,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.DirectoryServices" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Net.Http.Formatting, Version=5.2.6.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.5.2.6\lib\net45\System.Net.Http.Formatting.dll</HintPath>
@@ -250,6 +251,7 @@
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\ChartApiController.cs" />
     <Compile Include="Controllers\CommonController.cs" />
+    <Compile Include="Controllers\MailRequestController.cs" />
     <Compile Include="Controllers\SupportController.cs" />
     <Compile Include="Controllers\TrackController.cs" />
     <Compile Include="Controllers\USPSApiController.cs" />
@@ -262,6 +264,7 @@
     <Compile Include="Models\LookupViewModel.cs" />
     <Compile Include="Models\MailPieceCommonViewModel.cs" />
     <Compile Include="Models\MailPieceDetailsViewModel.cs" />
+    <Compile Include="Models\MailRequestAPIResponse.cs" />
     <Compile Include="Models\MonthlyReconReportViewModel.cs" />
     <Compile Include="Models\PDFTemplate.cs" />
     <Compile Include="Models\PullBackResponse.cs" />
