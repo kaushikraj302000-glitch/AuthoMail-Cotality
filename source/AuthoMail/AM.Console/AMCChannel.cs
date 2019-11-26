@@ -765,7 +765,7 @@ namespace AM.Console
                                         if (tempDocType == null)
                                         {
                                             mailPieceDTO.ErrorCode = OutComeCodes.Invalid_PackageType;
-                                            mailPieceDTO.ErrorDesc = client.AppCode == GetInvalidClient().AppCode ? "The specified customer identifier {0} is not configured.".Fill(mailPieceCustomInfo.Single(c => c.Key == "CustomerIdentifier").Value) : "The specified document or package type '{0}' is not configured.".Fill(mailPieceDTO.DocumentOrPackageType);
+                                            mailPieceDTO.ErrorDesc = client.AppCode == GetInvalidClient().AppCode ? "The specified customer identifier {0} is not configured.".Fill(mailPieceCustomInfo.Single(c => c.Key == "CustomerIdentifier").Value) : "Either the specified document or package type '{0}' is not configured or no matching print configuration found for page count ({1}).".Fill(mailPieceDTO.DocumentOrPackageType, mailPieceDTO.TotalPages);
                                             mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                                         }
                                         else if (!mailPieceDTO.IsReturnInfoSpecified && !mailBatch.IsReturnInfoSpecified && !tempDocType.IsReturnInfoSpecified)

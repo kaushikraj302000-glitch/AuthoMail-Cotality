@@ -361,7 +361,7 @@ namespace AM.Console
                                     {
                                         mailPieceDTO.PrintLocation = null;
                                         mailPieceDTO.ErrorCode = OutComeCodes.Invalid_PackageType;
-                                        mailPieceDTO.ErrorDesc = "The specified document or package type '{0}' is not configured.".Fill(mailPieceDTO.DocumentOrPackageType);
+                                        mailPieceDTO.ErrorDesc = "Either the specified document or package type '{0}' is not configured or no matching print configuration found for page count ({1}).".Fill(mailPieceDTO.DocumentOrPackageType, mailPieceDTO.TotalPages);
                                         mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                                     }
                                     else

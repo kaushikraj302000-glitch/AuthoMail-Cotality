@@ -857,7 +857,7 @@ namespace AM.Console
                                         mailPieceDTO.ErrorCode = commonValidationResult.Code;
                                         mailPieceDTO.ErrorDesc = commonValidationResult.ErrorMessage;
                                         mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
-                                    }                                    
+                                    }
                                 }
                                 else
                                 {
@@ -1007,7 +1007,7 @@ namespace AM.Console
 
                 if (docType == null)
                 {
-                    return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = "The specified document or package type '{0}' is not configured.".Fill(mailPieceDTO.DocumentOrPackageType) };
+                    return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = "Either the specified document or package type '{0}' is not configured or no matching print configuration found for page count ({1}).".Fill(mailPieceDTO.DocumentOrPackageType, mailPieceDTO.TotalPages) };
                 }
                 else if (!mailPieceDTO.IsReturnInfoSpecified && !mbi.MailBatch.IsReturnInfoSpecified && !docType.IsReturnInfoSpecified)
                 {
