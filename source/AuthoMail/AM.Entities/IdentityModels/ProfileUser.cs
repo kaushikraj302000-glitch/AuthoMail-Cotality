@@ -24,7 +24,7 @@ namespace AM.Entities
             userIdentity.AddClaim(new Claim("IsCoreLogicUser", this.Email));
             userIdentity.AddClaim(new Claim("DisplayName", this.DisplayName == null ? "Hello" : this.DisplayName));
             userIdentity.AddClaim(new Claim("LastLoginTime", this.LastLoginTimeUTC.HasValue ? this.LastLoginTimeUTC.ToString() : DateTime.UtcNow.ToString()));
-            userIdentity.AddClaim(new Claim("SFTChannelId", this.SFTChannelId.HasValue ? this.SFTChannelId.ToString() : null));
+            userIdentity.AddClaim(new Claim("SFTChannelId", this.SFTChannelId.HasValue ? this.SFTChannelId.ToString() : string.Empty));
             return userIdentity;
         }
 
