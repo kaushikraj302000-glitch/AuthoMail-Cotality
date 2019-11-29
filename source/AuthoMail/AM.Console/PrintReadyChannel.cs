@@ -644,7 +644,7 @@ namespace AM.Console
                             if (schemaValidationResult.Code == OutComeCodes.No_Error)
                             {
                                 //System will check for common validations
-                                MailPieceValidationResult commonValidationResult = ValidateCommonValidation(mailPieceDTO, mbi);
+                                MailPieceValidationResult commonValidationResult = ValidateCommonValidation(mailPieceDTO, mbi, mailPieceCustomInfo.Where(mpc => mpc.Key.Contains("ShippingCarrier") && mpc.Key.Contains("ShippingServiceType")).ToList());
                                 if (commonValidationResult.Code == OutComeCodes.No_Error)
                                 {
                                     // System will check for client specific validations
@@ -754,7 +754,7 @@ namespace AM.Console
             log.Debug("Validate job queue is completed.");
         }
 
-        private MailPieceValidationResult ValidateCommonValidation(MailPieceDTO mailPieceDTO, MailBatchInfo mbi)
+        private MailPieceValidationResult ValidateCommonValidation(MailPieceDTO mailPieceDTO, MailBatchInfo mbi, List<MailPieceCustomInfo> mailPieceCustomInfos)
         {
             //in last system will check for general validations
             string localFilePath = Path.Combine(mbi.AMRequestPath, mailPieceDTO.FileName);
@@ -773,9 +773,16 @@ namespace AM.Console
             mailPieceDTO.PDFFileSize = (fileInfo.Length / 1024);
 
             string documentOrPackageType = mailPieceDTO.DocumentOrPackageType;
+            DocType docType;
+            if (mailPieceCustomInfos.Count > 0)
+            {
+                docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType, pageCount, mailPieceCustomInfos.Where(mp => mp.Key == "ShippingCarrier").FirstOrDefault().Value, mailPieceCustomInfos.Where(mp => mp.Key == "ShippingServiceType").FirstOrDefault().Value);
+            }
+            else
+            {
+                docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType, pageCount);
+            }
 
-            //Document Or Package Type validation
-            var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType, pageCount);
 
             if (docType != null)
             {
