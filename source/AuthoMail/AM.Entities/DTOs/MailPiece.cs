@@ -98,6 +98,9 @@ namespace AM.Entities
         public bool IsFallBackRequested { get; set; }
         public DateTime? ExpiryDate { get; set; }
         public bool IsPrintReady { get; set; }
+
+        public string ShippingCarrier { get; set; }
+        public string ShippingServiceType { get; set; }
     }
 
     public class MailPieceCustomInfo
