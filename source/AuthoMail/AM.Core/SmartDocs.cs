@@ -147,7 +147,7 @@ namespace AM.Core
                     File.WriteAllBytes(coverLetterPDFPath, Convert.FromBase64String(eVSRes.LabelImageString));
 
                     //Here system is creating new PDF for military addresses only label's size LABEL4X6L to Letter size. 
-                    if (eVSReq.ServiceType == AM.USPSLib.ServiceType.PRIORITY && rcptAddressTypes.Contains(AddressType.Military.ToString()))
+                    if (rcptAddressTypes.Contains(AddressType.Military.ToString()))
                     {
                         ConvertLetterSizeLabel(coverLetterPDFPath, outputDir, mailPieceId);
                     }
