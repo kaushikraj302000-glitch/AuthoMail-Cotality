@@ -20,6 +20,7 @@ namespace AM.Services
         public DateTime ReceivedOn { get; set; }
         public DateTime? DueDate { get; set; }
         public string PipelineStatus { get; set; }
+        public string EDPipelineStatus { get; set; }
         public string ShippingStatus { get; set; }
         public string MailPieceStatus { get; set; }
         public string DocTypeCode { get; set; }
