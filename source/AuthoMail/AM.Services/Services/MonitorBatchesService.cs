@@ -82,11 +82,11 @@ namespace AM.Services
                 var delayedShippedMailPieces = pendingMPsToSubmit.Where(m => (m.ShippingStatus == ShippingStatus.Shipped.ToString() && m.MailPieceStatus != ShippingStatus.Shipped.ToString() && m.MailPieceStatus != ShippingStatus.eDelivered.ToString())).ToList();
                 var pendingInProgressMailPieces = pendingMPsToSubmit.Where(m => (m.ShippingStatus == ShippingStatus.InProgress.ToString() && m.MailPieceStatus != ShippingStatus.Shipped.ToString() && m.MailPieceStatus != ShippingStatus.eDelivered.ToString())).ToList();
                 //var delayedEmptyPrintLocation = pendingInProgressMailPieces.Where(p => p.PrintLocation.IsNullOrEmpty() && p.MailPieceStatus != ShippingStatus.Shipped.ToString() && p.IsEDeliveryRequested == false).ToList();
-                var delayedEmptyPrintLocation = pendingInProgressMailPieces.Where(p => p.PrintLocation.IsNullOrEmpty() && p.MailPieceStatus != ShippingStatus.Shipped.ToString() && (p.IsEDeliveryRequested == true && p.IsFallBackRequested == true)).ToList();
+                var delayedEmptyPrintLocation = pendingInProgressMailPieces.Where(p => p.PrintLocation.IsNullOrEmpty() && p.MailPieceStatus != ShippingStatus.Shipped.ToString() && (p.IsEDeliveryRequested == true && p.IsFallBackRequested == true && p.EDPipelineStatus != EDPipelineStatus.Declined.ToString() && p.EDPipelineStatus != EDPipelineStatus.Expired.ToString())).ToList();
 
-                var delayedDallasMailPieces = pendingInProgressMailPieces.Where(p => p.VendorCode == "CL_DALLAS" && p.MailPieceStatus != ShippingStatus.Shipped.ToString() && (p.IsEDeliveryRequested == true && p.IsFallBackRequested == true && p.PipelineStatus != BatchPipelineStatus.SubmittedToEDelivery)).ToList();
+                var delayedDallasMailPieces = pendingInProgressMailPieces.Where(p => p.VendorCode == "CL_DALLAS" && p.MailPieceStatus != ShippingStatus.Shipped.ToString() && p.MailPieceStatus != ShippingStatus.eDelivered.ToString()).ToList();
 
-                var delayedPCIMailPieces = pendingInProgressMailPieces.Where(mp => mp.VendorCode == "PCI" && Common.Now > mp.GetEstimatedSubmittedOn(timings, cutOffMinutes + 15) && mp.MailPieceStatus != ShippingStatus.Shipped.ToString() && (mp.IsEDeliveryRequested == true && mp.IsFallBackRequested == true && mp.PipelineStatus != BatchPipelineStatus.SubmittedToEDelivery)).ToList();
+                var delayedPCIMailPieces = pendingInProgressMailPieces.Where(mp => mp.VendorCode == "PCI" && Common.Now > mp.GetEstimatedSubmittedOn(timings, cutOffMinutes + 15) && mp.MailPieceStatus != ShippingStatus.Shipped.ToString() && mp.MailPieceStatus != ShippingStatus.eDelivered.ToString()).ToList();
 
                 var delayedEDeliveryMailPieces = pendingInProgressMailPieces.Where(e => e.IsEDeliveryRequested == true && e.IsInvitationSent == false).ToList();
 
