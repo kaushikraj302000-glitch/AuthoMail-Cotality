@@ -233,7 +233,7 @@ namespace PCI.Service
                 mailPiece.ErrId = row.Field<int>("ErrId");
                 mailPiece.MailPieceStatus = row.Field<string>("MailPieceStatus").ParseEnum<MailPieceStatus>();
                 mailPiece.PDFFileName = row.Field<string>("PDFFileName");
-                mailPiece.PostageCost = Math.Round(row.Field<decimal>("PostageCost"),3,MidpointRounding.AwayFromZero);
+                mailPiece.PostageCost = Math.Round(row.Field<decimal>("PostageCost"), 3, MidpointRounding.AwayFromZero);
                 mailPiece.PulledBackOn = mailPiece.MailPieceStatus == MailPieceStatus.PulledBack ? DateTime.SpecifyKind(row.Field<DateTime>("ShippedOn"), DateTimeKind.Utc) : DateTime.MinValue;
                 mailPiece.ShippedOn = row.Field<DateTime?>("ShippedOn") == null || mailPiece.MailPieceStatus == MailPieceStatus.Error || mailPiece.MailPieceStatus == MailPieceStatus.PulledBack ? DateTime.MinValue : DateTime.SpecifyKind(row.Field<DateTime>("ShippedOn"), DateTimeKind.Utc);
                 mailPiece.PrintedOn = mailPiece.ShippedOn;
@@ -322,6 +322,8 @@ namespace PCI.Service
                     AppCode = row.Field<string>("AppCode"),
                     DocTypeId = row.Field<int>("DocTypeId"),
                     Address1 = row.Field<string>("Address1"),
+                    PrintSize=row.Field<string>("PrintSize"),
+                    PrintFormat = row.Field<string>("PrintFormat"),
                     Date = row.Field<DateTime>("Date"),
                     DivertVS3 = int.Parse(row.Field<string>("DivertVS3")),
                     ErrDesc = row.Field<string>("ErrDesc"),
@@ -338,7 +340,7 @@ namespace PCI.Service
                     MailPieceId = row.Field<int?>("MailPieceId"),
                     EffectiveReceivedOnEst = row.Field<DateTime?>("EffectiveReceivedOnEst"),
                     ShippingCarrier = row.Field<string>("ShippingCarrier"),
-                    ShippingServiceType = row.Field<string>("ShippingServiceType"),
+                    ShippingServiceType = row.Field<string>("ShippingServiceType") == "IMB" ? Nordis.Lib.ShippingServiceType.FIRSTCLASS.ToString() : row.Field<string>("ShippingServiceType"),
                     MailPieceDueDate = row.Field<DateTime>("MailPieceDueDate"),
                     EnvelopeId = row.Field<int?>("EnvelopeId"),
                     BREEnvelopeId = row.Field<int?>("BREEnvelopeId"),

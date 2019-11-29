@@ -106,7 +106,6 @@ namespace PCI.Service
 
             //NOTE : Here system will try to submit bundle batches 5 times if any error is coming during execution
             30.TimesAttempt(() => SubmitBundledBatches(pvCode));
-
         }
 
         public static void SubmitBundledBatches(string pvCode)
@@ -231,7 +230,14 @@ namespace PCI.Service
                 DAL.UpdatedPrintTrailBatchIdInMRDFRequest(ptBatchDetail.Id, mpDetails);
                 log.Info("Updating Data Completed For MRDFRequest.");
 
-                ptBatchDetail.PrintBatchName = "{0}-{1}-{2}".Fill(ptDetail.BusinessCode, ptBatchDetail.Id, ptDetail.TrailName);
+                if (ptDetail.VendorCode == "NORDIS")
+                {
+                    ptBatchDetail.PrintBatchName = "{0}_{1}_{2}".Fill(ptDetail.BusinessCode, ptBatchDetail.Id, ptDetail.TrailName);
+                }
+                else
+                {
+                    ptBatchDetail.PrintBatchName = "{0}-{1}-{2}".Fill(ptDetail.BusinessCode, ptBatchDetail.Id, ptDetail.TrailName);
+                }
 
                 log.Info("Updating Data Started For PrintTrailBatch.");
                 DAL.UpdatePrintTrailBatchDetail(ptBatchDetail);
@@ -371,9 +377,12 @@ namespace PCI.Service
 
         private static string CreateNordisBatch(List<MailPieceDetail> mpList, PrintTrailBatch ptBatchDetails, string zipFilePath, string xmlFilePath, PrintTrailDetail ptDetails)
         {
+            var shippingMethod = mpList.Select(x => new { x.ShippingCarrier, x.ShippingServiceType }).Distinct().First();
             List<Package> packageData = new List<Package>();
             PrintRequest printRequestXml = new PrintRequest();
             printRequestXml.JobId = ptBatchDetails.Id;
+            printRequestXml.ShippingMethod = shippingMethod.ShippingCarrier.ParseEnum<ShippingMethod>();
+            printRequestXml.ShippingServiceType = shippingMethod.ShippingServiceType.ParseEnum<Nordis.Lib.ShippingServiceType>();
             foreach (MailPieceDetail package in mpList)
             {
                 printRequestXml.Packages.Add(
@@ -388,7 +397,7 @@ namespace PCI.Service
                         TotalImages = package.TotalPages,
                         PaperSize = package.PrintSize,
                         PrintFormat = package.PrintFormat.ParseEnum<PrintFormat>(),
-                        BREPartNo = package.BREPartNo.ToString(),
+                        BREPartNo = package.BREPartNo,
                         BREDesc = package.BREDesc,
                         QCReqd = package.DivertVS3 == 1 ? true : false,
                     });
