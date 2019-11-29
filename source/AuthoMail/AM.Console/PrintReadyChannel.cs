@@ -633,6 +633,15 @@ namespace AM.Console
                                     }
                                     else
                                     {
+                                        if (cstmInfo.Key == "ShippingCarrier")
+                                        {
+                                            mailPieceDTO.ShippingCarrier = cstmInfo.Value;
+                                        }
+                                        else if (cstmInfo.Key == "ShippingServiceType")
+                                        {
+                                            mailPieceDTO.ShippingServiceType = cstmInfo.Value;
+                                        }
+
                                         customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = cstmInfo.Key, DataType = cstmInfo.DataType, Value = cstmInfo.Value };
 
                                         mailPieceCustomInfo.Add(customInfo);
@@ -644,7 +653,7 @@ namespace AM.Console
                             if (schemaValidationResult.Code == OutComeCodes.No_Error)
                             {
                                 //System will check for common validations
-                                MailPieceValidationResult commonValidationResult = ValidateCommonValidation(mailPieceDTO, mbi, mailPieceCustomInfo.Where(mpc => mpc.Key.Contains("ShippingCarrier") && mpc.Key.Contains("ShippingServiceType")).ToList());
+                                MailPieceValidationResult commonValidationResult = ValidateCommonValidation(mailPieceDTO, mbi);
                                 if (commonValidationResult.Code == OutComeCodes.No_Error)
                                 {
                                     // System will check for client specific validations
@@ -754,7 +763,7 @@ namespace AM.Console
             log.Debug("Validate job queue is completed.");
         }
 
-        private MailPieceValidationResult ValidateCommonValidation(MailPieceDTO mailPieceDTO, MailBatchInfo mbi, List<MailPieceCustomInfo> mailPieceCustomInfos)
+        private MailPieceValidationResult ValidateCommonValidation(MailPieceDTO mailPieceDTO, MailBatchInfo mbi)
         {
             //in last system will check for general validations
             string localFilePath = Path.Combine(mbi.AMRequestPath, mailPieceDTO.FileName);
@@ -774,9 +783,9 @@ namespace AM.Console
 
             string documentOrPackageType = mailPieceDTO.DocumentOrPackageType;
             DocType docType;
-            if (mailPieceCustomInfos.Count > 0)
+            if (!string.IsNullOrWhiteSpace(mailPieceDTO.ShippingCarrier) && !string.IsNullOrWhiteSpace(mailPieceDTO.ShippingServiceType))
             {
-                docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType, pageCount, mailPieceCustomInfos.Where(mp => mp.Key == "ShippingCarrier").FirstOrDefault().Value, mailPieceCustomInfos.Where(mp => mp.Key == "ShippingServiceType").FirstOrDefault().Value);
+                docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType, pageCount, mailPieceDTO.ShippingCarrier, mailPieceDTO.ShippingServiceType);
             }
             else
             {
