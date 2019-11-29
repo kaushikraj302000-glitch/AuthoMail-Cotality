@@ -12,6 +12,7 @@ namespace AM.Services
     public interface IDocTypeService : IDisposable
     {
         DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount);
+        DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount, string shippingCarrier, string shippingServiceType);
         List<DocType> GetFallBackDocTypeByPnSConfigId(int clientId, int docTypeId, int pnSConfigId);
         DocType GetDocTypeById(int docTypeId, int pnsConfigDetailId);
         List<PnSConfigDetailCoverLetter> GetDocumentCoverLetterTemplates(int pnSConfigDetailId);
@@ -25,6 +26,13 @@ namespace AM.Services
             string query = "SELECT * FROM [dbo].[v_DocTypes] D WHERE D.DocTypeName = @DocumentOrPackageName AND D.ClientId = @ClientId AND (1 - D.IsPrintReady + {0}) BETWEEN D.MinPage AND D.MaxPage AND D.IsFallBack = 0 AND D.IsActive = 1".Fill(pageCount);
 
             return db.QuerySingleOrDefault<DocType>(query, new { ClientId = clientId, DocumentOrPackageName = documentOrPackageName, PageCount = pageCount });
+        }
+
+        public DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount, string shippingCarrier, string shippingServiceType)
+        {
+            string query = "SELECT * FROM [dbo].[v_DocTypes] D WHERE D.DocTypeName = @DocumentOrPackageName AND D.ClientId = @ClientId AND (1 - D.IsPrintReady + {0}) BETWEEN D.MinPage AND D.MaxPage AND D.IsActive = 1 AND D.ShippingCarrier=@ShippingCarrier AND D.ShippingServiceType=@ShippingServiceType".Fill(pageCount);
+
+            return db.QuerySingleOrDefault<DocType>(query, new { ClientId = clientId, DocumentOrPackageName = documentOrPackageName, PageCount = pageCount, ShippingCarrier = shippingCarrier, ShippingServiceType = shippingServiceType });
         }
 
         public List<DocType> GetFallBackDocTypeByPnSConfigId(int clientId, int docTypeId, int pnSConfigId)

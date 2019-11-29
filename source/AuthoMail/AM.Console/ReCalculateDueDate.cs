@@ -11,6 +11,8 @@ namespace AM.Console
 {
     public class ReCalculateDueDate
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public static void Start()
         {
             using (IReCalculateDueDateService rSvc = new ReCalculateDueDateService())
@@ -64,23 +66,38 @@ namespace AM.Console
         {
             using (IReCalculateDueDateService rSvc = new ReCalculateDueDateService())
             {
+
                 var listofMpToUpdate = rSvc.GetMPsToUpdatePnSConfigDetailId();
                 var columnName = String.Join(",", "MPID", "DocTypeID", "PnSConfigDetailId");
+                var errcolumnName = String.Join(",", "MPID","ClientId","ClientDocTypeId", "DocTypeID", "ShippingCarrier","ShippingServiceType","TotalPages");
 
                 StringBuilder deliveryReport = new StringBuilder(columnName);
+                StringBuilder errorReport = new StringBuilder(errcolumnName);
 
                 deliveryReport.AppendLine();
+                errorReport.AppendLine();
                 foreach (var mp in listofMpToUpdate)
                 {
-                    var doctype = rSvc.GetDocTypeById(mp.DocTypeId.Value);
+                    DocTypeInfo doctype = new DocTypeInfo(), docTypeInfo = new DocTypeInfo();
+                    try
+                    {
+                        doctype = rSvc.GetDocTypeById(mp.DocTypeId.Value);
 
-                    var docTypeInfo = rSvc.GetPnSConfigDetailId(mp.ClientId, mp.DocTypeId.Value, doctype.ShippingCarrier, doctype.ShippingServiceType, mp.TotalPages == 0 ? 1 : mp.TotalPages);
-                    
-                    deliveryReport.AppendLine(String.Join(",", mp.Id, mp.DocTypeId, docTypeInfo.PnSConfigDetailId));
+                        docTypeInfo = rSvc.GetPnSConfigDetailId(mp.ClientId, mp.DocTypeId.Value, doctype.ShippingCarrier, doctype.ShippingServiceType, mp.TotalPages == 0 ? 1 : mp.TotalPages);
 
-                    rSvc.UpdatePnSConfigDetailId(mp.Id, docTypeInfo.PnSConfigDetailId);
+                        deliveryReport.AppendLine(String.Join(",", mp.Id, mp.DocTypeId, docTypeInfo.PnSConfigDetailId));
+
+                        rSvc.UpdatePnSConfigDetailId(mp.Id, docTypeInfo.PnSConfigDetailId);
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Error("Error occured in ClientId MailPieceId :{0} For DocumentType - {1} - Shipping Carrier {2} - ShippingService {3} - Total Pages {4} With Error {5}".Fill(mp.Id, doctype.Id, doctype.ShippingCarrier, doctype.ShippingServiceType, mp.TotalPages, ex));
+                        errorReport.AppendLine(String.Join(",", mp.Id,mp.ClientId,mp.ClientDocTypeId, mp.DocTypeId, doctype.ShippingCarrier, doctype.ShippingServiceType, mp.TotalPages));
+                    }
                 }
-                //File.WriteAllText(@"F:\PnSIds.csv", deliveryReport.ToString());
+                File.WriteAllText(@"D:\PnSIds.csv", deliveryReport.ToString());
+                File.WriteAllText(@"D:\ErrorPnSIds.csv", errorReport.ToString());
+
             }
         }
     }
