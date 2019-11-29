@@ -82,7 +82,7 @@ namespace AM.Services
                 var delayedShippedMailPieces = pendingMPsToSubmit.Where(m => (m.ShippingStatus == ShippingStatus.Shipped.ToString() && m.MailPieceStatus != ShippingStatus.Shipped.ToString() && m.MailPieceStatus != ShippingStatus.eDelivered.ToString())).ToList();
                 var pendingInProgressMailPieces = pendingMPsToSubmit.Where(m => (m.ShippingStatus == ShippingStatus.InProgress.ToString() && m.MailPieceStatus != ShippingStatus.Shipped.ToString() && m.MailPieceStatus != ShippingStatus.eDelivered.ToString())).ToList();
                 //var delayedEmptyPrintLocation = pendingInProgressMailPieces.Where(p => p.PrintLocation.IsNullOrEmpty() && p.MailPieceStatus != ShippingStatus.Shipped.ToString() && p.IsEDeliveryRequested == false).ToList();
-                var delayedEmptyPrintLocation = pendingInProgressMailPieces.Where(p => p.PrintLocation.IsNullOrEmpty() && p.MailPieceStatus != ShippingStatus.Shipped.ToString() && (p.IsEDeliveryRequested == true && p.IsFallBackRequested == true && p.EDPipelineStatus != EDPipelineStatus.Declined.ToString() && p.EDPipelineStatus != EDPipelineStatus.Expired.ToString())).ToList();
+                var delayedEmptyPrintLocation = pendingInProgressMailPieces.Where(p => p.PrintLocation.IsNullOrEmpty() && p.MailPieceStatus != ShippingStatus.Shipped.ToString() && (p.IsEDeliveryRequested == true && p.IsFallBackRequested == true && p.PipelineStatus == BatchPipelineStatus.Validated.ToString())).ToList();
 
                 var delayedDallasMailPieces = pendingInProgressMailPieces.Where(p => p.VendorCode == "CL_DALLAS" && p.MailPieceStatus != ShippingStatus.Shipped.ToString() && p.MailPieceStatus != ShippingStatus.eDelivered.ToString()).ToList();
 
