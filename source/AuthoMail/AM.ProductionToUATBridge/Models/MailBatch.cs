@@ -101,6 +101,10 @@ namespace AM.ProductionToUATBridge
 
         [XmlArrayItem(IsNullable = true)]
         public List<Metadata> CustomInfo { get; set; }
+        public bool ShouldSerializeCustomInfo()
+        {
+            return CustomInfo != null && CustomInfo.Count > 0;
+        }
     }
 
     [Serializable]
