@@ -1,15 +1,193 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AM.Entities;
+using AM.Lib;
+using AM.Services;
 
 namespace AM.ProductionToUATBridge
 {
     class Program
     {
+        private static Random random = new Random();
+        public static log4net.ILog log = log4net.LogManager.GetLogger(typeof(Program));
         static void Main(string[] args)
         {
+            log.Debug("Working Log");
+            using (IMailBatchService mailBatchSvc = new MailBatchService())
+            using (IMailPieceService mailPieceSvc = new MailPieceService())
+            using (IClientService clientSvc = new ClientService())
+            {
+                SFTChannel sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelCode(Configuration.UATChannelCode);
+
+                List<MailPieces> mailPieces = mailPieceSvc.GetMailPiecesForUATBridge();
+                var mpByClients = mailPieces.GroupBy(mp => mp.ClientId).ToList();
+
+                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannel.Protocol), sftChannel.Host, sftChannel.UserName, sftChannel.Password, 300000);
+                sftSite.Connect();
+
+                foreach (var mpData in mpByClients)
+                {
+                    try
+                    {
+                        var client = mpData.Select(mp => mp.Clients).Distinct().FirstOrDefault();
+                        var mpList = mpData.ToList();
+                        log.Debug("----Batching Process started for Client {0}----".Fill(client.AppCode));
+                        #region Production Ratio
+                        double qcCount = 0;
+                        float qcPercentage = Configuration.ProductionVolumnRatio / 100;
+                        qcCount = Math.Ceiling(mpList.Count * qcPercentage);
+
+                        var randomIndexes = new List<int>();
+                        while (randomIndexes.Count < qcCount)
+                        {
+                            var index = random.Next(0, mpList.Count - 1);
+                            if (!randomIndexes.Contains(index))
+                            {
+                                randomIndexes.Add(index);
+                            }
+                        }
+
+                        randomIndexes.ForEach(index =>
+                        {
+                            mpList[index].IsQCRequested = true;
+                        });
+                        #endregion
+
+                        var selectedMPs = mpList.Where(mp => mp.IsQCRequested).ToList();
+                        log.Debug("Selected MailPieces Count : {0}".Fill(selectedMPs.Count));
+                        string clientBatchId = "UAT_{0}{1}".Fill(client.AppCode, Common.Now.ToString("yyyyMMddhhmmss"));
+                        log.Debug("ClientBatchId : {0}".Fill(clientBatchId));
+                        string destinationPath = Path.Combine(Configuration.DestinationPath, client.AppCode, clientBatchId);
+                        destinationPath.CreateDirectoryIfNotExist();
+                        log.Debug("DestinationPath {0}".Fill(destinationPath));
+                        string xmlFilePath = Path.Combine(destinationPath, "{0}.xml".Fill(clientBatchId));
+                        log.Debug("XmlFilePath  : {0}".Fill(xmlFilePath));
+                        string zipFilePath = Path.Combine(destinationPath, "{0}.zip".Fill(clientBatchId));
+                        log.Debug("ZipFilePath : {0}".Fill(zipFilePath));
+                        string triggerFilePath = Path.Combine(destinationPath, "{0}.GO".Fill(clientBatchId));
+                        log.Debug("TriggerFilePath : {0}".Fill(triggerFilePath));
+
+                        MailBatch mailBatch = new MailBatch();
+                        mailBatch.ClientBatchId = clientBatchId;
+                        mailBatch.Priority = Priority.Medium;
+                        mailBatch.ClientCode = client.AppCode;
+                        List<MailPiece> packages = new List<MailPiece>();
+                        foreach (var mp in selectedMPs)
+                        {
+                            try
+                            {
+                                RecipientInfo recipientInfo = new RecipientInfo();
+                                List<Metadata> customInfo = new List<Metadata>();
+                                ReturnInfo returnInfo = new ReturnInfo();
+
+
+                                MailPiece package = new MailPiece();
+                                package.BusinessFriendlyIdName = mp.BusinessFriendlyIdName;
+                                package.BusinessFriendlyIdValue = "TEST" + mp.BusinessFriendlyIdValue;
+                                package.DocumentOrPackageType = mp.DocumentOrPackageType;
+                                package.Id = mp.UniqueId;
+
+                                DocumentOrPackage documentOrPackage = new DocumentOrPackage();
+                                documentOrPackage.Name = mp.FileName;
+
+                                Recipient recipient = new Recipient();
+                                recipient.FirstName = "Test1";
+                                recipient.LastName = "Test2";
+
+                                Address recipientAddress = new Address();
+                                recipientAddress.Street = mp.RcptAddressStreet;
+                                recipientAddress.State = mp.RcptAddressState;
+                                recipientAddress.City = mp.RcptAddressCity;
+                                recipientAddress.Zip = mp.RcptAddressZIP;
+
+                                recipientInfo.Recipient = recipient;
+                                recipientInfo.Address = recipientAddress;
+
+                                Recipient returnRecipient = new Recipient();
+                                returnRecipient.FirstName = "Return Test1";
+                                returnRecipient.LastName = "Return Test2";
+
+                                Address returnRecipientAddress = new Address();
+                                returnRecipientAddress.Street = mp.RetRcptAddressStreet;
+                                returnRecipientAddress.State = mp.RetRcptAddressState;
+                                returnRecipientAddress.City = mp.RetRcptAddressCity;
+                                returnRecipientAddress.Zip = mp.RetRcptAddressZIP;
+
+                                returnInfo.Recipient = returnRecipient;
+                                returnInfo.Address = returnRecipientAddress;
+
+                                mp.MailPieceCustomInfoTest.ForEach(mpc =>
+                                {
+                                    if (mpc != null)
+                                        customInfo.Add(new Metadata() { Key = mpc.Key, DataType = mpc.DataType.ParseEnum<DataType>(), Value = mpc.Value });
+                                });
+
+                                package.CustomInfo = customInfo;
+                                package.DocumentOrPackage = documentOrPackage;
+                                package.RecipientInfo = recipientInfo;
+                                package.ReturnInfo = returnInfo;
+
+                                packages.Add(package);
+
+                                string amFolderPath = Path.Combine(Configuration.AMRootPath, client.AppCode, mp.MailBatchId.ToString());
+                                string amRequestPDFPath = Path.Combine(amFolderPath, Configuration.AMRequestFolder, mp.FileName);
+                                string destinationPDFPath = Path.Combine(destinationPath, mp.FileName);
+                                if (File.Exists(amRequestPDFPath))
+                                    File.Copy(amRequestPDFPath, destinationPDFPath, true);
+                            }
+                            catch (Exception ex)
+                            {
+                                var message = "Error occured while processing mail piece record for client : {0} MailPieceId : {1}".Fill(client.AppCode, mp.Id);
+                                MailUtility.SendUnexpectedExceptionEmail(ex, message);
+                                continue;
+                            }
+                        }
+
+                        mailBatch.MailPieces = packages;
+
+                        if (packages.Count == 0)
+                        {
+                            var msg = "Package does not contain any mail pieces for client {0}".Fill(client.AppCode);
+                            log.Debug(msg);
+                            MailUtility.SendUnexpectedExceptionEmail(null, msg);
+                            continue;
+                        }
+                        var xml = XmlUtil.Serialize(mailBatch);
+                        File.WriteAllText(xmlFilePath, xml);
+                        var pdfList = Directory.EnumerateFiles(destinationPath, "*.pdf");
+                        using (ZipArchive newFile = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
+                        {
+                            foreach (var pdfPath in pdfList)
+                            {
+                                newFile.CreateEntryFromFile(pdfPath, Path.GetFileName(pdfPath));
+                            }
+                            newFile.CreateEntryFromFile(xmlFilePath, Path.GetFileName(xmlFilePath));
+                        }
+                        File.WriteAllText(triggerFilePath, "");
+
+                        sftSite.UploadFile(zipFilePath, Path.Combine(sftChannel.ToADEDir, Path.GetFileName(zipFilePath)));
+                        sftSite.UploadFile(triggerFilePath, Path.Combine(sftChannel.ToADEDir, Path.GetFileName(triggerFilePath)));
+
+                        Directory.Delete(destinationPath, true);
+                        log.Debug("----Batching Process completed for Client {0}----".Fill(client.AppCode));
+                    }
+                    catch (Exception ex)
+                    {
+                        var message = "Error occured while processing mailpieces for client :{0}".Fill(mpData.Key);
+                        MailUtility.SendUnexpectedExceptionEmail(ex, message);
+                    }
+                }
+
+                mailBatchSvc.InsertLastProcessTimeForUATBatches(mailPieces.OrderByDescending(mp => mp.MailBatches.ReceivedOn).Select(mp => mp.MailBatches.ReceivedOn).First().Value);
+
+                if (sftSite.IsConnected)
+                    sftSite.Disconnect();
+            }
         }
     }
 }
