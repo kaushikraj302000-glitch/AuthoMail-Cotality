@@ -870,7 +870,10 @@ namespace PCI.Service
                             }
 
                             if (printResponse.PackageReports.Count > 0)
+                            {
+                                bundlingRootPath.CreateDirectoryIfNotExist();
                                 File.WriteAllText(xmlOutFilePath, printResponse.ToXml());
+                            }
                             break;
                         default:
                             var mrdfOutFilePath = Path.Combine(bundlingRootPath, printTrailBatchDetail.PrintBatchName + ".OUT");
