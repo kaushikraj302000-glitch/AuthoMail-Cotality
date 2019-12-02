@@ -22,13 +22,11 @@ namespace AM.ProductionToUATBridge
             using (IMailPieceService mailPieceSvc = new MailPieceService())
             using (IClientService clientSvc = new ClientService())
             {
-                SFTChannel sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelCode(Configuration.UATChannelCode);
+
 
                 List<MailPieces> mailPieces = mailPieceSvc.GetMailPiecesForUATBridge();
                 var mpByClients = mailPieces.GroupBy(mp => mp.ClientId).ToList();
 
-                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannel.Protocol), sftChannel.Host, sftChannel.UserName, sftChannel.Password, 300000);
-                sftSite.Connect();
 
                 foreach (var mpData in mpByClients)
                 {
@@ -36,6 +34,19 @@ namespace AM.ProductionToUATBridge
                     {
                         var client = mpData.Select(mp => mp.Clients).Distinct().FirstOrDefault();
                         var mpList = mpData.ToList();
+                        SFTChannel sftChannel;
+                        if (Configuration.PrintReadyClientCodes.Contains(client.AppCode))
+                        {
+                            sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelCode(Configuration.PrintReadyUATChannelCode);
+                        }
+                        else
+                        {
+                            sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelCode(Configuration.UATChannelCode);
+                        }
+
+                        SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannel.Protocol), sftChannel.Host, sftChannel.UserName, sftChannel.Password, 300000);
+                        sftSite.Connect();
+
                         log.Debug("----Batching Process started for Client {0}----".Fill(client.AppCode));
                         #region Production Ratio
                         double qcCount = 0;
@@ -73,6 +84,7 @@ namespace AM.ProductionToUATBridge
                         log.Debug("TriggerFilePath : {0}".Fill(triggerFilePath));
 
                         MailBatch mailBatch = new MailBatch();
+                        mailBatch.Id = Guid.NewGuid();
                         mailBatch.ClientBatchId = clientBatchId;
                         mailBatch.Priority = Priority.Medium;
                         mailBatch.ClientCode = client.AppCode;
@@ -90,7 +102,7 @@ namespace AM.ProductionToUATBridge
                                 package.BusinessFriendlyIdName = mp.BusinessFriendlyIdName;
                                 package.BusinessFriendlyIdValue = "TEST" + mp.BusinessFriendlyIdValue;
                                 package.DocumentOrPackageType = mp.DocumentOrPackageType;
-                                package.Id = mp.UniqueId;
+                                package.Id = Guid.NewGuid();
 
                                 DocumentOrPackage documentOrPackage = new DocumentOrPackage();
                                 documentOrPackage.Name = mp.FileName;
@@ -175,6 +187,9 @@ namespace AM.ProductionToUATBridge
 
                         Directory.Delete(destinationPath, true);
                         log.Debug("----Batching Process completed for Client {0}----".Fill(client.AppCode));
+
+                        if (sftSite.IsConnected)
+                            sftSite.Disconnect();
                     }
                     catch (Exception ex)
                     {
@@ -185,8 +200,7 @@ namespace AM.ProductionToUATBridge
 
                 mailBatchSvc.InsertLastProcessTimeForUATBatches(mailPieces.OrderByDescending(mp => mp.MailBatches.ReceivedOn).Select(mp => mp.MailBatches.ReceivedOn).First().Value);
 
-                if (sftSite.IsConnected)
-                    sftSite.Disconnect();
+
             }
         }
     }
