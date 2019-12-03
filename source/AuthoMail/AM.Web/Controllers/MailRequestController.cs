@@ -91,13 +91,14 @@ namespace AM.Web.Controllers
                     }
                 }
 
-                switch (sFTChannel.Code.Split('_')[0])
+                switch (sFTChannel.Code.Split('_')[0].ToUpper())
                 {
-                    case "EllieMae":                        
+                    case "ELLIEMAE":                        
                     default:
                         var result = ValidateClientSpecificRules(mp);
                         if (result.Code == OutComeCodes.No_Error)
                         {
+                            mp.DocumentOrPackage.IncludePatternBaseString = true;
                             //create zip and response
                             string zipFilePath = Path.Combine(sFTChannel.Host + sFTChannel.ToADEDir, string.Format("{0}.zip", mailBatch.Id));
                             string triggerFilePath = Path.Combine(sFTChannel.Host + sFTChannel.ToADEDir, string.Format("{0}_Complete.GO", mailBatch.Id));

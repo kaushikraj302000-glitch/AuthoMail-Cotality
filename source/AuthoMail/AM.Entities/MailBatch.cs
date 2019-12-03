@@ -128,8 +128,10 @@ namespace AM.Entities
         [XmlAttribute]
         public string Name { get; set; }
         [XmlAttribute]
+        [XmlIgnore]
         public string Pattern { get; set; }
         [XmlAttribute]
+        [XmlIgnore]
         public string Base64String { get; set; }
 
         public bool ShouldSerializePattern()
@@ -142,6 +144,7 @@ namespace AM.Entities
             return this.IncludePatternBaseString;
         }
         [JsonIgnore]
+        [XmlIgnore]
         public bool IncludePatternBaseString { get; set; }
     }
 
@@ -169,14 +172,14 @@ namespace AM.Entities
         public string Organization { get; set; }
         public bool ShouldSerializeOrganization()
         {
-            return Organization != null;
+            return !string.IsNullOrWhiteSpace(Organization);
         }
 
         [XmlAttribute]
         public string Prefix { get; set; }
         public bool ShouldSerializePrefix()
         {
-            return Prefix != null;
+            return !string.IsNullOrWhiteSpace(Prefix);
         }
 
         [XmlAttribute]
@@ -186,7 +189,7 @@ namespace AM.Entities
         public string MiddleName { get; set; }
         public bool ShouldSerializeMiddleName()
         {
-            return MiddleName != null;
+            return !string.IsNullOrWhiteSpace(MiddleName);
         }
 
         [XmlAttribute]
@@ -196,20 +199,20 @@ namespace AM.Entities
         public string Suffix { get; set; }
         public bool ShouldSerializeSuffix()
         {
-            return Suffix != null;
+            return !string.IsNullOrWhiteSpace(Suffix);
         }
 
         [XmlAttribute]
         public string Phone { get; set; }
         public bool ShouldSerializePhone()
         {
-            return Phone != null;
+            return !string.IsNullOrWhiteSpace(Phone);
         }
         [XmlAttribute]
         public string EmailAddress { get; set; }
         public bool ShouldSerializeEmailAddress()
         {
-            return EmailAddress != null;
+            return !string.IsNullOrWhiteSpace(EmailAddress);
         }
     }
 
@@ -221,14 +224,14 @@ namespace AM.Entities
         public string OptionalLine1AboveStreet { get; set; }
         public bool ShouldSerializeOptionalLine1AboveStreet()
         {
-            return OptionalLine1AboveStreet != null;
+            return !string.IsNullOrWhiteSpace(OptionalLine1AboveStreet);
         }
 
         [XmlAttribute]
         public string OptionalLine2AboveStreet { get; set; }
         public bool ShouldSerializeOptionalLine2AboveStreet()
         {
-            return OptionalLine2AboveStreet != null;
+            return !string.IsNullOrWhiteSpace(OptionalLine2AboveStreet);
         }
 
         [XmlAttribute]
@@ -238,21 +241,21 @@ namespace AM.Entities
         public string AptOrSuiteOrOther { get; set; }
         public bool ShouldSerializeAptOrSuiteOrOther()
         {
-            return AptOrSuiteOrOther != null;
+            return !string.IsNullOrWhiteSpace(AptOrSuiteOrOther);
         }
 
         [XmlAttribute]
         public string OptionalLine1BelowStreet { get; set; }
         public bool ShouldSerializeOptionalLine1BelowStreet()
         {
-            return OptionalLine1BelowStreet != null;
+            return !string.IsNullOrWhiteSpace(OptionalLine1BelowStreet);
         }
 
         [XmlAttribute]
         public string OptionalLine2BelowStreet { get; set; }
         public bool ShouldSerializeOptionalLine2BelowStreet()
         {
-            return OptionalLine2BelowStreet != null;
+            return !string.IsNullOrWhiteSpace(OptionalLine2BelowStreet);
         }
 
         [XmlAttribute]
@@ -267,7 +270,7 @@ namespace AM.Entities
         public string Country { get; set; }
         public bool ShouldSerializeCountry()
         {
-            return Country != null;
+            return !string.IsNullOrWhiteSpace(Country);
         }
     }
 
