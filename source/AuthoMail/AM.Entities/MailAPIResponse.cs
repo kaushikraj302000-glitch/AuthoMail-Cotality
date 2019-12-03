@@ -36,7 +36,7 @@ namespace AM.Entities
 
         public bool ShouldSerializeId()
         {
-            return this.MailingStatus != ShippingStatus.Ack.ToString();
+            return this.MailingStatus != ShippingStatus.Ack.ToString() && this.Id != Guid.Empty;
         }
         public bool ShouldSerializeUniqueId()
         {
