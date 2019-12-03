@@ -1586,7 +1586,8 @@ namespace AM.Core
                             using (ICommonService commonSvc = new CommonService())
                             using (IGeneralService generalSvc = new GeneralService())
                             {
-                                string responseReport = generalSvc.GeneralJsonReport(mailPieces, mbi.MailBatch, mbi.Client.AppCode);
+                                //NOTE : Reason to use FirstOrDefault : AM will get only single request using API
+                                string responseReport = generalSvc.GeneralJsonReport(mailPieces.FirstOrDefault(), mbi.MailBatch, mbi.Client.AppCode);
 
                                 if (!string.IsNullOrWhiteSpace(responseReport))
                                 {

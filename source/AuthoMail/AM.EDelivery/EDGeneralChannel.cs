@@ -269,6 +269,24 @@ namespace AM.EDelivery
                     }
                     Thread.Sleep(1000);
                     break;
+                case "ELLIEMAE":
+                    using (IGeneralService generalSvc = new GeneralService())
+                    {
+                        var mailBatch = mp.MailBatches;
+                        var client = mp.Clients;
+                        mailBatch.Clients = client;
+                        string responseReport = generalSvc.GeneralJsonReport(mp, mp.MailBatches);
+
+                        if (!string.IsNullOrWhiteSpace(responseReport))
+                        {
+                            string deliveryReportFileName = "{0}-{1}-{2}.json".Fill(mailBatch.Clients.AppCode, mp.MailBatchId, commonSvc.GetReportingSequence());
+                            string deliveryReportPath = Path.Combine(amResponsePath, deliveryReportFileName);
+
+                            File.WriteAllText(deliveryReportPath, responseReport);
+                        }
+                    }
+                    Thread.Sleep(1000);
+                    break;
                 default:
                     using (IGeneralService generalSvc = new GeneralService())
                     {

@@ -335,7 +335,7 @@ namespace AM.Console
             string deliveryUploadPath = deliverables.SingleOrDefault(up => up.ReportType == ReportTypes.Delivery).UploadPath;
             string errorUploadPath = deliverables.SingleOrDefault(up => up.ReportType == ReportTypes.Error).UploadPath;
             string ftpUploadPath = "";
-            string sftChannelCode = sftChannelDetails.Code.Split('_')[0];
+            string sftChannelCode = sftChannelDetails.Code.Split('_')[0].ToUpper();
             switch (sftChannelCode)
             {
                 case "AMC":
@@ -512,9 +512,6 @@ namespace AM.Console
 
                     MailUtility.SendProductionNotificationEmail(mbi, mailPieceData, reportToMailHSBC, emailChannelHSBC);
                     isUploaded = true;
-                    break;
-                case "ELLIEMAE":
-
                     break;
                 case "AMC":
                 default:

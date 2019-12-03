@@ -433,7 +433,7 @@ namespace AM.Console
         private string SeparatePrintNShipXMLsAndPDFs(XmlNode customeInfoElement, XmlNode returnInfoElement, List<XmlNode> packages, XmlNamespaceManager nsManager, string channelDownloadPath, string receivedBatchDirPath, string clientCode, string clientBatchId, string uniqueId, string batchName)
         {
             //Folder Structure will be like AMRoot/GENERAL/{ChannelCode}/{UniqueId}
-            string clientBatchDirectory = Path.Combine(channelDownloadPath, uniqueId);
+            string clientBatchDirectory = Path.Combine(channelDownloadPath, "PNS_" + uniqueId);
 
             clientBatchDirectory.CleanDirectory();
 
@@ -1220,9 +1220,10 @@ namespace AM.Console
                 switch (SFTChannel.Code.Split('_')[0].ToUpper())
                 {
                     case "ELLIEMAE":
+                        //NOTE : Reason to use FirstOrDefault : AM will get only single request using API
                         errorReportFileName = "{0}-{1}-{2}.json".Fill(mbi.Client.AppCode, mbi.MailBatch.Id, commonSvc.GetReportingSequence());
                         errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-                        errorData = generalSvc.GeneralJsonReport(erroredMPs, mbi.MailBatch, mbi.Client.AppCode);
+                        errorData = generalSvc.GeneralJsonReport(erroredMPs.FirstOrDefault(), mbi.MailBatch, mbi.Client.AppCode);
                         if (!string.IsNullOrWhiteSpace(errorData))
                         {
                             File.WriteAllText(errorReportPath, errorData.ToString());

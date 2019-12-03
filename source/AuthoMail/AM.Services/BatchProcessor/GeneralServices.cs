@@ -1,5 +1,6 @@
 ﻿using AM.Entities;
 using AM.Lib;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +16,8 @@ namespace AM.Services
         StringBuilder GeneralDeliveryReport(List<MailPieces> mailPieces, string separator);
         string GeneralXMLReport(List<MailPieces> mailPieces, MailBatches mailBatch);
         string GeneralXMLReport(List<MailPieces> mailPieces, MailBatchDTO mailBatch, string clientCode);
-        string GeneralJsonReport(List<MailPieces> mailPieces, MailBatchDTO mailBatch, string clientCode);
+        string GeneralJsonReport(MailPieces mp, MailBatchDTO mailBatch, string clientCode);
+        string GeneralJsonReport(MailPieces mp, MailBatches mailBatch);
     }
 
     public class GeneralService : ServiceBase, IGeneralService
@@ -158,21 +160,58 @@ namespace AM.Services
             return serializedString;
         }
 
-        public string GeneralJsonReport(List<MailPieces> mailPieces, MailBatchDTO mailBatch, string clientCode)
+        public string GeneralJsonReport(MailPieces mp, MailBatchDTO mailBatch, string clientCode)
         {
-            MailBatchResponse mbResponse = new MailBatchResponse()
+            MailRequestResponse response = new MailRequestResponse()
             {
-                Id = mailBatch.UniqueId,
-                ClientBatchId = mailBatch.ClientBatchId,
+                BusinessFriendlyIdName = mp.BusinessFriendlyIdName,
+                BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue,
                 ClientCode = clientCode,
+                DocumentOrPackage = new DocumentOrPackage() { Name = mp.FileName },
+                ReceivedOn = mailBatch.ReceivedOn.Value,
+                RecipientInfo = new RecipientInfo() { Recipient = new Recipient() { FirstName = mp.RcptFirstName, LastName = mp.RcptLastName }, Address = new Entities.Address() { Street = mp.RcptAddressStreet, City = mp.RcptAddressCity, State = mp.RcptAddressState, Zip = mp.RcptAddressZIP } },
+                ShippingMethod = mp.DocTypes == null ? "" : mp.DocTypes.ShippingCarrier,
+                ShippingServiceType = mp.DocTypes == null ? "" : mp.DocTypes.ShippingServiceType,
+                TotalPages = mp.TotalPages,
+                TrackingNumber = mp.TrackingNo,
+                ErrorCode = mp.ErrorCode,
+                ErrorDesc = mp.ErrorDesc,
+                Id = mp.UniqueId,
+                MailingStatus = mp.ShippingStatus,
+                PulledBackOn = mp.PulledBackOn.HasValue ? mp.PulledBackOn.Value : DateTime.MinValue,
+                ShippedOn = mp.ShippedOn.HasValue ? mp.ShippedOn.Value : DateTime.MinValue,
+                TotalSheets = mp.TotalPages
             };
 
-            foreach (MailPieces mp in mailPieces)
-            {
-                mbResponse.MailPiecesReport.Add(new MailPieceReport() { BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackageType = mp.DocumentOrPackageType, ErrorCode = mp.ErrorCode, ErrorDesc = mp.ErrorDesc, FileName = mp.FileName, Id = mp.UniqueId, Postage = mp.ShippingCost, MailingStatus = mp.ShippingStatus.ParseEnum<MailingStatus>(), PulledBackOn = mp.PulledBackOn.HasValue ? mp.PulledBackOn.Value : DateTime.MinValue, ShippedOn = mp.ShippedOn.HasValue ? mp.ShippedOn.Value : DateTime.MinValue, TotalSheets = mp.TotalPages, WeightMeasured = mp.Weight.HasValue ? mp.Weight.Value : 0 });
-            }
+            var serializedString = JsonConvert.SerializeObject(response);
 
-            var serializedString = XmlUtil.Serialize<MailBatchResponse>(mbResponse);
+            return serializedString;
+        }
+
+        public string GeneralJsonReport(MailPieces mp, MailBatches mailBatch)
+        {
+            MailRequestResponse response = new MailRequestResponse()
+            {
+                BusinessFriendlyIdName = mp.BusinessFriendlyIdName,
+                BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue,
+                ClientCode = mp.Clients.AppCode,
+                DocumentOrPackage = new DocumentOrPackage() { Name = mp.FileName },
+                ReceivedOn = mailBatch.ReceivedOn.Value,
+                RecipientInfo = new RecipientInfo() { Recipient = new Recipient() { FirstName = mp.RcptFirstName, LastName = mp.RcptLastName }, Address = new Entities.Address() { Street = mp.RcptAddressStreet, City = mp.RcptAddressCity, State = mp.RcptAddressState, Zip = mp.RcptAddressZIP } },
+                ShippingMethod = mp.DocTypes.ShippingCarrier,
+                ShippingServiceType = mp.DocTypes.ShippingServiceType,
+                TotalPages = mp.TotalPages,
+                TrackingNumber = mp.TrackingNo,
+                ErrorCode = mp.ErrorCode,
+                ErrorDesc = mp.ErrorDesc,
+                Id = mp.UniqueId,
+                MailingStatus = mp.ShippingStatus,
+                PulledBackOn = mp.PulledBackOn.HasValue ? mp.PulledBackOn.Value : DateTime.MinValue,
+                ShippedOn = mp.ShippedOn.HasValue ? mp.ShippedOn.Value : DateTime.MinValue,
+                TotalSheets = mp.TotalPages
+            };
+
+            var serializedString = JsonConvert.SerializeObject(response);
 
             return serializedString;
         }
