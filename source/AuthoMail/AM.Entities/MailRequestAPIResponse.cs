@@ -15,6 +15,8 @@ namespace AM.Entities
     public class MailRequestResponse
     {
         public Guid Id { get; set; }
+        public Guid UniqueId { get; set; }
+        public string Message { get; set; }
         public DateTime ReceivedOn { get; set; }
         public string ClientCode { get; set; }
         public string BusinessFriendlyIdName { get; set; }
@@ -32,6 +34,14 @@ namespace AM.Entities
         public int TotalSheets { get; set; }
         public DateTime? PulledBackOn { get; set; }
 
+        public bool ShouldSerializeUniqueId()
+        {
+            return false;
+        }
+        public bool ShouldSerializeMessage()
+        {
+            return false;
+        }
         public bool ShouldSerializeErrorCode()
         {
             return this.MailingStatus == ShippingStatus.Error.ToString() || this.MailingStatus == ShippingStatus.Unknown.ToString();
@@ -43,27 +53,27 @@ namespace AM.Entities
 
         public bool ShouldSerializeShippedOn()
         {
-            return this.MailingStatus == ShippingStatus.Shipped.ToString();
+            return this.MailingStatus == ShippingStatus.Shipped.ToString() || this.MailingStatus == ShippingStatus.eDelivered.ToString();
         }
         public bool ShouldSerializeShippingMethod()
         {
-            return this.MailingStatus == ShippingStatus.Shipped.ToString();
+            return this.MailingStatus == ShippingStatus.Shipped.ToString() || this.MailingStatus == ShippingStatus.eDelivered.ToString();
         }
         public bool ShouldSerializeShippingServiceType()
         {
-            return this.MailingStatus == ShippingStatus.Shipped.ToString();
+            return this.MailingStatus == ShippingStatus.Shipped.ToString() || this.MailingStatus == ShippingStatus.eDelivered.ToString();
         }
         public bool ShouldSerializeTrackingNumber()
         {
-            return this.MailingStatus == ShippingStatus.Shipped.ToString();
+            return this.MailingStatus == ShippingStatus.Shipped.ToString() || this.MailingStatus == ShippingStatus.eDelivered.ToString();
         }
         public bool ShouldSerializeTotalPages()
         {
-            return this.MailingStatus == ShippingStatus.Shipped.ToString();
+            return this.MailingStatus == ShippingStatus.Shipped.ToString() || this.MailingStatus == ShippingStatus.eDelivered.ToString();
         }
         public bool ShouldSerializeTotalSheets()
         {
-            return this.MailingStatus == ShippingStatus.Shipped.ToString();
+            return this.MailingStatus == ShippingStatus.Shipped.ToString() || this.MailingStatus == ShippingStatus.eDelivered.ToString();
         }
         public bool ShouldSerializePulledBackOn()
         {

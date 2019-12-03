@@ -115,6 +115,7 @@ namespace AM.Entities
     public class eDelivery
     {
         [XmlAttribute]
+        [XmlElement(DataType = "date")]
         public DateTime ExpiryDate { get; set; }
 
         [XmlAttribute]
