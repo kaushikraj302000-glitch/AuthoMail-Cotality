@@ -1582,6 +1582,21 @@ namespace AM.Core
                                 }
                             }
                             break;
+                        case "ELLIEMAE":
+                            using (ICommonService commonSvc = new CommonService())
+                            using (IGeneralService generalSvc = new GeneralService())
+                            {
+                                string responseReport = generalSvc.GeneralJsonReport(mailPieces, mbi.MailBatch, mbi.Client.AppCode);
+
+                                if (!string.IsNullOrWhiteSpace(responseReport))
+                                {
+                                    string deliveryReportFileName = "{0}-{1}-{2}.json".Fill(mbi.Client.AppCode, mbi.MailBatch.Id, commonSvc.GetReportingSequence());
+                                    string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
+
+                                    File.WriteAllText(deliveryReportPath, responseReport);
+                                }
+                            }
+                            break;
                         default:
                             using (ICommonService commonSvc = new CommonService())
                             using (IGeneralService generalSvc = new GeneralService())

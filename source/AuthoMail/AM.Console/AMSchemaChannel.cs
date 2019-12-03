@@ -853,15 +853,15 @@ namespace AM.Console
                                     }
                                     else
                                     {
-                                        mailPieceDTO.ErrorCode = commonValidationResult.Code;
-                                        mailPieceDTO.ErrorDesc = commonValidationResult.ErrorMessage;
+                                        mailPieceDTO.ErrorCode = clientSpecificValidationResult.Code;
+                                        mailPieceDTO.ErrorDesc = clientSpecificValidationResult.ErrorMessage;
                                         mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                                     }
                                 }
                                 else
                                 {
-                                    mailPieceDTO.ErrorCode = clientSpecificValidationResult.Code;
-                                    mailPieceDTO.ErrorDesc = clientSpecificValidationResult.ErrorMessage;
+                                    mailPieceDTO.ErrorCode = commonValidationResult.Code;
+                                    mailPieceDTO.ErrorDesc = commonValidationResult.ErrorMessage;
                                     mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                                 }
                             }
@@ -1210,19 +1210,34 @@ namespace AM.Console
 
         private string UploadBaseReportToClient(MailBatchInfo mbi, List<MailPieces> mailPieces, Deliverable deliverable)
         {
-            string errorReportFileName = "{0}-{1}-{2}.xml".Fill(mbi.Client.AppCode, mbi.MailBatch.Id, commonSvc.GetReportingSequence());
-            string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+            string errorReportFileName = "";
+            string errorData;
+            string errorReportPath;
             var erroredMPs = mailPieces.Where(mp => mp.ShippingStatus == ShippingStatus.Error.ToString()).ToList();
 
             if (erroredMPs.Count() > 0)
             {
-                string errorData = generalSvc.GeneralXMLReport(erroredMPs, mbi.MailBatch, mbi.Client.AppCode);
-                if (!string.IsNullOrWhiteSpace(errorData))
+                switch (SFTChannel.Code.Split('_')[0].ToUpper())
                 {
-                    File.WriteAllText(errorReportPath, errorData.ToString());
+                    case "ELLIEMAE":
+                        errorReportFileName = "{0}-{1}-{2}.json".Fill(mbi.Client.AppCode, mbi.MailBatch.Id, commonSvc.GetReportingSequence());
+                        errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+                        errorData = generalSvc.GeneralJsonReport(erroredMPs, mbi.MailBatch, mbi.Client.AppCode);
+                        if (!string.IsNullOrWhiteSpace(errorData))
+                        {
+                            File.WriteAllText(errorReportPath, errorData.ToString());
+                        }
+                        break;
+                    default:
+                        errorReportFileName = "{0}-{1}-{2}.xml".Fill(mbi.Client.AppCode, mbi.MailBatch.Id, commonSvc.GetReportingSequence());
+                        errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+                        errorData = generalSvc.GeneralXMLReport(erroredMPs, mbi.MailBatch, mbi.Client.AppCode);
+                        if (!string.IsNullOrWhiteSpace(errorData))
+                        {
+                            File.WriteAllText(errorReportPath, errorData.ToString());
+                        }
+                        break;
                 }
-                else
-                    errorReportPath = "";
             }
             else
                 errorReportPath = "";

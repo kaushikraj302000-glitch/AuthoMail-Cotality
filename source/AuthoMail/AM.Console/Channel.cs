@@ -405,6 +405,20 @@ namespace AM.Console
                     File.Move(zipFilePath, Path.ChangeExtension(zipFilePath, ".ZipUploaded"));
                     Thread.Sleep(1000);
                     break;
+                case "ELLIEMAE":
+                    var resJsonList = Directory.EnumerateFiles(localReportPath, "*.json").ToList();
+
+                    foreach (string filePath in resJsonList)
+                    {
+                        string fileName = Path.GetFileName(filePath);
+                        ftpUploadPath = Path.Combine(deliveryUploadPath, fileName);
+                        sftSite.UploadFile(filePath, ftpUploadPath);
+
+
+                        //After upload change extention as a Complete
+                        File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
+                    }
+                    break;
                 default:
                     resXmlList = Directory.EnumerateFiles(localReportPath, "*.xml").ToList();
 
@@ -498,6 +512,9 @@ namespace AM.Console
 
                     MailUtility.SendProductionNotificationEmail(mbi, mailPieceData, reportToMailHSBC, emailChannelHSBC);
                     isUploaded = true;
+                    break;
+                case "ELLIEMAE":
+
                     break;
                 case "AMC":
                 default:
