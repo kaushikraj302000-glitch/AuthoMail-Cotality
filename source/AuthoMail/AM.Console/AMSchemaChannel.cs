@@ -841,13 +841,12 @@ namespace AM.Console
                             MailPieceValidationResult schemaValidationResult = ValidateMailPieceNode(mailPieceNode);
                             if (schemaValidationResult.Code == OutComeCodes.No_Error)
                             {
-                                // System will check for client specific validations
-                                MailPieceValidationResult clientSpecificValidationResult = ValidateClientSpecificRules(mailPieceDTO);
-                                if (clientSpecificValidationResult.Code == OutComeCodes.No_Error)
-                                {
-                                    //System will check for common validations
-                                    MailPieceValidationResult commonValidationResult = ValidateCommonValidation(mailPieceDTO, mbi);
-                                    if (commonValidationResult.Code == OutComeCodes.No_Error)
+                                //System will check for common validations
+                                MailPieceValidationResult commonValidationResult = ValidateCommonValidation(mailPieceDTO, mbi);
+                                if (commonValidationResult.Code == OutComeCodes.No_Error)
+                                { // System will check for client specific validations
+                                    MailPieceValidationResult clientSpecificValidationResult = ValidateClientSpecificRules(mailPieceDTO);
+                                    if (clientSpecificValidationResult.Code == OutComeCodes.No_Error)
                                     {
                                         mailPieceDTO.ErrorCode = OutComeCodes.No_Error;
                                         mailPieceDTO.ErrorDesc = "";
@@ -1126,6 +1125,9 @@ namespace AM.Console
         {
             if (mailPiece.RcptAddressStreet.IsNullOrWhiteSpace() || mailPiece.RcptAddressCity.IsNullOrWhiteSpace() || mailPiece.RcptAddressState.IsNullOrWhiteSpace() || mailPiece.RcptAddressZIP.IsNullOrWhiteSpace())
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Recipient address details are missing or invalid in package." };
+
+            if (mailPiece.RetRcptAddressStreet.IsNullOrWhiteSpace() || mailPiece.RetRcptAddressCity.IsNullOrWhiteSpace() || mailPiece.RetRcptAddressState.IsNullOrWhiteSpace() || mailPiece.RetRcptAddressZIP.IsNullOrWhiteSpace())
+                yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Return address details are missing or invalid in package." };
 
             if (mailPiece.RcptFirstName.IsNullOrWhiteSpace() && mailPiece.RcptLastName.IsNullOrWhiteSpace())
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Recipient's first and last name are missing or invalid in package." };

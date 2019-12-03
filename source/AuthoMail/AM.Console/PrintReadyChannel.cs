@@ -640,12 +640,13 @@ namespace AM.Console
                                         else if (cstmInfo.Key == "ShippingServiceType")
                                         {
                                             mailPieceDTO.ShippingServiceType = cstmInfo.Value;
-                                        }
-
-                                        customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = cstmInfo.Key, DataType = cstmInfo.DataType, Value = cstmInfo.Value };
-
-                                        mailPieceCustomInfo.Add(customInfo);
+                                        }                                       
                                     }
+
+                                    customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = cstmInfo.Key, DataType = cstmInfo.DataType, Value = cstmInfo.Value };
+
+                                    mailPieceCustomInfo.Add(customInfo);
+
                                 }
                             }
                             //First System will check for schema validation
@@ -976,13 +977,19 @@ namespace AM.Console
 
         private void UploadBaseReportToClient(MailBatchInfo mbi, List<MailPieces> mailPieces, Deliverable deliverable)
         {
-            string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+            string errorReportFileName = "{0}-{1}-{2}.xml".Fill(mbi.Client.AppCode, mbi.MailBatch.Id, commonSvc.GetReportingSequence());
             string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+            var erroredMPs = mailPieces.Where(mp => mp.ShippingStatus == ShippingStatus.Error.ToString()).ToList();
 
-            StringBuilder errorData = generalSvc.GeneralErrorReport(mailPieces, deliverable.Delimeter);
-            if (errorData != null)
+            if (erroredMPs.Count() > 0)
             {
-                File.WriteAllText(errorReportPath, errorData.ToString());
+                string errorData = generalSvc.GeneralXMLReport(erroredMPs, mbi.MailBatch, mbi.Client.AppCode);
+                if (!string.IsNullOrWhiteSpace(errorData))
+                {
+                    File.WriteAllText(errorReportPath, errorData.ToString());
+                }
+                else
+                    errorReportPath = "";
             }
             else
                 errorReportPath = "";
