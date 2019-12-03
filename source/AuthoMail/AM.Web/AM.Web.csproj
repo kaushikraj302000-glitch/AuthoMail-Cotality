@@ -264,7 +264,6 @@
     <Compile Include="Models\LookupViewModel.cs" />
     <Compile Include="Models\MailPieceCommonViewModel.cs" />
     <Compile Include="Models\MailPieceDetailsViewModel.cs" />
-    <Compile Include="Models\MailRequestAPIResponse.cs" />
     <Compile Include="Models\MonthlyReconReportViewModel.cs" />
     <Compile Include="Models\PDFTemplate.cs" />
     <Compile Include="Models\PullBackResponse.cs" />
