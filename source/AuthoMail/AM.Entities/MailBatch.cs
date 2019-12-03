@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -126,12 +127,22 @@ namespace AM.Entities
     {
         [XmlAttribute]
         public string Name { get; set; }
-
         [XmlAttribute]
         public string Pattern { get; set; }
-
         [XmlAttribute]
         public string Base64String { get; set; }
+
+        public bool ShouldSerializePattern()
+        {
+            return this.IncludePatternBaseString;
+        }
+
+        public bool ShouldSerializeBase64String()
+        {
+            return this.IncludePatternBaseString;
+        }
+        [JsonIgnore]
+        public bool IncludePatternBaseString { get; set; }
     }
 
     [Serializable]
@@ -156,26 +167,50 @@ namespace AM.Entities
 
         [XmlAttribute]
         public string Organization { get; set; }
+        public bool ShouldSerializeOrganization()
+        {
+            return Organization != null;
+        }
 
         [XmlAttribute]
         public string Prefix { get; set; }
+        public bool ShouldSerializePrefix()
+        {
+            return Prefix != null;
+        }
 
         [XmlAttribute]
         public string FirstName { get; set; }
 
         [XmlAttribute]
         public string MiddleName { get; set; }
+        public bool ShouldSerializeMiddleName()
+        {
+            return MiddleName != null;
+        }
 
         [XmlAttribute]
         public string LastName { get; set; }
 
         [XmlAttribute]
         public string Suffix { get; set; }
+        public bool ShouldSerializeSuffix()
+        {
+            return Suffix != null;
+        }
 
         [XmlAttribute]
         public string Phone { get; set; }
+        public bool ShouldSerializePhone()
+        {
+            return Phone != null;
+        }
         [XmlAttribute]
         public string EmailAddress { get; set; }
+        public bool ShouldSerializeEmailAddress()
+        {
+            return EmailAddress != null;
+        }
     }
 
     [Serializable]
@@ -184,21 +219,41 @@ namespace AM.Entities
     {
         [XmlAttribute]
         public string OptionalLine1AboveStreet { get; set; }
+        public bool ShouldSerializeOptionalLine1AboveStreet()
+        {
+            return OptionalLine1AboveStreet != null;
+        }
 
         [XmlAttribute]
         public string OptionalLine2AboveStreet { get; set; }
+        public bool ShouldSerializeOptionalLine2AboveStreet()
+        {
+            return OptionalLine2AboveStreet != null;
+        }
 
         [XmlAttribute]
         public string Street { get; set; }
 
         [XmlAttribute]
         public string AptOrSuiteOrOther { get; set; }
+        public bool ShouldSerializeAptOrSuiteOrOther()
+        {
+            return AptOrSuiteOrOther != null;
+        }
 
         [XmlAttribute]
         public string OptionalLine1BelowStreet { get; set; }
+        public bool ShouldSerializeOptionalLine1BelowStreet()
+        {
+            return OptionalLine1BelowStreet != null;
+        }
 
         [XmlAttribute]
         public string OptionalLine2BelowStreet { get; set; }
+        public bool ShouldSerializeOptionalLine2BelowStreet()
+        {
+            return OptionalLine2BelowStreet != null;
+        }
 
         [XmlAttribute]
         public string City { get; set; }
@@ -210,6 +265,10 @@ namespace AM.Entities
         public string Zip { get; set; }
         [XmlAttribute]
         public string Country { get; set; }
+        public bool ShouldSerializeCountry()
+        {
+            return Country != null;
+        }
     }
 
     [Serializable]

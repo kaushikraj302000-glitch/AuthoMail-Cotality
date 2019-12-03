@@ -66,8 +66,8 @@ namespace AM.Web.Controllers
                         int clientId = clientService.GetClientByAppCode(sFTChannel.Code.Split('_')[0] + "Invalid").Id;
                         InsertInvalidBatch(receivedTime, sFTChannel, mailBatch, clientId, "Invalid json request");
                     }
-
-                    return JsonResponseFactory.ErrorResponse(null,null, new ErrorResponse { ID = mp.Id,ClientCode = mp.ClientCode,BusinessFriendlyIdName = mp.BusinessFriendlyIdName,BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue,DocumentOrPackage = mp.DocumentOrPackage,RecipientInfo = mp.RecipientInfo,MailingStatus = ShippingStatus.Error.ToString(),ErrorCode = "Invalid Request",ErrorDesc = "Invalid json request", ReceivedOn = receivedTime});
+                    mp.DocumentOrPackage.IncludePatternBaseString = false;                    
+                    return JsonResponseFactory.ErrorResponse(null,null, new MailRequestResponse { Id = mp.Id,ClientCode = mp.ClientCode,BusinessFriendlyIdName = mp.BusinessFriendlyIdName,BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue,DocumentOrPackage = mp.DocumentOrPackage,RecipientInfo = mp.RecipientInfo,MailingStatus = ShippingStatus.Error.ToString(),ErrorCode = "Invalid Request",ErrorDesc = "Invalid json request", ReceivedOn = receivedTime});
                 }
                 mp.Id = mp.Id == Guid.Empty ? Guid.NewGuid() : mp.Id;
                 mailBatch.MailPieces.Add(mp);                                
@@ -81,8 +81,8 @@ namespace AM.Web.Controllers
                         // sagar's common method call                        
                         int clientId = clientService.GetClientByAppCode(sFTChannel.Code.Split('_')[0] + "Invalid").Id;
                         InsertInvalidBatch(receivedTime, sFTChannel, mailBatch, clientId, "Invalid client code specified.");
-
-                        return JsonResponseFactory.ErrorResponse(null, null, new ErrorResponse { ID = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = "InvalidClientCode", ErrorDesc = "Invalid client code specified.", ReceivedOn = receivedTime });
+                        mp.DocumentOrPackage.IncludePatternBaseString = false;
+                        return JsonResponseFactory.ErrorResponse(null, null, new MailRequestResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = "InvalidClientCode", ErrorDesc = "Invalid client code specified.", ReceivedOn = receivedTime });
                     }
                     else
                     {
@@ -163,14 +163,15 @@ namespace AM.Web.Controllers
                                 commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportPrepped, Common.Now);
                                 commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
                             }
-                            return JsonResponseFactory.ErrorResponse(null, null, new ErrorResponse { ID = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = result.Code, ErrorDesc = result.ErrorMessage, ReceivedOn = receivedTime });
+                            mp.DocumentOrPackage.IncludePatternBaseString = false;
+                            return JsonResponseFactory.ErrorResponse(null, null, new MailRequestResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = result.Code, ErrorDesc = result.ErrorMessage, ReceivedOn = receivedTime });
                         }
                 }
                 
             }
             catch (Exception ex)
             {
-                return JsonResponseFactory.ErrorResponse(null, null, new ErrorResponse { ID = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Unknown.ToString(), ErrorCode = OutComeCodes.Unknown_Error, ErrorDesc = ex.Message, ReceivedOn = receivedTime });
+                return JsonResponseFactory.ErrorResponse(null, null, new MailRequestResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Unknown.ToString(), ErrorCode = OutComeCodes.Unknown_Error, ErrorDesc = ex.Message, ReceivedOn = receivedTime });
             }
         }
 
@@ -208,6 +209,15 @@ namespace AM.Web.Controllers
 
                 if (mailPiece.RecipientInfo.Recipient.FirstName.IsNullOrWhiteSpace() || mailPiece.RecipientInfo.Recipient.LastName.IsNullOrWhiteSpace())
                     yield return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Recipient's first and last name are missing or invalid in package." };
+            }
+
+            if (mailPiece.ReturnInfo != null)
+            {
+                if (mailPiece.ReturnInfo.Address.Street.IsNullOrWhiteSpace() || mailPiece.ReturnInfo.Address.City.IsNullOrWhiteSpace() || mailPiece.ReturnInfo.Address.State.IsNullOrWhiteSpace() || mailPiece.ReturnInfo.Address.Zip.IsNullOrWhiteSpace())
+                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Return recipient address details are missing or invalid in package." };
+
+                if (mailPiece.ReturnInfo.Recipient.FirstName.IsNullOrWhiteSpace() || mailPiece.ReturnInfo.Recipient.LastName.IsNullOrWhiteSpace())
+                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Return recipient's first and last name are missing or invalid in package." };
             }
 
             if (mailPiece.DocumentOrPackageType.IsNullOrWhiteSpace())
