@@ -162,7 +162,7 @@ namespace AM.Services
 
         public string GeneralJsonReport(MailPieces mp, MailBatchDTO mailBatch, string clientCode)
         {
-            MailRequestResponse response = new MailRequestResponse()
+            MailAPIResponse response = new MailAPIResponse()
             {
                 BusinessFriendlyIdName = mp.BusinessFriendlyIdName,
                 BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue,
@@ -190,7 +190,7 @@ namespace AM.Services
 
         public string GeneralJsonReport(MailPieces mp, MailBatches mailBatch)
         {
-            MailRequestResponse response = new MailRequestResponse()
+            MailAPIResponse response = new MailAPIResponse()
             {
                 BusinessFriendlyIdName = mp.BusinessFriendlyIdName,
                 BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue,
