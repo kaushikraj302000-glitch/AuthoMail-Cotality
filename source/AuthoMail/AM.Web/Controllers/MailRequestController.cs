@@ -34,7 +34,7 @@ namespace AM.Web.Controllers
 
         [Route("mailrequest")]
         [HttpPost]
-        public object CreateMailRequest(JObject jObject)
+        public MailAPIResponse CreateMailRequest(MailPiece mailPiece)
         {           
             DateTime receivedTime = Common.Now;
             SuccessResponse successResponse = new SuccessResponse();
@@ -44,31 +44,13 @@ namespace AM.Web.Controllers
             {
                 Id = Guid.NewGuid()                
             };
-
-            MailPiece mp = new MailPiece();
+            MailPiece mp = mailPiece;
             using (IClientService clientService = new ClientService())
             {
                 sFTChannel = clientService.GetSFTChannelDetailsBySFTChannelId(User.Identity.SFTChannelId().Value);
             }
             try
             {
-                try
-                {
-                    mp = JsonConvert.DeserializeObject<MailPiece>(jObject.ToString());
-                }
-                catch (Exception ex)
-                {
-                    var msg = "Invalid request.";
-                    log.Error(msg, ex);
-                    //Return error response, Insert only batch details and reportedback update
-                    using (IClientService clientService = new ClientService())
-                    {
-                        int clientId = clientService.GetClientByAppCode(sFTChannel.Code.Split('_')[0] + "Invalid").Id;
-                        InsertInvalidBatch(receivedTime, sFTChannel, mailBatch, clientId, "Invalid json request");
-                    }
-                    mp.DocumentOrPackage.IncludePatternBaseString = false;                    
-                    return JsonResponseFactory.ErrorResponse(null,null, new MailRequestResponse { Id = mp.Id,ClientCode = mp.ClientCode,BusinessFriendlyIdName = mp.BusinessFriendlyIdName,BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue,DocumentOrPackage = mp.DocumentOrPackage,RecipientInfo = mp.RecipientInfo,MailingStatus = ShippingStatus.Error.ToString(),ErrorCode = "Invalid Request",ErrorDesc = "Invalid json request", ReceivedOn = receivedTime});
-                }
                 mp.Id = mp.Id == Guid.Empty ? Guid.NewGuid() : mp.Id;
                 mailBatch.MailPieces.Add(mp);                                
 
@@ -82,7 +64,7 @@ namespace AM.Web.Controllers
                         int clientId = clientService.GetClientByAppCode(sFTChannel.Code.Split('_')[0] + "Invalid").Id;
                         InsertInvalidBatch(receivedTime, sFTChannel, mailBatch, clientId, "Invalid client code specified.");
                         mp.DocumentOrPackage.IncludePatternBaseString = false;
-                        return JsonResponseFactory.ErrorResponse(null, null, new MailRequestResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = "InvalidClientCode", ErrorDesc = "Invalid client code specified.", ReceivedOn = receivedTime });
+                        return new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = "InvalidClientCode", ErrorDesc = "Invalid client code specified.", ReceivedOn = receivedTime };
                     }
                     else
                     {
@@ -98,7 +80,7 @@ namespace AM.Web.Controllers
                         var result = ValidateClientSpecificRules(mp);
                         if (result.Code == OutComeCodes.No_Error)
                         {
-                            mp.DocumentOrPackage.IncludePatternBaseString = true;
+                            mp.DocumentOrPackage.IncludePatternBaseString = true;                            
                             //create zip and response
                             string zipFilePath = Path.Combine(sFTChannel.Host + sFTChannel.ToADEDir, string.Format("{0}.zip", mailBatch.Id));
                             string triggerFilePath = Path.Combine(sFTChannel.Host + sFTChannel.ToADEDir, string.Format("{0}.GO", mailBatch.Id));
@@ -145,7 +127,12 @@ namespace AM.Web.Controllers
                                 }
                             }
 
-                            return JsonResponseFactory.SuccessResponse(new SuccessResponse { UniqueId = mp.Id, Message = "Your request is queued for processing." });
+                            return new MailAPIResponse
+                            {
+                                UniqueId = mp.Id,
+                                MailingStatus = ShippingStatus.Ack.ToString(),
+                                Message = "Your request is queued for processing."
+                            };
                         }
                         else
                         {
@@ -165,14 +152,16 @@ namespace AM.Web.Controllers
                                 commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
                             }
                             mp.DocumentOrPackage.IncludePatternBaseString = false;
-                            return JsonResponseFactory.ErrorResponse(null, null, new MailRequestResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = result.Code, ErrorDesc = result.ErrorMessage, ReceivedOn = receivedTime });
+                            return new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = result.Code, ErrorDesc = result.ErrorMessage, ReceivedOn = receivedTime };
                         }
                 }
                 
             }
             catch (Exception ex)
             {
-                return JsonResponseFactory.ErrorResponse(null, null, new MailRequestResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Unknown.ToString(), ErrorCode = OutComeCodes.Unknown_Error, ErrorDesc = ex.Message, ReceivedOn = receivedTime });
+                string msg = string.Format("Unexpected error occured while processing your request.");
+                log.Error(msg, ex);
+                return new MailAPIResponse { MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = OutComeCodes.Unknown_Error, ErrorDesc = msg, ReceivedOn = receivedTime };
             }
         }
 
@@ -235,7 +224,7 @@ namespace AM.Web.Controllers
 
             if (mailPiece.DocumentOrPackage != null)
             {
-                if (mailPiece.DocumentOrPackage.Name.IsNullOrWhiteSpace() && mailPiece.DocumentOrPackage.Base64String.IsNullOrWhiteSpace())
+                if (mailPiece.DocumentOrPackage.Name.IsNullOrWhiteSpace() || mailPiece.DocumentOrPackage.Base64String.IsNullOrWhiteSpace())
                     yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file is not provided in package." }; 
             }
 

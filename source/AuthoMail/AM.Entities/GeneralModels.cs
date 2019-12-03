@@ -246,7 +246,8 @@ namespace AM.Entities
         Error,
         Shipped,
         eDelivered,
-        Unknown
+        Unknown,
+        Ack //Acknowledgement
     }
 
     public static class PostDownloadAction
