@@ -57,6 +57,7 @@
     <Compile Include="MailBatch.cs" />
     <Compile Include="DTOs\MailPiece.cs" />
     <Compile Include="MailBatchResponse.cs" />
+    <Compile Include="MailRequestAPIResponse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DTOs\ShippingAccount.cs" />
   </ItemGroup>

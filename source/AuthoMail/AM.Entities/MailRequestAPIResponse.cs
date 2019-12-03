@@ -1,12 +1,10 @@
-﻿using AM.Entities;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
-using System.Web;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace AM.Web.Models
+namespace AM.Entities
 {
     public class SuccessResponse
     {
@@ -72,5 +70,4 @@ namespace AM.Web.Models
             return this.MailingStatus == ShippingStatus.PulledBack.ToString();
         }
     }
-
 }
