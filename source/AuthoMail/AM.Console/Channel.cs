@@ -247,7 +247,7 @@ namespace AM.Console
             if (deliveryReportDeliverable.EmailChannel == null && errorReportDeliverable.EmailChannel == null)
                 return;
 
-            switch (sftChannelDetail.Code.Split('_')[0])
+            switch (sftChannelDetail.Code.Split('_')[0].ToUpper())
             {
                 case "HSBC":
                     using (IHSBCService hsbcSvc = new HSBCService())
@@ -299,6 +299,20 @@ namespace AM.Console
 
                             File.WriteAllText(errorReportPath, errorReport.ToString());
                             reportToMail.Add(errorReportPath);
+                        }
+                    }
+                    break;
+                case "ELLIEMAE":
+                    using (IGeneralService generalSvc = new GeneralService())
+                    using (ICommonService commonSvc = new CommonService())
+                    {
+                        string deliveryReport = generalSvc.GeneralJsonReport(mailPieces.FirstOrDefault(), mbi.MailBatch, mbi.Client.AppCode);
+                        if (!string.IsNullOrWhiteSpace(deliveryReport))
+                        {
+                            deliveryReportFileName = "{0}-{1}-{2}.json".Fill(mbi.Client.AppCode, mbi.MailBatch.Id, commonSvc.GetReportingSequence());
+                            deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
+                            File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
+                            reportToMail.Add(deliveryReportPath);
                         }
                     }
                     break;
