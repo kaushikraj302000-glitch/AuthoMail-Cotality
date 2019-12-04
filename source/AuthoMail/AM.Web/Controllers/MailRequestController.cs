@@ -35,14 +35,14 @@ namespace AM.Web.Controllers
         [Route("mailrequest")]
         [HttpPost]
         public MailAPIResponse CreateMailRequest(MailPiece mailPiece)
-        {           
+        {
             DateTime receivedTime = Common.Now;
             SuccessResponse successResponse = new SuccessResponse();
             SFTChannel sFTChannel;
             Client client;
             MailBatch mailBatch = new MailBatch()
             {
-                Id = Guid.NewGuid()                
+                Id = Guid.NewGuid()
             };
             MailPiece mp = mailPiece;
             using (IClientService clientService = new ClientService())
@@ -52,7 +52,7 @@ namespace AM.Web.Controllers
             try
             {
                 mp.Id = mp.Id == Guid.Empty ? Guid.NewGuid() : mp.Id;
-                mailBatch.MailPieces.Add(mp);                                
+                mailBatch.MailPieces.Add(mp);
 
                 using (IClientService clientService = new ClientService())
                 {
@@ -75,12 +75,12 @@ namespace AM.Web.Controllers
 
                 switch (sFTChannel.Code.Split('_')[0].ToUpper())
                 {
-                    case "ELLIEMAE":                        
+                    case "ELLIEMAE":
                     default:
                         var result = ValidateClientSpecificRules(mp);
                         if (result.Code == OutComeCodes.No_Error)
                         {
-                            mp.DocumentOrPackage.IncludePatternBaseString = true;                            
+                            mp.DocumentOrPackage.IncludePatternBaseString = true;
                             //create zip and response
                             string zipFilePath = Path.Combine(sFTChannel.Host + sFTChannel.ToADEDir, string.Format("{0}.zip", mailBatch.Id));
                             string triggerFilePath = Path.Combine(sFTChannel.Host + sFTChannel.ToADEDir, string.Format("{0}.GO", mailBatch.Id));
@@ -139,12 +139,12 @@ namespace AM.Web.Controllers
                             //insert error and response
                             using (IMailBatchService mailBatchService = new MailBatchService())
                             using (ICommonService commonSvc = new CommonService())
-                            using (IMailPieceService mailPieceService = new MailPieceService())                            
+                            using (IMailPieceService mailPieceService = new MailPieceService())
                             {
 
                                 int mailBatchId = mailBatchService.InsertBatchDetails(mailBatch, client.Id, sFTChannel);
                                 // insert mailpiece
-                                int mailPieceId = mailPieceService.InsertBatchMailPieceDetails(mp,client.Id,mailBatchId,result.Code,result.ErrorMessage);
+                                int mailPieceId = mailPieceService.InsertBatchMailPieceDetails(mp, client.Id, mailBatchId, result.Code, result.ErrorMessage);
                                 commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.Received, receivedTime);
                                 mailBatchService.MarkMailBatchAsInvalid(mailBatchId, "Request does not contain valid package info.");
                                 commonSvc.UpdateBatchStatus(mailBatchId, BatchStatus.Failed.ToString());
@@ -155,7 +155,7 @@ namespace AM.Web.Controllers
                             return new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = result.Code, ErrorDesc = result.ErrorMessage, ReceivedOn = receivedTime };
                         }
                 }
-                
+
             }
             catch (Exception ex)
             {
@@ -165,7 +165,7 @@ namespace AM.Web.Controllers
             }
         }
 
-        private static void InsertInvalidBatch(DateTime receivedTime, SFTChannel sFTChannel, MailBatch mailBatch, int clientId,string errorMessage)
+        private static void InsertInvalidBatch(DateTime receivedTime, SFTChannel sFTChannel, MailBatch mailBatch, int clientId, string errorMessage)
         {
             using (IMailBatchService mailBatchService = new MailBatchService())
             using (ICommonService commonSvc = new CommonService())
@@ -192,6 +192,15 @@ namespace AM.Web.Controllers
 
         private IEnumerable<MailPieceValidationResult> GetAllMailPieceBasicErrors(MailPiece mailPiece)
         {
+            //Duplicate key validation
+            using (ICommonService commonSvc = new CommonService())
+            {
+                if (commonSvc.CheckForDuplicateMailPieceUniqueId(mailPiece.Id))
+                {
+                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_DuplicateKey, ErrorMessage = string.Format("Request cannot be accepted because provided unique id {0} is already exist in the system.", mailPiece.Id) };
+                }
+            }
+
             if (mailPiece.RecipientInfo != null)
             {
                 if (mailPiece.RecipientInfo.Address.Street.IsNullOrWhiteSpace() || mailPiece.RecipientInfo.Address.City.IsNullOrWhiteSpace() || mailPiece.RecipientInfo.Address.State.IsNullOrWhiteSpace() || mailPiece.RecipientInfo.Address.Zip.IsNullOrWhiteSpace())
@@ -216,7 +225,9 @@ namespace AM.Web.Controllers
             if (mailPiece.eDelivery != null)
             {
                 if (mailPiece.RecipientInfo.Recipient.EmailAddress.IsNullOrWhiteSpace())
-                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Email address is not specified." }; 
+                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Email address is not specified." };
+                if (mailPiece.eDelivery.ExpiryDate < Common.Today.Date)
+                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Issue_In_EDelivery, ErrorMessage = "The expiration date must be greater than or equal to the request received date." };
             }
 
             if (mailPiece.BusinessFriendlyIdName.IsNullOrWhiteSpace() || mailPiece.BusinessFriendlyIdValue.IsNullOrWhiteSpace())
@@ -225,7 +236,7 @@ namespace AM.Web.Controllers
             if (mailPiece.DocumentOrPackage != null)
             {
                 if (mailPiece.DocumentOrPackage.Name.IsNullOrWhiteSpace() || mailPiece.DocumentOrPackage.Base64String.IsNullOrWhiteSpace())
-                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file is not provided in package." }; 
+                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file is not provided in package." };
             }
 
             yield break;

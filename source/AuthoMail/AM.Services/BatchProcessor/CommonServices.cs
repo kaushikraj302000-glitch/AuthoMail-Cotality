@@ -42,6 +42,7 @@ namespace AM.Services
         string GetErrorNotificationEmailSubscriberList(int clientId);
         void GetUpdatedDueDateAndPrintLocation(DateTime receivedOn, MailPieceDTO mailPiece, DocType docType, string appCode);
         int GetReportingSequence();
+        bool CheckForDuplicateMailPieceUniqueId(Guid mpUniqueId);
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -458,6 +459,12 @@ namespace AM.Services
         {
             string query = "SELECT NEXT VALUE FOR dbo.ReportingSequence";
             return db.ExecuteScalar<int>(query);
+        }
+
+        public bool CheckForDuplicateMailPieceUniqueId(Guid mpUniqueId)
+        {
+            string query = "SELECT Count(*) from AM.MailPieces where UniqueId = @UniqueId";
+            return db.ExecuteScalar<bool>(query,new { UniqueId = mpUniqueId });
         }
     }
 }

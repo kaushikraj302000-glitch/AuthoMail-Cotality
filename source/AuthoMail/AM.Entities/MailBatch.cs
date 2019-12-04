@@ -113,8 +113,8 @@ namespace AM.Entities
     [Serializable]
     [XmlType(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0")]
     public class eDelivery
-    {       
-        [XmlElement(DataType = "date")]
+    {
+        [XmlAttribute(DataType = "date")]
         public DateTime ExpiryDate { get; set; }
 
         [XmlAttribute]
