@@ -86,7 +86,7 @@ namespace AM.Services
 
         public int UpdateBatchMailPieceShippingStatusDetails(MailPieces mailPiece)
         {
-            string query = @"UPDATE [AM].[MailPieces] SET [ShippingStatus] = @ShippingStatus,[ErrorCode] = @ErrorCode,[ErrorDesc] = @ErrorDesc,[PulledBackOn] = @PulledBackOn,[PrintedOn] = @PrintedOn,[ShippedOn] = @ShippedOn,[ShippingCost] = @ShippingCost,[Weight] = @Weight,[IsQCPerformed] = @IsQCPerformed, [MissedSLAReason] = @MissedSLAReason WHERE Id=@Id";
+            string query = @"UPDATE [AM].[MailPieces] SET [ShippingStatus] = @ShippingStatus,[ErrorCode] = @ErrorCode,[ErrorDesc] = @ErrorDesc,[PulledBackOn] = @PulledBackOn,[PrintedOn] = @PrintedOn,[ShippedOn] = @ShippedOn,[ShippingCost] = @ShippingCost,[Weight] = @Weight,[IsQCPerformed] = @IsQCPerformed, [MissedSLAReason] = @MissedSLAReason, [TotalPages]=@TotalPages, [TotalSheets]=@TotalSheets WHERE Id=@Id";
 
             var data = db.Execute(query, mailPiece);
 
