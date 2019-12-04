@@ -226,7 +226,7 @@ namespace AM.Web.Controllers
             {
                 if (mailPiece.RecipientInfo.Recipient.EmailAddress.IsNullOrWhiteSpace())
                     yield return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Email address is not specified." };
-                if (mailPiece.eDelivery.ExpiryDate < Common.Today.Date)
+                if (mailPiece.eDelivery.ExpiryDate < Common.EstToday)
                     yield return new MailPieceValidationResult() { Code = OutComeCodes.Issue_In_EDelivery, ErrorMessage = "The expiration date must be greater than or equal to the request received date." };
             }
 
@@ -235,7 +235,9 @@ namespace AM.Web.Controllers
 
             if (mailPiece.DocumentOrPackage != null)
             {
-                if (mailPiece.DocumentOrPackage.Name.IsNullOrWhiteSpace() || mailPiece.DocumentOrPackage.Base64String.IsNullOrWhiteSpace())
+                if (mailPiece.DocumentOrPackage.Name.IsNullOrWhiteSpace())
+                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf name is not provided in package." };
+                if (mailPiece.DocumentOrPackage.Base64String.IsNullOrWhiteSpace())
                     yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file is not provided in package." };
             }
 
