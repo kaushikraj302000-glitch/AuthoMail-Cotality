@@ -1,0 +1,17 @@
+﻿using AM.Entities;
+using Refit;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace AM.UnitTests
+{
+    public interface IMailRequestService
+    {
+        [Post("/api/mailrequest")]
+        [Headers("Authorization: Bearer")]
+        Task<MailAPIResponse> CreateMailRequest(MailPiece request);
+    }
+}
