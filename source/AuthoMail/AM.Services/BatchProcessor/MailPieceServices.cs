@@ -24,7 +24,8 @@ namespace AM.Services
         MailPieceDTO GetMailPieceDataByUniqueIdAndMBId(Guid uniqueId, int mailBatchId);
         int InsertBatchMailPieceDetails(MailPiece mailPiece, int clientId, int mailBatchId, string errorCode, string errorDesc);
         int InsertBatchMailPieceCustomDetails(List<Metadata> mailPieceCustomInfos, int mailPieceId);
-        List<MailPieces> GetMailPiecesForUATBridge();
+        List<MailPieceDTO> GetMailPiecesForUATBridge();
+        List<MailPieceCustomInfo> GetMailPieceCustomInfos(int mailPieceId);
     }
     public class MailPieceService : ServiceBase, IMailPieceService //It implements Interfaces 
     {
@@ -165,32 +166,19 @@ namespace AM.Services
             return mailPieceId;
         }
 
-        public List<MailPieces> GetMailPiecesForUATBridge()
+        public List<MailPieceDTO> GetMailPiecesForUATBridge()
         {
-            var mailPieceDictionary = new Dictionary<int, MailPieces>();
+            string query = @"SELECT M.*,B.ReceivedOn FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id WHERE M.ShippingStatus <> 'Error' AND B.ReceivedOn > ISNULL((SELECT TOP 1 LastProcessedOn FROM dbo.ProductionBridge ORDER BY Id DESC), DATEADD(DAY,-5,GETUTCDATE()))";
 
-            string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id LEFT OUTER JOIN [dbo].[v_DocTypes] d ON M.DocTypeId=d.Id and M.PnSConfigDetailId = d.PnSConfigDetailId LEFT OUTER JOIN AM.MailPieceCustomInfo MC ON M.Id=MC.MailPieceId INNER JOIN Common.Clients C ON B.ClientId=C.Id WHERE M.ShippingStatus <> 'Error' AND B.ReceivedOn > ISNULL((SELECT TOP 1 LastProcessedOn FROM dbo.ProductionBridge ORDER BY Id DESC), DATEADD(DAY,-20,GETUTCDATE()))";
+            var data = db.Query<MailPieceDTO>(query).ToList();
+            return data;
+        }
 
-            var data = db.Query<MailPieces, MailBatches, DocTypes, MailPieceCustomInfoTest, Clients, MailPieces>(query,
-                (m, b, d, c, cl) =>
-                {
-                    MailPieces mp;
+        public List<MailPieceCustomInfo> GetMailPieceCustomInfos(int mailPieceId)
+        {
+            string query = @"SELECT * FROM AM.MailPieceCustomInfo WHERE MailPieceId = @MailPieceId";
 
-                    if (!mailPieceDictionary.TryGetValue(m.Id, out mp))
-                    {
-                        mp = m;
-                        mp.MailBatches = b;
-                        mp.DocTypes = d;
-                        mp.Clients = cl;
-                        mp.MailPieceCustomInfoTest = new List<MailPieceCustomInfoTest>();
-                        mailPieceDictionary.Add(mp.Id, mp);
-                    }
-
-                    mp.MailPieceCustomInfoTest.Add(c);
-                    return mp;
-                },
-                new
-                { }, splitOn: "Id,Id,MailPieceId,Id").Distinct().ToList();
+            var data = db.Query<MailPieceCustomInfo>(query, new { MailPieceId = mailPieceId }).ToList();
             return data;
         }
     }

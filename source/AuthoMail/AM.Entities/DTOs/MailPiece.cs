@@ -101,6 +101,7 @@ namespace AM.Entities
 
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
+        public DateTime ReceivedOn { get; set; }
     }
 
     public class MailPieceCustomInfo
