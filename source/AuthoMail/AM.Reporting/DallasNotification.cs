@@ -44,10 +44,17 @@ namespace AM.Reporting
 
                 if (currentBatches == null || currentBatches.Count == 0) return;
 
-
+                int bundlingTime = 0;
                 while (!CheckAllBatchStatusCompleted(currentBatches.Min(b => b.StartDate), currentBatches.Max(b => b.EndDate)))
                 {
+                    log.Debug("CheckAllBatchStatusCompleted Queue Check Waiting...");
+
                     Thread.Sleep(6000);
+
+                    //NOTE: If bundling is continueously running for 6 minutes then system will continue further for submitting batches to print vendor.
+                    bundlingTime += 6000;
+                    if (bundlingTime >= 360000)
+                        break;
                 }
 
                 foreach (var batch in currentBatches.GroupBy(b => b.BatchName))
