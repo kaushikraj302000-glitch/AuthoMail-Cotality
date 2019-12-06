@@ -118,7 +118,6 @@ namespace AM.UnitTests
             Assert.AreEqual(mailPiece.Id, response.UniqueId);
             Assert.AreEqual("Your request is queued for processing.", response.Message);            
         }
-
         [TestMethod]
         public void MRAPI_InvalidClientCode()
         {
@@ -406,6 +405,21 @@ namespace AM.UnitTests
         }
 
         [TestMethod]
+        public void MailResponseAPI_ValidRequest()
+        {
+            string[] ids = { "ECC7429B-C69D-4ADE-B418-B43E1F53C6BF", "DE03C595-5C6F-4DB0-B484-F22C9AD7C478", "7EAC64B7-2831-4FC2-AEC7-623B3B1BB7FD", "4CE84B05-EBCA-449E-ABD0-3731AD08861C", "deb7ad5f-71d9-46bd-a92f-f3f3366223c1" };
+
+            List<string> mailPieceIds = new List<string>(ids);
+            List<MailAPIResponse> response = GenerateMailResponse(mailPieceIds).Result;
+            Assert.AreEqual("Error", response[0].MailingStatus);
+            Assert.AreEqual("Shipped", response[1].MailingStatus);
+            Assert.AreEqual("PulledBack", response[2].MailingStatus);
+            Assert.AreEqual("eDelivered", response[3].MailingStatus);
+            Assert.AreEqual("NotFound", response[4].MailingStatus);
+            Assert.AreEqual("The specified package does not exist.", response[4].Message);
+        }
+
+        [TestMethod]
         public Task<MailAPIResponse> CreateMailRequest(MailPiece request)
         {
             string endpoint = "http://localhost:17005";//"https://authomailuat.corelogic.com";
@@ -424,5 +438,23 @@ namespace AM.UnitTests
             return svc.CreateMailRequest(request);
         }
 
+        [TestMethod]
+        public Task<List<MailAPIResponse>> GenerateMailResponse(List<string> mailPieceIds)
+        {
+            string endpoint = "http://localhost:17005";//"https://authomailuat.corelogic.com";
+            //
+            // TODO: Add test logic here
+            //
+            if (endpoint.StartsWith("https", StringComparison.CurrentCultureIgnoreCase))
+            {
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+            }
+
+            string uid = "admin@milestonetechnoconsulting.com";
+            string pass = "Admin@123";
+
+            var svc = RestService.For<IMailRequestService>(new HttpClient(new AuthenticatedHttpClientHandler(uid, pass)) { BaseAddress = new Uri(endpoint) });
+            return svc.MailAPIResponse(mailPieceIds);
+        }
     }
 }
