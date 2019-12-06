@@ -377,7 +377,7 @@ namespace PCI.Service
 
         private static string CreateNordisBatch(List<MailPieceDetail> mpList, PrintTrailBatch ptBatchDetails, string zipFilePath, string xmlFilePath, PrintTrailDetail ptDetails)
         {
-            var shippingMethod = mpList.Select(x => new { x.ShippingCarrier, x.ShippingServiceType }).Distinct().First();
+            var shippingMethod = mpList.Select(x => new { ShippingCarrier = x.ShippingCarrier, ShippingServiceType = x.ShippingServiceType == "IMB" ? "FIRSTCLASS" : x.ShippingServiceType }).Distinct().First();
             List<Package> packageData = new List<Package>();
             PrintRequest printRequestXml = new PrintRequest();
             printRequestXml.JobId = ptBatchDetails.Id;
