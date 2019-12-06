@@ -12,7 +12,7 @@ namespace AM.ProductionToUATBridge
         public static string AMRootPath { get; set; }
         public static string DestinationPath { get; set; }
         public static string AMRequestFolder { get; set; }
-        public static float ProductionVolumnRatio { get; set; }
+        public static string[] ProductionVolumnRatio { get; set; }
         public static string UATChannelCode { get; set; }
         public static string PrintReadyUATChannelCode { get; set; }
         public static string Monitor_Exception_Email_To { get; set; }
@@ -25,8 +25,8 @@ namespace AM.ProductionToUATBridge
             AMRootPath = ConfigurationManager.AppSettings["AMRootPath"].Trim();
             DestinationPath = ConfigurationManager.AppSettings["DestinationPath"].Trim();
             AMRequestFolder = ConfigurationManager.AppSettings["AMRequestFolder"].Trim();
-            ProductionVolumnRatio = float.Parse(ConfigurationManager.AppSettings["ProductionVolumnRatio"].Trim());
-            UATChannelCode = ConfigurationManager.AppSettings["UATChannelCode"].Trim();
+            ProductionVolumnRatio = ConfigurationManager.AppSettings["ProductionVolumnRatio"].Trim().Split(',');
+            UATChannelCode = ConfigurationManager.AppSettings["UATChannelCode"];
             PrintReadyUATChannelCode = ConfigurationManager.AppSettings["PrintReadyUATChannelCode"].Trim();
             PrintReadyClientCodes = ConfigurationManager.AppSettings["PrintReadyClientCodes"].Trim().Split(',');
         }

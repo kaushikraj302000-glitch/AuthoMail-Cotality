@@ -24,15 +24,21 @@ namespace AM.ProductionToUATBridge
             {
 
 
-                List<MailPieces> mailPieces = mailPieceSvc.GetMailPiecesForUATBridge();
+                List<MailPieceDTO> mailPieces = mailPieceSvc.GetMailPiecesForUATBridge();
                 var mpByClients = mailPieces.GroupBy(mp => mp.ClientId).ToList();
-
+                Dictionary<string, float> ratioList = new Dictionary<string, float>();
+                Configuration.ProductionVolumnRatio.ToList().ForEach(rt =>
+                {
+                    var clRatio = rt.Split('|');
+                    ratioList.Add(clRatio[0], float.Parse(clRatio[1]));
+                });
 
                 foreach (var mpData in mpByClients)
                 {
                     try
                     {
-                        var client = mpData.Select(mp => mp.Clients).Distinct().FirstOrDefault();
+                        var client = clientSvc.GetClientById(mpData.Key);
+
                         var mpList = mpData.ToList();
                         SFTChannel sftChannel;
                         if (Configuration.PrintReadyClientCodes.Contains(client.AppCode))
@@ -50,7 +56,7 @@ namespace AM.ProductionToUATBridge
                         log.Debug("----Batching Process started for Client {0}----".Fill(client.AppCode));
                         #region Production Ratio
                         double qcCount = 0;
-                        float qcPercentage = Configuration.ProductionVolumnRatio / 100;
+                        float qcPercentage = ratioList[client.AppCode] / 100;
                         qcCount = Math.Ceiling(mpList.Count * qcPercentage);
 
                         var randomIndexes = new List<int>();
@@ -101,7 +107,7 @@ namespace AM.ProductionToUATBridge
                                 MailPiece package = new MailPiece();
                                 package.BusinessFriendlyIdName = mp.BusinessFriendlyIdName;
                                 package.BusinessFriendlyIdValue = "TEST" + mp.BusinessFriendlyIdValue;
-                                package.DocumentOrPackageType = mp.DocumentOrPackageType;
+                                package.DocumentOrPackageType = "TEST_" + mp.DocumentOrPackageType;
                                 package.Id = Guid.NewGuid();
 
                                 DocumentOrPackage documentOrPackage = new DocumentOrPackage();
@@ -133,10 +139,11 @@ namespace AM.ProductionToUATBridge
                                 returnInfo.Recipient = returnRecipient;
                                 returnInfo.Address = returnRecipientAddress;
 
-                                mp.MailPieceCustomInfoTest.ForEach(mpc =>
+                                var mpCustomInfos = mailPieceSvc.GetMailPieceCustomInfos(mp.Id);
+                                mpCustomInfos.ForEach(mpc =>
                                 {
                                     if (mpc != null)
-                                        customInfo.Add(new Metadata() { Key = mpc.Key, DataType = mpc.DataType.ParseEnum<DataType>(), Value = mpc.Value });
+                                        customInfo.Add(new AM.ProductionToUATBridge.Metadata() { Key = mpc.Key, DataType = (AM.ProductionToUATBridge.DataType)mpc.DataType, Value = mpc.Value });
                                 });
 
                                 package.CustomInfo = customInfo;
@@ -198,7 +205,7 @@ namespace AM.ProductionToUATBridge
                     }
                 }
 
-                mailBatchSvc.InsertLastProcessTimeForUATBatches(mailPieces.OrderByDescending(mp => mp.MailBatches.ReceivedOn).Select(mp => mp.MailBatches.ReceivedOn).First().Value);
+                mailBatchSvc.InsertLastProcessTimeForUATBatches(mailPieces.OrderByDescending(mp => mp.ReceivedOn).Select(mp => mp.ReceivedOn).First());
 
 
             }
