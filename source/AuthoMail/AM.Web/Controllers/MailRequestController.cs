@@ -130,7 +130,7 @@ namespace AM.Web.Controllers
                             return new MailAPIResponse
                             {
                                 UniqueId = mp.Id,
-                                MailingStatus = ShippingStatus.InProgress.ToString(),
+                                MailingStatus = ShippingStatus.Acknowledgement.ToString(),
                                 Message = "Your request is queued for processing."
                             };
                         }

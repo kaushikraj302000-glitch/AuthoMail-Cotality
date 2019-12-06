@@ -247,7 +247,7 @@ namespace AM.Entities
         Shipped,
         eDelivered,
         Unknown,
-        Ack,//Acknowledgement
+        Acknowledgement,
         NotFound
     }
 
