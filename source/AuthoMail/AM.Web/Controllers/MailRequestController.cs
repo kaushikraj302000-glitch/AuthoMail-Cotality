@@ -166,13 +166,16 @@ namespace AM.Web.Controllers
         }
 
         [Route("mailresponse")]
-        [HttpPost]
-        public List<MailAPIResponse> MailAPIResponse(List<string> mailPieceIds)
+        [HttpGet]
+        public List<MailAPIResponse> MailAPIResponse(string mailPieceIds)
         {
             if (mailPieceIds == null) throw new HttpResponseException(HttpStatusCode.BadRequest);
+
+            List<string> uniqueIds = mailPieceIds.Split(',').ToList();
+            //if (mailPieceIds.Count > 1000) throw new HttpResponseException(HttpStatusCode.BadRequest);
             List<MailAPIResponse> mailAPIResponses = new List<MailAPIResponse>();
 
-            foreach (var mailPieceId in mailPieceIds)
+            foreach (var mailPieceId in uniqueIds)
             {
                 using (MailPieceService mailPieceService = new MailPieceService())
                 {
