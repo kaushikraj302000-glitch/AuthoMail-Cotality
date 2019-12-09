@@ -38,8 +38,6 @@ namespace AM.ProductionToUATBridge
                     try
                     {
                         var client = clientSvc.GetClientById(mpData.Key);
-
-                        var mpList = mpData.ToList();
                         SFTChannel sftChannel;
                         if (Configuration.PrintReadyClientCodes.Contains(client.AppCode))
                         {
@@ -53,147 +51,153 @@ namespace AM.ProductionToUATBridge
                         SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannel.Protocol), sftChannel.Host, sftChannel.UserName, sftChannel.Password, 300000);
                         sftSite.Connect();
 
-                        log.Debug("----Batching Process started for Client {0}----".Fill(client.AppCode));
-                        #region Production Ratio
-                        double qcCount = 0;
-                        float qcPercentage = ratioList[client.AppCode] / 100;
-                        qcCount = Math.Ceiling(mpList.Count * qcPercentage);
-
-                        var randomIndexes = new List<int>();
-                        while (randomIndexes.Count < qcCount)
+                        var mpList = mpData.ToList();
+                        var mpByBatchId = mpList.GroupBy(mp => mp.MailBatchId).ToList();
+                        foreach (var mbList in mpByBatchId)
                         {
-                            var index = random.Next(0, mpList.Count - 1);
-                            if (!randomIndexes.Contains(index))
+                            int mbId = mbList.Key;
+                            var mpListByMb = mbList.ToList();
+
+                            log.Debug("----Batching Process started for Client {0}----".Fill(client.AppCode));
+                            #region Production Ratio
+                            double qcCount = 0;
+                            float qcPercentage = ratioList[client.AppCode] / 100;
+                            qcCount = Math.Ceiling(mpListByMb.Count * qcPercentage);
+
+                            var randomIndexes = new List<int>();
+                            while (randomIndexes.Count < qcCount)
                             {
-                                randomIndexes.Add(index);
-                            }
-                        }
-
-                        randomIndexes.ForEach(index =>
-                        {
-                            mpList[index].IsQCRequested = true;
-                        });
-                        #endregion
-
-                        var selectedMPs = mpList.Where(mp => mp.IsQCRequested).ToList();
-                        log.Debug("Selected MailPieces Count : {0}".Fill(selectedMPs.Count));
-                        string clientBatchId = "UAT_{0}{1}".Fill(client.AppCode, Common.Now.ToString("yyyyMMddhhmmss"));
-                        log.Debug("ClientBatchId : {0}".Fill(clientBatchId));
-                        string destinationPath = Path.Combine(Configuration.DestinationPath, client.AppCode, clientBatchId);
-                        destinationPath.CreateDirectoryIfNotExist();
-                        log.Debug("DestinationPath {0}".Fill(destinationPath));
-                        string xmlFilePath = Path.Combine(destinationPath, "{0}.xml".Fill(clientBatchId));
-                        log.Debug("XmlFilePath  : {0}".Fill(xmlFilePath));
-                        string zipFilePath = Path.Combine(destinationPath, "{0}.zip".Fill(clientBatchId));
-                        log.Debug("ZipFilePath : {0}".Fill(zipFilePath));
-                        string triggerFilePath = Path.Combine(destinationPath, "{0}.GO".Fill(clientBatchId));
-                        log.Debug("TriggerFilePath : {0}".Fill(triggerFilePath));
-
-                        MailBatch mailBatch = new MailBatch();
-                        mailBatch.Id = Guid.NewGuid();
-                        mailBatch.ClientBatchId = clientBatchId;
-                        mailBatch.Priority = Priority.Medium;
-                        mailBatch.ClientCode = client.AppCode;
-                        List<MailPiece> packages = new List<MailPiece>();
-                        foreach (var mp in selectedMPs)
-                        {
-                            try
-                            {
-                                RecipientInfo recipientInfo = new RecipientInfo();
-                                List<Metadata> customInfo = new List<Metadata>();
-                                ReturnInfo returnInfo = new ReturnInfo();
-
-
-                                MailPiece package = new MailPiece();
-                                package.BusinessFriendlyIdName = mp.BusinessFriendlyIdName;
-                                package.BusinessFriendlyIdValue = "TEST" + mp.BusinessFriendlyIdValue;
-                                package.DocumentOrPackageType = "TEST_" + mp.DocumentOrPackageType;
-                                package.Id = Guid.NewGuid();
-
-                                DocumentOrPackage documentOrPackage = new DocumentOrPackage();
-                                documentOrPackage.Name = mp.FileName;
-
-                                Recipient recipient = new Recipient();
-                                recipient.FirstName = "Test1";
-                                recipient.LastName = "Test2";
-
-                                Address recipientAddress = new Address();
-                                recipientAddress.Street = mp.RcptAddressStreet;
-                                recipientAddress.State = mp.RcptAddressState;
-                                recipientAddress.City = mp.RcptAddressCity;
-                                recipientAddress.Zip = mp.RcptAddressZIP;
-
-                                recipientInfo.Recipient = recipient;
-                                recipientInfo.Address = recipientAddress;
-
-                                Recipient returnRecipient = new Recipient();
-                                returnRecipient.FirstName = "Return Test1";
-                                returnRecipient.LastName = "Return Test2";
-
-                                Address returnRecipientAddress = new Address();
-                                returnRecipientAddress.Street = mp.RetRcptAddressStreet;
-                                returnRecipientAddress.State = mp.RetRcptAddressState;
-                                returnRecipientAddress.City = mp.RetRcptAddressCity;
-                                returnRecipientAddress.Zip = mp.RetRcptAddressZIP;
-
-                                returnInfo.Recipient = returnRecipient;
-                                returnInfo.Address = returnRecipientAddress;
-
-                                var mpCustomInfos = mailPieceSvc.GetMailPieceCustomInfos(mp.Id);
-                                mpCustomInfos.ForEach(mpc =>
+                                var index = random.Next(0, mpList.Count - 1);
+                                if (!randomIndexes.Contains(index))
                                 {
-                                    if (mpc != null)
-                                        customInfo.Add(new AM.ProductionToUATBridge.Metadata() { Key = mpc.Key, DataType = (AM.ProductionToUATBridge.DataType)mpc.DataType, Value = mpc.Value });
-                                });
-
-                                package.CustomInfo = customInfo;
-                                package.DocumentOrPackage = documentOrPackage;
-                                package.RecipientInfo = recipientInfo;
-                                package.ReturnInfo = returnInfo;
-
-                                packages.Add(package);
-
-                                string amFolderPath = Path.Combine(Configuration.AMRootPath, client.AppCode, mp.MailBatchId.ToString());
-                                string amRequestPDFPath = Path.Combine(amFolderPath, Configuration.AMRequestFolder, mp.FileName);
-                                string destinationPDFPath = Path.Combine(destinationPath, mp.FileName);
-                                if (File.Exists(amRequestPDFPath))
-                                    File.Copy(amRequestPDFPath, destinationPDFPath, true);
+                                    randomIndexes.Add(index);
+                                }
                             }
-                            catch (Exception ex)
+
+                            randomIndexes.ForEach(index =>
                             {
-                                var message = "Error occured while processing mail piece record for client : {0} MailPieceId : {1}".Fill(client.AppCode, mp.Id);
-                                MailUtility.SendUnexpectedExceptionEmail(ex, message);
+                                mpListByMb[index].IsQCRequested = true;
+                            });
+                            #endregion
+
+                            var selectedMPs = mpListByMb.Where(mp => mp.IsQCRequested).ToList();
+                            log.Debug("Selected MailPieces Count : {0}".Fill(selectedMPs.Count));
+                            string clientBatchId = "UAT_{0}{1}".Fill(client.AppCode, Common.Now.ToString("yyyyMMddhhmmss"));
+                            log.Debug("ClientBatchId : {0}".Fill(clientBatchId));
+                            string destinationPath = Path.Combine(Configuration.DestinationPath, client.AppCode, clientBatchId);
+                            destinationPath.CreateDirectoryIfNotExist();
+                            log.Debug("DestinationPath {0}".Fill(destinationPath));
+                            string xmlFilePath = Path.Combine(destinationPath, "{0}.xml".Fill(clientBatchId));
+                            log.Debug("XmlFilePath  : {0}".Fill(xmlFilePath));
+                            string zipFilePath = Path.Combine(destinationPath, "{0}.zip".Fill(clientBatchId));
+                            log.Debug("ZipFilePath : {0}".Fill(zipFilePath));
+                            string triggerFilePath = Path.Combine(destinationPath, "{0}.GO".Fill(clientBatchId));
+                            log.Debug("TriggerFilePath : {0}".Fill(triggerFilePath));
+
+                            MailBatch mailBatch = new MailBatch();
+                            mailBatch.Id = Guid.NewGuid();
+                            mailBatch.ClientBatchId = clientBatchId;
+                            mailBatch.Priority = Priority.Medium;
+                            mailBatch.ClientCode = client.AppCode;
+                            List<MailPiece> packages = new List<MailPiece>();
+                            foreach (var mp in selectedMPs)
+                            {
+                                try
+                                {
+                                    RecipientInfo recipientInfo = new RecipientInfo();
+                                    List<Metadata> customInfo = new List<Metadata>();
+                                    ReturnInfo returnInfo = new ReturnInfo();
+                                    MailPiece package = new MailPiece();
+                                    package.BusinessFriendlyIdName = mp.BusinessFriendlyIdName;
+                                    package.BusinessFriendlyIdValue = "TEST" + mp.BusinessFriendlyIdValue;
+                                    package.DocumentOrPackageType = "TEST_" + mp.DocumentOrPackageType;
+                                    package.Id = Guid.NewGuid();
+
+                                    DocumentOrPackage documentOrPackage = new DocumentOrPackage();
+                                    documentOrPackage.Name = mp.FileName;
+
+                                    Recipient recipient = new Recipient();
+                                    recipient.FirstName = "Test1";
+                                    recipient.LastName = "Test2";
+
+                                    Address recipientAddress = new Address();
+                                    recipientAddress.Street = mp.RcptAddressStreet;
+                                    recipientAddress.State = mp.RcptAddressState;
+                                    recipientAddress.City = mp.RcptAddressCity;
+                                    recipientAddress.Zip = mp.RcptAddressZIP;
+
+                                    recipientInfo.Recipient = recipient;
+                                    recipientInfo.Address = recipientAddress;
+
+                                    Recipient returnRecipient = new Recipient();
+                                    returnRecipient.FirstName = "Return Test1";
+                                    returnRecipient.LastName = "Return Test2";
+
+                                    Address returnRecipientAddress = new Address();
+                                    returnRecipientAddress.Street = mp.RetRcptAddressStreet;
+                                    returnRecipientAddress.State = mp.RetRcptAddressState;
+                                    returnRecipientAddress.City = mp.RetRcptAddressCity;
+                                    returnRecipientAddress.Zip = mp.RetRcptAddressZIP;
+
+                                    returnInfo.Recipient = returnRecipient;
+                                    returnInfo.Address = returnRecipientAddress;
+
+                                    var mpCustomInfos = mailPieceSvc.GetMailPieceCustomInfos(mp.Id);
+                                    mpCustomInfos.ForEach(mpc =>
+                                    {
+                                        if (mpc != null)
+                                            customInfo.Add(new AM.ProductionToUATBridge.Metadata() { Key = mpc.Key, DataType = (AM.ProductionToUATBridge.DataType)mpc.DataType, Value = mpc.Value });
+                                    });
+
+                                    package.CustomInfo = customInfo;
+                                    package.DocumentOrPackage = documentOrPackage;
+                                    package.RecipientInfo = recipientInfo;
+                                    package.ReturnInfo = returnInfo;
+
+                                    packages.Add(package);
+
+                                    string amFolderPath = Path.Combine(Configuration.AMRootPath, client.AppCode, mp.MailBatchId.ToString());
+                                    string amRequestPDFPath = Path.Combine(amFolderPath, Configuration.AMRequestFolder, mp.FileName);
+                                    string destinationPDFPath = Path.Combine(destinationPath, mp.FileName);
+                                    if (File.Exists(amRequestPDFPath))
+                                        File.Copy(amRequestPDFPath, destinationPDFPath, true);
+                                }
+                                catch (Exception ex)
+                                {
+                                    var message = "Error occured while processing mail piece record for client : {0} MailPieceId : {1}".Fill(client.AppCode, mp.Id);
+                                    MailUtility.SendUnexpectedExceptionEmail(ex, message);
+                                    continue;
+                                }
+                            }
+
+                            mailBatch.MailPieces = packages;
+
+                            if (packages.Count == 0)
+                            {
+                                var msg = "Package does not contain any mail pieces for client {0}".Fill(client.AppCode);
+                                log.Debug(msg);
+                                MailUtility.SendUnexpectedExceptionEmail(null, msg);
                                 continue;
                             }
-                        }
-
-                        mailBatch.MailPieces = packages;
-
-                        if (packages.Count == 0)
-                        {
-                            var msg = "Package does not contain any mail pieces for client {0}".Fill(client.AppCode);
-                            log.Debug(msg);
-                            MailUtility.SendUnexpectedExceptionEmail(null, msg);
-                            continue;
-                        }
-                        var xml = XmlUtil.Serialize(mailBatch);
-                        File.WriteAllText(xmlFilePath, xml);
-                        var pdfList = Directory.EnumerateFiles(destinationPath, "*.pdf");
-                        using (ZipArchive newFile = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
-                        {
-                            foreach (var pdfPath in pdfList)
+                            var xml = XmlUtil.Serialize(mailBatch);
+                            File.WriteAllText(xmlFilePath, xml);
+                            var pdfList = Directory.EnumerateFiles(destinationPath, "*.pdf");
+                            using (ZipArchive newFile = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
                             {
-                                newFile.CreateEntryFromFile(pdfPath, Path.GetFileName(pdfPath));
+                                foreach (var pdfPath in pdfList)
+                                {
+                                    newFile.CreateEntryFromFile(pdfPath, Path.GetFileName(pdfPath));
+                                }
+                                newFile.CreateEntryFromFile(xmlFilePath, Path.GetFileName(xmlFilePath));
                             }
-                            newFile.CreateEntryFromFile(xmlFilePath, Path.GetFileName(xmlFilePath));
+                            File.WriteAllText(triggerFilePath, "");
+                            File.SetLastWriteTimeUtc(triggerFilePath, mpListByMb.Select(mp => mp.ReceivedOn).Distinct().First());
+                            sftSite.UploadFile(zipFilePath, Path.Combine(sftChannel.ToADEDir, Path.GetFileName(zipFilePath)));
+                            sftSite.UploadFile(triggerFilePath, Path.Combine(sftChannel.ToADEDir, Path.GetFileName(triggerFilePath)));
+
+                            Directory.Delete(destinationPath, true);
+                            log.Debug("----Batching Process completed for Client {0}----".Fill(client.AppCode));
                         }
-                        File.WriteAllText(triggerFilePath, "");
-
-                        sftSite.UploadFile(zipFilePath, Path.Combine(sftChannel.ToADEDir, Path.GetFileName(zipFilePath)));
-                        sftSite.UploadFile(triggerFilePath, Path.Combine(sftChannel.ToADEDir, Path.GetFileName(triggerFilePath)));
-
-                        Directory.Delete(destinationPath, true);
-                        log.Debug("----Batching Process completed for Client {0}----".Fill(client.AppCode));
 
                         if (sftSite.IsConnected)
                             sftSite.Disconnect();

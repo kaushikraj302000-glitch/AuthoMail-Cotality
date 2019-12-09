@@ -72,6 +72,14 @@ namespace AM.Entities
         public int MaxPage { get; set; }
         public bool IsFallBack { get; set; }
         public bool IsPrintReady { get; set; }
+
+        public string BizdayStartTime { get; set; }
+        public string BizdayEndTime { get; set; }
+        public string SatStartTime { get; set; }
+        public string SatEndTime { get; set; }
+        public string SunStartTime { get; set; }
+        public string SunEndTime { get; set; }
+        public int PrintTrailId { get; set; }
     }
 
     public class PnSConfigDetailCoverLetter
