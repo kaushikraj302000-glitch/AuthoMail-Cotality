@@ -13,5 +13,8 @@ namespace AM.UnitTests
         [Post("/api/mailrequest")]
         [Headers("Authorization: Bearer")]
         Task<MailAPIResponse> CreateMailRequest(MailPiece request);
+        [Get("/api/mailresponse")]
+        [Headers("Authorization: Bearer")]
+        Task<List<MailAPIResponse>> MailAPIResponse(List<string> mailPieceIds);
     }
 }

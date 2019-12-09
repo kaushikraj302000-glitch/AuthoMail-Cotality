@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace AM.Entities
 {
-    public class SuccessResponse
+    public class BatchResponse : MailPieceDTO
     {
-        public Guid UniqueId { get; set; }
-        public string Message { get; set; }
+        public DateTime ReceivedOn { get; set; }
+        public string AppCode { get; set; }
     }
 
     public class MailAPIResponse
@@ -36,88 +36,94 @@ namespace AM.Entities
 
         public bool ShouldSerializeId()
         {
-            return this.MailingStatus != ShippingStatus.Ack.ToString() && this.Id != Guid.Empty;
+            return this.MailingStatus != ShippingStatus.Acknowledgement.ToString() && this.Id != Guid.Empty;
         }
         public bool ShouldSerializeUniqueId()
         {
-            return this.MailingStatus == ShippingStatus.Ack.ToString();
+            return this.MailingStatus == ShippingStatus.Acknowledgement.ToString();
         }
         public bool ShouldSerializeMessage()
         {
-            return this.MailingStatus == ShippingStatus.Ack.ToString();
+            return this.MailingStatus == ShippingStatus.Acknowledgement.ToString() || this.MailingStatus == ShippingStatus.NotFound.ToString();
         }
         public bool ShouldSerializeClientCode()
         {
-            return this.MailingStatus != ShippingStatus.Ack.ToString();
+            if (this.MailingStatus == ShippingStatus.NotFound.ToString() || this.MailingStatus == ShippingStatus.InProgress.ToString()) return false;
+            return this.MailingStatus != ShippingStatus.Acknowledgement.ToString();
         }
         public bool ShouldSerializeReceivedOn()
         {
-            return this.MailingStatus != ShippingStatus.Ack.ToString();
+            if (this.MailingStatus == ShippingStatus.NotFound.ToString() || this.MailingStatus == ShippingStatus.InProgress.ToString()) return false;
+            return this.MailingStatus != ShippingStatus.Acknowledgement.ToString();
         }
         public bool ShouldSerializeBusinessFriendlyIdName()
         {
-            return this.MailingStatus != ShippingStatus.Ack.ToString();
+            if (this.MailingStatus == ShippingStatus.NotFound.ToString() || this.MailingStatus == ShippingStatus.InProgress.ToString()) return false;
+            return this.MailingStatus != ShippingStatus.Acknowledgement.ToString();
         }
         public bool ShouldSerializeBusinessFriendlyIdValue()
         {
-            return this.MailingStatus != ShippingStatus.Ack.ToString();
+            if (this.MailingStatus == ShippingStatus.NotFound.ToString() || this.MailingStatus == ShippingStatus.InProgress.ToString()) return false;
+            return this.MailingStatus != ShippingStatus.Acknowledgement.ToString();
         }
         public bool ShouldSerializeDocumentOrPackage()
         {
-            return this.MailingStatus != ShippingStatus.Ack.ToString();
+            if (this.MailingStatus == ShippingStatus.NotFound.ToString() || this.MailingStatus == ShippingStatus.InProgress.ToString()) return false;
+            return this.MailingStatus != ShippingStatus.Acknowledgement.ToString();
         }
         public bool ShouldSerializeRecipientInfo()
         {
-            return this.MailingStatus != ShippingStatus.Ack.ToString();
+            if (this.MailingStatus == ShippingStatus.NotFound.ToString() || this.MailingStatus == ShippingStatus.InProgress.ToString()) return false;
+            return this.MailingStatus != ShippingStatus.Acknowledgement.ToString();
         }
-        public bool ShouldSerializeMailingStatus()
-        {
-            return this.MailingStatus != ShippingStatus.Ack.ToString();
-        }
+        //public bool ShouldSerializeMailingStatus()
+        //{
+        //    return this.MailingStatus != null;
+        //}
         public bool ShouldSerializeErrorCode()
         {
-            if (this.MailingStatus == ShippingStatus.Ack.ToString()) return false;
+            if (this.MailingStatus == ShippingStatus.Acknowledgement.ToString() || this.MailingStatus == ShippingStatus.InProgress.ToString()) return false;
             return this.MailingStatus == ShippingStatus.Error.ToString() || this.MailingStatus == ShippingStatus.Unknown.ToString();
         }
         public bool ShouldSerializeErrorDesc()
         {
-            if (this.MailingStatus == ShippingStatus.Ack.ToString()) return false;
+            if (this.MailingStatus == ShippingStatus.Acknowledgement.ToString() || this.MailingStatus == ShippingStatus.InProgress.ToString()) return false;
             return this.MailingStatus == ShippingStatus.Error.ToString() || this.MailingStatus == ShippingStatus.Unknown.ToString();
         }
 
         public bool ShouldSerializeShippedOn()
         {
-            if (this.MailingStatus == ShippingStatus.Ack.ToString()) return false;
+            if (this.MailingStatus == ShippingStatus.Acknowledgement.ToString() || this.MailingStatus == ShippingStatus.InProgress.ToString()) return false;
             return this.MailingStatus == ShippingStatus.Shipped.ToString() || this.MailingStatus == ShippingStatus.eDelivered.ToString();
         }
         public bool ShouldSerializeShippingMethod()
         {
-            if (this.MailingStatus == ShippingStatus.Ack.ToString()) return false;
+            if (this.MailingStatus == ShippingStatus.Acknowledgement.ToString() || this.MailingStatus == ShippingStatus.InProgress.ToString()) return false;
             return this.MailingStatus == ShippingStatus.Shipped.ToString() || this.MailingStatus == ShippingStatus.eDelivered.ToString();
         }
         public bool ShouldSerializeShippingServiceType()
         {
-            if (this.MailingStatus == ShippingStatus.Ack.ToString()) return false;
+            if (this.MailingStatus == ShippingStatus.Acknowledgement.ToString() || this.MailingStatus == ShippingStatus.InProgress.ToString()) return false;
             return this.MailingStatus == ShippingStatus.Shipped.ToString() || this.MailingStatus == ShippingStatus.eDelivered.ToString();
         }
         public bool ShouldSerializeTrackingNumber()
         {
-            if (this.MailingStatus == ShippingStatus.Ack.ToString()) return false;
+            if (this.MailingStatus == ShippingStatus.Acknowledgement.ToString() || this.MailingStatus == ShippingStatus.InProgress.ToString()) return false;
             return this.MailingStatus == ShippingStatus.Shipped.ToString() || this.MailingStatus == ShippingStatus.eDelivered.ToString();
         }
         public bool ShouldSerializeTotalPages()
         {
-            if (this.MailingStatus == ShippingStatus.Ack.ToString()) return false;
+            if (this.MailingStatus == ShippingStatus.Acknowledgement.ToString() || this.MailingStatus == ShippingStatus.InProgress.ToString()) return false;
             return this.MailingStatus == ShippingStatus.Shipped.ToString() || this.MailingStatus == ShippingStatus.eDelivered.ToString();
         }
         public bool ShouldSerializeTotalSheets()
         {
-            if (this.MailingStatus == ShippingStatus.Ack.ToString()) return false;
+            if (this.MailingStatus == ShippingStatus.Acknowledgement.ToString() || this.MailingStatus == ShippingStatus.InProgress.ToString()) return false;
             return this.MailingStatus == ShippingStatus.Shipped.ToString() || this.MailingStatus == ShippingStatus.eDelivered.ToString();
         }
         public bool ShouldSerializePulledBackOn()
         {
-            if (this.MailingStatus == ShippingStatus.Ack.ToString()) return false;
+            if (this.MailingStatus == ShippingStatus.Acknowledgement.ToString() || this.MailingStatus == ShippingStatus.InProgress.ToString()) return false;
             return this.MailingStatus == ShippingStatus.PulledBack.ToString();
         }
     }

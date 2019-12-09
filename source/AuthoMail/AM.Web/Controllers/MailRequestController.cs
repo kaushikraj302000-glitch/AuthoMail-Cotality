@@ -38,7 +38,6 @@ namespace AM.Web.Controllers
         {
             if (mailPiece == null) throw new HttpResponseException(HttpStatusCode.BadRequest);
             DateTime receivedTime = Common.Now;
-            SuccessResponse successResponse = new SuccessResponse();
             SFTChannel sFTChannel;
             Client client;
             MailBatch mailBatch = new MailBatch()
@@ -131,7 +130,7 @@ namespace AM.Web.Controllers
                             return new MailAPIResponse
                             {
                                 UniqueId = mp.Id,
-                                MailingStatus = ShippingStatus.Ack.ToString(),
+                                MailingStatus = ShippingStatus.Acknowledgement.ToString(),
                                 Message = "Your request is queued for processing."
                             };
                         }
@@ -164,6 +163,84 @@ namespace AM.Web.Controllers
                 log.Error(msg, ex);
                 return new MailAPIResponse { MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = OutComeCodes.Unknown_Error, ErrorDesc = msg, ReceivedOn = receivedTime };
             }
+        }
+
+        [Route("mailresponse")]
+        [HttpGet]
+        public List<MailAPIResponse> MailAPIResponse(string mailPieceIds)
+        {
+            if (mailPieceIds == null) throw new HttpResponseException(HttpStatusCode.BadRequest);
+
+            List<string> uniqueIds = mailPieceIds.Split(',').ToList();
+            //if (mailPieceIds.Count > 1000) throw new HttpResponseException(HttpStatusCode.BadRequest);
+            List<MailAPIResponse> mailAPIResponses = new List<MailAPIResponse>();
+
+            foreach (var mailPieceId in uniqueIds)
+            {
+                using (MailPieceService mailPieceService = new MailPieceService())
+                {
+                    var response = mailPieceService.GetMailPieceDetailsByMailPieceUniqueId(mailPieceId);
+                    if (response != null)
+                    {
+                        mailAPIResponses.Add(new MailAPIResponse
+                        {
+                            Id = response.UniqueId,
+                            ReceivedOn = response.ReceivedOn,
+                            ClientCode = response.AppCode,
+                            BusinessFriendlyIdName = response.BusinessFriendlyIdName,
+                            BusinessFriendlyIdValue = response.BusinessFriendlyIdValue,
+                            DocumentOrPackage = new DocumentOrPackage { Name = response.FileName },
+                            RecipientInfo = new RecipientInfo
+                            {
+                                Recipient = new Recipient
+                                {
+                                    Organization = response.RcptOrganization,
+                                    Prefix = response.RcptPrefix,
+                                    Suffix = response.RcptSuffix,
+                                    FirstName = response.RcptFirstName,
+                                    MiddleName = response.RcptMiddleName,
+                                    LastName = response.RcptLastName,
+                                    Phone = response.RcptPhone,
+                                    EmailAddress = response.RcptEmailId
+                                },
+                                Address = new Entities.Address
+                                {
+                                    OptionalLine1AboveStreet = response.RcptAddrOptionalLine1AboveStreet,
+                                    OptionalLine1BelowStreet = response.RcptAddrOptionalLine1BelowStreet,
+                                    OptionalLine2AboveStreet = response.RcptAddrOptionalLine2AboveStreet,
+                                    OptionalLine2BelowStreet = response.RcptAddrOptionalLine2BelowStreet,
+                                    AptOrSuiteOrOther = response.RcptAddressAptOrSuiteOrOther,
+                                    Street = response.RcptAddressStreet,
+                                    City = response.RcptAddressCity,
+                                    State = response.RcptAddressState,
+                                    Zip = response.RcptAddressZIP,
+                                    Country = response.RcptAddressCountry
+                                }
+                            },
+                            MailingStatus = response.ShippingStatus,
+                            ErrorCode = response.ErrorCode,
+                            ErrorDesc = response.ErrorDesc,
+                            ShippedOn = response.ShippedOn,
+                            ShippingMethod = response.ShippingCarrier,
+                            ShippingServiceType = response.ShippingServiceType,
+                            TrackingNumber = response.TrackingNo,
+                            TotalPages = response.TotalPages,
+                            TotalSheets = response.TotalSheets,
+                            PulledBackOn = response.PulledBackOn
+                        });
+                    }
+                    else
+                    {
+                        mailAPIResponses.Add(new MailAPIResponse
+                        {
+                            Id = Guid.Parse(mailPieceId),
+                            MailingStatus = ShippingStatus.NotFound.ToString(),
+                            Message = "The specified package does not exist."
+                        });
+                    }
+                }
+            }
+            return mailAPIResponses;
         }
 
         private static void InsertInvalidBatch(DateTime receivedTime, SFTChannel sFTChannel, MailBatch mailBatch, int clientId, string errorMessage)
