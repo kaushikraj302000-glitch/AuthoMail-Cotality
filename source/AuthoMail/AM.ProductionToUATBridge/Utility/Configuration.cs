@@ -29,6 +29,9 @@ namespace AM.ProductionToUATBridge
             UATChannelCode = ConfigurationManager.AppSettings["UATChannelCode"];
             PrintReadyUATChannelCode = ConfigurationManager.AppSettings["PrintReadyUATChannelCode"].Trim();
             PrintReadyClientCodes = ConfigurationManager.AppSettings["PrintReadyClientCodes"].Trim().Split(',');
+            Monitor_Exception_Email_To = ConfigurationManager.AppSettings["Monitor_Exception_Email_To"].Trim();
+            Monitor_Exception_Email_Cc = ConfigurationManager.AppSettings["Monitor_Exception_Email_Cc"].Trim();
+            Monitor_ExceptionEmail_Subject = ConfigurationManager.AppSettings["Monitor_ExceptionEmail_Subject"].Trim();
         }
     }
 }
