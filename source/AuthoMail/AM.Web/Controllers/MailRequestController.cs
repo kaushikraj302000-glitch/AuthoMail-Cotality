@@ -45,6 +45,20 @@ namespace AM.Web.Controllers
                 Id = Guid.NewGuid()
             };
             MailPiece mp = mailPiece;
+
+
+            using (ICommonService commonSvc = new CommonService())
+            {
+                if (mp.Id != Guid.Empty && commonSvc.CheckForDuplicateMailPieceUniqueId(mailPiece.Id))
+                {
+                    var result = new MailPieceValidationResult() { Code = OutComeCodes.Invalid_DuplicateKey, ErrorMessage = string.Format("The specified package id '{0}' conflicts with an existing package. Retry with a new GUID.", mailPiece.Id) };
+                    if (result.Code != OutComeCodes.No_Error)
+                    {
+                        return new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = result.Code, ErrorDesc = result.ErrorMessage, ReceivedOn = receivedTime };
+                    }
+                }
+            }
+
             using (IClientService clientService = new ClientService())
             {
                 sFTChannel = clientService.GetSFTChannelDetailsBySFTChannelId(User.Identity.SFTChannelId().Value);
@@ -172,7 +186,6 @@ namespace AM.Web.Controllers
             if (mailPieceIds == null) throw new HttpResponseException(HttpStatusCode.BadRequest);
 
             List<string> uniqueIds = mailPieceIds.Split(',').ToList();
-            //if (mailPieceIds.Count > 1000) throw new HttpResponseException(HttpStatusCode.BadRequest);
             List<MailAPIResponse> mailAPIResponses = new List<MailAPIResponse>();
 
             foreach (var mailPieceId in uniqueIds)
