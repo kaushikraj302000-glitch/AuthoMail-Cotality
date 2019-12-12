@@ -25,6 +25,7 @@ namespace AM.Services
         int InsertBatchMailPieceDetails(MailPiece mailPiece, int clientId, int mailBatchId, string errorCode, string errorDesc);
         int InsertBatchMailPieceCustomDetails(List<Metadata> mailPieceCustomInfos, int mailPieceId);
         List<MailPieceDTO> GetMailPiecesForUATBridge();
+        List<MailPieceDTO> GetMailPiecesForUATBridge(DateTime utcStartDate, int clientId);
         List<MailPieceCustomInfo> GetMailPieceCustomInfos(int mailPieceId);
         BatchResponse GetMailPieceDetailsByMailPieceUniqueId(string uniqueId);
     }
@@ -182,6 +183,14 @@ namespace AM.Services
             string query = @"SELECT M.*,B.ReceivedOn FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id WHERE M.ShippingStatus <> 'Error' AND B.ReceivedOn > ISNULL((SELECT TOP 1 LastProcessedOn FROM dbo.ProductionBridge ORDER BY Id DESC), DATEADD(DAY,-5,GETUTCDATE()))";
 
             var data = db.Query<MailPieceDTO>(query).ToList();
+            return data;
+        }
+
+        public List<MailPieceDTO> GetMailPiecesForUATBridge(DateTime utcStartDate, int clientId)
+        {
+            string query = @"SELECT M.*,B.ReceivedOn FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id WHERE M.ShippingStatus <> 'Error' AND M.ClientId = @ClientId AND B.ReceivedOn > @ReceivedOn";
+
+            var data = db.Query<MailPieceDTO>(query, new { ClientId = clientId, ReceivedOn = utcStartDate }).ToList();
             return data;
         }
 

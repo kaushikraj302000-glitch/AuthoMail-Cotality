@@ -22,9 +22,13 @@ namespace AM.ProductionToUATBridge
             using (IMailPieceService mailPieceSvc = new MailPieceService())
             using (IClientService clientSvc = new ClientService())
             {
-
-
                 List<MailPieceDTO> mailPieces = mailPieceSvc.GetMailPiecesForUATBridge();
+
+                if (mailPieces.Count == 0)
+                {
+                    log.Debug("No MailPieces Found");
+                    return;
+                }
                 var mpByClients = mailPieces.GroupBy(mp => mp.ClientId).ToList();
                 Dictionary<string, float> ratioList = new Dictionary<string, float>();
                 Configuration.ProductionVolumnRatio.ToList().ForEach(rt =>
@@ -38,6 +42,10 @@ namespace AM.ProductionToUATBridge
                     try
                     {
                         var client = clientSvc.GetClientById(mpData.Key);
+
+                        if (client.AppCode == "RPS" || client.AppCode == "CITIVM")
+                            continue;
+
                         SFTChannel sftChannel;
                         if (Configuration.PrintReadyClientCodes.Contains(client.AppCode))
                         {
