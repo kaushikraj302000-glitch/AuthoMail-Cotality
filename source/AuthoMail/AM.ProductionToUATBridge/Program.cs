@@ -67,7 +67,7 @@ namespace AM.ProductionToUATBridge
                             var randomIndexes = new List<int>();
                             while (randomIndexes.Count < qcCount)
                             {
-                                var index = random.Next(0, mpList.Count - 1);
+                                var index = random.Next(0, mpListByMb.Count - 1);
                                 if (!randomIndexes.Contains(index))
                                 {
                                     randomIndexes.Add(index);
@@ -146,7 +146,7 @@ namespace AM.ProductionToUATBridge
                                     mpCustomInfos.ForEach(mpc =>
                                     {
                                         if (mpc != null)
-                                            customInfo.Add(new AM.ProductionToUATBridge.Metadata() { Key = mpc.Key, DataType = (AM.ProductionToUATBridge.DataType)mpc.DataType, Value = mpc.Value });
+                                            customInfo.Add(new Metadata() { Key = mpc.Key, DataType = (DataType)mpc.DataType, Value = mpc.Value });
                                     });
 
                                     package.CustomInfo = customInfo;
