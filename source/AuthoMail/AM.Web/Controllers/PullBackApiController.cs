@@ -82,7 +82,7 @@ namespace AM.Web.Controllers
                     }
                     else if (item.AMMailPieceStatus == "Error" || item.PnSMailPieceStatus == "Error")
                     {
-                        mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.MailPieceUniqueId.ToString(), Message = Config.Web_Msg_API_PB_Error, ErrorDescription = string.IsNullOrEmpty(item.PnSErrorDescription.ToString()) ? item.PnSErrorDescription.ToString() : item.AMErrorDescription.ToString(), Success = false });
+                        mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.MailPieceUniqueId.ToString(), Message = Config.Web_Msg_API_PB_Error, ErrorDescription = !string.IsNullOrEmpty(item.PnSErrorDescription) ? item.PnSErrorDescription.ToString() : item.AMErrorDescription.ToString(), Success = false });
                     }
                     else if (item.AMMailPieceStatus == "Shipped" || item.PnSMailPieceStatus == "Shipped")
                     {
