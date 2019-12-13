@@ -18,6 +18,7 @@ namespace AM.Entities
         public string BusinessFriendlyIdValue { get; set; }
         public string FileName { get; set; }
         public string FilePattern { get; set; }
+        public string Inserts { get; set; }
         public string DocumentOrPackageType { get; set; }
         public DateTime? DueDate { get; set; }
         public string ShippingStatus { get; set; }

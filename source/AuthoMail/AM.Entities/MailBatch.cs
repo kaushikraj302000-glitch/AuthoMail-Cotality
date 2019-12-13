@@ -133,6 +133,8 @@ namespace AM.Entities
         [XmlAttribute]
         [XmlIgnore]
         public string Base64String { get; set; }
+        [XmlAttribute]
+        public string Inserts { get; set; }
 
         public bool ShouldSerializePattern()
         {
@@ -142,6 +144,10 @@ namespace AM.Entities
         public bool ShouldSerializeBase64String()
         {
             return this.IncludePatternBaseString;
+        }
+        public bool ShouldSerializeInserts()
+        {
+            return this.Inserts != null;
         }
         [JsonIgnore]
         [XmlIgnore]

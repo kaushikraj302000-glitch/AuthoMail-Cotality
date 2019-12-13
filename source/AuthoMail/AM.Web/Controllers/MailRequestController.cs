@@ -195,7 +195,7 @@ namespace AM.Web.Controllers
                             ClientCode = response.AppCode,
                             BusinessFriendlyIdName = response.BusinessFriendlyIdName,
                             BusinessFriendlyIdValue = response.BusinessFriendlyIdValue,
-                            DocumentOrPackage = new DocumentOrPackage { Name = response.FileName },
+                            DocumentOrPackage = new DocumentOrPackage { Name = response.FileName, Inserts = response.Inserts },
                             RecipientInfo = new RecipientInfo
                             {
                                 Recipient = new Recipient
