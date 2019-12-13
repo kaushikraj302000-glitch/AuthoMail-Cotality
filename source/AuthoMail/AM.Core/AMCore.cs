@@ -1075,7 +1075,7 @@ namespace AM.Core
                         printBatch.DocTypeId = docType.Id;
                         printBatch.PnSConfigDetailId = docType.PnSConfigDetailId.Value;
                         printBatch.PrintTrailId = printTrailId.Value;
-                        printBatch.PrintLocation = commonSvc.GetPrintVendorDetailsByPrintTrailId(printTrailId.Value).Name;
+                        printBatch.PrintLocation = commonSvc.GetPrintVendorDetailsByPrintTrailId(printTrailId.Value).PrintLocation;
                         printBatch.MailPieces = filteredMailPiecesDocTypeWise.Where(c => c.PrintTrailId == printTrailId).ToList();
 
                         printBatches.Add(printBatch);
