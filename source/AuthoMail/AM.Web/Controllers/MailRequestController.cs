@@ -15,6 +15,8 @@ using System.Xml.Serialization;
 using AM.Lib;
 using Newtonsoft.Json.Serialization;
 using System.Web.Http.Cors;
+using System.Threading.Tasks;
+using System.Text;
 
 namespace AM.Web.Controllers
 {
@@ -34,7 +36,7 @@ namespace AM.Web.Controllers
 
         [Route("mailrequest")]
         [HttpPost]
-        public MailAPIResponse CreateMailRequest(MailPiece mailPiece)
+        public async Task<MailAPIResponse> CreateMailRequest(MailPiece mailPiece)
         {
             if (mailPiece == null) throw new HttpResponseException(HttpStatusCode.BadRequest);
             DateTime receivedTime = Common.Now;
@@ -61,7 +63,7 @@ namespace AM.Web.Controllers
 
             using (IClientService clientService = new ClientService())
             {
-                sFTChannel = clientService.GetSFTChannelDetailsBySFTChannelId(User.Identity.SFTChannelId().Value);
+                sFTChannel = await clientService.GetSFTChannelDetailsBySFTChannelId(User.Identity.SFTChannelId().Value);
             }
             try
             {
@@ -70,13 +72,13 @@ namespace AM.Web.Controllers
 
                 using (IClientService clientService = new ClientService())
                 {
-                    client = clientService.GetClientByAppCode(mp.ClientCode);
+                    client = await clientService.GetClientByAppCode(mp.ClientCode);
                     if (client == null)
                     {
                         //Return error response and insert entry of invalid_client
                         // sagar's common method call                        
-                        int clientId = clientService.GetClientByAppCode(sFTChannel.Code.Split('_')[0] + "Invalid").Id;
-                        InsertInvalidBatch(receivedTime, sFTChannel, mailBatch, clientId, "Invalid client code specified.");
+                        int clientId = clientService.GetClientByAppCode(sFTChannel.Code.Split('_')[0] + "Invalid").Result.Id;
+                        await InsertInvalidBatch(receivedTime, sFTChannel, mailBatch, clientId, "Invalid client code specified.");
                         mp.DocumentOrPackage.IncludePatternBaseString = false;
                         return new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = "InvalidClientCode", ErrorDesc = "Invalid client code specified.", ReceivedOn = receivedTime };
                     }
@@ -104,41 +106,32 @@ namespace AM.Web.Controllers
                             List<string> filesToZip = new List<string>();
 
                             string xml = ToXML(mailBatch);
-                            File.WriteAllText(xmlFilePath, xml);
 
-                            //Check first DocumentOrPackage is not null
-                            if (mp.DocumentOrPackage != null && mp.DocumentOrPackage.Base64String != null)
+                            using (FileStream zipToOpen = new FileStream(zipFilePath, FileMode.OpenOrCreate))
                             {
-                                File.WriteAllBytes(pdfFilePath, Convert.FromBase64String(mp.DocumentOrPackage.Base64String));
-                            }
-
-                            filesToZip.Add(xmlFilePath);
-                            filesToZip.Add(pdfFilePath);
-
-                            using (ZipArchive newFile = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
-                            {
-                                foreach (var file in filesToZip)
+                                using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Update))
                                 {
-                                    newFile.CreateEntryFromFile(file, Path.GetFileName(file));
+                                    ZipArchiveEntry xmlEntry = archive.CreateEntry(string.Format("{0}.xml", mailBatch.Id));
+                                    using (StreamWriter writer = new StreamWriter(xmlEntry.Open()))
+                                    {
+                                        await writer.WriteAsync(xml);
+                                    }
+                                    ZipArchiveEntry pdfEntry = archive.CreateEntry(string.Format("{0}.pdf", mp.DocumentOrPackage.Name == null ? mp.Id.ToString() : Path.GetFileNameWithoutExtension(mp.DocumentOrPackage.Name)));
+                                    using (var pdfStream = pdfEntry.Open())
+                                    {
+                                        var payloadStream = new MemoryStream(Convert.FromBase64String(mp.DocumentOrPackage.Base64String));
+                                        await payloadStream.CopyToAsync(pdfStream);
+                                    }
                                 }
                             }
-
+                         
                             if (!File.Exists(triggerFilePath))
                             {
-                                using (var file = File.Create(triggerFilePath))
-                                {
-                                    file.Close();
-                                }
-                                File.SetLastWriteTime(triggerFilePath, receivedTime);
-                            }
+                                using (FileStream sourceStream = new FileStream(triggerFilePath,
+        FileMode.Create, FileAccess.Write, FileShare.None,
+        bufferSize: 4096, useAsync: true)) { }
 
-                            //delete files
-                            foreach (var fileToDelete in filesToZip)
-                            {
-                                if (File.Exists(fileToDelete))
-                                {
-                                    File.Delete(fileToDelete);
-                                }
+                                File.SetLastWriteTime(triggerFilePath, receivedTime);
                             }
 
                             return new MailAPIResponse
@@ -156,14 +149,14 @@ namespace AM.Web.Controllers
                             using (IMailPieceService mailPieceService = new MailPieceService())
                             {
 
-                                int mailBatchId = mailBatchService.InsertBatchDetails(mailBatch, client.Id, sFTChannel);
+                                int mailBatchId = await mailBatchService.InsertBatchDetails(mailBatch, client.Id, sFTChannel);
                                 // insert mailpiece
-                                int mailPieceId = mailPieceService.InsertBatchMailPieceDetails(mp, client.Id, mailBatchId, result.Code, result.ErrorMessage);
-                                commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.Received, receivedTime);
-                                mailBatchService.MarkMailBatchAsInvalid(mailBatchId, "Request does not contain valid package info.");
-                                commonSvc.UpdateBatchStatus(mailBatchId, BatchStatus.Failed.ToString());
-                                commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportPrepped, Common.Now);
-                                commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
+                                int mailPieceId = await mailPieceService.InsertBatchMailPieceDetails(mp, client.Id, mailBatchId, result.Code, result.ErrorMessage);
+                                await commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.Received, receivedTime);
+                                await mailBatchService.MarkMailBatchAsInvalid(mailBatchId, "Request does not contain valid package info.");
+                                await commonSvc.UpdateBatchStatus(mailBatchId, BatchStatus.Failed.ToString());
+                                await commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportPrepped, Common.Now);
+                                await commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
                             }
                             mp.DocumentOrPackage.IncludePatternBaseString = false;
                             return new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = result.Code, ErrorDesc = result.ErrorMessage, ReceivedOn = receivedTime };
@@ -256,18 +249,18 @@ namespace AM.Web.Controllers
             return mailAPIResponses;
         }
 
-        private static void InsertInvalidBatch(DateTime receivedTime, SFTChannel sFTChannel, MailBatch mailBatch, int clientId, string errorMessage)
+        private async static Task InsertInvalidBatch(DateTime receivedTime, SFTChannel sFTChannel, MailBatch mailBatch, int clientId, string errorMessage)
         {
             using (IMailBatchService mailBatchService = new MailBatchService())
             using (ICommonService commonSvc = new CommonService())
             using (IMailPieceService mailPieceService = new MailPieceService())
             {
-                int mailBatchId = mailBatchService.InsertBatchDetails(mailBatch, clientId, sFTChannel);
-                commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.Received, receivedTime);
-                mailBatchService.MarkMailBatchAsInvalid(mailBatchId, errorMessage);
-                commonSvc.UpdateBatchStatus(mailBatchId, BatchStatus.Failed.ToString());
-                commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportPrepped, Common.Now);
-                commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
+                int mailBatchId = await mailBatchService.InsertBatchDetails(mailBatch, clientId, sFTChannel);
+                await commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.Received, receivedTime);
+                await mailBatchService.MarkMailBatchAsInvalid(mailBatchId, errorMessage);
+                await commonSvc.UpdateBatchStatus(mailBatchId, BatchStatus.Failed.ToString());
+                await commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportPrepped, Common.Now);
+                await commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
             }
         }
 

@@ -13,9 +13,9 @@ namespace AM.Services
     public interface IClientService : IDisposable//Home Service interface that has number of methods
     {
         Client GetClientById(int clientId);
-        Client GetClientByAppCode(string appCode);
+        Task<Client> GetClientByAppCode(string appCode);
         List<ClientSFTChannel> GetClientSFTChannelMapDetails(int clientId);
-        SFTChannel GetSFTChannelDetailsBySFTChannelId(int sftChannelId);
+        Task<SFTChannel> GetSFTChannelDetailsBySFTChannelId(int sftChannelId);
         SFTChannel GetSFTChannelDetailsBySFTChannelCode(string sftChannelCode);
         List<ClientAMCCustIdMap> GetAMCClientIdMaps();
     }
@@ -28,10 +28,10 @@ namespace AM.Services
             return data;
         }
 
-        public Client GetClientByAppCode(string appCode)
+        public async Task<Client> GetClientByAppCode(string appCode)
         {
             string query = "SELECT * FROM [Common].[Clients] WHERE IsAMActive=1 and AppCode = @AppCode";
-            var data = db.QuerySingleOrDefault<Client>(query, new { AppCode = appCode });
+            var data = await db.QuerySingleOrDefaultAsync<Client>(query, new { AppCode = appCode });
             return data;
         }
 
@@ -43,11 +43,11 @@ namespace AM.Services
             return data;
         }
 
-        public SFTChannel GetSFTChannelDetailsBySFTChannelId(int sftChannelId)
+        public async Task<SFTChannel> GetSFTChannelDetailsBySFTChannelId(int sftChannelId)
         {
             string query = "SELECT Id, Code, Description, Title, Protocol, Host, UserName, Password, ToADEDir, FromADEDir, ArchiveDir, PostDownloadAction FROM [Common].[SFTChannels] WHERE Id=@sftChannelId AND IsActive=1";
 
-            var data = db.QuerySingleOrDefault<SFTChannel>(query, new { sftChannelId = sftChannelId });
+            var data = await db.QuerySingleOrDefaultAsync<SFTChannel>(query, new { sftChannelId = sftChannelId });
             return data;
         }
 

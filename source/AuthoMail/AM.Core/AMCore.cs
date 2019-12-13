@@ -623,7 +623,7 @@ namespace AM.Core
             using (IMailBatchService mailBatchSvc = new MailBatchService())
             using (ICommonService commonSvc = new CommonService())
             {
-                sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelId(mbi.MailBatch.SFTChannelId);
+                sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelId(mbi.MailBatch.SFTChannelId).Result;
                 SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannel.Protocol), sftChannel.Host, sftChannel.UserName, sftChannel.Password, 300000);
                 sftSite.Connect();
                 switch (sftChannel.Code.Split('_')[0])
@@ -885,7 +885,7 @@ namespace AM.Core
             using (IMailBatchService mailBatchSvc = new MailBatchService())
             using (ICommonService commonSvc = new CommonService())
             {
-                sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelId(mbi.MailBatch.SFTChannelId);
+                sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelId(mbi.MailBatch.SFTChannelId).Result;
 
                 switch (sftChannel.Code.Split('_')[0])
                 {
@@ -1160,7 +1160,7 @@ namespace AM.Core
                     var clientAppCodes = submittedPrintBatches.Select(client => client.AppCode).Distinct();
                     foreach (var appCode in clientAppCodes)
                     {
-                        Client client = clientSvc.GetClientByAppCode(appCode);
+                        Client client = clientSvc.GetClientByAppCode(appCode).Result;
 
                         List<string> responseFiles = Directory.EnumerateFiles(Path.Combine(Config.Core_PnS_SFT_RootDir, client.AppCode), "*.rpt").ToList();
 
@@ -1307,7 +1307,7 @@ namespace AM.Core
 
                         increamentalReportingChannels = increamentalReportingChannels.Select(c => c + "_" + Config.Common_Environment).ToList();
 
-                        string channelCode = clientSvc.GetSFTChannelDetailsBySFTChannelId(printBatch.SFTChannelId).Code;
+                        string channelCode = clientSvc.GetSFTChannelDetailsBySFTChannelId(printBatch.SFTChannelId).Result.Code;
 
                         MailBatches mailBatch = reportSvc.GetMailBatchDataFromMailBatchId(printBatch.MailBatchId);
 
@@ -1448,7 +1448,7 @@ namespace AM.Core
                         List<Deliverable> deliverables = commonSvc.GetDeliverablesByClientId(client.Id);
 
                         MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
-                        SFTChannel sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelId(mbi.MailBatch.SFTChannelId);
+                        SFTChannel sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelId(mbi.MailBatch.SFTChannelId).Result;
                         List<MailPieces> mailPieces;
                         using (IReportService reportSvc = new ReportService())
                         {

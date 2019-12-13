@@ -38,7 +38,7 @@ namespace AM.Console
         {
             hsbcSvc = GetService<HSBCService>();
             string appCode = channelCode.Split('_')[0];
-            client = clientSvc.GetClientByAppCode(appCode);
+            client = clientSvc.GetClientByAppCode(appCode).Result;
             this.channelType = channelType;
         }
 
