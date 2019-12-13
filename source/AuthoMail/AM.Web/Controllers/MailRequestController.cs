@@ -77,8 +77,8 @@ namespace AM.Web.Controllers
                     {
                         //Return error response and insert entry of invalid_client
                         // sagar's common method call                        
-                        int clientId = clientService.GetClientByAppCode(sFTChannel.Code.Split('_')[0] + "_Invalid").Result.Id;
-                        await InsertInvalidBatch(receivedTime, sFTChannel, mailBatch, clientId, "Invalid client code specified.");
+                        var invalidClient = await clientService.GetClientByAppCode(sFTChannel.Code.Split('_')[0] + "_Invalid");
+                        await InsertInvalidBatch(receivedTime, sFTChannel, mailBatch, invalidClient.Id, "Invalid client code specified.");
                         mp.DocumentOrPackage.IncludePatternBaseString = false;
                         return new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = "InvalidClientCode", ErrorDesc = "Invalid client code specified.", ReceivedOn = receivedTime };
                     }

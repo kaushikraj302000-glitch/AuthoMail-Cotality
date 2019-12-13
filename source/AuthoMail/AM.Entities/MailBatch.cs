@@ -145,10 +145,7 @@ namespace AM.Entities
         {
             return this.IncludePatternBaseString;
         }
-        public bool ShouldSerializeInserts()
-        {
-            return this.Inserts != null;
-        }
+
         [JsonIgnore]
         [XmlIgnore]
         public bool IncludePatternBaseString { get; set; }
