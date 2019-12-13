@@ -179,7 +179,7 @@ namespace AM.Console
                     return;
                 }
 
-                client = clientSvc.GetClientByAppCode(clientCode);
+                client = clientSvc.GetClientByAppCode(clientCode).Result;
 
                 if (client == null)
                 {
@@ -341,7 +341,7 @@ namespace AM.Console
 
             string remoteFilePath = Path.Combine(deliverable.UploadPath, invalidBatchFileName);
 
-            var mailBatchSFTChannel = clientSvc.GetSFTChannelDetailsBySFTChannelId(mailBatch.SFTChannelId);
+            var mailBatchSFTChannel = clientSvc.GetSFTChannelDetailsBySFTChannelId(mailBatch.SFTChannelId).Result;
 
             SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(mailBatchSFTChannel.Protocol), mailBatchSFTChannel.Host, mailBatchSFTChannel.UserName, mailBatchSFTChannel.Password, 300000);
             sftSite.Connect();
@@ -390,7 +390,7 @@ namespace AM.Console
 
         private Client GetInvalidClient(string sftChannelCode)
         {
-            return clientSvc.GetClientByAppCode(sftChannelCode + "_Invalid");
+            return clientSvc.GetClientByAppCode(sftChannelCode + "_Invalid").Result;
         }
 
         private List<string> GetTriggerFilePaths(SFTUtil sftSite)

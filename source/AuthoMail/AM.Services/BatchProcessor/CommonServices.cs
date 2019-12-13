@@ -12,9 +12,9 @@ namespace AM.Services
 {
     public interface ICommonService : IDisposable
     {
-        int UpdateBatchPipeLineStatus(int batchId, string pipeLineStatus, DateTime timestamp);
+        Task<int> UpdateBatchPipeLineStatus(int batchId, string pipeLineStatus, DateTime timestamp);
         int UpdateEDeliveryPipelineStatus(int batchId, string pipeLineStatus, DateTime timestamp);
-        int UpdateBatchStatus(int batchId, string batchStatus);
+        Task<int> UpdateBatchStatus(int batchId, string batchStatus);
         int UpdateBatchValidationStatus(int batchId, string validationStatus, string validationErrors);
         int AMLogBatchTimeLine(int batchId, string activityName, DateTime timeStamp);
         int UpdatePrintBatchStatus(int printBatchId, string batchStatus, string statusDescription = null);
@@ -47,7 +47,7 @@ namespace AM.Services
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
 
-        public int UpdateBatchPipeLineStatus(int batchId, string pipeLineStatus, DateTime timestamp)
+        public async Task<int> UpdateBatchPipeLineStatus(int batchId, string pipeLineStatus, DateTime timestamp)
         {
             string query;
             if (pipeLineStatus == BatchPipelineStatus.SubmittedToEDelivery)//System will move pipelinestatus to SubmittedToEDelivery to exclude it from regular print and ship process.
@@ -57,7 +57,7 @@ namespace AM.Services
             else
                 query = "UPDATE [AM].[MailBatches] SET PipelineStatus = @pipelineStatus, {0}On = @timestamp WHERE Id = @batchId".Fill(pipeLineStatus);
 
-            return db.Execute(query, new { pipeLineStatus = pipeLineStatus, timestamp = timestamp, batchId = batchId });
+            return await db.ExecuteAsync(query, new { pipeLineStatus = pipeLineStatus, timestamp = timestamp, batchId = batchId });
         }
 
         public int UpdateEDeliveryPipelineStatus(int batchId, string pipeLineStatus, DateTime timestamp)
@@ -67,11 +67,11 @@ namespace AM.Services
             return db.Execute(query, new { pipeLineStatus = pipeLineStatus, timestamp = timestamp, batchId = batchId });
         }
 
-        public int UpdateBatchStatus(int batchId, string batchStatus)
+        public async Task<int> UpdateBatchStatus(int batchId, string batchStatus)
         {
             string query = "UPDATE [AM].[MailBatches] SET BatchStatus = @batchStatus WHERE Id = @batchId";
 
-            return db.Execute(query, new { batchStatus = batchStatus, batchId = batchId });
+            return await db.ExecuteAsync(query, new { batchStatus = batchStatus, batchId = batchId });
         }
 
         public int UpdateBatchValidationStatus(int batchId, string validationStatus, string validationErrors)

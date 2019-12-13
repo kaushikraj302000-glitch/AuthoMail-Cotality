@@ -208,7 +208,7 @@ namespace AM.Console
                 {
                     try
                     {
-                        Client client = clientSvc.GetClientByAppCode(preppedPrintBatch.AppCode);
+                        Client client = clientSvc.GetClientByAppCode(preppedPrintBatch.AppCode).Result;
 
                         List<Deliverable> deliverables = commonSvc.GetDeliverablesByClientId(client.Id);
 

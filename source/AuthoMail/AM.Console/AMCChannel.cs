@@ -382,7 +382,7 @@ namespace AM.Console
 
         private Client GetInvalidClient()
         {
-            return clientSvc.GetClientByAppCode("AMCInvalid");
+            return clientSvc.GetClientByAppCode("AMCInvalid").Result;
         }
 
         private void SeparateXMLsAndPDFsClientWise(List<XmlNode> packages, XmlNamespaceManager nsManager, string amcDownloadPath, string clientCode, string batchName, Guid batchUniqueId)

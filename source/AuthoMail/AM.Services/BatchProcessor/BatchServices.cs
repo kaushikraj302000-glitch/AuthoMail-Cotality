@@ -18,7 +18,7 @@ namespace AM.Services
         List<MailBatchDTO> InsertBatchDetails(List<MailBatchDTO> mailBatches);
         int DeleteMailPiecesDetailsByMailBatchId(int mailBatchId);
         int UpdateBatchDetails(MailBatchDTO mailBatch);
-        int MarkMailBatchAsInvalid(int id, string errorDesc);
+        Task<int> MarkMailBatchAsInvalid(int id, string errorDesc);
         List<MailBatchDTO> GetBatchesByPipelineStatusAndClientId(string batchPipelineStatus, int? clientId = null);
         List<MailBatchDTO> GetBatchesByPipelineStatusAndSFTChannelId(string batchPipelineStatus, int? sftChannelId = null);
         BatchData GetMailBatchDetailsByBatchId(int mailBatchId);
@@ -30,7 +30,7 @@ namespace AM.Services
         int GetMailBatchesReceivedCount(DateTime startTime, DateTime endTime, string status);
         int UpdatePrintBatchPipelineStatus(int printBatchId, string pipeLineStatus, DateTime timestamp);
         int RemainingPrintBatchesReportedBackCount(int mailBatchId);
-        int InsertBatchDetails(MailBatch mailBatch, int clientId, SFTChannel sFTChannel);
+        Task<int> InsertBatchDetails(MailBatch mailBatch, int clientId, SFTChannel sFTChannel);
         int InsertLastProcessTimeForUATBatches(DateTime lastProcessedDateTime);
     }
     public class MailBatchService : ServiceBase, IMailBatchService //It implements Interfaces 
@@ -53,7 +53,7 @@ namespace AM.Services
 
             string query = @"INSERT INTO [AM].[MailBatchCustomInfo]([MailBatchId], [Key], [DataType], [Value]) VALUES (@MailBatchId, @Key, @DataType, @Value)";
 
-            db.Execute(query, mailBatchCustomInfo);
+            db.ExecuteAsync(query, mailBatchCustomInfo);
 
             return mailBatchId;
         }
@@ -83,11 +83,11 @@ namespace AM.Services
             return db.Execute(query, mailBatch);
         }
 
-        public int MarkMailBatchAsInvalid(int id, string errorDesc)
+        public async Task<int> MarkMailBatchAsInvalid(int id, string errorDesc)
         {
             string query = "UPDATE [AM].[MailBatches] SET [ValidationStatus] = @ValidationStatus, [ValidationErrors] = @ValidationErrors WHERE Id=@Id";
 
-            return db.Execute(query, new { ValidationStatus = BatchValidationStatus.Invalid, ValidationErrors = errorDesc, Id = id });
+            return await db.ExecuteAsync(query, new { ValidationStatus = BatchValidationStatus.Invalid, ValidationErrors = errorDesc, Id = id });
         }
 
         public List<MailBatchDTO> GetBatchesByPipelineStatusAndClientId(string batchPipelineStatus, int? clientId)
@@ -269,11 +269,11 @@ namespace AM.Services
             return db.ExecuteScalar<int>(query, new { MailBatchId = mailBatchId });
         }
 
-        public int InsertBatchDetails(MailBatch mailBatch, int clientId, SFTChannel sFTChannel)
+        public async Task<int> InsertBatchDetails(MailBatch mailBatch, int clientId, SFTChannel sFTChannel)
         {
             string query = @"INSERT INTO [AM].[MailBatches](UniqueId, ClientId, SFTChannelId, ClientBatchId,  BatchName, Priority) Output Inserted.Id VALUES (@UniqueId, @ClientId, @SFTChannelId, @ClientBatchId, @BatchName, @Priority)";
 
-            return db.ExecuteScalar<int>(query, new { UniqueId = mailBatch.Id, ClientId = clientId, SFTChannelId = sFTChannel.Id, ClientBatchId = mailBatch.ClientBatchId, BatchName = mailBatch.ClientBatchId, Priority = Priority.Low.ToString() });
+            return await db.ExecuteScalarAsync<int>(query, new { UniqueId = mailBatch.Id, ClientId = clientId, SFTChannelId = sFTChannel.Id, ClientBatchId = mailBatch.ClientBatchId, BatchName = mailBatch.ClientBatchId, Priority = Priority.Low.ToString() });
         }
 
         public int InsertLastProcessTimeForUATBatches(DateTime lastProcessedDateTime)
