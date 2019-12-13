@@ -12,6 +12,7 @@ namespace AM.ProductionToUATBridge
         public static string AMRootPath { get; set; }
         public static string DestinationPath { get; set; }
         public static string AMRequestFolder { get; set; }
+        public static string CoverPageFolder { get; set; }
         public static string[] ProductionVolumnRatio { get; set; }
         public static string UATChannelCode { get; set; }
         public static string PrintReadyUATChannelCode { get; set; }
@@ -25,6 +26,7 @@ namespace AM.ProductionToUATBridge
             AMRootPath = ConfigurationManager.AppSettings["AMRootPath"].Trim();
             DestinationPath = ConfigurationManager.AppSettings["DestinationPath"].Trim();
             AMRequestFolder = ConfigurationManager.AppSettings["AMRequestFolder"].Trim();
+            CoverPageFolder = ConfigurationManager.AppSettings["CoverPageFolder"].Trim();
             ProductionVolumnRatio = ConfigurationManager.AppSettings["ProductionVolumnRatio"].Trim().Split(',');
             UATChannelCode = ConfigurationManager.AppSettings["UATChannelCode"];
             PrintReadyUATChannelCode = ConfigurationManager.AppSettings["PrintReadyUATChannelCode"].Trim();
