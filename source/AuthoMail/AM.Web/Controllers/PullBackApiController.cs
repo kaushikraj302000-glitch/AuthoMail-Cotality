@@ -248,6 +248,204 @@ namespace AM.Web.Controllers
             }
 
         }
+
+        [Route("pullbackold")]
+        [HttpPost]
+        public async Task<object> GeneratePullBackRequestOld([FromBody] List<string> mailPieceIds)
+        {
+            if (mailPieceIds == null || mailPieceIds.Count == 0)
+            {
+                return JsonResponseFactory.ErrorResponse(Config.Web_Msg_API_PB_Empty);
+            }
+            try
+            {
+                USPSApiController uSPSApi = new USPSApiController(uspsSvc);
+                //Dictionary<string, string> mailPieceResponse = new Dictionary<string, string>();
+                List<PullBackResponseOld> mailPieceResponse = new List<PullBackResponseOld>();
+                List<string> mailPieceIdsToPullback = new List<string>();
+
+                var mailPieceData = pullBackSvc.GetMailPieceData(mailPieceIds);
+
+                if (mailPieceData == null || mailPieceData.Count == 0)
+                {
+                    return JsonResponseFactory.ErrorResponse(Config.Web_Msg_API_PB_DataNull);
+                }
+                foreach (var item in mailPieceData)
+                {
+                    USPSLib.eVSCancelLabelRequest eVSCancelLabelRequest = new USPSLib.eVSCancelLabelRequest();
+                    if (!string.IsNullOrEmpty(item.TrackingNo))
+                    {
+                        eVSCancelLabelRequest.BarcodeNumber = item.TrackingNo;
+                    }
+                    if (item.AMMailPieceStatus == "PulledBack" || item.PnSMailPieceStatus == "PulledBack")
+                    {
+                        mailPieceResponse.Add(new PullBackResponseOld { MailPieceId = item.MailPieceUniqueId.ToString(), Message = Config.Web_Msg_API_PB_PulledBack, PullBackRequestedOn = item.PullBackRequestedOn, PulledBackRequestedBy = item.UserName, MailPieceStatus = item.AMMailPieceStatus, Success = false });
+                    }
+                    else if (Convert.ToBoolean(item.IsPullBackRequested))
+                    {
+                        mailPieceResponse.Add(new PullBackResponseOld { MailPieceId = item.MailPieceUniqueId.ToString(), Message = Config.Web_Msg_API_PB_PullBackAlreadyRequested, PullBackRequestedOn = item.PullBackRequestedOn, PulledBackRequestedBy = item.UserName, MailPieceStatus = item.AMMailPieceStatus, Success = false });
+                    }
+                    else if (item.AMBatchPipelineStatus == "Received" || item.AMBatchPipelineStatus == "Downloaded")
+                    {
+                        mailPieceResponse.Add(new PullBackResponseOld { MailPieceId = item.MailPieceUniqueId.ToString(), Message = Config.Web_Msg_API_PB_BatchNotValidated, Success = false });
+                    }
+                    else if (item.AMMailPieceStatus == "Aborted" || item.PnSMailPieceStatus == "Aborted")
+                    {
+                        mailPieceResponse.Add(new PullBackResponseOld { MailPieceId = item.MailPieceUniqueId.ToString(), Message = Config.Web_Msg_API_PB_Aborted, Success = false });
+                    }
+                    else if (item.AMMailPieceStatus == "Error" || item.PnSMailPieceStatus == "Error")
+                    {
+                        mailPieceResponse.Add(new PullBackResponseOld { MailPieceId = item.MailPieceUniqueId.ToString(), Message = Config.Web_Msg_API_PB_Error, ErrorDescription = !string.IsNullOrEmpty(item.PnSErrorDescription) ? item.PnSErrorDescription.ToString() : item.AMErrorDescription.ToString(), Success = false });
+                    }
+                    else if (item.AMMailPieceStatus == "Shipped" || item.PnSMailPieceStatus == "Shipped")
+                    {
+                        mailPieceResponse.Add(new PullBackResponseOld { MailPieceId = item.MailPieceUniqueId.ToString(), Message = Config.Web_Msg_API_PB_Shipped, Success = false });
+                    }
+                    else if (item.AMMailPieceStatus == "eDelivered")
+                    {
+                        mailPieceResponse.Add(new PullBackResponseOld { MailPieceId = item.MailPieceUniqueId.ToString(), Message = Config.Web_Msg_API_PB_EDelivered, Success = false });
+                    }
+                    else if (item.AMMailPieceStatus == "InProgress" && (item.AMBatchPipelineStatus == "Validated" || item.AMBatchPipelineStatus == "Acknowledged" || item.AMBatchPipelineStatus == "Prepped"))
+                    {
+                        int row1 = pullBackSvc.InsertPullBackRequestData(item.MailPieceUniqueId.ToString(), User.Identity.GetClientId().Value, "PulledBack", string.IsNullOrEmpty(User.Identity.GetUserId().ToString()) ? string.Empty : User.Identity.GetUserId().ToString());
+                        int row = pullBackSvc.UpdatePullBackRequestedOn(item.MailPieceUniqueId.ToString(), string.IsNullOrEmpty(User.Identity.GetUserId().ToString()) ? string.Empty : User.Identity.GetUserId().ToString(), "PulledBack");
+
+                        if (!string.IsNullOrEmpty(eVSCancelLabelRequest.BarcodeNumber) && (item.ShippingServiceType == "PRIORITY" || item.ShippingServiceType == "PRIORITY_EXPRESS"))
+                        {
+                            var uspsCancelResponse = uSPSApi.RequesteVSLabel(eVSCancelLabelRequest);
+                            int updatedRow = pullBackSvc.UpdateUSPSApiCancelErrorDesc(item.MailPieceUniqueId.ToString());
+                        }
+
+                        mailPieceResponse.Add(new PullBackResponseOld { MailPieceId = item.MailPieceUniqueId.ToString(), Message = Config.Web_Msg_API_PB_PulledBackSuccess, MailPieceStatus = "PulledBack", PullBackRequestedOn = Common.Now, PulledBackRequestedBy = (User.Identity) == null ? string.Empty : User.Identity.Name, Success = true });
+                    }
+                    else if (item.AMMailPieceStatus == "InProgress" && item.AMBatchPipelineStatus == "SubmittedToEDelivery" && item.IsEDeliveryRequested)
+                    {
+                        #region If signingroom is created and user has still not downloaded/reviewed the document then delete signing room and update pullback status.
+                        //if (!string.IsNullOrWhiteSpace(item.SigningRoomName))
+                        //{
+                        //    IEDeliveryAPIService eDeliveryAPISvc = new EDeliveryAPIService();
+
+                        //    var activityLogs = await eDeliveryAPISvc.GetSigningRoomActivityLog(item.SigningRoomName);
+
+                        //    foreach (var actlog in activityLogs)
+                        //    {
+                        //        switch (actlog.EDeliveryStatus)
+                        //        {
+                        //            case ActivityStatus.DocumentReviewed:
+                        //                item.IsDocReviewed = true;
+                        //                break;
+                        //            case ActivityStatus.DocumentDownloaded:
+                        //                item.IsDocDownloaded = true;
+                        //                break;
+                        //            default:
+                        //                break;
+                        //        }
+                        //    }
+
+                        //    if (!item.IsDocReviewed && !item.IsDocDownloaded)
+                        //    {
+                        //        var isSigningRoomDeleted = await eDeliveryAPISvc.DeleteSigningRoom(item.SigningRoomId);
+                        //        if (isSigningRoomDeleted)
+                        //        {
+                        //            int row1 = pullBackSvc.InsertPullBackRequestData(item.MailPieceUniqueId.ToString(), User.Identity.GetClientId().Value, "PulledBack", string.IsNullOrEmpty(User.Identity.GetUserId().ToString()) ? string.Empty : User.Identity.GetUserId().ToString());
+                        //            int row = pullBackSvc.UpdatePullBackRequestedOn(item.MailPieceUniqueId.ToString(), string.IsNullOrEmpty(User.Identity.GetUserId().ToString()) ? string.Empty : User.Identity.GetUserId().ToString(), "PulledBack");
+
+                        //            mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.MailPieceUniqueId.ToString(), Message = Config.Web_Msg_API_PB_PulledBackSuccess, MailPieceStatus = "PulledBack", PullBackRequestedOn = Common.Now, PulledBackRequestedBy = (User.Identity) == null ? string.Empty : User.Identity.Name, Success = true });
+                        //        }
+                        //    }
+                        //    else
+                        //    {
+                        //        mailPieceResponse.Add(new PullBackResponse { MailPieceId = item.MailPieceUniqueId.ToString(), Message = "Mailpiece is already Downloaded/Reviewed by Borrower, pullback cannot be requested.", Success = false });
+                        //    }
+                        //}
+                        #endregion
+                        #region If invitation is not sent then only allow to pulledback 
+                        if (!item.IsInvitationSent)
+                        {
+                            IEDeliveryAPIService eDeliveryAPISvc = new EDeliveryAPIService();
+                            var isSigningRoomDeleted = await eDeliveryAPISvc.DeleteSigningRoom(item.SigningRoomId);
+                            int row1 = pullBackSvc.InsertPullBackRequestData(item.MailPieceUniqueId.ToString(), User.Identity.GetClientId().Value, "PulledBack", string.IsNullOrEmpty(User.Identity.GetUserId().ToString()) ? string.Empty : User.Identity.GetUserId().ToString());
+                            int row = pullBackSvc.UpdatePullBackRequestedOn(item.MailPieceUniqueId.ToString(), string.IsNullOrEmpty(User.Identity.GetUserId().ToString()) ? string.Empty : User.Identity.GetUserId().ToString(), "PulledBack");
+
+                            mailPieceResponse.Add(new PullBackResponseOld { MailPieceId = item.MailPieceUniqueId.ToString(), Message = Config.Web_Msg_API_PB_PulledBackSuccess, MailPieceStatus = "PulledBack", PullBackRequestedOn = Common.Now, PulledBackRequestedBy = (User.Identity) == null ? string.Empty : User.Identity.Name, Success = true });
+                        }
+                        else
+                        {
+                            mailPieceResponse.Add(new PullBackResponseOld { MailPieceId = item.MailPieceUniqueId.ToString(), Message = "Invitation for signing room is already sent to Borrower, pullback cannot be requested.", Success = false });
+                        }
+                        #endregion
+                    }
+                    else if (item.AMMailPieceStatus == "InProgress" && item.AMBatchPipelineStatus == "SubmittedToShipping" && !item.PCIBatchPrepEnd.HasValue)
+                    {
+                        int row1 = pullBackSvc.InsertPullBackRequestData(item.MailPieceUniqueId.ToString(), User.Identity.GetClientId().Value, "PulledBack", string.IsNullOrEmpty(User.Identity.GetUserId().ToString()) ? string.Empty : User.Identity.GetUserId().ToString());
+                        int row = pullBackSvc.UpdatePullBackRequestedOn(item.MailPieceUniqueId.ToString(), string.IsNullOrEmpty(User.Identity.GetUserId().ToString()) ? string.Empty : User.Identity.GetUserId().ToString(), "PulledBack");
+
+                        if (!string.IsNullOrEmpty(eVSCancelLabelRequest.BarcodeNumber) && (item.ShippingServiceType == "PRIORITY" || item.ShippingServiceType == "PRIORITY_EXPRESS"))
+                        {
+                            var uspsCancelResponse = uSPSApi.RequesteVSLabel(eVSCancelLabelRequest);
+                            int updatedRow = pullBackSvc.UpdateUSPSApiCancelErrorDesc(item.MailPieceUniqueId.ToString());
+                        }
+
+                        mailPieceResponse.Add(new PullBackResponseOld { MailPieceId = item.MailPieceUniqueId.ToString(), Message = Config.Web_Msg_API_PB_PulledBackSuccess, MailPieceStatus = "PulledBack", PullBackRequestedOn = Common.Now, PulledBackRequestedBy = (User.Identity) == null ? string.Empty : User.Identity.Name, Success = true });
+                    }
+                    else if (item.AMBatchPipelineStatus == "SubmittedToShipping" && item.PCIBatchPrepEnd.HasValue)
+                    {
+                        if (item.PrintTrailBatchId == null)
+                        {
+                            int row1 = pullBackSvc.InsertPullBackRequestData(item.MailPieceUniqueId.ToString(), User.Identity.GetClientId().Value, "PulledBack", string.IsNullOrEmpty(User.Identity.GetUserId().ToString()) ? string.Empty : User.Identity.GetUserId().ToString());
+                            int row = pullBackSvc.UpdatePullBackRequestedOn(item.MailPieceUniqueId.ToString(), string.IsNullOrEmpty(User.Identity.GetUserId().ToString()) ? string.Empty : User.Identity.GetUserId().ToString(), "PulledBack");
+
+                            if (!string.IsNullOrEmpty(eVSCancelLabelRequest.BarcodeNumber) && (item.ShippingServiceType == "PRIORITY" || item.ShippingServiceType == "PRIORITY_EXPRESS"))
+                            {
+                                var uspsCancelResponse = uSPSApi.RequesteVSLabel(eVSCancelLabelRequest);
+                                int updatedRow = pullBackSvc.UpdateUSPSApiCancelErrorDesc(item.MailPieceUniqueId.ToString());
+                            }
+
+                            mailPieceResponse.Add(new PullBackResponseOld { MailPieceId = item.MailPieceUniqueId.ToString(), Message = Config.Web_Msg_API_PB_PulledBackSuccess, MailPieceStatus = "PulledBack", PullBackRequestedOn = Common.Now, PulledBackRequestedBy = (User.Identity) == null ? string.Empty : User.Identity.Name, Success = true });
+                        }
+                        else if (item.PnSMailPieceStatus == "InProgress" && (item.PrintTrailBatchId != null))
+                        {
+                            mailPieceIdsToPullback.Add(item.MailPieceUniqueId.ToString());
+                            if (!string.IsNullOrEmpty(eVSCancelLabelRequest.BarcodeNumber) && (item.ShippingServiceType == "PRIORITY" || item.ShippingServiceType == "PRIORITY_EXPRESS"))
+                            {
+                                var uspsCancelResponse = uSPSApi.RequesteVSLabel(eVSCancelLabelRequest);
+                                int updatedRow = pullBackSvc.UpdateUSPSApiCancelErrorDesc(item.MailPieceUniqueId.ToString());
+                            }
+                        }
+                    }
+                }
+
+                if (mailPieceIdsToPullback.Count > 0)
+                {
+                    var pullBackData = pullBackSvc.GetPullBackData(mailPieceIdsToPullback);
+
+                    bool isGenerated = pullBackSvc.GeneratePullBackForm(pullBackData);
+                    if (isGenerated)
+                    {
+                        foreach (var item in mailPieceIdsToPullback)
+                        {
+                            int row1 = pullBackSvc.InsertPullBackRequestData(item.ToString(), User.Identity.GetClientId().Value, "Requested", string.IsNullOrEmpty(User.Identity.GetUserId().ToString()) ? string.Empty : User.Identity.GetUserId().ToString());
+                            int row = pullBackSvc.UpdatePullBackRequestedOn(item.ToString(), string.IsNullOrEmpty(User.Identity.GetUserId().ToString()) ? string.Empty : User.Identity.GetUserId().ToString(), string.Empty);
+                            if (row > 0)
+                            {
+                                mailPieceResponse.Add(new PullBackResponseOld { MailPieceId = item.ToString(), Message = Config.Web_Msg_API_PB_Success, PullBackRequestedOn = Common.Now, PulledBackRequestedBy = (User.Identity) == null ? string.Empty : User.Identity.Name, Success = true });
+                            }
+                        }
+                    }
+                    else
+                    {
+                        return JsonResponseFactory.ErrorResponse(Config.Web_Msg_API_PB_PBReqFormErr);
+                    }
+                }
+
+                return JsonResponseFactory.SuccessResponse(mailPieceResponse);
+            }
+            catch (Exception ex)
+            {
+                return JsonResponseFactory.ErrorResponse(ex.Message);
+            }
+
+        }
         //Test Methods
         //[AllowAnonymous]
         //[Route("testpostusps")]

@@ -42,4 +42,15 @@ namespace AM.Web.Models
             return this.MailingStatus == ShippingStatus.Error.ToString();
         }
     }
+
+    public class PullBackResponseOld
+    {
+        public string MailPieceId { get; set; }
+        public bool Success { get; set; }
+        public string Message { get; set; }
+        public DateTime? PullBackRequestedOn { get; set; }
+        public string PulledBackRequestedBy { get; set; }
+        public string MailPieceStatus { get; set; }
+        public string ErrorDescription { get; set; }
+    }
 }

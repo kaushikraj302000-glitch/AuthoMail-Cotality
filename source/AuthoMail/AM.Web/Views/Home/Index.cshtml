@@ -888,7 +888,7 @@
             var el = $("#myModal").find('.modal-body');
             $.ajax({
                 type: "POST",
-                url: baseUrl + "api/pullback/RequestPullBack",
+                url: baseUrl + "api/pullback/pullbackold",
                 data: JSON.stringify(mailpieceIds),
                 contentType: "application/json; charset=utf-8",
                 dataType: "JSON",
