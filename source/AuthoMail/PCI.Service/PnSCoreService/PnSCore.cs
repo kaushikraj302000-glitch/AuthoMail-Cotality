@@ -552,9 +552,11 @@ namespace PCI.Service
                     size = iTextSharp.text.PageSize.LEDGER;
                     break;
                 case "LETTER-IP":
+                case "LETTER-RC":
                     size = iTextSharp.text.PageSize.LETTER;
                     break;
                 case "LEGAL-IP":
+                case "LEGAL-RC":
                     size = iTextSharp.text.PageSize.LEGAL;
                     break;
                 case "WC24-LTR-PERF":
@@ -578,7 +580,7 @@ namespace PCI.Service
 
                 #region Resize and Bookmarking
                 ScaleEvent evn;
-                if (docType.PrintSize == "MixMedia")
+                if (docType.PrintSize == "MixMedia" || docType.PrintSize == "MixMedia-RC")
                 {
                     evn = new ScaleEvent(1f, 1f);
                 }
@@ -652,7 +654,7 @@ namespace PCI.Service
                             {
                                 AddBookmark(writer, p, "Check");
                             }
-                            else if (docType.PrintSize == "MixMedia")
+                            else if (docType.PrintSize == "MixMedia" || docType.PrintSize == "MixMedia-RC")
                             {
                                 AddBookmark(writer, p, pageSize);
                             }
