@@ -15,6 +15,7 @@ namespace AM.ProductionToUATBridge
     public static class PrintReadyClientProcess
     {
         public static log4net.ILog log = log4net.LogManager.GetLogger(typeof(PrintReadyClientProcess));
+        private static Random random = new Random();
         public static void GenerateCitiBatch(DateTime inputDate)
         {
             using (IMailPieceService mailPieceSvc = new MailPieceService())
@@ -113,9 +114,9 @@ namespace AM.ProductionToUATBridge
                             //logic to implement remove its cover page and update new cover page accordingly and merge pdf.
                             Dictionary<string, string> mpPDFFiller = new Dictionary<string, string>();
                             mpPDFFiller.Add("FromAddress", (mp.RetRcptFirstName + " " + mp.RetRcptLastName).Trim() + "\n" + mp.RetRcptAddressStreet + "\n" + mp.RetRcptAddressCity + " " + mp.RetRcptAddressState + " " + mp.RetRcptAddressZIP);
-                            mpPDFFiller.Add("ToAddress", (mp.RcptFirstName + " " + mp.RcptLastName).Trim() + "\n" + mp.RcptAddressStreet + "\n" + mp.RcptAddressCity + " " + mp.RetRcptAddressState + " " + mp.RetRcptAddressZIP);
-                            string templatePath = Path.Combine("../../CoverPages/CitiVM.pdf");
-                            string outputCoverLetterPath = Path.Combine("../../CoverPages/CitiVM_Output.pdf");
+                            mpPDFFiller.Add("ToAddress", (mp.RcptFirstName + " " + mp.RcptLastName).Trim() + "\n" + mp.RcptAddressStreet + "\n" + mp.RcptAddressCity + " " + mp.RcptAddressState + " " + mp.RcptAddressZIP);
+                            string templatePath = Path.Combine(Configuration.CoverPageFolder, "CitiVM.pdf");
+                            string outputCoverLetterPath = Path.Combine(Configuration.CoverPageFolder, "CitiVM_Output.pdf");
                             GenerateCoverPage(templatePath, outputCoverLetterPath, mpPDFFiller);
                             string outputPDFWithoutCoverPagePath = Path.Combine(amFolderPath, Configuration.AMRequestFolder, Path.GetFileNameWithoutExtension(mp.FileName) + "_ActualPDF.pdf");
                             GeneratePDFWithoutCoverPage(amRequestPDFPath, outputPDFWithoutCoverPagePath);
@@ -128,7 +129,6 @@ namespace AM.ProductionToUATBridge
                             if (File.Exists(outputPDFWithoutCoverPagePath))
                                 File.Delete(outputPDFWithoutCoverPagePath);
                         }
-                        File.Copy(amRequestPDFPath, destinationPDFPath, true);
                     }
                     catch (Exception ex)
                     {
@@ -263,7 +263,7 @@ namespace AM.ProductionToUATBridge
                         ReturnInfo returnInfo = new ReturnInfo();
                         MailPiece package = new MailPiece();
                         package.BusinessFriendlyIdName = mp.BusinessFriendlyIdName;
-                        package.BusinessFriendlyIdValue = "TEST" + mp.BusinessFriendlyIdValue;
+                        package.BusinessFriendlyIdValue = "TEST" + random.Next(100000, 10000000);
                         package.DocumentOrPackageType = "TEST_" + mp.DocumentOrPackageType;
                         package.Id = Guid.NewGuid();
 
@@ -275,10 +275,10 @@ namespace AM.ProductionToUATBridge
                         recipient.LastName = "Test2";
 
                         Address recipientAddress = new Address();
-                        recipientAddress.Street = mp.RcptAddressStreet;
-                        recipientAddress.State = mp.RcptAddressState;
-                        recipientAddress.City = mp.RcptAddressCity;
-                        recipientAddress.Zip = mp.RcptAddressZIP;
+                        recipientAddress.Street = "20 Petaluma Boulevard South";
+                        recipientAddress.City = "Petaluma";
+                        recipientAddress.State = "CA";
+                        recipientAddress.Zip = "94952";
 
                         recipientInfo.Recipient = recipient;
                         recipientInfo.Address = recipientAddress;
@@ -318,9 +318,9 @@ namespace AM.ProductionToUATBridge
                             //logic to implement remove its cover page and update new cover page accordingly and merge pdf.
                             Dictionary<string, string> mpPDFFiller = new Dictionary<string, string>();
                             mpPDFFiller.Add("FromAddress", (mp.RetRcptFirstName + " " + mp.RetRcptLastName).Trim() + "\n" + mp.RetRcptAddressStreet + "\n" + mp.RetRcptAddressCity + " " + mp.RetRcptAddressState + " " + mp.RetRcptAddressZIP);
-                            mpPDFFiller.Add("ToAddress", (mp.RcptFirstName + " " + mp.RcptLastName).Trim() + "\n" + mp.RcptAddressStreet + "\n" + mp.RcptAddressCity + " " + mp.RetRcptAddressState + " " + mp.RetRcptAddressZIP);
-                            string templatePath = Path.Combine("../../CoverPages/CitiVM.pdf");
-                            string outputCoverLetterPath = Path.Combine("../../CoverPages/CitiVM_Output.pdf");
+                            mpPDFFiller.Add("ToAddress", (mp.RcptFirstName + " " + mp.RcptLastName).Trim() + "\n" + mp.RcptAddressStreet + "\n" + mp.RcptAddressCity + " " + mp.RcptAddressState + " " + mp.RcptAddressZIP);
+                            string templatePath = Path.Combine(Configuration.CoverPageFolder, "RPS.pdf");
+                            string outputCoverLetterPath = Path.Combine(Configuration.CoverPageFolder, "RPS_Output.pdf");
                             GenerateCoverPage(templatePath, outputCoverLetterPath, mpPDFFiller);
                             string outputPDFWithoutCoverPagePath = Path.Combine(amFolderPath, Configuration.AMRequestFolder, Path.GetFileNameWithoutExtension(mp.FileName) + "_ActualPDF.pdf");
                             GeneratePDFWithoutCoverPage(amRequestPDFPath, outputPDFWithoutCoverPagePath);
@@ -333,7 +333,6 @@ namespace AM.ProductionToUATBridge
                             if (File.Exists(outputPDFWithoutCoverPagePath))
                                 File.Delete(outputPDFWithoutCoverPagePath);
                         }
-                        File.Copy(amRequestPDFPath, destinationPDFPath, true);
                     }
                     catch (Exception ex)
                     {
