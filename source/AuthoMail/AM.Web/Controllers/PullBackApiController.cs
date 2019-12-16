@@ -19,7 +19,7 @@ namespace AM.Web.Controllers
 {
     [EnableCors(origins: "*", headers: "*", methods: "*")]
     [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager + "," + AMRoles.PnSOperator + "," + AMRoles.API)]
-    [RoutePrefix("api/pullback")]
+    [RoutePrefix("api")]
     public class PullBackApiController : ApiController
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -249,7 +249,7 @@ namespace AM.Web.Controllers
 
         }
 
-        [Route("pullbackold")]
+        [Route("pullback/pullbackold")]
         [HttpPost]
         public async Task<object> GeneratePullBackRequestOld([FromBody] List<string> mailPieceIds)
         {
