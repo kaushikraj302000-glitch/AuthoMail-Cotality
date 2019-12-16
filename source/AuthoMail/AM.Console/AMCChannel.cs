@@ -760,6 +760,7 @@ namespace AM.Console
                                         {
                                             mailPieceDTO.DocTypeId = tempDocType.Id;
                                             mailPieceDTO.PnSConfigDetailId = tempDocType.PnSConfigDetailId;
+                                            mailPieceDTO.PrintTrailId = tempDocType.PrintTrailId;
                                         }
 
                                         if (tempDocType == null)
