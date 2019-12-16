@@ -50,93 +50,94 @@
     [RetRcptAddressCity]                  VARCHAR (255)    NULL,
     [RetRcptAddressState]                 VARCHAR (255)    NULL,
     [RetRcptAddressZIP]                   VARCHAR (255)    NULL,
-    CONSTRAINT [PK_Batch] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 90),
+    [RetRcptAddressCountry]               VARCHAR (255)    NULL,
+    CONSTRAINT [PK_Batch] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 70),
     CONSTRAINT [FK_MailBatches_Clients] FOREIGN KEY ([ClientId]) REFERENCES [Common].[Clients] ([Id]),
     CONSTRAINT [FK_MailBatches_SFTChannel] FOREIGN KEY ([SFTChannelId]) REFERENCES [Common].[SFTChannels] ([Id])
 );
 
 
 GO
-CREATE UNIQUE NONCLUSTERED INDEX [IX_MailBatches_UniqueId]
-    ON [AM].[MailBatches]([UniqueId] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_MailBatches_ReceivedOn]
-    ON [AM].[MailBatches]([ReceivedOn] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_MailBatches_DownloadedOn]
-    ON [AM].[MailBatches]([DownloadedOn] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_MailBatches_ValidatedOn]
-    ON [AM].[MailBatches]([ValidatedOn] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
 CREATE NONCLUSTERED INDEX [IX_MailBatches_AcknowledgedOn]
-    ON [AM].[MailBatches]([AcknowledgedOn] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_MailBatches_PreppedOn]
-    ON [AM].[MailBatches]([PreppedOn] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_MailBatches_SubmittedToShippingOn]
-    ON [AM].[MailBatches]([SubmittedToShippingOn] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_MailBatches_ShippingResponseReceivedOn]
-    ON [AM].[MailBatches]([ShippingResponseReceivedOn] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_MailBatches_ReportPreppedOn]
-    ON [AM].[MailBatches]([ReportPreppedOn] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_MailBatches_ReportedBackOn]
-    ON [AM].[MailBatches]([ReportedBackOn] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_MailBatches_SuspendedOn]
-    ON [AM].[MailBatches]([SuspendedOn] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_MailBatches_CancelledOn]
-    ON [AM].[MailBatches]([CancelledOn] ASC) WITH (FILLFACTOR = 90);
+    ON [AM].[MailBatches]([AcknowledgedOn] ASC) WITH (FILLFACTOR = 70);
 
 
 GO
 CREATE NONCLUSTERED INDEX [IX_MailBatches_BatchStatus]
-    ON [AM].[MailBatches]([BatchStatus] ASC) WITH (FILLFACTOR = 90);
+    ON [AM].[MailBatches]([BatchStatus] ASC) WITH (FILLFACTOR = 70);
 
 
 GO
-CREATE NONCLUSTERED INDEX [IX_MailBatches_PipelineStatus]
-    ON [AM].[MailBatches]([PipelineStatus] ASC) WITH (FILLFACTOR = 90);
+CREATE NONCLUSTERED INDEX [IX_MailBatches_CancelledOn]
+    ON [AM].[MailBatches]([CancelledOn] ASC) WITH (FILLFACTOR = 70);
 
 
 GO
 CREATE NONCLUSTERED INDEX [IX_MailBatches_ClientBatchId]
-    ON [AM].[MailBatches]([ClientBatchId] ASC) WITH (FILLFACTOR = 90);
+    ON [AM].[MailBatches]([ClientBatchId] ASC) WITH (FILLFACTOR = 70);
 
 
 GO
 CREATE NONCLUSTERED INDEX [IX_MailBatches_ClientId]
-    ON [AM].[MailBatches]([ClientId] ASC) WITH (FILLFACTOR = 90);
+    ON [AM].[MailBatches]([ClientId] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_MailBatches_DownloadedOn]
+    ON [AM].[MailBatches]([DownloadedOn] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_MailBatches_PipelineStatus]
+    ON [AM].[MailBatches]([PipelineStatus] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_MailBatches_PreppedOn]
+    ON [AM].[MailBatches]([PreppedOn] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_MailBatches_ReceivedOn]
+    ON [AM].[MailBatches]([ReceivedOn] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_MailBatches_ReportedBackOn]
+    ON [AM].[MailBatches]([ReportedBackOn] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_MailBatches_ReportPreppedOn]
+    ON [AM].[MailBatches]([ReportPreppedOn] ASC) WITH (FILLFACTOR = 70);
 
 
 GO
 CREATE NONCLUSTERED INDEX [IX_MailBatches_SFTChannelId]
-    ON [AM].[MailBatches]([SFTChannelId] ASC) WITH (FILLFACTOR = 90);
+    ON [AM].[MailBatches]([SFTChannelId] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_MailBatches_ShippingResponseReceivedOn]
+    ON [AM].[MailBatches]([ShippingResponseReceivedOn] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_MailBatches_SubmittedToShippingOn]
+    ON [AM].[MailBatches]([SubmittedToShippingOn] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_MailBatches_SuspendedOn]
+    ON [AM].[MailBatches]([SuspendedOn] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE UNIQUE NONCLUSTERED INDEX [IX_MailBatches_UniqueId]
+    ON [AM].[MailBatches]([UniqueId] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_MailBatches_ValidatedOn]
+    ON [AM].[MailBatches]([ValidatedOn] ASC) WITH (FILLFACTOR = 70);
 

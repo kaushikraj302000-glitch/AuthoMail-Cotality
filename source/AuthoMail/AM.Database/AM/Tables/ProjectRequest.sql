@@ -52,7 +52,7 @@
     [BusinessReplyMailEnvelopeOther]    NVARCHAR (1024) NULL,
     [FilesTransmittedDetail]            NVARCHAR (1024) NULL,
     [TypeOfFilesDetail]                 NVARCHAR (1024) NULL,
-    PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 90),
+    PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [CreatedBy_ProjectRequest_Users] FOREIGN KEY ([CreatedBy]) REFERENCES [Profile].[Users] ([Id]),
     CONSTRAINT [ModifiedBy_ProjectRequest_Users] FOREIGN KEY ([ModifiedBy]) REFERENCES [Profile].[Users] ([Id])
 );

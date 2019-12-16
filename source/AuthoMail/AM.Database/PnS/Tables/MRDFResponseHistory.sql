@@ -21,7 +21,7 @@
     [TotalSheets]           INT            NULL,
     [PDFFileName]           VARCHAR (255)  NULL,
     [PackageTrackingNumber] VARCHAR (50)   NULL,
-    CONSTRAINT [PK_MRDFResponseHistory] PRIMARY KEY CLUSTERED ([JobId] ASC, [PieceId] ASC) WITH (FILLFACTOR = 90),
+    CONSTRAINT [PK_MRDFResponseHistory] PRIMARY KEY CLUSTERED ([JobId] ASC, [PieceId] ASC) WITH (FILLFACTOR = 70),
     CONSTRAINT [FK_MRDFResponseHistory_BatchSummary] FOREIGN KEY ([JobId]) REFERENCES [PnS].[BatchSummary] ([PrintBatch])
 );
 

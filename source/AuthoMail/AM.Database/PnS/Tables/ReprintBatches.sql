@@ -9,6 +9,6 @@
     [SubmittedOn]      DATETIME      NULL,
     [IsMRDFReceived]   AS            (case when [MRDFReceivedOn] IS NULL then (0) else (1) end),
     [MRDFReceivedOn]   DATETIME      NULL,
-    CONSTRAINT [PK_ReprintBatches] PRIMARY KEY CLUSTERED ([PrintBatch] ASC) WITH (FILLFACTOR = 90)
+    CONSTRAINT [PK_ReprintBatches] PRIMARY KEY CLUSTERED ([PrintBatch] ASC)
 );
 

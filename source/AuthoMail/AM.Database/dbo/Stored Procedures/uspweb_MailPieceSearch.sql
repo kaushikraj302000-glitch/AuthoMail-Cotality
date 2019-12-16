@@ -1,38 +1,37 @@
-﻿
--- =============================================
+﻿-- =============================================
 -- Author:		 Milan Patel
 -- Create date:  07-Mar-18
 -- Modifiy date: 07-Mar-18
--- Exec: [dbo].[usp_MailPieceSearch] 101,null,null,'2018-03-19 04:00:00','2018-03-20 03:59:59',null,null,null
---       [dbo].[usp_MailPieceSearch] 101,null,null,'2018-03-19 04:00:00',null,null,null,null,null
+-- Exec: [dbo].[usp_MailPieceSearch] 101,NULL,NULL,'2018-03-19 04:00:00','2018-03-20 03:59:59',NULL,NULL,NULL
+--       [dbo].[usp_MailPieceSearch] 101,NULL,NULL,'2018-03-19 04:00:00',NULL,NULL,NULL,NULL,NULL
 -- Description:	 Get Batch by parameters
 -- =============================================
 CREATE PROCEDURE [dbo].[uspweb_MailPieceSearch]
 
-	@clientId int,
-	@businessFriendlyIdName varchar(255),
-	@businessFriendlyIdValue varchar(255),
-	@startDate datetime,
-	@endDate datetime,
-	@docType varchar(255),
-	@shippingStatus varchar(255),
-	@channel varchar(128),
-	@clientBatchId varchar(255),
-	@mailBatchId int,
-	@trackingNo varchar(255)
+	@clientId INT,
+	@businessFriendlyIdName VARCHAR(255),
+	@businessFriendlyIdValue VARCHAR(255),
+	@startDate DATETIME,
+	@endDate DATETIME,
+	@docType VARCHAR(255),
+	@shippingStatus VARCHAR(255),
+	@channel VARCHAR(128),
+	@clientBatchId VARCHAR(255),
+	@mailBatchId INT,
+	@trackingNo VARCHAR(255)
 AS
 BEGIN
 
 	 SELECT 
-	 m.BusinessFriendlyIdValue as BusinessIdValue,m.ShippingStatus as [Status],m.UniqueId,
-	 m.RcptFirstName as FirstName,m.RcptLastName as LastName,m.RcptAddressCity as [City],m.RcptAddressZip as ZIP,
-	 m.RcptAddressState as [State],m.ShippedOn,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,
+	 m.BusinessFriendlyIdValue AS BusinessIdValue,m.ShippingStatus AS [Status],m.UniqueId,
+	 m.RcptFirstName AS FirstName,m.RcptLastName AS LastName,m.RcptAddressCity AS [City],m.RcptAddressZip AS ZIP,
+	 m.RcptAddressState AS [State],m.ShippedOn,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,
 	 b.ReceivedOn,
-	 d.DocTypeCode as DocType,d.ShippingServiceType as ShippingMethod,d.ShippingCarrier,
-	 ch.Title as Channel
+	 d.DocTypeName AS DocType,d.ShippingServiceType AS ShippingMethod,d.ShippingCarrier,
+	 ch.Title AS Channel
 	 FROM  [AM].[MailBatches] b,[Common].[SFTChannels] ch,[Common].[Clients] c,[AM].[MailPieces] m
 	 LEFT OUTER JOIN [Profile].[Users] u ON m.PulledBackRequestedBy=u.Id	 
-	 LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id
+	 LEFT OUTER JOIN [dbo].[v_DocTypes] d ON m.DocTypeId=d.Id AND m.PnSConfigDetailId = d.PnSConfigDetailId
 	 WHERE m.MailBatchId=b.Id AND b.SFTChannelId=ch.Id AND m.ClientId=c.Id AND m.ClientId=@clientId
 	 AND ISNULL(m.BusinessFriendlyIdName, '') = ISNULL(@businessFriendlyIdName, ISNULL(m.BusinessFriendlyIdName, ''))
 	 AND ISNULL(m.BusinessFriendlyIdValue, '') = ISNULL(@businessFriendlyIdValue, ISNULL(m.BusinessFriendlyIdValue, ''))
@@ -44,3 +43,4 @@ BEGIN
 	 AND ISNULL(m.MailBatchId, '') = ISNULL(@mailBatchId, ISNULL(m.MailBatchId, ''))
 	 AND b.ReceivedOn BETWEEN @startDate AND @endDate
 END
+

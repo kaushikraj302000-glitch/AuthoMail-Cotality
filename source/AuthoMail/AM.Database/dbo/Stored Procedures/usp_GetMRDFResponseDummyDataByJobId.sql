@@ -15,9 +15,9 @@
 						, Req.ReturnLine5, Req.ReturnLine6, Req.GroupNumber, Req.SocialSecNumber, Req.CheckAmount, Req.PassThru
 						, Req.Expansion, Req.EndofRecord, Req.UniqueId, Req.PDFFileName, Req.ErrId, Req.ErrDesc, Req.MailPieceStatus, Req.IsPDFReceived 
 						, Req.Feeder2_Sel as Feeder2_Fed
-						,CASE WHEN P.DocTypeId IN (SELECT Id FROM AM.DocTypes WHERE ShippingServiceType='PRIORITY_EXPRESS') THEN '1234567890123456789012' ELSE '' END AS PackageTrackingNumber
+						,NULL AS PackageTrackingNumber
 						,'RichardP' as OperatorId,'PCI09   ' as MachineId
-						,(CONVERT(VARCHAR(8), GETDATE(), 112)+REPLACE(CONVERT(VARCHAR(8), GETDATE(), 108),':','')) as ProcessingTimeStamp
+						,(CONVERT(VARCHAR(8), [dbo].[ufn_UTCToEST](GETUTCDATE()), 112)+REPLACE(CONVERT(VARCHAR(8), [dbo].[ufn_UTCToEST](GETUTCDATE()), 108),':','')) as ProcessingTimeStamp
 						,'4691 ' as DetailedErrorId,'00' as Input_Fed,'0' as Feeder3_Fed,'0' as Feeder4_Fed,'0' as Feeder5_Fed
 						,CASE WHEN P.IsPullBackRequested=1 AND P.PulledBackOn IS NULL THEN '4 ' WHEN P.IsQCRequested=1 THEN '8 ' ELSE '5 ' END as Disposition
 						,'0.00 ' as ComputedWeight, '00000000' as MeterDate,'Mailrun_Files            ' as StatusSource

@@ -15,6 +15,6 @@
     [BarcodeNumber]   NVARCHAR (255) NULL,
     [Status]          NVARCHAR (255) NULL,
     [Reason]          NVARCHAR (MAX) NULL,
-    CONSTRAINT [PK_USPSeVSCancel.Id] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 90)
+    CONSTRAINT [PK_USPSeVSCancel.Id] PRIMARY KEY CLUSTERED ([Id] ASC)
 );
 

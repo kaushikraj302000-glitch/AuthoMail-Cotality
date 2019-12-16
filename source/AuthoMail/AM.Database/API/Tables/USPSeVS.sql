@@ -16,6 +16,6 @@
     [Postage]               [dbo].[Amount] NOT NULL,
     [CommitmentName]        NVARCHAR (255) NULL,
     [ScheduledDeliveryDate] DATE           NULL,
-    CONSTRAINT [PK_USPSEVS.Id] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 90)
+    CONSTRAINT [PK_USPSEVS.Id] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 70)
 );
 

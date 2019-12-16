@@ -7,7 +7,7 @@
     [DefaultValue] VARCHAR (1024) NULL,
     [ModifiedBy]   NVARCHAR (128) NULL,
     [ModifiedOn]   DATETIME       NULL,
-    CONSTRAINT [PK_SystemSettings] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 90),
+    CONSTRAINT [PK_SystemSettings] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [FK_SystemSettings_Users] FOREIGN KEY ([ModifiedBy]) REFERENCES [Profile].[Users] ([Id])
 );
 

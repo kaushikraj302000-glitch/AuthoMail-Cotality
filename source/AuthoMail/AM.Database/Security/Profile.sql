@@ -1,3 +1,3 @@
 ﻿CREATE SCHEMA [Profile]
-    AUTHORIZATION [AuthomailUser];
+    AUTHORIZATION [dbo];
 

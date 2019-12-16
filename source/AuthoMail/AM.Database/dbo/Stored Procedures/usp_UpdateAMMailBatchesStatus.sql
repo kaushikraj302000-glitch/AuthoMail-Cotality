@@ -7,6 +7,7 @@ AS
 BEGIN
 	DECLARE @mailBatchId int
 	DECLARE @totalMailPieces int
+	DECLARE @totalErrorMailPieces int
 	DECLARE @totalPulledBackMailPieces int
 	DECLARE @printBatchId int
 	DECLARE @totalPulledBackPrintBatchesMailPieces int
@@ -23,6 +24,8 @@ BEGIN
 	SELECT @batchSummaryId = PrintBatch FROM PnS.BatchSummary WHERE BatchIdentifier = @printbatchUniqueId
 
 	SELECT @totalMailPieces = COUNT(*) FROM AM.MailPieces WHERE MailBatchId = @mailBatchId
+
+	SELECT @totalErrorMailPieces = COUNT(*) FROM AM.MailPieces WHERE MailBatchId = @mailBatchId AND ShippingStatus='Error'
 
 	--Print @totalMailPieces
 
@@ -45,6 +48,11 @@ BEGIN
 	IF (@totalPrintBatchesMailPieces = @totalPulledBackPrintBatchesMailPieces)
 	BEGIN
 		UPDATE AM.PrintBatches SET BatchStatus = 'PulledBack',ShippingResponseReceivedOn = @shippingResponseReceievedOn,ReportPreppedOn = @shippingResponseReceievedOn,ReportedBackOn = @shippingResponseReceievedOn WHERE Id = @printBatchId	
+	END
+	
+	IF(@totalMailPieces= @totalPulledBackMailPieces+@totalErrorMailPieces)
+	BEGIN
+		UPDATE AM.MailBatches SET BatchStatus = 'Failed',ShippingResponseReceivedOn = @shippingResponseReceievedOn,PipelineStatus = 'ShippingResponseReceived' WHERE Id = @mailBatchId		
 	END
 	
 	IF (@totalMailPieces = @totalPulledBackMailPieces)

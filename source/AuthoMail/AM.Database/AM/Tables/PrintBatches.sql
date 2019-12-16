@@ -15,7 +15,8 @@
     [ReportedBackOn]             DATETIME         NULL,
     [PrintTrailId]               INT              NULL,
     [MailBatchId]                INT              NULL,
-    CONSTRAINT [PK_PrintBatches] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 90),
+    [PnSConfigDetailId]          INT              NULL,
+    CONSTRAINT [PK_PrintBatches] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 70),
     CONSTRAINT [FK_PrintBatches_DocTypes] FOREIGN KEY ([DocTypeId]) REFERENCES [AM].[DocTypes] ([Id]),
     CONSTRAINT [FK_PrintBatches_MailBatches] FOREIGN KEY ([MailBatchId]) REFERENCES [AM].[MailBatches] ([Id]),
     CONSTRAINT [FK_PrintBatches_PrintTrails] FOREIGN KEY ([PrintTrailId]) REFERENCES [Common].[PrintTrails] ([Id])
@@ -23,26 +24,26 @@
 
 
 GO
-CREATE UNIQUE NONCLUSTERED INDEX [IX_PrintBatches_UniqueId]
-    ON [AM].[PrintBatches]([UniqueId] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_PrintBatches_SubmittedToShippingOn]
-    ON [AM].[PrintBatches]([SubmittedToShippingOn] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_PrintBatches_ShippingResponseReceivedOn]
-    ON [AM].[PrintBatches]([ShippingResponseReceivedOn] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
 CREATE NONCLUSTERED INDEX [IX_PrintBatches_BatchStatus]
-    ON [AM].[PrintBatches]([BatchStatus] ASC) WITH (FILLFACTOR = 90);
+    ON [AM].[PrintBatches]([BatchStatus] ASC) WITH (FILLFACTOR = 70);
 
 
 GO
 CREATE NONCLUSTERED INDEX [IX_PrintBatches_DocTypeId]
-    ON [AM].[PrintBatches]([DocTypeId] ASC) WITH (FILLFACTOR = 90);
+    ON [AM].[PrintBatches]([DocTypeId] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_PrintBatches_ShippingResponseReceivedOn]
+    ON [AM].[PrintBatches]([ShippingResponseReceivedOn] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_PrintBatches_SubmittedToShippingOn]
+    ON [AM].[PrintBatches]([SubmittedToShippingOn] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE UNIQUE NONCLUSTERED INDEX [IX_PrintBatches_UniqueId]
+    ON [AM].[PrintBatches]([UniqueId] ASC) WITH (FILLFACTOR = 70);
 

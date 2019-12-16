@@ -1,33 +1,32 @@
-﻿
-
-
-CREATE view [dbo].[vDVExp]
-as
-select
-m.Id as PkgId
+﻿CREATE VIEW [dbo].[vDVExp]
+AS
+SELECT
+m.Id AS PkgId
 ,MailBatchId
-,m.UniqueId as PkgUniqueId
-,m.BusinessFriendlyIdValue as BFId
-,c.AppCode as ClientCode
-,sftc.Code as ChannelCode
-,DocTypeCode
+,bs.PrintBatch AS PnSBatchSummaryId
+,mrq.PrintTrailBatchId
+,m.UniqueId AS PkgUniqueId
+,m.BusinessFriendlyIdValue AS BFId
+,c.AppCode AS ClientCode
+,sftc.Code AS ChannelCode
+,d.DocTypeName
 ,m.TrackingNo
-,PrintFormat
-,PrintSize
-,EnvelopeId as EnvPartNo
+,d.PrintFormat
+,d.PrintSize
+,d.EnvelopeId AS EnvPartNo
 ,IsBRE
-,BREEnvelopeId as BREEnvPartNo
-,ShippingCarrier
-,ShippingServiceType
-,ShippingSpecialService
-,BizdayCutOff
-,SatCutOff
+,BREEnvelopeId AS BREEnvPartNo
+,d.ShippingCarrier
+,d.ShippingServiceType
+,d.ShippingSpecialService
+,d.BizdayCutOff
+,d.SatCutOff
 ,QCPercent
 ,ShippingStatus
 ,TotalPages
 ,m.TotalSheets
-,mrq.TotalSheets as PnSTotalSheets
-,ErrorCode as ErrCode
+,mrq.TotalSheets AS PnSTotalSheets
+,ErrorCode AS ErrCode
 ,IsPullBackRequested
 ,IsPulledBack
 ,IsQCPerformed
@@ -39,21 +38,20 @@ m.Id as PkgId
 ,RcptAddressZIP
 ,RcptAddressTypes
 ,b.BatchStatus
-,dbo.ufn_UTCToEST(b.ReceivedOn) as ReceivedOnEst
+,dbo.ufn_UTCToEST(b.ReceivedOn) AS ReceivedOnEst
 ,EffectiveReceivedOnEst
-,dbo.ufn_UTCToEST(m.DueDate) as DueDateEst
-,dbo.ufn_UTCToEST(bs.SubmittedOn) as SubmittedOnEst
-,dbo.ufn_UTCToEST(ShippedOn) as ShippedOnEst
-,dbo.ufn_UTCToEST(b.ReportedBackOn) as ReportedBackOnEst
-,m.SLADays as SLABuffer
+,dbo.ufn_UTCToEST(m.DueDate) AS DueDateEst
+,dbo.ufn_UTCToEST(bs.SubmittedOn) AS SubmittedOnEst
+,dbo.ufn_UTCToEST(ShippedOn) AS ShippedOnEst
+,dbo.ufn_UTCToEST(b.ReportedBackOn) AS ReportedBackOnEst
+,m.SLADays AS SLABuffer
 ,MissedSLAReason
-
-from AM.MailPieces m
-inner join AM.MailBatches b on m.MailBatchId = b.Id
-inner join Common.Clients c on b.ClientId = c.Id
-inner join Common.SFTChannels sftc on b.SFTChannelId = sftc.Id
-left outer join AM.DocTypes d on m.DocTypeId = d.Id
-left outer join Common.PrintTrails pt on m.PrintTrailId = pt.Id
-left outer join PnS.MRDFRequest mrq on m.UniqueId = mrq.UniqueId
-left outer join PnS.BatchSummary bs on mrq.JobId = bs.PrintBatch
+FROM AM.MailPieces m
+INNER JOIN AM.MailBatches b ON m.MailBatchId = b.Id
+INNER JOIN Common.Clients c ON b.ClientId = c.Id
+INNER JOIN Common.SFTChannels sftc ON b.SFTChannelId = sftc.Id
+LEFT OUTER JOIN [dbo].[v_DocTypes] d ON m.DocTypeId=d.Id AND m.PnSConfigDetailId = d.PnSConfigDetailId
+LEFT OUTER JOIN Common.PrintTrails pt ON m.PrintTrailId = pt.Id
+LEFT OUTER JOIN PnS.MRDFRequest mrq ON m.UniqueId = mrq.UniqueId
+LEFT OUTER JOIN PnS.BatchSummary bs ON mrq.JobId = bs.PrintBatch
 

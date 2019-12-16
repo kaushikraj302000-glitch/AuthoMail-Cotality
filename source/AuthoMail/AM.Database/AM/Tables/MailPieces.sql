@@ -77,14 +77,24 @@
     [IsPickedUp]                          AS               (case when [PickedUpOn] IS NULL then (0) else (1) end),
     [EffectiveReceivedOnEst]              DATETIME         NULL,
     [RcptAddressTypes]                    VARCHAR (255)    NULL,
+    [MissedSLAReason]                     VARCHAR (15)     NULL,
     [StdSubmissionTime]                   DATETIME         NULL,
     [MaxSubmissionTime]                   DATETIME         NULL,
-    [MissedSLAReason]                     VARCHAR (15)     NULL,
     [PrintTrailId]                        INT              NULL,
-    CONSTRAINT [PK_MailPieces] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 90),
+    [PDFFileSize]                         BIGINT           NULL,
+    [RcptAddressCountry]                  VARCHAR (255)    NULL,
+    [RetRcptAddressCountry]               VARCHAR (255)    NULL,
+    [IsEDeliveryRequested]                BIT              NULL,
+    [IsFallBackRequested]                 BIT              NULL,
+    [RcptEmailId]                         VARCHAR (255)    NULL,
+    [ExpiryDate]                          DATETIME         NULL,
+    [PnSConfigDetailId]                   INT              NULL,
+    [Inserts]                             VARCHAR (255)    NULL,
+    CONSTRAINT [PK_MailPieces] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 70),
     CONSTRAINT [FK_MailPiece_DocTypes] FOREIGN KEY ([DocTypeId]) REFERENCES [AM].[DocTypes] ([Id]),
     CONSTRAINT [FK_MailPieces_Clients] FOREIGN KEY ([ClientId]) REFERENCES [Common].[Clients] ([Id]),
     CONSTRAINT [FK_MailPieces_MailBatches] FOREIGN KEY ([MailBatchId]) REFERENCES [AM].[MailBatches] ([Id]),
+    CONSTRAINT [FK_MailPieces_PnSConfigDetail] FOREIGN KEY ([PnSConfigDetailId]) REFERENCES [Common].[PnSConfigDetail] ([Id]),
     CONSTRAINT [FK_MailPieces_PrintBatches] FOREIGN KEY ([PrintBatchId]) REFERENCES [AM].[PrintBatches] ([Id]),
     CONSTRAINT [FK_MailPieces_PrintTrails] FOREIGN KEY ([PrintTrailId]) REFERENCES [Common].[PrintTrails] ([Id]),
     CONSTRAINT [FK_MailPieces_Users] FOREIGN KEY ([PulledBackRequestedBy]) REFERENCES [Profile].[Users] ([Id])
@@ -92,86 +102,86 @@
 
 
 GO
-CREATE UNIQUE NONCLUSTERED INDEX [IX_MailPieces_UniqueId]
-    ON [AM].[MailPieces]([UniqueId] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_MailPieces_DueDate]
-    ON [AM].[MailPieces]([DueDate] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_MailPieces_PullBackRequestedOn]
-    ON [AM].[MailPieces]([PullBackRequestedOn] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_MailPieces_PulledBackOn]
-    ON [AM].[MailPieces]([PulledBackOn] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_MailPieces_PrintedOn]
-    ON [AM].[MailPieces]([PrintedOn] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_MailPieces_ShippedOn]
-    ON [AM].[MailPieces]([ShippedOn] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
 CREATE NONCLUSTERED INDEX [IX_MailPieces_BusinessFriendlyIdName]
-    ON [AM].[MailPieces]([BusinessFriendlyIdName] ASC) WITH (FILLFACTOR = 90);
+    ON [AM].[MailPieces]([BusinessFriendlyIdName] ASC) WITH (FILLFACTOR = 70);
 
 
 GO
 CREATE NONCLUSTERED INDEX [IX_MailPieces_BusinessFriendlyIdValue]
-    ON [AM].[MailPieces]([BusinessFriendlyIdValue] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_MailPieces_ShippingStatus]
-    ON [AM].[MailPieces]([ShippingStatus] ASC) WITH (FILLFACTOR = 90);
+    ON [AM].[MailPieces]([BusinessFriendlyIdValue] ASC) WITH (FILLFACTOR = 70);
 
 
 GO
 CREATE NONCLUSTERED INDEX [IX_MailPieces_ClientId]
-    ON [AM].[MailPieces]([ClientId] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_MailPieces_MailBatchId]
-    ON [AM].[MailPieces]([MailBatchId] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_MailPieces_PrintBatchId]
-    ON [AM].[MailPieces]([PrintBatchId] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_MailPieces_PulledBackRequestedBy]
-    ON [AM].[MailPieces]([PulledBackRequestedBy] ASC) WITH (FILLFACTOR = 90);
+    ON [AM].[MailPieces]([ClientId] ASC) WITH (FILLFACTOR = 70);
 
 
 GO
 CREATE NONCLUSTERED INDEX [IX_MailPieces_DocTypeId]
-    ON [AM].[MailPieces]([DocTypeId] ASC) WITH (FILLFACTOR = 90);
+    ON [AM].[MailPieces]([DocTypeId] ASC) WITH (FILLFACTOR = 70);
 
 
 GO
-CREATE NONCLUSTERED INDEX [IX_MailPieces_PrintLocation]
-    ON [AM].[MailPieces]([PrintLocation] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_MailPieces_TrackingNo]
-    ON [AM].[MailPieces]([TrackingNo] ASC) WHERE ([TrackingNo] IS NOT NULL) WITH (FILLFACTOR = 90);
+CREATE NONCLUSTERED INDEX [IX_MailPieces_DueDate]
+    ON [AM].[MailPieces]([DueDate] ASC) WITH (FILLFACTOR = 70);
 
 
 GO
 CREATE NONCLUSTERED INDEX [IX_MailPieces_EffectiveReceivedOnEst]
-    ON [AM].[MailPieces]([EffectiveReceivedOnEst] ASC) WITH (FILLFACTOR = 90);
+    ON [AM].[MailPieces]([EffectiveReceivedOnEst] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_MailPieces_MailBatchId]
+    ON [AM].[MailPieces]([MailBatchId] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_MailPieces_PrintBatchId]
+    ON [AM].[MailPieces]([PrintBatchId] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_MailPieces_PrintedOn]
+    ON [AM].[MailPieces]([PrintedOn] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_MailPieces_PrintLocation]
+    ON [AM].[MailPieces]([PrintLocation] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_MailPieces_PullBackRequestedOn]
+    ON [AM].[MailPieces]([PullBackRequestedOn] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_MailPieces_PulledBackOn]
+    ON [AM].[MailPieces]([PulledBackOn] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_MailPieces_PulledBackRequestedBy]
+    ON [AM].[MailPieces]([PulledBackRequestedBy] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_MailPieces_ShippedOn]
+    ON [AM].[MailPieces]([ShippedOn] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_MailPieces_ShippingStatus]
+    ON [AM].[MailPieces]([ShippingStatus] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_MailPieces_TrackingNo]
+    ON [AM].[MailPieces]([TrackingNo] ASC) WHERE ([TrackingNo] IS NOT NULL) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE UNIQUE NONCLUSTERED INDEX [IX_MailPieces_UniqueId]
+    ON [AM].[MailPieces]([UniqueId] ASC) WITH (FILLFACTOR = 70);
 

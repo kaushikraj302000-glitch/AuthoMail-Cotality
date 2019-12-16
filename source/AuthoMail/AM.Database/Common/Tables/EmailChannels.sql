@@ -7,6 +7,6 @@
     [Subject]      VARCHAR (1024) NULL,
     [BodyTemplate] VARCHAR (MAX)  NULL,
     [IsBodyHTML]   BIT            NULL,
-    CONSTRAINT [PK_EmailChannel] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 90)
+    CONSTRAINT [PK_EmailChannel] PRIMARY KEY CLUSTERED ([Id] ASC)
 );
 

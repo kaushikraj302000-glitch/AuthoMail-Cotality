@@ -3,6 +3,6 @@
     [UserId]     NVARCHAR (128) NOT NULL,
     [ClaimType]  NVARCHAR (MAX) NULL,
     [ClaimValue] NVARCHAR (MAX) NULL,
-    CONSTRAINT [PK__UserClaim] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 90)
+    CONSTRAINT [PK__UserClaim] PRIMARY KEY CLUSTERED ([Id] ASC)
 );
 

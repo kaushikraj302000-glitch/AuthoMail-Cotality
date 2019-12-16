@@ -39,34 +39,35 @@
     [MailPieceStatus]   VARCHAR (255)    NULL,
     [IsPDFReceived]     BIT              CONSTRAINT [DF_MRDFRequest_IsPDFReceived] DEFAULT ((0)) NULL,
     [PrintTrailBatchId] INT              NULL,
+    [PDFFileSize]       BIGINT           NULL,
     [FilePath]          VARCHAR (255)    NULL,
-    CONSTRAINT [PK_MRDFRequest] PRIMARY KEY CLUSTERED ([JobId] ASC, [PieceId] ASC) WITH (FILLFACTOR = 90),
+    CONSTRAINT [PK_MRDFRequest] PRIMARY KEY CLUSTERED ([JobId] ASC, [PieceId] ASC) WITH (FILLFACTOR = 70),
     CONSTRAINT [FK_MRDFRequest_BatchSummary] FOREIGN KEY ([JobId]) REFERENCES [PnS].[BatchSummary] ([PrintBatch]),
     CONSTRAINT [FK_MRDFRequest_PrintTrailBatches] FOREIGN KEY ([PrintTrailBatchId]) REFERENCES [PnS].[PrintTrailBatches] ([Id])
 );
 
 
 GO
-CREATE UNIQUE NONCLUSTERED INDEX [IX_MRDFRequest_UniqueId]
-    ON [PnS].[MRDFRequest]([UniqueId] ASC) WHERE ([UniqueId] IS NOT NULL) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_MRDFRequest_MailPieceStatus]
-    ON [PnS].[MRDFRequest]([MailPieceStatus] ASC) WITH (FILLFACTOR = 90);
+CREATE NONCLUSTERED INDEX [IX_MRDFRequest_Date]
+    ON [PnS].[MRDFRequest]([Date] ASC) WITH (FILLFACTOR = 70);
 
 
 GO
 CREATE NONCLUSTERED INDEX [IX_MRDFRequest_JobId]
-    ON [PnS].[MRDFRequest]([JobId] ASC) WITH (FILLFACTOR = 90);
+    ON [PnS].[MRDFRequest]([JobId] ASC) WITH (FILLFACTOR = 70);
 
 
 GO
-CREATE NONCLUSTERED INDEX [IX_MRDFRequest_Date]
-    ON [PnS].[MRDFRequest]([Date] ASC) WITH (FILLFACTOR = 90);
+CREATE NONCLUSTERED INDEX [IX_MRDFRequest_MailPieceStatus]
+    ON [PnS].[MRDFRequest]([MailPieceStatus] ASC) WITH (FILLFACTOR = 70);
 
 
 GO
 CREATE NONCLUSTERED INDEX [IX_MRDFRequest_PrintTrailBatchId]
-    ON [PnS].[MRDFRequest]([PrintTrailBatchId] ASC) WITH (FILLFACTOR = 90);
+    ON [PnS].[MRDFRequest]([PrintTrailBatchId] ASC);
+
+
+GO
+CREATE UNIQUE NONCLUSTERED INDEX [IX_MRDFRequest_UniqueId]
+    ON [PnS].[MRDFRequest]([UniqueId] ASC) WHERE ([UniqueId] IS NOT NULL) WITH (FILLFACTOR = 70);
 

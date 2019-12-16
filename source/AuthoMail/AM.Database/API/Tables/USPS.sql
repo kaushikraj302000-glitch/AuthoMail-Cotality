@@ -12,6 +12,6 @@
     [USPSResponseOn]  DATETIME       NULL,
     [APIResponse]     NVARCHAR (MAX) NULL,
     [APIResponseOn]   DATETIME       NULL,
-    CONSTRAINT [PK_USPS.AddressRequest] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 90)
+    CONSTRAINT [PK_USPS.AddressRequest] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 70)
 );
 

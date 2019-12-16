@@ -9,7 +9,13 @@
     [SuspendedOn]      DATETIME       NULL,
     [IsSuspended]      AS             (case when [SuspendedOn] IS NULL then (0) else (1) end),
     [ValidationErrors] VARCHAR (2048) NULL,
-    CONSTRAINT [PK_PrintTrailBatches_Id] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 90),
+    [ZipFileSize]      BIGINT         NULL,
+    CONSTRAINT [PK_PrintTrailBatches_Id] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 70),
     CONSTRAINT [FK_PrintTrailBatches_PrintTrails] FOREIGN KEY ([PrintTrailId]) REFERENCES [Common].[PrintTrails] ([Id])
 );
+
+
+GO
+CREATE NONCLUSTERED INDEX [Idx_PrintTrailBatches_SubmittedOn]
+    ON [PnS].[PrintTrailBatches]([SubmittedOn] ASC);
 

@@ -4,84 +4,80 @@
 )
 RETURNS @MPs TABLE 
 (
-	Id int,
-	LoanNumber varchar(255) null,
-	ClientId int null,
-	PrintLocation varchar(255) null,
-	EffectiveReceivedOnEst datetime null,
-	TrackingNo varchar(255) null,
-	IsPullBackRequested bit,
-	IsQCRequested bit,
-	TotalSheets int,
-	DueDate datetime null,
-	TotalPages int,
-	ShippingStatus varchar(255) null,
-	PrintBatch int,
-	IsSubmitted bit,
-	PipelineStatus varchar(512),
-	PrintBatchName varchar(255),
-	JobName varchar(512) null,
-	SubmittedOn datetime null,
-	PieceId int null,
-	PrintTrailBatchId int null,
-	JobId int null,
-	MRDFReqDate datetime null,
-	PDFFileName varchar(255)null,
-	UniqueId uniqueidentifier null,
-	MailPieceStatus varchar(255) null,
-	ProcessingTimeStamp datetime null,
-	ShippingServiceType varchar(255) null,
-	ShippingCarrier varchar(255) null,
-	IsBRE bit,
-	AppCode varchar(128),
-	ClientName varchar(255) null,
-	BatchName varchar(128) null,
-	FilePath varchar(1024) null
+	Id INT,
+	LoanNumber VARCHAR(255) NULL,
+	ClientId INT NULL,
+	PrintLocation VARCHAR(255) NULL,
+	EffectiveReceivedOnEst DATETIME NULL,
+	TrackingNo VARCHAR(255) NULL,
+	IsPullBackRequested BIT,
+	IsQCRequested BIT,
+	TotalSheets INT,
+	DueDate DATETIME NULL,
+	TotalPages INT,
+	ShippingStatus VARCHAR(255) NULL,
+	PrintBatch INT,
+	IsSubmitted BIT,
+	PipelineStatus VARCHAR(512),
+	PrintBatchName VARCHAR(255),
+	JobName VARCHAR(512) NULL,
+	SubmittedOn DATETIME NULL,
+	PieceId INT NULL,
+	PrintTrailBatchId INT NULL,
+	JobId INT NULL,
+	MRDFReqDate DATETIME NULL,
+	PDFFileName VARCHAR(255)NULL,
+	UniqueId UNIQUEIDENTIFIER NULL,
+	MailPieceStatus VARCHAR(255) NULL,
+	ProcessingTimeStamp DATETIME NULL,
+	ShippingServiceType VARCHAR(255) NULL,
+	ShippingCarrier VARCHAR(255) NULL,
+	IsBRE BIT,
+	AppCode VARCHAR(128),
+	ClientName VARCHAR(255) NULL,
+	BatchName VARCHAR(128) NULL,
+	FilePath VARCHAR(1024) NULL
 )
 AS
-begin
+BEGIN
 
-	declare @minDate datetime,@pl varchar(255);
-	declare @dallasBatchesTimes Table
+	DECLARE @minDate DATETIME,@pl VARCHAR(255);
+	DECLARE @dallasBatchesTimes Table
 	(
 		AppCode VARCHAR(255),
-		BatchName varchar(255),
-		StartDate datetime,
-		EndDate datetime,
-		ShippingCarrier varchar(255),
-		ShippingServiceType varchar(255)
+		BatchName VARCHAR(255),
+		StartDate DATETIME,
+		EndDate DATETIME,
+		ShippingCarrier VARCHAR(255),
+		ShippingServiceType VARCHAR(255)
 	)
-	select @pl=Name from Common.PrintVendors where VendorCode='CL_DALLAS'
+	SELECT @pl=Name FROM Common.PrintVendors WHERE VendorCode='CL_DALLAS'
 	--Get batches timings
-	--select * into #dallasBatchesTimes from (select * from [dbo].[ufn_GetDallasBatches](@EstDate)) as t
-	insert into @dallasBatchesTimes
-	select * from [dbo].[ufn_GetDallasBatches](@EstDate)
+	--SELECT  into #dallasBatchesTimes FROM (SELECT  FROM [dbo].[ufn_GetDallasBatches](@EstDate)) AS t
+	INSERT INTO @dallasBatchesTimes
+	SELECT * FROM [dbo].[ufn_GetDallasBatches](@EstDate)
 
 	--Assign value to mindate
-	select @minDate= MIN(StartDate) from @dallasBatchesTimes
+	SELECT @minDate= MIN(StartDate) FROM @dallasBatchesTimes
 
-	;with q1 as
-	(
-	SELECT m.Id,m.BusinessFriendlyIdValue as LoanNumber,m.ClientId, m.PrintLocation, m.EffectiveReceivedOnEst, m.TrackingNo,m.IsPullBackRequested,
+	INSERT INTO @MPs
+	SELECT m.Id,m.BusinessFriendlyIdValue AS LoanNumber,m.ClientId, m.PrintLocation, m.EffectiveReceivedOnEst, m.TrackingNo,m.IsPullBackRequested,
 	m.IsQCRequested,m.TotalSheets, m.DueDate,m.TotalPages,m.ShippingStatus,
 	b.PrintBatch,b.IsSubmitted,b.PipelineStatus,preq.PrintBatchName,b.JobName,preq.SubmittedOn,
-	req.PieceId,req.PrintTrailBatchId, req.JobId,req.[Date] as MRDFReqDate,req.PDFFileName, req.UniqueId,req.MailPieceStatus, 
+	req.PieceId,req.PrintTrailBatchId, req.JobId,req.[Date] AS MRDFReqDate,req.PDFFileName, req.UniqueId,req.MailPieceStatus, 
 	res.ProcessingTimeStamp,
 	d.ShippingServiceType,d.ShippingCarrier,d.IsBRE,
-	c.AppCode,c.Name as ClientName,
-	(select BatchName from @dallasBatchesTimes where EffectiveReceivedOnEst between StartDate AND EndDate AND ShippingCarrier=d.ShippingCarrier AND ShippingServiceType=d.ShippingServiceType  AND AppCode=c.AppCode) BatchName,req.FilePath
+	c.AppCode,c.Name AS ClientName,(SELECT BatchName FROM @dallasBatchesTimes WHERE EffectiveReceivedOnEst between StartDate AND EndDate AND ShippingCarrier=d.ShippingCarrier AND ShippingServiceType=d.ShippingServiceType  AND AppCode=c.AppCode) BatchName,
+	req.FilePath
 	FROM [AM].[MailPieces] m
 	LEFT OUTER JOIN PnS.MRDFRequest req ON m.UniqueId = req.UniqueId
 	LEFT OUTER JOIN PnS.BatchSummary b ON req.JobId = b.PrintBatch
 	LEFT OUTER JOIN PnS.PrintTrailBatches preq ON req.PrintTrailBatchId=preq.Id
 	LEFT OUTER JOIN PnS.MRDFResponse res ON req.PrintTrailBatchId = res.JobId AND req.PieceId=res.PieceId
-	INNER JOIN AM.DocTypes d ON m.DocTypeId=d.Id
+	INNER JOIN [dbo].[v_DocTypes] d ON m.DocTypeId=d.Id AND m.PnSConfigDetailId = d.PnSConfigDetailId
 	INNER JOIN Common.Clients c ON m.ClientId=c.Id
 	WHERE m.PrintLocation=@pl
 	AND m.EffectiveReceivedOnEst >=@minDate
-	)
-	insert into @MPs
-	select * from q1 where BatchName is not null 
 
-	return
-end
+	RETURN
+END

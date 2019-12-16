@@ -36,7 +36,8 @@
     [PDFsReceivedOn]     DATETIME         NULL,
     [PrintLocation]      VARCHAR (255)    NULL,
     [PrintTrailId]       INT              NULL,
-    CONSTRAINT [PK_BatchSummary] PRIMARY KEY CLUSTERED ([PrintBatch] ASC) WITH (FILLFACTOR = 90),
+    [PnSConfigDetailId]  INT              NULL,
+    CONSTRAINT [PK_BatchSummary] PRIMARY KEY CLUSTERED ([PrintBatch] ASC) WITH (FILLFACTOR = 70),
     CONSTRAINT [FK_BatchSummary_Clients] FOREIGN KEY ([ClientId]) REFERENCES [Common].[Clients] ([Id]),
     CONSTRAINT [FK_BatchSummary_DocTypes] FOREIGN KEY ([DocTypeId]) REFERENCES [AM].[DocTypes] ([Id]),
     CONSTRAINT [FK_BatchSummary_PrintTrailBatches] FOREIGN KEY ([PrintTrailId]) REFERENCES [Common].[PrintTrails] ([Id])
@@ -44,76 +45,71 @@
 
 
 GO
-CREATE UNIQUE NONCLUSTERED INDEX [IX_BatchSummary_BatchIdentifier]
-    ON [PnS].[BatchSummary]([BatchIdentifier] ASC) WHERE ([BatchIdentifier] IS NOT NULL) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_BatchSummary_ReceivedOn]
-    ON [PnS].[BatchSummary]([ReceivedOn] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_BatchSummary_DownloadedOn]
-    ON [PnS].[BatchSummary]([DownloadedOn] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_BatchSummary_PreppedOn]
-    ON [PnS].[BatchSummary]([PreppedOn] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_BatchSummary_SubmittedOn]
-    ON [PnS].[BatchSummary]([SubmittedOn] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_BatchSummary_MRDFReceivedOn]
-    ON [PnS].[BatchSummary]([MRDFReceivedOn] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_BatchSummary_ReportPreppedOn]
-    ON [PnS].[BatchSummary]([ReportPreppedOn] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_BatchSummary_ReportedBackOn]
-    ON [PnS].[BatchSummary]([ReportedBackOn] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_BatchSummary_SuspendedOn]
-    ON [PnS].[BatchSummary]([SuspendedOn] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
 CREATE NONCLUSTERED INDEX [IX_BatchSummary_CancelledOn]
-    ON [PnS].[BatchSummary]([CancelledOn] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_BatchSummary_PipelineStatus]
-    ON [PnS].[BatchSummary]([PipelineStatus] ASC) WITH (FILLFACTOR = 90);
+    ON [PnS].[BatchSummary]([CancelledOn] ASC) WITH (FILLFACTOR = 70);
 
 
 GO
 CREATE NONCLUSTERED INDEX [IX_BatchSummary_ClientId]
-    ON [PnS].[BatchSummary]([ClientId] ASC) WITH (FILLFACTOR = 90);
+    ON [PnS].[BatchSummary]([ClientId] ASC) WITH (FILLFACTOR = 70);
 
 
 GO
-CREATE NONCLUSTERED INDEX [IX_Deliverables_DocTypeId]
-    ON [PnS].[BatchSummary]([DocTypeId] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_BatchSummary_PrintLocation]
-    ON [PnS].[BatchSummary]([PrintLocation] ASC) WITH (FILLFACTOR = 90);
+CREATE NONCLUSTERED INDEX [IX_BatchSummary_DownloadedOn]
+    ON [PnS].[BatchSummary]([DownloadedOn] ASC) WITH (FILLFACTOR = 70);
 
 
 GO
 CREATE NONCLUSTERED INDEX [IX_BatchSummary_DueDate]
-    ON [PnS].[BatchSummary]([DueDate] ASC) WITH (FILLFACTOR = 90);
+    ON [PnS].[BatchSummary]([DueDate] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_BatchSummary_MRDFReceivedOn]
+    ON [PnS].[BatchSummary]([MRDFReceivedOn] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_BatchSummary_PipelineStatus]
+    ON [PnS].[BatchSummary]([PipelineStatus] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_BatchSummary_PreppedOn]
+    ON [PnS].[BatchSummary]([PreppedOn] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_BatchSummary_PrintLocation]
+    ON [PnS].[BatchSummary]([PrintLocation] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_BatchSummary_ReceivedOn]
+    ON [PnS].[BatchSummary]([ReceivedOn] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_BatchSummary_ReportedBackOn]
+    ON [PnS].[BatchSummary]([ReportedBackOn] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_BatchSummary_ReportPreppedOn]
+    ON [PnS].[BatchSummary]([ReportPreppedOn] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_BatchSummary_SubmittedOn]
+    ON [PnS].[BatchSummary]([SubmittedOn] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_BatchSummary_SuspendedOn]
+    ON [PnS].[BatchSummary]([SuspendedOn] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_Deliverables_DocTypeId]
+    ON [PnS].[BatchSummary]([DocTypeId] ASC) WITH (FILLFACTOR = 70);
 

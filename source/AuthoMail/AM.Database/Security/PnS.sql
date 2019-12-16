@@ -1,3 +1,3 @@
 ﻿CREATE SCHEMA [PnS]
-    AUTHORIZATION [AuthomailUser];
+    AUTHORIZATION [dbo];
 

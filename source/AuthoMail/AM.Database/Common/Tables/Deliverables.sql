@@ -11,18 +11,18 @@
     [UploadPath]          VARCHAR (1024) NULL,
     [EmailChannelId]      INT            NULL,
     [ScheduleId]          INT            NULL,
-    CONSTRAINT [PK_Deliverables] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 90),
+    CONSTRAINT [PK_Deliverables] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [FK_Deliverables_Clients] FOREIGN KEY ([ClientId]) REFERENCES [Common].[Clients] ([Id]),
     CONSTRAINT [FK_Deliverables_EmailChannel] FOREIGN KEY ([EmailChannelId]) REFERENCES [Common].[EmailChannels] ([Id])
 );
 
 
 GO
-CREATE NONCLUSTERED INDEX [IX_Deliverables_ReportType]
-    ON [Common].[Deliverables]([ReportType] ASC) WITH (FILLFACTOR = 90);
+CREATE NONCLUSTERED INDEX [IX_Deliverables_ClientId]
+    ON [Common].[Deliverables]([ClientId] ASC);
 
 
 GO
-CREATE NONCLUSTERED INDEX [IX_Deliverables_ClientId]
-    ON [Common].[Deliverables]([ClientId] ASC) WITH (FILLFACTOR = 90);
+CREATE NONCLUSTERED INDEX [IX_Deliverables_ReportType]
+    ON [Common].[Deliverables]([ReportType] ASC);
 

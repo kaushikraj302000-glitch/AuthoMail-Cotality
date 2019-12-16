@@ -12,12 +12,12 @@
     [ArchiveDir]         VARCHAR (1024) NULL,
     [PostDownloadAction] VARCHAR (255)  NULL,
     [IsActive]           BIT            CONSTRAINT [DF_SFTChannels_IsActive] DEFAULT ((0)) NULL,
-    CONSTRAINT [PK_SFTChannel] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 90),
-    CONSTRAINT [UQ_SFTChannel] UNIQUE NONCLUSTERED ([Code] ASC) WITH (FILLFACTOR = 90)
+    CONSTRAINT [PK_SFTChannel] PRIMARY KEY CLUSTERED ([Id] ASC),
+    CONSTRAINT [UQ_SFTChannel] UNIQUE NONCLUSTERED ([Code] ASC)
 );
 
 
 GO
 CREATE NONCLUSTERED INDEX [IX_SFTChannels_Code]
-    ON [Common].[SFTChannels]([Code] ASC) WITH (FILLFACTOR = 90);
+    ON [Common].[SFTChannels]([Code] ASC);
 

@@ -1,20 +1,21 @@
 ﻿-- =============================================
 -- Author:		Milan Patel
 -- Create date: 03-Mar-18
--- Description:	Get MailPiece by batchid and status.
+-- Description:	Get MailPiece by batchid AND status.
 -- =============================================
 CREATE PROCEDURE [dbo].[uspweb_GetMailPieceByBatchIdAndStatus]
 	-- Add the parameters for the stored procedure here
-	@batchId int,
-	@status varchar(255),
-	@clientId int = null
+	@batchId INT,
+	@status VARCHAR(255),
+	@clientId INT = NULL
 AS
 BEGIN
-	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- SET NOCOUNT ON added to prevent extra result sets FROM
 	-- interfering with SELECT statements.
-	select *
-from [AM].[MailBatches] b,[Common].[Clients] c,[AM].[MailPieces] m
-left outer join [AM].[DocTypes] d ON m.DocTypeId=d.Id
-where m.MailBatchId=b.Id and b.ClientId=ISNULL(@clientId,b.ClientId)
-and m.ShippingStatus=@status and b.Id=@batchId and m.ClientId=c.Id
-END
+	SELECT *
+	FROM [AM].[MailBatches] b,[Common].[Clients] c,[AM].[MailPieces] m
+	LEFT OUTER JOIN [dbo].[v_DocTypes] d ON m.DocTypeId=d.Id AND m.PnSConfigDetailId = d.PnSConfigDetailId
+	WHERE m.MailBatchId=b.Id AND b.ClientId=ISNULL(@clientId,b.ClientId)
+	AND m.ShippingStatus=@status AND b.Id=@batchId AND m.ClientId=c.Id
+	END
+

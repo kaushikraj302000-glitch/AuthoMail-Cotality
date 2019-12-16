@@ -21,27 +21,27 @@
     [TotalSheets]           INT            NULL,
     [PDFFileName]           VARCHAR (255)  NULL,
     [PackageTrackingNumber] VARCHAR (50)   NULL,
-    CONSTRAINT [PK_MRDFResponse] PRIMARY KEY CLUSTERED ([JobId] ASC, [PieceId] ASC) WITH (FILLFACTOR = 90),
+    CONSTRAINT [PK_MRDFResponse] PRIMARY KEY CLUSTERED ([JobId] ASC, [PieceId] ASC) WITH (FILLFACTOR = 70),
     CONSTRAINT [FK_MRDFResponse_PrintTrailBatches] FOREIGN KEY ([JobId]) REFERENCES [PnS].[PrintTrailBatches] ([Id])
 );
 
 
 GO
-CREATE NONCLUSTERED INDEX [IX_MRDFResponse_ProcessingTimeStamp]
-    ON [PnS].[MRDFResponse]([ProcessingTimeStamp] ASC) WITH (FILLFACTOR = 90);
+CREATE NONCLUSTERED INDEX [IX_MRDFResponse_Date]
+    ON [PnS].[MRDFResponse]([Date] ASC) WITH (FILLFACTOR = 70);
 
 
 GO
 CREATE NONCLUSTERED INDEX [IX_MRDFResponse_Disposition]
-    ON [PnS].[MRDFResponse]([Disposition] ASC) WITH (FILLFACTOR = 90);
+    ON [PnS].[MRDFResponse]([Disposition] ASC) WITH (FILLFACTOR = 70);
 
 
 GO
 CREATE NONCLUSTERED INDEX [IX_MRDFResponse_JobId]
-    ON [PnS].[MRDFResponse]([JobId] ASC) WITH (FILLFACTOR = 90);
+    ON [PnS].[MRDFResponse]([JobId] ASC) WITH (FILLFACTOR = 70);
 
 
 GO
-CREATE NONCLUSTERED INDEX [IX_MRDFResponse_Date]
-    ON [PnS].[MRDFResponse]([Date] ASC) WITH (FILLFACTOR = 90);
+CREATE NONCLUSTERED INDEX [IX_MRDFResponse_ProcessingTimeStamp]
+    ON [PnS].[MRDFResponse]([ProcessingTimeStamp] ASC) WITH (FILLFACTOR = 70);
 

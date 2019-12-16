@@ -10,7 +10,3 @@ BEGIN
  , PieceId, UniqueId, PDFFileName, ErrDesc, MailPieceStatus,TotalSheets,DivertVS3, PackageTrackingNumber 
  FROM view_MRDFResponseData V WHERE V.JobId=@jobId --AND ErrId <> -4
 END
--- End Stored Procedure --
-/*==========================================================================================*/
-
---- Drop & Create View ---

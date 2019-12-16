@@ -5,15 +5,17 @@
 -- =============================================
 CREATE PROCEDURE [dbo].[uspweb_GetMailPieceByBatchId]
 	-- Add the parameters for the stored procedure here
-	@batchId int,
-	@clientId int = null
+	@batchId INT,
+	@clientId INT = NULL
 AS
 BEGIN
-	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- SET NOCOUNT ON added to prevent extra result sets FROM
 	-- interfering with SELECT statements.
-	select *
-from [AM].[MailBatches] b,[Common].[Clients] c,[AM].[MailPieces] m
-left outer join [AM].[DocTypes] d ON m.DocTypeId=d.Id
-where m.MailBatchId=b.Id and b.ClientId=ISNULL(@clientId,b.ClientId) and m.ClientId=c.Id
-and b.Id=@batchId
+	SET NOCOUNT ON;
+	SELECT *
+	FROM [AM].[MailBatches] b,[Common].[Clients] c,[AM].[MailPieces] m
+	LEFT OUTER JOIN [dbo].[v_DocTypes] d ON m.DocTypeId=d.Id AND m.PnSConfigDetailId = d.PnSConfigDetailId
+	WHERE m.MailBatchId=b.Id AND b.ClientId=ISNULL(@clientId,b.ClientId) AND m.ClientId=c.Id
+	AND b.Id=@batchId
 END
+

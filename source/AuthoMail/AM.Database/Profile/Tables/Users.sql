@@ -23,7 +23,8 @@
     [ChangePasswordDateUTC] DATETIME       DEFAULT (getutcdate()) NOT NULL,
     [StatusModifiedBy]      NVARCHAR (128) NULL,
     [StatusModifiedOn]      DATETIME       NULL,
-    CONSTRAINT [PK_Users] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 90),
+    [SFTChannelId]          INT            NULL,
+    CONSTRAINT [PK_Users] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 70),
     CONSTRAINT [FK_Users_Clients] FOREIGN KEY ([ClientId]) REFERENCES [Common].[Clients] ([Id]),
     CONSTRAINT [FK_Users_StatusModifiedBy] FOREIGN KEY ([StatusModifiedBy]) REFERENCES [Profile].[Users] ([Id]),
     CONSTRAINT [FK_Users_Users] FOREIGN KEY ([ClosedBy]) REFERENCES [Profile].[Users] ([Id])
@@ -31,16 +32,16 @@
 
 
 GO
-CREATE NONCLUSTERED INDEX [IX_Users_UserName]
-    ON [Profile].[Users]([UserName] ASC) WITH (FILLFACTOR = 90);
-
-
-GO
 CREATE NONCLUSTERED INDEX [IX_Users_Email]
-    ON [Profile].[Users]([Email] ASC) WITH (FILLFACTOR = 90);
+    ON [Profile].[Users]([Email] ASC) WITH (FILLFACTOR = 70);
 
 
 GO
 CREATE NONCLUSTERED INDEX [IX_Users_Status]
-    ON [Profile].[Users]([Status] ASC) WITH (FILLFACTOR = 90);
+    ON [Profile].[Users]([Status] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_Users_UserName]
+    ON [Profile].[Users]([UserName] ASC) WITH (FILLFACTOR = 70);
 

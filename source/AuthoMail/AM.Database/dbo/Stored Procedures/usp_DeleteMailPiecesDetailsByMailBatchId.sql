@@ -1,8 +1,4 @@
-﻿
-
-
-
-CREATE PROCEDURE [dbo].[usp_DeleteMailPiecesDetailsByMailBatchId]
+﻿CREATE PROCEDURE [dbo].[usp_DeleteMailPiecesDetailsByMailBatchId]
 @mailBatchId int
 AS
 BEGIN
@@ -12,7 +8,9 @@ SET NOCOUNT ON;
 
 DELETE FROM [AM].[PrintBatches] WHERE MailBatchId=@mailBatchId	
 DELETE FROM [AM].[MailPieceCustomInfo] WHERE MailPieceId IN (SELECT Id FROM [AM].[MailPieces] WHERE MailBatchId=@mailBatchId)
+DELETE FROM [AM].[EDeliveryMailPieces] WHERE MailBatchId=@mailBatchId
 DELETE FROM [AM].[MailPieces] WHERE MailBatchId=@mailBatchId 
+
 
 END
 

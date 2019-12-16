@@ -11,6 +11,6 @@
     [DataType]           NVARCHAR (255)  NULL,
     [DataFormatTemplate] NVARCHAR (255)  NULL,
     [DefaultValue]       NVARCHAR (255)  NULL,
-    CONSTRAINT [PK_SchemaMRDFRequest] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 90)
+    CONSTRAINT [PK_SchemaMRDFRequest] PRIMARY KEY CLUSTERED ([Id] ASC)
 );
 
