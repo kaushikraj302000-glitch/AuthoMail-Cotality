@@ -96,7 +96,7 @@ namespace AM.Services
                     //System will calculate print trail,print location, duedate etc.
                     MailPieceDTO mailPieceDTO = mpSvc.GetMailPieceDataByUniqueIdAndMBId(edmp.UniqueId, edmp.MailBatchId);
                     //NOTE : Reason to take document type based on Name to just put valid Id after fall back
-                    DocType mpDocType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, edmp.TotalPages);
+                    DocType mpDocType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, edmp.TotalPages, edmp.ReceivedOn.Value);
                     mailPieceDTO.DocTypeId = mpDocType.Id;
                     mailPieceDTO.PnSConfigDetailId = mpDocType.PnSConfigDetailId;
                     GetExactDocumentType(mpDocType, mailPieceDTO);

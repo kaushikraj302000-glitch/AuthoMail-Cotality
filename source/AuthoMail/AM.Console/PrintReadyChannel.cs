@@ -640,7 +640,7 @@ namespace AM.Console
                                         else if (cstmInfo.Key == "ShippingServiceType")
                                         {
                                             mailPieceDTO.ShippingServiceType = cstmInfo.Value;
-                                        }                                       
+                                        }
                                     }
 
                                     customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = cstmInfo.Key, DataType = cstmInfo.DataType, Value = cstmInfo.Value };
@@ -790,7 +790,7 @@ namespace AM.Console
             }
             else
             {
-                docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType, pageCount);
+                docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType, pageCount, mbi.MailBatch.ReceivedOn.Value);
             }
 
 

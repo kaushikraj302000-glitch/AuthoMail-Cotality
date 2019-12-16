@@ -349,7 +349,7 @@ namespace AM.Console
                                     }
 
                                     //Document Or Package Type validation
-                                    var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, pageCount);
+                                    var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, pageCount, mbi.MailBatch.ReceivedOn.Value);
 
                                     if (docType != null)
                                     {
