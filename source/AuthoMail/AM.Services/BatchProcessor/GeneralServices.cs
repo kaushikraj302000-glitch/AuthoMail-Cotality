@@ -22,7 +22,8 @@ namespace AM.Services
         string GeneralXMLReport(List<MailPieces> mailPieces, MailBatches mailBatch);
         string GeneralXMLReport(List<MailPieces> mailPieces, MailBatchDTO mailBatch, string clientCode);
         string GeneralJsonReport(MailPieces mp, MailBatchDTO mailBatch, string clientCode);
-        string GeneralJsonReport(MailPieces mp, MailBatches mailBatch);        
+        List<BatchAPIResponse> GeneralJsonAPIResponse(List<MailPieces> mailpieces, MailBatchDTO mailBatch, string clientCode);
+        string GeneralJsonReport(MailPieces mp, MailBatches mailBatch);
         Task<string> SendEllieMaeResponse(List<MailAPIResponse> responseReport);
     }
 
@@ -194,6 +195,39 @@ namespace AM.Services
             return serializedString;
         }
 
+        public List<BatchAPIResponse> GeneralJsonAPIResponse(List<MailPieces> mailpieces, MailBatchDTO mailBatch, string clientCode)
+        {
+            List<BatchAPIResponse> batchApiResponses = new List<BatchAPIResponse>();
+            foreach (var mp in mailpieces)
+            {
+                batchApiResponses.Add(new BatchAPIResponse()
+                {
+                    MBId = mailBatch.Id,
+                    resp = new MailAPIResponse()
+                    {
+                        BusinessFriendlyIdName = mp.BusinessFriendlyIdName,
+                        BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue,
+                        ClientCode = clientCode,
+                        DocumentOrPackage = new DocumentOrPackage() { Name = mp.FileName },
+                        ReceivedOn = mailBatch.ReceivedOn.Value,
+                        RecipientInfo = new RecipientInfo() { Recipient = new Recipient() { FirstName = mp.RcptFirstName, LastName = mp.RcptLastName }, Address = new Entities.Address() { Street = mp.RcptAddressStreet, City = mp.RcptAddressCity, State = mp.RcptAddressState, Zip = mp.RcptAddressZIP } },
+                        ShippingMethod = mp.DocTypes == null ? "" : mp.DocTypes.ShippingCarrier,
+                        ShippingServiceType = mp.DocTypes == null ? "" : mp.DocTypes.ShippingServiceType,
+                        TotalPages = mp.TotalPages,
+                        TrackingNumber = mp.TrackingNo,
+                        ErrorCode = mp.ErrorCode,
+                        ErrorDesc = mp.ErrorDesc,
+                        Id = mp.UniqueId,
+                        MailingStatus = mp.ShippingStatus,
+                        PulledBackOn = mp.PulledBackOn.HasValue ? mp.PulledBackOn.Value : DateTime.MinValue,
+                        ShippedOn = mp.ShippedOn.HasValue ? mp.ShippedOn.Value : DateTime.MinValue,
+                        TotalSheets = mp.TotalPages
+                    }
+                });
+            }
+
+            return batchApiResponses;
+        }
         public string GeneralJsonReport(MailPieces mp, MailBatches mailBatch)
         {
             MailAPIResponse response = new MailAPIResponse()
@@ -226,38 +260,28 @@ namespace AM.Services
             Encoding ascii = Encoding.ASCII;
             HMACSHA256 hmac = new HMACSHA256(ascii.GetBytes(key));
 
-            byte[] hash = hmac.ComputeHash(ascii.GetBytes(message));          
+            byte[] hash = hmac.ComputeHash(ascii.GetBytes(message));
             return String.Concat(Array.ConvertAll(hash, x => x.ToString("x2")));
         }
 
         public async Task<string> SendEllieMaeResponse(List<MailAPIResponse> responseReport)
         {
-            try
+            string json = JsonConvert.SerializeObject(responseReport);
+            string hashHMAC = GenerateHashHMAC(Config.EllieMae_Secret, json);
+            //var token = await GetToken();
+            using (var client = SetupClient(Config.EllieMae_X_API_Key, hashHMAC))
             {
-                string json = JsonConvert.SerializeObject(responseReport);                
-                string hashHMAC = GenerateHashHMAC(Config.EllieMae_Secret, json);
-                //var token = await GetToken();
-                using (var client = SetupClient(Config.EllieMae_X_API_Key, hashHMAC))
-                {
-                    StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                    HttpResponseMessage response = await client.PostAsync("api/emresponse", content);
-                    var responseString = await response.Content.ReadAsStringAsync();
-
-                    return responseString;
-                }
-            }
-            catch (Exception ex)
-            {
-
-                throw;
+                StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+                HttpResponseMessage response = await client.PostAsync(Config.EllieMae_UploadResponseURL, content);
+                var responseString = await response.Content.ReadAsStringAsync();
+                return response.StatusCode.ToString();
             }
         }
 
-        private static HttpClient SetupClient(string xAPIKey,string hashHMAC)
+        private static HttpClient SetupClient(string xAPIKey, string hashHMAC)
         {
             var client = new HttpClient();
-            client.BaseAddress = new Uri("http://localhost:17005/");
+            client.BaseAddress = new Uri(Config.EllieMae_BaseURL);
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             //client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
@@ -275,7 +299,7 @@ namespace AM.Services
                     ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
                     //setup client
-                    client.BaseAddress = new Uri("http://localhost:17005/"); 
+                    client.BaseAddress = new Uri("http://localhost:17005/");
                     client.DefaultRequestHeaders.Accept.Clear();
                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
@@ -284,7 +308,7 @@ namespace AM.Services
                 {
                     new KeyValuePair<string, string>("grant_type", "password"),
                     new KeyValuePair<string, string>("username", "admin@milestonetechnoconsulting.com"),
-                    new KeyValuePair<string, string>("password", "Admin@123") 
+                    new KeyValuePair<string, string>("password", "Admin@123")
                 });
 
                     //send request

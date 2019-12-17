@@ -188,3 +188,7 @@ INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsS
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'EllieMae_X_API_Key', N'String', '883b2eed-547c-4d12-ac29-44022b480411', 'Key shared by EllieMae, It will update every 6 months', 0, '883b2eed-547c-4d12-ac29-44022b480411', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'EllieMae_Secret', N'String', 'Swaminarayan', 'Secret shared by EllieMae, send it along with response.', 0, 'Swaminarayan', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'EllieMae_BaseURL', N'String', 'http://localhost:17005/', '', 0, 'http://localhost:17005/', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'EllieMae_UploadResponseURL', N'String', 'api/emresponse', '', 0, 'api/emresponse', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())

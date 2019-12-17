@@ -108,6 +108,12 @@ namespace AM.Console
                         ProcessGeneralReportedBack(channelCode);
                     }
                     break;
+                case "API":
+                    foreach (var channelCode in channelCodes)
+                    {
+                        ProcessAPIReportedBack(channelCode);
+                    }
+                    break;
                 default:
                     foreach (var channelCode in channelCodes)
                     {
@@ -117,6 +123,101 @@ namespace AM.Console
             }
 
             log.Debug("ReportedBack job is completed.");
+        }
+
+        private static void ProcessAPIReportedBack(string channelCode)
+        {
+            using (IMailBatchService mailBatchSvc = new MailBatchService())
+            using (IMailPieceService mailPieceSvc = new MailPieceService())
+            using (IClientService clientSvc = new ClientService())
+            using (ICommonService commonSvc = new CommonService())
+            using (IGeneralService genSvc = new GeneralService())
+            {
+                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelCode(channelCode + "_" + Config.Common_Environment);
+
+                List<MailBatchDTO> reportPreppedBatches = mailBatchSvc.GetBatchesByPipelineStatusAndClientId(BatchPipelineStatus.ReportPrepped).Where(ch => ch.SFTChannelId == sftChannelDetails.Id).ToList();
+
+                if (reportPreppedBatches == null || reportPreppedBatches.Count == 0)
+                {
+                    log.Debug("Uploading report job queue is empty.");
+                    return;
+                }
+                List<BatchAPIResponse> batchApiResponses = new List<BatchAPIResponse>();
+                string responseResult = null;
+                foreach (var mailBatch in reportPreppedBatches)
+                {
+                    //take all the MP of that batch and generate List<MailResponseAPI> (Max:100)
+                    //Based on response update MailBatch Status to ReportedBack
+
+                    try
+                    {
+                        Client client = clientSvc.GetClientById(mailBatch.ClientId);
+
+                        MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
+
+                        List<MailPieces> mailPieces;
+                        using (IReportService reportSvc = new ReportService())
+                        {
+                            mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
+                        }
+                        var responses = genSvc.GeneralJsonAPIResponse(mailPieces, mailBatch, client.AppCode);
+
+                        if (responses.Count == 0)
+                        {
+                            continue;
+                        }
+
+                        batchApiResponses.AddRange(responses);
+                    }
+                    catch (Exception ex)
+                    {
+                        var msg = "Error occured while generating JSON API response For Mail Batch Id: {0} with Error : {1}".Fill(mailBatch.Id, ex.Message);
+                        log.Error(msg, ex);
+                        MailUtility.SendUnexpectedExceptionEmail(msg);
+                        continue;
+                    }
+                }
+
+                try
+                {
+                    responseResult = genSvc.SendEllieMaeResponse(batchApiResponses.Select(b => b.resp).ToList()).Result;
+                }
+                catch (Exception ex)
+                {
+                    var msg = "Unexpected error occured while sending response to EllieMae endpoint with Error : {0}".Fill(ex.Message);
+                    log.Error(msg, ex);
+                    MailUtility.SendUnexpectedExceptionEmail(msg);
+                }
+
+                if (responseResult.ToString() == "OK")
+                {
+                    //LIST<Response> one by check with uniqueId (check All MPs NOT IN "INPROGRESS"--> check ALL PrintBatches NOT IN "INPROGRESS" Then Execute below.
+                    foreach (var batchResponse in batchApiResponses)
+                    {
+                        try
+                        {
+                            var mailPieceInfo = mailPieceSvc.GetMailPiecesByMailBatchId(batchResponse.MBId).Where(m => m.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
+                            if (mailPieceInfo.Count > 0)
+                                continue;
+
+                            int remainingPrintBatchReportedBackCount = 0;
+
+                            remainingPrintBatchReportedBackCount = mailBatchSvc.RemainingPrintBatchesReportedBackCount(batchResponse.MBId);
+                            if (remainingPrintBatchReportedBackCount > 0)
+                                continue;
+
+                            commonSvc.UpdateBatchPipeLineStatus(batchResponse.MBId, BatchPipelineStatus.ReportedBack, Common.Now);
+                        }
+                        catch (Exception ex)
+                        {
+                            var msg = "Error occured in API ReportedBack Method For Mail Batch Id: {0} with Error : {1}".Fill(batchResponse.MBId, ex.Message);
+                            log.Error(msg, ex);
+                            MailUtility.SendUnexpectedExceptionEmail(msg);
+                            continue;
+                        }
+                    }
+                }
+            }
         }
 
         private static void ProcessGeneralReportedBack(string channelCode)
