@@ -91,11 +91,13 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="CoverTemplates\ALASKA\ALASKA_USPS_10_6X95_9X12.pdf" />
+    <None Include="CoverTemplates\ALASKA\ALASKA_USPS_10_6X95.pdf" />
+    <None Include="CoverTemplates\ALASKA\ALASKA_USPS_95X12.pdf" />
     <None Include="CoverTemplates\ALASKA\ALASKA_USPS_Generic_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="CoverTemplates\BECU\BECU_10AND95X6_9X12.pdf" />
+    <None Include="CoverTemplates\BECU\BECU_10AND95X6.pdf" />
+    <None Include="CoverTemplates\BECU\BECU_USPS_95X12.pdf" />
     <None Include="CoverTemplates\BECU\BECU_USPS_Generic_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -104,10 +106,11 @@
     </None>
     <None Include="CoverTemplates\BECU_FrontBarcode.pdf" />
     <None Include="CoverTemplates\BECU__IMBWith_A_Barcode.pdf" />
-    <None Include="CoverTemplates\BOTW\BOTW_USPS_10_6X95_9X12.pdf" />
+    <None Include="CoverTemplates\BOTW\BOTW_USPS_10_6X95.pdf" />
     <None Include="CoverTemplates\BOTW\BOTW_USPS_#10_FrontBarcoded_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="CoverTemplates\BOTW\BOTW_USPS_95X12.pdf" />
     <None Include="CoverTemplates\BOTW\BOTW_USPS_Generic_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -124,10 +127,11 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="CoverTemplates\Generic_Template95X12.pdf" />
-    <None Include="CoverTemplates\HSBC\HSBC_USPS_10_6X95_9X12.pdf" />
+    <None Include="CoverTemplates\HSBC\HSBC_USPS_10_6X95.pdf" />
     <None Include="CoverTemplates\HSBC\HSBC_USPS_#10_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="CoverTemplates\HSBC\HSBC_USPS_95X12.pdf" />
     <None Include="CoverTemplates\HSBC\HSBC_USPS_Generic_1.pdf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -143,15 +147,18 @@
     <None Include="CoverTemplates\PENFED\PenFed_USPS_EndPage_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="CoverTemplates\S3\S3_USPS_10_6X95_9X12.pdf" />
+    <None Include="CoverTemplates\S3\S3_USPS_10_6X95.pdf" />
+    <None Include="CoverTemplates\S3\S3_USPS_95X12.pdf" />
     <None Include="CoverTemplates\S3\S3_USPS_EndPage_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="CoverTemplates\S3\S3_USPS_Generic_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="CoverTemplates\UNIFYFCU\UNIFYFCU_USPS_10_6X95_9X12.pdf" />
-    <None Include="CoverTemplates\USAA\USAA_10_6X95_9X12.pdf" />
+    <None Include="CoverTemplates\UNIFYFCU\UNIFYFCU_USPS_10_6X95.pdf" />
+    <None Include="CoverTemplates\UNIFYFCU\UNIFYFCU_USPS_95X12.pdf" />
+    <None Include="CoverTemplates\USAA\USAA_10_6X95.pdf" />
+    <None Include="CoverTemplates\USAA\USAA_USPS_95X12.pdf" />
     <None Include="CoverTemplates\USAA\USAA_USPS_Generic_FrontBarcode_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
