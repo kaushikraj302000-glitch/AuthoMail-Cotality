@@ -73,13 +73,14 @@ namespace AM.Entities
         public bool IsFallBack { get; set; }
         public bool IsPrintReady { get; set; }
 
-        public string BizdayStartTime { get; set; }
-        public string BizdayEndTime { get; set; }
-        public string SatStartTime { get; set; }
-        public string SatEndTime { get; set; }
-        public string SunStartTime { get; set; }
-        public string SunEndTime { get; set; }
+        public TimeSpan? BizdayStartTime { get; set; }
+        public TimeSpan? BizdayEndTime { get; set; }
+        public TimeSpan? SatStartTime { get; set; }
+        public TimeSpan? SatEndTime { get; set; }
+        public TimeSpan? SunStartTime { get; set; }
+        public TimeSpan? SunEndTime { get; set; }
         public int PrintTrailId { get; set; }
+        public string PrintLocation { get; set; }
     }
 
     public class PnSConfigDetailCoverLetter

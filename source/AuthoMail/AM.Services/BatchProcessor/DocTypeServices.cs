@@ -119,12 +119,11 @@ namespace AM.Services
                 DocType maxCutOffDocType = null;
 
                 if (dayOfWeek == DayOfWeek.Sunday)
-                    maxCutOffDocType = docTypeList.Where(dt => estReceivedOn >= estReceivedOnDate + TimeSpan.Parse(dt.SunStartTime) && estReceivedOn <= estReceivedOnDate + TimeSpan.Parse(dt.SunEndTime)).First();
+                    maxCutOffDocType = docTypeList.Where(dt => estReceivedOn >= estReceivedOnDate + dt.SunStartTime && estReceivedOn <= estReceivedOnDate + dt.SunEndTime).First();
                 else if (dayOfWeek == DayOfWeek.Saturday)
-                    maxCutOffDocType = docTypeList.Where(dt => estReceivedOn >= estReceivedOnDate + TimeSpan.Parse(dt.SatStartTime) && estReceivedOn <= estReceivedOnDate + TimeSpan.Parse(dt.SatEndTime)).First();
+                    maxCutOffDocType = docTypeList.Where(dt => estReceivedOn >= estReceivedOnDate + dt.SatStartTime && estReceivedOn <= estReceivedOnDate + dt.SatEndTime).First();
                 else
-                    maxCutOffDocType = docTypeList.Where(dt => estReceivedOn >= estReceivedOnDate + TimeSpan.Parse(dt.BizdayStartTime) && estReceivedOn <= estReceivedOnDate + TimeSpan.Parse(dt.BizdayEndTime)).First();
-
+                    maxCutOffDocType = docTypeList.Where(dt => estReceivedOn >= estReceivedOnDate + dt.BizdayStartTime && estReceivedOn <= estReceivedOnDate + dt.BizdayEndTime).First();
 
                 return maxCutOffDocType;
             }

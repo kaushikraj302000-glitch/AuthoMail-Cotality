@@ -71,6 +71,7 @@
     <xs:attribute name="Name" type="tns:nonEmptyString" use="optional" />
     <xs:attribute name="Pattern" type="tns:nonEmptyString" use="optional" />
     <xs:attribute name="Base64String" type="xs:base64Binary" use="optional" />
+    <xs:attribute name="Inserts" type="xs:string" use="optional" />
   </xs:complexType>
   <xs:complexType name="RecipientInfo">
     <xs:all>

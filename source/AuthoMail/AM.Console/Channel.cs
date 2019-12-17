@@ -606,7 +606,7 @@ namespace AM.Console
                         //Calculate Due Date for Mail Pieces doc type wise
                         mailPiece.DueDate = commonSvc.GetDueDate(docType, mailPiece.EffectiveReceivedOnEst.Value);
                         //Set print location where mail piece will go for print and ship
-                        mailPiece.PrintTrailId = commonSvc.GetPrintTrail(mailPiece.PnSConfigDetailId.Value, mailPiece.EffectiveReceivedOnEst.Value);
+                        //mailPiece.PrintTrailId = commonSvc.GetPrintTrail(mailPiece.PnSConfigDetailId.Value, mailPiece.EffectiveReceivedOnEst.Value);
                         var printVendorDetails = commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value, mailPiece.EffectiveReceivedOnEst);
                         mailPiece.PrintLocation = printVendorDetails.PrintLocation;
                         //This field will be used for monitoring data    

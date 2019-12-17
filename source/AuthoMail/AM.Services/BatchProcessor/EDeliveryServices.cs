@@ -99,6 +99,7 @@ namespace AM.Services
                     DocType mpDocType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, edmp.TotalPages, edmp.ReceivedOn.Value);
                     mailPieceDTO.DocTypeId = mpDocType.Id;
                     mailPieceDTO.PnSConfigDetailId = mpDocType.PnSConfigDetailId;
+                    mailPieceDTO.PrintTrailId = mpDocType.PrintTrailId;
                     GetExactDocumentType(mpDocType, mailPieceDTO);
                     commonSvc.GetUpdatedDueDateAndPrintLocation(newReceivedOnDateTime, mailPieceDTO, mpDocType, edmp.ClientCode);
                     mpSvc.UpdateBatchMailPieceDetails(mailPieceDTO);

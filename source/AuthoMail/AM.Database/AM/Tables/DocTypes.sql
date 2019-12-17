@@ -1,0 +1,52 @@
+﻿CREATE TABLE [AM].[DocTypes] (
+    [Id]                                  INT            IDENTITY (1, 1) NOT NULL,
+    [ClientId]                            INT            NOT NULL,
+    [QCPercent]                           FLOAT (53)     NULL,
+    [IsReturnInfoSpecified]               BIT            NULL,
+    [RetRcptPrefix]                       VARCHAR (255)  NULL,
+    [RetRcptFirstName]                    VARCHAR (255)  NULL,
+    [RetRcptMiddleName]                   VARCHAR (255)  NULL,
+    [RetRcptLastName]                     VARCHAR (255)  NULL,
+    [RetRcptSuffix]                       VARCHAR (255)  NULL,
+    [RetRcptPhone]                        VARCHAR (255)  NULL,
+    [RetRcptOrganization]                 VARCHAR (255)  NULL,
+    [RetRcptAddrOptionalLine1AboveStreet] VARCHAR (255)  NULL,
+    [RetRcptAddrOptionalLine2AboveStreet] VARCHAR (255)  NULL,
+    [RetRcptAddressStreet]                VARCHAR (255)  NULL,
+    [RetRcptAddressAptOrSuiteOrOther]     VARCHAR (255)  NULL,
+    [RetRcptAddrOptionalLine1BelowStreet] VARCHAR (255)  NULL,
+    [RetRcptAddrOptionalLine2BelowStreet] VARCHAR (255)  NULL,
+    [RetRcptAddressCity]                  VARCHAR (255)  NULL,
+    [RetRcptAddressState]                 VARCHAR (255)  NULL,
+    [RetRcptAddressZIP]                   VARCHAR (255)  NULL,
+    [ClientEmails]                        VARCHAR (1024) NULL,
+    [ClientContactNo]                     VARCHAR (255)  NULL,
+    [SupportEmails]                       VARCHAR (1024) NULL,
+    [SupportContactNo]                    VARCHAR (255)  NULL,
+    [IsActive]                            BIT            NOT NULL,
+    [ModifiedOn]                          DATETIME       NULL,
+    [CreatedOn]                           DATETIME       NULL,
+    [CreatedBy]                           NVARCHAR (128) NULL,
+    [ModifiedBy]                          NVARCHAR (128) NULL,
+    [IsBRE]                               BIT            CONSTRAINT [DF_DocTypes_IsBRE] DEFAULT ((0)) NOT NULL,
+    [NoOfCopies]                          INT            NOT NULL,
+    [BREEnvelopeId]                       INT            NULL,
+    [RetRcptAddressCountry]               VARCHAR (255)  NULL,
+    [IsPrintReady]                        BIT            NULL,
+    [DocTypeName]                         VARCHAR (255)  NULL,
+    [PnSConfigId]                         INT            NULL,
+    CONSTRAINT [PK_DocTypes] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 70),
+    CONSTRAINT [FK__DocTypes__CreatedBy] FOREIGN KEY ([CreatedBy]) REFERENCES [Profile].[Users] ([Id]),
+    CONSTRAINT [FK__DocTypes__ModifiedBy] FOREIGN KEY ([ModifiedBy]) REFERENCES [Profile].[Users] ([Id]),
+    CONSTRAINT [FK_CreatedBy_DocTypes_User] FOREIGN KEY ([CreatedBy]) REFERENCES [Profile].[Users] ([Id]),
+    CONSTRAINT [FK_DocTypes_BREEnvelopes] FOREIGN KEY ([BREEnvelopeId]) REFERENCES [Common].[Envelopes] ([Id]),
+    CONSTRAINT [FK_DocTypes_Clients] FOREIGN KEY ([ClientId]) REFERENCES [Common].[Clients] ([Id]),
+    CONSTRAINT [FK_DocTypes_PnSConfig] FOREIGN KEY ([PnSConfigId]) REFERENCES [Common].[PnSConfig] ([Id]),
+    CONSTRAINT [FK_ModifiedBy_DocTypes_User] FOREIGN KEY ([ModifiedBy]) REFERENCES [Profile].[Users] ([Id])
+);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_DocTypes_ClientId]
+    ON [AM].[DocTypes]([ClientId] ASC) WITH (FILLFACTOR = 70);
+

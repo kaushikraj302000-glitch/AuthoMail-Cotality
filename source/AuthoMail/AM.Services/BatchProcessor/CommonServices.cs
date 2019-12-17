@@ -447,7 +447,7 @@ namespace AM.Services
             //Calculate Due Date for Mail Pieces doc type wise
             mailPiece.DueDate = GetDueDate(docType, mailPiece.EffectiveReceivedOnEst.Value);
             //Set print location where mail piece will go for print and ship
-            mailPiece.PrintTrailId = GetPrintTrail(mailPiece.PnSConfigDetailId.Value, mailPiece.EffectiveReceivedOnEst.Value);
+            //mailPiece.PrintTrailId = GetPrintTrail(mailPiece.PnSConfigDetailId.Value, mailPiece.EffectiveReceivedOnEst.Value);
             var printVendorDetails = GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value, mailPiece.EffectiveReceivedOnEst);
             mailPiece.PrintLocation = printVendorDetails.PrintLocation;
             mailPiece.StdSubmissionTime = GetStandardSubmissionTime(appCode, printVendorDetails.VendorCode, receivedOn, GetSweepTimings());
