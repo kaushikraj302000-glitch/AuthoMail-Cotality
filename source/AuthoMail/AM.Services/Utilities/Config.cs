@@ -215,7 +215,12 @@ namespace AM.Services
         public static int Common_InventoryBufferStockDays { get; set; }
         #endregion Support
 
+        #region EllieMae_API
 
+        public static string EllieMae_Secret { get; set; }
+        public static string EllieMae_X_API_Key { get; set; }
+
+        #endregion
 
 
         private static List<string> errors;

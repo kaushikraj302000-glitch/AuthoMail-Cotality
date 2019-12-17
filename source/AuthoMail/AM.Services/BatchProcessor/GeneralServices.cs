@@ -1,9 +1,14 @@
 ﻿using AM.Entities;
 using AM.Lib;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -17,7 +22,8 @@ namespace AM.Services
         string GeneralXMLReport(List<MailPieces> mailPieces, MailBatches mailBatch);
         string GeneralXMLReport(List<MailPieces> mailPieces, MailBatchDTO mailBatch, string clientCode);
         string GeneralJsonReport(MailPieces mp, MailBatchDTO mailBatch, string clientCode);
-        string GeneralJsonReport(MailPieces mp, MailBatches mailBatch);
+        string GeneralJsonReport(MailPieces mp, MailBatches mailBatch);        
+        Task<string> SendEllieMaeResponse(List<MailAPIResponse> responseReport);
     }
 
     public class GeneralService : ServiceBase, IGeneralService
@@ -214,6 +220,86 @@ namespace AM.Services
             var serializedString = JsonConvert.SerializeObject(response);
 
             return serializedString;
+        }
+        public string GenerateHashHMAC(string key, string message)
+        {
+            Encoding ascii = Encoding.ASCII;
+            HMACSHA256 hmac = new HMACSHA256(ascii.GetBytes(key));
+
+            byte[] hash = hmac.ComputeHash(ascii.GetBytes(message));          
+            return String.Concat(Array.ConvertAll(hash, x => x.ToString("x2")));
+        }
+
+        public async Task<string> SendEllieMaeResponse(List<MailAPIResponse> responseReport)
+        {
+            try
+            {
+                string json = JsonConvert.SerializeObject(responseReport);                
+                string hashHMAC = GenerateHashHMAC(Config.EllieMae_Secret, json);
+                //var token = await GetToken();
+                using (var client = SetupClient(Config.EllieMae_X_API_Key, hashHMAC))
+                {
+                    StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                    HttpResponseMessage response = await client.PostAsync("api/emresponse", content);
+                    var responseString = await response.Content.ReadAsStringAsync();
+
+                    return responseString;
+                }
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+        }
+
+        private static HttpClient SetupClient(string xAPIKey,string hashHMAC)
+        {
+            var client = new HttpClient();
+            client.BaseAddress = new Uri("http://localhost:17005/");
+            client.DefaultRequestHeaders.Accept.Clear();
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            //client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+            client.DefaultRequestHeaders.Add("X-API-Key", xAPIKey);
+            client.DefaultRequestHeaders.Add("Elli-Signature", hashHMAC);
+            return client;
+        }
+        public async static Task<string> GetToken()
+        {
+            try
+            {
+                using (var client = new HttpClient())
+                {
+                    ServicePointManager.Expect100Continue = true;
+                    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
+                    //setup client
+                    client.BaseAddress = new Uri("http://localhost:17005/"); 
+                    client.DefaultRequestHeaders.Accept.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                    //setup login data
+                    var formContent = new FormUrlEncodedContent(new[]
+                {
+                    new KeyValuePair<string, string>("grant_type", "password"),
+                    new KeyValuePair<string, string>("username", "admin@milestonetechnoconsulting.com"),
+                    new KeyValuePair<string, string>("password", "Admin@123") 
+                });
+
+                    //send request
+                    HttpResponseMessage responseMessage = await client.PostAsync("/token", formContent);
+
+                    //get access token from response body
+                    var responseJson = await responseMessage.Content.ReadAsStringAsync();
+                    var jObject = JObject.Parse(responseJson);
+                    return jObject.GetValue("access_token").ToString();
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex.ToString();
+            }
         }
     }
 }
