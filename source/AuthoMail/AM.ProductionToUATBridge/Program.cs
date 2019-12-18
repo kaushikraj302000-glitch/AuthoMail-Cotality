@@ -33,6 +33,11 @@ namespace AM.ProductionToUATBridge
             }
             else
             {
+                string clientCode = "";
+                if (!string.IsNullOrWhiteSpace(args[0]))
+                {
+                    clientCode = args[0];
+                }
                 log.Debug("Working Log");
                 using (IMailBatchService mailBatchSvc = new MailBatchService())
                 using (IMailPieceService mailPieceSvc = new MailPieceService())
@@ -58,6 +63,9 @@ namespace AM.ProductionToUATBridge
                         try
                         {
                             var client = clientSvc.GetClientById(mpData.Key);
+
+                            if (!string.IsNullOrWhiteSpace(clientCode) && client.AppCode != clientCode)
+                                continue;
 
                             if (client.AppCode == "RPS" || client.AppCode == "CITIVM")
                                 continue;
@@ -87,7 +95,7 @@ namespace AM.ProductionToUATBridge
                                 double qcCount = 0;
                                 float qcPercentage = ratioList[client.AppCode] / 100;
                                 qcCount = Math.Ceiling(mpListByMb.Count * qcPercentage);
-
+                                log.Debug("Record Count : {0}".Fill(qcCount));
                                 var randomIndexes = new List<int>();
                                 while (randomIndexes.Count < qcCount)
                                 {
@@ -97,11 +105,12 @@ namespace AM.ProductionToUATBridge
                                         randomIndexes.Add(index);
                                     }
                                 }
-
+                                log.Debug("While Going to randomIndexes");
                                 randomIndexes.ForEach(index =>
                                 {
                                     mpListByMb[index].IsQCRequested = true;
                                 });
+                                log.Debug("Going to randomIndexes");
                                 #endregion
 
                                 var selectedMPs = mpListByMb.Where(mp => mp.IsQCRequested).ToList();
