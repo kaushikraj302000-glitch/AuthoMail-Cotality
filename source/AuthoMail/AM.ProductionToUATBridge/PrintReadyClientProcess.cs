@@ -318,7 +318,7 @@ namespace AM.ProductionToUATBridge
                             //logic to implement remove its cover page and update new cover page accordingly and merge pdf.
                             Dictionary<string, string> mpPDFFiller = new Dictionary<string, string>();
                             mpPDFFiller.Add("FromAddress", (mp.RetRcptFirstName + " " + mp.RetRcptLastName).Trim() + "\n" + mp.RetRcptAddressStreet + "\n" + mp.RetRcptAddressCity + " " + mp.RetRcptAddressState + " " + mp.RetRcptAddressZIP);
-                            mpPDFFiller.Add("ToAddress", (mp.RcptFirstName + " " + mp.RcptLastName).Trim() + "\n" + mp.RcptAddressStreet + "\n" + mp.RcptAddressCity + " " + mp.RcptAddressState + " " + mp.RcptAddressZIP);
+                            mpPDFFiller.Add("ToAddress", (recipient.FirstName + " " + recipient.LastName).Trim() + "\n" + recipientAddress.Street + "\n" + recipientAddress.City + " " + recipientAddress.State + " " + recipientAddress.Zip);
                             string templatePath = Path.Combine(Configuration.CoverPageFolder, "RPS.pdf");
                             string outputCoverLetterPath = Path.Combine(Configuration.CoverPageFolder, "RPS_Output.pdf");
                             GenerateCoverPage(templatePath, outputCoverLetterPath, mpPDFFiller);
