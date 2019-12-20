@@ -219,6 +219,8 @@ namespace AM.Services
 
         public static string EllieMae_Secret { get; set; }
         public static string EllieMae_X_API_Key { get; set; }
+        public static string EllieMae_BaseURL { get; set; }
+        public static string EllieMae_UploadResponseURL { get; set; }
 
         #endregion
 

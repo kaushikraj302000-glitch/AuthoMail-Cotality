@@ -12,6 +12,12 @@ namespace AM.Entities
         public string AppCode { get; set; }
     }
 
+    public class BatchAPIResponse
+    {
+        public int MBId { get; set; }
+        public MailAPIResponse resp { get; set; }
+    }
+
     public class MailAPIResponse
     {
         public Guid Id { get; set; }
