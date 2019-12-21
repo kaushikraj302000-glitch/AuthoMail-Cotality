@@ -19,7 +19,7 @@ namespace AM.Services
         int UpdateSubmissionTime(int id, DateTime stdSubmissionTime, DateTime maxSubmissionTime, string missedSLAReason);
         List<Recal> GetMPsToUpdatePnSConfigDetailId();
         DocTypeInfo GetDocTypeById(int id);
-        DocTypeInfo GetPnSConfigDetailId(int clientId, int doctypeId, string shippingCarrier, string shippingServiceType, int totalPages);
+        DocTypeInfo GetPnSConfigDetailId(int clientId, int doctypeId, string shippingCarrier, string shippingServiceType, int totalPages, DateTime estReceivedOn);
         int UpdatePnSConfigDetailId(int mpId, int pnsConfigDetailId);
     }
     public class ReCalculateDueDateService : ServiceBase, IReCalculateDueDateService
@@ -66,7 +66,8 @@ namespace AM.Services
 
         public List<Recal> GetMPsToUpdatePnSConfigDetailId()
         {
-            return db.Query<Recal>("select Id,ClientId,TotalPages,DocTypeId,ClientDocTypeId from AM.MailPieces where DocTypeId IS NOT NULL").ToList();
+            //return db.Query<Recal>("select Id,ClientId,TotalPages,DocTypeId,ClientDocTypeId from AM.MailPieces where DocTypeId IS NOT NULL").ToList();
+            return db.Query<Recal>("select Id,ClientId,TotalPages,DocTypeId,EffectiveReceivedOnEst from AM.MailPieces where DocTypeId IS NOT NULL").ToList();
         }
 
         public DocTypeInfo GetDocTypeById(int id)
@@ -74,9 +75,29 @@ namespace AM.Services
             return db.QuerySingleOrDefault<DocTypeInfo>("select Id,ShippingCarrier,ShippingServiceType from AM.DocTypes WHERE Id= @Id", new { Id = id });
         }
 
-        public DocTypeInfo GetPnSConfigDetailId(int clientId, int doctypeId, string shippingCarrier, string shippingServiceType, int totalPages)
+        public DocTypeInfo GetPnSConfigDetailId(int clientId, int doctypeId, string shippingCarrier, string shippingServiceType, int totalPages, DateTime estReceivedOn)
         {
-            return db.QuerySingleOrDefault<DocTypeInfo>("SELECT D.PnSConfigDetailId FROM [dbo].[v_DocTypes] D WHERE D.ClientId=@ClientId AND D.Id=@DocTypeId AND ISNULL(D.ShippingCarrier,'') = ISNULL(@ShippingCarrier,'') AND ISNULL(D.ShippingServiceType,'') = ISNULL(@ShippingServiceType,'') AND @TotalPages BETWEEN MinPage AND MaxPage", new { ClientId = clientId, DocTypeId = doctypeId, ShippingCarrier = shippingCarrier, ShippingServiceType = shippingServiceType, TotalPages = totalPages });
+            //return db.QuerySingleOrDefault<DocTypeInfo>("SELECT D.PnSConfigDetailId FROM [dbo].[v_DocTypes] D WHERE D.ClientId=@ClientId AND D.Id=@DocTypeId AND ISNULL(D.ShippingCarrier,'') = ISNULL(@ShippingCarrier,'') AND ISNULL(D.ShippingServiceType,'') = ISNULL(@ShippingServiceType,'') AND @TotalPages BETWEEN MinPage AND MaxPage", new { ClientId = clientId, DocTypeId = doctypeId, ShippingCarrier = shippingCarrier, ShippingServiceType = shippingServiceType, TotalPages = totalPages });
+            var docTypes = db.Query<DocTypeInfo>("SELECT D.PnSConfigDetailId FROM [dbo].[v_DocTypes] D WHERE D.ClientId=@ClientId AND D.Id=@DocTypeId AND ISNULL(D.ShippingCarrier,'') = ISNULL(@ShippingCarrier,'') AND ISNULL(D.ShippingServiceType,'') = ISNULL(@ShippingServiceType,'') AND @TotalPages BETWEEN MinPage AND MaxPage", new { ClientId = clientId, DocTypeId = doctypeId, ShippingCarrier = shippingCarrier, ShippingServiceType = shippingServiceType, TotalPages = totalPages }).ToList();
+
+            if (docTypes.Count == 0)
+            {
+                return null;
+            }
+            else if (docTypes.Count == 1)
+            {
+                return docTypes.Single();
+            }
+            else
+            {
+                var estReceivedOnDate = estReceivedOn.Date;
+                if (estReceivedOn.DayOfWeek == DayOfWeek.Sunday)
+                    return docTypes.Where(dt => estReceivedOn >= estReceivedOnDate + dt.SunStartTime && estReceivedOn <= estReceivedOnDate + dt.SunEndTime).First();
+                else if (estReceivedOn.DayOfWeek == DayOfWeek.Saturday)
+                    return docTypes.Where(dt => estReceivedOn >= estReceivedOnDate + dt.SatStartTime && estReceivedOn <= estReceivedOnDate + dt.SatEndTime).First();
+                else
+                    return docTypes.Where(dt => estReceivedOn >= estReceivedOnDate + dt.BizdayStartTime && estReceivedOn <= estReceivedOnDate + dt.BizdayEndTime).First();
+            }
         }
 
         public int UpdatePnSConfigDetailId(int mpId, int pnsConfigDetailId)
@@ -113,5 +134,11 @@ namespace AM.Services
         public int PnSConfigDetailId { get; set; }
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
+        public TimeSpan? BizdayStartTime { get; set; }
+        public TimeSpan? BizdayEndTime { get; set; }
+        public TimeSpan? SatStartTime { get; set; }
+        public TimeSpan? SatEndTime { get; set; }
+        public TimeSpan? SunStartTime { get; set; }
+        public TimeSpan? SunEndTime { get; set; }
     }
 }
