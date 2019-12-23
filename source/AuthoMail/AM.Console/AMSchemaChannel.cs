@@ -996,7 +996,7 @@ namespace AM.Console
             if (mailPieceDTO.IsFallBackRequested || !mailPieceDTO.IsEDeliveryRequested)
             {
                 //Document Or Package Type validation
-                var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, pageCount, mbi.MailBatch.ReceivedOn.Value);
+                var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, pageCount, mbi.MailBatch.ReceivedOn.Value.UtcToEst());
 
                 if (docType != null)
                 {
@@ -1046,7 +1046,7 @@ namespace AM.Console
             if (mailPieceDTO.IsEDeliveryRequested && mailPieceDTO.ShippingStatus != ShippingStatus.Error.ToString())
             {
                 //NOTE : System will check for E-Delivery and set E-Delivery as a Document type even though requested for FallBack
-                var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, "E-Delivery", pageCount, mbi.MailBatch.ReceivedOn.Value);
+                var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, "E-Delivery", pageCount, mbi.MailBatch.ReceivedOn.Value.UtcToEst());
 
                 if (docType != null)
                 {

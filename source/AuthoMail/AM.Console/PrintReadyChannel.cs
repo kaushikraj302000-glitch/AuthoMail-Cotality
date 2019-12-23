@@ -790,7 +790,7 @@ namespace AM.Console
             }
             else
             {
-                docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType, pageCount, mbi.MailBatch.ReceivedOn.Value);
+                docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType, pageCount, mbi.MailBatch.ReceivedOn.Value.UtcToEst());
             }
 
 

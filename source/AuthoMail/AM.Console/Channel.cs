@@ -826,6 +826,8 @@ namespace AM.Console
                                 }
 
                                 mailPiece.DocTypeId = docType.Id;
+                                mailPiece.PnSConfigDetailId = docType.PnSConfigDetailId;
+                                mailPiece.PrintTrailId = docType.PrintTrailId;
 
                                 if (!mailPiece.IsReturnInfoSpecified && !mailBatch.IsReturnInfoSpecified && docType.IsReturnInfoSpecified)
                                 {

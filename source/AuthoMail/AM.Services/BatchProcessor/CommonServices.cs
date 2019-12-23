@@ -442,6 +442,7 @@ namespace AM.Services
         public void GetUpdatedDueDateAndPrintLocation(DateTime receivedOn, MailPieceDTO mailPiece, DocType docType, string appCode)
         {
             mailPiece.DocTypeId = docType.Id;
+            mailPiece.PrintTrailId = docType.PrintTrailId;
             mailPiece.PnSConfigDetailId = docType.PnSConfigDetailId;
             mailPiece.EffectiveReceivedOnEst = GetEffectiveEstReceivedOn(docType, receivedOn);
             //Calculate Due Date for Mail Pieces doc type wise
