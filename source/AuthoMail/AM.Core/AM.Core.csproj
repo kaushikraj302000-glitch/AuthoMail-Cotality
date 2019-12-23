@@ -92,12 +92,12 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="CoverTemplates\ALASKA\ALASKA_USPS_10_6X95.pdf" />
-    <None Include="CoverTemplates\ALASKA\ALASKA_USPS_95X12.pdf" />
+    <None Include="CoverTemplates\ALASKA\ALASKA_USPS_9X12_Tyvek.pdf" />
     <None Include="CoverTemplates\ALASKA\ALASKA_USPS_Generic_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="CoverTemplates\BECU\BECU_10AND95X6.pdf" />
-    <None Include="CoverTemplates\BECU\BECU_USPS_95X12.pdf" />
+    <None Include="CoverTemplates\BECU\BECU_USPS_9X12_Tyvek.pdf" />
     <None Include="CoverTemplates\BECU\BECU_USPS_Generic_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -110,7 +110,7 @@
     <None Include="CoverTemplates\BOTW\BOTW_USPS_#10_FrontBarcoded_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="CoverTemplates\BOTW\BOTW_USPS_95X12.pdf" />
+    <None Include="CoverTemplates\BOTW\BOTW_USPS_9X12_Tyvek.pdf" />
     <None Include="CoverTemplates\BOTW\BOTW_USPS_Generic_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -131,7 +131,7 @@
     <None Include="CoverTemplates\HSBC\HSBC_USPS_#10_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="CoverTemplates\HSBC\HSBC_USPS_95X12.pdf" />
+    <None Include="CoverTemplates\HSBC\HSBC_USPS_9X12_Tyvek.pdf" />
     <None Include="CoverTemplates\HSBC\HSBC_USPS_Generic_1.pdf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -148,7 +148,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="CoverTemplates\S3\S3_USPS_10_6X95.pdf" />
-    <None Include="CoverTemplates\S3\S3_USPS_95X12.pdf" />
+    <None Include="CoverTemplates\S3\S3_USPS_9X12_Tyvek.pdf" />
     <None Include="CoverTemplates\S3\S3_USPS_EndPage_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
