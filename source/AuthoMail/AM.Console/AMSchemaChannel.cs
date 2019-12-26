@@ -683,6 +683,7 @@ namespace AM.Console
 
                             mailPieceDTO.FileName = requests.DocumentOrPackage.Name.TrimIfNotNull();
                             mailPieceDTO.FilePattern = requests.DocumentOrPackage.Pattern.TrimIfNotNull();
+                            mailPieceDTO.Inserts = requests.DocumentOrPackage.Inserts.TrimIfNotNull();
                             if (!string.IsNullOrEmpty(mailPieceDTO.FilePattern))
                             {
                                 var file = Directory.EnumerateFiles(mbi.AMRequestPath, "*" + mailPieceDTO.FilePattern + "*.pdf").SingleOrDefault();
