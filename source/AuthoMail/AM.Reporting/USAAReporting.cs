@@ -22,7 +22,7 @@ namespace AM.Reporting
                 using (IClientService clientSvc = new ClientService())
                 using (IReportService reportSvc = new ReportService())
                 {
-                    var clientInfo = clientSvc.GetClientByAppCode("USAA");
+                    var clientInfo = clientSvc.GetClientByAppCode("USAA").Result;
                     var getPreviousMonthDate = Common.EstToday.AddMonths(-1);
                     var getCurrentMonthDate = Common.EstToday;
 
@@ -54,7 +54,7 @@ namespace AM.Reporting
                 using (IClientService clientSvc = new ClientService())
                 using (IReportService reportSvc = new ReportService())
                 {
-                    var clientInfo = clientSvc.GetClientByAppCode("USAA");
+                    var clientInfo = clientSvc.GetClientByAppCode("USAA").Result;
                     DateTime previousDate = Common.EstToday.AddDays(-1);
                     //NOTE : Please change UTC to EST code when Daylight saving is off in service call
                     errorReportData = reportSvc.GetErrorReportByDateOrBatch(clientInfo.Id, previousDate, null, "");
@@ -81,7 +81,7 @@ namespace AM.Reporting
                 using (IClientService clientSvc = new ClientService())
                 using (IReportService reportSvc = new ReportService())
                 {
-                    var clientInfo = clientSvc.GetClientByAppCode("USAA");
+                    var clientInfo = clientSvc.GetClientByAppCode("USAA").Result;
                     var getPreviousSaturdayDate = Common.EstToday.AddDays(-2);//For Previous Saturday
                     var getMondayDate = getPreviousSaturdayDate.AddDays(-5);//For Previous Monday
 

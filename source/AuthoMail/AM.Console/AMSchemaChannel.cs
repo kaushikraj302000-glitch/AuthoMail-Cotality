@@ -364,7 +364,7 @@ namespace AM.Console
                     //Here we are moving whole directory so no need to create AMRequestPath directly.
                     Directory.Move(batchPath, mbi.AMRequestPath);
 
-                    commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Downloaded, Common.Now);
+                    commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Downloaded, Common.Now).Wait();
 
                     scope.Complete();
 
@@ -513,7 +513,7 @@ namespace AM.Console
 
             File.WriteAllText(invalidBatchPath, string.Empty);
 
-            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
+            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now).Wait();
 
             string remoteFilePath = Path.Combine(deliverable.UploadPath, invalidBatchFileName);
 
@@ -532,7 +532,7 @@ namespace AM.Console
             if (sftSite.IsConnected)
                 sftSite.Disconnect();
 
-            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
+            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now).Wait();
         }
 
         private void MoveBatchToBackupDir(SFTUtil sftSite, string ftpFilePath)
@@ -559,8 +559,8 @@ namespace AM.Console
             mailBatch.ClientBatchId = batchName;
             mailBatch.Priority = Priority.Low.ToString();
             mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
-            commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, receivedOn);
-            mailBatchSvc.MarkMailBatchAsInvalid(mailBatch.Id, errorMessage);
+            commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, receivedOn).Wait();
+            mailBatchSvc.MarkMailBatchAsInvalid(mailBatch.Id, errorMessage).Wait();
             commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.Failed.ToString());
             return mailBatch;
         }
@@ -944,11 +944,11 @@ namespace AM.Console
 
                     if (mailPieceList.All(mp => mp.IsEDeliveryRequested && mp.ShippingStatus != ShippingStatus.Error.ToString()))
                     {
-                        commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.SubmittedToEDelivery, Common.Now);
+                        commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.SubmittedToEDelivery, Common.Now).Wait();
                         commonSvc.UpdateEDeliveryPipelineStatus(mbi.MailBatch.Id, EDPipelineStatus.Validated, Common.Now);
                     }
                     else
-                        commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
+                        commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now).Wait();
                 }
                 catch (Exception ex)
                 {
@@ -1248,7 +1248,7 @@ namespace AM.Console
             if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.Invalid)
             {
                 // Batch status Reported Back
-                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
+                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now).Wait();
 
                 //NOTE: Inserting Error Notification in this because system is not going to update any further status for batch due to full batch is invalid
                 commonSvc.InsertErrorNotifications(mbi.MailBatch.Id);
@@ -1296,11 +1296,11 @@ namespace AM.Console
 
                 if (sftSite.IsConnected)
                     sftSite.Disconnect();
-                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
+                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now).Wait();
             }
             else
             {
-                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
+                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now).Wait();
             }
 
             return errorReportPath;

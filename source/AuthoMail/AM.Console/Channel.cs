@@ -206,7 +206,7 @@ namespace AM.Console
                             if (remainingPrintBatchReportedBackCount > 0)
                                 continue;
 
-                            commonSvc.UpdateBatchPipeLineStatus(batchResponse.MBId, BatchPipelineStatus.ReportedBack, Common.Now);
+                            commonSvc.UpdateBatchPipeLineStatus(batchResponse.MBId, BatchPipelineStatus.ReportedBack, Common.Now).Wait();
                         }
                         catch (Exception ex)
                         {
@@ -263,7 +263,7 @@ namespace AM.Console
                                 bool isUploaded = UploadReportsToClients(mbi, sftSite, deliverables, mailPieces, sftChannelDetails);
 
                                 if (isUploaded)
-                                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
+                                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now).Wait();
 
                                 if (sftSite.IsConnected)
                                     sftSite.Disconnect();

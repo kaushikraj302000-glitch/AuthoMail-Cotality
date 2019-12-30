@@ -573,7 +573,7 @@ namespace AM.Core
                                     //TODO: Remove after proper logic implementation client wise switch case implemented
                                     GenerateImmidiateReports(mbi, mailPieces, reportDeliverable);
 
-                                    mailBatchSvc.MarkMailBatchAsInvalid(mbi.MailBatch.Id, (mbi.MailBatch.ValidationErrors + Environment.NewLine + "Some documents could not be processed."));
+                                    mailBatchSvc.MarkMailBatchAsInvalid(mbi.MailBatch.Id, (mbi.MailBatch.ValidationErrors + Environment.NewLine + "Some documents could not be processed.")).Wait();
                                     commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.Failed.ToString());
 
                                     //NOTE: Inserting Error Notification in this because system is not going to update any further status for batch due to full batch is invalid

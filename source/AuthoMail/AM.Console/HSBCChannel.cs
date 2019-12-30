@@ -501,7 +501,7 @@ namespace AM.Console
             MailUtility.SendNoDataNotificationEmail(mbi, deliverable.EmailChannel, mailMsg, errorReportPath);
 
             //For Invalid Batch, we will generate error File
-            mailBatchSvc.MarkMailBatchAsInvalid(mbi.MailBatch.Id, msg);
+            mailBatchSvc.MarkMailBatchAsInvalid(mbi.MailBatch.Id, msg).Wait();
 
             commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
 

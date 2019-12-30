@@ -94,7 +94,7 @@ namespace AM.Console
                     }
 
                     //Update Pipeline Status of Batch Received
-                    commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, lastModifiedTime);
+                    commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, lastModifiedTime).Wait();
 
                     commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.InProgress.ToString());
                 }
@@ -181,7 +181,7 @@ namespace AM.Console
                         sftSite.DeleteFile(ftpXmlFilePath);
                     }
 
-                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Downloaded, Common.Now);
+                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Downloaded, Common.Now).Wait();
                 }
                 catch (Exception ex)
                 {
@@ -472,7 +472,7 @@ namespace AM.Console
 
                     Channel.CalculateDueDateAndPrintLocation(mailBatch, mailPieceData);
 
-                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
+                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now).Wait();
                 }
                 catch (Exception ex)
                 {
@@ -530,9 +530,9 @@ namespace AM.Console
         {
             MailUtility.SendNoDataNotificationEmail(mbi, deliverables.EmailChannel, msg);
             //For Invalid Batch, we will generate error File
-            mailBatchSvc.MarkMailBatchAsInvalid(mbi.MailBatch.Id, msg);
+            mailBatchSvc.MarkMailBatchAsInvalid(mbi.MailBatch.Id, msg).Wait();
 
-            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
+            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now).Wait();
 
             commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
         }
@@ -578,7 +578,7 @@ namespace AM.Console
                                 }
 
                                 // Batch status Prepped
-                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
+                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now).Wait();
 
                                 //NOTE: Inserting Error Notification in this because system is not going to update any further status for batch due to full batch is invalid
                                 commonSvc.InsertErrorNotifications(mbi.MailBatch.Id);
@@ -605,12 +605,12 @@ namespace AM.Console
                                             sftSite.Disconnect();
                                     }
                                 }
-                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
+                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now).Wait();
                             }
                             else
                             {
                                 // Batch is valid
-                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
+                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now).Wait();
                             }
 
                             if (reportDeliverable.EmailChannel != null)
